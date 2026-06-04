@@ -46,7 +46,11 @@ candidate-refresh, validation-safety-case, and environment capability contracts,
 plus the schema bundle. No prose docs changed.
 
 Last commit:
-Pending.
+Current slice commit is pushed to `origin/main` as `a05fe22` (`Fix validation
+registry schema identity`). `slice_reviewer` and `git_slice_publisher` were
+both unavailable because valid spawns hit the agent thread limit, so review and
+publish were performed manually with scoped staging. The unrelated `.gitignore`
+scratch-ignore change was left unstaged.
 
 Next candidate:
 After review/publish, re-read the guide/ledger/live worktree and continue with
