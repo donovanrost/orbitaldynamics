@@ -57,7 +57,9 @@ still reject object-shaped values, generated schema exports are refreshed, and
 the residual full-suite failures remain outside this slice.
 
 Last commit:
-Pending publish for current slice.
+Slice code/schema/tests committed as `475f556`
+(`Allow qualitative lighting confidence in schemas`); this ledger line was
+recorded in a follow-up handoff commit.
 
 Next candidate:
 Re-read the guide/ledger/live worktree and choose the next guide-backed slice.
