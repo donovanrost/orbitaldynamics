@@ -19439,6 +19439,111 @@ defmodule OrbitalDynamics.SchemaTest do
            )
   end
 
+  test "exports and validates timeline publication summary fields" do
+    assert {:ok, schema} = Schema.json_schema("timeline_publication_summary.v1")
+    stable_id_pattern = Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, ["properties", "schema_contract", "const"]) ==
+             "timeline_publication_summary.v1"
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "artifact_only_timeline_publication_summary"
+
+    assert get_in(schema, ["properties", "validation_level", "const"]) == "artifact_contract"
+
+    assert get_in(schema, ["properties", "publication_id", "pattern"]) == stable_id_pattern
+    assert get_in(schema, ["properties", "publication_sequence", "minimum"]) == 0
+
+    assert get_in(schema, ["properties", "publication_status", "enum"]) == [
+             "published",
+             "published_with_downstream_invalidations",
+             "review_required"
+           ]
+
+    assert get_in(schema, ["properties", "dependency_impact_status", "enum"]) == [
+             "clear",
+             "not_evaluated",
+             "review_required"
+           ]
+
+    assert get_in(schema, [
+             "properties",
+             "invalidated_downstream_product_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(schema, ["properties", "model_limits", "const"]) ==
+             OrbitalDynamics.Timeline.model_limits()
+
+    summary =
+      OrbitalDynamics.Timeline.publication_summary(
+        %{
+          "schema_contract" => "operational_timeline_report.v1",
+          "id" => "timeline:published_plan:v2"
+        },
+        publication_sequence: 2,
+        publication_authority: :mission_operations,
+        downstream_product_ids: ["cadence_import:plan:v1"],
+        invalidated_downstream_product_ids: ["cadence_import:plan:v1"]
+      )
+
+    assert {:ok, %{"schema_contract" => "timeline_publication_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    stale_source = Map.put(summary, "source", "timeline_diff_report.v1")
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_source)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.source" and &1["message"] == "must equal source_artifact_type")
+           )
+
+    stale_status = Map.put(summary, "publication_status", "published")
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_status)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.publication_status" and
+                 &1["message"] ==
+                   "must equal downstream invalidation and dependency impact state")
+           )
+
+    stale_model_limits = Map.put(summary, "model_limits", ["artifact_level_only"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_model_limits)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] == "must match timeline report model limits")
+           )
+
+    invalid_downstream_id =
+      Map.put(summary, "invalidated_downstream_product_ids", ["bad downstream id"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_downstream_id)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.invalidated_downstream_product_ids[0]" and
+                 &1["message"] =~ "stable ID")
+           )
+
+    undeclared_invalidation =
+      Map.put(summary, "invalidated_downstream_product_ids", ["operator_review:plan:v1"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(undeclared_invalidation)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.invalidated_downstream_product_ids[0]" and
+                 &1["message"] == "must be included in downstream_product_ids")
+           )
+  end
+
   test "exports dependency-impact handoff fields on review and import row schemas" do
     stable_id_pattern = Schema.identity_policy()["stable_id_pattern"]
 
@@ -19951,7 +20056,7 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert migration_report["status"] == "review_required"
     assert migration_report["deprecated_contract_count"] == 1
-    assert migration_report["status_counts"] == %{"current" => 116, "deprecated" => 1}
+    assert migration_report["status_counts"] == %{"current" => 117, "deprecated" => 1}
 
     stale_migration_model =
       Map.put(migration_report, "model", "stale_schema_migration_report_model")

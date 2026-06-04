@@ -1594,6 +1594,13 @@ defmodule OrbitalDynamics do
   end
 
   @doc """
+  Builds artifact-only timeline publication metadata for downstream handoff.
+  """
+  def timeline_publication_summary(source_artifact, opts \\ []) do
+    Timeline.publication_summary(source_artifact, opts)
+  end
+
+  @doc """
   Builds an artifact-only dependency/exclusivity integrity summary for timeline activities.
   """
   def timeline_integrity_report(activities, opts \\ []) do

@@ -11,6 +11,7 @@ defmodule OrbitalDynamics.TimelineTest do
              diff_summary_artifact_contract: "timeline_diff_summary.v1",
              integrity_report_artifact_contract: "timeline_integrity_report.v1",
              dependency_impact_summary_artifact_contract: "timeline_dependency_impact_summary.v1",
+             publication_summary_artifact_contract: "timeline_publication_summary.v1",
              activity_state_artifact_contract: "timeline_activity_state.v1",
              activity_precondition_summary_artifact_contract:
                "timeline_activity_precondition_summary.v1",
@@ -65,6 +66,7 @@ defmodule OrbitalDynamics.TimelineTest do
                timeline_diff_activity_context_compare_fields,
              timeline_integrity_issue_types: timeline_integrity_issue_types,
              dependency_impact_summary_fields: dependency_impact_summary_fields,
+             publication_summary_fields: publication_summary_fields,
              candidate_rejection_reasons: candidate_rejection_reasons,
              candidate_rejection_station_capacity_fraction_paths:
                candidate_rejection_station_capacity_fraction_paths,
@@ -154,6 +156,7 @@ defmodule OrbitalDynamics.TimelineTest do
     assert diff_helpers == [:diff_report, :diff_summary]
     assert :integrity_report in timeline_integrity_helpers
     assert :dependency_impact_summary in timeline_integrity_helpers
+    assert :publication_summary in timeline_integrity_helpers
     assert :preservation_status in lifecycle_preservation_helpers
     assert :preservation_report in lifecycle_preservation_helpers
     assert :normalize_activity in normalization_helpers
@@ -183,6 +186,7 @@ defmodule OrbitalDynamics.TimelineTest do
     assert :timeline_identity in public_facades
     assert :timeline_preservation_report in public_facades
     assert :timeline_dependency_impact_summary in public_facades
+    assert :timeline_publication_summary in public_facades
     assert :timeline_diff_summary in public_facades
     assert :timeline_activity_state in public_facades
     assert :timeline_activity_lifecycle_state in public_facades
@@ -229,6 +233,9 @@ defmodule OrbitalDynamics.TimelineTest do
     assert "impacted_dependency_timeline_ids" in dependency_impact_summary_fields
     assert "impacted_exclusive_with_activity_ids" in dependency_impact_summary_fields
     assert "impacted_exclusive_with_timeline_ids" in dependency_impact_summary_fields
+    assert "publication_sequence" in publication_summary_fields
+    assert "invalidated_downstream_product_ids" in publication_summary_fields
+    assert "dependency_impact_row_count" in publication_summary_fields
     assert "station_reserved" in candidate_rejection_reasons
     assert "station_capacity_reduced" in candidate_rejection_reasons
     assert "quality_gate_failed" in candidate_rejection_reasons
@@ -3337,6 +3344,138 @@ defmodule OrbitalDynamics.TimelineTest do
            } = summary = Timeline.dependency_impact_summary(source, replacement)
 
     assert OrbitalDynamics.timeline_dependency_impact_summary(source, replacement) == summary
+  end
+
+  test "builds artifact-only timeline publication summaries with downstream impact metadata" do
+    source = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 0.0, ends_at_s: 10.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    replacement = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 5.0, ends_at_s: 15.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    dependency_impact = Timeline.dependency_impact_summary(source, replacement)
+
+    source_artifact = %{
+      "schema_contract" => "operational_timeline_report.v1",
+      "id" => "timeline:published_plan:v2"
+    }
+
+    assert %{
+             "schema_contract" => "timeline_publication_summary.v1",
+             "model" => "artifact_only_timeline_publication_summary",
+             "validation_level" => "artifact_contract",
+             "source" => "operational_timeline_report.v1",
+             "publication_id" =>
+               "timeline_publication:7:timeline:published_plan:v2:timeline:published_plan:v1",
+             "publication_sequence" => 7,
+             "publication_status" => "published_with_downstream_invalidations",
+             "publication_authority" => "mission_operations",
+             "source_artifact_id" => "timeline:published_plan:v2",
+             "source_artifact_type" => "operational_timeline_report.v1",
+             "supersedes_artifact_ids" => ["timeline:published_plan:v1"],
+             "downstream_product_ids" => ["cadence_import:plan:v1", "operator_review:plan:v1"],
+             "invalidated_downstream_product_ids" => [
+               "cadence_import:plan:v1",
+               "operator_review:plan:v1"
+             ],
+             "dependency_impact_status" => "review_required",
+             "dependency_impact_row_count" => 2,
+             "impacted_dependency_activity_ids" => ["health_gate"],
+             "impacted_dependency_timeline_ids" => [],
+             "impacted_exclusive_with_activity_ids" => [],
+             "impacted_exclusive_with_timeline_ids" => [],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_schedule_mutation",
+               "notification_delivery" => "host_system_owned",
+               "publication_authority" => "mission_operations",
+               "operator_authority" => "not_granted_by_summary"
+             },
+             "model_limits" => model_limits
+           } =
+             summary =
+             Timeline.publication_summary(source_artifact,
+               publication_sequence: "7",
+               publication_authority: :mission_operations,
+               supersedes_artifact_ids: ["timeline:published_plan:v1"],
+               downstream_product_ids: [
+                 "operator_review:plan:v1",
+                 "cadence_import:plan:v1",
+                 "operator_review:plan:v1"
+               ],
+               dependency_impact_summary: dependency_impact
+             )
+
+    assert "artifact_level_only" in model_limits
+
+    assert OrbitalDynamics.timeline_publication_summary(source_artifact,
+             publication_sequence: 7,
+             publication_authority: :mission_operations,
+             supersedes_artifact_ids: ["timeline:published_plan:v1"],
+             downstream_product_ids: ["operator_review:plan:v1", "cadence_import:plan:v1"],
+             dependency_impact_summary: dependency_impact
+           ) == summary
+
+    assert {:ok, %{"schema_contract" => "timeline_publication_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    stale_status = Map.put(summary, "publication_status", "published")
+
+    assert {:error, stale_status_report} = Schema.validate_artifact(stale_status)
+
+    assert Enum.any?(
+             stale_status_report["errors"],
+             &(&1["path"] == "$.publication_status" and
+                 &1["message"] ==
+                   "must equal downstream invalidation and dependency impact state")
+           )
+
+    assert %{
+             "publication_status" => "published",
+             "dependency_impact_status" => "not_evaluated",
+             "dependency_impact_row_count" => 0,
+             "invalidated_downstream_product_ids" => []
+           } = no_impact_summary = Timeline.publication_summary(source_artifact)
+
+    stale_dependency_count = Map.put(no_impact_summary, "dependency_impact_row_count", 1)
+
+    assert {:error, stale_dependency_count_report} =
+             Schema.validate_artifact(stale_dependency_count)
+
+    assert Enum.any?(
+             stale_dependency_count_report["errors"],
+             &(&1["path"] == "$.dependency_impact_row_count" and
+                 &1["message"] ==
+                   "must be zero unless dependency_impact_status is review_required")
+           )
+
+    assert_raise ArgumentError,
+                 ~r/invalidated_downstream_product_ids must be included in downstream_product_ids/,
+                 fn ->
+                   Timeline.publication_summary(source_artifact,
+                     downstream_product_ids: ["cadence_import:plan:v1"],
+                     invalidated_downstream_product_ids: ["operator_review:plan:v1"]
+                   )
+                 end
+
+    assert_raise ArgumentError, ~r/source artifact must be a map/, fn ->
+      Timeline.publication_summary(:not_an_artifact)
+    end
   end
 
   test "keeps self-dependency integrity evidence separate from missing dependencies" do

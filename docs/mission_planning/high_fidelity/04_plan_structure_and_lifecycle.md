@@ -318,5 +318,12 @@ Programmatic `MissionPlan` validation uses the same integrity report before
 scenario compilation, including missing activity-ID and timeline-ID dependency
 checks.
 
-OrbitalDynamics should emit publication-ready metadata and impact reports.
-Cadence or another host system should own actual notification delivery.
+`Timeline.publication_summary/2` and
+`OrbitalDynamics.timeline_publication_summary/2` emit schema-backed
+`timeline_publication_summary.v1` metadata for publication handoff. The summary
+records deterministic publication ID and sequence, source artifact identity,
+superseded artifact IDs, downstream product IDs, invalidated downstream product
+IDs, optional dependency-impact status/counts, publication authority token,
+model limits, and an explicit artifact-only no-schedule-mutation/no-delivery
+boundary. Cadence or another host system still owns actual notification
+delivery, import authority, and publication execution.

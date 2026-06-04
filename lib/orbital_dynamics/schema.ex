@@ -2606,6 +2606,7 @@ defmodule OrbitalDynamics.Schema do
   @timeline_diff_summary "timeline_diff_summary.v1"
   @timeline_integrity_report "timeline_integrity_report.v1"
   @timeline_dependency_impact_summary "timeline_dependency_impact_summary.v1"
+  @timeline_publication_summary "timeline_publication_summary.v1"
   @timeline_activity_state "timeline_activity_state.v1"
   @timeline_activity_precondition_summary "timeline_activity_precondition_summary.v1"
   @timeline_activity_status_state "timeline_activity_status_state.v1"
@@ -6612,6 +6613,36 @@ defmodule OrbitalDynamics.Schema do
       "optional_fields" => [],
       "nested_contracts" => ["timeline_diff_report.v1"]
     },
+    @timeline_publication_summary => %{
+      "schema_contract" => @timeline_publication_summary,
+      "artifact_family" => "timeline_publication_summary",
+      "schema_version" => 1,
+      "required_fields" => [
+        "schema_contract",
+        "model",
+        "validation_level",
+        "source",
+        "publication_id",
+        "publication_sequence",
+        "publication_status",
+        "publication_authority",
+        "source_artifact_id",
+        "source_artifact_type",
+        "supersedes_artifact_ids",
+        "downstream_product_ids",
+        "invalidated_downstream_product_ids",
+        "dependency_impact_status",
+        "dependency_impact_row_count",
+        "impacted_dependency_activity_ids",
+        "impacted_dependency_timeline_ids",
+        "impacted_exclusive_with_activity_ids",
+        "impacted_exclusive_with_timeline_ids",
+        "assumptions",
+        "model_limits"
+      ],
+      "optional_fields" => [],
+      "nested_contracts" => ["timeline_dependency_impact_summary.v1"]
+    },
     @timeline_activity_status_state => %{
       "schema_contract" => @timeline_activity_status_state,
       "artifact_family" => "timeline_activity_status_state",
@@ -8467,6 +8498,9 @@ defmodule OrbitalDynamics.Schema do
   defp infer_contract(%{"schema_contract" => "timeline_dependency_impact_summary.v1"}),
     do: @timeline_dependency_impact_summary
 
+  defp infer_contract(%{"schema_contract" => "timeline_publication_summary.v1"}),
+    do: @timeline_publication_summary
+
   defp infer_contract(%{"schema_contract" => "timeline_activity_state.v1"}),
     do: @timeline_activity_state
 
@@ -9831,6 +9865,83 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property("model_limits", @timeline_dependency_impact_summary, _contract) do
+    %{
+      "type" => "array",
+      "const" => timeline_report_model_limits(),
+      "items" => %{"type" => "string", "enum" => timeline_report_model_limits()}
+    }
+  end
+
+  defp json_schema_property("schema_contract", @timeline_publication_summary, _contract) do
+    %{"type" => "string", "const" => @timeline_publication_summary}
+  end
+
+  defp json_schema_property("model", @timeline_publication_summary, _contract) do
+    %{"type" => "string", "const" => "artifact_only_timeline_publication_summary"}
+  end
+
+  defp json_schema_property("validation_level", @timeline_publication_summary, _contract) do
+    %{"type" => "string", "const" => "artifact_contract"}
+  end
+
+  defp json_schema_property("source", @timeline_publication_summary, _contract) do
+    %{"type" => "string"}
+  end
+
+  defp json_schema_property(field, @timeline_publication_summary, _contract)
+       when field in [
+              "publication_id",
+              "publication_authority",
+              "source_artifact_id"
+            ] do
+    %{"type" => "string", "pattern" => @stable_id_pattern}
+  end
+
+  defp json_schema_property("source_artifact_type", @timeline_publication_summary, _contract) do
+    %{"type" => "string", "minLength" => 1}
+  end
+
+  defp json_schema_property("publication_sequence", @timeline_publication_summary, _contract) do
+    %{"type" => "integer", "minimum" => 0}
+  end
+
+  defp json_schema_property("publication_status", @timeline_publication_summary, _contract) do
+    %{
+      "type" => "string",
+      "enum" => ["published", "published_with_downstream_invalidations", "review_required"]
+    }
+  end
+
+  defp json_schema_property("dependency_impact_status", @timeline_publication_summary, _contract) do
+    %{"type" => "string", "enum" => ["clear", "not_evaluated", "review_required"]}
+  end
+
+  defp json_schema_property(
+         "dependency_impact_row_count",
+         @timeline_publication_summary,
+         _contract
+       ) do
+    %{"type" => "integer", "minimum" => 0}
+  end
+
+  defp json_schema_property(field, @timeline_publication_summary, _contract)
+       when field in [
+              "supersedes_artifact_ids",
+              "downstream_product_ids",
+              "invalidated_downstream_product_ids",
+              "impacted_dependency_activity_ids",
+              "impacted_dependency_timeline_ids",
+              "impacted_exclusive_with_activity_ids",
+              "impacted_exclusive_with_timeline_ids"
+            ] do
+    stable_id_array_schema()
+  end
+
+  defp json_schema_property("assumptions", @timeline_publication_summary, _contract) do
+    %{"type" => "object", "additionalProperties" => true}
+  end
+
+  defp json_schema_property("model_limits", @timeline_publication_summary, _contract) do
     %{
       "type" => "array",
       "const" => timeline_report_model_limits(),
@@ -25777,6 +25888,12 @@ defmodule OrbitalDynamics.Schema do
     |> validate_timeline_dependency_impact_summary("$", artifact)
   end
 
+  defp validate_contract(@timeline_publication_summary, contract, artifact) do
+    []
+    |> require_fields("$", artifact, contract["required_fields"])
+    |> validate_timeline_publication_summary("$", artifact)
+  end
+
   defp validate_contract(@timeline_activity_state, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
@@ -36070,6 +36187,161 @@ defmodule OrbitalDynamics.Schema do
     rows
     |> Enum.flat_map(&list_value(&1, field))
     |> sorted_unique_binary_values()
+  end
+
+  defp validate_timeline_publication_summary(issues, path, summary) do
+    issues
+    |> expect_equal(path, summary, "schema_contract", "timeline_publication_summary.v1")
+    |> expect_equal(path, summary, "model", "artifact_only_timeline_publication_summary")
+    |> expect_equal(path, summary, "validation_level", "artifact_contract")
+    |> expect_type(path, summary, "source", :binary)
+    |> expect_type(path, summary, "source_artifact_type", :binary)
+    |> expect_field_equals(
+      path,
+      summary,
+      "source",
+      Map.get(summary, "source_artifact_type"),
+      "must equal source_artifact_type"
+    )
+    |> validate_stable_ids(path, summary, [
+      "publication_id",
+      "publication_authority",
+      "source_artifact_id"
+    ])
+    |> expect_non_negative_integer(path, summary, "publication_sequence")
+    |> expect_one_of(path, summary, "publication_status", [
+      "published",
+      "published_with_downstream_invalidations",
+      "review_required"
+    ])
+    |> expect_one_of(path, summary, "dependency_impact_status", [
+      "clear",
+      "not_evaluated",
+      "review_required"
+    ])
+    |> expect_non_negative_integer(path, summary, "dependency_impact_row_count")
+    |> validate_timeline_publication_summary_id_fields(path, summary)
+    |> expect_type(path, summary, "assumptions", :map)
+    |> expect_type(path, summary, "model_limits", :list)
+    |> validate_string_list_items(path, summary, "model_limits")
+    |> validate_optional_exact_model_limits(
+      path,
+      summary,
+      timeline_report_model_limits(),
+      "must match timeline report model limits"
+    )
+    |> validate_timeline_publication_summary_derived_fields(path, summary)
+  end
+
+  defp validate_timeline_publication_summary_id_fields(issues, path, summary) do
+    [
+      "supersedes_artifact_ids",
+      "downstream_product_ids",
+      "invalidated_downstream_product_ids",
+      "impacted_dependency_activity_ids",
+      "impacted_dependency_timeline_ids",
+      "impacted_exclusive_with_activity_ids",
+      "impacted_exclusive_with_timeline_ids"
+    ]
+    |> Enum.reduce(issues, fn field, acc ->
+      acc
+      |> expect_type(path, summary, field, :list)
+      |> validate_optional_stable_id_list(path, summary, field)
+    end)
+  end
+
+  defp validate_timeline_publication_summary_derived_fields(issues, path, summary) do
+    expected_status =
+      cond do
+        list_value(summary, "invalidated_downstream_product_ids") != [] ->
+          "published_with_downstream_invalidations"
+
+        summary["dependency_impact_status"] == "review_required" ->
+          "review_required"
+
+        true ->
+          "published"
+      end
+
+    issues
+    |> expect_field_equals(
+      path,
+      summary,
+      "publication_status",
+      expected_status,
+      "must equal downstream invalidation and dependency impact state"
+    )
+    |> validate_timeline_publication_summary_dependency_count(path, summary)
+    |> validate_timeline_publication_summary_no_impact_without_review(path, summary)
+    |> validate_timeline_publication_summary_invalidation_subset(path, summary)
+  end
+
+  defp validate_timeline_publication_summary_dependency_count(issues, path, summary) do
+    if summary["dependency_impact_status"] in ["clear", "not_evaluated"] do
+      expect_field_equals(
+        issues,
+        path,
+        summary,
+        "dependency_impact_row_count",
+        0,
+        "must be zero unless dependency_impact_status is review_required"
+      )
+    else
+      issues
+    end
+  end
+
+  defp validate_timeline_publication_summary_no_impact_without_review(issues, path, summary) do
+    if summary["dependency_impact_status"] in ["clear", "not_evaluated"] do
+      [
+        "impacted_dependency_activity_ids",
+        "impacted_dependency_timeline_ids",
+        "impacted_exclusive_with_activity_ids",
+        "impacted_exclusive_with_timeline_ids"
+      ]
+      |> Enum.reduce(issues, fn field, acc ->
+        expect_field_equals(
+          acc,
+          path,
+          summary,
+          field,
+          [],
+          "must be empty unless dependency_impact_status is review_required"
+        )
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_timeline_publication_summary_invalidation_subset(issues, path, summary) do
+    downstream_product_ids =
+      case Map.get(summary, "downstream_product_ids") do
+        ids when is_list(ids) -> MapSet.new(ids)
+        _ids -> MapSet.new()
+      end
+
+    case Map.get(summary, "invalidated_downstream_product_ids") do
+      ids when is_list(ids) ->
+        ids
+        |> Enum.with_index()
+        |> Enum.reduce(issues, fn {id, index}, acc ->
+          if is_binary(id) and not MapSet.member?(downstream_product_ids, id) do
+            [
+              error(
+                "#{path}.invalidated_downstream_product_ids[#{index}]",
+                "must be included in downstream_product_ids"
+              )
+              | acc
+            ]
+          else
+            acc
+          end
+        end)
+
+      _ids ->
+        issues
+    end
   end
 
   defp validate_timeline_activity_state(issues, path, state) do

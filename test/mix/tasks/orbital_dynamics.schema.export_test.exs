@@ -785,6 +785,24 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "dependency_and_exclusivity_changed_or_removed_source_activity"
            ]
 
+    assert Map.has_key?(schemas, "timeline_publication_summary.v1")
+
+    publication_schema = schemas["timeline_publication_summary.v1"]
+
+    assert get_in(publication_schema, ["properties", "model", "const"]) ==
+             "artifact_only_timeline_publication_summary"
+
+    assert get_in(publication_schema, ["properties", "publication_sequence", "minimum"]) == 0
+
+    assert get_in(publication_schema, ["properties", "publication_status", "enum"]) == [
+             "published",
+             "published_with_downstream_invalidations",
+             "review_required"
+           ]
+
+    assert get_in(publication_schema, ["properties", "model_limits", "const"]) ==
+             OrbitalDynamics.Timeline.model_limits()
+
     assert Map.has_key?(schemas, "timeline_activity_state.v1")
 
     activity_state_schema = schemas["timeline_activity_state.v1"]

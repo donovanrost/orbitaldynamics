@@ -12,6 +12,7 @@ defmodule OrbitalDynamics.Timeline do
   @diff_summary_schema_contract "timeline_diff_summary.v1"
   @integrity_report_schema_contract "timeline_integrity_report.v1"
   @dependency_impact_summary_schema_contract "timeline_dependency_impact_summary.v1"
+  @publication_summary_schema_contract "timeline_publication_summary.v1"
   @activity_state_schema_contract "timeline_activity_state.v1"
   @activity_precondition_summary_schema_contract "timeline_activity_precondition_summary.v1"
   @activity_status_state_schema_contract "timeline_activity_status_state.v1"
@@ -143,6 +144,23 @@ defmodule OrbitalDynamics.Timeline do
     impacted_exclusive_with_activity_ids
     impacted_exclusive_with_timeline_ids
     dependency_impact_rows
+  )
+  @publication_summary_fields ~w(
+    publication_id
+    publication_sequence
+    publication_status
+    publication_authority
+    source_artifact_id
+    source_artifact_type
+    supersedes_artifact_ids
+    downstream_product_ids
+    invalidated_downstream_product_ids
+    dependency_impact_status
+    dependency_impact_row_count
+    impacted_dependency_activity_ids
+    impacted_dependency_timeline_ids
+    impacted_exclusive_with_activity_ids
+    impacted_exclusive_with_timeline_ids
   )
   @candidate_rejection_reasons ~w(
     no_access_window
@@ -809,6 +827,7 @@ defmodule OrbitalDynamics.Timeline do
       diff_summary_artifact_contract: @diff_summary_schema_contract,
       integrity_report_artifact_contract: @integrity_report_schema_contract,
       dependency_impact_summary_artifact_contract: @dependency_impact_summary_schema_contract,
+      publication_summary_artifact_contract: @publication_summary_schema_contract,
       activity_state_artifact_contract: @activity_state_schema_contract,
       activity_precondition_summary_artifact_contract:
         @activity_precondition_summary_schema_contract,
@@ -870,7 +889,8 @@ defmodule OrbitalDynamics.Timeline do
       ],
       timeline_integrity_helpers: [
         :integrity_report,
-        :dependency_impact_summary
+        :dependency_impact_summary,
+        :publication_summary
       ],
       lifecycle_preservation_helpers: [
         :preservation_status,
@@ -910,6 +930,7 @@ defmodule OrbitalDynamics.Timeline do
         :timeline_identity,
         :timeline_preservation_report,
         :timeline_dependency_impact_summary,
+        :timeline_publication_summary,
         :timeline_diff_summary,
         :timeline_activity_state,
         :timeline_activity_lifecycle_state,
@@ -932,6 +953,7 @@ defmodule OrbitalDynamics.Timeline do
       execution_boundaries: @execution_boundaries,
       timeline_integrity_issue_types: @timeline_integrity_issue_types,
       dependency_impact_summary_fields: @dependency_impact_summary_fields,
+      publication_summary_fields: @publication_summary_fields,
       candidate_rejection_reasons: @candidate_rejection_reasons,
       candidate_rejection_station_capacity_fraction_paths:
         @candidate_rejection_station_capacity_fraction_paths,
@@ -1656,6 +1678,209 @@ defmodule OrbitalDynamics.Timeline do
 
   def dependency_impact_summary(_source_activities, _replacement_activities, _opts),
     do: raise(ArgumentError, "source and replacement activities must be lists")
+
+  @doc """
+  Builds artifact-only plan publication metadata for downstream handoff.
+
+  The summary records deterministic publication identity, sequence,
+  supersession, downstream invalidation, and dependency-impact evidence without
+  publishing notifications, granting authority, or mutating schedules.
+  """
+  def publication_summary(source_artifact, opts \\ [])
+
+  def publication_summary(%{} = source_artifact, opts) when is_list(opts) do
+    source_artifact = stringify_keys(source_artifact)
+    source_artifact_id = publication_source_artifact_id(source_artifact, opts)
+    source_artifact_type = publication_source_artifact_type(source_artifact)
+    supersedes_artifact_ids = publication_stable_id_list(opts, :supersedes_artifact_ids)
+    downstream_product_ids = publication_stable_id_list(opts, :downstream_product_ids)
+    publication_sequence = publication_sequence!(opts)
+
+    dependency_impact_summary =
+      opts
+      |> Keyword.get(:dependency_impact_summary)
+      |> publication_dependency_impact_summary()
+
+    invalidated_downstream_product_ids =
+      opts
+      |> publication_stable_id_list(:invalidated_downstream_product_ids)
+      |> publication_invalidation_ids(
+        downstream_product_ids,
+        dependency_impact_summary,
+        supersedes_artifact_ids
+      )
+
+    publication_authority =
+      opts
+      |> Keyword.get(:publication_authority, "not_granted_by_summary")
+      |> encode_value()
+
+    %{
+      "schema_contract" => @publication_summary_schema_contract,
+      "model" => "artifact_only_timeline_publication_summary",
+      "validation_level" => "artifact_contract",
+      "source" => source_artifact_type,
+      "publication_id" =>
+        publication_summary_id(source_artifact_id, publication_sequence, supersedes_artifact_ids),
+      "publication_sequence" => publication_sequence,
+      "publication_status" =>
+        publication_status(invalidated_downstream_product_ids, dependency_impact_summary),
+      "publication_authority" => publication_authority,
+      "source_artifact_id" => source_artifact_id,
+      "source_artifact_type" => source_artifact_type,
+      "supersedes_artifact_ids" => supersedes_artifact_ids,
+      "downstream_product_ids" => downstream_product_ids,
+      "invalidated_downstream_product_ids" => invalidated_downstream_product_ids,
+      "dependency_impact_status" =>
+        Map.get(dependency_impact_summary, "dependency_impact_status", "not_evaluated"),
+      "dependency_impact_row_count" =>
+        dependency_impact_summary |> Map.get("dependency_impact_rows", []) |> length(),
+      "impacted_dependency_activity_ids" =>
+        Map.get(dependency_impact_summary, "impacted_dependency_activity_ids", []),
+      "impacted_dependency_timeline_ids" =>
+        Map.get(dependency_impact_summary, "impacted_dependency_timeline_ids", []),
+      "impacted_exclusive_with_activity_ids" =>
+        Map.get(dependency_impact_summary, "impacted_exclusive_with_activity_ids", []),
+      "impacted_exclusive_with_timeline_ids" =>
+        Map.get(dependency_impact_summary, "impacted_exclusive_with_timeline_ids", []),
+      "assumptions" => %{
+        "execution_boundary" => "artifact_only_no_schedule_mutation",
+        "notification_delivery" => "host_system_owned",
+        "publication_authority" => publication_authority,
+        "operator_authority" => "not_granted_by_summary"
+      },
+      "model_limits" => model_limits()
+    }
+  end
+
+  def publication_summary(_source_artifact, _opts),
+    do: raise(ArgumentError, "source artifact must be a map")
+
+  defp publication_source_artifact_id(source_artifact, opts) do
+    [
+      Keyword.get(opts, :source_artifact_id),
+      source_artifact["id"],
+      source_artifact["artifact_id"],
+      source_artifact["refresh_id"],
+      source_artifact["summary_id"],
+      source_artifact["plan_id"]
+    ]
+    |> Enum.flat_map(&stable_id_value/1)
+    |> List.first()
+    |> case do
+      nil -> "timeline_publication_source"
+      value -> value
+    end
+  end
+
+  defp publication_source_artifact_type(source_artifact) do
+    [
+      source_artifact["schema_contract"],
+      source_artifact["artifact_type"],
+      source_artifact["model"]
+    ]
+    |> Enum.map(&encode_value/1)
+    |> Enum.find(&(&1 not in [nil, ""]))
+    |> case do
+      nil -> "unknown_artifact"
+      value -> value
+    end
+  end
+
+  defp publication_sequence!(opts) do
+    case Keyword.get(opts, :publication_sequence, Keyword.get(opts, :sequence, 1)) do
+      value when is_integer(value) and value >= 0 ->
+        value
+
+      value when is_binary(value) ->
+        case Integer.parse(value) do
+          {integer, ""} when integer >= 0 -> integer
+          _parsed -> raise ArgumentError, "publication_sequence must be a non-negative integer"
+        end
+
+      _value ->
+        raise ArgumentError, "publication_sequence must be a non-negative integer"
+    end
+  end
+
+  defp publication_stable_id_list(opts, key) do
+    opts
+    |> Keyword.get(key, [])
+    |> List.wrap()
+    |> Enum.flat_map(&stable_id_value/1)
+    |> sorted_uniq()
+  end
+
+  defp publication_dependency_impact_summary(%{} = summary) do
+    summary
+    |> stringify_keys()
+    |> case do
+      %{"schema_contract" => @dependency_impact_summary_schema_contract} = summary -> summary
+      %{"model" => "artifact_only_timeline_dependency_impact_summary"} = summary -> summary
+      _summary -> %{}
+    end
+  end
+
+  defp publication_dependency_impact_summary(_summary), do: %{}
+
+  defp publication_invalidation_ids(
+         [],
+         downstream_product_ids,
+         dependency_impact_summary,
+         supersedes
+       ) do
+    cond do
+      publication_dependency_impact_review_required?(dependency_impact_summary) ->
+        downstream_product_ids
+
+      supersedes != [] ->
+        downstream_product_ids
+
+      true ->
+        []
+    end
+  end
+
+  defp publication_invalidation_ids(invalidated, downstream_product_ids, _summary, _supersedes) do
+    unknown_ids = invalidated -- downstream_product_ids
+
+    if unknown_ids == [] do
+      invalidated
+    else
+      raise ArgumentError,
+            "invalidated_downstream_product_ids must be included in downstream_product_ids"
+    end
+  end
+
+  defp publication_dependency_impact_review_required?(%{
+         "dependency_impact_status" => "review_required"
+       }),
+       do: true
+
+  defp publication_dependency_impact_review_required?(_summary), do: false
+
+  defp publication_status(invalidated_downstream_product_ids, dependency_impact_summary) do
+    cond do
+      invalidated_downstream_product_ids != [] ->
+        "published_with_downstream_invalidations"
+
+      publication_dependency_impact_review_required?(dependency_impact_summary) ->
+        "review_required"
+
+      true ->
+        "published"
+    end
+  end
+
+  defp publication_summary_id(source_artifact_id, publication_sequence, supersedes_artifact_ids) do
+    supersedes =
+      case supersedes_artifact_ids do
+        [] -> "initial"
+        ids -> Enum.join(ids, "_")
+      end
+
+    "timeline_publication:#{publication_sequence}:#{source_artifact_id}:#{supersedes}"
+  end
 
   defp dependency_impact_source_identities(diff_report) do
     rows =
