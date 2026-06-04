@@ -34,8 +34,8 @@ reference report now includes 147 fixtures; the schema-validation batch still
 covers 125 `study_results` artifacts.
 
 Last commit:
-Previous completed slice: `37d85ab` (`Add relay data-path validation fixture`).
-Current slice pending review/publish.
+`eabb4b5` (`Add contact-intent replay validation fixture`) pushed to
+`origin/main`.
 
 Review:
 `slice_reviewer` found no must-fix code regressions. It flagged an overstated
@@ -43,10 +43,10 @@ ledger phrase about pressure booleans; the ledger wording was narrowed to the
 actual observed count/routing fields.
 
 Next candidate:
-After review and publish, re-read the guide, ledger, and live worktree before
-selecting the next slice. The remembered contact-intent replay-routing gap is
-closed in live code; remaining work may be validation/challenge hardening unless
-a higher-priority live gap is found.
+Re-read the guide, ledger, and live worktree before selecting the next slice.
+The remembered contact-intent replay-routing gap is closed in live code;
+remaining work may be validation/challenge hardening unless a higher-priority
+live gap is found.
 
 Blocked:
 No.
