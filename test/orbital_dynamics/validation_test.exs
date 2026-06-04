@@ -9033,6 +9033,114 @@ defmodule OrbitalDynamics.ValidationTest do
            )
   end
 
+  test "verifies curated relay data-path summary reference fixtures" do
+    fixture_id = "fixture.artifact.relay_data_path_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.relay_data_path_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = relay_data_path_summary_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               relay_data_path_summary_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      relay_data_path_summary_fixture_observations()
+      |> Map.put("relay_route_count", 2)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "relay_route_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      relay_data_path_summary_fixture_observations()
+      |> put_in(["row_derived_route_ids_by_latency_status", "within_limit"], ["route_direct"])
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_route_ids_by_latency_status" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "relay_data_path_summary.v1",
+             report
+           ) == Validation.artifact_observations("relay_data_path_summary.v1", report)
+
+    assert {:ok, %{"schema_contract" => "relay_data_path_summary.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "relay_data_path_summary.v1"
+             )
+
+    stale_route_count = Map.put(report, "route_count", 1)
+
+    assert {:error, stale_route_count_report} =
+             Schema.validate_artifact(stale_route_count,
+               schema_contract: "relay_data_path_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_route_count_report["errors"],
+             &(&1["path"] == "$.route_count")
+           )
+
+    stale_custody_counts =
+      Map.put(report, "custody_status_counts", %{"confirmed" => 2, "missing_ack" => 1})
+
+    assert {:error, stale_custody_counts_report} =
+             Schema.validate_artifact(stale_custody_counts,
+               schema_contract: "relay_data_path_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_custody_counts_report["errors"],
+             &(&1["path"] == "$.custody_status_counts")
+           )
+
+    stale_relay_spacecraft_ids = Map.put(report, "relay_spacecraft_ids", ["relay_2"])
+
+    assert {:error, stale_relay_spacecraft_ids_report} =
+             Schema.validate_artifact(stale_relay_spacecraft_ids,
+               schema_contract: "relay_data_path_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_relay_spacecraft_ids_report["errors"],
+             &(&1["path"] == "$.relay_spacecraft_ids")
+           )
+
+    stale_latency_routing =
+      put_in(report, ["route_ids_by_latency_status", "within_limit"], ["route_direct"])
+
+    assert {:error, stale_latency_routing_report} =
+             Schema.validate_artifact(stale_latency_routing,
+               schema_contract: "relay_data_path_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_latency_routing_report["errors"],
+             &(&1["path"] == "$.route_ids_by_latency_status")
+           )
+  end
+
   test "verifies curated maneuver review report reference fixtures" do
     fixture_id = "fixture.artifact.maneuver_review_report.v1"
 
@@ -10473,6 +10581,8 @@ defmodule OrbitalDynamics.ValidationTest do
         "fixture.artifact.invalidated_candidate.v1" =>
           invalidated_candidate_fixture_observations(),
         "fixture.artifact.link_capacity_report.v1" => link_capacity_report_fixture_observations(),
+        "fixture.artifact.relay_data_path_summary.v1" =>
+          relay_data_path_summary_fixture_observations(),
         "fixture.artifact.maneuver_execution_delta.v1" =>
           maneuver_execution_delta_fixture_observations(),
         "fixture.artifact.maneuver_review_report.v1" =>
@@ -10659,8 +10769,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 145,
-             "status_counts" => %{"pass" => 145},
+             "fixture_count" => 146,
+             "status_counts" => %{"pass" => 146},
              "reports" => reports
            } = report
 
@@ -10747,6 +10857,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.realized_state_snapshot.v1",
              "fixture.artifact.refresh_budget_report.v1",
              "fixture.artifact.refreshed_window.v1",
+             "fixture.artifact.relay_data_path_summary.v1",
              "fixture.artifact.remaining_horizon.v1",
              "fixture.artifact.resource_filter_report.stale_resource_summary_margins",
              "fixture.artifact.resource_filter_report.v1",
@@ -10822,7 +10933,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 145},
+             "status_counts" => %{"fail" => 146},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -12025,6 +12136,15 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp link_capacity_report_fixture do
     read_json!("study_results/link_capacity_report_v1.json")
+  end
+
+  defp relay_data_path_summary_fixture_observations do
+    "relay_data_path_summary.v1"
+    |> Validation.artifact_observations(relay_data_path_summary_fixture())
+  end
+
+  defp relay_data_path_summary_fixture do
+    read_json!("study_results/relay_data_path_summary_v1.json")
   end
 
   defp maneuver_review_report_fixture_observations do

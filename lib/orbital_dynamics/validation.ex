@@ -6541,6 +6541,104 @@ defmodule OrbitalDynamics.Validation do
         "checks fixed-rate link-capacity counts, throughput totals, station routing, and model-limit boundary only"
       ]
     },
+    "fixture.artifact.relay_data_path_summary.v1" => %{
+      "id" => "fixture.artifact.relay_data_path_summary.v1",
+      "model_id" => "artifact.relay_data_path_summary.v1",
+      "reference_case" => "checked-in relay data-path summary artifact",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/relay_data_path_summary_v1.json",
+        "contract" => "relay_data_path_summary.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "relay_data_path_summary.v1",
+        "model" => "artifact_only_relay_data_path_summary",
+        "source" => "relay_ops",
+        "route_count" => 2,
+        "row_derived_route_count" => 2,
+        "relay_route_count" => 1,
+        "row_derived_relay_route_count" => 1,
+        "direct_downlink_route_count" => 1,
+        "row_derived_direct_downlink_route_count" => 1,
+        "custody_status_counts" => %{"confirmed" => 1, "missing_ack" => 1},
+        "row_derived_custody_status_counts" => %{"confirmed" => 1, "missing_ack" => 1},
+        "latency_status_counts" => %{"exceeds_limit" => 1, "within_limit" => 1},
+        "row_derived_latency_status_counts" => %{"exceeds_limit" => 1, "within_limit" => 1},
+        "risk_status_counts" => %{"high" => 1, "nominal" => 1},
+        "row_derived_risk_status_counts" => %{"high" => 1, "nominal" => 1},
+        "route_ids" => "relay_data_path:sat_a:downlink_1:54b7e7ff594c|route_direct",
+        "row_derived_route_ids" => "relay_data_path:sat_a:downlink_1:54b7e7ff594c|route_direct",
+        "source_spacecraft_ids" => "sat_a|sat_b",
+        "row_derived_source_spacecraft_ids" => "sat_a|sat_b",
+        "relay_spacecraft_ids" => "relay_1|relay_2",
+        "row_derived_relay_spacecraft_ids" => "relay_1|relay_2",
+        "ground_station_ids" => "dss_14|dss_35",
+        "row_derived_ground_station_ids" => "dss_14|dss_35",
+        "ground_downlink_contact_ids" => "downlink_1|downlink_2",
+        "row_derived_ground_downlink_contact_ids" => "downlink_1|downlink_2",
+        "route_ids_by_custody_status" => %{
+          "confirmed" => ["relay_data_path:sat_a:downlink_1:54b7e7ff594c"],
+          "missing_ack" => ["route_direct"]
+        },
+        "row_derived_route_ids_by_custody_status" => %{
+          "confirmed" => ["relay_data_path:sat_a:downlink_1:54b7e7ff594c"],
+          "missing_ack" => ["route_direct"]
+        },
+        "route_ids_by_latency_status" => %{
+          "exceeds_limit" => ["route_direct"],
+          "within_limit" => ["relay_data_path:sat_a:downlink_1:54b7e7ff594c"]
+        },
+        "row_derived_route_ids_by_latency_status" => %{
+          "exceeds_limit" => ["route_direct"],
+          "within_limit" => ["relay_data_path:sat_a:downlink_1:54b7e7ff594c"]
+        },
+        "route_ids_by_risk_status" => %{
+          "high" => ["route_direct"],
+          "nominal" => ["relay_data_path:sat_a:downlink_1:54b7e7ff594c"]
+        },
+        "row_derived_route_ids_by_risk_status" => %{
+          "high" => ["route_direct"],
+          "nominal" => ["relay_data_path:sat_a:downlink_1:54b7e7ff594c"]
+        },
+        "route_ids_by_ground_station_id" => %{
+          "dss_14" => ["relay_data_path:sat_a:downlink_1:54b7e7ff594c"],
+          "dss_35" => ["route_direct"]
+        },
+        "row_derived_route_ids_by_ground_station_id" => %{
+          "dss_14" => ["relay_data_path:sat_a:downlink_1:54b7e7ff594c"],
+          "dss_35" => ["route_direct"]
+        },
+        "maximum_latency_s" => 500.0,
+        "row_derived_maximum_latency_s" => 500.0,
+        "maximum_latency_limit_s" => 300.0,
+        "row_derived_maximum_latency_limit_s" => 300.0,
+        "execution_boundary" => "artifact_only_no_relay_scheduling_or_schedule_mutation",
+        "custody_acknowledgement_delivery" => "not_performed",
+        "model_limit_count" => 6
+      },
+      "tolerances" => %{
+        "route_count" => 0,
+        "row_derived_route_count" => 0,
+        "relay_route_count" => 0,
+        "row_derived_relay_route_count" => 0,
+        "direct_downlink_route_count" => 0,
+        "row_derived_direct_downlink_route_count" => 0,
+        "maximum_latency_s" => 0,
+        "row_derived_maximum_latency_s" => 0,
+        "maximum_latency_limit_s" => 0,
+        "row_derived_maximum_latency_limit_s" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not relay scheduling validation",
+        "checks relay/direct route counts, custody/latency/risk routing maps, route IDs, and model-limit boundary only"
+      ]
+    },
     "fixture.artifact.maneuver_review_report.v1" => %{
       "id" => "fixture.artifact.maneuver_review_report.v1",
       "model_id" => "artifact.maneuver_review_report.v1",
@@ -7849,15 +7947,15 @@ defmodule OrbitalDynamics.Validation do
         "validation_mode" => "artifact_directory",
         "input_dir" => "study_results",
         "status" => "pass",
-        "status_counts" => %{"pass" => 124},
-        "file_count" => 124,
-        "artifact_count" => 124,
+        "status_counts" => %{"pass" => 125},
+        "file_count" => 125,
+        "artifact_count" => 125,
         "skipped_count" => 0,
         "error_count" => 0,
         "warning_count" => 0,
         "remediation_count" => 0,
-        "report_count" => 124,
-        "pass_report_count" => 124,
+        "report_count" => 125,
+        "pass_report_count" => 125,
         "fail_report_count" => 0,
         "skipped_artifact_count" => 0,
         "model_limit_count" => 3
@@ -13309,6 +13407,84 @@ defmodule OrbitalDynamics.Validation do
     }
   end
 
+  def artifact_observations("relay_data_path_summary.v1", artifact) when is_map(artifact) do
+    artifact = stringify_keys(artifact)
+    rows = map_rows(artifact, "rows")
+
+    %{
+      "schema_contract" => Map.get(artifact, "schema_contract"),
+      "model" => Map.get(artifact, "model"),
+      "source" => Map.get(artifact, "source"),
+      "route_count" => Map.get(artifact, "route_count"),
+      "row_derived_route_count" => length(rows),
+      "relay_route_count" => Map.get(artifact, "relay_route_count"),
+      "row_derived_relay_route_count" =>
+        Enum.count(rows, &(Map.get(&1, "relay_hop_count", 0) > 0)),
+      "direct_downlink_route_count" => Map.get(artifact, "direct_downlink_route_count"),
+      "row_derived_direct_downlink_route_count" =>
+        Enum.count(rows, &(Map.get(&1, "relay_hop_count", 0) == 0)),
+      "custody_status_counts" => Map.get(artifact, "custody_status_counts"),
+      "row_derived_custody_status_counts" => count_rows_by_value(rows, "custody_status"),
+      "latency_status_counts" => Map.get(artifact, "latency_status_counts"),
+      "row_derived_latency_status_counts" => count_rows_by_value(rows, "latency_status"),
+      "risk_status_counts" => Map.get(artifact, "risk_status_counts"),
+      "row_derived_risk_status_counts" => count_rows_by_value(rows, "risk_status"),
+      "route_ids" => stable_id_keys(list_values(artifact, "route_ids")),
+      "row_derived_route_ids" => stable_row_id_keys(rows, "route_id"),
+      "source_spacecraft_ids" => stable_id_keys(list_values(artifact, "source_spacecraft_ids")),
+      "row_derived_source_spacecraft_ids" => stable_row_id_keys(rows, "source_spacecraft_id"),
+      "relay_spacecraft_ids" => stable_id_keys(list_values(artifact, "relay_spacecraft_ids")),
+      "row_derived_relay_spacecraft_ids" =>
+        stable_row_list_id_keys(rows, "relay_chain_spacecraft_ids"),
+      "ground_station_ids" => stable_id_keys(list_values(artifact, "ground_station_ids")),
+      "row_derived_ground_station_ids" => stable_row_id_keys(rows, "ground_station_id"),
+      "ground_downlink_contact_ids" =>
+        stable_id_keys(list_values(artifact, "ground_downlink_contact_ids")),
+      "row_derived_ground_downlink_contact_ids" =>
+        stable_row_id_keys(rows, "ground_downlink_contact_id"),
+      "route_ids_by_custody_status" =>
+        artifact
+        |> map_field("route_ids_by_custody_status")
+        |> sort_grouped_values(),
+      "row_derived_route_ids_by_custody_status" =>
+        rows
+        |> group_row_ids_by_value("custody_status", "route_id")
+        |> sort_grouped_values(),
+      "route_ids_by_latency_status" =>
+        artifact
+        |> map_field("route_ids_by_latency_status")
+        |> sort_grouped_values(),
+      "row_derived_route_ids_by_latency_status" =>
+        rows
+        |> group_row_ids_by_value("latency_status", "route_id")
+        |> sort_grouped_values(),
+      "route_ids_by_risk_status" =>
+        artifact
+        |> map_field("route_ids_by_risk_status")
+        |> sort_grouped_values(),
+      "row_derived_route_ids_by_risk_status" =>
+        rows
+        |> group_row_ids_by_value("risk_status", "route_id")
+        |> sort_grouped_values(),
+      "route_ids_by_ground_station_id" =>
+        artifact
+        |> map_field("route_ids_by_ground_station_id")
+        |> sort_grouped_values(),
+      "row_derived_route_ids_by_ground_station_id" =>
+        rows
+        |> group_row_ids_by_value("ground_station_id", "route_id")
+        |> sort_grouped_values(),
+      "maximum_latency_s" => Map.get(artifact, "maximum_latency_s"),
+      "row_derived_maximum_latency_s" => max_numeric(rows, "latency_s"),
+      "maximum_latency_limit_s" => Map.get(artifact, "maximum_latency_limit_s"),
+      "row_derived_maximum_latency_limit_s" => max_numeric(rows, "latency_limit_s"),
+      "execution_boundary" => get_in(artifact, ["assumptions", "execution_boundary"]),
+      "custody_acknowledgement_delivery" =>
+        get_in(artifact, ["assumptions", "custody_acknowledgement_delivery"]),
+      "model_limit_count" => count(artifact, "model_limits")
+    }
+  end
+
   def artifact_observations("maneuver_review_report.v1", artifact) when is_map(artifact) do
     artifact = stringify_keys(artifact)
     rows = map_rows(artifact, "rows")
@@ -14721,6 +14897,28 @@ defmodule OrbitalDynamics.Validation do
       values when is_list(values) -> values
       _values -> []
     end
+  end
+
+  defp stable_id_keys(values) when is_list(values) do
+    values
+    |> Enum.map(&to_string/1)
+    |> Enum.uniq()
+    |> Enum.sort()
+    |> Enum.join("|")
+  end
+
+  defp stable_row_id_keys(rows, key) do
+    rows
+    |> Enum.map(&Map.get(&1, key))
+    |> Enum.reject(&is_nil/1)
+    |> stable_id_keys()
+  end
+
+  defp stable_row_list_id_keys(rows, key) do
+    rows
+    |> Enum.flat_map(&List.wrap(Map.get(&1, key)))
+    |> Enum.reject(&is_nil/1)
+    |> stable_id_keys()
   end
 
   defp availability_value?(row, value) do

@@ -996,6 +996,14 @@ constant, string source boundary, and exact `model_limits` as generated
 reports. Link-capacity summary validation rejects stale summary model strings
 and stale generated `model_limits`, and schema export pins the artifact-only
 summary model plus exact `model_limits` used by generated handoffs.
+`study_results/relay_data_path_summary_v1.json` is observed for relay/direct
+route counts, custody/latency/risk status maps, route IDs, source/relay/station
+ID sets, status-routed route ID maps, latency maxima, model-limit boundaries,
+and artifact-only no-relay-scheduling/no-custody-delivery assumptions.
+Executable validation rejects stale relay/direct route counts, custody routing,
+relay-spacecraft ID sets, latency routing, and generated `model_limits` that no
+longer match relay data-path rows, so relay/store-and-forward handoffs cannot
+hide stale route evidence behind top-level summaries.
 Station-reservation review, hold, and hold import-readiness summary validation
 rejects stale generated `model_limits`, and schema export pins the artifact-only
 summary models plus exact StationCalendar `model_limits` used by generated
