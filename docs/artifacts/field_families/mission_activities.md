@@ -383,6 +383,13 @@ model/schema counts, transition decisions, operator/import actions,
 activity/timeline routing, and trust-boundary evidence scoped to the individual
 `timeline_activity_status_state.v1` or `timeline_activity_approval_state.v1`
 contract without applying status or approval changes.
+`CandidateRefresh.timeline_activity_state_replay_summary/1` and its matching
+top-level `OrbitalDynamics` facade prefer a non-empty V3
+`candidate_source.candidate_refresh_request_source_report_summary.source_reports.timeline_activity_state`
+family over provenance, label their output source and replay scope as
+candidate-source summary metadata, and treat partial non-empty branch families
+as authoritative while keeping provenance fallback for absent or empty branch
+families.
 `Timeline.preservation_report/2` and
 `OrbitalDynamics.timeline_preservation_report/2` expose a compact artifact-only
 `timeline_preservation_report.v1` summary over selected activities that reuses

@@ -9534,13 +9534,37 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local timeline activity-state replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not apply activity-state changes, mutate timelines, select candidates,
-  approve imports, execute commands, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not apply activity-state changes, mutate
+  timelines, select candidates, approve imports, execute commands, or write to
+  Cadence.
   """
   def timeline_activity_state_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
-    state_summary = get_in(source_summary, ["source_reports", "timeline_activity_state"]) || %{}
+
+    branch_state_summary =
+      source_report_summary_branch_family(
+        refresh_or_artifact,
+        "timeline_activity_state"
+      )
+
+    state_summary =
+      branch_state_summary ||
+        get_in(source_summary, ["source_reports", "timeline_activity_state"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_state_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_activity_state",
+          "timeline_activity_state_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.timeline_activity_state",
+          "timeline_activity_state_source_report_provenance_only"
+        }
+      end
 
     row_count = summary_integer(state_summary, "row_count")
     review_required_count = summary_integer(state_summary, "review_required_count")
@@ -9577,7 +9601,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_timeline_activity_state_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.timeline_activity_state",
+      "source" => summary_source,
       "contract" => source_report_summary_contract(state_summary, nil),
       "source_report_count" => summary_integer(state_summary, "count"),
       "source_report_row_count" => row_count,
@@ -9604,7 +9628,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "branch_local_activity_state_routing_pressure" => routing_pressure,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "timeline_activity_state_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_timeline_activity_state_replay_summary",
         "timeline_mutation" => "not_performed_by_summary",
         "activity_state_application" => "not_performed_by_summary",
@@ -10998,7 +11022,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     transition_summary =
       branch_transition_summary ||
-        get_in(source_summary, ["source_reports", "timeline_transition_application_report"]) || %{}
+        get_in(source_summary, ["source_reports", "timeline_transition_application_report"]) ||
+        %{}
 
     {summary_source, replay_scope} =
       if branch_transition_summary do

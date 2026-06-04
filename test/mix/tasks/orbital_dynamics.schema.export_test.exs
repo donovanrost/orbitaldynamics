@@ -772,7 +772,10 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "artifact_contract"
 
     assert get_in(activity_state_schema, ["properties", "model_limits", "const"]) ==
-             OrbitalDynamics.Timeline.model_limits()
+             Enum.map(
+               OrbitalDynamics.TimelineFeedback.capabilities().known_limits,
+               &Atom.to_string/1
+             )
 
     assert get_in(activity_state_schema, ["properties", "rows", "items", "required"]) == [
              "activity_id",

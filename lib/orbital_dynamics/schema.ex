@@ -9869,8 +9869,8 @@ defmodule OrbitalDynamics.Schema do
   defp json_schema_property("model_limits", @timeline_activity_state, _contract) do
     %{
       "type" => "array",
-      "const" => timeline_report_model_limits(),
-      "items" => %{"type" => "string", "enum" => timeline_report_model_limits()}
+      "const" => timeline_feedback_report_model_limits(),
+      "items" => %{"type" => "string", "enum" => timeline_feedback_report_model_limits()}
     }
   end
 
@@ -35901,7 +35901,7 @@ defmodule OrbitalDynamics.Schema do
     |> validate_optional_exact_model_limits(
       path,
       state,
-      timeline_report_model_limits(),
+      timeline_feedback_report_model_limits(),
       "must match timeline activity state model limits"
     )
     |> validate_timeline_activity_state_assumptions(path, state, [

@@ -1571,6 +1571,13 @@ model/schema counts, transition decisions, required operator/import actions,
 activity/timeline routing, invalid-input counts and reasons,
 trust-boundary evidence, and branch-local pressure booleans without applying
 status or approval changes.
+`CandidateRefresh.timeline_activity_state_replay_summary/1` and its matching
+`OrbitalDynamics` facade prefer a non-empty V3
+`candidate_source.candidate_refresh_request_source_report_summary.source_reports.timeline_activity_state`
+family over provenance, label their output source and replay scope as
+candidate-source summary metadata, and treat partial non-empty branch families
+as authoritative while preserving provenance fallback for absent or empty branch
+families.
 CandidateRefresh review/import handoff also accepts direct/list-valued and
 wrapped `source_timeline_preservation_report` /
 `timeline_preservation_report` and `source_timeline_preservation_status` /

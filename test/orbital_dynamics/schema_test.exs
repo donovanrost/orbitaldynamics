@@ -7211,7 +7211,10 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(schema, ["properties", "validation_level", "const"]) == "artifact_contract"
 
     assert get_in(schema, ["properties", "model_limits", "const"]) ==
-             OrbitalDynamics.Timeline.model_limits()
+             Enum.map(
+               OrbitalDynamics.TimelineFeedback.capabilities().known_limits,
+               &Atom.to_string/1
+             )
 
     assert get_in(schema, ["x-orbital-dynamics", "nested_contracts"]) == [
              "timeline_feedback_report.v1"
