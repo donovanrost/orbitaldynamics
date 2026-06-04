@@ -26995,6 +26995,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            } = candidate_source["candidate_refresh_request_source_report_summary"]
 
     assert %{
+             "source" =>
+               "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_transition_application_report",
              "contract" => "timeline_transition_application_report.v1",
              "source_report_count" => 4,
              "source_application_count" => 4,
@@ -27039,6 +27041,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "branch_local_duplicate_identity_pressure" => true,
              "branch_local_operator_review_pressure" => true,
              "assumptions" => %{
+               "replay_scope" =>
+                 "timeline_transition_application_candidate_source_report_summary_only",
                "timeline_application" => "not_performed_by_summary",
                "timeline_mutation" => "not_performed_by_summary",
                "candidate_selection" => "not_performed_by_summary",
@@ -27049,8 +27053,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert Enum.sort(transition_source_paths) == [
              "mission_state.result_artifact.source_timeline_transition_application_report",
              "mission_state.source_result_artifact.timeline_transition_application_report",
-             "source_timeline_transition_application_report",
-             "timeline_transition_application_report"
+             "mission_state.source_timeline_transition_application_report",
+             "mission_state.timeline_transition_application_report"
            ]
 
     assert Enum.sort(transition_trust_boundaries) == [

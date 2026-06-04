@@ -10917,15 +10917,36 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local timeline-transition-application replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, apply timeline transitions, select
-  candidates, approve imports, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, apply
+  timeline transitions, select candidates, approve imports, or write to Cadence.
   """
   def timeline_transition_application_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
+    branch_transition_summary =
+      source_report_summary_branch_family(
+        refresh_or_artifact,
+        "timeline_transition_application_report"
+      )
+
     transition_summary =
-      get_in(source_summary, ["source_reports", "timeline_transition_application_report"]) || %{}
+      branch_transition_summary ||
+        get_in(source_summary, ["source_reports", "timeline_transition_application_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_transition_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_transition_application_report",
+          "timeline_transition_application_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.timeline_transition_application_report",
+          "timeline_transition_application_source_report_provenance_only"
+        }
+      end
 
     application_count = summary_integer(transition_summary, "application_count")
     selected_activity_count = summary_integer(transition_summary, "selected_activity_count")
@@ -10979,8 +11000,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_timeline_transition_application_replay_summary",
-      "source" =>
-        "candidate_refresh.source_report_provenance.timeline_transition_application_report",
+      "source" => summary_source,
       "contract" =>
         source_report_summary_contract(
           transition_summary,
@@ -11015,7 +11035,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "branch_local_operator_review_pressure" => review_action_count > 0,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "timeline_transition_application_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_timeline_transition_application_replay_summary",
         "timeline_application" => "not_performed_by_summary",
         "timeline_mutation" => "not_performed_by_summary",
