@@ -10625,6 +10625,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
             "allocation_status" => "allocated",
             "capacity_pack_status" => "selected_by_reduced_station_capacity_pack",
             "ground_station_id" => "equator_prime",
+            "direction" => "Down Link",
             "required_capacity_fraction" => 0.25,
             "required_capacity_fraction_source" => "contact_required_capacity_fraction"
           },
@@ -10633,6 +10634,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
             "allocation_status" => "deferred",
             "capacity_pack_status" => "deferred_by_reduced_station_capacity_pack",
             "ground_station_id" => "equator_prime",
+            "direction" => "Down Link",
             "required_capacity_fraction" => 0.35,
             "required_capacity_fraction_source" => "capacity_model"
           }
@@ -10754,15 +10756,25 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "deferred_by_reduced_station_capacity_pack" => 0.35,
                "selected_by_reduced_station_capacity_pack" => 0.25
              },
+             "capacity_pack_required_capacity_fraction_by_direction" => %{"downlink" => 0.6},
              "capacity_pack_selected_required_capacity_fraction_by_ground_station" => %{
                "equator_prime" => 0.25
              },
              "capacity_pack_deferred_required_capacity_fraction_by_ground_station" => %{
                "equator_prime" => 0.35
              },
+             "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.25
+             },
+             "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.35
+             },
              "capacity_pack_contact_count" => 2,
              "capacity_pack_contact_ids_by_ground_station" => %{
                "equator_prime" => ["deferred_contact", "selected_pack_contact"]
+             },
+             "capacity_pack_contact_ids_by_direction" => %{
+               "downlink" => ["deferred_contact", "selected_pack_contact"]
              },
              "capacity_pack_contact_ids_by_status" => %{
                "deferred_by_reduced_station_capacity_pack" => ["deferred_contact"],
@@ -10773,6 +10785,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              },
              "capacity_pack_deferred_contact_ids_by_ground_station" => %{
                "equator_prime" => ["deferred_contact"]
+             },
+             "capacity_pack_selected_contact_ids_by_direction" => %{
+               "downlink" => ["selected_pack_contact"]
+             },
+             "capacity_pack_deferred_contact_ids_by_direction" => %{
+               "downlink" => ["deferred_contact"]
              },
              "reduced_capacity_packed_contact_ids" => ["selected_pack_contact"],
              "reduced_capacity_deferred_contact_ids" => ["deferred_contact"],
@@ -10871,12 +10889,24 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
            ] == %{"equator_prime" => ["selected_pack_contact"]}
 
     assert summary[
+             "source_report_contact_allocation_capacity_pack_selected_contact_ids_by_direction"
+           ] == %{"downlink" => ["selected_pack_contact"]}
+
+    assert summary[
              "source_report_contact_allocation_capacity_pack_deferred_contact_ids_by_ground_station"
            ] == %{"equator_prime" => ["deferred_contact"]}
 
     assert summary[
+             "source_report_contact_allocation_capacity_pack_deferred_contact_ids_by_direction"
+           ] == %{"downlink" => ["deferred_contact"]}
+
+    assert summary[
              "source_report_contact_allocation_capacity_pack_contact_ids_by_ground_station"
            ] == %{"equator_prime" => ["deferred_contact", "selected_pack_contact"]}
+
+    assert summary[
+             "source_report_contact_allocation_capacity_pack_contact_ids_by_direction"
+           ] == %{"downlink" => ["deferred_contact", "selected_pack_contact"]}
 
     assert summary[
              "source_report_resource_projection_resource_pressure_ground_station_ids_by_type"
@@ -11012,6 +11042,77 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["branch_local_storage_downlink_pressure"]
     refute summary["branch_local_actual_throughput_pressure"]
     refute summary["branch_local_capacity_adjusted_throughput_pressure"]
+    refute summary["branch_local_storage_pressure"]
+    refute summary["branch_local_downlink_shortfall_pressure"]
+  end
+
+  test "storage downlink pressure replay summary treats capacity-pack direction maps as pressure" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 1,
+            "row_count" => 0,
+            "paths" => ["source_contact_allocation_report"],
+            "capacity_pack_required_capacity_fraction_by_direction" => %{
+              "downlink" => 0.6
+            },
+            "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+              "downlink" => 0.25
+            },
+            "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+              "downlink" => 0.35
+            },
+            "capacity_pack_contact_ids_by_direction" => %{
+              "downlink" => ["selected_pack_contact", "deferred_contact"]
+            },
+            "capacity_pack_selected_contact_ids_by_direction" => %{
+              "downlink" => ["selected_pack_contact"]
+            },
+            "capacity_pack_deferred_contact_ids_by_direction" => %{
+              "downlink" => ["deferred_contact"]
+            },
+            "trust_boundary_status" => "declared",
+            "trust_boundaries" => ["ops_contact_allocation"]
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.storage_downlink_pressure_replay_summary(artifact)
+
+    assert summary["source_report_count"] == 1
+    assert summary["source_report_row_count"] == 0
+
+    assert summary["capacity_pack_required_capacity_fraction_by_direction"] == %{
+             "downlink" => 0.6
+           }
+
+    assert summary["capacity_pack_selected_required_capacity_fraction_by_direction"] == %{
+             "downlink" => 0.25
+           }
+
+    assert summary["capacity_pack_deferred_required_capacity_fraction_by_direction"] == %{
+             "downlink" => 0.35
+           }
+
+    assert summary["capacity_pack_contact_ids_by_direction"] == %{
+             "downlink" => ["selected_pack_contact", "deferred_contact"]
+           }
+
+    assert summary["capacity_pack_selected_contact_ids_by_direction"] == %{
+             "downlink" => ["selected_pack_contact"]
+           }
+
+    assert summary["capacity_pack_deferred_contact_ids_by_direction"] == %{
+             "downlink" => ["deferred_contact"]
+           }
+
+    assert summary["branch_local_downlink_pressure"]
+    assert summary["branch_local_capacity_pack_pressure"]
+    assert summary["branch_local_storage_downlink_pressure"]
     refute summary["branch_local_storage_pressure"]
     refute summary["branch_local_downlink_shortfall_pressure"]
   end

@@ -1246,11 +1246,12 @@ contract field rather than defaulting to `resource_projection_report.v1`.
 compose contact-allocation, link-capacity, and resource-projection provenance
 into a compact storage/downlink replay summary. It preserves source families,
 contracts, paths, trust-boundary maps, allocation/capacity-pack pressure,
-selected/deferred capacity-pack station-demand maps, all-contact plus
-selected/deferred capacity-pack station contact-ID maps, capacity-pack contact
-counts, per-status demand maps, contact-status count maps, status contact-ID
-maps, and reduced-capacity packed/deferred ID sets, plus reduced-capacity pack
-group counts/status/ID routing and required-capacity source counts/contact IDs,
+selected/deferred capacity-pack station and direction demand maps, all-contact
+plus selected/deferred capacity-pack station and direction contact-ID maps,
+capacity-pack contact counts, per-status demand maps, contact-status count
+maps, status contact-ID maps, and reduced-capacity packed/deferred ID sets,
+plus reduced-capacity pack group counts/status/ID routing and
+required-capacity source counts/contact IDs,
 selected/actual downlink shortfall, all/selected/unused capacity-adjusted
 throughput row counts plus station and direction maps, link-capacity direction
 routing maps,

@@ -8508,6 +8508,23 @@ defmodule OrbitalDynamics.CandidateRefresh do
     capacity_pack_by_status =
       Map.get(allocation_summary, "capacity_pack_required_capacity_fraction_by_status", %{})
 
+    capacity_pack_by_direction =
+      Map.get(allocation_summary, "capacity_pack_required_capacity_fraction_by_direction", %{})
+
+    capacity_pack_selected_by_direction =
+      Map.get(
+        allocation_summary,
+        "capacity_pack_selected_required_capacity_fraction_by_direction",
+        %{}
+      )
+
+    capacity_pack_deferred_by_direction =
+      Map.get(
+        allocation_summary,
+        "capacity_pack_deferred_required_capacity_fraction_by_direction",
+        %{}
+      )
+
     capacity_pack_selected_contact_ids_by_station =
       Map.get(allocation_summary, "capacity_pack_selected_contact_ids_by_ground_station", %{})
 
@@ -8516,6 +8533,15 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     capacity_pack_contact_ids_by_station =
       Map.get(allocation_summary, "capacity_pack_contact_ids_by_ground_station", %{})
+
+    capacity_pack_selected_contact_ids_by_direction =
+      Map.get(allocation_summary, "capacity_pack_selected_contact_ids_by_direction", %{})
+
+    capacity_pack_deferred_contact_ids_by_direction =
+      Map.get(allocation_summary, "capacity_pack_deferred_contact_ids_by_direction", %{})
+
+    capacity_pack_contact_ids_by_direction =
+      Map.get(allocation_summary, "capacity_pack_contact_ids_by_direction", %{})
 
     capacity_pack_contact_ids_by_status =
       Map.get(allocation_summary, "capacity_pack_contact_ids_by_status", %{})
@@ -8610,12 +8636,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
         capacity_pack_required_fraction + capacity_pack_selected_fraction +
           capacity_pack_deferred_fraction > 0.0 or
         map_size(capacity_pack_by_status) > 0 or
+        map_size(capacity_pack_by_direction) > 0 or
+        map_size(capacity_pack_selected_by_direction) > 0 or
+        map_size(capacity_pack_deferred_by_direction) > 0 or
         map_size(capacity_pack_contact_status_counts) > 0 or
         (capacity_pack_contact_count || 0) > 0 or
         map_size(capacity_pack_contact_ids_by_station) > 0 or
+        map_size(capacity_pack_contact_ids_by_direction) > 0 or
         map_size(capacity_pack_contact_ids_by_status) > 0 or
         map_size(capacity_pack_selected_contact_ids_by_station) > 0 or
         map_size(capacity_pack_deferred_contact_ids_by_station) > 0 or
+        map_size(capacity_pack_selected_contact_ids_by_direction) > 0 or
+        map_size(capacity_pack_deferred_contact_ids_by_direction) > 0 or
         (reduced_capacity_packed_contact_ids || []) != [] or
         (reduced_capacity_deferred_contact_ids || []) != [] or
         (reduced_capacity_pack_group_count || 0) > 0 or
@@ -8654,17 +8686,27 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "capacity_pack_deferred_required_capacity_fraction" => capacity_pack_deferred_fraction,
       "capacity_pack_required_capacity_fraction_by_ground_station" => capacity_pack_by_station,
       "capacity_pack_required_capacity_fraction_by_status" => capacity_pack_by_status,
+      "capacity_pack_required_capacity_fraction_by_direction" => capacity_pack_by_direction,
       "capacity_pack_selected_required_capacity_fraction_by_ground_station" =>
         capacity_pack_selected_by_station,
       "capacity_pack_deferred_required_capacity_fraction_by_ground_station" =>
         capacity_pack_deferred_by_station,
+      "capacity_pack_selected_required_capacity_fraction_by_direction" =>
+        capacity_pack_selected_by_direction,
+      "capacity_pack_deferred_required_capacity_fraction_by_direction" =>
+        capacity_pack_deferred_by_direction,
       "capacity_pack_contact_count" => capacity_pack_contact_count,
       "capacity_pack_contact_ids_by_ground_station" => capacity_pack_contact_ids_by_station,
+      "capacity_pack_contact_ids_by_direction" => capacity_pack_contact_ids_by_direction,
       "capacity_pack_contact_ids_by_status" => capacity_pack_contact_ids_by_status,
       "capacity_pack_selected_contact_ids_by_ground_station" =>
         capacity_pack_selected_contact_ids_by_station,
       "capacity_pack_deferred_contact_ids_by_ground_station" =>
         capacity_pack_deferred_contact_ids_by_station,
+      "capacity_pack_selected_contact_ids_by_direction" =>
+        capacity_pack_selected_contact_ids_by_direction,
+      "capacity_pack_deferred_contact_ids_by_direction" =>
+        capacity_pack_deferred_contact_ids_by_direction,
       "reduced_capacity_packed_contact_ids" => reduced_capacity_packed_contact_ids,
       "reduced_capacity_deferred_contact_ids" => reduced_capacity_deferred_contact_ids,
       "reduced_capacity_pack_group_count" => reduced_capacity_pack_group_count,
@@ -8723,12 +8765,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
         capacity_pack_required_fraction + capacity_pack_selected_fraction +
           capacity_pack_deferred_fraction > 0.0 or
           map_size(capacity_pack_by_status) > 0 or
+          map_size(capacity_pack_by_direction) > 0 or
+          map_size(capacity_pack_selected_by_direction) > 0 or
+          map_size(capacity_pack_deferred_by_direction) > 0 or
           map_size(capacity_pack_contact_status_counts) > 0 or
           (capacity_pack_contact_count || 0) > 0 or
           map_size(capacity_pack_contact_ids_by_station) > 0 or
+          map_size(capacity_pack_contact_ids_by_direction) > 0 or
           map_size(capacity_pack_contact_ids_by_status) > 0 or
           map_size(capacity_pack_selected_contact_ids_by_station) > 0 or
           map_size(capacity_pack_deferred_contact_ids_by_station) > 0 or
+          map_size(capacity_pack_selected_contact_ids_by_direction) > 0 or
+          map_size(capacity_pack_deferred_contact_ids_by_direction) > 0 or
           (reduced_capacity_packed_contact_ids || []) != [] or
           (reduced_capacity_deferred_contact_ids || []) != [] or
           (reduced_capacity_pack_group_count || 0) > 0 or

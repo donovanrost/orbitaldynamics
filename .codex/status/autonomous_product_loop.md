@@ -1,58 +1,45 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Contact-allocation station-pressure and reservation-conflict direction/station
-routing.
+Storage/downlink capacity-pack direction replay.
 
 Status:
-Implemented and focused verification is passing locally. ContactAllocation now emits optional
-direction-and-ground-station contact-ID maps for station-pressure and
-reservation-conflict evidence, and CandidateRefresh source-report/replay
-summaries preserve those maps from row-derived reports and compact summaries.
-Replay remains artifact-only: no allocation mutation, provider reservation,
-candidate selection, import approval, Cadence write, or schedule mutation.
+Implemented with focused verification passing locally. CandidateRefresh
+storage/downlink pressure replay now preserves contact-allocation capacity-pack
+required, selected, and deferred demand maps by direction, plus all-contact,
+selected, and deferred capacity-pack contact-ID maps by direction. Capacity-pack
+pressure booleans now consider those direction maps, so a direction-scoped
+downlink allocation handoff does not lose routing when composed with
+link-capacity and resource-projection pressure.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
-- `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
 - `lib/orbital_dynamics/candidate_refresh.ex`
-- `lib/orbital_dynamics/communications/contact_allocation.ex`
-- `lib/orbital_dynamics/schema.ex`
-- `schemas/contact_allocation_capacity_pack_summary.v1.schema.json`
-- `schemas/contact_allocation_provider_reservation_request_summary.v1.schema.json`
-- `schemas/contact_allocation_report.v1.schema.json`
-- `schemas/contact_allocation_reservation_conflict_summary.v1.schema.json`
-- `schemas/contact_allocation_station_pressure_summary.v1.schema.json`
-- `schemas/contact_allocation_summary.v1.schema.json`
-- `schemas/orbital_dynamics.schema_bundle.v1.json`
 - `test/orbital_dynamics/candidate_refresh_test.exs`
-- `test/orbital_dynamics/communications/contact_allocation_test.exs`
 
 Tests run:
-- `mix format lib/orbital_dynamics/candidate_refresh.ex lib/orbital_dynamics/communications/contact_allocation.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/candidate_refresh_test.exs test/orbital_dynamics/communications/contact_allocation_test.exs`
-- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:4861`
+- `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:10618`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:11049`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
-- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `mix test test/orbital_dynamics/schema_test.exs`
-- `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 
 Definition of done:
-Station-pressure and reservation-conflict contact IDs are replay-visible by
-combined direction and ground station; generated and compact summary paths are
-covered; stale nested station-pressure maps are rejected by executable
-validation; docs and schema exports are current; reviewer has no must-fix
-findings; the slice is committed and pushed without staging `.gitignore`.
+Storage/downlink replay carries capacity-pack demand and contact-ID maps by
+direction alongside existing station/status maps; pressure flags respond to
+direction-only capacity-pack evidence; docs and tests cover the composed
+boundary; focused and full CandidateRefresh verification pass; reviewer has no
+must-fix findings; the slice is committed and pushed without staging
+`.gitignore`.
 
 Last completed/pushed commit before this slice:
-`dfcec00` (`Replay contact intent direction station routing`).
+`9783bbd` (`Replay allocation direction station routing`).
 
 Next candidate:
-Continue guide-backed resource/communications allocation work after this slice,
-likely the next uncovered station-calendar/contact-allocation precedence replay
-gap.
+After this slice, continue guide-backed resource/communications allocation work,
+likely the next uncovered contact-allocation, station-calendar, or
+storage/downlink replay boundary.
 
 Blocked:
 No.
