@@ -29,7 +29,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`2020068` (`Record refresh budget slice commit`).
+`0de446a` (`Flatten model acceptance replay identity`).
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth
