@@ -28057,6 +28057,18 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "score_downlink_activity" => 1,
                "score_target_activity" => 1
              },
+             "source_report_objective_gap_contracts" => [
+               "objective_satisfaction_report.v1",
+               "objective_tradeoff_report.v1",
+               "score_term_report.v1"
+             ],
+             "source_report_objective_gap_count" => 3,
+             "source_report_objective_gap_row_count" => 9,
+             "source_report_objective_gap_paths" => [
+               "source_objective_satisfaction_report",
+               "source_objective_tradeoff_report",
+               "source_score_term_report"
+             ],
              "source_report_objective_gap_routed_gap_signal_count" => 10,
              "source_report_objective_gap_downlink_gap_row_count" => 3,
              "source_report_objective_gap_target_gap_row_count" => 3,

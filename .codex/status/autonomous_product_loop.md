@@ -1,16 +1,16 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh timeline-feedback source-report identity rollups.
+CandidateRefresh objective-gap source-report identity rollups.
 
 Status:
 Implemented with focused verification passing locally.
 `CandidateRefresh.source_report_summary/1` now
-flattens `source_report_timeline_feedback_contract`,
-`source_report_timeline_feedback_count`,
-`source_report_timeline_feedback_row_count`, and
-`source_report_timeline_feedback_paths` alongside the existing feedback
-Cadence-import-status and activity routing aggregate fields.
+flattens `source_report_objective_gap_contracts`,
+`source_report_objective_gap_count`, `source_report_objective_gap_row_count`,
+and `source_report_objective_gap_paths` alongside the existing cross-family
+objective-gap signal, downlink/target/collection-latency, and routing aggregate
+fields.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -20,19 +20,16 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:26100`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:28060`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 - `git diff --cached --check`
 
-Definition of done:
-Aggregate CandidateRefresh source-report summaries expose timeline-feedback
-contract, count, row count, and source-path identity at top level; tests assert
-those fields against source timeline-feedback report provenance; docs describe
-the compact handoff; and focused plus full CandidateRefresh tests pass.
+Docs/artifacts changed:
+- `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
-Last completed/pushed commit before this slice:
-`f9236b6` (`Flatten transition application replay identity`).
+Last commit:
+`15cb8ea` (`Flatten timeline feedback replay identity`).
 
 Next candidate:
 Continue guide-backed CandidateRefresh depth from queue item 4, looking for the

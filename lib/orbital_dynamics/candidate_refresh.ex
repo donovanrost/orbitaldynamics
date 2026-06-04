@@ -4681,6 +4681,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "score_term_report",
           "source_activity_id_counts"
         ),
+      "source_report_objective_gap_contracts" =>
+        source_report_objective_gap_contracts(source_reports),
+      "source_report_objective_gap_count" =>
+        source_report_objective_gap_count(source_reports, "count"),
+      "source_report_objective_gap_row_count" =>
+        source_report_objective_gap_count(source_reports, "row_count"),
+      "source_report_objective_gap_paths" => source_report_objective_gap_paths(source_reports),
       "source_report_objective_gap_routed_gap_signal_count" =>
         source_report_summary_family_count_or_zero(
           source_reports,
@@ -17595,6 +17602,49 @@ defmodule OrbitalDynamics.CandidateRefresh do
     source_reports
     |> Map.get(family, %{})
     |> Map.get(field)
+  end
+
+  defp source_report_objective_gap_contracts(source_reports) do
+    source_reports
+    |> source_report_objective_gap_family_values("contract")
+    |> sorted_string_values()
+  end
+
+  defp source_report_objective_gap_paths(source_reports) do
+    source_reports
+    |> source_report_objective_gap_families()
+    |> Enum.flat_map(fn family ->
+      source_reports
+      |> source_report_summary_family_field(family, "paths")
+      |> List.wrap()
+    end)
+    |> sorted_string_values()
+  end
+
+  defp source_report_objective_gap_count(source_reports, field) do
+    source_reports
+    |> source_report_objective_gap_families()
+    |> Enum.map(&source_report_summary_family_count(source_reports, &1, field))
+    |> Enum.reject(&is_nil/1)
+    |> case do
+      [] -> nil
+      counts -> Enum.sum(counts)
+    end
+  end
+
+  defp source_report_objective_gap_family_values(source_reports, field) do
+    source_reports
+    |> source_report_objective_gap_families()
+    |> Enum.map(&source_report_summary_family_field(source_reports, &1, field))
+    |> Enum.reject(&is_nil/1)
+  end
+
+  defp source_report_objective_gap_families(_source_reports) do
+    [
+      "objective_satisfaction_report",
+      "objective_tradeoff_report",
+      "score_term_report"
+    ]
   end
 
   defp source_report_summary_numeric_sum(source_reports, field) do

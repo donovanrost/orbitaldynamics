@@ -1784,10 +1784,10 @@ alongside timeline-transition-application replay provenance.
 `OrbitalDynamics.candidate_refresh_objective_gap_replay_summary/1` expose the
 objective-gap slice as a branch-local replay summary across
 objective-satisfaction, objective-tradeoff, and score-term provenance. It
-preserves source paths, routed downlink/target/collection-latency gap counts,
-objective status/type maps, score-term key maps, station/target/collection and
-source-activity ID routing maps, trust-boundary evidence, and branch-local
-objective-gap,
+preserves top-level source-report contracts/count/path rollups, source paths,
+routed downlink/target/collection-latency gap counts, objective status/type
+maps, score-term key maps, station/target/collection and source-activity ID
+routing maps, trust-boundary evidence, and branch-local objective-gap,
 downlink, target, collection-latency, status, score-term, and routing pressure
 booleans without creating objectives, recalculating scores, selecting
 candidates, approving imports, writing to Cadence, or regenerating candidates.
