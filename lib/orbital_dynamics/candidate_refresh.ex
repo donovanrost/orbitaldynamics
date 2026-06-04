@@ -8838,15 +8838,34 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local station-reservation replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not reserve provider time, mutate station calendars or schedules, select
-  candidates, approve imports, write to Cadence, or regenerate candidates.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not reserve provider time, mutate station
+  calendars or schedules, select candidates, approve imports, write to Cadence,
+  or regenerate candidates.
   """
   def station_reservation_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
+    branch_reservation_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "station_reservation_report")
+
     reservation_summary =
-      get_in(source_summary, ["source_reports", "station_reservation_report"]) || %{}
+      branch_reservation_summary ||
+        get_in(source_summary, ["source_reports", "station_reservation_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_reservation_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.station_reservation_report",
+          "station_reservation_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.station_reservation_report",
+          "station_reservation_source_report_provenance_only"
+        }
+      end
 
     affected_contact_count = summary_integer(reservation_summary, "affected_contact_count")
 
@@ -9076,7 +9095,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_station_reservation_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.station_reservation_report",
+      "source" => summary_source,
       "contract" =>
         source_report_summary_contract(reservation_summary, "station_reservation_report.v1"),
       "source_report_count" => summary_integer(reservation_summary, "count"),
@@ -9199,7 +9218,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         if(reservation_hold_import_readiness_pressure, do: true),
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "station_reservation_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_station_reservation_replay_summary",
         "provider_reservation" => "not_performed_by_summary",
         "station_calendar_mutation" => "not_performed_by_summary",
