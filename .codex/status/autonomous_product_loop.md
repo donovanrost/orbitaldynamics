@@ -1,15 +1,17 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh constraint source-report identity rollups.
+CandidateRefresh operational-timeline source-report identity rollups.
 
 Status:
 Implemented with focused verification passing locally.
 `CandidateRefresh.source_report_summary/1` now
-flattens `source_report_constraint_contract`, `source_report_constraint_count`,
-`source_report_constraint_row_count`, and `source_report_constraint_paths`
-alongside the existing constraint downlink-gap, resource-margin, status, ID,
-activity, resource, spacecraft, and station/metric routing aggregate fields.
+flattens `source_report_operational_timeline_contract`,
+`source_report_operational_timeline_count`,
+`source_report_operational_timeline_row_count`, and
+`source_report_operational_timeline_paths` alongside the existing operational
+kind, activity, status, approval, required-action, and Cadence-import routing
+aggregate fields.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -19,7 +21,7 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:27737`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:27076`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 - `git diff --cached --check`
@@ -28,7 +30,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`758b72d` (`Flatten constraint replay identity`).
+`5fd0bae` (`Record latest autonomous loop commit`).
 
 Next candidate:
 Continue guide-backed CandidateRefresh depth from queue item 4, looking for the

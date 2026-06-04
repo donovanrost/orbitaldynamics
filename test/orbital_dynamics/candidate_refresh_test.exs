@@ -27073,6 +27073,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 1,
+             "source_report_operational_timeline_contract" => "operational_timeline_report.v1",
+             "source_report_operational_timeline_count" => 1,
+             "source_report_operational_timeline_row_count" => 1,
+             "source_report_operational_timeline_paths" => [
+               "source_operational_timeline_report"
+             ],
              "source_report_operational_timeline_operational_kind_counts" => %{
                "contact" => 1
              },
@@ -27177,6 +27183,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     }
 
     assert %{
+             "source_report_operational_timeline_contract" => "operational_timeline_report.v1",
+             "source_report_operational_timeline_count" => 1,
+             "source_report_operational_timeline_row_count" => 1,
+             "source_report_operational_timeline_paths" => [
+               "source_operational_timeline_report"
+             ],
              "source_report_operational_timeline_operational_kind_counts" => %{
                "contact" => 1
              },

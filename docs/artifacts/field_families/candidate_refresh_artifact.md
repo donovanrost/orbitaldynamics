@@ -1921,9 +1921,10 @@ contract field rather than defaulting to `timeline_feedback_report.v1`.
 `CandidateRefresh.operational_timeline_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_operational_timeline_replay_summary/1`
 expose the operational-timeline slice as a branch-local replay summary. It
-preserves source operational-timeline paths, row counts, contact/command/
-maneuver/observation/station-throughput feedback counts, integrity issue
-counts, row-derived operational-kind, activity-ID, activity-status,
+preserves top-level source-report contract/count/path rollups, source
+operational-timeline paths, row counts, contact/command/maneuver/observation/
+station-throughput feedback counts, integrity issue counts, row-derived
+operational-kind, activity-ID, activity-status,
 approval-status, required-action, Cadence-import-status, and integrity-issue-type maps,
 station-reservation evidence counts, input keys, trust-boundary evidence, and
 branch-local operational-timeline, feedback, activity-routing, integrity, and
