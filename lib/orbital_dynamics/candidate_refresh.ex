@@ -5915,6 +5915,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "timeline_transition_application_report",
           "duplicate_timeline_identity_scope_counts"
         ),
+      "source_report_timeline_feedback_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "timeline_feedback_report",
+          "contract"
+        ),
+      "source_report_timeline_feedback_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "timeline_feedback_report",
+          "count"
+        ),
+      "source_report_timeline_feedback_row_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "timeline_feedback_report",
+          "row_count"
+        ),
+      "source_report_timeline_feedback_paths" =>
+        source_report_summary_family_field(
+          source_reports,
+          "timeline_feedback_report",
+          "paths"
+        ),
       "source_report_timeline_feedback_cadence_import_status_counts" =>
         source_report_summary_family_merge_count_maps(
           source_reports,

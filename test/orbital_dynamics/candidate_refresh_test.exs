@@ -26105,6 +26105,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 1,
+             "source_report_timeline_feedback_contract" => "timeline_feedback_report.v1",
+             "source_report_timeline_feedback_count" => 1,
+             "source_report_timeline_feedback_row_count" => 1,
+             "source_report_timeline_feedback_paths" => ["source_timeline_feedback_report"],
              "source_report_timeline_feedback_cadence_import_status_counts" => %{
                "review_required" => 1
              },
