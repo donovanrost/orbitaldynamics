@@ -6,7 +6,8 @@ preservation rows.
 
 Status:
 Implementation, focused verification, read-only review, and review follow-up
-are complete for this slice. Publish is pending.
+are complete for this slice. Product commit and push are complete. This status
+handoff records the published state.
 `CandidateRefresh.timeline_preservation_replay_summary/1` now prefers non-empty
 V3 branch `candidate_source` preservation report/status rows before falling
 back to candidate-refresh review provenance. Branch rows preserve
@@ -48,7 +49,8 @@ Docs/artifacts changed:
   slice.
 
 Last product commit:
-- Pending.
+- `8f9a8045376b763bbbe0acb4308cdf1b2ae1953b` (`Label timeline preservation
+  branch replay metadata`) pushed to `origin/main`.
 
 Next candidate:
 After publish, re-read `docs/autonomous_work_guide.md`, this ledger, and the
