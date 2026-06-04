@@ -6,7 +6,8 @@ Candidate-rejection replay reads and labels branch
 
 Status:
 Implementation, focused verification, and read-only review are complete for
-this slice. Publish is pending. `CandidateRefresh.candidate_rejection_replay_summary/1`
+this slice. Product commit and push are complete. This status handoff records
+the published state. `CandidateRefresh.candidate_rejection_replay_summary/1`
 now checks a non-empty branch `candidate_rejection_report` source-report family
 before falling back to provenance. Branch-sourced summaries preserve
 source-report counts, row counts, paths, rejected/reviewable/invalid-input
@@ -43,7 +44,8 @@ Docs/artifacts changed:
   schema exports or checked-in study artifacts changed in this slice.
 
 Last product commit:
-- Pending.
+- `261a9670096d034f28f93cf6a020875ea52ebe3b` (`Label candidate rejection
+  branch replay metadata`) pushed to `origin/main`.
 
 Next candidate:
 After publish, re-read `docs/autonomous_work_guide.md`, this ledger, and the
