@@ -1968,8 +1968,9 @@ contract field rather than defaulting to `operational_timeline_report.v1`.
 `CandidateRefresh.quality_gate_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_quality_gate_replay_summary/1` expose the
 quality-gate slice of that provenance as a branch-local replay summary. It
-preserves source quality-gate paths, readiness/import/status maps, gate
-status/classification maps, analysis-mode counts,
+preserves top-level source-report contract/count/path rollups, source
+quality-gate paths, readiness/import/status maps, gate status/classification
+maps, analysis-mode counts,
 import/freshness/schema-validation count maps, resource-availability reason
 maps including station-specific availability reason counts, resource-blocking
 dimension maps, source-readiness report counts, and review/import/resource

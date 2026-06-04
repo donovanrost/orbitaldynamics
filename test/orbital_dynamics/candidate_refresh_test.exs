@@ -23203,6 +23203,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 1,
+             "source_report_quality_gate_contract" => "quality_gate_report.v1",
+             "source_report_quality_gate_count" => 1,
+             "source_report_quality_gate_row_count" => 3,
+             "source_report_quality_gate_paths" => ["source_quality_gate_report"],
              "source_report_quality_gate_readiness_level_counts" => %{"blocked" => 1},
              "source_report_quality_gate_import_classification_counts" => %{
                "blocked" => 1
@@ -23356,6 +23360,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 2,
+             "source_report_quality_gate_contract" => "quality_gate_report.v1",
+             "source_report_quality_gate_count" => 1,
+             "source_report_quality_gate_row_count" => 3,
+             "source_report_quality_gate_paths" => ["source_quality_gate_report"],
              "source_report_quality_gate_readiness_level_counts" => %{"blocked" => 1},
              "source_report_quality_gate_gate_status_counts" => %{
                "analysis_only" => 1,
@@ -23378,8 +23386,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "provenance" => %{"source_reports" => %{}}
     }
 
+    source_summary = CandidateRefresh.source_report_summary(artifact)
     summary = CandidateRefresh.quality_gate_replay_summary(artifact)
 
+    refute Map.has_key?(source_summary, "source_report_quality_gate_contract")
+    refute Map.has_key?(source_summary, "source_report_quality_gate_count")
+    refute Map.has_key?(source_summary, "source_report_quality_gate_row_count")
+    refute Map.has_key?(source_summary, "source_report_quality_gate_paths")
     assert summary["source_report_count"] == 0
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_paths"] == []
@@ -23400,6 +23413,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_family_count" => 1,
              "source_report_count" => 1,
              "source_report_row_count" => 2,
+             "source_report_quality_gate_contract" => "quality_gate_report.v1",
+             "source_report_quality_gate_count" => 1,
+             "source_report_quality_gate_row_count" => 2,
+             "source_report_quality_gate_paths" => [
+               "source_operational_quality_gate_import_readiness_summary"
+             ],
              "source_report_quality_gate_source_summary_model_counts" => %{
                "artifact_only_quality_gate_import_readiness_summary" => 1
              },

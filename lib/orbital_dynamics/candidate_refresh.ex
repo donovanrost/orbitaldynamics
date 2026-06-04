@@ -4037,6 +4037,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "operational_readiness_report",
           "source_review_type_counts"
         ),
+      "source_report_quality_gate_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "quality_gate_report",
+          "contract"
+        ),
+      "source_report_quality_gate_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "quality_gate_report",
+          "count"
+        ),
+      "source_report_quality_gate_row_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "quality_gate_report",
+          "row_count"
+        ),
+      "source_report_quality_gate_paths" =>
+        source_report_summary_family_field(
+          source_reports,
+          "quality_gate_report",
+          "paths"
+        ),
       "source_report_quality_gate_readiness_level_counts" =>
         source_report_summary_family_merge_count_maps(
           source_reports,
