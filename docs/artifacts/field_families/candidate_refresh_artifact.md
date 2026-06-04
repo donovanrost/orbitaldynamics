@@ -1685,8 +1685,9 @@ The helper accepts direct `timeline_dependency_impact_summary` inputs, exact
 wrapped `source_timeline_dependency_impact_summary` /
 `timeline_dependency_impact_summary` result-artifact inputs, and the same rows
 preserved through operator-review packages or Cadence-import manifests,
-preserving source/replacement scope counts, impacted source, dependency, and
-exclusivity ID maps, dependent activity/timeline routing, trust boundaries, and
+preserving top-level source-report contract/count/path rollups,
+source/replacement scope counts, impacted source, dependency, and exclusivity
+ID maps, dependent activity/timeline routing, trust boundaries, and
 operator-review pressure without mutating timelines, selecting candidates,
 approving imports, writing to Cadence, or regenerating candidates.
 Generated V3 branch refresh requests preserve the same source/dependency/

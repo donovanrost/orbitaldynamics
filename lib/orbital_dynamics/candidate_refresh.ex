@@ -5597,6 +5597,24 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "timeline_lifecycle_state_summary",
           "review_routing"
         ),
+      "source_report_timeline_dependency_impact_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "timeline_dependency_impact_summary",
+          "contract"
+        ),
+      "source_report_timeline_dependency_impact_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "timeline_dependency_impact_summary",
+          "count"
+        ),
+      "source_report_timeline_dependency_impact_paths" =>
+        source_report_summary_family_field(
+          source_reports,
+          "timeline_dependency_impact_summary",
+          "paths"
+        ),
       "source_report_timeline_dependency_impact_row_count" =>
         source_report_summary_family_count(
           source_reports,

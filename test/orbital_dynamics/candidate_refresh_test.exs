@@ -20687,7 +20687,15 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_row_counts_by_family" => %{
                "timeline_dependency_impact_summary" => 6
              },
+             "source_report_timeline_dependency_impact_contract" =>
+               "timeline_dependency_impact_summary.v1",
+             "source_report_timeline_dependency_impact_count" => 3,
              "source_report_timeline_dependency_impact_row_count" => 6,
+             "source_report_timeline_dependency_impact_paths" => [
+               "source_timeline_dependency_impact_summary",
+               "source_operator_review_package.rows.source_timeline_dependency_impact",
+               "source_cadence_import_manifest.rows.source_review_row.source_timeline_dependency_impact"
+             ],
              "source_report_timeline_dependency_impact_source_activity_count" => 2,
              "source_report_timeline_dependency_impact_replacement_activity_count" => 2,
              "source_report_timeline_dependency_impact_changed_source_activity_count" => 1,

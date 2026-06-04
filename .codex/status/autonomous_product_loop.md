@@ -1,16 +1,17 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh timeline lifecycle-state source-report identity rollups.
+CandidateRefresh timeline dependency-impact source-report identity rollups.
 
 Status:
 Implemented with focused verification passing locally.
 `CandidateRefresh.source_report_summary/1` now
-flattens `source_report_timeline_lifecycle_state_contract`,
-`source_report_timeline_lifecycle_state_count`, and
-`source_report_timeline_lifecycle_state_paths` alongside the existing
-lifecycle-state row, planned/realized activity, preservation, review,
-invalid-input, transition provenance, and review-routing aggregate fields.
+flattens `source_report_timeline_dependency_impact_contract`,
+`source_report_timeline_dependency_impact_count`, and
+`source_report_timeline_dependency_impact_paths` alongside the existing
+dependency-impact row, source/replacement activity, dependent activity,
+required-action, impacted source/dependency/exclusivity, and dependent routing
+aggregate fields.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -20,19 +21,19 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:16108`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:20690`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 - `git diff --cached --check`
 
 Definition of done:
 Aggregate CandidateRefresh source-report summaries expose timeline
-lifecycle-state contract, count, and source-path identity at top level; tests
-assert those fields against multi-path provenance; docs describe the compact
-handoff; and focused plus full CandidateRefresh tests pass.
+dependency-impact contract, count, and source-path identity at top level; tests
+assert those fields against direct/review/import provenance; docs describe the
+compact handoff; and focused plus full CandidateRefresh tests pass.
 
 Last completed/pushed commit before this slice:
-`a387c62` (`Advertise precondition replay summary fields`).
+`c0f72c0` (`Flatten lifecycle state replay identity`).
 
 Next candidate:
 Continue guide-backed CandidateRefresh depth from queue item 4, looking for the
