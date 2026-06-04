@@ -1605,9 +1605,18 @@ defmodule OrbitalDynamics.Validation do
           "downlink" => 0.25,
           "tracking" => 0.4
         },
+        "source_contact_intent_capacity_pack_required_capacity_fraction_by_direction_and_ground_station" =>
+          %{
+            "downlink" => %{"equator_prime" => 0.25},
+            "tracking" => %{"dss_43" => 0.4}
+          },
         "source_contact_intent_capacity_pack_contact_ids_by_direction" => %{
           "downlink" => ["intent_direct_capacity"],
           "tracking" => ["intent_nested_capacity"]
+        },
+        "source_contact_intent_capacity_pack_contact_ids_by_direction_and_ground_station" => %{
+          "downlink" => %{"equator_prime" => ["intent_direct_capacity"]},
+          "tracking" => %{"dss_43" => ["intent_nested_capacity"]}
         },
         "source_contact_intent_direction_keys" => "command|downlink|tracking",
         "source_contact_intent_direction_counts" => %{
@@ -1620,23 +1629,48 @@ defmodule OrbitalDynamics.Validation do
           "downlink" => ["intent_direct_capacity"],
           "tracking" => ["intent_nested_capacity"]
         },
+        "source_contact_intent_contact_ids_by_direction_and_ground_station" => %{
+          "command" => %{"dss_43" => ["intent_station_only"]},
+          "downlink" => %{"equator_prime" => ["intent_direct_capacity"]},
+          "tracking" => %{"dss_43" => ["intent_nested_capacity"]}
+        },
         "source_contact_intent_direction_routing" => %{
           "command" => %{
             "contact_count" => 1,
             "contact_ids" => ["intent_station_only"],
-            "capacity_pack_contact_ids" => []
+            "capacity_pack_contact_ids" => [],
+            "ground_station_ids" => ["dss_43"],
+            "contact_ids_by_ground_station" => %{"dss_43" => ["intent_station_only"]}
           },
           "downlink" => %{
             "contact_count" => 1,
             "contact_ids" => ["intent_direct_capacity"],
             "capacity_pack_required_capacity_fraction" => 0.25,
-            "capacity_pack_contact_ids" => ["intent_direct_capacity"]
+            "capacity_pack_contact_ids" => ["intent_direct_capacity"],
+            "ground_station_ids" => ["equator_prime"],
+            "contact_ids_by_ground_station" => %{
+              "equator_prime" => ["intent_direct_capacity"]
+            },
+            "capacity_pack_required_capacity_fraction_by_ground_station" => %{
+              "equator_prime" => 0.25
+            },
+            "capacity_pack_contact_ids_by_ground_station" => %{
+              "equator_prime" => ["intent_direct_capacity"]
+            }
           },
           "tracking" => %{
             "contact_count" => 1,
             "contact_ids" => ["intent_nested_capacity"],
             "capacity_pack_required_capacity_fraction" => 0.4,
-            "capacity_pack_contact_ids" => ["intent_nested_capacity"]
+            "capacity_pack_contact_ids" => ["intent_nested_capacity"],
+            "ground_station_ids" => ["dss_43"],
+            "contact_ids_by_ground_station" => %{"dss_43" => ["intent_nested_capacity"]},
+            "capacity_pack_required_capacity_fraction_by_ground_station" => %{
+              "dss_43" => 0.4
+            },
+            "capacity_pack_contact_ids_by_ground_station" => %{
+              "dss_43" => ["intent_nested_capacity"]
+            }
           }
         },
         "source_contact_intent_trust_boundary_status" => "declared"
@@ -10961,8 +10995,19 @@ defmodule OrbitalDynamics.Validation do
       "source_contact_intent_capacity_pack_required_capacity_fraction_by_direction" =>
         Map.get(contact_intent_summary, "capacity_pack_required_capacity_fraction_by_direction") ||
           %{},
+      "source_contact_intent_capacity_pack_required_capacity_fraction_by_direction_and_ground_station" =>
+        Map.get(
+          contact_intent_summary,
+          "capacity_pack_required_capacity_fraction_by_direction_and_ground_station"
+        ) || %{},
       "source_contact_intent_capacity_pack_contact_ids_by_direction" =>
         Map.get(contact_intent_summary, "capacity_pack_contact_ids_by_direction") || %{},
+      "source_contact_intent_capacity_pack_contact_ids_by_direction_and_ground_station" =>
+        Map.get(
+          contact_intent_summary,
+          "capacity_pack_contact_ids_by_direction_and_ground_station"
+        ) ||
+          %{},
       "source_contact_intent_direction_keys" =>
         contact_intent_summary
         |> list_values("directions")
@@ -10972,6 +11017,8 @@ defmodule OrbitalDynamics.Validation do
         Map.get(contact_intent_summary, "direction_counts") || %{},
       "source_contact_intent_contact_ids_by_direction" =>
         Map.get(contact_intent_summary, "contact_ids_by_direction") || %{},
+      "source_contact_intent_contact_ids_by_direction_and_ground_station" =>
+        Map.get(contact_intent_summary, "contact_ids_by_direction_and_ground_station") || %{},
       "source_contact_intent_direction_routing" =>
         Map.get(contact_intent_summary, "direction_routing") || %{},
       "source_contact_intent_trust_boundary_status" =>

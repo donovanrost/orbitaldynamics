@@ -3988,10 +3988,13 @@ defmodule OrbitalDynamics.Schema do
         "capacity_pack_required_contact_count",
         "capacity_pack_required_capacity_fraction",
         "capacity_pack_required_capacity_fraction_by_ground_station_id",
+        "capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id",
         "required_capacity_fraction_source_counts",
         "required_capacity_fraction_contact_ids_by_source",
         "contact_ids_by_ground_station_id",
+        "contact_ids_by_direction_and_ground_station_id",
         "capacity_pack_contact_ids_by_ground_station_id",
+        "capacity_pack_contact_ids_by_direction_and_ground_station_id",
         "ground_station_ids",
         "directions",
         "assumptions"
@@ -10588,6 +10591,38 @@ defmodule OrbitalDynamics.Schema do
               "capacity_pack_contact_ids_by_direction"
             ] do
     %{"type" => ["object", "null"], "additionalProperties" => stable_id_array_schema()}
+  end
+
+  defp json_schema_property(
+         field,
+         @contact_intent_summary,
+         _contract
+       )
+       when field in [
+              "contact_ids_by_direction_and_ground_station_id",
+              "capacity_pack_contact_ids_by_direction_and_ground_station_id"
+            ] do
+    %{
+      "type" => ["object", "null"],
+      "additionalProperties" => %{
+        "type" => "object",
+        "additionalProperties" => stable_id_array_schema()
+      }
+    }
+  end
+
+  defp json_schema_property(
+         "capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id",
+         @contact_intent_summary,
+         _contract
+       ) do
+    %{
+      "type" => ["object", "null"],
+      "additionalProperties" => %{
+        "type" => "object",
+        "additionalProperties" => %{"type" => "number", "minimum" => 0.0}
+      }
+    }
   end
 
   defp json_schema_property("direction_counts", @contact_intent_summary, _contract) do
@@ -18522,6 +18557,13 @@ defmodule OrbitalDynamics.Schema do
     %{"type" => "object", "additionalProperties" => stable_id_array_schema()}
   end
 
+  defp nested_stable_id_array_map_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => stable_id_array_map_schema()
+    }
+  end
+
   defp numeric_map_json_schema do
     %{"type" => "object", "additionalProperties" => %{"type" => "number"}}
   end
@@ -19805,6 +19847,13 @@ defmodule OrbitalDynamics.Schema do
     }
   end
 
+  defp nested_non_negative_number_map_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => non_negative_number_map_json_schema()
+    }
+  end
+
   defp string_value_map_json_schema do
     %{
       "type" => "object",
@@ -20977,11 +21026,16 @@ defmodule OrbitalDynamics.Schema do
         non_negative_number_map_json_schema(),
       "capacity_pack_required_capacity_fraction_by_direction" =>
         non_negative_number_map_json_schema(),
+      "capacity_pack_required_capacity_fraction_by_direction_and_ground_station" =>
+        nested_non_negative_number_map_json_schema(),
       "required_capacity_fraction_source_counts" => non_negative_integer_count_map_json_schema(),
       "required_capacity_fraction_contact_ids_by_source" => stable_id_array_map_schema(),
       "capacity_pack_contact_ids_by_ground_station" => stable_id_array_map_schema(),
       "contact_ids_by_ground_station" => stable_id_array_map_schema(),
       "capacity_pack_contact_ids_by_direction" => stable_id_array_map_schema(),
+      "capacity_pack_contact_ids_by_direction_and_ground_station" =>
+        nested_stable_id_array_map_json_schema(),
+      "contact_ids_by_direction_and_ground_station" => nested_stable_id_array_map_json_schema(),
       "directions" => string_array_schema(),
       "direction_counts" => non_negative_integer_count_map_json_schema(),
       "contact_ids_by_direction" => stable_id_array_map_schema(),
@@ -20999,7 +21053,16 @@ defmodule OrbitalDynamics.Schema do
           "contact_count" => %{"type" => "integer", "minimum" => 0},
           "contact_ids" => stable_id_array_schema(),
           "capacity_pack_required_capacity_fraction" => %{"type" => "number", "minimum" => 0.0},
-          "capacity_pack_contact_ids" => stable_id_array_schema()
+          "capacity_pack_contact_ids" => stable_id_array_schema(),
+          "ground_station_ids" => stable_id_array_schema(),
+          "contact_ids_by_ground_station_id" => stable_id_array_map_schema(),
+          "capacity_pack_required_capacity_fraction_by_ground_station_id" =>
+            non_negative_number_map_json_schema(),
+          "capacity_pack_contact_ids_by_ground_station_id" => stable_id_array_map_schema(),
+          "contact_ids_by_ground_station" => stable_id_array_map_schema(),
+          "capacity_pack_required_capacity_fraction_by_ground_station" =>
+            non_negative_number_map_json_schema(),
+          "capacity_pack_contact_ids_by_ground_station" => stable_id_array_map_schema()
         }
       }
     }
@@ -25206,6 +25269,10 @@ defmodule OrbitalDynamics.Schema do
       path <> ".capacity_pack_required_capacity_fraction_by_direction",
       Map.get(summary, "capacity_pack_required_capacity_fraction_by_direction")
     )
+    |> validate_nested_non_negative_number_map(
+      path <> ".capacity_pack_required_capacity_fraction_by_direction_and_ground_station",
+      Map.get(summary, "capacity_pack_required_capacity_fraction_by_direction_and_ground_station")
+    )
     |> validate_non_negative_integer_count_map(
       path <> ".required_capacity_fraction_source_counts",
       Map.get(summary, "required_capacity_fraction_source_counts")
@@ -25226,6 +25293,14 @@ defmodule OrbitalDynamics.Schema do
       path <> ".capacity_pack_contact_ids_by_direction",
       Map.get(summary, "capacity_pack_contact_ids_by_direction")
     )
+    |> validate_nested_stable_id_array_map(
+      path <> ".capacity_pack_contact_ids_by_direction_and_ground_station",
+      Map.get(summary, "capacity_pack_contact_ids_by_direction_and_ground_station")
+    )
+    |> validate_nested_stable_id_array_map(
+      path <> ".contact_ids_by_direction_and_ground_station",
+      Map.get(summary, "contact_ids_by_direction_and_ground_station")
+    )
     |> validate_string_list_items(path, summary, "directions")
     |> validate_non_negative_integer_count_map(
       path <> ".direction_counts",
@@ -25235,13 +25310,18 @@ defmodule OrbitalDynamics.Schema do
       path <> ".contact_ids_by_direction",
       Map.get(summary, "contact_ids_by_direction")
     )
-    |> validate_contact_intent_direction_routing(path, Map.get(summary, "direction_routing"))
+    |> validate_contact_intent_direction_routing(
+      path,
+      Map.get(summary, "direction_routing"),
+      summary
+    )
   end
 
-  defp validate_contact_intent_direction_routing(issues, _path, value) when value in [nil, :null],
-    do: issues
+  defp validate_contact_intent_direction_routing(issues, _path, value, _summary)
+       when value in [nil, :null],
+       do: issues
 
-  defp validate_contact_intent_direction_routing(issues, path, %{} = routing) do
+  defp validate_contact_intent_direction_routing(issues, path, %{} = routing, summary) do
     Enum.reduce(routing, issues, fn {direction, route}, acc ->
       route_path = "#{path}.direction_routing.#{direction}"
 
@@ -25259,6 +25339,40 @@ defmodule OrbitalDynamics.Schema do
             route_path <> ".capacity_pack_contact_ids",
             Map.get(route, "capacity_pack_contact_ids")
           )
+          |> validate_stable_id_list(
+            route_path <> ".ground_station_ids",
+            Map.get(route, "ground_station_ids")
+          )
+          |> validate_stable_id_array_map(
+            route_path <> ".contact_ids_by_ground_station",
+            Map.get(route, "contact_ids_by_ground_station")
+          )
+          |> validate_stable_id_array_map(
+            route_path <> ".contact_ids_by_ground_station_id",
+            Map.get(route, "contact_ids_by_ground_station_id")
+          )
+          |> validate_non_negative_number_map(
+            route_path <> ".capacity_pack_required_capacity_fraction_by_ground_station",
+            Map.get(route, "capacity_pack_required_capacity_fraction_by_ground_station")
+          )
+          |> validate_non_negative_number_map(
+            route_path <> ".capacity_pack_required_capacity_fraction_by_ground_station_id",
+            Map.get(route, "capacity_pack_required_capacity_fraction_by_ground_station_id")
+          )
+          |> validate_stable_id_array_map(
+            route_path <> ".capacity_pack_contact_ids_by_ground_station",
+            Map.get(route, "capacity_pack_contact_ids_by_ground_station")
+          )
+          |> validate_stable_id_array_map(
+            route_path <> ".capacity_pack_contact_ids_by_ground_station_id",
+            Map.get(route, "capacity_pack_contact_ids_by_ground_station_id")
+          )
+          |> validate_contact_intent_direction_route_consistency(
+            route_path,
+            route,
+            direction,
+            summary
+          )
 
         _route ->
           [error(route_path, "must be an object") | acc]
@@ -25266,8 +25380,100 @@ defmodule OrbitalDynamics.Schema do
     end)
   end
 
-  defp validate_contact_intent_direction_routing(issues, path, _value),
+  defp validate_contact_intent_direction_routing(issues, path, _value, _summary),
     do: [error(path <> ".direction_routing", "must be an object") | issues]
+
+  defp validate_contact_intent_direction_route_consistency(
+         issues,
+         path,
+         route,
+         direction,
+         summary
+       ) do
+    contact_ids_by_station =
+      direction_route_nested_map(summary, direction, [
+        "contact_ids_by_direction_and_ground_station",
+        "contact_ids_by_direction_and_ground_station_id"
+      ])
+
+    capacity_contact_ids_by_station =
+      direction_route_nested_map(summary, direction, [
+        "capacity_pack_contact_ids_by_direction_and_ground_station",
+        "capacity_pack_contact_ids_by_direction_and_ground_station_id"
+      ])
+
+    required_by_station =
+      direction_route_nested_map(summary, direction, [
+        "capacity_pack_required_capacity_fraction_by_direction_and_ground_station",
+        "capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id"
+      ])
+
+    station_ids =
+      case contact_ids_by_station do
+        %{} -> contact_ids_by_station |> Map.keys() |> Enum.sort()
+        _value -> nil
+      end
+
+    issues
+    |> expect_optional_field_equals(
+      path,
+      route,
+      "ground_station_ids",
+      station_ids,
+      "must equal contact_ids_by_direction_and_ground_station keys"
+    )
+    |> expect_optional_field_equals(
+      path,
+      route,
+      "contact_ids_by_ground_station",
+      contact_ids_by_station,
+      "must equal contact_ids_by_direction_and_ground_station for this direction"
+    )
+    |> expect_optional_field_equals(
+      path,
+      route,
+      "contact_ids_by_ground_station_id",
+      contact_ids_by_station,
+      "must equal contact_ids_by_direction_and_ground_station_id for this direction"
+    )
+    |> expect_optional_field_equals(
+      path,
+      route,
+      "capacity_pack_contact_ids_by_ground_station",
+      capacity_contact_ids_by_station,
+      "must equal capacity_pack_contact_ids_by_direction_and_ground_station for this direction"
+    )
+    |> expect_optional_field_equals(
+      path,
+      route,
+      "capacity_pack_contact_ids_by_ground_station_id",
+      capacity_contact_ids_by_station,
+      "must equal capacity_pack_contact_ids_by_direction_and_ground_station_id for this direction"
+    )
+    |> expect_optional_field_equals(
+      path,
+      route,
+      "capacity_pack_required_capacity_fraction_by_ground_station",
+      required_by_station,
+      "must equal capacity_pack_required_capacity_fraction_by_direction_and_ground_station for this direction"
+    )
+    |> expect_optional_field_equals(
+      path,
+      route,
+      "capacity_pack_required_capacity_fraction_by_ground_station_id",
+      required_by_station,
+      "must equal capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id for this direction"
+    )
+  end
+
+  defp direction_route_nested_map(summary, direction, fields) do
+    Enum.find_value(fields, fn field ->
+      case get_in(summary, [field, direction]) do
+        %{} = values -> values
+        _value -> nil
+      end
+    end)
+  end
 
   defp maybe_single_number_map(map, field) do
     case Map.fetch(map, field) do
@@ -28122,6 +28328,12 @@ defmodule OrbitalDynamics.Schema do
     capacity_direction_ids =
       Map.get(summary, "capacity_pack_contact_ids_by_direction", %{}) || %{}
 
+    direction_station_contact_ids =
+      Map.get(summary, "contact_ids_by_direction_and_ground_station_id", %{}) || %{}
+
+    capacity_direction_station_ids =
+      Map.get(summary, "capacity_pack_contact_ids_by_direction_and_ground_station_id", %{}) || %{}
+
     direction_counts = Map.get(summary, "direction_counts")
     direction_routing = Map.get(summary, "direction_routing")
     source_counts = Map.get(summary, "required_capacity_fraction_source_counts", %{})
@@ -28132,6 +28344,12 @@ defmodule OrbitalDynamics.Schema do
 
     direction_capacity_totals =
       Map.get(summary, "capacity_pack_required_capacity_fraction_by_direction")
+
+    direction_station_capacity_totals =
+      Map.get(
+        summary,
+        "capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id"
+      )
 
     issues
     |> expect_equal(path, summary, "schema_contract", "contact_intent_summary.v1")
@@ -28163,6 +28381,16 @@ defmodule OrbitalDynamics.Schema do
       path <> ".capacity_pack_required_capacity_fraction_by_direction",
       direction_capacity_totals
     )
+    |> expect_optional_type(
+      path,
+      summary,
+      "capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id",
+      :map
+    )
+    |> validate_nested_non_negative_number_map(
+      path <> ".capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id",
+      direction_station_capacity_totals
+    )
     |> expect_optional_type(path, summary, "required_capacity_fraction_source_counts", :map)
     |> validate_non_negative_integer_count_map(
       path <> ".required_capacity_fraction_source_counts",
@@ -28176,11 +28404,23 @@ defmodule OrbitalDynamics.Schema do
     )
     |> expect_optional_type(path, summary, "contact_ids_by_ground_station_id", :map)
     |> expect_optional_type(path, summary, "contact_ids_by_direction", :map)
+    |> expect_optional_type(
+      path,
+      summary,
+      "contact_ids_by_direction_and_ground_station_id",
+      :map
+    )
     |> expect_optional_type(path, summary, "capacity_pack_contact_ids_by_ground_station_id", :map)
     |> expect_optional_type(path, summary, "capacity_pack_contact_ids_by_direction", :map)
+    |> expect_optional_type(
+      path,
+      summary,
+      "capacity_pack_contact_ids_by_direction_and_ground_station_id",
+      :map
+    )
     |> expect_optional_type(path, summary, "direction_counts", :map)
     |> validate_non_negative_integer_count_map(path <> ".direction_counts", direction_counts)
-    |> validate_contact_intent_direction_routing(path, direction_routing)
+    |> validate_contact_intent_direction_routing(path, direction_routing, summary)
     |> validate_stable_id_array_map(
       path <> ".required_capacity_fraction_contact_ids_by_source",
       source_contact_ids
@@ -28200,6 +28440,14 @@ defmodule OrbitalDynamics.Schema do
     |> validate_stable_id_array_map(
       path <> ".capacity_pack_contact_ids_by_direction",
       capacity_direction_ids
+    )
+    |> validate_nested_stable_id_array_map(
+      path <> ".contact_ids_by_direction_and_ground_station_id",
+      direction_station_contact_ids
+    )
+    |> validate_nested_stable_id_array_map(
+      path <> ".capacity_pack_contact_ids_by_direction_and_ground_station_id",
+      capacity_direction_station_ids
     )
     |> expect_type(path, summary, "ground_station_ids", :list)
     |> validate_optional_stable_id_list(path, summary, "ground_station_ids")
@@ -28250,6 +28498,20 @@ defmodule OrbitalDynamics.Schema do
     |> expect_field_equals(
       path,
       summary,
+      "contact_intent_count",
+      nested_stable_id_array_map_value_count(direction_station_contact_ids),
+      "must equal contact_ids_by_direction_and_ground_station_id total"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "capacity_pack_required_contact_count",
+      nested_stable_id_array_map_value_count(capacity_direction_station_ids),
+      "must equal capacity_pack_contact_ids_by_direction_and_ground_station_id total"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
       "capacity_pack_required_capacity_fraction",
       numeric_map_sum(station_capacity_totals),
       "must equal capacity_pack_required_capacity_fraction_by_ground_station_id total"
@@ -28260,6 +28522,13 @@ defmodule OrbitalDynamics.Schema do
       "capacity_pack_required_capacity_fraction",
       numeric_map_sum(direction_capacity_totals),
       "must equal capacity_pack_required_capacity_fraction_by_direction total"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "capacity_pack_required_capacity_fraction",
+      nested_numeric_map_sum(direction_station_capacity_totals),
+      "must equal capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id total"
     )
     |> expect_field_equals(
       path,
@@ -28343,10 +28612,26 @@ defmodule OrbitalDynamics.Schema do
     capacity_contact_ids_by_direction =
       Map.get(summary, "capacity_pack_contact_ids_by_direction", %{}) || %{}
 
+    contact_ids_by_direction_and_station =
+      Map.get(summary, "contact_ids_by_direction_and_ground_station_id", %{}) || %{}
+
+    capacity_fraction_by_direction_and_station =
+      Map.get(
+        summary,
+        "capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id",
+        %{}
+      ) || %{}
+
+    capacity_contact_ids_by_direction_and_station =
+      Map.get(summary, "capacity_pack_contact_ids_by_direction_and_ground_station_id", %{}) || %{}
+
     [
       Map.keys(contact_ids_by_direction),
       Map.keys(capacity_fraction_by_direction),
-      Map.keys(capacity_contact_ids_by_direction)
+      Map.keys(capacity_contact_ids_by_direction),
+      Map.keys(contact_ids_by_direction_and_station),
+      Map.keys(capacity_fraction_by_direction_and_station),
+      Map.keys(capacity_contact_ids_by_direction_and_station)
     ]
     |> List.flatten()
     |> Enum.map(&to_string/1)
@@ -28359,9 +28644,25 @@ defmodule OrbitalDynamics.Schema do
           "contact_ids" => Map.get(contact_ids_by_direction, direction, []),
           "capacity_pack_required_capacity_fraction" =>
             Map.get(capacity_fraction_by_direction, direction),
-          "capacity_pack_contact_ids" => Map.get(capacity_contact_ids_by_direction, direction, [])
+          "capacity_pack_contact_ids" =>
+            Map.get(capacity_contact_ids_by_direction, direction, []),
+          "ground_station_ids" =>
+            contact_ids_by_direction_and_station
+            |> Map.get(direction, %{})
+            |> Map.keys()
+            |> Enum.sort(),
+          "contact_ids_by_ground_station_id" =>
+            Map.get(contact_ids_by_direction_and_station, direction, %{}),
+          "capacity_pack_required_capacity_fraction_by_ground_station_id" =>
+            Map.get(capacity_fraction_by_direction_and_station, direction, %{}),
+          "capacity_pack_contact_ids_by_ground_station_id" =>
+            Map.get(capacity_contact_ids_by_direction_and_station, direction, %{})
         }
-        |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+        |> Enum.reject(fn
+          {"capacity_pack_contact_ids", []} -> false
+          {_key, value} when value in [nil, %{}, []] -> true
+          _entry -> false
+        end)
         |> Map.new()
 
       {direction, route}
@@ -41639,6 +41940,18 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_non_negative_number_map(issues, _path, _values), do: issues
 
+  defp validate_nested_non_negative_number_map(issues, _path, value)
+       when value in [nil, :null],
+       do: issues
+
+  defp validate_nested_non_negative_number_map(issues, path, %{} = values) do
+    Enum.reduce(values, issues, fn {key, nested_values}, acc ->
+      validate_non_negative_number_map(acc, "#{path}.#{key}", nested_values)
+    end)
+  end
+
+  defp validate_nested_non_negative_number_map(issues, _path, _value), do: issues
+
   defp validate_non_negative_number_list(issues, _path, value) when value in [nil, :null],
     do: issues
 
@@ -41716,6 +42029,23 @@ defmodule OrbitalDynamics.Schema do
 
   defp numeric_map_sum(_values), do: nil
 
+  defp nested_numeric_map_sum(values) when is_map(values) do
+    values
+    |> Map.values()
+    |> Enum.reduce_while(0.0, fn
+      nested_values, total when is_map(nested_values) ->
+        case numeric_map_sum(nested_values) do
+          sum when is_number(sum) -> {:cont, total + sum}
+          _sum -> {:halt, nil}
+        end
+
+      _nested_values, _total ->
+        {:halt, nil}
+    end)
+  end
+
+  defp nested_numeric_map_sum(_values), do: nil
+
   defp stable_id_array_map_value_count(values) when is_map(values) do
     values
     |> Map.values()
@@ -41726,6 +42056,23 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp stable_id_array_map_value_count(_values), do: nil
+
+  defp nested_stable_id_array_map_value_count(values) when is_map(values) do
+    values
+    |> Map.values()
+    |> Enum.reduce_while(0, fn
+      nested_values, total when is_map(nested_values) ->
+        case stable_id_array_map_value_count(nested_values) do
+          count when is_integer(count) -> {:cont, total + count}
+          _count -> {:halt, nil}
+        end
+
+      _nested_values, _total ->
+        {:halt, nil}
+    end)
+  end
+
+  defp nested_stable_id_array_map_value_count(_values), do: nil
 
   defp stable_id_array_map_counts(values) when is_map(values) do
     values
@@ -59718,6 +60065,17 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp validate_stable_id_array_map(issues, _path, _value), do: issues
+
+  defp validate_nested_stable_id_array_map(issues, _path, value) when value in [nil, :null],
+    do: issues
+
+  defp validate_nested_stable_id_array_map(issues, path, %{} = values) do
+    Enum.reduce(values, issues, fn {key, nested_values}, acc ->
+      validate_stable_id_array_map(acc, "#{path}.#{key}", nested_values)
+    end)
+  end
+
+  defp validate_nested_stable_id_array_map(issues, _path, _value), do: issues
 
   defp validate_numeric_map(issues, _path, value) when value in [nil, :null], do: issues
 

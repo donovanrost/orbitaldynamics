@@ -204,12 +204,15 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
     capacity_pack_required_capacity_fraction
     capacity_pack_required_capacity_fraction_by_ground_station_id
     capacity_pack_required_capacity_fraction_by_direction
+    capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id
     required_capacity_fraction_source_counts
     required_capacity_fraction_contact_ids_by_source
     contact_ids_by_ground_station_id
     contact_ids_by_direction
+    contact_ids_by_direction_and_ground_station_id
     capacity_pack_contact_ids_by_ground_station_id
     capacity_pack_contact_ids_by_direction
+    capacity_pack_contact_ids_by_direction_and_ground_station_id
     ground_station_ids
     directions
     direction_counts
@@ -384,6 +387,16 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
     required_capacity_fraction_by_direction =
       required_capacity_fraction_by_direction(capacity_demand_rows) || %{}
 
+    contact_ids_by_direction_and_station =
+      row_ids_by_direction_and_field(rows, "ground_station_id", "id") || %{}
+
+    capacity_pack_contact_ids_by_direction_and_station =
+      row_ids_by_direction_and_field(capacity_demand_rows, "ground_station_id", "id") || %{}
+
+    required_capacity_fraction_by_direction_and_station =
+      required_capacity_fraction_by_direction_and_field(capacity_demand_rows, "ground_station_id") ||
+        %{}
+
     %{
       "schema_contract" => @summary_schema_contract,
       "model" => "artifact_only_contact_intent_summary",
@@ -397,16 +410,22 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
         required_capacity_fraction_by_field(capacity_demand_rows, "ground_station_id"),
       "capacity_pack_required_capacity_fraction_by_direction" =>
         empty_map_to_nil(required_capacity_fraction_by_direction),
+      "capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id" =>
+        empty_map_to_nil(required_capacity_fraction_by_direction_and_station),
       "required_capacity_fraction_source_counts" =>
         count_by(capacity_demand_rows, "required_capacity_fraction_source"),
       "required_capacity_fraction_contact_ids_by_source" =>
         row_ids_by_field(capacity_demand_rows, "required_capacity_fraction_source", "id"),
       "contact_ids_by_ground_station_id" => row_ids_by_field(rows, "ground_station_id", "id"),
       "contact_ids_by_direction" => empty_map_to_nil(contact_ids_by_direction),
+      "contact_ids_by_direction_and_ground_station_id" =>
+        empty_map_to_nil(contact_ids_by_direction_and_station),
       "capacity_pack_contact_ids_by_ground_station_id" =>
         row_ids_by_field(capacity_demand_rows, "ground_station_id", "id"),
       "capacity_pack_contact_ids_by_direction" =>
         empty_map_to_nil(capacity_pack_contact_ids_by_direction),
+      "capacity_pack_contact_ids_by_direction_and_ground_station_id" =>
+        empty_map_to_nil(capacity_pack_contact_ids_by_direction_and_station),
       "ground_station_ids" => row_values(rows, "ground_station_id"),
       "directions" => row_values(rows, "direction"),
       "direction_counts" => direction_counts(contact_ids_by_direction),
@@ -414,7 +433,10 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
         direction_routing(
           contact_ids_by_direction,
           required_capacity_fraction_by_direction,
-          capacity_pack_contact_ids_by_direction
+          capacity_pack_contact_ids_by_direction,
+          contact_ids_by_direction_and_station,
+          required_capacity_fraction_by_direction_and_station,
+          capacity_pack_contact_ids_by_direction_and_station
         ),
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
@@ -432,12 +454,18 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
   defp direction_routing(
          contact_ids_by_direction,
          required_capacity_fraction_by_direction,
-         capacity_pack_contact_ids_by_direction
+         capacity_pack_contact_ids_by_direction,
+         contact_ids_by_direction_and_station,
+         required_capacity_fraction_by_direction_and_station,
+         capacity_pack_contact_ids_by_direction_and_station
        ) do
     [
       Map.keys(contact_ids_by_direction),
       Map.keys(required_capacity_fraction_by_direction),
-      Map.keys(capacity_pack_contact_ids_by_direction)
+      Map.keys(capacity_pack_contact_ids_by_direction),
+      Map.keys(contact_ids_by_direction_and_station),
+      Map.keys(required_capacity_fraction_by_direction_and_station),
+      Map.keys(capacity_pack_contact_ids_by_direction_and_station)
     ]
     |> List.flatten()
     |> Enum.uniq()
@@ -450,13 +478,45 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
           "capacity_pack_required_capacity_fraction" =>
             Map.get(required_capacity_fraction_by_direction, direction),
           "capacity_pack_contact_ids" =>
-            Map.get(capacity_pack_contact_ids_by_direction, direction, [])
+            Map.get(capacity_pack_contact_ids_by_direction, direction, []),
+          "ground_station_ids" =>
+            contact_ids_by_direction_and_station
+            |> Map.get(direction, %{})
+            |> Map.keys()
+            |> Enum.sort(),
+          "contact_ids_by_ground_station_id" =>
+            Map.get(contact_ids_by_direction_and_station, direction, %{}),
+          "capacity_pack_required_capacity_fraction_by_ground_station_id" =>
+            Map.get(required_capacity_fraction_by_direction_and_station, direction, %{}),
+          "capacity_pack_contact_ids_by_ground_station_id" =>
+            Map.get(capacity_pack_contact_ids_by_direction_and_station, direction, %{})
         }
-        |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+        |> Enum.reject(fn
+          {_key, value} when value in [nil, %{}, []] -> true
+          _entry -> false
+        end)
         |> Map.new()
 
       {direction, route}
     end)
+  end
+
+  defp required_capacity_fraction_by_direction_and_field(rows, field) do
+    rows
+    |> Enum.reduce(%{}, fn row, totals ->
+      direction = normalize_contact_direction(row["direction"])
+      field_value = row[field]
+      required_fraction = row["required_capacity_fraction"]
+
+      if is_binary(direction) and is_binary(field_value) and is_number(required_fraction) do
+        update_in(totals, [Access.key(direction, %{}), Access.key(field_value, 0)], fn total ->
+          total + required_fraction
+        end)
+      else
+        totals
+      end
+    end)
+    |> empty_map_to_nil()
   end
 
   defp required_capacity_fraction_total(rows) do
@@ -528,6 +588,28 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
       end
     end)
     |> Map.new(fn {key, values} -> {key, Enum.sort(values)} end)
+    |> empty_map_to_nil()
+  end
+
+  defp row_ids_by_direction_and_field(rows, field, id_field) do
+    rows
+    |> Enum.reduce(%{}, fn row, groups ->
+      direction = normalize_contact_direction(row["direction"])
+      field_value = row[field]
+      id = row[id_field]
+
+      if is_binary(direction) and is_binary(field_value) and is_binary(id) do
+        update_in(groups, [Access.key(direction, %{}), Access.key(field_value, [])], &[id | &1])
+      else
+        groups
+      end
+    end)
+    |> Map.new(fn {direction, field_groups} ->
+      sorted_groups =
+        Map.new(field_groups, fn {field_value, values} -> {field_value, Enum.sort(values)} end)
+
+      {direction, sorted_groups}
+    end)
     |> empty_map_to_nil()
   end
 

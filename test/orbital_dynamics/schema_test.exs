@@ -11602,6 +11602,9 @@ defmodule OrbitalDynamics.SchemaTest do
           "equator_prime" => 0.25
         },
         "capacity_pack_required_capacity_fraction_by_direction" => %{"downlink" => 0.25},
+        "capacity_pack_required_capacity_fraction_by_direction_and_ground_station" => %{
+          "downlink" => %{"equator_prime" => 0.25}
+        },
         "required_capacity_fraction_source_counts" => %{
           "contact_required_capacity_fraction" => 1
         },
@@ -11617,23 +11620,44 @@ defmodule OrbitalDynamics.SchemaTest do
         "capacity_pack_contact_ids_by_direction" => %{
           "downlink" => ["intent_direct_capacity"]
         },
+        "capacity_pack_contact_ids_by_direction_and_ground_station" => %{
+          "downlink" => %{"equator_prime" => ["intent_direct_capacity"]}
+        },
         "directions" => ["command", "downlink"],
         "direction_counts" => %{"command" => 1, "downlink" => 1},
         "contact_ids_by_direction" => %{
           "command" => ["intent_station_only"],
           "downlink" => ["intent_direct_capacity"]
         },
+        "contact_ids_by_direction_and_ground_station" => %{
+          "command" => %{"equator_prime" => ["intent_station_only"]},
+          "downlink" => %{"equator_prime" => ["intent_direct_capacity"]}
+        },
         "direction_routing" => %{
           "command" => %{
             "contact_count" => 1,
             "contact_ids" => ["intent_station_only"],
-            "capacity_pack_contact_ids" => []
+            "capacity_pack_contact_ids" => [],
+            "ground_station_ids" => ["equator_prime"],
+            "contact_ids_by_ground_station" => %{
+              "equator_prime" => ["intent_station_only"]
+            }
           },
           "downlink" => %{
             "contact_count" => 1,
             "contact_ids" => ["intent_direct_capacity"],
             "capacity_pack_required_capacity_fraction" => 0.25,
-            "capacity_pack_contact_ids" => ["intent_direct_capacity"]
+            "capacity_pack_contact_ids" => ["intent_direct_capacity"],
+            "ground_station_ids" => ["equator_prime"],
+            "contact_ids_by_ground_station" => %{
+              "equator_prime" => ["intent_direct_capacity"]
+            },
+            "capacity_pack_required_capacity_fraction_by_ground_station" => %{
+              "equator_prime" => 0.25
+            },
+            "capacity_pack_contact_ids_by_ground_station" => %{
+              "equator_prime" => ["intent_direct_capacity"]
+            }
           }
         },
         "station_calendar_status_counts" => %{"unavailable" => 1},
@@ -11673,7 +11697,22 @@ defmodule OrbitalDynamics.SchemaTest do
            ]) == 0.0
 
     assert get_in(contact_intent_source_report_properties, [
+             "capacity_pack_required_capacity_fraction_by_direction_and_ground_station",
+             "additionalProperties",
+             "additionalProperties",
+             "minimum"
+           ]) == 0.0
+
+    assert get_in(contact_intent_source_report_properties, [
              "contact_ids_by_direction",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(contact_intent_source_report_properties, [
+             "contact_ids_by_direction_and_ground_station",
+             "additionalProperties",
              "additionalProperties",
              "items",
              "pattern"
@@ -11744,6 +11783,30 @@ defmodule OrbitalDynamics.SchemaTest do
              invalid_contact_intent_direction_id_report["errors"],
              &(&1["path"] ==
                  "$.provenance.source_reports.contact_intent.contact_ids_by_direction.downlink[0]")
+           )
+
+    invalid_contact_intent_nested_route =
+      put_in(
+        artifact_with_contact_intent_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_intent",
+          "direction_routing",
+          "downlink",
+          "contact_ids_by_ground_station",
+          "equator_prime"
+        ],
+        ["stale_intent"]
+      )
+
+    assert {:error, invalid_contact_intent_nested_route_report} =
+             Schema.validate_artifact(invalid_contact_intent_nested_route)
+
+    assert Enum.any?(
+             invalid_contact_intent_nested_route_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_intent.direction_routing.downlink.contact_ids_by_ground_station")
            )
 
     artifact_with_link_capacity_summary =

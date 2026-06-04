@@ -1414,11 +1414,15 @@ operational-feedback handoffs.
 contact-intent slice as a branch-local replay summary. It preserves source
 contact-intent paths, station-feedback status/import/policy maps,
 capacity-pack required-contact counts, required-capacity totals and
-per-station and per-direction maps, required-capacity source/contact routing
-maps, all-contact `contact_ids_by_direction` routing, capacity-pack contact-ID
-station/direction maps, all-contact `contact_ids_by_ground_station` routing,
-and a compact direction-routing map that groups contact count,
-contact IDs, capacity-pack contact IDs, and required-capacity fraction by direction,
+per-station, per-direction, and per-direction/per-ground-station maps,
+required-capacity source/contact routing maps, all-contact
+`contact_ids_by_direction` routing, capacity-pack contact-ID
+station/direction/per-direction-station maps, all-contact
+`contact_ids_by_ground_station` routing, all-contact
+`contact_ids_by_direction_and_ground_station` routing, and a compact
+direction-routing map that groups contact count, contact IDs, ground-station
+IDs, station-bucketed contact IDs, capacity-pack contact IDs, station-bucketed
+capacity-pack contact IDs, and required-capacity fraction by direction/station,
 trust-boundary evidence, and branch-local contact-intent, station-feedback,
 and capacity-pack pressure booleans without generating contacts, mutating
 contact allocation, selecting candidates, approving imports, writing to
@@ -1427,17 +1431,18 @@ Cadence, or regenerating candidates. Direct or result-artifact-wrapped
 the same family, preserving the `contact_intent_summary.v1` contract,
 source-summary model/schema/source-artifact identity counts, source paths,
 contact-intent row counts, capacity-demand maps, all-contact station/direction
-routing, and compact direction routing without reopening raw contact-intent
-rows. Generated contact-intent summaries also carry the exact contact-intent
+and station-scoped direction routing, and compact direction routing without
+reopening raw contact-intent rows. Generated contact-intent summaries also carry the exact contact-intent
 `model_limits` list, pinned by executable validation and schema export. The
 family-level contact-intent pressure
 boolean is true for capacity-pack source/contact routing maps and per-station
 or per-direction contact-ID maps, including all-contact station maps and the
-compact direction-routing map,
+compact station-scoped direction-routing map,
 even when capacity totals and station-feedback maps are absent. Flattened
 source-report summaries expose those per-station and per-direction all-contact
-and capacity-pack contact ID maps plus direction-routing maps alongside the
-nested `source_reports.contact_intent` provenance.
+and capacity-pack contact ID maps, the per-direction/per-ground-station maps,
+plus direction-routing maps alongside the nested
+`source_reports.contact_intent` provenance.
 The replay helper can inspect V3 branch
 `candidate_source` metadata that carries
 `candidate_refresh_request_source_report_summary`, or derive the same family

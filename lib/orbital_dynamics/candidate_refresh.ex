@@ -1171,6 +1171,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "contact_intent",
           "capacity_pack_required_capacity_fraction_by_direction"
         ),
+      "source_report_contact_intent_capacity_pack_required_capacity_fraction_by_direction_and_ground_station" =>
+        source_report_summary_family_merge_nested_numeric_maps(
+          source_reports,
+          "contact_intent",
+          "capacity_pack_required_capacity_fraction_by_direction_and_ground_station"
+        ),
       "source_report_contact_intent_required_capacity_fraction_source_counts" =>
         source_report_summary_family_merge_count_maps(
           source_reports,
@@ -1200,6 +1206,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
           source_reports,
           "contact_intent",
           "capacity_pack_contact_ids_by_direction"
+        ),
+      "source_report_contact_intent_capacity_pack_contact_ids_by_direction_and_ground_station" =>
+        source_report_summary_family_merge_nested_string_list_maps(
+          source_reports,
+          "contact_intent",
+          "capacity_pack_contact_ids_by_direction_and_ground_station"
+        ),
+      "source_report_contact_intent_contact_ids_by_direction_and_ground_station" =>
+        source_report_summary_family_merge_nested_string_list_maps(
+          source_reports,
+          "contact_intent",
+          "contact_ids_by_direction_and_ground_station"
         ),
       "source_report_contact_intent_directions" =>
         source_report_summary_family_field(source_reports, "contact_intent", "directions"),
@@ -9763,6 +9781,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
     required_by_direction =
       Map.get(intent_summary, "capacity_pack_required_capacity_fraction_by_direction", %{})
 
+    required_by_direction_and_station =
+      Map.get(
+        intent_summary,
+        "capacity_pack_required_capacity_fraction_by_direction_and_ground_station",
+        %{}
+      )
+
     required_source_counts =
       Map.get(intent_summary, "required_capacity_fraction_source_counts", %{})
 
@@ -9776,6 +9801,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     capacity_contact_ids_by_direction =
       Map.get(intent_summary, "capacity_pack_contact_ids_by_direction", %{})
+
+    capacity_contact_ids_by_direction_and_station =
+      Map.get(intent_summary, "capacity_pack_contact_ids_by_direction_and_ground_station", %{})
+
+    contact_ids_by_direction_and_station =
+      Map.get(intent_summary, "contact_ids_by_direction_and_ground_station", %{})
 
     directions = Map.get(intent_summary, "directions", [])
     direction_counts = Map.get(intent_summary, "direction_counts", %{})
@@ -9797,14 +9828,19 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "capacity_pack_required_capacity_fraction" => required_capacity_fraction,
       "capacity_pack_required_capacity_fraction_by_ground_station" => required_by_station,
       "capacity_pack_required_capacity_fraction_by_direction" => required_by_direction,
+      "capacity_pack_required_capacity_fraction_by_direction_and_ground_station" =>
+        required_by_direction_and_station,
       "required_capacity_fraction_source_counts" => required_source_counts,
       "required_capacity_fraction_contact_ids_by_source" => required_contact_ids_by_source,
       "capacity_pack_contact_ids_by_ground_station" => capacity_contact_ids_by_station,
       "contact_ids_by_ground_station" => contact_ids_by_station,
       "capacity_pack_contact_ids_by_direction" => capacity_contact_ids_by_direction,
+      "capacity_pack_contact_ids_by_direction_and_ground_station" =>
+        capacity_contact_ids_by_direction_and_station,
       "directions" => directions,
       "direction_counts" => direction_counts,
       "contact_ids_by_direction" => contact_ids_by_direction,
+      "contact_ids_by_direction_and_ground_station" => contact_ids_by_direction_and_station,
       "direction_routing" => direction_routing,
       "trust_boundary_status" => Map.get(intent_summary, "trust_boundary_status"),
       "trust_boundaries" => Map.get(intent_summary, "trust_boundaries", []),
@@ -9815,10 +9851,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
           map_size(policy_classification_counts) > 0 or
           required_capacity_fraction > 0.0 or map_size(required_by_station) > 0 or
           map_size(required_by_direction) > 0 or
+          map_size(required_by_direction_and_station) > 0 or
           map_size(required_source_counts) > 0 or
           map_size(required_contact_ids_by_source) > 0 or
           map_size(capacity_contact_ids_by_station) > 0 or map_size(contact_ids_by_station) > 0 or
           map_size(capacity_contact_ids_by_direction) > 0 or
+          map_size(capacity_contact_ids_by_direction_and_station) > 0 or
+          map_size(contact_ids_by_direction_and_station) > 0 or
           length(List.wrap(directions)) > 0 or
           map_size(direction_counts) > 0 or map_size(contact_ids_by_direction) > 0 or
           map_size(direction_routing) > 0,
@@ -9829,9 +9868,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "branch_local_capacity_pack_pressure" =>
         required_contact_count > 0 or required_capacity_fraction > 0.0 or
           map_size(required_by_station) > 0 or map_size(required_by_direction) > 0 or
+          map_size(required_by_direction_and_station) > 0 or
           map_size(required_source_counts) > 0 or map_size(required_contact_ids_by_source) > 0 or
           map_size(capacity_contact_ids_by_station) > 0 or
-          map_size(capacity_contact_ids_by_direction) > 0 or map_size(direction_routing) > 0,
+          map_size(capacity_contact_ids_by_direction) > 0 or
+          map_size(capacity_contact_ids_by_direction_and_station) > 0 or
+          map_size(direction_routing) > 0,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
         "replay_scope" => replay_scope,
@@ -17289,6 +17331,19 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> source_report_summary_merge_numeric_maps(field)
   end
 
+  defp source_report_summary_merge_nested_numeric_maps(source_reports, field) do
+    source_reports
+    |> Map.values()
+    |> Enum.map(&Map.get(&1, field))
+    |> merge_nested_numeric_maps()
+  end
+
+  defp source_report_summary_family_merge_nested_numeric_maps(source_reports, family, field) do
+    source_reports
+    |> Map.take([family])
+    |> source_report_summary_merge_nested_numeric_maps(field)
+  end
+
   defp source_report_summary_merge_numeric_list_maps(source_reports, field) do
     source_reports
     |> Map.values()
@@ -17313,6 +17368,19 @@ defmodule OrbitalDynamics.CandidateRefresh do
     source_reports
     |> Map.take([family])
     |> source_report_summary_merge_string_list_maps(field)
+  end
+
+  defp source_report_summary_merge_nested_string_list_maps(source_reports, field) do
+    source_reports
+    |> Map.values()
+    |> Enum.map(&Map.get(&1, field))
+    |> merge_nested_string_list_maps()
+  end
+
+  defp source_report_summary_family_merge_nested_string_list_maps(source_reports, family, field) do
+    source_reports
+    |> Map.take([family])
+    |> source_report_summary_merge_nested_string_list_maps(field)
   end
 
   defp source_report_summary_merge_string_lists(source_reports, field) do
@@ -21009,6 +21077,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
         capacity_pack_demand["capacity_pack_required_capacity_fraction_by_ground_station_id"],
       "capacity_pack_required_capacity_fraction_by_direction" =>
         capacity_pack_demand["capacity_pack_required_capacity_fraction_by_direction"],
+      "capacity_pack_required_capacity_fraction_by_direction_and_ground_station" =>
+        capacity_pack_demand[
+          "capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id"
+        ],
       "required_capacity_fraction_source_counts" =>
         capacity_pack_demand["required_capacity_fraction_source_counts"],
       "required_capacity_fraction_contact_ids_by_source" =>
@@ -21018,6 +21090,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "contact_ids_by_ground_station" => capacity_pack_demand["contact_ids_by_ground_station_id"],
       "capacity_pack_contact_ids_by_direction" =>
         capacity_pack_demand["capacity_pack_contact_ids_by_direction"],
+      "capacity_pack_contact_ids_by_direction_and_ground_station" =>
+        capacity_pack_demand["capacity_pack_contact_ids_by_direction_and_ground_station_id"],
+      "contact_ids_by_direction_and_ground_station" =>
+        capacity_pack_demand["contact_ids_by_direction_and_ground_station_id"],
       "directions" => directions,
       "direction_counts" => direction_counts,
       "contact_ids_by_direction" => contact_ids_by_direction,
@@ -21026,7 +21102,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
           direction_counts,
           contact_ids_by_direction,
           capacity_pack_demand["capacity_pack_required_capacity_fraction_by_direction"],
-          capacity_pack_demand["capacity_pack_contact_ids_by_direction"]
+          capacity_pack_demand["capacity_pack_contact_ids_by_direction"],
+          capacity_pack_demand["contact_ids_by_direction_and_ground_station_id"],
+          capacity_pack_demand[
+            "capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id"
+          ],
+          capacity_pack_demand["capacity_pack_contact_ids_by_direction_and_ground_station_id"]
         ),
       "trust_boundary_status" => source_contact_intent_trust_boundary_status(intents),
       "trust_boundaries" => source_contact_intent_trust_boundaries(intents)
@@ -21049,6 +21130,26 @@ defmodule OrbitalDynamics.CandidateRefresh do
       summaries
       |> Enum.map(&Map.get(&1, "capacity_pack_required_capacity_fraction_by_direction"))
       |> merge_numeric_maps()
+
+    required_by_direction_and_station =
+      summaries
+      |> Enum.map(
+        &Map.get(
+          &1,
+          "capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id"
+        )
+      )
+      |> merge_nested_numeric_maps()
+
+    contact_ids_by_direction_and_station =
+      summaries
+      |> Enum.map(&Map.get(&1, "contact_ids_by_direction_and_ground_station_id"))
+      |> merge_nested_string_list_maps()
+
+    capacity_contact_ids_by_direction_and_station =
+      summaries
+      |> Enum.map(&Map.get(&1, "capacity_pack_contact_ids_by_direction_and_ground_station_id"))
+      |> merge_nested_string_list_maps()
 
     directions =
       contact_intent_summary_directions(summaries, contact_ids_by_direction)
@@ -21086,6 +21187,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
         |> Enum.map(&Map.get(&1, "capacity_pack_required_capacity_fraction_by_ground_station_id"))
         |> merge_numeric_maps(),
       "capacity_pack_required_capacity_fraction_by_direction" => required_by_direction,
+      "capacity_pack_required_capacity_fraction_by_direction_and_ground_station" =>
+        required_by_direction_and_station,
       "required_capacity_fraction_source_counts" =>
         summaries
         |> Enum.map(&Map.get(&1, "required_capacity_fraction_source_counts"))
@@ -21103,6 +21206,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
         |> Enum.map(&Map.get(&1, "contact_ids_by_ground_station_id"))
         |> merge_string_list_maps(),
       "capacity_pack_contact_ids_by_direction" => capacity_contact_ids_by_direction,
+      "capacity_pack_contact_ids_by_direction_and_ground_station" =>
+        capacity_contact_ids_by_direction_and_station,
+      "contact_ids_by_direction_and_ground_station" => contact_ids_by_direction_and_station,
       "directions" => directions,
       "direction_counts" => string_list_map_counts(contact_ids_by_direction),
       "contact_ids_by_direction" => contact_ids_by_direction,
@@ -21111,7 +21217,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
           string_list_map_counts(contact_ids_by_direction),
           contact_ids_by_direction,
           required_by_direction,
-          capacity_contact_ids_by_direction
+          capacity_contact_ids_by_direction,
+          contact_ids_by_direction_and_station,
+          required_by_direction_and_station,
+          capacity_contact_ids_by_direction_and_station
         ),
       "trust_boundary_status" => source_contact_intent_trust_boundary_status(summaries),
       "trust_boundaries" => source_contact_intent_trust_boundaries(summaries)
@@ -21141,6 +21250,26 @@ defmodule OrbitalDynamics.CandidateRefresh do
           summaries
           |> Enum.map(&Map.get(&1, "capacity_pack_required_capacity_fraction_by_direction"))
           |> merge_numeric_maps()
+
+        required_by_direction_and_station =
+          summaries
+          |> Enum.map(
+            &Map.get(
+              &1,
+              "capacity_pack_required_capacity_fraction_by_direction_and_ground_station"
+            )
+          )
+          |> merge_nested_numeric_maps()
+
+        contact_ids_by_direction_and_station =
+          summaries
+          |> Enum.map(&Map.get(&1, "contact_ids_by_direction_and_ground_station"))
+          |> merge_nested_string_list_maps()
+
+        capacity_contact_ids_by_direction_and_station =
+          summaries
+          |> Enum.map(&Map.get(&1, "capacity_pack_contact_ids_by_direction_and_ground_station"))
+          |> merge_nested_string_list_maps()
 
         directions =
           contact_intent_summary_directions(summaries, contact_ids_by_direction)
@@ -21195,6 +21324,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
             )
             |> merge_numeric_maps(),
           "capacity_pack_required_capacity_fraction_by_direction" => required_by_direction,
+          "capacity_pack_required_capacity_fraction_by_direction_and_ground_station" =>
+            required_by_direction_and_station,
           "required_capacity_fraction_source_counts" =>
             merge_count_maps(
               Enum.map(summaries, & &1["required_capacity_fraction_source_counts"])
@@ -21210,6 +21341,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "contact_ids_by_ground_station" =>
             merge_string_list_maps(Enum.map(summaries, & &1["contact_ids_by_ground_station"])),
           "capacity_pack_contact_ids_by_direction" => capacity_contact_ids_by_direction,
+          "capacity_pack_contact_ids_by_direction_and_ground_station" =>
+            capacity_contact_ids_by_direction_and_station,
+          "contact_ids_by_direction_and_ground_station" => contact_ids_by_direction_and_station,
           "directions" => directions,
           "direction_counts" => direction_counts,
           "contact_ids_by_direction" => contact_ids_by_direction,
@@ -21218,7 +21352,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
               direction_counts,
               contact_ids_by_direction,
               required_by_direction,
-              capacity_contact_ids_by_direction
+              capacity_contact_ids_by_direction,
+              contact_ids_by_direction_and_station,
+              required_by_direction_and_station,
+              capacity_contact_ids_by_direction_and_station
             ),
           "trust_boundary_status" =>
             source_contact_intent_summary_trust_boundary_status(summaries),
@@ -21305,11 +21442,20 @@ defmodule OrbitalDynamics.CandidateRefresh do
          direction_counts,
          contact_ids_by_direction,
          required_capacity_by_direction,
-         capacity_contact_ids_by_direction
+         capacity_contact_ids_by_direction,
+         contact_ids_by_direction_and_station,
+         required_capacity_by_direction_and_station,
+         capacity_contact_ids_by_direction_and_station
        ) do
     direction_counts = direction_counts || %{}
     contact_ids_by_direction = map_value_lists(contact_ids_by_direction) || %{}
     capacity_contact_ids_by_direction = map_value_lists(capacity_contact_ids_by_direction) || %{}
+
+    contact_ids_by_direction_and_station =
+      nested_map_value_lists(contact_ids_by_direction_and_station) || %{}
+
+    capacity_contact_ids_by_direction_and_station =
+      nested_map_value_lists(capacity_contact_ids_by_direction_and_station) || %{}
 
     required_capacity_by_direction =
       case normalize_numeric_map(required_capacity_by_direction) do
@@ -21317,11 +21463,17 @@ defmodule OrbitalDynamics.CandidateRefresh do
         values -> values
       end
 
+    required_capacity_by_direction_and_station =
+      nested_normalize_numeric_map(required_capacity_by_direction_and_station) || %{}
+
     [
       Map.keys(direction_counts),
       Map.keys(contact_ids_by_direction),
       Map.keys(required_capacity_by_direction),
-      Map.keys(capacity_contact_ids_by_direction)
+      Map.keys(capacity_contact_ids_by_direction),
+      Map.keys(contact_ids_by_direction_and_station),
+      Map.keys(required_capacity_by_direction_and_station),
+      Map.keys(capacity_contact_ids_by_direction_and_station)
     ]
     |> List.flatten()
     |> Enum.map(&to_string/1)
@@ -21334,14 +21486,44 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "contact_ids" => Map.get(contact_ids_by_direction, direction, []),
           "capacity_pack_required_capacity_fraction" =>
             Map.get(required_capacity_by_direction, direction),
-          "capacity_pack_contact_ids" => Map.get(capacity_contact_ids_by_direction, direction, [])
+          "capacity_pack_contact_ids" =>
+            Map.get(capacity_contact_ids_by_direction, direction, []),
+          "ground_station_ids" =>
+            contact_ids_by_direction_and_station
+            |> Map.get(direction, %{})
+            |> Map.keys()
+            |> Enum.sort(),
+          "contact_ids_by_ground_station" =>
+            Map.get(contact_ids_by_direction_and_station, direction, %{}),
+          "capacity_pack_required_capacity_fraction_by_ground_station" =>
+            Map.get(required_capacity_by_direction_and_station, direction, %{}),
+          "capacity_pack_contact_ids_by_ground_station" =>
+            Map.get(capacity_contact_ids_by_direction_and_station, direction, %{})
         }
-        |> compact_map()
+        |> Enum.reject(fn
+          {"capacity_pack_contact_ids", []} -> false
+          {_key, value} when value in [nil, %{}, []] -> true
+          _entry -> false
+        end)
+        |> Map.new()
 
       {direction, route}
     end)
     |> non_empty_map()
   end
+
+  defp nested_map_value_lists(%{} = value_map) do
+    value_map
+    |> Enum.reduce(%{}, fn {outer_key, inner_map}, acc ->
+      case map_value_lists(inner_map) do
+        nil -> acc
+        values -> Map.put(acc, to_string(outer_key), values)
+      end
+    end)
+    |> non_empty_map()
+  end
+
+  defp nested_map_value_lists(_value_map), do: nil
 
   defp normalize_numeric_map(%{} = value_map) do
     value_map
@@ -21355,6 +21537,19 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp normalize_numeric_map(_value), do: nil
+
+  defp nested_normalize_numeric_map(%{} = value_map) do
+    value_map
+    |> Enum.reduce(%{}, fn {outer_key, inner_map}, acc ->
+      case normalize_numeric_map(inner_map) do
+        nil -> acc
+        values -> Map.put(acc, to_string(outer_key), values)
+      end
+    end)
+    |> non_empty_map()
+  end
+
+  defp nested_normalize_numeric_map(_value_map), do: nil
 
   defp contact_intent_direction_contact_pairs(intents) do
     intents
@@ -22679,6 +22874,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> non_empty_map()
   end
 
+  defp merge_nested_numeric_maps(numeric_maps) do
+    numeric_maps
+    |> Enum.reject(&(&1 in [nil, %{}]))
+    |> Enum.reduce(%{}, fn numeric_map, acc ->
+      Enum.reduce(numeric_map, acc, fn {outer_key, inner_map}, acc ->
+        case inner_map do
+          %{} ->
+            merged_inner =
+              merge_numeric_maps([Map.get(acc, to_string(outer_key), %{}), inner_map])
+
+            if is_nil(merged_inner) do
+              acc
+            else
+              Map.put(acc, to_string(outer_key), merged_inner)
+            end
+
+          _inner_map ->
+            acc
+        end
+      end)
+    end)
+    |> non_empty_map()
+  end
+
   defp merge_string_lists(lists) do
     lists
     |> Enum.flat_map(&List.wrap/1)
@@ -22700,6 +22919,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           (current ++ values)
           |> Enum.uniq()
         end)
+      end)
+    end)
+    |> non_empty_map()
+  end
+
+  defp merge_nested_string_list_maps(list_maps) do
+    list_maps
+    |> Enum.reject(&(&1 in [nil, %{}]))
+    |> Enum.reduce(%{}, fn list_map, acc ->
+      Enum.reduce(list_map, acc, fn {outer_key, inner_map}, acc ->
+        case inner_map do
+          %{} ->
+            merged_inner =
+              merge_string_list_maps([Map.get(acc, to_string(outer_key), %{}), inner_map])
+
+            if is_nil(merged_inner) do
+              acc
+            else
+              Map.put(acc, to_string(outer_key), merged_inner)
+            end
+
+          _inner_map ->
+            acc
+        end
       end)
     end)
     |> non_empty_map()

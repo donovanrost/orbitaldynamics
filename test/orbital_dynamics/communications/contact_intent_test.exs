@@ -223,12 +223,15 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
              "capacity_pack_required_capacity_fraction",
              "capacity_pack_required_capacity_fraction_by_ground_station_id",
              "capacity_pack_required_capacity_fraction_by_direction",
+             "capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id",
              "required_capacity_fraction_source_counts",
              "required_capacity_fraction_contact_ids_by_source",
              "contact_ids_by_ground_station_id",
              "contact_ids_by_direction",
+             "contact_ids_by_direction_and_ground_station_id",
              "capacity_pack_contact_ids_by_ground_station_id",
              "capacity_pack_contact_ids_by_direction",
+             "capacity_pack_contact_ids_by_direction_and_ground_station_id",
              "ground_station_ids",
              "directions",
              "direction_counts",
@@ -1060,6 +1063,11 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
                "downlink" => 0.25,
                "tracking" => 0.2
              },
+             "capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id" => %{
+               "command" => %{"dss_43" => 0.5},
+               "downlink" => %{"equator_prime" => 0.25},
+               "tracking" => %{"equator_prime" => 0.2}
+             },
              "required_capacity_fraction_source_counts" => %{
                "capacity_model" => 1,
                "contact_required_capacity_fraction" => 1,
@@ -1079,6 +1087,11 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
                "downlink" => ["direct_capacity_contact"],
                "tracking" => ["capacity_model_contact"]
              },
+             "contact_ids_by_direction_and_ground_station_id" => %{
+               "command" => %{"dss_43" => ["throughput_capacity_contact"]},
+               "downlink" => %{"equator_prime" => ["direct_capacity_contact"]},
+               "tracking" => %{"equator_prime" => ["capacity_model_contact"]}
+             },
              "capacity_pack_contact_ids_by_ground_station_id" => %{
                "dss_43" => ["throughput_capacity_contact"],
                "equator_prime" => ["capacity_model_contact", "direct_capacity_contact"]
@@ -1087,6 +1100,11 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
                "command" => ["throughput_capacity_contact"],
                "downlink" => ["direct_capacity_contact"],
                "tracking" => ["capacity_model_contact"]
+             },
+             "capacity_pack_contact_ids_by_direction_and_ground_station_id" => %{
+               "command" => %{"dss_43" => ["throughput_capacity_contact"]},
+               "downlink" => %{"equator_prime" => ["direct_capacity_contact"]},
+               "tracking" => %{"equator_prime" => ["capacity_model_contact"]}
              },
              "ground_station_ids" => ["dss_43", "equator_prime"],
              "directions" => ["command", "downlink", "tracking"],
@@ -1100,19 +1118,49 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
                  "contact_count" => 1,
                  "contact_ids" => ["throughput_capacity_contact"],
                  "capacity_pack_required_capacity_fraction" => 0.5,
-                 "capacity_pack_contact_ids" => ["throughput_capacity_contact"]
+                 "capacity_pack_contact_ids" => ["throughput_capacity_contact"],
+                 "ground_station_ids" => ["dss_43"],
+                 "contact_ids_by_ground_station_id" => %{
+                   "dss_43" => ["throughput_capacity_contact"]
+                 },
+                 "capacity_pack_required_capacity_fraction_by_ground_station_id" => %{
+                   "dss_43" => 0.5
+                 },
+                 "capacity_pack_contact_ids_by_ground_station_id" => %{
+                   "dss_43" => ["throughput_capacity_contact"]
+                 }
                },
                "downlink" => %{
                  "contact_count" => 1,
                  "contact_ids" => ["direct_capacity_contact"],
                  "capacity_pack_required_capacity_fraction" => 0.25,
-                 "capacity_pack_contact_ids" => ["direct_capacity_contact"]
+                 "capacity_pack_contact_ids" => ["direct_capacity_contact"],
+                 "ground_station_ids" => ["equator_prime"],
+                 "contact_ids_by_ground_station_id" => %{
+                   "equator_prime" => ["direct_capacity_contact"]
+                 },
+                 "capacity_pack_required_capacity_fraction_by_ground_station_id" => %{
+                   "equator_prime" => 0.25
+                 },
+                 "capacity_pack_contact_ids_by_ground_station_id" => %{
+                   "equator_prime" => ["direct_capacity_contact"]
+                 }
                },
                "tracking" => %{
                  "contact_count" => 1,
                  "contact_ids" => ["capacity_model_contact"],
                  "capacity_pack_required_capacity_fraction" => 0.2,
-                 "capacity_pack_contact_ids" => ["capacity_model_contact"]
+                 "capacity_pack_contact_ids" => ["capacity_model_contact"],
+                 "ground_station_ids" => ["equator_prime"],
+                 "contact_ids_by_ground_station_id" => %{
+                   "equator_prime" => ["capacity_model_contact"]
+                 },
+                 "capacity_pack_required_capacity_fraction_by_ground_station_id" => %{
+                   "equator_prime" => 0.2
+                 },
+                 "capacity_pack_contact_ids_by_ground_station_id" => %{
+                   "equator_prime" => ["capacity_model_contact"]
+                 }
                }
              },
              "assumptions" => %{
