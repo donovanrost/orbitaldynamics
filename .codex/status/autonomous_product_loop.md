@@ -38,10 +38,16 @@ where candidate-diff wrapper evidence is still double-counted across
 `:propagator_exit` log still appears during the suite.
 
 Review:
-Pending final scoped review, commit, and push for this slice.
+`slice_reviewer` and `git_slice_publisher` were unavailable because valid
+spawns hit the agent thread limit. Manual scoped review passed: the diff is
+limited to timeline report source-report de-duplication and the ledger;
+`git diff --check` passed; focused and full-suite verification improved the
+residual count from 2 to 1.
 
 Last commit:
-Pending.
+Slice code/tests/ledger committed and pushed as `d7b5686`
+(`Deduplicate timeline refresh source reports`); this ledger line was recorded
+in a follow-up handoff commit.
 
 Next candidate:
 Re-read the guide/ledger/live worktree and continue with the remaining broad
