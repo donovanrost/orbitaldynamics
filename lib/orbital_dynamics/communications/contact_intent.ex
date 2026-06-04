@@ -212,6 +212,8 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
     capacity_pack_contact_ids_by_direction
     ground_station_ids
     directions
+    direction_counts
+    direction_routing
   )
   @activity_stable_identity_fields ~w(
     id
@@ -374,6 +376,13 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
   defp contact_intent_summary(rows) do
     rows = Enum.map(rows, &Map.merge(required_capacity_context(&1), &1))
     capacity_demand_rows = Enum.filter(rows, &is_number(&1["required_capacity_fraction"]))
+    contact_ids_by_direction = row_ids_by_direction(rows, "id") || %{}
+
+    capacity_pack_contact_ids_by_direction =
+      row_ids_by_direction(capacity_demand_rows, "id") || %{}
+
+    required_capacity_fraction_by_direction =
+      required_capacity_fraction_by_direction(capacity_demand_rows) || %{}
 
     %{
       "schema_contract" => @summary_schema_contract,
@@ -387,24 +396,67 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
       "capacity_pack_required_capacity_fraction_by_ground_station_id" =>
         required_capacity_fraction_by_field(capacity_demand_rows, "ground_station_id"),
       "capacity_pack_required_capacity_fraction_by_direction" =>
-        required_capacity_fraction_by_direction(capacity_demand_rows),
+        empty_map_to_nil(required_capacity_fraction_by_direction),
       "required_capacity_fraction_source_counts" =>
         count_by(capacity_demand_rows, "required_capacity_fraction_source"),
       "required_capacity_fraction_contact_ids_by_source" =>
         row_ids_by_field(capacity_demand_rows, "required_capacity_fraction_source", "id"),
       "contact_ids_by_ground_station_id" => row_ids_by_field(rows, "ground_station_id", "id"),
-      "contact_ids_by_direction" => row_ids_by_direction(rows, "id"),
+      "contact_ids_by_direction" => empty_map_to_nil(contact_ids_by_direction),
       "capacity_pack_contact_ids_by_ground_station_id" =>
         row_ids_by_field(capacity_demand_rows, "ground_station_id", "id"),
       "capacity_pack_contact_ids_by_direction" =>
-        row_ids_by_direction(capacity_demand_rows, "id"),
+        empty_map_to_nil(capacity_pack_contact_ids_by_direction),
       "ground_station_ids" => row_values(rows, "ground_station_id"),
       "directions" => row_values(rows, "direction"),
+      "direction_counts" => direction_counts(contact_ids_by_direction),
+      "direction_routing" =>
+        direction_routing(
+          contact_ids_by_direction,
+          required_capacity_fraction_by_direction,
+          capacity_pack_contact_ids_by_direction
+        ),
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
         "source_artifact_type" => @schema_contract
       }
     }
+  end
+
+  defp direction_counts(contact_ids_by_direction) do
+    contact_ids_by_direction
+    |> Enum.map(fn {direction, contact_ids} -> {direction, length(contact_ids || [])} end)
+    |> Map.new()
+  end
+
+  defp direction_routing(
+         contact_ids_by_direction,
+         required_capacity_fraction_by_direction,
+         capacity_pack_contact_ids_by_direction
+       ) do
+    [
+      Map.keys(contact_ids_by_direction),
+      Map.keys(required_capacity_fraction_by_direction),
+      Map.keys(capacity_pack_contact_ids_by_direction)
+    ]
+    |> List.flatten()
+    |> Enum.uniq()
+    |> Enum.sort()
+    |> Map.new(fn direction ->
+      route =
+        %{
+          "contact_count" => length(Map.get(contact_ids_by_direction, direction, [])),
+          "contact_ids" => Map.get(contact_ids_by_direction, direction, []),
+          "capacity_pack_required_capacity_fraction" =>
+            Map.get(required_capacity_fraction_by_direction, direction),
+          "capacity_pack_contact_ids" =>
+            Map.get(capacity_pack_contact_ids_by_direction, direction, [])
+        }
+        |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+        |> Map.new()
+
+      {direction, route}
+    end)
   end
 
   defp required_capacity_fraction_total(rows) do

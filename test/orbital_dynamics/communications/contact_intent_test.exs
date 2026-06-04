@@ -230,7 +230,9 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
              "capacity_pack_contact_ids_by_ground_station_id",
              "capacity_pack_contact_ids_by_direction",
              "ground_station_ids",
-             "directions"
+             "directions",
+             "direction_counts",
+             "direction_routing"
            ]
 
     assert :contact_intent_summary_row_derived_counts in summary_row_semantics
@@ -1088,6 +1090,31 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
              },
              "ground_station_ids" => ["dss_43", "equator_prime"],
              "directions" => ["command", "downlink", "tracking"],
+             "direction_counts" => %{
+               "command" => 1,
+               "downlink" => 1,
+               "tracking" => 1
+             },
+             "direction_routing" => %{
+               "command" => %{
+                 "contact_count" => 1,
+                 "contact_ids" => ["throughput_capacity_contact"],
+                 "capacity_pack_required_capacity_fraction" => 0.5,
+                 "capacity_pack_contact_ids" => ["throughput_capacity_contact"]
+               },
+               "downlink" => %{
+                 "contact_count" => 1,
+                 "contact_ids" => ["direct_capacity_contact"],
+                 "capacity_pack_required_capacity_fraction" => 0.25,
+                 "capacity_pack_contact_ids" => ["direct_capacity_contact"]
+               },
+               "tracking" => %{
+                 "contact_count" => 1,
+                 "contact_ids" => ["capacity_model_contact"],
+                 "capacity_pack_required_capacity_fraction" => 0.2,
+                 "capacity_pack_contact_ids" => ["capacity_model_contact"]
+               }
+             },
              "assumptions" => %{
                "execution_boundary" =>
                  "artifact_only_no_provider_reservation_or_schedule_mutation",
@@ -1103,6 +1130,37 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
     assert {:ok, %{"schema_contract" => "contact_intent_summary.v1"}} =
              Schema.validate_artifact(summary)
 
+    empty_summary = ContactIntent.summary([])
+
+    assert Map.take(empty_summary, [
+             "contact_intent_count",
+             "capacity_pack_required_contact_count",
+             "direction_counts",
+             "direction_routing",
+             "directions"
+           ]) == %{
+             "contact_intent_count" => 0,
+             "capacity_pack_required_contact_count" => 0,
+             "direction_counts" => %{},
+             "direction_routing" => %{},
+             "directions" => []
+           }
+
+    assert {:ok, %{"schema_contract" => "contact_intent_summary.v1"}} =
+             Schema.validate_artifact(empty_summary)
+
+    stale_empty_direction_counts =
+      Map.put(empty_summary, "direction_counts", %{"downlink" => 1})
+
+    assert {:error, stale_empty_direction_counts_validation} =
+             Schema.validate_artifact(stale_empty_direction_counts)
+
+    assert Enum.any?(
+             stale_empty_direction_counts_validation["errors"],
+             &(&1["path"] == "$.direction_counts" and
+                 &1["message"] == "must equal contact_ids_by_direction counts")
+           )
+
     assert {:ok, summary_schema} = Schema.json_schema("contact_intent_summary.v1")
 
     assert get_in(summary_schema, ["properties", "model", "const"]) ==
@@ -1116,6 +1174,8 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
 
     assert get_in(summary_schema, ["properties", "model_limits", "items", "enum"]) ==
              summary["model_limits"]
+
+    assert get_in(summary_schema, ["properties", "direction_routing", "type"]) == "object"
 
     stale_model_summary = Map.put(summary, "model", "stale_contact_intent_summary")
 
@@ -1170,6 +1230,29 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
              stale_direction_ids_validation["errors"],
              &(&1["path"] == "$.contact_intent_count" and
                  &1["message"] == "must equal contact_ids_by_direction total")
+           )
+
+    stale_direction_counts = Map.put(summary, "direction_counts", %{"downlink" => 99})
+
+    assert {:error, stale_direction_counts_validation} =
+             Schema.validate_artifact(stale_direction_counts)
+
+    assert Enum.any?(
+             stale_direction_counts_validation["errors"],
+             &(&1["path"] == "$.direction_counts" and
+                 &1["message"] == "must equal contact_ids_by_direction counts")
+           )
+
+    stale_direction_routing =
+      put_in(summary, ["direction_routing", "downlink", "contact_count"], 99)
+
+    assert {:error, stale_direction_routing_validation} =
+             Schema.validate_artifact(stale_direction_routing)
+
+    assert Enum.any?(
+             stale_direction_routing_validation["errors"],
+             &(&1["path"] == "$.direction_routing" and
+                 &1["message"] == "must equal row-derived direction routing")
            )
 
     assert Enum.all?(intents, fn intent ->

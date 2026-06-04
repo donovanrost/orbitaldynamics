@@ -4000,6 +4000,8 @@ defmodule OrbitalDynamics.Schema do
         "capacity_pack_required_capacity_fraction_by_direction",
         "contact_ids_by_direction",
         "capacity_pack_contact_ids_by_direction",
+        "direction_counts",
+        "direction_routing",
         "model_limits"
       ],
       "nested_contracts" => ["contact_intent.v1"]
@@ -10586,6 +10588,14 @@ defmodule OrbitalDynamics.Schema do
               "capacity_pack_contact_ids_by_direction"
             ] do
     %{"type" => ["object", "null"], "additionalProperties" => stable_id_array_schema()}
+  end
+
+  defp json_schema_property("direction_counts", @contact_intent_summary, _contract) do
+    non_negative_integer_count_map_json_schema()
+  end
+
+  defp json_schema_property("direction_routing", @contact_intent_summary, _contract) do
+    contact_intent_direction_routing_json_schema()
   end
 
   defp json_schema_property("ground_station_ids", @contact_intent_summary, _contract) do
@@ -28106,9 +28116,14 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_contact_intent_summary(issues, path, summary) do
     station_contact_ids = Map.get(summary, "contact_ids_by_ground_station_id", %{})
-    direction_contact_ids = Map.get(summary, "contact_ids_by_direction")
+    direction_contact_ids = Map.get(summary, "contact_ids_by_direction", %{}) || %{}
     capacity_station_ids = Map.get(summary, "capacity_pack_contact_ids_by_ground_station_id", %{})
-    capacity_direction_ids = Map.get(summary, "capacity_pack_contact_ids_by_direction")
+
+    capacity_direction_ids =
+      Map.get(summary, "capacity_pack_contact_ids_by_direction", %{}) || %{}
+
+    direction_counts = Map.get(summary, "direction_counts")
+    direction_routing = Map.get(summary, "direction_routing")
     source_counts = Map.get(summary, "required_capacity_fraction_source_counts", %{})
     source_contact_ids = Map.get(summary, "required_capacity_fraction_contact_ids_by_source", %{})
 
@@ -28163,6 +28178,9 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(path, summary, "contact_ids_by_direction", :map)
     |> expect_optional_type(path, summary, "capacity_pack_contact_ids_by_ground_station_id", :map)
     |> expect_optional_type(path, summary, "capacity_pack_contact_ids_by_direction", :map)
+    |> expect_optional_type(path, summary, "direction_counts", :map)
+    |> validate_non_negative_integer_count_map(path <> ".direction_counts", direction_counts)
+    |> validate_contact_intent_direction_routing(path, direction_routing)
     |> validate_stable_id_array_map(
       path <> ".required_capacity_fraction_contact_ids_by_source",
       source_contact_ids
@@ -28250,6 +28268,27 @@ defmodule OrbitalDynamics.Schema do
       sorted_map_keys(station_contact_ids),
       "must equal contact_ids_by_ground_station_id keys"
     )
+    |> expect_field_equals(
+      path,
+      summary,
+      "directions",
+      sorted_map_keys(direction_contact_ids),
+      "must equal contact_ids_by_direction keys"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "direction_counts",
+      stable_id_array_map_counts(direction_contact_ids),
+      "must equal contact_ids_by_direction counts"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "direction_routing",
+      contact_intent_summary_direction_routing(summary),
+      "must equal row-derived direction routing"
+    )
     |> validate_contact_intent_summary_source_id_counts(path, summary)
   end
 
@@ -28277,10 +28316,13 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_contact_intent_summary_source_id_counts(issues, path, summary) do
     expected =
-      summary
-      |> Map.get("required_capacity_fraction_contact_ids_by_source", %{})
-      |> Enum.map(fn {source, ids} -> {source, length(ids || [])} end)
-      |> Map.new()
+      case Map.get(summary, "required_capacity_fraction_contact_ids_by_source", %{}) do
+        source_contact_ids when is_map(source_contact_ids) ->
+          Map.new(source_contact_ids, fn {source, ids} -> {source, length(ids || [])} end)
+
+        _source_contact_ids ->
+          nil
+      end
 
     expect_field_equals(
       issues,
@@ -28290,6 +28332,40 @@ defmodule OrbitalDynamics.Schema do
       expected,
       "must equal required_capacity_fraction_contact_ids_by_source counts"
     )
+  end
+
+  defp contact_intent_summary_direction_routing(summary) do
+    contact_ids_by_direction = Map.get(summary, "contact_ids_by_direction", %{}) || %{}
+
+    capacity_fraction_by_direction =
+      Map.get(summary, "capacity_pack_required_capacity_fraction_by_direction", %{}) || %{}
+
+    capacity_contact_ids_by_direction =
+      Map.get(summary, "capacity_pack_contact_ids_by_direction", %{}) || %{}
+
+    [
+      Map.keys(contact_ids_by_direction),
+      Map.keys(capacity_fraction_by_direction),
+      Map.keys(capacity_contact_ids_by_direction)
+    ]
+    |> List.flatten()
+    |> Enum.map(&to_string/1)
+    |> Enum.uniq()
+    |> Enum.sort()
+    |> Map.new(fn direction ->
+      route =
+        %{
+          "contact_count" => length(Map.get(contact_ids_by_direction, direction, [])),
+          "contact_ids" => Map.get(contact_ids_by_direction, direction, []),
+          "capacity_pack_required_capacity_fraction" =>
+            Map.get(capacity_fraction_by_direction, direction),
+          "capacity_pack_contact_ids" => Map.get(capacity_contact_ids_by_direction, direction, [])
+        }
+        |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+        |> Map.new()
+
+      {direction, route}
+    end)
   end
 
   defp validate_contact_intent_model_limits(issues, path, intent) do
@@ -41650,6 +41726,16 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp stable_id_array_map_value_count(_values), do: nil
+
+  defp stable_id_array_map_counts(values) when is_map(values) do
+    values
+    |> Map.new(fn
+      {key, ids} when is_list(ids) -> {key, length(ids)}
+      {key, _ids} -> {key, nil}
+    end)
+  end
+
+  defp stable_id_array_map_counts(_values), do: nil
 
   defp sorted_map_keys(values) when is_map(values) do
     values

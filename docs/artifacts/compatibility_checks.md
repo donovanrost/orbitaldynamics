@@ -416,7 +416,9 @@ inspection, but they do not become aggregate keys or routed replay paths.
 Contact-intent summary validation rejects stale summary model and
 source-artifact identity strings, and `contact_intent_summary.v1` schema exports
 publish those same constants for replay tooling that consumes compact
-contact-intent summaries.
+contact-intent summaries. It also emits row-derived direction counts and
+direction-routing maps and rejects stale direction counts or route maps that no
+longer match the compact direction/contact/capacity aggregates.
 
 `study_results/candidate_refresh_v1.json` now feeds a curated
 `candidate_refresh.v1` validation-reference fixture. The observations check the
