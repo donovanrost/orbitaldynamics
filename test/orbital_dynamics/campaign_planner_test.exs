@@ -25846,6 +25846,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            } = candidate_source["candidate_refresh_request_source_report_summary"]
 
     assert %{
+             "source" =>
+               "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_lifecycle_state_summary",
              "contract" => "timeline_lifecycle_state_summary.v1",
              "source_report_count" => 3,
              "source_report_row_count" => 12,
@@ -25889,7 +25891,12 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "branch_local_timeline_lifecycle_state_pressure" => true,
              "branch_local_lifecycle_review_pressure" => true,
              "branch_local_lifecycle_recordable_pressure" => false,
-             "branch_local_lifecycle_preservation_pressure" => true
+             "branch_local_lifecycle_preservation_pressure" => true,
+             "assumptions" => %{
+               "replay_scope" => "timeline_lifecycle_state_candidate_source_report_summary_only",
+               "timeline_lifecycle_application" => "not_performed_by_summary",
+               "timeline_mutation" => "not_performed_by_summary"
+             }
            } = CandidateRefresh.timeline_lifecycle_state_replay_summary(candidate_source)
 
     for source_path <- [

@@ -1492,6 +1492,12 @@ invalid activity input IDs,
 transition decision/import/action/status/approval maps, recordable/preserved/
 review timeline IDs, review activity IDs, trust-boundary evidence, and review
 timeline IDs routed by required action and status/approval transition category.
+For V3 strategy branch refreshes, the replay helper prefers a non-empty
+`candidate_source.candidate_refresh_request_source_report_summary.source_reports.timeline_lifecycle_state_summary`
+family over provenance, labels the output source and replay scope as
+candidate-source summary metadata, and treats partial non-empty branch families
+as authoritative while preserving provenance fallback for absent or empty branch
+families.
 The replay summary exposes branch-local lifecycle-state, review, recordable,
 and preservation pressure booleans without applying lifecycle transitions,
 mutating timelines, selecting candidates, approving imports, writing to
