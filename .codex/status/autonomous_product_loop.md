@@ -5,7 +5,8 @@ Timeline-integrity replay reads and labels V3 branch
 `candidate_source.candidate_refresh_request_source_report_summary` metadata.
 
 Status:
-Implementation and focused verification complete; review and publish pending.
+Implementation, focused verification, review, commit, and push complete for
+this slice.
 `CandidateRefresh.timeline_integrity_replay_summary/1` now checks a non-empty
 V3 branch `timeline_integrity_report` source-report family before falling back
 to provenance. Branch-sourced summaries preserve issue/review counts,
@@ -39,7 +40,8 @@ Docs/artifacts changed:
 - No schema exports or checked-in artifacts changed in this slice.
 
 Last product commit:
-- Pending review and publish.
+- `ff915c9` (`Label timeline-integrity branch replay metadata`) pushed to
+  `origin/main`.
 
 Next candidate:
 Re-read `docs/autonomous_work_guide.md`, this ledger, and the live worktree
