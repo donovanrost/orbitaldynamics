@@ -8138,6 +8138,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "timeline_activity_lifecycle_state",
           "source_contact_contention_resolution_summary",
           "contact_contention_resolution_summary",
+          "metadata",
           "provenance",
           "trust_boundary"
         ])
@@ -34161,7 +34162,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
         ),
       "source_candidate_diff_report" =>
         mission_state
-        |> mission_state_source_reports_or_reports(&mission_state_source_candidate_diff_reports/1),
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_candidate_diff_reports_for_refresh/1
+        ),
       "candidate_diff_report" =>
         mission_state
         |> mission_state_source_reports_or_reports(
@@ -34170,7 +34173,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "source_candidate_rejection_report" =>
         mission_state
         |> mission_state_source_reports_or_reports(
-          &mission_state_source_candidate_rejection_reports/1
+          &mission_state_source_candidate_rejection_reports_for_refresh/1
         ),
       "candidate_rejection_report" =>
         mission_state
@@ -34180,7 +34183,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "source_provider_counteroffer_report" =>
         mission_state
         |> mission_state_source_reports_or_reports(
-          &mission_state_source_provider_counteroffer_reports/1
+          &mission_state_source_provider_counteroffer_reports_for_refresh/1
         ),
       "provider_counteroffer_report" =>
         mission_state
@@ -34399,14 +34402,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
         ),
       "source_constraint_report" =>
         mission_state
-        |> mission_state_source_reports_or_reports(&mission_state_source_constraint_reports/1),
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_constraint_reports_for_refresh/1
+        ),
       "constraint_report" =>
         mission_state
         |> mission_state_source_reports_or_reports(&mission_state_canonical_constraint_reports/1),
       "source_objective_satisfaction_report" =>
         mission_state
         |> mission_state_source_reports_or_reports(
-          &mission_state_source_objective_satisfaction_reports/1
+          &mission_state_source_objective_satisfaction_reports_for_refresh/1
         ),
       "objective_satisfaction_report" =>
         mission_state
@@ -34416,7 +34421,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "source_objective_tradeoff_report" =>
         mission_state
         |> mission_state_source_reports_or_reports(
-          &mission_state_source_objective_tradeoff_reports/1
+          &mission_state_source_objective_tradeoff_reports_for_refresh/1
         ),
       "objective_tradeoff_report" =>
         mission_state
@@ -34425,7 +34430,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
         ),
       "source_score_term_report" =>
         mission_state
-        |> mission_state_source_reports_or_reports(&mission_state_source_score_term_reports/1),
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_score_term_reports_for_refresh/1
+        ),
       "score_term_report" =>
         mission_state
         |> mission_state_source_reports_or_reports(&mission_state_canonical_score_term_reports/1),
@@ -34442,7 +34449,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "source_station_calendar_report" =>
         mission_state
         |> mission_state_source_reports_or_reports(
-          &mission_state_source_station_calendar_reports/1
+          &mission_state_source_station_calendar_reports_for_refresh/1
         ),
       "station_calendar_report" =>
         mission_state
@@ -34462,7 +34469,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "source_station_reservation_report" =>
         mission_state
         |> mission_state_source_reports_or_reports(
-          &mission_state_source_station_reservation_reports/1
+          &mission_state_source_station_reservation_reports_for_refresh/1
         ),
       "station_reservation_report" =>
         mission_state
@@ -34636,6 +34643,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
           &mission_state_canonical_link_capacity_summaries/1
         )
     }
+    |> put_missing_candidate_refresh_result_artifact_source_aliases(mission_state)
     |> compact_map()
     |> non_empty_report()
   end
@@ -34644,6 +34652,113 @@ defmodule OrbitalDynamics.CampaignPlanner do
     mission_state
     |> report_fun.()
     |> mission_state_report_or_reports()
+  end
+
+  defp mission_state_source_candidate_diff_reports_for_refresh(mission_state) do
+    mission_state_source_reports_with_result_artifact_reports(
+      mission_state,
+      &mission_state_source_candidate_diff_reports/1,
+      ["source_candidate_diff_report", "candidate_diff_report"]
+    )
+  end
+
+  defp mission_state_source_candidate_rejection_reports_for_refresh(mission_state) do
+    mission_state_source_reports_with_result_artifact_reports(
+      mission_state,
+      &mission_state_source_candidate_rejection_reports/1,
+      ["source_candidate_rejection_report", "candidate_rejection_report"]
+    )
+  end
+
+  defp mission_state_source_provider_counteroffer_reports_for_refresh(mission_state) do
+    mission_state_source_reports_with_result_artifact_reports(
+      mission_state,
+      &mission_state_source_provider_counteroffer_reports/1,
+      ["source_provider_counteroffer_report", "provider_counteroffer_report"]
+    )
+  end
+
+  defp mission_state_source_constraint_reports_for_refresh(mission_state) do
+    mission_state_source_reports_with_result_artifact_reports(
+      mission_state,
+      &mission_state_source_constraint_reports/1,
+      ["source_constraint_report", "constraint_report"]
+    )
+  end
+
+  defp mission_state_source_objective_satisfaction_reports_for_refresh(mission_state) do
+    mission_state_source_reports_with_result_artifact_reports(
+      mission_state,
+      &mission_state_source_objective_satisfaction_reports/1,
+      ["source_objective_satisfaction_report", "objective_satisfaction_report"]
+    )
+  end
+
+  defp mission_state_source_objective_tradeoff_reports_for_refresh(mission_state) do
+    mission_state_source_reports_with_result_artifact_reports(
+      mission_state,
+      &mission_state_source_objective_tradeoff_reports/1,
+      ["source_objective_tradeoff_report", "objective_tradeoff_report"]
+    )
+  end
+
+  defp mission_state_source_score_term_reports_for_refresh(mission_state) do
+    mission_state_source_reports_with_result_artifact_reports(
+      mission_state,
+      &mission_state_source_score_term_reports/1,
+      ["source_score_term_report", "score_term_report"]
+    )
+  end
+
+  defp mission_state_source_station_calendar_reports_for_refresh(mission_state) do
+    mission_state_source_reports_with_result_artifact_reports(
+      mission_state,
+      &mission_state_source_station_calendar_reports/1,
+      ["source_station_calendar_report", "station_calendar_report"]
+    )
+  end
+
+  defp mission_state_source_station_reservation_reports_for_refresh(mission_state) do
+    mission_state_source_reports_with_result_artifact_reports(
+      mission_state,
+      &mission_state_source_station_reservation_reports/1,
+      ["source_station_reservation_report", "station_reservation_report"]
+    )
+  end
+
+  defp mission_state_source_reports_with_result_artifact_reports(
+         mission_state,
+         direct_source_fun,
+         report_keys
+       ) do
+    case direct_source_fun.(mission_state) do
+      [] ->
+        Enum.flat_map(
+          report_keys,
+          &mission_state_result_artifact_embedded_reports(mission_state, &1)
+        )
+
+      reports ->
+        reports
+    end
+  end
+
+  defp put_missing_candidate_refresh_result_artifact_source_aliases(source_reports, mission_state) do
+    candidate_refresh_source_report_input_fields()
+    |> Enum.reduce(source_reports, fn {source_key, canonical_key}, acc ->
+      if source_report_input_present?(Map.get(acc, source_key)) do
+        acc
+      else
+        reports =
+          [source_key, canonical_key]
+          |> Enum.flat_map(&mission_state_result_artifact_embedded_reports(mission_state, &1))
+
+        case mission_state_report_or_reports(reports) do
+          nil -> acc
+          value -> Map.put(acc, source_key, value)
+        end
+      end
+    end)
   end
 
   defp mission_state_report_or_reports(reports_with_sources) do

@@ -6013,8 +6013,25 @@ defmodule OrbitalDynamics.CandidateRefresh do
   def provider_counteroffer_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
+    branch_counteroffer_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "provider_counteroffer_report")
+
     counteroffer_summary =
-      get_in(source_summary, ["source_reports", "provider_counteroffer_report"]) || %{}
+      branch_counteroffer_summary ||
+        get_in(source_summary, ["source_reports", "provider_counteroffer_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_counteroffer_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_activity_state",
+          "provider_counteroffer_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.provider_counteroffer_report",
+          "provider_counteroffer_source_report_provenance_only"
+        }
+      end
 
     reviewable_count = summary_integer(counteroffer_summary, "reviewable_count")
     cost_delta_count = summary_integer(counteroffer_summary, "counteroffer_cost_delta_count")
@@ -6105,7 +6122,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_provider_counteroffer_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.provider_counteroffer_report",
+      "source" => summary_source,
       "contract" =>
         source_report_summary_contract(counteroffer_summary, "provider_counteroffer_report.v1"),
       "source_report_count" => summary_integer(counteroffer_summary, "count"),
@@ -6152,7 +6169,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "branch_local_plan_impact_pressure" => plan_impact_pressure,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "provider_counteroffer_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_provider_counteroffer_replay_summary",
         "provider_write" => "not_performed_by_summary",
         "schedule_mutation" => "not_performed_by_summary",
@@ -17037,6 +17054,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
        "source_reports",
        family
      ]) ||
+       get_in(refresh_or_artifact, [
+         "assumptions",
+         "candidate_source",
+         "candidate_refresh_request_source_report_summary",
+         "source_reports",
+         family
+       ]) ||
        get_in(refresh_or_artifact, [
          "candidate_refresh_request_source_report_summary",
          "source_reports",

@@ -1,71 +1,57 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Lighting-confidence schema alignment for typed activity and review handoffs.
+Branch-generated CandidateRefresh source-report provenance for result-artifact
+wrappers.
 
 Status:
-Implemented and verified. `lighting_confidence` now matches the documented
-typed-activity contract across executable validation and exported schemas:
-numeric confidence and qualitative sampled-eclipse labels are accepted, while
-object-shaped values remain invalid. The change applies to realized/planned
-activity schemas, campaign/candidate rows, operator-review/Cadence-import
-handoff rows, timeline feedback rows, activity context schemas, and the study
-manifest schema.
+Implemented and verified. Branch-generated refresh requests now retain
+wrapper metadata/trust-boundary evidence on mission-state result-artifact
+source-report wrappers, synthesize missing direct `source_*` request aliases
+from wrapper-embedded reports, and let replay summaries read request source
+reports from repair artifacts stored under `assumptions.candidate_source`.
+Provider-counteroffer replay now uses the branch request-summary source label
+when summarizing branch candidate sources while preserving the standalone
+provenance label for ordinary artifacts.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/study/manifest.ex`
-- `schemas/*.schema.json` exports touched by `lighting_confidence`
-- `schemas/orbital_dynamics.schema_bundle.v1.json`
-- `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `test/orbital_dynamics/schema_test.exs`
-- `test/orbital_dynamics/study/manifest_test.exs`
-- `test/orbital_dynamics/timeline_feedback_test.exs`
+- `lib/orbital_dynamics/campaign_planner.ex`
+- `lib/orbital_dynamics/candidate_refresh.ex`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:2469 test/orbital_dynamics/campaign_planner_test.exs:472 test/orbital_dynamics/campaign_planner_test.exs:63119`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:2469 test/orbital_dynamics/campaign_planner_test.exs:472 test/orbital_dynamics/campaign_planner_test.exs:63119 test/orbital_dynamics/campaign_planner_test.exs:47857`
-- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `mix orbital_dynamics.manifest.schema.export --output schemas/study_manifest.v1.schema.json`
-- `mix test test/orbital_dynamics/schema_test.exs test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix test test/orbital_dynamics/timeline_feedback_test.exs:7 test/orbital_dynamics/study/manifest_test.exs:726`
-- `mix orbital_dynamics.schema.lint --all`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:50986`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:4444 test/orbital_dynamics/campaign_planner_test.exs:20047 test/orbital_dynamics/campaign_planner_test.exs:23434 test/orbital_dynamics/campaign_planner_test.exs:39992 test/orbital_dynamics/campaign_planner_test.exs:50606 test/orbital_dynamics/campaign_planner_test.exs:50986`
 - `mix test`
 
 Docs/artifacts changed:
-Checked-in JSON Schema exports now encode `lighting_confidence` as
-`["number", "string"]` wherever the typed activity/review handoff contract
-allows qualitative sampled-eclipse labels. Existing docs already describe
-numeric or qualitative lighting confidence, so no prose update was needed.
+No schema or docs changes. This slice preserves existing artifact contracts and
+changes branch-refresh request provenance mapping only.
 
 Full-suite status:
-`mix test` now reports `2811/2817 passed`; 6 failures remain. The
-`lighting_confidence` schema-validation cluster is resolved. Remaining failures
-are outside this slice and are all CampaignPlanner/CandidateRefresh
-source-report provenance drift: direct station-calendar/source-report paths,
-provider-counteroffer replay paths, list-valued result-artifact indexed paths,
-refresh-governance direct-vs-result-artifact paths, objective/constraint
-wrapper summaries, and station-reservation replay summary paths. The known
-`:propagator_exit` log still appears during the suite.
+`mix test` now reports `2815/2817 passed`; 2 failures remain. The previous
+provider-counteroffer, station-reservation, objective/constraint wrapper, and
+list-valued result-artifact source-report failures are resolved. Remaining
+failures are CampaignPlanner source-report duplicate-count/path drift in the
+timeline-feedback/operational-timeline case and the broad result-artifact
+candidate-diff/source-report summary case. The known `:propagator_exit` log
+still appears during the suite.
 
 Review:
 `slice_reviewer` was unavailable because valid spawns hit the agent thread
-limit. Manual scoped review passed: executable/schema-export changes
-consistently use number-or-string for `lighting_confidence`, invalid fixtures
-still reject object-shaped values, generated schema exports are refreshed, and
-the residual full-suite failures remain outside this slice.
+limit. Manual scoped review passed: the diff is limited to branch-refresh
+source-report mapping, repair-artifact branch-summary lookup, provider-
+counteroffer replay source labeling, and the ledger; `git diff --check` passed;
+the final full suite improves the residual count from 6 to 2.
 
 Last commit:
-Slice code/schema/tests committed as `475f556`
-(`Allow qualitative lighting confidence in schemas`); this ledger line was
-recorded in a follow-up handoff commit.
+Pending publish for current slice.
 
 Next candidate:
-Re-read the guide/ledger/live worktree and choose the next guide-backed slice.
-The remaining full-suite failures point to CampaignPlanner source-report
-path/count expectation drift and CandidateRefresh station-reservation replay
-summary provenance.
+Re-read the guide/ledger/live worktree and continue the source-report
+provenance burn-down with the two remaining CampaignPlanner failures:
+timeline-feedback/operational-timeline branch refresh source reports and
+candidate-diff duplicate-count handling for broad result-artifact wrappers.
 
 Blocked:
 No.
