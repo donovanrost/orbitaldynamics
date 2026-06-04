@@ -31,7 +31,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`6c13ce4` (`Record validation safety case slice commit`).
+`c70b56a` (`Flatten schema validation replay identity`).
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth
