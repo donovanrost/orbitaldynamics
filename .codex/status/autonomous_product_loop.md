@@ -28,7 +28,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`a3746cb` (`Record quality gate slice commit`).
+`38a1d73` (`Flatten freshness replay identity`).
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth
