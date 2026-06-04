@@ -9396,13 +9396,33 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local contact-intent replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, generate contacts, select candidates,
-  approve imports, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, generate
+  contacts, select candidates, approve imports, or write to Cadence.
   """
   def contact_intent_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
-    intent_summary = get_in(source_summary, ["source_reports", "contact_intent"]) || %{}
+
+    branch_intent_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "contact_intent")
+
+    intent_summary =
+      branch_intent_summary ||
+        get_in(source_summary, ["source_reports", "contact_intent"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_intent_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.contact_intent",
+          "contact_intent_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.contact_intent",
+          "contact_intent_source_report_provenance_only"
+        }
+      end
 
     station_feedback_count = summary_integer(intent_summary, "station_feedback_count")
 
@@ -9448,7 +9468,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_contact_intent_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.contact_intent",
+      "source" => summary_source,
       "contract" => source_report_summary_contract(intent_summary, "contact_intent.v1"),
       "source_report_count" => summary_integer(intent_summary, "count"),
       "source_report_row_count" => summary_integer(intent_summary, "row_count"),
@@ -9498,7 +9518,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
           map_size(capacity_contact_ids_by_direction) > 0 or map_size(direction_routing) > 0,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "contact_intent_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_contact_intent_replay_summary",
         "contact_generation" => "not_performed_by_summary",
         "contact_allocation" => "not_performed_by_summary",
@@ -16430,14 +16450,19 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
   defp source_report_summary_branch_family(refresh_or_artifact, family)
        when is_map(refresh_or_artifact) do
-    refresh_or_artifact
-    |> stringify_keys()
-    |> get_in([
-      "candidate_source",
-      "candidate_refresh_request_source_report_summary",
-      "source_reports",
-      family
-    ])
+    refresh_or_artifact = stringify_keys(refresh_or_artifact)
+
+    (get_in(refresh_or_artifact, [
+       "candidate_source",
+       "candidate_refresh_request_source_report_summary",
+       "source_reports",
+       family
+     ]) ||
+       get_in(refresh_or_artifact, [
+         "candidate_refresh_request_source_report_summary",
+         "source_reports",
+         family
+       ]))
     |> non_empty_map()
   end
 
