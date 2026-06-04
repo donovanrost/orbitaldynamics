@@ -13,11 +13,41 @@ For each slice:
 
 1. Pick the highest-priority slice that is not already implemented.
 2. Read the linked capability docs and the relevant code/tests.
-3. Implement one vertical behavior change.
-4. Add or update tests.
-5. Update docs and artifacts only where the public behavior changed.
-6. Run targeted tests, then broader tests when planner/schema behavior changed.
-7. Repeat.
+3. Optionally delegate `slice_mapper` for bounded read-only mapping if the edit
+   surface is not obvious.
+4. Implement one vertical behavior change.
+5. Add or update tests.
+6. Update docs and artifacts only where the public behavior changed.
+7. Run targeted tests, then broader tests when planner/schema behavior changed.
+8. Update `.codex/status/autonomous_product_loop.md`.
+9. Delegate `slice_reviewer` for read-only review of the completed slice.
+10. Fix must-fix review findings, rerun focused verification, and update the
+    ledger if needed.
+11. Delegate a weaker commit/push subagent for the completed slice.
+12. Repeat.
+
+Use project-scoped custom agents when available:
+
+- `slice_mapper` from `.codex/agents/slice-mapper.toml`
+- `slice_reviewer` from `.codex/agents/slice-reviewer.toml`
+- `git_slice_publisher` from `.codex/agents/git-slice-publisher.toml`
+
+The parent orchestrator keeps ownership of slice selection, implementation,
+focused test/debug loops, done/not-done calls, and ledger updates. Mapper and
+reviewer agents are read-only sidecars; they should not edit code, broaden the
+slice, or make product decisions.
+
+The commit/push subagent is a mechanical handoff, not a product agent. Use the
+project-scoped `git_slice_publisher` custom agent from
+`.codex/agents/git-slice-publisher.toml` when available. If that custom agent is
+unavailable, prefer `gpt-5.4-mini`; otherwise use the smallest/lowest-cost
+coding model available without blocking the handoff. It should stage only the
+completed slice's files, commit with a concise message, push the current branch,
+and report the commit SHA plus any uncommitted unrelated files. It must not make
+product decisions, stage unrelated dirty work, amend/rebase, reset, force-push,
+delete branches, or change remotes. If push is blocked by credentials, network
+approval, or other external state, keep the local commit and record the blocker
+in `.codex/status/autonomous_product_loop.md`.
 
 ## Current Decision Queue
 
@@ -188,6 +218,10 @@ Every implemented slice should satisfy the relevant items:
 - docs name the feature's real maturity level
 - assumptions, provenance, validation level, and known limits are explicit
 - existing V1/V2/V3 artifacts remain compatible unless versioned deliberately
+- `slice_reviewer` found no must-fix publish blockers, or the parent fixed them
+  and reran focused verification
+- slice changes are committed and pushed, or a local commit/push blocker is
+  recorded in `.codex/status/autonomous_product_loop.md`
 
 ## Context Control
 

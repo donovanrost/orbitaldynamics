@@ -16,7 +16,8 @@ Assume this goal is intended to keep working for hours, not minutes. Do not
 stop merely because one slice is complete, tests passed, context feels
 moderate, or the next slice requires normal code exploration. After each
 completed slice, update the ledger, pick the next highest-value slice, and keep
-going.
+going. Between slices, delegate the mechanical commit/push handoff to a weaker
+subagent when one is available.
 
 Stop only when:
 - the same blocker prevents progress on three consecutive attempted slices,
@@ -64,6 +65,7 @@ Completed slices:
 Files changed:
 Tests run:
 Docs/artifacts changed:
+Last commit:
 Next candidate:
 Blocked:
 Notes:
@@ -87,7 +89,9 @@ Working loop:
 2. Read `.codex/status/autonomous_product_loop.md` if it exists.
 3. Pick the highest-priority incomplete slice from the guide.
 4. Write the slice-selection note.
-5. Read only the slice docs, likely code, and likely tests.
+5. Read only the slice docs, likely code, and likely tests. Optionally delegate
+   `slice_mapper` for bounded read-only mapping if the edit surface is not
+   obvious.
 6. Implement one vertical behavior change.
 7. Add or update focused tests.
 8. Update docs/artifacts only if public behavior or artifact shape changed.
@@ -95,7 +99,11 @@ Working loop:
 10. Run broader tests only when schema/planner/artifact behavior changed enough
     to justify it.
 11. Update the status ledger.
-12. Immediately select the next slice and repeat.
+12. Delegate `slice_reviewer` for read-only review of the completed slice.
+13. Fix must-fix review findings, rerun focused verification, and update the
+    ledger if needed.
+14. Delegate the post-slice commit/push handoff.
+15. Immediately select the next slice and repeat.
 
 Multi-slice requirement:
 Aim to complete several small vertical slices or one substantial slice plus
@@ -109,7 +117,20 @@ If a slice becomes too large:
 - continue with either the next subset or the next queue item.
 
 Subagent strategy:
-Use subagents only for bounded reconnaissance or review. Require compact output:
+Use subagents only for bounded reconnaissance, review, or post-slice
+commit/push handoffs. Prefer these project-scoped custom agents when available:
+
+- `slice_mapper` from `.codex/agents/slice-mapper.toml` for optional read-only
+  mapping before implementation
+- `slice_reviewer` from `.codex/agents/slice-reviewer.toml` for read-only review
+  after implementation and focused verification
+- `git_slice_publisher` from `.codex/agents/git-slice-publisher.toml` for
+  mechanical commit/push after review
+
+If a custom agent is unavailable, use the closest built-in subagent with the
+same sandbox and model intent. Do not let model selection block the handoff, and
+do not use weaker subagents for product decisions, slice selection, or broad code
+changes. Require compact output:
 
 ```text
 Findings:
@@ -119,6 +140,28 @@ Risks:
 Tests:
 ```
 
+Post-slice commit/push handoff:
+After the main agent has implemented the slice, run verification, and updated
+the ledger, delegate `git_slice_publisher` with this exact scope:
+
+- inspect `git status --short` and the diff for the intended slice files
+- run `git diff --check`
+- stage only files owned by the completed slice, including the ledger when it
+  changed
+- commit with a concise message describing the slice
+- push the current branch
+- report the commit SHA, push destination, committed files, uncommitted
+  unrelated files, and any blocker
+
+Commit/push worker constraints:
+- never stage unrelated dirty files
+- never revert user or concurrent-agent changes
+- never amend, rebase, reset, force-push, delete branches, or change remotes
+- if push needs credentials, network approval, or other external state, request
+  it through the normal approval path; if blocked, leave the local commit in
+  place and report the blocker
+- do not continue into the next product slice
+
 Subagent constraints:
 - no long code excerpts
 - no full command output
@@ -126,6 +169,8 @@ Subagent constraints:
 - no reading all docs
 - no speculative product expansion
 - include file paths and line references when relevant
+- no product decisions, slice selection, or broad code changes outside the
+  parent orchestrator
 
 Context-control rules:
 
@@ -161,6 +206,10 @@ Definition of done for each slice:
 - assumptions, provenance, validation level, and known limits are explicit
 - existing V1/V2/V3 behavior remains compatible unless changed deliberately
 - status ledger is updated
+- `slice_reviewer` found no must-fix publish blockers, or the parent fixed them
+  and reran focused verification
+- slice changes are committed and pushed, or a local commit/push blocker is
+  recorded in the ledger
 
 Verification guidance:
 
@@ -179,6 +228,8 @@ Keep the final response short:
 - slices completed
 - key files changed
 - tests run
+- review status
+- commit/push status
 - next suggested slice
 - blockers
 ```
