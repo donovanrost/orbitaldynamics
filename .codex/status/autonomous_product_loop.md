@@ -5,7 +5,8 @@ Timeline-dependency impact replay reads and labels V3 branch
 `candidate_source.candidate_refresh_request_source_report_summary` metadata.
 
 Status:
-Implementation and focused verification complete; review and publish pending.
+Implementation, focused verification, review, commit, and push complete for
+this slice.
 `CandidateRefresh.timeline_dependency_impact_replay_summary/1` now checks a
 non-empty V3 branch `timeline_dependency_impact_summary` source-report family
 before falling back to provenance. Branch-sourced summaries preserve counts,
@@ -38,7 +39,8 @@ Docs/artifacts changed:
   branch candidate-source replay for this helper.
 
 Last product commit:
-- Pending review and publish.
+- `b8265fb` (`Label dependency-impact branch replay metadata`) pushed to
+  `origin/main`.
 
 Next candidate:
 Re-read `docs/autonomous_work_guide.md`, this ledger, and the live worktree
