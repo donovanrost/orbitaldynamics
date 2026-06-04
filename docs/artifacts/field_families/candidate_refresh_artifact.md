@@ -2013,9 +2013,10 @@ field rather than defaulting to `quality_gate_report.v1`.
 `CandidateRefresh.model_acceptance_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_model_acceptance_replay_summary/1` expose the
 model-acceptance slice as a branch-local replay summary. It preserves source
-paths, validation-record/model counts, status and intended-use maps,
-validation-level maps, model-ID routing maps, trust-boundary evidence, and
-review/blocking/unknown-model pressure booleans without certifying models,
+contract, count, row-count, source paths, validation-record/model counts, status
+and intended-use maps, validation-level maps, model-ID routing maps,
+trust-boundary evidence, and review/blocking/unknown-model pressure booleans
+without certifying models,
 approving imports, writing to Cadence, or regenerating candidates. Review,
 blocking, and unknown-model pressure are true for status maps and model-ID
 routing maps even when the aggregate review, blocked, or unknown-model counters
@@ -2033,7 +2034,9 @@ containers into `model_acceptance_review` rows with wrapper-qualified
 `candidate_refresh.*.model_acceptance_report.rows` source paths, preserving
 row-level model status and report-level count context without certifying models.
 When model-acceptance provenance is absent, the replay summary omits the
-contract field rather than defaulting to `model_acceptance_report.v1`.
+contract field rather than defaulting to `model_acceptance_report.v1`, and the
+aggregate source-report summary omits the top-level model-acceptance identity
+rollups instead of emitting empty contract/count/row-count/path fields.
 
 `CandidateRefresh.validation_safety_case_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_validation_safety_case_replay_summary/1`

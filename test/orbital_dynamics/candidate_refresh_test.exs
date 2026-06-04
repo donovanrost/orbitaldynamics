@@ -23810,6 +23810,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 1,
+             "source_report_model_acceptance_contract" => "model_acceptance_report.v1",
+             "source_report_model_acceptance_count" => 1,
+             "source_report_model_acceptance_row_count" => 4,
+             "source_report_model_acceptance_paths" => ["source_model_acceptance_report"],
              "source_report_model_acceptance_record_count" => 3,
              "source_report_model_acceptance_intended_use_counts" => %{
                "operational_import" => 1
@@ -23931,6 +23935,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 2,
+             "source_report_model_acceptance_contract" => "model_acceptance_report.v1",
+             "source_report_model_acceptance_count" => 1,
+             "source_report_model_acceptance_row_count" => 4,
+             "source_report_model_acceptance_paths" => ["source_model_acceptance_report"],
              "source_report_model_acceptance_status_counts" => %{"blocked" => 1},
              "source_report_model_acceptance_model_count" => 4,
              "source_report_model_acceptance_model_ids_by_status" => %{
@@ -23950,8 +23958,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "provenance" => %{"source_reports" => %{}}
     }
 
+    source_summary = CandidateRefresh.source_report_summary(artifact)
     summary = CandidateRefresh.model_acceptance_replay_summary(artifact)
 
+    refute Map.has_key?(source_summary, "source_report_model_acceptance_contract")
+    refute Map.has_key?(source_summary, "source_report_model_acceptance_count")
+    refute Map.has_key?(source_summary, "source_report_model_acceptance_row_count")
+    refute Map.has_key?(source_summary, "source_report_model_acceptance_paths")
     assert summary["source_report_count"] == 0
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_record_count"] == 0

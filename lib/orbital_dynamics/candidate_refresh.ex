@@ -4363,6 +4363,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "model_acceptance_report",
           "record_count"
         ),
+      "source_report_model_acceptance_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "model_acceptance_report",
+          "contract"
+        ),
+      "source_report_model_acceptance_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "model_acceptance_report",
+          "count"
+        ),
+      "source_report_model_acceptance_row_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "model_acceptance_report",
+          "row_count"
+        ),
+      "source_report_model_acceptance_paths" =>
+        source_report_summary_family_field(
+          source_reports,
+          "model_acceptance_report",
+          "paths"
+        ),
       "source_report_model_acceptance_intended_use_counts" =>
         source_report_summary_family_merge_count_maps(
           source_reports,
