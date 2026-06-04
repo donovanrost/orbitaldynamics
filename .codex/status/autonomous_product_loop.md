@@ -1,17 +1,17 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh provider-counteroffer source-report identity rollups.
+CandidateRefresh timeline-integrity source-report identity rollups.
 
 Status:
 Implemented with focused verification passing locally.
 `CandidateRefresh.source_report_summary/1` now
-flattens `source_report_provider_counteroffer_contract`,
-`source_report_provider_counteroffer_count`,
-`source_report_provider_counteroffer_row_count`, and
-`source_report_provider_counteroffer_paths` alongside the existing
-provider-counteroffer reviewable, cost/timing/lock, import-readiness,
-plan-impact, status/action, and counteroffer-ID aggregate fields.
+flattens `source_report_timeline_integrity_contract`,
+`source_report_timeline_integrity_count`,
+`source_report_timeline_integrity_row_count`, and
+`source_report_timeline_integrity_paths` alongside the existing
+timeline-integrity issue/review/dependency/exclusivity counts, status/action
+maps, and activity/timeline routing aggregate fields.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -21,7 +21,7 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:21336 test/orbital_dynamics/candidate_refresh_test.exs:21545 test/orbital_dynamics/candidate_refresh_test.exs:21701 test/orbital_dynamics/candidate_refresh_test.exs:21721 test/orbital_dynamics/candidate_refresh_test.exs:21760`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:26916 test/orbital_dynamics/candidate_refresh_test.exs:27096 test/orbital_dynamics/candidate_refresh_test.exs:27116 test/orbital_dynamics/candidate_refresh_test.exs:27155`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 
@@ -29,7 +29,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`b9ae19d` (`Flatten provider counteroffer replay identity`).
+Pending timeline-integrity slice commit.
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth

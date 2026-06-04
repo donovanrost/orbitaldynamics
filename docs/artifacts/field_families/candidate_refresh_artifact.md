@@ -1526,8 +1526,9 @@ validated `timeline_integrity_report.v1` inputs as branch-local replay
 provenance. CandidateRefresh accepts direct, accepted-state, mission-state, and
 `source_result_artifact` / `result_artifact` wrapped
 `source_timeline_integrity_report` / `timeline_integrity_report` inputs,
-preserving source paths, row counts, row-derived integrity issue and review
-counts, issue-type/action maps, review activity/timeline routing,
+preserving source report contract, count, row-count, paths, row-derived
+integrity issue and review counts, issue-type/action maps, review
+activity/timeline routing,
 dependency/exclusivity issue IDs, trust-boundary evidence, and dependency,
 exclusivity, review, and family-level pressure booleans without mutating
 timelines, selecting candidates, approving imports, writing to Cadence, or
@@ -1539,9 +1540,13 @@ strategy-derived branch refreshes preserve timeline-integrity review,
 dependency, and exclusivity pressure through the branch provenance boundary.
 When timeline-integrity provenance is absent, the replay summary omits the
 contract field rather than defaulting to
-`timeline_integrity_report.v1`. Capability metadata advertises
-`timeline_integrity_report` as an accepted CandidateRefresh input alongside
-timeline-integrity replay provenance.
+`timeline_integrity_report.v1`. The aggregate source-report summary also omits
+the top-level timeline-integrity identity rollups instead of emitting empty
+count, row-count, or path fields. Partial placeholder provenance may expose an
+explicit contract, but does not synthesize count, row-count, or path identity
+rollups unless both identity counts are present and non-nil. Capability metadata
+advertises `timeline_integrity_report` as an accepted CandidateRefresh input
+alongside timeline-integrity replay provenance.
 `OperatorReview.from_candidate_refresh_artifact/1` and
 `CadenceImport.from_candidate_refresh_artifact/1` also lift direct/list-valued
 and wrapped `source_timeline_integrity_report` / `timeline_integrity_report`

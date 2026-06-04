@@ -6000,6 +6000,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "timeline_dependency_impact_summary",
           "dependent_timeline_id_counts"
         ),
+      "source_report_timeline_integrity_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "timeline_integrity_report",
+          "contract"
+        ),
+      "source_report_timeline_integrity_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "timeline_integrity_report",
+          "count"
+        ),
+      "source_report_timeline_integrity_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "timeline_integrity_report",
+          "row_count"
+        ),
+      "source_report_timeline_integrity_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "timeline_integrity_report",
+          "paths"
+        ),
       "source_report_timeline_integrity_issue_count" =>
         source_report_summary_family_count(
           source_reports,

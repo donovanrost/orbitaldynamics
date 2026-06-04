@@ -26973,6 +26973,15 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_count" => 4,
              "source_report_row_count" => 8,
              "source_report_counts_by_contract" => %{"timeline_integrity_report.v1" => 4},
+             "source_report_timeline_integrity_contract" => "timeline_integrity_report.v1",
+             "source_report_timeline_integrity_count" => 4,
+             "source_report_timeline_integrity_row_count" => 8,
+             "source_report_timeline_integrity_paths" => [
+               "accepted_planning_state.timeline_integrity_report",
+               "mission_state.source_timeline_integrity_report",
+               "source_timeline_integrity_report",
+               "source_result_artifact.timeline_integrity_report"
+             ],
              "source_report_timeline_integrity_issue_count" => 44,
              "source_report_timeline_integrity_review_count" => 8,
              "source_report_timeline_integrity_dependency_issue_count" => 24,
@@ -27090,13 +27099,57 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "provenance" => %{"source_reports" => %{}}
     }
 
+    source_summary = CandidateRefresh.source_report_summary(artifact)
     summary = CandidateRefresh.timeline_integrity_replay_summary(artifact)
 
+    refute Map.has_key?(source_summary, "source_report_timeline_integrity_contract")
+    refute Map.has_key?(source_summary, "source_report_timeline_integrity_count")
+    refute Map.has_key?(source_summary, "source_report_timeline_integrity_row_count")
+    refute Map.has_key?(source_summary, "source_report_timeline_integrity_paths")
     assert summary["source_report_count"] == 0
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_paths"] == []
     refute Map.has_key?(summary, "contract")
     refute summary["branch_local_timeline_integrity_pressure"]
+  end
+
+  test "timeline integrity source summary omits missing identity counts for partial family placeholder" do
+    partial_summaries = [
+      %{"contract" => "timeline_integrity_report.v1"},
+      %{"count" => 1},
+      %{"row_count" => 2},
+      %{"paths" => ["provenance.source_reports.timeline_integrity_report"]},
+      %{"count" => nil, "row_count" => nil},
+      %{
+        "count" => nil,
+        "row_count" => nil,
+        "paths" => ["provenance.source_reports.timeline_integrity_report"]
+      }
+    ]
+
+    for partial_summary <- partial_summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "timeline_integrity_report" => partial_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      if Map.has_key?(partial_summary, "contract") do
+        assert source_summary["source_report_timeline_integrity_contract"] ==
+                 "timeline_integrity_report.v1"
+      else
+        refute Map.has_key?(source_summary, "source_report_timeline_integrity_contract")
+      end
+
+      refute Map.has_key?(source_summary, "source_report_timeline_integrity_count")
+      refute Map.has_key?(source_summary, "source_report_timeline_integrity_row_count")
+      refute Map.has_key?(source_summary, "source_report_timeline_integrity_paths")
+    end
   end
 
   test "timeline integrity replay reads strategy branch candidate-source summary metadata" do
