@@ -5778,15 +5778,33 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local candidate-diff replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, mutate candidates, select candidates, or
-  write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, mutate
+  candidates, select candidates, or write to Cadence.
   """
   def candidate_diff_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
+    branch_diff_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "candidate_diff_report")
+
     diff_summary =
-      get_in(source_summary, ["source_reports", "candidate_diff_report"]) || %{}
+      branch_diff_summary ||
+        get_in(source_summary, ["source_reports", "candidate_diff_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_diff_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.candidate_diff_report",
+          "candidate_diff_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.candidate_diff_report",
+          "candidate_diff_source_report_provenance_only"
+        }
+      end
 
     retained_candidate_count = summary_integer(diff_summary, "retained_candidate_count")
     new_candidate_count = summary_integer(diff_summary, "new_candidate_count")
@@ -5825,7 +5843,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_candidate_diff_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.candidate_diff_report",
+      "source" => summary_source,
       "contract" => source_report_summary_contract(diff_summary, "candidate_diff_report.v1"),
       "source_report_count" => summary_integer(diff_summary, "count"),
       "source_report_row_count" => summary_integer(diff_summary, "row_count"),
@@ -5847,7 +5865,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "branch_local_semantic_change_pressure" => semantic_change_pressure,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "candidate_diff_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_candidate_diff_replay_summary",
         "candidate_selection" => "not_performed_by_summary",
         "cadence_write" => "not_performed_by_summary",

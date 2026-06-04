@@ -612,6 +612,10 @@ inspect V3 branch `candidate_source` metadata that carries
 `candidate_refresh_request_source_report_summary`, so strategy-derived branch
 refreshes preserve candidate-diff reasons and changed-field routing through the
 branch provenance boundary.
+When the branch `candidate_diff_report` source-report family is non-empty, the
+helper labels its output source and replay scope as candidate-source summary
+metadata, treats partial non-empty branch families as authoritative, and falls
+back to provenance labels for absent or empty branch families.
 Branch-generated refresh requests also preserve direct mission-state and
 result-artifact-wrapped raw `source_candidate_diff_report` /
 `candidate_diff_report` inputs, retaining wrapper-qualified request paths,
