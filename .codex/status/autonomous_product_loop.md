@@ -5,7 +5,8 @@ Timeline-transition application replay reads and labels V3 branch
 `candidate_source.candidate_refresh_request_source_report_summary` metadata.
 
 Status:
-Implementation and focused verification complete; review and publish pending.
+Implementation, focused verification, review, commit, and push complete for
+this slice.
 `CandidateRefresh.timeline_transition_application_replay_summary/1` now checks
 a non-empty V3 branch `timeline_transition_application_report` source-report
 family before falling back to provenance. Branch-sourced summaries preserve
@@ -39,7 +40,8 @@ Docs/artifacts changed:
   branch candidate-source replay for this helper.
 
 Last product commit:
-- Pending review and publish.
+- `fe9fd40` (`Label transition-application branch replay metadata`) pushed to
+  `origin/main`.
 
 Next candidate:
 Re-read `docs/autonomous_work_guide.md`, this ledger, and the live worktree
