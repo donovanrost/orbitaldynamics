@@ -1,13 +1,13 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Schema-visible contact-contention generated-ID scopes.
+Schema-visible CandidateRefresh refreshed-window generated-ID scope.
 
 Status:
 Implemented and focused verification passed. Runtime identity policy now
-exports generated-ID scopes for contact-contention conflict groups and
-resolution recommendation group IDs, and checked-in schema exports were
-regenerated so the bundle advertises those invariants.
+exports the generated-ID scope for `candidate_refresh.v1` refreshed windows,
+matching the existing CandidateRefresh event-ordering invariant for refreshed
+window and candidate IDs.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -19,24 +19,25 @@ Files changed:
 Tests run:
 - `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `mix test test/orbital_dynamics/schema_test.exs:19835 test/orbital_dynamics/schema_test.exs:19938 test/orbital_dynamics/schema_test.exs:19968 test/orbital_dynamics/schema_test.exs:20305 test/mix/tasks/orbital_dynamics.schema.export_test.exs:39 test/mix/tasks/orbital_dynamics.schema.export_test.exs:5663 --trace --seed 0`
+- `mix test test/orbital_dynamics/schema_test.exs:19835 test/orbital_dynamics/schema_test.exs:19968 test/orbital_dynamics/schema_test.exs:19999 test/orbital_dynamics/schema_test.exs:20336 test/mix/tasks/orbital_dynamics.schema.export_test.exs:39 test/mix/tasks/orbital_dynamics.schema.export_test.exs:5663 --trace --seed 0`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 
 Docs/artifacts changed:
-No docs text changes were needed. Existing reproducibility docs already state
-that contact-contention conflict groups and resolution recommendations have
-exported generated-ID ordering invariants; this slice makes the runtime and
-checked-in schema exports match that contract.
+No docs text changes were needed. Existing CandidateRefresh docs already state
+that refreshed window and candidate IDs are stable under source-event ordering;
+this slice makes the refreshed-window generated-ID scope visible in exported
+identity-policy metadata.
 
 Last commit:
-Current slice commit exports contact-contention generated-ID scopes and is
-pushed to `origin/main`.
+Current slice commit exports the CandidateRefresh refreshed-window generated-ID
+scope and is pushed to `origin/main`.
 
 Next candidate:
 After this slice is verified and pushed, re-read the guide/ledger/live worktree
 and continue with the highest-priority unimplemented typed activity,
-resource/communications, quality/readiness, or validation slice.
+resource/communications, quality/readiness, or validation slice. Several
+candidate gaps checked during this slice were already implemented in live code.
 
 Blocked:
 No.

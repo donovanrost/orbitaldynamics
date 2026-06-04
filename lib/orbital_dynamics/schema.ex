@@ -2717,6 +2717,31 @@ defmodule OrbitalDynamics.Schema do
         "ordering" => ["result_event_type", "scenario_id", "source_window_id", "starts_at_s"]
       },
       %{
+        "scope" => "candidate_refresh.v1.refreshed_windows.generated_window_id",
+        "generated_id_field" => "id",
+        "identity_fields" => [
+          "type",
+          "scenario_id",
+          "target_id",
+          "ground_station_id",
+          "starts_at_s",
+          "ends_at_s"
+        ],
+        "ordering" => [
+          "type",
+          "scenario_id",
+          "target_id",
+          "ground_station_id",
+          "starts_at_s",
+          "id"
+        ],
+        "semantic_invariants" => [
+          "source_record_order_must_not_change_generated_window_id",
+          "canonical_source_event_sort_key_must_drive_window_index",
+          "same_semantic_source_window_must_keep_generated_window_id"
+        ]
+      },
+      %{
         "scope" => "accepted_planning_state.v1.spacecraft_states",
         "identity_fields" => ["spacecraft_id", "scenario_id", "epoch.seconds_since_j2000"],
         "ordering" => ["spacecraft_id", "scenario_id", "epoch.seconds_since_j2000"]

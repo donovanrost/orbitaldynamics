@@ -19842,6 +19842,36 @@ defmodule OrbitalDynamics.SchemaTest do
     assert %{
              "generated_id_field" => "id",
              "identity_fields" => [
+               "type",
+               "scenario_id",
+               "target_id",
+               "ground_station_id",
+               "starts_at_s",
+               "ends_at_s"
+             ],
+             "ordering" => [
+               "type",
+               "scenario_id",
+               "target_id",
+               "ground_station_id",
+               "starts_at_s",
+               "id"
+             ],
+             "semantic_invariants" => [
+               "source_record_order_must_not_change_generated_window_id",
+               "canonical_source_event_sort_key_must_drive_window_index",
+               "same_semantic_source_window_must_keep_generated_window_id"
+             ]
+           } =
+             Enum.find(
+               policy["generated_id_scopes"],
+               &(&1["scope"] ==
+                   "candidate_refresh.v1.refreshed_windows.generated_window_id")
+             )
+
+    assert %{
+             "generated_id_field" => "id",
+             "identity_fields" => [
                "resource_scope",
                "ground_station_id",
                "spacecraft_id",
@@ -19948,6 +19978,7 @@ defmodule OrbitalDynamics.SchemaTest do
     assert bundle["identity_policy"] == Schema.identity_policy()
 
     expected_generated_id_scopes = [
+      "candidate_refresh.v1.refreshed_windows.generated_window_id",
       "contact_contention_report.v1.conflict_groups.generated_group_id",
       "contact_contention_resolution_report.v1.recommendations.generated_group_id",
       "relay_data_path_summary.v1.rows.generated_route_id"
