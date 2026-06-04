@@ -641,11 +641,12 @@ CandidateRefresh input alongside candidate-diff replay provenance.
 `CandidateRefresh.candidate_rejection_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_candidate_rejection_replay_summary/1` expose
 the candidate-rejection slice as a branch-local replay summary. It preserves
-source rejection paths, rejected/reviewable/invalid-input counts, rejection
-reason and required-action maps, candidate/station routing maps,
-trust-boundary evidence, and branch-local rejection/review/invalid-input
-pressure booleans without mutating refresh state, selecting candidates,
-approving imports, writing to Cadence, or regenerating candidates. Rejection
+source report contract, count, row-count, paths,
+rejected/reviewable/invalid-input counts, rejection reason and required-action
+maps, candidate/station routing maps, trust-boundary evidence, and branch-local
+rejection/review/invalid-input pressure booleans without mutating refresh
+state, selecting candidates, approving imports, writing to Cadence, or
+regenerating candidates. Rejection
 reason and required-action maps are derived from rows when row evidence is
 present instead of trusted from stale top-level report aggregates. Preserved
 reason, required-action, candidate, and station routing maps can also drive
@@ -659,6 +660,12 @@ When the branch `candidate_rejection_report` source-report family is non-empty,
 the helper labels its output source and replay scope as candidate-source summary
 metadata, treats partial non-empty branch families as authoritative, and falls
 back to provenance labels for absent or empty branch families.
+When candidate-rejection provenance is absent, the replay summary omits the
+contract field rather than defaulting to `candidate_rejection_report.v1`, and
+the aggregate source-report summary omits the top-level candidate-rejection
+identity rollups instead of emitting empty contract/count/row-count/path fields.
+Partial placeholder provenance does not synthesize count, row-count, or path
+identity rollups unless both identity counts are present and non-nil.
 Branch-generated refresh requests also preserve direct mission-state and
 result-artifact-wrapped raw `source_candidate_rejection_report` /
 `candidate_rejection_report` inputs, retaining wrapper-qualified request paths,

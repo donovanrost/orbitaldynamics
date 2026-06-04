@@ -24187,6 +24187,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 1,
+             "source_report_candidate_rejection_contract" => "candidate_rejection_report.v1",
+             "source_report_candidate_rejection_count" => 1,
+             "source_report_candidate_rejection_row_count" => 2,
+             "source_report_candidate_rejection_paths" => [
+               "source_candidate_rejection_report"
+             ],
              "source_report_candidate_rejection_rejected_count" => 2,
              "source_report_candidate_rejection_reviewable_count" => 1,
              "source_report_candidate_rejection_invalid_candidate_input_count" => 1,
@@ -24285,6 +24291,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 2,
+             "source_report_candidate_rejection_contract" => "candidate_rejection_report.v1",
+             "source_report_candidate_rejection_count" => 1,
+             "source_report_candidate_rejection_row_count" => 2,
+             "source_report_candidate_rejection_paths" => [
+               "source_candidate_rejection_report"
+             ],
              "source_report_candidate_rejection_rejected_count" => 2,
              "source_report_candidate_rejection_rejection_reason_counts" => %{
                "invalid_candidate_input" => 1,
@@ -24355,6 +24367,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     }
 
     assert %{
+             "source_report_candidate_rejection_contract" => "candidate_rejection_report.v1",
+             "source_report_candidate_rejection_count" => 2,
+             "source_report_candidate_rejection_row_count" => 2,
+             "source_report_candidate_rejection_paths" => [
+               "source_result_artifact",
+               "result_artifact"
+             ],
              "source_report_candidate_rejection_rejected_count" => 2,
              "source_report_candidate_rejection_reviewable_count" => 1,
              "source_report_candidate_rejection_invalid_candidate_input_count" => 0,
@@ -24455,13 +24474,57 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "provenance" => %{"source_reports" => %{}}
     }
 
+    source_summary = CandidateRefresh.source_report_summary(artifact)
     summary = CandidateRefresh.candidate_rejection_replay_summary(artifact)
 
+    refute Map.has_key?(source_summary, "source_report_candidate_rejection_contract")
+    refute Map.has_key?(source_summary, "source_report_candidate_rejection_count")
+    refute Map.has_key?(source_summary, "source_report_candidate_rejection_row_count")
+    refute Map.has_key?(source_summary, "source_report_candidate_rejection_paths")
     assert summary["source_report_count"] == 0
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_paths"] == []
     refute Map.has_key?(summary, "contract")
     refute summary["branch_local_rejection_pressure"]
+  end
+
+  test "candidate rejection source summary omits missing identity counts for partial family placeholder" do
+    partial_summaries = [
+      %{"contract" => "candidate_rejection_report.v1"},
+      %{"count" => 1},
+      %{"row_count" => 2},
+      %{"paths" => ["provenance.source_reports.candidate_rejection_report"]},
+      %{"count" => nil, "row_count" => nil},
+      %{
+        "count" => nil,
+        "row_count" => nil,
+        "paths" => ["provenance.source_reports.candidate_rejection_report"]
+      }
+    ]
+
+    for partial_summary <- partial_summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "candidate_rejection_report" => partial_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      if Map.has_key?(partial_summary, "contract") do
+        assert source_summary["source_report_candidate_rejection_contract"] ==
+                 "candidate_rejection_report.v1"
+      else
+        refute Map.has_key?(source_summary, "source_report_candidate_rejection_contract")
+      end
+
+      refute Map.has_key?(source_summary, "source_report_candidate_rejection_count")
+      refute Map.has_key?(source_summary, "source_report_candidate_rejection_row_count")
+      refute Map.has_key?(source_summary, "source_report_candidate_rejection_paths")
+    end
   end
 
   test "candidate rejection replay treats preserved maps as branch-local pressure" do

@@ -3443,6 +3443,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "candidate_diff_report",
           "candidate_diff_ground_station_counts"
         ),
+      "source_report_candidate_rejection_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "candidate_rejection_report",
+          "contract"
+        ),
+      "source_report_candidate_rejection_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "candidate_rejection_report",
+          "count"
+        ),
+      "source_report_candidate_rejection_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "candidate_rejection_report",
+          "row_count"
+        ),
+      "source_report_candidate_rejection_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "candidate_rejection_report",
+          "paths"
+        ),
       "source_report_candidate_rejection_rejected_count" =>
         source_report_summary_family_count(
           source_reports,
