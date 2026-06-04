@@ -1035,6 +1035,10 @@ embedded replay copies, capacity-adjusted throughput totals/maps,
 selected/actual shortfall evidence, contact/station/provider routing, exact
 link-capacity `model_limits`, and inherited trust-boundary evidence in
 candidate-source replay metadata.
+When the branch `link_capacity_report` source-report family is non-empty, the
+helper labels its output source and replay scope as candidate-source summary
+metadata, treats partial non-empty branch families as authoritative, and falls
+back to provenance labels for absent or empty branch families.
 Operator-review packages built from candidate-refresh artifacts also lift
 direct `source_link_capacity_report` / `link_capacity_report` rows into
 `link_capacity_review` rows, preserving source paths, station identity,

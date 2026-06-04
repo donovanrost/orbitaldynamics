@@ -7254,13 +7254,33 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local link-capacity replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, mutate contact allocation, select
-  candidates, approve imports, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, mutate
+  contact allocation, select candidates, approve imports, or write to Cadence.
   """
   def link_capacity_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
-    link_summary = get_in(source_summary, ["source_reports", "link_capacity_report"]) || %{}
+
+    branch_link_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "link_capacity_report")
+
+    link_summary =
+      branch_link_summary ||
+        get_in(source_summary, ["source_reports", "link_capacity_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_link_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.link_capacity_report",
+          "link_capacity_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.link_capacity_report",
+          "link_capacity_source_report_provenance_only"
+        }
+      end
 
     selected_shortfall_row_count = summary_integer(link_summary, "selected_shortfall_row_count")
     actual_shortfall_row_count = summary_integer(link_summary, "actual_shortfall_row_count")
@@ -7403,7 +7423,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_link_capacity_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.link_capacity_report",
+      "source" => summary_source,
       "contract" => source_report_summary_contract(link_summary, "link_capacity_report.v1"),
       "source_report_count" => summary_integer(link_summary, "count"),
       "source_report_row_count" => summary_integer(link_summary, "row_count"),
@@ -7522,7 +7542,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
           actual_requirement_status_station_calendar_provider_entry_pressure,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "link_capacity_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_link_capacity_replay_summary",
         "contact_allocation" => "not_performed_by_summary",
         "candidate_selection" => "not_performed_by_summary",

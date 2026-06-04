@@ -1,23 +1,24 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Contact-allocation replay reads and labels branch
+Link-capacity replay reads and labels branch
 `candidate_source.candidate_refresh_request_source_report_summary` metadata.
 
 Status:
-Implementation, focused verification, and read-only review are complete for
-this slice. Product commit and push are complete. This status handoff records
-the published state.
-`CandidateRefresh.contact_allocation_replay_summary/1` now prefers a non-empty
-branch `contact_allocation_report` source-report family before falling back to
+Implementation, focused verification, and read-only review are complete.
+Publish is pending.
+`CandidateRefresh.link_capacity_replay_summary/1` now prefers a non-empty
+branch `link_capacity_report` source-report family before falling back to
 provenance. Branch summaries preserve source-report counts, row counts, paths,
-allocation status/reason maps, blocked/deferred IDs, station-pressure maps,
-reservation-conflict IDs, capacity-pack demand/contact routing, review/invalid
-IDs, trust-boundary metadata, and branch-local allocation/station/capacity/
-reservation pressure booleans while labeling their `source` and replay scope
-as candidate-source summary metadata. Empty or absent branch families fall back
-to provenance labels; partial non-empty branch families remain authoritative.
-Direct `candidate_source` maps use the same branch labels.
+selected/actual shortfall rows, actual-throughput rows, capacity-adjusted
+throughput totals and station/direction maps, direction/spacecraft/station/
+requirement routing maps, selected/actual contact/source-window/station-entry/
+provider-entry IDs, trust-boundary metadata, and branch-local link-capacity,
+capacity-adjusted-throughput, downlink-shortfall, and actual-throughput pressure
+booleans while labeling their `source` and replay scope as candidate-source
+summary metadata. Empty or absent branch families fall back to provenance
+labels; partial non-empty branch families remain authoritative. Direct
+`candidate_source` maps use the same branch labels.
 
 Files changed for this slice:
 - `.codex/status/autonomous_product_loop.md`
@@ -26,25 +27,28 @@ Files changed for this slice:
 - `test/orbital_dynamics/candidate_refresh_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:5530 test/orbital_dynamics/candidate_refresh_test.exs:5828 test/orbital_dynamics/candidate_refresh_test.exs:5843 test/orbital_dynamics/candidate_refresh_test.exs:5923 test/orbital_dynamics/candidate_refresh_test.exs:6059 test/orbital_dynamics/candidate_refresh_test.exs:6097 test/orbital_dynamics/candidate_refresh_test.exs:6140 --trace --seed 0`
-  passed existing capacity-pack pressure, absent-provenance, preserved-ID
-  pressure, branch candidate-source replay, direct candidate-source labeling,
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:6647 test/orbital_dynamics/candidate_refresh_test.exs:7501 test/orbital_dynamics/candidate_refresh_test.exs:7516 test/orbital_dynamics/candidate_refresh_test.exs:7759 test/orbital_dynamics/candidate_refresh_test.exs:7790 test/orbital_dynamics/candidate_refresh_test.exs:7832 test/orbital_dynamics/candidate_refresh_test.exs:7892 test/orbital_dynamics/candidate_refresh_test.exs:8034 test/orbital_dynamics/candidate_refresh_test.exs:8178 --trace --seed 0`
+  passed existing aggregate/absent/compact-summary/routing/pressure checks and
+  new branch candidate-source replay, direct candidate-source labeling,
   empty-branch fallback, and partial-family precedence checks.
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:9004 test/orbital_dynamics/candidate_refresh_test.exs:9305 test/orbital_dynamics/candidate_refresh_test.exs:9342 test/orbital_dynamics/candidate_refresh_test.exs:9374 test/orbital_dynamics/candidate_refresh_test.exs:9405 test/orbital_dynamics/candidate_refresh_test.exs:9445 --trace --seed 0`
+  passed adjacent storage/downlink replay composition and pressure checks that
+  consume link-capacity provenance.
 
 Review:
-- `slice_reviewer` found no publish blocker. It confirmed branch precedence,
-  source/replay-scope labels, existing pressure calculations, docs, and ledger
-  alignment.
+- `slice_reviewer` found no code, doc, or test correctness blocker. It flagged
+  the second ledger verification command as missing from the original review
+  input; the parent had run that adjacent storage/downlink command after
+  spawning review and substantiated it here from the local command result.
 
 Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md` now documents
-  the branch candidate-source contact-allocation summary preference, source and
+  the branch candidate-source link-capacity summary preference, source and
   replay-scope labels, partial-family precedence, and provenance fallback. No
   schema exports or checked-in study artifacts changed in this slice.
 
 Last product commit:
-- `887c25ffda5f8aed14835f67b11b1e13cc3a2738` (`Label contact allocation
-  branch replay metadata`) pushed to `origin/main`.
+- Pending.
 
 Next candidate:
 After publish, re-read `docs/autonomous_work_guide.md`, this ledger, and the
