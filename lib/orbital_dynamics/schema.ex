@@ -5570,6 +5570,7 @@ defmodule OrbitalDynamics.Schema do
         "power_margin",
         "battery_capacity_wh",
         "battery_energy_used_wh",
+        "battery_energy_generated_wh",
         "battery_state_of_charge",
         "thermal_margin_c",
         "storage_capacity_mb",
@@ -10444,6 +10445,7 @@ defmodule OrbitalDynamics.Schema do
        when field in [
               "battery_capacity_wh",
               "battery_energy_used_wh",
+              "battery_energy_generated_wh",
               "storage_capacity_mb",
               "storage_used_mb",
               "downlink_capacity_mb"
@@ -33024,6 +33026,7 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_probability(path, summary, "power_margin")
     |> expect_optional_non_negative_number(path, summary, "battery_capacity_wh")
     |> expect_optional_non_negative_number(path, summary, "battery_energy_used_wh")
+    |> expect_optional_non_negative_number(path, summary, "battery_energy_generated_wh")
     |> expect_optional_probability(path, summary, "battery_state_of_charge")
     |> expect_optional_number(path, summary, "thermal_margin_c")
     |> expect_optional_non_negative_number(path, summary, "storage_capacity_mb")

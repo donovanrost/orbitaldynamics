@@ -348,7 +348,7 @@ Status: **partial**.
   - payload/antenna/spacecraft status aliases;
   - JSON/provider status words such as `available`, `unavailable`, `offline`, `down`, `outage`, `maintenance`, and `enabled` for availability booleans, while exporting the canonical JSON field names used by artifacts.
 - Preserve optional `spacecraft_available` as a schema-visible resource-summary field.
-- Preserve optional battery capacity, energy-used, and state-of-charge fields while accepting `battery_soc` as a caller-facing alias for the canonical `battery_state_of_charge`.
+- Preserve optional battery capacity, energy-used, generated-energy, and state-of-charge fields while accepting `battery_soc` as a caller-facing alias for the canonical `battery_state_of_charge` and common generated-energy aliases such as `estimated_battery_energy_generated_wh` for `battery_energy_generated_wh`.
 - Preserve optional externally supplied `thermal_margin_c`.
 - Reject negative capacity/used resource quantities.
 - Enforce unit-interval persisted margin and battery state-of-charge fields in executable validation and exported JSON Schema.

@@ -1,43 +1,56 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Station-calendar provider-contention provider ID direction replay.
+ResourceSummary battery-generated-energy preservation.
 
 Status:
-Implemented with focused verification passing locally. CandidateRefresh
-station-calendar source summaries and replay now carry direction-scoped provider
-IDs for provider-calendar contention alongside the existing direction-scoped
-group IDs, source-entry IDs, provider-entry IDs, and capacity fractions.
-Direction routing now exposes `provider_contention_provider_ids`, and preserved
-provider-ID direction maps count as provider-contention pressure.
+Implemented with focused verification passing locally. `ResourceSummary`
+normalizes optional summary-level `battery_energy_generated_wh` evidence, accepts
+common generated-energy aliases such as `estimated_battery_energy_generated_wh`,
+advertises the alias set through capabilities, preserves the field through
+`to_map/1`, and validates it as an optional non-negative `resource_summary.v1`
+schema field. Direct resource-projection summary sanitization now treats the
+same field as a non-negative resource-summary input.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `docs/artifacts/field_families/candidate_refresh_artifact.md`
-- `lib/orbital_dynamics/candidate_refresh.ex`
-- `test/orbital_dynamics/candidate_refresh_test.exs`
+- `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`
+- `lib/orbital_dynamics/resource_projection.ex`
+- `lib/orbital_dynamics/resource_summary.ex`
+- `lib/orbital_dynamics/schema.ex`
+- `schemas/orbital_dynamics.schema_bundle.v1.json`
+- `schemas/resource_summary.v1.schema.json`
+- `test/orbital_dynamics/resource_summary_test.exs`
 
 Tests run:
-- `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:13288 test/orbital_dynamics/candidate_refresh_test.exs:14180 test/orbital_dynamics/candidate_refresh_test.exs:14257`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs`
+- `mix format lib/orbital_dynamics/resource_summary.ex lib/orbital_dynamics/resource_projection.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/resource_summary_test.exs`
+- `mix test test/orbital_dynamics/resource_summary_test.exs`
+- `mix orbital_dynamics.schema.export --contract resource_summary.v1 --output schemas/resource_summary.v1.schema.json`
+- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
+- `mix test test/orbital_dynamics/resource_projection_test.exs:250 test/orbital_dynamics/resource_projection_test.exs:1472 test/orbital_dynamics/schema_test.exs:990 test/orbital_dynamics/schema_test.exs:1117 test/orbital_dynamics/schema_test.exs:17241`
+- `mix test test/orbital_dynamics/resource_projection_test.exs`
+- `mix format lib/orbital_dynamics/schema.ex`
+- `mix orbital_dynamics.schema.export --contract resource_summary.v1 --output schemas/resource_summary.v1.schema.json`
+- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
+- `mix test test/orbital_dynamics/resource_summary_test.exs test/orbital_dynamics/schema_test.exs:990 test/orbital_dynamics/schema_test.exs:1117 test/orbital_dynamics/schema_test.exs:17241`
+- `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
-- `git diff --cached --check`
 
 Definition of done:
-Raw station-calendar reports and artifact provenance preserve
-`provider_calendar_contention_provider_ids_by_direction`; station-calendar
-direction routing includes provider IDs; provider-ID-only preserved maps set the
-expected pressure booleans; docs and focused tests are updated; reviewer has no
-must-fix findings; the slice is committed and pushed without staging
-`.gitignore`.
+Summary-level generated battery-energy evidence survives ResourceSummary
+normalization and artifact serialization, the executable and exported
+`resource_summary.v1` contract accepts only non-negative values, direct
+resource-projection summary validation rejects negative generated-energy inputs,
+the public capability docs are updated, and focused ResourceSummary,
+ResourceProjection, and schema tests pass.
 
 Last completed/pushed commit before this slice:
-`7d9edf3` (`Replay resource projection provider IDs`).
+`1973689` (`Replay station contention provider IDs`).
 
 Next candidate:
-After this slice, continue guide-backed resource/communications allocation work
-from queue item 2.
+Continue guide-backed resource/communications allocation work from queue item 2,
+unless live inspection shows those slices are already complete and a
+higher-priority queue item has the next concrete gap.
 
 Blocked:
 No.

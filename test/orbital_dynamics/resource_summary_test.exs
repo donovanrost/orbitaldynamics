@@ -18,6 +18,7 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
              resource_degraded_aliases: resource_degraded_aliases,
              resource_margin_aliases: resource_margin_aliases,
              resource_unit_interval_aliases: resource_unit_interval_aliases,
+             battery_energy_generated_aliases: battery_energy_generated_aliases,
              resource_availability_true_tokens: resource_availability_true_tokens,
              resource_availability_false_tokens: resource_availability_false_tokens,
              resource_activity_type_aliases: resource_activity_type_aliases,
@@ -69,6 +70,7 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
     assert :resource_degraded_aliases in row_semantics
     assert :resource_margin_aliases in row_semantics
     assert :resource_unit_interval_aliases in row_semantics
+    assert :battery_energy_generated_aliases in row_semantics
     assert :resource_activity_type_aliases in row_semantics
     assert :selected_activity_resource_roll_forward in row_semantics
     assert :resource_summary_roll_forward_flow_status_values in row_semantics
@@ -140,6 +142,13 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
     assert resource_unit_interval_aliases == %{
              "battery_state_of_charge" => ["battery_soc"]
            }
+
+    assert battery_energy_generated_aliases == [
+             "energy_generated_wh",
+             "estimated_energy_generated_wh",
+             "estimated_battery_energy_generated_wh",
+             "planned_energy_generated_wh"
+           ]
 
     assert "enabled" in resource_availability_true_tokens
     assert "operational" in resource_availability_true_tokens
@@ -238,6 +247,7 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
         thermal_margin_c: "-2.5",
         battery_capacity_wh: "1200.0",
         battery_energy_used_wh: "300.0",
+        estimated_battery_energy_generated_wh: "45.0",
         battery_soc: "0.75",
         storage_capacity_mb: "1000.0",
         storage_used_mb: "250.0",
@@ -246,19 +256,35 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
         downlink_capacity_margin: "0.60"
       })
 
+    summary_map = ResourceSummary.to_map(summary)
+
     assert %{
              "fuel_margin" => 0.8,
              "thermal_margin_c" => -2.5,
              "power_margin" => 0.75,
              "battery_capacity_wh" => 1200.0,
              "battery_energy_used_wh" => 300.0,
+             "battery_energy_generated_wh" => 45.0,
              "battery_state_of_charge" => 0.75,
              "storage_capacity_mb" => 1000.0,
              "storage_used_mb" => 250.0,
              "storage_margin" => 0.75,
              "downlink_capacity_mb" => 500.0,
              "downlink_margin" => 0.6
-           } = ResourceSummary.to_map(summary)
+           } = summary_map
+
+    assert {:ok, %{"schema_contract" => "resource_summary.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(summary_map)
+
+    invalid_generated = Map.put(summary_map, "battery_energy_generated_wh", -1.0)
+
+    assert {:error, invalid_generated_report} =
+             OrbitalDynamics.Schema.validate_artifact(invalid_generated)
+
+    assert Enum.any?(
+             invalid_generated_report["errors"],
+             &(&1["path"] == "$.battery_energy_generated_wh")
+           )
   end
 
   test "accepts struct-style boolean availability aliases in map inputs" do
@@ -510,6 +536,7 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
     for field <- [
           :battery_capacity_wh,
           :battery_energy_used_wh,
+          :battery_energy_generated_wh,
           :storage_capacity_mb,
           :storage_used_mb,
           :downlink_capacity_mb

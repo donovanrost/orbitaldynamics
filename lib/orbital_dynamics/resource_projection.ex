@@ -1135,7 +1135,7 @@ defmodule OrbitalDynamics.ResourceProjection do
 
   defp resource_summary_non_negative_issue(summary) do
     Enum.find_value(
-      ~w(battery_capacity_wh battery_energy_used_wh storage_capacity_mb storage_used_mb downlink_capacity_mb),
+      ~w(battery_capacity_wh battery_energy_used_wh battery_energy_generated_wh storage_capacity_mb storage_used_mb downlink_capacity_mb),
       fn field ->
         case Map.get(summary, field) do
           value when is_number(value) and value < 0.0 -> "negative_#{field}"
@@ -1332,6 +1332,7 @@ defmodule OrbitalDynamics.ResourceProjection do
     |> normalize_number_fields(~w(
       battery_capacity_wh
       battery_energy_used_wh
+      battery_energy_generated_wh
       storage_capacity_mb
       storage_used_mb
       downlink_capacity_mb

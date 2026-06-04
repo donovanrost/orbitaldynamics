@@ -27,6 +27,12 @@ defmodule OrbitalDynamics.ResourceSummary do
   @resource_unit_interval_aliases %{
     "battery_state_of_charge" => ["battery_soc"]
   }
+  @battery_energy_generated_aliases [
+    "energy_generated_wh",
+    "estimated_energy_generated_wh",
+    "estimated_battery_energy_generated_wh",
+    "planned_energy_generated_wh"
+  ]
   @roll_forward_flow_statuses ~w(clear review_required)
   @roll_forward_pressure_statuses ~w(clear review_required)
   @roll_forward_pressure_types ~w(
@@ -94,6 +100,7 @@ defmodule OrbitalDynamics.ResourceSummary do
     :power_margin,
     :battery_capacity_wh,
     :battery_energy_used_wh,
+    :battery_energy_generated_wh,
     :battery_state_of_charge,
     :thermal_margin_c,
     :storage_capacity_mb,
@@ -127,6 +134,7 @@ defmodule OrbitalDynamics.ResourceSummary do
         downlink_capacity_mb: :megabytes,
         battery_capacity_wh: :watt_hours,
         battery_energy_used_wh: :watt_hours,
+        battery_energy_generated_wh: :watt_hours,
         thermal_margin_c: :celsius,
         margins: :unit_interval
       },
@@ -155,6 +163,7 @@ defmodule OrbitalDynamics.ResourceSummary do
       resource_degraded_aliases: @resource_degraded_aliases,
       resource_margin_aliases: @resource_margin_aliases,
       resource_unit_interval_aliases: @resource_unit_interval_aliases,
+      battery_energy_generated_aliases: @battery_energy_generated_aliases,
       resource_availability_true_tokens: @availability_true_tokens,
       resource_availability_false_tokens: @availability_false_tokens,
       resource_activity_type_aliases: @resource_activity_type_aliases,
@@ -187,6 +196,7 @@ defmodule OrbitalDynamics.ResourceSummary do
         :resource_degraded_aliases,
         :resource_margin_aliases,
         :resource_unit_interval_aliases,
+        :battery_energy_generated_aliases,
         :resource_activity_type_aliases,
         :selected_activity_resource_roll_forward,
         :resource_summary_roll_forward_flow_status_values,
@@ -219,6 +229,11 @@ defmodule OrbitalDynamics.ResourceSummary do
     battery_energy_used_wh =
       non_negative_number_or_nil(source["battery_energy_used_wh"], "battery_energy_used_wh")
 
+    battery_energy_generated_wh =
+      source
+      |> field_or_alias_value("battery_energy_generated_wh", @battery_energy_generated_aliases)
+      |> non_negative_number_or_nil("battery_energy_generated_wh")
+
     storage_capacity_mb =
       non_negative_number_or_nil(source["storage_capacity_mb"], "storage_capacity_mb")
 
@@ -244,6 +259,7 @@ defmodule OrbitalDynamics.ResourceSummary do
         margin_or_nil(source["power_margin"] || battery_state_of_charge, "power_margin"),
       battery_capacity_wh: battery_capacity_wh,
       battery_energy_used_wh: battery_energy_used_wh,
+      battery_energy_generated_wh: battery_energy_generated_wh,
       battery_state_of_charge: battery_state_of_charge,
       thermal_margin_c: number_or_nil(source["thermal_margin_c"], "thermal_margin_c"),
       storage_capacity_mb: storage_capacity_mb,
@@ -367,6 +383,7 @@ defmodule OrbitalDynamics.ResourceSummary do
       "power_margin" => summary.power_margin,
       "battery_capacity_wh" => summary.battery_capacity_wh,
       "battery_energy_used_wh" => summary.battery_energy_used_wh,
+      "battery_energy_generated_wh" => summary.battery_energy_generated_wh,
       "battery_state_of_charge" => summary.battery_state_of_charge,
       "thermal_margin_c" => summary.thermal_margin_c,
       "storage_capacity_mb" => summary.storage_capacity_mb,
