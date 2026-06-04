@@ -10239,11 +10239,27 @@ defmodule OrbitalDynamics.CandidateRefresh do
   Builds a compact branch-local timeline-preservation replay summary.
 
   The summary is derived from candidate-refresh preservation review provenance.
-  It does not apply preservation decisions, mutate timelines, select
-  candidates, approve imports, execute commands, or write to Cadence.
+  It prefers branch-local candidate-source preservation rows when present and
+  falls back to candidate-refresh preservation review provenance. It does not
+  apply preservation decisions, mutate timelines, select candidates, approve
+  imports, execute commands, or write to Cadence.
   """
   def timeline_preservation_replay_summary(refresh_or_artifact) do
-    rows = timeline_preservation_replay_rows(refresh_or_artifact)
+    {rows, branch_rows?} =
+      timeline_preservation_replay_rows_with_source(refresh_or_artifact)
+
+    {summary_source, replay_scope} =
+      if branch_rows? do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request.timeline_preservation",
+          "timeline_preservation_candidate_source_review_provenance_only"
+        }
+      else
+        {
+          "candidate_refresh.review_provenance.timeline_preservation",
+          "timeline_preservation_review_provenance_only"
+        }
+      end
 
     source_paths =
       rows
@@ -10320,7 +10336,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_timeline_preservation_replay_summary",
-      "source" => "candidate_refresh.review_provenance.timeline_preservation",
+      "source" => summary_source,
       "contract" => source_report_summary_contract(%{"contract" => nil}, nil),
       "source_artifact_count" => length(source_paths),
       "source_report_row_count" => length(rows),
@@ -10358,7 +10374,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "branch_local_timeline_preservation_routing_pressure" => routing_pressure,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "timeline_preservation_review_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_timeline_preservation_replay_summary",
         "timeline_mutation" => "not_performed_by_summary",
         "timeline_preservation_application" => "not_performed_by_summary",
@@ -10378,6 +10394,55 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.get("rows", [])
     |> Enum.map(&stringify_keys/1)
     |> Enum.filter(&(&1["review_type"] == "timeline_preservation_review"))
+  end
+
+  defp timeline_preservation_replay_rows_with_source(refresh_or_artifact) do
+    case timeline_preservation_replay_candidate_source(refresh_or_artifact) do
+      nil ->
+        {timeline_preservation_replay_rows(refresh_or_artifact), false}
+
+      candidate_source ->
+        branch_rows =
+          candidate_source
+          |> timeline_preservation_replay_rows()
+          |> Enum.map(&timeline_preservation_branch_replay_row/1)
+
+        case branch_rows do
+          [] -> {timeline_preservation_replay_rows(refresh_or_artifact), false}
+          rows -> {rows, true}
+        end
+    end
+  end
+
+  defp timeline_preservation_replay_candidate_source(refresh_or_artifact) do
+    artifact = stringify_keys(refresh_or_artifact)
+    candidate_source = Map.get(artifact, "candidate_source")
+
+    cond do
+      is_map(candidate_source) and
+          Map.has_key?(candidate_source, "candidate_refresh_request_source_report_summary") ->
+        candidate_source
+
+      Map.has_key?(artifact, "candidate_refresh_request_source_report_summary") ->
+        artifact
+
+      true ->
+        nil
+    end
+  end
+
+  defp timeline_preservation_branch_replay_row(%{} = row) do
+    Map.update(row, "source", nil, fn
+      source when is_binary(source) ->
+        String.replace_prefix(
+          source,
+          "candidate_refresh.",
+          "candidate_source.candidate_refresh_request."
+        )
+
+      source ->
+        source
+    end)
   end
 
   defp timeline_preservation_replay_package(refresh_or_artifact) do

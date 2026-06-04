@@ -1621,6 +1621,13 @@ decision/category/reason maps, activity/timeline routing, trust-boundary
 evidence, and no-mutation/no-authority assumptions without recording
 preservation, approving imports, mutating timelines, executing commands, or
 writing to Cadence.
+When a V3 branch carries the `candidate_refresh_request_source_report_summary`
+marker and non-empty `candidate_source` preservation report/status rows, the
+replay helper labels its output source and replay scope as candidate-source
+request metadata, rewrites row source paths to the
+`candidate_source.candidate_refresh_request.*` boundary, treats partial branch
+rows as authoritative, and falls back to review-provenance labels when branch
+preservation rows are absent, empty, or unmarked.
 
 `CandidateRefresh.timeline_dependency_impact_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_timeline_dependency_impact_replay_summary/1`
