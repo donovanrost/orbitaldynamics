@@ -3461,6 +3461,91 @@ defmodule OrbitalDynamics.ValidationTest do
              Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
   end
 
+  test "verifies candidate refresh contact intent direction replay fixtures" do
+    fixture_id = "fixture.artifact.candidate_refresh.contact_intent_direction_replay"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = candidate_refresh_contact_intent_direction_fixture()
+    observations = candidate_refresh_contact_intent_direction_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "source_contact_intent_report_count" => 3,
+             "source_contact_intent_row_count" => 3,
+             "source_contact_intent_capacity_pack_required_contact_count" => 2,
+             "source_contact_intent_capacity_pack_required_capacity_fraction" => 0.65,
+             "source_contact_intent_capacity_pack_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.25,
+               "tracking" => 0.4
+             },
+             "source_contact_intent_capacity_pack_contact_ids_by_direction" => %{
+               "downlink" => ["intent_direct_capacity"],
+               "tracking" => ["intent_nested_capacity"]
+             },
+             "source_contact_intent_direction_keys" => "command|downlink|tracking",
+             "source_contact_intent_direction_counts" => %{
+               "command" => 1,
+               "downlink" => 1,
+               "tracking" => 1
+             },
+             "source_contact_intent_contact_ids_by_direction" => %{
+               "command" => ["intent_station_only"],
+               "downlink" => ["intent_direct_capacity"],
+               "tracking" => ["intent_nested_capacity"]
+             },
+             "source_contact_intent_direction_routing" => %{
+               "command" => %{
+                 "contact_count" => 1,
+                 "contact_ids" => ["intent_station_only"],
+                 "capacity_pack_contact_ids" => []
+               },
+               "downlink" => %{
+                 "contact_count" => 1,
+                 "contact_ids" => ["intent_direct_capacity"],
+                 "capacity_pack_required_capacity_fraction" => 0.25,
+                 "capacity_pack_contact_ids" => ["intent_direct_capacity"]
+               },
+               "tracking" => %{
+                 "contact_count" => 1,
+                 "contact_ids" => ["intent_nested_capacity"],
+                 "capacity_pack_required_capacity_fraction" => 0.4,
+                 "capacity_pack_contact_ids" => ["intent_nested_capacity"]
+               }
+             },
+             "source_contact_intent_trust_boundary_status" => "declared"
+           } = observations
+
+    stale_routing_observations =
+      observations
+      |> put_in(
+        ["source_contact_intent_direction_routing", "downlink", "capacity_pack_contact_ids"],
+        ["stale_intent"]
+      )
+
+    assert {:ok, stale_routing_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_routing_observations)
+
+    assert stale_routing_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_routing_verification["checks"],
+             &(&1["field"] == "source_contact_intent_direction_routing" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _validated_artifact} =
+             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
+  end
+
   test "verifies curated candidate rejection report reference fixtures" do
     fixture_id = "fixture.artifact.candidate_rejection_report.v1"
 
@@ -10542,6 +10627,8 @@ defmodule OrbitalDynamics.ValidationTest do
         "fixture.artifact.candidate_refresh.v1" => candidate_refresh_fixture_observations(),
         "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay" =>
           candidate_refresh_contact_contention_challenge_fixture_observations(),
+        "fixture.artifact.candidate_refresh.contact_intent_direction_replay" =>
+          candidate_refresh_contact_intent_direction_fixture_observations(),
         "fixture.artifact.candidate_refresh.resource_provenance_v1" =>
           candidate_refresh_resource_provenance_fixture_observations(),
         "fixture.artifact.candidate_rejection_report.v1" =>
@@ -10769,8 +10856,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 146,
-             "status_counts" => %{"pass" => 146},
+             "fixture_count" => 147,
+             "status_counts" => %{"pass" => 147},
              "reports" => reports
            } = report
 
@@ -10791,6 +10878,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.candidate_diff_report.v1",
              "fixture.artifact.candidate_diff_row.v1",
              "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay",
+             "fixture.artifact.candidate_refresh.contact_intent_direction_replay",
              "fixture.artifact.candidate_refresh.resource_provenance_v1",
              "fixture.artifact.candidate_refresh.v1",
              "fixture.artifact.candidate_rejection_report.v1",
@@ -10933,7 +11021,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 146},
+             "status_counts" => %{"fail" => 147},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -11236,6 +11324,95 @@ defmodule OrbitalDynamics.ValidationTest do
       "scoring_policy" => %{},
       "model_assumptions" => %{"refresh_level" => "sampled_v1"},
       "source_contact_contention_report" => contact_contention_report
+    }
+  end
+
+  defp candidate_refresh_contact_intent_direction_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(candidate_refresh_contact_intent_direction_fixture())
+  end
+
+  defp candidate_refresh_contact_intent_direction_fixture do
+    result_set(%{})
+    |> CandidateRefresh.build(
+      candidate_refresh: candidate_refresh_contact_intent_direction_request(),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  defp candidate_refresh_contact_intent_direction_request do
+    %{
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-contact-intent-direction-challenge",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [],
+        "source" => %{"system" => "validation_challenge"},
+        "quality" => %{"level" => "accepted"},
+        "provenance" => %{"created_by" => "validation_fixture"}
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "targets" => [],
+      "constraints" => %{},
+      "scoring_policy" => %{},
+      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
+      "source_contact_intents" => [
+        %{
+          "schema_contract" => "contact_intent.v1",
+          "id" => "intent_direct_capacity",
+          "activity_id" => "intent_direct_capacity",
+          "scenario_id" => "leo_1",
+          "ground_station_id" => "equator_prime",
+          "direction" => "Down Link",
+          "starts_at_s" => 10.0,
+          "ends_at_s" => 70.0,
+          "station_calendar_status" => "reserved",
+          "cadence_import_status" => "ready_for_import",
+          "policy_classification" => "review_only",
+          "required_capacity_fraction" => 0.25,
+          "capacity_pack_required_capacity_fraction" => 99.0,
+          "direction_routing" => %{
+            "stale_direction" => %{"capacity_pack_contact_ids" => ["stale_contact_intent"]}
+          },
+          "provenance" => %{
+            "trust_boundary" => "generated_contact_intent_direction_fixture"
+          }
+        },
+        %{
+          "schema_contract" => "contact_intent.v1",
+          "id" => "intent_nested_capacity",
+          "activity_id" => "intent_nested_capacity",
+          "scenario_id" => "leo_1",
+          "ground_station_id" => "dss_43",
+          "direction" => "tracking_pass",
+          "starts_at_s" => 80.0,
+          "ends_at_s" => 130.0,
+          "station_availability" => "unavailable",
+          "cadence_import_status" => "blocked",
+          "policy_classification" => "blocked_by_policy",
+          "capacity_model" => %{"station_capacity_requirement" => "0.4"},
+          "provenance" => %{
+            "trust_boundary" => "generated_contact_intent_direction_fixture"
+          }
+        },
+        %{
+          "schema_contract" => "contact_intent.v1",
+          "id" => "intent_station_only",
+          "activity_id" => "intent_station_only",
+          "scenario_id" => "leo_1",
+          "ground_station_id" => "dss_43",
+          "direction" => "Command",
+          "starts_at_s" => 140.0,
+          "ends_at_s" => 180.0,
+          "provenance" => %{
+            "trust_boundary" => "generated_contact_intent_direction_fixture"
+          }
+        }
+      ]
     }
   end
 

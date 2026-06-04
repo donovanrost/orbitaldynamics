@@ -429,6 +429,11 @@ longer match the compact direction/contact/capacity aggregates.
 checked-in refresh artifact's candidate, contact-intent, refreshed-window,
 warning, source-report provenance counts, and embedded validation-record
 vocabulary.
+The validation-reference registry also includes a generated CandidateRefresh
+contact-intent direction replay fixture. It checks row-derived contact-intent
+direction counts, contact IDs by direction, capacity-pack fraction/contact
+routing maps, and trust-boundary status without contact generation, contact
+allocation, candidate selection, import approval, or Cadence writes.
 `study_results/branch_comparison_report_v1.json` and
 `study_results/candidate_diff_report_v1.json` now feed curated
 validation-reference fixtures. The observations check branch ranking and

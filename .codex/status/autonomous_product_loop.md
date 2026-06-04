@@ -1,55 +1,52 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Checked-in relay data-path summary validation-reference fixture.
+CandidateRefresh contact-intent direction replay validation fixture.
 
 Status:
-Implemented and verified. `relay_data_path_summary.v1` now has a checked-in
-`study_results` artifact plus a curated validation-reference fixture. The
-fixture observes relay/direct route counts, custody/latency/risk status maps,
-route IDs, source/relay/station ID sets, status-routed route ID maps, latency
-maxima, model-limit boundaries, and artifact-only no-relay-scheduling /
-no-custody-delivery assumptions.
+Implemented and verified. The validation-reference registry now includes a
+generated CandidateRefresh contact-intent direction replay fixture. The fixture
+observes row-derived source contact-intent counts, station-feedback counts,
+capacity-pack contact/fraction evidence, contact IDs by direction, direction
+routing maps, and trust-boundary status. Stale plausible direction-routing
+observations now fail fixture verification.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `docs/artifacts/compatibility_checks.md`
 - `lib/orbital_dynamics/validation.ex`
-- `study_results/relay_data_path_summary_v1.json`
-- `study_results/schema_validation_batch_report_v1.json`
 - `study_results/validation_reference_fixtures.json`
 - `test/orbital_dynamics/validation_test.exs`
 
 Tests run:
 - `mix format lib/orbital_dynamics/validation.ex test/orbital_dynamics/validation_test.exs`
-- `mix test test/orbital_dynamics/communications/link_capacity_test.exs`
 - `mix test test/orbital_dynamics/validation_test.exs`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `mix test test/orbital_dynamics/schema_test.exs`
 - `mix test test/mix/tasks/orbital_dynamics.schema.lint_test.exs`
 - `mix orbital_dynamics.schema.lint --all --input-dir study_results --output study_results/schema_validation_batch_report_v1.json`
 - `git diff --check`
 
 Docs/artifacts changed:
-`docs/artifacts/compatibility_checks.md` now documents the relay data-path
-fixture and stale-field protections. `study_results/relay_data_path_summary_v1.json`
-was generated from deterministic relay/direct route evidence. The validation
-reference report now includes 146 fixtures, and the checked-in schema-validation
-batch report now covers 125 `study_results` artifacts.
+`docs/artifacts/compatibility_checks.md` documents the generated
+CandidateRefresh contact-intent direction replay fixture. The validation
+reference report now includes 147 fixtures; the schema-validation batch still
+covers 125 `study_results` artifacts.
 
 Last commit:
-Pending.
+Previous completed slice: `37d85ab` (`Add relay data-path validation fixture`).
+Current slice pending review/publish.
 
 Review:
-`slice_reviewer` found no must-fix or should-fix issues and marked the slice
-publishable. Residual risk is limited to relying on the local verification runs;
-the reviewer inspected the producer, schema validation, fixture observations,
-generated artifacts, and ledger counts.
+`slice_reviewer` found no must-fix code regressions. It flagged an overstated
+ledger phrase about pressure booleans; the ledger wording was narrowed to the
+actual observed count/routing fields.
 
 Next candidate:
 After review and publish, re-read the guide, ledger, and live worktree before
-selecting the next slice. Mapper feedback found the obvious priority 1-4
-behavioral surfaces largely implemented; remaining work may be priority 5
-compatibility/challenge hardening unless a higher-priority live gap is found.
+selecting the next slice. The remembered contact-intent replay-routing gap is
+closed in live code; remaining work may be validation/challenge hardening unless
+a higher-priority live gap is found.
 
 Blocked:
 No.
