@@ -5,8 +5,8 @@ Timeline-activity lifecycle-state replay reads and labels V3 branch
 `candidate_source.candidate_refresh_request_source_report_summary` metadata.
 
 Status:
-Implementation and focused verification complete; review, commit, and push are
-pending for this slice.
+Implementation, focused verification, review, commit, and push complete for
+this slice.
 `CandidateRefresh.timeline_activity_lifecycle_state_replay_summary/1` now
 checks a non-empty V3 branch `timeline_activity_lifecycle_state` source-report
 family before falling back to provenance. Branch-sourced summaries preserve
@@ -45,7 +45,8 @@ Docs/artifacts changed:
   changed in this slice.
 
 Last product commit:
-- Pending review and publish for this slice.
+- `9b75990` (`Label activity lifecycle branch replay metadata`) pushed to
+  `origin/main`.
 
 Next candidate:
 Re-read `docs/autonomous_work_guide.md`, this ledger, and the live worktree
