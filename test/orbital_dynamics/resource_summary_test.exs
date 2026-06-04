@@ -734,6 +734,92 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
     end
   end
 
+  test "validates flow summary resource-pressure routing maps against rows" do
+    summary = %{
+      spacecraft_id: :leo_1,
+      storage_capacity_mb: 100.0,
+      storage_used_mb: 80.0,
+      downlink_capacity_mb: 10.0
+    }
+
+    selected_activities = [
+      %{
+        id: :dl_contact,
+        type: :downlink,
+        spacecraft_id: :leo_1,
+        starts_at_s: 10.0,
+        estimated_throughput_mb: 25.0,
+        ground_station_id: :equator_prime,
+        source_window_id: :window_alpha,
+        station_calendar_entry_id: :station_entry_alpha,
+        station_calendar_provider_entry_id: :provider_entry_alpha
+      }
+    ]
+
+    report = ResourceSummary.roll_forward(summary, selected_activities)
+
+    assert %{
+             "resource_pressure_types" => ["downlink_shortfall"],
+             "resource_pressure_activity_ids_by_type" => %{
+               "downlink_shortfall" => ["dl_contact"]
+             },
+             "resource_pressure_ground_station_ids_by_type" => %{
+               "downlink_shortfall" => ["equator_prime"]
+             },
+             "resource_pressure_source_window_ids_by_type" => %{
+               "downlink_shortfall" => ["window_alpha"]
+             },
+             "resource_pressure_station_calendar_entry_ids_by_type" => %{
+               "downlink_shortfall" => ["station_entry_alpha"]
+             },
+             "resource_pressure_station_calendar_provider_entry_ids_by_type" => %{
+               "downlink_shortfall" => ["provider_entry_alpha"]
+             }
+           } = report
+
+    assert {:ok, %{"schema_contract" => "resource_projection_flow_summary.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(report)
+
+    [
+      {
+        "resource_pressure_activity_ids_by_type",
+        %{"downlink_shortfall" => ["stale_activity"]},
+        "must equal row-derived resource_pressure_activity_ids_by_type"
+      },
+      {
+        "resource_pressure_ground_station_ids_by_type",
+        %{"downlink_shortfall" => ["stale_station"]},
+        "must equal row-derived resource_pressure_ground_station_ids_by_type"
+      },
+      {
+        "resource_pressure_source_window_ids_by_type",
+        %{"downlink_shortfall" => ["stale_window"]},
+        "must equal row-derived resource_pressure_source_window_ids_by_type"
+      },
+      {
+        "resource_pressure_station_calendar_entry_ids_by_type",
+        %{"downlink_shortfall" => ["stale_station_entry"]},
+        "must equal row-derived resource_pressure_station_calendar_entry_ids_by_type"
+      },
+      {
+        "resource_pressure_station_calendar_provider_entry_ids_by_type",
+        %{"downlink_shortfall" => ["stale_provider_entry"]},
+        "must equal row-derived resource_pressure_station_calendar_provider_entry_ids_by_type"
+      }
+    ]
+    |> Enum.each(fn {field, stale_value, message} ->
+      stale_report = Map.put(report, field, stale_value)
+
+      assert {:error, validation_report} =
+               OrbitalDynamics.Schema.validate_artifact(stale_report)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.#{field}" and &1["message"] == message)
+             )
+    end)
+  end
+
   test "roll-forward audits terminal and approval-rejected selected activities as ignored effects" do
     summary = %{
       spacecraft_id: :leo_1,
