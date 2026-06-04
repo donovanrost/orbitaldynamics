@@ -48,7 +48,9 @@ unrelated pre-existing local scratch-ignore change and is not part of this
 slice.
 
 Last commit:
-Pending final commit for this slice.
+Slice code/tests/ledger committed as `ad00e99`
+(`Deduplicate branch refresh wrapper source reports`); this ledger line was
+recorded in a follow-up handoff commit.
 
 Next candidate:
 Re-read the guide, ledger, and live worktree before selecting the next slice from
