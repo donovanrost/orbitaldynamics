@@ -8113,6 +8113,11 @@ defmodule OrbitalDynamics.TimelineTest do
              ]
            }
 
+    assert report["required_operator_action_counts"] == %{
+             "none" => 1,
+             "review_candidate_rejection" => 3
+           }
+
     obs_row = Enum.find(report["rows"], &(&1["candidate_id"] == "obs_clouded"))
 
     assert %{
