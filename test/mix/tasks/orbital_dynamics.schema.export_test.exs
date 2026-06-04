@@ -3106,6 +3106,17 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "activity_resource_flow",
              "items",
              "properties",
+             "resource_effect_status",
+             "enum"
+           ]) ==
+             OrbitalDynamics.ResourceSummary.capabilities().roll_forward_resource_effect_statuses
+
+    assert get_in(schemas, [
+             "resource_projection_flow_summary.v1",
+             "properties",
+             "activity_resource_flow",
+             "items",
+             "properties",
              "battery_state_of_charge_after"
            ]) == %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0}
 

@@ -18231,6 +18231,12 @@ defmodule OrbitalDynamics.Schema do
         "latency_margin_s" => %{"type" => "number"},
         "latency_basis" => %{"type" => "string", "enum" => ["planned", "actual"]},
         "latency_status" => %{"type" => "string", "enum" => ["within_limit", "late"]},
+        "resource_effect_status" => %{
+          "type" => "string",
+          "enum" =>
+            OrbitalDynamics.ResourceSummary.capabilities().roll_forward_resource_effect_statuses
+        },
+        "resource_effect_reason" => %{"type" => "string"},
         "storage_used_before_mb" => %{"type" => "number", "minimum" => 0.0},
         "storage_produced_mb" => %{"type" => "number", "minimum" => 0.0},
         "storage_available_before_downlink_mb" => %{"type" => "number", "minimum" => 0.0},
@@ -33079,6 +33085,13 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_number(path, row, "latency_margin_s")
     |> expect_optional_one_of(path, row, "latency_basis", ["planned", "actual"])
     |> expect_optional_one_of(path, row, "latency_status", ["within_limit", "late"])
+    |> expect_optional_one_of(
+      path,
+      row,
+      "resource_effect_status",
+      OrbitalDynamics.ResourceSummary.capabilities().roll_forward_resource_effect_statuses
+    )
+    |> expect_optional_type(path, row, "resource_effect_reason", :binary)
     |> expect_optional_non_negative_number(path, row, "storage_used_before_mb")
     |> expect_optional_non_negative_number(path, row, "storage_produced_mb")
     |> expect_optional_non_negative_number(path, row, "storage_available_before_downlink_mb")

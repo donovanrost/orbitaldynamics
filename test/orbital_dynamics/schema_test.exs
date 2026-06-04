@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.SchemaTest do
     OperatorReview,
     OperationalReadiness,
     Policy,
+    ResourceSummary,
     ResultSet,
     Schema,
     Validation
@@ -16569,6 +16570,9 @@ defmodule OrbitalDynamics.SchemaTest do
              "within_limit",
              "late"
            ]
+
+    assert get_in(flow_row_schema, ["properties", "resource_effect_status", "enum"]) ==
+             ResourceSummary.capabilities().roll_forward_resource_effect_statuses
 
     assert get_in(flow_summary_schema, ["properties", "source"]) == %{"type" => "string"}
 

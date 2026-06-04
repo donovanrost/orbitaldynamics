@@ -864,6 +864,21 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
              &(&1 in ResourceSummary.capabilities().roll_forward_resource_effect_statuses)
            )
 
+    invalid_effect_status =
+      put_in(
+        report,
+        ["activity_resource_flow", Access.at(1), "resource_effect_status"],
+        "silently_reconciled"
+      )
+
+    assert {:error, invalid_effect_status_report} =
+             OrbitalDynamics.Schema.validate_artifact(invalid_effect_status)
+
+    assert Enum.any?(
+             invalid_effect_status_report["errors"],
+             &(&1["path"] == "$.activity_resource_flow[1].resource_effect_status")
+           )
+
     assert report["ignored_activity_reason_counts"]
            |> Map.keys()
            |> Enum.all?(fn reason ->
