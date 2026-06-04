@@ -31,7 +31,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`d3f5533` (`Record operational readiness slice commit`).
+`1d29ed9` (`Flatten quality gate replay identity`).
 
 Next candidate:
 Continue guide-backed CandidateRefresh depth from queue item 4, looking for the
