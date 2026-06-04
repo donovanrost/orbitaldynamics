@@ -45,7 +45,9 @@ counteroffer replay source labeling, and the ledger; `git diff --check` passed;
 the final full suite improves the residual count from 6 to 2.
 
 Last commit:
-Pending publish for current slice.
+Slice code/tests/ledger committed as `8e042e0`
+(`Preserve branch refresh result-artifact source reports`); this ledger line was
+recorded in a follow-up handoff commit.
 
 Next candidate:
 Re-read the guide/ledger/live worktree and continue the source-report
