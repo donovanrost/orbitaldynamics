@@ -1533,6 +1533,12 @@ provenance, preserving paths, model/schema identity, transition decisions,
 operator/import actions, activity/timeline routing, protection evidence, trust
 boundaries, invalid-activity input counts and reasons, and
 no-mutation/no-authority assumptions.
+For V3 strategy branch refreshes, the replay helper prefers a non-empty
+`candidate_source.candidate_refresh_request_source_report_summary.source_reports.timeline_activity_lifecycle_state`
+family over provenance, labels the output source and replay scope as
+candidate-source summary metadata, and treats partial non-empty branch families
+as authoritative while preserving provenance fallback for absent or empty branch
+families.
 
 `CandidateRefresh.timeline_activity_precondition_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_timeline_activity_precondition_replay_summary/1`

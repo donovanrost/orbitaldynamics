@@ -368,6 +368,12 @@ CandidateRefresh also preserves single-activity lifecycle states through
 `CandidateRefresh.timeline_activity_lifecycle_state_replay_summary/1` and the
 matching `OrbitalDynamics` facade as artifact-only replay provenance without
 applying lifecycle transitions or granting import authority.
+For V3 strategy branch refreshes, that replay helper prefers a non-empty
+`candidate_source.candidate_refresh_request_source_report_summary.source_reports.timeline_activity_lifecycle_state`
+family over provenance, labels its output source and replay scope as
+candidate-source summary metadata, and treats partial non-empty branch families
+as authoritative while keeping provenance fallback for absent or empty branch
+families.
 The separate status-only and approval-only state handoffs have matching
 CandidateRefresh replay summaries through
 `CandidateRefresh.timeline_activity_status_state_replay_summary/1`,
