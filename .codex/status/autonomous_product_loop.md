@@ -29,7 +29,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-Pending provider-counteroffer slice commit.
+`b9ae19d` (`Flatten provider counteroffer replay identity`).
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth
