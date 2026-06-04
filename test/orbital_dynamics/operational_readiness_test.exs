@@ -32,6 +32,9 @@ defmodule OrbitalDynamics.OperationalReadinessTest do
              import_classifications: classifications,
              readiness_levels: readiness_levels,
              gate_statuses: gate_statuses,
+             freshness_statuses: freshness_statuses,
+             import_statuses: import_statuses,
+             cadence_import_statuses: cadence_import_statuses,
              analysis_modes: analysis_modes,
              analysis_mode_aliases: analysis_mode_aliases,
              gates: gates,
@@ -64,6 +67,16 @@ defmodule OrbitalDynamics.OperationalReadinessTest do
     assert analysis_mode_aliases["no_execution"] == "not_for_execution"
 
     assert "review_required" in gate_statuses
+    assert freshness_statuses == ["current", "stale", "unknown"]
+
+    assert import_statuses == [
+             "blocked_missing_cadence_import",
+             "not_applicable",
+             "ready_for_import",
+             "review_required_before_import"
+           ]
+
+    assert cadence_import_statuses == ["invalid", "missing", "not_applicable", "present"]
 
     assert gates == [
              "source_contract",
@@ -106,6 +119,9 @@ defmodule OrbitalDynamics.OperationalReadinessTest do
     assert :quality_gate_schema_validation_routing_id_sets in summary_semantics
     assert :quality_gate_import_readiness_summary in summary_semantics
     assert :quality_gate_import_readiness_routing_id_sets in summary_semantics
+    assert :quality_gate_import_readiness_freshness_status_values in summary_semantics
+    assert :quality_gate_import_readiness_import_status_values in summary_semantics
+    assert :quality_gate_import_readiness_cadence_import_status_values in summary_semantics
     assert :resource_availability_quality_gate in summary_semantics
 
     assert :readiness_freshness_status_count_maps in readiness_evidence_semantics
@@ -148,6 +164,9 @@ defmodule OrbitalDynamics.OperationalReadinessTest do
 
     assert OrbitalDynamics.capability_catalog().operations.operational_readiness.public_facades ==
              public_facades
+
+    assert import_statuses == CadenceImport.capability().import_statuses
+    assert cadence_import_statuses == CadenceImport.capability().cadence_import_statuses
 
     assert {:ok, schema} = Schema.json_schema("operational_readiness_report.v1")
     assert get_in(schema, ["properties", "import_classification", "enum"]) == classifications
@@ -3141,6 +3160,20 @@ defmodule OrbitalDynamics.OperationalReadinessTest do
              ]
            } = import_readiness_summary
 
+    advertised_statuses = OperationalReadiness.capabilities()
+
+    assert [] ==
+             Map.get(import_readiness_summary, "freshness_status_ids", []) --
+               advertised_statuses.freshness_statuses
+
+    assert [] ==
+             Map.get(import_readiness_summary, "import_status_ids", []) --
+               advertised_statuses.import_statuses
+
+    assert [] ==
+             Map.get(import_readiness_summary, "cadence_import_status_ids", []) --
+               advertised_statuses.cadence_import_statuses
+
     assert OrbitalDynamics.operational_quality_gate_import_readiness_summary(
              stale_quality_gate_report
            ) == import_readiness_summary
@@ -3495,6 +3528,20 @@ defmodule OrbitalDynamics.OperationalReadinessTest do
              "blocked_import_quality_gate_row_ids" => [],
              "import_readiness_gate_ids" => ["cadence_import"]
            } = import_readiness_summary
+
+    advertised_statuses = OperationalReadiness.capabilities()
+
+    assert [] ==
+             Map.get(import_readiness_summary, "freshness_status_ids", []) --
+               advertised_statuses.freshness_statuses
+
+    assert [] ==
+             Map.get(import_readiness_summary, "import_status_ids", []) --
+               advertised_statuses.import_statuses
+
+    assert [] ==
+             Map.get(import_readiness_summary, "cadence_import_status_ids", []) --
+               advertised_statuses.cadence_import_statuses
 
     assert {:ok, %{"schema_contract" => "operational_quality_gate_import_readiness_summary.v1"}} =
              Schema.validate_artifact(import_readiness_summary)

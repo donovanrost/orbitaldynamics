@@ -23,6 +23,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
   @import_classifications ~w(importable review_only analysis_only blocked)
   @readiness_levels ~w(import_eligible operator_review analysis_only blocked)
   @gate_statuses ~w(passed review_required analysis_only blocked)
+  @freshness_statuses ~w(current stale unknown)
   @analysis_modes ~w(analysis_only simulation rehearsal trade_study training not_for_execution)
   @analysis_mode_aliases %{
     "analysis" => "analysis_only",
@@ -62,6 +63,9 @@ defmodule OrbitalDynamics.OperationalReadiness do
       import_classifications: @import_classifications,
       readiness_levels: @readiness_levels,
       gate_statuses: @gate_statuses,
+      freshness_statuses: @freshness_statuses,
+      import_statuses: CadenceImport.capability().import_statuses,
+      cadence_import_statuses: CadenceImport.capability().cadence_import_statuses,
       analysis_modes: @analysis_modes,
       analysis_mode_aliases: @analysis_mode_aliases,
       gates: [
@@ -105,6 +109,9 @@ defmodule OrbitalDynamics.OperationalReadiness do
         :quality_gate_schema_validation_routing_id_sets,
         :quality_gate_import_readiness_summary,
         :quality_gate_import_readiness_routing_id_sets,
+        :quality_gate_import_readiness_freshness_status_values,
+        :quality_gate_import_readiness_import_status_values,
+        :quality_gate_import_readiness_cadence_import_status_values,
         :quality_gate_cadence_import_row_context,
         :resource_availability_quality_gate,
         :execution_boundary_summary

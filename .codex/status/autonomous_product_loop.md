@@ -1,34 +1,32 @@
 # Autonomous Product Loop Status
 
 Current slice:
-ResourceSummary roll-forward flow-status and pressure capability metadata.
+OperationalReadiness import-readiness status vocabulary capability metadata.
 
 Status:
-Implemented and verification passed. `ResourceSummary.roll_forward/3` already
-emits schema-backed `resource_projection_flow_summary.v1` artifacts with flow
-status, pressure status, resource-pressure types, resource-effect statuses, and
-ignored-effect reason routing. This slice advertises those roll-forward vocabularies in
-`ResourceSummary.capabilities/0` and pins them against existing roll-forward
-behavior.
+Implemented and verification passed. `OperationalReadiness.quality_gate_import_readiness_summary/2`
+already emits schema-validated `freshness_status_ids`, `import_status_ids`, and
+`cadence_import_status_ids` from quality-gate rows. This slice advertises those
+vocabularies in `OperationalReadiness.capabilities/0` and pins the existing
+stale and analysis-only import-readiness summary paths against them.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/resource_summary.ex`
-- `test/orbital_dynamics/resource_summary_test.exs`
+- `lib/orbital_dynamics/operational_readiness.ex`
+- `test/orbital_dynamics/operational_readiness_test.exs`
 
 Tests run:
-- `mix format lib/orbital_dynamics/resource_summary.ex test/orbital_dynamics/resource_summary_test.exs`
-- `mix test test/orbital_dynamics/resource_summary_test.exs:6 test/orbital_dynamics/resource_summary_test.exs:627 test/orbital_dynamics/resource_summary_test.exs:737 --trace --seed 0`
+- `mix format lib/orbital_dynamics/operational_readiness.ex test/orbital_dynamics/operational_readiness_test.exs`
+- `mix test test/orbital_dynamics/operational_readiness_test.exs:12 test/orbital_dynamics/operational_readiness_test.exs:3057 test/orbital_dynamics/operational_readiness_test.exs:3460 --trace --seed 0`
 - `git diff --check`
 
 Docs/artifacts changed:
 No schema export is expected. This slice only publishes capability metadata for
-existing `resource_projection_flow_summary.v1` roll-forward status and pressure
-fields.
+existing `operational_quality_gate_import_readiness_summary.v1` status ID fields.
 
 Last commit:
-Current slice commit advertises resource roll-forward status and pressure
-semantics and is pushed to `origin/main`.
+Current slice commit advertises import-readiness status vocabularies and is
+pushed to `origin/main`.
 
 Next candidate:
 After this slice is verified and pushed, re-read the guide/ledger/live worktree
