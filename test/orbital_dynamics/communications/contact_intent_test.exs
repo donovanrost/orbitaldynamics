@@ -44,11 +44,13 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
              station_reservation_expiration_fields: station_reservation_expiration_fields,
              station_calendar_reservation_expiration_fields:
                station_calendar_reservation_expiration_fields,
+             summary_routing_fields: summary_routing_fields,
              policy_gate_statuses: [
                "auto_approvable",
                "operator_review_required",
                "blocked_by_policy"
              ],
+             summary_row_semantics: summary_row_semantics,
              row_semantics: row_semantics,
              approval_policy_boundary: :optional_policy_decision_v1,
              known_limits: known_limits
@@ -215,6 +217,28 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
              | station_reservation_expiration_fields
            ]
 
+    assert summary_routing_fields == [
+             "contact_intent_count",
+             "capacity_pack_required_contact_count",
+             "capacity_pack_required_capacity_fraction",
+             "capacity_pack_required_capacity_fraction_by_ground_station_id",
+             "capacity_pack_required_capacity_fraction_by_direction",
+             "required_capacity_fraction_source_counts",
+             "required_capacity_fraction_contact_ids_by_source",
+             "contact_ids_by_ground_station_id",
+             "contact_ids_by_direction",
+             "capacity_pack_contact_ids_by_ground_station_id",
+             "capacity_pack_contact_ids_by_direction",
+             "ground_station_ids",
+             "directions"
+           ]
+
+    assert :contact_intent_summary_row_derived_counts in summary_row_semantics
+    assert :contact_intent_summary_station_routing in summary_row_semantics
+    assert :contact_intent_summary_direction_routing in summary_row_semantics
+    assert :contact_intent_summary_capacity_pack_routing in summary_row_semantics
+    assert :contact_intent_summary_required_capacity_source_routing in summary_row_semantics
+
     assert :activity_stable_identity_fields in row_semantics
     assert :station_calendar_id_list_fields in row_semantics
     assert :station_reservation_context in row_semantics
@@ -236,6 +260,7 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
     assert :required_capacity_value_paths in row_semantics
     assert :source_station_capacity_value_paths in row_semantics
     assert :capacity_pack_required_capacity_summary in row_semantics
+    assert :contact_intent_summary_routing_fields in row_semantics
     assert :station_calendar_direction_context in row_semantics
     assert :station_calendar_direction_aliases in row_semantics
     assert :provider_direction_aliases in row_semantics
@@ -1069,6 +1094,8 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
                "source_artifact_type" => "contact_intent.v1"
              }
            }
+
+    assert ContactIntent.capabilities().summary_routing_fields -- Map.keys(summary) == []
 
     assert OrbitalDynamics.contact_intent_summary(stale_rows) == summary
     assert OrbitalDynamics.contact_intent_summary(activities, opts) == summary

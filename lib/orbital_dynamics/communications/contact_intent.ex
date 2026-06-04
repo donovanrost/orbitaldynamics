@@ -198,6 +198,21 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
     "station_calendar_reservation_expires_at_s"
     | @station_reservation_expiration_fields
   ]
+  @summary_routing_fields ~w(
+    contact_intent_count
+    capacity_pack_required_contact_count
+    capacity_pack_required_capacity_fraction
+    capacity_pack_required_capacity_fraction_by_ground_station_id
+    capacity_pack_required_capacity_fraction_by_direction
+    required_capacity_fraction_source_counts
+    required_capacity_fraction_contact_ids_by_source
+    contact_ids_by_ground_station_id
+    contact_ids_by_direction
+    capacity_pack_contact_ids_by_ground_station_id
+    capacity_pack_contact_ids_by_direction
+    ground_station_ids
+    directions
+  )
   @activity_stable_identity_fields ~w(
     id
     scenario_id
@@ -242,7 +257,15 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
       station_reservation_expiration_fields: @station_reservation_expiration_fields,
       station_calendar_reservation_expiration_fields:
         @station_calendar_reservation_expiration_fields,
+      summary_routing_fields: @summary_routing_fields,
       policy_gate_statuses: ["auto_approvable", "operator_review_required", "blocked_by_policy"],
+      summary_row_semantics: [
+        :contact_intent_summary_row_derived_counts,
+        :contact_intent_summary_station_routing,
+        :contact_intent_summary_direction_routing,
+        :contact_intent_summary_capacity_pack_routing,
+        :contact_intent_summary_required_capacity_source_routing
+      ],
       row_semantics: [
         :artifact_only_contact_request,
         :timeline_identity,
@@ -270,6 +293,7 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
         :required_capacity_value_paths,
         :source_station_capacity_value_paths,
         :capacity_pack_required_capacity_summary,
+        :contact_intent_summary_routing_fields,
         :station_calendar_direction_context,
         :station_calendar_direction_aliases,
         :provider_direction_aliases,
