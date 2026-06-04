@@ -848,6 +848,10 @@ replay helper can inspect V3 branch `candidate_source` metadata that carries
 `candidate_refresh_request_source_report_summary`, so strategy-derived branch
 refreshes preserve contact-allocation capacity-pack pressure through the branch
 provenance boundary.
+When the branch `contact_allocation_report` source-report family is non-empty,
+the helper labels its output source and replay scope as candidate-source
+summary metadata, treats partial non-empty branch families as authoritative,
+and falls back to provenance labels for absent or empty branch families.
 Branch-generated refresh requests preserve direct and result-artifact-wrapped
 `source_contact_allocation_report` / `contact_allocation_report` inputs with
 wrapper-qualified request paths and indexed embedded replay copies, keeping raw
