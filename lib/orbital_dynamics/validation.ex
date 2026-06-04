@@ -7849,15 +7849,15 @@ defmodule OrbitalDynamics.Validation do
         "validation_mode" => "artifact_directory",
         "input_dir" => "study_results",
         "status" => "pass",
-        "status_counts" => %{"pass" => 109},
-        "file_count" => 109,
-        "artifact_count" => 109,
+        "status_counts" => %{"pass" => 124},
+        "file_count" => 124,
+        "artifact_count" => 124,
         "skipped_count" => 0,
         "error_count" => 0,
         "warning_count" => 0,
         "remediation_count" => 0,
-        "report_count" => 109,
-        "pass_report_count" => 109,
+        "report_count" => 124,
+        "pass_report_count" => 124,
         "fail_report_count" => 0,
         "skipped_artifact_count" => 0,
         "model_limit_count" => 3
@@ -8415,6 +8415,108 @@ defmodule OrbitalDynamics.Validation do
       "known_limits" => [
         "internal artifact regression, not external operations validation",
         "checks gate projection counts and authority boundary only"
+      ]
+    },
+    "fixture.artifact.operational_quality_gate_summary.v1" => %{
+      "id" => "fixture.artifact.operational_quality_gate_summary.v1",
+      "model_id" => "artifact.operational_quality_gate_summary.v1",
+      "reference_case" =>
+        "checked-in quality gate summary from resource-pressure review evidence",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/operational_quality_gate_summary_v1.json",
+        "source_contract" => "quality_gate_report.v1",
+        "contract" => "operational_quality_gate_summary.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "operational_quality_gate_summary.v1",
+        "model" => "artifact_only_quality_gate_summary",
+        "source" => "quality_gate_report.v1",
+        "source_artifact_type" => "resource_projection_report.v1",
+        "source_artifact_id" => "resource_summaries",
+        "source_quality_gate_report_id" =>
+          "quality_gate:resource_projection_report.v1:resource_summaries",
+        "source_readiness_report_id" =>
+          "operational_readiness:resource_projection_report.v1:resource_summaries",
+        "readiness_level" => "operator_review",
+        "import_classification" => "review_only",
+        "status" => "review_required",
+        "execution_allowed" => false,
+        "cadence_write_allowed" => false,
+        "operator_authority_granted" => false,
+        "gate_count" => 6,
+        "row_derived_gate_count" => 6,
+        "passed_gate_count" => 3,
+        "row_derived_passed_gate_count" => 3,
+        "review_gate_count" => 3,
+        "row_derived_review_gate_count" => 3,
+        "analysis_gate_count" => 0,
+        "row_derived_analysis_gate_count" => 0,
+        "blocked_gate_count" => 0,
+        "row_derived_blocked_gate_count" => 0,
+        "non_passed_gate_count" => 3,
+        "row_derived_non_passed_gate_count" => 3,
+        "gate_status_counts" => %{"passed" => 3, "review_required" => 3},
+        "row_derived_gate_status_counts" => %{"passed" => 3, "review_required" => 3},
+        "gate_classification_counts" => %{"importable" => 3, "review_only" => 3},
+        "row_derived_gate_classification_counts" => %{
+          "importable" => 3,
+          "review_only" => 3
+        },
+        "gate_ids_by_status" => %{
+          "passed" => ["adapter_boundary", "operational_mode", "source_contract"],
+          "review_required" => ["cadence_import", "operator_review", "resource_availability"]
+        },
+        "row_derived_gate_ids_by_status" => %{
+          "passed" => ["adapter_boundary", "operational_mode", "source_contract"],
+          "review_required" => ["cadence_import", "operator_review", "resource_availability"]
+        },
+        "gate_ids_by_classification" => %{
+          "importable" => ["adapter_boundary", "operational_mode", "source_contract"],
+          "review_only" => ["cadence_import", "operator_review", "resource_availability"]
+        },
+        "row_derived_gate_ids_by_classification" => %{
+          "importable" => ["adapter_boundary", "operational_mode", "source_contract"],
+          "review_only" => ["cadence_import", "operator_review", "resource_availability"]
+        },
+        "non_passed_gate_keys" => "cadence_import|operator_review|resource_availability",
+        "row_derived_non_passed_gate_keys" =>
+          "cadence_import|operator_review|resource_availability",
+        "non_passed_quality_gate_row_keys" =>
+          "quality_gate:resource_projection_report.v1:resource_summaries:cadence_import:6|quality_gate:resource_projection_report.v1:resource_summaries:operator_review:5|quality_gate:resource_projection_report.v1:resource_summaries:resource_availability:4",
+        "row_derived_non_passed_quality_gate_row_keys" =>
+          "quality_gate:resource_projection_report.v1:resource_summaries:cadence_import:6|quality_gate:resource_projection_report.v1:resource_summaries:operator_review:5|quality_gate:resource_projection_report.v1:resource_summaries:resource_availability:4",
+        "row_derived_non_passed_quality_gate_row_count" => 3,
+        "model_limit_count" => 2,
+        "execution_boundary" => "artifact_only_no_cadence_write",
+        "operator_authority" => "not_granted_by_quality_gate_summary",
+        "cadence_write" => "not_performed_by_summary",
+        "command_execution" => "not_performed_by_summary"
+      },
+      "tolerances" => %{
+        "gate_count" => 0,
+        "row_derived_gate_count" => 0,
+        "passed_gate_count" => 0,
+        "row_derived_passed_gate_count" => 0,
+        "review_gate_count" => 0,
+        "row_derived_review_gate_count" => 0,
+        "analysis_gate_count" => 0,
+        "row_derived_analysis_gate_count" => 0,
+        "blocked_gate_count" => 0,
+        "row_derived_blocked_gate_count" => 0,
+        "non_passed_gate_count" => 0,
+        "row_derived_non_passed_gate_count" => 0,
+        "row_derived_non_passed_quality_gate_row_count" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by operational_quality_gate_summary.v1 validation tests"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not external operations validation",
+        "checks base quality-gate summary routing, review pressure, and no-authority boundary only"
       ]
     },
     "fixture.artifact.operational_quality_gate_import_readiness_summary.v1" => %{
@@ -13881,6 +13983,88 @@ defmodule OrbitalDynamics.Validation do
       "model_limit_count" => count(artifact, "model_limits"),
       "execution_boundary" => get_in(artifact, ["assumptions", "execution_boundary"]),
       "operator_authority" => get_in(artifact, ["assumptions", "operator_authority"])
+    }
+  end
+
+  def artifact_observations("operational_quality_gate_summary.v1", artifact)
+      when is_map(artifact) do
+    artifact = stringify_keys(artifact)
+    rows = map_rows(artifact, "rows")
+    non_passed_rows = Enum.reject(rows, &(&1["status"] == "passed"))
+
+    %{
+      "schema_contract" => Map.get(artifact, "schema_contract"),
+      "model" => Map.get(artifact, "model"),
+      "source" => Map.get(artifact, "source"),
+      "source_artifact_type" => Map.get(artifact, "source_artifact_type"),
+      "source_artifact_id" => Map.get(artifact, "source_artifact_id"),
+      "source_quality_gate_report_id" => Map.get(artifact, "source_quality_gate_report_id"),
+      "source_readiness_report_id" => Map.get(artifact, "source_readiness_report_id"),
+      "readiness_level" => Map.get(artifact, "readiness_level"),
+      "import_classification" => Map.get(artifact, "import_classification"),
+      "status" => Map.get(artifact, "status"),
+      "execution_allowed" => Map.get(artifact, "execution_allowed"),
+      "cadence_write_allowed" => Map.get(artifact, "cadence_write_allowed"),
+      "operator_authority_granted" => Map.get(artifact, "operator_authority_granted"),
+      "gate_count" => Map.get(artifact, "gate_count"),
+      "row_derived_gate_count" => length(rows),
+      "passed_gate_count" => Map.get(artifact, "passed_gate_count"),
+      "row_derived_passed_gate_count" => count_rows_matching(rows, "status", "passed"),
+      "review_gate_count" => Map.get(artifact, "review_gate_count"),
+      "row_derived_review_gate_count" => count_rows_matching(rows, "status", "review_required"),
+      "analysis_gate_count" => Map.get(artifact, "analysis_gate_count"),
+      "row_derived_analysis_gate_count" => count_rows_matching(rows, "status", "analysis_only"),
+      "blocked_gate_count" => Map.get(artifact, "blocked_gate_count"),
+      "row_derived_blocked_gate_count" => count_rows_matching(rows, "status", "blocked"),
+      "non_passed_gate_count" => Map.get(artifact, "non_passed_gate_count"),
+      "row_derived_non_passed_gate_count" => length(non_passed_rows),
+      "gate_status_counts" => Map.get(artifact, "gate_status_counts") || %{},
+      "row_derived_gate_status_counts" => count_rows_by_value(rows, "status"),
+      "gate_classification_counts" => Map.get(artifact, "gate_classification_counts") || %{},
+      "row_derived_gate_classification_counts" => count_rows_by_value(rows, "classification"),
+      "gate_ids_by_status" => Map.get(artifact, "gate_ids_by_status") || %{},
+      "row_derived_gate_ids_by_status" =>
+        rows
+        |> group_row_ids_by_value("status", "gate_id")
+        |> sort_grouped_values(),
+      "gate_ids_by_classification" => Map.get(artifact, "gate_ids_by_classification") || %{},
+      "row_derived_gate_ids_by_classification" =>
+        rows
+        |> group_row_ids_by_value("classification", "gate_id")
+        |> sort_grouped_values(),
+      "non_passed_gate_keys" =>
+        artifact
+        |> list_values("non_passed_gate_ids")
+        |> Enum.join("|"),
+      "row_derived_non_passed_gate_keys" =>
+        non_passed_rows
+        |> Enum.map(& &1["gate_id"])
+        |> Enum.filter(&is_binary/1)
+        |> Enum.uniq()
+        |> Enum.sort()
+        |> Enum.join("|"),
+      "non_passed_quality_gate_row_keys" =>
+        artifact
+        |> list_values("non_passed_quality_gate_row_ids")
+        |> Enum.sort()
+        |> Enum.join("|"),
+      "row_derived_non_passed_quality_gate_row_keys" =>
+        non_passed_rows
+        |> Enum.map(& &1["id"])
+        |> Enum.filter(&is_binary/1)
+        |> Enum.uniq()
+        |> Enum.sort()
+        |> Enum.join("|"),
+      "row_derived_non_passed_quality_gate_row_count" =>
+        non_passed_rows
+        |> Enum.map(& &1["id"])
+        |> Enum.filter(&is_binary/1)
+        |> length(),
+      "model_limit_count" => count(artifact, "model_limits"),
+      "execution_boundary" => get_in(artifact, ["assumptions", "execution_boundary"]),
+      "operator_authority" => get_in(artifact, ["assumptions", "operator_authority"]),
+      "cadence_write" => get_in(artifact, ["assumptions", "cadence_write"]),
+      "command_execution" => get_in(artifact, ["assumptions", "command_execution"])
     }
   end
 
