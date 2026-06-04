@@ -747,6 +747,11 @@ The replay helper can inspect V3 branch `candidate_source` metadata that carries
 `candidate_refresh_request_source_report_summary`, so strategy-derived branch
 refreshes preserve contention-resolution and capacity-pack pressure through the
 branch provenance boundary.
+When the branch `contact_contention_resolution_report` source-report family is
+non-empty, the helper labels its output source and replay scope as
+candidate-source summary metadata, treats partial non-empty branch families as
+authoritative, and falls back to provenance labels for absent or empty branch
+families.
 Branch-generated refresh requests also preserve direct mission-state and
 result-artifact-wrapped raw `source_contact_contention_resolution_report` /
 `contact_contention_resolution_report` inputs, retaining wrapper-qualified

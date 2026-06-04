@@ -6225,15 +6225,37 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local contact-contention-resolution replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, mutate contact allocation, select
-  candidates, approve imports, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, mutate
+  contact allocation, select candidates, approve imports, or write to Cadence.
   """
   def contact_contention_resolution_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
+    branch_resolution_summary =
+      source_report_summary_branch_family(
+        refresh_or_artifact,
+        "contact_contention_resolution_report"
+      )
+
     resolution_summary =
-      get_in(source_summary, ["source_reports", "contact_contention_resolution_report"]) || %{}
+      branch_resolution_summary ||
+        get_in(source_summary, ["source_reports", "contact_contention_resolution_report"]) ||
+        %{}
+
+    {summary_source, replay_scope} =
+      if branch_resolution_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.contact_contention_resolution_report",
+          "contact_contention_resolution_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.contact_contention_resolution_report",
+          "contact_contention_resolution_source_report_provenance_only"
+        }
+      end
 
     recommendation_count = summary_integer(resolution_summary, "recommendation_count")
     deferred_contact_count = summary_integer(resolution_summary, "deferred_contact_count")
@@ -6378,8 +6400,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_contact_contention_resolution_replay_summary",
-      "source" =>
-        "candidate_refresh.source_report_provenance.contact_contention_resolution_report",
+      "source" => summary_source,
       "contract" =>
         source_report_summary_contract(
           resolution_summary,
@@ -6463,7 +6484,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         map_size(required_action_counts) > 0,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "contact_contention_resolution_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_contact_contention_resolution_replay_summary",
         "contact_allocation" => "not_performed_by_summary",
         "candidate_selection" => "not_performed_by_summary",
