@@ -678,11 +678,12 @@ CandidateRefresh input alongside candidate-rejection replay provenance.
 `CandidateRefresh.provider_counteroffer_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_provider_counteroffer_replay_summary/1`
 expose the provider-counteroffer slice as a branch-local replay summary. It
-preserves source counteroffer paths, reviewable counts, cost/timing/lock
-counters, status/action maps, import-readiness status/classification maps,
-import status/action/lock-deadline ID maps, plan-impact status maps, affected
-station-calendar/provider-entry IDs, impact/timing/cost counteroffer ID sets,
-review/no-import counteroffer ID sets, trust-boundary evidence, and branch-local
+preserves source report contract, count, row-count, paths, reviewable counts,
+cost/timing/lock counters, status/action maps, import-readiness
+status/classification maps, import status/action/lock-deadline ID maps,
+plan-impact status maps, affected station-calendar/provider-entry IDs,
+impact/timing/cost counteroffer ID sets, review/no-import counteroffer ID sets,
+trust-boundary evidence, and branch-local
 review/cost/timing/lock/import-readiness/plan-impact pressure booleans without
 accepting counteroffers, mutating schedules, approving imports, writing to
 Cadence, or regenerating candidates.
@@ -706,6 +707,11 @@ import status/action/lock-deadline routing, review/no-import counteroffer IDs,
 source paths, and inherited trust-boundary evidence.
 When provider-counteroffer provenance is absent, the replay summary omits the
 contract field rather than defaulting to `provider_counteroffer_report.v1`.
+The aggregate source-report summary also omits the top-level
+provider-counteroffer identity rollups instead of emitting empty count,
+row-count, or path fields. Partial placeholder provenance may expose an
+explicit contract, but does not synthesize count, row-count, or path identity
+rollups unless both identity counts are present and non-nil.
 
 `CandidateRefresh.contact_contention_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_contact_contention_replay_summary/1` expose

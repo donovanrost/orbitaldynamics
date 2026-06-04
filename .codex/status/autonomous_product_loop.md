@@ -1,17 +1,17 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh candidate-rejection source-report identity rollups.
+CandidateRefresh provider-counteroffer source-report identity rollups.
 
 Status:
 Implemented with focused verification passing locally.
 `CandidateRefresh.source_report_summary/1` now
-flattens `source_report_candidate_rejection_contract`,
-`source_report_candidate_rejection_count`,
-`source_report_candidate_rejection_row_count`, and
-`source_report_candidate_rejection_paths` alongside the existing
-candidate-rejection rejected/reviewable/invalid-input counts, reason maps,
-required-action maps, and candidate/station routing aggregate fields.
+flattens `source_report_provider_counteroffer_contract`,
+`source_report_provider_counteroffer_count`,
+`source_report_provider_counteroffer_row_count`, and
+`source_report_provider_counteroffer_paths` alongside the existing
+provider-counteroffer reviewable, cost/timing/lock, import-readiness,
+plan-impact, status/action, and counteroffer-ID aggregate fields.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -21,7 +21,7 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:24152 test/orbital_dynamics/candidate_refresh_test.exs:24321 test/orbital_dynamics/candidate_refresh_test.exs:24471 test/orbital_dynamics/candidate_refresh_test.exs:24491`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:21336 test/orbital_dynamics/candidate_refresh_test.exs:21545 test/orbital_dynamics/candidate_refresh_test.exs:21701 test/orbital_dynamics/candidate_refresh_test.exs:21721 test/orbital_dynamics/candidate_refresh_test.exs:21760`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 
@@ -29,7 +29,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`25aad5c` (`Flatten candidate rejection replay identity`).
+Pending provider-counteroffer slice commit.
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth

@@ -3509,6 +3509,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "candidate_rejection_report",
           "candidate_rejection_ground_station_counts"
         ),
+      "source_report_provider_counteroffer_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "provider_counteroffer_report",
+          "contract"
+        ),
+      "source_report_provider_counteroffer_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "provider_counteroffer_report",
+          "count"
+        ),
+      "source_report_provider_counteroffer_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "provider_counteroffer_report",
+          "row_count"
+        ),
+      "source_report_provider_counteroffer_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "provider_counteroffer_report",
+          "paths"
+        ),
       "source_report_provider_counteroffer_reviewable_count" =>
         source_report_summary_family_count(
           source_reports,
