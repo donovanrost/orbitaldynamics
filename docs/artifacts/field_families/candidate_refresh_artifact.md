@@ -1461,8 +1461,12 @@ exclusivity, review, and family-level pressure booleans without mutating
 timelines, selecting candidates, approving imports, writing to Cadence, or
 regenerating candidates. Row evidence drives the replay maps when rows are
 present, so stale top-level integrity aggregates do not override dependency or
-exclusivity routing. When timeline-integrity provenance is absent, the replay
-summary omits the contract field rather than defaulting to
+exclusivity routing. The replay helper can inspect V3 branch `candidate_source`
+metadata that carries `candidate_refresh_request_source_report_summary`, so
+strategy-derived branch refreshes preserve timeline-integrity review,
+dependency, and exclusivity pressure through the branch provenance boundary.
+When timeline-integrity provenance is absent, the replay summary omits the
+contract field rather than defaulting to
 `timeline_integrity_report.v1`. Capability metadata advertises
 `timeline_integrity_report` as an accepted CandidateRefresh input alongside
 timeline-integrity replay provenance.

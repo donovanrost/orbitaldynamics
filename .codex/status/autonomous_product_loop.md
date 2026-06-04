@@ -1,45 +1,45 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Timeline-diff replay reads and labels V3 branch
+Timeline-integrity replay reads and labels V3 branch
 `candidate_source.candidate_refresh_request_source_report_summary` metadata.
 
 Status:
-Implementation, focused verification, review, commit, and push complete for
-this slice.
-`CandidateRefresh.timeline_diff_replay_summary/1` now checks a non-empty V3
-branch `timeline_diff_report` source-report family before falling back to
-provenance. Branch-sourced summaries preserve duplicate identity,
-removed/changed activity, status/action, activity-routing, and trust-boundary
-maps while labeling their `source` and replay scope as candidate-source summary
-metadata. Empty branch families fall back to provenance and keep existing
-provenance-only labels; partial non-empty branch families remain authoritative.
-Direct `candidate_source` maps use the same branch labels.
+Implementation and focused verification complete; review and publish pending.
+`CandidateRefresh.timeline_integrity_replay_summary/1` now checks a non-empty
+V3 branch `timeline_integrity_report` source-report family before falling back
+to provenance. Branch-sourced summaries preserve issue/review counts,
+status/action maps, review routing, dependency/exclusivity routing maps,
+trust-boundary metadata, and branch-local pressure booleans while labeling their
+`source` and replay scope as candidate-source summary metadata. Empty branch
+families fall back to provenance and keep existing provenance-only labels;
+partial non-empty branch families remain authoritative. Direct
+`candidate_source` maps use the same branch labels.
 
 Files changed for this slice:
 - `.codex/status/autonomous_product_loop.md`
+- `docs/artifacts/field_families/candidate_refresh_artifact.md`
 - `lib/orbital_dynamics/candidate_refresh.ex`
 - `test/orbital_dynamics/candidate_refresh_test.exs`
 - `test/orbital_dynamics/campaign_planner_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:11660 test/orbital_dynamics/candidate_refresh_test.exs:11925 test/orbital_dynamics/candidate_refresh_test.exs:11940 test/orbital_dynamics/candidate_refresh_test.exs:11987 test/orbital_dynamics/candidate_refresh_test.exs:12096 test/orbital_dynamics/candidate_refresh_test.exs:12138 test/orbital_dynamics/candidate_refresh_test.exs:12185 test/orbital_dynamics/candidate_refresh_test.exs:12239 --trace --seed 0`
-  passed timeline-diff source-summary aggregation, absent-provenance,
-  duplicate-scope pressure, branch candidate-source replay, direct
-  candidate-source labeling, empty-family fallback, partial-family precedence,
-  and compact-summary replay checks.
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:19840 test/orbital_dynamics/campaign_planner_test.exs:25525 --trace --seed 0`
-  passed the strategy branch refresh report/summary callers that pass direct
-  candidate-source maps into timeline-diff replay.
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:20219 test/orbital_dynamics/candidate_refresh_test.exs:20390 test/orbital_dynamics/candidate_refresh_test.exs:20405 test/orbital_dynamics/candidate_refresh_test.exs:20518 test/orbital_dynamics/candidate_refresh_test.exs:20559 test/orbital_dynamics/candidate_refresh_test.exs:20605 --trace --seed 0`
+  passed timeline-integrity source-summary aggregation, absent-provenance,
+  branch candidate-source replay, direct candidate-source labeling,
+  empty-family fallback, and partial-family precedence checks.
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:27071 --trace --seed 0`
+  passed the strategy branch refresh caller that passes direct
+  candidate-source maps into timeline-integrity replay.
 - `git diff --check` passed.
 
 Docs/artifacts changed:
-- No narrative docs, schema exports, or checked-in artifacts changed in this
-  slice.
+- Updated the candidate-refresh artifact field-family narrative for
+  timeline-integrity branch candidate-source replay metadata.
+- No schema exports or checked-in artifacts changed in this slice.
 
 Last product commit:
-- `c125982` (`Label timeline-diff branch replay metadata`) pushed to
-  `origin/main`.
+- Pending review and publish.
 
 Next candidate:
 Re-read `docs/autonomous_work_guide.md`, this ledger, and the live worktree
@@ -52,9 +52,5 @@ No.
 
 Notes:
 This slice intentionally does not mutate timelines, select candidates, approve
-imports, write to Cadence, or regenerate candidates. A broader exploratory test
-line selection at `campaign_planner_test.exs:24776` executed
-`strategy carries mission-state result artifact source reports into branch
-refresh requests` and failed on an unrelated station-calendar source-path
-assertion; it was not used as a gate for this timeline-diff label slice.
-Treat current files as authoritative and do not revert unrelated changes.
+imports, write to Cadence, or regenerate candidates. Treat current files as
+authoritative and do not revert unrelated changes.

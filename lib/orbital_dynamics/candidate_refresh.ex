@@ -10477,15 +10477,33 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local timeline-integrity replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, mutate timelines, select candidates,
-  approve imports, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, mutate
+  timelines, select candidates, approve imports, or write to Cadence.
   """
   def timeline_integrity_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
+    branch_integrity_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "timeline_integrity_report")
+
     integrity_summary =
-      get_in(source_summary, ["source_reports", "timeline_integrity_report"]) || %{}
+      branch_integrity_summary ||
+        get_in(source_summary, ["source_reports", "timeline_integrity_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_integrity_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_integrity_report",
+          "timeline_integrity_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.timeline_integrity_report",
+          "timeline_integrity_source_report_provenance_only"
+        }
+      end
 
     issue_count = summary_integer(integrity_summary, "timeline_integrity_issue_count")
     review_count = summary_integer(integrity_summary, "timeline_integrity_review_count")
@@ -10556,7 +10574,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_timeline_integrity_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.timeline_integrity_report",
+      "source" => summary_source,
       "contract" =>
         source_report_summary_contract(integrity_summary, "timeline_integrity_report.v1"),
       "source_report_count" => summary_integer(integrity_summary, "count"),
@@ -10595,7 +10613,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "branch_local_exclusivity_integrity_pressure" => exclusivity_routing_pressure,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "timeline_integrity_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_timeline_integrity_replay_summary",
         "timeline_mutation" => "not_performed_by_summary",
         "candidate_selection" => "not_performed_by_summary",
