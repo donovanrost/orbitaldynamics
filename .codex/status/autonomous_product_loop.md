@@ -31,7 +31,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-Pending candidate-diff slice commit.
+`6dceced` (`Flatten candidate diff replay identity`).
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth
