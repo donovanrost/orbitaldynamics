@@ -134,6 +134,11 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     active
     expired
   )
+  @provider_reservation_request_statuses ~w(
+    clear
+    request_ready
+    review_required
+  )
   @default_required_capacity_value_paths for path <- @default_required_capacity_fraction_paths,
                                              do: {:fraction, path}
   @station_capacity_value_paths [
@@ -254,6 +259,7 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
       station_reservation_match_statuses: @station_reservation_match_statuses,
       reservation_conflict_match_statuses: @reservation_conflict_match_statuses,
       station_reservation_expiration_statuses: @station_reservation_expiration_statuses,
+      provider_reservation_request_statuses: @provider_reservation_request_statuses,
       default_required_capacity_fraction_paths: @default_required_capacity_fraction_paths,
       default_required_capacity_value_paths:
         capacity_value_path_metadata(@default_required_capacity_value_paths),
@@ -360,6 +366,7 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
         :contact_allocation_reservation_conflict_summary,
         :contact_allocation_reservation_conflict_status_values,
         :contact_allocation_provider_reservation_request_summary,
+        :contact_allocation_provider_reservation_request_status_values,
         :station_reservation_expiration_status_values,
         :contact_allocation_summary_direct_station_availability_routing,
         :contact_allocation_summary_required_capacity_source_routing,

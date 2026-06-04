@@ -42,6 +42,7 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              station_reservation_match_statuses: station_reservation_match_statuses,
              reservation_conflict_match_statuses: reservation_conflict_match_statuses,
              station_reservation_expiration_statuses: station_reservation_expiration_statuses,
+             provider_reservation_request_statuses: provider_reservation_request_statuses,
              default_required_capacity_fraction_paths: default_required_capacity_fraction_paths,
              default_required_capacity_value_paths: default_required_capacity_value_paths,
              provider_direction_aliases: provider_direction_aliases,
@@ -153,6 +154,7 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
     assert station_reservation_match_statuses == ["matched", "owner_matched", "overlap"]
     assert reservation_conflict_match_statuses == ["overlap"]
     assert station_reservation_expiration_statuses == ["missing", "declared", "active", "expired"]
+    assert provider_reservation_request_statuses == ["clear", "request_ready", "review_required"]
 
     assert default_required_capacity_fraction_paths == [
              ["default_required_capacity_fraction"],
@@ -324,6 +326,7 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
     assert :contact_allocation_reservation_conflict_summary in row_semantics
     assert :contact_allocation_reservation_conflict_status_values in row_semantics
     assert :contact_allocation_provider_reservation_request_summary in row_semantics
+    assert :contact_allocation_provider_reservation_request_status_values in row_semantics
     assert :station_reservation_expiration_status_values in row_semantics
     assert :contact_allocation_summary_direct_station_availability_routing in row_semantics
     assert :contact_allocation_summary_required_capacity_source_routing in row_semantics
@@ -2623,6 +2626,23 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
     assert ContactAllocation.provider_reservation_request_summary(contacts, ground_network,
              source: "unit_test.provider_reservation_request_summary"
            ) == summary
+
+    request_ready_summary =
+      ContactAllocation.provider_reservation_request_summary(%{
+        "schema_contract" => "contact_allocation_report.v1",
+        "rows" => request_rows
+      })
+
+    assert %{
+             "provider_reservation_request_status" => "request_ready",
+             "provider_reservation_candidate_contact_count" => 1,
+             "provider_reservation_request_contact_ids" => ["dl_reserved_owner"],
+             "provider_reservation_review_contact_ids" => []
+           } = request_ready_summary
+
+    assert {:ok,
+            %{"schema_contract" => "contact_allocation_provider_reservation_request_summary.v1"}} =
+             Schema.validate_artifact(request_ready_summary)
 
     assert %{
              "provider_reservation_request_status" => "clear",
