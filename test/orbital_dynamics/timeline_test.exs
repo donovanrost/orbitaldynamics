@@ -5897,6 +5897,39 @@ defmodule OrbitalDynamics.TimelineTest do
            } = Timeline.normalize_activity(activity)
   end
 
+  test "activity context normalizes provider lighting aliases on raw timeline maps" do
+    activity = %{
+      "id" => "obs_provider_lighting_aliases",
+      "type" => "observe",
+      "starts_at_s" => 10.0,
+      "ends_at_s" => 20.0,
+      "target_id" => "target_a",
+      "lighting_status" => "partial_eclipse",
+      "lighting_detail" => "mixed_lighting",
+      "lighting_model" => "sampled_eclipse_overlap_tag",
+      "lighting_detail_source" => "sampled_eclipse_overlap_fraction_tag",
+      "lighting_confidence_label" => "bounded_by_sampled_eclipse_overlap"
+    }
+
+    assert %{
+             "lighting_condition" => "partial_eclipse",
+             "lighting_condition_detail" => "mixed_lighting",
+             "lighting_condition_model" => "sampled_eclipse_overlap_tag",
+             "lighting_detail_model" => "sampled_eclipse_overlap_fraction_tag",
+             "lighting_confidence" => "bounded_by_sampled_eclipse_overlap"
+           } = Timeline.activity_context(activity)
+
+    assert %{
+             "activity_context" => %{
+               "lighting_condition" => "partial_eclipse",
+               "lighting_condition_detail" => "mixed_lighting",
+               "lighting_condition_model" => "sampled_eclipse_overlap_tag",
+               "lighting_detail_model" => "sampled_eclipse_overlap_fraction_tag",
+               "lighting_confidence" => "bounded_by_sampled_eclipse_overlap"
+             }
+           } = Timeline.normalize_activity(activity)
+  end
+
   test "activity context lifts provider metadata source-window provenance" do
     activity = %{
       id: :obs_metadata_window,

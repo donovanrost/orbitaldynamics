@@ -3241,11 +3241,16 @@ defmodule OrbitalDynamics.Timeline do
     %{
       "eclipse_overlap_fraction" => first_number(activity, ["eclipse_overlap_fraction"]),
       "eclipse_overlap_s" => first_number(activity, ["eclipse_overlap_s"]),
-      "lighting_condition" => first_scalar_string(activity, ["lighting_condition"]),
-      "lighting_condition_detail" => first_scalar_string(activity, ["lighting_condition_detail"]),
-      "lighting_condition_model" => first_scalar_string(activity, ["lighting_condition_model"]),
-      "lighting_detail_model" => first_scalar_string(activity, ["lighting_detail_model"]),
-      "lighting_confidence" => first_number(activity, ["lighting_confidence"])
+      "lighting_condition" =>
+        first_scalar_string(activity, ["lighting_condition", "lighting_status"]),
+      "lighting_condition_detail" =>
+        first_scalar_string(activity, ["lighting_condition_detail", "lighting_detail"]),
+      "lighting_condition_model" =>
+        first_scalar_string(activity, ["lighting_condition_model", "lighting_model"]),
+      "lighting_detail_model" =>
+        first_scalar_string(activity, ["lighting_detail_model", "lighting_detail_source"]),
+      "lighting_confidence" =>
+        first_number_or_scalar(activity, ["lighting_confidence", "lighting_confidence_label"])
     }
     |> compact_map()
   end
@@ -8215,6 +8220,17 @@ defmodule OrbitalDynamics.Timeline do
     Enum.find_value(keys, fn key ->
       value = first_value(activity, [key])
       numeric_value(value)
+    end)
+  end
+
+  defp first_number_or_scalar(activity, keys) do
+    Enum.find_value(keys, fn key ->
+      case first_value(activity, [key]) do
+        value when is_number(value) -> value
+        value when is_binary(value) and value != "" -> numeric_value(value) || value
+        value when is_atom(value) and not is_nil(value) -> Atom.to_string(value)
+        _value -> nil
+      end
     end)
   end
 

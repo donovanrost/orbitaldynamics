@@ -1,43 +1,42 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Schema-visible CandidateRefresh refreshed-window generated-ID scope.
+Raw operational timeline lighting alias normalization.
 
 Status:
-Implemented and focused verification passed. Runtime identity policy now
-exports the generated-ID scope for `candidate_refresh.v1` refreshed windows,
-matching the existing CandidateRefresh event-ordering invariant for refreshed
-window and candidate IDs.
+Implemented and focused verification passed. Raw timeline-map activity context
+now preserves provider lighting aliases alongside canonical fields, so
+`lighting_status`, `lighting_detail`, `lighting_model`,
+`lighting_detail_source`, and `lighting_confidence_label` feed the same
+review/import handoff fields that typed `MissionPlan.Activity` ingress already
+normalizes.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/schema.ex`
-- `schemas/*.schema.json`
-- `schemas/orbital_dynamics.schema_bundle.v1.json`
-- `test/orbital_dynamics/schema_test.exs`
+- `lib/orbital_dynamics/timeline.ex`
+- `test/orbital_dynamics/timeline_test.exs`
 
 Tests run:
-- `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
-- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `mix test test/orbital_dynamics/schema_test.exs:19835 test/orbital_dynamics/schema_test.exs:19968 test/orbital_dynamics/schema_test.exs:19999 test/orbital_dynamics/schema_test.exs:20336 test/mix/tasks/orbital_dynamics.schema.export_test.exs:39 test/mix/tasks/orbital_dynamics.schema.export_test.exs:5663 --trace --seed 0`
-- `mix orbital_dynamics.schema.lint --all`
+- `mix test test/orbital_dynamics/timeline_test.exs:5834 test/orbital_dynamics/timeline_test.exs:5900 --trace --seed 0`
+- `mix test test/orbital_dynamics/timeline_test.exs:9101 --trace --seed 0`
+- `mix format lib/orbital_dynamics/timeline.ex test/orbital_dynamics/timeline_test.exs`
 - `git diff --check`
+- `mix test test/orbital_dynamics/timeline_test.exs --trace --seed 0`
 
 Docs/artifacts changed:
-No docs text changes were needed. Existing CandidateRefresh docs already state
-that refreshed window and candidate IDs are stable under source-event ordering;
-this slice makes the refreshed-window generated-ID scope visible in exported
-identity-policy metadata.
+No schema exports were needed. This slice only broadens accepted raw input
+aliases for existing canonical timeline activity-context fields.
 
 Last commit:
-Current slice commit exports the CandidateRefresh refreshed-window generated-ID
-scope and is pushed to `origin/main`.
+Current slice commit normalizes raw operational timeline lighting aliases and is
+pushed to `origin/main`.
 
 Next candidate:
 After this slice is verified and pushed, re-read the guide/ledger/live worktree
 and continue with the highest-priority unimplemented typed activity,
-resource/communications, quality/readiness, or validation slice. Several
-candidate gaps checked during this slice were already implemented in live code.
+resource/communications, quality/readiness, or validation slice. Do not assume
+the broad partial/future docs still name a missing implementation; verify
+against live code before selecting the next slice.
 
 Blocked:
 No.
