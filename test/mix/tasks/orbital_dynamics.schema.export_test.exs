@@ -449,6 +449,30 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
     assert get_in(operational_timeline_schema, ["properties", "model_limits", "const"]) ==
              OrbitalDynamics.Timeline.model_limits()
 
+    operational_timeline_row_properties =
+      get_in(operational_timeline_schema, ["properties", "rows", "items", "properties"])
+
+    assert get_in(operational_timeline_row_properties, [
+             "command_authority_status",
+             "type"
+           ]) == "string"
+
+    assert get_in(operational_timeline_row_properties, ["required_authority", "type"]) ==
+             "string"
+
+    assert get_in(operational_timeline_row_properties, [
+             "command_safety_status",
+             "type"
+           ]) == "string"
+
+    assert get_in(operational_timeline_row_properties, ["command_authorized", "type"]) ==
+             "boolean"
+
+    assert get_in(operational_timeline_row_properties, [
+             "command_safety_checked",
+             "type"
+           ]) == "boolean"
+
     assert Map.has_key?(schemas, "timeline_diff_report.v1")
 
     timeline_diff_report_schema = schemas["timeline_diff_report.v1"]
@@ -5061,6 +5085,26 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "type"
            ]) == "boolean"
 
+    for {field, type} <- [
+          {"command_authority_status", "string"},
+          {"required_authority", "string"},
+          {"command_safety_status", "string"},
+          {"command_authorized", "boolean"},
+          {"command_safety_checked", "boolean"}
+        ] do
+      assert get_in(schemas, [
+               "operator_review_package.v1",
+               "properties",
+               "rows",
+               "items",
+               "properties",
+               "source_operational_timeline",
+               "properties",
+               field,
+               "type"
+             ]) == type
+    end
+
     assert get_in(schemas, [
              "strategy_branch.v1",
              "properties",
@@ -5193,6 +5237,40 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "command_safety_checked",
              "type"
            ]) == "boolean"
+
+    for {field, type} <- [
+          {"command_authority_status", "string"},
+          {"required_authority", "string"},
+          {"command_safety_status", "string"},
+          {"command_authorized", "boolean"},
+          {"command_safety_checked", "boolean"}
+        ] do
+      assert get_in(schemas, [
+               "cadence_import_manifest.v1",
+               "properties",
+               "rows",
+               "items",
+               "properties",
+               "source_operational_timeline",
+               "properties",
+               field,
+               "type"
+             ]) == type
+
+      assert get_in(schemas, [
+               "cadence_import_manifest.v1",
+               "properties",
+               "rows",
+               "items",
+               "properties",
+               "source_review_row",
+               "properties",
+               "source_operational_timeline",
+               "properties",
+               field,
+               "type"
+             ]) == type
+    end
 
     assert get_in(schemas, [
              "cadence_import_manifest.v1",

@@ -7179,6 +7179,12 @@ defmodule OrbitalDynamics.SchemaTest do
              "minimum" => 0.0,
              "maximum" => 1.0
            }
+
+    assert row_properties["command_authority_status"] == %{"type" => "string"}
+    assert row_properties["required_authority"] == %{"type" => "string"}
+    assert row_properties["command_safety_status"] == %{"type" => "string"}
+    assert row_properties["command_authorized"] == %{"type" => "boolean"}
+    assert row_properties["command_safety_checked"] == %{"type" => "boolean"}
   end
 
   test "exports timeline activity-state handoff schema fields" do
@@ -19514,6 +19520,17 @@ defmodule OrbitalDynamics.SchemaTest do
       "realized_command_safety_checked"
     ]
 
+    operational_timeline_string_fields = [
+      "command_authority_status",
+      "required_authority",
+      "command_safety_status"
+    ]
+
+    operational_timeline_boolean_fields = [
+      "command_authorized",
+      "command_safety_checked"
+    ]
+
     for contract <- ["operator_review_package.v1", "cadence_import_manifest.v1"] do
       assert {:ok, schema} = Schema.json_schema(contract)
       row_properties = get_in(schema, ["properties", "rows", "items", "properties"])
@@ -19524,6 +19541,17 @@ defmodule OrbitalDynamics.SchemaTest do
 
       Enum.each(boolean_fields, fn field ->
         assert get_in(row_properties, [field, "type"]) == "boolean"
+      end)
+
+      source_operational_timeline_properties =
+        get_in(row_properties, ["source_operational_timeline", "properties"])
+
+      Enum.each(operational_timeline_string_fields, fn field ->
+        assert get_in(source_operational_timeline_properties, [field, "type"]) == "string"
+      end)
+
+      Enum.each(operational_timeline_boolean_fields, fn field ->
+        assert get_in(source_operational_timeline_properties, [field, "type"]) == "boolean"
       end)
     end
 
@@ -19545,6 +19573,17 @@ defmodule OrbitalDynamics.SchemaTest do
 
     Enum.each(boolean_fields, fn field ->
       assert get_in(source_review_row_properties, [field, "type"]) == "boolean"
+    end)
+
+    source_review_operational_timeline_properties =
+      get_in(source_review_row_properties, ["source_operational_timeline", "properties"])
+
+    Enum.each(operational_timeline_string_fields, fn field ->
+      assert get_in(source_review_operational_timeline_properties, [field, "type"]) == "string"
+    end)
+
+    Enum.each(operational_timeline_boolean_fields, fn field ->
+      assert get_in(source_review_operational_timeline_properties, [field, "type"]) == "boolean"
     end)
   end
 

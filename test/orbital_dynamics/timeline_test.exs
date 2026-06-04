@@ -979,6 +979,124 @@ defmodule OrbitalDynamics.TimelineTest do
              Schema.validate_artifact(import)
   end
 
+  test "preserves command authority and safety through operational timeline review and import" do
+    report =
+      Timeline.operational_report([
+        %{
+          id: :cmd_auth,
+          timeline_id: "timeline:cmd_auth",
+          type: :command,
+          starts_at_s: 30.0,
+          ends_at_s: 40.0,
+          status: :planned,
+          approval_status: :pending,
+          direction: :command,
+          command_authority_status: :operator_required,
+          required_authority: :flight_director,
+          command_safety_status: :checked,
+          command_authorized: false,
+          command_safety_checked: true
+        }
+      ])
+
+    assert %{
+             "command_authority_status" => "operator_required",
+             "required_authority" => "flight_director",
+             "command_safety_status" => "checked",
+             "command_authorized" => false,
+             "command_safety_checked" => true,
+             "activity_context" => %{
+               "command_authority_status" => "operator_required",
+               "required_authority" => "flight_director",
+               "command_safety_status" => "checked",
+               "command_authorized" => false,
+               "command_safety_checked" => true
+             }
+           } = List.first(report["rows"])
+
+    review = OperatorReview.from_operational_timeline_report(report)
+    import = CadenceImport.from_operational_timeline_report(report)
+
+    assert %{
+             "review_type" => "operational_timeline_review",
+             "command_authority_status" => "operator_required",
+             "required_authority" => "flight_director",
+             "command_safety_status" => "checked",
+             "command_authorized" => false,
+             "command_safety_checked" => true,
+             "source_activity_context" => %{
+               "command_authority_status" => "operator_required",
+               "required_authority" => "flight_director",
+               "command_safety_status" => "checked",
+               "command_authorized" => false,
+               "command_safety_checked" => true
+             },
+             "source_operational_timeline" => %{
+               "command_authority_status" => "operator_required",
+               "required_authority" => "flight_director",
+               "command_safety_status" => "checked",
+               "command_authorized" => false,
+               "command_safety_checked" => true
+             }
+           } = List.first(review["rows"])
+
+    assert %{
+             "import_action" => "review_operational_timeline",
+             "command_authority_status" => "operator_required",
+             "required_authority" => "flight_director",
+             "command_safety_status" => "checked",
+             "command_authorized" => false,
+             "command_safety_checked" => true,
+             "source_review_row" => %{
+               "command_authority_status" => "operator_required",
+               "required_authority" => "flight_director",
+               "command_safety_status" => "checked",
+               "command_authorized" => false,
+               "command_safety_checked" => true
+             },
+             "source_operational_timeline" => %{
+               "command_authority_status" => "operator_required",
+               "required_authority" => "flight_director",
+               "command_safety_status" => "checked",
+               "command_authorized" => false,
+               "command_safety_checked" => true
+             }
+           } = List.first(import["rows"])
+
+    assert {:ok, %{"schema_contract" => "operational_timeline_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(import)
+
+    stale_review =
+      put_in(review, ["rows", Access.at(0), "command_safety_checked"], false)
+
+    assert {:error, stale_review_report} = Schema.validate_artifact(stale_review)
+
+    assert Enum.any?(
+             stale_review_report["errors"],
+             &(&1["path"] == "$.rows[0].command_safety_checked" and
+                 &1["message"] ==
+                   "must match source_operational_timeline.command_safety_checked")
+           )
+
+    stale_import =
+      put_in(import, ["rows", Access.at(0), "command_authority_status"], "stale")
+
+    assert {:error, stale_import_report} = Schema.validate_artifact(stale_import)
+
+    assert Enum.any?(
+             stale_import_report["errors"],
+             &(&1["path"] == "$.rows[0].command_authority_status" and
+                 &1["message"] ==
+                   "must match source_operational_timeline.command_authority_status")
+           )
+  end
+
   test "rejects unknown operational timeline kind values" do
     report =
       Timeline.operational_report([

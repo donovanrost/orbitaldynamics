@@ -8266,6 +8266,10 @@ defmodule OrbitalDynamics.OperatorReview do
         "command_success" => row_or_context_value(row, "command_success"),
         "contact_result" => row_or_context_provider_result_value(row, "contact_result"),
         "command_result" => row_or_context_provider_result_value(row, "command_result"),
+        "command_authority_status" => row_or_context_value(row, "command_authority_status"),
+        "command_safety_status" => row_or_context_value(row, "command_safety_status"),
+        "command_authorized" => row_or_context_value(row, "command_authorized"),
+        "command_safety_checked" => row_or_context_value(row, "command_safety_checked"),
         "command_success_factor" => row_or_context_value(row, "command_success_factor"),
         "command_success_factor_source" =>
           row_or_context_value(row, "command_success_factor_source"),
@@ -8349,8 +8353,8 @@ defmodule OrbitalDynamics.OperatorReview do
         "superseded_operator_action_reason" => row["superseded_operator_action_reason"],
         "requirement_type" => requirement["requirement_type"],
         "required_authority" =>
-          requirement["required_authority"] || rule_match["required_authority"] ||
-            policy_escalation["required_authority"],
+          row_or_context_value(row, "required_authority") || requirement["required_authority"] ||
+            rule_match["required_authority"] || policy_escalation["required_authority"],
         "policy_bundle_id" =>
           requirement["policy_bundle_id"] || policy_decision["policy_bundle_id"],
         "rule_id" =>

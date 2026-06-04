@@ -150,6 +150,7 @@ It advertises those identity objects in the exported `realized_activity.v1` JSON
 - Operational-timeline review/import rows and timeline-feedback realized-feedback review/import rows carry that evidence as top-level adapter-routeable fields.
 - Operational-timeline review/import rows likewise lift pointing and attitude mode/target/error/status/model/source evidence, link protocol/band/rate/quality evidence, observation-quality scores, feedback weights, and maneuver result fields as top-level adapter metadata.
 - They now also preserve planned and realized lighting/eclipsing evidence — such as eclipse-overlap fraction/duration, lighting condition/detail/model, confidence, image/product quality score/status/source, cloud-cover fraction, and blur score — through the same feedback, operator-review, and Cadence-import surfaces.
+- Operational-timeline review/import rows now preserve artifact-only command authority and command-safety context from planned timeline rows — including authority/safety status, required authority, authorization, and safety-check fields — without granting authority, signing, uplinking, importing, mutating schedules, or executing commands.
 - Exported nested activity-context schemas declare those identity, throughput/completion, maneuver-uncertainty, observation-quality, and lighting/eclipsing fields instead of leaving the source/realized/replacement contexts opaque, including Cadence import manifest import/source/realized/replacement context fields for adapter-facing row validation, and allow lighting confidence to be either the qualitative sampled-eclipse label used by generated candidates or the numeric confidence used by provider feedback.
 
 ## Downlink demand handoff
@@ -197,7 +198,7 @@ It advertises those identity objects in the exported `realized_activity.v1` JSON
 
 Status: **near-term**.
 
-- Continue broadening typed activity context into richer feedback import packages beyond the current product/data-volume, latency, link profile/quality, observation-quality, lighting/eclipsing, pointing/attitude, thermal, and resource/availability evidence.
+- Continue broadening typed activity context into richer feedback import packages beyond the current product/data-volume, latency, link profile/quality, observation-quality, lighting/eclipsing, pointing/attitude, thermal, command authority/safety, and resource/availability evidence.
 
 ## Later
 

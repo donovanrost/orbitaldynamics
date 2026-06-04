@@ -480,6 +480,11 @@ preserved as artifact-only handoff context, including planned and realized
 authority/safety statuses, required authority, authorization and safety-check
 booleans, and row-level match statuses without granting authority, signing,
 uplinking, or executing commands.
+Operational-timeline review/import handoff rows also preserve artifact-only
+command authority and command-safety context from the planned timeline row,
+including authority/safety status, required authority, authorization, and
+safety-check fields, without granting authority, signing, uplinking, importing,
+mutating schedules, or executing commands.
 Operational-timeline review/import handoff rows preserve the same top-level
 thermal evidence from operational timeline rows and activity contexts.
 Operational-timeline review/import handoff rows also preserve top-level

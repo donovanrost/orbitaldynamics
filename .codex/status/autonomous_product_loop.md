@@ -1,59 +1,58 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Timeline-feedback command authority and command-safety evidence survives
-realized-feedback review/import handoffs.
+Operational timeline command authority and command-safety evidence survives
+review/import handoffs.
 
 Status:
-Implementation, focused verification, formatting, and schema export refresh are
-complete. Read-only review found no publish blockers. Product commit and push
-are complete. Timeline feedback now preserves artifact-only command
-authority/safety context across planned source context, realized context,
-row-level planned/realized/match fields, operator-review rows, and Cadence
-import rows. The slice does not grant authority, sign commands, uplink, import,
-mutate schedules, or execute commands.
+Implementation, docs, schema validation, and checked-in schema export refresh
+are complete. Focused verification passes. Reviewer found no publish blockers;
+the nested schema/export assertion gap they noted was added. Operational
+timeline rows now carry command authority/safety context in reusable activity
+context, operator-review rows, Cadence import rows, nested source rows, and
+source-review rows. Runtime handoff validation rejects stale copied
+authority/safety values. This is artifact-only routing metadata; it does not
+grant authority, sign commands, uplink, import, mutate schedules, or execute
+commands.
 
-Files changed for this slice:
+Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `docs/artifacts/field_families/mission_activities.md`
-- `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/operator_review.ex`
-- `lib/orbital_dynamics/schema.ex`
+- `docs/feature_set/capability_map/08_mission_activities/partial-and-future.md`
 - `lib/orbital_dynamics/timeline.ex`
-- `lib/orbital_dynamics/timeline_feedback.ex`
-- `schemas/*.schema.json` impacted by shared activity-context embedding,
-  including `realized_activity.v1`, `timeline_feedback_report.v1`,
-  `operator_review_package.v1`, `cadence_import_manifest.v1`, and
-  `orbital_dynamics.schema_bundle.v1.json`
-- `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
+- `lib/orbital_dynamics/operator_review.ex`
+- `lib/orbital_dynamics/cadence_import.ex`
+- `lib/orbital_dynamics/schema.ex`
+- `schemas/*.schema.json` impacted by shared activity-context embedding and
+  `schemas/orbital_dynamics.schema_bundle.v1.json`
+- `test/orbital_dynamics/timeline_test.exs`
 - `test/orbital_dynamics/schema_test.exs`
-- `test/orbital_dynamics/timeline_feedback_test.exs`
+- `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/timeline_feedback_test.exs:1397 --trace --seed 0`
-- `mix test test/orbital_dynamics/schema_test.exs:17585 --trace --seed 0`
-- `mix test test/orbital_dynamics/schema_test.exs:19490 --trace --seed 0`
+- `mix test test/orbital_dynamics/timeline_test.exs:982 --trace --seed 0`
+- `mix test test/orbital_dynamics/schema_test.exs:7127 --trace --seed 0`
+- `mix test test/orbital_dynamics/schema_test.exs:19496 --trace --seed 0`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs:39 --trace --seed 0`
-- `mix test test/orbital_dynamics/schema_test.exs:19924 --trace --seed 0`
-- `mix test test/orbital_dynamics/timeline_feedback_test.exs --trace --seed 0`
+- `mix test test/orbital_dynamics/schema_test.exs:19963 --trace --seed 0`
+- `mix test test/orbital_dynamics/timeline_test.exs:982 test/orbital_dynamics/schema_test.exs:7127 test/orbital_dynamics/schema_test.exs:19496 test/mix/tasks/orbital_dynamics.schema.export_test.exs:39 test/orbital_dynamics/schema_test.exs:19963 --trace --seed 0`
+- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - `git diff --check`
 
-Schema export:
-- Refreshed with
-  `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`.
+Docs/artifacts changed:
+- Mission-activity artifact docs now state operational-timeline review/import
+  authority/safety handoff and no-execution boundary.
+- Capability-map partial/near-term doc now lists command authority/safety as
+  covered operational-timeline handoff context.
+- Checked-in schema exports refreshed.
 
-Review:
-- `slice_reviewer` reported no publish blockers. The review's suggested direct
-  downstream schema assertions were added before publish.
-
-Last product commit:
-- `26934f53284bb81c6f8bba4ab52a0ce7e9e08fdb` (`Preserve command authority feedback context`).
+Last commit:
+- Pending review/commit for this slice.
 
 Next candidate:
-Re-read `docs/autonomous_work_guide.md`, this ledger, and the live worktree
-before choosing another gap. Continue with the highest-priority unimplemented
-typed timeline/activity semantics before returning to resource/communications
-replay helpers.
+After review and publish, re-read the guide/ledger/live worktree and continue
+with the highest-priority unimplemented typed timeline/activity semantics before
+moving to resource/communications allocation work.
 
 Blocked:
 No.

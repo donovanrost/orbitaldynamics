@@ -2742,6 +2742,7 @@ defmodule OrbitalDynamics.Timeline do
     |> Map.merge(activity_lighting_context(activity))
     |> Map.merge(activity_thermal_context(activity))
     |> Map.merge(activity_resource_context(activity))
+    |> Map.merge(activity_command_authority_context(activity))
     |> Map.merge(activity_execution_uncertainty_context(activity))
     |> Map.merge(activity_feedback_context(activity))
     |> Map.merge(activity_command_window_context(activity))
