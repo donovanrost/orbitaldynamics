@@ -1,16 +1,17 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh model-acceptance source-report identity rollups.
+CandidateRefresh validation-safety-case source-report identity rollups.
 
 Status:
 Implemented with focused verification passing locally.
 `CandidateRefresh.source_report_summary/1` now
-flattens `source_report_model_acceptance_contract`,
-`source_report_model_acceptance_count`,
-`source_report_model_acceptance_row_count`, and
-`source_report_model_acceptance_paths` alongside the existing model-acceptance
-record, status, model-count, validation-level, and model-ID aggregate fields.
+flattens `source_report_validation_safety_case_contract`,
+`source_report_validation_safety_case_count`,
+`source_report_validation_safety_case_row_count`, and
+`source_report_validation_safety_case_paths` alongside the existing
+validation-safety-case evidence, status, input-contract, model/readiness,
+schema, and fixture aggregate fields.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -20,8 +21,10 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:23755`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:23955`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:29311`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:29523`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:29546`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:29562`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 
@@ -29,7 +32,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`0de446a` (`Flatten model acceptance replay identity`).
+`2542ea8` (`Record model acceptance slice commit`).
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth

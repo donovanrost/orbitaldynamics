@@ -2041,12 +2041,13 @@ rollups instead of emitting empty contract/count/row-count/path fields.
 `CandidateRefresh.validation_safety_case_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_validation_safety_case_replay_summary/1`
 expose the validation-safety-case slice as a branch-local replay summary. It
-preserves source paths, evidence status maps, input-contract maps,
-evidence-reference maps, model/readiness/quality-gate/schema/fixture counters,
-trust-boundary evidence, and review/blocking/schema/fixture pressure booleans
-without certifying safety cases or models, approving imports, writing to
-Cadence, or regenerating candidates. When evidence rows are present, evidence
-status maps are derived from those rows rather than stale top-level
+preserves contract, count, row-count, source paths, evidence status maps,
+input-contract maps, evidence-reference maps,
+model/readiness/quality-gate/schema/fixture counters, trust-boundary evidence,
+and review/blocking/schema/fixture pressure booleans without certifying safety
+cases or models, approving imports, writing to Cadence, or regenerating
+candidates. When evidence rows are present, evidence status maps are derived
+from those rows rather than stale top-level
 `evidence_status_counts` aggregates. Review and blocking pressure are true for
 status maps and evidence-reference maps, while schema and fixture pressure are
 true for schema/fixture input-contract or evidence-reference routing maps even
@@ -2062,7 +2063,12 @@ evidence maps, and inherited trust-boundary evidence; replay remains
 artifact-only and does not certify safety cases, approve imports, write to
 Cadence, or regenerate candidates.
 When validation-safety-case provenance is absent, the replay summary omits the
-contract field rather than defaulting to `validation_safety_case_summary.v1`.
+contract field rather than defaulting to `validation_safety_case_summary.v1`,
+and the aggregate source-report summary omits the top-level
+validation-safety-case identity rollups instead of emitting empty
+contract/count/row-count/path fields. Empty or partial placeholder provenance
+does not synthesize count, row-count, or path identity rollups unless both
+identity counts are present.
 Operator-review packages built from candidate-refresh artifacts also lift
 direct `source_validation_safety_case_summary` /
 `validation_safety_case_summary` evidence rows that are review-required or

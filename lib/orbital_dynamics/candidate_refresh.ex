@@ -4459,6 +4459,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "validation_safety_case_summary",
           "row_count"
         ),
+      "source_report_validation_safety_case_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "validation_safety_case_summary",
+          "contract"
+        ),
+      "source_report_validation_safety_case_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "validation_safety_case_summary",
+          "count"
+        ),
+      "source_report_validation_safety_case_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "validation_safety_case_summary",
+          "row_count"
+        ),
+      "source_report_validation_safety_case_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "validation_safety_case_summary",
+          "paths"
+        ),
       "source_report_validation_safety_case_status_counts" =>
         source_report_summary_family_merge_count_maps(
           source_reports,
@@ -17764,6 +17788,28 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
   defp source_report_summary_family_count_or_zero(source_reports, family, field) do
     source_report_summary_family_count(source_reports, family, field) || 0
+  end
+
+  defp source_report_summary_family_identity_count(source_reports, family, field) do
+    if source_report_summary_family_has_identity_counts?(source_reports, family) do
+      source_report_summary_family_count(source_reports, family, field)
+    end
+  end
+
+  defp source_report_summary_family_identity_field(source_reports, family, field) do
+    if source_report_summary_family_has_identity_counts?(source_reports, family) do
+      source_report_summary_family_field(source_reports, family, field)
+    end
+  end
+
+  defp source_report_summary_family_has_identity_counts?(source_reports, family) do
+    case Map.get(source_reports, family) do
+      %{} = summary ->
+        is_map_key(summary, "count") and is_map_key(summary, "row_count")
+
+      _summary ->
+        false
+    end
   end
 
   defp source_report_summary_family_field(source_reports, family, field) do

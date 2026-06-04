@@ -29363,6 +29363,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "mission_state.source_validation_safety_case_summary",
                "source_result_artifact.validation_safety_case_summary"
              ],
+             "source_report_validation_safety_case_contract" =>
+               "validation_safety_case_summary.v1",
+             "source_report_validation_safety_case_count" => 2,
+             "source_report_validation_safety_case_row_count" => 3,
+             "source_report_validation_safety_case_paths" => [
+               "mission_state.source_validation_safety_case_summary",
+               "source_result_artifact.validation_safety_case_summary"
+             ],
              "source_report_validation_safety_case_evidence_count" => 3,
              "source_report_validation_safety_case_status_counts" => %{
                "blocked" => 1,
@@ -29485,6 +29493,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 2,
+             "source_report_validation_safety_case_contract" =>
+               "validation_safety_case_summary.v1",
+             "source_report_validation_safety_case_count" => 2,
+             "source_report_validation_safety_case_row_count" => 3,
+             "source_report_validation_safety_case_paths" => [
+               "mission_state.source_validation_safety_case_summary",
+               "source_result_artifact.validation_safety_case_summary"
+             ],
              "source_report_validation_safety_case_evidence_count" => 3,
              "source_report_validation_safety_case_status_counts" => %{
                "blocked" => 1,
@@ -29510,8 +29526,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "provenance" => %{"source_reports" => %{}}
     }
 
+    source_summary = CandidateRefresh.source_report_summary(artifact)
     summary = CandidateRefresh.validation_safety_case_replay_summary(artifact)
 
+    refute Map.has_key?(source_summary, "source_report_validation_safety_case_contract")
+    refute Map.has_key?(source_summary, "source_report_validation_safety_case_count")
+    refute Map.has_key?(source_summary, "source_report_validation_safety_case_row_count")
+    refute Map.has_key?(source_summary, "source_report_validation_safety_case_paths")
     assert summary["source_report_count"] == 0
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_paths"] == []
@@ -29520,6 +29541,55 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     refute summary["branch_local_blocking_pressure"]
     refute summary["branch_local_schema_pressure"]
     refute summary["branch_local_fixture_pressure"]
+  end
+
+  test "validation safety case source summary omits identity counts for empty family placeholder" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{"validation_safety_case_summary" => %{}}
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    refute Map.has_key?(source_summary, "source_report_validation_safety_case_contract")
+    refute Map.has_key?(source_summary, "source_report_validation_safety_case_count")
+    refute Map.has_key?(source_summary, "source_report_validation_safety_case_row_count")
+    refute Map.has_key?(source_summary, "source_report_validation_safety_case_paths")
+  end
+
+  test "validation safety case source summary omits missing identity counts for partial family placeholder" do
+    partial_summaries = [
+      %{"contract" => "validation_safety_case_summary.v1"},
+      %{"count" => 2},
+      %{"row_count" => 3},
+      %{"paths" => ["provenance.source_reports.validation_safety_case_summary"]}
+    ]
+
+    for partial_summary <- partial_summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "validation_safety_case_summary" => partial_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      if Map.has_key?(partial_summary, "contract") do
+        assert source_summary["source_report_validation_safety_case_contract"] ==
+                 "validation_safety_case_summary.v1"
+      else
+        refute Map.has_key?(source_summary, "source_report_validation_safety_case_contract")
+      end
+
+      refute Map.has_key?(source_summary, "source_report_validation_safety_case_count")
+      refute Map.has_key?(source_summary, "source_report_validation_safety_case_row_count")
+      refute Map.has_key?(source_summary, "source_report_validation_safety_case_paths")
+    end
   end
 
   test "validation safety case replay treats status and contract maps as pressure" do
