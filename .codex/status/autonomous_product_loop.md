@@ -5,8 +5,8 @@ Timeline-diff replay reads and labels V3 branch
 `candidate_source.candidate_refresh_request_source_report_summary` metadata.
 
 Status:
-Implementation and focused verification complete for this slice. Pending
-review and publish.
+Implementation, focused verification, review, commit, and push complete for
+this slice.
 `CandidateRefresh.timeline_diff_replay_summary/1` now checks a non-empty V3
 branch `timeline_diff_report` source-report family before falling back to
 provenance. Branch-sourced summaries preserve duplicate identity,
@@ -38,7 +38,8 @@ Docs/artifacts changed:
   slice.
 
 Last product commit:
-- Pending review and publish for this slice.
+- `c125982` (`Label timeline-diff branch replay metadata`) pushed to
+  `origin/main`.
 
 Next candidate:
 Re-read `docs/autonomous_work_guide.md`, this ledger, and the live worktree
