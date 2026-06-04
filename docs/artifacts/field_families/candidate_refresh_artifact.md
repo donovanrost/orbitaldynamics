@@ -581,6 +581,11 @@ through the branch provenance boundary. The resource pressure boolean is true
 for resource/station availability reason maps, unavailable-resource IDs, or
 blocking-dimension maps even when the aggregate resource-availability pressure
 count is absent.
+When the branch `operational_readiness_report` source-report family is
+non-empty, the helper labels its output source and replay scope as
+candidate-source summary metadata, treats partial non-empty branch families as
+authoritative, and falls back to provenance labels for absent or empty branch
+families.
 Branch-generated refresh requests preserve direct and result-artifact-wrapped
 operational-readiness reports with wrapper-qualified request input paths and
 indexed embedded replay copies.

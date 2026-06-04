@@ -11718,15 +11718,33 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local operational-readiness replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, mutate candidates, approve operator
-  actions, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, mutate
+  candidates, approve operator actions, or write to Cadence.
   """
   def operational_readiness_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
+    branch_readiness_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "operational_readiness_report")
+
     readiness_summary =
-      get_in(source_summary, ["source_reports", "operational_readiness_report"]) || %{}
+      branch_readiness_summary ||
+        get_in(source_summary, ["source_reports", "operational_readiness_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_readiness_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.operational_readiness_report",
+          "operational_readiness_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.operational_readiness_report",
+          "operational_readiness_source_report_provenance_only"
+        }
+      end
 
     review_gate_count = summary_integer(readiness_summary, "review_gate_count")
     blocked_gate_count = summary_integer(readiness_summary, "blocked_gate_count")
@@ -11777,7 +11795,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_operational_readiness_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.operational_readiness_report",
+      "source" => summary_source,
       "contract" =>
         source_report_summary_contract(readiness_summary, "operational_readiness_report.v1"),
       "source_report_count" => summary_integer(readiness_summary, "count"),
@@ -11834,12 +11852,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "review_type_counts" => review_type_counts,
       "import_action_counts" => import_action_counts,
       "source_review_type_counts" => source_review_type_counts,
+      "trust_boundary_status" => Map.get(readiness_summary, "trust_boundary_status"),
+      "trust_boundaries" => Map.get(readiness_summary, "trust_boundaries", []),
       "branch_local_review_pressure" => review_pressure,
       "branch_local_import_pressure" => import_pressure,
       "branch_local_resource_pressure" => resource_pressure,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "operational_readiness_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_operational_readiness_replay_summary",
         "cadence_write" => "not_performed_by_summary",
         "candidate_generation" => "not_performed_by_summary"
