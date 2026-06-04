@@ -138,7 +138,12 @@ artifact ingress parses clean numeric-string timing fields, impulsive-burn
 `epoch_s` and `delta_v_km_s` entries, and known execution-uncertainty numeric
 fields plus trimmed case-insensitive JSON-style `locked` and `allow_overlap?` booleans while leaving
 malformed numeric strings or booleans invalid or opaque review metadata instead
-of silently coercing them. Maneuver-review reports pin their artifact-only
+of silently coercing them. Maneuver-review reports also gate malformed
+schema-typed optional maneuver metadata such as out-of-range
+`maneuver_success_factor`: invalid rows keep the review reason and source label,
+but withhold the invalid canonical value from downstream `source_recommendation`
+handoffs so operator-review and import artifacts stay schema-valid.
+Maneuver-review reports pin their artifact-only
 model-limit boundary in runtime validation and JSON Schema export, so review
 handoffs cannot publish stale maneuver execution assumptions. Resource margin fields and battery state of charge are
 bounded to `0.0..1.0` at typed activity construction, map ingress, executable

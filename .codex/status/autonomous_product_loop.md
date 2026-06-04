@@ -1,64 +1,59 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Validation reference fixture drift for current typed timeline/capability catalog outputs.
+Maneuver review optional metadata gating for schema-valid review handoffs.
 
 Status:
-Implemented and verified. The validation capability catalog now includes
-`timeline_activity_precondition_summary` in the candidate-refresh source-report
-input order, and its expected candidate-refresh input/source-report/helper
-counts match the current public catalog. The timeline activity state validation
-fixture now expects five model limits, matching the current checked-in artifact
-surface. The curated reference fixture report was regenerated from the current
-embedded observations and reports all 144 fixtures passing.
+Implemented and verified. Invalid maneuver recommendations still route to
+`review_invalid_maneuver_recommendation`, but malformed schema-typed optional
+metadata no longer leaks into downstream `source_recommendation` handoffs.
+Out-of-range `maneuver_success_factor` and non-numeric
+`delta_v_magnitude_km_s` are withheld from invalid source recommendation rows
+while invalid reasons and source labels remain available for operator review.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/validation.ex`
-- `study_results/validation_reference_fixtures.json`
-- `test/orbital_dynamics/validation_test.exs`
-
-Docs read:
-- `docs/autonomous_work_guide.md`
-- `.codex/prompts/context_efficient_autonomous_product_loop.md`
-- `.codex/status/autonomous_product_loop.md`
-- `docs/feature_set/capability_map/18_validation_and_verification.md`
-- `docs/mission_planning/high_fidelity/11_verification_and_validation.md`
-- `docs/artifacts/compatibility_checks.md`
+- `docs/artifacts/field_families/mission_activities.md`
+- `lib/orbital_dynamics/maneuver_review.ex`
+- `test/orbital_dynamics/maneuver_review_test.exs`
 
 Tests run:
-- `mix format lib/orbital_dynamics/validation.ex test/orbital_dynamics/validation_test.exs`
-- `mix test test/orbital_dynamics/validation_test.exs:3754`
-- `mix test test/orbital_dynamics/validation_test.exs:6779`
-- `mix test test/orbital_dynamics/validation_test.exs:10291`
-- `mix test test/orbital_dynamics/validation_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:10678`
-- `mix orbital_dynamics.schema.lint --all`
+- `mix format lib/orbital_dynamics/maneuver_review.ex test/orbital_dynamics/maneuver_review_test.exs`
+- `mix test test/orbital_dynamics/maneuver_review_test.exs:342`
+- `mix test test/orbital_dynamics/maneuver_review_test.exs`
 - `mix test`
 
+Docs/artifacts changed:
+`docs/artifacts/field_families/mission_activities.md` now states that
+maneuver-review invalid optional metadata keeps review/source evidence while
+withholding schema-invalid canonical values from downstream review/import
+`source_recommendation` handoffs.
+
 Full-suite status:
-`mix test` now reports `2802/2817 passed`; 15 failures remain. The stale
-validation fixture/schema failure from the prior ledger is resolved. Remaining
-failures are outside this slice: malformed maneuver optional metadata still
-leaks `source_recommendation.maneuver_success_factor` outside the schema range,
-multiple CampaignPlanner/operator-review paths still emit invalid
-`lighting_confidence` values, several CampaignPlanner result-artifact
-source-report path/count expectations still need reconciliation, and the
-checked-in V3 campaign run task still fails because its generated campaign
-artifact does not validate. The known `:propagator_exit` log still appears
-during the suite.
+`mix test` now reports `2803/2817 passed`; 14 failures remain. The previous
+malformed maneuver metadata operator-review schema failure is resolved.
+Remaining failures are outside this slice: CampaignPlanner/operator-review
+`lighting_confidence` values are still schema-invalid, several CampaignPlanner
+result-artifact source-report path/count expectations still need
+reconciliation, and the checked-in V3 campaign run task still fails because its
+generated campaign artifact does not validate. The known `:propagator_exit` log
+still appears during the suite.
 
 Review:
 `slice_reviewer` was unavailable because valid spawns hit the agent thread
-limit. Manual scoped review passed: changed assertions match the capability
-catalog fixture updates, the generated reference fixture report is internally
-all-pass, and residual full-suite failures remain outside this slice.
+limit. Manual scoped review passed: the sanitizer only touches invalid
+maneuver source rows, focused tests validate maneuver review, operator review,
+and Cadence import schemas, and the residual full-suite failures remain outside
+this slice.
+
+Last commit:
+Pending publish for current slice.
 
 Next candidate:
 Re-read the guide/ledger/live worktree and choose the next guide-backed slice.
-The remaining full-suite failures point to maneuver optional metadata gating,
-campaign/operator-review `lighting_confidence` normalization, and
-CampaignPlanner source-report path/count expectation drift.
+The remaining full-suite failures point to campaign/operator-review
+`lighting_confidence` normalization and CampaignPlanner source-report
+path/count expectation drift.
 
 Blocked:
 No.

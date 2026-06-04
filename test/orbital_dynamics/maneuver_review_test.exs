@@ -420,8 +420,11 @@ defmodule OrbitalDynamics.ManeuverReviewTest do
              ],
              "approval_rule_matches" => bad_success_factor_rule_matches,
              "policy_decision" => %{"policy_bundle_id" => "maneuver_authority_v1"},
-             "source_recommendation" => %{"maneuver_success_factor" => 1.2}
+             "source_recommendation" => bad_success_factor_source
            } = rows_by_id["bad_success_factor"]
+
+    refute Map.has_key?(bad_success_factor_source, "maneuver_success_factor")
+    assert bad_success_factor_source["maneuver_success_factor_source"] == "provider_confidence"
 
     assert Enum.any?(
              bad_success_factor_rule_matches,
@@ -450,8 +453,10 @@ defmodule OrbitalDynamics.ManeuverReviewTest do
              "required_operator_action" => "review_invalid_maneuver_recommendation",
              "invalid_maneuver_recommendation" => true,
              "invalid_maneuver_recommendation_reasons" => ["invalid_delta_v_magnitude_km_s"],
-             "source_recommendation" => %{"delta_v_magnitude_km_s" => "not-a-number"}
+             "source_recommendation" => bad_delta_v_magnitude_source
            } = rows_by_id["bad_delta_v_magnitude"]
+
+    refute Map.has_key?(bad_delta_v_magnitude_source, "delta_v_magnitude_km_s")
 
     review = OperatorReview.from_maneuver_review_report(report)
     import = CadenceImport.from_maneuver_review_report(report)

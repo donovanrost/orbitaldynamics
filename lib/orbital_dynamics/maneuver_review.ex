@@ -454,10 +454,28 @@ defmodule OrbitalDynamics.ManeuverReview do
   end
 
   defp source_recommendation(%{"invalid_maneuver_recommendation" => true} = recommendation) do
-    Map.get(recommendation, "source_recommendation", %{})
+    recommendation
+    |> Map.get("source_recommendation", %{})
+    |> sanitize_invalid_source_recommendation(
+      Map.get(recommendation, "invalid_maneuver_recommendation_reasons", [])
+    )
   end
 
   defp source_recommendation(recommendation), do: recommendation
+
+  defp sanitize_invalid_source_recommendation(%{} = source_recommendation, reasons) do
+    reasons
+    |> Enum.reduce(source_recommendation, fn
+      "invalid_maneuver_success_factor", recommendation ->
+        Map.delete(recommendation, "maneuver_success_factor")
+
+      "invalid_delta_v_magnitude_km_s", recommendation ->
+        Map.delete(recommendation, "delta_v_magnitude_km_s")
+
+      _reason, recommendation ->
+        recommendation
+    end)
+  end
 
   defp maneuver_approval_requirement(row) do
     recommendation = Map.get(row, "source_recommendation", %{})
