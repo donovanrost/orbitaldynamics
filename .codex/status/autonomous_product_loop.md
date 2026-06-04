@@ -5,7 +5,8 @@ Command-window and maneuver-review branch replay summaries label branch-sourced
 metadata accurately.
 
 Status:
-Implementation and focused verification complete for this slice.
+Implementation, focused verification, review, commit, and push complete for
+this slice.
 `CandidateRefresh.command_window_replay_summary/1` and
 `CandidateRefresh.maneuver_review_replay_summary/1` now label non-empty V3
 branch `candidate_source.candidate_refresh_request_source_report_summary`
@@ -31,7 +32,8 @@ Docs/artifacts changed:
   slice.
 
 Last product commit:
-- Pending review and publish for this slice.
+- `02aaafc` (`Label candidate refresh branch metadata`) pushed to
+  `origin/main`.
 
 Next candidate:
 Re-read `docs/autonomous_work_guide.md`, this ledger, and the live worktree
