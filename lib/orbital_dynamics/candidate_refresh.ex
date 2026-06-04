@@ -17540,44 +17540,46 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_candidate_diff_report_input_summary([]), do: nil
 
   defp source_candidate_diff_report_input_summary(sources) do
-    reports = Enum.map(sources, fn {_path, report} -> report end)
+    sources = deduplicate_shadowed_mission_state_result_artifact_sources(sources)
+    count_reports = Enum.map(sources, fn {_path, report} -> report end)
 
     %{
       "paths" => Enum.map(sources, fn {path, _report} -> path end),
       "contract" => "candidate_diff_report.v1",
-      "count" => length(sources),
-      "row_count" => sum_report_count(reports, &candidate_diff_report_row_count/1),
+      "count" => length(count_reports),
+      "row_count" => sum_report_count(count_reports, &candidate_diff_report_row_count/1),
       "retained_candidate_count" =>
-        sum_report_count(reports, &candidate_diff_report_retained_count/1),
-      "new_candidate_count" => sum_report_count(reports, &candidate_diff_report_new_count/1),
+        sum_report_count(count_reports, &candidate_diff_report_retained_count/1),
+      "new_candidate_count" =>
+        sum_report_count(count_reports, &candidate_diff_report_new_count/1),
       "invalidated_candidate_count" =>
-        sum_report_count(reports, &candidate_diff_report_invalidated_count/1),
+        sum_report_count(count_reports, &candidate_diff_report_invalidated_count/1),
       "diff_reason_counts" =>
-        reports
+        count_reports
         |> Enum.map(&candidate_diff_report_diff_reason_counts/1)
         |> merge_count_maps(),
       "invalidated_reason_counts" =>
-        reports
+        count_reports
         |> Enum.map(&candidate_diff_report_invalidated_reason_counts/1)
         |> merge_count_maps(),
       "semantic_change_reason_counts" =>
-        reports
+        count_reports
         |> Enum.map(&candidate_diff_report_semantic_change_reason_counts/1)
         |> merge_count_maps(),
       "candidate_diff_changed_field_counts" =>
-        reports
+        count_reports
         |> Enum.map(&candidate_diff_report_changed_field_counts/1)
         |> merge_count_maps(),
       "candidate_diff_candidate_id_counts" =>
-        reports
+        count_reports
         |> Enum.map(&candidate_diff_report_candidate_id_counts/1)
         |> merge_count_maps(),
       "candidate_diff_ground_station_counts" =>
-        reports
+        count_reports
         |> Enum.map(&candidate_diff_report_ground_station_counts/1)
         |> merge_count_maps(),
-      "trust_boundary_status" => source_report_trust_boundary_status(reports),
-      "trust_boundaries" => source_candidate_diff_report_trust_boundaries(reports)
+      "trust_boundary_status" => source_report_trust_boundary_status(count_reports),
+      "trust_boundaries" => source_candidate_diff_report_trust_boundaries(count_reports)
     }
     |> compact_map()
   end
@@ -17585,6 +17587,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_candidate_rejection_report_input_summary([]), do: nil
 
   defp source_candidate_rejection_report_input_summary(sources) do
+    sources = deduplicate_shadowed_mission_state_result_artifact_sources(sources)
     reports = Enum.map(sources, fn {_path, report} -> report end)
 
     %{
@@ -17596,7 +17599,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "reviewable_count" =>
         sum_report_count(reports, &numeric_report_count(&1, "reviewable_count")),
       "invalid_candidate_input_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "invalid_candidate_input_count")),
+        sum_report_count(
+          reports,
+          &numeric_report_count(&1, "invalid_candidate_input_count")
+        ),
       "rejection_reason_counts" =>
         reports
         |> Enum.map(&candidate_rejection_report_rejection_reason_counts/1)
@@ -17619,9 +17625,140 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> compact_map()
   end
 
+  defp source_report_semantic_fingerprint(%{} = report) do
+    report
+    |> stringify_keys()
+    |> drop_source_report_boundary_fields()
+  end
+
+  defp source_report_semantic_fingerprint(report), do: report
+
+  defp deduplicate_shadowed_mission_state_result_artifact_sources(
+         sources,
+         shadowed_report_keys \\ :all
+       ) do
+    direct_fingerprints =
+      sources
+      |> Enum.filter(fn {path, report} ->
+        mission_state_direct_source_report_path?(path) and branch_local_source_report?(report)
+      end)
+      |> Enum.map(fn {_path, report} -> source_report_semantic_fingerprint(report) end)
+      |> MapSet.new()
+
+    Enum.reject(sources, fn
+      {path, report} when is_binary(path) ->
+        mission_state_result_artifact_source_report_path?(path, shadowed_report_keys) and
+          branch_local_source_report?(report) and
+          MapSet.member?(direct_fingerprints, source_report_semantic_fingerprint(report))
+
+      {_path, _report} ->
+        false
+    end)
+  end
+
+  defp mission_state_direct_source_report_path?("mission_state." <> rest) do
+    not String.starts_with?(rest, "source_result_artifact.") and
+      not String.starts_with?(rest, "result_artifact.")
+  end
+
+  defp mission_state_direct_source_report_path?(_path), do: false
+
+  defp mission_state_result_artifact_source_report_path?(
+         "mission_state.source_result_artifact." <> rest
+       ) do
+    not indexed_source_report_path?(rest)
+  end
+
+  defp mission_state_result_artifact_source_report_path?("mission_state.result_artifact." <> rest) do
+    not indexed_source_report_path?(rest)
+  end
+
+  defp mission_state_result_artifact_source_report_path?(_path), do: false
+
+  defp mission_state_result_artifact_source_report_path?(path, :all),
+    do: mission_state_result_artifact_source_report_path?(path)
+
+  defp mission_state_result_artifact_source_report_path?(path, report_keys)
+       when is_list(report_keys) do
+    case mission_state_result_artifact_report_key(path) do
+      nil -> false
+      report_key -> report_key in report_keys
+    end
+  end
+
+  defp mission_state_result_artifact_report_key(
+         "mission_state.source_result_artifact." <> report_key
+       ),
+       do: strip_report_index(report_key)
+
+  defp mission_state_result_artifact_report_key("mission_state.result_artifact." <> report_key),
+    do: strip_report_index(report_key)
+
+  defp mission_state_result_artifact_report_key(_path), do: nil
+
+  defp strip_report_index(report_key) when is_binary(report_key) do
+    report_key
+    |> String.replace(~r/\[\d+\]$/, "")
+    |> String.split(".")
+    |> List.first()
+  end
+
+  defp indexed_source_report_path?(path) when is_binary(path),
+    do: Regex.match?(~r/\[\d+\]$/, path)
+
+  defp drop_source_report_boundary_fields(%{} = value) do
+    value
+    |> Map.drop([
+      "trust_boundary",
+      "trust_boundaries",
+      "provenance",
+      "metadata",
+      "_source_report_trust_boundary"
+    ])
+    |> Map.new(fn {key, nested_value} ->
+      {key, drop_source_report_boundary_fields(nested_value)}
+    end)
+  end
+
+  defp drop_source_report_boundary_fields(values) when is_list(values) do
+    Enum.map(values, &drop_source_report_boundary_fields/1)
+  end
+
+  defp drop_source_report_boundary_fields(value), do: value
+
+  defp branch_local_source_report?(%{} = report) do
+    report = stringify_keys(report)
+
+    if Map.get(report, "schema_contract") in [
+         "candidate_diff_report.v1",
+         "candidate_rejection_report.v1"
+       ] do
+      true
+    else
+      branch_local_source_report_boundary?(report)
+    end
+  end
+
+  defp branch_local_source_report?(_report), do: false
+
+  defp branch_local_source_report_boundary?(report) do
+    [
+      report["trust_boundary"],
+      get_in(report, ["provenance", "trust_boundary"]),
+      get_in(report, ["metadata", "trust_boundary"]),
+      report["_source_report_trust_boundary"]
+    ]
+    |> Enum.any?(fn
+      "branch_" <> _rest -> true
+      "live_branch_" <> _rest -> true
+      _boundary -> false
+    end)
+  end
+
   defp source_provider_counteroffer_report_input_summary([]), do: nil
 
   defp source_provider_counteroffer_report_input_summary(sources) do
+    sources = deduplicate_shadowed_mission_state_result_artifact_sources(sources)
     reports = Enum.map(sources, fn {_path, report} -> report end)
 
     %{
@@ -17701,6 +17838,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_timeline_diff_report_input_summary([]), do: nil
 
   defp source_timeline_diff_report_input_summary(sources) do
+    sources = deduplicate_shadowed_mission_state_result_artifact_sources(sources)
     reports = Enum.map(sources, fn {_path, report} -> report end)
 
     %{
@@ -19692,6 +19830,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_resource_projection_report_input_summary([]), do: nil
 
   defp source_resource_projection_report_input_summary(sources) do
+    sources = deduplicate_shadowed_mission_state_result_artifact_sources(sources)
     reports = Enum.map(sources, fn {_path, report} -> report end)
 
     resource_pressure_direction_counts =
@@ -19834,6 +19973,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_resource_filter_report_input_summary([]), do: nil
 
   defp source_resource_filter_report_input_summary(sources) do
+    sources = deduplicate_shadowed_mission_state_result_artifact_sources(sources)
     reports = Enum.map(sources, fn {_path, report} -> report end)
 
     direction_counts =
@@ -20067,6 +20207,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_station_calendar_report_input_summary([]), do: nil
 
   defp source_station_calendar_report_input_summary(sources) do
+    sources = deduplicate_shadowed_mission_state_result_artifact_sources(sources)
     reports = Enum.map(sources, fn {_path, report} -> report end)
 
     %{
@@ -21012,6 +21153,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_constraint_report_input_summary([]), do: nil
 
   defp source_constraint_report_input_summary(sources) do
+    sources = deduplicate_shadowed_mission_state_result_artifact_sources(sources)
     reports = Enum.map(sources, fn {_path, report} -> report end)
 
     %{
@@ -21060,6 +21202,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_objective_satisfaction_report_input_summary([]), do: nil
 
   defp source_objective_satisfaction_report_input_summary(sources) do
+    sources = deduplicate_shadowed_mission_state_result_artifact_sources(sources)
     reports = Enum.map(sources, fn {_path, report} -> report end)
 
     %{
@@ -21112,6 +21255,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_objective_tradeoff_report_input_summary([]), do: nil
 
   defp source_objective_tradeoff_report_input_summary(sources) do
+    sources = deduplicate_shadowed_mission_state_result_artifact_sources(sources)
     reports = Enum.map(sources, fn {_path, report} -> report end)
 
     %{
@@ -21150,6 +21294,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_score_term_report_input_summary([]), do: nil
 
   defp source_score_term_report_input_summary(sources) do
+    sources = deduplicate_shadowed_mission_state_result_artifact_sources(sources)
     reports = Enum.map(sources, fn {_path, report} -> report end)
 
     %{
@@ -21192,7 +21337,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_link_capacity_report_input_summary([]), do: nil
 
   defp source_link_capacity_report_input_summary(sources) do
+    sources = deduplicate_shadowed_mission_state_result_artifact_sources(sources)
     reports = Enum.map(sources, fn {_path, report} -> report end)
+
     directions = link_capacity_report_directions(reports)
 
     %{
@@ -21439,6 +21586,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_contact_allocation_report_input_summary([]), do: nil
 
   defp source_contact_allocation_report_input_summary(sources) do
+    sources = deduplicate_shadowed_mission_state_result_artifact_sources(sources)
     reports = Enum.map(sources, fn {_path, report} -> report end)
 
     %{
@@ -21981,6 +22129,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_contact_contention_report_input_summary([]), do: nil
 
   defp source_contact_contention_report_input_summary(sources) do
+    sources = deduplicate_shadowed_mission_state_result_artifact_sources(sources)
     reports = Enum.map(sources, fn {_path, report} -> report end)
 
     %{
@@ -22034,6 +22183,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_contact_contention_resolution_report_input_summary([]), do: nil
 
   defp source_contact_contention_resolution_report_input_summary(sources) do
+    sources = deduplicate_shadowed_mission_state_result_artifact_sources(sources)
     reports = Enum.map(sources, fn {_path, report} -> report end)
 
     %{

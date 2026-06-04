@@ -45470,12 +45470,31 @@ defmodule OrbitalDynamics.CampaignPlanner do
     result_artifact_source_report_input_keys()
     |> Enum.flat_map(fn key ->
       value = Map.get(artifact, key)
-
-      if source_report_input_present?(value), do: ["#{path}.#{key}"], else: []
+      result_artifact_source_report_input_key_paths(path, key, value)
     end)
   end
 
   defp result_artifact_source_report_input_paths(_path, _artifact), do: []
+
+  defp result_artifact_source_report_input_key_paths(path, key, values) when is_list(values) do
+    if result_artifact_source_report_collection_key?(key) do
+      values
+      |> Enum.with_index()
+      |> Enum.flat_map(fn {value, index} ->
+        if source_report_input_present?(value), do: ["#{path}.#{key}[#{index}]"], else: []
+      end)
+    else
+      if source_report_input_present?(values), do: ["#{path}.#{key}"], else: []
+    end
+  end
+
+  defp result_artifact_source_report_input_key_paths(path, key, value) do
+    if source_report_input_present?(value), do: ["#{path}.#{key}"], else: []
+  end
+
+  defp result_artifact_source_report_collection_key?(key) do
+    String.ends_with?(key, "_report") or String.ends_with?(key, "_summary")
+  end
 
   defp result_artifact_source_report_input_keys do
     candidate_refresh_source_report_input_fields()
