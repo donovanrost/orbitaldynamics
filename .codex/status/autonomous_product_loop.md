@@ -1,22 +1,27 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Station-calendar provider alias schema challenge coverage.
+Stable-ID JSON schema conditions for validation registries.
 
 Status:
-Implemented and focused verification passed. The live station-calendar provider
-runtime and schema already support provider rows keyed by `station_id` and
-reservation-hold identity aliases (`reservation_id`, `reservation_hold_id`,
-`hold_id`). This slice locks the exported schema and executable validator
-coverage so stale provider-calendar aliases cannot drift silently: the exported
-entry schema now has a direct test for `station_id` as a required alternative,
-and invalid `reservation_hold_id` / `hold_id` aliases are rejected by
-`Schema.validate_artifact/1`.
+Implemented and verification passed. Registry-backed conditional JSON Schema
+clauses for validation records and environment capabilities now expose
+conditional `id` matchers as stable-ID string schemas with both `pattern` and
+`const`, instead of opaque const-only identity properties. This clears the
+public exported-schema identity gate while preserving exact registry-backed
+`model` / `known_limits` constraints and external validation-record
+extensibility.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `test/orbital_dynamics/communications/station_calendar_test.exs`
-- `test/orbital_dynamics/schema_test.exs`
+- `lib/orbital_dynamics/schema.ex`
+- `schemas/candidate_refresh.v1.schema.json`
+- `schemas/environment_model_capability.v1.schema.json`
+- `schemas/environment_provider_capability.v1.schema.json`
+- `schemas/model_acceptance_report.v1.schema.json`
+- `schemas/orbital_dynamics.schema_bundle.v1.json`
+- `schemas/validation_record.v1.schema.json`
+- `schemas/validation_safety_case_summary.v1.schema.json`
 
 Docs read:
 - `docs/autonomous_work_guide.md`
@@ -24,28 +29,29 @@ Docs read:
 - `docs/artifacts/compatibility_checks.md`
 
 Tests run:
-- `mix format test/orbital_dynamics/schema_test.exs test/orbital_dynamics/communications/station_calendar_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:17445`
-- `mix test test/orbital_dynamics/communications/station_calendar_test.exs:4650`
-- `mix test test/orbital_dynamics/communications/station_calendar_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs` failed 112/113 passed on unrelated `exported schemas do not leave identity fields as opaque object schemas`
-- `mix test test/orbital_dynamics/schema_test.exs:15561` reproduces the unrelated schema identity-field failure
+- `mix format lib/orbital_dynamics/schema.ex`
+- `mix test test/orbital_dynamics/schema_test.exs:15561`
+- `mix test test/orbital_dynamics/schema_test.exs:10779`
+- `mix test test/orbital_dynamics/schema_test.exs:17060`
+- `mix test test/orbital_dynamics/schema_test.exs:18546`
+- `mix test test/orbital_dynamics/schema_test.exs:20117`
+- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
+- `mix test test/orbital_dynamics/schema_test.exs:20367`
+- `mix test test/orbital_dynamics/schema_test.exs`
+- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 
 Docs/artifacts changed:
-No public docs, schema exports, or checked-in study artifacts changed. The slice
-only pins existing station-calendar provider alias behavior in tests.
+Checked-in schema exports were refreshed for validation-record, model-acceptance,
+candidate-refresh, validation-safety-case, and environment capability contracts,
+plus the schema bundle. No prose docs changed.
 
 Last commit:
-Current slice commit is pushed to `origin/main` as `d32242f` (`Cover station
-calendar provider aliases`). `slice_reviewer` and `git_slice_publisher` were
-both unavailable because valid spawns hit the agent thread limit, so review and
-publish were performed manually with scoped staging. The unrelated `.gitignore`
-scratch-ignore change was left unstaged.
+Pending.
 
 Next candidate:
-After review/publish, continue from the guide queue. The unrelated schema
-identity-field failure may be a later validation slice; do not mix it into this
-station-calendar provider alias test slice.
+After review/publish, re-read the guide/ledger/live worktree and continue with
+the highest-priority current gap. The prior station-calendar provider alias
+slice is already pushed as `d32242f`, followed by ledger commit `ae966db`.
 
 Blocked:
 No.

@@ -8870,7 +8870,7 @@ defmodule OrbitalDynamics.Schema do
       for %{"id" => id, "known_limits" => limits} <-
             OrbitalDynamics.Environment.model_capabilities() do
         %{
-          "if" => %{"properties" => %{"id" => %{"const" => id}}},
+          "if" => %{"properties" => %{"id" => stable_id_const_json_schema(id)}},
           "then" => %{"properties" => %{"known_limits" => %{"const" => limits}}}
         }
       end
@@ -8888,7 +8888,7 @@ defmodule OrbitalDynamics.Schema do
       for %{"id" => id, "known_limits" => limits} <-
             OrbitalDynamics.Environment.provider_capabilities() do
         %{
-          "if" => %{"properties" => %{"id" => %{"const" => id}}},
+          "if" => %{"properties" => %{"id" => stable_id_const_json_schema(id)}},
           "then" => %{"properties" => %{"known_limits" => %{"const" => limits}}}
         }
       end
@@ -20239,7 +20239,7 @@ defmodule OrbitalDynamics.Schema do
     |> Enum.sort_by(& &1["id"])
     |> Enum.map(fn %{"id" => id, "model" => model, "known_limits" => limits} ->
       %{
-        "if" => %{"properties" => %{"id" => %{"const" => id}}},
+        "if" => %{"properties" => %{"id" => stable_id_const_json_schema(id)}},
         "then" => %{
           "properties" => %{
             "model" => %{"const" => model},
@@ -20248,6 +20248,10 @@ defmodule OrbitalDynamics.Schema do
         }
       }
     end)
+  end
+
+  defp stable_id_const_json_schema(id) do
+    %{"type" => "string", "pattern" => @stable_id_pattern, "const" => id}
   end
 
   defp model_acceptance_row_json_schema do
