@@ -347,6 +347,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert :source_report_timeline_activity_lifecycle_state_routing_maps in source_report_summary_semantics
 
+    assert :source_report_timeline_activity_precondition_routing_maps in source_report_summary_semantics
+
     assert :source_report_timeline_dependency_impact_routing_maps in source_report_summary_semantics
 
     assert :source_report_timeline_transition_application_routing_count_maps in source_report_summary_semantics
@@ -434,6 +436,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert :source_report_timeline_activity_approval_state_branch_replay_summary in source_report_summary_semantics
 
     assert :source_report_timeline_activity_lifecycle_state_branch_replay_summary in source_report_summary_semantics
+
+    assert :source_report_timeline_activity_precondition_branch_replay_summary in source_report_summary_semantics
 
     assert :source_report_timeline_preservation_branch_replay_summary in source_report_summary_semantics
 
@@ -20189,7 +20193,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_row_counts_by_family" => %{
                "timeline_activity_precondition_summary" => 9
              },
+             "source_report_timeline_activity_precondition_contract" =>
+               "timeline_activity_precondition_summary.v1",
+             "source_report_timeline_activity_precondition_count" => 4,
              "source_report_timeline_activity_precondition_row_count" => 9,
+             "source_report_timeline_activity_precondition_paths" => [
+               "source_timeline_activity_precondition_summary",
+               "source_result_artifact[0].timeline_activity_precondition_summary",
+               "source_operator_review_package.rows.source_timeline_activity_precondition_summary",
+               "source_cadence_import_manifest.rows.source_review_row.source_timeline_activity_precondition_summary"
+             ],
              "source_report_timeline_activity_precondition_source_summary_model_counts" => %{
                "artifact_only_timeline_activity_precondition_summary" => 4
              },

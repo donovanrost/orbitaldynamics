@@ -1,18 +1,17 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh contract-scoped timeline activity status/approval state source-report
-summary fields.
+CandidateRefresh timeline activity-precondition source-report identity and
+capability semantics.
 
 Status:
 Implemented with focused verification passing locally. `CandidateRefresh.source_report_summary/1`
-now exposes flattened `source_report_timeline_activity_status_state_*` and
-`source_report_timeline_activity_approval_state_*` evidence alongside the
-existing aggregate `timeline_activity_state` family. The new fields preserve
-contract, source count, row count, source paths, model/schema count maps,
-transition/action/import counts, status/approval transition category counts,
-activity/timeline/review routing maps, invalid-input evidence, and action
-routing for status-only and approval-only replay consumers.
+now flattens `source_report_timeline_activity_precondition_contract`,
+`source_report_timeline_activity_precondition_count`, and
+`source_report_timeline_activity_precondition_paths` alongside the existing
+precondition status, type, dependency, exclusivity, overlap, invalid-input, and
+activity/timeline routing maps. `CandidateRefresh.capabilities/0` now advertises
+the timeline activity-precondition routing and branch-replay semantics.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -22,28 +21,24 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:17421`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs:27`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:18047`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:18285`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:18476`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:20154`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 
 Definition of done:
-Aggregate CandidateRefresh source-report summaries advertise and emit
-contract-scoped status-state and approval-state replay fields, tests prove those
-fields match the standalone replay helpers for source paths and action routing,
-the artifact-family docs describe the handoff, and the full CandidateRefresh
-test file passes.
+Aggregate CandidateRefresh source-report summaries expose precondition contract,
+count, and source-path identity at top level; capability metadata advertises the
+precondition routing and branch replay semantics; docs describe the compact
+handoff; and focused plus full CandidateRefresh tests pass.
 
 Last completed/pushed commit before this slice:
-`483fccd` (`Preserve resource summary generated energy`).
+`887a317` (`Flatten timeline single-state replay summaries`).
 
 Next candidate:
-Continue guide-backed CandidateRefresh depth from queue item 4, favoring a
-source-report family that has runtime/review evidence but lacks aggregate
-source-report flattening or branch-local replay routing. If live inspection
+Continue guide-backed CandidateRefresh depth from queue item 4, looking for the
+next source-report family where replay helpers exist but aggregate source-report
+identity, routing, or capability advertisement is incomplete. If live inspection
 shows queue item 4 saturated, move to queue item 5 validation/compatibility
 fixtures.
 

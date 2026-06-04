@@ -425,6 +425,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :source_report_timeline_activity_status_state_routing_maps,
         :source_report_timeline_activity_approval_state_routing_maps,
         :source_report_timeline_activity_lifecycle_state_routing_maps,
+        :source_report_timeline_activity_precondition_routing_maps,
         :source_report_timeline_integrity_routing_maps,
         :source_report_timeline_lifecycle_state_routing_maps,
         :source_report_timeline_dependency_impact_routing_maps,
@@ -470,6 +471,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :source_report_timeline_activity_status_state_branch_replay_summary,
         :source_report_timeline_activity_approval_state_branch_replay_summary,
         :source_report_timeline_activity_lifecycle_state_branch_replay_summary,
+        :source_report_timeline_activity_precondition_branch_replay_summary,
         :source_report_timeline_preservation_branch_replay_summary,
         :source_report_timeline_integrity_branch_replay_summary,
         :source_report_timeline_diff_branch_replay_summary,
@@ -5258,6 +5260,24 @@ defmodule OrbitalDynamics.CandidateRefresh do
           source_reports,
           "timeline_activity_lifecycle_state",
           "action_routing"
+        ),
+      "source_report_timeline_activity_precondition_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "timeline_activity_precondition_summary",
+          "contract"
+        ),
+      "source_report_timeline_activity_precondition_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "timeline_activity_precondition_summary",
+          "count"
+        ),
+      "source_report_timeline_activity_precondition_paths" =>
+        source_report_summary_family_field(
+          source_reports,
+          "timeline_activity_precondition_summary",
+          "paths"
         ),
       "source_report_timeline_activity_precondition_row_count" =>
         source_report_summary_family_count(
