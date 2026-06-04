@@ -6,7 +6,8 @@ Candidate-diff replay reads and labels branch
 
 Status:
 Implementation, focused verification, and read-only review are complete for
-this slice. Publish is pending. `CandidateRefresh.candidate_diff_replay_summary/1`
+this slice. Product commit and push are complete. This status handoff records
+the published state. `CandidateRefresh.candidate_diff_replay_summary/1`
 now checks a non-empty branch `candidate_diff_report` source-report family
 before falling back to provenance. Branch-sourced summaries preserve
 source-report counts, row counts, paths, retained/new/invalidated counts, diff
@@ -42,7 +43,8 @@ Docs/artifacts changed:
   schema exports or checked-in study artifacts changed in this slice.
 
 Last product commit:
-- Pending.
+- `f177bf530dc0847e006cb1dffaa99c88568ceea0` (`Label candidate diff branch
+  replay metadata`) pushed to `origin/main`.
 
 Next candidate:
 After publish, re-read `docs/autonomous_work_guide.md`, this ledger, and the
