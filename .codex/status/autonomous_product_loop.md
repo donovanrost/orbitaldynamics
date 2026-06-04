@@ -29,7 +29,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-Pending candidate-rejection slice commit.
+`25aad5c` (`Flatten candidate rejection replay identity`).
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth
