@@ -36,7 +36,11 @@ No public docs, schema exports, or checked-in study artifacts changed. The slice
 only pins existing station-calendar provider alias behavior in tests.
 
 Last commit:
-Pending.
+Current slice commit is pushed to `origin/main` as `d32242f` (`Cover station
+calendar provider aliases`). `slice_reviewer` and `git_slice_publisher` were
+both unavailable because valid spawns hit the agent thread limit, so review and
+publish were performed manually with scoped staging. The unrelated `.gitignore`
+scratch-ignore change was left unstaged.
 
 Next candidate:
 After review/publish, continue from the guide queue. The unrelated schema
