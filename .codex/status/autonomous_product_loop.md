@@ -28,7 +28,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`b2c9c74` (`Flatten objective gap replay identity`).
+`758b72d` (`Flatten constraint replay identity`).
 
 Next candidate:
 Continue guide-backed CandidateRefresh depth from queue item 4, looking for the
