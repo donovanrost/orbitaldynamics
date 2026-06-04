@@ -760,7 +760,11 @@ defmodule OrbitalDynamics.TimelineFeedback do
 
   defp realized_input_to_row({%{} = activity, sequence}) do
     source_activity = stringify_keys(activity)
-    activity = normalize_realized_activity_type_alias(source_activity)
+
+    activity =
+      source_activity
+      |> normalize_realized_activity_type_alias()
+      |> normalize_realized_activity_direction_alias()
 
     invalid_sections =
       invalid_realized_feedback_unit_interval_sections(activity) ++
@@ -803,6 +807,55 @@ defmodule OrbitalDynamics.TimelineFeedback do
 
       true ->
         activity
+    end
+  end
+
+  defp normalize_realized_activity_direction_alias(%{} = activity) do
+    case Map.get(activity, "direction") do
+      direction when is_binary(direction) ->
+        case normalize_realized_contact_direction(direction) do
+          nil -> Map.delete(activity, "direction")
+          normalized -> Map.put(activity, "direction", normalized)
+        end
+
+      _direction ->
+        activity
+    end
+  end
+
+  defp normalize_realized_contact_direction(direction) when direction in [nil, ""], do: nil
+
+  defp normalize_realized_contact_direction(direction) do
+    direction
+    |> String.trim()
+    |> String.downcase()
+    |> String.replace(~r/[\s-]+/, "_")
+    |> case do
+      "cmd" -> "command"
+      "commanding" -> "command"
+      "commands" -> "command"
+      "sband_command" -> "command"
+      "s_band_command" -> "command"
+      "uplink" -> "uplink"
+      "up" -> "uplink"
+      "up_link" -> "uplink"
+      "dl" -> "downlink"
+      "down" -> "downlink"
+      "downlinking" -> "downlink"
+      "downlink" -> "downlink"
+      "down_link" -> "downlink"
+      "tracking" -> "tracking"
+      "track" -> "tracking"
+      "track_ing" -> "tracking"
+      "tracking_pass" -> "tracking"
+      "health" -> "health_check"
+      "health_check" -> "health_check"
+      "healthcheck" -> "health_check"
+      "health_check_window" -> "health_check"
+      "contact" -> "contact"
+      "nil" -> nil
+      "" -> nil
+      value -> value
     end
   end
 
@@ -4024,6 +4077,8 @@ defmodule OrbitalDynamics.TimelineFeedback do
        when direction in @command_contact_directions,
        do: "command"
 
+  defp realized_operational_kind(%{"direction" => "health_check"}), do: "health_check"
+
   defp realized_operational_kind(%{"type" => type})
        when type in ["downlink", "planned_contact", "tracking"],
        do: "contact"
@@ -5107,14 +5162,14 @@ defmodule OrbitalDynamics.TimelineFeedback do
     do: true
 
   defp command_feedback_activity?(%{"direction" => direction})
-       when direction in @command_contact_directions,
+       when direction in @command_contact_directions or direction == "health_check",
        do: true
 
   defp command_feedback_activity?(_activity), do: false
 
-  defp contact_feedback_activity?(%{"type" => type})
+  defp contact_feedback_activity?(%{"type" => type} = activity)
        when type in ["downlink", "planned_contact", "tracking"],
-       do: true
+       do: not command_feedback_activity?(activity)
 
   defp contact_feedback_activity?(%{"direction" => direction})
        when direction in ["downlink", "tracking"],

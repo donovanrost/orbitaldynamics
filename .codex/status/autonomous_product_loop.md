@@ -1,53 +1,44 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh objective-gap replay validation fixture.
+TimelineFeedback realized activity direction alias normalization.
 
 Status:
-Implemented and verified locally; pending review and publish. The
-validation-reference registry now includes a generated CandidateRefresh
-objective-gap replay fixture. The fixture observes objective-satisfaction,
-objective-tradeoff, and score-term source-report provenance counts,
-row-derived gap/status/term maps, source activity routing, and trust-boundary
-status. Stale plausible objective-status observations now fail fixture
-verification.
+Implemented and verified locally; pending review and publish. Realized feedback
+normalization now canonicalizes provider `direction` aliases such as
+`s-band command`, `dl`, `tracking-pass`, and `healthcheck` before realized
+operational kind and command/contact/health-check handoff classification. Raw
+provider direction values remain in the source/realized activity payloads while
+normalized contexts and downstream review/import rows carry the canonical
+direction.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `docs/artifacts/compatibility_checks.md`
-- `lib/orbital_dynamics/validation.ex`
-- `study_results/validation_reference_fixtures.json`
-- `test/orbital_dynamics/validation_test.exs`
+- `lib/orbital_dynamics/timeline_feedback.ex`
+- `test/orbital_dynamics/timeline_feedback_test.exs`
 
 Tests run:
-- `mix format lib/orbital_dynamics/validation.ex test/orbital_dynamics/validation_test.exs`
-- `mix test test/orbital_dynamics/validation_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs test/mix/tasks/orbital_dynamics.schema.lint_test.exs`
-- `mix orbital_dynamics.schema.lint --all --input-dir study_results --output study_results/schema_validation_batch_report_v1.json`
-- `git diff --check`
+- `mix format lib/orbital_dynamics/timeline_feedback.ex test/orbital_dynamics/timeline_feedback_test.exs`
+- `mix test test/orbital_dynamics/timeline_feedback_test.exs`
+- `git diff --check -- .codex/status/autonomous_product_loop.md lib/orbital_dynamics/timeline_feedback.ex test/orbital_dynamics/timeline_feedback_test.exs`
 
 Docs/artifacts changed:
-`docs/artifacts/compatibility_checks.md` documents the generated
-CandidateRefresh objective-gap replay fixture. The validation reference report
-now includes 148 fixtures; the schema-validation batch still covers 125
-`study_results` artifacts.
+No checked-in docs or generated artifacts changed. Existing mission activity
+field-family docs already describe realized feedback direction normalization
+through `TimelineFeedback.normalize_realized_activity/2` and
+`normalize_realized_activities/2`.
 
 Last published before this slice:
-`cead683` (`Update autonomous loop ledger`) pushed to `origin/main` after
-`eabb4b5` (`Add contact-intent replay validation fixture`).
+`eaade37` (`Add objective gap replay validation fixture`) pushed to
+`origin/main`.
 
 Review:
 Pending.
 
 Next candidate:
-Mapper agent found a real runtime gap in
-`lib/orbital_dynamics/timeline_feedback.ex`: realized-only activity direction
-aliases such as `cmd` / `s_band_command` are not normalized before
-`realized_operational_kind/1` and command feedback classification. Consider a
-focused slice that normalizes realized `direction` aliases in
-`TimelineFeedback.normalize_realized_activity/1` and adds
-`test/orbital_dynamics/timeline_feedback_test.exs` coverage.
+Continue priority-1 typed operational activity/timeline semantics. A likely next
+slice is to compare any remaining planned-side direction/type alias tables with
+realized feedback aliases and collapse any drift behind a shared helper.
 
 Blocked:
 No.

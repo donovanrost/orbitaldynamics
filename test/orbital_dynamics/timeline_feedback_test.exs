@@ -515,6 +515,73 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
     end
   end
 
+  test "normalizes realized direction aliases through public helpers" do
+    activity = %{
+      id: :realized_cmd_alias,
+      status: :completed,
+      activity_type: :planned_contact,
+      direction: :"s-band command",
+      ground_station_id: :equator_prime,
+      command_result: :accepted
+    }
+
+    assert %{
+             "id" => "realized_cmd_alias",
+             "type" => "planned_contact",
+             "direction" => "command",
+             "command_result" => "accepted",
+             "realized_activity_context" => %{
+               "activity_type" => "planned_contact",
+               "direction" => "command"
+             },
+             "source_activity" => %{
+               "activity_type" => "planned_contact",
+               "direction" => "s-band command"
+             }
+           } =
+             normalized =
+             TimelineFeedback.normalize_realized_activity(activity)
+
+    assert OrbitalDynamics.normalize_realized_timeline_activity(activity) == normalized
+
+    normalized_directions =
+      [
+        %{
+          id: :realized_dl_alias,
+          status: :completed,
+          type: :planned_contact,
+          direction: :dl,
+          ground_station_id: :equator_prime,
+          contact_success: true
+        },
+        %{
+          id: :realized_tracking_alias,
+          status: :completed,
+          type: :planned_contact,
+          direction: :"tracking-pass",
+          ground_station_id: :dss_14,
+          contact_success: true
+        },
+        %{
+          id: :realized_unknown_alias,
+          status: :completed,
+          type: :planned_contact,
+          direction: :"Ka-Band Special",
+          ground_station_id: :atlas,
+          contact_success: true
+        }
+      ]
+      |> TimelineFeedback.normalize_realized_activities()
+      |> Enum.sort_by(& &1["id"])
+      |> Enum.map(&Map.take(&1, ["direction"]))
+
+    assert normalized_directions == [
+             %{"direction" => "downlink"},
+             %{"direction" => "tracking"},
+             %{"direction" => "ka_band_special"}
+           ]
+  end
+
   test "normalizes planned and realized activity state through public helper" do
     planned = %{
       id: :downlink_equator,
@@ -5687,6 +5754,134 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
              "feedback_kind" => "command",
              "realized_type" => "planned_contact",
              "command_success" => true
+           } = List.first(report["cadence_import_manifest"]["rows"])
+
+    assert {:ok, %{"schema_contract" => "timeline_feedback_report.v1"}} =
+             Schema.validate_artifact(report)
+  end
+
+  test "classifies realized-only command direction aliases as command feedback" do
+    report =
+      TimelineFeedback.reconcile(
+        [],
+        [
+          %{
+            "id" => "provider_command_alias:1",
+            "type" => "planned_contact",
+            "direction" => "s-band command",
+            "ground_station_id" => "equator_prime",
+            "status" => "completed",
+            "actual_starts_at_s" => 240.0,
+            "actual_ends_at_s" => 260.0,
+            "command_result" => "accepted"
+          }
+        ]
+      )
+
+    assert %{
+             "activity_id" => "provider_command_alias:1",
+             "status" => "realized_only",
+             "feedback_kind" => "command",
+             "realized_type" => "planned_contact",
+             "direction" => "command",
+             "ground_station_id" => "equator_prime",
+             "command_success" => true,
+             "command_result" => "accepted",
+             "realized_activity_context" => %{
+               "direction" => "command"
+             },
+             "realized_activity" => %{
+               "direction" => "s-band command"
+             }
+           } = List.first(report["rows"])
+
+    refute Map.has_key?(List.first(report["rows"]), "contact_success")
+
+    assert %{
+             "activity_id" => "provider_command_alias:1",
+             "required_operator_action" => "review_unplanned_realization",
+             "activity_type" => "planned_contact",
+             "feedback_kind" => "command",
+             "realized_type" => "planned_contact",
+             "direction" => "command",
+             "command_success" => true
+           } = List.first(report["operator_review_package"]["rows"])
+
+    assert %{
+             "activity_id" => "provider_command_alias:1",
+             "activity_type" => "planned_contact",
+             "feedback_kind" => "command",
+             "realized_type" => "planned_contact",
+             "direction" => "command",
+             "command_success" => true
+           } = List.first(report["cadence_import_manifest"]["rows"])
+
+    assert {:ok, %{"schema_contract" => "timeline_feedback_report.v1"}} =
+             Schema.validate_artifact(report)
+  end
+
+  test "classifies realized-only health-check direction aliases as health-check feedback" do
+    report =
+      TimelineFeedback.reconcile(
+        [],
+        [
+          %{
+            "id" => "provider_health_alias:1",
+            "type" => "planned_contact",
+            "direction" => "healthcheck",
+            "ground_station_id" => "equator_prime",
+            "status" => "completed",
+            "actual_starts_at_s" => 260.0,
+            "actual_ends_at_s" => 280.0,
+            "completed_fraction" => 0.5
+          }
+        ]
+      )
+
+    assert %{
+             "activity_id" => "provider_health_alias:1",
+             "status" => "realized_only",
+             "feedback_kind" => "health_check",
+             "realized_type" => "planned_contact",
+             "direction" => "health_check",
+             "ground_station_id" => "equator_prime",
+             "command_success" => true,
+             "command_success_factor" => 0.5,
+             "command_success_factor_source" => "realized_activity.completed_fraction",
+             "realized_activity_context" => %{
+               "direction" => "health_check",
+               "command_success_factor" => 0.5,
+               "command_success_factor_source" => "realized_activity.completed_fraction"
+             },
+             "realized_activity" => %{
+               "direction" => "healthcheck"
+             }
+           } = List.first(report["rows"])
+
+    refute Map.has_key?(List.first(report["rows"]), "contact_success")
+    refute Map.has_key?(List.first(report["rows"]), "contact_success_factor")
+
+    assert %{
+             "activity_id" => "provider_health_alias:1",
+             "required_operator_action" => "review_unplanned_realization",
+             "activity_type" => "planned_contact",
+             "feedback_kind" => "health_check",
+             "realized_type" => "planned_contact",
+             "direction" => "health_check",
+             "command_success" => true,
+             "command_success_factor" => 0.5,
+             "command_success_factor_source" => "realized_activity.completed_fraction"
+           } = List.first(report["operator_review_package"]["rows"])
+
+    assert %{
+             "activity_id" => "provider_health_alias:1",
+             "activity_type" => "planned_contact",
+             "feedback_kind" => "health_check",
+             "realized_type" => "planned_contact",
+             "direction" => "health_check",
+             "command_success" => true,
+             "command_success_factor" => 0.5,
+             "command_success_factor_source" => "realized_activity.completed_fraction"
            } = List.first(report["cadence_import_manifest"]["rows"])
 
     assert {:ok, %{"schema_contract" => "timeline_feedback_report.v1"}} =
