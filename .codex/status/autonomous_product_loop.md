@@ -5,9 +5,9 @@ Current slice:
 required operator action.
 
 Status:
-Implementation, focused verification, schema export refresh, and read-only
-review are complete. Product commit, push, and final ledger publish update are
-pending. `Timeline.candidate_rejection_report/2` now emits
+Implementation, focused verification, schema export refresh, read-only review,
+product commit, and push are complete. This status handoff records the
+published state. `Timeline.candidate_rejection_report/2` now emits
 `candidate_ids_by_required_operator_action` so review/import adapters can route
 `review_candidate_rejection` work without scanning every row. Runtime schema
 validation accepts only supported candidate-rejection action keys, validates
@@ -43,7 +43,8 @@ Review:
   ledger review update.
 
 Last product commit:
-- Pending.
+- `4da5cc51bec3a640cb6a6e9f4c60d45deb13e7f5` (`Route candidate rejection
+  actions by candidate`).
 
 Next candidate:
 After publish, re-read `docs/autonomous_work_guide.md`, this ledger, and the
