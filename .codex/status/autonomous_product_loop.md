@@ -5,7 +5,8 @@ Station-reservation replay reads V3 branch
 `candidate_source.candidate_refresh_request_source_report_summary` metadata.
 
 Status:
-Implementation and focused verification complete for this slice.
+Implementation, focused verification, review, commit, and push complete for
+this slice.
 `CandidateRefresh.station_reservation_replay_summary/1` now checks the
 branch-local `station_reservation_report` source-report family before falling
 back to provenance. No other replay helper changed in this slice. Coverage pins
@@ -33,6 +34,10 @@ Docs/artifacts changed:
 - No narrative docs, schema exports, or checked-in artifacts changed in this
   slice.
 
+Last product commit:
+- `fdf0a67` (`Replay station reservations from branch summaries`) pushed to
+  `origin/main`.
+
 Next candidate:
 Re-read `docs/autonomous_work_guide.md`, this ledger, and the live worktree
 before choosing another gap. Queue item 1 appears substantially complete in the
@@ -47,6 +52,5 @@ Notes:
 This slice intentionally does not reserve provider time, mutate station
 calendars or schedules, select candidates, approve imports, write to Cadence, or
 regenerate candidates. The initial review found provenance-only label drift on
-the new branch path; that was corrected and covered before re-review. Publish
-still needs to run for this slice. Treat current files as authoritative and do
-not revert unrelated changes.
+the new branch path; that was corrected and covered before re-review. Treat
+current files as authoritative and do not revert unrelated changes.
