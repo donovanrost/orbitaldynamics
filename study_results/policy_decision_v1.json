@@ -1,0 +1,47 @@
+{
+  "schema_contract": "policy_decision.v1",
+  "classification": "operator_review_required",
+  "model_limits": [
+    "artifact_classification_only",
+    "no_command_execution",
+    "no_schedule_mutation",
+    "no_external_authority_lookup",
+    "no_multi_step_workflow_execution"
+  ],
+  "policy_bundle_id": "mission_ops_escalation_v1",
+  "approval_requirement_count": 1,
+  "risk_count": 0,
+  "rule_matches": [
+    {
+      "rule_id": "contact_execution_coordination",
+      "classification": "operator_review_required",
+      "reason": "contact execution changes require ground-network coordination",
+      "action": "approve_moved_contact",
+      "activity_id": "downlink_equator",
+      "activity_type": "downlink",
+      "requirement_type": "contact_schedule_change",
+      "direction": "downlink",
+      "ground_station_id": "equator_prime",
+      "escalation_level": "ops_lead",
+      "escalation_queue": "ground_network",
+      "escalation_role": "contact_scheduler",
+      "required_authority": "contact_schedule_authority",
+      "sla_s": 1800
+    }
+  ],
+  "escalations": [
+    {
+      "rule_id": "contact_execution_coordination",
+      "classification": "operator_review_required",
+      "escalation_level": "ops_lead",
+      "escalation_queue": "ground_network",
+      "escalation_role": "contact_scheduler",
+      "required_authority": "contact_schedule_authority",
+      "sla_s": 1800
+    }
+  ],
+  "assumptions": {
+    "boundary": "artifact_only_no_authority_lookup",
+    "workflow_execution": "none"
+  }
+}

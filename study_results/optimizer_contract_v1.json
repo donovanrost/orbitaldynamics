@@ -1,0 +1,69 @@
+{
+  "assumptions": {
+    "external_solver": false,
+    "optimizer_family": "deterministic_greedy_selector",
+    "overlap_policy": "reject candidate when it overlaps a selected activity in the same scenario",
+    "selection_scope": "per_scenario_then_ranked_plan"
+  },
+  "candidate_activity_ids": [
+    "leo_1_downlink_equator_prime_1",
+    "leo_1_observe_target_a_1"
+  ],
+  "candidate_count": 2,
+  "constraints": {
+    "avoid_eclipse": true,
+    "max_timeline_activities": 6,
+    "min_activity_duration_s": 60
+  },
+  "deterministic_ordering": [
+    "candidate score descending",
+    "candidate starts_at_s ascending",
+    "candidate id ascending",
+    "timeline score descending",
+    "scenario_id ascending"
+  ],
+  "id": "optimizer_contract:campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
+  "known_limits": [
+    "greedy_per_scenario_selection",
+    "no_cross_scenario_resource_allocation",
+    "no_milp_or_cp_sat_solver",
+    "pareto_frontier_summary_not_solver_search",
+    "ranking_comparison_not_solver_search",
+    "explainable_score_terms_only"
+  ],
+  "objective": "maximize weighted observation value and contact value",
+  "optimizer": "per_spacecraft_greedy_non_overlapping",
+  "preserved_lineage_fields": [
+    "id",
+    "scenario_id",
+    "source_window_id",
+    "source_window",
+    "score_terms"
+  ],
+  "ranked_scenario_ids": [
+    "leo_1"
+  ],
+  "ranked_timeline_count": 1,
+  "schema_contract": "optimizer_contract.v1",
+  "score_term_keys": [
+    "activity_count_penalty",
+    "activity_score",
+    "contact_value",
+    "eclipse_penalty",
+    "selected_contact_count",
+    "selected_observation_count",
+    "target_value"
+  ],
+  "scoring_policy": {
+    "activity_count_penalty": 0,
+    "contact_value_weight": 0.2,
+    "eclipse_penalty_weight": 1,
+    "rank_limit": 5,
+    "target_value_weight": 1
+  },
+  "selected_activity_count": 1,
+  "selected_activity_ids": [
+    "leo_1_observe_target_a_1"
+  ],
+  "selection_policy": "highest_scored_non_overlapping_timeline"
+}

@@ -1,0 +1,68 @@
+{
+  "schema_contract": "planned_activity.v1",
+  "cadence_import": {
+    "activity_type": "command",
+    "external_id": "cadence_cmd_repoint",
+    "schema_contract": "planned_activity.v1"
+  },
+  "command_success_factor": 0.92,
+  "command_success_factor_source": "operational_feedback.command_success_rate.activity",
+  "data_volume_mb": 18.5,
+  "degraded": false,
+  "dependency_activity_ids": [
+    "health_check:leo_1"
+  ],
+  "direction": "command",
+  "downlink_margin": 0.32,
+  "ends_at_s": 200.0,
+  "execution_uncertainty": {
+    "delta_v_3sigma_km_s": [
+      0.0,
+      0.0001,
+      0.0
+    ],
+    "source": "operator_estimate",
+    "timing_3sigma_s": 1.5
+  },
+  "exclusive_with_timeline_ids": [
+    "timeline:leo_1:payload:target_a"
+  ],
+  "fuel_margin": 0.71,
+  "ground_station_id": "equator_prime",
+  "id": "cmd_repoint",
+  "mode": "payload_safe",
+  "maneuver_success_factor": 0.9,
+  "maneuver_success_factor_source": "preburn_confidence_model",
+  "payload_available": true,
+  "power_margin": 0.44,
+  "product_ids": [
+    "cmd_packet:repoint"
+  ],
+  "resource_blocking_dimension": "power",
+  "resource_provenance": {
+    "source": "mission_database",
+    "trust_boundary": "operator_supplied_resource_summary"
+  },
+  "resource_source_quality": "declared",
+  "resource_trust_boundary": "operator_supplied_resource_summary",
+  "resource_trust_boundary_status": "declared",
+  "scenario_id": "leo_1",
+  "spacecraft_available": true,
+  "spacecraft_id": "leo_1",
+  "source_window_id": "window:leo_1:command:equator_prime:1",
+  "starts_at_s": 180.0,
+  "storage_margin": 0.28,
+  "suppressed_activity_types": [
+    "observe"
+  ],
+  "thermal_margin_c": 8.5,
+  "timeline_identity": {
+    "activity_id": "cmd_repoint",
+    "activity_type": "command",
+    "scenario_id": "leo_1",
+    "source_window_id": "window:leo_1:command:equator_prime:1",
+    "subject_id": "equator_prime",
+    "timeline_id": "timeline:leo_1:command:equator_prime:window:leo_1:command:equator_prime:1"
+  },
+  "type": "command"
+}

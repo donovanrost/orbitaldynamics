@@ -1,0 +1,1024 @@
+# Compatibility Checks
+
+Run the full checked-in schema export when contract surfaces change:
+
+```bash
+mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json
+```
+
+The exporter keeps common machine fields readable even when they rely on the
+generic type fallback: scalar fields ending in `*_count` export as integers,
+aggregate `*_counts` maps remain object-shaped summary maps, scalar `*_id`
+fields export as stable-ID strings, and `*_ids` fields export as arrays of
+stable-ID strings. Standalone contract schemas also keep explicit stable-ID
+shapes for top-level identity fields whose semantics are enforced at runtime,
+including `manifest_id`, `refresh_id`, validation `fixture_id` / `model_id`,
+realized `planned_activity_id`, and contact-allocation invalid/blocked contact
+ID arrays. Standalone contract schemas also embed the schema export
+compatibility policy and stable public-ID policy under `x-orbital-dynamics`;
+policy action-rule schemas and nested `policy_decision.v1` /
+`approval_requirement.v1` rule-match schemas explicitly expose the same
+scalar/plural policy-context vocabulary used by runtime rule matching,
+including station-calendar, contact-allocation, timeline-protection, resource,
+provenance, review-queue, and provider-result evidence arrays. Executable
+campaign-strategy validation keeps full nested policy-decision count fields
+derived from `rule_matches` when rule evidence is present, while legacy summary
+branches without rule rows continue to mirror branch-level risk/approval counts.
+the identity policy now names semantic generated-ID invariants such as
+canonical source ordering before sequence suffix assignment for campaign and
+candidate-refresh generated rows. Nested `$defs` keep the policy version
+references without duplicating the full policy maps. The structural
+`study_manifest.v1` schema exposes the same policy metadata for manifest
+preflight tooling, and the generated manifest field reference carries the
+policy version numbers so CLI consumers can detect which compatibility and
+public-ID rules informed the reference. The reference exports and validates
+`field_count` as a non-negative integer matching the emitted field rows, so
+preflight tooling can detect truncated or duplicated field catalogs. The same
+reference also publishes the supported manifest-lint error-code vocabulary under
+`supported.lint_error_codes`,
+including run-input preflight codes such as `missing_run_option` and
+`invalid_run_option`, so import gates can route failures without parsing
+free-text messages. The exported `study_manifest.v1` JSON Schema metadata names
+the same combined semantic validator used by manifest lint:
+`OrbitalDynamics.Study.Manifest.from_map/1 +
+OrbitalDynamics.StudyRunner.validate_run_inputs/2`.
+
+Run artifact linting against the examples before treating a generated artifact
+as a compatibility example:
+
+```bash
+mix orbital_dynamics.schema.lint --input study_results/leo_constellation_campaign.json
+mix orbital_dynamics.schema.lint --input study_results/leo_constellation_campaign_strategy_v3.json --contract campaign_strategy.v3
+mix orbital_dynamics.schema.lint --input study_results/leo_constellation_campaign.json --format json
+mix orbital_dynamics.schema.lint --all --input-dir study_results
+mix orbital_dynamics.manifest.lint --manifest studies/leo_constellation_campaign.json
+mix orbital_dynamics.manifest.lint --manifest studies/leo_constellation_campaign.json --output study_results/study_manifest_lint_v1.json
+mix orbital_dynamics.manifest.reference --output study_results/manifest_field_reference.json
+mix orbital_dynamics.policy.export --bundle operator_review_queue_authority_v1 --output study_results/policy_bundle_operator_review_queue_authority_v1.json
+mix orbital_dynamics.capabilities --format json
+```
+
+Manifest lint JSON reports declare the executable `study_manifest_lint.v1`
+contract and preserve the subject manifest schema as `manifest_schema_contract:
+study_manifest.v1`. The report contract validates `lint_task`, `error_count`,
+and `warning_count` fields alongside stable error-code rows, giving preflight
+automation count fields to check without rerunning or re-counting diagnostics.
+Validation-reference fixture rollups schema-export `fixture_count` as a
+non-negative integer, and executable validation requires it to equal the number
+of nested fixture reports so compatibility preflight cannot silently drop or
+double-count fixture observations. Executable validation also requires the
+top-level rollup `status` to match the nested report statuses, preventing stale
+`pass` summaries from hiding failed fixture reports.
+Standalone validation-reference reports likewise require their `status` to match
+nested check statuses, so a stale passing fixture report cannot hide a failed
+field-level check.
+Schema validation reports and batch reports also schema-export their scalar
+count fields (`error_count`, `warning_count`, `remediation_count`,
+`file_count`, `artifact_count`, and `skipped_count`) as non-negative integers,
+matching executable row-derived validation. Standalone and batch schema
+validation reports pin their executable artifact-contract validation models in
+runtime validation and schema export, so stale model identifiers cannot pass
+schema-only handoffs.
+Timeline preservation exports now constrain
+`timeline_preservation_report.v1` and `timeline_preservation_status.v1` model
+fields to their executable artifact-only model constants, and the preservation
+report `source` field plus generated report/status `model_limits` lists export
+to match runtime validation.
+Timeline activity status-state, approval-state, and lifecycle-state exports
+likewise pin generated `model_limits` to the executable timeline model-limit
+list, so stale activity preflight handoffs cannot widen their artifact-only
+boundary.
+Candidate-rejection report exports likewise constrain
+`candidate_rejection_report.v1` to the artifact-only candidate-rejection model
+constant, a string `source`, and the exact generated `model_limits` list,
+matching executable validation for generated rejection explanation reports.
+Timeline-feedback report exports constrain `timeline_feedback_report.v1` to the
+planned-versus-realized activity reconciliation model constant, matching
+executable validation for generated feedback reconciliation reports.
+Operational-timeline report exports constrain `operational_timeline_report.v1`
+to the selected-activity operational-context model constant and exact timeline
+model-limit list, matching executable validation for generated timeline handoff
+reports.
+Timeline-diff report exports constrain `timeline_diff_report.v1` to the
+timeline-identity activity-diff model constant and exact timeline model-limit
+list, matching executable validation for generated standalone diff reports.
+Schema migration reports export and executable-validate registry contract
+counts, status-count maps, migration-action maps, model identity, deprecation
+warning counts, and row summaries for caller-declared deprecated or future
+contracts. The report is artifact-only: it does not rewrite artifacts, grant
+migration authority, or certify backward compatibility. Validation-reference
+fixtures now cover both deprecated-contract and future-contract hints, so stale row-derived
+status/action rollups fail before migration guidance is trusted.
+Operator-review and Cadence-import handoff contracts executable-validate lifted
+station-calendar trust-boundary and reservation-match count maps as
+non-negative integer maps, matching the exported JSON Schema shape.
+Operational-readiness, quality-gate, operator-review, and Cadence-import
+handoff schemas also expose operator-training requirement counts, requirement
+count maps, and required operator role/training/certification/qualification
+arrays with the same shapes executable validation accepts.
+Operator-review and Cadence-import handoff schemas expose nested source
+operational-readiness/quality-gate report identity, readiness/status, gate
+count, and quality-gate count-map shapes, matching the copied source-report
+drift checks used by executable validation.
+Operator-review and Cadence-import artifacts built from `quality_gate_report.v1`
+also expose top-level quality-gate gate counts, status/classification count
+maps, gate-ID routing maps, quality-gate row-ID routing maps, and gate ID sets
+so import-readiness queues can route gate summaries without reopening rows.
+Standalone station-reservation summaries now export
+`station_reservation_report.v1` and executable-validate affected-contact,
+provider-contention, review-count, reservation status-count, reservation-match,
+and reservation-ID summaries against their emitted rows.
+Resource-projection battery aggregate handoff fields
+(`total_battery_energy_consumed_wh`, `total_battery_energy_generated_wh`,
+`net_battery_energy_delta_wh`, and `peak_battery_overuse_wh`) are explicitly
+schema-exported and executable-validated on operator-review rows, Cadence import
+rows, nested source review rows, and source resource-projection evidence so
+adapter consumers can type-check the compact battery roll-forward evidence.
+Model-acceptance reports also expose optional deterministic model-ID routing
+maps by row status, validation level, and intended use. Executable validation
+checks those maps and optional `status_counts` against the emitted rows when
+present, so import gates can route accepted, review-required, blocked, and
+unknown model evidence without recounting rows.
+Executable validation rejects stale model-acceptance status, validation-level
+counts, status-count maps, model-ID routing maps, validation-record lists,
+input-model assumptions, and model-limit drift.
+It also rejects stale model-acceptance model strings, and schema export pins the
+registry model-acceptance classifier used by generated reports.
+Candidate-refresh model-acceptance replay summaries derive validation-level
+counts and model-ID routing maps from rows when rows are present, so stale
+top-level validation-level and routing aggregates cannot steer branch-local
+review/blocking pressure.
+
+Validation reference fixture reports now include an
+`operational_readiness_report.v1` artifact-contract fixture generated from a
+ready Cadence import manifest. The fixture checks readiness classification,
+gate counts, import-evidence counts, and model-limit evidence without treating
+the report as external operations validation.
+Executable validation rejects stale readiness classification/status, gate
+counts, gate-declared import/resource evidence counts and maps, model-limit
+drift, and missing artifact-only assumptions.
+The underlying `cadence_import_manifest.v1` fixture also checks reported and
+row-derived import status, Cadence import status, import action/side,
+source-review queue/type, and manifest row-ID routing maps so stale manifest
+summaries fail before readiness classification consumes them.
+Executable validation rejects stale manifest row/readiness counts, import
+action/status maps, model-limit drift, and artifact-only execution/authorization
+boundary drift.
+
+The validation-reference fixture set also includes
+`study_results/leo_constellation_campaign.json` as a `result_artifact.v1`
+wrapper fixture. Its observations check stable top-level product counts,
+embedded campaign activity/contact counts, execution status, run identity, and
+payload metrics section and artifact-body counts without treating the artifact
+as an external mission validation. Executable validation rejects stale payload
+metrics top-level key counts, missing or extra payload metric sections, and
+negative section byte or row-count values.
+Additional `result_artifact.v1` wrapper fixtures now cover
+`study_results/leo_access_demo.json`,
+`study_results/leo_access_demo_manifest.json`,
+`study_results/ground_track_crossings.json`,
+`study_results/raise_apogee_search.json`,
+`study_results/candidate_refresh_v1.json`,
+`study_results/candidate_refresh_orbit_data_v1.json`,
+`study_results/leo_dispersion_monte_carlo.json`, and
+`study_results/mission_plan_checkout.json`. These observations check event-rich
+access/eclipse counts, ground-track crossing counts, maneuver recommendation
+counts, candidate-refresh wrapper counts, mission-plan checkout maneuver-review
+presence, Monte Carlo and constraint report presence, execution scenario
+counts, run metadata, and payload metrics without treating the artifacts as
+external mission validation.
+
+Validation safety-case summaries are artifact-only rollups, not new authority
+grants. Use `OrbitalDynamics.validation_safety_case_summary/2` when a handoff
+needs one compact view of model-acceptance, operational-readiness,
+quality-gate, schema-validation, schema-validation batch, and fixture evidence.
+A blocked or review-required summary means the evidence bundle needs review or
+remediation; it does not certify models, write to Cadence, or approve import.
+The summary emits `validation_safety_case_summary.v1`, and executable
+validation checks row-derived evidence counts, status counts, and routing maps
+against the evidence rows. Its exported schema pins the artifact-only model
+`artifact_only_validation_safety_case_summary`, matching runtime validation so
+stale safety-case summary model identifiers cannot pass schema-only handoff
+checks.
+Candidate-refresh validation-safety-case replay summaries use those evidence
+rows to derive source-report evidence status maps when rows are present, so
+stale top-level `evidence_status_counts` fields cannot steer review/blocking
+pressure.
+The summary includes deterministic evidence references grouped by summary status
+and input contract, so handoff consumers can route blocked and review-required
+evidence without re-scanning the evidence rows.
+The validation-reference fixture set includes the checked-in
+`study_results/validation_safety_case_summary_v1.json` summary as a curated
+artifact-contract case. Its observations verify stable evidence counts, status
+counts, evidence-reference routing maps, model-limit count, and the
+no-certification/no-operator-authority boundary. The checked-in safety-case
+example now includes blocked schema-validation evidence preserved through both
+operator-review and Cadence-import containers, and
+`study_results/validation_reference_fixtures.json` verifies those blocked
+handoff evidence counts and duplicate schema-validation evidence references.
+Batch schema-validation evidence contributes aggregate schema issue counts and
+nested report pass/fail counts without rerunning lint.
+Wrapper artifacts may provide `schema_validation_batch_report` or
+`source_schema_validation_batch_report`; safety-case summaries discover both.
+Operator-review packages and Cadence-import manifests may also preserve
+`source_schema_validation_report` rows; safety-case summaries lift those rows
+as schema-validation evidence without treating the review/import container as a
+certification authority.
+
+Validation reference fixture reports also include a
+`station_calendar_report.v1` artifact-contract fixture for a stale but
+plausible provider reservation hold. The fixture checks reservation-overlap
+counts, row-derived reservation match-status maps, stale hold evidence,
+affected-contact counts, affected duration, reservation match-status contact
+routing, and the artifact-only no-provider-reservation execution boundary
+without calling a station-calendar provider or mutating a schedule. Executable
+validation rejects stale reservation match-status maps that no longer match
+affected contacts.
+The same stale hold also feeds a `station_reservation_report.v1` fixture so
+compatibility checks cover the compact reservation-summary contract, including
+row-derived reservation review counts, status maps, match-status maps,
+reservation IDs, reservation-ID routing by match status, and the
+no-provider-write boundary. Executable validation also rejects stale
+reservation status maps and reservation ID lists.
+The checked-in `study_results/station_calendar_report_v1.json` overlay report
+is also observed as a curated fixture, covering the two-contact/two-entry
+station-calendar handoff shape and its row-derived reservation overlap evidence
+without provider reservation side effects. Executable validation rejects stale
+affected durations, station-calendar trust maps, and station-calendar
+model identifiers and model-limit drift in that checked-in overlay report.
+Schema export pins the same station-calendar overlay model for schema-only
+handoff checks.
+
+Validation reference fixture reports also include a
+`provider_counteroffer_report.v1` artifact-contract fixture generated from
+declared station-calendar counteroffer evidence. The fixture checks
+counteroffer counts, row-derived scalar counteroffer/reviewability/cost/deadline
+observations, lock deadline, timing-shift evidence, and the artifact-only
+no-provider-write boundary without accepting offers or mutating schedules.
+Executable schema validation also rejects stale top-level cost totals, status
+maps, and operator-action maps that no longer match the counteroffer rows.
+Candidate-refresh replay summaries use row-derived counteroffer status and
+required-action maps when row evidence is present, so stale top-level
+counteroffer aggregates cannot steer branch-local review pressure.
+
+`study_results/operational_readiness_report_v1.json` is the checked-in
+interoperability fixture for readiness handoff consumers. It validates as
+`operational_readiness_report.v1` and carries a ready-import example with
+gate/evidence counts, row-derived gate status/classification maps, gate ID
+routing maps, and artifact-only model limits; the validation-reference rollup
+points directly at this artifact.
+Executable validation rejects stale gate-derived readiness classification,
+readiness level, report status, gate counts, gate-declared evidence counts/maps,
+model-limit drift, artifact-only assumption drift, and stale
+operational-readiness report model strings. Schema export pins the
+artifact-only operational-readiness classifier model and capability
+`model_limits` used by generated reports.
+The compact readiness gate summary schema export likewise pins the
+artifact-only operational-readiness gate-summary model and `model_limits` used
+by generated summaries.
+The compact import-eligibility summary schema export pins the
+artifact-only import-eligibility model and `model_limits` used by generated
+summaries, keeping adapter-facing import decisions tied to the executable
+artifact-only boundary.
+Operator-review packages and Cadence-import manifests derived directly from the
+readiness report now also expose the compact readiness report ID,
+readiness/import/status classification, and gate counts at top level for
+adapter routing.
+The public execution-boundary summary reuses that readiness evidence to keep
+import eligibility separate from command execution, Cadence writes, and
+operator authority; analysis-only markers such as simulation, trade study, and
+not-for-execution remain handoff evidence only. Its schema export pins the
+artifact-only execution-boundary summary model and `model_limits` used by
+generated summaries.
+
+The validation-reference fixture set also includes a curated
+`quality_gate_report.v1` artifact generated from the readiness fixture. Its
+observations check source readiness identity, row-derived gate/row counts,
+status and classification count maps, executable stale row-derived gate map
+checks, gate ID routing maps, model-limit count, and the no-authority execution
+boundary. Runtime validation and schema export pin its artifact-only model
+`artifact_only_operational_quality_gate_report` and `model_limits`, so handoff
+queues reject stale quality-gate report model identifiers or model-limit lists
+before deriving summaries or review rows.
+The public quality-gate summary schema export pins the artifact-only
+quality-gate summary model and `model_limits` used by generated row-derived
+triage summaries.
+Executable validation rejects stale row-derived quality-gate classification,
+readiness level, status, gate counts/maps, gate ID routing groups, nested
+readiness/quality source-gate handoff drift, copied source-report summary
+drift, model-limit drift, and no-Cadence-write/no-authority boundary drift.
+
+Resource-pressure examples are checked in alongside the ready-import fixture:
+`study_results/operational_readiness_resource_pressure_v1.json`,
+`study_results/quality_gate_resource_pressure_v1.json`,
+`study_results/operator_review_resource_pressure_v1.json`, and
+`study_results/cadence_import_resource_pressure_v1.json`. They exercise the
+review-only resource-availability path and show the lifted pressure count,
+reason count map, sorted reason IDs, unavailable-resource reason IDs, and
+blocking-dimension count map on readiness, quality-gate, operator-review, and
+Cadence-import handoff rows.
+The public quality-gate unavailable-resource summary derives review/import
+routing directly from those quality-gate rows, grouping blocked contact IDs by
+blocking dimension, spacecraft, and gate status while keeping Cadence writes,
+operator approval, and command execution out of scope.
+Its exported schema pins the artifact-only model
+`artifact_only_quality_gate_unavailable_resource_summary` and the summary's
+artifact-only `model_limits`, matching runtime validation so adapter queues
+cannot accept stale model identifiers or trust-boundary declarations for this
+summary family.
+The validation-reference registry now includes a generated
+`operational_quality_gate_unavailable_resource_summary.v1` fixture for that
+summary family. The fixture observes unavailable-resource reason maps,
+blocking-dimension counts, blocked-contact routing, quality-gate row/status
+routing maps, and no-Cadence-write/no-authority assumptions, and executable
+verification rejects stale reason maps, blocked-contact maps, and row-status
+counts before adapter queues can trust the compact summary.
+The public quality-gate schema-validation summary publishes
+`operational_quality_gate_schema_validation_summary.v1` for Cadence-import
+quality-gate rows carrying schema-validation evidence, preserving pass/fail and
+issue counts plus blocked and failed quality-gate row IDs without granting
+import authority. Its schema export pins the artifact-only quality-gate
+schema-validation summary model and `model_limits` used by generated summaries.
+`study_results/operational_quality_gate_schema_validation_summary_v1.json`
+feeds a curated validation-reference fixture for that summary family. The
+fixture observes top-level and map-derived schema-validation counts, status
+maps, blocked/failed row routing, gate routing, and the no-Cadence-write/
+no-authority assumptions, and executable verification rejects stale fail counts
+plus stale blocked-row evidence before adapter queues can trust the compact
+summary.
+The public quality-gate operator-training summary publishes
+`operational_quality_gate_operator_training_summary.v1`, preserving role,
+training, certification, and qualification routing from operator-training
+quality-gate rows without granting import authority. Its schema export pins the
+artifact-only quality-gate operator-training summary model and `model_limits`
+used by generated summaries.
+`study_results/operational_quality_gate_operator_training_summary_v1.json`
+feeds a curated validation-reference fixture for that summary family. The
+fixture observes top-level and map-derived requirement counts, role/training/
+certification/qualification routing, review-required/review-only row routing,
+and the no-Cadence-write/no-authority assumptions, and executable verification
+rejects stale requirement counts plus stale review-row evidence before adapter
+queues can trust the compact summary.
+The public quality-gate import-readiness summary publishes
+`operational_quality_gate_import_readiness_summary.v1`, preserving freshness,
+import-status, and Cadence-import status routing from those same rows, including
+stale/unknown freshness row IDs, import-preparation row IDs, and blocked import
+row IDs. Its schema export pins the artifact-only quality-gate
+import-readiness summary model and `model_limits` used by generated summaries.
+`study_results/operational_quality_gate_import_readiness_summary_v1.json` feeds
+a curated validation-reference fixture for that summary family. The fixture
+observes top-level and map-derived readiness counts, freshness/import/Cadence
+status maps, review/stale/import-preparation/blocked row routing, analysis-only
+boundaries, and the no-Cadence-write/no-authority assumptions, and executable
+verification rejects stale ready-for-import counts plus stale row-derived
+freshness evidence before adapter queues can trust the compact summary.
+The same readiness gate also consumes contact-allocation station pressure
+handoffs: ground-station reserved, unavailable, zero-capacity, and
+reduced-capacity allocation reasons become row-derived availability reason
+counts before import eligibility is classified.
+Adapter-boundary evidence now distinguishes declared, missing, and untrusted
+trust-boundary statuses. Missing trust-boundary evidence keeps adapter-shaped
+rows review-only, while explicitly unknown or untrusted trust-boundary evidence
+blocks import eligibility and is exported on readiness, quality-gate,
+operator-review, and Cadence-import handoff rows.
+
+`study_results/candidate_refresh_resource_provenance_v1.json` is the
+corresponding `candidate_refresh.v1` fixture for branch-local provenance. Its
+`provenance.source_reports` summaries preserve the same readiness and
+quality-gate resource pressure counts, reason maps, sorted reason IDs, and
+unavailable-resource IDs, plus derived station availability reason IDs and
+count maps; this fixture has no station-specific resource reason, so the
+station collections are empty while keeping the source paths under
+`mission_state.source_operational_readiness_report` and
+`mission_state.source_quality_gate_report`. The artifact is also registered in
+the validation-reference fixture set, where the observations check the refresh
+product counts and nonzero source-report family/row totals. Candidate-refresh
+schema validation applies the same resource-context shape checks to those
+source-report summaries that readiness and quality-gate rows use: pressure
+counts, resource/station reason-count maps, and analysis-mode count maps must be
+non-negative integers; reason ID and trust-boundary lists must contain strings; and
+trust-boundary status must be a string when present. When both pressure counts
+and reason-count maps are present, executable validation requires the scalar
+pressure count to equal the reason-count map sum. The checked-in
+`candidate_refresh.v1` JSON Schema and schema bundle export the same nested
+`provenance.source_reports` resource, analysis-mode, and trust-boundary context
+properties for downstream compatibility tooling.
+Executable validation also checks the generic source-report summary shape:
+`paths` must be a string list, and `count`/`row_count` must be non-negative
+integers. The public candidate-refresh source-report replay summary uses the
+same boundary for derived path and trust-boundary status aggregates: malformed
+non-string path/status values can remain visible in raw preserved provenance for
+inspection, but they do not become aggregate keys or routed replay paths.
+Contact-intent summary validation rejects stale summary model and
+source-artifact identity strings, and `contact_intent_summary.v1` schema exports
+publish those same constants for replay tooling that consumes compact
+contact-intent summaries.
+
+`study_results/candidate_refresh_v1.json` now feeds a curated
+`candidate_refresh.v1` validation-reference fixture. The observations check the
+checked-in refresh artifact's candidate, contact-intent, refreshed-window,
+warning, source-report provenance counts, and embedded validation-record
+vocabulary.
+`study_results/branch_comparison_report_v1.json` and
+`study_results/candidate_diff_report_v1.json` now feed curated
+validation-reference fixtures. The observations check branch ranking and
+selected-branch counts, approval-status routing maps, resource-risk maps,
+no-execution branch-score assumptions, candidate diff counts, semantic change
+reason maps, replacement routing maps, and model-limit boundaries.
+Executable validation rejects stale branch-comparison branch counts, selected
+branch routing, per-row score deltas, and row list-count fields when they drift
+from emitted branch rows. It also rejects stale branch-comparison model/source
+identity strings and exports the same constants used by generated V3 strategy
+branch-comparison reports. Candidate-diff validation rejects stale collection
+counts, changed-field aliases, and semantic-change reason lists that drift from
+emitted diff rows, rejects stale candidate-diff model strings, and exports the
+same model constant used by generated candidate-diff reports.
+`study_results/candidate_diff_row_v1.json` now feeds a curated
+`candidate_diff_row.v1` validation-reference fixture. The observations check
+row identity, diff reason, changed-field order/counts, semantic-change
+reason/detail counts, matched prior candidate identity, target metadata, and
+target-priority objective routing. Executable validation rejects stale
+changed-field counts, changed-field aliases, and semantic-change reason lists
+on standalone candidate-diff rows.
+`study_results/candidate_rejection_report_v1.json` now feeds a curated
+`candidate_rejection_report.v1` validation-reference fixture. The observations
+check rejected, not-rejected, reviewable, and invalid-input counts,
+rejection-reason routing, required operator-review action counts, and the
+artifact-only no-selection/no-schedule-mutation model-limit boundary.
+Executable validation rejects stale rejected counts, rejection-reason maps,
+candidate ID sets by rejection reason, required operator-action counts, and
+reviewable candidate ID lists, plus stale generated `model_limits`.
+Candidate-refresh replay summaries also derive rejection-reason and
+required-action maps from rows when present, preventing stale top-level
+candidate-rejection aggregate maps from steering branch-local
+review pressure.
+`study_results/refresh_budget_report_v1.json` and
+`study_results/monte_carlo_reproducibility_report_v1.json` now feed curated
+validation-reference fixtures. The observations check deterministic keep/drop
+budget counts, kept/dropped candidate IDs, no-search budget assumptions, seeded
+scenario generation counts, RNG/seed metadata, dispersion sigma vectors,
+covariance/model-limit boundaries, and known-limit counts.
+Executable validation rejects stale refresh-budget input/kept/dropped counts,
+duplicate kept/dropped candidate IDs, and kept/dropped ID-list overlap that
+would make budget routing ambiguous.
+It also rejects stale refresh-budget model strings, and schema export pins the
+deterministic candidate-limit-after-filters model used by generated reports.
+Executable validation also rejects stale Monte Carlo generated-scenario counts,
+duplicate generated-scenario IDs, and known-limit/model-limit lists that drift
+from the capability contract.
+It also rejects stale Monte Carlo reproducibility model strings, and schema
+export pins the seeded independent-normal Cartesian dispersion model used by
+generated reports.
+`study_results/execution_report_v1.json` now feeds a curated
+`execution_report.v1` validation-reference fixture. The observations check
+distributed execution counts, failed-scenario isolation, task-supervisor and
+chunking metadata, backend-acceptance evidence, and model-limit boundaries.
+Executable validation rejects stale execution scenario/completion/failure
+counts, failed-scenario list mismatches, status drift, execution-plan scenario
+count drift, and node-distribution totals that no longer match scenario count.
+`study_results/freshness_report_v1.json` now feeds a curated
+`freshness_report.v1` validation-reference fixture. The observations check
+accepted-state freshness status, state-quality routing, horizon offset
+thresholds, stale/unknown reason counts, and the artifact-only
+no-schedule-mutation boundary.
+Executable validation rejects stale freshness status, stale/unknown reason-list
+drift, state-quality routing drift, horizon/snapshot policy mismatches, and
+model-limit lists that no longer match the candidate-refresh capability
+contract.
+It also rejects stale freshness-report model strings, and schema export pins
+the accepted-snapshot horizon/quality freshness model used by generated reports.
+`study_results/manifest_field_reference.json` and
+`study_results/study_manifest_lint_v1.json` now feed curated
+validation-reference fixtures. The observations check manifest field catalog
+counts, supported vocabulary counts, compatibility and identity policy
+versions, generated-ID policy bounds, lint preflight status/counts, output
+bounds, and semantic-validator identity.
+Executable validation rejects stale manifest field counts, duplicate field
+paths, top-level required field-list drift, invalid activation-section routing,
+and supported-vocabulary drift from manifest schema enum evidence.
+Executable validation rejects stale study-manifest-lint status and
+error/warning counts, duplicate requested outputs, and requested outputs that
+are no longer present in the supported-output vocabulary.
+`study_results/approval_requirement_v1.json`,
+`study_results/policy_decision_v1.json`, and
+`study_results/policy_bundle_v1.json` now feed curated validation-reference
+fixtures. The observations check approval requirement authority routing,
+policy-decision escalation metadata, representative policy-bundle rule and
+authority maps, artifact-only no-authority-lookup boundaries, and
+no-command/no-schedule model limits.
+Executable validation rejects stale approval-requirement decision
+classification, policy-bundle identity, root rule-match evidence, and
+required-authority escalation evidence.
+Executable validation rejects stale policy-decision classification,
+approval-requirement and risk counts derived from rule matches, escalation
+rule IDs that no longer reference rule-match evidence, and policy model-limit
+drift.
+Executable validation rejects policy-bundle duplicate action-rule IDs,
+provenance bundle IDs that no longer match the bundle identity, stale
+artifact-only boundary assumptions, missing action-rule classification/reason
+routing, escalation metadata without required-authority routing, and policy
+model-limit drift.
+`study_results/policy_bundle_ground_network_allocation_v1.json` is also
+observed as a ground-network policy fixture. It checks contact-schedule
+authority routing, unavailable/reduced-capacity station rules, contention and
+contact-allocation review triggers, missing trust-boundary review, command
+direction review, duplicate/insufficient-capacity block rules, and artifact-only
+no-authority assumptions.
+`study_results/policy_bundle_operator_review_queue_authority_v1.json` is
+observed as an operator-review queue authority fixture. It checks one
+artifact-only rule for each review authority boundary, deterministic
+escalation-queue counts, queue-authority rule IDs, and the no-command,
+no-schedule-mutation, no-workflow-execution limits.
+`study_results/policy_bundle_command_contact_authority_v1.json` is observed as
+a command/contact authority fixture. It checks command, contact-schedule,
+tracking, mission-planning, and Cadence-import boundary authority routing,
+escalation queue counts, station-calendar command-window rules, operator-action
+rule coverage, and artifact-only execution limits.
+`study_results/policy_bundle_maneuver_authority_v1.json`,
+`study_results/policy_bundle_resource_projection_authority_v1.json`, and
+`study_results/policy_bundle_timeline_protection_v1.json` are observed as
+domain authority fixtures. They check maneuver, resource-model, and timeline
+protection authority routing, blocked/review classification maps, escalation
+queue counts, deterministic rule IDs, and artifact-only execution limits.
+The remaining checked-in policy bundles are also observed:
+`policy_bundle_conservative_ops_v1.json`,
+`policy_bundle_contact_command_review_v1.json`,
+`policy_bundle_degraded_payload_guard_v1.json`,
+`policy_bundle_default_v1.json`, and
+`policy_bundle_organization_adapter_v1.json`. These fixtures check conservative
+fallback blocking, contact/command review-only routing, degraded-payload block
+and exemption rules, empty-rule default fallback limits, organization-adapter
+provenance, no-workflow execution, and artifact-only execution boundaries.
+`study_results/backend_acceptance_policy_v1.json`,
+`study_results/validation_tolerance_policy_v1.json`,
+`study_results/validation_record_v1.json`, and
+`study_results/validation_check_v1.json` now feed curated
+validation-reference fixtures. The observations check backend acceptance tier
+routing, tolerance policy vocabulary and boundaries, validation record
+model identity, evidence/tolerance rows, known-limit counts, and scalar
+validation-check expected/observed/tolerance/error values. Executable validation rejects stale
+backend reference implementation tier routing plus
+validation-tolerance policy level vocabulary drift and
+validation-record level/tolerance-map drift plus
+validation-check pass/fail status and numeric error values when expected,
+observed, and tolerance fields provide enough evidence to derive them.
+`study_results/capability_catalog_v1.json`,
+`study_results/optimizer_contract_v1.json`,
+`study_results/strategy_branch_v1.json`, and
+`study_results/strategy_recommendation_v1.json` now feed curated
+validation-reference fixtures. The observations check public capability catalog
+counts, model identity, exact executable contract registry routing, deterministic greedy
+optimizer selection and ordering metadata, optimizer candidate/selected/ranked
+count consistency,
+standalone V3 branch event/risk/score routing and score/policy summary
+consistency, and strategy recommendation ranking, tradeoff, and
+operator-review routing consistency. Capability catalog observations also pin
+CandidateRefresh accepted source-report input order, accepted-input counts, and
+source-report helper counts so replay-family metadata changes are caught by the
+fixture compatibility surface.
+Executable validation rejects stale capability-catalog model strings, and
+schema export pins the public catalog model used by generated discovery
+artifacts.
+Runtime public environment capability records from
+`OrbitalDynamics.Environment.model_capabilities/0` and
+`OrbitalDynamics.Environment.provider_capabilities/0` also feed curated
+validation-reference fixtures. The observations check
+`environment_model_capability.v1` and `environment_provider_capability.v1`
+identity, category/model/source metadata, validation-level vocabulary,
+interpolation and coverage policy, network-access boundaries,
+output/body/parameter counts, and known-limit counts.
+`study_results/campaign_request_lint_v1.json`,
+`study_results/study_benchmark.json`,
+`study_results/distributed_chunk_sweep.json`,
+`study_results/distributed_concurrency_sweep.json`,
+`study_results/distributed_diagnostic_sweep.json`,
+`study_results/distributed_monte_carlo_chunked.json`,
+`study_results/distributed_monte_carlo_scaling.json`,
+`study_results/monte_carlo_scaling.json`,
+`study_results/nx_study_benchmark.json`, and
+`study_results/validation_reference_report_v1.json` now feed curated
+validation-reference fixtures. The observations check request-lint status,
+source-plan routing, persisted benchmark result/baseline counts, distributed
+mode rows, chunk/concurrency/Monte Carlo option sweep shape, backend coverage,
+manifest identity, standalone validation-reference report check routing, and
+schema-level benchmark row counts derived from result signatures and per-node
+trajectory counts.
+`study_results/accepted_planning_state_simple.json`,
+`study_results/accepted_planning_state_opm.json`,
+`study_results/accepted_planning_state_oem.json`,
+`study_results/proposed_contact_v1.json`, and
+`study_results/invalidated_candidate_v1.json` now feed curated
+validation-reference fixtures. The observations check accepted-state provenance,
+quality, vector dimensions, adapter input format, maneuver-feedback counts, and
+executable rejection of stale `provenance.state_estimate_count` values that drift
+from emitted `spacecraft_states`, proposed-contact timing/source-window/Cadence
+import metadata plus top-level/nested source-window identity drift, and
+invalidated-candidate replacement, source-target context, and semantic-change
+routing.
+`study_results/planned_activity_v1.json`,
+`study_results/realized_activity_v1.json`, and
+`study_results/plan_delta_v1.json` now feed curated validation-reference
+fixtures. The observations check planned activity timeline identity,
+dependency/exclusivity counts, resource trust metadata, execution uncertainty,
+and executable rejection of stale planned timeline identity drift, realized
+activity status and planned-vs-actual data volume, Cadence feedback adapter
+provenance plus metadata identity drift, plan-delta repair status, approval
+requirement, and top-level/source timeline identity drift.
+`study_results/candidate_activity_v1.json`,
+`study_results/contact_intent_v1.json`,
+`study_results/refreshed_window_v1.json`, and
+`study_results/source_window_lineage_v1.json` now feed curated
+validation-reference fixtures. The observations check generated candidate
+activity IDs, score/objective counts, score-term sums, sampled-window identity
+and provenance, contact-intent approval routing, policy classification, Cadence
+import metadata identity, no-provider/no-schedule boundaries, refreshed-window
+event-timing assumptions plus sample-cadence coverage, and source-window
+lineage identity/type consistency.
+`study_results/spacecraft_state_estimate_v1.json`,
+`study_results/realized_state_snapshot_v1.json`, and
+`study_results/remaining_horizon_v1.json` now feed curated validation-reference
+fixtures. The observations check state-estimate source/provenance and quality
+metadata, quality sigma triplets, vector dimensions, realized snapshot
+status/type maps, row-derived degraded/status counts, contact-failure counts,
+provider feedback metadata, no-schedule-mutation boundaries, and remaining-
+horizon duration/output-step timing bounds.
+`study_results/maneuver_execution_delta_v1.json` and
+`study_results/maneuver_recommendation_v1.json` now feed curated
+validation-reference fixtures. The observations check maneuver execution status
+and epoch/source/provenance/quality metadata, delta-v vector dimensions and
+magnitude consistency, recommendation model limits, required operator-review
+metadata, and the recommendation-only no-command-execution boundary.
+`study_results/timeline_diff_report_v1.json` and
+`study_results/timeline_transition_application_report_v1.json` now feed curated
+validation-reference fixtures. The observations check timeline
+source/replacement counts, diff status and changed-field maps, operator-action
+row routing, review-required counts, row-derived timeline-diff
+status/transition/action/changed-field maps, row-derived diff/action row
+routing, row-derived transition application status/decision/action maps,
+status/approval transition maps, application ID routing,
+selected/preserved/withheld counts, review-gate assumptions, and
+no-schedule-mutation boundaries. Executable validation rejects stale
+timeline-diff row/status/review counts, changed-field and action maps,
+transition-application counts, row-derived decision/action maps, and timeline
+model-limit drift, rejects stale transition-application report model strings,
+and exports the same model and model-limit constants with string source
+boundaries.
+Candidate-refresh transition-application replay summaries
+also derive application status, transition decision, required action, duplicate
+scope maps, application counts, and duplicate identity counts from application
+rows when present, so stale top-level transition aggregates cannot steer replay
+pressure. Selected-activity, review-required, preserved-source,
+recorded-replacement, and withheld-review counts are row-derived under the same
+stale-aggregate boundary. Candidate-refresh operational-feedback provenance
+also derives source timeline-diff status and required-action maps from rows when
+rows are present, preventing stale top-level timeline-diff aggregates from
+steering branch-local feedback pressure.
+`study_results/timeline_activity_precondition_summary_v1.json` now feeds a
+curated `timeline_activity_precondition_summary.v1` validation-reference
+fixture. The observations check blocked/review precondition counts, blocked and
+review type lists, row-derived precondition status/type maps, timeline identity,
+and artifact-only/no-authority assumptions. Executable validation rejects stale
+top-level precondition counts and stale row-derived type maps, so precondition
+summaries remain review evidence instead of silently becoming schedule,
+operator, or resource authority.
+`study_results/timeline_activity_state_v1.json` now feeds a curated
+`timeline_activity_state.v1` validation-reference fixture. The observations
+check review-required state rows, planned/realized activity identity,
+status/match/protection count maps, review activity IDs, row-derived transition
+categories, and artifact-only/no-schedule-mutation/no-command-execution
+assumptions. Executable validation rejects stale row counts and stale
+row-derived match-strategy maps before compact activity-state handoffs can
+steer review/import adapters.
+`study_results/timeline_dependency_impact_summary_v1.json` now feeds a curated
+`timeline_dependency_impact_summary.v1` validation-reference fixture. The
+observations check source/replacement counts, changed-source counts, dependent
+activity counts, impacted ID routing, row-derived scope/status/action/reason
+maps, row IDs by required action, and no-schedule-mutation/no-authority
+assumptions. Executable validation rejects stale dependent-activity counts and
+stale row-derived operator-action reason maps before dependency-impact summaries
+can steer review/import routing.
+`study_results/timeline_diff_summary_v1.json` now feeds a curated
+`timeline_diff_summary.v1` validation-reference fixture. The observations check
+compact diff counts, changed-field counts, transition-decision and
+required-action maps, review timeline routing by operator action, row-derived
+status/approval transition categories, and no-schedule-mutation/no-authority
+assumptions. Executable validation rejects stale review-required counts and
+stale row-derived transition category maps before compact diff summaries can
+steer review/import routing.
+`study_results/timeline_integrity_report_v1.json` now feeds a curated
+`timeline_integrity_report.v1` validation-reference fixture. The observations
+check dependency/exclusivity review rows, issue-type counts, required-action and
+operator-reason maps, review activity/timeline routing, flattened
+dependency/exclusivity evidence IDs, and no-schedule-mutation assumptions.
+Executable validation rejects stale issue counts and stale row-derived
+issue-type maps before integrity summaries can steer review/import routing.
+`study_results/timeline_transition_application_summary_v1.json` now feeds a
+curated `timeline_transition_application_summary.v1` validation-reference
+fixture. The observations check selected/review/preserved/withheld counts,
+application status and transition-decision maps, required-action routing,
+review timeline IDs by operator action, row-derived review-application
+transition categories, and no-schedule-mutation/no-authority assumptions.
+Executable validation rejects stale review-required counts and stale
+row-derived required-action maps before compact transition summaries can steer
+review/import routing.
+`study_results/operational_timeline_report_v1.json` is also observed with
+row-derived operational-kind, activity-status, approval-status,
+Cadence-import-status, required-action, timeline-integrity issue, and row-ID
+routing maps so stale timeline handoff summaries fail compatibility checks.
+Candidate-refresh operational-timeline replay summaries use those row-derived
+maps and row-derived integrity counts, so stale top-level operational-timeline
+aggregate maps or issue-count fields cannot steer branch-local replay pressure.
+Operational-feedback provenance for source operational-timeline reports uses
+the same row-derived required-action maps when rows are present, so stale
+top-level required-action aggregates cannot steer branch-local feedback
+pressure.
+`study_results/timeline_feedback_report_v1.json` now feeds a curated
+validation-reference fixture. The observations check planned/realized
+reconciliation counts, feedback kind and match strategy maps,
+execution-uncertainty counts, nested operator-review and Cadence import handoff
+counts, operational-feedback key counts, row-derived status, kind, match,
+import, transition, and activity-routing maps, and no-schedule-mutation
+boundaries. Executable validation rejects stale row counts, row-derived maps,
+execution-uncertainty counts, and timeline-feedback model-limit drift. The
+candidate-refresh timeline-feedback source summary also derives replay status,
+feedback-kind, and match-strategy maps from rows so stale top-level aggregate
+maps cannot steer branch-local replay pressure.
+Operational-feedback provenance for source timeline-feedback reports also
+derives status, feedback-kind, match-strategy, and Cadence-import status maps
+from rows when rows are present, preventing stale top-level aggregates from
+steering branch-local feedback pressure.
+`study_results/station_calendar_provider_v1.json` now feeds a curated
+`station_calendar_provider.v1` validation-reference fixture. The observations
+check provider identity, entry order/counts, station routing,
+maintenance/reserved availability counts, zero-capacity and reservation
+metadata, provenance, trust boundary, and no-provider-reservation assumptions.
+Executable validation rejects duplicate provider entry IDs before provider
+calendars are consumed by calendar reports.
+`study_results/cadence_import_manifest_v1.json` now feeds a curated
+`cadence_import_manifest.v1` validation-reference fixture. The observations
+check import readiness/blocking counts, Cadence import status maps, source
+review queue maps, import-status row routing, no-Cadence-write boundaries,
+authorization boundaries, and model-limit evidence.
+Executable validation rejects stale Cadence-import row counts, readiness counts,
+import action/status maps, no-write/no-authorization-boundary drift, and
+model-limit drift. It also rejects stale Cadence-import manifest model strings,
+and schema export pins the artifact-only manifest model and `model_limits` used
+by generated handoffs.
+`study_results/command_window_report_v1.json` and
+`study_results/constraint_report_v1.json` now feed curated validation-reference
+fixtures. The observations check command-window row-derived operator-action
+routing, cadence-import and approval status maps, window-type maps, required
+action row IDs, artifact-only execution boundary evidence, constraint status
+and metric maps, threshold operator counts, row-derived status-routed
+constraint IDs, and model-limit boundaries. Executable validation rejects stale
+command-window scalar counts, window-type counts, review-required counts, and
+source-window lineage counts that no longer match rows, rejects stale
+command-window model strings, and exports the same model constant with a string
+source boundary. Constraint report validation now also rejects stale
+unique-constraint counts, row counts, overall status, and status-count maps that
+no longer match constraint rows, and schema export pins exact model-limit lists
+for known artifact-metric, campaign-planner, and campaign-repair constraint
+report models while leaving future models extensible.
+Candidate-refresh operational-feedback provenance for source command-window
+reports derives required-action maps from rows when rows are present, so stale
+top-level command-window required-action aggregates cannot steer branch-local
+feedback pressure.
+
+Checked-in schema-validation reports also feed validation-reference fixtures.
+`study_results/schema_validation_report_v1.json` is observed for validation
+mode, status, validated contract identity, issue/remediation counts, and
+schema-validation model limits. Executable validation rejects stale standalone
+schema-validation status and issue/remediation counts that no longer match the
+reported rows. `study_results/schema_validation_batch_report_v1.json` is
+observed for directory batch file/artifact/skipped counts, nested report
+pass/fail counts, aggregate issue/remediation counts, explicit status-count
+maps, and the same model-limit boundary. Executable validation rejects stale
+batch status, scalar counts, status-count maps, model identifiers, and
+model-limit drift so the batch rollup cannot hide nested schema-validation
+failures or skipped-artifact drift.
+`study_results/resource_projection_report_v1.json` is observed for selected
+activity/resource summary counts, flow-row counts, pressure-row counts,
+storage/downlink pressure totals, warnings, source-quality/trust maps, and
+model-limit boundaries. Executable validation rejects stale activity/resource
+summary counts, row-derived warnings, source-quality/trust maps, and
+resource-projection model identity or model-limit drift; schema export pins the
+same known thin projection model set. Newly generated resource-projection
+reports also carry row-derived pressure count, pressure-type, pressure
+spacecraft ID, and activity/spacecraft ID maps by pressure type; executable
+validation rejects those fields when they drift from projected resource and flow
+rows. Resource projection also review-gates stale explicit storage or battery
+state-of-charge margins in source `resource_summary.v1` inputs before they can
+influence roll-forward math.
+`study_results/resource_projection_battery_handoff_v1.json`,
+`study_results/operator_review_resource_projection_battery_handoff_v1.json`,
+and `study_results/cadence_import_resource_projection_battery_handoff_v1.json`
+are observed as an end-to-end battery handoff challenge path. The fixture checks
+flow-derived consumed/generated/net battery energy and peak overuse values on
+the source resource projection, the operator-review handoff row, the Cadence
+import handoff row, and the nested source-review evidence.
+The general `operator_review_package.v1` fixture also checks row-derived review
+counts, review-type maps, required-operator-action maps, queue maps, and review
+row IDs by type so stale package summaries fail before Cadence import handoff
+generation consumes them. Runtime validation and schema export pin its
+artifact-only model `artifact_only_operator_review_package` and package-level
+`model_limits`, so stale operator-review package model identifiers or
+capability-limit lists fail before review rows are trusted as Cadence-facing
+handoff evidence.
+Executable validation rejects stale operator-review package review counts,
+row-derived review-type, queue, and required-action maps, model-limit drift, and
+artifact-only boundary drift.
+Generated validation-reference fixtures also cover stale battery
+state-of-charge and storage-margin source summaries for resource projection and
+direct resource filtering, checking the invalid-summary IDs, reason counts, and
+candidate/projection row preservation boundaries. Executable validation also
+rejects stale invalid-summary counts and projection invalid-summary IDs that no
+longer match the preserved invalid input rows.
+`study_results/resource_summary_v1.json` is observed for planning-grade
+resource identity, derived battery/storage/power margins, downlink capacity
+metadata, availability and degraded flags, activity suppression and
+incompatibility lists, source quality, trust boundary, and provenance
+assumptions. Executable validation also rejects stale explicit storage or
+battery state-of-charge margins that disagree with supplied capacity/used
+evidence.
+`study_results/resource_filter_report_v1.json` is observed for kept/suppressed
+candidate counts, invalid and duplicate candidate counts, source-quality/trust
+maps, suppressed-reason and resource-blocking routing maps, and model-limit
+boundaries. Direct resource-filter inputs with stale explicit storage or
+battery state-of-charge margins are preserved as invalid-summary review rows
+instead of suppressing candidates. Executable validation also rejects stale
+kept/suppressed counts, suppressed trust maps, and resource-filter model-limit
+drift, rejects stale resource-filter model strings, and exports the same model
+constant plus exact `model_limits` used by generated resource-filter reports and
+compact summaries.
+`study_results/objective_satisfaction_report_v1.json` and
+`study_results/objective_tradeoff_report_v1.json` are observed for objective
+status maps, selected/satisfied/required totals, planned-not-executed
+assumptions, ranking/tradeoff counts, score-term key shape, score totals,
+selected-ranking assumptions, and model-limit boundaries.
+Executable validation rejects stale objective-satisfaction objective counts and
+row candidate/selected counts when explicit candidate or selected ID lists are
+present, rejects stale objective-satisfaction model strings, and schema export
+pins the campaign selected-activity objective summary model used by generated
+reports. It also rejects stale objective-tradeoff ranking counts, score-term
+key lists, and row activity counts that no longer match emitted tradeoff rows,
+rejects stale objective-tradeoff model strings, and schema export pins the
+campaign, repair, and strategy score-term tradeoff model set used by generated
+reports.
+`study_results/score_term_report_v1.json` and
+`study_results/ranking_comparison_report_v1.json` are observed for score-term
+row counts, selected-row counts, score-term key counts, score totals, pairwise
+ranking status maps, winner-change evidence, no-solver assumptions, and
+model-limit boundaries. Executable validation rejects stale score-term row
+counts, score-term key lists that no longer match emitted rows, and stale
+score-term model strings, and exports the allowed model set with the string
+source boundary emitted by generated score-term reports. It also
+rejects stale ranking-comparison row/status counts and per-row rank/value deltas
+that no longer match the compared ranks and values.
+Ranking-comparison validation also rejects stale model strings, and schema
+export pins the scenario-ranking pairwise-delta model used by generated reports.
+`study_results/maneuver_review_report_v1.json` and
+`study_results/pareto_frontier_report_v1.json` are observed for maneuver review
+counts, execution-uncertainty status maps, operator-action routing, no-command
+review boundaries, Pareto frontier/dominated counts, objective key-count maps,
+frontier routing maps, no-search assumptions, and model-limit boundaries.
+Executable validation rejects stale maneuver-review counts, total delta-v,
+operator-action maps, and model limits that drift from emitted review rows or
+declared artifact-only review limits. It also rejects stale maneuver-review
+model strings, and schema export pins the artifact-only review model used by
+generated reports. Candidate-refresh operational-feedback
+provenance for source maneuver-review reports also derives required-action maps
+from rows when rows are present, so stale top-level maneuver-review
+required-action aggregates cannot steer branch-local feedback pressure. It also rejects stale Pareto
+alternative/frontier/dominated/objective counts, frontier/dominated ID sets, and
+row objective-key lists that drift from objective values.
+Pareto-frontier validation also rejects stale model strings, and schema export
+pins the objective-vector Pareto-frontier model used by generated reports.
+`study_results/operational_timeline_report_v1.json` is observed for operational
+activity/contact/command counts, timeline-integrity issue and review counts,
+dependency/exclusivity counts, status maps, operator-action row routing,
+planned-not-commanded assumptions, and model-limit boundaries that schema export
+also pins to the runtime timeline limit list.
+Executable validation rejects stale operational-timeline row counts,
+row-derived status/operator-action/import maps, and timeline-integrity issue
+totals that no longer match the rows.
+`study_results/contact_allocation_report_v1.json` is observed for contact
+allocation counts, review-row counts, reported and row-derived
+allocation/effective status and allocation-reason maps, row-derived scalar
+allocation/contact counters, station-reservation and station-calendar trust
+routing maps, row-derived reservation ID/owner/status evidence, executable
+stale top-level reservation-list checks, and model-limit boundaries.
+Executable validation rejects stale allocation status/reason maps, stale
+reservation match-status maps, and stale reservation ID lists that no longer
+match the allocation rows. Schema export pins the deterministic allocation
+model constant, string source boundary, and exact `model_limits` used by
+generated contact-allocation reports.
+Contact-allocation summary schema export pins the artifact-only model constant
+and exact `model_limits` used by generated compact allocation summaries.
+Reservation-conflict summary schema export pins the artifact-only model
+constant and exact `model_limits` used by generated compact
+reservation-conflict handoff summaries.
+`study_results/contact_allocation_capacity_pack_report_v1.json` is also
+observed as a `contact_allocation_report.v1` reduced-capacity pack fixture. It
+checks capacity-pack group counts, capacity fraction totals, selected/packed
+and deferred contact routing, allocation reason maps, schema-visible
+reported capacity-pack status count maps, reported capacity-pack contact IDs
+by status, and declared station-calendar trust boundaries. Executable
+validation rejects stale pack status maps, contact pack-status maps, and
+contact-ID routing maps that no longer match the pack groups and allocation
+rows, and schema export pins the artifact-only capacity-pack summary model
+constant plus `model_limits` used by generated compact summaries.
+Station-pressure summary schema export likewise pins the artifact-only model
+constant and exact `model_limits` used by generated compact pressure summaries.
+Candidate-refresh contact-allocation replay summaries also derive capacity-pack
+status and contact-status maps from allocation rows when rows are present, so
+stale top-level capacity-pack routing maps cannot steer branch-local pressure.
+The validation-reference registry also includes a generated
+`contact_allocation_provider_reservation_request_summary.v1` fixture that
+observes provider-reservation request, review, and no-request counts plus
+direction routing maps. Fixture verification rejects stale row-derived
+request/review/no-request direction maps, and schema export pins the
+artifact-only model constant, string source boundary, and exact `model_limits`
+before provider-reservation handoff summaries can be treated as provider-write,
+schedule-mutation, or operator authority.
+Station-calendar precedence summary schema export pins the artifact-only model
+constant and exact `model_limits` used by generated compact precedence handoff
+summaries.
+`study_results/contact_filter_report_v1.json` is observed for kept/suppressed
+candidate counts, row-derived suppressed-candidate counters, duplicate
+suppressed-candidate counts, reservation match maps, suppression-reason routing
+maps, station availability maps, and model-limit boundaries. Executable
+validation rejects stale kept/suppressed counts, invalid contact-input IDs, and
+reservation match-status maps that no longer match suppressed candidates,
+rejects stale contact-filter model strings, and exports the same model constant
+used by generated contact-filter reports.
+`study_results/contact_contention_report_v1.json` and
+`study_results/contact_contention_resolution_report_v1.json` are observed for
+conflict/recommendation counts, row-derived scalar
+conflict-group/conflicted-contact/recommendation counters, review-required
+counts, operator-action maps, resource-scope routing maps, selected/deferred
+contact counts, the recommendation-only no-reservation boundary, and
+model-limit boundaries. Executable validation rejects stale contention group,
+conflicted-contact, and recommendation counts that no longer match the
+contention rows, rejects stale contact-contention model strings, and exports
+the same model constant used by generated contention reports. It also rejects
+stale contact-contention resolution report model strings and exports the same
+recommendation model constant used by generated resolution reports. Resolution
+summary validation rejects stale summary model strings plus stale generated
+`model_limits`, and exports the artifact-only summary model constant plus exact
+`model_limits` used by generated handoffs. The
+validation-reference registry also includes a generated cross-station
+same-spacecraft contention challenge fixture, so spacecraft-scope contention
+routing and row-derived resource-scope maps are checked without
+provider reservation, schedule mutation, or candidate suppression.
+Candidate-refresh validation fixtures replay that same generated contention
+challenge through source-report provenance, pinning branch-local resource-scope,
+direction, contact-ID, and operator-action summaries without performing contact
+allocation, candidate selection, import approval, or Cadence writes.
+`study_results/link_capacity_report_v1.json` is observed for fixed-rate contact
+and selected-contact counts, row-derived scalar contact/selected/evidence
+counters, throughput totals, station-selection routing maps, and model-limit
+boundaries. Executable validation rejects stale contact/selected counts,
+throughput totals, ignored-contact lists that no longer match link rows, and
+stale link-capacity model strings; exported schemas publish the same model
+constant, string source boundary, and exact `model_limits` as generated
+reports. Link-capacity summary validation rejects stale summary model strings
+and stale generated `model_limits`, and schema export pins the artifact-only
+summary model plus exact `model_limits` used by generated handoffs.
+Station-reservation review, hold, and hold import-readiness summary validation
+rejects stale generated `model_limits`, and schema export pins the artifact-only
+summary models plus exact StationCalendar `model_limits` used by generated
+handoffs.
+`study_results/validation_reference_fixtures.json` is refreshed from the
+current validation-reference registry, so its fixture IDs and `fixture_count`
+track `OrbitalDynamics.Validation.reference_fixtures/0`.
+
+V2 repair and V3 strategy request JSON files are executable request surfaces,
+not only documentation examples. Use
+`OrbitalDynamics.campaign_repair_from_file!/2` and
+`OrbitalDynamics.campaign_strategy_from_file!/2` to resolve `source_plan_ref`
+and build artifacts from the checked-in request files.
+
+For repeatable file-to-file generation, use the campaign run task:
+
+```bash
+mix orbital_dynamics.campaign.lint --type repair --request studies/leo_constellation_campaign_repair_v2.json
+mix orbital_dynamics.campaign.lint --type strategy --request studies/leo_constellation_campaign_strategy_v3.json --format json
+mix orbital_dynamics.campaign.lint --type repair --request studies/leo_constellation_campaign_repair_v2.json --output study_results/campaign_request_lint_v1.json
+mix orbital_dynamics.campaign.run --type repair --request studies/leo_constellation_campaign_repair_v2.json --output study_results/leo_constellation_campaign_repair_v2.json
+mix orbital_dynamics.campaign.run --type strategy --request studies/leo_constellation_campaign_strategy_v3.json --output study_results/leo_constellation_campaign_strategy_v3.json
+mix orbital_dynamics.campaign.run --type strategy --request studies/leo_constellation_campaign_strategy_v3.json --output /tmp/strategy.json --format json
+```
+
+`campaign_request_lint.v1` executable validation treats `error_count` as a
+non-negative integer and checks it against the emitted error rows, so request
+preflight reports match the exported JSON Schema instead of accepting
+float-shaped counts. It also derives `status` from `error_count`, so stale
+passing/failing summaries cannot drift from emitted diagnostics. The checked-in
+repair request lint fixture is compared against a fresh preflight report for
+request and source-plan SHA-256 evidence, and executable validation/export both
+require lowercase 64-character SHA-256 digests for those evidence fields.
+`study_manifest_lint.v1` exports `error_count`,
+`warning_count`, and optional `scenario_count` with the same non-negative
+integer bounds. The same export also types the `lint_task` and
+`semantic_validator` provenance fields as strings, matching the executable
+preflight report contract.

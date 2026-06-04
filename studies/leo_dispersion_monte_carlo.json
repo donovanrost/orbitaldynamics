@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "study_id": "leo_dispersion_monte_carlo",
+  "central_body": "earth",
+  "propagator": "two_body",
+  "propagator_opts": {
+    "max_step_s": 10.0
+  },
+  "outputs": ["trajectories"],
+  "metadata": {
+    "description": "Seeded initial-state dispersion study for a circular LEO checkout"
+  },
+  "constraints": [
+    {
+      "id": "minimum_operational_altitude",
+      "metric": "min_altitude_km",
+      "operator": ">=",
+      "value": 621.5
+    }
+  ],
+  "monte_carlo": {
+    "generator": "state_vector_dispersion",
+    "id_prefix": "dispersion",
+    "seed": 12345,
+    "count": 20,
+    "position_sigma_km": [0.1, 0.1, 0.05],
+    "velocity_sigma_km_s": [0.0001, 0.0001, 0.00005],
+    "objective": "min_altitude_km",
+    "rank_limit": 5,
+    "base_scenario": {
+      "id": "base_leo",
+      "spacecraft": {
+        "id": "demo_sat",
+        "dry_mass_kg": 250.0
+      },
+      "initial_state": {
+        "position_km": [7000.0, 0.0, 0.0],
+        "velocity_km_s": [0.0, 7.546053290107541, 0.0],
+        "epoch": {
+          "seconds_since_j2000": 0.0,
+          "scale": "tdb"
+        },
+        "frame": "earth_inertial_j2000"
+      },
+      "duration_s": 1800.0,
+      "output_step_s": 60.0
+    }
+  }
+}

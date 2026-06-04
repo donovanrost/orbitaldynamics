@@ -1,0 +1,1 @@
+{"activity_id":"trim_burn_1","delta_v_km_s":[0,0.01,0],"epoch_s":180,"quality":{"level":"operator_reported"},"provenance":{"trust_boundary":"operator_supplied"},"schema_contract":"maneuver_execution_delta.v1","source":{"source_id":"maneuver-log-1","system":"ops_log"},"status":"completed"}

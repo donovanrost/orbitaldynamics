@@ -1,0 +1,46 @@
+{
+  "action": "review_command_contact",
+  "activity_context": {
+    "direction": "command",
+    "ground_station_id": "equator_prime",
+    "timeline_identity": {
+      "activity_id": "cmd_repoint",
+      "activity_type": "command",
+      "scenario_id": "leo_1",
+      "subject_id": "equator_prime",
+      "timeline_id": "timeline:leo_1:command:equator_prime:window:leo_1:command:equator_prime:1"
+    }
+  },
+  "activity_id": "cmd_repoint",
+  "activity_type": "command",
+  "approval_rule_matches": [
+    {
+      "action": "review_command_contact",
+      "activity_id": "cmd_repoint",
+      "activity_type": "command",
+      "classification": "operator_review_required",
+      "direction": "command",
+      "ground_station_id": "equator_prime",
+      "reason": "command contacts require operator review",
+      "requirement_type": "command_review",
+      "rule_id": "command_contact_review"
+    }
+  ],
+  "policy_classification": "operator_review_required",
+  "policy_bundle_id": "contact_command_review_v1",
+  "policy_decision": {
+    "classification": "operator_review_required",
+    "escalations": [
+      {
+        "required_authority": "contact_schedule_authority",
+        "rule_id": "command_contact_review"
+      }
+    ],
+    "policy_bundle_id": "contact_command_review_v1"
+  },
+  "reason": "command contacts require operator review",
+  "required_authority": "contact_schedule_authority",
+  "requirement_type": "command_review",
+  "rule_id": "command_contact_review",
+  "schema_contract": "approval_requirement.v1"
+}

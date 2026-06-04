@@ -1,0 +1,72 @@
+{
+  "assumptions": {
+    "coverage_model": "selected_observe_activity_targets",
+    "downlink_completion_model": "selected_downlink_activity_count_or_data_volume",
+    "execution_status": "planned_not_executed",
+    "selection": "best_ranked_timeline_is_selected"
+  },
+  "model": "campaign_v1_selected_activity_objective_summary",
+  "model_limits": [
+    "selected_activity_summary_only",
+    "planned_not_executed",
+    "no_solver_execution",
+    "not_calibrated_from_operational_outcomes"
+  ],
+  "objective_count": 4,
+  "rows": [
+    {
+      "candidate_count": 1,
+      "candidate_target_ids": [
+        "target_a"
+      ],
+      "id": "objective:target_coverage",
+      "objective": "target_coverage",
+      "required_count": 2,
+      "satisfied_count": 1,
+      "selected_count": 1,
+      "selected_target_ids": [
+        "target_a"
+      ],
+      "status": "partial"
+    },
+    {
+      "candidate_count": 1,
+      "candidate_downlink_mb": 160.0,
+      "id": "objective:downlink_completion",
+      "objective": "downlink_completion",
+      "required_downlink_mb": 150.0,
+      "satisfied_count": 0,
+      "satisfied_downlink_mb": 0.0,
+      "selected_contact_ids": [],
+      "selected_count": 0,
+      "selected_downlink_mb": 0.0,
+      "status": "unmet"
+    },
+    {
+      "candidate_count": 1,
+      "id": "objective:target_commitment:target_a",
+      "objective": "target_commitment",
+      "required_count": 1,
+      "satisfied_count": 1,
+      "selected_activity_ids": [
+        "leo_1_observe_target_a_1"
+      ],
+      "selected_count": 1,
+      "status": "selected",
+      "target_id": "target_a"
+    },
+    {
+      "candidate_count": 0,
+      "id": "objective:target_commitment:target_b",
+      "objective": "target_commitment",
+      "required_count": 1,
+      "satisfied_count": 0,
+      "selected_activity_ids": [],
+      "selected_count": 0,
+      "status": "no_candidate_window",
+      "target_id": "target_b"
+    }
+  ],
+  "schema_contract": "objective_satisfaction_report.v1",
+  "source": "campaign_plan.activities"
+}

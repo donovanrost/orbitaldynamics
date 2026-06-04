@@ -1,0 +1,105 @@
+{
+  "duration_s": 282.8895569509249,
+  "eclipse_overlap_fraction": 0.0,
+  "eclipse_overlap_s": 0.0,
+  "ends_at_s": 282.8895569509249,
+  "id": "leo_1_observe_target_a_1",
+  "lighting_condition": "sunlit",
+  "lighting_condition_detail": "sunlit",
+  "lighting_condition_model": "sampled_eclipse_overlap_tag",
+  "lighting_confidence": "bounded_by_sampled_eclipse_overlap",
+  "lighting_detail_model": "sampled_eclipse_overlap_fraction_tag",
+  "activity_context": {
+    "activity_id": "leo_1_observe_target_a_1",
+    "activity_type": "observe",
+    "collection_id": "collection_alpha",
+    "collection_latency_objective_count": 1,
+    "collection_latency_objective_ids": [
+      "latency:collection_alpha"
+    ],
+    "collection_latency_objective_source": "candidate_refresh.objectives.collection_latency",
+    "collection_latency_objective_types": [
+      "collection_latency"
+    ],
+    "instrument_id": "imager",
+    "max_latency_s": 900.0,
+    "observation_objective_count": 1,
+    "observation_objective_ids": [
+      "urgent:target_a"
+    ],
+    "observation_objective_source": "candidate_refresh.objectives.observation",
+    "observation_objective_types": [
+      "urgent_target"
+    ],
+    "payload_id": "camera_a",
+    "product_ids": [
+      "image_l0",
+      "image_l1"
+    ],
+    "required_downlink_mb": 180.0,
+    "required_observations": 1.0,
+    "target_priority": 12.0,
+    "target_priority_objective_ids": [
+      "urgent:target_a"
+    ],
+    "target_priority_objective_type": "urgent_target",
+    "target_priority_source": "candidate_refresh.objectives.observation_priority"
+  },
+  "collection_id": "collection_alpha",
+  "collection_latency_objective_count": 1,
+  "collection_latency_objective_ids": [
+    "latency:collection_alpha"
+  ],
+  "collection_latency_objective_source": "candidate_refresh.objectives.collection_latency",
+  "collection_latency_objective_types": [
+    "collection_latency"
+  ],
+  "instrument_id": "imager",
+  "max_latency_s": 900.0,
+  "observation_objective_count": 1,
+  "observation_objective_ids": [
+    "urgent:target_a"
+  ],
+  "observation_objective_source": "candidate_refresh.objectives.observation",
+  "observation_objective_types": [
+    "urgent_target"
+  ],
+  "payload_id": "camera_a",
+  "product_ids": [
+    "image_l0",
+    "image_l1"
+  ],
+  "required_downlink_mb": 180.0,
+  "required_observations": 1.0,
+  "scenario_id": "leo_1",
+  "schema_contract": "candidate_activity.v1",
+  "score": 3469.6746834110986,
+  "score_terms": {
+    "collection_latency_observation_value": 35.0,
+    "eclipse_penalty": -0.0,
+    "observation_objective_value": 40.0,
+    "target_value": 3394.6746834110986
+  },
+  "source_window": {
+    "confidence": "bounded_by_sample_cadence",
+    "event_detector": "target_visibility",
+    "event_time_tolerance_s": 60.0,
+    "event_timing_policy": "sampled_state_linear_boundary",
+    "id": "window:leo_1:target_visibility:target_a:1",
+    "max_elevation_deg": 90.0,
+    "max_sample_step_s": 60.0,
+    "minimum_elevation_deg": 10.0,
+    "type": "target_visibility"
+  },
+  "source_window_id": "window:leo_1:target_visibility:target_a:1",
+  "spacecraft_id": "sat_1",
+  "starts_at_s": 0.0,
+  "target_id": "target_a",
+  "target_priority": 12.0,
+  "target_priority_objective_ids": [
+    "urgent:target_a"
+  ],
+  "target_priority_objective_type": "urgent_target",
+  "target_priority_source": "candidate_refresh.objectives.observation_priority",
+  "type": "observe"
+}

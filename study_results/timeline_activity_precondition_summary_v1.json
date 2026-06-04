@@ -1,0 +1,50 @@
+{
+  "activity_id": "cmd_source",
+  "activity_type": "command",
+  "assumptions": {
+    "execution_boundary": "artifact_only_no_schedule_mutation",
+    "operator_authority": "not_granted_by_precondition_summary",
+    "resource_authority": "not_reserved_by_precondition_summary"
+  },
+  "blocked_precondition_count": 2,
+  "blocked_precondition_types": [
+    "payload_unavailable",
+    "resource_block_declared"
+  ],
+  "model": "artifact_only_timeline_activity_precondition_summary",
+  "precondition_status": "blocked",
+  "preconditions": [
+    {
+      "field": "payload_available",
+      "reason": "payload availability is explicitly false",
+      "status": "blocked",
+      "type": "payload_unavailable"
+    },
+    {
+      "field": "resource_blocking_dimension",
+      "reason": "resource blocking dimension is explicitly declared",
+      "status": "blocked",
+      "type": "resource_block_declared",
+      "value": "power"
+    },
+    {
+      "field": "degraded",
+      "reason": "activity is explicitly marked degraded",
+      "status": "review_required",
+      "type": "degraded_mode"
+    }
+  ],
+  "review_precondition_count": 1,
+  "review_precondition_types": [
+    "degraded_mode"
+  ],
+  "schema_contract": "timeline_activity_precondition_summary.v1",
+  "timeline_id": "timeline:cmd_source",
+  "timeline_identity": {
+    "activity_id": "cmd_source",
+    "activity_type": "command",
+    "scenario_id": "leo_1",
+    "timeline_id": "timeline:cmd_source"
+  },
+  "validation_level": "artifact_contract"
+}

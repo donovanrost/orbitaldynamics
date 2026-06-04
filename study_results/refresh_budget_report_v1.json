@@ -1,0 +1,28 @@
+{
+  "assumptions": {
+    "budget_stage": "after_contact_resource_and_allocation_filters",
+    "optimizer_search_performed": false,
+    "selection_policy": "highest_score_candidates_are_kept_then_artifact_order_is_restored"
+  },
+  "dropped_candidate_count": 1,
+  "dropped_candidate_ids": [
+    "leo_1_downlink_equator_prime_1"
+  ],
+  "input_candidate_count": 2,
+  "kept_candidate_count": 1,
+  "kept_candidate_ids": [
+    "leo_1_observe_target_a_1"
+  ],
+  "max_candidate_activities": 1,
+  "model": "deterministic_candidate_limit_after_filters",
+  "model_limits": [
+    "requires_precomputed_refreshed_event_results",
+    "sampled_window_boundaries",
+    "thin_resource_filter",
+    "thin_ground_network_filter",
+    "candidate_budget_is_deterministic_post_filter_selection",
+    "artifact_only_no_schedule_mutation"
+  ],
+  "schema_contract": "refresh_budget_report.v1",
+  "selection_order": "score_descending_then_start_then_id"
+}

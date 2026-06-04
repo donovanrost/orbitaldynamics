@@ -1,0 +1,81 @@
+{
+  "schema_contract": "strategy_branch.v1",
+  "branch_id": "derived_urgent_target_target_hot",
+  "label": "Derived urgent target target_hot",
+  "probability": 1.0,
+  "events": [
+    {
+      "type": "urgent_target",
+      "target_id": "target_hot",
+      "priority": 18,
+      "derivation_reasons": [
+        "urgent_high_priority_target_inserted"
+      ]
+    },
+    {
+      "type": "downlink_completion_gap",
+      "ground_station_id": "equator_prime",
+      "required_downlink_mb": 120.0,
+      "downlink_demand_sources": [
+        "ops.downlink.backlog:equator_prime"
+      ],
+      "downlink_completion_source": "objective_satisfaction.downlink_completion",
+      "downlink_completion_sources": [
+        "objective_satisfaction.downlink_completion:equator_prime"
+      ],
+      "derivation_reasons": [
+        "fixture_downlink_lineage_contract"
+      ]
+    }
+  ],
+  "candidate_plan": {
+    "activities": [],
+    "strategic_additions": [],
+    "capacity_adjustments": []
+  },
+  "repair_result": {
+    "schema_contract": "campaign_repair.v2",
+    "activities": [],
+    "deltas": [],
+    "approval_requirements": []
+  },
+  "score": 2835.3981832107565,
+  "score_terms": {
+    "expected_score": 2835.3981832107565,
+    "mission_value_score": 3577.2731832107565,
+    "risk_penalty": -700,
+    "approval_load_penalty": -20
+  },
+  "warnings": [
+    "downlink capacity margin below required completion target"
+  ],
+  "risk_indicators": [
+    {
+      "type": "downlink_capacity_low",
+      "severity": "medium",
+      "reason": "downlink capacity margin below required completion target",
+      "value": 0.62
+    }
+  ],
+  "approval_status": "operator_review_required",
+  "approval_requirements": [],
+  "policy_decision": {
+    "schema_contract": "policy_decision.v1",
+    "classification": "operator_review_required",
+    "approval_requirement_count": 0,
+    "risk_count": 1
+  },
+  "derived_source": "mission_state.objectives",
+  "resource_impacts": {
+    "model": "thin_mission_state_resource_summary",
+    "downlink_capacity_margin": 0.62
+  },
+  "tradeoffs": [
+    {
+      "dimension": "expected_score",
+      "baseline": 425.36900076591616,
+      "recommended": 2835.3981832107565,
+      "delta": 2410.0291824448404
+    }
+  ]
+}

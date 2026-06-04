@@ -1,0 +1,1155 @@
+defmodule OrbitalDynamics.GoldenArtifactTest do
+  use ExUnit.Case, async: true
+
+  test "checked-in campaign artifact preserves the V1 planning surface" do
+    campaign =
+      "study_results/leo_constellation_campaign.json"
+      |> read_json!()
+      |> Map.fetch!("campaign_plan")
+
+    assert %{
+             "schema_version" => 1,
+             "planner" => "OrbitalDynamics.CampaignPlanner.V1",
+             "plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
+             "study_id" => "leo_constellation_campaign",
+             "candidate_activity_ids" => [
+               "leo_1_downlink_equator_prime_1",
+               "leo_1_observe_target_a_1"
+             ],
+             "planned_activity_ids" => ["leo_1_observe_target_a_1"],
+             "contact_intent_ids" => ["leo_1_downlink_equator_prime_1"],
+             "affected_contact_ids" => ["leo_1_downlink_equator_prime_1"],
+             "ranked_timeline_activity_ids" => [["leo_1_observe_target_a_1"]],
+             "ranked_timeline_scores" => [1417.273183]
+           } == campaign_golden_surface(campaign)
+  end
+
+  test "checked-in campaign artifact preserves the V1 embedded report surfaces" do
+    campaign =
+      "study_results/leo_constellation_campaign.json"
+      |> read_json!()
+      |> Map.fetch!("campaign_plan")
+
+    assert %{
+             "resource_projection_report" => %{
+               "schema_contract" => "resource_projection_report.v1",
+               "model" => "thin_campaign_selected_activity_resource_projection",
+               "input_resource_summary_count" => 1,
+               "activity_count" => 1,
+               "spacecraft_ids" => ["leo_1"],
+               "observation_counts" => [1],
+               "downlink_counts" => [0],
+               "projected_storage_margins" => [0.75],
+               "projected_downlink_margins" => [1.0],
+               "warnings" => []
+             },
+             "operational_timeline_report" => %{
+               "schema_contract" => "operational_timeline_report.v1",
+               "model" => "selected_activity_operational_context_summary",
+               "activity_count" => 1,
+               "row_count" => 1,
+               "contact_count" => 0,
+               "command_count" => 0,
+               "locked_count" => 0,
+               "approved_count" => 0,
+               "executed_count" => 0,
+               "source_window_lineage_count" => 1,
+               "row_activity_ids" => ["leo_1_observe_target_a_1"],
+               "row_statuses" => ["planned"],
+               "row_approval_statuses" => ["not_evaluated"],
+               "row_operational_kinds" => ["observation"],
+               "row_required_operator_actions" => ["review_activity_approval"],
+               "row_operator_action_reasons" => ["approval_status_not_evaluated"],
+               "row_cadence_import_statuses" => ["present"],
+               "row_execution_boundaries" => ["planned_not_commanded"],
+               "row_source_window_types" => ["target_visibility"],
+               "row_timeline_ids" => [
+                 "timeline:leo_1:observe:target_a:window:leo_1:target_visibility:target_a:1"
+               ]
+             },
+             "link_capacity_report" => %{
+               "schema_contract" => "link_capacity_report.v1",
+               "model" => "fixed_rate_downlink_capacity_summary",
+               "contact_count" => 1,
+               "selected_contact_count" => 0,
+               "estimated_throughput_mb" => 345.424242,
+               "selected_estimated_throughput_mb" => 0.0,
+               "ground_station_ids" => ["equator_prime"],
+               "contact_ids" => [["leo_1_downlink_equator_prime_1"]]
+             },
+             "contact_allocation_report" => %{
+               "schema_contract" => "contact_allocation_report.v1",
+               "model" => "deterministic_station_contact_allocation",
+               "input_contact_count" => 1,
+               "allocated_contact_count" => 1,
+               "deferred_contact_count" => 0,
+               "blocked_contact_count" => 0,
+               "row_contact_ids" => ["leo_1_downlink_equator_prime_1"],
+               "row_allocation_statuses" => ["allocated"],
+               "row_allocation_reasons" => ["available"]
+             },
+             "objective_satisfaction_report" => %{
+               "schema_contract" => "objective_satisfaction_report.v1",
+               "model" => "campaign_v1_selected_activity_objective_summary",
+               "objective_count" => 4,
+               "rows" => [
+                 ["objective:target_coverage", "partial", 1, 1],
+                 ["objective:downlink_completion", "no_requirement", 0, 0],
+                 ["objective:target_commitment:target_a", "selected", 1, 1],
+                 ["objective:target_commitment:target_b", "no_candidate_window", 0, 0]
+               ]
+             },
+             "constraint_report" => %{
+               "schema_contract" => "constraint_report.v1",
+               "model" => "campaign_planner_local_constraint_summary",
+               "constraint_count" => 3,
+               "row_count" => 4,
+               "status" => "pass",
+               "row_constraint_ids" => [
+                 "campaign:max_timeline_activities",
+                 "campaign:min_activity_duration_s",
+                 "campaign:min_activity_duration_s",
+                 "campaign:avoid_eclipse"
+               ],
+               "row_metrics" => [
+                 "activity_count",
+                 "duration_s",
+                 "duration_s",
+                 "eclipse_overlap_s"
+               ],
+               "row_statuses" => ["pass", "pass", "pass", "pass"]
+             },
+             "operator_review_package" => %{
+               "schema_contract" => "operator_review_package.v1",
+               "source_artifact_type" => "campaign_plan.v1",
+               "review_count" => 15,
+               "approval_requirement_count" => 0,
+               "contention_recommendation_count" => 0,
+               "contact_allocation_review_count" => 1,
+               "operational_timeline_count" => 1,
+               "plan_delta_count" => 0,
+               "timeline_protection_count" => 0,
+               "realized_feedback_count" => 0,
+               "warning_count" => 0,
+               "risk_count" => 0,
+               "recommendation_count" => 0,
+               "ranking_comparison_count" => 0,
+               "pareto_frontier_count" => 0,
+               "tradeoff_count" => 0,
+               "score_term_review_count" => 7,
+               "objective_tradeoff_review_count" => 1,
+               "row_review_types" => [
+                 "operational_timeline_review",
+                 "contact_allocation_review",
+                 "station_calendar_review"
+               ],
+               "row_actions" => [
+                 "review_activity_approval",
+                 "review_contact_allocation",
+                 "review_reduced_station_capacity"
+               ]
+             },
+             "cadence_import_manifest" => %{
+               "schema_contract" => "cadence_import_manifest.v1",
+               "source_artifact_type" => "campaign_plan.v1",
+               "row_count" => 16,
+               "ready_count" => 1,
+               "review_required_count" => 15,
+               "blocked_count" => 0,
+               "missing_import_count" => 0,
+               "contact_allocation_import_count" => 1,
+               "row_actions" => [
+                 "import_proposed_contact",
+                 "review_operational_timeline",
+                 "review_contact_allocation",
+                 "review_station_calendar",
+                 "review_link_capacity",
+                 "review_resource_projection",
+                 "review_objective_satisfaction",
+                 "review_objective_satisfaction",
+                 "review_score_term",
+                 "review_score_term",
+                 "review_score_term",
+                 "review_score_term",
+                 "review_score_term",
+                 "review_score_term",
+                 "review_score_term",
+                 "review_objective_tradeoff"
+               ],
+               "row_statuses" => [
+                 "ready_for_import",
+                 "review_required_before_import",
+                 "review_required_before_import",
+                 "review_required_before_import",
+                 "review_required_before_import",
+                 "review_required_before_import",
+                 "review_required_before_import",
+                 "review_required_before_import",
+                 "review_required_before_import",
+                 "review_required_before_import",
+                 "review_required_before_import",
+                 "review_required_before_import",
+                 "review_required_before_import",
+                 "review_required_before_import",
+                 "review_required_before_import",
+                 "review_required_before_import"
+               ]
+             },
+             "command_window_report" => %{
+               "schema_contract" => "command_window_report.v1",
+               "source" => "campaign_plan.activities",
+               "window_count" => 0,
+               "command_count" => 0,
+               "tracking_count" => 0,
+               "uplink_count" => 0,
+               "health_check_count" => 0,
+               "review_required_count" => 0,
+               "row_activity_ids" => []
+             }
+           } == campaign_report_golden_surface(campaign)
+  end
+
+  test "checked-in repair artifact preserves the V2 repair surface" do
+    repair = read_json!("study_results/leo_constellation_campaign_repair_v2.json")
+
+    assert %{
+             "schema_version" => 2,
+             "planner" => "OrbitalDynamics.CampaignPlanner.V2",
+             "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
+             "repair_id" => "5eaf3398d1a35c6d390fa5f12059ec6783583716a85f8a792ecf3c48f419043f",
+             "transition_selected_activity_count" => 0,
+             "transition_application_review_required_count" => 1,
+             "approval_status" => "operator_review_required",
+             "change_summary" => %{"canceled" => 1},
+             "delta_actions" => ["canceled"],
+             "delta_reasons" => ["failed_observation_no_viable_replacement_window"],
+             "delta_has_source_context" => [true],
+             "delta_has_replacement_context" => [false],
+             "review_delta_has_source_identity" => [true],
+             "approval_actions" => ["cancel"],
+             "approval_classifications" => ["operator_review_required"],
+             "operational_timeline_report" => %{
+               "schema_contract" => "operational_timeline_report.v1",
+               "source" => "campaign_repair.activities",
+               "activity_count" => 0,
+               "row_count" => 0,
+               "contact_count" => 0,
+               "command_count" => 0,
+               "rows" => []
+             },
+             "score_term_report" => %{
+               "schema_contract" => "score_term_report.v1",
+               "model" => "repair_score_terms",
+               "source" => "campaign_repair.score_terms",
+               "row_count" => 3,
+               "score_term_keys" => [
+                 "activity_score",
+                 "schedule_churn_penalty",
+                 "schedule_move_penalty"
+               ],
+               "row_term_keys" => [
+                 "activity_score",
+                 "schedule_churn_penalty",
+                 "schedule_move_penalty"
+               ],
+               "row_selected" => [true, true, true]
+             },
+             "objective_tradeoff_report" => %{
+               "schema_contract" => "objective_tradeoff_report.v1",
+               "model" => "repair_score_term_tradeoffs",
+               "ranking_count" => 1,
+               "scenario_ids" => [
+                 "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z"
+               ],
+               "scores" => [-100.0],
+               "score_deltas" => [0.0],
+               "activity_counts" => [0],
+               "activity_ids" => [[]]
+             },
+             "constraint_report" => %{
+               "schema_contract" => "constraint_report.v1",
+               "model" => "campaign_repair_local_constraint_summary",
+               "constraint_count" => 3,
+               "row_count" => 1,
+               "status" => "pass",
+               "row_constraint_ids" => ["campaign:max_timeline_activities"],
+               "row_metrics" => ["activity_count"],
+               "row_statuses" => ["pass"]
+             },
+             "link_capacity_report" => %{
+               "schema_contract" => "link_capacity_report.v1",
+               "source" => "campaign_repair.activities",
+               "contact_count" => 0,
+               "selected_contact_count" => 0,
+               "estimated_throughput_mb" => 0,
+               "selected_estimated_throughput_mb" => 0,
+               "rows" => []
+             },
+             "timeline_transition_application_report" => %{
+               "schema_contract" => "timeline_transition_application_report.v1",
+               "source" => "campaign_repair.timeline_transition_application",
+               "source_activity_count" => 1,
+               "replacement_activity_count" => 0,
+               "application_count" => 1,
+               "selected_activity_count" => 0,
+               "review_required_count" => 1,
+               "preserved_source_count" => 0,
+               "recorded_replacement_count" => 0,
+               "withheld_review_count" => 1,
+               "selected_timeline_integrity_issue_count" => 0,
+               "application_status_counts" => %{"operator_review_required" => 1},
+               "transition_decision_counts" => %{"review" => 1},
+               "required_operator_action_counts" => %{"review_removed_activity" => 1},
+               "status_transition_counts" => %{"removed" => 1},
+               "approval_transition_counts" => %{"removed" => 1},
+               "row_activity_ids" => ["leo_1_observe_target_a_1"],
+               "row_statuses" => ["operator_review_required"],
+               "row_decisions" => ["review"],
+               "selected_activity_ids" => []
+             },
+             "operator_review_package" => %{
+               "schema_contract" => "operator_review_package.v1",
+               "source_artifact_type" => "campaign_repair.v2",
+               "review_count" => 13,
+               "approval_requirement_count" => 1,
+               "contention_recommendation_count" => 0,
+               "contact_allocation_review_count" => 0,
+               "operational_timeline_count" => 0,
+               "plan_delta_count" => 1,
+               "timeline_protection_count" => 0,
+               "realized_feedback_count" => 2,
+               "warning_count" => 3,
+               "risk_count" => 0,
+               "recommendation_count" => 0,
+               "ranking_comparison_count" => 0,
+               "pareto_frontier_count" => 0,
+               "tradeoff_count" => 0,
+               "score_term_review_count" => 3,
+               "objective_tradeoff_review_count" => 1,
+               "row_review_types" => [
+                 "approval_requirement",
+                 "realized_feedback",
+                 "realized_feedback"
+               ],
+               "row_actions" => [
+                 "cancel",
+                 "review_unplanned_realization",
+                 "review_realized_exception"
+               ]
+             }
+           } == repair_golden_surface(repair)
+  end
+
+  test "checked-in strategy artifact preserves the V3 strategy surface" do
+    strategy = read_json!("study_results/leo_constellation_campaign_strategy_v3.json")
+    surface = strategy_golden_surface(strategy)
+
+    assert %{
+             "schema_version" => 3,
+             "planner" => "OrbitalDynamics.CampaignPlanner.V3",
+             "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
+             "strategy_id" => "3528f1c9f88cfafeda8a7e7a311beab2505a80cd15dd5688798cced94a84efaa",
+             "recommended_branch_id" => "derived_urgent_target_target_hot",
+             "approval_status" => "operator_review_required",
+             "recommendation_status" => "pass"
+           } = surface
+
+    assert surface["branch_ids"] == [
+             "derived_urgent_target_target_hot",
+             "derived_target_revisit_target_hot",
+             "derived_objective_satisfaction_objective:target_commitment:target_b_prior_plan.cadence_import_manifest.rows.source_review_row.source_objective_satisfaction_objective:target_commitment:target_b_target_observation_target_b_1",
+             "derived_objective_satisfaction_objective:target_commitment:target_b_prior_plan.objective_satisfaction_report_objective:target_commitment:target_b_target_observation_target_b_1",
+             "derived_objective_satisfaction_objective:target_commitment:target_b_prior_plan.operator_review_package.rows.source_objective_satisfaction_objective:target_commitment:target_b_target_observation_target_b_1",
+             "derived_combined_mission_state",
+             "derived_contact_success_feedback",
+             "derived_objective_satisfaction_objective:target_coverage:target_a_prior_plan.cadence_import_manifest.rows.source_review_row.source_objective_satisfaction_objective:target_coverage_target_coverage_target_a_1",
+             "derived_objective_satisfaction_objective:target_coverage:target_a_prior_plan.objective_satisfaction_report_objective:target_coverage_target_coverage_target_a_1",
+             "derived_objective_satisfaction_objective:target_coverage:target_a_prior_plan.operator_review_package.rows.source_objective_satisfaction_objective:target_coverage_target_coverage_target_a_1",
+             "derived_observation_success_feedback",
+             "derived_station_calendar_pressure_reduced_capacity_leo_1_downlink_equator_prime_1_prior_plan.cadence_import_manifest.rows.source_station_calendar_review_station_calendar_station_calendar_reduced_capacity_equator_prime_reduced_capacity_demo_available_reduced_capacity_equator_prime_0.0_345.42424173964787",
+             "derived_station_calendar_pressure_reduced_capacity_leo_1_downlink_equator_prime_1_prior_plan.operator_review_package.rows.source_station_calendar_review_station_calendar_station_calendar_reduced_capacity_equator_prime_reduced_capacity_demo_available_reduced_capacity_equator_prime_0.0_345.42424173964787",
+             "derived_station_calendar_pressure_reduced_capacity_leo_1_downlink_equator_prime_1_prior_plan.station_calendar_report_station_calendar_station_calendar_reduced_capacity_equator_prime_reduced_capacity_demo_available_reduced_capacity_equator_prime_0.0_345.42424173964787",
+             "derived_station_capacity_equator_prime",
+             "derived_station_throughput_feedback",
+             "baseline",
+             "derived_fuel_preservation",
+             "operator_station_outage",
+             "derived_degraded_leo_2",
+             "operator_placeholder_urgent",
+             "derived_downlink_constrained"
+           ]
+
+    assert surface["branch_scores"] == [
+             2550.398183,
+             2024.598183,
+             895.06485,
+             895.06485,
+             895.06485,
+             584.630326,
+             389.398183,
+             389.398183,
+             389.398183,
+             389.398183,
+             389.398183,
+             389.398183,
+             389.398183,
+             389.398183,
+             389.398183,
+             389.398183,
+             379.169001,
+             292.773183,
+             164.679637,
+             139.398183,
+             101.506485,
+             89.398183
+           ]
+
+    assert surface["ranked_branch_ids"] ==
+             Enum.take(surface["branch_ids"], 6) ++ ["operator_placeholder_urgent"]
+
+    assert surface["ranking_comparison_report"]["row_count"] == 22
+
+    assert surface["pareto_frontier_report"]
+           |> Map.take(["alternative_count", "frontier_count", "dominated_count"]) == %{
+             "alternative_count" => 22,
+             "frontier_count" => 15,
+             "dominated_count" => 7
+           }
+
+    assert surface["score_term_report"]["row_count"] == 352
+    assert surface["objective_tradeoff_report"]["ranking_count"] == 22
+
+    assert surface["operator_review_package"]
+           |> Map.take([
+             "review_count",
+             "contact_allocation_review_count",
+             "score_term_review_count",
+             "objective_tradeoff_review_count"
+           ]) == %{
+             "review_count" => 836,
+             "contact_allocation_review_count" => 20,
+             "score_term_review_count" => 418,
+             "objective_tradeoff_review_count" => 44
+           }
+
+    assert surface["cadence_import_manifest"]
+           |> Map.take([
+             "row_count",
+             "review_required_count",
+             "contact_allocation_import_count"
+           ]) == %{
+             "row_count" => 857,
+             "review_required_count" => 836,
+             "contact_allocation_import_count" => 20
+           }
+  end
+
+  test "checked-in Monte Carlo artifact preserves the reproducibility report surface" do
+    artifact = read_json!("study_results/leo_dispersion_monte_carlo.json")
+
+    assert %{
+             "study_id" => "leo_dispersion_monte_carlo",
+             "schema_version" => 1,
+             "report" => %{
+               "schema_contract" => "monte_carlo_reproducibility_report.v1",
+               "model" => "seeded_independent_normal_cartesian_dispersion",
+               "generator" => "state_vector_dispersion",
+               "rng" => "rand_exsss",
+               "sampling_method" => "box_muller_transform",
+               "seed" => 12345,
+               "deterministic_seed" => true,
+               "requested_count" => 20,
+               "generated_scenario_count" => 20,
+               "id_prefix" => "dispersion",
+               "first_generated_scenario_ids" => ["dispersion_1", "dispersion_2", "dispersion_3"],
+               "last_generated_scenario_ids" => [
+                 "dispersion_18",
+                 "dispersion_19",
+                 "dispersion_20"
+               ],
+               "position_sigma_km" => [0.1, 0.1, 0.05],
+               "velocity_sigma_km_s" => [0.0001, 0.0001, 0.00005],
+               "known_limits" => [
+                 "independent_axis_dispersion",
+                 "no_covariance_matrix",
+                 "no_truncated_distribution",
+                 "not_a_statistical_validation"
+               ]
+             }
+           } == monte_carlo_golden_surface(artifact)
+  end
+
+  test "checked-in study result artifacts do not stringify JSON null values" do
+    paths = Path.wildcard("study_results/*.json")
+
+    assert paths != []
+
+    Enum.each(paths, fn path ->
+      refute File.read!(path) =~ ~s("null"), path
+    end)
+  end
+
+  test "checked-in campaign import manifests preserve embedded source review row joins" do
+    rows =
+      [
+        read_json!("study_results/leo_constellation_campaign.json")["campaign_plan"],
+        read_json!("study_results/leo_constellation_campaign_repair_v2.json"),
+        read_json!("study_results/leo_constellation_campaign_strategy_v3.json")
+      ]
+      |> Enum.flat_map(fn artifact ->
+        artifact
+        |> get_in(["cadence_import_manifest", "rows"])
+        |> Enum.filter(&is_map(&1["source_review_row"]))
+      end)
+
+    assert length(rows) > 0
+
+    assert [] ==
+             rows
+             |> Enum.flat_map(&source_review_join_issues/1)
+             |> Enum.sort()
+  end
+
+  defp campaign_golden_surface(campaign) do
+    %{
+      "schema_version" => campaign["schema_version"],
+      "planner" => campaign["planner"],
+      "plan_id" => campaign["plan_id"],
+      "study_id" => campaign["study_id"],
+      "candidate_activity_ids" => ids(campaign["candidate_activities"]),
+      "planned_activity_ids" => ids(campaign["activities"]),
+      "contact_intent_ids" => ids(campaign["contact_intents"]),
+      "affected_contact_ids" =>
+        values(campaign["station_calendar_report"]["affected_contacts"], "contact_id"),
+      "ranked_timeline_activity_ids" =>
+        Enum.map(campaign["ranked_timelines"], fn timeline ->
+          ids(timeline["activities"])
+        end),
+      "ranked_timeline_scores" => rounded_values(campaign["ranked_timelines"], "score")
+    }
+  end
+
+  defp campaign_report_golden_surface(campaign) do
+    resource_report = campaign["resource_projection_report"]
+    resource_rows = resource_report["projected_resources"]
+
+    timeline_report = campaign["operational_timeline_report"]
+    timeline_rows = timeline_report["rows"]
+
+    link_report = campaign["link_capacity_report"]
+    link_rows = link_report["rows"]
+
+    allocation_report = campaign["contact_allocation_report"]
+    allocation_rows = allocation_report["rows"]
+
+    command_window_report = campaign["command_window_report"]
+    command_window_rows = command_window_report["rows"]
+
+    objective_report = campaign["objective_satisfaction_report"]
+    constraint_report = campaign["constraint_report"]
+    review_package = campaign["operator_review_package"]
+    cadence_import_manifest = campaign["cadence_import_manifest"]
+    manifest_rows = cadence_import_manifest["rows"] || []
+
+    %{
+      "resource_projection_report" => %{
+        "schema_contract" => resource_report["schema_contract"],
+        "model" => resource_report["model"],
+        "input_resource_summary_count" => resource_report["input_resource_summary_count"],
+        "activity_count" => resource_report["activity_count"],
+        "spacecraft_ids" => values(resource_rows, "spacecraft_id"),
+        "observation_counts" => values(resource_rows, "observation_count"),
+        "downlink_counts" => values(resource_rows, "downlink_count"),
+        "projected_storage_margins" => rounded_values(resource_rows, "projected_storage_margin"),
+        "projected_downlink_margins" =>
+          rounded_values(resource_rows, "projected_downlink_margin"),
+        "warnings" => resource_report["warnings"]
+      },
+      "operational_timeline_report" => %{
+        "schema_contract" => timeline_report["schema_contract"],
+        "model" => timeline_report["model"],
+        "activity_count" => timeline_report["activity_count"],
+        "row_count" => timeline_report["row_count"],
+        "contact_count" => timeline_report["contact_count"],
+        "command_count" => timeline_report["command_count"],
+        "locked_count" => timeline_report["locked_count"],
+        "approved_count" => timeline_report["approved_count"],
+        "executed_count" => timeline_report["executed_count"],
+        "source_window_lineage_count" => timeline_report["source_window_lineage_count"],
+        "row_activity_ids" => values(timeline_rows, "activity_id"),
+        "row_statuses" => values(timeline_rows, "status"),
+        "row_approval_statuses" => values(timeline_rows, "approval_status"),
+        "row_operational_kinds" => values(timeline_rows, "operational_kind"),
+        "row_required_operator_actions" => values(timeline_rows, "required_operator_action"),
+        "row_operator_action_reasons" => values(timeline_rows, "operator_action_reason"),
+        "row_cadence_import_statuses" => values(timeline_rows, "cadence_import_status"),
+        "row_execution_boundaries" => values(timeline_rows, "execution_boundary"),
+        "row_source_window_types" => values(timeline_rows, "source_window_type"),
+        "row_timeline_ids" => values(timeline_rows, "timeline_id")
+      },
+      "link_capacity_report" => %{
+        "schema_contract" => link_report["schema_contract"],
+        "model" => link_report["model"],
+        "contact_count" => link_report["contact_count"],
+        "selected_contact_count" => link_report["selected_contact_count"],
+        "estimated_throughput_mb" => Float.round(link_report["estimated_throughput_mb"], 6),
+        "selected_estimated_throughput_mb" =>
+          Float.round(link_report["selected_estimated_throughput_mb"] * 1.0, 6),
+        "ground_station_ids" => values(link_rows, "ground_station_id"),
+        "contact_ids" => values(link_rows, "contact_ids")
+      },
+      "contact_allocation_report" => %{
+        "schema_contract" => allocation_report["schema_contract"],
+        "model" => allocation_report["model"],
+        "input_contact_count" => allocation_report["input_contact_count"],
+        "allocated_contact_count" => allocation_report["allocated_contact_count"],
+        "deferred_contact_count" => allocation_report["deferred_contact_count"],
+        "blocked_contact_count" => allocation_report["blocked_contact_count"],
+        "row_contact_ids" => values(allocation_rows, "contact_id"),
+        "row_allocation_statuses" => values(allocation_rows, "allocation_status"),
+        "row_allocation_reasons" => values(allocation_rows, "allocation_reason")
+      },
+      "objective_satisfaction_report" => %{
+        "schema_contract" => objective_report["schema_contract"],
+        "model" => objective_report["model"],
+        "objective_count" => objective_report["objective_count"],
+        "rows" =>
+          Enum.map(objective_report["rows"], fn row ->
+            [
+              row["id"],
+              row["status"],
+              row["selected_count"],
+              row["satisfied_count"]
+            ]
+          end)
+      },
+      "constraint_report" => %{
+        "schema_contract" => constraint_report["schema_contract"],
+        "model" => constraint_report["model"],
+        "constraint_count" => constraint_report["constraint_count"],
+        "row_count" => constraint_report["row_count"],
+        "status" => constraint_report["status"],
+        "row_constraint_ids" => values(constraint_report["rows"], "constraint_id"),
+        "row_metrics" => values(constraint_report["rows"], "metric"),
+        "row_statuses" => values(constraint_report["rows"], "status")
+      },
+      "operator_review_package" => review_package_surface(review_package),
+      "cadence_import_manifest" => %{
+        "schema_contract" => cadence_import_manifest["schema_contract"],
+        "source_artifact_type" => cadence_import_manifest["source_artifact_type"],
+        "row_count" => cadence_import_manifest["row_count"],
+        "ready_count" => cadence_import_manifest["ready_count"],
+        "review_required_count" => cadence_import_manifest["review_required_count"],
+        "blocked_count" => cadence_import_manifest["blocked_count"],
+        "missing_import_count" => cadence_import_manifest["missing_import_count"],
+        "contact_allocation_import_count" =>
+          Enum.count(manifest_rows, &(&1["import_action"] == "review_contact_allocation")),
+        "row_actions" => values(manifest_rows, "import_action"),
+        "row_statuses" => values(manifest_rows, "import_status")
+      },
+      "command_window_report" => %{
+        "schema_contract" => command_window_report["schema_contract"],
+        "source" => command_window_report["source"],
+        "window_count" => command_window_report["window_count"],
+        "command_count" => command_window_report["command_count"],
+        "tracking_count" => command_window_report["tracking_count"],
+        "uplink_count" => command_window_report["uplink_count"],
+        "health_check_count" => command_window_report["health_check_count"],
+        "review_required_count" => command_window_report["review_required_count"],
+        "row_activity_ids" => values(command_window_rows, "activity_id")
+      }
+    }
+  end
+
+  defp repair_golden_surface(repair) do
+    %{
+      "schema_version" => repair["schema_version"],
+      "planner" => repair["planner"],
+      "source_plan_id" => repair["source_plan_id"],
+      "repair_id" => repair["repair_metadata"]["repair_id"],
+      "transition_selected_activity_count" =>
+        repair["repair_metadata"]["transition_selected_activity_count"],
+      "transition_application_review_required_count" =>
+        repair["repair_metadata"]["transition_application_review_required_count"],
+      "approval_status" => repair["approval_status"],
+      "change_summary" => repair["change_summary"],
+      "delta_actions" => Enum.map(repair["deltas"], & &1["repair_action"]),
+      "delta_reasons" => Enum.map(repair["deltas"], & &1["reason"]),
+      "delta_has_source_context" =>
+        Enum.map(repair["deltas"], &is_map(&1["source_activity_context"])),
+      "delta_has_replacement_context" =>
+        Enum.map(repair["deltas"], &is_map(&1["replacement_activity_context"])),
+      "review_delta_has_source_identity" =>
+        repair
+        |> Map.fetch!("operator_review_package")
+        |> Map.fetch!("rows")
+        |> Enum.filter(&(&1["review_type"] == "plan_delta_review"))
+        |> Enum.map(&is_map(&1["source_timeline_identity"])),
+      "approval_actions" => Enum.map(repair["approval_requirements"], & &1["action"]),
+      "approval_classifications" =>
+        Enum.map(repair["approval_requirements"], & &1["policy_classification"]),
+      "operational_timeline_report" =>
+        repair
+        |> Map.fetch!("operational_timeline_report")
+        |> timeline_report_surface(),
+      "score_term_report" =>
+        repair
+        |> Map.fetch!("score_term_report")
+        |> score_term_report_surface(),
+      "objective_tradeoff_report" =>
+        repair
+        |> Map.fetch!("objective_tradeoff_report")
+        |> objective_tradeoff_report_surface(),
+      "constraint_report" =>
+        repair
+        |> Map.fetch!("constraint_report")
+        |> constraint_report_surface(),
+      "link_capacity_report" =>
+        repair
+        |> Map.fetch!("link_capacity_report")
+        |> link_capacity_report_surface(),
+      "timeline_transition_application_report" =>
+        repair
+        |> Map.fetch!("timeline_transition_application_report")
+        |> timeline_transition_application_report_surface(),
+      "operator_review_package" =>
+        repair
+        |> Map.fetch!("operator_review_package")
+        |> review_package_surface()
+    }
+  end
+
+  defp timeline_transition_application_report_surface(report) do
+    application_rows = report["applications"]
+    selected_activities = report["selected_activities"]
+
+    %{
+      "schema_contract" => report["schema_contract"],
+      "source" => report["source"],
+      "source_activity_count" => report["source_activity_count"],
+      "replacement_activity_count" => report["replacement_activity_count"],
+      "application_count" => report["application_count"],
+      "selected_activity_count" => report["selected_activity_count"],
+      "review_required_count" => report["review_required_count"],
+      "preserved_source_count" => report["preserved_source_count"],
+      "recorded_replacement_count" => report["recorded_replacement_count"],
+      "withheld_review_count" => report["withheld_review_count"],
+      "selected_timeline_integrity_issue_count" =>
+        report["selected_timeline_integrity_issue_count"],
+      "application_status_counts" => report["application_status_counts"],
+      "transition_decision_counts" => report["transition_decision_counts"],
+      "required_operator_action_counts" => report["required_operator_action_counts"],
+      "status_transition_counts" => report["status_transition_counts"],
+      "approval_transition_counts" => report["approval_transition_counts"],
+      "row_activity_ids" => values(application_rows, "source_activity_id"),
+      "row_statuses" => values(application_rows, "application_status"),
+      "row_decisions" => values(application_rows, "transition_decision"),
+      "selected_activity_ids" => values(selected_activities, "id")
+    }
+  end
+
+  defp timeline_report_surface(report) do
+    %{
+      "schema_contract" => report["schema_contract"],
+      "source" => report["source"],
+      "activity_count" => report["activity_count"],
+      "row_count" => report["row_count"],
+      "contact_count" => report["contact_count"],
+      "command_count" => report["command_count"],
+      "rows" => report["rows"]
+    }
+  end
+
+  defp score_term_report_surface(report) do
+    %{
+      "schema_contract" => report["schema_contract"],
+      "model" => report["model"],
+      "source" => report["source"],
+      "row_count" => report["row_count"],
+      "score_term_keys" => report["score_term_keys"],
+      "row_term_keys" => Enum.map(report["rows"], & &1["term_key"]),
+      "row_selected" => Enum.map(report["rows"], & &1["selected"])
+    }
+  end
+
+  defp objective_tradeoff_report_surface(report) do
+    tradeoffs = report["tradeoffs"]
+
+    %{
+      "schema_contract" => report["schema_contract"],
+      "model" => report["model"],
+      "ranking_count" => report["ranking_count"],
+      "scenario_ids" => Enum.map(tradeoffs, & &1["scenario_id"]),
+      "scores" => Enum.map(tradeoffs, & &1["score"]),
+      "score_deltas" => Enum.map(tradeoffs, & &1["score_delta_from_selected"]),
+      "activity_counts" => Enum.map(tradeoffs, & &1["activity_count"]),
+      "activity_ids" => Enum.map(tradeoffs, & &1["activity_ids"])
+    }
+  end
+
+  defp constraint_report_surface(report) do
+    %{
+      "schema_contract" => report["schema_contract"],
+      "model" => report["model"],
+      "constraint_count" => report["constraint_count"],
+      "row_count" => report["row_count"],
+      "status" => report["status"],
+      "row_constraint_ids" => values(report["rows"], "constraint_id"),
+      "row_metrics" => values(report["rows"], "metric"),
+      "row_statuses" => values(report["rows"], "status")
+    }
+  end
+
+  defp link_capacity_report_surface(report) do
+    %{
+      "schema_contract" => report["schema_contract"],
+      "source" => report["source"],
+      "contact_count" => report["contact_count"],
+      "selected_contact_count" => report["selected_contact_count"],
+      "estimated_throughput_mb" => report["estimated_throughput_mb"],
+      "selected_estimated_throughput_mb" => report["selected_estimated_throughput_mb"],
+      "rows" => report["rows"]
+    }
+  end
+
+  defp strategy_golden_surface(strategy) do
+    comparison_rows = get_in(strategy, ["branch_comparison_report", "rows"]) || []
+    first_comparison_row = List.first(comparison_rows) || %{}
+    ranking_comparison_report = Map.fetch!(strategy, "ranking_comparison_report")
+    pareto_frontier_report = Map.fetch!(strategy, "pareto_frontier_report")
+    score_term_report = Map.fetch!(strategy, "score_term_report")
+    objective_tradeoff_report = Map.fetch!(strategy, "objective_tradeoff_report")
+    cadence_import_manifest = Map.fetch!(strategy, "cadence_import_manifest")
+    manifest_rows = cadence_import_manifest["rows"] || []
+    selected_manifest_row = Enum.find(manifest_rows, &(&1["selected"] == true)) || %{}
+
+    operational_feedback_provenance =
+      Map.get(strategy, "operational_feedback_provenance", %{})
+
+    operational_feedback_sources =
+      Map.get(operational_feedback_provenance, "sources", [])
+
+    downlink_constrained =
+      Enum.find(strategy["branches"], &(&1["branch_id"] == "derived_downlink_constrained")) || %{}
+
+    downlink_gap_event =
+      downlink_constrained
+      |> Map.get("events", [])
+      |> Enum.find(&(&1["type"] == "downlink_completion_gap")) || %{}
+
+    %{
+      "schema_version" => strategy["schema_version"],
+      "planner" => strategy["planner"],
+      "source_plan_id" => strategy["source_plan_id"],
+      "strategy_id" => strategy["strategy_metadata"]["strategy_id"],
+      "branch_ids" => Enum.map(strategy["branches"], & &1["branch_id"]),
+      "branch_scores" => rounded_values(strategy["branches"], "score"),
+      "repair_reason_counts" => repair_reason_counts(strategy),
+      "strategic_addition_explanation_reasons" =>
+        (get_in(strategy, ["recommendation", "explanation"]) || [])
+        |> Enum.filter(&(&1["type"] == "strategic_addition"))
+        |> values("reason"),
+      "downlink_constrained_gap_reasons" => downlink_gap_event["derivation_reasons"],
+      "recommended_branch_id" => strategy["recommendation"]["recommended_branch_id"],
+      "ranked_branch_ids" => strategy["recommendation"]["ranked_branch_ids"],
+      "approval_status" => strategy["recommendation"]["approval_status"],
+      "recommendation_status" => strategy["recommendation"]["status"],
+      "tradeoff_dimensions" =>
+        strategy["recommendation"]["tradeoffs"]
+        |> Enum.map(& &1["dimension"]),
+      "comparison_resource_fields" => %{
+        "row_count" => length(comparison_rows),
+        "resource_projection_branch_ids" =>
+          strategy["branches"]
+          |> Enum.filter(&Map.has_key?(&1, "resource_projection_report"))
+          |> Enum.map(& &1["branch_id"]),
+        "comparison_projection_branch_ids" =>
+          comparison_rows
+          |> Enum.filter(&Map.has_key?(&1, "resource_projection_spacecraft_count"))
+          |> Enum.map(& &1["branch_id"]),
+        "first_fuel_margin" => first_comparison_row["fuel_margin"],
+        "first_storage_margin" => first_comparison_row["storage_margin"],
+        "first_downlink_capacity_margin" => first_comparison_row["downlink_capacity_margin"],
+        "first_spacecraft_availability" => first_comparison_row["spacecraft_availability"],
+        "first_payload_availability" => first_comparison_row["payload_availability"],
+        "first_resource_score_adjustment" => first_comparison_row["resource_score_adjustment"],
+        "first_storage_limited_downlinked_mb" =>
+          first_comparison_row["storage_limited_downlinked_mb"],
+        "first_unused_downlink_capacity_mb" =>
+          first_comparison_row["unused_downlink_capacity_mb"],
+        "first_resource_risk_types" => first_comparison_row["resource_risk_types"],
+        "first_repair_score" => Float.round(first_comparison_row["repair_score"] * 1.0, 6),
+        "first_repair_score_term_count" => first_comparison_row["repair_score_term_count"],
+        "first_repair_score_term_keys" => first_comparison_row["repair_score_term_keys"],
+        "first_repair_link_contact_count" => first_comparison_row["repair_link_contact_count"],
+        "first_repair_link_selected_contact_count" =>
+          first_comparison_row["repair_link_selected_contact_count"],
+        "first_repair_constraint_count" => first_comparison_row["repair_constraint_count"],
+        "first_repair_constraint_row_count" =>
+          first_comparison_row["repair_constraint_row_count"],
+        "first_repair_constraint_status" => first_comparison_row["repair_constraint_status"],
+        "first_repair_constraint_pass_count" =>
+          first_comparison_row["repair_constraint_pass_count"],
+        "first_repair_constraint_warning_count" =>
+          first_comparison_row["repair_constraint_warning_count"],
+        "first_repair_constraint_fail_count" =>
+          first_comparison_row["repair_constraint_fail_count"],
+        "first_repair_constraint_failed_ids" =>
+          first_comparison_row["repair_constraint_failed_ids"],
+        "first_repair_constraint_warning_ids" =>
+          first_comparison_row["repair_constraint_warning_ids"]
+      },
+      "comparison_feedback_fields" => %{
+        "row_count" => length(comparison_rows),
+        "feedback_branch_ids" =>
+          comparison_rows
+          |> Enum.filter(&Map.has_key?(&1, "feedback_score_adjustment"))
+          |> Enum.map(& &1["branch_id"]),
+        "first_feedback_score_adjustment" =>
+          first_comparison_row["feedback_score_adjustment"] |> Kernel.*(1.0) |> Float.round(6),
+        "first_observation_success_factor" =>
+          first_comparison_row["observation_success_factor"] |> Kernel.*(1.0) |> Float.round(6),
+        "first_feedback_risk_types" => first_comparison_row["feedback_risk_types"]
+      },
+      "operational_feedback_provenance" => %{
+        "source_count" => operational_feedback_provenance["source_count"],
+        "input_keys" => operational_feedback_provenance["input_keys"],
+        "explicit_request_override" =>
+          operational_feedback_provenance["explicit_request_override"],
+        "effective_sources" => operational_feedback_provenance["effective_sources"],
+        "overridden_sources" => operational_feedback_provenance["overridden_sources"],
+        "source_statuses" =>
+          Enum.map(operational_feedback_sources, & &1["trust_boundary_status"]),
+        "source_names" => Enum.map(operational_feedback_sources, & &1["source"])
+      },
+      "ranking_comparison_report" => %{
+        "schema_contract" => ranking_comparison_report["schema_contract"],
+        "source" => ranking_comparison_report["source"],
+        "objective" => ranking_comparison_report["objective"],
+        "left_label" => ranking_comparison_report["left_label"],
+        "right_label" => ranking_comparison_report["right_label"],
+        "row_count" => ranking_comparison_report["row_count"],
+        "model_limits" => ranking_comparison_report["model_limits"],
+        "winner" => ranking_comparison_report["winner"]
+      },
+      "pareto_frontier_report" => %{
+        "schema_contract" => pareto_frontier_report["schema_contract"],
+        "source" => pareto_frontier_report["source"],
+        "alternative_count" => pareto_frontier_report["alternative_count"],
+        "objective_count" => pareto_frontier_report["objective_count"],
+        "frontier_count" => pareto_frontier_report["frontier_count"],
+        "dominated_count" => pareto_frontier_report["dominated_count"],
+        "frontier_ids" => pareto_frontier_report["frontier_ids"],
+        "dominated_ids" => pareto_frontier_report["dominated_ids"],
+        "model_limits" => pareto_frontier_report["model_limits"]
+      },
+      "score_term_report" => strategy_score_term_report_surface(score_term_report),
+      "objective_tradeoff_report" =>
+        strategy_objective_tradeoff_report_surface(objective_tradeoff_report),
+      "operator_review_package" =>
+        strategy
+        |> Map.fetch!("operator_review_package")
+        |> review_package_surface(),
+      "cadence_import_manifest" => %{
+        "schema_contract" => cadence_import_manifest["schema_contract"],
+        "source_artifact_type" => cadence_import_manifest["source_artifact_type"],
+        "row_count" => cadence_import_manifest["row_count"],
+        "ready_count" => cadence_import_manifest["ready_count"],
+        "review_required_count" => cadence_import_manifest["review_required_count"],
+        "blocked_count" => cadence_import_manifest["blocked_count"],
+        "missing_import_count" => cadence_import_manifest["missing_import_count"],
+        "contact_allocation_import_count" =>
+          Enum.count(manifest_rows, &(&1["import_action"] == "review_contact_allocation")),
+        "row_actions" => manifest_rows |> values("import_action") |> Enum.take(3),
+        "row_statuses" => manifest_rows |> values("import_status") |> Enum.take(3),
+        "selected_branch_id" => selected_manifest_row["branch_id"],
+        "selected_import_status" => selected_manifest_row["import_status"],
+        "selected_operational_feedback_input_keys" =>
+          selected_manifest_row["operational_feedback_input_keys"],
+        "selected_operational_feedback_trust_boundary_status" =>
+          selected_manifest_row["operational_feedback_trust_boundary_status"],
+        "selected_operational_feedback_source_count" =>
+          get_in(selected_manifest_row, [
+            "source_operational_feedback_provenance",
+            "source_count"
+          ]),
+        "selected_risk_types" => selected_manifest_row["risk_types"],
+        "selected_target_ids" => selected_manifest_row["target_ids"]
+      }
+    }
+  end
+
+  defp review_package_surface(package) do
+    rows = package["rows"] || []
+    first_row = List.first(rows) || %{}
+
+    surface = %{
+      "schema_contract" => package["schema_contract"],
+      "source_artifact_type" => package["source_artifact_type"],
+      "review_count" => package["review_count"],
+      "approval_requirement_count" => package["approval_requirement_count"],
+      "contention_recommendation_count" => package["contention_recommendation_count"],
+      "contact_allocation_review_count" => Map.get(package, "contact_allocation_review_count", 0),
+      "operational_timeline_count" => Map.get(package, "operational_timeline_count", 0),
+      "plan_delta_count" => Map.get(package, "plan_delta_count", 0),
+      "timeline_protection_count" => Map.get(package, "timeline_protection_count", 0),
+      "realized_feedback_count" => package["realized_feedback_count"],
+      "warning_count" => package["warning_count"],
+      "risk_count" => package["risk_count"],
+      "recommendation_count" => package["recommendation_count"],
+      "ranking_comparison_count" => Map.get(package, "ranking_comparison_count", 0),
+      "pareto_frontier_count" => Map.get(package, "pareto_frontier_count", 0),
+      "tradeoff_count" => Map.get(package, "tradeoff_count", 0),
+      "row_review_types" => rows |> values("review_type") |> Enum.take(3),
+      "row_actions" => rows |> values("action") |> Enum.take(3)
+    }
+
+    case Map.get(package, "score_term_review_count", 0) do
+      count when count > 0 -> Map.put(surface, "score_term_review_count", count)
+      _count -> surface
+    end
+    |> then(fn surface ->
+      case Map.get(package, "objective_tradeoff_review_count", 0) do
+        count when count > 0 -> Map.put(surface, "objective_tradeoff_review_count", count)
+        _count -> surface
+      end
+    end)
+    |> then(fn surface ->
+      if Map.has_key?(first_row, "operational_feedback_input_keys") do
+        Map.merge(surface, %{
+          "first_row_operational_feedback_input_keys" =>
+            first_row["operational_feedback_input_keys"],
+          "first_row_operational_feedback_trust_boundary_status" =>
+            first_row["operational_feedback_trust_boundary_status"],
+          "first_row_operational_feedback_source_count" =>
+            get_in(first_row, ["source_operational_feedback_provenance", "source_count"]),
+          "first_row_risk_types" => first_row["risk_types"],
+          "first_row_target_ids" => first_row["target_ids"]
+        })
+      else
+        surface
+      end
+    end)
+  end
+
+  defp strategy_score_term_report_surface(report) do
+    rows = report["rows"] || []
+    first_row = List.first(rows) || %{}
+
+    %{
+      "schema_contract" => report["schema_contract"],
+      "model" => report["model"],
+      "source" => report["source"],
+      "row_count" => report["row_count"],
+      "score_term_keys" => report["score_term_keys"],
+      "selected_branch_ids" =>
+        rows
+        |> Enum.filter(&(&1["selected"] == true))
+        |> Enum.map(& &1["branch_id"])
+        |> Enum.uniq(),
+      "first_row_branch_id" => first_row["branch_id"],
+      "first_row_term_key" => first_row["term_key"],
+      "first_row_selected" => first_row["selected"]
+    }
+  end
+
+  defp strategy_objective_tradeoff_report_surface(report) do
+    rows = report["tradeoffs"] || []
+    first_row = List.first(rows) || %{}
+
+    %{
+      "schema_contract" => report["schema_contract"],
+      "model" => report["model"],
+      "ranking_count" => report["ranking_count"],
+      "selected_branch_ids" =>
+        rows
+        |> Enum.filter(&(&1["selected"] == true))
+        |> Enum.map(& &1["branch_id"])
+        |> Enum.uniq(),
+      "first_row_branch_id" => first_row["branch_id"],
+      "first_row_score_delta" => first_row["score_delta_from_selected"],
+      "first_row_selected" => first_row["selected"]
+    }
+  end
+
+  defp monte_carlo_golden_surface(artifact) do
+    report = artifact["monte_carlo_reproducibility_report"]
+    scenario_ids = report["generated_scenario_ids"]
+
+    %{
+      "study_id" => artifact["study_id"],
+      "schema_version" => artifact["schema_version"],
+      "report" => %{
+        "schema_contract" => report["schema_contract"],
+        "model" => report["model"],
+        "generator" => report["generator"],
+        "rng" => report["rng"],
+        "sampling_method" => report["sampling_method"],
+        "seed" => report["seed"],
+        "deterministic_seed" => report["deterministic_seed"],
+        "requested_count" => report["requested_count"],
+        "generated_scenario_count" => report["generated_scenario_count"],
+        "id_prefix" => report["id_prefix"],
+        "first_generated_scenario_ids" => Enum.take(scenario_ids, 3),
+        "last_generated_scenario_ids" => Enum.take(scenario_ids, -3),
+        "position_sigma_km" => report["position_sigma_km"],
+        "velocity_sigma_km_s" => report["velocity_sigma_km_s"],
+        "known_limits" => report["known_limits"]
+      }
+    }
+  end
+
+  defp ids(rows), do: Enum.map(rows || [], & &1["id"])
+
+  defp values(rows, key), do: Enum.map(rows || [], & &1[key])
+
+  defp rounded_values(rows, key) do
+    Enum.map(rows || [], fn row -> Float.round(row[key] * 1.0, 6) end)
+  end
+
+  defp source_review_join_issues(row) do
+    source_review_row = row["source_review_row"]
+
+    [
+      source_review_join_issue(row, source_review_row, "source_review_row_id", "id"),
+      source_review_join_issue(row, source_review_row, "source_review_type", "review_type"),
+      source_review_join_issue(row, source_review_row, "source_review_action", "action")
+    ]
+    |> Enum.reject(&is_nil/1)
+  end
+
+  defp source_review_join_issue(row, source_review_row, row_field, source_field) do
+    if row[row_field] == source_review_row[source_field] do
+      nil
+    else
+      "#{row["id"]}: #{row_field} must match source_review_row.#{source_field}"
+    end
+  end
+
+  defp repair_reason_counts(term) do
+    term
+    |> repair_reasons()
+    |> Enum.frequencies()
+    |> Enum.sort_by(fn {reason, _count} -> reason end)
+    |> Enum.map(fn {reason, count} -> %{"reason" => reason, "count" => count} end)
+  end
+
+  defp repair_reasons(%{"repair" => %{"reason" => reason}} = map) when is_binary(reason) do
+    [reason | map |> Map.delete("repair") |> repair_reasons()]
+  end
+
+  defp repair_reasons(map) when is_map(map) do
+    map
+    |> Map.values()
+    |> Enum.flat_map(&repair_reasons/1)
+  end
+
+  defp repair_reasons(list) when is_list(list), do: Enum.flat_map(list, &repair_reasons/1)
+  defp repair_reasons(_term), do: []
+
+  defp read_json!(path) do
+    path
+    |> File.read!()
+    |> :json.decode()
+  end
+end

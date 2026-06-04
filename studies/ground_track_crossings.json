@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "study_id": "ground_track_crossings",
+  "propagator": "two_body",
+  "propagator_opts": {
+    "max_step_s": 10.0
+  },
+  "outputs": ["trajectories", "ground_track_crossings"],
+  "scenarios": [
+    {
+      "generator": "circular_leo",
+      "count": 1,
+      "duration_s": 600.0,
+      "output_step_s": 60.0,
+      "radius_km": 7000.0,
+      "id_prefix": "ground_track"
+    }
+  ],
+  "ground_track_crossings": [
+    {
+      "id": "prime_meridian_inertial",
+      "crossing": "longitude",
+      "longitude_deg": 0.0,
+      "frame": "inertial"
+    },
+    {
+      "id": "equator_inertial",
+      "crossing": "latitude",
+      "latitude_deg": 0.0,
+      "frame": "inertial"
+    },
+    {
+      "id": "configured_body_fixed_meridian",
+      "crossing": "longitude",
+      "longitude_deg": -5.0,
+      "frame": "body_fixed",
+      "rotation_rate_rad_s": 0.00007292115,
+      "rotation_epoch_s": 0.0,
+      "rotation_angle_offset_rad": 0.0
+    },
+    {
+      "id": "tabular_body_fixed_meridian",
+      "crossing": "longitude",
+      "longitude_deg": 0.0,
+      "frame": "body_fixed",
+      "earth_rotation_provider": {
+        "provider": "tabular_earth_orientation",
+        "source": "study_declared_table",
+        "samples": [
+          {
+            "seconds_since_j2000": 0.0,
+            "earth_rotation_angle_rad": 0.0
+          },
+          {
+            "seconds_since_j2000": 600.0,
+            "earth_rotation_angle_rad": 0.0
+          }
+        ]
+      }
+    }
+  ]
+}

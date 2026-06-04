@@ -1,0 +1,20902 @@
+defmodule OrbitalDynamics.SchemaTest do
+  use ExUnit.Case, async: true
+
+  alias OrbitalDynamics.{
+    CadenceImport,
+    CampaignPlanner,
+    Communications.StationCalendar,
+    Epoch,
+    OperatorReview,
+    OperationalReadiness,
+    Policy,
+    ResultSet,
+    Schema,
+    Validation
+  }
+
+  test "declares executable schema registry capabilities" do
+    capabilities = Schema.capabilities()
+
+    assert capabilities.model == :executable_artifact_contract_registry
+    assert capabilities.artifact_contracts == Schema.contracts() |> Map.keys() |> Enum.sort()
+    assert capabilities.artifact_contract_count == map_size(Schema.contracts())
+    assert capabilities.json_schema_draft == "https://json-schema.org/draft/2020-12/schema"
+
+    assert capabilities.compatibility_policy_version ==
+             Schema.compatibility_policy()["policy_version"]
+
+    assert capabilities.identity_policy_version == Schema.identity_policy()["policy_version"]
+
+    assert capabilities.validation_report_contracts == [
+             "schema_validation_report.v1",
+             "schema_validation_batch_report.v1",
+             "schema_migration_report.v1"
+           ]
+
+    assert :schema_validation_validated_contract_metadata in capabilities.validation_report_semantics
+
+    assert :schema_validation_status_and_issue_counts in capabilities.validation_report_semantics
+    assert :schema_validation_remediation_rows in capabilities.validation_report_semantics
+    assert :schema_validation_model_limit_enforcement in capabilities.validation_report_semantics
+
+    assert :schema_validation_batch_file_artifact_and_skip_counts in capabilities.validation_report_semantics
+
+    assert :schema_validation_batch_nested_report_entries in capabilities.validation_report_semantics
+
+    assert :schema_migration_deprecation_warning_rollups in capabilities.validation_report_semantics
+
+    assert :schema_migration_status_and_action_counts in capabilities.validation_report_semantics
+
+    assert :compatibility_policy_version_breadcrumbs in capabilities.compatibility_export_semantics
+    assert :identity_policy_version_breadcrumbs in capabilities.compatibility_export_semantics
+    assert :direct_declared_nested_contract_defs in capabilities.compatibility_export_semantics
+
+    assert "top_level_json_schema_compatibility_export" in capabilities.known_limits
+  end
+
+  test "validates the capability catalog artifact contract" do
+    artifact = OrbitalDynamics.capability_catalog_artifact()
+
+    assert {:ok, %{"schema_contract" => "capability_catalog.v1", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+
+    invalid =
+      put_in(
+        artifact,
+        ["validation", "schema", "artifact_contract_count"],
+        artifact["validation"]["schema"]["artifact_contract_count"] + 1
+      )
+
+    assert {:error, report} = Schema.validate_artifact(invalid)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.validation.schema.artifact_contract_count" and
+                 &1["message"] =~ "must equal")
+           )
+  end
+
+  test "validates generated V1 campaign artifacts and proposed contact contracts" do
+    artifact = campaign_artifact()
+
+    assert {:ok, report} = Schema.validate_artifact(artifact)
+    assert report["schema_contract"] == "campaign_plan.v1"
+    assert report["status"] == "pass"
+
+    assert [
+             %{
+               "direction" => "downlink",
+               "estimated_throughput_mb" => 120.0,
+               "station_availability" => "available",
+               "schedule_conflict_status" => "not_evaluated",
+               "cadence_import" => %{"schema_contract" => "proposed_contact.v1"}
+             }
+           ] = artifact["proposed_contacts"]
+
+    assert [
+             %{
+               "schema_contract" => "contact_intent.v1",
+               "activity_id" => _activity_id,
+               "direction" => "downlink",
+               "timeline_id" => _timeline_id,
+               "timeline_identity" => %{"timeline_id" => _}
+             }
+           ] = artifact["contact_intents"]
+
+    assert %{
+             "schema_contract" => "contact_filter_report.v1",
+             "model" => "thin_ground_network_availability_filter",
+             "input_candidate_count" => 1,
+             "kept_candidate_count" => 1,
+             "suppressed_candidate_count" => 0,
+             "suppressed_candidates" => []
+           } = artifact["contact_filter_report"]
+
+    assert %{
+             "schema_contract" => "contact_contention_report.v1",
+             "model" => "single_station_interval_overlap",
+             "input_contact_count" => 1,
+             "conflicted_contact_count" => 0,
+             "conflict_group_count" => 0,
+             "conflict_groups" => []
+           } = artifact["contact_contention_report"]
+
+    assert %{
+             "schema_contract" => "contact_contention_resolution_report.v1",
+             "model" => "deterministic_contact_contention_recommendation",
+             "conflict_group_count" => 0,
+             "recommendation_count" => 0,
+             "recommendations" => []
+           } = artifact["contact_contention_resolution_report"]
+
+    assert %{
+             "schema_contract" => "station_calendar_report.v1",
+             "model" => "campaign_ground_network_interval_overlay",
+             "input_contact_count" => 1,
+             "calendar_entry_count" => 0,
+             "affected_contact_count" => 0,
+             "affected_contacts" => []
+           } = artifact["station_calendar_report"]
+
+    assert %{
+             "schema_contract" => "objective_tradeoff_report.v1",
+             "model" => "ranked_timeline_score_term_tradeoffs",
+             "ranking_count" => 1,
+             "tradeoffs" => [
+               %{
+                 "rank" => 1,
+                 "scenario_id" => "leo_1",
+                 "score_delta_from_selected" => schema_delta,
+                 "activity_ids" => [_activity_id]
+               }
+             ]
+           } = artifact["objective_tradeoff_report"]
+
+    assert schema_delta == 0.0
+    assert [] = artifact["target_commitments"]
+  end
+
+  test "validates standalone contact contention report contracts" do
+    contention_report = %{
+      "schema_contract" => "contact_contention_report.v1",
+      "model" => "single_station_interval_overlap",
+      "input_contact_count" => 2,
+      "conflicted_contact_count" => 2,
+      "conflict_group_count" => 1,
+      "conflict_groups" => [
+        %{
+          "id" => "station:equator_prime:contention:1",
+          "ground_station_id" => "equator_prime",
+          "contact_count" => 2,
+          "starts_at_s" => 100.0,
+          "ends_at_s" => 220.0,
+          "direction" => "downlink",
+          "required_operator_action" => "review_contact_contention",
+          "approval_status" => "operator_review_required",
+          "operator_action_reason" => "same_station_overlapping_contact_windows",
+          "contact_ids" => ["dl_1", "dl_2"],
+          "source_window_ids" => [
+            "window:leo_1:ground_station_access:equator_prime:1",
+            "window:leo_2:ground_station_access:equator_prime:1"
+          ],
+          "scenario_ids" => ["leo_1", "leo_2"]
+        }
+      ],
+      "provenance" => %{"source" => "schema_test"},
+      "assumptions" => %{"resolution" => "report_only_no_candidate_suppression"}
+    }
+
+    resolution_report = %{
+      "schema_contract" => "contact_contention_resolution_report.v1",
+      "model" => "deterministic_contact_contention_recommendation",
+      "policy" => %{
+        "selection_rule" => "highest_score_earliest_start",
+        "priority_fields" => ["missing_priority", "priority"],
+        "requested_priority_fields" => ["missing_priority", "priority"]
+      },
+      "conflict_group_count" => 1,
+      "recommendation_count" => 1,
+      "recommendations" => [
+        %{
+          "group_id" => "station:equator_prime:contention:1",
+          "ground_station_id" => "equator_prime",
+          "starts_at_s" => 100.0,
+          "ends_at_s" => 220.0,
+          "selected_contact_id" => "dl_1",
+          "selected_scenario_id" => "leo_1",
+          "deferred_contact_ids" => ["dl_2"],
+          "candidate_count" => 2,
+          "selection_reason" => "highest_score_earliest_start",
+          "resolution_priority_fields" => ["missing_priority", "priority"],
+          "requested_priority_fields" => ["missing_priority", "priority"],
+          "priority_field_evidence_counts" => %{
+            "missing_priority" => 0,
+            "priority" => 1
+          },
+          "priority_fields_without_numeric_evidence_count" => 1,
+          "priority_fields_without_numeric_evidence" => ["missing_priority"],
+          "action" => "recommend_preferred_contact_for_operator_review",
+          "review_status" => "operator_review_required"
+        }
+      ],
+      "assumptions" => %{"boundary" => "recommendation_only_no_station_reservation"}
+    }
+
+    assert {:ok, %{"schema_contract" => "contact_contention_report.v1"}} =
+             Schema.validate_artifact(contention_report)
+
+    assert {:ok, %{"schema_contract" => "contact_contention_resolution_report.v1"}} =
+             Schema.validate_artifact(resolution_report)
+
+    invalid_contention_input_count =
+      Map.put(contention_report, "input_contact_count", 1.0)
+
+    assert {:error, report} = Schema.validate_artifact(invalid_contention_input_count)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.input_contact_count"))
+
+    invalid_contention_optional_count =
+      Map.put(contention_report, "invalid_contact_input_count", -1)
+
+    assert {:error, report} = Schema.validate_artifact(invalid_contention_optional_count)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.invalid_contact_input_count"))
+
+    invalid_contention_group_count =
+      put_in(contention_report, ["conflict_groups", Access.at(0), "contact_count"], 1.0)
+
+    assert {:error, report} = Schema.validate_artifact(invalid_contention_group_count)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.conflict_groups[0].contact_count"))
+
+    invalid_resolution_count =
+      Map.put(resolution_report, "recommendation_count", -1)
+
+    assert {:error, report} = Schema.validate_artifact(invalid_resolution_count)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.recommendation_count"))
+
+    invalid_resolution_candidate_count =
+      put_in(resolution_report, ["recommendations", Access.at(0), "candidate_count"], 1.0)
+
+    assert {:error, report} = Schema.validate_artifact(invalid_resolution_candidate_count)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.recommendations[0].candidate_count"))
+
+    invalid_contention =
+      put_in(contention_report, ["conflict_groups", Access.at(0), "id"], "bad id")
+
+    assert {:error, report} = Schema.validate_artifact(invalid_contention)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.conflict_groups[0].id"))
+
+    invalid_resolution =
+      put_in(
+        resolution_report,
+        ["recommendations", Access.at(0), "selected_contact_id"],
+        "bad id"
+      )
+
+    assert {:error, report} = Schema.validate_artifact(invalid_resolution)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.recommendations[0].selected_contact_id")
+           )
+
+    invalid_priority_evidence =
+      put_in(
+        resolution_report,
+        ["recommendations", Access.at(0), "priority_field_evidence_counts", "priority"],
+        -1
+      )
+
+    assert {:error, report} = Schema.validate_artifact(invalid_priority_evidence)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.recommendations[0].priority_field_evidence_counts.priority")
+           )
+
+    invalid_missing_priority_count =
+      put_in(
+        resolution_report,
+        ["recommendations", Access.at(0), "priority_fields_without_numeric_evidence_count"],
+        -1
+      )
+
+    assert {:error, report} = Schema.validate_artifact(invalid_missing_priority_count)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] ==
+                 "$.recommendations[0].priority_fields_without_numeric_evidence_count")
+           )
+  end
+
+  test "validates checked-in station provider and contention examples" do
+    station_provider = read_json!("study_results/station_calendar_provider_v1.json")
+    contention_report = read_json!("study_results/contact_contention_report_v1.json")
+
+    resolution_report =
+      read_json!("study_results/contact_contention_resolution_report_v1.json")
+
+    assert {:ok, %{"schema_contract" => "station_calendar_provider.v1"}} =
+             Schema.validate_artifact(station_provider)
+
+    provider_with_direction_aliases =
+      update_in(station_provider, ["entries", Access.at(0)], fn entry ->
+        Map.merge(entry, %{
+          "direction" => "tracking",
+          "directions" => ["tracking", "health_check"],
+          "station_calendar_directions" => ["tracking"]
+        })
+      end)
+
+    assert {:ok, %{"schema_contract" => "station_calendar_provider.v1"}} =
+             Schema.validate_artifact(provider_with_direction_aliases)
+
+    invalid_provider_direction_alias =
+      put_in(provider_with_direction_aliases, ["entries", Access.at(0), "directions"], [
+        "tracking",
+        42
+      ])
+
+    assert {:error, invalid_provider_direction_report} =
+             Schema.validate_artifact(invalid_provider_direction_alias)
+
+    assert Enum.any?(
+             invalid_provider_direction_report["errors"],
+             &(&1["path"] == "$.entries[0].directions[1]")
+           )
+
+    assert %{
+             "id" => "declared_ground_network_demo",
+             "entries" => [
+               %{"ground_station_id" => "equator_prime", "availability" => "maintenance"},
+               %{
+                 "ground_station_id" => "equator_prime",
+                 "availability" => "reserved",
+                 "reservation_id" => "reservation_equator_prime_1"
+               }
+             ]
+           } = station_provider
+
+    assert {:ok, %{"schema_contract" => "contact_contention_report.v1"}} =
+             Schema.validate_artifact(contention_report)
+
+    assert {:ok, contention_schema} = Schema.json_schema("contact_contention_report.v1")
+
+    assert get_in(contention_schema, ["properties", "model_limits", "items", "enum"]) == [
+             "artifact_level_only",
+             "no_provider_reservation",
+             "no_candidate_suppression",
+             "no_schedule_mutation",
+             "no_link_budget_model"
+           ]
+
+    assert get_in(contention_schema, ["properties", "provenance", "type"]) == "object"
+
+    assert get_in(contention_schema, ["properties", "duplicate_contact_id_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    group_schema = get_in(contention_schema, ["properties", "conflict_groups", "items"])
+
+    assert get_in(group_schema, ["properties", "contact_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(group_schema, [
+             "properties",
+             "actual_data_rate_throughput_derivations",
+             "items",
+             "type"
+           ]) == "object"
+
+    invalid_contention_limits =
+      Map.put(contention_report, "model_limits", ["artifact_level_only"])
+
+    assert {:error, contention_limits_report} =
+             Schema.validate_artifact(invalid_contention_limits)
+
+    assert Enum.any?(contention_limits_report["errors"], &(&1["path"] == "$.model_limits"))
+
+    invalid_contention_duplicate_count =
+      Map.put(contention_report, "duplicate_contact_candidate_count", 99)
+
+    assert {:error, contention_duplicate_count_report} =
+             Schema.validate_artifact(invalid_contention_duplicate_count)
+
+    assert Enum.any?(
+             contention_duplicate_count_report["errors"],
+             &(&1["path"] == "$.duplicate_contact_candidate_count")
+           )
+
+    assert %{
+             "conflict_group_count" => 2,
+             "conflict_groups" => [
+               %{
+                 "id" => "station:equator_prime:contention:1",
+                 "direction" => "downlink",
+                 "required_operator_action" => "review_contact_contention",
+                 "approval_status" => "operator_review_required",
+                 "contact_ids" => ["dl_1", "dl_2"]
+               },
+               %{
+                 "id" => "spacecraft:sat_1:contention:1",
+                 "resource_scope" => "spacecraft",
+                 "contact_ids" => ["dl_3", "dl_4"]
+               }
+             ]
+           } = contention_report
+
+    assert {:ok, %{"schema_contract" => "contact_contention_resolution_report.v1"}} =
+             Schema.validate_artifact(resolution_report)
+
+    assert {:ok, resolution_schema} =
+             Schema.json_schema("contact_contention_resolution_report.v1")
+
+    assert get_in(resolution_schema, ["properties", "model_limits", "items", "enum"]) == [
+             "artifact_level_only",
+             "no_provider_reservation",
+             "no_candidate_suppression",
+             "no_schedule_mutation",
+             "no_link_budget_model"
+           ]
+
+    recommendation_schema = get_in(resolution_schema, ["properties", "recommendations", "items"])
+
+    assert get_in(resolution_schema, ["properties", "recommendation_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(recommendation_schema, ["properties", "candidate_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(recommendation_schema, [
+             "properties",
+             "actual_data_rate_throughput_derivations",
+             "items",
+             "type"
+           ]) == "object"
+
+    invalid_resolution_limits =
+      Map.put(resolution_report, "model_limits", ["artifact_level_only"])
+
+    assert {:error, resolution_limits_report} =
+             Schema.validate_artifact(invalid_resolution_limits)
+
+    assert Enum.any?(resolution_limits_report["errors"], &(&1["path"] == "$.model_limits"))
+
+    assert %{
+             "recommendation_count" => 2,
+             "recommendations" => [
+               %{
+                 "group_id" => "station:equator_prime:contention:1",
+                 "selected_contact_id" => "dl_1",
+                 "review_status" => "operator_review_required"
+               },
+               %{
+                 "group_id" => "spacecraft:sat_1:contention:1",
+                 "selected_contact_id" => "dl_3",
+                 "review_status" => "operator_review_required"
+               }
+             ]
+           } = resolution_report
+  end
+
+  test "validates checked-in optimizer and objective explanation examples" do
+    optimizer_contract = read_json!("study_results/optimizer_contract_v1.json")
+    ranking_comparison_report = read_json!("study_results/ranking_comparison_report_v1.json")
+    pareto_frontier_report = read_json!("study_results/pareto_frontier_report_v1.json")
+    score_term_report = read_json!("study_results/score_term_report_v1.json")
+    tradeoff_report = read_json!("study_results/objective_tradeoff_report_v1.json")
+    satisfaction_report = read_json!("study_results/objective_satisfaction_report_v1.json")
+    branch_comparison_report = read_json!("study_results/branch_comparison_report_v1.json")
+
+    assert {:ok, %{"schema_contract" => "optimizer_contract.v1"}} =
+             Schema.validate_artifact(optimizer_contract)
+
+    invalid_optimizer_count = Map.put(optimizer_contract, "candidate_count", 1.0)
+
+    assert {:error, optimizer_count_report} = Schema.validate_artifact(invalid_optimizer_count)
+    assert Enum.any?(optimizer_count_report["errors"], &(&1["path"] == "$.candidate_count"))
+
+    assert {:ok, %{"schema_contract" => "ranking_comparison_report.v1"}} =
+             Schema.validate_artifact(ranking_comparison_report)
+
+    invalid_ranking_model =
+      Map.put(ranking_comparison_report, "model", "stale_ranking_comparison_model")
+
+    assert {:error, ranking_model_report} = Schema.validate_artifact(invalid_ranking_model)
+
+    assert Enum.any?(
+             ranking_model_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] == "must equal \"scenario_ranking_pairwise_delta\"")
+           )
+
+    invalid_ranking_count = Map.put(ranking_comparison_report, "left_count", -1)
+
+    assert {:error, ranking_count_report} = Schema.validate_artifact(invalid_ranking_count)
+    assert Enum.any?(ranking_count_report["errors"], &(&1["path"] == "$.left_count"))
+
+    stale_ranking_limits = Map.put(ranking_comparison_report, "model_limits", ["stale_limit"])
+
+    assert {:error, ranking_limits_report} = Schema.validate_artifact(stale_ranking_limits)
+    assert Enum.any?(ranking_limits_report["errors"], &(&1["path"] == "$.model_limits"))
+
+    assert {:ok, %{"schema_contract" => "pareto_frontier_report.v1"}} =
+             Schema.validate_artifact(pareto_frontier_report)
+
+    invalid_pareto_model =
+      Map.put(pareto_frontier_report, "model", "stale_pareto_frontier_model")
+
+    assert {:error, pareto_model_report} = Schema.validate_artifact(invalid_pareto_model)
+
+    assert Enum.any?(
+             pareto_model_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] == "must equal \"objective_vector_pareto_frontier\"")
+           )
+
+    invalid_pareto_count = Map.put(pareto_frontier_report, "frontier_count", 1.0)
+
+    assert {:error, pareto_count_report} = Schema.validate_artifact(invalid_pareto_count)
+    assert Enum.any?(pareto_count_report["errors"], &(&1["path"] == "$.frontier_count"))
+
+    stale_pareto_limits = Map.put(pareto_frontier_report, "model_limits", ["stale_limit"])
+
+    assert {:error, pareto_limits_report} = Schema.validate_artifact(stale_pareto_limits)
+    assert Enum.any?(pareto_limits_report["errors"], &(&1["path"] == "$.model_limits"))
+
+    invalid_pareto_values =
+      put_in(
+        pareto_frontier_report,
+        ["rows", Access.at(0), "objective_values", "coverage"],
+        "high"
+      )
+
+    assert {:error, pareto_values_report} = Schema.validate_artifact(invalid_pareto_values)
+
+    assert Enum.any?(
+             pareto_values_report["errors"],
+             &(&1["path"] == "$.rows[0].objective_values.coverage")
+           )
+
+    invalid_pareto_ids =
+      put_in(pareto_frontier_report, ["rows", Access.at(0), "dominates_ids"], ["bad id"])
+
+    assert {:error, pareto_ids_report} = Schema.validate_artifact(invalid_pareto_ids)
+
+    assert Enum.any?(
+             pareto_ids_report["errors"],
+             &(&1["path"] == "$.rows[0].dominates_ids[0]")
+           )
+
+    assert %{
+             "selected_activity_ids" => ["leo_1_observe_target_a_1"],
+             "known_limits" => [
+               "greedy_per_scenario_selection",
+               "no_cross_scenario_resource_allocation",
+               "no_milp_or_cp_sat_solver",
+               "pareto_frontier_summary_not_solver_search",
+               "ranking_comparison_not_solver_search",
+               "explainable_score_terms_only"
+             ]
+           } = optimizer_contract
+
+    assert %{
+             "model" => "scenario_ranking_pairwise_delta",
+             "matched_count" => 1,
+             "left_only_count" => 1,
+             "right_only_count" => 1,
+             "row_count" => 3
+           } = ranking_comparison_report
+
+    assert %{
+             "model" => "objective_vector_pareto_frontier",
+             "frontier_count" => 3,
+             "dominated_count" => 1,
+             "frontier_ids" => ["balanced", "coverage_leader", "ignored_no_numeric"]
+           } = pareto_frontier_report
+
+    assert {:ok, %{"schema_contract" => "score_term_report.v1"}} =
+             Schema.validate_artifact(score_term_report)
+
+    invalid_score_model = Map.put(score_term_report, "model", "stale_score_model")
+
+    assert {:error, score_model_report} = Schema.validate_artifact(invalid_score_model)
+    assert Enum.any?(score_model_report["errors"], &(&1["path"] == "$.model"))
+
+    invalid_score_count = Map.put(score_term_report, "row_count", -1)
+
+    assert {:error, score_count_report} = Schema.validate_artifact(invalid_score_count)
+    assert Enum.any?(score_count_report["errors"], &(&1["path"] == "$.row_count"))
+
+    stale_score_limits = Map.put(score_term_report, "model_limits", ["stale_limit"])
+
+    assert {:error, score_limits_report} = Schema.validate_artifact(stale_score_limits)
+    assert Enum.any?(score_limits_report["errors"], &(&1["path"] == "$.model_limits"))
+
+    assert %{
+             "row_count" => 7,
+             "rows" => [
+               %{
+                 "id" => "score_term:leo_1:1:activity_count_penalty",
+                 "term_key" => "activity_count_penalty",
+                 "selected" => true
+               }
+               | _
+             ]
+           } = score_term_report
+
+    assert {:ok, %{"schema_contract" => "objective_tradeoff_report.v1"}} =
+             Schema.validate_artifact(tradeoff_report)
+
+    invalid_tradeoff_model = Map.put(tradeoff_report, "model", "stale_objective_tradeoff_model")
+
+    assert {:error, tradeoff_model_report} = Schema.validate_artifact(invalid_tradeoff_model)
+
+    assert Enum.any?(
+             tradeoff_model_report["errors"],
+             &(&1["path"] == "$.model" and String.starts_with?(&1["message"], "must be one of"))
+           )
+
+    stale_tradeoff_limits = Map.put(tradeoff_report, "model_limits", ["stale_limit"])
+
+    assert {:error, tradeoff_limits_report} = Schema.validate_artifact(stale_tradeoff_limits)
+    assert Enum.any?(tradeoff_limits_report["errors"], &(&1["path"] == "$.model_limits"))
+
+    invalid_tradeoff_count = Map.put(tradeoff_report, "ranking_count", 1.0)
+
+    assert {:error, tradeoff_count_report} = Schema.validate_artifact(invalid_tradeoff_count)
+    assert Enum.any?(tradeoff_count_report["errors"], &(&1["path"] == "$.ranking_count"))
+
+    invalid_tradeoff =
+      put_in(tradeoff_report, ["tradeoffs", Access.at(0), "score_terms", "target_value"], "high")
+
+    assert {:error, tradeoff_validation_report} = Schema.validate_artifact(invalid_tradeoff)
+
+    assert Enum.any?(
+             tradeoff_validation_report["errors"],
+             &(&1["path"] == "$.tradeoffs[0].score_terms.target_value")
+           )
+
+    assert %{
+             "ranking_count" => 1,
+             "tradeoffs" => [
+               %{
+                 "scenario_id" => "leo_1",
+                 "activity_ids" => ["leo_1_observe_target_a_1"],
+                 "score_delta_from_selected" => 0
+               }
+             ]
+           } = tradeoff_report
+
+    assert {:ok, %{"schema_contract" => "objective_satisfaction_report.v1"}} =
+             Schema.validate_artifact(satisfaction_report)
+
+    invalid_satisfaction_model =
+      Map.put(satisfaction_report, "model", "stale_objective_satisfaction_model")
+
+    assert {:error, satisfaction_model_report} =
+             Schema.validate_artifact(invalid_satisfaction_model)
+
+    assert Enum.any?(
+             satisfaction_model_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"campaign_v1_selected_activity_objective_summary\"")
+           )
+
+    stale_satisfaction_limits = Map.put(satisfaction_report, "model_limits", ["stale_limit"])
+
+    assert {:error, satisfaction_limits_report} =
+             Schema.validate_artifact(stale_satisfaction_limits)
+
+    assert Enum.any?(satisfaction_limits_report["errors"], &(&1["path"] == "$.model_limits"))
+
+    invalid_satisfaction_count = Map.put(satisfaction_report, "objective_count", -1)
+
+    assert {:error, satisfaction_count_report} =
+             Schema.validate_artifact(invalid_satisfaction_count)
+
+    assert Enum.any?(
+             satisfaction_count_report["errors"],
+             &(&1["path"] == "$.objective_count")
+           )
+
+    assert %{
+             "objective_count" => 4,
+             "rows" => [
+               %{
+                 "objective" => "target_coverage",
+                 "status" => "partial",
+                 "selected_target_ids" => ["target_a"]
+               }
+               | _
+             ]
+           } = satisfaction_report
+
+    invalid_satisfaction =
+      put_in(satisfaction_report, ["rows", Access.at(0), "selected_target_ids"], ["bad target"])
+
+    assert {:error, satisfaction_validation_report} =
+             Schema.validate_artifact(invalid_satisfaction)
+
+    assert Enum.any?(
+             satisfaction_validation_report["errors"],
+             &(&1["path"] == "$.rows[0].selected_target_ids[0]")
+           )
+
+    invalid_satisfaction_count_shape =
+      put_in(satisfaction_report, ["rows", Access.at(0), "required_count"], 1.0)
+
+    assert {:error, satisfaction_count_shape_report} =
+             Schema.validate_artifact(invalid_satisfaction_count_shape)
+
+    assert Enum.any?(
+             satisfaction_count_shape_report["errors"],
+             &(&1["path"] == "$.rows[0].required_count")
+           )
+
+    invalid_satisfaction_negative_count =
+      put_in(satisfaction_report, ["rows", Access.at(0), "selected_count"], -1)
+
+    assert {:error, satisfaction_negative_count_report} =
+             Schema.validate_artifact(invalid_satisfaction_negative_count)
+
+    assert Enum.any?(
+             satisfaction_negative_count_report["errors"],
+             &(&1["path"] == "$.rows[0].selected_count")
+           )
+
+    assert {:ok, %{"schema_contract" => "branch_comparison_report.v1"}} =
+             Schema.validate_artifact(branch_comparison_report)
+
+    invalid_branch_model =
+      Map.put(branch_comparison_report, "model", "stale_branch_comparison_model")
+
+    assert {:error, branch_model_report} = Schema.validate_artifact(invalid_branch_model)
+    assert Enum.any?(branch_model_report["errors"], &(&1["path"] == "$.model"))
+
+    invalid_branch_source =
+      Map.put(branch_comparison_report, "source", "campaign_strategy.legacy_branches")
+
+    assert {:error, branch_source_report} = Schema.validate_artifact(invalid_branch_source)
+    assert Enum.any?(branch_source_report["errors"], &(&1["path"] == "$.source"))
+
+    invalid_branch_count = Map.put(branch_comparison_report, "branch_count", 99)
+
+    assert {:error, branch_count_report} = Schema.validate_artifact(invalid_branch_count)
+    assert Enum.any?(branch_count_report["errors"], &(&1["path"] == "$.branch_count"))
+
+    invalid_branch_count_shape =
+      Map.put(
+        branch_comparison_report,
+        "branch_count",
+        branch_comparison_report["branch_count"] * 1.0
+      )
+
+    assert {:error, branch_count_shape_report} =
+             Schema.validate_artifact(invalid_branch_count_shape)
+
+    assert Enum.any?(branch_count_shape_report["errors"], &(&1["path"] == "$.branch_count"))
+
+    invalid_branch_row_counts =
+      branch_comparison_report
+      |> put_in(["rows", Access.at(0), "risk_count"], 1.0)
+      |> put_in(["rows", Access.at(0), "resource_projection_warning_count"], -1)
+
+    assert {:error, branch_row_count_report} =
+             Schema.validate_artifact(invalid_branch_row_counts)
+
+    assert Enum.any?(
+             branch_row_count_report["errors"],
+             &(&1["path"] == "$.rows[0].risk_count")
+           )
+
+    assert Enum.any?(
+             branch_row_count_report["errors"],
+             &(&1["path"] == "$.rows[0].resource_projection_warning_count")
+           )
+
+    invalid_branch_downlink_contact_counts =
+      branch_comparison_report
+      |> put_in(["rows", Access.at(0), "downlink_completion_required_contacts"], 1.0)
+      |> put_in(["rows", Access.at(0), "downlink_completion_planned_contacts"], -1)
+
+    assert {:error, branch_downlink_contact_count_report} =
+             Schema.validate_artifact(invalid_branch_downlink_contact_counts)
+
+    assert Enum.any?(
+             branch_downlink_contact_count_report["errors"],
+             &(&1["path"] == "$.rows[0].downlink_completion_required_contacts")
+           )
+
+    assert Enum.any?(
+             branch_downlink_contact_count_report["errors"],
+             &(&1["path"] == "$.rows[0].downlink_completion_planned_contacts")
+           )
+
+    invalid_branch_downlink_probability =
+      branch_comparison_report
+      |> put_in(["rows", Access.at(0), "downlink_completion_ratio"], 1.2)
+      |> put_in(["rows", Access.at(0), "observation_success_factor"], -0.1)
+
+    assert {:error, branch_downlink_probability_report} =
+             Schema.validate_artifact(invalid_branch_downlink_probability)
+
+    assert Enum.any?(
+             branch_downlink_probability_report["errors"],
+             &(&1["path"] == "$.rows[0].downlink_completion_ratio")
+           )
+
+    assert Enum.any?(
+             branch_downlink_probability_report["errors"],
+             &(&1["path"] == "$.rows[0].observation_success_factor")
+           )
+
+    invalid_recommended_branch =
+      Map.put(branch_comparison_report, "recommended_branch_id", "missing_branch")
+
+    assert {:error, recommended_branch_report} =
+             Schema.validate_artifact(invalid_recommended_branch)
+
+    assert Enum.any?(
+             recommended_branch_report["errors"],
+             &(&1["path"] in ["$.recommended_branch_id", "$.selected_branch_ids"])
+           )
+
+    stale_branch_limits =
+      Map.put(branch_comparison_report, "model_limits", ["stale_branch_comparison_boundary"])
+
+    assert {:error, branch_limits_report} = Schema.validate_artifact(stale_branch_limits)
+    assert Enum.any?(branch_limits_report["errors"], &(&1["path"] == "$.model_limits"))
+
+    invalid_branch_comparison =
+      put_in(
+        branch_comparison_report,
+        ["rows", Access.at(0), "score_terms", "activity_score"],
+        "high"
+      )
+
+    assert {:error, branch_comparison_validation_report} =
+             Schema.validate_artifact(invalid_branch_comparison)
+
+    assert Enum.any?(
+             branch_comparison_validation_report["errors"],
+             &(&1["path"] == "$.rows[0].score_terms.activity_score")
+           )
+
+    invalid_branch_risk_context =
+      branch_comparison_report
+      |> put_in(["rows", Access.at(0), "risk_types"], ["spacecraft_availability_low", 42])
+      |> put_in(["rows", Access.at(0), "high_risk_types"], ["activity_type_incompatible"])
+      |> put_in(["rows", Access.at(0), "resource_pressure_statuses"], ["pressure", 42])
+      |> put_in(["rows", Access.at(0), "resource_pressure_types"], ["storage_overflow"])
+      |> put_in(["rows", Access.at(0), "first_resource_pressure_kinds"], [
+        "storage_overflow"
+      ])
+      |> put_in(["rows", Access.at(0), "first_resource_pressure_activity_id"], "bad id")
+
+    assert {:error, branch_risk_context_report} =
+             Schema.validate_artifact(invalid_branch_risk_context)
+
+    assert Enum.any?(
+             branch_risk_context_report["errors"],
+             &(&1["path"] == "$.rows[0].risk_types[1]")
+           )
+
+    assert Enum.any?(
+             branch_risk_context_report["errors"],
+             &(&1["path"] == "$.rows[0].resource_pressure_statuses[1]")
+           )
+
+    assert Enum.any?(
+             branch_risk_context_report["errors"],
+             &(&1["path"] == "$.rows[0].first_resource_pressure_activity_id")
+           )
+
+    invalid_branch_event_count =
+      branch_comparison_report
+      |> put_in(["rows", Access.at(0), "branch_event_count"], 2)
+      |> put_in(
+        ["rows", Access.at(0), "branch_event_trust_boundary_status_counts"],
+        %{"declared" => 1}
+      )
+
+    assert {:error, branch_event_count_report} =
+             Schema.validate_artifact(invalid_branch_event_count)
+
+    assert Enum.any?(
+             branch_event_count_report["errors"],
+             &(&1["path"] == "$.rows[0].branch_event_trust_boundary_status_counts")
+           )
+
+    invalid_negative_branch_event_count =
+      put_in(branch_comparison_report, ["rows", Access.at(0), "branch_event_count"], -1)
+
+    assert {:error, negative_branch_event_count_report} =
+             Schema.validate_artifact(invalid_negative_branch_event_count)
+
+    assert Enum.any?(
+             negative_branch_event_count_report["errors"],
+             &(&1["path"] == "$.rows[0].branch_event_count")
+           )
+
+    invalid_branch_target_id =
+      put_in(
+        branch_comparison_report,
+        ["rows", Access.at(0), "priority_commitment_required_target_ids"],
+        ["target with spaces"]
+      )
+
+    assert {:error, branch_target_id_report} = Schema.validate_artifact(invalid_branch_target_id)
+
+    assert Enum.any?(
+             branch_target_id_report["errors"],
+             &(&1["path"] == "$.rows[0].priority_commitment_required_target_ids[0]")
+           )
+
+    invalid_branch_station_calendar_provider =
+      put_in(
+        branch_comparison_report,
+        ["rows", Access.at(0), "branch_station_calendar_provider_ids"],
+        ["provider with spaces"]
+      )
+
+    assert {:error, branch_station_calendar_provider_report} =
+             Schema.validate_artifact(invalid_branch_station_calendar_provider)
+
+    assert Enum.any?(
+             branch_station_calendar_provider_report["errors"],
+             &(&1["path"] == "$.rows[0].branch_station_calendar_provider_ids[0]")
+           )
+
+    invalid_capacity_pack_pressure =
+      branch_comparison_report
+      |> put_in(["rows", Access.at(0), "capacity_pack_max_required_capacity_fraction"], 1.1)
+      |> put_in(["rows", Access.at(0), "capacity_pack_total_required_capacity_fraction"], -0.1)
+      |> put_in(["rows", Access.at(0), "capacity_pack_required_capacity_sources"], [42])
+
+    assert {:error, capacity_pack_pressure_report} =
+             Schema.validate_artifact(invalid_capacity_pack_pressure)
+
+    assert Enum.any?(
+             capacity_pack_pressure_report["errors"],
+             &(&1["path"] == "$.rows[0].capacity_pack_max_required_capacity_fraction")
+           )
+
+    assert Enum.any?(
+             capacity_pack_pressure_report["errors"],
+             &(&1["path"] == "$.rows[0].capacity_pack_total_required_capacity_fraction")
+           )
+
+    assert Enum.any?(
+             capacity_pack_pressure_report["errors"],
+             &(&1["path"] == "$.rows[0].capacity_pack_required_capacity_sources[0]")
+           )
+  end
+
+  test "validates standalone Cadence-facing row contracts" do
+    artifact = campaign_artifact()
+    proposed_contact = List.first(artifact["proposed_contacts"])
+    contact_intent = List.first(artifact["contact_intents"])
+
+    resource_summary = %{
+      "schema_contract" => "resource_summary.v1",
+      "spacecraft_id" => "leo_1",
+      "mode" => "payload_safe",
+      "fuel_margin" => 0.72,
+      "power_margin" => 0.51,
+      "battery_capacity_wh" => 1200.0,
+      "battery_energy_used_wh" => 588.0,
+      "battery_state_of_charge" => 0.51,
+      "thermal_margin_c" => 8.5,
+      "storage_capacity_mb" => 1000.0,
+      "storage_used_mb" => 250.0,
+      "storage_margin" => 0.75,
+      "downlink_capacity_mb" => 500.0,
+      "downlink_margin" => 0.6,
+      "spacecraft_available" => true,
+      "source_quality" => "operator_supplied",
+      "trust_boundary" => "operator_declared_resource_summary",
+      "suppressed_activity_types" => ["observe"],
+      "incompatible_activity_types" => ["command"],
+      "payload_available" => true,
+      "antenna_available" => true,
+      "degraded" => false,
+      "assumptions" => %{"model" => "operator_summary"},
+      "provenance" => %{"source" => "cadence_snapshot"}
+    }
+
+    planned_activity = %{
+      "id" => "cmd_1",
+      "type" => "command",
+      "scenario_id" => "leo_1",
+      "ground_station_id" => "equator_prime",
+      "direction" => "command",
+      "starts_at_s" => 300.0,
+      "ends_at_s" => 360.0,
+      "spacecraft_id" => "leo_1",
+      "resource_id" => "leo_1",
+      "resource_source_quality" => "declared",
+      "resource_trust_boundary" => "operator_supplied_resource_summary",
+      "resource_trust_boundary_status" => "declared",
+      "resource_provenance" => %{
+        "source" => "mission_database",
+        "trust_boundary" => "operator_supplied_resource_summary"
+      },
+      "resource_blocking_dimension" => "power",
+      "fuel_margin" => 0.71,
+      "power_margin" => 0.44,
+      "storage_margin" => 0.28,
+      "downlink_margin" => 0.32,
+      "spacecraft_available" => true,
+      "payload_available" => true,
+      "degraded" => false,
+      "mode" => "payload_safe",
+      "product_ids" => ["cmd_packet:repoint"],
+      "data_volume_mb" => 18.5,
+      "downlink_rate_mb_s" => 1.0,
+      "thermal_margin_c" => 8.5,
+      "dependency_activity_ids" => ["health_check:leo_1"],
+      "exclusive_with_timeline_ids" => ["timeline:leo_1:payload:target_a"],
+      "suppressed_activity_types" => ["observe"],
+      "cadence_import" => %{
+        "external_id" => "cadence_cmd_1",
+        "activity_type" => "command",
+        "schema_contract" => "planned_activity.v1"
+      }
+    }
+
+    assert {:ok, %{"schema_contract" => "proposed_contact.v1"}} =
+             Schema.validate_artifact(proposed_contact)
+
+    fixture_proposed_contact = read_json!("study_results/proposed_contact_v1.json")
+
+    assert {:ok, %{"schema_contract" => "proposed_contact.v1"}} =
+             Schema.validate_artifact(fixture_proposed_contact)
+
+    assert {:ok, proposed_contact_schema} = Schema.json_schema("proposed_contact.v1")
+
+    assert get_in(proposed_contact_schema, ["properties", "source_window_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(proposed_contact_schema, ["properties", "timeline_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(proposed_contact_schema, [
+             "properties",
+             "timeline_identity",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(proposed_contact_schema, ["properties", "station_availability", "type"]) ==
+             "string"
+
+    assert get_in(proposed_contact_schema, ["properties", "schedule_conflict_status", "type"]) ==
+             "string"
+
+    assert get_in(proposed_contact_schema, ["properties", "model_limits", "items", "enum"]) == [
+             "artifact_level_only",
+             "no_provider_reservation",
+             "no_schedule_mutation"
+           ]
+
+    invalid_proposed_contact_timeline =
+      Map.put(fixture_proposed_contact, "timeline_id", "timeline id with spaces")
+
+    assert {:error, invalid_proposed_timeline_report} =
+             Schema.validate_artifact(invalid_proposed_contact_timeline)
+
+    assert Enum.any?(
+             invalid_proposed_timeline_report["errors"],
+             &(&1["path"] == "$.timeline_id")
+           )
+
+    invalid_proposed_contact_limits =
+      Map.put(fixture_proposed_contact, "model_limits", ["artifact_level_only"])
+
+    assert {:error, invalid_proposed_limits_report} =
+             Schema.validate_artifact(invalid_proposed_contact_limits)
+
+    assert Enum.any?(
+             invalid_proposed_limits_report["errors"],
+             &(&1["path"] == "$.model_limits")
+           )
+
+    assert {:ok, %{"schema_contract" => "contact_intent.v1"}} =
+             Schema.validate_artifact(contact_intent)
+
+    assert {:ok, %{"schema_contract" => "resource_summary.v1"}} =
+             Schema.validate_artifact(resource_summary)
+
+    invalid_resource_soc = Map.put(resource_summary, "battery_state_of_charge", 1.2)
+
+    assert {:error, invalid_resource_soc_report} =
+             Schema.validate_artifact(invalid_resource_soc)
+
+    assert Enum.any?(
+             invalid_resource_soc_report["errors"],
+             &(&1["path"] == "$.battery_state_of_charge" and
+                 &1["message"] == "must be between 0.0 and 1.0")
+           )
+
+    invalid_resource_stale_soc = Map.put(resource_summary, "battery_state_of_charge", 0.52)
+
+    assert {:error, invalid_resource_stale_soc_report} =
+             Schema.validate_artifact(invalid_resource_stale_soc)
+
+    assert Enum.any?(
+             invalid_resource_stale_soc_report["errors"],
+             &(&1["path"] == "$.battery_state_of_charge" and
+                 &1["message"] ==
+                   "must equal battery_capacity_wh/battery_energy_used_wh-derived battery_state_of_charge")
+           )
+
+    invalid_resource_stale_storage = Map.put(resource_summary, "storage_margin", 0.7)
+
+    assert {:error, invalid_resource_stale_storage_report} =
+             Schema.validate_artifact(invalid_resource_stale_storage)
+
+    assert Enum.any?(
+             invalid_resource_stale_storage_report["errors"],
+             &(&1["path"] == "$.storage_margin" and
+                 &1["message"] ==
+                   "must equal storage_capacity_mb/storage_used_mb-derived storage_margin")
+           )
+
+    invalid_resource_capacity = Map.put(resource_summary, "storage_capacity_mb", -1.0)
+
+    assert {:error, invalid_resource_capacity_report} =
+             Schema.validate_artifact(invalid_resource_capacity)
+
+    assert Enum.any?(
+             invalid_resource_capacity_report["errors"],
+             &(&1["path"] == "$.storage_capacity_mb" and
+                 &1["message"] == "must be non-negative")
+           )
+
+    invalid_resource_activity_types =
+      Map.put(resource_summary, "suppressed_activity_types", ["observe", 42])
+
+    assert {:error, invalid_resource_activity_type_report} =
+             Schema.validate_artifact(invalid_resource_activity_types)
+
+    assert Enum.any?(
+             invalid_resource_activity_type_report["errors"],
+             &(&1["path"] == "$.suppressed_activity_types[1]")
+           )
+
+    resource_projection_report = %{
+      "schema_contract" => "resource_projection_report.v1",
+      "model" => "thin_repaired_activity_resource_projection",
+      "input_resource_summary_count" => 1,
+      "activity_count" => 2,
+      "projected_resources" => [
+        %{
+          "spacecraft_id" => "leo_1",
+          "activity_count" => 2,
+          "observation_count" => 1,
+          "downlink_count" => 1,
+          "estimated_storage_produced_mb" => 40.0,
+          "estimated_downlink_mb" => 60.0,
+          "resource_source_quality" => "operator_supplied",
+          "projected_storage_margin" => 0.77,
+          "projected_downlink_margin" => 0.88,
+          "activity_resource_flow" => [
+            %{
+              "activity_id" => "obs_1",
+              "activity_type" => "observe",
+              "planned_latency_s" => 120.0,
+              "latency_status" => "within_limit"
+            },
+            %{
+              "activity_id" => "dl_1",
+              "activity_type" => "downlink",
+              "planned_latency_s" => 180.0,
+              "latency_status" => "within_limit"
+            }
+          ]
+        }
+      ],
+      "assumptions" => %{"source" => "source_resource_summaries"}
+    }
+
+    assert {:ok, %{"schema_contract" => "resource_projection_report.v1"}} =
+             Schema.validate_artifact(resource_projection_report)
+
+    invalid_projection_latency =
+      put_in(
+        resource_projection_report,
+        [
+          "projected_resources",
+          Access.at(0),
+          "activity_resource_flow",
+          Access.at(0),
+          "planned_latency_s"
+        ],
+        -1.0
+      )
+
+    assert {:error, invalid_projection_latency_report} =
+             Schema.validate_artifact(invalid_projection_latency)
+
+    assert Enum.any?(
+             invalid_projection_latency_report["errors"],
+             &(&1["path"] ==
+                 "$.projected_resources[0].activity_resource_flow[0].planned_latency_s")
+           )
+
+    invalid_projection_completed_fraction =
+      put_in(
+        resource_projection_report,
+        [
+          "projected_resources",
+          Access.at(0),
+          "activity_resource_flow",
+          Access.at(0),
+          "completed_fraction"
+        ],
+        1.2
+      )
+
+    assert {:error, invalid_projection_completed_fraction_report} =
+             Schema.validate_artifact(invalid_projection_completed_fraction)
+
+    assert Enum.any?(
+             invalid_projection_completed_fraction_report["errors"],
+             &(&1["path"] ==
+                 "$.projected_resources[0].activity_resource_flow[0].completed_fraction" and
+                 &1["message"] == "must be between 0.0 and 1.0")
+           )
+
+    invalid_projection_battery_state_of_charge_after =
+      put_in(
+        resource_projection_report,
+        [
+          "projected_resources",
+          Access.at(0),
+          "activity_resource_flow",
+          Access.at(0),
+          "battery_state_of_charge_after"
+        ],
+        1.2
+      )
+
+    assert {:error, invalid_projection_battery_soc_report} =
+             Schema.validate_artifact(invalid_projection_battery_state_of_charge_after)
+
+    assert Enum.any?(
+             invalid_projection_battery_soc_report["errors"],
+             &(&1["path"] ==
+                 "$.projected_resources[0].activity_resource_flow[0].battery_state_of_charge_after" and
+                 &1["message"] == "must be between 0.0 and 1.0")
+           )
+
+    resource_filter_report = %{
+      "schema_contract" => "resource_filter_report.v1",
+      "model" => "resource_summary_availability_and_margin_filter",
+      "input_candidate_count" => 1,
+      "kept_candidate_count" => 0,
+      "suppressed_candidate_count" => 1,
+      "resource_source_quality_counts" => %{"operator_supplied" => 1},
+      "suppressed_candidates" => [
+        %{
+          "id" => "leo_1_observe_target_a_1",
+          "type" => "observe",
+          "scenario_id" => "leo_1",
+          "suppressed_reason" => "payload_unavailable"
+        }
+      ]
+    }
+
+    assert {:ok, %{"schema_contract" => "resource_filter_report.v1"}} =
+             Schema.validate_artifact(resource_filter_report)
+
+    station_calendar_report = %{
+      "schema_contract" => "station_calendar_report.v1",
+      "model" => "campaign_ground_network_interval_overlay",
+      "input_contact_count" => 1,
+      "calendar_entry_count" => 1,
+      "affected_contact_count" => 1,
+      "affected_duration_s" => 60.0,
+      "affected_contacts" => [
+        %{
+          "id" => "station_calendar:dl_1:equator_capacity",
+          "contact_id" => "dl_1",
+          "scenario_id" => "leo_1",
+          "ground_station_id" => "equator_prime",
+          "starts_at_s" => 100.0,
+          "ends_at_s" => 160.0,
+          "overlap_starts_at_s" => 100.0,
+          "overlap_ends_at_s" => 160.0,
+          "overlap_duration_s" => 60.0,
+          "station_calendar_entry_id" => "equator_capacity",
+          "status" => "available",
+          "station_availability" => "reduced_capacity",
+          "capacity_fraction" => 0.5
+        }
+      ],
+      "assumptions" => %{
+        "source" => "ops_calendar",
+        "execution_boundary" => "artifact_only_no_provider_reservation"
+      }
+    }
+
+    assert {:ok, %{"schema_contract" => "station_calendar_report.v1"}} =
+             Schema.validate_artifact(station_calendar_report)
+
+    assert {:ok, %{"schema_contract" => "planned_activity.v1"}} =
+             Schema.validate_artifact(planned_activity, schema_contract: "planned_activity.v1")
+
+    alias_planned_activity =
+      planned_activity
+      |> Map.delete("type")
+      |> Map.put("activity_type", "command")
+
+    assert {:ok, %{"schema_contract" => "planned_activity.v1"}} =
+             Schema.validate_artifact(alias_planned_activity,
+               schema_contract: "planned_activity.v1"
+             )
+
+    invalid_alias_planned_activity =
+      alias_planned_activity
+      |> Map.delete("activity_type")
+
+    assert {:error, alias_report} =
+             Schema.validate_artifact(invalid_alias_planned_activity,
+               schema_contract: "planned_activity.v1"
+             )
+
+    assert Enum.any?(
+             alias_report["errors"],
+             &(&1["path"] == "$" and &1["message"] == "must include type or activity_type")
+           )
+
+    assert {:ok, planned_activity_schema} = Schema.json_schema("planned_activity.v1")
+
+    assert planned_activity_schema["required"] == [
+             "id",
+             "scenario_id",
+             "starts_at_s",
+             "ends_at_s"
+           ]
+
+    assert planned_activity_schema["anyOf"] == [
+             %{"required" => ["type"]},
+             %{"required" => ["activity_type"]}
+           ]
+
+    assert get_in(planned_activity_schema, ["properties", "activity_type", "type"]) ==
+             "string"
+
+    assert get_in(planned_activity_schema, ["properties", "resource_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(planned_activity_schema, ["properties", "resource_provenance", "type"]) ==
+             "object"
+
+    assert get_in(planned_activity_schema, [
+             "properties",
+             "resource_trust_boundary_status",
+             "type"
+           ]) == "string"
+
+    assert get_in(planned_activity_schema, ["properties", "fuel_margin", "type"]) == "number"
+
+    assert get_in(planned_activity_schema, ["properties", "storage_margin", "maximum"]) == 1.0
+
+    assert get_in(planned_activity_schema, ["properties", "spacecraft_available", "type"]) ==
+             "boolean"
+
+    assert get_in(planned_activity_schema, ["properties", "product_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(planned_activity_schema, [
+             "properties",
+             "exclusive_with_timeline_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(planned_activity_schema, [
+             "properties",
+             "suppressed_activity_types",
+             "items",
+             "type"
+           ]) == "string"
+
+    Enum.each(
+      [
+        "contact_success_factor",
+        "command_success_factor",
+        "observation_success_factor",
+        "cloud_cover_fraction",
+        "blur_score",
+        "maneuver_success_factor"
+      ],
+      fn field ->
+        assert get_in(planned_activity_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+    )
+
+    assert get_in(planned_activity_schema, ["properties", "downlink_rate_mb_s", "type"]) ==
+             "number"
+
+    assert get_in(planned_activity_schema, [
+             "properties",
+             "command_success_factor_source",
+             "type"
+           ]) == "string"
+
+    assert get_in(planned_activity_schema, [
+             "properties",
+             "maneuver_success_factor_source",
+             "type"
+           ]) == "string"
+
+    assert get_in(planned_activity_schema, ["properties", "execution_uncertainty", "type"]) ==
+             "object"
+
+    assert get_in(planned_activity_schema, [
+             "properties",
+             "execution_uncertainty",
+             "properties",
+             "delta_v_3sigma_km_s",
+             "minItems"
+           ]) == 3
+
+    checked_in_planned_activity = read_json!("study_results/planned_activity_v1.json")
+
+    assert {:ok, %{"schema_contract" => "planned_activity.v1"}} =
+             Schema.validate_artifact(checked_in_planned_activity)
+
+    invalid_command_success =
+      Map.put(checked_in_planned_activity, "command_success_factor", 1.5)
+
+    assert {:error, command_success_report} = Schema.validate_artifact(invalid_command_success)
+
+    assert Enum.any?(
+             command_success_report["errors"],
+             &(&1["path"] == "$.command_success_factor")
+           )
+
+    invalid_planned_quality =
+      Map.put(checked_in_planned_activity, "cloud_cover_fraction", 1.2)
+
+    assert {:error, planned_quality_report} = Schema.validate_artifact(invalid_planned_quality)
+
+    assert Enum.any?(
+             planned_quality_report["errors"],
+             &(&1["path"] == "$.cloud_cover_fraction")
+           )
+
+    invalid_storage_margin = Map.put(checked_in_planned_activity, "storage_margin", 128.0)
+
+    assert {:error, storage_margin_report} = Schema.validate_artifact(invalid_storage_margin)
+
+    assert Enum.any?(
+             storage_margin_report["errors"],
+             &(&1["path"] == "$.storage_margin" and
+                 &1["message"] == "must be between 0.0 and 1.0")
+           )
+
+    invalid_execution_uncertainty =
+      Map.put(checked_in_planned_activity, "execution_uncertainty", "operator_estimate")
+
+    assert {:error, uncertainty_report} = Schema.validate_artifact(invalid_execution_uncertainty)
+    assert Enum.any?(uncertainty_report["errors"], &(&1["path"] == "$.execution_uncertainty"))
+
+    invalid_execution_uncertainty_delta =
+      Map.put(checked_in_planned_activity, "execution_uncertainty", %{
+        "delta_v_3sigma_km_s" => [0.0, "uncertain", 0.0]
+      })
+
+    assert {:error, uncertainty_delta_report} =
+             Schema.validate_artifact(invalid_execution_uncertainty_delta)
+
+    assert Enum.any?(
+             uncertainty_delta_report["errors"],
+             &(&1["path"] == "$.execution_uncertainty.delta_v_3sigma_km_s")
+           )
+
+    invalid_planned_downlink_rate =
+      Map.put(checked_in_planned_activity, "downlink_rate_mb_s", "1")
+
+    assert {:error, planned_rate_report} =
+             Schema.validate_artifact(invalid_planned_downlink_rate)
+
+    assert Enum.any?(planned_rate_report["errors"], &(&1["path"] == "$.downlink_rate_mb_s"))
+
+    invalid_intent = Map.put(contact_intent, "direction", "broadcast")
+
+    assert {:error, report} = Schema.validate_artifact(invalid_intent)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.direction"))
+
+    invalid_intent_import =
+      Map.put(contact_intent, "cadence_import", %{"activity_type" => "contact"})
+
+    assert {:error, import_report} = Schema.validate_artifact(invalid_intent_import)
+    assert Enum.any?(import_report["errors"], &(&1["path"] == "$.cadence_import.external_id"))
+  end
+
+  test "validates checked-in resource and communications report examples" do
+    link_capacity_report = read_json!("study_results/link_capacity_report_v1.json")
+    resource_filter_report = read_json!("study_results/resource_filter_report_v1.json")
+    resource_projection_report = read_json!("study_results/resource_projection_report_v1.json")
+    station_calendar_report = read_json!("study_results/station_calendar_report_v1.json")
+
+    assert {:ok, %{"schema_contract" => "link_capacity_report.v1"}} =
+             Schema.validate_artifact(link_capacity_report)
+
+    invalid_link_capacity_model =
+      Map.put(link_capacity_report, "model", "stale_link_capacity_model")
+
+    assert {:error, link_capacity_model_report} =
+             Schema.validate_artifact(invalid_link_capacity_model)
+
+    assert Enum.any?(link_capacity_model_report["errors"], &(&1["path"] == "$.model"))
+
+    assert %{
+             "model" => "fixed_rate_downlink_capacity_summary",
+             "contact_count" => 1,
+             "capacity_adjusted_throughput_mb" => 172.71212086982394,
+             "rows" => [
+               %{
+                 "ground_station_id" => "equator_prime",
+                 "capacity_adjusted_throughput_mb" => 172.71212086982394,
+                 "contact_ids" => ["leo_1_downlink_equator_prime_1"]
+               }
+             ]
+           } = link_capacity_report
+
+    invalid_link_capacity =
+      Map.put(link_capacity_report, "ignored_selected_contact_ids", ["bad contact"])
+
+    assert {:error, link_capacity_validation_report} =
+             Schema.validate_artifact(invalid_link_capacity)
+
+    assert Enum.any?(
+             link_capacity_validation_report["errors"],
+             &(&1["path"] == "$.ignored_selected_contact_ids[0]")
+           )
+
+    invalid_link_capacity_derivation =
+      Map.put(link_capacity_report, "actual_data_rate_throughput_derivations", [
+        %{"duration_s" => "sixty"}
+      ])
+
+    assert {:error, link_capacity_derivation_report} =
+             Schema.validate_artifact(invalid_link_capacity_derivation)
+
+    assert Enum.any?(
+             link_capacity_derivation_report["errors"],
+             &(&1["path"] == "$.actual_data_rate_throughput_derivations[0].duration_s")
+           )
+
+    invalid_link_capacity_contact_count =
+      Map.put(link_capacity_report, "contact_count", 1.0)
+
+    assert {:error, link_capacity_contact_count_report} =
+             Schema.validate_artifact(invalid_link_capacity_contact_count)
+
+    assert Enum.any?(
+             link_capacity_contact_count_report["errors"],
+             &(&1["path"] == "$.contact_count")
+           )
+
+    invalid_link_capacity_ignored_count =
+      Map.put(link_capacity_report, "ignored_contact_count", -1)
+
+    assert {:error, link_capacity_ignored_count_report} =
+             Schema.validate_artifact(invalid_link_capacity_ignored_count)
+
+    assert Enum.any?(
+             link_capacity_ignored_count_report["errors"],
+             &(&1["path"] == "$.ignored_contact_count")
+           )
+
+    invalid_link_capacity_utilization =
+      Map.put(link_capacity_report, "selected_capacity_utilization_fraction", 1.2)
+
+    assert {:error, link_capacity_utilization_report} =
+             Schema.validate_artifact(invalid_link_capacity_utilization)
+
+    assert Enum.any?(
+             link_capacity_utilization_report["errors"],
+             &(&1["path"] == "$.selected_capacity_utilization_fraction")
+           )
+
+    invalid_link_capacity_row_contact_count =
+      put_in(link_capacity_report, ["rows", Access.at(0), "contact_count"], 1.0)
+
+    assert {:error, link_capacity_row_contact_count_report} =
+             Schema.validate_artifact(invalid_link_capacity_row_contact_count)
+
+    assert Enum.any?(
+             link_capacity_row_contact_count_report["errors"],
+             &(&1["path"] == "$.rows[0].contact_count")
+           )
+
+    invalid_link_capacity_row_utilization =
+      put_in(
+        link_capacity_report,
+        ["rows", Access.at(0), "selected_capacity_utilization_fraction"],
+        1.2
+      )
+
+    assert {:error, link_capacity_row_utilization_report} =
+             Schema.validate_artifact(invalid_link_capacity_row_utilization)
+
+    assert Enum.any?(
+             link_capacity_row_utilization_report["errors"],
+             &(&1["path"] == "$.rows[0].selected_capacity_utilization_fraction")
+           )
+
+    invalid_link_capacity_row_capacity_range =
+      link_capacity_report
+      |> put_in(["rows", Access.at(0), "capacity_fraction_min"], -0.1)
+      |> put_in(["rows", Access.at(0), "capacity_fraction_max"], 1.2)
+
+    assert {:error, link_capacity_row_capacity_range_report} =
+             Schema.validate_artifact(invalid_link_capacity_row_capacity_range)
+
+    assert Enum.any?(
+             link_capacity_row_capacity_range_report["errors"],
+             &(&1["path"] == "$.rows[0].capacity_fraction_min")
+           )
+
+    assert Enum.any?(
+             link_capacity_row_capacity_range_report["errors"],
+             &(&1["path"] == "$.rows[0].capacity_fraction_max")
+           )
+
+    invalid_link_capacity_row_actual_count =
+      put_in(link_capacity_report, ["rows", Access.at(0), "actual_throughput_contact_count"], -1)
+
+    assert {:error, link_capacity_row_actual_count_report} =
+             Schema.validate_artifact(invalid_link_capacity_row_actual_count)
+
+    assert Enum.any?(
+             link_capacity_row_actual_count_report["errors"],
+             &(&1["path"] == "$.rows[0].actual_throughput_contact_count")
+           )
+
+    invalid_link_capacity_row_actual_ids =
+      link_capacity_report
+      |> put_in(["rows", Access.at(0), "actual_throughput_contact_count"], 1)
+      |> put_in(["rows", Access.at(0), "actual_throughput_contact_ids"], ["bad contact"])
+
+    assert {:error, link_capacity_row_actual_ids_report} =
+             Schema.validate_artifact(invalid_link_capacity_row_actual_ids)
+
+    assert Enum.any?(
+             link_capacity_row_actual_ids_report["errors"],
+             &(&1["path"] == "$.rows[0].actual_throughput_contact_ids[0]")
+           )
+
+    invalid_link_capacity_actual_completion_ids =
+      link_capacity_report
+      |> Map.put("actual_completion_contact_count", 1)
+      |> Map.put("actual_completion_contact_ids", ["bad contact"])
+
+    assert {:error, link_capacity_actual_completion_ids_report} =
+             Schema.validate_artifact(invalid_link_capacity_actual_completion_ids)
+
+    assert Enum.any?(
+             link_capacity_actual_completion_ids_report["errors"],
+             &(&1["path"] == "$.actual_completion_contact_ids[0]")
+           )
+
+    invalid_link_capacity_row_unmatched_actual_ids =
+      link_capacity_report
+      |> put_in(["rows", Access.at(0), "unmatched_actual_throughput_contact_count"], 1)
+      |> put_in(["rows", Access.at(0), "unmatched_actual_throughput_contact_ids"], [
+        "bad contact"
+      ])
+
+    assert {:error, link_capacity_row_unmatched_actual_ids_report} =
+             Schema.validate_artifact(invalid_link_capacity_row_unmatched_actual_ids)
+
+    assert Enum.any?(
+             link_capacity_row_unmatched_actual_ids_report["errors"],
+             &(&1["path"] == "$.rows[0].unmatched_actual_throughput_contact_ids[0]")
+           )
+
+    assert {:ok, %{"schema_contract" => "resource_projection_report.v1"}} =
+             Schema.validate_artifact(resource_projection_report)
+
+    invalid_resource_projection_model =
+      Map.put(resource_projection_report, "model", "stale_resource_projection_model")
+
+    assert {:error, resource_projection_model_report} =
+             Schema.validate_artifact(invalid_resource_projection_model)
+
+    assert Enum.any?(
+             resource_projection_model_report["errors"],
+             &(&1["path"] == "$.model")
+           )
+
+    invalid_resource_projection =
+      put_in(resource_projection_report, ["resource_trust_boundary_status_counts", "missing"], 99)
+
+    assert {:error, resource_projection_validation_report} =
+             Schema.validate_artifact(invalid_resource_projection)
+
+    assert Enum.any?(
+             resource_projection_validation_report["errors"],
+             &(&1["path"] == "$.resource_trust_boundary_status_counts")
+           )
+
+    assert {:ok, %{"schema_contract" => "resource_filter_report.v1"}} =
+             Schema.validate_artifact(resource_filter_report)
+
+    invalid_resource_filter_model =
+      Map.put(resource_filter_report, "model", "stale_resource_filter_model")
+
+    assert {:error, resource_filter_model_report} =
+             Schema.validate_artifact(invalid_resource_filter_model)
+
+    assert Enum.any?(
+             resource_filter_model_report["errors"],
+             &(&1["path"] == "$.model")
+           )
+
+    invalid_resource_filter_input_count =
+      Map.put(resource_filter_report, "input_candidate_count", 1.0)
+
+    assert {:error, resource_filter_input_count_report} =
+             Schema.validate_artifact(invalid_resource_filter_input_count)
+
+    assert Enum.any?(
+             resource_filter_input_count_report["errors"],
+             &(&1["path"] == "$.input_candidate_count")
+           )
+
+    invalid_resource_filter_duplicate_count =
+      Map.put(resource_filter_report, "duplicate_suppressed_candidate_row_count", -1)
+
+    assert {:error, resource_filter_duplicate_count_report} =
+             Schema.validate_artifact(invalid_resource_filter_duplicate_count)
+
+    assert Enum.any?(
+             resource_filter_duplicate_count_report["errors"],
+             &(&1["path"] == "$.duplicate_suppressed_candidate_row_count")
+           )
+
+    invalid_resource_filter =
+      put_in(
+        resource_filter_report,
+        ["suppressed_resource_trust_boundary_status_counts", "missing"],
+        99
+      )
+
+    assert {:error, resource_filter_validation_report} =
+             Schema.validate_artifact(invalid_resource_filter)
+
+    assert Enum.any?(
+             resource_filter_validation_report["errors"],
+             &(&1["path"] == "$.suppressed_resource_trust_boundary_status_counts")
+           )
+
+    invalid_resource_filter_source_count =
+      put_in(resource_filter_report, ["resource_source_quality_counts", "operator_supplied"], -1)
+
+    assert {:error, resource_filter_source_count_report} =
+             Schema.validate_artifact(invalid_resource_filter_source_count)
+
+    assert Enum.any?(
+             resource_filter_source_count_report["errors"],
+             &(&1["path"] == "$.resource_source_quality_counts.operator_supplied")
+           )
+
+    assert %{
+             "model" => "resource_summary_availability_and_margin_filter",
+             "suppressed_candidate_count" => 2,
+             "resource_source_quality_counts" => %{"operator_supplied" => 1},
+             "suppressed_candidates" => [
+               %{"suppressed_reason" => "storage_margin_below_observe_policy"},
+               %{"suppressed_reason" => "downlink_margin_below_policy"}
+             ]
+           } = resource_filter_report
+
+    assert %{
+             "model" => "thin_campaign_selected_activity_resource_projection",
+             "projected_resources" => [
+               %{
+                 "spacecraft_id" => "leo_1",
+                 "projected_storage_margin" => 0.75,
+                 "projected_downlink_margin" => 1.0,
+                 "resource_source_quality" => "operator_supplied"
+               }
+             ]
+           } = resource_projection_report
+
+    invalid_resource_projection_input_count =
+      Map.put(resource_projection_report, "input_resource_summary_count", 1.0)
+
+    assert {:error, resource_projection_input_count_report} =
+             Schema.validate_artifact(invalid_resource_projection_input_count)
+
+    assert Enum.any?(
+             resource_projection_input_count_report["errors"],
+             &(&1["path"] == "$.input_resource_summary_count")
+           )
+
+    invalid_resource_projection_activity_count =
+      Map.put(resource_projection_report, "invalid_activity_input_count", -1)
+
+    assert {:error, resource_projection_activity_count_report} =
+             Schema.validate_artifact(invalid_resource_projection_activity_count)
+
+    assert Enum.any?(
+             resource_projection_activity_count_report["errors"],
+             &(&1["path"] == "$.invalid_activity_input_count")
+           )
+
+    invalid_projected_activity_count =
+      put_in(
+        resource_projection_report,
+        ["projected_resources", Access.at(0), "activity_count"],
+        1.0
+      )
+
+    assert {:error, projected_activity_count_report} =
+             Schema.validate_artifact(invalid_projected_activity_count)
+
+    assert Enum.any?(
+             projected_activity_count_report["errors"],
+             &(&1["path"] == "$.projected_resources[0].activity_count")
+           )
+
+    invalid_projected_downlink_count =
+      put_in(
+        resource_projection_report,
+        ["projected_resources", Access.at(0), "downlink_count"],
+        -1
+      )
+
+    assert {:error, projected_downlink_count_report} =
+             Schema.validate_artifact(invalid_projected_downlink_count)
+
+    assert Enum.any?(
+             projected_downlink_count_report["errors"],
+             &(&1["path"] == "$.projected_resources[0].downlink_count")
+           )
+
+    assert {:ok, %{"schema_contract" => "station_calendar_report.v1"}} =
+             Schema.validate_artifact(station_calendar_report)
+
+    invalid_station_calendar_model =
+      Map.put(station_calendar_report, "model", "stale_station_calendar_model")
+
+    assert {:error, station_calendar_model_report} =
+             Schema.validate_artifact(invalid_station_calendar_model)
+
+    assert Enum.any?(
+             station_calendar_model_report["errors"],
+             &(&1["path"] == "$.model")
+           )
+
+    invalid_station_calendar_input_count =
+      Map.put(station_calendar_report, "input_contact_count", 1.0)
+
+    assert {:error, station_calendar_input_count_report} =
+             Schema.validate_artifact(invalid_station_calendar_input_count)
+
+    assert Enum.any?(
+             station_calendar_input_count_report["errors"],
+             &(&1["path"] == "$.input_contact_count")
+           )
+
+    invalid_station_calendar_provider_count =
+      Map.put(station_calendar_report, "provider_calendar_contention_group_count", -1)
+
+    assert {:error, station_calendar_provider_count_report} =
+             Schema.validate_artifact(invalid_station_calendar_provider_count)
+
+    assert Enum.any?(
+             station_calendar_provider_count_report["errors"],
+             &(&1["path"] == "$.provider_calendar_contention_group_count")
+           )
+
+    station_calendar_provider_contention =
+      station_calendar_report
+      |> Map.put("provider_calendar_contention_group_count", 1)
+      |> Map.put("provider_calendar_contention_groups", [
+        %{
+          "id" => "station_calendar_provider_contention:equator_prime:1",
+          "provider_calendar_contention_status" => "provider_calendar_overlap",
+          "required_operator_action" => "review_station_provider_contention",
+          "approval_status" => "operator_review_required",
+          "ground_station_id" => "equator_prime",
+          "entry_count" => 1,
+          "entry_ids" => ["equator_reserved_a"],
+          "overlap_pairs" => []
+        }
+      ])
+
+    assert {:ok, %{"schema_contract" => "station_calendar_report.v1"}} =
+             Schema.validate_artifact(station_calendar_provider_contention)
+
+    invalid_provider_entry_count =
+      put_in(
+        station_calendar_provider_contention,
+        ["provider_calendar_contention_groups", Access.at(0), "entry_count"],
+        -1
+      )
+
+    assert {:error, provider_entry_count_report} =
+             Schema.validate_artifact(invalid_provider_entry_count)
+
+    assert Enum.any?(
+             provider_entry_count_report["errors"],
+             &(&1["path"] == "$.provider_calendar_contention_groups[0].entry_count")
+           )
+
+    invalid_provider_entry_count_shape =
+      put_in(
+        station_calendar_provider_contention,
+        ["provider_calendar_contention_groups", Access.at(0), "entry_count"],
+        1.0
+      )
+
+    assert {:error, provider_entry_count_shape_report} =
+             Schema.validate_artifact(invalid_provider_entry_count_shape)
+
+    assert Enum.any?(
+             provider_entry_count_shape_report["errors"],
+             &(&1["path"] == "$.provider_calendar_contention_groups[0].entry_count")
+           )
+
+    invalid_station_calendar_limits =
+      Map.put(station_calendar_report, "model_limits", ["declared_data_only"])
+
+    assert {:error, station_calendar_limits_validation_report} =
+             Schema.validate_artifact(invalid_station_calendar_limits)
+
+    assert Enum.any?(
+             station_calendar_limits_validation_report["errors"],
+             &(&1["path"] == "$.model_limits")
+           )
+
+    invalid_station_calendar_trust_count =
+      put_in(
+        station_calendar_report,
+        ["station_calendar_trust_boundary_status_counts", "declared"],
+        99
+      )
+
+    assert {:error, station_calendar_trust_validation_report} =
+             Schema.validate_artifact(invalid_station_calendar_trust_count)
+
+    assert Enum.any?(
+             station_calendar_trust_validation_report["errors"],
+             &(&1["path"] == "$.station_calendar_trust_boundary_status_counts")
+           )
+
+    invalid_station_calendar_duplicate_count =
+      Map.put(station_calendar_report, "duplicate_affected_contact_row_count", 99)
+
+    assert {:error, station_calendar_duplicate_validation_report} =
+             Schema.validate_artifact(invalid_station_calendar_duplicate_count)
+
+    assert Enum.any?(
+             station_calendar_duplicate_validation_report["errors"],
+             &(&1["path"] == "$.duplicate_affected_contact_row_count")
+           )
+
+    invalid_station_calendar_affected_fields =
+      update_in(
+        station_calendar_report,
+        ["affected_contacts", Access.at(0)],
+        fn row ->
+          Map.merge(row, %{
+            "station_calendar_directions" => ["downlink", 42],
+            "station_calendar_ambiguous_entry_count" => -1,
+            "contact_success_factor" => 1.5,
+            "source_station_calendar_entry" => %{
+              "id" => "bad id",
+              "status" => "ambiguous",
+              "station_calendar_ambiguous_entry_count" => 2,
+              "station_calendar_ambiguous_entry_ids" => ["equator_capacity"]
+            }
+          })
+        end
+      )
+
+    assert {:error, station_calendar_affected_validation_report} =
+             Schema.validate_artifact(invalid_station_calendar_affected_fields)
+
+    affected_errors = station_calendar_affected_validation_report["errors"]
+
+    assert Enum.any?(
+             affected_errors,
+             &(&1["path"] == "$.affected_contacts[0].station_calendar_directions[1]")
+           )
+
+    assert Enum.any?(
+             affected_errors,
+             &(&1["path"] == "$.affected_contacts[0].station_calendar_ambiguous_entry_count")
+           )
+
+    assert Enum.any?(
+             affected_errors,
+             &(&1["path"] == "$.affected_contacts[0].contact_success_factor")
+           )
+
+    assert Enum.any?(
+             affected_errors,
+             &(&1["path"] == "$.affected_contacts[0].source_station_calendar_entry.id")
+           )
+  end
+
+  test "exports contact intent approval schemas" do
+    assert {:ok, schema} = Schema.json_schema("contact_intent.v1")
+
+    assert get_in(schema, ["properties", "spacecraft_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    requirement_schema = get_in(schema, ["properties", "approval_requirements", "items"])
+
+    assert get_in(requirement_schema, ["properties", "schema_contract", "const"]) ==
+             "approval_requirement.v1"
+
+    assert get_in(requirement_schema, [
+             "properties",
+             "approval_rule_matches",
+             "items",
+             "properties",
+             "rule_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, [
+             "properties",
+             "approval_rule_matches",
+             "items",
+             "properties",
+             "classification",
+             "enum"
+           ]) == ["auto_approvable", "operator_review_required", "blocked_by_policy"]
+  end
+
+  test "validates realized feedback row and snapshot contracts" do
+    realized_activity = %{
+      "schema_contract" => "realized_activity.v1",
+      "id" => "dl_1",
+      "planned_activity_id" => "downlink_equator",
+      "timeline_id" =>
+        "timeline:downlink:equator_prime:window:leo_1:ground_station_access:equator_prime:1",
+      "status" => "partial",
+      "type" => "downlink",
+      "direction" => "downlink",
+      "ground_station_id" => "equator_prime",
+      "station" => %{"id" => "equator_prime"},
+      "ground_station" => %{"station_id" => "equator_prime"},
+      "target" => %{"id" => "target_a"},
+      "source_window_id" => "window:leo_1:ground_station_access:equator_prime:1",
+      "resource_id" => "payload_power_bus",
+      "resource_source_quality" => "declared",
+      "resource_trust_boundary" => "operator_supplied",
+      "resource_trust_boundary_status" => "declared",
+      "resource_provenance" => %{"source" => "cadence_execution_feedback"},
+      "resource_blocking_dimension" => "power",
+      "fuel_margin" => 0.7,
+      "power_margin" => 0.15,
+      "storage_margin" => 0.05,
+      "downlink_margin" => 0.6,
+      "battery_capacity_wh" => 1200.0,
+      "battery_energy_used_wh" => 900.0,
+      "battery_state_of_charge" => 0.15,
+      "spacecraft_available" => true,
+      "payload_available" => false,
+      "antenna_available" => false,
+      "degraded" => true,
+      "mode" => "reduced_power",
+      "incompatible_activity_types" => ["downlink"],
+      "suppressed_activity_types" => ["observe"],
+      "collection_id" => "collection_alpha",
+      "product_id" => "image_alpha_1",
+      "product_ids" => ["image_alpha_1", "image_alpha_2"],
+      "payload_id" => "payload_camera",
+      "instrument_id" => "narrow_angle_camera",
+      "data_volume_mb" => 80.0,
+      "planned_data_volume_mb" => 80.0,
+      "actual_data_volume_mb" => 60.0,
+      "estimated_data_volume_mb" => 80.0,
+      "estimated_storage_mb" => 80.0,
+      "estimated_downlink_mb" => 72.0,
+      "required_downlink_mb" => 72.0,
+      "collection_ends_at_s" => 360.0,
+      "planned_delivery_at_s" => 540.0,
+      "actual_delivery_at_s" => 570.0,
+      "max_latency_s" => 240.0,
+      "planned_latency_s" => 180.0,
+      "actual_latency_s" => 210.0,
+      "planned_estimated_throughput_mb" => 72.0,
+      "target_priority" => 4.0,
+      "contact_result" => "dropped",
+      "contact_success_factor" => 0.25,
+      "contact_success_factor_source" => "provider_contact_quality",
+      "command_success_factor" => 1.0,
+      "command_success_factor_source" => "provider_command_acceptance",
+      "observation_success" => false,
+      "observation_result" => "clouded",
+      "observation_success_factor" => 0.0,
+      "observation_success_factor_source" => "provider_observation_result",
+      "maneuver_success" => false,
+      "maneuver_result" => "underburn",
+      "maneuver_success_factor" => 0.4,
+      "maneuver_success_factor_source" => "provider_maneuver_reconstruction",
+      "feedback_weight" => 3.0,
+      "feedback_weight_source" => "provider_sample_count",
+      "delta_v_km_s" => [0.0, 0.008, 0.0],
+      "actual_delta_v_km_s" => [0.0, 0.008, 0.0],
+      "executed_delta_v_km_s" => [0.0, 0.008, 0.0],
+      "delta_v_magnitude_km_s" => 0.008,
+      "execution_uncertainty" => %{
+        "timing_3sigma_s" => 5.0,
+        "delta_v_3sigma_km_s" => [0.0, 0.001, 0.0],
+        "source" => "provider_execution_covariance"
+      },
+      "execution_uncertainty_status" => "declared",
+      "timing_3sigma_s" => 5.0,
+      "delta_v_3sigma_km_s" => [0.0, 0.001, 0.0],
+      "delta_v_3sigma_magnitude_km_s" => 0.001,
+      "execution_uncertainty_source" => "provider_execution_covariance",
+      "pointing_mode" => "target_track",
+      "pointing_target_id" => "target_a",
+      "boresight_axis" => "+Z",
+      "off_nadir_angle_deg" => 12.5,
+      "slew_angle_deg" => 4.0,
+      "slew_rate_deg_s" => 0.2,
+      "pointing_error_deg" => 0.05,
+      "pointing_status" => "verified",
+      "pointing_model" => "provider_feedback",
+      "pointing_source" => "cadence_execution_feedback",
+      "pointing_confidence" => 0.9,
+      "attitude_mode" => "target_track",
+      "attitude_target_id" => "target_a",
+      "roll_deg" => 1.5,
+      "pitch_deg" => -2.0,
+      "yaw_deg" => 0.25,
+      "attitude_error_deg" => 0.08,
+      "attitude_status" => "verified",
+      "attitude_model" => "provider_feedback",
+      "attitude_source" => "cadence_execution_feedback",
+      "attitude_confidence" => 0.92,
+      "thermal_zone_id" => "payload_deck",
+      "temperature_c" => 42.0,
+      "planned_temperature_c" => 18.0,
+      "actual_temperature_c" => 42.0,
+      "min_operating_temperature_c" => -5.0,
+      "max_operating_temperature_c" => 45.0,
+      "thermal_margin_c" => 3.0,
+      "thermal_status" => "near_limit",
+      "thermal_model" => "provider_feedback",
+      "thermal_source" => "cadence_execution_feedback",
+      "thermal_confidence" => 0.8,
+      "eclipse_overlap_fraction" => 0.35,
+      "eclipse_overlap_s" => 21.0,
+      "lighting_condition" => "penumbra",
+      "lighting_condition_detail" => "partial_eclipse",
+      "lighting_condition_model" => "provider_lighting_replay",
+      "lighting_detail_model" => "provider_lighting_replay",
+      "lighting_confidence" => 0.72,
+      "link_protocol" => "space_packet",
+      "frequency_band" => "x_band",
+      "modulation" => "qpsk",
+      "coding_scheme" => "ldpc",
+      "polarization" => "rhcp",
+      "data_rate_mbps" => 8.0,
+      "link_margin_db" => -1.5,
+      "snr_db" => 2.0,
+      "eb_no_db" => 0.5,
+      "bit_error_rate" => 0.02,
+      "packet_loss_rate" => 0.25,
+      "frame_loss_rate" => 0.1,
+      "carrier_lock" => false,
+      "symbol_lock" => false,
+      "link_quality_status" => "low_margin",
+      "actual_starts_at_s" => 100.0,
+      "actual_ends_at_s" => 145.0,
+      "actual_duration_s" => 45.0,
+      "actual_throughput_mb" => 72.0,
+      "actual_data_rate_mbps" => 12.8,
+      "actual_downlink_rate_mb_s" => 1.6,
+      "delivered_rate_mb_s" => 1.6,
+      "contact_success" => false,
+      "completed_fraction" => 0.75,
+      "reason" => "station mask",
+      "source" => %{"system" => "cadence_execution_feedback", "source_id" => "feedback-1"},
+      "metadata" => %{"operator" => "alpha"}
+    }
+
+    realized_snapshot = %{
+      "schema_contract" => "realized_state_snapshot.v1",
+      "activities" => [realized_activity],
+      "spacecraft_states" => [],
+      "metadata" => %{"snapshot_id" => "ops-1"}
+    }
+
+    assert {:ok, %{"schema_contract" => "realized_activity.v1"}} =
+             Schema.validate_artifact(realized_activity)
+
+    assert {:ok, %{"schema_contract" => "realized_state_snapshot.v1"}} =
+             Schema.validate_artifact(realized_snapshot)
+
+    invalid_snapshot = put_in(realized_snapshot, ["activities", Access.at(0), "status"], "lost")
+
+    assert {:error, report} = Schema.validate_artifact(invalid_snapshot)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.activities[0].status"))
+
+    provider_snapshot =
+      put_in(realized_snapshot, ["metadata"], %{
+        "snapshot_id" => "ops-1",
+        "provider" => "cadence",
+        "adapter" => "cadence_feedback_adapter"
+      })
+
+    assert {:error, provider_snapshot_report} = Schema.validate_artifact(provider_snapshot)
+
+    assert Enum.any?(
+             provider_snapshot_report["errors"],
+             &(&1["path"] == "$.metadata.trust_boundary" and
+                 &1["message"] =~ "metadata requires trust_boundary")
+           )
+
+    invalid_spacecraft_snapshot =
+      put_in(realized_snapshot, ["spacecraft_states"], [
+        %{
+          "spacecraft_id" => "sat 1",
+          "mode" => "safe",
+          "incompatible_activity_types" => ["downlink", 1]
+        }
+      ])
+
+    assert {:error, spacecraft_report} = Schema.validate_artifact(invalid_spacecraft_snapshot)
+
+    assert Enum.any?(
+             spacecraft_report["errors"],
+             &(&1["path"] == "$.spacecraft_states[0].scenario_id")
+           )
+
+    assert Enum.any?(
+             spacecraft_report["errors"],
+             &(&1["path"] == "$.spacecraft_states[0].spacecraft_id")
+           )
+
+    assert Enum.any?(
+             spacecraft_report["errors"],
+             &(&1["path"] == "$.spacecraft_states[0].incompatible_activity_types[1]")
+           )
+
+    invalid_limits =
+      Map.put(realized_snapshot, "model_limits", ["provider_feedback_snapshot_only"])
+
+    assert {:error, limits_report} = Schema.validate_artifact(invalid_limits)
+    assert Enum.any?(limits_report["errors"], &(&1["path"] == "$.model_limits"))
+
+    invalid_source_window =
+      put_in(realized_activity, ["source_window_id"], "window id with spaces")
+
+    assert {:error, source_window_report} = Schema.validate_artifact(invalid_source_window)
+    assert Enum.any?(source_window_report["errors"], &(&1["path"] == "$.source_window_id"))
+
+    invalid_timeline_id = put_in(realized_activity, ["timeline_id"], "timeline id with spaces")
+
+    assert {:error, timeline_id_report} = Schema.validate_artifact(invalid_timeline_id)
+    assert Enum.any?(timeline_id_report["errors"], &(&1["path"] == "$.timeline_id"))
+
+    invalid_resource_id = put_in(realized_activity, ["resource_id"], "resource id with spaces")
+
+    assert {:error, resource_id_report} = Schema.validate_artifact(invalid_resource_id)
+    assert Enum.any?(resource_id_report["errors"], &(&1["path"] == "$.resource_id"))
+
+    invalid_resource_provenance =
+      put_in(realized_activity, ["resource_provenance"], "mission_database")
+
+    assert {:error, resource_provenance_report} =
+             Schema.validate_artifact(invalid_resource_provenance)
+
+    assert Enum.any?(
+             resource_provenance_report["errors"],
+             &(&1["path"] == "$.resource_provenance")
+           )
+
+    invalid_suppressed_activity =
+      put_in(realized_activity, ["suppressed_activity_types"], ["observe", 1])
+
+    assert {:error, suppressed_activity_report} =
+             Schema.validate_artifact(invalid_suppressed_activity)
+
+    assert Enum.any?(
+             suppressed_activity_report["errors"],
+             &(&1["path"] == "$.suppressed_activity_types[1]")
+           )
+
+    invalid_collection_id =
+      put_in(realized_activity, ["collection_id"], "collection id with spaces")
+
+    assert {:error, collection_id_report} = Schema.validate_artifact(invalid_collection_id)
+    assert Enum.any?(collection_id_report["errors"], &(&1["path"] == "$.collection_id"))
+
+    invalid_product_id = put_in(realized_activity, ["product_id"], "product id with spaces")
+
+    assert {:error, product_id_report} = Schema.validate_artifact(invalid_product_id)
+    assert Enum.any?(product_id_report["errors"], &(&1["path"] == "$.product_id"))
+
+    invalid_product_ids =
+      put_in(realized_activity, ["product_ids"], ["image_alpha_1", "product id with spaces"])
+
+    assert {:error, product_ids_report} = Schema.validate_artifact(invalid_product_ids)
+    assert Enum.any?(product_ids_report["errors"], &(&1["path"] == "$.product_ids[1]"))
+
+    invalid_payload_id = put_in(realized_activity, ["payload_id"], "payload id with spaces")
+
+    assert {:error, payload_id_report} = Schema.validate_artifact(invalid_payload_id)
+    assert Enum.any?(payload_id_report["errors"], &(&1["path"] == "$.payload_id"))
+
+    invalid_instrument_id =
+      put_in(realized_activity, ["instrument_id"], "instrument id with spaces")
+
+    assert {:error, instrument_id_report} = Schema.validate_artifact(invalid_instrument_id)
+    assert Enum.any?(instrument_id_report["errors"], &(&1["path"] == "$.instrument_id"))
+
+    invalid_actual_data_volume =
+      put_in(realized_activity, ["actual_data_volume_mb"], "sixty")
+
+    assert {:error, actual_data_volume_report} =
+             Schema.validate_artifact(invalid_actual_data_volume)
+
+    assert Enum.any?(
+             actual_data_volume_report["errors"],
+             &(&1["path"] == "$.actual_data_volume_mb")
+           )
+
+    invalid_actual_latency = put_in(realized_activity, ["actual_latency_s"], "late")
+
+    assert {:error, actual_latency_report} = Schema.validate_artifact(invalid_actual_latency)
+    assert Enum.any?(actual_latency_report["errors"], &(&1["path"] == "$.actual_latency_s"))
+
+    invalid_actual_rate = put_in(realized_activity, ["actual_data_rate_mbps"], "fast")
+
+    assert {:error, actual_rate_report} = Schema.validate_artifact(invalid_actual_rate)
+    assert Enum.any?(actual_rate_report["errors"], &(&1["path"] == "$.actual_data_rate_mbps"))
+
+    invalid_actual_duration = put_in(realized_activity, ["actual_duration_s"], "long")
+
+    assert {:error, actual_duration_report} = Schema.validate_artifact(invalid_actual_duration)
+    assert Enum.any?(actual_duration_report["errors"], &(&1["path"] == "$.actual_duration_s"))
+
+    Enum.each(
+      [
+        {"contact_success_factor", 1.5},
+        {"command_success_factor", -0.1},
+        {"observation_success_factor", 1.1},
+        {"image_quality_score", 1.2},
+        {"pointing_confidence", 1.2},
+        {"attitude_confidence", -0.1},
+        {"thermal_confidence", 1.1},
+        {"battery_state_of_charge", 1.2},
+        {"eclipse_overlap_fraction", 1.2},
+        {"bit_error_rate", 1.2},
+        {"packet_loss_rate", -0.1},
+        {"frame_loss_rate", 1.1},
+        {"cloud_cover_fraction", 1.2},
+        {"blur_score", -0.2},
+        {"maneuver_success_factor", -0.1}
+      ],
+      fn {field, value} ->
+        invalid_probability_field = put_in(realized_activity, [field], value)
+
+        assert {:error, probability_field_report} =
+                 Schema.validate_artifact(invalid_probability_field)
+
+        assert Enum.any?(
+                 probability_field_report["errors"],
+                 &(&1["path"] == "$.#{field}")
+               )
+      end
+    )
+
+    invalid_observation_success =
+      put_in(realized_activity, ["observation_success"], "maybe")
+
+    assert {:error, observation_success_report} =
+             Schema.validate_artifact(invalid_observation_success)
+
+    assert Enum.any?(
+             observation_success_report["errors"],
+             &(&1["path"] == "$.observation_success")
+           )
+
+    invalid_feedback_weight = put_in(realized_activity, ["feedback_weight"], "many")
+
+    assert {:error, feedback_weight_report} = Schema.validate_artifact(invalid_feedback_weight)
+    assert Enum.any?(feedback_weight_report["errors"], &(&1["path"] == "$.feedback_weight"))
+
+    invalid_delta_v = put_in(realized_activity, ["delta_v_km_s"], [0.0, 0.008])
+
+    assert {:error, delta_v_report} = Schema.validate_artifact(invalid_delta_v)
+    assert Enum.any?(delta_v_report["errors"], &(&1["path"] == "$.delta_v_km_s"))
+
+    invalid_uncertainty =
+      put_in(realized_activity, ["execution_uncertainty"], "provider_covariance")
+
+    assert {:error, uncertainty_report} = Schema.validate_artifact(invalid_uncertainty)
+
+    assert Enum.any?(
+             uncertainty_report["errors"],
+             &(&1["path"] == "$.execution_uncertainty")
+           )
+
+    invalid_uncertainty_timing =
+      put_in(realized_activity, ["execution_uncertainty"], %{"timing_3sigma_s" => "late"})
+
+    assert {:error, uncertainty_timing_report} =
+             Schema.validate_artifact(invalid_uncertainty_timing)
+
+    assert Enum.any?(
+             uncertainty_timing_report["errors"],
+             &(&1["path"] == "$.execution_uncertainty.timing_3sigma_s")
+           )
+
+    invalid_delta_v_3sigma =
+      put_in(realized_activity, ["delta_v_3sigma_km_s"], [0.0, "uncertain", 0.0])
+
+    assert {:error, delta_v_3sigma_report} = Schema.validate_artifact(invalid_delta_v_3sigma)
+
+    assert Enum.any?(
+             delta_v_3sigma_report["errors"],
+             &(&1["path"] == "$.delta_v_3sigma_km_s")
+           )
+
+    invalid_attitude_target =
+      put_in(realized_activity, ["attitude_target_id"], "target id with spaces")
+
+    assert {:error, attitude_target_report} = Schema.validate_artifact(invalid_attitude_target)
+    assert Enum.any?(attitude_target_report["errors"], &(&1["path"] == "$.attitude_target_id"))
+
+    invalid_pointing_target =
+      put_in(realized_activity, ["pointing_target_id"], "target id with spaces")
+
+    assert {:error, pointing_target_report} = Schema.validate_artifact(invalid_pointing_target)
+    assert Enum.any?(pointing_target_report["errors"], &(&1["path"] == "$.pointing_target_id"))
+
+    invalid_off_nadir = put_in(realized_activity, ["off_nadir_angle_deg"], "nadir")
+
+    assert {:error, off_nadir_report} = Schema.validate_artifact(invalid_off_nadir)
+    assert Enum.any?(off_nadir_report["errors"], &(&1["path"] == "$.off_nadir_angle_deg"))
+
+    invalid_thermal_zone =
+      put_in(realized_activity, ["thermal_zone_id"], "payload deck")
+
+    assert {:error, thermal_zone_report} = Schema.validate_artifact(invalid_thermal_zone)
+    assert Enum.any?(thermal_zone_report["errors"], &(&1["path"] == "$.thermal_zone_id"))
+
+    invalid_temperature = put_in(realized_activity, ["actual_temperature_c"], "hot")
+
+    assert {:error, temperature_report} = Schema.validate_artifact(invalid_temperature)
+    assert Enum.any?(temperature_report["errors"], &(&1["path"] == "$.actual_temperature_c"))
+
+    invalid_eclipse_overlap =
+      put_in(realized_activity, ["eclipse_overlap_fraction"], "partial")
+
+    assert {:error, eclipse_report} = Schema.validate_artifact(invalid_eclipse_overlap)
+    assert Enum.any?(eclipse_report["errors"], &(&1["path"] == "$.eclipse_overlap_fraction"))
+
+    invalid_lighting_confidence =
+      put_in(realized_activity, ["lighting_confidence"], "sampled")
+
+    assert {:error, lighting_report} = Schema.validate_artifact(invalid_lighting_confidence)
+    assert Enum.any?(lighting_report["errors"], &(&1["path"] == "$.lighting_confidence"))
+
+    invalid_data_rate = put_in(realized_activity, ["data_rate_mbps"], "fast")
+
+    assert {:error, data_rate_report} = Schema.validate_artifact(invalid_data_rate)
+    assert Enum.any?(data_rate_report["errors"], &(&1["path"] == "$.data_rate_mbps"))
+
+    invalid_carrier_lock = put_in(realized_activity, ["carrier_lock"], "lost")
+
+    assert {:error, carrier_lock_report} = Schema.validate_artifact(invalid_carrier_lock)
+    assert Enum.any?(carrier_lock_report["errors"], &(&1["path"] == "$.carrier_lock"))
+
+    invalid_roll = put_in(realized_activity, ["roll_deg"], "nadir")
+
+    assert {:error, roll_report} = Schema.validate_artifact(invalid_roll)
+    assert Enum.any?(roll_report["errors"], &(&1["path"] == "$.roll_deg"))
+
+    invalid_station_object =
+      put_in(realized_activity, ["station", "id"], "station id with spaces")
+
+    assert {:error, station_object_report} = Schema.validate_artifact(invalid_station_object)
+    assert Enum.any?(station_object_report["errors"], &(&1["path"] == "$.station.id"))
+
+    invalid_target_object = put_in(realized_activity, ["target"], "target_a")
+
+    assert {:error, target_object_report} = Schema.validate_artifact(invalid_target_object)
+    assert Enum.any?(target_object_report["errors"], &(&1["path"] == "$.target"))
+
+    provider_missing_external_id =
+      realized_activity
+      |> Map.put("provider", "cadence")
+      |> Map.put("trust_boundary", "operator_supplied")
+
+    assert {:error, provider_missing_external_id_report} =
+             Schema.validate_artifact(provider_missing_external_id)
+
+    assert Enum.any?(
+             provider_missing_external_id_report["errors"],
+             &(&1["path"] == "$.external_id" and
+                 &1["message"] =~ "required for provider realized feedback")
+           )
+
+    provider_missing_trust_boundary =
+      realized_activity
+      |> Map.put("provider", "cadence")
+      |> Map.put("external_id", "cadence_feedback_1")
+
+    assert {:error, provider_missing_trust_boundary_report} =
+             Schema.validate_artifact(provider_missing_trust_boundary)
+
+    assert Enum.any?(
+             provider_missing_trust_boundary_report["errors"],
+             &(&1["path"] == "$.trust_boundary" and
+                 &1["message"] =~ "provider realized feedback requires trust_boundary")
+           )
+
+    provider_with_provenance_trust =
+      provider_missing_trust_boundary
+      |> Map.put("provenance", %{"trust_boundary" => "operator_supplied"})
+
+    assert {:ok, %{"schema_contract" => "realized_activity.v1"}} =
+             Schema.validate_artifact(provider_with_provenance_trust)
+  end
+
+  test "validates checked-in realized feedback examples" do
+    realized_activity = read_json!("study_results/realized_activity_v1.json")
+    realized_snapshot = read_json!("study_results/realized_state_snapshot_v1.json")
+
+    assert {:ok, %{"schema_contract" => "realized_activity.v1"}} =
+             Schema.validate_artifact(realized_activity)
+
+    alias_realized_activity =
+      realized_activity
+      |> Map.delete("type")
+      |> Map.put("activity_type", "downlink")
+
+    assert {:ok, %{"schema_contract" => "realized_activity.v1"}} =
+             Schema.validate_artifact(alias_realized_activity)
+
+    invalid_alias_realized_activity =
+      Map.put(alias_realized_activity, "activity_type", 42)
+
+    assert {:error, alias_report} = Schema.validate_artifact(invalid_alias_realized_activity)
+    assert Enum.any?(alias_report["errors"], &(&1["path"] == "$.activity_type"))
+
+    assert %{
+             "id" => "downlink_equator",
+             "status" => "partial",
+             "direction" => "downlink",
+             "ground_station_id" => "equator_prime",
+             "source_window_id" => "window:leo_1:ground_station_access:equator_prime:1",
+             "resource_id" => "payload_power_bus",
+             "resource_source_quality" => "declared",
+             "resource_trust_boundary" => "operator_supplied",
+             "resource_trust_boundary_status" => "declared",
+             "resource_provenance" => %{"source" => "cadence_execution_feedback"},
+             "resource_blocking_dimension" => "power",
+             "fuel_margin" => 0.7,
+             "power_margin" => 0.15,
+             "storage_margin" => 0.05,
+             "downlink_margin" => 0.6,
+             "battery_capacity_wh" => 1200.0,
+             "battery_energy_used_wh" => 900.0,
+             "battery_state_of_charge" => 0.15,
+             "spacecraft_available" => true,
+             "payload_available" => false,
+             "antenna_available" => false,
+             "degraded" => true,
+             "mode" => "reduced_power",
+             "incompatible_activity_types" => ["downlink"],
+             "suppressed_activity_types" => ["observe"],
+             "collection_id" => "collection_alpha",
+             "product_id" => "image_alpha_1",
+             "product_ids" => ["image_alpha_1", "image_alpha_2"],
+             "payload_id" => "payload_camera",
+             "instrument_id" => "narrow_angle_camera",
+             "data_volume_mb" => 80.0,
+             "planned_data_volume_mb" => 80.0,
+             "actual_data_volume_mb" => 60.0,
+             "estimated_data_volume_mb" => 80.0,
+             "estimated_storage_mb" => 80.0,
+             "estimated_downlink_mb" => 72.0,
+             "required_downlink_mb" => 72.0,
+             "collection_ends_at_s" => 360.0,
+             "planned_delivery_at_s" => 540.0,
+             "actual_delivery_at_s" => 570.0,
+             "max_latency_s" => 240.0,
+             "planned_latency_s" => 180.0,
+             "actual_latency_s" => 210.0,
+             "planned_estimated_throughput_mb" => 72.0,
+             "target_priority" => 4.0,
+             "contact_result" => "dropped",
+             "contact_success_factor" => 0.25,
+             "contact_success_factor_source" => "provider_contact_quality",
+             "command_success_factor" => 1.0,
+             "command_success_factor_source" => "provider_command_acceptance",
+             "observation_success" => false,
+             "observation_result" => "clouded",
+             "observation_success_factor" => observation_success_factor,
+             "observation_success_factor_source" => "provider_observation_result",
+             "maneuver_success" => false,
+             "maneuver_result" => "underburn",
+             "maneuver_success_factor" => 0.4,
+             "maneuver_success_factor_source" => "provider_maneuver_reconstruction",
+             "feedback_weight" => 3.0,
+             "feedback_weight_source" => "provider_sample_count",
+             "delta_v_km_s" => realized_delta_v_km_s,
+             "actual_delta_v_km_s" => actual_delta_v_km_s,
+             "executed_delta_v_km_s" => executed_delta_v_km_s,
+             "delta_v_magnitude_km_s" => 0.008,
+             "execution_uncertainty" => execution_uncertainty,
+             "execution_uncertainty_status" => "declared",
+             "timing_3sigma_s" => 5.0,
+             "delta_v_3sigma_km_s" => delta_v_3sigma_km_s,
+             "delta_v_3sigma_magnitude_km_s" => 0.001,
+             "execution_uncertainty_source" => "provider_execution_covariance",
+             "pointing_mode" => "earth_track",
+             "pointing_target_id" => "equator_prime",
+             "boresight_axis" => "+Z",
+             "off_nadir_angle_deg" => 4.5,
+             "slew_angle_deg" => 1.0,
+             "slew_rate_deg_s" => 0.1,
+             "pointing_error_deg" => 0.04,
+             "pointing_status" => "verified",
+             "pointing_model" => "provider_feedback",
+             "pointing_source" => "cadence_execution_feedback",
+             "pointing_confidence" => 0.9,
+             "attitude_mode" => "earth_track",
+             "attitude_target_id" => "equator_prime",
+             "roll_deg" => 0.25,
+             "pitch_deg" => -0.1,
+             "yaw_deg" => 0.5,
+             "attitude_error_deg" => 0.08,
+             "attitude_status" => "verified",
+             "attitude_model" => "provider_feedback",
+             "attitude_source" => "cadence_execution_feedback",
+             "attitude_confidence" => 0.92,
+             "thermal_zone_id" => "payload_deck",
+             "temperature_c" => 42.0,
+             "planned_temperature_c" => 18.0,
+             "actual_temperature_c" => 42.0,
+             "min_operating_temperature_c" => -5.0,
+             "max_operating_temperature_c" => 45.0,
+             "thermal_margin_c" => 3.0,
+             "thermal_status" => "near_limit",
+             "thermal_model" => "provider_feedback",
+             "thermal_source" => "cadence_execution_feedback",
+             "thermal_confidence" => 0.8,
+             "eclipse_overlap_fraction" => 0.35,
+             "eclipse_overlap_s" => 21.0,
+             "lighting_condition" => "penumbra",
+             "lighting_condition_detail" => "partial_eclipse",
+             "lighting_condition_model" => "provider_lighting_replay",
+             "lighting_detail_model" => "provider_lighting_replay",
+             "lighting_confidence" => 0.72,
+             "link_protocol" => "space_packet",
+             "frequency_band" => "x_band",
+             "modulation" => "qpsk",
+             "coding_scheme" => "ldpc",
+             "polarization" => "rhcp",
+             "data_rate_mbps" => 8.0,
+             "link_margin_db" => -1.5,
+             "snr_db" => 2.0,
+             "eb_no_db" => 0.5,
+             "bit_error_rate" => 0.02,
+             "packet_loss_rate" => 0.25,
+             "frame_loss_rate" => 0.1,
+             "carrier_lock" => false,
+             "symbol_lock" => false,
+             "link_quality_status" => "low_margin",
+             "actual_throughput_mb" => 72.0,
+             "contact_success" => false
+           } = realized_activity
+
+    assert observation_success_factor == 0.0
+    assert realized_delta_v_km_s == [0.0, 0.008, 0.0]
+    assert actual_delta_v_km_s == [0.0, 0.008, 0.0]
+    assert executed_delta_v_km_s == [0.0, 0.008, 0.0]
+
+    assert execution_uncertainty == %{
+             "timing_3sigma_s" => 5.0,
+             "delta_v_3sigma_km_s" => [0.0, 0.001, 0.0],
+             "source" => "provider_execution_covariance"
+           }
+
+    assert delta_v_3sigma_km_s == [0.0, 0.001, 0.0]
+
+    invalid_completed_fraction = Map.put(realized_activity, "completed_fraction", 1.2)
+
+    assert {:error, completed_fraction_report} =
+             Schema.validate_artifact(invalid_completed_fraction)
+
+    assert Enum.any?(
+             completed_fraction_report["errors"],
+             &(&1["path"] == "$.completed_fraction")
+           )
+
+    invalid_ingested_at = Map.put(realized_activity, "ingested_at", 123)
+
+    assert {:error, ingested_at_report} = Schema.validate_artifact(invalid_ingested_at)
+    assert Enum.any?(ingested_at_report["errors"], &(&1["path"] == "$.ingested_at"))
+
+    assert {:ok, %{"schema_contract" => "realized_state_snapshot.v1"}} =
+             Schema.validate_artifact(realized_snapshot)
+
+    assert %{
+             "activities" => [
+               %{"id" => "cmd_repoint", "status" => "completed"},
+               %{"id" => "downlink_equator", "status" => "partial"}
+             ],
+             "spacecraft_states" => [%{"scenario_id" => "leo_1"}],
+             "metadata" => %{"feedback_boundary" => "artifact_only_no_schedule_mutation"}
+           } = realized_snapshot
+  end
+
+  test "validates checked-in operator review package example" do
+    package = read_json!("study_results/operator_review_package_v1.json")
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+
+    assert %{
+             "source_artifact_type" => "timeline_feedback_report.v1",
+             "review_count" => 8,
+             "approval_requirement_count" => 1,
+             "contention_review_count" => 0,
+             "policy_escalation_count" => 1,
+             "contact_suppression_count" => 1,
+             "resource_projection_review_count" => 1,
+             "resource_suppression_count" => 1,
+             "command_window_count" => 0,
+             "station_calendar_review_count" => 0,
+             "link_capacity_review_count" => 1,
+             "timeline_diff_count" => 1,
+             "maneuver_review_count" => 0,
+             "realized_feedback_count" => 1,
+             "rows" => [
+               %{"review_type" => "approval_requirement"},
+               %{
+                 "review_type" => "policy_escalation",
+                 "required_authority" => "contact_schedule_authority"
+               },
+               %{
+                 "review_type" => "realized_feedback",
+                 "activity_id" => "downlink_equator",
+                 "throughput_delta_mb" => -48.0
+               },
+               %{
+                 "review_type" => "resource_suppression",
+                 "activity_id" => "leo_1_observe_target_a_1",
+                 "source_resource_suppression" => %{
+                   "suppressed_reason" => "payload_unavailable"
+                 }
+               },
+               %{
+                 "review_type" => "resource_projection_review",
+                 "spacecraft_id" => "leo_1",
+                 "projected_storage_margin" => 0.75,
+                 "source_resource_projection" => %{"spacecraft_id" => "leo_1"}
+               },
+               %{
+                 "review_type" => "contact_suppression",
+                 "activity_id" => "leo_1_downlink_equator_prime_1",
+                 "source_contact_suppression" => %{
+                   "suppressed_reason" => "ground_station_unavailable"
+                 }
+               },
+               %{
+                 "review_type" => "link_capacity_review",
+                 "ground_station_id" => "equator_prime",
+                 "source_link_capacity" => %{"ground_station_id" => "equator_prime"}
+               },
+               %{
+                 "review_type" => "timeline_diff_review",
+                 "timeline_id" => "timeline:downlink_equator",
+                 "changed_fields" => ["starts_at_s", "ends_at_s", "approval_status"],
+                 "source_timeline_diff" => %{
+                   "requires_operator_review" => true
+                 }
+               }
+             ]
+           } = package
+
+    assert package["rows"]
+           |> Enum.find(&(&1["review_type"] == "link_capacity_review"))
+           |> Map.fetch!("selected_estimated_throughput_mb") == 0.0
+
+    link_capacity_review_index =
+      Enum.find_index(package["rows"], &(&1["review_type"] == "link_capacity_review"))
+
+    invalid_link_capacity_review_capacity_range =
+      package
+      |> put_in(["rows", Access.at(link_capacity_review_index), "capacity_fraction_min"], -0.1)
+      |> put_in(["rows", Access.at(link_capacity_review_index), "capacity_fraction_max"], 1.2)
+
+    assert {:error, link_capacity_review_capacity_range_report} =
+             Schema.validate_artifact(invalid_link_capacity_review_capacity_range)
+
+    assert Enum.any?(
+             link_capacity_review_capacity_range_report["errors"],
+             &(&1["path"] == "$.rows[#{link_capacity_review_index}].capacity_fraction_min")
+           )
+
+    assert Enum.any?(
+             link_capacity_review_capacity_range_report["errors"],
+             &(&1["path"] == "$.rows[#{link_capacity_review_index}].capacity_fraction_max")
+           )
+
+    invalid_dependency_id =
+      put_in(
+        package,
+        ["rows", Access.at(2), "dependency_activity_ids"],
+        ["dependency with spaces"]
+      )
+
+    assert {:error, dependency_id_report} = Schema.validate_artifact(invalid_dependency_id)
+
+    assert Enum.any?(
+             dependency_id_report["errors"],
+             &(&1["path"] == "$.rows[2].dependency_activity_ids[0]")
+           )
+
+    invalid_timeline_link =
+      put_in(package, ["rows", Access.at(0), "timeline_link"], %{
+        "source_timeline_id" => "timeline with spaces"
+      })
+
+    assert {:error, timeline_link_report} = Schema.validate_artifact(invalid_timeline_link)
+
+    assert Enum.any?(
+             timeline_link_report["errors"],
+             &(&1["path"] == "$.rows[0].timeline_link.source_timeline_id")
+           )
+
+    invalid_source_timeline_id =
+      put_in(package, ["rows", Access.at(0), "source_timeline_id"], "timeline with spaces")
+
+    assert {:error, source_timeline_id_report} =
+             Schema.validate_artifact(invalid_source_timeline_id)
+
+    assert Enum.any?(
+             source_timeline_id_report["errors"],
+             &(&1["path"] == "$.rows[0].source_timeline_id")
+           )
+
+    invalid_timeline_protection =
+      put_in(package, ["rows", Access.at(0), "source_timeline_protection"], %{
+        "changed_executed_count" => -1
+      })
+
+    assert {:error, timeline_protection_report} =
+             Schema.validate_artifact(invalid_timeline_protection)
+
+    assert Enum.any?(
+             timeline_protection_report["errors"],
+             &(&1["path"] == "$.rows[0].source_timeline_protection.changed_executed_count")
+           )
+
+    invalid_source_window =
+      package
+      |> put_in(["rows", Access.at(2), "source_window_id"], "window_1")
+      |> put_in(["rows", Access.at(2), "source_window"], %{"id" => "window with spaces"})
+
+    assert {:error, source_window_report} = Schema.validate_artifact(invalid_source_window)
+
+    assert Enum.any?(
+             source_window_report["errors"],
+             &(&1["path"] == "$.rows[2].source_window.id")
+           )
+
+    invalid_source_window_lineage =
+      package
+      |> put_in(["rows", Access.at(2), "source_window_id"], "window_1")
+      |> put_in(["rows", Access.at(2), "source_window_lineage"], %{
+        "candidate_activity_id" => "activity with spaces",
+        "source_window_id" => "window_1",
+        "source_window_type" => "downlink",
+        "scenario_id" => "leo_1"
+      })
+
+    assert {:error, source_window_lineage_report} =
+             Schema.validate_artifact(invalid_source_window_lineage)
+
+    assert Enum.any?(
+             source_window_lineage_report["errors"],
+             &(&1["path"] == "$.rows[2].source_window_lineage.candidate_activity_id")
+           )
+
+    invalid_battery_handoff =
+      package
+      |> put_in(["rows", Access.at(4), "total_battery_energy_consumed_wh"], "twenty")
+      |> put_in(["rows", Access.at(4), "source_resource_projection"], %{
+        "spacecraft_id" => "leo_1",
+        "total_battery_energy_generated_wh" => "five"
+      })
+
+    assert {:error, battery_handoff_report} =
+             Schema.validate_artifact(invalid_battery_handoff)
+
+    assert Enum.any?(
+             battery_handoff_report["errors"],
+             &(&1["path"] == "$.rows[4].total_battery_energy_consumed_wh")
+           )
+
+    assert Enum.any?(
+             battery_handoff_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[4].source_resource_projection.total_battery_energy_generated_wh")
+           )
+
+    invalid_source_delta =
+      put_in(package, ["rows", Access.at(0), "source_delta"], %{
+        "activity_id" => "activity with spaces",
+        "activity_type" => "downlink",
+        "status" => "changed",
+        "repair_action" => "moved"
+      })
+
+    assert {:error, source_delta_report} = Schema.validate_artifact(invalid_source_delta)
+
+    assert Enum.any?(
+             source_delta_report["errors"],
+             &(&1["path"] == "$.rows[0].source_delta.activity_id")
+           )
+
+    invalid_source_requirement =
+      put_in(package, ["rows", Access.at(0), "source_requirement", "activity_id"], "bad id")
+
+    assert {:error, source_requirement_report} =
+             Schema.validate_artifact(invalid_source_requirement)
+
+    assert Enum.any?(
+             source_requirement_report["errors"],
+             &(&1["path"] == "$.rows[0].source_requirement.activity_id")
+           )
+
+    invalid_source_policy_decision =
+      put_in(
+        package,
+        ["rows", Access.at(1), "source_policy_decision", "classification"],
+        "maybe"
+      )
+
+    assert {:error, source_policy_decision_report} =
+             Schema.validate_artifact(invalid_source_policy_decision)
+
+    assert Enum.any?(
+             source_policy_decision_report["errors"],
+             &(&1["path"] == "$.rows[1].source_policy_decision.classification")
+           )
+
+    invalid_source_policy_escalation =
+      put_in(
+        package,
+        ["rows", Access.at(1), "source_policy_escalation", "rule_id"],
+        "rule with spaces"
+      )
+
+    assert {:error, source_policy_escalation_report} =
+             Schema.validate_artifact(invalid_source_policy_escalation)
+
+    assert Enum.any?(
+             source_policy_escalation_report["errors"],
+             &(&1["path"] == "$.rows[1].source_policy_escalation.rule_id")
+           )
+
+    invalid_source_resource_suppression =
+      put_in(
+        package,
+        ["rows", Access.at(3), "source_resource_suppression", "id"],
+        "resource suppression with spaces"
+      )
+
+    assert {:error, source_resource_suppression_report} =
+             Schema.validate_artifact(invalid_source_resource_suppression)
+
+    assert Enum.any?(
+             source_resource_suppression_report["errors"],
+             &(&1["path"] == "$.rows[3].source_resource_suppression.id")
+           )
+
+    invalid_source_contact_suppression =
+      put_in(
+        package,
+        ["rows", Access.at(5), "source_contact_suppression", "source_window_id"],
+        "window with spaces"
+      )
+
+    assert {:error, source_contact_suppression_report} =
+             Schema.validate_artifact(invalid_source_contact_suppression)
+
+    assert Enum.any?(
+             source_contact_suppression_report["errors"],
+             &(&1["path"] == "$.rows[5].source_contact_suppression.source_window_id")
+           )
+
+    invalid_source_resource_projection =
+      put_in(
+        package,
+        ["rows", Access.at(4), "source_resource_projection", "spacecraft_id"],
+        "spacecraft with spaces"
+      )
+
+    assert {:error, source_resource_projection_report} =
+             Schema.validate_artifact(invalid_source_resource_projection)
+
+    assert Enum.any?(
+             source_resource_projection_report["errors"],
+             &(&1["path"] == "$.rows[4].source_resource_projection.spacecraft_id")
+           )
+
+    invalid_source_link_capacity =
+      put_in(
+        package,
+        ["rows", Access.at(6), "source_link_capacity", "ground_station_id"],
+        "station with spaces"
+      )
+
+    assert {:error, source_link_capacity_report} =
+             Schema.validate_artifact(invalid_source_link_capacity)
+
+    assert Enum.any?(
+             source_link_capacity_report["errors"],
+             &(&1["path"] == "$.rows[6].source_link_capacity.ground_station_id")
+           )
+
+    invalid_source_timeline_diff =
+      put_in(
+        package,
+        ["rows", Access.at(7), "source_timeline_diff", "timeline_id"],
+        "timeline with spaces"
+      )
+
+    assert {:error, source_timeline_diff_report} =
+             Schema.validate_artifact(invalid_source_timeline_diff)
+
+    assert Enum.any?(
+             source_timeline_diff_report["errors"],
+             &(&1["path"] == "$.rows[7].source_timeline_diff.timeline_id")
+           )
+
+    command_window_row =
+      read_json!("study_results/command_window_report_v1.json")
+      |> Map.fetch!("rows")
+      |> List.first()
+
+    package_with_command_window_source =
+      put_in(package, ["rows", Access.at(0), "source_command_window"], command_window_row)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package_with_command_window_source)
+
+    invalid_source_command_window =
+      put_in(
+        package_with_command_window_source,
+        ["rows", Access.at(0), "source_command_window", "ground_station_id"],
+        "station with spaces"
+      )
+
+    assert {:error, source_command_window_report} =
+             Schema.validate_artifact(invalid_source_command_window)
+
+    assert Enum.any?(
+             source_command_window_report["errors"],
+             &(&1["path"] == "$.rows[0].source_command_window.ground_station_id")
+           )
+
+    maneuver_review_row =
+      read_json!("study_results/maneuver_review_report_v1.json")
+      |> Map.fetch!("rows")
+      |> List.first()
+
+    package_with_maneuver_review_source =
+      put_in(package, ["rows", Access.at(0), "source_maneuver_review"], maneuver_review_row)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package_with_maneuver_review_source)
+
+    invalid_source_maneuver_review =
+      put_in(
+        package_with_maneuver_review_source,
+        ["rows", Access.at(0), "source_maneuver_review", "maneuver_id"],
+        "maneuver with spaces"
+      )
+
+    assert {:error, source_maneuver_review_report} =
+             Schema.validate_artifact(invalid_source_maneuver_review)
+
+    assert Enum.any?(
+             source_maneuver_review_report["errors"],
+             &(&1["path"] == "$.rows[0].source_maneuver_review.maneuver_id")
+           )
+
+    ranking_comparison_row =
+      read_json!("study_results/ranking_comparison_report_v1.json")
+      |> Map.fetch!("rows")
+      |> List.first()
+
+    package_with_ranking_comparison_source =
+      put_in(
+        package,
+        ["rows", Access.at(0), "source_ranking_comparison"],
+        ranking_comparison_row
+      )
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package_with_ranking_comparison_source)
+
+    invalid_source_ranking_comparison =
+      put_in(
+        package_with_ranking_comparison_source,
+        ["rows", Access.at(0), "source_ranking_comparison", "scenario_id"],
+        "scenario with spaces"
+      )
+
+    assert {:error, source_ranking_comparison_report} =
+             Schema.validate_artifact(invalid_source_ranking_comparison)
+
+    assert Enum.any?(
+             source_ranking_comparison_report["errors"],
+             &(&1["path"] == "$.rows[0].source_ranking_comparison.scenario_id")
+           )
+
+    contention_group =
+      read_json!("study_results/contact_contention_report_v1.json")
+      |> Map.fetch!("conflict_groups")
+      |> List.first()
+
+    package_with_contention_group_source =
+      put_in(package, ["rows", Access.at(0), "source_contention_group"], contention_group)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package_with_contention_group_source)
+
+    invalid_source_contention_group =
+      put_in(
+        package_with_contention_group_source,
+        ["rows", Access.at(0), "source_contention_group", "ground_station_id"],
+        "station with spaces"
+      )
+
+    assert {:error, source_contention_group_report} =
+             Schema.validate_artifact(invalid_source_contention_group)
+
+    assert Enum.any?(
+             source_contention_group_report["errors"],
+             &(&1["path"] == "$.rows[0].source_contention_group.ground_station_id")
+           )
+
+    station_calendar_contact =
+      read_json!("study_results/station_calendar_report_v1.json")
+      |> Map.fetch!("affected_contacts")
+      |> List.first()
+
+    package_with_station_calendar_source =
+      put_in(
+        package,
+        ["rows", Access.at(0), "source_station_calendar_review"],
+        station_calendar_contact
+      )
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package_with_station_calendar_source)
+
+    invalid_source_station_calendar_review =
+      put_in(
+        package_with_station_calendar_source,
+        ["rows", Access.at(0), "source_station_calendar_review", "ground_station_id"],
+        "station with spaces"
+      )
+
+    assert {:error, source_station_calendar_review_report} =
+             Schema.validate_artifact(invalid_source_station_calendar_review)
+
+    assert Enum.any?(
+             source_station_calendar_review_report["errors"],
+             &(&1["path"] == "$.rows[0].source_station_calendar_review.ground_station_id")
+           )
+
+    invalid_required_scalar_count = Map.put(package, "review_count", 8.0)
+
+    assert {:error, required_scalar_count_report} =
+             Schema.validate_artifact(invalid_required_scalar_count)
+
+    assert Enum.any?(
+             required_scalar_count_report["errors"],
+             &(&1["path"] == "$.review_count")
+           )
+
+    invalid_optional_scalar_count = Map.put(package, "command_window_count", 1.0)
+
+    assert {:error, optional_scalar_count_report} =
+             Schema.validate_artifact(invalid_optional_scalar_count)
+
+    assert Enum.any?(
+             optional_scalar_count_report["errors"],
+             &(&1["path"] == "$.command_window_count")
+           )
+
+    invalid_negative_scalar_count = Map.put(package, "link_capacity_review_count", -1)
+
+    assert {:error, negative_scalar_count_report} =
+             Schema.validate_artifact(invalid_negative_scalar_count)
+
+    assert Enum.any?(
+             negative_scalar_count_report["errors"],
+             &(&1["path"] == "$.link_capacity_review_count")
+           )
+
+    invalid_row_contact_count =
+      put_in(package, ["rows", Access.at(6), "contact_count"], 1.0)
+
+    assert {:error, row_contact_count_report} =
+             Schema.validate_artifact(invalid_row_contact_count)
+
+    assert Enum.any?(
+             row_contact_count_report["errors"],
+             &(&1["path"] == "$.rows[6].contact_count")
+           )
+
+    invalid_row_observation_count =
+      put_in(package, ["rows", Access.at(4), "observation_count"], -1)
+
+    assert {:error, row_observation_count_report} =
+             Schema.validate_artifact(invalid_row_observation_count)
+
+    assert Enum.any?(
+             row_observation_count_report["errors"],
+             &(&1["path"] == "$.rows[4].observation_count")
+           )
+
+    invalid_row_overlap_count =
+      package
+      |> put_in(["rows", Access.at(0), "max_concurrent_contacts"], 1.0)
+      |> put_in(["rows", Access.at(0), "overlap_contact_pair_count"], -1)
+
+    assert {:error, row_overlap_count_report} =
+             Schema.validate_artifact(invalid_row_overlap_count)
+
+    assert Enum.any?(
+             row_overlap_count_report["errors"],
+             &(&1["path"] == "$.rows[0].max_concurrent_contacts")
+           )
+
+    assert Enum.any?(
+             row_overlap_count_report["errors"],
+             &(&1["path"] == "$.rows[0].overlap_contact_pair_count")
+           )
+
+    invalid_row_activity_count =
+      put_in(package, ["rows", Access.at(4), "effective_activity_count"], 1.0)
+
+    assert {:error, row_activity_count_report} =
+             Schema.validate_artifact(invalid_row_activity_count)
+
+    assert Enum.any?(
+             row_activity_count_report["errors"],
+             &(&1["path"] == "$.rows[4].effective_activity_count")
+           )
+
+    invalid_row_resource_flow_count =
+      put_in(package, ["rows", Access.at(4), "resource_flow_count"], -1)
+
+    assert {:error, row_resource_flow_count_report} =
+             Schema.validate_artifact(invalid_row_resource_flow_count)
+
+    assert Enum.any?(
+             row_resource_flow_count_report["errors"],
+             &(&1["path"] == "$.rows[4].resource_flow_count")
+           )
+
+    invalid_source_feedback =
+      put_in(
+        package,
+        ["rows", Access.at(2), "source_feedback", "activity_id"],
+        "activity with spaces"
+      )
+
+    assert {:error, source_feedback_report} = Schema.validate_artifact(invalid_source_feedback)
+
+    assert Enum.any?(
+             source_feedback_report["errors"],
+             &(&1["path"] == "$.rows[2].source_feedback.activity_id")
+           )
+
+    invalid_source_feedback_factor =
+      put_in(package, ["rows", Access.at(2), "source_feedback", "contact_success_factor"], 1.5)
+
+    assert {:error, source_feedback_factor_report} =
+             Schema.validate_artifact(invalid_source_feedback_factor)
+
+    assert Enum.any?(
+             source_feedback_factor_report["errors"],
+             &(&1["path"] == "$.rows[2].source_feedback.contact_success_factor")
+           )
+
+    invalid_source_feedback_quality =
+      put_in(package, ["rows", Access.at(2), "source_feedback", "blur_score"], 1.5)
+
+    assert {:error, source_feedback_quality_report} =
+             Schema.validate_artifact(invalid_source_feedback_quality)
+
+    assert Enum.any?(
+             source_feedback_quality_report["errors"],
+             &(&1["path"] == "$.rows[2].source_feedback.blur_score")
+           )
+
+    invalid_row_quality_fraction =
+      put_in(package, ["rows", Access.at(2), "realized_cloud_cover_fraction"], 1.2)
+
+    assert {:error, row_quality_fraction_report} =
+             Schema.validate_artifact(invalid_row_quality_fraction)
+
+    assert Enum.any?(
+             row_quality_fraction_report["errors"],
+             &(&1["path"] == "$.rows[2].realized_cloud_cover_fraction")
+           )
+
+    invalid_row_image_quality_score =
+      package
+      |> put_in(["rows", Access.at(2), "image_quality_score"], 1.2)
+      |> put_in(["rows", Access.at(2), "planned_image_quality_score"], -0.1)
+
+    assert {:error, row_image_quality_score_report} =
+             Schema.validate_artifact(invalid_row_image_quality_score)
+
+    assert Enum.any?(
+             row_image_quality_score_report["errors"],
+             &(&1["path"] == "$.rows[2].image_quality_score")
+           )
+
+    assert Enum.any?(
+             row_image_quality_score_report["errors"],
+             &(&1["path"] == "$.rows[2].planned_image_quality_score")
+           )
+
+    invalid_row_observation_quality_handoff =
+      package
+      |> put_in(["rows", Access.at(2), "cloud_cover_fraction_delta"], "more")
+      |> put_in(["rows", Access.at(2), "blur_score_delta"], "blurrier")
+      |> put_in(["rows", Access.at(2), "planned_image_quality_status"], 42)
+      |> put_in(["rows", Access.at(2), "image_quality_source"], 42)
+
+    assert {:error, row_observation_quality_handoff_report} =
+             Schema.validate_artifact(invalid_row_observation_quality_handoff)
+
+    assert Enum.any?(
+             row_observation_quality_handoff_report["errors"],
+             &(&1["path"] == "$.rows[2].cloud_cover_fraction_delta")
+           )
+
+    assert Enum.any?(
+             row_observation_quality_handoff_report["errors"],
+             &(&1["path"] == "$.rows[2].blur_score_delta")
+           )
+
+    assert Enum.any?(
+             row_observation_quality_handoff_report["errors"],
+             &(&1["path"] == "$.rows[2].planned_image_quality_status")
+           )
+
+    assert Enum.any?(
+             row_observation_quality_handoff_report["errors"],
+             &(&1["path"] == "$.rows[2].image_quality_source")
+           )
+
+    invalid_row_feedback_maneuver_handoff =
+      package
+      |> put_in(["rows", Access.at(2), "feedback_weight"], -0.1)
+      |> put_in(["rows", Access.at(2), "feedback_weight_source"], 42)
+      |> put_in(["rows", Access.at(2), "maneuver_success"], "yes")
+      |> put_in(["rows", Access.at(2), "maneuver_result"], 42)
+      |> put_in(["rows", Access.at(2), "maneuver_success_factor"], 1.2)
+      |> put_in(["rows", Access.at(2), "maneuver_success_factor_source"], 42)
+
+    assert {:error, row_feedback_maneuver_handoff_report} =
+             Schema.validate_artifact(invalid_row_feedback_maneuver_handoff)
+
+    for field <- [
+          "feedback_weight",
+          "feedback_weight_source",
+          "maneuver_success",
+          "maneuver_result",
+          "maneuver_success_factor",
+          "maneuver_success_factor_source"
+        ] do
+      assert Enum.any?(
+               row_feedback_maneuver_handoff_report["errors"],
+               &(&1["path"] == "$.rows[2].#{field}")
+             )
+    end
+
+    invalid_row_completion_fraction =
+      package
+      |> put_in(["rows", Access.at(2), "completed_fraction"], 1.2)
+      |> put_in(["rows", Access.at(2), "throughput_completion_fraction"], -0.1)
+
+    assert {:error, row_completion_fraction_report} =
+             Schema.validate_artifact(invalid_row_completion_fraction)
+
+    assert Enum.any?(
+             row_completion_fraction_report["errors"],
+             &(&1["path"] == "$.rows[2].completed_fraction")
+           )
+
+    assert Enum.any?(
+             row_completion_fraction_report["errors"],
+             &(&1["path"] == "$.rows[2].throughput_completion_fraction")
+           )
+
+    invalid_row_eclipse_overlap_fraction =
+      package
+      |> put_in(["rows", Access.at(2), "eclipse_overlap_fraction"], 1.2)
+      |> put_in(["rows", Access.at(2), "planned_eclipse_overlap_fraction"], -0.1)
+
+    assert {:error, row_eclipse_overlap_fraction_report} =
+             Schema.validate_artifact(invalid_row_eclipse_overlap_fraction)
+
+    assert Enum.any?(
+             row_eclipse_overlap_fraction_report["errors"],
+             &(&1["path"] == "$.rows[2].eclipse_overlap_fraction")
+           )
+
+    assert Enum.any?(
+             row_eclipse_overlap_fraction_report["errors"],
+             &(&1["path"] == "$.rows[2].planned_eclipse_overlap_fraction")
+           )
+
+    invalid_row_eclipse_lighting_handoff =
+      package
+      |> put_in(["rows", Access.at(2), "eclipse_overlap_s"], "long")
+      |> put_in(["rows", Access.at(2), "planned_lighting_condition"], 42)
+      |> put_in(["rows", Access.at(2), "lighting_confidence"], "high")
+
+    assert {:error, row_eclipse_lighting_handoff_report} =
+             Schema.validate_artifact(invalid_row_eclipse_lighting_handoff)
+
+    assert Enum.any?(
+             row_eclipse_lighting_handoff_report["errors"],
+             &(&1["path"] == "$.rows[2].eclipse_overlap_s")
+           )
+
+    assert Enum.any?(
+             row_eclipse_lighting_handoff_report["errors"],
+             &(&1["path"] == "$.rows[2].planned_lighting_condition")
+           )
+
+    assert Enum.any?(
+             row_eclipse_lighting_handoff_report["errors"],
+             &(&1["path"] == "$.rows[2].lighting_confidence")
+           )
+
+    invalid_row_link_error_rate =
+      package
+      |> put_in(["rows", Access.at(2), "bit_error_rate"], 1.2)
+      |> put_in(["rows", Access.at(2), "realized_packet_loss_rate"], -0.1)
+
+    assert {:error, row_link_error_rate_report} =
+             Schema.validate_artifact(invalid_row_link_error_rate)
+
+    assert Enum.any?(
+             row_link_error_rate_report["errors"],
+             &(&1["path"] == "$.rows[2].bit_error_rate")
+           )
+
+    assert Enum.any?(
+             row_link_error_rate_report["errors"],
+             &(&1["path"] == "$.rows[2].realized_packet_loss_rate")
+           )
+
+    invalid_row_link_handoff =
+      package
+      |> put_in(["rows", Access.at(2), "frequency_band"], 42)
+      |> put_in(["rows", Access.at(2), "planned_link_margin_db"], "cold")
+      |> put_in(["rows", Access.at(2), "realized_carrier_lock"], "lost")
+
+    assert {:error, row_link_handoff_report} =
+             Schema.validate_artifact(invalid_row_link_handoff)
+
+    assert Enum.any?(
+             row_link_handoff_report["errors"],
+             &(&1["path"] == "$.rows[2].frequency_band")
+           )
+
+    assert Enum.any?(
+             row_link_handoff_report["errors"],
+             &(&1["path"] == "$.rows[2].planned_link_margin_db")
+           )
+
+    assert Enum.any?(
+             row_link_handoff_report["errors"],
+             &(&1["path"] == "$.rows[2].realized_carrier_lock")
+           )
+
+    invalid_row_attitude_confidence =
+      put_in(package, ["rows", Access.at(2), "attitude_confidence"], 1.2)
+
+    assert {:error, row_attitude_confidence_report} =
+             Schema.validate_artifact(invalid_row_attitude_confidence)
+
+    assert Enum.any?(
+             row_attitude_confidence_report["errors"],
+             &(&1["path"] == "$.rows[2].attitude_confidence")
+           )
+
+    invalid_row_thermal_handoff =
+      package
+      |> put_in(["rows", Access.at(2), "thermal_zone_id"], "payload deck")
+      |> put_in(["rows", Access.at(2), "thermal_confidence"], 1.2)
+
+    assert {:error, row_thermal_handoff_report} =
+             Schema.validate_artifact(invalid_row_thermal_handoff)
+
+    assert Enum.any?(
+             row_thermal_handoff_report["errors"],
+             &(&1["path"] == "$.rows[2].thermal_zone_id")
+           )
+
+    assert Enum.any?(
+             row_thermal_handoff_report["errors"],
+             &(&1["path"] == "$.rows[2].thermal_confidence")
+           )
+
+    invalid_review_counts =
+      put_in(package, ["required_operator_action_counts", "review_contact_variance"], 99)
+
+    assert {:error, review_counts_report} = Schema.validate_artifact(invalid_review_counts)
+
+    assert Enum.any?(
+             review_counts_report["errors"],
+             &(&1["path"] == "$.required_operator_action_counts")
+           )
+
+    invalid_negative_review_counts =
+      put_in(package, ["review_type_counts", "realized_feedback"], -1)
+
+    assert {:error, negative_review_counts_report} =
+             Schema.validate_artifact(invalid_negative_review_counts)
+
+    assert Enum.any?(
+             negative_review_counts_report["errors"],
+             &(&1["path"] == "$.review_type_counts.realized_feedback")
+           )
+
+    for {field, key, counts} <- [
+          {"calendar_entry_trust_boundary_status_counts", "declared", %{"declared" => -1}},
+          {"station_reservation_match_status_counts", "overlap", %{"overlap" => -1}},
+          {"station_reservation_expiration_status_counts", "declared", %{"declared" => -1}},
+          {"resource_blocking_dimension_counts", "antenna", %{"antenna" => -1}},
+          {"gate_status_counts", "review_required", %{"review_required" => -1}},
+          {"gate_classification_counts", "review_only", %{"review_only" => -1}},
+          {"required_capacity_fraction_source_counts", "capacity_model",
+           %{"capacity_model" => -1}},
+          {"provider_reservation_request_status_counts", "review_required",
+           %{"review_required" => -1}},
+          {"reduced_capacity_pack_status_counts", "capacity_limited",
+           %{"capacity_limited" => -1}},
+          {"station_pressure_contact_counts_by_availability", "reserved", %{"reserved" => -1}}
+        ] do
+      invalid_lifted_summary_counts = Map.put(package, field, counts)
+
+      assert {:error, lifted_summary_counts_report} =
+               Schema.validate_artifact(invalid_lifted_summary_counts)
+
+      assert Enum.any?(
+               lifted_summary_counts_report["errors"],
+               &(&1["path"] == "$.#{field}.#{key}")
+             )
+    end
+
+    invalid_resource_blocked_ids =
+      Map.put(package, "resource_blocked_contact_ids_by_blocking_dimension", %{
+        "antenna" => ["bad id"]
+      })
+
+    assert {:error, resource_blocked_ids_report} =
+             Schema.validate_artifact(invalid_resource_blocked_ids)
+
+    assert Enum.any?(
+             resource_blocked_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.resource_blocked_contact_ids_by_blocking_dimension.antenna[0]")
+           )
+
+    invalid_station_pressure_ids =
+      Map.put(package, "station_pressure_contact_ids_by_availability", %{
+        "reserved" => ["bad id"]
+      })
+
+    assert {:error, station_pressure_ids_report} =
+             Schema.validate_artifact(invalid_station_pressure_ids)
+
+    assert Enum.any?(
+             station_pressure_ids_report["errors"],
+             &(&1["path"] == "$.station_pressure_contact_ids_by_availability.reserved[0]")
+           )
+
+    invalid_station_reservation_routing_ids =
+      Map.put(package, "station_reservation_ids_by_match_status", %{
+        "overlap" => ["bad id"]
+      })
+
+    assert {:error, station_reservation_routing_ids_report} =
+             Schema.validate_artifact(invalid_station_reservation_routing_ids)
+
+    assert Enum.any?(
+             station_reservation_routing_ids_report["errors"],
+             &(&1["path"] == "$.station_reservation_ids_by_match_status.overlap[0]")
+           )
+
+    invalid_quality_gate_count =
+      Map.put(package, "gate_count", -1)
+
+    assert {:error, quality_gate_count_report} =
+             Schema.validate_artifact(invalid_quality_gate_count)
+
+    assert Enum.any?(
+             quality_gate_count_report["errors"],
+             &(&1["path"] == "$.gate_count")
+           )
+
+    invalid_quality_gate_ids =
+      Map.put(package, "review_required_gate_ids", ["bad id"])
+
+    assert {:error, quality_gate_ids_report} =
+             Schema.validate_artifact(invalid_quality_gate_ids)
+
+    assert Enum.any?(
+             quality_gate_ids_report["errors"],
+             &(&1["path"] == "$.review_required_gate_ids[0]")
+           )
+
+    invalid_quality_gate_routing_ids =
+      Map.put(package, "quality_gate_row_ids_by_status", %{
+        "review_required" => ["bad id"]
+      })
+
+    assert {:error, quality_gate_routing_ids_report} =
+             Schema.validate_artifact(invalid_quality_gate_routing_ids)
+
+    assert Enum.any?(
+             quality_gate_routing_ids_report["errors"],
+             &(&1["path"] == "$.quality_gate_row_ids_by_status.review_required[0]")
+           )
+
+    invalid_capacity_pack_group_ids =
+      Map.put(package, "capacity_pack_group_ids", ["bad id"])
+
+    assert {:error, capacity_pack_group_ids_report} =
+             Schema.validate_artifact(invalid_capacity_pack_group_ids)
+
+    assert Enum.any?(
+             capacity_pack_group_ids_report["errors"],
+             &(&1["path"] == "$.capacity_pack_group_ids[0]")
+           )
+
+    invalid_capacity_pack_group_ids_by_status =
+      Map.put(package, "capacity_pack_group_ids_by_status", %{
+        "capacity_limited" => ["bad id"]
+      })
+
+    assert {:error, capacity_pack_group_ids_by_status_report} =
+             Schema.validate_artifact(invalid_capacity_pack_group_ids_by_status)
+
+    assert Enum.any?(
+             capacity_pack_group_ids_by_status_report["errors"],
+             &(&1["path"] == "$.capacity_pack_group_ids_by_status.capacity_limited[0]")
+           )
+
+    invalid_required_capacity_source_ids =
+      Map.put(package, "required_capacity_fraction_contact_ids_by_source", %{
+        "capacity_model" => ["bad id"]
+      })
+
+    assert {:error, required_capacity_source_ids_report} =
+             Schema.validate_artifact(invalid_required_capacity_source_ids)
+
+    assert Enum.any?(
+             required_capacity_source_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.required_capacity_fraction_contact_ids_by_source.capacity_model[0]")
+           )
+
+    invalid_provider_reservation_count =
+      Map.put(package, "provider_reservation_request_contact_count", -1)
+
+    assert {:error, provider_reservation_count_report} =
+             Schema.validate_artifact(invalid_provider_reservation_count)
+
+    assert Enum.any?(
+             provider_reservation_count_report["errors"],
+             &(&1["path"] == "$.provider_reservation_request_contact_count")
+           )
+
+    invalid_provider_reservation_ids =
+      Map.put(package, "provider_reservation_request_contact_ids", ["bad id"])
+
+    assert {:error, provider_reservation_ids_report} =
+             Schema.validate_artifact(invalid_provider_reservation_ids)
+
+    assert Enum.any?(
+             provider_reservation_ids_report["errors"],
+             &(&1["path"] == "$.provider_reservation_request_contact_ids[0]")
+           )
+
+    invalid_provider_reservation_routing_ids =
+      Map.put(package, "provider_reservation_request_ids_by_match_status", %{
+        "matched" => ["bad id"]
+      })
+
+    assert {:error, provider_reservation_routing_ids_report} =
+             Schema.validate_artifact(invalid_provider_reservation_routing_ids)
+
+    assert Enum.any?(
+             provider_reservation_routing_ids_report["errors"],
+             &(&1["path"] == "$.provider_reservation_request_ids_by_match_status.matched[0]")
+           )
+
+    invalid_capacity_pack_demand =
+      Map.put(package, "capacity_pack_required_capacity_fraction", -1.0)
+
+    assert {:error, capacity_pack_demand_report} =
+             Schema.validate_artifact(invalid_capacity_pack_demand)
+
+    assert Enum.any?(
+             capacity_pack_demand_report["errors"],
+             &(&1["path"] == "$.capacity_pack_required_capacity_fraction")
+           )
+
+    invalid_capacity_pack_demand_map =
+      Map.put(package, "capacity_pack_required_capacity_fraction_by_status", %{
+        "selected_by_reduced_station_capacity_pack" => -1.0
+      })
+
+    assert {:error, capacity_pack_demand_map_report} =
+             Schema.validate_artifact(invalid_capacity_pack_demand_map)
+
+    assert Enum.any?(
+             capacity_pack_demand_map_report["errors"],
+             &(&1["path"] ==
+                 "$.capacity_pack_required_capacity_fraction_by_status.selected_by_reduced_station_capacity_pack")
+           )
+
+    invalid_capacity_pack_contact_ids =
+      Map.put(package, "capacity_pack_contact_ids_by_status", %{
+        "selected_by_reduced_station_capacity_pack" => ["bad id"]
+      })
+
+    assert {:error, capacity_pack_contact_ids_report} =
+             Schema.validate_artifact(invalid_capacity_pack_contact_ids)
+
+    assert Enum.any?(
+             capacity_pack_contact_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.capacity_pack_contact_ids_by_status.selected_by_reduced_station_capacity_pack[0]")
+           )
+
+    invalid_capacity_pack_station_contact_ids =
+      Map.put(package, "capacity_pack_selected_contact_ids_by_ground_station_id", %{
+        "gs_capacity_pack" => ["bad id"]
+      })
+
+    assert {:error, capacity_pack_station_contact_ids_report} =
+             Schema.validate_artifact(invalid_capacity_pack_station_contact_ids)
+
+    assert Enum.any?(
+             capacity_pack_station_contact_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.capacity_pack_selected_contact_ids_by_ground_station_id.gs_capacity_pack[0]")
+           )
+
+    invalid_reduced_capacity_packed_ids =
+      Map.put(package, "reduced_capacity_packed_contact_ids", ["bad id"])
+
+    assert {:error, reduced_capacity_packed_ids_report} =
+             Schema.validate_artifact(invalid_reduced_capacity_packed_ids)
+
+    assert Enum.any?(
+             reduced_capacity_packed_ids_report["errors"],
+             &(&1["path"] == "$.reduced_capacity_packed_contact_ids[0]")
+           )
+  end
+
+  test "validates reduced-capacity pack policy fields on review and import rows" do
+    report =
+      "study_results/contact_allocation_capacity_pack_report_v1.json"
+      |> read_json!()
+      |> put_in(
+        ["reduced_capacity_pack_groups", Access.at(0), "default_required_capacity_fraction"],
+        0.25
+      )
+
+    package = OperatorReview.from_contact_allocation_report(report)
+
+    review_index =
+      Enum.find_index(
+        package["rows"],
+        &(&1["review_type"] == "contact_allocation_capacity_pack_review")
+      )
+
+    assert is_integer(review_index)
+
+    assert %{
+             "default_required_capacity_fraction" => 0.25,
+             "capacity_requirement_rows" => [
+               %{"required_capacity_fraction" => 0.25}
+               | _
+             ]
+           } = Enum.at(package["rows"], review_index)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+
+    invalid_package =
+      put_in(
+        package,
+        ["rows", Access.at(review_index), "default_required_capacity_fraction"],
+        1.25
+      )
+
+    assert {:error, invalid_package_report} = Schema.validate_artifact(invalid_package)
+
+    assert Enum.any?(
+             invalid_package_report["errors"],
+             &(&1["path"] == "$.rows[#{review_index}].default_required_capacity_fraction")
+           )
+
+    invalid_group_fraction =
+      put_in(package, ["rows", Access.at(review_index), "used_capacity_fraction"], 1.25)
+
+    assert {:error, invalid_group_fraction_report} =
+             Schema.validate_artifact(invalid_group_fraction)
+
+    assert Enum.any?(
+             invalid_group_fraction_report["errors"],
+             &(&1["path"] == "$.rows[#{review_index}].used_capacity_fraction")
+           )
+
+    invalid_requirement =
+      put_in(
+        package,
+        [
+          "rows",
+          Access.at(review_index),
+          "capacity_requirement_rows",
+          Access.at(0),
+          "required_capacity_fraction"
+        ],
+        1.25
+      )
+
+    assert {:error, invalid_requirement_report} = Schema.validate_artifact(invalid_requirement)
+
+    assert Enum.any?(
+             invalid_requirement_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[#{review_index}].capacity_requirement_rows[0].required_capacity_fraction")
+           )
+
+    manifest = CadenceImport.from_contact_allocation_report(report)
+
+    import_index =
+      Enum.find_index(
+        manifest["rows"],
+        &(&1["source_review_type"] == "contact_allocation_capacity_pack_review")
+      )
+
+    assert is_integer(import_index)
+
+    assert %{
+             "default_required_capacity_fraction" => 0.25,
+             "source_review_row" => %{"default_required_capacity_fraction" => 0.25}
+           } = Enum.at(manifest["rows"], import_index)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+
+    invalid_manifest =
+      put_in(
+        manifest,
+        ["rows", Access.at(import_index), "default_required_capacity_fraction"],
+        1.25
+      )
+
+    assert {:error, invalid_manifest_report} = Schema.validate_artifact(invalid_manifest)
+
+    assert Enum.any?(
+             invalid_manifest_report["errors"],
+             &(&1["path"] == "$.rows[#{import_index}].default_required_capacity_fraction")
+           )
+
+    invalid_source_review =
+      put_in(
+        manifest,
+        [
+          "rows",
+          Access.at(import_index),
+          "source_review_row",
+          "default_required_capacity_fraction"
+        ],
+        1.25
+      )
+
+    assert {:error, invalid_source_review_report} =
+             Schema.validate_artifact(invalid_source_review)
+
+    assert Enum.any?(
+             invalid_source_review_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[#{import_index}].source_review_row.default_required_capacity_fraction")
+           )
+
+    invalid_source_group_fraction =
+      put_in(
+        manifest,
+        ["rows", Access.at(import_index), "source_review_row", "capacity_fraction"],
+        1.25
+      )
+
+    assert {:error, invalid_source_group_fraction_report} =
+             Schema.validate_artifact(invalid_source_group_fraction)
+
+    assert Enum.any?(
+             invalid_source_group_fraction_report["errors"],
+             &(&1["path"] == "$.rows[#{import_index}].source_review_row.capacity_fraction")
+           )
+  end
+
+  test "validates Cadence import source-window handoff rows" do
+    manifest = read_json!("study_results/cadence_import_manifest_v1.json")
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+
+    invalid_source_review_analysis_mode =
+      put_in(
+        manifest,
+        ["rows", Access.at(0), "source_review_row"],
+        %{"analysis_mode" => "execution"}
+      )
+
+    assert {:error, invalid_source_review_analysis_mode_report} =
+             Schema.validate_artifact(invalid_source_review_analysis_mode)
+
+    assert Enum.any?(
+             invalid_source_review_analysis_mode_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.analysis_mode")
+           )
+
+    invalid_source_review_completion_fraction =
+      put_in(
+        manifest,
+        ["rows", Access.at(0), "source_review_row"],
+        %{"completed_fraction" => 1.2, "throughput_completion_fraction" => -0.1}
+      )
+
+    assert {:error, invalid_source_review_completion_fraction_report} =
+             Schema.validate_artifact(invalid_source_review_completion_fraction)
+
+    assert Enum.any?(
+             invalid_source_review_completion_fraction_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.completed_fraction")
+           )
+
+    assert Enum.any?(
+             invalid_source_review_completion_fraction_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.throughput_completion_fraction")
+           )
+
+    invalid_source_review_eclipse_overlap_fraction =
+      put_in(
+        manifest,
+        ["rows", Access.at(0), "source_review_row"],
+        %{"eclipse_overlap_fraction" => 1.2, "realized_eclipse_overlap_fraction" => -0.1}
+      )
+
+    assert {:error, invalid_source_review_eclipse_overlap_fraction_report} =
+             Schema.validate_artifact(invalid_source_review_eclipse_overlap_fraction)
+
+    assert Enum.any?(
+             invalid_source_review_eclipse_overlap_fraction_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.eclipse_overlap_fraction")
+           )
+
+    assert Enum.any?(
+             invalid_source_review_eclipse_overlap_fraction_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.realized_eclipse_overlap_fraction")
+           )
+
+    invalid_source_review_eclipse_lighting_handoff =
+      put_in(
+        manifest,
+        ["rows", Access.at(0), "source_review_row"],
+        %{
+          "realized_eclipse_overlap_s" => "long",
+          "lighting_condition_detail" => 42,
+          "lighting_confidence" => "high"
+        }
+      )
+
+    assert {:error, invalid_source_review_eclipse_lighting_handoff_report} =
+             Schema.validate_artifact(invalid_source_review_eclipse_lighting_handoff)
+
+    assert Enum.any?(
+             invalid_source_review_eclipse_lighting_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.realized_eclipse_overlap_s")
+           )
+
+    assert Enum.any?(
+             invalid_source_review_eclipse_lighting_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.lighting_condition_detail")
+           )
+
+    assert Enum.any?(
+             invalid_source_review_eclipse_lighting_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.lighting_confidence")
+           )
+
+    invalid_source_review_image_quality_score =
+      put_in(
+        manifest,
+        ["rows", Access.at(0), "source_review_row"],
+        %{"image_quality_score" => 1.2, "realized_image_quality_score" => -0.1}
+      )
+
+    assert {:error, invalid_source_review_image_quality_score_report} =
+             Schema.validate_artifact(invalid_source_review_image_quality_score)
+
+    assert Enum.any?(
+             invalid_source_review_image_quality_score_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.image_quality_score")
+           )
+
+    invalid_source_review_observation_quality_handoff =
+      put_in(
+        manifest,
+        ["rows", Access.at(0), "source_review_row"],
+        %{
+          "image_quality_score_delta" => "worse",
+          "cloud_cover_fraction_delta" => "cloudier",
+          "image_quality_status_match_status" => 42,
+          "image_quality_source" => 42
+        }
+      )
+
+    assert {:error, invalid_source_review_observation_quality_handoff_report} =
+             Schema.validate_artifact(invalid_source_review_observation_quality_handoff)
+
+    assert Enum.any?(
+             invalid_source_review_observation_quality_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.image_quality_score_delta")
+           )
+
+    assert Enum.any?(
+             invalid_source_review_observation_quality_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.cloud_cover_fraction_delta")
+           )
+
+    assert Enum.any?(
+             invalid_source_review_observation_quality_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.image_quality_status_match_status")
+           )
+
+    assert Enum.any?(
+             invalid_source_review_observation_quality_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.image_quality_source")
+           )
+
+    invalid_source_review_feedback_maneuver_handoff =
+      put_in(
+        manifest,
+        ["rows", Access.at(0), "source_review_row"],
+        %{
+          "feedback_weight" => -0.1,
+          "feedback_weight_source" => 42,
+          "maneuver_success" => "yes",
+          "maneuver_result" => 42,
+          "maneuver_success_factor" => 1.2,
+          "maneuver_success_factor_source" => 42
+        }
+      )
+
+    assert {:error, invalid_source_review_feedback_maneuver_handoff_report} =
+             Schema.validate_artifact(invalid_source_review_feedback_maneuver_handoff)
+
+    for field <- [
+          "feedback_weight",
+          "feedback_weight_source",
+          "maneuver_success",
+          "maneuver_result",
+          "maneuver_success_factor",
+          "maneuver_success_factor_source"
+        ] do
+      assert Enum.any?(
+               invalid_source_review_feedback_maneuver_handoff_report["errors"],
+               &(&1["path"] == "$.rows[0].source_review_row.#{field}")
+             )
+    end
+
+    assert Enum.any?(
+             invalid_source_review_image_quality_score_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.realized_image_quality_score")
+           )
+
+    invalid_source_review_link_error_rate =
+      put_in(
+        manifest,
+        ["rows", Access.at(0), "source_review_row"],
+        %{"bit_error_rate" => 1.2, "realized_frame_loss_rate" => -0.1}
+      )
+
+    assert {:error, invalid_source_review_link_error_rate_report} =
+             Schema.validate_artifact(invalid_source_review_link_error_rate)
+
+    assert Enum.any?(
+             invalid_source_review_link_error_rate_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.bit_error_rate")
+           )
+
+    assert Enum.any?(
+             invalid_source_review_link_error_rate_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.realized_frame_loss_rate")
+           )
+
+    invalid_source_review_link_handoff =
+      put_in(
+        manifest,
+        ["rows", Access.at(0), "source_review_row"],
+        %{
+          "modulation" => 42,
+          "realized_snr_db" => "weak",
+          "planned_symbol_lock" => "locked"
+        }
+      )
+
+    assert {:error, invalid_source_review_link_handoff_report} =
+             Schema.validate_artifact(invalid_source_review_link_handoff)
+
+    assert Enum.any?(
+             invalid_source_review_link_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.modulation")
+           )
+
+    assert Enum.any?(
+             invalid_source_review_link_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.realized_snr_db")
+           )
+
+    assert Enum.any?(
+             invalid_source_review_link_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.planned_symbol_lock")
+           )
+
+    invalid_source_review_attitude_confidence =
+      put_in(
+        manifest,
+        ["rows", Access.at(0), "source_review_row"],
+        %{"attitude_confidence" => 1.2}
+      )
+
+    assert {:error, invalid_source_review_attitude_confidence_report} =
+             Schema.validate_artifact(invalid_source_review_attitude_confidence)
+
+    assert Enum.any?(
+             invalid_source_review_attitude_confidence_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.attitude_confidence")
+           )
+
+    invalid_row_thermal_handoff =
+      manifest
+      |> put_in(["rows", Access.at(0), "thermal_zone_id"], "payload deck")
+      |> put_in(["rows", Access.at(0), "thermal_confidence"], 1.2)
+
+    assert {:error, invalid_row_thermal_handoff_report} =
+             Schema.validate_artifact(invalid_row_thermal_handoff)
+
+    assert Enum.any?(
+             invalid_row_thermal_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].thermal_zone_id")
+           )
+
+    assert Enum.any?(
+             invalid_row_thermal_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].thermal_confidence")
+           )
+
+    invalid_source_review_thermal_handoff =
+      put_in(
+        manifest,
+        ["rows", Access.at(0), "source_review_row"],
+        %{"thermal_zone_id" => "payload deck", "thermal_confidence" => 1.2}
+      )
+
+    assert {:error, invalid_source_review_thermal_handoff_report} =
+             Schema.validate_artifact(invalid_source_review_thermal_handoff)
+
+    assert Enum.any?(
+             invalid_source_review_thermal_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.thermal_zone_id")
+           )
+
+    assert Enum.any?(
+             invalid_source_review_thermal_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.thermal_confidence")
+           )
+
+    invalid_import_count =
+      put_in(manifest, ["import_action_counts", "import_replacement_activity"], -1)
+
+    assert {:error, invalid_import_count_report} =
+             Schema.validate_artifact(invalid_import_count)
+
+    assert Enum.any?(
+             invalid_import_count_report["errors"],
+             &(&1["path"] == "$.import_action_counts.import_replacement_activity")
+           )
+
+    for {field, key, counts} <- [
+          {"calendar_entry_trust_boundary_status_counts", "declared", %{"declared" => -1}},
+          {"station_reservation_match_status_counts", "overlap", %{"overlap" => -1}},
+          {"station_reservation_expiration_status_counts", "declared", %{"declared" => -1}},
+          {"resource_blocking_dimension_counts", "antenna", %{"antenna" => -1}},
+          {"gate_status_counts", "review_required", %{"review_required" => -1}},
+          {"gate_classification_counts", "review_only", %{"review_only" => -1}},
+          {"required_capacity_fraction_source_counts", "capacity_model",
+           %{"capacity_model" => -1}},
+          {"provider_reservation_request_status_counts", "review_required",
+           %{"review_required" => -1}},
+          {"reduced_capacity_pack_status_counts", "capacity_limited",
+           %{"capacity_limited" => -1}},
+          {"station_pressure_contact_counts_by_ground_station_id", "gs", %{"gs" => -1}}
+        ] do
+      invalid_lifted_summary_counts = Map.put(manifest, field, counts)
+
+      assert {:error, lifted_summary_counts_report} =
+               Schema.validate_artifact(invalid_lifted_summary_counts)
+
+      assert Enum.any?(
+               lifted_summary_counts_report["errors"],
+               &(&1["path"] == "$.#{field}.#{key}")
+             )
+    end
+
+    invalid_resource_blocked_ids =
+      Map.put(manifest, "resource_blocked_contact_ids_by_spacecraft_id", %{
+        "sat_resource" => ["bad id"]
+      })
+
+    assert {:error, resource_blocked_ids_report} =
+             Schema.validate_artifact(invalid_resource_blocked_ids)
+
+    assert Enum.any?(
+             resource_blocked_ids_report["errors"],
+             &(&1["path"] == "$.resource_blocked_contact_ids_by_spacecraft_id.sat_resource[0]")
+           )
+
+    invalid_station_pressure_ids =
+      Map.put(manifest, "station_pressure_contact_ids_by_ground_station_id", %{
+        "gs_capacity_pack" => ["bad id"]
+      })
+
+    assert {:error, station_pressure_ids_report} =
+             Schema.validate_artifact(invalid_station_pressure_ids)
+
+    assert Enum.any?(
+             station_pressure_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.station_pressure_contact_ids_by_ground_station_id.gs_capacity_pack[0]")
+           )
+
+    invalid_station_reservation_routing_ids =
+      Map.put(manifest, "station_reservation_contact_ids_by_status", %{
+        "confirmed" => ["bad id"]
+      })
+
+    assert {:error, station_reservation_routing_ids_report} =
+             Schema.validate_artifact(invalid_station_reservation_routing_ids)
+
+    assert Enum.any?(
+             station_reservation_routing_ids_report["errors"],
+             &(&1["path"] == "$.station_reservation_contact_ids_by_status.confirmed[0]")
+           )
+
+    invalid_quality_gate_count =
+      Map.put(manifest, "blocked_gate_count", -1)
+
+    assert {:error, quality_gate_count_report} =
+             Schema.validate_artifact(invalid_quality_gate_count)
+
+    assert Enum.any?(
+             quality_gate_count_report["errors"],
+             &(&1["path"] == "$.blocked_gate_count")
+           )
+
+    invalid_quality_gate_ids =
+      Map.put(manifest, "blocked_gate_ids", ["bad id"])
+
+    assert {:error, quality_gate_ids_report} =
+             Schema.validate_artifact(invalid_quality_gate_ids)
+
+    assert Enum.any?(
+             quality_gate_ids_report["errors"],
+             &(&1["path"] == "$.blocked_gate_ids[0]")
+           )
+
+    invalid_quality_gate_routing_ids =
+      Map.put(manifest, "gate_ids_by_classification", %{
+        "blocked" => ["bad id"]
+      })
+
+    assert {:error, quality_gate_routing_ids_report} =
+             Schema.validate_artifact(invalid_quality_gate_routing_ids)
+
+    assert Enum.any?(
+             quality_gate_routing_ids_report["errors"],
+             &(&1["path"] == "$.gate_ids_by_classification.blocked[0]")
+           )
+
+    invalid_capacity_pack_group_ids =
+      Map.put(manifest, "capacity_pack_group_ids", ["bad id"])
+
+    assert {:error, capacity_pack_group_ids_report} =
+             Schema.validate_artifact(invalid_capacity_pack_group_ids)
+
+    assert Enum.any?(
+             capacity_pack_group_ids_report["errors"],
+             &(&1["path"] == "$.capacity_pack_group_ids[0]")
+           )
+
+    invalid_capacity_pack_group_ids_by_status =
+      Map.put(manifest, "capacity_pack_group_ids_by_status", %{
+        "capacity_limited" => ["bad id"]
+      })
+
+    assert {:error, capacity_pack_group_ids_by_status_report} =
+             Schema.validate_artifact(invalid_capacity_pack_group_ids_by_status)
+
+    assert Enum.any?(
+             capacity_pack_group_ids_by_status_report["errors"],
+             &(&1["path"] == "$.capacity_pack_group_ids_by_status.capacity_limited[0]")
+           )
+
+    invalid_required_capacity_source_ids =
+      Map.put(manifest, "required_capacity_fraction_contact_ids_by_source", %{
+        "capacity_model" => ["bad id"]
+      })
+
+    assert {:error, required_capacity_source_ids_report} =
+             Schema.validate_artifact(invalid_required_capacity_source_ids)
+
+    assert Enum.any?(
+             required_capacity_source_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.required_capacity_fraction_contact_ids_by_source.capacity_model[0]")
+           )
+
+    invalid_provider_reservation_count =
+      Map.put(manifest, "provider_reservation_review_contact_count", -1)
+
+    assert {:error, provider_reservation_count_report} =
+             Schema.validate_artifact(invalid_provider_reservation_count)
+
+    assert Enum.any?(
+             provider_reservation_count_report["errors"],
+             &(&1["path"] == "$.provider_reservation_review_contact_count")
+           )
+
+    invalid_provider_reservation_ids =
+      Map.put(manifest, "provider_reservation_review_contact_ids", ["bad id"])
+
+    assert {:error, provider_reservation_ids_report} =
+             Schema.validate_artifact(invalid_provider_reservation_ids)
+
+    assert Enum.any?(
+             provider_reservation_ids_report["errors"],
+             &(&1["path"] == "$.provider_reservation_review_contact_ids[0]")
+           )
+
+    invalid_provider_reservation_routing_ids =
+      Map.put(manifest, "provider_reservation_review_contact_ids_by_match_status", %{
+        "overlap" => ["bad id"]
+      })
+
+    assert {:error, provider_reservation_routing_ids_report} =
+             Schema.validate_artifact(invalid_provider_reservation_routing_ids)
+
+    assert Enum.any?(
+             provider_reservation_routing_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.provider_reservation_review_contact_ids_by_match_status.overlap[0]")
+           )
+
+    invalid_capacity_pack_demand =
+      Map.put(manifest, "capacity_pack_deferred_required_capacity_fraction", -1.0)
+
+    assert {:error, capacity_pack_demand_report} =
+             Schema.validate_artifact(invalid_capacity_pack_demand)
+
+    assert Enum.any?(
+             capacity_pack_demand_report["errors"],
+             &(&1["path"] == "$.capacity_pack_deferred_required_capacity_fraction")
+           )
+
+    invalid_capacity_pack_demand_map =
+      Map.put(
+        manifest,
+        "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id",
+        %{
+          "gs_capacity_pack" => -1.0
+        }
+      )
+
+    assert {:error, capacity_pack_demand_map_report} =
+             Schema.validate_artifact(invalid_capacity_pack_demand_map)
+
+    assert Enum.any?(
+             capacity_pack_demand_map_report["errors"],
+             &(&1["path"] ==
+                 "$.capacity_pack_deferred_required_capacity_fraction_by_ground_station_id.gs_capacity_pack")
+           )
+
+    invalid_capacity_pack_contact_ids =
+      Map.put(manifest, "capacity_pack_contact_ids_by_status", %{
+        "deferred_by_reduced_station_capacity_pack" => ["bad id"]
+      })
+
+    assert {:error, capacity_pack_contact_ids_report} =
+             Schema.validate_artifact(invalid_capacity_pack_contact_ids)
+
+    assert Enum.any?(
+             capacity_pack_contact_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.capacity_pack_contact_ids_by_status.deferred_by_reduced_station_capacity_pack[0]")
+           )
+
+    invalid_capacity_pack_station_contact_ids =
+      Map.put(manifest, "capacity_pack_deferred_contact_ids_by_ground_station_id", %{
+        "gs_capacity_pack" => ["bad id"]
+      })
+
+    assert {:error, capacity_pack_station_contact_ids_report} =
+             Schema.validate_artifact(invalid_capacity_pack_station_contact_ids)
+
+    assert Enum.any?(
+             capacity_pack_station_contact_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.capacity_pack_deferred_contact_ids_by_ground_station_id.gs_capacity_pack[0]")
+           )
+
+    invalid_reduced_capacity_deferred_ids =
+      Map.put(manifest, "reduced_capacity_deferred_contact_ids", ["bad id"])
+
+    assert {:error, reduced_capacity_deferred_ids_report} =
+             Schema.validate_artifact(invalid_reduced_capacity_deferred_ids)
+
+    assert Enum.any?(
+             reduced_capacity_deferred_ids_report["errors"],
+             &(&1["path"] == "$.reduced_capacity_deferred_contact_ids[0]")
+           )
+
+    invalid_scalar_count = Map.put(manifest, "ready_count", -1)
+
+    assert {:error, invalid_scalar_count_report} =
+             Schema.validate_artifact(invalid_scalar_count)
+
+    assert Enum.any?(
+             invalid_scalar_count_report["errors"],
+             &(&1["path"] == "$.ready_count")
+           )
+
+    invalid_replacement_lineage =
+      manifest
+      |> put_in(["rows", Access.at(0), "replacement_candidate_id"], "replacement_candidate_1")
+      |> put_in(["rows", Access.at(0), "replacement_source_window_id"], "replacement_window_1")
+      |> put_in(["rows", Access.at(0), "replacement_source_window_lineage"], %{
+        "candidate_activity_id" => "replacement candidate with spaces",
+        "source_window_id" => "replacement_window_1",
+        "source_window_type" => "downlink",
+        "scenario_id" => "leo_1"
+      })
+
+    assert {:error, replacement_lineage_report} =
+             Schema.validate_artifact(invalid_replacement_lineage)
+
+    assert Enum.any?(
+             replacement_lineage_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].replacement_source_window_lineage.candidate_activity_id")
+           )
+
+    invalid_source_delta =
+      put_in(manifest, ["rows", Access.at(0), "source_delta"], %{
+        "activity_id" => "activity with spaces",
+        "activity_type" => "downlink",
+        "status" => "changed",
+        "repair_action" => "moved"
+      })
+
+    assert {:error, source_delta_report} = Schema.validate_artifact(invalid_source_delta)
+
+    assert Enum.any?(
+             source_delta_report["errors"],
+             &(&1["path"] == "$.rows[0].source_delta.activity_id")
+           )
+
+    invalid_source_requirement =
+      put_in(manifest, ["rows", Access.at(0), "source_requirement"], %{
+        "activity_id" => "activity with spaces",
+        "activity_type" => "downlink",
+        "action" => "approve_contact",
+        "reason" => "operator review"
+      })
+
+    assert {:error, source_requirement_report} =
+             Schema.validate_artifact(invalid_source_requirement)
+
+    assert Enum.any?(
+             source_requirement_report["errors"],
+             &(&1["path"] == "$.rows[0].source_requirement.activity_id")
+           )
+
+    invalid_source_policy_decision =
+      put_in(manifest, ["rows", Access.at(0), "source_policy_decision"], %{
+        "schema_contract" => "policy_decision.v1",
+        "classification" => "maybe"
+      })
+
+    assert {:error, source_policy_decision_report} =
+             Schema.validate_artifact(invalid_source_policy_decision)
+
+    assert Enum.any?(
+             source_policy_decision_report["errors"],
+             &(&1["path"] == "$.rows[0].source_policy_decision.classification")
+           )
+
+    invalid_source_policy_escalation =
+      put_in(manifest, ["rows", Access.at(0), "source_policy_escalation"], %{
+        "rule_id" => "rule with spaces"
+      })
+
+    assert {:error, source_policy_escalation_report} =
+             Schema.validate_artifact(invalid_source_policy_escalation)
+
+    assert Enum.any?(
+             source_policy_escalation_report["errors"],
+             &(&1["path"] == "$.rows[0].source_policy_escalation.rule_id")
+           )
+
+    invalid_source_contact_suppression =
+      put_in(manifest, ["rows", Access.at(0), "source_contact_suppression"], %{
+        "id" => "contact suppression with spaces",
+        "type" => "downlink",
+        "scenario_id" => "leo_1",
+        "suppressed_reason" => "ground_station_unavailable"
+      })
+
+    assert {:error, source_contact_suppression_report} =
+             Schema.validate_artifact(invalid_source_contact_suppression)
+
+    assert Enum.any?(
+             source_contact_suppression_report["errors"],
+             &(&1["path"] == "$.rows[0].source_contact_suppression.id")
+           )
+
+    invalid_source_link_capacity =
+      put_in(manifest, ["rows", Access.at(0), "source_link_capacity"], %{
+        "ground_station_id" => "station with spaces",
+        "contact_count" => 1,
+        "selected_contact_count" => 0,
+        "estimated_throughput_mb" => 1.0,
+        "selected_estimated_throughput_mb" => 0.0,
+        "contact_ids" => ["contact_1"],
+        "selected_contact_ids" => []
+      })
+
+    assert {:error, source_link_capacity_report} =
+             Schema.validate_artifact(invalid_source_link_capacity)
+
+    assert Enum.any?(
+             source_link_capacity_report["errors"],
+             &(&1["path"] == "$.rows[0].source_link_capacity.ground_station_id")
+           )
+
+    invalid_import_capacity_range =
+      manifest
+      |> put_in(["rows", Access.at(0), "capacity_fraction_min"], -0.1)
+      |> put_in(["rows", Access.at(0), "capacity_fraction_max"], 1.2)
+
+    assert {:error, import_capacity_range_report} =
+             Schema.validate_artifact(invalid_import_capacity_range)
+
+    assert Enum.any?(
+             import_capacity_range_report["errors"],
+             &(&1["path"] == "$.rows[0].capacity_fraction_min")
+           )
+
+    assert Enum.any?(
+             import_capacity_range_report["errors"],
+             &(&1["path"] == "$.rows[0].capacity_fraction_max")
+           )
+
+    invalid_source_resource_projection =
+      put_in(manifest, ["rows", Access.at(0), "source_resource_projection"], %{
+        "spacecraft_id" => "spacecraft with spaces",
+        "activity_count" => 1,
+        "observation_count" => 1,
+        "downlink_count" => 0,
+        "estimated_storage_produced_mb" => 0.0,
+        "estimated_downlink_mb" => 0.0
+      })
+
+    assert {:error, source_resource_projection_report} =
+             Schema.validate_artifact(invalid_source_resource_projection)
+
+    assert Enum.any?(
+             source_resource_projection_report["errors"],
+             &(&1["path"] == "$.rows[0].source_resource_projection.spacecraft_id")
+           )
+
+    invalid_resource_projection_battery_handoff =
+      manifest
+      |> put_in(["rows", Access.at(0), "total_battery_energy_consumed_wh"], "twenty")
+      |> put_in(["rows", Access.at(0), "source_resource_projection"], %{
+        "spacecraft_id" => "leo_1",
+        "net_battery_energy_delta_wh" => "fifteen"
+      })
+      |> put_in(["rows", Access.at(0), "source_review_row"], %{
+        "id" => "review_1",
+        "review_type" => "resource_projection_review",
+        "peak_battery_overuse_wh" => "four"
+      })
+
+    assert {:error, resource_projection_battery_handoff_report} =
+             Schema.validate_artifact(invalid_resource_projection_battery_handoff)
+
+    assert Enum.any?(
+             resource_projection_battery_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].total_battery_energy_consumed_wh")
+           )
+
+    assert Enum.any?(
+             resource_projection_battery_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].source_resource_projection.net_battery_energy_delta_wh")
+           )
+
+    assert Enum.any?(
+             resource_projection_battery_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.peak_battery_overuse_wh")
+           )
+
+    battery_handoff_manifest =
+      read_json!("study_results/cadence_import_resource_projection_battery_handoff_v1.json")
+
+    stale_source_review_battery_handoff =
+      put_in(
+        battery_handoff_manifest,
+        ["rows", Access.at(0), "source_review_row", "net_battery_energy_delta_wh"],
+        16.0
+      )
+
+    assert {:error, stale_source_review_battery_handoff_report} =
+             Schema.validate_artifact(stale_source_review_battery_handoff)
+
+    assert Enum.any?(
+             stale_source_review_battery_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.net_battery_energy_delta_wh" and
+                 &1["message"] == "must match net_battery_energy_delta_wh on Cadence import row")
+           )
+
+    operator_battery_handoff =
+      read_json!("study_results/operator_review_resource_projection_battery_handoff_v1.json")
+
+    stale_operator_source_flow =
+      put_in(
+        operator_battery_handoff,
+        [
+          "rows",
+          Access.at(0),
+          "source_resource_projection",
+          "activity_resource_flow",
+          Access.at(0),
+          "battery_energy_consumed_wh"
+        ],
+        21.0
+      )
+
+    assert {:error, stale_operator_source_flow_report} =
+             Schema.validate_artifact(stale_operator_source_flow)
+
+    assert Enum.any?(
+             stale_operator_source_flow_report["errors"],
+             &(&1["path"] == "$.rows[0].total_battery_energy_consumed_wh" and
+                 &1["message"] ==
+                   "must equal source_resource_projection activity_resource_flow total_battery_energy_consumed_wh")
+           )
+
+    stale_cadence_source_flow =
+      put_in(
+        battery_handoff_manifest,
+        [
+          "rows",
+          Access.at(0),
+          "source_resource_projection",
+          "activity_resource_flow",
+          Access.at(1),
+          "battery_energy_generated_wh"
+        ],
+        9.0
+      )
+
+    assert {:error, stale_cadence_source_flow_report} =
+             Schema.validate_artifact(stale_cadence_source_flow)
+
+    assert Enum.any?(
+             stale_cadence_source_flow_report["errors"],
+             &(&1["path"] == "$.rows[0].total_battery_energy_generated_wh")
+           )
+
+    stale_nested_source_aggregate =
+      put_in(
+        battery_handoff_manifest,
+        ["rows", Access.at(0), "source_resource_projection", "total_battery_energy_consumed_wh"],
+        22.0
+      )
+
+    assert {:error, stale_nested_source_aggregate_report} =
+             Schema.validate_artifact(stale_nested_source_aggregate)
+
+    assert Enum.any?(
+             stale_nested_source_aggregate_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_resource_projection.total_battery_energy_consumed_wh" and
+                 &1["message"] ==
+                   "must equal activity_resource_flow total_battery_energy_consumed_wh")
+           )
+
+    stale_cadence_source_review_flow =
+      put_in(
+        battery_handoff_manifest,
+        [
+          "rows",
+          Access.at(0),
+          "source_review_row",
+          "source_resource_projection",
+          "activity_resource_flow",
+          Access.at(1),
+          "battery_energy_delta_wh"
+        ],
+        -4.0
+      )
+
+    assert {:error, stale_cadence_source_review_flow_report} =
+             Schema.validate_artifact(stale_cadence_source_review_flow)
+
+    assert Enum.any?(
+             stale_cadence_source_review_flow_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.net_battery_energy_delta_wh")
+           )
+
+    source_timeline_diff_row =
+      read_json!("study_results/operator_review_package_v1.json")
+      |> Map.fetch!("rows")
+      |> Enum.find(&(&1["review_type"] == "timeline_diff_review"))
+      |> Map.fetch!("source_timeline_diff")
+
+    manifest_with_timeline_diff_source =
+      put_in(manifest, ["rows", Access.at(0), "source_timeline_diff"], source_timeline_diff_row)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest_with_timeline_diff_source)
+
+    invalid_source_timeline_diff =
+      put_in(
+        manifest_with_timeline_diff_source,
+        ["rows", Access.at(0), "source_timeline_diff", "timeline_id"],
+        "timeline with spaces"
+      )
+
+    assert {:error, source_timeline_diff_report} =
+             Schema.validate_artifact(invalid_source_timeline_diff)
+
+    assert Enum.any?(
+             source_timeline_diff_report["errors"],
+             &(&1["path"] == "$.rows[0].source_timeline_diff.timeline_id")
+           )
+
+    command_window_row =
+      read_json!("study_results/command_window_report_v1.json")
+      |> Map.fetch!("rows")
+      |> List.first()
+
+    manifest_with_command_window_source =
+      put_in(manifest, ["rows", Access.at(0), "source_command_window"], command_window_row)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest_with_command_window_source)
+
+    invalid_source_command_window =
+      put_in(
+        manifest_with_command_window_source,
+        ["rows", Access.at(0), "source_command_window", "ground_station_id"],
+        "station with spaces"
+      )
+
+    assert {:error, source_command_window_report} =
+             Schema.validate_artifact(invalid_source_command_window)
+
+    assert Enum.any?(
+             source_command_window_report["errors"],
+             &(&1["path"] == "$.rows[0].source_command_window.ground_station_id")
+           )
+
+    maneuver_review_row =
+      read_json!("study_results/maneuver_review_report_v1.json")
+      |> Map.fetch!("rows")
+      |> List.first()
+
+    manifest_with_maneuver_review_source =
+      put_in(manifest, ["rows", Access.at(0), "source_maneuver_review"], maneuver_review_row)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest_with_maneuver_review_source)
+
+    invalid_source_maneuver_review =
+      put_in(
+        manifest_with_maneuver_review_source,
+        ["rows", Access.at(0), "source_maneuver_review", "maneuver_id"],
+        "maneuver with spaces"
+      )
+
+    assert {:error, source_maneuver_review_report} =
+             Schema.validate_artifact(invalid_source_maneuver_review)
+
+    assert Enum.any?(
+             source_maneuver_review_report["errors"],
+             &(&1["path"] == "$.rows[0].source_maneuver_review.maneuver_id")
+           )
+
+    ranking_comparison_row =
+      read_json!("study_results/ranking_comparison_report_v1.json")
+      |> Map.fetch!("rows")
+      |> List.first()
+
+    manifest_with_ranking_comparison_source =
+      put_in(
+        manifest,
+        ["rows", Access.at(0), "source_ranking_comparison"],
+        ranking_comparison_row
+      )
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest_with_ranking_comparison_source)
+
+    invalid_source_ranking_comparison =
+      put_in(
+        manifest_with_ranking_comparison_source,
+        ["rows", Access.at(0), "source_ranking_comparison", "scenario_id"],
+        "scenario with spaces"
+      )
+
+    assert {:error, source_ranking_comparison_report} =
+             Schema.validate_artifact(invalid_source_ranking_comparison)
+
+    assert Enum.any?(
+             source_ranking_comparison_report["errors"],
+             &(&1["path"] == "$.rows[0].source_ranking_comparison.scenario_id")
+           )
+
+    contention_group =
+      read_json!("study_results/contact_contention_report_v1.json")
+      |> Map.fetch!("conflict_groups")
+      |> List.first()
+
+    manifest_with_contention_group_source =
+      put_in(manifest, ["rows", Access.at(0), "source_contention_group"], contention_group)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest_with_contention_group_source)
+
+    invalid_source_contention_group =
+      put_in(
+        manifest_with_contention_group_source,
+        ["rows", Access.at(0), "source_contention_group", "ground_station_id"],
+        "station with spaces"
+      )
+
+    assert {:error, source_contention_group_report} =
+             Schema.validate_artifact(invalid_source_contention_group)
+
+    assert Enum.any?(
+             source_contention_group_report["errors"],
+             &(&1["path"] == "$.rows[0].source_contention_group.ground_station_id")
+           )
+
+    station_calendar_contact =
+      read_json!("study_results/station_calendar_report_v1.json")
+      |> Map.fetch!("affected_contacts")
+      |> List.first()
+
+    manifest_with_station_calendar_source =
+      put_in(
+        manifest,
+        ["rows", Access.at(0), "source_station_calendar_review"],
+        station_calendar_contact
+      )
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest_with_station_calendar_source)
+
+    invalid_source_station_calendar_review =
+      put_in(
+        manifest_with_station_calendar_source,
+        ["rows", Access.at(0), "source_station_calendar_review", "ground_station_id"],
+        "station with spaces"
+      )
+
+    assert {:error, source_station_calendar_review_report} =
+             Schema.validate_artifact(invalid_source_station_calendar_review)
+
+    assert Enum.any?(
+             source_station_calendar_review_report["errors"],
+             &(&1["path"] == "$.rows[0].source_station_calendar_review.ground_station_id")
+           )
+
+    source_feedback_row =
+      read_json!("study_results/operator_review_package_v1.json")
+      |> Map.fetch!("rows")
+      |> Enum.find(&(&1["review_type"] == "realized_feedback"))
+      |> Map.fetch!("source_feedback")
+
+    manifest_with_feedback_source =
+      put_in(manifest, ["rows", Access.at(0), "source_feedback"], source_feedback_row)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest_with_feedback_source)
+
+    invalid_source_feedback =
+      put_in(
+        manifest_with_feedback_source,
+        ["rows", Access.at(0), "source_feedback", "activity_id"],
+        "activity with spaces"
+      )
+
+    assert {:error, source_feedback_report} = Schema.validate_artifact(invalid_source_feedback)
+
+    assert Enum.any?(
+             source_feedback_report["errors"],
+             &(&1["path"] == "$.rows[0].source_feedback.activity_id")
+           )
+
+    invalid_source_feedback_factor =
+      put_in(
+        manifest_with_feedback_source,
+        ["rows", Access.at(0), "source_feedback", "command_success_factor"],
+        -0.1
+      )
+
+    assert {:error, source_feedback_factor_report} =
+             Schema.validate_artifact(invalid_source_feedback_factor)
+
+    assert Enum.any?(
+             source_feedback_factor_report["errors"],
+             &(&1["path"] == "$.rows[0].source_feedback.command_success_factor")
+           )
+
+    invalid_source_feedback_quality =
+      put_in(
+        manifest_with_feedback_source,
+        ["rows", Access.at(0), "source_feedback", "cloud_cover_fraction"],
+        1.2
+      )
+
+    assert {:error, source_feedback_quality_report} =
+             Schema.validate_artifact(invalid_source_feedback_quality)
+
+    assert Enum.any?(
+             source_feedback_quality_report["errors"],
+             &(&1["path"] == "$.rows[0].source_feedback.cloud_cover_fraction")
+           )
+
+    invalid_row_quality_fraction =
+      put_in(manifest_with_feedback_source, ["rows", Access.at(0), "blur_score"], -0.1)
+
+    assert {:error, row_quality_fraction_report} =
+             Schema.validate_artifact(invalid_row_quality_fraction)
+
+    assert Enum.any?(
+             row_quality_fraction_report["errors"],
+             &(&1["path"] == "$.rows[0].blur_score")
+           )
+
+    invalid_row_image_quality_score =
+      put_in(manifest_with_feedback_source, ["rows", Access.at(0), "image_quality_score"], 1.2)
+
+    assert {:error, row_image_quality_score_report} =
+             Schema.validate_artifact(invalid_row_image_quality_score)
+
+    assert Enum.any?(
+             row_image_quality_score_report["errors"],
+             &(&1["path"] == "$.rows[0].image_quality_score")
+           )
+
+    invalid_row_observation_quality_handoff =
+      manifest_with_feedback_source
+      |> put_in(["rows", Access.at(0), "image_quality_score_delta"], "worse")
+      |> put_in(["rows", Access.at(0), "blur_score_delta"], "blurrier")
+      |> put_in(["rows", Access.at(0), "realized_image_quality_status"], 42)
+      |> put_in(["rows", Access.at(0), "image_quality_source"], 42)
+
+    assert {:error, row_observation_quality_handoff_report} =
+             Schema.validate_artifact(invalid_row_observation_quality_handoff)
+
+    assert Enum.any?(
+             row_observation_quality_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].image_quality_score_delta")
+           )
+
+    assert Enum.any?(
+             row_observation_quality_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].blur_score_delta")
+           )
+
+    assert Enum.any?(
+             row_observation_quality_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].realized_image_quality_status")
+           )
+
+    assert Enum.any?(
+             row_observation_quality_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].image_quality_source")
+           )
+
+    invalid_row_feedback_maneuver_handoff =
+      manifest_with_feedback_source
+      |> put_in(["rows", Access.at(0), "feedback_weight"], -0.1)
+      |> put_in(["rows", Access.at(0), "feedback_weight_source"], 42)
+      |> put_in(["rows", Access.at(0), "maneuver_success"], "yes")
+      |> put_in(["rows", Access.at(0), "maneuver_result"], 42)
+      |> put_in(["rows", Access.at(0), "maneuver_success_factor"], 1.2)
+      |> put_in(["rows", Access.at(0), "maneuver_success_factor_source"], 42)
+
+    assert {:error, row_feedback_maneuver_handoff_report} =
+             Schema.validate_artifact(invalid_row_feedback_maneuver_handoff)
+
+    for field <- [
+          "feedback_weight",
+          "feedback_weight_source",
+          "maneuver_success",
+          "maneuver_result",
+          "maneuver_success_factor",
+          "maneuver_success_factor_source"
+        ] do
+      assert Enum.any?(
+               row_feedback_maneuver_handoff_report["errors"],
+               &(&1["path"] == "$.rows[0].#{field}")
+             )
+    end
+
+    invalid_row_eclipse_lighting_handoff =
+      manifest_with_feedback_source
+      |> put_in(["rows", Access.at(0), "planned_eclipse_overlap_s"], "long")
+      |> put_in(["rows", Access.at(0), "realized_lighting_condition"], 42)
+      |> put_in(["rows", Access.at(0), "lighting_confidence"], "high")
+
+    assert {:error, row_eclipse_lighting_handoff_report} =
+             Schema.validate_artifact(invalid_row_eclipse_lighting_handoff)
+
+    assert Enum.any?(
+             row_eclipse_lighting_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].planned_eclipse_overlap_s")
+           )
+
+    assert Enum.any?(
+             row_eclipse_lighting_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].realized_lighting_condition")
+           )
+
+    assert Enum.any?(
+             row_eclipse_lighting_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].lighting_confidence")
+           )
+
+    invalid_row_link_error_rate =
+      put_in(manifest_with_feedback_source, ["rows", Access.at(0), "packet_loss_rate"], 1.2)
+
+    assert {:error, row_link_error_rate_report} =
+             Schema.validate_artifact(invalid_row_link_error_rate)
+
+    assert Enum.any?(
+             row_link_error_rate_report["errors"],
+             &(&1["path"] == "$.rows[0].packet_loss_rate")
+           )
+
+    invalid_row_link_handoff =
+      manifest_with_feedback_source
+      |> put_in(["rows", Access.at(0), "link_protocol"], 42)
+      |> put_in(["rows", Access.at(0), "data_rate_delta_mbps"], "slow")
+      |> put_in(["rows", Access.at(0), "carrier_lock"], "locked")
+
+    assert {:error, row_link_handoff_report} =
+             Schema.validate_artifact(invalid_row_link_handoff)
+
+    assert Enum.any?(
+             row_link_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].link_protocol")
+           )
+
+    assert Enum.any?(
+             row_link_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].data_rate_delta_mbps")
+           )
+
+    assert Enum.any?(
+             row_link_handoff_report["errors"],
+             &(&1["path"] == "$.rows[0].carrier_lock")
+           )
+
+    invalid_review_copy_lineage =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "source_window_id" => "window_1",
+        "source_window_lineage" => %{
+          "candidate_activity_id" => "review copy candidate with spaces",
+          "source_window_id" => "window_1",
+          "source_window_type" => "downlink",
+          "scenario_id" => "leo_1"
+        }
+      })
+
+    assert {:error, review_copy_lineage_report} =
+             Schema.validate_artifact(invalid_review_copy_lineage)
+
+    assert Enum.any?(
+             review_copy_lineage_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_review_row.source_window_lineage.candidate_activity_id")
+           )
+
+    invalid_review_copy_delta =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "source_delta" => %{
+          "activity_id" => "review copy activity with spaces",
+          "activity_type" => "downlink",
+          "status" => "changed",
+          "repair_action" => "moved"
+        }
+      })
+
+    assert {:error, review_copy_delta_report} =
+             Schema.validate_artifact(invalid_review_copy_delta)
+
+    assert Enum.any?(
+             review_copy_delta_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.source_delta.activity_id")
+           )
+
+    invalid_review_copy_requirement =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "source_requirement" => %{
+          "activity_id" => "review copy activity with spaces",
+          "activity_type" => "downlink",
+          "action" => "approve_contact",
+          "reason" => "operator review"
+        }
+      })
+
+    assert {:error, review_copy_requirement_report} =
+             Schema.validate_artifact(invalid_review_copy_requirement)
+
+    assert Enum.any?(
+             review_copy_requirement_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.source_requirement.activity_id")
+           )
+
+    invalid_review_copy_policy_decision =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "source_policy_decision" => %{
+          "schema_contract" => "policy_decision.v1",
+          "classification" => "maybe"
+        }
+      })
+
+    assert {:error, review_copy_policy_decision_report} =
+             Schema.validate_artifact(invalid_review_copy_policy_decision)
+
+    assert Enum.any?(
+             review_copy_policy_decision_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_review_row.source_policy_decision.classification")
+           )
+
+    invalid_review_copy_policy_escalation =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "source_policy_escalation" => %{"rule_id" => "rule with spaces"}
+      })
+
+    assert {:error, review_copy_policy_escalation_report} =
+             Schema.validate_artifact(invalid_review_copy_policy_escalation)
+
+    assert Enum.any?(
+             review_copy_policy_escalation_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.source_policy_escalation.rule_id")
+           )
+
+    invalid_review_copy_resource_suppression =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "source_resource_suppression" => %{
+          "id" => "resource suppression with spaces",
+          "type" => "observe",
+          "scenario_id" => "leo_1",
+          "suppressed_reason" => "payload_unavailable"
+        }
+      })
+
+    assert {:error, review_copy_resource_suppression_report} =
+             Schema.validate_artifact(invalid_review_copy_resource_suppression)
+
+    assert Enum.any?(
+             review_copy_resource_suppression_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.source_resource_suppression.id")
+           )
+
+    invalid_review_copy_link_capacity =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "source_link_capacity" => %{
+          "ground_station_id" => "station with spaces",
+          "contact_count" => 1,
+          "selected_contact_count" => 0,
+          "estimated_throughput_mb" => 1.0,
+          "selected_estimated_throughput_mb" => 0.0,
+          "contact_ids" => ["contact_1"],
+          "selected_contact_ids" => []
+        }
+      })
+
+    assert {:error, review_copy_link_capacity_report} =
+             Schema.validate_artifact(invalid_review_copy_link_capacity)
+
+    assert Enum.any?(
+             review_copy_link_capacity_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.source_link_capacity.ground_station_id")
+           )
+
+    invalid_review_copy_capacity_range =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "capacity_fraction_min" => -0.1,
+        "capacity_fraction_max" => 1.2
+      })
+
+    assert {:error, review_copy_capacity_range_report} =
+             Schema.validate_artifact(invalid_review_copy_capacity_range)
+
+    assert Enum.any?(
+             review_copy_capacity_range_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.capacity_fraction_min")
+           )
+
+    assert Enum.any?(
+             review_copy_capacity_range_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.capacity_fraction_max")
+           )
+
+    invalid_review_copy_timeline_diff =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "source_timeline_diff" =>
+          Map.put(source_timeline_diff_row, "timeline_id", "timeline with spaces")
+      })
+
+    assert {:error, review_copy_timeline_diff_report} =
+             Schema.validate_artifact(invalid_review_copy_timeline_diff)
+
+    assert Enum.any?(
+             review_copy_timeline_diff_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.source_timeline_diff.timeline_id")
+           )
+
+    invalid_review_copy_command_window =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "source_command_window" =>
+          Map.put(command_window_row, "ground_station_id", "station with spaces")
+      })
+
+    assert {:error, review_copy_command_window_report} =
+             Schema.validate_artifact(invalid_review_copy_command_window)
+
+    assert Enum.any?(
+             review_copy_command_window_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_review_row.source_command_window.ground_station_id")
+           )
+
+    invalid_review_copy_maneuver_review =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "source_maneuver_review" =>
+          Map.put(maneuver_review_row, "maneuver_id", "maneuver with spaces")
+      })
+
+    assert {:error, review_copy_maneuver_review_report} =
+             Schema.validate_artifact(invalid_review_copy_maneuver_review)
+
+    assert Enum.any?(
+             review_copy_maneuver_review_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.source_maneuver_review.maneuver_id")
+           )
+
+    invalid_review_copy_ranking_comparison =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "source_ranking_comparison" =>
+          Map.put(ranking_comparison_row, "scenario_id", "scenario with spaces")
+      })
+
+    assert {:error, review_copy_ranking_comparison_report} =
+             Schema.validate_artifact(invalid_review_copy_ranking_comparison)
+
+    assert Enum.any?(
+             review_copy_ranking_comparison_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.source_ranking_comparison.scenario_id")
+           )
+
+    invalid_review_copy_contention_group =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "source_contention_group" =>
+          Map.put(contention_group, "ground_station_id", "station with spaces")
+      })
+
+    assert {:error, review_copy_contention_group_report} =
+             Schema.validate_artifact(invalid_review_copy_contention_group)
+
+    assert Enum.any?(
+             review_copy_contention_group_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_review_row.source_contention_group.ground_station_id")
+           )
+
+    invalid_review_copy_station_calendar_review =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "source_station_calendar_review" =>
+          Map.put(station_calendar_contact, "ground_station_id", "station with spaces")
+      })
+
+    assert {:error, review_copy_station_calendar_review_report} =
+             Schema.validate_artifact(invalid_review_copy_station_calendar_review)
+
+    assert Enum.any?(
+             review_copy_station_calendar_review_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_review_row.source_station_calendar_review.ground_station_id")
+           )
+
+    invalid_review_copy_feedback =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "source_feedback" => Map.put(source_feedback_row, "activity_id", "activity with spaces")
+      })
+
+    assert {:error, review_copy_feedback_report} =
+             Schema.validate_artifact(invalid_review_copy_feedback)
+
+    assert Enum.any?(
+             review_copy_feedback_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.source_feedback.activity_id")
+           )
+
+    invalid_review_copy_feedback_factor =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "source_feedback" => Map.put(source_feedback_row, "observation_success_factor", 1.2)
+      })
+
+    assert {:error, review_copy_feedback_factor_report} =
+             Schema.validate_artifact(invalid_review_copy_feedback_factor)
+
+    assert Enum.any?(
+             review_copy_feedback_factor_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_review_row.source_feedback.observation_success_factor")
+           )
+
+    invalid_review_copy_feedback_quality =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "source_feedback" => Map.put(source_feedback_row, "planned_cloud_cover_fraction", -0.1)
+      })
+
+    assert {:error, review_copy_feedback_quality_report} =
+             Schema.validate_artifact(invalid_review_copy_feedback_quality)
+
+    assert Enum.any?(
+             review_copy_feedback_quality_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_review_row.source_feedback.planned_cloud_cover_fraction")
+           )
+
+    invalid_review_copy_quality_fraction =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "realized_blur_score" => 1.3
+      })
+
+    assert {:error, review_copy_quality_fraction_report} =
+             Schema.validate_artifact(invalid_review_copy_quality_fraction)
+
+    assert Enum.any?(
+             review_copy_quality_fraction_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.realized_blur_score")
+           )
+
+    invalid_review_copy_image_quality_score =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "planned_image_quality_score" => -0.1
+      })
+
+    assert {:error, review_copy_image_quality_score_report} =
+             Schema.validate_artifact(invalid_review_copy_image_quality_score)
+
+    assert Enum.any?(
+             review_copy_image_quality_score_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.planned_image_quality_score")
+           )
+
+    invalid_review_copy_link_error_rate =
+      put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
+        "planned_packet_loss_rate" => 1.2
+      })
+
+    assert {:error, review_copy_link_error_rate_report} =
+             Schema.validate_artifact(invalid_review_copy_link_error_rate)
+
+    assert Enum.any?(
+             review_copy_link_error_rate_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.planned_packet_loss_rate")
+           )
+  end
+
+  test "validates checked-in operational policy examples" do
+    policy_bundle = read_json!("study_results/policy_bundle_v1.json")
+    policy_decision = read_json!("study_results/policy_decision_v1.json")
+
+    assert {:ok, %{"schema_contract" => "policy_bundle.v1"}} =
+             Schema.validate_artifact(policy_bundle)
+
+    assert {:ok, policy_bundle_schema} = Schema.json_schema("policy_bundle.v1")
+
+    assert get_in(policy_bundle_schema, ["properties", "model_limits", "items", "enum"]) ==
+             policy_model_limits()
+
+    stale_bundle_limits = Map.put(policy_bundle, "model_limits", ["stale_policy_boundary"])
+
+    assert {:error, bundle_limits_report} = Schema.validate_artifact(stale_bundle_limits)
+    assert Enum.any?(bundle_limits_report["errors"], &(&1["path"] == "$.model_limits"))
+
+    assert %{
+             "id" => "mission_ops_escalation_v1",
+             "approval_policy" => %{
+               "action_rules" => action_rules
+             }
+           } = policy_bundle
+
+    assert Enum.map(action_rules, & &1["id"]) ==
+             Policy.bundle!("mission_ops_escalation_v1")
+             |> get_in(["approval_policy", "action_rules"])
+             |> Enum.map(& &1["id"])
+
+    assert Enum.any?(
+             action_rules,
+             &(&1["id"] == "reserved_station_contact_escalation" and
+                 &1["station_contention_statuses"] == ["reserved_overlap"] and
+                 &1["required_authority"] == "contact_schedule_authority")
+           )
+
+    assert Enum.any?(
+             action_rules,
+             &(&1["id"] == "strategic_priority_escalation" and
+                 &1["required_authority"] == "mission_planning_authority")
+           )
+
+    assert Enum.any?(
+             action_rules,
+             &(&1["id"] == "downlink_loss_director_escalation" and
+                 &1["classification"] == "blocked_by_policy" and
+                 &1["escalation_level"] == "flight_director")
+           )
+
+    assert {:ok, %{"schema_contract" => "policy_decision.v1"}} =
+             Schema.validate_artifact(policy_decision)
+
+    assert {:ok, policy_decision_schema} = Schema.json_schema("policy_decision.v1")
+
+    assert get_in(policy_decision_schema, ["properties", "assumptions", "type"]) == "object"
+
+    assert get_in(policy_decision_schema, ["properties", "model_limits", "items", "enum"]) ==
+             policy_model_limits()
+
+    assert get_in(policy_decision_schema, [
+             "properties",
+             "approval_requirement_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(policy_decision_schema, ["properties", "risk_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    stale_decision_limits = Map.put(policy_decision, "model_limits", ["stale_policy_boundary"])
+
+    assert {:error, decision_limits_report} = Schema.validate_artifact(stale_decision_limits)
+    assert Enum.any?(decision_limits_report["errors"], &(&1["path"] == "$.model_limits"))
+
+    invalid_decision_counts =
+      policy_decision
+      |> Map.put("approval_requirement_count", 1.0)
+      |> Map.put("risk_count", -1)
+
+    assert {:error, decision_count_report} = Schema.validate_artifact(invalid_decision_counts)
+
+    assert Enum.any?(
+             decision_count_report["errors"],
+             &(&1["path"] == "$.approval_requirement_count")
+           )
+
+    assert Enum.any?(decision_count_report["errors"], &(&1["path"] == "$.risk_count"))
+
+    assert %{
+             "classification" => "operator_review_required",
+             "policy_bundle_id" => "mission_ops_escalation_v1",
+             "rule_matches" => [
+               %{
+                 "rule_id" => "contact_execution_coordination",
+                 "ground_station_id" => "equator_prime",
+                 "required_authority" => "contact_schedule_authority"
+               }
+             ],
+             "escalations" => [%{"sla_s" => 1800}]
+           } = policy_decision
+  end
+
+  test "validates standalone repair and strategy decision contracts" do
+    repair = repair_artifact()
+    strategy = strategy_artifact(repair)
+
+    plan_delta = List.first(repair["deltas"])
+
+    approval_requirement = %{
+      "schema_contract" => "approval_requirement.v1",
+      "activity_id" => "dl_1",
+      "activity_type" => "downlink",
+      "requirement_type" => "contact_schedule_change",
+      "action" => "approve_moved_contact",
+      "reason" => "operator_review_boundary"
+    }
+
+    assert {:ok, %{"schema_contract" => "plan_delta.v1"}} =
+             Schema.validate_artifact(plan_delta)
+
+    fixture_plan_delta = read_json!("study_results/plan_delta_v1.json")
+
+    assert {:ok, %{"schema_contract" => "plan_delta.v1"}} =
+             Schema.validate_artifact(fixture_plan_delta)
+
+    invalid_planned_delta =
+      put_in(fixture_plan_delta, ["planned", "target_id"], "target id with spaces")
+
+    assert {:error, invalid_planned_delta_report} =
+             Schema.validate_artifact(invalid_planned_delta)
+
+    assert Enum.any?(
+             invalid_planned_delta_report["errors"],
+             &(&1["path"] == "$.planned.target_id")
+           )
+
+    invalid_realized_delta =
+      put_in(fixture_plan_delta, ["realized", "completed_fraction"], 1.2)
+
+    assert {:error, invalid_realized_delta_report} =
+             Schema.validate_artifact(invalid_realized_delta)
+
+    assert Enum.any?(
+             invalid_realized_delta_report["errors"],
+             &(&1["path"] == "$.realized.completed_fraction")
+           )
+
+    assert {:ok, %{"schema_contract" => "approval_requirement.v1"}} =
+             Schema.validate_artifact(approval_requirement)
+
+    fixture_requirement = read_json!("study_results/approval_requirement_v1.json")
+
+    assert {:ok, %{"schema_contract" => "approval_requirement.v1"}} =
+             Schema.validate_artifact(fixture_requirement)
+
+    invalid_requirement = Map.put(approval_requirement, "requirement_type", "ambiguous")
+
+    assert {:error, invalid_requirement_report} = Schema.validate_artifact(invalid_requirement)
+
+    assert Enum.any?(
+             invalid_requirement_report["errors"],
+             &(&1["path"] == "$.requirement_type")
+           )
+
+    invalid_policy_requirement =
+      Map.put(fixture_requirement, "policy_classification", "maybe")
+
+    assert {:error, invalid_policy_requirement_report} =
+             Schema.validate_artifact(invalid_policy_requirement)
+
+    assert Enum.any?(
+             invalid_policy_requirement_report["errors"],
+             &(&1["path"] == "$.policy_classification")
+           )
+
+    invalid_context_objective_id =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "observation_objective_ids"],
+        ["obs:valid", "bad objective id"]
+      )
+
+    assert {:error, invalid_context_report} =
+             Schema.validate_artifact(invalid_context_objective_id)
+
+    assert Enum.any?(
+             invalid_context_report["errors"],
+             &(&1["path"] == "$.activity_context.observation_objective_ids[1]")
+           )
+
+    invalid_context_objective_ids =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "objective_ids"],
+        ["objective:valid", "bad objective id"]
+      )
+
+    assert {:error, invalid_context_objective_ids_report} =
+             Schema.validate_artifact(invalid_context_objective_ids)
+
+    assert Enum.any?(
+             invalid_context_objective_ids_report["errors"],
+             &(&1["path"] == "$.activity_context.objective_ids[1]")
+           )
+
+    invalid_context_selector_id =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "collection_ids"],
+        ["collection:valid", "bad collection id"]
+      )
+
+    assert {:error, invalid_context_selector_report} =
+             Schema.validate_artifact(invalid_context_selector_id)
+
+    assert Enum.any?(
+             invalid_context_selector_report["errors"],
+             &(&1["path"] == "$.activity_context.collection_ids[1]")
+           )
+
+    invalid_context_count =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "collection_latency_objective_count"],
+        -1
+      )
+
+    assert {:error, invalid_context_count_report} =
+             Schema.validate_artifact(invalid_context_count)
+
+    assert Enum.any?(
+             invalid_context_count_report["errors"],
+             &(&1["path"] == "$.activity_context.collection_latency_objective_count")
+           )
+
+    invalid_context_station_id =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "station_calendar_provider_entry_id"],
+        "bad provider entry id"
+      )
+
+    assert {:error, invalid_context_station_id_report} =
+             Schema.validate_artifact(invalid_context_station_id)
+
+    assert Enum.any?(
+             invalid_context_station_id_report["errors"],
+             &(&1["path"] == "$.activity_context.station_calendar_provider_entry_id")
+           )
+
+    invalid_context_source_event_id =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "source_event_id"],
+        "bad source event id"
+      )
+
+    assert {:error, invalid_context_source_event_id_report} =
+             Schema.validate_artifact(invalid_context_source_event_id)
+
+    assert Enum.any?(
+             invalid_context_source_event_id_report["errors"],
+             &(&1["path"] == "$.activity_context.source_event_id")
+           )
+
+    invalid_context_source_event_provenance =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "source_event_provenance"],
+        "opaque provenance"
+      )
+
+    assert {:error, invalid_context_source_event_provenance_report} =
+             Schema.validate_artifact(invalid_context_source_event_provenance)
+
+    assert Enum.any?(
+             invalid_context_source_event_provenance_report["errors"],
+             &(&1["path"] == "$.activity_context.source_event_provenance")
+           )
+
+    invalid_context_source_event_trust_boundary =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "source_event_provenance"],
+        %{"trust_boundary" => ["operator_supplied"]}
+      )
+
+    assert {:error, invalid_context_source_event_trust_boundary_report} =
+             Schema.validate_artifact(invalid_context_source_event_trust_boundary)
+
+    assert Enum.any?(
+             invalid_context_source_event_trust_boundary_report["errors"],
+             &(&1["path"] == "$.activity_context.source_event_provenance.trust_boundary")
+           )
+
+    invalid_context_score_terms =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "score_terms"],
+        %{"activity_score" => "high"}
+      )
+
+    assert {:error, invalid_context_score_terms_report} =
+             Schema.validate_artifact(invalid_context_score_terms)
+
+    assert Enum.any?(
+             invalid_context_score_terms_report["errors"],
+             &(&1["path"] == "$.activity_context.score_terms.activity_score")
+           )
+
+    invalid_context_throughput_derivation =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "actual_data_rate_throughput_derivation"],
+        %{"actual_data_rate_mbps" => "fast"}
+      )
+
+    assert {:error, invalid_context_throughput_derivation_report} =
+             Schema.validate_artifact(invalid_context_throughput_derivation)
+
+    assert Enum.any?(
+             invalid_context_throughput_derivation_report["errors"],
+             &(&1["path"] ==
+                 "$.activity_context.actual_data_rate_throughput_derivation.actual_data_rate_mbps")
+           )
+
+    invalid_context_source_window =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "source_window"],
+        "opaque window"
+      )
+
+    assert {:error, invalid_context_source_window_report} =
+             Schema.validate_artifact(invalid_context_source_window)
+
+    assert Enum.any?(
+             invalid_context_source_window_report["errors"],
+             &(&1["path"] == "$.activity_context.source_window")
+           )
+
+    invalid_context_source_window_id =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "source_window"],
+        %{"id" => "bad source window id"}
+      )
+
+    assert {:error, invalid_context_source_window_id_report} =
+             Schema.validate_artifact(invalid_context_source_window_id)
+
+    assert Enum.any?(
+             invalid_context_source_window_id_report["errors"],
+             &(&1["path"] == "$.activity_context.source_window.id")
+           )
+
+    invalid_context_source_window_timing =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "source_window"],
+        %{"id" => "window:valid", "starts_at_s" => "soon"}
+      )
+
+    assert {:error, invalid_context_source_window_timing_report} =
+             Schema.validate_artifact(invalid_context_source_window_timing)
+
+    assert Enum.any?(
+             invalid_context_source_window_timing_report["errors"],
+             &(&1["path"] == "$.activity_context.source_window.starts_at_s")
+           )
+
+    invalid_context_changed_field_count =
+      fixture_requirement
+      |> put_in(["activity_context", "candidate_diff_changed_fields"], ["target_priority"])
+      |> put_in(["activity_context", "candidate_diff_changed_field_count"], 2)
+
+    assert {:error, invalid_context_changed_field_count_report} =
+             Schema.validate_artifact(invalid_context_changed_field_count)
+
+    assert Enum.any?(
+             invalid_context_changed_field_count_report["errors"],
+             &(&1["path"] == "$.activity_context.candidate_diff_changed_field_count")
+           )
+
+    invalid_context_station_overlap_id =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "station_calendar_overlap_entry_ids"],
+        ["station_calendar:valid", "bad overlap id"]
+      )
+
+    assert {:error, invalid_context_station_overlap_id_report} =
+             Schema.validate_artifact(invalid_context_station_overlap_id)
+
+    assert Enum.any?(
+             invalid_context_station_overlap_id_report["errors"],
+             &(&1["path"] == "$.activity_context.station_calendar_overlap_entry_ids[1]")
+           )
+
+    invalid_context_integrity_issue_types =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "timeline_integrity_issue_types"],
+        ["missing_dependency_activity", 42]
+      )
+
+    assert {:error, invalid_context_integrity_issue_types_report} =
+             Schema.validate_artifact(invalid_context_integrity_issue_types)
+
+    assert Enum.any?(
+             invalid_context_integrity_issue_types_report["errors"],
+             &(&1["path"] == "$.activity_context.timeline_integrity_issue_types[1]")
+           )
+
+    stale_context_integrity_issue_type =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "timeline_integrity_issue_types"],
+        ["ghost_integrity_issue"]
+      )
+
+    assert {:error, stale_context_integrity_issue_type_report} =
+             Schema.validate_artifact(stale_context_integrity_issue_type)
+
+    assert Enum.any?(
+             stale_context_integrity_issue_type_report["errors"],
+             &(&1["path"] == "$.activity_context.timeline_integrity_issue_types[0]")
+           )
+
+    invalid_context_integrity_issues =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "timeline_integrity_issues"],
+        ["opaque issue"]
+      )
+
+    assert {:error, invalid_context_integrity_issues_report} =
+             Schema.validate_artifact(invalid_context_integrity_issues)
+
+    assert Enum.any?(
+             invalid_context_integrity_issues_report["errors"],
+             &(&1["path"] == "$.activity_context.timeline_integrity_issues[0]")
+           )
+
+    invalid_context_integrity_issue_id =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "timeline_integrity_issues"],
+        [
+          %{
+            "type" => "missing_dependency_activity",
+            "missing_dependency_activity_id" => "bad dependency id"
+          }
+        ]
+      )
+
+    assert {:error, invalid_context_integrity_issue_id_report} =
+             Schema.validate_artifact(invalid_context_integrity_issue_id)
+
+    assert Enum.any?(
+             invalid_context_integrity_issue_id_report["errors"],
+             &(&1["path"] ==
+                 "$.activity_context.timeline_integrity_issues[0].missing_dependency_activity_id")
+           )
+
+    invalid_context_integrity_issue_count =
+      fixture_requirement
+      |> put_in(["activity_context", "timeline_integrity_issue_count"], 2)
+      |> put_in(["activity_context", "timeline_integrity_issue_types"], [
+        "missing_dependency_activity"
+      ])
+      |> put_in(["activity_context", "missing_dependency_activity_ids"], ["dependency:missing"])
+      |> put_in(["activity_context", "timeline_integrity_issues"], [
+        %{
+          "type" => "missing_dependency_activity",
+          "missing_dependency_activity_id" => "dependency:missing"
+        }
+      ])
+
+    assert {:error, invalid_context_integrity_issue_count_report} =
+             Schema.validate_artifact(invalid_context_integrity_issue_count)
+
+    assert Enum.any?(
+             invalid_context_integrity_issue_count_report["errors"],
+             &(&1["path"] == "$.activity_context.timeline_integrity_issue_count")
+           )
+
+    invalid_context_integrity_issue_ids =
+      fixture_requirement
+      |> put_in(["activity_context", "timeline_integrity_issue_count"], 1)
+      |> put_in(["activity_context", "timeline_integrity_issue_types"], [
+        "missing_dependency_activity"
+      ])
+      |> put_in(["activity_context", "missing_dependency_activity_ids"], ["dependency:stale"])
+      |> put_in(["activity_context", "timeline_integrity_issues"], [
+        %{
+          "type" => "missing_dependency_activity",
+          "missing_dependency_activity_id" => "dependency:missing"
+        }
+      ])
+
+    assert {:error, invalid_context_integrity_issue_ids_report} =
+             Schema.validate_artifact(invalid_context_integrity_issue_ids)
+
+    assert Enum.any?(
+             invalid_context_integrity_issue_ids_report["errors"],
+             &(&1["path"] == "$.activity_context.missing_dependency_activity_ids")
+           )
+
+    for field <- [
+          "self_dependency_activity_ids",
+          "self_dependency_timeline_ids",
+          "duplicate_dependency_activity_ids",
+          "duplicate_dependency_timeline_ids",
+          "duplicate_exclusivity_activity_ids",
+          "duplicate_exclusivity_timeline_ids"
+        ] do
+      invalid_context_timeline_integrity_id =
+        put_in(
+          fixture_requirement,
+          ["activity_context", field],
+          ["timeline_integrity:valid", "bad #{field}"]
+        )
+
+      assert {:error, invalid_context_timeline_integrity_id_report} =
+               Schema.validate_artifact(invalid_context_timeline_integrity_id)
+
+      assert Enum.any?(
+               invalid_context_timeline_integrity_id_report["errors"],
+               &(&1["path"] == "$.activity_context.#{field}[1]")
+             )
+    end
+
+    invalid_context_overlap_count =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "station_calendar_reservation_overlap_count"],
+        -1
+      )
+
+    assert {:error, invalid_context_overlap_count_report} =
+             Schema.validate_artifact(invalid_context_overlap_count)
+
+    assert Enum.any?(
+             invalid_context_overlap_count_report["errors"],
+             &(&1["path"] == "$.activity_context.station_calendar_reservation_overlap_count")
+           )
+
+    invalid_context_success_factor =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "contact_success_factor"],
+        1.2
+      )
+
+    assert {:error, invalid_context_success_factor_report} =
+             Schema.validate_artifact(invalid_context_success_factor)
+
+    assert Enum.any?(
+             invalid_context_success_factor_report["errors"],
+             &(&1["path"] == "$.activity_context.contact_success_factor")
+           )
+
+    invalid_context_resource_margin =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "storage_margin"],
+        -0.1
+      )
+
+    assert {:error, invalid_context_resource_margin_report} =
+             Schema.validate_artifact(invalid_context_resource_margin)
+
+    assert Enum.any?(
+             invalid_context_resource_margin_report["errors"],
+             &(&1["path"] == "$.activity_context.storage_margin")
+           )
+
+    invalid_context_blur_score =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "blur_score"],
+        1.2
+      )
+
+    assert {:error, invalid_context_blur_score_report} =
+             Schema.validate_artifact(invalid_context_blur_score)
+
+    assert Enum.any?(
+             invalid_context_blur_score_report["errors"],
+             &(&1["path"] == "$.activity_context.blur_score")
+           )
+
+    invalid_context_image_quality_score =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "image_quality_score"],
+        1.2
+      )
+
+    assert {:error, invalid_context_image_quality_score_report} =
+             Schema.validate_artifact(invalid_context_image_quality_score)
+
+    assert Enum.any?(
+             invalid_context_image_quality_score_report["errors"],
+             &(&1["path"] == "$.activity_context.image_quality_score")
+           )
+
+    valid_context_lighting_confidence =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "lighting_confidence"],
+        "bounded_by_sampled_eclipse_overlap"
+      )
+
+    assert {:ok, %{"schema_contract" => "approval_requirement.v1"}} =
+             Schema.validate_artifact(valid_context_lighting_confidence)
+
+    valid_numeric_context_lighting_confidence =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "lighting_confidence"],
+        0.72
+      )
+
+    assert {:ok, %{"schema_contract" => "approval_requirement.v1"}} =
+             Schema.validate_artifact(valid_numeric_context_lighting_confidence)
+
+    invalid_context_lighting_confidence =
+      put_in(
+        fixture_requirement,
+        ["activity_context", "lighting_confidence"],
+        %{"label" => "bounded_by_sampled_eclipse_overlap"}
+      )
+
+    assert {:error, invalid_context_lighting_confidence_report} =
+             Schema.validate_artifact(invalid_context_lighting_confidence)
+
+    assert Enum.any?(
+             invalid_context_lighting_confidence_report["errors"],
+             &(&1["path"] == "$.activity_context.lighting_confidence")
+           )
+
+    assert {:ok, approval_requirement_schema} = Schema.json_schema("approval_requirement.v1")
+
+    assert get_in(approval_requirement_schema, ["properties", "rule_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(approval_requirement_schema, ["properties", "activity_context", "type"]) ==
+             "object"
+
+    assert get_in(approval_requirement_schema, [
+             "properties",
+             "activity_context",
+             "properties",
+             "station_calendar_overlap_entry_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    for field <- [
+          "target_ids",
+          "objective_ids",
+          "collection_ids",
+          "product_ids",
+          "payload_ids",
+          "instrument_ids",
+          "self_dependency_activity_ids",
+          "self_dependency_timeline_ids",
+          "duplicate_dependency_activity_ids",
+          "duplicate_dependency_timeline_ids",
+          "duplicate_exclusivity_activity_ids",
+          "duplicate_exclusivity_timeline_ids"
+        ] do
+      assert get_in(approval_requirement_schema, [
+               "properties",
+               "activity_context",
+               "properties",
+               field,
+               "items",
+               "pattern"
+             ]) == Schema.identity_policy()["stable_id_pattern"]
+    end
+
+    assert get_in(approval_requirement_schema, [
+             "properties",
+             "activity_context",
+             "properties",
+             "objective_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    for field <- ["source_event_id", "source_branch_id", "source_timeline_id"] do
+      assert get_in(approval_requirement_schema, [
+               "properties",
+               "activity_context",
+               "properties",
+               field,
+               "pattern"
+             ]) == Schema.identity_policy()["stable_id_pattern"]
+    end
+
+    assert get_in(approval_requirement_schema, [
+             "properties",
+             "activity_context",
+             "properties",
+             "source_event_type",
+             "type"
+           ]) == "string"
+
+    assert get_in(approval_requirement_schema, [
+             "properties",
+             "activity_context",
+             "properties",
+             "source_event_provenance",
+             "type"
+           ]) == "object"
+
+    assert get_in(approval_requirement_schema, [
+             "properties",
+             "activity_context",
+             "properties",
+             "lighting_confidence",
+             "type"
+           ]) == ["number", "string"]
+
+    assert get_in(approval_requirement_schema, [
+             "properties",
+             "activity_context",
+             "properties",
+             "source_event_provenance",
+             "properties",
+             "trust_boundary",
+             "type"
+           ]) == "string"
+
+    assert get_in(approval_requirement_schema, [
+             "properties",
+             "activity_context",
+             "properties",
+             "score_terms",
+             "additionalProperties",
+             "type"
+           ]) == "number"
+
+    assert get_in(approval_requirement_schema, [
+             "properties",
+             "activity_context",
+             "properties",
+             "actual_data_rate_throughput_derivation",
+             "properties",
+             "actual_throughput_mb",
+             "type"
+           ]) == "number"
+
+    assert get_in(approval_requirement_schema, [
+             "properties",
+             "activity_context",
+             "properties",
+             "source_window",
+             "properties",
+             "id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(approval_requirement_schema, [
+             "properties",
+             "activity_context",
+             "properties",
+             "source_window",
+             "properties",
+             "starts_at_s",
+             "type"
+           ]) == "number"
+
+    assert get_in(approval_requirement_schema, [
+             "properties",
+             "activity_context",
+             "properties",
+             "candidate_diff_changed_field_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(approval_requirement_schema, [
+             "properties",
+             "activity_context",
+             "properties",
+             "objective_type",
+             "type"
+           ]) == "string"
+
+    assert get_in(approval_requirement_schema, [
+             "properties",
+             "activity_context",
+             "properties",
+             "station_calendar_reservation_overlap_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(approval_requirement_schema, [
+             "properties",
+             "activity_context",
+             "properties",
+             "contact_success_factor",
+             "maximum"
+           ]) == 1.0
+
+    assert get_in(approval_requirement_schema, [
+             "properties",
+             "activity_context",
+             "properties",
+             "blur_score",
+             "maximum"
+           ]) == 1.0
+
+    assert get_in(approval_requirement_schema, [
+             "properties",
+             "activity_context",
+             "properties",
+             "storage_margin",
+             "maximum"
+           ]) == 1.0
+
+    assert get_in(approval_requirement_schema, [
+             "properties",
+             "approval_rule_matches",
+             "items",
+             "properties",
+             "rule_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert {:ok, policy_decision_schema} = Schema.json_schema("policy_decision.v1")
+    assert {:ok, policy_bundle_schema} = Schema.json_schema("policy_bundle.v1")
+
+    policy_decision_match_properties =
+      get_in(policy_decision_schema, ["properties", "rule_matches", "items", "properties"])
+
+    approval_requirement_match_properties =
+      get_in(approval_requirement_schema, [
+        "properties",
+        "approval_rule_matches",
+        "items",
+        "properties"
+      ])
+
+    policy_action_rule_properties =
+      get_in(policy_bundle_schema, [
+        "properties",
+        "approval_policy",
+        "properties",
+        "action_rules",
+        "items",
+        "properties"
+      ])
+
+    policy_context_array_fields = [
+      "spacecraft_ids",
+      "target_ids",
+      "ground_station_ids",
+      "directions",
+      "station_availabilities",
+      "station_contention_statuses",
+      "station_reservation_ids",
+      "station_reserved_bys",
+      "station_reservation_statuses",
+      "station_reservation_match_statuses",
+      "station_calendar_reserved_bys",
+      "station_calendar_reservation_statuses",
+      "station_calendar_ambiguous_entry_ids",
+      "station_calendar_trust_boundary_statuses",
+      "station_calendar_directions",
+      "resource_scopes",
+      "selection_reasons",
+      "selected_priority_sources",
+      "resolution_statuses",
+      "resolution_issues",
+      "required_operator_actions",
+      "operator_action_reasons",
+      "allocation_statuses",
+      "effective_allocation_statuses",
+      "allocation_reasons",
+      "suppressed_reasons",
+      "resource_blocking_dimensions",
+      "transition_decisions",
+      "application_statuses",
+      "planned_protection_decisions",
+      "planned_protection_categories",
+      "timeline_integrity_statuses",
+      "source_timeline_integrity_statuses",
+      "replacement_timeline_integrity_statuses",
+      "source_protection_decisions",
+      "source_protection_categories",
+      "replacement_protection_decisions",
+      "replacement_protection_categories",
+      "resource_pressure_statuses",
+      "resource_pressure_types",
+      "resource_source_qualities",
+      "resource_trust_boundaries",
+      "resource_trust_boundary_statuses",
+      "first_resource_pressure_kinds",
+      "feedback_sources",
+      "feedback_scopes",
+      "trust_boundaries",
+      "source_event_types"
+    ]
+
+    Enum.each(policy_context_array_fields, fn field ->
+      assert Map.has_key?(policy_decision_match_properties, field)
+      assert Map.has_key?(approval_requirement_match_properties, field)
+      assert Map.has_key?(policy_action_rule_properties, field)
+    end)
+
+    Enum.each(
+      [
+        "station_calendar_provider_ids",
+        "station_calendar_provider_entry_ids",
+        "station_calendar_reservation_ids",
+        "review_queues",
+        "review_queue_keys"
+      ],
+      fn field ->
+        assert Map.has_key?(policy_decision_match_properties, field)
+        assert Map.has_key?(approval_requirement_match_properties, field)
+        assert Map.has_key?(policy_action_rule_properties, field)
+      end
+    )
+
+    assert get_in(policy_decision_match_properties, ["station_calendar_entry_ambiguous", "type"]) ==
+             "boolean"
+
+    assert get_in(policy_decision_match_properties, ["station_calendar_reserved_by", "type"]) == [
+             "string",
+             "array"
+           ]
+
+    assert get_in(policy_decision_match_properties, [
+             "priority_fields_without_numeric_evidence_count",
+             "type"
+           ]) == "integer"
+
+    Enum.each(
+      [
+        "max_concurrent_contacts",
+        "overlap_contact_pair_count",
+        "station_calendar_ambiguous_entry_count",
+        "priority_fields_without_numeric_evidence_count"
+      ],
+      fn field ->
+        assert get_in(policy_decision_match_properties, [field]) == %{
+                 "type" => "integer",
+                 "minimum" => 0
+               }
+      end
+    )
+
+    assert get_in(policy_action_rule_properties, ["capacity_fraction_min", "type"]) == "number"
+    assert get_in(policy_action_rule_properties, ["capacity_fraction_max", "type"]) == "number"
+
+    assert get_in(policy_action_rule_properties, [
+             "station_calendar_ambiguous_entry_count_max",
+             "type"
+           ]) ==
+             "integer"
+
+    assert {:ok, %{"schema_contract" => "policy_decision.v1"}} =
+             Schema.validate_artifact(repair["policy_decision"])
+
+    assert {:ok, %{"schema_contract" => "strategy_recommendation.v1"}} =
+             Schema.validate_artifact(strategy["recommendation"])
+
+    invalid_decision = Map.put(repair["policy_decision"], "classification", "maybe")
+
+    assert {:error, report} = Schema.validate_artifact(invalid_decision)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.classification"))
+
+    invalid_rule_match_decision =
+      repair["policy_decision"]
+      |> Map.put("rule_matches", [
+        %{
+          "rule_id" => "bad rule id",
+          "classification" => "maybe",
+          "direction" => 42,
+          "ground_station_id" => "equator_prime",
+          "ground_station_ids" => [42],
+          "station_contention_status" => 42,
+          "station_reservation_status" => 42,
+          "station_calendar_entry_ambiguous" => "false",
+          "priority_fields_without_numeric_evidence_count" => "one",
+          "max_concurrent_contacts" => 1.0,
+          "overlap_contact_pair_count" => -1,
+          "station_calendar_ambiguous_entry_count" => -1,
+          "resource_pressure_statuses" => ["high", 42],
+          "sla_s" => "soon"
+        }
+      ])
+      |> Map.put("escalations", [
+        %{
+          "rule_id" => "bad escalation id",
+          "classification" => "operator_review_required",
+          "sla_s" => "later"
+        }
+      ])
+
+    assert {:error, rule_match_report} = Schema.validate_artifact(invalid_rule_match_decision)
+
+    assert Enum.any?(
+             rule_match_report["errors"],
+             &(&1["path"] == "$.rule_matches[0].rule_id")
+           )
+
+    assert Enum.any?(
+             rule_match_report["errors"],
+             &(&1["path"] == "$.rule_matches[0].classification")
+           )
+
+    assert Enum.any?(
+             rule_match_report["errors"],
+             &(&1["path"] == "$.rule_matches[0].direction")
+           )
+
+    assert Enum.any?(
+             rule_match_report["errors"],
+             &(&1["path"] == "$.rule_matches[0].station_contention_status")
+           )
+
+    assert Enum.any?(
+             rule_match_report["errors"],
+             &(&1["path"] == "$.rule_matches[0].station_reservation_status")
+           )
+
+    assert Enum.any?(
+             rule_match_report["errors"],
+             &(&1["path"] == "$.rule_matches[0].ground_station_ids[0]")
+           )
+
+    assert Enum.any?(
+             rule_match_report["errors"],
+             &(&1["path"] == "$.rule_matches[0].station_calendar_entry_ambiguous")
+           )
+
+    assert Enum.any?(
+             rule_match_report["errors"],
+             &(&1["path"] ==
+                 "$.rule_matches[0].priority_fields_without_numeric_evidence_count")
+           )
+
+    assert Enum.any?(
+             rule_match_report["errors"],
+             &(&1["path"] == "$.rule_matches[0].max_concurrent_contacts")
+           )
+
+    assert Enum.any?(
+             rule_match_report["errors"],
+             &(&1["path"] == "$.rule_matches[0].overlap_contact_pair_count")
+           )
+
+    assert Enum.any?(
+             rule_match_report["errors"],
+             &(&1["path"] == "$.rule_matches[0].station_calendar_ambiguous_entry_count")
+           )
+
+    assert Enum.any?(
+             rule_match_report["errors"],
+             &(&1["path"] == "$.rule_matches[0].resource_pressure_statuses[1]")
+           )
+
+    assert Enum.any?(
+             rule_match_report["errors"],
+             &(&1["path"] == "$.rule_matches[0].sla_s")
+           )
+
+    assert Enum.any?(
+             rule_match_report["errors"],
+             &(&1["path"] == "$.escalations[0].rule_id")
+           )
+
+    assert Enum.any?(
+             rule_match_report["errors"],
+             &(&1["path"] == "$.escalations[0].sla_s")
+           )
+  end
+
+  test "validates standalone maneuver recommendation contracts" do
+    maneuver = %{
+      "schema_contract" => "maneuver_recommendation.v1",
+      "id" => "trim_burn",
+      "scenario_id" => "leo_1",
+      "type" => "impulsive_burn",
+      "epoch_s" => 120.0,
+      "epoch_scale" => "tdb",
+      "frame" => "eci_j2000",
+      "delta_v_km_s" => [0.0, 0.01, 0.0],
+      "delta_v_magnitude_km_s" => 0.01,
+      "maneuver_model" => "impulsive_burns",
+      "validation_level" => "artifact_contract",
+      "model_limits" => OrbitalDynamics.ManeuverReview.recommendation_model_limits(),
+      "assumptions" => %{"execution_boundary" => "recommendation_only_no_command_execution"}
+    }
+
+    assert {:ok, %{"schema_contract" => "maneuver_recommendation.v1"}} =
+             Schema.validate_artifact(maneuver)
+
+    invalid = Map.put(maneuver, "delta_v_km_s", [0.0, 0.01])
+
+    assert {:error, report} = Schema.validate_artifact(invalid)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.delta_v_km_s"))
+
+    invalid_limits = Map.put(maneuver, "model_limits", ["stale_limit"])
+
+    assert {:error, report} = Schema.validate_artifact(invalid_limits)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.model_limits"))
+  end
+
+  test "exports maneuver delta-v vector schemas" do
+    assert {:ok, recommendation_schema} = Schema.json_schema("maneuver_recommendation.v1")
+
+    assert get_in(recommendation_schema, ["properties", "delta_v_km_s", "items", "type"]) ==
+             "number"
+
+    assert get_in(recommendation_schema, ["properties", "delta_v_km_s", "minItems"]) == 3
+    assert get_in(recommendation_schema, ["properties", "delta_v_km_s", "maxItems"]) == 3
+
+    assert get_in(recommendation_schema, [
+             "properties",
+             "delta_v_magnitude_km_s",
+             "type"
+           ]) == "number"
+
+    assert get_in(recommendation_schema, ["properties", "epoch_scale", "type"]) == "string"
+    assert get_in(recommendation_schema, ["properties", "validation_level", "type"]) == "string"
+
+    assert get_in(recommendation_schema, ["properties", "model_limits", "items", "enum"]) ==
+             OrbitalDynamics.ManeuverReview.recommendation_model_limits()
+
+    assert {:ok, review_schema} = Schema.json_schema("maneuver_review_report.v1")
+
+    assert get_in(review_schema, [
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             "delta_v_km_s",
+             "maxItems"
+           ]) == 3
+
+    assert get_in(review_schema, [
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             "execution_uncertainty_status",
+             "type"
+           ]) == "string"
+
+    assert get_in(review_schema, ["properties", "model_limits", "const"]) ==
+             maneuver_review_report_model_limits()
+
+    assert get_in(review_schema, [
+             "properties",
+             "invalid_maneuver_recommendation_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    Enum.each(
+      [
+        "maneuver_count",
+        "review_required_count",
+        "invalid_maneuver_recommendation_count",
+        "execution_uncertainty_declared_count",
+        "execution_uncertainty_missing_count"
+      ],
+      fn field ->
+        assert get_in(review_schema, ["properties", field]) == %{
+                 "type" => "integer",
+                 "minimum" => 0
+               }
+      end
+    )
+
+    review_report = read_json!("study_results/maneuver_review_report_v1.json")
+
+    invalid_review =
+      put_in(review_report, ["rows", Access.at(0), "execution_uncertainty_status"], 42)
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_review)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.rows[0].execution_uncertainty_status")
+           )
+
+    invalid_count = Map.put(review_report, "execution_uncertainty_missing_count", 99)
+
+    assert {:error, count_report} = Schema.validate_artifact(invalid_count)
+
+    assert Enum.any?(
+             count_report["errors"],
+             &(&1["path"] == "$.execution_uncertainty_missing_count")
+           )
+
+    invalid_count_shape = Map.put(review_report, "maneuver_count", 1.0)
+
+    assert {:error, count_shape_report} = Schema.validate_artifact(invalid_count_shape)
+
+    assert Enum.any?(
+             count_shape_report["errors"],
+             &(&1["path"] == "$.maneuver_count")
+           )
+
+    stale_model_limits = Map.put(review_report, "model_limits", ["no_command_execution"])
+
+    assert {:error, model_limits_report} = Schema.validate_artifact(stale_model_limits)
+
+    assert Enum.any?(
+             model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] == "must match maneuver review report model limits")
+           )
+
+    invalid_negative_count = Map.put(review_report, "invalid_maneuver_recommendation_count", -1)
+
+    assert {:error, negative_count_report} = Schema.validate_artifact(invalid_negative_count)
+
+    assert Enum.any?(
+             negative_count_report["errors"],
+             &(&1["path"] == "$.invalid_maneuver_recommendation_count")
+           )
+  end
+
+  test "validates standalone execution report contracts" do
+    report = %{
+      "schema_contract" => "execution_report.v1",
+      "study_id" => "large_monte_carlo",
+      "run_id" => "large_monte_carlo-1",
+      "status" => "completed_with_errors",
+      "execution_mode" => "distributed_task_supervisors",
+      "scenario_count" => 2000,
+      "completed_scenario_count" => 1999,
+      "failed_scenario_count" => 1,
+      "event_result_count" => 5997,
+      "model_limits" => OrbitalDynamics.ResultSet.Artifact.execution_report_model_limits(),
+      "backend" => "Elixir.OrbitalDynamics.Propagators.TwoBody",
+      "batch_propagation" => false,
+      "task_chunk_size" => 50,
+      "timeout" => 30_000,
+      "effective_task_concurrency" => 16,
+      "task_supervisor_node" => "mission_ops@node_a",
+      "task_supervisor_nodes" => ["mission_ops@node_a", "mission_ops@node_b"],
+      "execution_plan" => %{
+        "scenario_count" => 2000,
+        "task_batch_count" => 40,
+        "requested_task_chunk_size" => 50,
+        "effective_task_chunk_size" => 50,
+        "chunking_enabled" => true,
+        "wave_count" => 2,
+        "resumability" => "not_resumable"
+      },
+      "failed_scenarios" => [
+        %{
+          "scenario_id" => "trial_1842",
+          "stage" => "propagation",
+          "error" => ["task_timeout", 30_000]
+        }
+      ],
+      "assumptions" => %{
+        "source" => "study_run_metadata",
+        "resumability" => "not_resumable"
+      }
+    }
+
+    assert {:ok, %{"schema_contract" => "execution_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    invalid = put_in(report, ["failed_scenarios", Access.at(0), "stage"], 12)
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid)
+    assert Enum.any?(validation_report["errors"], &(&1["path"] == "$.failed_scenarios[0].stage"))
+
+    invalid_limits = Map.put(report, "model_limits", ["artifact_level_execution_summary"])
+
+    assert {:error, limits_report} = Schema.validate_artifact(invalid_limits)
+    assert Enum.any?(limits_report["errors"], &(&1["path"] == "$.model_limits"))
+
+    invalid_float_count = Map.put(report, "scenario_count", 2000.0)
+
+    assert {:error, float_count_report} = Schema.validate_artifact(invalid_float_count)
+    assert Enum.any?(float_count_report["errors"], &(&1["path"] == "$.scenario_count"))
+
+    invalid_negative_count = Map.put(report, "failed_scenario_count", -1)
+
+    assert {:error, negative_count_report} = Schema.validate_artifact(invalid_negative_count)
+    assert Enum.any?(negative_count_report["errors"], &(&1["path"] == "$.failed_scenario_count"))
+  end
+
+  test "validates checked-in execution failure-isolation example" do
+    report = read_json!("study_results/execution_report_v1.json")
+
+    assert {:ok, %{"schema_contract" => "execution_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert %{
+             "execution_mode" => "distributed_task_supervisors",
+             "backend" => "Elixir.OrbitalDynamics.Propagators.TwoBody",
+             "batch_propagation" => false,
+             "status" => "completed_with_errors",
+             "model_limits" => [
+               "artifact_level_execution_summary",
+               "not_resumable",
+               "no_persistent_queue",
+               "failed_scenarios_are_reported_not_retried"
+             ],
+             "scenario_count" => 2000,
+             "completed_scenario_count" => 1999,
+             "failed_scenario_count" => 1,
+             "effective_task_concurrency" => 16,
+             "task_chunk_size" => 50,
+             "task_supervisor_node" => "mission_ops@node_a",
+             "task_supervisor_nodes" => ["mission_ops@node_a", "mission_ops@node_b"],
+             "execution_plan" => %{
+               "task_batch_count" => 40,
+               "wave_count" => 2
+             },
+             "failed_scenarios" => [
+               %{
+                 "scenario_id" => "trial_1842",
+                 "stage" => "propagation",
+                 "error" => ["task_timeout", 30000]
+               }
+             ]
+           } = report
+  end
+
+  test "exports nested execution failure row schema" do
+    assert {:ok, schema} = Schema.json_schema("execution_report.v1")
+
+    failure_schema = get_in(schema, ["properties", "failed_scenarios", "items"])
+
+    assert failure_schema["required"] == ["scenario_id", "stage", "error"]
+
+    assert get_in(failure_schema, ["properties", "scenario_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(failure_schema, ["properties", "stage", "type"]) == "string"
+    assert get_in(schema, ["properties", "backend", "type"]) == "string"
+    assert get_in(schema, ["properties", "batch_propagation", "type"]) == "boolean"
+    assert get_in(schema, ["properties", "task_chunk_size", "type"]) == "integer"
+    assert get_in(schema, ["properties", "effective_task_concurrency", "type"]) == "integer"
+
+    assert get_in(schema, ["properties", "scenario_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "completed_scenario_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "failed_scenario_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "event_result_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "task_supervisor_nodes", "oneOf"]) == [
+             %{"type" => "array", "items" => %{"type" => "string"}},
+             %{"type" => "null"}
+           ]
+
+    assert get_in(schema, ["properties", "model_limits", "items", "enum"]) ==
+             OrbitalDynamics.ResultSet.Artifact.execution_report_model_limits()
+
+    assert get_in(schema, ["properties", "execution_plan", "type"]) == "object"
+  end
+
+  test "validates standalone monte carlo reproducibility report contracts" do
+    report = %{
+      "schema_contract" => "monte_carlo_reproducibility_report.v1",
+      "model" => "seeded_independent_normal_cartesian_dispersion",
+      "source" => "study_metadata.monte_carlo",
+      "generator" => "state_vector_dispersion",
+      "rng" => "rand_exsss",
+      "sampling_method" => "box_muller_transform",
+      "deterministic_seed" => true,
+      "seed" => 12_345,
+      "requested_count" => 3,
+      "generated_scenario_count" => 3,
+      "id_prefix" => "dispersion",
+      "generated_scenario_ids" => ["dispersion_1", "dispersion_2", "dispersion_3"],
+      "position_sigma_km" => [0.1, 0.1, 0.05],
+      "velocity_sigma_km_s" => [0.0001, 0.0001, 0.00005],
+      "seed_manifest" => %{"monte_carlo_seed" => 12_345},
+      "assumptions" => %{
+        "scenario_id_order" => "artifact.trajectories order",
+        "distribution" => "independent normal per Cartesian component",
+        "covariance_model" => "none"
+      },
+      "known_limits" =>
+        OrbitalDynamics.Search.MonteCarlo.capabilities()
+        |> Map.fetch!(:known_limits)
+        |> Enum.map(&Atom.to_string/1),
+      "model_limits" =>
+        OrbitalDynamics.Search.MonteCarlo.capabilities()
+        |> Map.fetch!(:known_limits)
+        |> Enum.map(&Atom.to_string/1)
+    }
+
+    assert {:ok, %{"schema_contract" => "monte_carlo_reproducibility_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    stale_model = Map.put(report, "model", "stale_monte_carlo_dispersion_model")
+
+    assert {:error, stale_model_report} = Schema.validate_artifact(stale_model)
+
+    assert Enum.any?(
+             stale_model_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"seeded_independent_normal_cartesian_dispersion\"")
+           )
+
+    invalid = put_in(report, ["generated_scenario_ids"], ["bad id"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid)
+    assert Enum.any?(validation_report["errors"], &(&1["path"] == "$.generated_scenario_ids[0]"))
+
+    stale_limits = Map.put(report, "model_limits", ["no_covariance_matrix"])
+
+    assert {:error, limits_report} = Schema.validate_artifact(stale_limits)
+    assert Enum.any?(limits_report["errors"], &(&1["path"] == "$.model_limits"))
+
+    stale_known_limits = Map.put(report, "known_limits", ["no_covariance_matrix"])
+
+    assert {:error, known_limits_report} = Schema.validate_artifact(stale_known_limits)
+    assert Enum.any?(known_limits_report["errors"], &(&1["path"] == "$.known_limits"))
+
+    invalid_float_count = Map.put(report, "requested_count", 3.0)
+
+    assert {:error, float_count_report} = Schema.validate_artifact(invalid_float_count)
+    assert Enum.any?(float_count_report["errors"], &(&1["path"] == "$.requested_count"))
+
+    invalid_negative_count = Map.put(report, "generated_scenario_count", -1)
+
+    assert {:error, negative_count_report} = Schema.validate_artifact(invalid_negative_count)
+
+    assert Enum.any?(
+             negative_count_report["errors"],
+             &(&1["path"] == "$.generated_scenario_count")
+           )
+  end
+
+  test "exports nested monte carlo reproducibility array schemas" do
+    assert {:ok, schema} = Schema.json_schema("monte_carlo_reproducibility_report.v1")
+
+    assert get_in(schema, ["properties", "generated_scenario_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    expected_limits =
+      OrbitalDynamics.Search.MonteCarlo.capabilities()
+      |> Map.fetch!(:known_limits)
+      |> Enum.map(&Atom.to_string/1)
+
+    assert get_in(schema, ["properties", "source", "type"]) == "string"
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "seeded_independent_normal_cartesian_dispersion"
+
+    assert get_in(schema, ["properties", "known_limits", "items", "enum"]) == expected_limits
+    assert get_in(schema, ["properties", "model_limits", "items", "enum"]) == expected_limits
+
+    assert get_in(schema, ["properties", "requested_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "generated_scenario_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "position_sigma_km", "items", "type"]) == "number"
+    assert get_in(schema, ["properties", "position_sigma_km", "minItems"]) == 3
+    assert get_in(schema, ["properties", "position_sigma_km", "maxItems"]) == 3
+
+    assert get_in(schema, ["properties", "velocity_sigma_km_s", "items", "type"]) == "number"
+    assert get_in(schema, ["properties", "velocity_sigma_km_s", "minItems"]) == 3
+    assert get_in(schema, ["properties", "velocity_sigma_km_s", "maxItems"]) == 3
+  end
+
+  test "validates standalone operational timeline report contracts" do
+    report = %{
+      "schema_contract" => "operational_timeline_report.v1",
+      "model" => "selected_activity_operational_context_summary",
+      "source" => "campaign_plan.activities",
+      "activity_count" => 1,
+      "row_count" => 1,
+      "contact_count" => 1,
+      "command_count" => 0,
+      "locked_count" => 1,
+      "approved_count" => 1,
+      "executed_count" => 0,
+      "source_window_lineage_count" => 1,
+      "rows" => [
+        %{
+          "id" => "timeline_row:1:contact_1",
+          "activity_id" => "contact_1",
+          "timeline_id" => "timeline:leo_1:downlink:equator:0.0",
+          "scenario_id" => "leo_1",
+          "activity_type" => "downlink",
+          "status" => "planned",
+          "approval_status" => "approved",
+          "locked" => true,
+          "starts_at_s" => 0.0,
+          "ends_at_s" => 60.0,
+          "ground_station_id" => "equator",
+          "has_source_window" => true,
+          "has_cadence_import" => true,
+          "timeline_identity" => %{
+            "timeline_id" => "timeline:leo_1:downlink:equator:0.0",
+            "activity_id" => "contact_1",
+            "activity_type" => "downlink",
+            "scenario_id" => "leo_1",
+            "subject_id" => "equator"
+          }
+        }
+      ],
+      "assumptions" => %{"execution_boundary" => "planned_not_commanded"}
+    }
+
+    assert {:ok, %{"schema_contract" => "operational_timeline_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    invalid_model = Map.put(report, "model", "operational_timeline_v0")
+
+    assert {:error, invalid_model_report} = Schema.validate_artifact(invalid_model)
+
+    assert Enum.any?(
+             invalid_model_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"selected_activity_operational_context_summary\"")
+           )
+
+    invalid = put_in(report, ["rows", Access.at(0), "timeline_id"], "bad id")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid)
+    assert Enum.any?(validation_report["errors"], &(&1["path"] == "$.rows[0].timeline_id"))
+
+    invalid_dependency =
+      put_in(report, ["rows", Access.at(0), "dependency_activity_ids"], ["bad dependency"])
+
+    assert {:error, dependency_report} = Schema.validate_artifact(invalid_dependency)
+
+    assert Enum.any?(
+             dependency_report["errors"],
+             &(&1["path"] == "$.rows[0].dependency_activity_ids[0]")
+           )
+
+    invalid_self_dependency =
+      put_in(report, ["rows", Access.at(0), "self_dependency_activity_ids"], ["bad self"])
+
+    assert {:error, self_dependency_report} = Schema.validate_artifact(invalid_self_dependency)
+
+    assert Enum.any?(
+             self_dependency_report["errors"],
+             &(&1["path"] == "$.rows[0].self_dependency_activity_ids[0]")
+           )
+
+    float_row_integrity_count =
+      put_in(report, ["rows", Access.at(0), "timeline_integrity_issue_count"], 1.0)
+
+    assert {:error, float_row_integrity_count_report} =
+             Schema.validate_artifact(float_row_integrity_count)
+
+    assert Enum.any?(
+             float_row_integrity_count_report["errors"],
+             &(&1["path"] == "$.rows[0].timeline_integrity_issue_count")
+           )
+
+    negative_row_integrity_count =
+      put_in(report, ["rows", Access.at(0), "timeline_integrity_issue_count"], -1)
+
+    assert {:error, negative_row_integrity_count_report} =
+             Schema.validate_artifact(negative_row_integrity_count)
+
+    assert Enum.any?(
+             negative_row_integrity_count_report["errors"],
+             &(&1["path"] == "$.rows[0].timeline_integrity_issue_count")
+           )
+
+    invalid_attitude_confidence =
+      put_in(report, ["rows", Access.at(0), "attitude_confidence"], 1.2)
+
+    assert {:error, invalid_attitude_confidence_report} =
+             Schema.validate_artifact(invalid_attitude_confidence)
+
+    assert Enum.any?(
+             invalid_attitude_confidence_report["errors"],
+             &(&1["path"] == "$.rows[0].attitude_confidence")
+           )
+
+    invalid_counts = Map.put(report, "activity_status_counts", %{"planned" => 2})
+
+    assert {:error, counts_report} = Schema.validate_artifact(invalid_counts)
+    assert Enum.any?(counts_report["errors"], &(&1["path"] == "$.activity_status_counts"))
+
+    float_activity_count = Map.put(report, "activity_count", 1.0)
+
+    assert {:error, float_activity_count_report} =
+             Schema.validate_artifact(float_activity_count)
+
+    assert Enum.any?(
+             float_activity_count_report["errors"],
+             &(&1["path"] == "$.activity_count")
+           )
+
+    negative_contact_count = Map.put(report, "contact_count", -1)
+
+    assert {:error, negative_contact_count_report} =
+             Schema.validate_artifact(negative_contact_count)
+
+    assert Enum.any?(
+             negative_contact_count_report["errors"],
+             &(&1["path"] == "$.contact_count")
+           )
+
+    negative_dependency_count = Map.put(report, "dependency_count", -1)
+
+    assert {:error, negative_dependency_count_report} =
+             Schema.validate_artifact(negative_dependency_count)
+
+    assert Enum.any?(
+             negative_dependency_count_report["errors"],
+             &(&1["path"] == "$.dependency_count")
+           )
+
+    negative_timeline_integrity_count =
+      Map.put(report, "timeline_integrity_issue_count", -1)
+
+    assert {:error, negative_timeline_integrity_count_report} =
+             Schema.validate_artifact(negative_timeline_integrity_count)
+
+    assert Enum.any?(
+             negative_timeline_integrity_count_report["errors"],
+             &(&1["path"] == "$.timeline_integrity_issue_count")
+           )
+  end
+
+  test "exports operational timeline top-level counter contract fields" do
+    assert {:ok, schema} = Schema.json_schema("operational_timeline_report.v1")
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "selected_activity_operational_context_summary"
+
+    assert get_in(schema, ["properties", "activity_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, ["properties", "contact_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, ["properties", "source_window_lineage_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, ["properties", "dependency_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, ["properties", "timeline_integrity_issue_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    row_properties = get_in(schema, ["properties", "rows", "items", "properties"])
+
+    assert row_properties["self_dependency_activity_ids"] == %{
+             "type" => "array",
+             "items" => %{"type" => "string", "pattern" => "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"}
+           }
+
+    assert row_properties["self_dependency_timeline_ids"] == %{
+             "type" => "array",
+             "items" => %{"type" => "string", "pattern" => "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"}
+           }
+
+    assert row_properties["station_calendar_reservation_ids"] == %{
+             "type" => "array",
+             "items" => %{"type" => "string", "pattern" => "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"}
+           }
+
+    assert row_properties["station_calendar_reservation_expires_at_s"] == %{
+             "type" => "array",
+             "items" => %{"type" => "number"}
+           }
+
+    assert row_properties["station_reservation_id"] == %{
+             "type" => "string",
+             "pattern" => "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           }
+
+    assert row_properties["station_reservation_expires_at_s"] == %{"type" => "number"}
+
+    assert row_properties["attitude_confidence"] == %{
+             "type" => "number",
+             "minimum" => 0.0,
+             "maximum" => 1.0
+           }
+  end
+
+  test "exports timeline activity-state handoff schema fields" do
+    assert {:ok, schema} = Schema.json_schema("timeline_activity_state.v1")
+
+    assert schema["required"] == [
+             "schema_contract",
+             "model",
+             "validation_level",
+             "state_status",
+             "row_count",
+             "status_counts",
+             "feedback_kind_counts",
+             "match_strategy_counts",
+             "cadence_import_status_counts",
+             "planned_protection_decision_counts",
+             "review_required",
+             "review_activity_ids",
+             "rows",
+             "assumptions",
+             "model_limits"
+           ]
+
+    assert get_in(schema, ["properties", "schema_contract", "const"]) ==
+             "timeline_activity_state.v1"
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "artifact_only_timeline_activity_state"
+
+    assert get_in(schema, ["properties", "validation_level", "const"]) == "artifact_contract"
+
+    assert get_in(schema, ["properties", "model_limits", "const"]) ==
+             OrbitalDynamics.Timeline.model_limits()
+
+    assert get_in(schema, ["x-orbital-dynamics", "nested_contracts"]) == [
+             "timeline_feedback_report.v1"
+           ]
+
+    capabilities = OrbitalDynamics.TimelineFeedback.capabilities()
+
+    assert get_in(schema, ["properties", "state_status", "enum"]) ==
+             ["empty", "review_required" | capabilities.report_statuses]
+
+    assert get_in(schema, ["properties", "status_counts", "propertyNames", "enum"]) ==
+             capabilities.report_statuses
+
+    assert get_in(schema, ["properties", "feedback_kind_counts", "propertyNames", "enum"]) ==
+             capabilities.feedback_kinds
+
+    assert get_in(schema, ["properties", "match_strategy_counts", "propertyNames", "enum"]) ==
+             capabilities.match_strategies
+
+    assert get_in(schema, [
+             "properties",
+             "planned_protection_decision_counts",
+             "propertyNames",
+             "enum"
+           ]) == capabilities.planned_protection_decisions
+
+    row_properties = get_in(schema, ["properties", "rows", "items", "properties"])
+
+    assert get_in(schema, ["properties", "rows", "items", "required"]) == [
+             "activity_id",
+             "status"
+           ]
+
+    assert row_properties["activity_id"] == %{
+             "type" => "string",
+             "pattern" => "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           }
+
+    assert row_properties["timeline_identity"] ==
+             get_in(schema, [
+               "properties",
+               "timeline_identity"
+             ])
+  end
+
+  test "validates timeline activity-state row-derived artifact fields" do
+    planned = %{
+      id: :downlink_equator,
+      type: :downlink,
+      status: :planned,
+      metadata: %{timeline_id: :"timeline:downlink_equator"}
+    }
+
+    realized = %{
+      id: :downlink_equator,
+      type: :downlink,
+      status: :completed,
+      actual_throughput_mb: 72.0,
+      metadata: %{timeline_id: :"timeline:downlink_equator"}
+    }
+
+    valid_state = OrbitalDynamics.TimelineFeedback.activity_state(planned, realized)
+
+    assert {:ok, %{"schema_contract" => "timeline_activity_state.v1"}} =
+             Schema.validate_artifact(valid_state)
+
+    invalid_model = Map.put(valid_state, "model", "custom")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_model)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] == "must equal \"artifact_only_timeline_activity_state\"")
+           )
+
+    stale_model_limits = Map.put(valid_state, "model_limits", ["artifact_level_only"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_model_limits)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] == "must match timeline activity state model limits")
+           )
+
+    stale_row_count = Map.put(valid_state, "row_count", 2)
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_row_count)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.row_count" and &1["message"] == "must equal 1")
+           )
+
+    stale_status_counts = Map.put(valid_state, "status_counts", %{"matched" => 2})
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_status_counts)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.status_counts" and
+                 &1["message"] == "must equal row-derived status_counts")
+           )
+
+    stale_state_status = Map.put(valid_state, "state_status", "review_required")
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_state_status)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.state_status" and
+                 &1["message"] == "must equal row-derived state_status")
+           )
+
+    stale_activity_ids = Map.put(valid_state, "activity_ids", ["other_activity"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_activity_ids)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.activity_ids" and
+                 &1["message"] == "must equal row-derived activity_ids")
+           )
+
+    stale_review_activity_ids = Map.put(valid_state, "review_activity_ids", ["downlink_equator"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_review_activity_ids)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.review_activity_ids" and
+                 &1["message"] == "must equal row-derived review_activity_ids")
+           )
+
+    invalid_assumption =
+      put_in(valid_state, ["assumptions", "no_schedule_mutation"], false)
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_assumption)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.assumptions.no_schedule_mutation" and
+                 &1["message"] == "must equal true")
+           )
+
+    invalid_row_id =
+      put_in(valid_state, ["rows", Access.at(0), "activity_id"], "bad activity id")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_row_id)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.rows[0].activity_id" and &1["message"] =~ "stable ID")
+           )
+
+    invalid_transition =
+      put_in(valid_state, ["status_transition", "transition_type"], "custom")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_transition)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.status_transition.transition_type" and
+                 &1["message"] =~ "must be one of")
+           )
+  end
+
+  test "exports and validates timeline activity status-state fields" do
+    assert {:ok, schema} = Schema.json_schema("timeline_activity_status_state.v1")
+
+    assert get_in(schema, ["properties", "schema_contract", "const"]) ==
+             "timeline_activity_status_state.v1"
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "artifact_only_timeline_activity_status_state"
+
+    assert get_in(schema, ["properties", "validation_level", "const"]) == "artifact_contract"
+
+    assert get_in(schema, ["properties", "model_limits", "const"]) ==
+             OrbitalDynamics.Timeline.model_limits()
+
+    assert get_in(schema, ["properties", "model_limits", "items", "enum"]) ==
+             OrbitalDynamics.Timeline.model_limits()
+
+    assert get_in(schema, ["properties", "transition_decision", "enum"]) ==
+             OrbitalDynamics.Timeline.capabilities().transition_decisions
+
+    assert get_in(schema, ["properties", "operator_action_reason", "type"]) == "string"
+    assert get_in(schema, ["properties", "planned_status_category", "type"]) == "string"
+    assert get_in(schema, ["properties", "realized_status_category", "type"]) == "string"
+    assert get_in(schema, ["properties", "import_action", "type"]) == "string"
+
+    assert get_in(schema, [
+             "properties",
+             "status_transition",
+             "properties",
+             "transition_type",
+             "enum"
+           ]) ==
+             ["added", "removed", "changed"]
+
+    assert get_in(schema, ["properties", "activity_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    planned = %{
+      id: :obs_provider,
+      type: :observe,
+      scenario_id: :leo_1,
+      status: "In Progress",
+      metadata: %{timeline_id: :"timeline:obs_provider"}
+    }
+
+    realized = %{
+      id: :obs_provider,
+      type: :observe,
+      scenario_id: :leo_1,
+      status: "succeeded",
+      metadata: %{timeline_id: :"timeline:obs_provider"}
+    }
+
+    state = OrbitalDynamics.Timeline.activity_status_state(planned, realized)
+
+    assert {:ok, %{"schema_contract" => "timeline_activity_status_state.v1"}} =
+             Schema.validate_artifact(state)
+
+    invalid_model = Map.put(state, "model", "custom")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_model)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"artifact_only_timeline_activity_status_state\"")
+           )
+
+    stale_model_limits = Map.put(state, "model_limits", ["timeline_model_is_read_only"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_model_limits)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] == "must match timeline report model limits")
+           )
+
+    stale_review_required = Map.put(state, "review_required", true)
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_review_required)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.review_required" and
+                 &1["message"] == "must equal transition-derived review_required")
+           )
+
+    stale_operator_action_reason = Map.put(state, "operator_action_reason", "custom")
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_operator_action_reason)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.operator_action_reason" and
+                 &1["message"] == "must equal transition-derived operator_action_reason")
+           )
+
+    invalid_status_category = Map.put(state, "planned_status_category", %{"value" => "planned"})
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_status_category)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.planned_status_category" and
+                 &1["message"] =~ "must be a binary")
+           )
+  end
+
+  test "exports and validates timeline activity approval-state fields" do
+    assert {:ok, schema} = Schema.json_schema("timeline_activity_approval_state.v1")
+
+    assert get_in(schema, ["properties", "schema_contract", "const"]) ==
+             "timeline_activity_approval_state.v1"
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "artifact_only_timeline_activity_approval_state"
+
+    assert get_in(schema, ["properties", "validation_level", "const"]) == "artifact_contract"
+
+    assert get_in(schema, ["properties", "model_limits", "const"]) ==
+             OrbitalDynamics.Timeline.model_limits()
+
+    assert get_in(schema, ["properties", "model_limits", "items", "enum"]) ==
+             OrbitalDynamics.Timeline.model_limits()
+
+    assert get_in(schema, ["properties", "transition_decision", "enum"]) ==
+             OrbitalDynamics.Timeline.capabilities().transition_decisions
+
+    assert get_in(schema, ["properties", "operator_action_reason", "type"]) == "string"
+    assert get_in(schema, ["properties", "planned_approval_category", "type"]) == "string"
+    assert get_in(schema, ["properties", "realized_approval_category", "type"]) == "string"
+    assert get_in(schema, ["properties", "import_action", "type"]) == "string"
+
+    assert get_in(schema, [
+             "properties",
+             "approval_transition",
+             "properties",
+             "transition_type",
+             "enum"
+           ]) ==
+             ["added", "removed", "changed"]
+
+    assert get_in(schema, ["properties", "activity_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    planned = %{
+      id: :cmd_provider,
+      type: :command,
+      scenario_id: :leo_1,
+      approval_status: "Review Required",
+      metadata: %{timeline_id: :"timeline:cmd_provider"}
+    }
+
+    realized = %{
+      id: :cmd_provider,
+      type: :command,
+      scenario_id: :leo_1,
+      approval_status: :approved,
+      metadata: %{timeline_id: :"timeline:cmd_provider"}
+    }
+
+    state = OrbitalDynamics.Timeline.activity_approval_state(planned, realized)
+
+    assert {:ok, %{"schema_contract" => "timeline_activity_approval_state.v1"}} =
+             Schema.validate_artifact(state)
+
+    invalid_model = Map.put(state, "model", "custom")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_model)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"artifact_only_timeline_activity_approval_state\"")
+           )
+
+    stale_model_limits = Map.put(state, "model_limits", ["timeline_model_is_read_only"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_model_limits)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] == "must match timeline report model limits")
+           )
+
+    stale_review_required = Map.put(state, "review_required", false)
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_review_required)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.review_required" and
+                 &1["message"] == "must equal transition-derived review_required")
+           )
+
+    stale_operator_action_reason = Map.put(state, "operator_action_reason", "custom")
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_operator_action_reason)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.operator_action_reason" and
+                 &1["message"] == "must equal transition-derived operator_action_reason")
+           )
+
+    stale_import_action = Map.put(state, "import_action", "import_replacement_activity")
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_import_action)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.import_action" and
+                 &1["message"] == "must equal transition-derived import_action")
+           )
+
+    invalid_approval_category =
+      Map.put(state, "realized_approval_category", %{"value" => "protected"})
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_approval_category)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.realized_approval_category" and
+                 &1["message"] =~ "must be a binary")
+           )
+  end
+
+  test "exports and validates timeline activity lifecycle-state fields" do
+    assert {:ok, schema} = Schema.json_schema("timeline_activity_lifecycle_state.v1")
+
+    assert get_in(schema, ["properties", "schema_contract", "const"]) ==
+             "timeline_activity_lifecycle_state.v1"
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "artifact_only_timeline_activity_lifecycle_state"
+
+    assert get_in(schema, ["properties", "validation_level", "const"]) == "artifact_contract"
+
+    assert get_in(schema, ["properties", "transition_decision", "enum"]) ==
+             OrbitalDynamics.Timeline.capabilities().transition_decisions
+
+    assert get_in(schema, ["properties", "status_transition_decision", "enum"]) ==
+             OrbitalDynamics.Timeline.capabilities().transition_decisions
+
+    assert get_in(schema, ["properties", "approval_transition_decision", "enum"]) ==
+             OrbitalDynamics.Timeline.capabilities().transition_decisions
+
+    assert get_in(schema, ["properties", "planned_status_category", "type"]) == "string"
+    assert get_in(schema, ["properties", "realized_status_category", "type"]) == "string"
+    assert get_in(schema, ["properties", "planned_approval_category", "type"]) == "string"
+    assert get_in(schema, ["properties", "realized_approval_category", "type"]) == "string"
+
+    assert get_in(schema, ["properties", "required_operator_actions", "items", "type"]) ==
+             "string"
+
+    assert get_in(schema, ["properties", "operator_action_reasons", "items", "type"]) ==
+             "string"
+
+    assert get_in(schema, ["properties", "import_action", "type"]) == "string"
+
+    assert get_in(schema, [
+             "properties",
+             "status_transition",
+             "properties",
+             "transition_type",
+             "enum"
+           ]) ==
+             ["added", "removed", "changed"]
+
+    assert get_in(schema, [
+             "properties",
+             "approval_transition",
+             "properties",
+             "transition_type",
+             "enum"
+           ]) ==
+             ["added", "removed", "changed"]
+
+    assert get_in(schema, [
+             "properties",
+             "planned_protection_decision",
+             "properties",
+             "protection_decision",
+             "type"
+           ]) == "string"
+
+    assert get_in(schema, [
+             "properties",
+             "planned_protection_decision",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, ["properties", "activity_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    planned = %{
+      id: :cmd_provider,
+      type: :command,
+      scenario_id: :leo_1,
+      status: "In Progress",
+      approval_status: "Review Required",
+      metadata: %{
+        timeline_id: :"timeline:cmd_provider",
+        source_window_id: :"command:cmd_provider"
+      }
+    }
+
+    realized = %{
+      id: :cmd_provider,
+      type: :command,
+      scenario_id: :leo_1,
+      status: "succeeded",
+      approval_status: :approved,
+      metadata: %{timeline_id: :"timeline:cmd_provider"}
+    }
+
+    state = OrbitalDynamics.Timeline.activity_lifecycle_state(planned, realized)
+
+    assert {:ok, %{"schema_contract" => "timeline_activity_lifecycle_state.v1"}} =
+             Schema.validate_artifact(state)
+
+    stale_model_limits = Map.put(state, "model_limits", ["timeline_model_is_read_only"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_model_limits)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] == "must match timeline report model limits")
+           )
+
+    stale_transition_decision = Map.put(state, "transition_decision", "record")
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_transition_decision)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.transition_decision" and
+                 &1["message"] == "must equal lifecycle-derived transition_decision")
+           )
+
+    stale_required_operator_actions = Map.put(state, "required_operator_actions", ["none"])
+
+    assert {:error, validation_report} =
+             Schema.validate_artifact(stale_required_operator_actions)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.required_operator_actions" and
+                 &1["message"] == "must equal lifecycle-derived required_operator_actions")
+           )
+
+    stale_required_operator_action = Map.put(state, "required_operator_action", "none")
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_required_operator_action)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.required_operator_action" and
+                 &1["message"] == "must equal lifecycle-derived required_operator_action")
+           )
+
+    stale_operator_action_reasons = Map.put(state, "operator_action_reasons", ["custom"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_operator_action_reasons)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.operator_action_reasons" and
+                 &1["message"] == "must equal lifecycle-derived operator_action_reasons")
+           )
+
+    stale_import_action = Map.put(state, "import_action", "record_preserved_activity")
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_import_action)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.import_action" and
+                 &1["message"] == "must equal lifecycle-derived import_action")
+           )
+
+    invalid_status_category = Map.put(state, "planned_status_category", %{"value" => "planned"})
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_status_category)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.planned_status_category" and
+                 &1["message"] =~ "must be a binary")
+           )
+
+    invalid_operator_action_reasons = Map.put(state, "operator_action_reasons", ["ok", 1])
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_operator_action_reasons)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.operator_action_reasons[1]" and
+                 &1["message"] =~ "must be a string")
+           )
+
+    invalid_activity_id = Map.put(state, "activity_id", "bad activity")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_activity_id)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.activity_id" and &1["message"] =~ "stable ID")
+           )
+
+    invalid_assumption = put_in(state, ["assumptions", "no_cadence_import"], false)
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_assumption)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.assumptions.no_cadence_import" and
+                 &1["message"] == "must equal true")
+           )
+  end
+
+  test "exports and validates timeline lifecycle-state summary fields" do
+    assert {:ok, schema} = Schema.json_schema("timeline_lifecycle_state_summary.v1")
+
+    assert get_in(schema, ["properties", "schema_contract", "const"]) ==
+             "timeline_lifecycle_state_summary.v1"
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "artifact_only_timeline_lifecycle_state_summary"
+
+    assert get_in(schema, ["properties", "validation_level", "const"]) == "artifact_contract"
+    assert get_in(schema, ["properties", "source", "type"]) == "string"
+
+    assert get_in(schema, ["properties", "rows", "items", "required"]) == [
+             "rank",
+             "timeline_id",
+             "transition_decision",
+             "review_required",
+             "required_operator_action",
+             "import_action"
+           ]
+
+    assert get_in(schema, [
+             "properties",
+             "review_timeline_ids_by_required_operator_action",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, [
+             "properties",
+             "import_action_counts",
+             "additionalProperties",
+             "type"
+           ]) == "integer"
+
+    planned = [
+      %{
+        id: :cmd_provider,
+        type: :command,
+        status: "In Progress",
+        approval_status: "Review Required",
+        metadata: %{timeline_id: :"timeline:cmd_provider"}
+      },
+      %{
+        id: :obs_record,
+        type: :observe,
+        status: :planned,
+        approval_status: :not_required,
+        metadata: %{timeline_id: :"timeline:obs_record"}
+      }
+    ]
+
+    realized = [
+      %{
+        id: :cmd_provider,
+        type: :command,
+        status: "succeeded",
+        approval_status: :approved,
+        metadata: %{timeline_id: :"timeline:cmd_provider"}
+      },
+      %{
+        id: :obs_record,
+        type: :observe,
+        status: :completed,
+        approval_status: :not_required,
+        metadata: %{timeline_id: :"timeline:obs_record"}
+      }
+    ]
+
+    summary = OrbitalDynamics.Timeline.lifecycle_state_summary(planned, realized)
+
+    assert {:ok, %{"schema_contract" => "timeline_lifecycle_state_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    invalid_model = Map.put(summary, "model", "custom")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_model)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"artifact_only_timeline_lifecycle_state_summary\"")
+           )
+
+    stale_transition_counts = Map.put(summary, "transition_decision_counts", %{"review" => 99})
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_transition_counts)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.transition_decision_counts" and
+                 &1["message"] == "must equal row-derived transition_decision_counts")
+           )
+
+    stale_review_ids = Map.put(summary, "review_timeline_ids", [])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_review_ids)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.review_timeline_ids" and
+                 &1["message"] == "must equal row-derived review_timeline_ids")
+           )
+
+    stale_import_counts =
+      Map.put(summary, "import_action_counts", %{"review_timeline_diff" => 99})
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_import_counts)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.import_action_counts" and
+                 &1["message"] == "must equal row-derived import_action_counts")
+           )
+
+    stale_status_review_ids =
+      put_in(
+        summary,
+        ["review_timeline_ids_by_status_transition_category", "execution_recorded"],
+        []
+      )
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_status_review_ids)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.review_timeline_ids_by_status_transition_category" and
+                 &1["message"] ==
+                   "must equal row-derived review_timeline_ids_by_status_transition_category")
+           )
+
+    invalid_review_id_map =
+      put_in(
+        summary,
+        ["review_timeline_ids_by_required_operator_action", "review_activity_approval"],
+        ["bad timeline"]
+      )
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_review_id_map)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] ==
+                 "$.review_timeline_ids_by_required_operator_action.review_activity_approval[0]" and
+                 &1["message"] =~ "stable ID")
+           )
+  end
+
+  test "exports and validates timeline integrity report fields" do
+    assert {:ok, schema} = Schema.json_schema("timeline_integrity_report.v1")
+
+    assert get_in(schema, ["properties", "schema_contract", "const"]) ==
+             "timeline_integrity_report.v1"
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "artifact_only_timeline_integrity_summary"
+
+    assert get_in(schema, ["properties", "validation_level", "const"]) == "artifact_contract"
+    assert get_in(schema, ["properties", "source", "type"]) == "string"
+
+    assert get_in(schema, ["properties", "model_limits", "const"]) ==
+             OrbitalDynamics.Timeline.model_limits()
+
+    assert get_in(schema, [
+             "properties",
+             "timeline_integrity_issue_types",
+             "items",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().timeline_integrity_issue_types
+
+    assert get_in(schema, [
+             "properties",
+             "review_timeline_ids_by_required_operator_action",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, ["properties", "rows", "items", "required"]) == [
+             "id",
+             "activity_id",
+             "timeline_id",
+             "activity_type",
+             "status",
+             "approval_status",
+             "locked",
+             "has_source_window",
+             "has_cadence_import",
+             "timeline_identity"
+           ]
+
+    activities = [
+      %{
+        id: :health_gate,
+        type: :health_check,
+        starts_at_s: 0.0,
+        ends_at_s: 15.0,
+        metadata: %{timeline_id: :"timeline:health_gate"}
+      },
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 10.0,
+        ends_at_s: 20.0,
+        dependencies: [:health_gate, :missing_gate],
+        metadata: %{timeline_id: :"timeline:cmd_main"}
+      }
+    ]
+
+    report = OrbitalDynamics.Timeline.integrity_report(activities, source: "repair.activities")
+
+    assert {:ok, %{"schema_contract" => "timeline_integrity_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    invalid_model = Map.put(report, "model", "custom")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_model)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"artifact_only_timeline_integrity_summary\"")
+           )
+
+    invalid_source = Map.put(report, "source", %{"artifact" => "repair.activities"})
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_source)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.source" and &1["message"] == "must be a binary")
+           )
+
+    stale_model_limits = Map.put(report, "model_limits", ["artifact_level_only"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_model_limits)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] == "must match timeline report model limits")
+           )
+
+    stale_review_count = Map.put(report, "timeline_integrity_review_count", 99)
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_review_count)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.timeline_integrity_review_count" and
+                 &1["message"] == "must equal row-derived timeline_integrity_review_count")
+           )
+
+    stale_row_issue_types =
+      put_in(report, ["rows", Access.at(0), "timeline_integrity_issue_types"], [])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_row_issue_types)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.rows[0].timeline_integrity_issue_types" and
+                 &1["message"] == "must equal row-derived timeline_integrity_issue_types")
+           )
+
+    unknown_top_level_issue_type =
+      Map.put(report, "timeline_integrity_issue_types", ["provider_custom"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(unknown_top_level_issue_type)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.timeline_integrity_issue_types[0]" and
+                 &1["message"] =~ "must be one of")
+           )
+
+    unknown_row_issue_type =
+      put_in(report, ["rows", Access.at(0), "timeline_integrity_issue_types"], [
+        "provider_custom"
+      ])
+
+    assert {:error, validation_report} = Schema.validate_artifact(unknown_row_issue_type)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.rows[0].timeline_integrity_issue_types[0]" and
+                 &1["message"] =~ "must be one of")
+           )
+
+    stale_action_map =
+      put_in(
+        report,
+        ["review_timeline_ids_by_required_operator_action", "review_timeline_integrity"],
+        ["timeline:health_gate"]
+      )
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_action_map)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.review_timeline_ids_by_required_operator_action" and
+                 &1["message"] ==
+                   "must equal row-derived review_timeline_ids_by_required_operator_action")
+           )
+
+    invalid_action_map_id =
+      put_in(
+        report,
+        ["review_timeline_ids_by_required_operator_action", "review_timeline_integrity"],
+        ["bad timeline"]
+      )
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_action_map_id)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] ==
+                 "$.review_timeline_ids_by_required_operator_action.review_timeline_integrity[0]" and
+                 &1["message"] =~ "stable ID")
+           )
+  end
+
+  test "exports and validates timeline diff summary fields" do
+    assert {:ok, schema} = Schema.json_schema("timeline_diff_summary.v1")
+
+    assert get_in(schema, ["properties", "schema_contract", "const"]) ==
+             "timeline_diff_summary.v1"
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "artifact_only_timeline_diff_summary"
+
+    assert get_in(schema, ["properties", "validation_level", "const"]) == "artifact_contract"
+
+    assert get_in(schema, ["properties", "source_artifact_type", "const"]) ==
+             "timeline_diff_report.v1"
+
+    assert get_in(schema, ["properties", "model_limits", "const"]) ==
+             OrbitalDynamics.Timeline.model_limits()
+
+    assert get_in(schema, [
+             "properties",
+             "diff_status_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().timeline_diff_statuses
+
+    assert get_in(schema, [
+             "properties",
+             "review_timeline_ids_by_required_operator_action",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, [
+             "properties",
+             "review_rows",
+             "items",
+             "required"
+           ]) == [
+             "id",
+             "rank",
+             "timeline_id",
+             "diff_status",
+             "changed_fields",
+             "requires_operator_review",
+             "required_operator_action",
+             "reason"
+           ]
+
+    protected_source = %{
+      id: :cmd_lock,
+      type: :command,
+      status: :planned,
+      approval_status: :approved,
+      locked: true,
+      starts_at_s: 10.0,
+      ends_at_s: 20.0,
+      metadata: %{timeline_id: :"timeline:cmd_lock"}
+    }
+
+    protected_replacement = %{
+      id: :cmd_lock,
+      type: :command,
+      status: :planned,
+      approval_status: :approved,
+      locked: true,
+      starts_at_s: 12.0,
+      ends_at_s: 22.0,
+      metadata: %{timeline_id: :"timeline:cmd_lock"}
+    }
+
+    added = %{
+      id: :new_cmd,
+      type: :command,
+      starts_at_s: 70.0,
+      ends_at_s: 80.0,
+      metadata: %{timeline_id: :"timeline:new_cmd"}
+    }
+
+    summary =
+      OrbitalDynamics.Timeline.diff_summary(
+        [protected_source],
+        [protected_replacement, added],
+        source: "repair.activities"
+      )
+
+    assert {:ok, %{"schema_contract" => "timeline_diff_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    invalid_source_contract = Map.put(summary, "source_artifact_type", "timeline_diff_report.v2")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_source_contract)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.source_artifact_type" and
+                 &1["message"] == "must equal \"timeline_diff_report.v1\"")
+           )
+
+    stale_model_limits = Map.put(summary, "model_limits", ["artifact_level_only"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_model_limits)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] == "must match timeline report model limits")
+           )
+
+    stale_review_count = Map.put(summary, "review_required_count", 1)
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_review_count)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.review_required_count" and
+                 &1["message"] == "must equal row-derived review_required_count")
+           )
+
+    stale_action_map =
+      put_in(
+        summary,
+        ["review_timeline_ids_by_required_operator_action", "review_added_activity"],
+        ["timeline:cmd_lock"]
+      )
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_action_map)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.review_timeline_ids_by_required_operator_action" and
+                 &1["message"] ==
+                   "must equal row-derived review_timeline_ids_by_required_operator_action")
+           )
+
+    invalid_action_map_id =
+      put_in(
+        summary,
+        ["review_timeline_ids_by_required_operator_action", "review_added_activity"],
+        ["bad timeline"]
+      )
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_action_map_id)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] ==
+                 "$.review_timeline_ids_by_required_operator_action.review_added_activity[0]" and
+                 &1["message"] =~ "stable ID")
+           )
+  end
+
+  test "exports and validates timeline preservation model and source fields" do
+    assert {:ok, report_schema} = Schema.json_schema("timeline_preservation_report.v1")
+    assert {:ok, status_schema} = Schema.json_schema("timeline_preservation_status.v1")
+
+    assert get_in(report_schema, ["properties", "schema_contract", "const"]) ==
+             "timeline_preservation_report.v1"
+
+    assert get_in(report_schema, ["properties", "model", "const"]) ==
+             "artifact_only_lifecycle_preservation_summary"
+
+    assert get_in(report_schema, ["properties", "source", "type"]) == "string"
+
+    assert get_in(report_schema, ["properties", "model_limits", "const"]) ==
+             OrbitalDynamics.Timeline.model_limits()
+
+    assert get_in(report_schema, ["properties", "model_limits", "items", "enum"]) ==
+             OrbitalDynamics.Timeline.model_limits()
+
+    assert get_in(status_schema, ["properties", "schema_contract", "const"]) ==
+             "timeline_preservation_status.v1"
+
+    assert get_in(status_schema, ["properties", "model", "const"]) ==
+             "artifact_only_lifecycle_preservation_status"
+
+    assert get_in(status_schema, ["properties", "model_limits", "const"]) ==
+             OrbitalDynamics.Timeline.model_limits()
+
+    assert get_in(status_schema, ["properties", "model_limits", "items", "enum"]) ==
+             OrbitalDynamics.Timeline.model_limits()
+
+    preservation_report =
+      OrbitalDynamics.Timeline.preservation_report(
+        [
+          %{id: :contact_locked, type: :planned_contact, locked: true},
+          %{id: :cmd_mutable, type: :command, approval_status: :pending}
+        ],
+        source: "schema_test"
+      )
+
+    assert {:ok, %{"schema_contract" => "timeline_preservation_report.v1"}} =
+             Schema.validate_artifact(preservation_report)
+
+    invalid_report_model = Map.put(preservation_report, "model", "custom")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_report_model)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"artifact_only_lifecycle_preservation_summary\"")
+           )
+
+    invalid_report_source = Map.put(preservation_report, "source", %{"id" => "schema_test"})
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_report_source)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.source" and &1["message"] == "must be a binary")
+           )
+
+    preservation_status =
+      OrbitalDynamics.Timeline.preservation_status(%{
+        id: :contact_locked,
+        type: :planned_contact,
+        locked: true
+      })
+
+    assert {:ok, %{"schema_contract" => "timeline_preservation_status.v1"}} =
+             Schema.validate_artifact(preservation_status)
+
+    invalid_status_model = Map.put(preservation_status, "model", "custom")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_status_model)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"artifact_only_lifecycle_preservation_status\"")
+           )
+  end
+
+  test "exports and validates timeline transition-application summary fields" do
+    assert {:ok, schema} = Schema.json_schema("timeline_transition_application_summary.v1")
+
+    assert get_in(schema, ["properties", "schema_contract", "const"]) ==
+             "timeline_transition_application_summary.v1"
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "artifact_only_timeline_transition_application_summary"
+
+    assert get_in(schema, ["properties", "validation_level", "const"]) == "artifact_contract"
+
+    assert get_in(schema, ["properties", "source_artifact_type", "const"]) ==
+             "timeline_transition_application_report.v1"
+
+    assert get_in(schema, ["properties", "source", "type"]) == "string"
+
+    assert get_in(schema, ["properties", "model_limits", "const"]) ==
+             OrbitalDynamics.Timeline.model_limits()
+
+    assert get_in(schema, [
+             "properties",
+             "application_status_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().transition_application_statuses
+
+    assert get_in(schema, [
+             "properties",
+             "status_transition_category_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().status_transition_categories
+
+    assert get_in(schema, [
+             "properties",
+             "selected_timeline_integrity_issue_types",
+             "items",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().timeline_integrity_issue_types
+
+    assert get_in(schema, [
+             "properties",
+             "selected_activity_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, [
+             "properties",
+             "review_timeline_ids_by_required_operator_action",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, [
+             "properties",
+             "review_timeline_ids_by_status_transition_category",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, [
+             "properties",
+             "review_timeline_ids_by_approval_transition_category",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, ["x-orbital-dynamics", "nested_contracts"]) == [
+             "timeline_transition_application_report.v1"
+           ]
+
+    assert get_in(schema, [
+             "properties",
+             "review_applications",
+             "items",
+             "required"
+           ]) == [
+             "id",
+             "rank",
+             "timeline_id",
+             "diff_status",
+             "transition_decision",
+             "requires_operator_review",
+             "required_operator_action",
+             "reason",
+             "changed_fields",
+             "application_status",
+             "source_timeline_diff"
+           ]
+
+    assert get_in(schema, [
+             "properties",
+             "review_applications",
+             "items",
+             "properties",
+             "source_activity_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    protected_source = %{
+      id: :cmd_lock,
+      type: :command,
+      status: :planned,
+      approval_status: :approved,
+      locked: true,
+      starts_at_s: 10.0,
+      ends_at_s: 20.0,
+      metadata: %{timeline_id: :"timeline:cmd_lock"}
+    }
+
+    protected_replacement = %{
+      id: :cmd_lock,
+      type: :command,
+      status: :planned,
+      approval_status: :approved,
+      locked: true,
+      starts_at_s: 12.0,
+      ends_at_s: 22.0,
+      metadata: %{timeline_id: :"timeline:cmd_lock"}
+    }
+
+    unchanged = %{
+      id: :obs_keep,
+      type: :observe,
+      target_id: :target_a,
+      starts_at_s: 30.0,
+      ends_at_s: 40.0,
+      metadata: %{timeline_id: :"timeline:obs_keep"}
+    }
+
+    added = %{
+      id: :new_cmd,
+      type: :command,
+      starts_at_s: 70.0,
+      ends_at_s: 80.0,
+      metadata: %{timeline_id: :"timeline:new_cmd"}
+    }
+
+    summary =
+      OrbitalDynamics.Timeline.transition_application_summary(
+        [protected_source, unchanged],
+        [protected_replacement, unchanged, added]
+      )
+
+    assert {:ok, %{"schema_contract" => "timeline_transition_application_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    invalid_source_contract = Map.put(summary, "source_artifact_type", "timeline_diff_report.v1")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_source_contract)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.source_artifact_type" and
+                 &1["message"] == "must equal \"timeline_transition_application_report.v1\"")
+           )
+
+    stale_model_limits = Map.put(summary, "model_limits", ["artifact_level_only"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_model_limits)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] == "must match timeline report model limits")
+           )
+
+    stale_review_count = Map.put(summary, "review_required_count", 1)
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_review_count)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.review_required_count" and
+                 &1["message"] ==
+                   "must equal review-application-derived review_required_count")
+           )
+
+    stale_action_map =
+      put_in(
+        summary,
+        ["review_timeline_ids_by_required_operator_action", "review_added_activity"],
+        ["timeline:cmd_lock"]
+      )
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_action_map)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.review_timeline_ids_by_required_operator_action" and
+                 &1["message"] ==
+                   "must equal review-application-derived review_timeline_ids_by_required_operator_action")
+           )
+
+    stale_status_map =
+      put_in(
+        summary,
+        ["review_timeline_ids_by_status_transition_category", "status_added"],
+        ["timeline:cmd_lock"]
+      )
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_status_map)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.review_timeline_ids_by_status_transition_category" and
+                 &1["message"] ==
+                   "must equal review-application-derived review_timeline_ids_by_status_transition_category")
+           )
+
+    stale_approval_map =
+      put_in(
+        summary,
+        ["review_timeline_ids_by_approval_transition_category", "approval_review_required"],
+        ["timeline:cmd_lock"]
+      )
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_approval_map)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.review_timeline_ids_by_approval_transition_category" and
+                 &1["message"] ==
+                   "must equal review-application-derived review_timeline_ids_by_approval_transition_category")
+           )
+
+    invalid_action_map_id =
+      put_in(
+        summary,
+        ["review_timeline_ids_by_required_operator_action", "review_added_activity"],
+        ["bad timeline"]
+      )
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_action_map_id)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] ==
+                 "$.review_timeline_ids_by_required_operator_action.review_added_activity[0]" and
+                 &1["message"] =~ "stable ID")
+           )
+  end
+
+  test "exports timeline activity precondition summary schema fields" do
+    assert {:ok, schema} = Schema.json_schema("timeline_activity_precondition_summary.v1")
+
+    assert schema["required"] == [
+             "schema_contract",
+             "model",
+             "validation_level",
+             "precondition_status",
+             "blocked_precondition_count",
+             "review_precondition_count",
+             "blocked_precondition_types",
+             "review_precondition_types",
+             "preconditions",
+             "assumptions"
+           ]
+
+    assert get_in(schema, ["properties", "schema_contract", "const"]) ==
+             "timeline_activity_precondition_summary.v1"
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "artifact_only_timeline_activity_precondition_summary"
+
+    assert get_in(schema, ["properties", "validation_level", "const"]) == "artifact_contract"
+
+    capabilities = OrbitalDynamics.Timeline.capabilities()
+
+    assert get_in(schema, ["properties", "precondition_status", "enum"]) ==
+             capabilities.activity_precondition_statuses
+
+    assert get_in(schema, ["properties", "preconditions", "items", "properties", "type", "enum"]) ==
+             capabilities.activity_precondition_types
+
+    assert get_in(schema, ["properties", "preconditions", "items", "required"]) == [
+             "type",
+             "status",
+             "field",
+             "reason"
+           ]
+
+    assert get_in(schema, [
+             "properties",
+             "preconditions",
+             "items",
+             "properties",
+             "status",
+             "enum"
+           ]) == capabilities.activity_precondition_statuses
+
+    assert get_in(schema, ["properties", "dependency_activity_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, ["properties", "dependency_timeline_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, ["properties", "exclusive_with_activity_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, ["properties", "exclusive_with_timeline_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, ["properties", "allow_overlap", "type"]) == "boolean"
+  end
+
+  test "validates timeline activity precondition summary artifact fields" do
+    valid_summary = %{
+      "schema_contract" => "timeline_activity_precondition_summary.v1",
+      "model" => "artifact_only_timeline_activity_precondition_summary",
+      "validation_level" => "artifact_contract",
+      "activity_id" => "cmd_source",
+      "timeline_id" => "timeline:cmd_source",
+      "activity_type" => "command",
+      "precondition_status" => "blocked",
+      "blocked_precondition_count" => 1,
+      "review_precondition_count" => 1,
+      "blocked_precondition_types" => ["payload_unavailable"],
+      "review_precondition_types" => ["degraded_mode"],
+      "dependency_activity_ids" => ["health_check_1", "obs_1"],
+      "dependency_timeline_ids" => ["timeline:health_check_1"],
+      "exclusive_with_activity_ids" => ["dl_conflict"],
+      "exclusive_with_timeline_ids" => ["timeline:dl_conflict"],
+      "allow_overlap" => true,
+      "preconditions" => [
+        %{
+          "type" => "payload_unavailable",
+          "status" => "blocked",
+          "field" => "payload_available",
+          "reason" => "payload availability is explicitly false"
+        },
+        %{
+          "type" => "degraded_mode",
+          "status" => "review_required",
+          "field" => "degraded",
+          "reason" => "activity is explicitly marked degraded"
+        }
+      ],
+      "assumptions" => %{
+        "execution_boundary" => "artifact_only_no_schedule_mutation",
+        "operator_authority" => "not_granted_by_precondition_summary",
+        "resource_authority" => "not_reserved_by_precondition_summary"
+      }
+    }
+
+    assert {:ok, %{"schema_contract" => "timeline_activity_precondition_summary.v1"}} =
+             Schema.validate_artifact(valid_summary)
+
+    invalid_status = Map.put(valid_summary, "precondition_status", "custom")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_status)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.precondition_status" and &1["message"] =~ "must be one of")
+           )
+
+    stale_status = Map.put(valid_summary, "precondition_status", "clear")
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_status)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.precondition_status" and
+                 &1["message"] =~ "must equal row-derived precondition_status")
+           )
+
+    invalid_count = Map.put(valid_summary, "blocked_precondition_count", -1)
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_count)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.blocked_precondition_count" and
+                 &1["message"] =~ "must be a non-negative integer")
+           )
+
+    stale_blocked_count = Map.put(valid_summary, "blocked_precondition_count", 0)
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_blocked_count)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.blocked_precondition_count" and
+                 &1["message"] =~ "must equal row-derived blocked_precondition_count")
+           )
+
+    stale_review_types = Map.put(valid_summary, "review_precondition_types", [])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_review_types)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.review_precondition_types" and
+                 &1["message"] =~ "must equal row-derived review_precondition_types")
+           )
+
+    invalid_activity_id = Map.put(valid_summary, "activity_id", "cmd source")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_activity_id)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.activity_id" and &1["message"] =~ "stable ID")
+           )
+
+    invalid_dependency_id =
+      Map.put(valid_summary, "dependency_activity_ids", ["bad dependency"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_dependency_id)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.dependency_activity_ids[0]" and
+                 &1["message"] =~ "stable ID")
+           )
+
+    invalid_exclusivity_timeline_id =
+      Map.put(valid_summary, "exclusive_with_timeline_ids", ["bad timeline"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_exclusivity_timeline_id)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.exclusive_with_timeline_ids[0]" and
+                 &1["message"] =~ "stable ID")
+           )
+
+    invalid_allow_overlap = Map.put(valid_summary, "allow_overlap", "true")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_allow_overlap)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.allow_overlap" and &1["message"] =~ "must be a boolean")
+           )
+
+    invalid_row =
+      put_in(valid_summary, ["preconditions", Access.at(0)], %{
+        "type" => "payload_unavailable",
+        "status" => "blocked",
+        "reason" => "payload availability is explicitly false"
+      })
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_row)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.preconditions[0].field" and &1["message"] =~ "must be a binary")
+           )
+  end
+
+  test "exports timeline activity-state adapter source enums" do
+    assert {:ok, cadence_schema} = Schema.json_schema("cadence_import_manifest.v1")
+    assert {:ok, operator_review_schema} = Schema.json_schema("operator_review_package.v1")
+
+    assert "timeline_activity_state.v1" in get_in(cadence_schema, [
+             "properties",
+             "source_artifact_type",
+             "enum"
+           ])
+
+    assert "timeline_activity_state.v1" in get_in(operator_review_schema, [
+             "properties",
+             "source_artifact_type",
+             "enum"
+           ])
+  end
+
+  test "validates and exports command window report scalar counters" do
+    report = read_json!("study_results/command_window_report_v1.json")
+
+    assert {:ok, %{"schema_contract" => "command_window_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    stale_model = Map.put(report, "model", "stale_command_window_report")
+
+    assert {:error, stale_model_report} =
+             Schema.validate_artifact(stale_model)
+
+    assert Enum.any?(
+             stale_model_report["errors"],
+             &(&1["path"] == "$.model")
+           )
+
+    float_window_count = Map.put(report, "window_count", 1.0)
+
+    assert {:error, float_window_count_report} =
+             Schema.validate_artifact(float_window_count)
+
+    assert Enum.any?(
+             float_window_count_report["errors"],
+             &(&1["path"] == "$.window_count")
+           )
+
+    negative_lineage_count = Map.put(report, "source_window_lineage_count", -1)
+
+    assert {:error, negative_lineage_count_report} =
+             Schema.validate_artifact(negative_lineage_count)
+
+    assert Enum.any?(
+             negative_lineage_count_report["errors"],
+             &(&1["path"] == "$.source_window_lineage_count")
+           )
+
+    assert {:ok, schema} = Schema.json_schema("command_window_report.v1")
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "artifact_only_command_window_report"
+
+    assert get_in(schema, ["properties", "source", "type"]) == "string"
+
+    assert get_in(schema, ["properties", "window_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, ["properties", "health_check_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, ["properties", "source_window_lineage_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+  end
+
+  test "validates standalone timeline diff report contracts" do
+    report = %{
+      "schema_contract" => "timeline_diff_report.v1",
+      "model" => "timeline_identity_activity_diff",
+      "source" => "repair.activities",
+      "source_activity_count" => 1,
+      "replacement_activity_count" => 1,
+      "row_count" => 1,
+      "added_count" => 0,
+      "removed_count" => 0,
+      "changed_count" => 1,
+      "unchanged_count" => 0,
+      "review_required_count" => 1,
+      "diff_status_counts" => %{"changed" => 1},
+      "required_operator_action_counts" => %{"review_timeline_change" => 1},
+      "transition_decision_counts" => %{"review" => 1},
+      "changed_field_counts" => %{"activity_id" => 1, "starts_at_s" => 1},
+      "status_transition_counts" => %{"changed" => 1},
+      "approval_transition_counts" => %{"changed" => 1},
+      "status_transition_category_counts" => %{"status_changed" => 1},
+      "approval_transition_category_counts" => %{"approval_review_required" => 1},
+      "duplicate_timeline_identity_count" => 0,
+      "duplicate_source_timeline_identity_count" => 0,
+      "duplicate_replacement_timeline_identity_count" => 0,
+      "rows" => [
+        %{
+          "id" => "timeline_diff:timeline:obs_1",
+          "rank" => 1,
+          "timeline_id" => "timeline:obs_1",
+          "diff_status" => "changed",
+          "source_activity_id" => "obs_1",
+          "replacement_activity_id" => "obs_1b",
+          "source_activity_type" => "observe",
+          "replacement_activity_type" => "observe",
+          "scenario_id" => "leo_1",
+          "source_starts_at_s" => 10.0,
+          "replacement_starts_at_s" => 12.0,
+          "start_delta_s" => 2.0,
+          "changed_fields" => ["activity_id", "starts_at_s"],
+          "transition_decision" => "review",
+          "transition_decision_reason" => "changed row requires operator review",
+          "status_transition" => %{
+            "field" => "status",
+            "transition_type" => "changed",
+            "transition_category" => "status_changed"
+          },
+          "approval_transition" => %{
+            "field" => "approval_status",
+            "transition_type" => "changed",
+            "transition_category" => "approval_review_required"
+          },
+          "requires_operator_review" => true,
+          "required_operator_action" => "review_timeline_change",
+          "reason" => "timing changed",
+          "source_activity_context" => %{
+            "activity_id" => "obs_1",
+            "timeline_id" => "timeline:obs_1"
+          },
+          "replacement_activity_context" => %{
+            "activity_id" => "obs_1b",
+            "timeline_id" => "timeline:obs_1"
+          },
+          "source_protection_category" => "locked_or_approved",
+          "source_protection_decision" => %{"protection_decision" => "preserve"},
+          "source_protection_reason" => "activity_locked_or_approved",
+          "replacement_protection_category" => "none",
+          "replacement_protection_decision" => %{"protection_decision" => "mutable"},
+          "replacement_protection_reason" => "no_timeline_protection",
+          "source_timeline_identity" => %{"timeline_id" => "timeline:obs_1"},
+          "replacement_timeline_identity" => %{"timeline_id" => "timeline:obs_1"}
+        }
+      ],
+      "assumptions" => %{"execution_boundary" => "artifact_only_no_schedule_mutation"}
+    }
+
+    assert {:ok, %{"schema_contract" => "timeline_diff_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    invalid_model = Map.put(report, "model", "timeline_diff_v0")
+
+    assert {:error, invalid_model_report} = Schema.validate_artifact(invalid_model)
+
+    assert Enum.any?(
+             invalid_model_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] == "must equal \"timeline_identity_activity_diff\"")
+           )
+
+    invalid = put_in(report, ["rows", Access.at(0), "diff_status"], "mystery")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid)
+    assert Enum.any?(validation_report["errors"], &(&1["path"] == "$.rows[0].diff_status"))
+
+    invalid_context = put_in(report, ["rows", Access.at(0), "source_activity_context"], "opaque")
+
+    assert {:error, context_report} = Schema.validate_artifact(invalid_context)
+
+    assert Enum.any?(
+             context_report["errors"],
+             &(&1["path"] == "$.rows[0].source_activity_context")
+           )
+
+    invalid_context_id =
+      put_in(
+        report,
+        ["rows", Access.at(0), "source_activity_context", "dependency_activity_ids"],
+        ["valid_dependency", "bad dependency"]
+      )
+
+    assert {:error, context_id_report} = Schema.validate_artifact(invalid_context_id)
+
+    assert Enum.any?(
+             context_id_report["errors"],
+             &(&1["path"] == "$.rows[0].source_activity_context.dependency_activity_ids[1]")
+           )
+
+    invalid_protection_decision =
+      put_in(report, ["rows", Access.at(0), "source_protection_decision", "locked"], "yes")
+
+    assert {:error, protection_decision_report} =
+             Schema.validate_artifact(invalid_protection_decision)
+
+    assert Enum.any?(
+             protection_decision_report["errors"],
+             &(&1["path"] == "$.rows[0].source_protection_decision.locked")
+           )
+
+    invalid_status_transition =
+      put_in(report, ["rows", Access.at(0), "status_transition"], %{
+        "transition_type" => "teleport"
+      })
+
+    assert {:error, status_transition_report} =
+             Schema.validate_artifact(invalid_status_transition)
+
+    assert Enum.any?(
+             status_transition_report["errors"],
+             &(&1["path"] == "$.rows[0].status_transition.transition_type")
+           )
+
+    invalid_timeline_identity =
+      put_in(report, ["rows", Access.at(0), "source_timeline_identity", "timeline_id"], "bad id")
+
+    assert {:error, timeline_identity_report} =
+             Schema.validate_artifact(invalid_timeline_identity)
+
+    assert Enum.any?(
+             timeline_identity_report["errors"],
+             &(&1["path"] == "$.rows[0].source_timeline_identity.timeline_id")
+           )
+
+    invalid_counts = Map.put(report, "diff_status_counts", ["changed"])
+
+    assert {:error, counts_report} = Schema.validate_artifact(invalid_counts)
+    assert Enum.any?(counts_report["errors"], &(&1["path"] == "$.diff_status_counts"))
+
+    invalid_row_derived_counts =
+      put_in(report, ["transition_decision_counts", "review"], 99)
+
+    assert {:error, row_derived_counts_report} =
+             Schema.validate_artifact(invalid_row_derived_counts)
+
+    assert Enum.any?(
+             row_derived_counts_report["errors"],
+             &(&1["path"] == "$.transition_decision_counts")
+           )
+
+    float_source_count = Map.put(report, "source_activity_count", 1.0)
+
+    assert {:error, float_source_count_report} = Schema.validate_artifact(float_source_count)
+
+    assert Enum.any?(
+             float_source_count_report["errors"],
+             &(&1["path"] == "$.source_activity_count")
+           )
+
+    negative_added_count = Map.put(report, "added_count", -1)
+
+    assert {:error, negative_added_count_report} =
+             Schema.validate_artifact(negative_added_count)
+
+    assert Enum.any?(
+             negative_added_count_report["errors"],
+             &(&1["path"] == "$.added_count")
+           )
+
+    negative_source_duplicate_count =
+      put_in(report, ["rows", Access.at(0), "source_duplicate_activity_count"], -1)
+
+    assert {:error, negative_source_duplicate_count_report} =
+             Schema.validate_artifact(negative_source_duplicate_count)
+
+    assert Enum.any?(
+             negative_source_duplicate_count_report["errors"],
+             &(&1["path"] == "$.rows[0].source_duplicate_activity_count")
+           )
+
+    negative_duplicate_identity_count =
+      Map.put(report, "duplicate_timeline_identity_count", -1)
+
+    assert {:error, negative_duplicate_identity_count_report} =
+             Schema.validate_artifact(negative_duplicate_identity_count)
+
+    assert Enum.any?(
+             negative_duplicate_identity_count_report["errors"],
+             &(&1["path"] == "$.duplicate_timeline_identity_count")
+           )
+  end
+
+  test "exports timeline diff top-level count-map contract fields" do
+    assert {:ok, schema} = Schema.json_schema("timeline_diff_report.v1")
+
+    assert get_in(schema, ["properties", "model", "const"]) == "timeline_identity_activity_diff"
+
+    assert get_in(schema, [
+             "properties",
+             "diff_status_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().timeline_diff_statuses
+
+    assert get_in(schema, [
+             "properties",
+             "required_operator_action_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().timeline_diff_required_operator_actions
+
+    assert get_in(schema, [
+             "properties",
+             "transition_decision_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().transition_decisions
+
+    assert get_in(schema, [
+             "properties",
+             "status_transition_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().lifecycle_transition_types
+
+    assert get_in(schema, [
+             "properties",
+             "approval_transition_category_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().approval_transition_categories
+
+    assert get_in(schema, [
+             "properties",
+             "changed_field_counts",
+             "additionalProperties"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, ["properties", "source_activity_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, ["properties", "review_required_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, ["properties", "duplicate_timeline_identity_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, ["properties", "duplicate_source_timeline_identity_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, ["properties", "duplicate_replacement_timeline_identity_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, [
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             "source_duplicate_activity_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+  end
+
+  test "validates standalone timeline transition application report contracts" do
+    source_diff = %{
+      "id" => "timeline_diff:timeline:obs_1",
+      "rank" => 1,
+      "timeline_id" => "timeline:obs_1",
+      "diff_status" => "changed",
+      "source_activity_id" => "obs_1",
+      "replacement_activity_id" => "obs_1b",
+      "changed_fields" => ["starts_at_s"],
+      "status_transition" => %{
+        "field" => "status",
+        "transition_type" => "changed",
+        "transition_category" => "status_changed"
+      },
+      "approval_transition" => %{
+        "field" => "approval_status",
+        "transition_type" => "changed",
+        "transition_category" => "approval_review_required"
+      },
+      "requires_operator_review" => true,
+      "required_operator_action" => "review_timeline_change",
+      "reason" => "timing changed",
+      "timeline_identity_collision" => true,
+      "duplicate_timeline_identity_scope" => "source",
+      "source_duplicate_activity_count" => 2,
+      "replacement_duplicate_activity_count" => 1,
+      "source_duplicate_activity_ids" => ["obs_1", "obs_1_shadow"],
+      "replacement_duplicate_activity_ids" => ["obs_1b"],
+      "source_duplicate_activities" => [%{"activity_id" => "obs_1"}],
+      "replacement_duplicate_activities" => [%{"activity_id" => "obs_1b"}]
+    }
+
+    report = %{
+      "schema_contract" => "timeline_transition_application_report.v1",
+      "model" => "artifact_only_timeline_transition_application",
+      "source" => "repair.activities",
+      "source_activity_count" => 1,
+      "replacement_activity_count" => 1,
+      "application_count" => 1,
+      "selected_activity_count" => 1,
+      "review_required_count" => 1,
+      "application_status_counts" => %{"operator_review_required" => 1},
+      "transition_decision_counts" => %{"review" => 1},
+      "required_operator_action_counts" => %{"review_timeline_change" => 1},
+      "status_transition_counts" => %{"changed" => 1},
+      "approval_transition_counts" => %{"changed" => 1},
+      "status_transition_category_counts" => %{"status_changed" => 1},
+      "approval_transition_category_counts" => %{"approval_review_required" => 1},
+      "preserved_source_count" => 0,
+      "recorded_replacement_count" => 0,
+      "withheld_review_count" => 1,
+      "selected_activities" => [
+        %{
+          "activity_id" => "obs_1",
+          "timeline_id" => "timeline:obs_1",
+          "activity_type" => "observation",
+          "status" => "planned",
+          "approval_status" => "not_evaluated",
+          "locked" => false,
+          "operational_kind" => "observation",
+          "required_operator_action" => "review_activity_approval",
+          "execution_boundary" => "planned_not_commanded",
+          "cadence_import_status" => "not_applicable",
+          "starts_at_s" => 100.0,
+          "ends_at_s" => 120.0,
+          "target_id" => "target:obs_1",
+          "approved" => false,
+          "has_source_window" => false,
+          "has_cadence_import" => false,
+          "timeline_identity" => %{
+            "timeline_id" => "timeline:obs_1",
+            "source" => "provided"
+          },
+          "activity_context" => %{"target_id" => "target:obs_1"},
+          "protection_decision" => "mutable",
+          "protection_category" => "none",
+          "protection_reason" => "activity is mutable"
+        }
+      ],
+      "model_limits" => OrbitalDynamics.Timeline.model_limits(),
+      "applications" => [
+        Map.merge(source_diff, %{
+          "transition_decision" => "review",
+          "application_status" => "operator_review_required",
+          "source_protection_decision" => %{
+            "protection_decision" => "mutable",
+            "protection_category" => "none"
+          },
+          "replacement_protection_decision" => %{
+            "protection_decision" => "mutable",
+            "protection_category" => "none"
+          },
+          "source_timeline_diff" => source_diff
+        })
+      ],
+      "assumptions" => %{"execution_boundary" => "artifact_only_no_schedule_mutation"}
+    }
+
+    assert {:ok, %{"schema_contract" => "timeline_transition_application_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    invalid_model = Map.put(report, "model", "stale_transition_application_model")
+
+    assert {:error, model_report} = Schema.validate_artifact(invalid_model)
+
+    assert Enum.any?(
+             model_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"artifact_only_timeline_transition_application\"")
+           )
+
+    stale_model_limits = Map.put(report, "model_limits", ["artifact_level_only"])
+
+    assert {:error, model_limits_report} = Schema.validate_artifact(stale_model_limits)
+
+    assert Enum.any?(
+             model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] == "must match timeline report model limits")
+           )
+
+    invalid =
+      put_in(report, ["applications", Access.at(0), "source_timeline_diff", "diff_status"], "x")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.applications[0].source_timeline_diff.diff_status")
+           )
+
+    invalid_protection_decision =
+      put_in(report, ["applications", Access.at(0), "source_protection_decision"], "preserve")
+
+    assert {:error, protection_report} = Schema.validate_artifact(invalid_protection_decision)
+
+    assert Enum.any?(
+             protection_report["errors"],
+             &(&1["path"] == "$.applications[0].source_protection_decision")
+           )
+
+    invalid_nested_protection_decision =
+      put_in(
+        report,
+        ["applications", Access.at(0), "source_protection_decision", "approved"],
+        "false"
+      )
+
+    assert {:error, nested_protection_report} =
+             Schema.validate_artifact(invalid_nested_protection_decision)
+
+    assert Enum.any?(
+             nested_protection_report["errors"],
+             &(&1["path"] == "$.applications[0].source_protection_decision.approved")
+           )
+
+    invalid_transition =
+      put_in(
+        report,
+        ["applications", Access.at(0), "status_transition", "requires_operator_review"],
+        "yes"
+      )
+
+    assert {:error, transition_report} = Schema.validate_artifact(invalid_transition)
+
+    assert Enum.any?(
+             transition_report["errors"],
+             &(&1["path"] == "$.applications[0].status_transition.requires_operator_review")
+           )
+
+    invalid_selected_activity =
+      put_in(report, ["selected_activities", Access.at(0), "timeline_identity"], "timeline:obs_1")
+
+    assert {:error, selected_activity_report} =
+             Schema.validate_artifact(invalid_selected_activity)
+
+    assert Enum.any?(
+             selected_activity_report["errors"],
+             &(&1["path"] == "$.selected_activities[0].timeline_identity")
+           )
+
+    negative_selected_activity_integrity_count =
+      put_in(report, ["selected_activities", Access.at(0), "timeline_integrity_issue_count"], -1)
+
+    assert {:error, negative_selected_activity_integrity_count_report} =
+             Schema.validate_artifact(negative_selected_activity_integrity_count)
+
+    assert Enum.any?(
+             negative_selected_activity_integrity_count_report["errors"],
+             &(&1["path"] == "$.selected_activities[0].timeline_integrity_issue_count")
+           )
+
+    negative_selected_application_integrity_count =
+      put_in(
+        report,
+        ["applications", Access.at(0), "selected_timeline_integrity_issue_count"],
+        -1
+      )
+
+    assert {:error, negative_selected_application_integrity_count_report} =
+             Schema.validate_artifact(negative_selected_application_integrity_count)
+
+    assert Enum.any?(
+             negative_selected_application_integrity_count_report["errors"],
+             &(&1["path"] == "$.applications[0].selected_timeline_integrity_issue_count")
+           )
+
+    negative_selected_report_integrity_count =
+      Map.put(report, "selected_timeline_integrity_issue_count", -1)
+
+    assert {:error, negative_selected_report_integrity_count_report} =
+             Schema.validate_artifact(negative_selected_report_integrity_count)
+
+    assert Enum.any?(
+             negative_selected_report_integrity_count_report["errors"],
+             &(&1["path"] == "$.selected_timeline_integrity_issue_count")
+           )
+
+    stale_selected_report_integrity_types =
+      Map.put(report, "selected_timeline_integrity_issue_types", ["missing_dependency_timeline"])
+
+    assert {:error, stale_selected_report_integrity_types_report} =
+             Schema.validate_artifact(stale_selected_report_integrity_types)
+
+    assert Enum.any?(
+             stale_selected_report_integrity_types_report["errors"],
+             &(&1["path"] == "$.selected_timeline_integrity_issue_types" and
+                 &1["message"] ==
+                   "must equal selected-activity-derived selected_timeline_integrity_issue_types")
+           )
+
+    negative_application_duplicate_count =
+      put_in(report, ["applications", Access.at(0), "source_duplicate_activity_count"], -1)
+
+    assert {:error, negative_application_duplicate_count_report} =
+             Schema.validate_artifact(negative_application_duplicate_count)
+
+    assert Enum.any?(
+             negative_application_duplicate_count_report["errors"],
+             &(&1["path"] == "$.applications[0].source_duplicate_activity_count")
+           )
+
+    invalid_counts =
+      put_in(report, ["application_status_counts", "operator_review_required"], 99)
+
+    assert {:error, counts_report} = Schema.validate_artifact(invalid_counts)
+
+    assert Enum.any?(
+             counts_report["errors"],
+             &(&1["path"] == "$.application_status_counts")
+           )
+
+    invalid_transition_counts = put_in(report, ["status_transition_counts"], %{"changed" => 2})
+
+    assert {:error, transition_counts_report} =
+             Schema.validate_artifact(invalid_transition_counts)
+
+    assert Enum.any?(
+             transition_counts_report["errors"],
+             &(&1["path"] == "$.status_transition_counts")
+           )
+
+    float_transition_counts =
+      put_in(report, ["status_transition_counts"], %{"changed" => 1.0})
+
+    assert {:error, float_transition_counts_report} =
+             Schema.validate_artifact(float_transition_counts)
+
+    assert Enum.any?(
+             float_transition_counts_report["errors"],
+             &(&1["path"] == "$.status_transition_counts.changed")
+           )
+
+    negative_application_status_counts =
+      put_in(report, ["application_status_counts"], %{"operator_review_required" => -1})
+
+    assert {:error, negative_application_status_counts_report} =
+             Schema.validate_artifact(negative_application_status_counts)
+
+    assert Enum.any?(
+             negative_application_status_counts_report["errors"],
+             &(&1["path"] == "$.application_status_counts.operator_review_required")
+           )
+
+    float_application_count = Map.put(report, "application_count", 1.0)
+
+    assert {:error, float_application_count_report} =
+             Schema.validate_artifact(float_application_count)
+
+    assert Enum.any?(
+             float_application_count_report["errors"],
+             &(&1["path"] == "$.application_count")
+           )
+
+    negative_preserved_source_count = Map.put(report, "preserved_source_count", -1)
+
+    assert {:error, negative_preserved_source_count_report} =
+             Schema.validate_artifact(negative_preserved_source_count)
+
+    assert Enum.any?(
+             negative_preserved_source_count_report["errors"],
+             &(&1["path"] == "$.preserved_source_count")
+           )
+  end
+
+  test "validates nested timeline transition applications in review and import handoffs" do
+    source_diff = %{
+      "id" => "timeline_diff:timeline:obs_1",
+      "rank" => 1,
+      "timeline_id" => "timeline:obs_1",
+      "diff_status" => "changed",
+      "source_activity_id" => "obs_1",
+      "replacement_activity_id" => "obs_1b",
+      "changed_fields" => ["starts_at_s"],
+      "requires_operator_review" => true,
+      "required_operator_action" => "review_timeline_change",
+      "reason" => "timing changed"
+    }
+
+    report = %{
+      "schema_contract" => "timeline_transition_application_report.v1",
+      "model" => "artifact_only_timeline_transition_application",
+      "source" => "repair.activities",
+      "source_activity_count" => 1,
+      "replacement_activity_count" => 1,
+      "application_count" => 1,
+      "selected_activity_count" => 0,
+      "review_required_count" => 1,
+      "applications" => [
+        Map.merge(source_diff, %{
+          "transition_decision" => "review",
+          "application_status" => "operator_review_required",
+          "source_timeline_diff" => source_diff
+        })
+      ],
+      "assumptions" => %{"execution_boundary" => "artifact_only_no_schedule_mutation"}
+    }
+
+    review = OrbitalDynamics.OperatorReview.from_timeline_transition_application_report(report)
+    manifest = OrbitalDynamics.CadenceImport.from_timeline_transition_application_report(report)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+
+    invalid_manifest_counts =
+      put_in(manifest, ["import_status_counts", "ready_for_import"], 99)
+
+    assert {:error, manifest_counts_report} = Schema.validate_artifact(invalid_manifest_counts)
+
+    assert Enum.any?(
+             manifest_counts_report["errors"],
+             &(&1["path"] == "$.import_status_counts")
+           )
+
+    invalid_review =
+      put_in(
+        review,
+        [
+          "rows",
+          Access.at(0),
+          "source_timeline_application",
+          "source_timeline_diff",
+          "diff_status"
+        ],
+        "x"
+      )
+
+    assert {:error, review_report} = Schema.validate_artifact(invalid_review)
+
+    assert Enum.any?(
+             review_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_timeline_application.source_timeline_diff.diff_status")
+           )
+
+    invalid_manifest =
+      put_in(
+        manifest,
+        [
+          "rows",
+          Access.at(0),
+          "source_timeline_application",
+          "source_timeline_diff",
+          "diff_status"
+        ],
+        "x"
+      )
+
+    assert {:error, manifest_report} = Schema.validate_artifact(invalid_manifest)
+
+    assert Enum.any?(
+             manifest_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_timeline_application.source_timeline_diff.diff_status")
+           )
+
+    invalid_manifest_review_copy =
+      put_in(
+        manifest,
+        [
+          "rows",
+          Access.at(0),
+          "source_review_row",
+          "source_timeline_application",
+          "source_timeline_diff",
+          "diff_status"
+        ],
+        "x"
+      )
+
+    assert {:error, manifest_review_copy_report} =
+             Schema.validate_artifact(invalid_manifest_review_copy)
+
+    assert Enum.any?(
+             manifest_review_copy_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_review_row.source_timeline_application.source_timeline_diff.diff_status")
+           )
+
+    invalid_review_branch_quality =
+      put_in(review, ["rows", Access.at(0), "branch_cloud_cover_max_fraction"], 1.2)
+
+    assert {:error, invalid_review_branch_quality_report} =
+             Schema.validate_artifact(invalid_review_branch_quality)
+
+    assert Enum.any?(
+             invalid_review_branch_quality_report["errors"],
+             &(&1["path"] == "$.rows[0].branch_cloud_cover_max_fraction")
+           )
+
+    invalid_manifest_branch_events =
+      put_in(manifest, ["rows", Access.at(0), "branch_event_types"], ["timeline_diff", 42])
+
+    assert {:error, invalid_manifest_branch_events_report} =
+             Schema.validate_artifact(invalid_manifest_branch_events)
+
+    assert Enum.any?(
+             invalid_manifest_branch_events_report["errors"],
+             &(&1["path"] == "$.rows[0].branch_event_types[1]")
+           )
+
+    invalid_manifest_target_id =
+      put_in(manifest, ["rows", Access.at(0), "target_id"], "target with spaces")
+
+    assert {:error, invalid_manifest_target_id_report} =
+             Schema.validate_artifact(invalid_manifest_target_id)
+
+    assert Enum.any?(
+             invalid_manifest_target_id_report["errors"],
+             &(&1["path"] == "$.rows[0].target_id")
+           )
+
+    invalid_manifest_review_branch_counts =
+      put_in(
+        manifest,
+        [
+          "rows",
+          Access.at(0),
+          "source_review_row",
+          "branch_event_trust_boundary_status_counts"
+        ],
+        %{"declared" => -1}
+      )
+
+    assert {:error, invalid_manifest_review_branch_counts_report} =
+             Schema.validate_artifact(invalid_manifest_review_branch_counts)
+
+    assert Enum.any?(
+             invalid_manifest_review_branch_counts_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_review_row.branch_event_trust_boundary_status_counts.declared")
+           )
+
+    valid_source_branch_comparison = %{
+      "downlink_completion_required_contacts" => 1,
+      "downlink_completion_planned_contacts" => 0,
+      "downlink_completion_ratio" => 0.0,
+      "observation_success_factor" => 1.0
+    }
+
+    review_with_branch_source =
+      put_in(
+        review,
+        ["rows", Access.at(0), "source_branch_comparison"],
+        valid_source_branch_comparison
+      )
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review_with_branch_source)
+
+    invalid_review_source_branch =
+      put_in(
+        review_with_branch_source,
+        [
+          "rows",
+          Access.at(0),
+          "source_branch_comparison",
+          "downlink_completion_required_contacts"
+        ],
+        1.0
+      )
+
+    assert {:error, invalid_review_source_branch_report} =
+             Schema.validate_artifact(invalid_review_source_branch)
+
+    assert Enum.any?(
+             invalid_review_source_branch_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_branch_comparison.downlink_completion_required_contacts")
+           )
+
+    invalid_review_source_branch_target_count =
+      put_in(
+        review_with_branch_source,
+        [
+          "rows",
+          Access.at(0),
+          "source_branch_comparison",
+          "coverage_observed_target_count"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_review_source_branch_target_count_report} =
+             Schema.validate_artifact(invalid_review_source_branch_target_count)
+
+    assert Enum.any?(
+             invalid_review_source_branch_target_count_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_branch_comparison.coverage_observed_target_count")
+           )
+
+    invalid_review_source_branch_probability =
+      put_in(
+        review_with_branch_source,
+        ["rows", Access.at(0), "source_branch_comparison", "downlink_completion_ratio"],
+        1.2
+      )
+
+    assert {:error, invalid_review_source_branch_probability_report} =
+             Schema.validate_artifact(invalid_review_source_branch_probability)
+
+    assert Enum.any?(
+             invalid_review_source_branch_probability_report["errors"],
+             &(&1["path"] == "$.rows[0].source_branch_comparison.downlink_completion_ratio")
+           )
+
+    manifest_with_branch_source =
+      put_in(
+        manifest,
+        ["rows", Access.at(0), "source_branch_comparison"],
+        valid_source_branch_comparison
+      )
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest_with_branch_source)
+
+    invalid_manifest_source_branch =
+      put_in(
+        manifest_with_branch_source,
+        [
+          "rows",
+          Access.at(0),
+          "source_branch_comparison",
+          "downlink_completion_planned_contacts"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_manifest_source_branch_report} =
+             Schema.validate_artifact(invalid_manifest_source_branch)
+
+    assert Enum.any?(
+             invalid_manifest_source_branch_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_branch_comparison.downlink_completion_planned_contacts")
+           )
+
+    manifest_with_review_branch_source =
+      put_in(
+        manifest,
+        ["rows", Access.at(0), "source_review_row", "source_branch_comparison"],
+        valid_source_branch_comparison
+      )
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest_with_review_branch_source)
+
+    invalid_manifest_review_source_branch =
+      put_in(
+        manifest_with_review_branch_source,
+        [
+          "rows",
+          Access.at(0),
+          "source_review_row",
+          "source_branch_comparison",
+          "downlink_completion_required_contacts"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_manifest_review_source_branch_report} =
+             Schema.validate_artifact(invalid_manifest_review_source_branch)
+
+    assert Enum.any?(
+             invalid_manifest_review_source_branch_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_review_row.source_branch_comparison.downlink_completion_required_contacts")
+           )
+
+    invalid_manifest_review_source_branch_revisit_count =
+      put_in(
+        manifest_with_review_branch_source,
+        [
+          "rows",
+          Access.at(0),
+          "source_review_row",
+          "source_branch_comparison",
+          "revisit_count"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_manifest_review_source_branch_revisit_count_report} =
+             Schema.validate_artifact(invalid_manifest_review_source_branch_revisit_count)
+
+    assert Enum.any?(
+             invalid_manifest_review_source_branch_revisit_count_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_review_row.source_branch_comparison.revisit_count")
+           )
+
+    invalid_manifest_review_source_branch_probability =
+      put_in(
+        manifest_with_review_branch_source,
+        [
+          "rows",
+          Access.at(0),
+          "source_review_row",
+          "source_branch_comparison",
+          "observation_success_factor"
+        ],
+        -0.1
+      )
+
+    assert {:error, invalid_manifest_review_source_branch_probability_report} =
+             Schema.validate_artifact(invalid_manifest_review_source_branch_probability)
+
+    assert Enum.any?(
+             invalid_manifest_review_source_branch_probability_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_review_row.source_branch_comparison.observation_success_factor")
+           )
+  end
+
+  test "exports timeline transition application top-level contract fields" do
+    assert {:ok, schema} = Schema.json_schema("timeline_transition_application_report.v1")
+
+    assert get_in(schema, ["properties", "schema_contract", "const"]) ==
+             "timeline_transition_application_report.v1"
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "artifact_only_timeline_transition_application"
+
+    assert get_in(schema, ["properties", "source", "type"]) == "string"
+
+    assert get_in(schema, ["properties", "model_limits", "const"]) ==
+             OrbitalDynamics.Timeline.model_limits()
+
+    assert get_in(schema, [
+             "properties",
+             "application_status_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().transition_application_statuses
+
+    assert get_in(schema, [
+             "properties",
+             "transition_decision_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().transition_decisions
+
+    assert get_in(schema, [
+             "properties",
+             "required_operator_action_counts",
+             "propertyNames",
+             "enum"
+           ]) ==
+             OrbitalDynamics.Timeline.capabilities().transition_decision_required_operator_actions
+
+    assert get_in(schema, [
+             "properties",
+             "status_transition_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().lifecycle_transition_types
+
+    assert get_in(schema, [
+             "properties",
+             "approval_transition_category_counts",
+             "additionalProperties"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, [
+             "properties",
+             "transition_decision_counts",
+             "additionalProperties"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, [
+             "properties",
+             "selected_timeline_integrity_issue_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, [
+             "properties",
+             "selected_timeline_integrity_issue_types",
+             "items",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().timeline_integrity_issue_types
+
+    assert get_in(schema, ["properties", "source_activity_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, ["properties", "application_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, ["properties", "preserved_source_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, ["properties", "withheld_review_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, [
+             "properties",
+             "applications",
+             "items",
+             "properties",
+             "source_duplicate_activity_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, [
+             "properties",
+             "applications",
+             "items",
+             "properties",
+             "source_timeline_diff",
+             "properties",
+             "source_duplicate_activity_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, [
+             "properties",
+             "selected_activities",
+             "items",
+             "properties",
+             "activity_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, [
+             "properties",
+             "selected_activities",
+             "items",
+             "required"
+           ]) == [
+             "activity_id",
+             "timeline_id",
+             "activity_type",
+             "status",
+             "approval_status",
+             "locked",
+             "has_source_window",
+             "has_cadence_import",
+             "timeline_identity"
+           ]
+
+    assert get_in(schema, [
+             "properties",
+             "selected_activities",
+             "items",
+             "properties",
+             "timeline_integrity_issue_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, [
+             "properties",
+             "selected_activities",
+             "items",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, [
+             "properties",
+             "selected_activities",
+             "items",
+             "properties",
+             "approval_status",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().approval_statuses
+
+    assert get_in(schema, [
+             "properties",
+             "selected_activities",
+             "items",
+             "properties",
+             "timeline_identity",
+             "type"
+           ]) == "object"
+
+    assert get_in(schema, [
+             "properties",
+             "selected_activities",
+             "items",
+             "properties",
+             "timeline_identity",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, [
+             "properties",
+             "selected_activities",
+             "items",
+             "properties",
+             "protection_category",
+             "type"
+           ]) == "string"
+
+    row_schema = get_in(schema, ["properties", "applications", "items"])
+
+    assert get_in(row_schema, ["properties", "source_protection_decision", "type"]) ==
+             "object"
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_protection_decision",
+             "properties",
+             "locked",
+             "type"
+           ]) == "boolean"
+
+    assert get_in(row_schema, ["properties", "replacement_protection_decision", "type"]) ==
+             "object"
+
+    assert get_in(row_schema, ["properties", "status_transition", "type"]) == "object"
+
+    assert get_in(row_schema, [
+             "properties",
+             "status_transition",
+             "properties",
+             "requires_operator_review",
+             "type"
+           ]) == "boolean"
+
+    assert get_in(row_schema, ["properties", "approval_transition", "type"]) == "object"
+    assert get_in(row_schema, ["properties", "operator_action_reason", "type"]) == "string"
+
+    assert get_in(row_schema, ["properties", "selected_timeline_integrity_issue_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(row_schema, ["properties", "source_duplicate_activity_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+  end
+
+  test "builds and validates schema validation report artifacts" do
+    artifact = campaign_artifact()
+
+    assert %{
+             "schema_contract" => "schema_validation_report.v1",
+             "model" => "executable_artifact_contract_validation",
+             "validation_mode" => "artifact_map",
+             "validated_contract" => "campaign_plan.v1",
+             "validated_artifact_family" => "campaign_plan",
+             "validated_schema_version" => 1,
+             "status" => "pass",
+             "model_limits" => [
+               "top_level_json_schema_compatibility_export",
+               "executable_elixir_validator_is_source_of_truth",
+               "semantic_checks_are_not_fully_represented_in_json_schema"
+             ],
+             "error_count" => 0,
+             "warning_count" => 0,
+             "errors" => [],
+             "warnings" => []
+           } = report = Schema.validation_report(artifact)
+
+    assert {:ok, %{"schema_contract" => "schema_validation_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert {:ok, schema_validation_report_schema} =
+             Schema.json_schema("schema_validation_report.v1")
+
+    assert get_in(schema_validation_report_schema, ["properties", "model", "const"]) ==
+             "executable_artifact_contract_validation"
+
+    failing = Schema.validation_report(Map.delete(artifact, "plan_id"))
+
+    assert %{
+             "status" => "fail",
+             "error_count" => 1,
+             "errors" => [%{"path" => "$.plan_id", "message" => "is required"}],
+             "remediation" => [
+               %{
+                 "path" => "$.plan_id",
+                 "category" => "missing_required_field",
+                 "action" => "Populate this required field for campaign_plan.v1",
+                 "source_message" => "is required"
+               }
+             ],
+             "remediation_count" => 1
+           } = failing
+
+    assert {:ok, %{"schema_contract" => "schema_validation_report.v1"}} =
+             Schema.validate_artifact(failing)
+
+    type_mismatch = Schema.validation_report(Map.put(artifact, "activities", %{}))
+
+    assert %{
+             "status" => "fail",
+             "errors" => [%{"path" => "$.activities", "message" => "must be a list"}],
+             "remediation" => [
+               %{
+                 "path" => "$.activities",
+                 "category" => "type_mismatch",
+                 "source_message" => "must be a list"
+               }
+             ]
+           } = type_mismatch
+
+    assert {:ok, %{"schema_contract" => "schema_validation_report.v1"}} =
+             Schema.validate_artifact(type_mismatch)
+
+    constant_mismatch =
+      artifact
+      |> Map.put("schema_version", 2)
+      |> Schema.validation_report(schema_contract: "campaign_plan.v1")
+
+    assert %{
+             "status" => "fail",
+             "errors" => [%{"path" => "$.schema_version", "message" => "must equal 1"}],
+             "remediation" => [
+               %{
+                 "path" => "$.schema_version",
+                 "category" => "constant_mismatch",
+                 "source_message" => "must equal 1"
+               }
+             ]
+           } = constant_mismatch
+
+    assert {:ok, %{"schema_contract" => "schema_validation_report.v1"}} =
+             Schema.validate_artifact(constant_mismatch)
+
+    unsupported_validation_mode =
+      report
+      |> Map.put("validation_mode", "surprising")
+      |> Schema.validation_report()
+
+    assert %{
+             "status" => "fail",
+             "errors" => [
+               %{"path" => "$.validation_mode", "message" => "must be one of " <> _}
+             ],
+             "remediation" => [
+               %{
+                 "path" => "$.validation_mode",
+                 "category" => "unsupported_value"
+               }
+             ]
+           } = unsupported_validation_mode
+
+    assert {:ok, %{"schema_contract" => "schema_validation_report.v1"}} =
+             Schema.validate_artifact(unsupported_validation_mode)
+
+    unknown_contract = Schema.validation_report(%{"unexpected" => "artifact"})
+
+    assert %{
+             "validated_contract" => "unknown",
+             "status" => "fail",
+             "errors" => [
+               %{"path" => "$", "message" => "could not infer schema contract from artifact"}
+             ],
+             "remediation" => [
+               %{
+                 "path" => "$",
+                 "category" => "contract_inference_failure",
+                 "source_message" => "could not infer schema contract from artifact"
+               }
+             ]
+           } = unknown_contract
+
+    assert {:ok, %{"schema_contract" => "schema_validation_report.v1"}} =
+             Schema.validate_artifact(unknown_contract)
+
+    unsupported_contract =
+      Schema.validation_report(artifact, schema_contract: "future_contract.v1")
+
+    assert %{
+             "validated_contract" => "future_contract.v1",
+             "status" => "fail",
+             "errors" => [
+               %{"path" => "$", "message" => "unknown schema contract: future_contract.v1"}
+             ],
+             "remediation" => [
+               %{
+                 "path" => "$",
+                 "category" => "unsupported_schema_contract",
+                 "source_message" => "unknown schema contract: future_contract.v1"
+               }
+             ]
+           } = unsupported_contract
+
+    assert {:ok, %{"schema_contract" => "schema_validation_report.v1"}} =
+             Schema.validate_artifact(unsupported_contract)
+
+    stale_status = Map.put(failing, "status", "pass")
+    assert {:error, stale_status_report} = Schema.validate_artifact(stale_status)
+    assert Enum.any?(stale_status_report["errors"], &(&1["path"] == "$.status"))
+
+    stale_model = Map.put(report, "model", "stale_schema_validation_model")
+    assert {:error, stale_model_report} = Schema.validate_artifact(stale_model)
+    assert Enum.any?(stale_model_report["errors"], &(&1["path"] == "$.model"))
+
+    invalid_count = Map.put(report, "error_count", 0.5)
+    assert {:error, invalid_count_report} = Schema.validate_artifact(invalid_count)
+    assert Enum.any?(invalid_count_report["errors"], &(&1["path"] == "$.error_count"))
+
+    stale_limits = Map.put(report, "model_limits", ["stale_schema_validation_boundary"])
+    assert {:error, stale_limits_report} = Schema.validate_artifact(stale_limits)
+    assert Enum.any?(stale_limits_report["errors"], &(&1["path"] == "$.model_limits"))
+
+    batch = %{
+      "schema_contract" => "schema_validation_batch_report.v1",
+      "model" => "executable_artifact_contract_batch_validation",
+      "model_limits" => Schema.schema_validation_model_limits(),
+      "validation_mode" => "artifact_directory",
+      "input_dir" => "study_results",
+      "file_count" => 1,
+      "artifact_count" => 1,
+      "skipped_count" => 0,
+      "skipped_artifacts" => [],
+      "status" => "pass",
+      "status_counts" => %{"pass" => 1},
+      "error_count" => 0,
+      "warning_count" => 0,
+      "remediation_count" => 0,
+      "reports" => [%{"path" => "study_results/campaign_plan.json", "report" => report}]
+    }
+
+    assert {:ok, %{"schema_contract" => "schema_validation_batch_report.v1"}} =
+             Schema.validate_artifact(batch)
+
+    invalid_batch = Map.put(batch, "file_count", 1.5)
+    assert {:error, invalid_batch_report} = Schema.validate_artifact(invalid_batch)
+    assert Enum.any?(invalid_batch_report["errors"], &(&1["path"] == "$.file_count"))
+
+    stale_batch_model = Map.put(batch, "model", "stale_schema_validation_batch_model")
+    assert {:error, stale_batch_model_report} = Schema.validate_artifact(stale_batch_model)
+    assert Enum.any?(stale_batch_model_report["errors"], &(&1["path"] == "$.model"))
+  end
+
+  test "exports nested schema validation issue schemas" do
+    assert {:ok, schema} = Schema.json_schema("schema_validation_report.v1")
+
+    error_schema = get_in(schema, ["properties", "errors", "items"])
+
+    assert error_schema["required"] == ["severity", "path", "message"]
+    assert get_in(error_schema, ["properties", "severity", "enum"]) == ["error", "warning"]
+    assert get_in(error_schema, ["properties", "path", "type"]) == "string"
+    assert get_in(error_schema, ["properties", "message", "type"]) == "string"
+
+    assert get_in(schema, ["properties", "warnings", "items"]) == error_schema
+
+    assert get_in(schema, ["properties", "model_limits", "const"]) ==
+             Schema.schema_validation_model_limits()
+
+    Enum.each(["error_count", "warning_count", "remediation_count"], fn field ->
+      assert get_in(schema, ["properties", field, "type"]) == "integer"
+      assert get_in(schema, ["properties", field, "minimum"]) == 0
+    end)
+
+    remediation_schema = get_in(schema, ["properties", "remediation", "items"])
+
+    assert remediation_schema["required"] == ["path", "category", "action", "source_message"]
+    assert get_in(remediation_schema, ["properties", "category", "type"]) == "string"
+
+    assert {:ok, batch_schema} = Schema.json_schema("schema_validation_batch_report.v1")
+
+    assert get_in(batch_schema, ["properties", "input_dir", "type"]) == "string"
+
+    assert get_in(batch_schema, ["properties", "model", "const"]) ==
+             "executable_artifact_contract_batch_validation"
+
+    Enum.each(
+      [
+        "file_count",
+        "artifact_count",
+        "skipped_count",
+        "error_count",
+        "warning_count",
+        "remediation_count"
+      ],
+      fn field ->
+        assert get_in(batch_schema, ["properties", field, "type"]) == "integer"
+        assert get_in(batch_schema, ["properties", field, "minimum"]) == 0
+      end
+    )
+
+    assert get_in(batch_schema, ["properties", "status_counts", "propertyNames", "enum"]) == [
+             "pass",
+             "fail"
+           ]
+
+    assert get_in(batch_schema, ["properties", "model_limits", "const"]) ==
+             Schema.schema_validation_model_limits()
+
+    skipped_schema = get_in(batch_schema, ["properties", "skipped_artifacts", "items"])
+
+    assert skipped_schema["required"] == ["path", "reason"]
+    assert get_in(skipped_schema, ["properties", "reason", "type"]) == "string"
+
+    report_entry_schema = get_in(batch_schema, ["properties", "reports", "items"])
+
+    assert report_entry_schema["required"] == ["path", "report"]
+
+    assert get_in(report_entry_schema, [
+             "properties",
+             "report",
+             "properties",
+             "model_limits",
+             "const"
+           ]) == Schema.schema_validation_model_limits()
+  end
+
+  test "validates standalone objective tradeoff report contracts" do
+    report = %{
+      "schema_contract" => "objective_tradeoff_report.v1",
+      "model" => "ranked_timeline_score_term_tradeoffs",
+      "objective" => "maximize weighted observation value and contact value",
+      "ranking_count" => 2,
+      "score_term_keys" => ["activity_score", "target_value"],
+      "tradeoffs" => [
+        %{
+          "rank" => 1,
+          "scenario_id" => "leo_1",
+          "score" => 120.0,
+          "score_delta_from_selected" => 0.0,
+          "activity_count" => 1,
+          "selected_observation_count" => 1,
+          "selected_contact_count" => 0,
+          "score_terms" => %{"activity_score" => 120.0, "target_value" => 120.0},
+          "activity_ids" => ["obs_1"]
+        },
+        %{
+          "rank" => 2,
+          "scenario_id" => "leo_2",
+          "score" => 80.0,
+          "score_delta_from_selected" => -40.0,
+          "activity_count" => 1,
+          "score_terms" => %{"activity_score" => 80.0, "target_value" => 80.0},
+          "activity_ids" => ["obs_2"]
+        }
+      ],
+      "assumptions" => %{"source" => "campaign_plan.ranked_timelines"}
+    }
+
+    assert {:ok, %{"schema_contract" => "objective_tradeoff_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    invalid = put_in(report, ["tradeoffs", Access.at(1), "activity_ids"], ["bad id"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.tradeoffs[1].activity_ids[0]")
+           )
+
+    invalid_activity_count = put_in(report, ["tradeoffs", Access.at(0), "activity_count"], 1.0)
+
+    assert {:error, activity_count_report} = Schema.validate_artifact(invalid_activity_count)
+
+    assert Enum.any?(
+             activity_count_report["errors"],
+             &(&1["path"] == "$.tradeoffs[0].activity_count")
+           )
+
+    invalid_selected_contact_count =
+      put_in(report, ["tradeoffs", Access.at(0), "selected_contact_count"], -1)
+
+    assert {:error, selected_contact_count_report} =
+             Schema.validate_artifact(invalid_selected_contact_count)
+
+    assert Enum.any?(
+             selected_contact_count_report["errors"],
+             &(&1["path"] == "$.tradeoffs[0].selected_contact_count")
+           )
+
+    invalid_ranking_count = Map.put(report, "ranking_count", -1)
+
+    assert {:error, ranking_count_report} = Schema.validate_artifact(invalid_ranking_count)
+    assert Enum.any?(ranking_count_report["errors"], &(&1["path"] == "$.ranking_count"))
+  end
+
+  test "validates standalone ranking comparison report contracts" do
+    report = %{
+      "schema_contract" => "ranking_comparison_report.v1",
+      "model" => "scenario_ranking_pairwise_delta",
+      "source" => "optimizer.compare_rankings",
+      "objective" => "final_radius_km",
+      "objective_direction" => "maximize",
+      "left_label" => "grid",
+      "right_label" => "monte_carlo",
+      "left_count" => 1,
+      "right_count" => 1,
+      "matched_count" => 1,
+      "left_only_count" => 0,
+      "right_only_count" => 0,
+      "row_count" => 1,
+      "winner" => %{
+        "left_scenario_id" => "burn_a",
+        "right_scenario_id" => "burn_b",
+        "changed" => true
+      },
+      "rows" => [
+        %{
+          "scenario_id" => "burn_b",
+          "status" => "matched",
+          "left_rank" => 2,
+          "right_rank" => 1,
+          "rank_delta" => 1,
+          "left_value" => 7005.0,
+          "right_value" => 7020.0,
+          "value_delta" => 15.0
+        }
+      ],
+      "assumptions" => %{"external_solver" => false}
+    }
+
+    assert {:ok, %{"schema_contract" => "ranking_comparison_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    invalid = put_in(report, ["rows", Access.at(0), "scenario_id"], "bad id")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.rows[0].scenario_id")
+           )
+
+    invalid_rank = put_in(report, ["rows", Access.at(0), "rank_delta"], 1.5)
+
+    assert {:error, rank_report} = Schema.validate_artifact(invalid_rank)
+    assert Enum.any?(rank_report["errors"], &(&1["path"] == "$.rows[0].rank_delta"))
+
+    invalid_left_count_shape = Map.put(report, "left_count", 2.0)
+
+    assert {:error, left_count_shape_report} = Schema.validate_artifact(invalid_left_count_shape)
+    assert Enum.any?(left_count_shape_report["errors"], &(&1["path"] == "$.left_count"))
+  end
+
+  test "validates standalone score term report contracts" do
+    report = %{
+      "schema_contract" => "score_term_report.v1",
+      "model" => "ranked_timeline_score_terms",
+      "source" => "campaign_plan.ranked_timelines",
+      "row_count" => 2,
+      "score_term_keys" => ["activity_score", "target_value"],
+      "rows" => [
+        %{
+          "id" => "score_term:leo_1:1:activity_score",
+          "rank" => 1,
+          "scenario_id" => "leo_1",
+          "term_key" => "activity_score",
+          "value" => 120.0,
+          "timeline_score" => 120.0,
+          "selected" => true
+        },
+        %{
+          "id" => "score_term:leo_2:2:target_value",
+          "rank" => 2,
+          "scenario_id" => "leo_2",
+          "term_key" => "target_value",
+          "value" => 80.0,
+          "timeline_score" => 80.0,
+          "selected" => false
+        }
+      ],
+      "assumptions" => %{"source" => "campaign_plan.ranked_timelines"}
+    }
+
+    assert {:ok, %{"schema_contract" => "score_term_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    invalid = put_in(report, ["rows", Access.at(0), "selected"], "yes")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid)
+    assert Enum.any?(validation_report["errors"], &(&1["path"] == "$.rows[0].selected"))
+
+    invalid_row_count = Map.put(report, "row_count", 2.0)
+
+    assert {:error, row_count_report} = Schema.validate_artifact(invalid_row_count)
+    assert Enum.any?(row_count_report["errors"], &(&1["path"] == "$.row_count"))
+  end
+
+  test "reports contract paths for missing campaign fields" do
+    artifact =
+      campaign_artifact()
+      |> Map.delete("plan_id")
+      |> update_in(["proposed_contacts"], fn [contact] -> [Map.delete(contact, "direction")] end)
+
+    assert {:error, report} = Schema.validate_artifact(artifact)
+
+    paths = Enum.map(report["errors"], & &1["path"])
+
+    assert "$.plan_id" in paths
+    assert "$.proposed_contacts[0].direction" in paths
+  end
+
+  test "validates minimal V2 repair and V3 strategy contracts" do
+    repair = repair_artifact()
+    strategy = strategy_artifact(repair)
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(repair)
+
+    assert {:ok, %{"schema_contract" => "score_term_report.v1"}} =
+             Schema.validate_artifact(repair["score_term_report"])
+
+    assert {:ok, %{"schema_contract" => "objective_tradeoff_report.v1"}} =
+             Schema.validate_artifact(repair["objective_tradeoff_report"])
+
+    assert {:ok, %{"schema_contract" => "link_capacity_report.v1"}} =
+             Schema.validate_artifact(repair["link_capacity_report"])
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3"}} =
+             Schema.validate_artifact(strategy)
+
+    invalid_strategy_event =
+      put_in(strategy, ["branches", Access.at(0), "events"], [
+        %{
+          "type" => "contact_success_feedback",
+          "trust_boundary" => ["operator_supplied"],
+          "provenance" => "opaque",
+          "feedback_sample_weight" => -1.0,
+          "sample_weight" => "many",
+          "confidence_weight" => "high",
+          "feedback_sample_weight_source" => ["operator_sample_size"],
+          "sample_weight_source" => 2,
+          "confidence_weight_source" => false
+        }
+      ])
+
+    assert {:error, invalid_strategy_event_report} =
+             Schema.validate_artifact(invalid_strategy_event)
+
+    for path <- [
+          "$.branches[0].events[0].trust_boundary",
+          "$.branches[0].events[0].provenance",
+          "$.branches[0].events[0].feedback_sample_weight",
+          "$.branches[0].events[0].sample_weight",
+          "$.branches[0].events[0].confidence_weight",
+          "$.branches[0].events[0].feedback_sample_weight_source",
+          "$.branches[0].events[0].sample_weight_source",
+          "$.branches[0].events[0].confidence_weight_source"
+        ] do
+      assert Enum.any?(invalid_strategy_event_report["errors"], &(&1["path"] == path))
+    end
+
+    assert {:ok, %{"schema_contract" => "ranking_comparison_report.v1"}} =
+             Schema.validate_artifact(strategy["ranking_comparison_report"])
+
+    assert {:ok, strategy_schema} = Schema.json_schema("campaign_strategy.v3")
+
+    assert get_in(strategy_schema, ["properties", "ranking_comparison_report", "type"]) ==
+             "object"
+
+    invalid_repair =
+      Map.put(repair, "source_station_calendar_report", %{
+        "schema_contract" => "station_calendar_report.v1"
+      })
+
+    assert {:error, invalid_repair_report} = Schema.validate_artifact(invalid_repair)
+
+    assert Enum.any?(
+             invalid_repair_report["errors"],
+             &(&1["path"] == "$.source_station_calendar_report.model")
+           )
+  end
+
+  test "validates accepted planning state snapshots" do
+    assert {:ok, report} = Schema.validate_artifact(accepted_planning_state())
+
+    assert report["schema_contract"] == "accepted_planning_state.v1"
+    assert report["artifact_family"] == "accepted_planning_state"
+
+    invalid_import_provenance =
+      accepted_planning_state()
+      |> put_in(["provenance"], %{
+        "import_adapter" => "OrbitalDynamics.OrbitData.import_simple_json/2",
+        "input_format" => "simple_json_state_estimate_batch"
+      })
+
+    assert {:error, invalid_report} = Schema.validate_artifact(invalid_import_provenance)
+
+    assert Enum.any?(
+             invalid_report["errors"],
+             &(&1["path"] == "$.provenance.trust_boundary" and
+                 &1["message"] =~ "accepted_planning_state.v1 import provenance requires")
+           )
+  end
+
+  test "validates standalone state-estimate and maneuver-delta fixtures" do
+    state_estimate = read_json!("study_results/spacecraft_state_estimate_v1.json")
+    maneuver_delta = read_json!("study_results/maneuver_execution_delta_v1.json")
+
+    assert {:ok, %{"schema_contract" => "spacecraft_state_estimate.v1"}} =
+             Schema.validate_artifact(state_estimate)
+
+    assert {:ok, %{"schema_contract" => "maneuver_execution_delta.v1"}} =
+             Schema.validate_artifact(maneuver_delta)
+
+    invalid_state =
+      put_in(state_estimate, ["state_vector", "position_km"], [7000.0, 0.0])
+
+    assert {:error, state_report} = Schema.validate_artifact(invalid_state)
+
+    assert Enum.any?(
+             state_report["errors"],
+             &(&1["path"] == "$.state_vector.position_km" and
+                 &1["message"] == "must be a three-element number array")
+           )
+
+    invalid_delta = Map.delete(maneuver_delta, "activity_id")
+
+    assert {:error, delta_report} = Schema.validate_artifact(invalid_delta)
+    assert Enum.any?(delta_report["errors"], &(&1["path"] == "$.activity_id"))
+
+    state_missing_trust =
+      state_estimate
+      |> Map.delete("trust_boundary")
+      |> Map.delete("provenance")
+
+    assert {:error, state_trust_report} = Schema.validate_artifact(state_missing_trust)
+
+    assert Enum.any?(
+             state_trust_report["errors"],
+             &(&1["path"] == "$.trust_boundary" and
+                 &1["message"] =~ "spacecraft_state_estimate.v1 requires trust_boundary")
+           )
+
+    delta_missing_trust =
+      maneuver_delta
+      |> Map.delete("trust_boundary")
+      |> Map.delete("provenance")
+
+    assert {:error, delta_trust_report} = Schema.validate_artifact(delta_missing_trust)
+
+    assert Enum.any?(
+             delta_trust_report["errors"],
+             &(&1["path"] == "$.trust_boundary" and
+                 &1["message"] =~ "maneuver_execution_delta.v1 requires trust_boundary")
+           )
+  end
+
+  test "validates reference fixture reports" do
+    observations_by_fixture =
+      "study_results/validation_reference_fixtures.json"
+      |> read_json!()
+      |> reference_fixture_report_observations()
+      |> Map.merge(%{
+        "fixture.artifact.campaign_plan.leo_constellation_v1" =>
+          campaign_plan_fixture_observations(),
+        "fixture.artifact.campaign_repair.leo_constellation_v2" =>
+          campaign_repair_fixture_observations(),
+        "fixture.artifact.campaign_strategy.leo_constellation_v3" =>
+          campaign_strategy_fixture_observations(),
+        "fixture.artifact.candidate_refresh.v1" => candidate_refresh_fixture_observations(),
+        "fixture.artifact.model_acceptance_report.operational_import" =>
+          Validation.artifact_observations(
+            "model_acceptance_report.v1",
+            Validation.model_acceptance_report(
+              [
+                "orbit_data.simple_json",
+                "event.access_windows",
+                "propagator.two_body",
+                "missing.model"
+              ],
+              intended_use: :operational_import
+            )
+          ),
+        "fixture.artifact.validation_safety_case_summary.v1" =>
+          validation_safety_case_summary_fixture_observations(),
+        "fixture.artifact.operator_review_package.v1" =>
+          operator_review_package_fixture_observations(),
+        "fixture.artifact.operational_readiness_report.v1" =>
+          operational_readiness_report_fixture_observations(),
+        "fixture.artifact.provider_counteroffer_report.v1" =>
+          provider_counteroffer_report_fixture_observations(),
+        "fixture.artifact.quality_gate_report.v1" => quality_gate_report_fixture_observations(),
+        "fixture.artifact.schema_validation_batch_report.v1" =>
+          schema_validation_batch_report_fixture_observations(),
+        "fixture.artifact.schema_validation_report.v1" =>
+          schema_validation_report_fixture_observations(),
+        "fixture.artifact.station_calendar_report.stale_provider_reservation_hold" =>
+          station_calendar_report_fixture_observations(),
+        "fixture.event.access.equator_overhead_120s" => %{
+          "window_count" => 1,
+          "first_window_starts_at_s" => 0.0,
+          "first_window_ends_at_s" => 89.45807391804992,
+          "first_window_duration_s" => 89.45807391804992,
+          "first_window_sample_count" => 2,
+          "first_window_max_elevation_deg" => 90.0
+        },
+        "fixture.event.eclipse.cylindrical_shadow_120s" => %{
+          "interval_count" => 1,
+          "first_interval_starts_at_s" => 0.0,
+          "first_interval_ends_at_s" => 88.8684602035115,
+          "first_interval_duration_s" => 88.8684602035115,
+          "first_interval_sample_count" => 2,
+          "first_interval_minimum_shadow_axis_distance_km" => 0.0,
+          "first_interval_maximum_shadow_margin_km" => 6378.1363
+        },
+        "fixture.event.target_visibility.equator_overhead_120s" => %{
+          "window_count" => 1,
+          "first_window_starts_at_s" => 0.0,
+          "first_window_ends_at_s" => 89.45807391804992,
+          "first_window_duration_s" => 89.45807391804992,
+          "first_window_sample_count" => 2,
+          "first_window_max_elevation_deg" => 90.0,
+          "target_priority" => 4.0
+        },
+        "fixture.event.ground_track.latitude_equator_60s" => %{
+          "crossing_count" => 1,
+          "first_crossing_epoch_s" => 30.0,
+          "first_crossing_target_deg" => 0.0,
+          "first_crossing_direction" => "northbound"
+        },
+        "fixture.j2.circular_leo_600s" => %{
+          "sample_count" => 6,
+          "final_epoch_s" => 600.0,
+          "final_position_km" => [5584.070997735894, 4217.992693724331, 0.0],
+          "final_velocity_km_s" => [-4.554400191561496, 6.019254825378945, 0.0]
+        },
+        "fixture.two_body.circular_leo_600s" => %{
+          "sample_count" => 6,
+          "final_epoch_s" => 600.0,
+          "final_position_km" => [5586.094941787218, 4218.4764189319985, 0.0],
+          "final_velocity_km_s" => [-4.54754969549011, 6.021852873409085, 0.0]
+        }
+      })
+
+    report = Validation.reference_fixture_report(observations_by_fixture)
+
+    assert {:ok, %{"schema_contract" => "validation_reference_fixture_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "validation_reference_fixture_report.v1"
+             )
+
+    assert report["status"] == "pass"
+    assert report["status_counts"] == %{"pass" => report["fixture_count"]}
+  end
+
+  test "validates standalone validation evidence fixtures" do
+    validation_check = read_json!("study_results/validation_check_v1.json")
+    validation_report = read_json!("study_results/validation_reference_report_v1.json")
+    validation_record = read_json!("study_results/validation_record_v1.json")
+    validation_fixtures = read_json!("study_results/validation_reference_fixtures.json")
+
+    assert {:ok, %{"schema_contract" => "validation_check.v1"}} =
+             Schema.validate_artifact(validation_check)
+
+    assert {:ok, %{"schema_contract" => "validation_reference_report.v1"}} =
+             Schema.validate_artifact(validation_report)
+
+    assert validation_report["status_counts"] == %{"pass" => length(validation_report["checks"])}
+
+    invalid_validation_report_level =
+      Map.put(validation_report, "validation_level", "stale_validation_level")
+
+    assert {:error, invalid_validation_report_level_report} =
+             Schema.validate_artifact(invalid_validation_report_level)
+
+    assert Enum.any?(
+             invalid_validation_report_level_report["errors"],
+             &(&1["path"] == "$.validation_level")
+           )
+
+    assert {:ok, %{"schema_contract" => "validation_record.v1"}} =
+             Schema.validate_artifact(validation_record)
+
+    invalid_validation_record_level =
+      Map.put(validation_record, "validation_level", "stale_validation_level")
+
+    assert {:error, invalid_validation_record_level_report} =
+             Schema.validate_artifact(invalid_validation_record_level)
+
+    assert Enum.any?(
+             invalid_validation_record_level_report["errors"],
+             &(&1["path"] == "$.validation_level")
+           )
+
+    stale_validation_record_model =
+      Map.put(validation_record, "model", "stale_validation_record_model")
+
+    assert {:error, stale_validation_record_model_report} =
+             Schema.validate_artifact(stale_validation_record_model)
+
+    assert Enum.any?(
+             stale_validation_record_model_report["errors"],
+             &(&1["path"] == "$.model")
+           )
+
+    external_validation_record =
+      validation_record
+      |> Map.put("id", "external.validation_record")
+      |> Map.put("model", "external_model")
+      |> Map.put("known_limits", ["external validation record remains extensible"])
+
+    assert {:ok, %{"schema_contract" => "validation_record.v1"}} =
+             Schema.validate_artifact(external_validation_record)
+
+    assert {:ok, validation_record_schema} = Schema.json_schema("validation_record.v1")
+
+    assert Enum.any?(
+             validation_record_schema["allOf"],
+             &(get_in(&1, ["if", "properties", "id", "const"]) == "propagator.two_body" and
+                 get_in(&1, ["then", "properties", "model", "const"]) == "point_mass_two_body")
+           )
+
+    assert {:ok, %{"schema_contract" => "validation_reference_fixture_report.v1"}} =
+             Schema.validate_artifact(validation_fixtures)
+
+    assert validation_fixtures["fixture_count"] == map_size(Validation.reference_fixtures())
+
+    assert validation_fixtures["status_counts"] == %{
+             "pass" => validation_fixtures["fixture_count"]
+           }
+
+    assert Enum.map(validation_fixtures["reports"], & &1["fixture_id"]) ==
+             Validation.reference_fixtures()
+             |> Map.keys()
+             |> Enum.sort()
+
+    reports_by_fixture_id = Map.new(validation_fixtures["reports"], &{&1["fixture_id"], &1})
+
+    Enum.each(
+      [
+        {"fixture.artifact.schema_migration_report.deprecated_campaign_plan",
+         [
+           "deprecated_contract_count",
+           "deprecated_contracts",
+           "replacement_contracts",
+           "row_derived_status_counts",
+           "row_derived_migration_action_counts"
+         ]},
+        {"fixture.artifact.schema_migration_report.future_campaign_plan",
+         [
+           "future_contract_count",
+           "row_derived_status_counts",
+           "row_derived_migration_action_counts"
+         ]}
+      ],
+      fn {fixture_id, expected_fields} ->
+        assert %{
+                 "model_id" => "artifact.schema_migration_report.v1",
+                 "status" => "pass",
+                 "checks" => checks
+               } = Map.fetch!(reports_by_fixture_id, fixture_id)
+
+        checks_by_field = Map.new(checks, &{&1["field"], &1})
+
+        Enum.each(expected_fields, fn field ->
+          assert %{"status" => "pass"} = Map.fetch!(checks_by_field, field)
+        end)
+      end
+    )
+
+    invalid_check = Map.put(validation_check, "status", "unknown")
+
+    assert {:error, check_report} = Schema.validate_artifact(invalid_check)
+    assert Enum.any?(check_report["errors"], &(&1["path"] == "$.status"))
+
+    invalid_record = put_in(validation_record, ["evidence"], ["ok", 42])
+
+    assert {:error, record_report} = Schema.validate_artifact(invalid_record)
+    assert Enum.any?(record_report["errors"], &(&1["path"] == "$.evidence[1]"))
+  end
+
+  test "validates checked-in operational readiness report fixture" do
+    readiness_report = read_json!("study_results/operational_readiness_report_v1.json")
+
+    assert {:ok, %{"schema_contract" => "operational_readiness_report.v1"}} =
+             Schema.validate_artifact(readiness_report)
+
+    stale_model = Map.put(readiness_report, "model", "stale_operational_readiness_model")
+
+    assert {:error, stale_model_report} = Schema.validate_artifact(stale_model)
+
+    assert Enum.any?(
+             stale_model_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"artifact_only_operational_readiness_classifier\"")
+           )
+
+    assert %{
+             "model" => "artifact_only_operational_readiness_classifier",
+             "readiness_level" => "import_eligible",
+             "import_classification" => "importable",
+             "status" => "passed",
+             "evidence" => %{
+               "ready_for_import_count" => 1,
+               "source_model_limit_count" => 1
+             }
+           } = readiness_report
+
+    invalid_negative_count = Map.put(readiness_report, "blocked_gate_count", -1)
+
+    assert {:error, negative_count_report} = Schema.validate_artifact(invalid_negative_count)
+    assert Enum.any?(negative_count_report["errors"], &(&1["path"] == "$.blocked_gate_count"))
+
+    assert {:ok, readiness_schema} = Schema.json_schema("operational_readiness_report.v1")
+
+    assert get_in(readiness_schema, ["properties", "model", "const"]) ==
+             "artifact_only_operational_readiness_classifier"
+
+    assert get_in(readiness_schema, ["properties", "gate_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(readiness_schema, ["properties", "passed_gate_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(readiness_schema, ["properties", "review_gate_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(readiness_schema, ["properties", "analysis_gate_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(readiness_schema, ["properties", "blocked_gate_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(readiness_schema, [
+             "properties",
+             "evidence",
+             "properties",
+             "resource_availability_reason_ids",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(readiness_schema, [
+             "properties",
+             "evidence",
+             "properties",
+             "station_availability_reason_ids",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(readiness_schema, [
+             "properties",
+             "evidence",
+             "properties",
+             "station_availability_reason_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(readiness_schema, [
+             "properties",
+             "evidence",
+             "properties",
+             "unavailable_resource_reason_ids",
+             "items",
+             "type"
+           ]) == "string"
+  end
+
+  test "validates readiness resource context fields on handoff rows" do
+    readiness_report =
+      "study_results/operational_readiness_report_v1.json"
+      |> read_json!()
+      |> put_readiness_resource_context(["gates", Access.at(0)])
+
+    assert {:ok, %{"schema_contract" => "operational_readiness_report.v1"}} =
+             Schema.validate_artifact(readiness_report)
+
+    invalid_gate_count =
+      put_in(
+        readiness_report,
+        ["gates", Access.at(0), "resource_availability_reason_counts", "antenna_unavailable"],
+        -1
+      )
+
+    assert {:error, invalid_gate_count_report} = Schema.validate_artifact(invalid_gate_count)
+
+    assert Enum.any?(
+             invalid_gate_count_report["errors"],
+             &(&1["path"] ==
+                 "$.gates[0].resource_availability_reason_counts.antenna_unavailable")
+           )
+
+    operator_review =
+      "study_results/operator_review_package_v1.json"
+      |> read_json!()
+      |> put_readiness_resource_context(["rows", Access.at(0)])
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(operator_review)
+
+    invalid_operator_reason_id =
+      put_in(
+        operator_review,
+        ["rows", Access.at(0), "resource_availability_reason_ids", Access.at(1)],
+        42
+      )
+
+    assert {:error, invalid_operator_reason_id_report} =
+             Schema.validate_artifact(invalid_operator_reason_id)
+
+    assert Enum.any?(
+             invalid_operator_reason_id_report["errors"],
+             &(&1["path"] == "$.rows[0].resource_availability_reason_ids[1]")
+           )
+
+    cadence_manifest =
+      "study_results/cadence_import_manifest_v1.json"
+      |> read_json!()
+      |> put_readiness_resource_context(["rows", Access.at(0)])
+      |> put_in(["rows", Access.at(0), "source_review_row"], %{})
+      |> put_readiness_resource_context(["rows", Access.at(0), "source_review_row"])
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(cadence_manifest)
+
+    invalid_source_review_count =
+      put_in(
+        cadence_manifest,
+        [
+          "rows",
+          Access.at(0),
+          "source_review_row",
+          "resource_blocking_dimension_counts",
+          "spacecraft"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_source_review_count_report} =
+             Schema.validate_artifact(invalid_source_review_count)
+
+    assert Enum.any?(
+             invalid_source_review_count_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_review_row.resource_blocking_dimension_counts.spacecraft")
+           )
+  end
+
+  test "validates checked-in readiness resource pressure handoff fixtures" do
+    readiness_report = read_json!("study_results/operational_readiness_resource_pressure_v1.json")
+    quality_gate_report = read_json!("study_results/quality_gate_resource_pressure_v1.json")
+    operator_review = read_json!("study_results/operator_review_resource_pressure_v1.json")
+    cadence_manifest = read_json!("study_results/cadence_import_resource_pressure_v1.json")
+
+    assert {:ok, %{"schema_contract" => "operational_readiness_report.v1"}} =
+             Schema.validate_artifact(readiness_report)
+
+    assert {:ok, %{"schema_contract" => "quality_gate_report.v1"}} =
+             Schema.validate_artifact(quality_gate_report)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(operator_review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(cadence_manifest)
+
+    expected_reason_counts = %{"antenna_unavailable" => 1, "payload_unavailable" => 1}
+    expected_reason_ids = ["antenna_unavailable", "payload_unavailable"]
+
+    assert %{
+             "readiness_level" => "operator_review",
+             "import_classification" => "review_only",
+             "status" => "review_required",
+             "evidence" => %{
+               "resource_availability_pressure_count" => 2,
+               "resource_availability_reason_counts" => ^expected_reason_counts
+             }
+           } = readiness_report
+
+    assert %{
+             "id" => "resource_availability",
+             "resource_availability_pressure_count" => 2,
+             "resource_availability_reason_counts" => ^expected_reason_counts
+           } =
+             Enum.find(readiness_report["gates"], &(&1["id"] == "resource_availability"))
+
+    assert %{
+             "gate_id" => "resource_availability",
+             "resource_availability_pressure_count" => 2,
+             "resource_availability_reason_counts" => ^expected_reason_counts,
+             "resource_availability_reason_ids" => ^expected_reason_ids,
+             "unavailable_resource_reason_ids" => ^expected_reason_ids
+           } =
+             Enum.find(
+               quality_gate_report["rows"],
+               &(&1["gate_id"] == "resource_availability")
+             )
+
+    assert %{
+             "readiness_gate_id" => "resource_availability",
+             "resource_availability_pressure_count" => 2,
+             "resource_availability_reason_counts" => ^expected_reason_counts,
+             "resource_availability_reason_ids" => ^expected_reason_ids,
+             "unavailable_resource_reason_ids" => ^expected_reason_ids
+           } =
+             Enum.find(
+               operator_review["rows"],
+               &(&1["readiness_gate_id"] == "resource_availability")
+             )
+
+    assert %{
+             "readiness_gate_id" => "resource_availability",
+             "resource_availability_pressure_count" => 2,
+             "resource_availability_reason_counts" => ^expected_reason_counts,
+             "resource_availability_reason_ids" => ^expected_reason_ids,
+             "unavailable_resource_reason_ids" => ^expected_reason_ids,
+             "source_review_row" => %{
+               "resource_availability_pressure_count" => 2,
+               "resource_availability_reason_counts" => ^expected_reason_counts,
+               "resource_availability_reason_ids" => ^expected_reason_ids,
+               "unavailable_resource_reason_ids" => ^expected_reason_ids
+             }
+           } =
+             Enum.find(
+               cadence_manifest["rows"],
+               &(&1["readiness_gate_id"] == "resource_availability")
+             )
+  end
+
+  test "validates checked-in candidate refresh resource provenance fixture" do
+    artifact = read_json!("study_results/candidate_refresh_resource_provenance_v1.json")
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact)
+
+    expected_reason_counts = %{"antenna_unavailable" => 1, "payload_unavailable" => 1}
+    expected_reason_ids = ["antenna_unavailable", "payload_unavailable"]
+
+    assert %{
+             "schema_contract" => "candidate_refresh.v1",
+             "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+             "provenance" => %{
+               "run_input_sources" => %{
+                 "source_operational_readiness_report" => [
+                   "candidate_refresh.mission_state.source_operational_readiness_report"
+                 ],
+                 "source_quality_gate_report" => [
+                   "candidate_refresh.mission_state.source_quality_gate_report"
+                 ]
+               },
+               "source_reports" => %{
+                 "operational_readiness_report" => operational_readiness_summary,
+                 "quality_gate_report" => quality_gate_summary
+               }
+             }
+           } = artifact
+
+    assert %{
+             "paths" => ["mission_state.source_operational_readiness_report"],
+             "contract" => "operational_readiness_report.v1",
+             "count" => 1,
+             "row_count" => 1,
+             "status_counts" => %{"review_required" => 1},
+             "resource_availability_pressure_count" => 2,
+             "resource_availability_reason_counts" => ^expected_reason_counts,
+             "resource_availability_reason_ids" => ^expected_reason_ids,
+             "station_availability_reason_counts" => %{},
+             "station_availability_reason_ids" => [],
+             "unavailable_resource_reason_ids" => ^expected_reason_ids,
+             "review_type_counts" => %{"resource_projection_review" => 1},
+             "import_action_counts" => %{"review_resource_projection" => 1}
+           } = operational_readiness_summary
+
+    assert %{
+             "paths" => ["mission_state.source_quality_gate_report"],
+             "contract" => "quality_gate_report.v1",
+             "count" => 1,
+             "row_count" => 6,
+             "status_counts" => %{"review_required" => 1},
+             "gate_status_counts" => %{"passed" => 3, "review_required" => 3},
+             "resource_availability_pressure_count" => 2,
+             "resource_availability_reason_counts" => ^expected_reason_counts,
+             "resource_availability_reason_ids" => ^expected_reason_ids,
+             "station_availability_reason_counts" => %{},
+             "station_availability_reason_ids" => [],
+             "unavailable_resource_reason_ids" => ^expected_reason_ids,
+             "source_readiness_report_count" => 1
+           } = quality_gate_summary
+
+    assert quality_gate_summary["trust_boundary_status"] == "missing"
+    assert quality_gate_summary["trust_boundaries"] == []
+
+    assert Validation.artifact_observations("candidate_refresh.v1", artifact) ==
+             %{
+               "schema_contract" => "candidate_refresh.v1",
+               "schema_version" => 1,
+               "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+               "candidate_count" => 0,
+               "contact_intent_count" => 0,
+               "access_window_count" => 1,
+               "target_visibility_window_count" => 1,
+               "eclipse_interval_count" => 0,
+               "warning_count" => 3,
+               "source_report_family_count" => 2,
+               "source_report_row_count" => 7
+             }
+
+    invalid_reason_id =
+      put_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "quality_gate_report",
+          "resource_availability_reason_ids",
+          Access.at(0)
+        ],
+        42
+      )
+
+    assert {:error, invalid_reason_id_report} = Schema.validate_artifact(invalid_reason_id)
+
+    assert Enum.any?(
+             invalid_reason_id_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.quality_gate_report.resource_availability_reason_ids[0]")
+           )
+
+    invalid_reason_count =
+      put_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "operational_readiness_report",
+          "resource_availability_reason_counts",
+          "payload_unavailable"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_reason_count_report} = Schema.validate_artifact(invalid_reason_count)
+
+    assert Enum.any?(
+             invalid_reason_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.operational_readiness_report.resource_availability_reason_counts.payload_unavailable")
+           )
+
+    invalid_station_reason_count =
+      put_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "quality_gate_report",
+          "station_availability_reason_counts",
+          "ground_station_reserved"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_station_reason_count_report} =
+             Schema.validate_artifact(invalid_station_reason_count)
+
+    assert Enum.any?(
+             invalid_station_reason_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.quality_gate_report.station_availability_reason_counts.ground_station_reserved")
+           )
+
+    invalid_analysis_mode_count =
+      update_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "quality_gate_report"
+        ],
+        fn summary ->
+          Map.put(summary, "analysis_mode_counts", %{"not_for_execution" => -1})
+        end
+      )
+
+    assert {:error, invalid_analysis_mode_count_report} =
+             Schema.validate_artifact(invalid_analysis_mode_count)
+
+    assert Enum.any?(
+             invalid_analysis_mode_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.quality_gate_report.analysis_mode_counts.not_for_execution")
+           )
+
+    invalid_trust_boundary_status =
+      put_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "quality_gate_report",
+          "trust_boundary_status"
+        ],
+        42
+      )
+
+    assert {:error, invalid_trust_boundary_status_report} =
+             Schema.validate_artifact(invalid_trust_boundary_status)
+
+    assert Enum.any?(
+             invalid_trust_boundary_status_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.quality_gate_report.trust_boundary_status")
+           )
+
+    invalid_trust_boundary =
+      update_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "quality_gate_report"
+        ],
+        fn summary ->
+          Map.put(summary, "trust_boundaries", [42])
+        end
+      )
+
+    assert {:error, invalid_trust_boundary_report} =
+             Schema.validate_artifact(invalid_trust_boundary)
+
+    assert Enum.any?(
+             invalid_trust_boundary_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.quality_gate_report.trust_boundaries[0]")
+           )
+
+    artifact_with_station_pressure_summary =
+      put_in(artifact, ["provenance", "source_reports", "contact_allocation_report"], %{
+        "paths" => ["mission_state.source_contact_allocation_report"],
+        "contract" => "contact_allocation_report.v1",
+        "count" => 1,
+        "row_count" => 2,
+        "station_pressure_contact_count" => 2,
+        "station_pressure_ground_station_counts" => %{"gs_equator" => 1, "gs_polar" => 1},
+        "station_pressure_availability_counts" => %{"reserved" => 1, "unavailable" => 1},
+        "station_pressure_precedence_availability_counts" => %{
+          "reserved" => 1,
+          "unavailable" => 1
+        },
+        "station_pressure_precedence_rank_counts" => %{"1" => 1, "2" => 1}
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_station_pressure_summary)
+
+    invalid_station_pressure_count =
+      put_in(
+        artifact_with_station_pressure_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "station_pressure_availability_counts",
+          "reserved"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_station_pressure_count_report} =
+             Schema.validate_artifact(invalid_station_pressure_count)
+
+    assert Enum.any?(
+             invalid_station_pressure_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.station_pressure_availability_counts.reserved")
+           )
+
+    artifact_with_station_calendar_summary =
+      put_in(artifact, ["provenance", "source_reports", "station_calendar_report"], %{
+        "paths" => ["source_station_calendar_report"],
+        "contract" => "station_calendar_report.v1",
+        "count" => 1,
+        "row_count" => 4,
+        "affected_contact_count" => 3,
+        "affected_contact_ids" => ["dl_reduced", "dl_reserved", "dl_unavailable"],
+        "affected_station_calendar_entry_ids" => [
+          "station_entry_reduced",
+          "station_entry_reserved",
+          "station_entry_unavailable"
+        ],
+        "affected_station_reservation_ids" => ["reservation_dss_43"],
+        "affected_contact_ground_station_counts" => %{
+          "dss_43" => 1,
+          "equator_prime" => 2
+        },
+        "affected_contact_availability_counts" => %{
+          "reduced_capacity" => 1,
+          "reserved" => 1,
+          "unavailable" => 1
+        },
+        "direction_counts" => %{"downlink" => 2, "uplink" => 1},
+        "contact_ids_by_direction" => %{
+          "downlink" => ["dl_reduced", "dl_unavailable"],
+          "uplink" => ["dl_reserved"]
+        },
+        "station_calendar_entry_ids_by_direction" => %{
+          "downlink" => ["station_entry_reduced", "station_entry_unavailable"],
+          "uplink" => ["station_entry_reserved"]
+        },
+        "station_reservation_ids_by_direction" => %{"uplink" => ["reservation_dss_43"]},
+        "station_capacity_fractions_by_direction" => %{"downlink" => [0.4]},
+        "direction_routing" => %{
+          "downlink" => %{
+            "contact_count" => 2,
+            "contact_ids" => ["dl_reduced", "dl_unavailable"],
+            "station_calendar_entry_ids" => [
+              "station_entry_reduced",
+              "station_entry_unavailable"
+            ],
+            "station_reservation_ids" => [],
+            "station_capacity_fractions" => [0.4],
+            "provider_contention_group_count" => 1,
+            "provider_contention_group_ids" => [
+              "station_calendar_provider_contention:equator_prime:1"
+            ],
+            "provider_contention_source_entry_ids" => ["provider_a", "provider_b"],
+            "provider_contention_provider_entry_ids" => [
+              "provider_entry_ops",
+              "provider_entry_partner"
+            ],
+            "provider_contention_capacity_fractions" => [0.25]
+          },
+          "uplink" => %{
+            "contact_count" => 1,
+            "contact_ids" => ["dl_reserved"],
+            "station_calendar_entry_ids" => ["station_entry_reserved"],
+            "station_reservation_ids" => ["reservation_dss_43"],
+            "station_capacity_fractions" => []
+          }
+        },
+        "provider_calendar_contention_group_count" => 1,
+        "provider_calendar_contention_group_ids" => [
+          "station_calendar_provider_contention:equator_prime:1"
+        ],
+        "provider_calendar_contention_source_entry_ids" => ["provider_a", "provider_b"],
+        "provider_calendar_contention_provider_entry_ids" => [
+          "provider_entry_ops",
+          "provider_entry_partner"
+        ],
+        "provider_calendar_contention_capacity_fractions" => [0.25],
+        "provider_calendar_contention_minimum_capacity_fraction" => 0.25,
+        "provider_calendar_contention_provider_counts" => %{
+          "ops_calendar" => 1,
+          "partner_calendar" => 1
+        },
+        "provider_calendar_contention_ground_station_counts" => %{
+          "dss_43" => 1,
+          "equator_prime" => 1
+        },
+        "provider_calendar_contention_direction_counts" => %{
+          "downlink" => 1,
+          "tracking" => 1
+        },
+        "provider_calendar_contention_group_ids_by_direction" => %{
+          "downlink" => ["station_calendar_provider_contention:equator_prime:1"],
+          "tracking" => ["station_calendar_provider_contention:equator_prime:1"]
+        },
+        "provider_calendar_contention_source_entry_ids_by_direction" => %{
+          "downlink" => ["provider_a", "provider_b"],
+          "tracking" => ["provider_a", "provider_b"]
+        },
+        "provider_calendar_contention_provider_entry_ids_by_direction" => %{
+          "downlink" => ["provider_entry_ops", "provider_entry_partner"],
+          "tracking" => ["provider_entry_ops", "provider_entry_partner"]
+        },
+        "provider_calendar_contention_capacity_fractions_by_direction" => %{
+          "downlink" => [0.25],
+          "tracking" => [0.25]
+        }
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_station_calendar_summary)
+
+    assert {:ok, candidate_refresh_schema} = Schema.json_schema("candidate_refresh.v1")
+
+    station_calendar_source_report_properties =
+      get_in(candidate_refresh_schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "station_calendar_report",
+        "properties"
+      ])
+
+    assert get_in(station_calendar_source_report_properties, [
+             "direction_routing",
+             "additionalProperties",
+             "properties",
+             "provider_contention_provider_entry_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(station_calendar_source_report_properties, [
+             "provider_calendar_contention_capacity_fractions_by_direction",
+             "additionalProperties",
+             "items",
+             "type"
+           ]) == "number"
+
+    invalid_station_calendar_route_fraction =
+      put_in(
+        artifact_with_station_calendar_summary,
+        [
+          "provenance",
+          "source_reports",
+          "station_calendar_report",
+          "direction_routing",
+          "downlink",
+          "provider_contention_capacity_fractions"
+        ],
+        [-0.25]
+      )
+
+    assert {:error, invalid_station_calendar_route_fraction_report} =
+             Schema.validate_artifact(invalid_station_calendar_route_fraction)
+
+    assert Enum.any?(
+             invalid_station_calendar_route_fraction_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.station_calendar_report.direction_routing.downlink.provider_contention_capacity_fractions[0]")
+           )
+
+    invalid_station_calendar_direction_id =
+      put_in(
+        artifact_with_station_calendar_summary,
+        [
+          "provenance",
+          "source_reports",
+          "station_calendar_report",
+          "provider_calendar_contention_provider_entry_ids_by_direction",
+          "downlink"
+        ],
+        ["bad provider entry"]
+      )
+
+    assert {:error, invalid_station_calendar_direction_id_report} =
+             Schema.validate_artifact(invalid_station_calendar_direction_id)
+
+    assert Enum.any?(
+             invalid_station_calendar_direction_id_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.station_calendar_report.provider_calendar_contention_provider_entry_ids_by_direction.downlink[0]")
+           )
+
+    artifact_with_contact_intent_summary =
+      put_in(artifact, ["provenance", "source_reports", "contact_intent"], %{
+        "paths" => ["source_contact_intent"],
+        "contract" => "contact_intent.v1",
+        "count" => 1,
+        "row_count" => 1,
+        "station_feedback_count" => 1,
+        "capacity_pack_required_contact_count" => 1,
+        "capacity_pack_required_capacity_fraction" => 0.25,
+        "capacity_pack_required_capacity_fraction_by_ground_station" => %{
+          "equator_prime" => 0.25
+        },
+        "capacity_pack_required_capacity_fraction_by_direction" => %{"downlink" => 0.25},
+        "required_capacity_fraction_source_counts" => %{
+          "contact_required_capacity_fraction" => 1
+        },
+        "required_capacity_fraction_contact_ids_by_source" => %{
+          "contact_required_capacity_fraction" => ["intent_direct_capacity"]
+        },
+        "capacity_pack_contact_ids_by_ground_station" => %{
+          "equator_prime" => ["intent_direct_capacity"]
+        },
+        "contact_ids_by_ground_station" => %{
+          "equator_prime" => ["intent_direct_capacity", "intent_station_only"]
+        },
+        "capacity_pack_contact_ids_by_direction" => %{
+          "downlink" => ["intent_direct_capacity"]
+        },
+        "directions" => ["command", "downlink"],
+        "direction_counts" => %{"command" => 1, "downlink" => 1},
+        "contact_ids_by_direction" => %{
+          "command" => ["intent_station_only"],
+          "downlink" => ["intent_direct_capacity"]
+        },
+        "direction_routing" => %{
+          "command" => %{
+            "contact_count" => 1,
+            "contact_ids" => ["intent_station_only"],
+            "capacity_pack_contact_ids" => []
+          },
+          "downlink" => %{
+            "contact_count" => 1,
+            "contact_ids" => ["intent_direct_capacity"],
+            "capacity_pack_required_capacity_fraction" => 0.25,
+            "capacity_pack_contact_ids" => ["intent_direct_capacity"]
+          }
+        },
+        "station_calendar_status_counts" => %{"unavailable" => 1},
+        "cadence_import_status_counts" => %{"missing" => 1},
+        "policy_classification_counts" => %{"review_only" => 1}
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_contact_intent_summary)
+
+    assert {:ok, candidate_refresh_schema} = Schema.json_schema("candidate_refresh.v1")
+
+    contact_intent_source_report_properties =
+      get_in(candidate_refresh_schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "contact_intent",
+        "properties"
+      ])
+
+    assert get_in(contact_intent_source_report_properties, [
+             "direction_routing",
+             "additionalProperties",
+             "properties",
+             "capacity_pack_contact_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(contact_intent_source_report_properties, [
+             "capacity_pack_required_capacity_fraction_by_direction",
+             "additionalProperties",
+             "minimum"
+           ]) == 0.0
+
+    assert get_in(contact_intent_source_report_properties, [
+             "contact_ids_by_direction",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    invalid_contact_intent_status_count =
+      put_in(
+        artifact_with_contact_intent_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_intent",
+          "station_calendar_status_counts",
+          "unavailable"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_contact_intent_status_count_report} =
+             Schema.validate_artifact(invalid_contact_intent_status_count)
+
+    assert Enum.any?(
+             invalid_contact_intent_status_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_intent.station_calendar_status_counts.unavailable")
+           )
+
+    invalid_contact_intent_direction_fraction =
+      put_in(
+        artifact_with_contact_intent_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_intent",
+          "direction_routing",
+          "downlink",
+          "capacity_pack_required_capacity_fraction"
+        ],
+        -0.25
+      )
+
+    assert {:error, invalid_contact_intent_direction_fraction_report} =
+             Schema.validate_artifact(invalid_contact_intent_direction_fraction)
+
+    assert Enum.any?(
+             invalid_contact_intent_direction_fraction_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_intent.direction_routing.downlink.capacity_pack_required_capacity_fraction")
+           )
+
+    invalid_contact_intent_direction_id =
+      put_in(
+        artifact_with_contact_intent_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_intent",
+          "contact_ids_by_direction",
+          "downlink"
+        ],
+        ["bad id"]
+      )
+
+    assert {:error, invalid_contact_intent_direction_id_report} =
+             Schema.validate_artifact(invalid_contact_intent_direction_id)
+
+    assert Enum.any?(
+             invalid_contact_intent_direction_id_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_intent.contact_ids_by_direction.downlink[0]")
+           )
+
+    artifact_with_link_capacity_summary =
+      put_in(artifact, ["provenance", "source_reports", "link_capacity_report"], %{
+        "paths" => ["source_link_capacity_report"],
+        "contract" => "link_capacity_report.v1",
+        "count" => 1,
+        "row_count" => 1,
+        "ground_station_counts" => %{"equator_prime" => 1},
+        "selected_contact_id_counts" => %{"dl_selected" => 1},
+        "actual_throughput_contact_id_counts" => %{"dl_actual" => 1}
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_link_capacity_summary)
+
+    invalid_link_capacity_contact_count =
+      put_in(
+        artifact_with_link_capacity_summary,
+        [
+          "provenance",
+          "source_reports",
+          "link_capacity_report",
+          "selected_contact_id_counts",
+          "dl_selected"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_link_capacity_contact_count_report} =
+             Schema.validate_artifact(invalid_link_capacity_contact_count)
+
+    assert Enum.any?(
+             invalid_link_capacity_contact_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.link_capacity_report.selected_contact_id_counts.dl_selected")
+           )
+
+    artifact_with_constraint_summary =
+      put_in(artifact, ["provenance", "source_reports", "constraint_report"], %{
+        "paths" => ["source_constraint_report"],
+        "contract" => "constraint_report.v1",
+        "count" => 1,
+        "row_count" => 2,
+        "ground_station_counts" => %{"equator_prime" => 1},
+        "constraint_metric_counts" => %{"battery_margin" => 1},
+        "constraint_resource_counts" => %{"battery_1" => 1},
+        "constraint_spacecraft_counts" => %{"leo_1" => 1}
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_constraint_summary)
+
+    invalid_constraint_resource_count =
+      put_in(
+        artifact_with_constraint_summary,
+        [
+          "provenance",
+          "source_reports",
+          "constraint_report",
+          "constraint_resource_counts",
+          "battery_1"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_constraint_resource_count_report} =
+             Schema.validate_artifact(invalid_constraint_resource_count)
+
+    assert Enum.any?(
+             invalid_constraint_resource_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.constraint_report.constraint_resource_counts.battery_1")
+           )
+
+    artifact_with_resource_projection_summary =
+      put_in(artifact, ["provenance", "source_reports", "resource_projection_report"], %{
+        "paths" => ["source_resource_projection_report"],
+        "contract" => "resource_projection_report.v1",
+        "count" => 1,
+        "row_count" => 2,
+        "ground_station_counts" => %{"equator_prime" => 1},
+        "resource_projection_spacecraft_counts" => %{"leo_1" => 2},
+        "resource_pressure_type_counts" => %{"downlink_shortfall" => 1},
+        "resource_pressure_activity_id_counts" => %{"dl_pressure_1" => 1}
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_resource_projection_summary)
+
+    invalid_resource_projection_type_count =
+      put_in(
+        artifact_with_resource_projection_summary,
+        [
+          "provenance",
+          "source_reports",
+          "resource_projection_report",
+          "resource_pressure_type_counts",
+          "downlink_shortfall"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_resource_projection_type_count_report} =
+             Schema.validate_artifact(invalid_resource_projection_type_count)
+
+    assert Enum.any?(
+             invalid_resource_projection_type_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.resource_projection_report.resource_pressure_type_counts.downlink_shortfall")
+           )
+
+    artifact_with_resource_filter_summary =
+      put_in(artifact, ["provenance", "source_reports", "resource_filter_report"], %{
+        "paths" => ["source_resource_filter_report"],
+        "contract" => "resource_filter_report.v1",
+        "count" => 1,
+        "row_count" => 1,
+        "invalid_resource_summary_input_ids" => ["bad_resource_summary"],
+        "resource_filter_spacecraft_counts" => %{"sat_1" => 1},
+        "resource_filter_resource_counts" => %{"payload_1" => 1},
+        "resource_filter_blocking_dimension_counts" => %{"payload" => 1}
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_resource_filter_summary)
+
+    invalid_resource_filter_dimension_count =
+      put_in(
+        artifact_with_resource_filter_summary,
+        [
+          "provenance",
+          "source_reports",
+          "resource_filter_report",
+          "resource_filter_blocking_dimension_counts",
+          "payload"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_resource_filter_dimension_count_report} =
+             Schema.validate_artifact(invalid_resource_filter_dimension_count)
+
+    assert Enum.any?(
+             invalid_resource_filter_dimension_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.resource_filter_report.resource_filter_blocking_dimension_counts.payload")
+           )
+
+    invalid_resource_filter_summary_id =
+      put_in(
+        artifact_with_resource_filter_summary,
+        [
+          "provenance",
+          "source_reports",
+          "resource_filter_report",
+          "invalid_resource_summary_input_ids",
+          Access.at(0)
+        ],
+        "bad summary"
+      )
+
+    assert {:error, invalid_resource_filter_summary_id_report} =
+             Schema.validate_artifact(invalid_resource_filter_summary_id)
+
+    assert Enum.any?(
+             invalid_resource_filter_summary_id_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.resource_filter_report.invalid_resource_summary_input_ids[0]")
+           )
+
+    artifact_with_contact_contention_summary =
+      put_in(artifact, ["provenance", "source_reports", "contact_contention_report"], %{
+        "paths" => ["source_contact_contention_report"],
+        "contract" => "contact_contention_report.v1",
+        "count" => 1,
+        "row_count" => 1,
+        "invalid_contact_input_ids" => ["bad_contact"],
+        "contact_contention_ground_station_counts" => %{"equator_prime" => 1},
+        "contact_contention_contact_id_counts" => %{"dl_primary" => 1, "dl_backup" => 1}
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_contact_contention_summary)
+
+    invalid_contact_contention_contact_count =
+      put_in(
+        artifact_with_contact_contention_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_contention_report",
+          "contact_contention_contact_id_counts",
+          "dl_primary"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_contact_contention_contact_count_report} =
+             Schema.validate_artifact(invalid_contact_contention_contact_count)
+
+    assert Enum.any?(
+             invalid_contact_contention_contact_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_contention_report.contact_contention_contact_id_counts.dl_primary")
+           )
+
+    invalid_contact_contention_input_id =
+      put_in(
+        artifact_with_contact_contention_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_contention_report",
+          "invalid_contact_input_ids",
+          Access.at(0)
+        ],
+        "bad contact"
+      )
+
+    assert {:error, invalid_contact_contention_input_id_report} =
+             Schema.validate_artifact(invalid_contact_contention_input_id)
+
+    assert Enum.any?(
+             invalid_contact_contention_input_id_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_contention_report.invalid_contact_input_ids[0]")
+           )
+
+    artifact_with_candidate_rejection_summary =
+      put_in(artifact, ["provenance", "source_reports", "candidate_rejection_report"], %{
+        "paths" => ["source_candidate_rejection_report"],
+        "contract" => "candidate_rejection_report.v1",
+        "count" => 1,
+        "row_count" => 1,
+        "candidate_rejection_candidate_id_counts" => %{"dl_reserved" => 1},
+        "candidate_rejection_ground_station_counts" => %{"unused_station" => 1}
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_candidate_rejection_summary)
+
+    invalid_candidate_rejection_station_count =
+      put_in(
+        artifact_with_candidate_rejection_summary,
+        [
+          "provenance",
+          "source_reports",
+          "candidate_rejection_report",
+          "candidate_rejection_ground_station_counts",
+          "unused_station"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_candidate_rejection_station_count_report} =
+             Schema.validate_artifact(invalid_candidate_rejection_station_count)
+
+    assert Enum.any?(
+             invalid_candidate_rejection_station_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.candidate_rejection_report.candidate_rejection_ground_station_counts.unused_station")
+           )
+
+    artifact_with_objective_summary =
+      put_in(artifact, ["provenance", "source_reports", "objective_satisfaction_report"], %{
+        "paths" => ["source_objective_satisfaction_report"],
+        "contract" => "objective_satisfaction_report.v1",
+        "count" => 1,
+        "row_count" => 3,
+        "ground_station_counts" => %{"equator_prime" => 1},
+        "target_counts" => %{"target_alpha" => 1},
+        "collection_counts" => %{"collection_day_1" => 1}
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_objective_summary)
+
+    invalid_objective_target_count =
+      put_in(
+        artifact_with_objective_summary,
+        [
+          "provenance",
+          "source_reports",
+          "objective_satisfaction_report",
+          "target_counts",
+          "target_alpha"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_objective_target_count_report} =
+             Schema.validate_artifact(invalid_objective_target_count)
+
+    assert Enum.any?(
+             invalid_objective_target_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.objective_satisfaction_report.target_counts.target_alpha")
+           )
+
+    artifact_with_contact_filter_summary =
+      put_in(artifact, ["provenance", "source_reports", "contact_filter_report"], %{
+        "paths" => ["source_contact_filter_report"],
+        "contract" => "contact_filter_report.v1",
+        "count" => 1,
+        "row_count" => 1,
+        "invalid_contact_input_ids" => ["bad_contact"],
+        "station_suppression_count" => 1,
+        "station_suppression_ground_station_counts" => %{"equator_prime" => 1},
+        "station_suppression_availability_counts" => %{"unavailable" => 1},
+        "station_suppression_status_counts" => %{"unavailable" => 1}
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_contact_filter_summary)
+
+    invalid_contact_filter_status_count =
+      put_in(
+        artifact_with_contact_filter_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_filter_report",
+          "station_suppression_status_counts",
+          "unavailable"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_contact_filter_status_count_report} =
+             Schema.validate_artifact(invalid_contact_filter_status_count)
+
+    assert Enum.any?(
+             invalid_contact_filter_status_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_filter_report.station_suppression_status_counts.unavailable")
+           )
+
+    invalid_contact_filter_input_id =
+      put_in(
+        artifact_with_contact_filter_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_filter_report",
+          "invalid_contact_input_ids",
+          Access.at(0)
+        ],
+        "bad contact"
+      )
+
+    assert {:error, invalid_contact_filter_input_id_report} =
+             Schema.validate_artifact(invalid_contact_filter_input_id)
+
+    assert Enum.any?(
+             invalid_contact_filter_input_id_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_filter_report.invalid_contact_input_ids[0]")
+           )
+
+    artifact_with_timeline_activity_state_summary =
+      put_in(artifact, ["provenance", "source_reports", "timeline_activity_state"], %{
+        "paths" => ["source_timeline_activity_status_state"],
+        "contract" => "timeline_activity_status_state.v1",
+        "count" => 2,
+        "row_count" => 2,
+        "invalid_activity_input_count" => 2,
+        "invalid_activity_input_reason_counts" => %{"missing_activity_type" => 2},
+        "invalid_activity_input_reasons" => ["missing_activity_type"]
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_timeline_activity_state_summary)
+
+    artifact_with_timeline_activity_lifecycle_state_summary =
+      put_in(
+        artifact,
+        ["provenance", "source_reports", "timeline_activity_lifecycle_state"],
+        %{
+          "paths" => ["source_timeline_activity_lifecycle_state"],
+          "contract" => "timeline_activity_lifecycle_state.v1",
+          "count" => 1,
+          "row_count" => 1,
+          "invalid_activity_input_count" => 1,
+          "invalid_activity_input_reason_counts" => %{"missing_activity_type" => 1},
+          "invalid_activity_input_reasons" => ["missing_activity_type"]
+        }
+      )
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_timeline_activity_lifecycle_state_summary)
+
+    invalid_timeline_activity_input_count =
+      put_in(
+        artifact_with_timeline_activity_state_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_activity_state",
+          "invalid_activity_input_count"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_timeline_activity_input_count_report} =
+             Schema.validate_artifact(invalid_timeline_activity_input_count)
+
+    assert Enum.any?(
+             invalid_timeline_activity_input_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_activity_state.invalid_activity_input_count")
+           )
+
+    invalid_timeline_activity_input_reason_count =
+      put_in(
+        artifact_with_timeline_activity_state_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_activity_state",
+          "invalid_activity_input_reason_counts",
+          "missing_activity_type"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_timeline_activity_input_reason_count_report} =
+             Schema.validate_artifact(invalid_timeline_activity_input_reason_count)
+
+    assert Enum.any?(
+             invalid_timeline_activity_input_reason_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_activity_state.invalid_activity_input_reason_counts.missing_activity_type")
+           )
+
+    invalid_timeline_activity_input_reason =
+      put_in(
+        artifact_with_timeline_activity_lifecycle_state_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_activity_lifecycle_state",
+          "invalid_activity_input_reasons",
+          Access.at(0)
+        ],
+        42
+      )
+
+    assert {:error, invalid_timeline_activity_input_reason_report} =
+             Schema.validate_artifact(invalid_timeline_activity_input_reason)
+
+    assert Enum.any?(
+             invalid_timeline_activity_input_reason_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_activity_lifecycle_state.invalid_activity_input_reasons[0]")
+           )
+
+    artifact_with_station_calendar_summary =
+      put_in(artifact, ["provenance", "source_reports", "station_calendar_report"], %{
+        "paths" => ["source_station_calendar_report"],
+        "contract" => "station_calendar_report.v1",
+        "count" => 1,
+        "row_count" => 1,
+        "affected_contact_count" => 1,
+        "affected_contact_ground_station_counts" => %{"equator_prime" => 1},
+        "affected_contact_availability_counts" => %{"unavailable" => 1},
+        "provider_calendar_contention_provider_counts" => %{"ops_calendar" => 1},
+        "provider_calendar_contention_ground_station_counts" => %{"equator_prime" => 1}
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_station_calendar_summary)
+
+    invalid_station_calendar_availability_count =
+      put_in(
+        artifact_with_station_calendar_summary,
+        [
+          "provenance",
+          "source_reports",
+          "station_calendar_report",
+          "affected_contact_availability_counts",
+          "unavailable"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_station_calendar_availability_count_report} =
+             Schema.validate_artifact(invalid_station_calendar_availability_count)
+
+    assert Enum.any?(
+             invalid_station_calendar_availability_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.station_calendar_report.affected_contact_availability_counts.unavailable")
+           )
+
+    invalid_station_calendar_provider_count =
+      put_in(
+        artifact_with_station_calendar_summary,
+        [
+          "provenance",
+          "source_reports",
+          "station_calendar_report",
+          "provider_calendar_contention_provider_counts",
+          "ops_calendar"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_station_calendar_provider_count_report} =
+             Schema.validate_artifact(invalid_station_calendar_provider_count)
+
+    assert Enum.any?(
+             invalid_station_calendar_provider_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.station_calendar_report.provider_calendar_contention_provider_counts.ops_calendar")
+           )
+
+    invalid_source_path =
+      put_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "quality_gate_report",
+          "paths",
+          Access.at(0)
+        ],
+        42
+      )
+
+    assert {:error, invalid_source_path_report} = Schema.validate_artifact(invalid_source_path)
+
+    assert Enum.any?(
+             invalid_source_path_report["errors"],
+             &(&1["path"] == "$.provenance.source_reports.quality_gate_report.paths[0]")
+           )
+
+    invalid_row_count =
+      put_in(
+        artifact,
+        ["provenance", "source_reports", "quality_gate_report", "row_count"],
+        -1
+      )
+
+    assert {:error, invalid_row_count_report} = Schema.validate_artifact(invalid_row_count)
+
+    assert Enum.any?(
+             invalid_row_count_report["errors"],
+             &(&1["path"] == "$.provenance.source_reports.quality_gate_report.row_count")
+           )
+
+    valid_reservation_evidence_count =
+      put_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "quality_gate_report",
+          "station_reservation_evidence_row_count"
+        ],
+        1
+      )
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(valid_reservation_evidence_count)
+
+    invalid_reservation_evidence_count =
+      put_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "quality_gate_report",
+          "station_reservation_expiration_evidence_row_count"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_reservation_evidence_count_report} =
+             Schema.validate_artifact(invalid_reservation_evidence_count)
+
+    assert Enum.any?(
+             invalid_reservation_evidence_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.quality_gate_report.station_reservation_expiration_evidence_row_count")
+           )
+  end
+
+  test "validates standalone candidate refresh nested fixtures" do
+    fixtures = [
+      {"study_results/candidate_diff_row_v1.json", "candidate_diff_row.v1"},
+      {"study_results/freshness_report_v1.json", "freshness_report.v1"},
+      {"study_results/invalidated_candidate_v1.json", "invalidated_candidate.v1"},
+      {"study_results/refresh_budget_report_v1.json", "refresh_budget_report.v1"},
+      {"study_results/refreshed_window_v1.json", "refreshed_window.v1"},
+      {"study_results/remaining_horizon_v1.json", "remaining_horizon.v1"},
+      {"study_results/candidate_activity_v1.json", "candidate_activity.v1"},
+      {"study_results/candidate_diff_report_v1.json", "candidate_diff_report.v1"},
+      {"study_results/source_window_lineage_v1.json", "source_window_lineage.v1"}
+    ]
+
+    Enum.each(fixtures, fn {path, contract} ->
+      assert {:ok, %{"schema_contract" => ^contract}} =
+               path
+               |> read_json!()
+               |> Schema.validate_artifact()
+    end)
+
+    invalid_diff =
+      "study_results/candidate_diff_row_v1.json"
+      |> read_json!()
+      |> Map.put("diff_reason", "surprising_change")
+
+    assert {:error, diff_report} = Schema.validate_artifact(invalid_diff)
+    assert Enum.any?(diff_report["errors"], &(&1["path"] == "$.diff_reason"))
+
+    candidate_diff_report = read_json!("study_results/candidate_diff_report_v1.json")
+
+    assert {:ok, candidate_diff_schema} = Schema.json_schema("candidate_diff_report.v1")
+    assert {:ok, candidate_diff_row_schema} = Schema.json_schema("candidate_diff_row.v1")
+    assert {:ok, candidate_activity_schema} = Schema.json_schema("candidate_activity.v1")
+    assert {:ok, freshness_schema} = Schema.json_schema("freshness_report.v1")
+    assert {:ok, refresh_budget_schema} = Schema.json_schema("refresh_budget_report.v1")
+    assert {:ok, refreshed_window_schema} = Schema.json_schema("refreshed_window.v1")
+
+    Enum.each(["cloud_cover_fraction", "blur_score"], fn field ->
+      assert get_in(candidate_activity_schema, ["properties", field]) == %{
+               "type" => "number",
+               "minimum" => 0.0,
+               "maximum" => 1.0
+             }
+    end)
+
+    assert get_in(candidate_diff_row_schema, ["properties", "collection_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(candidate_diff_row_schema, [
+             "properties",
+             "source_activity_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(candidate_diff_row_schema, [
+             "properties",
+             "downlink_completion_ratio",
+             "maximum"
+           ]) == 1
+
+    assert get_in(candidate_diff_schema, ["properties", "model_limits", "items", "enum"]) ==
+             OrbitalDynamics.CandidateRefresh.model_limits()
+
+    assert get_in(freshness_schema, ["properties", "model_limits", "const"]) ==
+             OrbitalDynamics.CandidateRefresh.model_limits()
+
+    assert get_in(refresh_budget_schema, ["properties", "model_limits", "const"]) ==
+             OrbitalDynamics.CandidateRefresh.model_limits()
+
+    assert get_in(candidate_diff_schema, ["properties", "model", "const"]) ==
+             "candidate_id_set_diff_with_semantic_change_reasons"
+
+    assert get_in(refresh_budget_schema, [
+             "properties",
+             "model",
+             "const"
+           ]) == "deterministic_candidate_limit_after_filters"
+
+    assert get_in(refresh_budget_schema, [
+             "properties",
+             "input_candidate_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(refresh_budget_schema, [
+             "properties",
+             "max_candidate_activities",
+             "minimum"
+           ]) == 0
+
+    assert get_in(candidate_diff_schema, [
+             "properties",
+             "source_window_lineage",
+             "items",
+             "properties",
+             "candidate_activity_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(candidate_diff_schema, ["properties", "prior_candidate_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(candidate_diff_schema, ["properties", "refreshed_candidate_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(candidate_diff_schema, ["properties", "valid_prior_candidate_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(candidate_diff_schema, ["properties", "invalid_prior_candidate_input_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(refreshed_window_schema, ["properties", "sample_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    invalid_diff_limits =
+      Map.put(candidate_diff_report, "model_limits", ["stale_candidate_refresh_boundary"])
+
+    assert {:error, diff_limits_report} = Schema.validate_artifact(invalid_diff_limits)
+    assert Enum.any?(diff_limits_report["errors"], &(&1["path"] == "$.model_limits"))
+
+    invalid_freshness_limits =
+      "study_results/freshness_report_v1.json"
+      |> read_json!()
+      |> Map.put("model_limits", ["artifact_only_no_schedule_mutation"])
+
+    assert {:error, freshness_limits_report} =
+             Schema.validate_artifact(invalid_freshness_limits)
+
+    assert Enum.any?(
+             freshness_limits_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] == "must match candidate refresh model limits")
+           )
+
+    invalid_refresh_budget_limits =
+      "study_results/refresh_budget_report_v1.json"
+      |> read_json!()
+      |> Map.put("model_limits", ["artifact_only_no_schedule_mutation"])
+
+    assert {:error, refresh_budget_limits_report} =
+             Schema.validate_artifact(invalid_refresh_budget_limits)
+
+    assert Enum.any?(
+             refresh_budget_limits_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] == "must match candidate refresh model limits")
+           )
+
+    invalid_diff_model =
+      Map.put(candidate_diff_report, "model", "stale_candidate_diff_model")
+
+    assert {:error, diff_model_report} = Schema.validate_artifact(invalid_diff_model)
+    assert Enum.any?(diff_model_report["errors"], &(&1["path"] == "$.model"))
+
+    invalid_diff_lineage =
+      put_in(
+        candidate_diff_report,
+        ["source_window_lineage", Access.at(0), "candidate_activity_id"],
+        "unknown_candidate"
+      )
+
+    assert {:error, diff_lineage_report} = Schema.validate_artifact(invalid_diff_lineage)
+
+    assert Enum.any?(
+             diff_lineage_report["errors"],
+             &(&1["path"] == "$.source_window_lineage[0].candidate_activity_id")
+           )
+
+    invalid_negative_diff_count = Map.put(candidate_diff_report, "prior_candidate_count", -1)
+
+    assert {:error, negative_diff_count_report} =
+             Schema.validate_artifact(invalid_negative_diff_count)
+
+    assert Enum.any?(
+             negative_diff_count_report["errors"],
+             &(&1["path"] == "$.prior_candidate_count")
+           )
+
+    invalid_float_prior_count = Map.put(candidate_diff_report, "valid_prior_candidate_count", 1.0)
+
+    assert {:error, float_prior_count_report} =
+             Schema.validate_artifact(invalid_float_prior_count)
+
+    assert Enum.any?(
+             float_prior_count_report["errors"],
+             &(&1["path"] == "$.valid_prior_candidate_count")
+           )
+
+    invalid_window_sample_count =
+      "study_results/refreshed_window_v1.json"
+      |> read_json!()
+      |> Map.put("sample_count", -1)
+
+    assert {:error, window_sample_count_report} =
+             Schema.validate_artifact(invalid_window_sample_count)
+
+    assert Enum.any?(
+             window_sample_count_report["errors"],
+             &(&1["path"] == "$.sample_count")
+           )
+
+    invalid_float_window_sample_count =
+      "study_results/refreshed_window_v1.json"
+      |> read_json!()
+      |> Map.put("sample_count", 1.0)
+
+    assert {:error, float_window_sample_count_report} =
+             Schema.validate_artifact(invalid_float_window_sample_count)
+
+    assert Enum.any?(
+             float_window_sample_count_report["errors"],
+             &(&1["path"] == "$.sample_count")
+           )
+
+    invalid_budget =
+      "study_results/refresh_budget_report_v1.json"
+      |> read_json!()
+      |> Map.put("kept_candidate_count", 99)
+
+    assert {:error, budget_report} = Schema.validate_artifact(invalid_budget)
+    assert Enum.any?(budget_report["errors"], &(&1["path"] == "$.kept_candidate_count"))
+
+    invalid_negative_budget =
+      "study_results/refresh_budget_report_v1.json"
+      |> read_json!()
+      |> Map.put("dropped_candidate_count", -1)
+
+    assert {:error, negative_budget_report} = Schema.validate_artifact(invalid_negative_budget)
+
+    assert Enum.any?(
+             negative_budget_report["errors"],
+             &(&1["path"] == "$.dropped_candidate_count")
+           )
+
+    invalid_input_budget =
+      "study_results/refresh_budget_report_v1.json"
+      |> read_json!()
+      |> Map.put("input_candidate_count", 99)
+
+    assert {:error, input_budget_report} = Schema.validate_artifact(invalid_input_budget)
+    assert Enum.any?(input_budget_report["errors"], &(&1["path"] == "$.input_candidate_count"))
+
+    invalid_budget_model =
+      "study_results/refresh_budget_report_v1.json"
+      |> read_json!()
+      |> Map.put("model", "stale_refresh_budget_model")
+
+    assert {:error, budget_model_report} = Schema.validate_artifact(invalid_budget_model)
+
+    assert Enum.any?(
+             budget_model_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"deterministic_candidate_limit_after_filters\"")
+           )
+
+    invalid_candidate_product =
+      "study_results/candidate_activity_v1.json"
+      |> read_json!()
+      |> Map.put("product_ids", ["bad product id"])
+
+    assert {:error, candidate_product_report} =
+             Schema.validate_artifact(invalid_candidate_product)
+
+    assert Enum.any?(
+             candidate_product_report["errors"],
+             &(&1["path"] == "$.product_ids[0]")
+           )
+
+    invalid_candidate_downlink =
+      "study_results/candidate_activity_v1.json"
+      |> read_json!()
+      |> Map.put("required_downlink_mb", -1.0)
+
+    assert {:error, candidate_downlink_report} =
+             Schema.validate_artifact(invalid_candidate_downlink)
+
+    assert Enum.any?(
+             candidate_downlink_report["errors"],
+             &(&1["path"] == "$.required_downlink_mb")
+           )
+
+    invalid_candidate_quality =
+      "study_results/candidate_activity_v1.json"
+      |> read_json!()
+      |> Map.put("cloud_cover_fraction", -0.1)
+
+    assert {:error, candidate_quality_report} =
+             Schema.validate_artifact(invalid_candidate_quality)
+
+    assert Enum.any?(
+             candidate_quality_report["errors"],
+             &(&1["path"] == "$.cloud_cover_fraction")
+           )
+
+    invalid_candidate_eclipse_overlap =
+      "study_results/candidate_activity_v1.json"
+      |> read_json!()
+      |> Map.put("eclipse_overlap_fraction", 1.2)
+
+    assert {:error, candidate_eclipse_overlap_report} =
+             Schema.validate_artifact(invalid_candidate_eclipse_overlap)
+
+    assert Enum.any?(
+             candidate_eclipse_overlap_report["errors"],
+             &(&1["path"] == "$.eclipse_overlap_fraction")
+           )
+
+    valid_candidate_numeric_lighting_confidence =
+      "study_results/candidate_activity_v1.json"
+      |> read_json!()
+      |> Map.put("lighting_confidence", 0.72)
+
+    assert {:ok, %{"schema_contract" => "candidate_activity.v1"}} =
+             Schema.validate_artifact(valid_candidate_numeric_lighting_confidence)
+
+    invalid_candidate_lighting_confidence =
+      "study_results/candidate_activity_v1.json"
+      |> read_json!()
+      |> Map.put("lighting_confidence", false)
+
+    assert {:error, candidate_lighting_confidence_report} =
+             Schema.validate_artifact(invalid_candidate_lighting_confidence)
+
+    assert Enum.any?(
+             candidate_lighting_confidence_report["errors"],
+             &(&1["path"] == "$.lighting_confidence")
+           )
+  end
+
+  test "validates standalone candidate rejection report contracts" do
+    report = %{
+      "schema_contract" => "candidate_rejection_report.v1",
+      "model" => "artifact_only_candidate_rejection_explanation",
+      "source" => "operational_timeline.candidate_rows",
+      "candidate_count" => 2,
+      "row_count" => 2,
+      "rejected_count" => 1,
+      "not_rejected_count" => 1,
+      "reviewable_count" => 1,
+      "invalid_candidate_input_count" => 0,
+      "rejection_reason_counts" => %{"station_unavailable" => 1},
+      "model_limits" => [
+        "artifact_only",
+        "does_not_select_candidates",
+        "does_not_mutate_schedules",
+        "derived_reasons_use_declared_candidate_fields"
+      ],
+      "required_operator_action_counts" => %{
+        "none" => 1,
+        "review_candidate_rejection" => 1
+      },
+      "rows" => [
+        %{
+          "id" => "candidate_rejection:candidate_1",
+          "candidate_id" => "candidate_1",
+          "rejection_status" => "rejected",
+          "rejection_reasons" => ["station_unavailable"],
+          "reason_count" => 1,
+          "reviewable" => true,
+          "required_operator_action" => "review_candidate_rejection",
+          "activity_context" => %{"activity_id" => "candidate_1"}
+        },
+        %{
+          "id" => "candidate_rejection:candidate_2",
+          "candidate_id" => "candidate_2",
+          "rejection_status" => "not_rejected",
+          "rejection_reasons" => [],
+          "reason_count" => 0,
+          "reviewable" => false,
+          "required_operator_action" => "none",
+          "activity_context" => %{"activity_id" => "candidate_2"}
+        }
+      ],
+      "assumptions" => %{"execution_boundary" => "artifact_only_no_schedule_mutation"}
+    }
+
+    assert {:ok, %{"schema_contract" => "candidate_rejection_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    invalid_model = Map.put(report, "model", "candidate_rejection_explanation")
+
+    assert {:error, model_report} = Schema.validate_artifact(invalid_model)
+
+    assert Enum.any?(
+             model_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"artifact_only_candidate_rejection_explanation\"")
+           )
+
+    stale_model_limits = Map.put(report, "model_limits", ["artifact_only"])
+
+    assert {:error, model_limits_report} = Schema.validate_artifact(stale_model_limits)
+
+    assert Enum.any?(
+             model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] == "must match candidate rejection report model limits")
+           )
+
+    invalid_source = Map.put(report, "source", %{"id" => "candidate_rows"})
+
+    assert {:error, source_report} = Schema.validate_artifact(invalid_source)
+
+    assert Enum.any?(
+             source_report["errors"],
+             &(&1["path"] == "$.source" and &1["message"] == "must be a binary")
+           )
+
+    invalid_negative_count = Map.put(report, "candidate_count", -1)
+
+    assert {:error, negative_count_report} = Schema.validate_artifact(invalid_negative_count)
+    assert Enum.any?(negative_count_report["errors"], &(&1["path"] == "$.candidate_count"))
+
+    invalid_float_count = Map.put(report, "reviewable_count", 1.0)
+
+    assert {:error, float_count_report} = Schema.validate_artifact(invalid_float_count)
+    assert Enum.any?(float_count_report["errors"], &(&1["path"] == "$.reviewable_count"))
+
+    invalid_reason_count = put_in(report, ["rows", Access.at(0), "reason_count"], -1)
+
+    assert {:error, reason_count_report} = Schema.validate_artifact(invalid_reason_count)
+    assert Enum.any?(reason_count_report["errors"], &(&1["path"] == "$.rows[0].reason_count"))
+
+    invalid_reason_counts =
+      put_in(report, ["rejection_reason_counts"], %{"station_unavailable" => -1})
+
+    assert {:error, reason_counts_report} = Schema.validate_artifact(invalid_reason_counts)
+
+    assert Enum.any?(
+             reason_counts_report["errors"],
+             &(&1["path"] == "$.rejection_reason_counts.station_unavailable")
+           )
+
+    assert {:ok, schema} = Schema.json_schema("candidate_rejection_report.v1")
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "artifact_only_candidate_rejection_explanation"
+
+    assert get_in(schema, ["properties", "source", "type"]) == "string"
+
+    assert get_in(schema, ["properties", "model_limits", "const"]) == [
+             "artifact_only",
+             "does_not_select_candidates",
+             "does_not_mutate_schedules",
+             "derived_reasons_use_declared_candidate_fields"
+           ]
+
+    assert get_in(schema, ["properties", "model_limits", "items", "enum"]) == [
+             "artifact_only",
+             "does_not_select_candidates",
+             "does_not_mutate_schedules",
+             "derived_reasons_use_declared_candidate_fields"
+           ]
+
+    assert get_in(schema, ["properties", "candidate_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "row_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "invalid_candidate_input_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "rejection_reason_counts", "additionalProperties"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, ["properties", "rejection_reason_counts", "propertyNames", "enum"]) ==
+             OrbitalDynamics.Timeline.capabilities().candidate_rejection_reasons
+
+    assert get_in(schema, [
+             "properties",
+             "required_operator_action_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().candidate_rejection_actions
+
+    assert get_in(schema, [
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             "activity_context",
+             "properties",
+             "capacity_pack_capacity_fraction"
+           ]) == %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0}
+  end
+
+  test "validates standalone provider counteroffer report contracts" do
+    report =
+      OrbitalDynamics.provider_counteroffer_report(
+        [
+          %{
+            id: :provider_counteroffer_window,
+            provider_id: :ops_calendar,
+            ground_station_id: :dss_14,
+            starts_at_s: 130.0,
+            ends_at_s: 170.0,
+            counteroffer_id: :provider_offer_1,
+            counteroffer_status: :proposed,
+            counteroffer_reason_code: :provider_shifted_window,
+            counteroffer_cost_delta: 125.5,
+            counteroffer_lock_deadline_s: 150.0,
+            counteroffer_starts_at_s: 130.0,
+            counteroffer_ends_at_s: 170.0
+          }
+        ],
+        source: :schema_test_provider_counteroffers
+      )
+
+    assert {:ok, %{"schema_contract" => "provider_counteroffer_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert %{
+             "counteroffer_cost_delta_count" => 1,
+             "counteroffer_cost_delta_total" => 125.5,
+             "counteroffer_lock_deadline_count" => 1,
+             "earliest_counteroffer_lock_deadline_s" => 150.0
+           } = report
+
+    invalid_count = Map.put(report, "counteroffer_count", 2)
+
+    assert {:error, invalid_count_report} = Schema.validate_artifact(invalid_count)
+
+    assert Enum.any?(
+             invalid_count_report["errors"],
+             &(&1["path"] == "$.counteroffer_count")
+           )
+
+    for field <- [
+          "counteroffer_status_counts",
+          "counteroffer_negotiation_state_counts",
+          "required_operator_action_counts"
+        ] do
+      key =
+        report
+        |> Map.fetch!(field)
+        |> Map.keys()
+        |> List.first()
+
+      stale_count_map =
+        update_in(report, [field, key], &(&1 + 1))
+
+      assert {:error, stale_count_map_report} = Schema.validate_artifact(stale_count_map)
+
+      assert Enum.any?(
+               stale_count_map_report["errors"],
+               &(&1["path"] == "$.#{field}")
+             )
+    end
+
+    invalid_action =
+      put_in(report, ["rows", Access.at(0), "required_operator_action"], "accept_counteroffer")
+
+    assert {:error, invalid_action_report} = Schema.validate_artifact(invalid_action)
+
+    assert Enum.any?(
+             invalid_action_report["errors"],
+             &(&1["path"] == "$.rows[0].required_operator_action")
+           )
+
+    assert {:ok, schema} = Schema.json_schema("provider_counteroffer_report.v1")
+
+    assert get_in(schema, ["properties", "counteroffer_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "counteroffer_cost_delta_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "counteroffer_cost_delta_total"]) == %{
+             "type" => "number"
+           }
+
+    assert get_in(schema, ["properties", "counteroffer_lock_deadline_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "earliest_counteroffer_lock_deadline_s"]) == %{
+             "type" => "number"
+           }
+
+    assert get_in(schema, [
+             "properties",
+             "required_operator_action_counts",
+             "propertyNames",
+             "enum"
+           ]) ==
+             OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_actions
+
+    row_schema = get_in(schema, ["properties", "rows", "items"])
+
+    assert get_in(row_schema, ["properties", "provider_counteroffer_id", "pattern"]) ==
+             "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+
+    assert get_in(row_schema, ["properties", "provider_counteroffer_cost_delta", "type"]) ==
+             "number"
+  end
+
+  test "validates standalone lint report and strategy branch fixtures" do
+    request_lint = read_json!("study_results/campaign_request_lint_v1.json")
+    manifest_lint = read_json!("study_results/study_manifest_lint_v1.json")
+    strategy_branch = read_json!("study_results/strategy_branch_v1.json")
+
+    assert {:ok, %{"schema_contract" => "campaign_request_lint.v1"}} =
+             Schema.validate_artifact(request_lint)
+
+    assert {:ok, %{"schema_contract" => "study_manifest_lint.v1"}} =
+             Schema.validate_artifact(manifest_lint)
+
+    assert {:ok, %{"schema_contract" => "strategy_branch.v1"}} =
+             Schema.validate_artifact(strategy_branch)
+
+    invalid_lint = Map.put(request_lint, "error_count", 3)
+
+    assert {:error, lint_report} = Schema.validate_artifact(invalid_lint)
+    assert Enum.any?(lint_report["errors"], &(&1["path"] == "$.error_count"))
+
+    non_integer_lint = Map.put(request_lint, "error_count", 0.0)
+
+    assert {:error, non_integer_lint_report} = Schema.validate_artifact(non_integer_lint)
+    assert Enum.any?(non_integer_lint_report["errors"], &(&1["path"] == "$.error_count"))
+
+    invalid_manifest_lint = Map.put(manifest_lint, "warning_count", 1)
+
+    assert {:error, manifest_lint_report} = Schema.validate_artifact(invalid_manifest_lint)
+    assert Enum.any?(manifest_lint_report["errors"], &(&1["path"] == "$.warning_count"))
+
+    invalid_branch = Map.put(strategy_branch, "probability", 1.5)
+
+    assert {:error, branch_report} = Schema.validate_artifact(invalid_branch)
+    assert Enum.any?(branch_report["errors"], &(&1["path"] == "$.probability"))
+
+    invalid_score_terms =
+      put_in(strategy_branch, ["score_terms", "branch_score"], "not_numeric")
+
+    assert {:error, branch_score_report} = Schema.validate_artifact(invalid_score_terms)
+    assert Enum.any?(branch_score_report["errors"], &(&1["path"] == "$.score_terms.branch_score"))
+
+    invalid_event =
+      put_in(strategy_branch, ["events"], [
+        %{"type" => "contact_success_feedback", "contact_success_factor" => 1.5}
+      ])
+
+    assert {:error, branch_event_report} = Schema.validate_artifact(invalid_event)
+
+    assert Enum.any?(
+             branch_event_report["errors"],
+             &(&1["path"] == "$.events[0].contact_success_factor")
+           )
+
+    invalid_downlink_identity_event =
+      put_in(strategy_branch, ["events"], [
+        %{
+          "type" => "downlink_completion_gap",
+          "collection_ids" => ["collection_alpha", "bad collection"],
+          "product_ids" => ["product_alpha"],
+          "payload_ids" => ["payload_a"],
+          "instrument_ids" => ["instrument_a"]
+        }
+      ])
+
+    assert {:error, downlink_identity_event_report} =
+             Schema.validate_artifact(invalid_downlink_identity_event)
+
+    assert Enum.any?(
+             downlink_identity_event_report["errors"],
+             &(&1["path"] == "$.events[0].collection_ids[1]")
+           )
+
+    invalid_station_event =
+      put_in(strategy_branch, ["events"], [
+        %{
+          "type" => "reduced_downlink_capacity",
+          "ground_station_id" => "equator_prime",
+          "station_calendar_entry_id" => "dsn_capacity",
+          "station_calendar_provider_id" => "ground_partner",
+          "station_calendar_provider_entry_id" => "dsn_capacity",
+          "station_calendar_overlap_entry_ids" => ["dsn_capacity"],
+          "station_calendar_reservation_ids" => ["reservation_42"],
+          "station_calendar_directions" => ["downlink"],
+          "station_calendar_reserved_by" => ["ops_team_b"],
+          "station_calendar_reservation_statuses" => ["confirmed"],
+          "station_calendar_trust_boundary_status" => "declared",
+          "station_calendar_overlap_count" => 1.5,
+          "capacity_fraction" => 1.25
+        }
+      ])
+
+    assert {:error, station_event_report} = Schema.validate_artifact(invalid_station_event)
+
+    assert Enum.any?(
+             station_event_report["errors"],
+             &(&1["path"] == "$.events[0].station_calendar_overlap_count")
+           )
+
+    assert Enum.any?(
+             station_event_report["errors"],
+             &(&1["path"] == "$.events[0].capacity_fraction")
+           )
+
+    invalid_capacity_pack_event =
+      put_in(strategy_branch, ["events"], [
+        %{
+          "type" => "downlink_completion_gap",
+          "capacity_pack_group_id" => "station:equator_prime:pack:review",
+          "capacity_pack_capacity_fraction" => 0.5,
+          "capacity_pack_used_fraction" => 1.2,
+          "capacity_pack_unused_fraction" => -0.2,
+          "required_capacity_fraction" => 1.1,
+          "required_capacity_fraction_source" => "contact_required_capacity_fraction"
+        }
+      ])
+
+    assert {:error, capacity_pack_event_report} =
+             Schema.validate_artifact(invalid_capacity_pack_event)
+
+    assert Enum.any?(
+             capacity_pack_event_report["errors"],
+             &(&1["path"] == "$.events[0].capacity_pack_used_fraction")
+           )
+
+    assert Enum.any?(
+             capacity_pack_event_report["errors"],
+             &(&1["path"] == "$.events[0].capacity_pack_unused_fraction")
+           )
+
+    assert Enum.any?(
+             capacity_pack_event_report["errors"],
+             &(&1["path"] == "$.events[0].required_capacity_fraction")
+           )
+
+    invalid_provenance_event =
+      put_in(strategy_branch, ["events"], [
+        %{
+          "type" => "contact_success_feedback",
+          "trust_boundary" => ["operator_supplied"],
+          "provenance" => "opaque",
+          "feedback_source" => 42,
+          "feedback_scope" => %{"scope" => "contact"},
+          "feedback_sample_weight" => -1.0,
+          "sample_weight" => "many",
+          "confidence_weight" => "high",
+          "feedback_sample_weight_source" => ["operator_sample_size"],
+          "sample_weight_source" => 2,
+          "confidence_weight_source" => false
+        }
+      ])
+
+    assert {:error, provenance_event_report} = Schema.validate_artifact(invalid_provenance_event)
+
+    for path <- [
+          "$.events[0].trust_boundary",
+          "$.events[0].provenance",
+          "$.events[0].feedback_source",
+          "$.events[0].feedback_scope",
+          "$.events[0].feedback_sample_weight",
+          "$.events[0].sample_weight",
+          "$.events[0].confidence_weight",
+          "$.events[0].feedback_sample_weight_source",
+          "$.events[0].sample_weight_source",
+          "$.events[0].confidence_weight_source"
+        ] do
+      assert Enum.any?(provenance_event_report["errors"], &(&1["path"] == path))
+    end
+
+    assert {:ok, branch_schema} = Schema.json_schema("strategy_branch.v1")
+
+    event_schema = get_in(branch_schema, ["properties", "events", "items"])
+
+    assert event_schema["required"] == ["type"]
+
+    assert get_in(event_schema, ["properties", "ground_station_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(event_schema, ["properties", "source_activity_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(event_schema, ["properties", "collection_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(event_schema, ["properties", "payload_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(event_schema, ["properties", "instrument_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(event_schema, ["properties", "required_downlink_mb", "minimum"]) == 0.0
+    assert get_in(event_schema, ["properties", "max_latency_s", "minimum"]) == 0.0
+    assert get_in(event_schema, ["properties", "contact_success_factor", "maximum"]) == 1.0
+    assert get_in(event_schema, ["properties", "capacity_fraction", "maximum"]) == 1.0
+    assert get_in(event_schema, ["properties", "feedback_weight", "minimum"]) == 0.0
+    assert get_in(event_schema, ["properties", "feedback_sample_weight", "minimum"]) == 0.0
+    assert get_in(event_schema, ["properties", "sample_weight", "minimum"]) == 0.0
+    assert get_in(event_schema, ["properties", "confidence_weight", "minimum"]) == 0.0
+    assert get_in(event_schema, ["properties", "feedback_weight_source", "type"]) == "string"
+
+    assert get_in(event_schema, ["properties", "feedback_sample_weight_source", "type"]) ==
+             "string"
+
+    assert get_in(event_schema, ["properties", "sample_weight_source", "type"]) == "string"
+    assert get_in(event_schema, ["properties", "confidence_weight_source", "type"]) == "string"
+    assert get_in(event_schema, ["properties", "feedback_source", "type"]) == "string"
+    assert get_in(event_schema, ["properties", "feedback_scope", "type"]) == "string"
+    assert get_in(event_schema, ["properties", "trust_boundary", "type"]) == "string"
+    assert get_in(event_schema, ["properties", "provenance", "type"]) == "object"
+
+    assert get_in(event_schema, ["properties", "capacity_pack_group_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(event_schema, ["properties", "capacity_pack_used_fraction", "maximum"]) == 1.0
+    assert get_in(event_schema, ["properties", "required_capacity_fraction", "maximum"]) == 1.0
+
+    assert get_in(event_schema, ["properties", "required_capacity_fraction_source", "type"]) ==
+             "string"
+
+    assert get_in(event_schema, ["properties", "station_calendar_entry_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(event_schema, [
+             "properties",
+             "station_calendar_overlap_entry_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(event_schema, [
+             "properties",
+             "station_calendar_trust_boundary_status",
+             "enum"
+           ]) == ["declared", "missing"]
+
+    assert get_in(event_schema, [
+             "properties",
+             "score_terms",
+             "additionalProperties",
+             "type"
+           ]) == "number"
+
+    assert get_in(branch_schema, [
+             "properties",
+             "score_terms",
+             "additionalProperties",
+             "type"
+           ]) == "number"
+  end
+
+  test "exports nested validation reference fixture report schemas" do
+    assert {:ok, schema} = Schema.json_schema("validation_reference_fixture_report.v1")
+
+    report_schema = get_in(schema, ["properties", "reports", "items"])
+
+    assert get_in(schema, ["properties", "fixture_count", "minimum"]) == 0
+
+    assert get_in(schema, ["properties", "status_counts", "propertyNames", "enum"]) == [
+             "pass",
+             "fail"
+           ]
+
+    assert get_in(schema, ["properties", "status_counts", "additionalProperties", "minimum"]) == 0
+
+    assert report_schema["required"] == [
+             "schema_contract",
+             "fixture_id",
+             "model_id",
+             "validation_level",
+             "status",
+             "checks"
+           ]
+
+    assert get_in(report_schema, ["properties", "schema_contract", "const"]) ==
+             "validation_reference_report.v1"
+
+    assert get_in(report_schema, ["properties", "status_counts", "propertyNames", "enum"]) == [
+             "pass",
+             "fail"
+           ]
+
+    assert get_in(report_schema, ["properties", "fixture_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    check_schema = get_in(report_schema, ["properties", "checks", "items"])
+
+    assert check_schema["required"] == ["field", "status", "expected", "observed", "tolerance"]
+    assert get_in(check_schema, ["properties", "status", "enum"]) == ["pass", "fail"]
+    assert get_in(check_schema, ["properties", "error", "type"]) == "number"
+  end
+
+  test "exports stable-id hints for standalone artifact identity fields" do
+    stable_id_pattern = Schema.identity_policy()["stable_id_pattern"]
+
+    assert {:ok, cadence_schema} = Schema.json_schema("cadence_import_manifest.v1")
+    assert {:ok, operator_review_schema} = Schema.json_schema("operator_review_package.v1")
+
+    assert {:ok, provider_request_schema} =
+             Schema.json_schema("contact_allocation_provider_reservation_request_summary.v1")
+
+    assert get_in(cadence_schema, ["properties", "manifest_id", "pattern"]) ==
+             stable_id_pattern
+
+    assert get_in(cadence_schema, [
+             "properties",
+             "import_action_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.CadenceImport.capability().import_actions
+
+    assert get_in(cadence_schema, [
+             "properties",
+             "import_status_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.CadenceImport.capability().import_statuses
+
+    assert get_in(cadence_schema, [
+             "properties",
+             "cadence_import_status_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.CadenceImport.capability().cadence_import_statuses
+
+    assert get_in(cadence_schema, [
+             "properties",
+             "source_review_type_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.CadenceImport.capability().source_review_types
+
+    assert get_in(cadence_schema, [
+             "properties",
+             "source_review_queue_counts",
+             "additionalProperties"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    Enum.each(
+      [
+        "capacity_pack_contact_ids_by_ground_station_id",
+        "capacity_pack_selected_contact_ids_by_ground_station_id",
+        "capacity_pack_deferred_contact_ids_by_ground_station_id",
+        "required_capacity_fraction_contact_ids_by_source",
+        "provider_reservation_request_contact_ids_by_ground_station_id",
+        "provider_reservation_review_contact_ids_by_ground_station_id",
+        "provider_reservation_no_request_contact_ids_by_direction",
+        "provider_reservation_request_contact_ids_by_direction",
+        "provider_reservation_review_contact_ids_by_direction",
+        "provider_reservation_request_contact_ids_by_match_status",
+        "provider_reservation_review_contact_ids_by_match_status",
+        "provider_reservation_request_ids_by_match_status",
+        "provider_reservation_review_ids_by_match_status",
+        "gate_ids_by_status",
+        "gate_ids_by_classification",
+        "quality_gate_row_ids_by_status",
+        "quality_gate_row_ids_by_classification",
+        "capacity_pack_group_ids_by_status",
+        "station_reservation_contact_ids_by_match_status",
+        "station_reservation_contact_ids_by_status",
+        "station_reservation_contact_ids_by_reserved_by",
+        "station_reservation_ids_by_match_status",
+        "station_reservation_ids_by_status",
+        "station_reservation_ids_by_reserved_by",
+        "station_pressure_contact_ids_by_ground_station_id",
+        "station_pressure_contact_ids_by_availability",
+        "station_pressure_contact_ids_by_precedence_availability",
+        "station_pressure_contact_ids_by_precedence_rank"
+      ],
+      fn field ->
+        assert get_in(cadence_schema, [
+                 "properties",
+                 field,
+                 "additionalProperties",
+                 "items",
+                 "pattern"
+               ]) == stable_id_pattern
+
+        assert get_in(operator_review_schema, [
+                 "properties",
+                 field,
+                 "additionalProperties",
+                 "items",
+                 "pattern"
+               ]) == stable_id_pattern
+      end
+    )
+
+    Enum.each(
+      [
+        "provider_reservation_no_request_contact_ids_by_direction",
+        "provider_reservation_request_contact_ids_by_direction",
+        "provider_reservation_review_contact_ids_by_direction"
+      ],
+      fn field ->
+        assert get_in(provider_request_schema, [
+                 "properties",
+                 field,
+                 "additionalProperties",
+                 "items",
+                 "pattern"
+               ]) == stable_id_pattern
+
+        refute field in provider_request_schema["required"]
+      end
+    )
+
+    Enum.each(
+      [
+        "capacity_pack_group_ids",
+        "provider_reservation_request_contact_ids",
+        "provider_reservation_review_contact_ids",
+        "provider_reservation_no_request_contact_ids",
+        "passed_gate_ids",
+        "review_required_gate_ids",
+        "analysis_only_gate_ids",
+        "blocked_gate_ids",
+        "reduced_capacity_packed_contact_ids",
+        "reduced_capacity_deferred_contact_ids"
+      ],
+      fn field ->
+        assert get_in(cadence_schema, ["properties", field, "items", "pattern"]) ==
+                 stable_id_pattern
+
+        assert get_in(operator_review_schema, ["properties", field, "items", "pattern"]) ==
+                 stable_id_pattern
+      end
+    )
+
+    Enum.each(
+      [
+        "station_pressure_contact_counts_by_ground_station_id",
+        "station_pressure_contact_counts_by_availability",
+        "station_pressure_contact_counts_by_precedence_availability",
+        "station_pressure_contact_counts_by_precedence_rank",
+        "gate_status_counts",
+        "gate_classification_counts",
+        "required_capacity_fraction_source_counts",
+        "provider_reservation_request_status_counts",
+        "reduced_capacity_pack_status_counts"
+      ],
+      fn field ->
+        assert get_in(cadence_schema, ["properties", field, "additionalProperties"]) == %{
+                 "type" => "integer",
+                 "minimum" => 0
+               }
+
+        assert get_in(operator_review_schema, ["properties", field, "additionalProperties"]) ==
+                 %{"type" => "integer", "minimum" => 0}
+      end
+    )
+
+    Enum.each(
+      [
+        "row_count",
+        "ready_count",
+        "review_required_count",
+        "blocked_count",
+        "missing_import_count"
+      ],
+      fn field ->
+        assert get_in(cadence_schema, ["properties", field]) == %{
+                 "type" => "integer",
+                 "minimum" => 0
+               }
+      end
+    )
+
+    cadence_row_schema = get_in(cadence_schema, ["properties", "rows", "items"])
+
+    assert get_in(cadence_row_schema, ["properties", "selected_timeline_integrity_issue_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "selected_timeline_integrity_issue_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(cadence_row_schema, ["properties", "contention_group_id", "pattern"]) ==
+             stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "capacity_packed_contact_ids",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(cadence_row_schema, ["properties", "collection_id", "pattern"]) ==
+             stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "branch_collection_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_timeline_application",
+             "properties",
+             "application_status",
+             "type"
+           ]) == "string"
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_timeline_diff_summary",
+             "properties",
+             "review_required_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_timeline_diff_summary",
+             "properties",
+             "review_timeline_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_timeline_transition_application_summary",
+             "properties",
+             "review_required_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_timeline_transition_application_summary",
+             "properties",
+             "selected_activity_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_timeline_integrity",
+             "properties",
+             "timeline_integrity_issue_types",
+             "items",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().timeline_integrity_issue_types
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_timeline_protection",
+             "properties",
+             "preserved_locked_or_approved_activity_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_timeline_lifecycle_state",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_timeline_lifecycle_state",
+             "properties",
+             "invalid_activity_input_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_timeline_lifecycle_state",
+             "properties",
+             "invalid_activity_input_reasons",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_timeline_preservation",
+             "properties",
+             "activity_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_candidate_rejection",
+             "properties",
+             "candidate_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_candidate_rejection",
+             "properties",
+             "primary_rejection_reason",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().candidate_rejection_reasons
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_timeline_dependency_impact",
+             "properties",
+             "scope",
+             "enum"
+           ]) == ["source", "replacement"]
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_timeline_identity",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "replacement_timeline_identity",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "timeline_link",
+             "properties",
+             "source_timeline_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(operator_review_schema, [
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             "source_timeline_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, ["properties", "eclipse_overlap_fraction", "type"]) ==
+             "number"
+
+    assert get_in(cadence_row_schema, ["properties", "planned_eclipse_overlap_s", "type"]) ==
+             "number"
+
+    assert get_in(cadence_row_schema, ["properties", "lighting_condition", "type"]) ==
+             "string"
+
+    assert get_in(cadence_row_schema, ["properties", "target_id", "pattern"]) ==
+             stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "first_resource_pressure_station_calendar_provider_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "first_resource_pressure_station_calendar_provider_entry_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, ["properties", "import_side", "type"]) == "string"
+
+    assert get_in(cadence_row_schema, ["properties", "replacement_activity_id", "pattern"]) ==
+             stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_window",
+             "properties",
+             "id",
+             "pattern"
+           ]) ==
+             stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "replacement_source_window_lineage",
+             "properties",
+             "candidate_activity_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_delta",
+             "properties",
+             "activity_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_requirement",
+             "properties",
+             "activity_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_contact_suppression",
+             "properties",
+             "source_window_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_link_capacity",
+             "properties",
+             "ground_station_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_resource_projection",
+             "properties",
+             "spacecraft_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    Enum.each(
+      [
+        "total_battery_energy_consumed_wh",
+        "total_battery_energy_generated_wh",
+        "net_battery_energy_delta_wh",
+        "peak_battery_overuse_wh"
+      ],
+      fn field ->
+        assert get_in(cadence_row_schema, ["properties", field, "type"]) == "number"
+
+        assert get_in(cadence_row_schema, [
+                 "properties",
+                 "source_resource_projection",
+                 "properties",
+                 field,
+                 "type"
+               ]) == "number"
+
+        assert get_in(cadence_row_schema, [
+                 "properties",
+                 "source_review_row",
+                 "properties",
+                 field,
+                 "type"
+               ]) == "number"
+      end
+    )
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_timeline_diff",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_command_window",
+             "properties",
+             "activity_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_maneuver_review",
+             "properties",
+             "maneuver_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_ranking_comparison",
+             "properties",
+             "scenario_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_contention_group",
+             "properties",
+             "ground_station_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_station_calendar_review",
+             "properties",
+             "ground_station_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_feedback",
+             "properties",
+             "activity_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    Enum.each(
+      [
+        "contact_success_factor",
+        "command_success_factor",
+        "observation_success_factor",
+        "maneuver_success_factor",
+        "cloud_cover_fraction",
+        "planned_cloud_cover_fraction",
+        "realized_cloud_cover_fraction",
+        "blur_score",
+        "planned_blur_score",
+        "realized_blur_score"
+      ],
+      fn field ->
+        assert get_in(cadence_row_schema, [
+                 "properties",
+                 "source_feedback",
+                 "properties",
+                 field
+               ]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+    )
+
+    assert get_in(cadence_row_schema, ["properties", "branch_event_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(cadence_row_schema, ["properties", "branch_event_types", "items", "type"]) ==
+             "string"
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "branch_event_trust_boundary_status_counts",
+             "additionalProperties",
+             "type"
+           ]) == "integer"
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "combined_source_branch_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "branch_station_calendar_provider_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_delta",
+             "properties",
+             "activity_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_requirement",
+             "properties",
+             "activity_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_resource_suppression",
+             "properties",
+             "id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_link_capacity",
+             "properties",
+             "ground_station_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_timeline_diff",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_command_window",
+             "properties",
+             "activity_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_maneuver_review",
+             "properties",
+             "maneuver_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_ranking_comparison",
+             "properties",
+             "scenario_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_contention_group",
+             "properties",
+             "ground_station_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_station_calendar_review",
+             "properties",
+             "ground_station_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_feedback",
+             "properties",
+             "activity_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    Enum.each(
+      [
+        "contact_success_factor",
+        "command_success_factor",
+        "observation_success_factor",
+        "maneuver_success_factor",
+        "cloud_cover_fraction",
+        "planned_cloud_cover_fraction",
+        "realized_cloud_cover_fraction",
+        "blur_score",
+        "planned_blur_score",
+        "realized_blur_score"
+      ],
+      fn field ->
+        assert get_in(cadence_row_schema, [
+                 "properties",
+                 "source_review_row",
+                 "properties",
+                 "source_feedback",
+                 "properties",
+                 field
+               ]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+    )
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "branch_event_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "branch_station_calendar_provider_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "capacity_pack_group_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    Enum.each(
+      [
+        "capacity_pack_min_capacity_fraction",
+        "capacity_pack_max_used_fraction",
+        "capacity_pack_max_required_capacity_fraction"
+      ],
+      fn field ->
+        assert get_in(cadence_row_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+
+        assert get_in(cadence_row_schema, [
+                 "properties",
+                 "source_review_row",
+                 "properties",
+                 field
+               ]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+    )
+
+    Enum.each(
+      [
+        "capacity_fraction",
+        "capacity_fraction_min",
+        "capacity_fraction_max",
+        "used_capacity_fraction",
+        "unused_capacity_fraction"
+      ],
+      fn field ->
+        assert get_in(cadence_row_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+
+        assert get_in(cadence_row_schema, [
+                 "properties",
+                 "source_review_row",
+                 "properties",
+                 field
+               ]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+    )
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "default_required_capacity_fraction",
+             "maximum"
+           ]) == 1.0
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "capacity_requirement_rows",
+             "items",
+             "properties",
+             "required_capacity_fraction",
+             "maximum"
+           ]) == 1.0
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "capacity_pack_required_capacity_sources",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "default_required_capacity_fraction",
+             "maximum"
+           ]) == 1.0
+
+    operator_review_row_schema = get_in(operator_review_schema, ["properties", "rows", "items"])
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "selected_timeline_integrity_issue_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "source_timeline_integrity",
+             "properties",
+             "timeline_integrity_issue_types",
+             "items",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().timeline_integrity_issue_types
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "source_timeline_diff_summary",
+             "properties",
+             "review_required_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "source_timeline_diff_summary",
+             "properties",
+             "review_timeline_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "source_timeline_transition_application_summary",
+             "properties",
+             "review_required_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "source_timeline_lifecycle_state",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "source_timeline_lifecycle_state",
+             "properties",
+             "transition_decision",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().transition_decisions
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "source_timeline_lifecycle_state",
+             "properties",
+             "invalid_activity_input_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "source_timeline_lifecycle_state",
+             "properties",
+             "invalid_activity_input_reasons",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "source_timeline_preservation",
+             "properties",
+             "activity_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "source_timeline_preservation",
+             "properties",
+             "timeline_preservation_status",
+             "enum"
+           ]) == ["clear", "preservation_required", "review_required"]
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "source_timeline_transition_application_summary",
+             "properties",
+             "selected_activity_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "source_timeline_protection",
+             "properties",
+             "preserved_locked_or_approved_activity_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(operator_review_row_schema, ["properties", "branch_event_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(operator_review_schema, [
+             "properties",
+             "review_type_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.OperatorReview.capabilities().review_types
+
+    assert get_in(operator_review_schema, [
+             "properties",
+             "cadence_import_status_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.OperatorReview.capabilities().cadence_import_statuses
+
+    assert get_in(operator_review_schema, [
+             "properties",
+             "source_cadence_import_status_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.OperatorReview.capabilities().cadence_import_statuses
+
+    assert get_in(operator_review_schema, [
+             "properties",
+             "review_queue_counts",
+             "additionalProperties"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "branch_station_calendar_provider_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "capacity_pack_total_required_capacity_fraction",
+             "minimum"
+           ]) == 0.0
+
+    Enum.each(
+      [
+        "capacity_pack_min_capacity_fraction",
+        "capacity_pack_max_used_fraction",
+        "capacity_pack_max_required_capacity_fraction",
+        "capacity_fraction",
+        "capacity_fraction_min",
+        "capacity_fraction_max",
+        "used_capacity_fraction",
+        "unused_capacity_fraction"
+      ],
+      fn field ->
+        assert get_in(operator_review_row_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+    )
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "default_required_capacity_fraction",
+             "maximum"
+           ]) == 1.0
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "capacity_pack_required_capacity_sources",
+             "items",
+             "type"
+           ]) == "string"
+
+    Enum.each(
+      [
+        "total_battery_energy_consumed_wh",
+        "total_battery_energy_generated_wh",
+        "net_battery_energy_delta_wh",
+        "peak_battery_overuse_wh"
+      ],
+      fn field ->
+        assert get_in(operator_review_row_schema, ["properties", field, "type"]) == "number"
+
+        assert get_in(operator_review_row_schema, [
+                 "properties",
+                 "source_resource_projection",
+                 "properties",
+                 field,
+                 "type"
+               ]) == "number"
+      end
+    )
+
+    Enum.each(
+      [
+        "branch_image_quality_min_score",
+        "branch_cloud_cover_max_fraction",
+        "branch_blur_max_score"
+      ],
+      fn field ->
+        assert get_in(cadence_row_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+
+        assert get_in(cadence_row_schema, [
+                 "properties",
+                 "source_review_row",
+                 "properties",
+                 field
+               ]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+    )
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "branch_image_quality_statuses",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "import_activity_context",
+             "properties",
+             "activity_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_activity_context",
+             "properties",
+             "lighting_condition",
+             "type"
+           ]) == "string"
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_activity_context",
+             "properties",
+             "observation_objective_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_activity_context",
+             "properties",
+             "collection_latency_objective_count",
+             "type"
+           ]) == "integer"
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_activity_context",
+             "properties",
+             "dependency_activity_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_activity_context",
+             "properties",
+             "exclusive_with_timeline_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_activity_context",
+             "properties",
+             "timeline_integrity_issues",
+             "items",
+             "type"
+           ]) == "object"
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "import_activity_context",
+             "properties",
+             "link_margin_db",
+             "type"
+           ]) == "number"
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "import_activity_context",
+             "properties",
+             "carrier_lock",
+             "type"
+           ]) == "boolean"
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "import_activity_context",
+             "properties",
+             "station_calendar_provider_entry_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "import_activity_context",
+             "properties",
+             "battery_state_of_charge",
+             "type"
+           ]) == "number"
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "import_activity_context",
+             "properties",
+             "blur_score"
+           ]) == %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0}
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "import_activity_context",
+             "properties",
+             "image_quality_score"
+           ]) == %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0}
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "realized_activity_context",
+             "properties",
+             "pointing_target_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "realized_activity_context",
+             "properties",
+             "thermal_margin_c",
+             "type"
+           ]) == "number"
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "realized_activity_context",
+             "properties",
+             "blur_score"
+           ]) == %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0}
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "realized_activity_context",
+             "properties",
+             "image_quality_score"
+           ]) == %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0}
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "branch_image_quality_sources",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "lighting_condition_match_status",
+             "type"
+           ]) == "string"
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "lighting_confidence",
+             "type"
+           ]) == "number"
+
+    Enum.each(["attitude_confidence", "thermal_confidence"], fn field ->
+      assert get_in(cadence_row_schema, ["properties", field]) == %{
+               "type" => "number",
+               "minimum" => 0.0,
+               "maximum" => 1.0
+             }
+
+      assert get_in(cadence_row_schema, [
+               "properties",
+               "source_review_row",
+               "properties",
+               field
+             ]) == %{
+               "type" => "number",
+               "minimum" => 0.0,
+               "maximum" => 1.0
+             }
+
+      assert get_in(operator_review_row_schema, ["properties", field]) == %{
+               "type" => "number",
+               "minimum" => 0.0,
+               "maximum" => 1.0
+             }
+    end)
+
+    thermal_row_schemas = [
+      cadence_row_schema,
+      get_in(cadence_row_schema, ["properties", "source_review_row"]),
+      operator_review_row_schema
+    ]
+
+    Enum.each(thermal_row_schemas, fn row_schema ->
+      assert get_in(row_schema, ["properties", "thermal_zone_id", "pattern"]) ==
+               stable_id_pattern
+
+      for field <- [
+            "temperature_c",
+            "planned_temperature_c",
+            "actual_temperature_c",
+            "temperature_delta_c",
+            "min_operating_temperature_c",
+            "max_operating_temperature_c",
+            "thermal_margin_c"
+          ] do
+        assert get_in(row_schema, ["properties", field, "type"]) == "number"
+      end
+
+      for field <- ["thermal_status", "thermal_model", "thermal_source"] do
+        assert get_in(row_schema, ["properties", field, "type"]) == "string"
+      end
+    end)
+
+    eclipse_lighting_row_schemas = [
+      cadence_row_schema,
+      get_in(cadence_row_schema, ["properties", "source_review_row"]),
+      operator_review_row_schema
+    ]
+
+    Enum.each(eclipse_lighting_row_schemas, fn row_schema ->
+      for field <- [
+            "eclipse_overlap_fraction",
+            "planned_eclipse_overlap_fraction",
+            "realized_eclipse_overlap_fraction"
+          ] do
+        assert get_in(row_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+
+      for field <- [
+            "eclipse_overlap_s",
+            "planned_eclipse_overlap_s",
+            "realized_eclipse_overlap_s",
+            "lighting_confidence"
+          ] do
+        assert get_in(row_schema, ["properties", field, "type"]) == "number"
+      end
+
+      for field <- [
+            "lighting_condition",
+            "planned_lighting_condition",
+            "realized_lighting_condition",
+            "lighting_condition_match_status",
+            "lighting_condition_detail",
+            "lighting_condition_model",
+            "lighting_detail_model"
+          ] do
+        assert get_in(row_schema, ["properties", field, "type"]) == "string"
+      end
+    end)
+
+    observation_quality_row_schemas = [
+      cadence_row_schema,
+      get_in(cadence_row_schema, ["properties", "source_review_row"]),
+      operator_review_row_schema
+    ]
+
+    Enum.each(observation_quality_row_schemas, fn row_schema ->
+      for field <- [
+            "image_quality_score",
+            "planned_image_quality_score",
+            "realized_image_quality_score",
+            "cloud_cover_fraction",
+            "planned_cloud_cover_fraction",
+            "realized_cloud_cover_fraction",
+            "blur_score",
+            "planned_blur_score",
+            "realized_blur_score"
+          ] do
+        assert get_in(row_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+
+      for field <- [
+            "image_quality_score_delta",
+            "cloud_cover_fraction_delta",
+            "blur_score_delta"
+          ] do
+        assert get_in(row_schema, ["properties", field, "type"]) == "number"
+      end
+
+      for field <- [
+            "image_quality_status",
+            "planned_image_quality_status",
+            "realized_image_quality_status",
+            "image_quality_status_match_status",
+            "image_quality_source"
+          ] do
+        assert get_in(row_schema, ["properties", field, "type"]) == "string"
+      end
+    end)
+
+    feedback_maneuver_row_schemas = [
+      cadence_row_schema,
+      get_in(cadence_row_schema, ["properties", "source_review_row"]),
+      operator_review_row_schema
+    ]
+
+    Enum.each(feedback_maneuver_row_schemas, fn row_schema ->
+      assert get_in(row_schema, ["properties", "feedback_weight"]) == %{
+               "type" => "number",
+               "minimum" => 0.0
+             }
+
+      assert get_in(row_schema, ["properties", "maneuver_success_factor"]) == %{
+               "type" => "number",
+               "minimum" => 0.0,
+               "maximum" => 1.0
+             }
+
+      assert get_in(row_schema, ["properties", "maneuver_success", "type"]) == "boolean"
+
+      for field <- [
+            "feedback_weight_source",
+            "maneuver_result",
+            "maneuver_success_factor_source"
+          ] do
+        assert get_in(row_schema, ["properties", field, "type"]) == "string"
+      end
+    end)
+
+    link_row_schemas = [
+      cadence_row_schema,
+      get_in(cadence_row_schema, ["properties", "source_review_row"]),
+      operator_review_row_schema
+    ]
+
+    Enum.each(link_row_schemas, fn row_schema ->
+      for field <- [
+            "link_protocol",
+            "planned_link_protocol",
+            "realized_link_protocol",
+            "link_protocol_match_status",
+            "frequency_band",
+            "planned_frequency_band",
+            "realized_frequency_band",
+            "frequency_band_match_status",
+            "modulation",
+            "planned_modulation",
+            "realized_modulation",
+            "modulation_match_status",
+            "coding_scheme",
+            "planned_coding_scheme",
+            "realized_coding_scheme",
+            "coding_scheme_match_status",
+            "polarization",
+            "planned_polarization",
+            "realized_polarization",
+            "polarization_match_status",
+            "link_quality_status",
+            "planned_link_quality_status",
+            "realized_link_quality_status"
+          ] do
+        assert get_in(row_schema, ["properties", field, "type"]) == "string"
+      end
+
+      for field <- [
+            "data_rate_mbps",
+            "downlink_rate_mbps",
+            "data_rate_mb_s",
+            "downlink_rate_mb_s",
+            "actual_data_rate_mbps",
+            "actual_downlink_rate_mbps",
+            "actual_data_rate_mb_s",
+            "actual_downlink_rate_mb_s",
+            "delivered_rate_mbps",
+            "received_rate_mbps",
+            "delivered_rate_mb_s",
+            "received_rate_mb_s",
+            "actual_duration_s",
+            "actual_contact_duration_s",
+            "contact_duration_s",
+            "planned_data_rate_mbps",
+            "realized_data_rate_mbps",
+            "data_rate_delta_mbps",
+            "link_margin_db",
+            "planned_link_margin_db",
+            "realized_link_margin_db",
+            "link_margin_delta_db",
+            "snr_db",
+            "planned_snr_db",
+            "realized_snr_db",
+            "snr_delta_db",
+            "eb_no_db",
+            "planned_eb_no_db",
+            "realized_eb_no_db",
+            "eb_no_delta_db"
+          ] do
+        assert get_in(row_schema, ["properties", field, "type"]) == "number"
+      end
+
+      for field <- [
+            "carrier_lock",
+            "planned_carrier_lock",
+            "realized_carrier_lock",
+            "symbol_lock",
+            "planned_symbol_lock",
+            "realized_symbol_lock"
+          ] do
+        assert get_in(row_schema, ["properties", field, "type"]) == "boolean"
+      end
+    end)
+
+    Enum.each(["throughput_completion_fraction", "completed_fraction"], fn field ->
+      assert get_in(cadence_row_schema, [
+               "properties",
+               "source_review_row",
+               "properties",
+               field
+             ]) == %{
+               "type" => "number",
+               "minimum" => 0.0,
+               "maximum" => 1.0
+             }
+    end)
+
+    Enum.each(
+      [
+        "eclipse_overlap_fraction",
+        "planned_eclipse_overlap_fraction",
+        "realized_eclipse_overlap_fraction"
+      ],
+      fn field ->
+        assert get_in(cadence_row_schema, [
+                 "properties",
+                 "source_review_row",
+                 "properties",
+                 field
+               ]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+    )
+
+    Enum.each(
+      [
+        "cloud_cover_fraction",
+        "planned_cloud_cover_fraction",
+        "realized_cloud_cover_fraction",
+        "blur_score",
+        "planned_blur_score",
+        "realized_blur_score",
+        "image_quality_score",
+        "planned_image_quality_score",
+        "realized_image_quality_score",
+        "bit_error_rate",
+        "planned_bit_error_rate",
+        "realized_bit_error_rate",
+        "packet_loss_rate",
+        "planned_packet_loss_rate",
+        "realized_packet_loss_rate",
+        "frame_loss_rate",
+        "planned_frame_loss_rate",
+        "realized_frame_loss_rate"
+      ],
+      fn field ->
+        assert get_in(cadence_row_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+
+        assert get_in(cadence_row_schema, [
+                 "properties",
+                 "source_review_row",
+                 "properties",
+                 field
+               ]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+
+        assert get_in(operator_review_row_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+    )
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "import_activity_context",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_branch_comparison",
+             "properties",
+             "first_resource_pressure_station_calendar_provider_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_branch_comparison",
+             "properties",
+             "first_resource_pressure_station_calendar_provider_entry_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_branch_comparison",
+             "properties",
+             "downlink_completion_planned_contacts"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_branch_comparison",
+             "properties",
+             "coverage_observed_target_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    Enum.each(["downlink_completion_ratio", "observation_success_factor"], fn field ->
+      assert get_in(cadence_row_schema, [
+               "properties",
+               "source_branch_comparison",
+               "properties",
+               field
+             ]) == %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0}
+
+      assert get_in(operator_review_row_schema, [
+               "properties",
+               "source_branch_comparison",
+               "properties",
+               field
+             ]) == %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0}
+    end)
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_branch_comparison",
+             "properties",
+             "downlink_completion_required_contacts"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_branch_comparison",
+             "properties",
+             "revisit_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    Enum.each(["downlink_completion_ratio", "observation_success_factor"], fn field ->
+      assert get_in(cadence_row_schema, [
+               "properties",
+               "source_review_row",
+               "properties",
+               "source_branch_comparison",
+               "properties",
+               field
+             ]) == %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0}
+    end)
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_window_lineage",
+             "properties",
+             "source_window_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_timeline_application",
+             "properties",
+             "source_timeline_diff",
+             "properties",
+             "diff_status",
+             "enum"
+           ]) == ["added", "removed", "changed", "unchanged"]
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_timeline_diff_summary",
+             "properties",
+             "review_required_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_timeline_diff_summary",
+             "properties",
+             "review_timeline_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_timeline_transition_application_summary",
+             "properties",
+             "review_required_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_timeline_transition_application_summary",
+             "properties",
+             "review_activity_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_timeline_integrity",
+             "properties",
+             "timeline_integrity_issue_types",
+             "items",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().timeline_integrity_issue_types
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_timeline_protection",
+             "properties",
+             "preserved_locked_or_approved_activity_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_timeline_lifecycle_state",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_timeline_preservation",
+             "properties",
+             "activity_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_candidate_rejection",
+             "properties",
+             "candidate_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_candidate_rejection",
+             "properties",
+             "primary_rejection_reason",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().candidate_rejection_reasons
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_timeline_dependency_impact",
+             "properties",
+             "scope",
+             "enum"
+           ]) == ["source", "replacement"]
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_timeline_identity",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "replacement_timeline_identity",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "timeline_link",
+             "properties",
+             "source_timeline_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert {:ok, refresh_schema} = Schema.json_schema("candidate_refresh.v1")
+
+    assert get_in(refresh_schema, ["properties", "refresh_id", "pattern"]) ==
+             stable_id_pattern
+
+    assert get_in(refresh_schema, [
+             "properties",
+             "operational_feedback",
+             "properties",
+             "image_quality_score",
+             "additionalProperties",
+             "maximum"
+           ]) == 1.0
+
+    assert get_in(refresh_schema, [
+             "properties",
+             "operational_feedback",
+             "properties",
+             "image_quality_status",
+             "additionalProperties",
+             "type"
+           ]) == "string"
+
+    assert {:ok, allocation_schema} = Schema.json_schema("contact_allocation_report.v1")
+
+    Enum.each(
+      ["invalid_contact_input_ids", "resource_blocked_contact_ids", "status_blocked_contact_ids"],
+      fn field ->
+        assert get_in(allocation_schema, ["properties", field, "items", "pattern"]) ==
+                 stable_id_pattern
+      end
+    )
+
+    pack_group_schema =
+      get_in(allocation_schema, ["properties", "reduced_capacity_pack_groups", "items"])
+
+    assert get_in(pack_group_schema, ["properties", "contention_group_id", "pattern"]) ==
+             stable_id_pattern
+
+    assert get_in(pack_group_schema, [
+             "properties",
+             "capacity_packed_contact_ids",
+             "items",
+             "pattern"
+           ]) ==
+             stable_id_pattern
+
+    assert get_in(pack_group_schema, [
+             "properties",
+             "default_required_capacity_fraction",
+             "type"
+           ]) == "number"
+
+    row_schema = get_in(allocation_schema, ["properties", "rows", "items"])
+
+    assert get_in(row_schema, ["required"]) == [
+             "id",
+             "contact_id",
+             "allocation_status",
+             "effective_allocation_status"
+           ]
+
+    assert get_in(allocation_schema, [
+             "properties",
+             "allocation_status_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.Communications.ContactAllocation.capabilities().row_statuses
+
+    assert get_in(allocation_schema, ["properties", "input_contact_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(allocation_schema, ["properties", "invalid_contact_input_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(allocation_schema, [
+             "properties",
+             "effective_allocation_status_counts",
+             "propertyNames",
+             "enum"
+           ]) ==
+             OrbitalDynamics.Communications.ContactAllocation.capabilities().effective_row_statuses
+
+    assert get_in(allocation_schema, [
+             "properties",
+             "allocation_reason_counts",
+             "additionalProperties"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    Enum.each(
+      ["reduced_capacity_pack_status_counts", "capacity_pack_status_counts"],
+      fn field ->
+        assert get_in(allocation_schema, [
+                 "properties",
+                 field,
+                 "additionalProperties"
+               ]) == %{"type" => "integer", "minimum" => 0}
+      end
+    )
+
+    assert get_in(allocation_schema, [
+             "properties",
+             "capacity_pack_contact_ids_by_status",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    Enum.each(
+      [
+        "station_pressure_contact_ids_by_ground_station_id",
+        "station_pressure_contact_ids_by_availability",
+        "station_pressure_contact_ids_by_precedence_availability",
+        "station_pressure_contact_ids_by_precedence_rank"
+      ],
+      fn field ->
+        assert get_in(allocation_schema, [
+                 "properties",
+                 field,
+                 "additionalProperties",
+                 "items",
+                 "pattern"
+               ]) == stable_id_pattern
+      end
+    )
+
+    assert get_in(row_schema, ["properties", "allocation_status", "enum"]) ==
+             OrbitalDynamics.Communications.ContactAllocation.capabilities().row_statuses
+
+    assert get_in(row_schema, ["properties", "effective_allocation_status", "enum"]) ==
+             OrbitalDynamics.Communications.ContactAllocation.capabilities().effective_row_statuses
+
+    assert get_in(row_schema, ["properties", "required_capacity_fraction"]) == %{
+             "type" => "number",
+             "minimum" => 0.0,
+             "maximum" => 1.0
+           }
+
+    assert get_in(row_schema, ["properties", "required_capacity_fraction_source", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, ["properties", "actual_throughput_mb", "type"]) == "number"
+
+    assert get_in(row_schema, [
+             "properties",
+             "actual_data_rate_throughput_derivation",
+             "type"
+           ]) == "object"
+
+    assert get_in(row_schema, [
+             "properties",
+             "actual_data_rate_throughput_derivation",
+             "properties",
+             "actual_data_rate_mbps",
+             "type"
+           ]) == "number"
+
+    assert get_in(row_schema, ["properties", "completed_fraction", "maximum"]) == 1.0
+
+    assert get_in(row_schema, ["properties", "required_downlink_mb", "minimum"]) == 0.0
+
+    assert get_in(row_schema, ["properties", "downlink_completion_ratio", "maximum"]) == 1.0
+
+    assert get_in(row_schema, ["properties", "downlink_completion_sources", "items", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, ["properties", "contact_success", "type"]) == "boolean"
+
+    assert get_in(row_schema, ["properties", "contact_success_factor", "maximum"]) == 1.0
+
+    assert get_in(row_schema, ["properties", "command_success", "type"]) == "boolean"
+
+    assert get_in(row_schema, ["properties", "command_success_factor", "maximum"]) == 1.0
+
+    assert get_in(row_schema, ["properties", "station_calendar_entry_id", "pattern"]) ==
+             stable_id_pattern
+
+    assert get_in(row_schema, ["properties", "station_calendar_directions", "items", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, ["properties", "provenance", "type"]) == "object"
+
+    assert get_in(row_schema, [
+             "properties",
+             "station_calendar_overlap_entry_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(row_schema, [
+             "properties",
+             "station_calendar_reservation_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(row_schema, [
+             "properties",
+             "station_calendar_reservation_overlap_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(row_schema, ["properties", "station_calendar_entry_ambiguous", "type"]) ==
+             "boolean"
+
+    assert get_in(row_schema, ["properties", "station_calendar_ambiguous_entry_count", "minimum"]) ==
+             0
+
+    assert get_in(row_schema, [
+             "properties",
+             "station_calendar_ambiguous_entry_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(row_schema, ["properties", "station_contention_status", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, ["properties", "source_resource_suppression", "type"]) ==
+             "object"
+
+    assert get_in(row_schema, ["properties", "antenna_available", "type"]) == "boolean"
+
+    assert {:ok, validation_schema} = Schema.json_schema("validation_reference_report.v1")
+
+    assert get_in(validation_schema, ["properties", "fixture_id", "pattern"]) ==
+             stable_id_pattern
+
+    assert get_in(validation_schema, ["properties", "model_id", "pattern"]) ==
+             stable_id_pattern
+  end
+
+  test "validates contact allocation top-level count maps against rows" do
+    report = read_json!("study_results/contact_allocation_report_v1.json")
+
+    assert {:ok, %{"schema_contract" => "contact_allocation_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    invalid_required_count =
+      Map.put(report, "input_contact_count", -1)
+
+    assert {:error, invalid_required_count_report} =
+             Schema.validate_artifact(invalid_required_count)
+
+    assert Enum.any?(
+             invalid_required_count_report["errors"],
+             &(&1["path"] == "$.input_contact_count")
+           )
+
+    invalid_optional_count =
+      Map.put(report, "invalid_contact_input_count", -1)
+
+    assert {:error, invalid_optional_count_report} =
+             Schema.validate_artifact(invalid_optional_count)
+
+    assert Enum.any?(
+             invalid_optional_count_report["errors"],
+             &(&1["path"] == "$.invalid_contact_input_count")
+           )
+
+    invalid_row_reservation_overlap_count =
+      put_in(report, ["rows", Access.at(0), "station_calendar_reservation_overlap_count"], -1)
+
+    assert {:error, invalid_row_reservation_overlap_count_report} =
+             Schema.validate_artifact(invalid_row_reservation_overlap_count)
+
+    assert Enum.any?(
+             invalid_row_reservation_overlap_count_report["errors"],
+             &(&1["path"] == "$.rows[0].station_calendar_reservation_overlap_count")
+           )
+
+    invalid_negative_count =
+      put_in(report, ["allocation_status_counts", "allocated"], -1)
+
+    assert {:error, invalid_negative_count_report} =
+             Schema.validate_artifact(invalid_negative_count)
+
+    assert Enum.any?(
+             invalid_negative_count_report["errors"],
+             &(&1["path"] == "$.allocation_status_counts.allocated")
+           )
+
+    invalid_resource_blocking_dimension_count =
+      put_in(report, ["resource_blocking_dimension_counts", "antenna"], -1)
+
+    assert {:error, invalid_resource_blocking_dimension_count_report} =
+             Schema.validate_artifact(invalid_resource_blocking_dimension_count)
+
+    assert Enum.any?(
+             invalid_resource_blocking_dimension_count_report["errors"],
+             &(&1["path"] == "$.resource_blocking_dimension_counts.antenna")
+           )
+
+    invalid_row_derived_count =
+      put_in(report, ["effective_allocation_status_counts", "allocated"], 99)
+
+    assert {:error, invalid_row_derived_count_report} =
+             Schema.validate_artifact(invalid_row_derived_count)
+
+    assert Enum.any?(
+             invalid_row_derived_count_report["errors"],
+             &(&1["path"] == "$.effective_allocation_status_counts")
+           )
+
+    capacity_pack_report =
+      read_json!("study_results/contact_allocation_capacity_pack_report_v1.json")
+
+    invalid_capacity_pack_count =
+      Map.put(
+        capacity_pack_report,
+        "capacity_pack_status_counts",
+        %{"selected_by_reduced_station_capacity_pack" => -1}
+      )
+
+    assert {:error, invalid_capacity_pack_count_report} =
+             Schema.validate_artifact(invalid_capacity_pack_count)
+
+    assert Enum.any?(
+             invalid_capacity_pack_count_report["errors"],
+             &(&1["path"] ==
+                 "$.capacity_pack_status_counts.selected_by_reduced_station_capacity_pack")
+           )
+
+    invalid_capacity_pack_demand =
+      Map.put(capacity_pack_report, "capacity_pack_required_capacity_fraction", -1.0)
+
+    assert {:error, invalid_capacity_pack_demand_report} =
+             Schema.validate_artifact(invalid_capacity_pack_demand)
+
+    assert Enum.any?(
+             invalid_capacity_pack_demand_report["errors"],
+             &(&1["path"] == "$.capacity_pack_required_capacity_fraction")
+           )
+
+    invalid_capacity_pack_demand_map =
+      Map.put(capacity_pack_report, "capacity_pack_required_capacity_fraction_by_status", %{
+        "selected_by_reduced_station_capacity_pack" => -1.0
+      })
+
+    assert {:error, invalid_capacity_pack_demand_map_report} =
+             Schema.validate_artifact(invalid_capacity_pack_demand_map)
+
+    assert Enum.any?(
+             invalid_capacity_pack_demand_map_report["errors"],
+             &(&1["path"] ==
+                 "$.capacity_pack_required_capacity_fraction_by_status.selected_by_reduced_station_capacity_pack")
+           )
+
+    invalid_capacity_pack_ids =
+      Map.put(
+        capacity_pack_report,
+        "capacity_pack_contact_ids_by_status",
+        %{"selected_by_reduced_station_capacity_pack" => ["bad id"]}
+      )
+
+    assert {:error, invalid_capacity_pack_ids_report} =
+             Schema.validate_artifact(invalid_capacity_pack_ids)
+
+    assert Enum.any?(
+             invalid_capacity_pack_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.capacity_pack_contact_ids_by_status.selected_by_reduced_station_capacity_pack[0]")
+           )
+
+    invalid_capacity_pack_id_group =
+      Map.put(
+        capacity_pack_report,
+        "capacity_pack_contact_ids_by_status",
+        %{"selected_by_reduced_station_capacity_pack" => ["dl_capacity_primary"]}
+      )
+
+    assert {:error, invalid_capacity_pack_id_group_report} =
+             Schema.validate_artifact(invalid_capacity_pack_id_group)
+
+    assert Enum.any?(
+             invalid_capacity_pack_id_group_report["errors"],
+             &(&1["path"] == "$.capacity_pack_contact_ids_by_status")
+           )
+
+    invalid_reduced_capacity_packed_ids =
+      Map.put(capacity_pack_report, "reduced_capacity_packed_contact_ids", ["bad id"])
+
+    assert {:error, invalid_reduced_capacity_packed_ids_report} =
+             Schema.validate_artifact(invalid_reduced_capacity_packed_ids)
+
+    assert Enum.any?(
+             invalid_reduced_capacity_packed_ids_report["errors"],
+             &(&1["path"] == "$.reduced_capacity_packed_contact_ids[0]")
+           )
+
+    invalid_station_pressure_id =
+      Map.put(report, "station_pressure_contact_ids_by_availability", %{
+        "reserved" => ["bad id"]
+      })
+
+    assert {:error, invalid_station_pressure_id_report} =
+             Schema.validate_artifact(invalid_station_pressure_id)
+
+    assert Enum.any?(
+             invalid_station_pressure_id_report["errors"],
+             &(&1["path"] == "$.station_pressure_contact_ids_by_availability.reserved[0]")
+           )
+
+    invalid_station_pressure_routing =
+      Map.put(report, "station_pressure_contact_ids_by_availability", %{
+        "reserved" => ["dl_1"]
+      })
+
+    assert {:error, invalid_station_pressure_routing_report} =
+             Schema.validate_artifact(invalid_station_pressure_routing)
+
+    assert Enum.any?(
+             invalid_station_pressure_routing_report["errors"],
+             &(&1["path"] == "$.station_pressure_contact_ids_by_availability" and
+                 &1["message"] ==
+                   "must equal row-derived station_pressure_contact_ids_by_availability")
+           )
+
+    invalid_resource_blocking_dimension_id =
+      Map.put(report, "resource_blocked_contact_ids_by_blocking_dimension", %{
+        "antenna" => ["bad id"]
+      })
+
+    assert {:error, invalid_resource_blocking_dimension_id_report} =
+             Schema.validate_artifact(invalid_resource_blocking_dimension_id)
+
+    assert Enum.any?(
+             invalid_resource_blocking_dimension_id_report["errors"],
+             &(&1["path"] ==
+                 "$.resource_blocked_contact_ids_by_blocking_dimension.antenna[0]")
+           )
+
+    for {field, stale_values} <- [
+          {"resource_blocking_dimension_counts", %{"antenna" => 99}},
+          {"resource_blocked_contact_ids_by_blocking_dimension", %{"antenna" => ["stale"]}},
+          {"resource_blocked_contact_ids_by_spacecraft_id", %{"sat_low_resource" => ["stale"]}},
+          {"station_reservation_ids", ["reservation_stale"]},
+          {"station_reserved_bys", ["stale_operator"]},
+          {"station_reservation_statuses", ["stale_status"]},
+          {"station_reservation_expiration_status_counts", %{"declared" => 99}},
+          {"station_reservation_declared_expiration_contact_count", 99},
+          {"station_reservation_missing_expiration_contact_count", 99},
+          {"earliest_station_reservation_expires_at_s", 99_999.0},
+          {"station_reservation_contact_ids_by_expiration_status", %{"declared" => ["stale"]}},
+          {"station_reservation_ids_by_expiration_status", %{"declared" => ["reservation_stale"]}}
+        ] do
+      invalid_reservation_list =
+        Map.put(report, field, stale_values)
+
+      assert {:error, invalid_reservation_list_report} =
+               Schema.validate_artifact(invalid_reservation_list)
+
+      assert Enum.any?(
+               invalid_reservation_list_report["errors"],
+               &(&1["path"] == "$.#{field}")
+             )
+    end
+  end
+
+  test "exported schemas do not leave identity fields as opaque object schemas" do
+    violations =
+      Schema.contracts()
+      |> Enum.flat_map(fn {contract_name, _contract} ->
+        assert {:ok, schema} = Schema.json_schema(contract_name)
+
+        schema
+        |> opaque_identity_property_paths()
+        |> Enum.map(&"#{contract_name}:#{&1}")
+      end)
+
+    assert violations == []
+  end
+
+  test "exported schemas and executable validators treat report counts as integers" do
+    assert {:ok, manifest_field_reference_schema} =
+             Schema.json_schema("manifest_field_reference.v1")
+
+    assert {:ok, refreshed_window_schema} = Schema.json_schema("refreshed_window.v1")
+
+    assert get_in(manifest_field_reference_schema, ["properties", "field_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(refreshed_window_schema, ["properties", "sample_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    violations =
+      Schema.contracts()
+      |> Enum.flat_map(fn {contract_name, contract} ->
+        assert {:ok, schema} = Schema.json_schema(contract_name)
+
+        fields =
+          ((contract["required_fields"] || []) ++ (contract["optional_fields"] || []))
+          |> Enum.filter(&String.ends_with?(&1, "_count"))
+
+        fields
+        |> Enum.filter(&(get_in(schema, ["properties", &1, "type"]) == "object"))
+        |> Enum.map(&"#{contract_name}:#{&1}")
+      end)
+
+    assert violations == []
+
+    for {path, field} <- [
+          {"study_results/candidate_diff_report_v1.json", "prior_candidate_count"},
+          {"study_results/contact_allocation_report_v1.json", "deferred_contact_count"},
+          {"study_results/contact_contention_report_v1.json", "conflict_group_count"},
+          {"study_results/contact_contention_resolution_report_v1.json", "conflict_group_count"},
+          {"study_results/cadence_import_manifest_v1.json", "ready_count"},
+          {"study_results/timeline_transition_application_report_v1.json", "application_count"},
+          {"study_results/manifest_field_reference.json", "field_count"},
+          {"study_results/refreshed_window_v1.json", "sample_count"},
+          {"study_results/study_manifest_lint_v1.json", "error_count"}
+        ] do
+      artifact = path |> read_json!() |> Map.put(field, 1.5)
+
+      assert {:error, report} = Schema.validate_artifact(artifact)
+      assert Enum.any?(report["errors"], &(&1["path"] == "$.#{field}"))
+    end
+
+    for {path, field} <- [
+          {"study_results/manifest_field_reference.json", "field_count"},
+          {"study_results/refreshed_window_v1.json", "sample_count"}
+        ] do
+      artifact = path |> read_json!() |> Map.put(field, -1)
+
+      assert {:error, report} = Schema.validate_artifact(artifact)
+      assert Enum.any?(report["errors"], &(&1["path"] == "$.#{field}"))
+    end
+  end
+
+  test "exports top-level JSON Schema documents for executable contracts" do
+    assert {:ok, schema} = Schema.json_schema("campaign_plan.v1")
+
+    assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+    assert schema["$id"] =~ "campaign_plan.v1.schema.json"
+    assert schema["type"] == "object"
+    assert "plan_id" in schema["required"]
+    assert schema["properties"]["schema_version"]["type"] == "integer"
+    assert schema["properties"]["schema_version"]["const"] == 1
+    assert schema["properties"]["activities"]["type"] == "array"
+
+    assert %{
+             "schema_contract" => "campaign_plan.v1",
+             "artifact_family" => "campaign_plan",
+             "compatibility_policy_version" => 1,
+             "executable_contract" => true
+           } = schema["x-orbital-dynamics"]
+  end
+
+  test "exports nested branch comparison report row schema" do
+    assert {:ok, schema} = Schema.json_schema("branch_comparison_report.v1")
+
+    row_schema = get_in(schema, ["properties", "rows", "items"])
+
+    assert get_in(schema, ["properties", "branch_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "model_limits", "items", "enum"]) ==
+             OrbitalDynamics.CampaignPlanner.branch_comparison_model_limits()
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "deterministic_strategy_branch_score_comparison"
+
+    assert get_in(schema, ["properties", "source", "const"]) == "campaign_strategy.branches"
+
+    assert row_schema["type"] == "object"
+    assert "score_terms" in row_schema["required"]
+
+    assert get_in(row_schema, ["properties", "branch_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "branch_probability", "minimum"]) == 0.0
+    assert get_in(row_schema, ["properties", "branch_probability", "maximum"]) == 1.0
+    assert get_in(row_schema, ["properties", "projected_storage_margin", "type"]) == "number"
+
+    assert get_in(row_schema, ["properties", "projected_storage_remaining_mb", "type"]) ==
+             "number"
+
+    assert get_in(row_schema, ["properties", "projected_downlink_remaining_mb", "type"]) ==
+             "number"
+
+    assert get_in(row_schema, ["properties", "repair_score", "type"]) == "number"
+    assert get_in(row_schema, ["properties", "antenna_availability", "type"]) == "number"
+
+    assert get_in(row_schema, [
+             "properties",
+             "first_resource_pressure_station_calendar_provider_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "first_resource_pressure_station_calendar_provider_entry_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    Enum.each(
+      [
+        "approval_requirement_count",
+        "branch_event_count",
+        "branch_requires_operator_review_count",
+        "candidate_activity_count",
+        "coverage_observed_target_count",
+        "priority_commitment_missed_target_count",
+        "priority_commitment_required_target_count",
+        "priority_commitment_satisfied_target_count",
+        "repair_delta_count",
+        "repair_link_contact_count",
+        "repair_link_selected_contact_count",
+        "repair_score_term_count",
+        "resource_projection_antenna_unavailable_count",
+        "resource_projection_degraded_payload_unavailable_count",
+        "resource_projection_flow_count",
+        "resource_projection_payload_unavailable_count",
+        "resource_projection_spacecraft_count",
+        "resource_projection_unavailable_spacecraft_count",
+        "resource_projection_warning_count",
+        "revisit_count",
+        "risk_count"
+      ],
+      fn field ->
+        assert get_in(row_schema, ["properties", field]) == %{
+                 "type" => "integer",
+                 "minimum" => 0
+               }
+      end
+    )
+
+    Enum.each(["downlink_completion_ratio", "observation_success_factor"], fn field ->
+      assert get_in(row_schema, ["properties", field]) == %{
+               "type" => "number",
+               "minimum" => 0.0,
+               "maximum" => 1.0
+             }
+    end)
+
+    Enum.each(
+      ["downlink_completion_required_contacts", "downlink_completion_planned_contacts"],
+      fn field ->
+        assert get_in(row_schema, ["properties", field]) == %{
+                 "type" => "integer",
+                 "minimum" => 0
+               }
+      end
+    )
+
+    assert get_in(row_schema, ["properties", "risk_types", "items", "type"]) == "string"
+    assert get_in(row_schema, ["properties", "high_risk_types", "items", "type"]) == "string"
+
+    assert get_in(row_schema, ["properties", "resource_pressure_statuses", "items", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, ["properties", "resource_pressure_types", "items", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, ["properties", "first_resource_pressure_kinds", "items", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, ["properties", "feedback_risk_types", "items", "type"]) == "string"
+
+    assert get_in(row_schema, [
+             "properties",
+             "priority_commitment_required_target_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "revisit_count", "type"]) == "integer"
+
+    assert get_in(row_schema, ["properties", "branch_event_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(row_schema, ["properties", "branch_event_types", "items", "type"]) == "string"
+
+    assert get_in(row_schema, [
+             "properties",
+             "branch_event_trust_boundary_status_counts",
+             "propertyNames",
+             "enum"
+           ]) == ["declared", "missing", "untrusted"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "combined_source_branch_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "branch_station_calendar_provider_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "branch_station_calendar_provider_entry_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "branch_collection_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "branch_objective_types",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(row_schema, ["properties", "branch_max_latency_s", "type"]) == "number"
+
+    assert get_in(row_schema, [
+             "properties",
+             "branch_station_calendar_directions",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(row_schema, [
+             "properties",
+             "branch_station_reservation_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "repair_score_term_keys", "items", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, [
+             "properties",
+             "repair_link_selected_capacity_adjusted_throughput_mb",
+             "type"
+           ]) == "number"
+
+    assert get_in(row_schema, ["properties", "capacity_pack_group_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "capacity_pack_statuses", "items", "type"]) ==
+             "string"
+
+    Enum.each(
+      [
+        "capacity_pack_min_capacity_fraction",
+        "capacity_pack_max_used_fraction",
+        "capacity_pack_max_required_capacity_fraction"
+      ],
+      fn field ->
+        assert get_in(row_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+    )
+
+    assert get_in(row_schema, [
+             "properties",
+             "capacity_pack_total_required_capacity_fraction",
+             "minimum"
+           ]) == 0.0
+
+    assert get_in(row_schema, [
+             "properties",
+             "capacity_pack_required_capacity_sources",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(row_schema, [
+             "properties",
+             "score_terms",
+             "additionalProperties",
+             "type"
+           ]) == "number"
+  end
+
+  test "exports nested score term report row schema" do
+    assert {:ok, schema} = Schema.json_schema("score_term_report.v1")
+
+    row_schema = get_in(schema, ["properties", "rows", "items"])
+
+    assert get_in(schema, ["properties", "model", "enum"]) == [
+             "ranked_timeline_score_terms",
+             "repair_score_terms",
+             "strategy_branch_score_terms"
+           ]
+
+    assert get_in(schema, ["properties", "source", "type"]) == "string"
+
+    assert row_schema["type"] == "object"
+
+    assert row_schema["required"] == [
+             "id",
+             "rank",
+             "scenario_id",
+             "term_key",
+             "value",
+             "timeline_score",
+             "selected"
+           ]
+
+    assert get_in(row_schema, ["properties", "id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "scenario_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "selected", "type"]) == "boolean"
+    assert get_in(schema, ["properties", "score_term_keys", "items", "type"]) == "string"
+
+    assert get_in(schema, ["properties", "row_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "model_limits", "items", "enum"]) ==
+             OrbitalDynamics.CampaignPlanner.score_report_model_limits()
+  end
+
+  test "exports nested link capacity report row schema" do
+    assert {:ok, schema} = Schema.json_schema("link_capacity_report.v1")
+
+    row_schema = get_in(schema, ["properties", "rows", "items"])
+
+    assert row_schema["type"] == "object"
+    assert "ground_station_id" in row_schema["required"]
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "fixed_rate_downlink_capacity_summary"
+
+    assert get_in(schema, ["properties", "source", "type"]) == "string"
+
+    assert get_in(schema, ["properties", "contact_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "ignored_contact_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "selected_capacity_utilization_fraction"]) == %{
+             "type" => "number",
+             "minimum" => 0.0,
+             "maximum" => 1.0
+           }
+
+    assert get_in(schema, [
+             "properties",
+             "ignored_contact_reason_counts",
+             "additionalProperties"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, [
+             "properties",
+             "ignored_selected_contact_reason_counts",
+             "additionalProperties"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(row_schema, ["properties", "ground_station_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "estimated_throughput_mb", "type"]) == "number"
+
+    assert get_in(row_schema, ["properties", "contact_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(row_schema, ["properties", "actual_throughput_contact_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(row_schema, ["properties", "selected_capacity_utilization_fraction"]) == %{
+             "type" => "number",
+             "minimum" => 0.0,
+             "maximum" => 1.0
+           }
+
+    Enum.each(["capacity_fraction_min", "capacity_fraction_max"], fn field ->
+      assert get_in(row_schema, ["properties", field]) == %{
+               "type" => "number",
+               "minimum" => 0.0,
+               "maximum" => 1.0
+             }
+    end)
+
+    assert get_in(row_schema, ["properties", "capacity_adjusted_throughput_mb", "type"]) ==
+             "number"
+
+    assert get_in(row_schema, [
+             "properties",
+             "selected_capacity_adjusted_throughput_mb",
+             "type"
+           ]) == "number"
+
+    assert get_in(row_schema, ["properties", "actual_throughput_mb", "type"]) == "number"
+
+    assert get_in(row_schema, [
+             "properties",
+             "actual_data_rate_throughput_derivations",
+             "items",
+             "type"
+           ]) == "object"
+
+    assert get_in(row_schema, [
+             "properties",
+             "actual_data_rate_throughput_derivations",
+             "items",
+             "properties",
+             "duration_s",
+             "type"
+           ]) == "number"
+
+    assert get_in(row_schema, [
+             "properties",
+             "ignored_contact_reason_counts",
+             "additionalProperties"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(row_schema, [
+             "properties",
+             "ignored_selected_contact_reason_counts",
+             "additionalProperties"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    Enum.each(
+      [
+        "ignored_contact_ids",
+        "ignored_selected_contact_ids",
+        "ambiguous_selected_contact_ids",
+        "unmatched_selected_contact_ids",
+        "actual_throughput_contact_ids",
+        "actual_completion_contact_ids",
+        "unmatched_actual_throughput_contact_ids",
+        "ambiguous_actual_throughput_contact_ids",
+        "unmatched_actual_completion_contact_ids",
+        "ambiguous_actual_completion_contact_ids",
+        "station_reservation_ids"
+      ],
+      fn field ->
+        assert get_in(schema, ["properties", field, "items", "pattern"]) ==
+                 Schema.identity_policy()["stable_id_pattern"]
+      end
+    )
+
+    Enum.each(
+      [
+        "ignored_contact_ids",
+        "ignored_selected_contact_ids",
+        "ambiguous_selected_contact_ids",
+        "duplicate_contact_ids",
+        "station_calendar_entry_ids",
+        "station_calendar_provider_ids",
+        "station_calendar_provider_entry_ids",
+        "station_reservation_ids",
+        "actual_throughput_contact_ids",
+        "actual_completion_contact_ids",
+        "unmatched_actual_throughput_contact_ids",
+        "ambiguous_actual_throughput_contact_ids",
+        "unmatched_actual_completion_contact_ids",
+        "ambiguous_actual_completion_contact_ids"
+      ],
+      fn field ->
+        assert get_in(row_schema, ["properties", field, "items", "pattern"]) ==
+                 Schema.identity_policy()["stable_id_pattern"]
+      end
+    )
+
+    assert get_in(row_schema, ["properties", "contact_ids", "items", "type"]) == "string"
+  end
+
+  test "exports nested objective satisfaction report row schema" do
+    assert {:ok, schema} = Schema.json_schema("objective_satisfaction_report.v1")
+
+    row_schema = get_in(schema, ["properties", "rows", "items"])
+
+    assert row_schema["type"] == "object"
+    assert "objective" in row_schema["required"]
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "campaign_v1_selected_activity_objective_summary"
+
+    assert get_in(row_schema, ["properties", "status", "enum"]) == [
+             "met",
+             "partial",
+             "unmet",
+             "selected",
+             "candidate_available",
+             "no_candidate_window",
+             "no_requirement"
+           ]
+
+    assert get_in(row_schema, ["properties", "target_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "selected_activity_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "selected_downlink_mb", "type"]) == "number"
+    assert get_in(row_schema, ["properties", "required_downlink_mb", "type"]) == "number"
+
+    assert get_in(schema, ["properties", "objective_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    Enum.each(
+      ["required_count", "candidate_count", "selected_count", "satisfied_count"],
+      fn field ->
+        assert get_in(row_schema, ["properties", field]) == %{
+                 "type" => "integer",
+                 "minimum" => 0
+               }
+      end
+    )
+
+    assert get_in(schema, ["properties", "model_limits", "items", "enum"]) ==
+             OrbitalDynamics.CampaignPlanner.objective_satisfaction_model_limits()
+  end
+
+  test "exports nested timeline diff report row schema" do
+    assert {:ok, schema} = Schema.json_schema("timeline_diff_report.v1")
+
+    row_schema = get_in(schema, ["properties", "rows", "items"])
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_activity_context",
+             "properties",
+             "activity_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "replacement_activity_context",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "source_protection_decision", "type"]) ==
+             "object"
+
+    assert get_in(row_schema, ["properties", "replacement_protection_reason", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, ["properties", "diff_status", "enum"]) ==
+             OrbitalDynamics.Timeline.capabilities().timeline_diff_statuses
+
+    assert get_in(row_schema, ["properties", "transition_decision", "enum"]) ==
+             OrbitalDynamics.Timeline.capabilities().transition_decisions
+  end
+
+  test "exports nested objective tradeoff report row schema" do
+    assert {:ok, schema} = Schema.json_schema("objective_tradeoff_report.v1")
+
+    row_schema = get_in(schema, ["properties", "tradeoffs", "items"])
+
+    assert row_schema["type"] == "object"
+    assert "score_terms" in row_schema["required"]
+
+    assert get_in(schema, ["properties", "model", "enum"]) == [
+             "ranked_timeline_score_term_tradeoffs",
+             "repair_score_term_tradeoffs",
+             "strategy_branch_score_term_tradeoffs"
+           ]
+
+    assert get_in(row_schema, ["properties", "scenario_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "score_delta_from_selected", "type"]) == "number"
+    assert get_in(row_schema, ["properties", "activity_ids", "items", "type"]) == "string"
+
+    assert get_in(row_schema, ["properties", "score_terms", "additionalProperties", "type"]) ==
+             "number"
+
+    Enum.each(
+      ["activity_count", "selected_observation_count", "selected_contact_count"],
+      fn field ->
+        assert get_in(row_schema, ["properties", field]) == %{
+                 "type" => "integer",
+                 "minimum" => 0
+               }
+      end
+    )
+
+    assert get_in(schema, ["properties", "score_term_keys", "items", "type"]) == "string"
+    assert get_in(schema, ["properties", "policy", "type"]) == "object"
+
+    assert get_in(schema, ["properties", "ranking_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "model_limits", "items", "enum"]) ==
+             OrbitalDynamics.CampaignPlanner.score_report_model_limits()
+  end
+
+  test "exports nested ranking comparison report row schema" do
+    assert {:ok, schema} = Schema.json_schema("ranking_comparison_report.v1")
+
+    row_schema = get_in(schema, ["properties", "rows", "items"])
+
+    assert row_schema["type"] == "object"
+    assert "scenario_id" in row_schema["required"]
+
+    assert get_in(row_schema, ["properties", "scenario_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "status", "enum"]) == [
+             "matched",
+             "left_only",
+             "right_only"
+           ]
+
+    assert get_in(row_schema, ["properties", "left_rank", "type"]) == ["integer", "null"]
+    assert get_in(row_schema, ["properties", "value_delta", "type"]) == ["number", "null"]
+    assert get_in(schema, ["properties", "winner", "properties", "changed", "type"]) == "boolean"
+
+    assert get_in(schema, ["properties", "model", "const"]) == "scenario_ranking_pairwise_delta"
+
+    assert get_in(schema, ["properties", "left_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "row_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "model_limits", "items", "enum"]) ==
+             OrbitalDynamics.Optimizer.ranking_comparison_model_limits()
+  end
+
+  test "exports nested Pareto frontier report row schema" do
+    assert {:ok, schema} = Schema.json_schema("pareto_frontier_report.v1")
+
+    row_schema = get_in(schema, ["properties", "rows", "items"])
+
+    assert row_schema["type"] == "object"
+    assert "id" in row_schema["required"]
+    assert "frontier" in row_schema["required"]
+
+    assert get_in(row_schema, ["properties", "id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "objective_values", "additionalProperties", "type"]) ==
+             "number"
+
+    assert get_in(row_schema, ["properties", "objective_keys", "items", "type"]) == "string"
+    assert get_in(row_schema, ["properties", "frontier", "type"]) == "boolean"
+
+    assert get_in(row_schema, ["properties", "dominates_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, ["properties", "frontier_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, ["properties", "alternative_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "frontier_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "objective_directions", "type"]) == "object"
+
+    assert get_in(schema, ["properties", "model", "const"]) == "objective_vector_pareto_frontier"
+
+    assert get_in(schema, ["properties", "model_limits", "items", "enum"]) ==
+             OrbitalDynamics.Optimizer.pareto_frontier_model_limits()
+  end
+
+  test "exports nested constraint report row schema" do
+    assert {:ok, schema} = Schema.json_schema("constraint_report.v1")
+
+    row_schema = get_in(schema, ["properties", "rows", "items"])
+
+    assert row_schema["type"] == "object"
+    assert "constraint_id" in row_schema["required"]
+
+    assert get_in(row_schema, ["properties", "constraint_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "operator", "enum"]) == ["<", "<=", "==", ">=", ">"]
+    assert get_in(row_schema, ["properties", "status", "enum"]) == ["pass", "fail", "warning"]
+
+    assert get_in(schema, ["properties", "constraint_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "row_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "model_limits", "items", "enum"]) ==
+             [
+               "artifact_level_only",
+               "evaluated_after_candidate_generation_filters",
+               "link_capacity_constraints_are_fixed_rate_summaries",
+               "missing_or_nil_values_fail",
+               "no_rerun_propagation",
+               "not_a_general_constraint_solver",
+               "numeric_threshold_violations_can_be_warnings",
+               "planner_local_constraints_only",
+               "resource_projection_constraints_are_planning_grade",
+               "uses_report_metric_rows"
+             ]
+
+    campaign_local_limits = [
+      "planner_local_constraints_only",
+      "evaluated_after_candidate_generation_filters",
+      "resource_projection_constraints_are_planning_grade",
+      "link_capacity_constraints_are_fixed_rate_summaries",
+      "not_a_general_constraint_solver"
+    ]
+
+    assert Enum.any?(
+             schema["allOf"],
+             &(get_in(&1, ["if", "properties", "model", "const"]) == "artifact_metric_threshold" and
+                 get_in(&1, ["then", "properties", "model_limits", "const"]) ==
+                   [
+                     "artifact_level_only",
+                     "no_rerun_propagation",
+                     "missing_or_nil_values_fail",
+                     "numeric_threshold_violations_can_be_warnings",
+                     "uses_report_metric_rows"
+                   ])
+           )
+
+    assert Enum.any?(
+             schema["allOf"],
+             &(get_in(&1, ["if", "properties", "model", "const"]) ==
+                 "campaign_repair_local_constraint_summary" and
+                 get_in(&1, ["then", "properties", "model_limits", "const"]) ==
+                   campaign_local_limits)
+           )
+  end
+
+  test "validates checked-in constraint report example" do
+    report = read_json!("study_results/constraint_report_v1.json")
+
+    assert {:ok, %{"schema_contract" => "constraint_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert %{
+             "constraint_count" => 2,
+             "row_count" => 3,
+             "status" => "fail",
+             "status_counts" => %{"pass" => 1, "fail" => 1, "warning" => 1},
+             "rows" => [
+               %{"constraint_id" => "minimum_operational_altitude", "status" => "pass"},
+               %{"constraint_id" => "minimum_operational_altitude", "status" => "fail"},
+               %{"constraint_id" => "downlink_margin", "status" => "warning"}
+             ]
+           } = report
+
+    invalid_model_limits = Map.put(report, "model_limits", ["artifact_level_only"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_model_limits)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] =~ "must match constraint report model limits")
+           )
+
+    invalid_model = Map.put(report, "model", "ad_hoc_constraint_report_model")
+
+    assert {:error, invalid_model_report} = Schema.validate_artifact(invalid_model)
+
+    assert Enum.any?(
+             invalid_model_report["errors"],
+             &(&1["path"] == "$.model")
+           )
+
+    campaign_local_limits = [
+      "planner_local_constraints_only",
+      "evaluated_after_candidate_generation_filters",
+      "resource_projection_constraints_are_planning_grade",
+      "link_capacity_constraints_are_fixed_rate_summaries",
+      "not_a_general_constraint_solver"
+    ]
+
+    repair_constraint_report =
+      report
+      |> Map.put("model", "campaign_repair_local_constraint_summary")
+      |> Map.put("model_limits", campaign_local_limits)
+
+    assert {:ok, %{"schema_contract" => "constraint_report.v1"}} =
+             Schema.validate_artifact(repair_constraint_report)
+
+    invalid_repair_model_limits =
+      Map.put(repair_constraint_report, "model_limits", ["planner_local_constraints_only"])
+
+    assert {:error, repair_validation_report} =
+             Schema.validate_artifact(invalid_repair_model_limits)
+
+    assert Enum.any?(
+             repair_validation_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] =~ "must match constraint report model limits")
+           )
+
+    invalid_constraint_count = Map.put(report, "constraint_count", 2.0)
+
+    assert {:error, constraint_count_report} = Schema.validate_artifact(invalid_constraint_count)
+
+    assert Enum.any?(
+             constraint_count_report["errors"],
+             &(&1["path"] == "$.constraint_count")
+           )
+
+    invalid_row_count = Map.put(report, "row_count", -1)
+
+    assert {:error, row_count_report} = Schema.validate_artifact(invalid_row_count)
+
+    assert Enum.any?(
+             row_count_report["errors"],
+             &(&1["path"] == "$.row_count")
+           )
+  end
+
+  test "exports nested resource projection report row schema" do
+    assert {:ok, schema} = Schema.json_schema("resource_projection_report.v1")
+    assert {:ok, flow_summary_schema} = Schema.json_schema("resource_projection_flow_summary.v1")
+
+    row_schema = get_in(schema, ["properties", "projected_resources", "items"])
+
+    assert row_schema["type"] == "object"
+    assert "spacecraft_id" in row_schema["required"]
+
+    assert get_in(schema, ["properties", "model", "enum"]) == [
+             "thin_battery_handoff_resource_projection_fixture",
+             "thin_campaign_selected_activity_resource_projection",
+             "thin_repaired_activity_resource_projection",
+             "thin_selected_activity_resource_projection",
+             "thin_stale_derived_margin_resource_projection_fixture",
+             "thin_strategy_branch_activity_resource_projection"
+           ]
+
+    assert get_in(schema, ["properties", "input_resource_summary_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "invalid_activity_input_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "resource_pressure_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "resource_pressure_spacecraft_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, [
+             "properties",
+             "resource_pressure_activity_ids_by_type",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "spacecraft_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    Enum.each(["activity_count", "observation_count", "downlink_count"], fn field ->
+      assert get_in(row_schema, ["properties", field]) == %{
+               "type" => "integer",
+               "minimum" => 0
+             }
+    end)
+
+    assert get_in(row_schema, ["properties", "projected_storage_margin", "type"]) == "number"
+    assert get_in(row_schema, ["properties", "resource_source_quality", "type"]) == "string"
+    assert get_in(row_schema, ["properties", "warnings", "items", "type"]) == "string"
+
+    flow_row_schema = get_in(row_schema, ["properties", "activity_resource_flow", "items"])
+
+    assert get_in(flow_row_schema, ["properties", "planned_latency_s"]) == %{
+             "type" => "number",
+             "minimum" => 0.0
+           }
+
+    assert get_in(flow_row_schema, ["properties", "completed_fraction"]) == %{
+             "type" => "number",
+             "minimum" => 0.0,
+             "maximum" => 1.0
+           }
+
+    assert get_in(flow_row_schema, ["properties", "battery_state_of_charge_after"]) == %{
+             "type" => "number",
+             "minimum" => 0.0,
+             "maximum" => 1.0
+           }
+
+    assert get_in(flow_row_schema, ["properties", "latency_status", "enum"]) == [
+             "within_limit",
+             "late"
+           ]
+
+    assert get_in(flow_summary_schema, ["properties", "source"]) == %{"type" => "string"}
+
+    Enum.each(["resource_flow_status", "resource_pressure_status", "latency_status"], fn field ->
+      assert get_in(flow_summary_schema, ["properties", field]) == %{
+               "type" => "string",
+               "enum" => ["clear", "review_required"]
+             }
+    end)
+
+    assert get_in(schema, [
+             "properties",
+             "resource_source_quality_counts",
+             "additionalProperties"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, [
+             "properties",
+             "resource_trust_boundary_status_counts",
+             "additionalProperties"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, ["properties", "invalid_activity_input_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, ["properties", "model_limits", "const"]) ==
+             OrbitalDynamics.ResourceProjection.capabilities().known_limits
+             |> Enum.map(&Atom.to_string/1)
+  end
+
+  test "exports nested resource filter report suppressed candidate schema" do
+    assert {:ok, schema} = Schema.json_schema("resource_filter_report.v1")
+
+    row_schema = get_in(schema, ["properties", "suppressed_candidates", "items"])
+
+    assert row_schema["type"] == "object"
+    assert "suppressed_reason" in row_schema["required"]
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "resource_summary_availability_and_margin_filter"
+
+    assert get_in(schema, ["properties", "input_candidate_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "duplicate_suppressed_candidate_row_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "resource_source_quality_counts", "type"]) == "object"
+
+    assert get_in(schema, ["properties", "resource_trust_boundary_status_counts", "type"]) ==
+             "object"
+
+    assert get_in(schema, [
+             "properties",
+             "suppressed_resource_trust_boundary_status_counts",
+             "type"
+           ]) == "object"
+
+    assert get_in(schema, ["properties", "invalid_candidate_input_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "scenario_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "ground_station_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "station_availability", "type"]) == "string"
+  end
+
+  test "exports nested accepted planning state spacecraft state schema" do
+    assert {:ok, schema} = Schema.json_schema("accepted_planning_state.v1")
+
+    assert [
+             %{
+               "if" => %{"properties" => %{"provenance" => %{"anyOf" => provenance_any_of}}},
+               "then" => %{"properties" => %{"provenance" => provenance_then}}
+             }
+           ] = schema["allOf"]
+
+    assert %{"required" => ["import_adapter"]} in provenance_any_of
+    assert provenance_then["required"] == ["trust_boundary"]
+
+    state_schema = get_in(schema, ["properties", "spacecraft_states", "items"])
+
+    assert state_schema["type"] == "object"
+    assert "state_vector" in state_schema["required"]
+
+    assert get_in(state_schema, ["properties", "spacecraft_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(state_schema, ["properties", "scenario_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(state_schema, ["properties", "epoch", "required"]) == [
+             "seconds_since_j2000",
+             "time_scale"
+           ]
+
+    assert get_in(state_schema, ["properties", "state_vector", "required"]) == [
+             "position_km",
+             "velocity_km_s"
+           ]
+
+    assert get_in(state_schema, [
+             "properties",
+             "state_vector",
+             "properties",
+             "position_km",
+             "minItems"
+           ]) == 3
+
+    assert get_in(state_schema, [
+             "properties",
+             "quality",
+             "properties",
+             "velocity_sigma_km_s",
+             "items",
+             "type"
+           ]) == "number"
+
+    assert get_in(state_schema, [
+             "properties",
+             "quality",
+             "properties",
+             "covariance_reference_frame",
+             "type"
+           ]) == "string"
+
+    assert get_in(state_schema, [
+             "properties",
+             "metadata",
+             "properties",
+             "object_id",
+             "type"
+           ]) == "string"
+
+    assert get_in(state_schema, [
+             "properties",
+             "metadata",
+             "properties",
+             "covariance_reference_frame",
+             "type"
+           ]) == "string"
+
+    assert get_in(state_schema, [
+             "properties",
+             "metadata",
+             "properties",
+             "ccsds_oem_version",
+             "type"
+           ]) == "string"
+
+    assert get_in(state_schema, [
+             "properties",
+             "metadata",
+             "properties",
+             "sample_index",
+             "type"
+           ]) == "integer"
+
+    assert %{"required" => ["trust_boundary"]} in state_schema["anyOf"]
+
+    delta_schema = get_in(schema, ["properties", "maneuver_execution_deltas", "items"])
+
+    assert delta_schema["type"] == "object"
+    assert delta_schema["required"] == ["activity_id", "status", "source", "quality"]
+
+    assert get_in(delta_schema, ["properties", "activity_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(delta_schema, ["properties", "delta_v_km_s", "minItems"]) == 3
+
+    assert get_in(delta_schema, ["properties", "metadata", "properties", "maneuver_index", "type"]) ==
+             "integer"
+
+    assert %{"required" => ["trust_boundary"]} in delta_schema["anyOf"]
+  end
+
+  test "exports nested candidate refresh source-window lineage schema" do
+    assert {:ok, schema} = Schema.json_schema("candidate_refresh.v1")
+
+    lineage_schema = get_in(schema, ["properties", "source_window_lineage", "items"])
+
+    assert lineage_schema["type"] == "object"
+
+    assert lineage_schema["required"] == [
+             "candidate_activity_id",
+             "source_window_id",
+             "source_window_type",
+             "scenario_id"
+           ]
+
+    assert get_in(lineage_schema, ["properties", "candidate_activity_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(lineage_schema, ["properties", "source_window_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(lineage_schema, ["properties", "source_window_type", "type"]) == "string"
+
+    assert get_in(lineage_schema, ["properties", "collection_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(lineage_schema, ["properties", "source_activity_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(lineage_schema, [
+             "properties",
+             "source_window",
+             "properties",
+             "required_downlink_mb",
+             "minimum"
+           ]) == 0
+
+    assert get_in(lineage_schema, [
+             "properties",
+             "source_window",
+             "properties",
+             "downlink_completion_ratio",
+             "maximum"
+           ]) == 1
+  end
+
+  test "exports nested candidate refresh source-report provenance schema" do
+    assert {:ok, schema} = Schema.json_schema("candidate_refresh.v1")
+
+    summary_schema =
+      get_in(schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "additionalProperties"
+      ])
+
+    assert summary_schema["type"] == "object"
+
+    assert get_in(summary_schema, [
+             "properties",
+             "resource_availability_pressure_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(summary_schema, [
+             "properties",
+             "resource_availability_reason_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(summary_schema, [
+             "properties",
+             "resource_availability_reason_ids",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(summary_schema, [
+             "properties",
+             "station_availability_reason_ids",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(summary_schema, [
+             "properties",
+             "station_availability_reason_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(summary_schema, [
+             "properties",
+             "unavailable_resource_reason_ids",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(summary_schema, [
+             "properties",
+             "resource_blocking_dimension_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(summary_schema, [
+             "properties",
+             "invalid_resource_summary_input_ids",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(summary_schema, [
+             "properties",
+             "invalid_contact_input_ids",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(summary_schema, [
+             "properties",
+             "invalid_activity_input_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(summary_schema, [
+             "properties",
+             "invalid_activity_input_reason_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(summary_schema, [
+             "properties",
+             "invalid_activity_input_reasons",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(schema, [
+             "properties",
+             "provenance",
+             "properties",
+             "run_input_sources",
+             "additionalProperties",
+             "items",
+             "type"
+           ]) == "string"
+  end
+
+  test "exports nested candidate refresh invalidated candidate schema" do
+    assert {:ok, schema} = Schema.json_schema("candidate_refresh.v1")
+
+    invalidated_schema = get_in(schema, ["properties", "invalidated_candidates", "items"])
+
+    assert invalidated_schema["type"] == "object"
+    assert invalidated_schema["required"] == ["id", "invalidated_reason"]
+
+    assert get_in(invalidated_schema, ["properties", "id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(invalidated_schema, ["properties", "replacement_candidate_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(invalidated_schema, ["properties", "source_window_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(invalidated_schema, ["properties", "semantic_change_reasons", "items", "type"]) ==
+             "string"
+  end
+
+  test "exports nested candidate refresh candidate activity schema" do
+    assert {:ok, schema} = Schema.json_schema("candidate_refresh.v1")
+
+    activity_schema = get_in(schema, ["properties", "candidate_activities", "items"])
+
+    assert activity_schema["type"] == "object"
+
+    assert activity_schema["required"] == [
+             "id",
+             "type",
+             "scenario_id",
+             "starts_at_s",
+             "ends_at_s",
+             "duration_s",
+             "score",
+             "score_terms",
+             "source_window_id",
+             "source_window"
+           ]
+
+    assert get_in(activity_schema, ["properties", "id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(activity_schema, ["properties", "scenario_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(activity_schema, ["properties", "target_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(activity_schema, ["properties", "ground_station_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(activity_schema, ["properties", "source_window_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(activity_schema, ["properties", "schema_contract", "const"]) ==
+             "candidate_activity.v1"
+
+    assert get_in(activity_schema, ["properties", "spacecraft_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(activity_schema, ["properties", "collection_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(activity_schema, ["properties", "payload_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(activity_schema, ["properties", "instrument_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(activity_schema, ["properties", "product_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(activity_schema, ["properties", "score_terms", "type"]) == "object"
+    assert get_in(activity_schema, ["properties", "source_window", "type"]) == "object"
+
+    assert get_in(activity_schema, ["properties", "target_priority", "type"]) == "number"
+
+    assert get_in(activity_schema, ["properties", "observation_objective_count", "type"]) ==
+             "integer"
+
+    assert get_in(activity_schema, ["properties", "observation_objective_types", "items", "type"]) ==
+             "string"
+
+    assert get_in(activity_schema, [
+             "properties",
+             "collection_latency_objective_count",
+             "type"
+           ]) == "integer"
+
+    assert get_in(activity_schema, [
+             "properties",
+             "collection_latency_objective_types",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(activity_schema, ["properties", "required_downlink_mb", "minimum"]) == 0
+
+    assert get_in(activity_schema, ["properties", "station_contention_status", "type"]) ==
+             "string"
+
+    assert get_in(activity_schema, ["properties", "station_reservation_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(activity_schema, ["properties", "station_reserved_by", "type"]) == "string"
+
+    assert get_in(activity_schema, ["properties", "station_reservation_status", "type"]) ==
+             "string"
+
+    assert get_in(activity_schema, ["properties", "eclipse_overlap_fraction"]) == %{
+             "type" => "number",
+             "minimum" => 0.0,
+             "maximum" => 1.0
+           }
+
+    assert get_in(activity_schema, ["properties", "lighting_condition_detail", "type"]) ==
+             "string"
+
+    assert get_in(activity_schema, ["properties", "lighting_detail_model", "type"]) == "string"
+
+    assert get_in(activity_schema, ["properties", "lighting_confidence", "type"]) == [
+             "number",
+             "string"
+           ]
+
+    assert get_in(activity_schema, [
+             "properties",
+             "source_window",
+             "properties",
+             "id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(activity_schema, ["properties", "direction", "enum"]) == [
+             "downlink",
+             "uplink",
+             "command",
+             "tracking",
+             "health_check"
+           ]
+  end
+
+  test "exports nested candidate refresh contact intent and resource summary schemas" do
+    assert {:ok, schema} = Schema.json_schema("candidate_refresh.v1")
+
+    assert get_in(schema, ["properties", "warnings", "items", "type"]) == "string"
+
+    validation_record_schema = get_in(schema, ["properties", "validation_records", "items"])
+
+    assert get_in(validation_record_schema, ["properties", "id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(validation_record_schema, ["properties", "evidence", "items", "type"]) ==
+             "string"
+
+    assert get_in(validation_record_schema, ["properties", "known_limits", "items", "type"]) ==
+             "string"
+
+    assert Enum.any?(
+             validation_record_schema["allOf"],
+             &(get_in(&1, ["if", "properties", "id", "const"]) == "propagator.two_body" and
+                 get_in(&1, ["then", "properties", "model", "const"]) == "point_mass_two_body")
+           )
+
+    intent_schema = get_in(schema, ["properties", "contact_intents", "items"])
+
+    assert intent_schema["required"] == [
+             "schema_contract",
+             "id",
+             "activity_id",
+             "scenario_id",
+             "ground_station_id",
+             "direction",
+             "starts_at_s",
+             "ends_at_s"
+           ]
+
+    assert get_in(intent_schema, ["properties", "schema_contract", "const"]) ==
+             "contact_intent.v1"
+
+    assert get_in(intent_schema, ["properties", "ground_station_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(intent_schema, ["properties", "timeline_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(intent_schema, [
+             "properties",
+             "timeline_identity",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(intent_schema, ["properties", "station_reservation_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(intent_schema, ["properties", "station_contention_status", "type"]) == "string"
+
+    assert get_in(intent_schema, ["properties", "direction", "enum"]) == [
+             "downlink",
+             "uplink",
+             "command",
+             "tracking",
+             "health_check"
+           ]
+
+    assert get_in(intent_schema, [
+             "properties",
+             "approval_requirements",
+             "items",
+             "properties",
+             "schema_contract",
+             "const"
+           ]) == "approval_requirement.v1"
+
+    assert get_in(intent_schema, [
+             "properties",
+             "approval_rule_matches",
+             "items",
+             "properties",
+             "rule_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    resource_schema = get_in(schema, ["properties", "resource_summaries", "items"])
+
+    assert resource_schema["required"] == ["schema_contract", "spacecraft_id"]
+
+    assert get_in(resource_schema, ["properties", "schema_contract", "const"]) ==
+             "resource_summary.v1"
+
+    assert get_in(resource_schema, ["properties", "spacecraft_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(resource_schema, ["properties", "payload_available", "type"]) == "boolean"
+    assert get_in(resource_schema, ["properties", "storage_capacity_mb", "type"]) == "number"
+    assert get_in(resource_schema, ["properties", "storage_capacity_mb", "minimum"]) == 0.0
+    assert get_in(resource_schema, ["properties", "battery_capacity_wh", "type"]) == "number"
+
+    assert get_in(resource_schema, ["properties", "battery_capacity_wh", "minimum"]) == 0.0
+
+    assert get_in(resource_schema, ["properties", "battery_state_of_charge", "maximum"]) == 1.0
+    assert get_in(resource_schema, ["properties", "thermal_margin_c", "type"]) == "number"
+    assert get_in(resource_schema, ["properties", "spacecraft_available", "type"]) == "boolean"
+    assert get_in(resource_schema, ["properties", "source_quality", "type"]) == "string"
+    assert get_in(resource_schema, ["properties", "trust_boundary", "type"]) == "string"
+
+    assert get_in(resource_schema, [
+             "properties",
+             "suppressed_activity_types",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(resource_schema, [
+             "properties",
+             "incompatible_activity_types",
+             "items",
+             "type"
+           ]) == "string"
+  end
+
+  test "exports nested campaign plan activity, contact, and ranked timeline schemas" do
+    assert {:ok, schema} = Schema.json_schema("campaign_plan.v1")
+
+    assert get_in(schema, ["properties", "warnings", "items", "type"]) == "string"
+
+    activity_schema = get_in(schema, ["properties", "activities", "items"])
+
+    assert activity_schema["required"] == [
+             "id",
+             "type",
+             "scenario_id",
+             "starts_at_s",
+             "ends_at_s",
+             "duration_s",
+             "score",
+             "score_terms",
+             "source_window_id",
+             "source_window"
+           ]
+
+    assert get_in(activity_schema, ["properties", "source_window_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, [
+             "properties",
+             "candidate_activities",
+             "items",
+             "properties",
+             "score_terms",
+             "type"
+           ]) == "object"
+
+    contact_schema = get_in(schema, ["properties", "proposed_contacts", "items"])
+
+    assert contact_schema["type"] == "object"
+
+    assert contact_schema["required"] == [
+             "id",
+             "type",
+             "scenario_id",
+             "ground_station_id",
+             "starts_at_s",
+             "ends_at_s",
+             "direction",
+             "estimated_throughput_mb",
+             "source_window",
+             "cadence_import"
+           ]
+
+    assert get_in(contact_schema, ["properties", "id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(contact_schema, ["properties", "type", "const"]) == "downlink"
+
+    assert get_in(contact_schema, ["properties", "ground_station_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(contact_schema, ["properties", "direction", "enum"]) == [
+             "downlink",
+             "uplink",
+             "command",
+             "tracking"
+           ]
+
+    assert get_in(contact_schema, ["properties", "source_window", "type"]) == "object"
+
+    assert get_in(contact_schema, [
+             "properties",
+             "cadence_import",
+             "required"
+           ]) == ["external_id", "activity_type"]
+
+    assert get_in(contact_schema, [
+             "properties",
+             "cadence_import",
+             "properties",
+             "schema_contract",
+             "const"
+           ]) == "proposed_contact.v1"
+
+    intent_schema = get_in(schema, ["properties", "contact_intents", "items"])
+
+    assert intent_schema["required"] == [
+             "schema_contract",
+             "id",
+             "activity_id",
+             "scenario_id",
+             "ground_station_id",
+             "direction",
+             "starts_at_s",
+             "ends_at_s"
+           ]
+
+    assert get_in(intent_schema, ["properties", "schema_contract", "const"]) ==
+             "contact_intent.v1"
+
+    assert get_in(intent_schema, [
+             "properties",
+             "approval_rule_matches",
+             "items",
+             "properties",
+             "classification",
+             "enum"
+           ]) == ["auto_approvable", "operator_review_required", "blocked_by_policy"]
+
+    timeline_schema = get_in(schema, ["properties", "ranked_timelines", "items"])
+
+    assert timeline_schema["required"] == [
+             "scenario_id",
+             "score",
+             "score_terms",
+             "activity_count",
+             "activities"
+           ]
+
+    assert get_in(timeline_schema, ["properties", "scenario_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(timeline_schema, [
+             "properties",
+             "activities",
+             "items",
+             "properties",
+             "source_window_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+  end
+
+  test "exports nested campaign repair activity, delta, and approval schemas" do
+    assert {:ok, schema} = Schema.json_schema("campaign_repair.v2")
+
+    assert get_in(schema, ["properties", "warnings", "items", "type"]) == "string"
+
+    activity_schema = get_in(schema, ["properties", "activities", "items"])
+
+    assert activity_schema["required"] == [
+             "id",
+             "scenario_id",
+             "starts_at_s",
+             "ends_at_s"
+           ]
+
+    assert activity_schema["anyOf"] == [
+             %{"required" => ["type"]},
+             %{"required" => ["activity_type"]}
+           ]
+
+    assert get_in(activity_schema, ["properties", "activity_type", "type"]) == "string"
+
+    assert get_in(activity_schema, ["properties", "source_window_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, [
+             "properties",
+             "source_candidate_activities",
+             "items",
+             "properties",
+             "source_window_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    delta_schema = get_in(schema, ["properties", "deltas", "items"])
+
+    assert delta_schema["required"] == [
+             "activity_id",
+             "activity_type",
+             "status",
+             "repair_action"
+           ]
+
+    assert get_in(delta_schema, ["properties", "schema_contract", "const"]) == "plan_delta.v1"
+
+    assert get_in(delta_schema, ["properties", "activity_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(delta_schema, [
+             "properties",
+             "planned",
+             "properties",
+             "timeline_identity",
+             "type"
+           ]) ==
+             "object"
+
+    assert {:ok, standalone_delta_schema} = Schema.json_schema("plan_delta.v1")
+
+    assert get_in(standalone_delta_schema, ["properties", "source_timeline_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(standalone_delta_schema, ["properties", "requires_approval", "type"]) ==
+             "boolean"
+
+    assert get_in(standalone_delta_schema, [
+             "properties",
+             "planned",
+             "properties",
+             "source_window_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(standalone_delta_schema, [
+             "properties",
+             "realized",
+             "properties",
+             "completed_fraction",
+             "maximum"
+           ]) == 1.0
+
+    assert get_in(standalone_delta_schema, [
+             "properties",
+             "source_activity_context",
+             "properties",
+             "timeline_identity",
+             "type"
+           ]) == "object"
+
+    assert get_in(delta_schema, ["properties", "realized", "properties", "status", "enum"]) == [
+             "completed",
+             "executed",
+             "partial",
+             "missed",
+             "failed",
+             "delayed",
+             "canceled",
+             "cancelled",
+             "rejected"
+           ]
+
+    requirement_schema = get_in(schema, ["properties", "approval_requirements", "items"])
+
+    assert requirement_schema["required"] == ["activity_id", "activity_type", "action", "reason"]
+
+    assert get_in(requirement_schema, ["properties", "schema_contract", "const"]) ==
+             "approval_requirement.v1"
+
+    assert get_in(requirement_schema, ["properties", "requirement_type", "enum"]) ==
+             [
+               "contact_schedule_change",
+               "observation_reassignment",
+               "maneuver_timing_change",
+               "downstream_window_review",
+               "strategic_addition",
+               "cancellation",
+               "command_review",
+               "health_check_review",
+               "operator_review"
+             ]
+
+    assert get_in(requirement_schema, [
+             "properties",
+             "approval_rule_matches",
+             "items",
+             "properties",
+             "rule_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, ["properties", "objective_tradeoff_report", "type"]) == "object"
+    assert get_in(schema, ["properties", "score_term_report", "type"]) == "object"
+
+    assert "objective_tradeoff_report.v1" in get_in(schema, [
+             "x-orbital-dynamics",
+             "nested_contracts"
+           ])
+
+    assert "score_term_report.v1" in get_in(schema, ["x-orbital-dynamics", "nested_contracts"])
+    assert "link_capacity_report.v1" in get_in(schema, ["x-orbital-dynamics", "nested_contracts"])
+  end
+
+  test "exports nested station calendar provider entry schema" do
+    assert {:ok, schema} = Schema.json_schema("station_calendar_provider.v1")
+
+    entry_schema = get_in(schema, ["properties", "entries", "items"])
+
+    assert entry_schema["type"] == "object"
+
+    assert get_in(entry_schema, ["properties", "ground_station_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(entry_schema, ["properties", "station_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(entry_schema, ["properties", "availability", "oneOf", Access.at(0), "enum"]) ==
+             [
+               "available",
+               "unavailable",
+               "outage",
+               "down",
+               "offline",
+               "reduced_capacity",
+               "maintenance",
+               "reserved",
+               "hold",
+               "held",
+               "on_hold",
+               "onhold",
+               "reservation_held",
+               "reserved_hold",
+               "reservation_hold"
+             ]
+
+    assert %{"required" => ["ground_station_id"]} in entry_schema["anyOf"]
+    assert %{"required" => ["availability"]} in hd(entry_schema["allOf"])["anyOf"]
+
+    assert get_in(entry_schema, ["properties", "capacity_pack_capacity_fraction"]) == %{
+             "type" => "number",
+             "minimum" => 0.0,
+             "maximum" => 1.0
+           }
+
+    assert get_in(entry_schema, ["properties", "capacity_fraction", "type"]) == "number"
+
+    assert get_in(entry_schema, ["properties", "reservation_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(entry_schema, ["properties", "reservation_hold_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(entry_schema, ["properties", "hold_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(entry_schema, ["properties", "counteroffer_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(entry_schema, ["properties", "provider_counteroffer_status", "type"]) ==
+             "string"
+
+    assert get_in(entry_schema, ["properties", "provider_counteroffer_cost_delta", "type"]) ==
+             "number"
+
+    assert get_in(entry_schema, [
+             "properties",
+             "provider_counteroffer_lock_deadline_s",
+             "type"
+           ]) == "number"
+
+    assert get_in(entry_schema, ["properties", "provider_counteroffer_starts_at_s", "type"]) ==
+             "number"
+
+    assert get_in(entry_schema, ["properties", "provider_counteroffer_ends_at_s", "type"]) ==
+             "number"
+
+    assert get_in(entry_schema, ["properties", "held_by", "type"]) == "string"
+    assert get_in(entry_schema, ["properties", "hold_owner", "type"]) == "string"
+    assert get_in(entry_schema, ["properties", "hold_status", "type"]) == "string"
+
+    assert get_in(entry_schema, ["properties", "reserved_by", "type"]) == "string"
+    assert get_in(entry_schema, ["properties", "direction", "type"]) == "string"
+    assert get_in(entry_schema, ["properties", "directions", "items", "type"]) == "string"
+
+    assert get_in(entry_schema, [
+             "properties",
+             "station_calendar_directions",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(entry_schema, ["properties", "provenance", "type"]) == "object"
+  end
+
+  test "exports nested station calendar report affected-contact schema" do
+    assert {:ok, schema} = Schema.json_schema("station_calendar_report.v1")
+
+    row_schema = get_in(schema, ["properties", "affected_contacts", "items"])
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "campaign_ground_network_interval_overlay"
+
+    assert get_in(schema, ["properties", "affected_duration_s", "type"]) == "number"
+
+    assert get_in(schema, ["properties", "input_contact_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "affected_contact_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, [
+             "properties",
+             "calendar_entry_trust_boundary_status_counts",
+             "additionalProperties",
+             "type"
+           ]) == "integer"
+
+    assert get_in(schema, [
+             "properties",
+             "station_calendar_trust_boundary_status_counts",
+             "additionalProperties",
+             "type"
+           ]) == "integer"
+
+    assert get_in(schema, ["properties", "duplicate_affected_contact_id_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "provider_calendar_contention_group_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "provider_counteroffer_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    provider_contention_group_schema =
+      get_in(schema, ["properties", "provider_calendar_contention_groups", "items"])
+
+    assert get_in(provider_contention_group_schema, ["properties", "entry_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "model_limits", "items", "enum"]) == [
+             "declared_data_only",
+             "no_network_calls",
+             "no_provider_reservation",
+             "no_schedule_mutation",
+             "no_conflict_resolution"
+           ]
+
+    assert get_in(row_schema, ["properties", "overlap_starts_at_s", "type"]) == "number"
+    assert get_in(row_schema, ["properties", "overlap_ends_at_s", "type"]) == "number"
+    assert get_in(row_schema, ["properties", "overlap_duration_s", "type"]) == "number"
+
+    assert get_in(row_schema, ["properties", "station_calendar_provider_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "station_calendar_directions", "items", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, [
+             "properties",
+             "station_calendar_ambiguous_entry_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(row_schema, [
+             "properties",
+             "station_calendar_reservation_ids",
+             "items",
+             "pattern"
+           ]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "contact_success_factor", "maximum"]) == 1.0
+
+    assert get_in(row_schema, ["properties", "provider_counteroffer_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "provider_counteroffer_status", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, ["properties", "provider_counteroffer_cost_delta", "type"]) ==
+             "number"
+
+    source_entry_schema = get_in(row_schema, ["properties", "source_station_calendar_entry"])
+
+    assert "ambiguous" in get_in(source_entry_schema, ["properties", "status", "enum"])
+
+    assert get_in(source_entry_schema, ["properties", "provider_counteroffer_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_station_calendar_overlaps",
+             "items",
+             "properties",
+             "provider_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+  end
+
+  test "exports nested realized-state and timeline-feedback row schemas" do
+    assert {:ok, realized_schema} = Schema.json_schema("realized_state_snapshot.v1")
+
+    activity_schema = get_in(realized_schema, ["properties", "activities", "items"])
+
+    assert activity_schema["required"] == ["schema_contract", "id", "status"]
+
+    assert get_in(activity_schema, ["properties", "schema_contract", "const"]) ==
+             "realized_activity.v1"
+
+    assert get_in(activity_schema, ["properties", "id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(activity_schema, ["properties", "status", "enum"]) == [
+             "completed",
+             "executed",
+             "partial",
+             "missed",
+             "failed",
+             "delayed",
+             "canceled",
+             "cancelled",
+             "rejected"
+           ]
+
+    assert get_in(realized_schema, [
+             "properties",
+             "spacecraft_states",
+             "items",
+             "required"
+           ]) == ["scenario_id"]
+
+    assert get_in(realized_schema, [
+             "properties",
+             "spacecraft_states",
+             "items",
+             "properties",
+             "scenario_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(realized_schema, [
+             "properties",
+             "spacecraft_states",
+             "items",
+             "properties",
+             "antenna_available",
+             "type"
+           ]) == "boolean"
+
+    assert get_in(realized_schema, [
+             "properties",
+             "spacecraft_states",
+             "items",
+             "properties",
+             "incompatible_activity_types",
+             "items",
+             "type"
+           ]) == "string"
+
+    metadata_schema = get_in(realized_schema, ["properties", "metadata"])
+
+    assert get_in(metadata_schema, ["properties", "external_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(metadata_schema, [
+             "allOf",
+             Access.at(0),
+             "then",
+             "anyOf",
+             Access.at(0),
+             "required"
+           ]) == ["trust_boundary"]
+
+    assert get_in(realized_schema, ["properties", "model_limits", "items", "enum"]) ==
+             OrbitalDynamics.CampaignPlanner.realized_state_snapshot_model_limits()
+
+    realized_activity_schema =
+      get_in(realized_schema, ["properties", "activities", "items", "properties"])
+
+    assert get_in(realized_activity_schema, ["planned_activity_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(realized_activity_schema, ["timeline_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert {:ok, realized_activity_contract_schema} = Schema.json_schema("realized_activity.v1")
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "planned_activity_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "resource_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(realized_activity_contract_schema, ["properties", "activity_type", "type"]) ==
+             "string"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "battery_state_of_charge",
+             "type"
+           ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "payload_available",
+             "type"
+           ]) == "boolean"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "suppressed_activity_types",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "collection_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "product_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "actual_data_volume_mb",
+             "type"
+           ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "actual_starts_at_s",
+             "type"
+           ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "actual_ends_at_s",
+             "type"
+           ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "actual_duration_s",
+             "type"
+           ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "actual_data_rate_mbps",
+             "type"
+           ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "actual_downlink_rate_mb_s",
+             "type"
+           ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "delivered_rate_mb_s",
+             "type"
+           ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "actual_latency_s",
+             "type"
+           ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "contact_result",
+             "type"
+           ]) == "string"
+
+    Enum.each(
+      [
+        "contact_success_factor",
+        "command_success_factor",
+        "observation_success_factor",
+        "image_quality_score",
+        "eclipse_overlap_fraction",
+        "bit_error_rate",
+        "packet_loss_rate",
+        "frame_loss_rate",
+        "cloud_cover_fraction",
+        "blur_score",
+        "maneuver_success_factor",
+        "battery_state_of_charge"
+      ],
+      fn field ->
+        assert get_in(realized_activity_contract_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+    )
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "observation_success",
+             "type"
+           ]) == "boolean"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "maneuver_success_factor_source",
+             "type"
+           ]) == "string"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "feedback_weight",
+             "type"
+           ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "completed_fraction",
+             "maximum"
+           ]) == 1.0
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "reason",
+             "type"
+           ]) == "string"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "delta_v_km_s",
+             "items",
+             "type"
+           ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "delta_v_km_s",
+             "minItems"
+           ]) == 3
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "execution_uncertainty",
+             "type"
+           ]) == "object"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "execution_uncertainty",
+             "properties",
+             "timing_3sigma_s",
+             "type"
+           ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "timing_3sigma_s",
+             "type"
+           ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "delta_v_3sigma_km_s",
+             "maxItems"
+           ]) == 3
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "attitude_target_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "pointing_target_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "off_nadir_angle_deg",
+             "type"
+           ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "pointing_confidence",
+             "type"
+           ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "thermal_zone_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "actual_temperature_c",
+             "type"
+           ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "thermal_confidence",
+             "type"
+           ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "lighting_condition",
+             "type"
+           ]) == "string"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "lighting_confidence",
+             "type"
+           ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "frequency_band",
+             "type"
+           ]) == "string"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "data_rate_mbps",
+             "type"
+           ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "carrier_lock",
+             "type"
+           ]) == "boolean"
+
+    assert get_in(realized_activity_contract_schema, ["properties", "roll_deg", "type"]) ==
+             "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "attitude_confidence",
+             "type"
+           ]) == "number"
+
+    Enum.each(["pointing_confidence", "attitude_confidence", "thermal_confidence"], fn field ->
+      assert get_in(realized_activity_contract_schema, ["properties", field]) == %{
+               "type" => "number",
+               "minimum" => 0.0,
+               "maximum" => 1.0
+             }
+    end)
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "received_at",
+             "type"
+           ]) == "string"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "ingested_at",
+             "type"
+           ]) == "string"
+
+    assert {:ok, feedback_schema} = Schema.json_schema("timeline_feedback_report.v1")
+
+    row_schema = get_in(feedback_schema, ["properties", "rows", "items"])
+
+    assert get_in(feedback_schema, ["properties", "model", "const"]) ==
+             "planned_vs_realized_activity_reconciliation"
+
+    assert get_in(feedback_schema, [
+             "properties",
+             "status_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.TimelineFeedback.capabilities().report_statuses
+
+    assert get_in(feedback_schema, [
+             "properties",
+             "feedback_kind_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.TimelineFeedback.capabilities().feedback_kinds
+
+    assert get_in(feedback_schema, [
+             "properties",
+             "match_strategy_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.TimelineFeedback.capabilities().match_strategies
+
+    assert get_in(feedback_schema, [
+             "properties",
+             "cadence_import_status_counts",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.TimelineFeedback.capabilities().cadence_import_statuses
+
+    assert get_in(feedback_schema, [
+             "properties",
+             "planned_protection_decision_counts",
+             "additionalProperties"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(feedback_schema, ["properties", "planned_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(feedback_schema, ["properties", "ambiguous_timeline_feedback_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(feedback_schema, ["properties", "model_limits", "const"]) ==
+             timeline_feedback_report_model_limits()
+
+    assert get_in(feedback_schema, [
+             "properties",
+             "operational_feedback",
+             "properties",
+             "cloud_cover_fraction",
+             "additionalProperties",
+             "maximum"
+           ]) == 1.0
+
+    assert get_in(feedback_schema, [
+             "properties",
+             "operational_feedback",
+             "properties",
+             "image_quality_source",
+             "additionalProperties",
+             "type"
+           ]) == "string"
+
+    assert row_schema["required"] == ["activity_id", "status"]
+
+    assert get_in(row_schema, ["properties", "activity_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "status", "enum"]) ==
+             OrbitalDynamics.TimelineFeedback.capabilities().report_statuses
+
+    assert get_in(row_schema, ["properties", "start_delta_s", "type"]) == "number"
+
+    assert get_in(row_schema, ["properties", "match_strategy", "enum"]) ==
+             OrbitalDynamics.TimelineFeedback.capabilities().match_strategies
+
+    assert get_in(row_schema, ["properties", "feedback_kind", "enum"]) ==
+             OrbitalDynamics.TimelineFeedback.capabilities().feedback_kinds
+
+    assert get_in(row_schema, ["properties", "planned_timeline_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "realized_timeline_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "realized_activity_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    for field <- [
+          "source_window_ids",
+          "collection_ids",
+          "product_ids",
+          "payload_ids",
+          "instrument_ids"
+        ] do
+      assert get_in(row_schema, [
+               "properties",
+               field,
+               "items",
+               "pattern"
+             ]) == Schema.identity_policy()["stable_id_pattern"]
+    end
+
+    assert get_in(row_schema, ["properties", "planned_estimated_throughput_mb", "type"]) ==
+             "number"
+
+    assert get_in(row_schema, ["properties", "actual_throughput_mb", "type"]) == "number"
+
+    assert get_in(row_schema, [
+             "properties",
+             "actual_data_rate_throughput_derivation",
+             "properties",
+             "rate_unit",
+             "type"
+           ]) == "string"
+
+    assert get_in(row_schema, ["properties", "actual_data_volume_mb", "type"]) == "number"
+    assert get_in(row_schema, ["properties", "throughput_delta_mb", "type"]) == "number"
+    assert get_in(row_schema, ["properties", "contact_success", "type"]) == "boolean"
+    assert get_in(row_schema, ["properties", "command_success", "type"]) == "boolean"
+
+    Enum.each(
+      [
+        "contact_success_factor",
+        "command_success_factor",
+        "observation_success_factor",
+        "maneuver_success_factor",
+        "attitude_confidence",
+        "battery_state_of_charge",
+        "eclipse_overlap_fraction",
+        "planned_eclipse_overlap_fraction",
+        "realized_eclipse_overlap_fraction",
+        "bit_error_rate",
+        "planned_bit_error_rate",
+        "realized_bit_error_rate",
+        "packet_loss_rate",
+        "planned_packet_loss_rate",
+        "realized_packet_loss_rate",
+        "frame_loss_rate",
+        "planned_frame_loss_rate",
+        "realized_frame_loss_rate",
+        "image_quality_score",
+        "cloud_cover_fraction",
+        "planned_cloud_cover_fraction",
+        "realized_cloud_cover_fraction",
+        "blur_score",
+        "planned_blur_score",
+        "realized_blur_score",
+        "image_quality_score",
+        "planned_image_quality_score",
+        "realized_image_quality_score"
+      ],
+      fn field ->
+        assert get_in(row_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+    )
+
+    Enum.each(
+      [
+        "cloud_cover_fraction",
+        "planned_cloud_cover_fraction",
+        "realized_cloud_cover_fraction",
+        "blur_score",
+        "planned_blur_score",
+        "realized_blur_score"
+      ],
+      fn field ->
+        assert get_in(row_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+    )
+
+    assert get_in(row_schema, ["properties", "station_calendar_entry_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "station_calendar_overlap_count", "minimum"]) == 0
+
+    assert get_in(row_schema, [
+             "properties",
+             "station_calendar_overlap_entry_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "station_calendar_reservation_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "station_calendar_reservation_expires_at_s",
+             "items",
+             "type"
+           ]) == "number"
+
+    assert get_in(row_schema, ["properties", "station_reservation_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "station_reservation_expires_at_s", "type"]) ==
+             "number"
+
+    assert get_in(row_schema, ["properties", "dependency_activity_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "exclusive_with_timeline_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "planned_delta_v_km_s", "items", "type"]) ==
+             "number"
+
+    assert get_in(row_schema, ["properties", "source_protection_decision", "type"]) ==
+             "object"
+
+    assert get_in(row_schema, ["properties", "timeline_identity", "type"]) == "object"
+
+    assert get_in(row_schema, ["properties", "realized_activity", "properties", "status", "enum"]) ==
+             [
+               "completed",
+               "executed",
+               "partial",
+               "missed",
+               "failed",
+               "delayed",
+               "canceled",
+               "cancelled",
+               "rejected"
+             ]
+
+    feedback_report = read_json!("study_results/timeline_feedback_report_v1.json")
+
+    invalid_model = Map.put(feedback_report, "model", "timeline_feedback_v0")
+
+    assert {:error, invalid_model_report} = Schema.validate_artifact(invalid_model)
+
+    assert Enum.any?(
+             invalid_model_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"planned_vs_realized_activity_reconciliation\"")
+           )
+
+    stale_model_limits = Map.put(feedback_report, "model_limits", ["artifact_level_only"])
+
+    assert {:error, stale_model_limits_report} = Schema.validate_artifact(stale_model_limits)
+
+    assert Enum.any?(
+             stale_model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] == "must match timeline feedback report model limits")
+           )
+
+    invalid_feedback_counts =
+      put_in(feedback_report, ["feedback_kind_counts", "maneuver"], 99)
+
+    assert {:error, invalid_feedback_counts_report} =
+             Schema.validate_artifact(invalid_feedback_counts)
+
+    assert Enum.any?(
+             invalid_feedback_counts_report["errors"],
+             &(&1["path"] == "$.feedback_kind_counts")
+           )
+
+    invalid_negative_counts = put_in(feedback_report, ["status_counts", "matched"], -1)
+
+    assert {:error, invalid_negative_counts_report} =
+             Schema.validate_artifact(invalid_negative_counts)
+
+    assert Enum.any?(
+             invalid_negative_counts_report["errors"],
+             &(&1["path"] == "$.status_counts.matched")
+           )
+
+    invalid_float_planned_count = Map.put(feedback_report, "planned_count", 1.0)
+
+    assert {:error, invalid_float_planned_count_report} =
+             Schema.validate_artifact(invalid_float_planned_count)
+
+    assert Enum.any?(
+             invalid_float_planned_count_report["errors"],
+             &(&1["path"] == "$.planned_count")
+           )
+
+    invalid_negative_ambiguous_count =
+      Map.put(feedback_report, "ambiguous_timeline_feedback_count", -1)
+
+    assert {:error, invalid_negative_ambiguous_count_report} =
+             Schema.validate_artifact(invalid_negative_ambiguous_count)
+
+    assert Enum.any?(
+             invalid_negative_ambiguous_count_report["errors"],
+             &(&1["path"] == "$.ambiguous_timeline_feedback_count")
+           )
+
+    Enum.each(
+      [
+        {"contact_success_factor", 1.5},
+        {"command_success_factor", -0.1},
+        {"observation_success_factor", 1.1},
+        {"maneuver_success_factor", -0.2},
+        {"battery_state_of_charge", 1.2},
+        {"eclipse_overlap_fraction", 1.2},
+        {"planned_eclipse_overlap_fraction", -0.1},
+        {"realized_eclipse_overlap_fraction", 1.1},
+        {"bit_error_rate", 1.2},
+        {"planned_packet_loss_rate", -0.1},
+        {"realized_frame_loss_rate", 1.1},
+        {"image_quality_score", 1.2},
+        {"planned_image_quality_score", -0.1},
+        {"realized_image_quality_score", 1.1}
+      ],
+      fn {field, value} ->
+        invalid_success_factor =
+          put_in(feedback_report, ["rows", Access.at(0), field], value)
+
+        assert {:error, invalid_success_factor_report} =
+                 Schema.validate_artifact(invalid_success_factor)
+
+        assert Enum.any?(
+                 invalid_success_factor_report["errors"],
+                 &(&1["path"] == "$.rows[0].#{field}")
+               )
+      end
+    )
+
+    Enum.each(
+      [
+        {"cloud_cover_fraction", 1.5},
+        {"planned_cloud_cover_fraction", -0.1},
+        {"realized_cloud_cover_fraction", 1.1},
+        {"blur_score", -0.2},
+        {"planned_blur_score", 1.2},
+        {"realized_blur_score", -0.3}
+      ],
+      fn {field, value} ->
+        invalid_quality_fraction =
+          put_in(feedback_report, ["rows", Access.at(0), field], value)
+
+        assert {:error, invalid_quality_fraction_report} =
+                 Schema.validate_artifact(invalid_quality_fraction)
+
+        assert Enum.any?(
+                 invalid_quality_fraction_report["errors"],
+                 &(&1["path"] == "$.rows[0].#{field}")
+               )
+      end
+    )
+
+    Enum.each(
+      [
+        {"source_window_ids", ["window:valid", "bad source window"]},
+        {"collection_ids", ["collection_alpha", "bad collection"]},
+        {"product_ids", ["product_alpha", "bad product"]},
+        {"payload_ids", ["payload_alpha", "bad payload"]},
+        {"instrument_ids", ["instrument_alpha", "bad instrument"]}
+      ],
+      fn {field, value} ->
+        invalid_identity_list =
+          put_in(feedback_report, ["rows", Access.at(0), field], value)
+
+        assert {:error, invalid_identity_list_report} =
+                 Schema.validate_artifact(invalid_identity_list)
+
+        assert Enum.any?(
+                 invalid_identity_list_report["errors"],
+                 &(&1["path"] == "$.rows[0].#{field}[1]")
+               )
+      end
+    )
+  end
+
+  test "exports optimizer and environment capability array item schemas" do
+    assert {:ok, optimizer_schema} = Schema.json_schema("optimizer_contract.v1")
+
+    assert get_in(optimizer_schema, [
+             "properties",
+             "selected_activity_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(optimizer_schema, ["properties", "candidate_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(optimizer_schema, ["properties", "ranked_timeline_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(optimizer_schema, ["properties", "selected_activity_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(optimizer_schema, [
+             "properties",
+             "candidate_activity_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(optimizer_schema, [
+             "properties",
+             "ranked_scenario_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(optimizer_schema, ["properties", "score_term_keys", "items", "type"]) ==
+             "string"
+
+    assert get_in(optimizer_schema, ["properties", "deterministic_ordering", "items", "type"]) ==
+             "string"
+
+    assert get_in(optimizer_schema, ["properties", "preserved_lineage_fields", "items", "type"]) ==
+             "string"
+
+    assert get_in(optimizer_schema, ["properties", "known_limits", "items", "type"]) ==
+             "string"
+
+    assert {:ok, model_schema} = Schema.json_schema("environment_model_capability.v1")
+
+    assert get_in(model_schema, ["properties", "supported_bodies", "items", "type"]) ==
+             "string"
+
+    assert get_in(model_schema, ["properties", "source", "type"]) == "string"
+    assert get_in(model_schema, ["properties", "known_limits", "items", "type"]) == "string"
+
+    assert {:ok, provider_schema} = Schema.json_schema("environment_provider_capability.v1")
+
+    assert "model" in provider_schema["required"]
+    assert get_in(provider_schema, ["properties", "model", "type"]) == "string"
+    assert get_in(provider_schema, ["properties", "source", "type"]) == "string"
+    assert get_in(provider_schema, ["properties", "outputs", "items", "type"]) == "string"
+    assert get_in(provider_schema, ["properties", "parameters", "type"]) == "object"
+    assert get_in(provider_schema, ["properties", "trust_boundary", "type"]) == "string"
+    assert get_in(provider_schema, ["properties", "provenance", "type"]) == "object"
+
+    assert get_in(provider_schema, ["properties", "supported_bodies", "items", "type"]) ==
+             "string"
+
+    assert get_in(provider_schema, ["properties", "known_limits", "items", "type"]) == "string"
+  end
+
+  test "exports nested strategy recommendation schemas" do
+    assert {:ok, schema} = Schema.json_schema("strategy_recommendation.v1")
+
+    recommendation = read_json!("study_results/strategy_recommendation_v1.json")
+
+    assert {:ok, %{"schema_contract" => "strategy_recommendation.v1"}} =
+             Schema.validate_artifact(recommendation)
+
+    assert %{
+             "branch_transition_types" => ["approval_state_changed"],
+             "branch_transition_categories" => ["urgent_retarget_review"],
+             "branch_requires_operator_review" => true,
+             "branch_requires_operator_review_count" => 1
+           } =
+             Enum.find(
+               recommendation["explanation"],
+               &(&1["type"] == "branch_event_summary")
+             )
+
+    invalid_status = Map.put(recommendation, "status", 42)
+    assert {:error, status_report} = Schema.validate_artifact(invalid_status)
+    assert Enum.any?(status_report["errors"], &(&1["path"] == "$.status"))
+
+    assert get_in(schema, ["properties", "status", "type"]) == "string"
+
+    assert get_in(schema, ["properties", "ranked_branch_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    tradeoff_schema = get_in(schema, ["properties", "tradeoffs", "items"])
+
+    assert tradeoff_schema["required"] == ["dimension", "baseline", "recommended", "delta"]
+    assert get_in(tradeoff_schema, ["properties", "delta", "type"]) == "number"
+
+    explanation_schema = get_in(schema, ["properties", "explanation", "items"])
+
+    assert explanation_schema["required"] == ["type"]
+
+    assert get_in(explanation_schema, ["properties", "recommended_branch_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(explanation_schema, ["properties", "classification", "enum"]) == [
+             "auto_approvable",
+             "operator_review_required",
+             "blocked_by_policy"
+           ]
+
+    assert get_in(explanation_schema, ["properties", "branch_transition_types", "items", "type"]) ==
+             "string"
+
+    assert get_in(explanation_schema, [
+             "properties",
+             "branch_transition_categories",
+             "items",
+             "type"
+           ]) ==
+             "string"
+
+    assert get_in(explanation_schema, ["properties", "branch_requires_operator_review", "type"]) ==
+             "boolean"
+
+    assert get_in(explanation_schema, [
+             "properties",
+             "branch_requires_operator_review_count",
+             "minimum"
+           ]) == 0
+
+    invalid_explanation =
+      put_in(
+        recommendation,
+        ["explanation"],
+        [
+          %{
+            "type" => "branch_event_summary",
+            "branch_transition_types" => "approval_state_changed"
+          }
+        ]
+      )
+
+    assert {:error, explanation_report} = Schema.validate_artifact(invalid_explanation)
+
+    assert Enum.any?(
+             explanation_report["errors"],
+             &(&1["path"] == "$.explanation[0].branch_transition_types")
+           )
+
+    risk_schema = get_in(schema, ["properties", "risks_remaining", "items"])
+
+    assert risk_schema["required"] == ["type", "severity", "reason"]
+    assert get_in(risk_schema, ["properties", "value", "type"]) == "number"
+
+    assert get_in(risk_schema, ["properties", "collection_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    for field <- ["collection_ids", "product_ids", "payload_ids", "instrument_ids"] do
+      assert get_in(risk_schema, ["properties", field, "items", "pattern"]) ==
+               Schema.identity_policy()["stable_id_pattern"]
+    end
+
+    assert get_in(risk_schema, ["properties", "source_activity_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    invalid_risk =
+      put_in(
+        recommendation,
+        ["risks_remaining"],
+        [
+          %{
+            "type" => "downlink_completion_gap",
+            "severity" => "warning",
+            "reason" => "broad collection selector preserved for review",
+            "collection_ids" => ["collection_alpha", "bad collection"],
+            "product_ids" => ["product_a"],
+            "payload_ids" => ["payload_a"],
+            "instrument_ids" => ["instrument_a"]
+          }
+        ]
+      )
+
+    assert {:error, risk_report} = Schema.validate_artifact(invalid_risk)
+
+    assert Enum.any?(
+             risk_report["errors"],
+             &(&1["path"] == "$.risks_remaining[0].collection_ids[1]")
+           )
+
+    requirement_schema = get_in(schema, ["properties", "requires_approval", "items"])
+
+    assert requirement_schema["required"] == ["activity_id", "activity_type", "action", "reason"]
+
+    assert get_in(requirement_schema, ["properties", "schema_contract", "const"]) ==
+             "approval_requirement.v1"
+
+    assert get_in(requirement_schema, [
+             "properties",
+             "approval_rule_matches",
+             "items",
+             "properties",
+             "rule_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+  end
+
+  test "exports nested operator review package row schema" do
+    assert {:ok, schema} = Schema.json_schema("operator_review_package.v1")
+
+    row_schema = get_in(schema, ["properties", "rows", "items"])
+
+    assert row_schema["type"] == "object"
+    assert "review_type" in row_schema["required"]
+
+    assert "contact_contention_review" in get_in(row_schema, ["properties", "review_type", "enum"])
+
+    assert "command_window_review" in get_in(row_schema, ["properties", "review_type", "enum"])
+    assert "station_calendar_review" in get_in(row_schema, ["properties", "review_type", "enum"])
+    assert "link_capacity_review" in get_in(row_schema, ["properties", "review_type", "enum"])
+
+    assert "contact_allocation_capacity_pack_review" in get_in(row_schema, [
+             "properties",
+             "review_type",
+             "enum"
+           ])
+
+    assert "timeline_protection" in get_in(row_schema, ["properties", "review_type", "enum"])
+    assert "policy_escalation" in get_in(row_schema, ["properties", "review_type", "enum"])
+
+    assert "resource_projection_review" in get_in(row_schema, [
+             "properties",
+             "review_type",
+             "enum"
+           ])
+
+    assert "timeline_diff_review" in get_in(row_schema, ["properties", "review_type", "enum"])
+    assert "maneuver_review" in get_in(row_schema, ["properties", "review_type", "enum"])
+    assert "contact_suppression" in get_in(row_schema, ["properties", "review_type", "enum"])
+    assert "resource_suppression" in get_in(row_schema, ["properties", "review_type", "enum"])
+    assert "strategy_tradeoff" in get_in(row_schema, ["properties", "review_type", "enum"])
+
+    assert "ranking_comparison_review" in get_in(row_schema, ["properties", "review_type", "enum"])
+
+    assert get_in(row_schema, ["properties", "id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "delta", "type"]) == "number"
+    assert get_in(row_schema, ["properties", "repair_score", "type"]) == "number"
+
+    assert get_in(row_schema, [
+             "properties",
+             "first_resource_pressure_station_calendar_provider_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "first_resource_pressure_station_calendar_provider_entry_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "repair_score_term_keys", "items", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, ["properties", "source_contention_group", "type"]) == "object"
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_contention_group",
+             "properties",
+             "ground_station_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "source_tradeoff", "type"]) == "object"
+    assert get_in(row_schema, ["properties", "source_branch_comparison", "type"]) == "object"
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_branch_comparison",
+             "properties",
+             "first_resource_pressure_station_calendar_provider_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "collection_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "branch_collection_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_branch_comparison",
+             "properties",
+             "branch_collection_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_branch_comparison",
+             "properties",
+             "downlink_completion_required_contacts"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_branch_comparison",
+             "properties",
+             "priority_commitment_required_target_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(row_schema, ["properties", "source_ranking_comparison", "type"]) == "object"
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_ranking_comparison",
+             "properties",
+             "scenario_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "source_policy_decision", "type"]) == "object"
+    assert get_in(row_schema, ["properties", "source_command_window", "type"]) == "object"
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_command_window",
+             "properties",
+             "activity_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "source_maneuver_review", "type"]) == "object"
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_maneuver_review",
+             "properties",
+             "maneuver_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "source_station_calendar_review", "type"]) ==
+             "object"
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_station_calendar_review",
+             "properties",
+             "ground_station_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "source_feedback", "type"]) == "object"
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_feedback",
+             "properties",
+             "activity_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    Enum.each(
+      [
+        "contact_success_factor",
+        "command_success_factor",
+        "observation_success_factor",
+        "maneuver_success_factor"
+      ],
+      fn field ->
+        assert get_in(row_schema, [
+                 "properties",
+                 "source_feedback",
+                 "properties",
+                 field
+               ]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+    )
+
+    assert get_in(row_schema, ["properties", "source_link_capacity", "type"]) == "object"
+    assert get_in(row_schema, ["properties", "source_resource_projection", "type"]) == "object"
+
+    Enum.each(
+      ["capacity_fraction", "used_capacity_fraction", "unused_capacity_fraction"],
+      fn field ->
+        assert get_in(row_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+    )
+
+    assert get_in(row_schema, ["properties", "capacity_packed_contact_ids", "items", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, [
+             "properties",
+             "capacity_pack_group_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "capacity_pack_required_capacity_sources",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(row_schema, ["properties", "source_timeline_diff", "type"]) == "object"
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_timeline_diff",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_timeline_diff",
+             "properties",
+             "diff_status",
+             "enum"
+           ]) == ["added", "removed", "changed", "unchanged"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_timeline_application",
+             "properties",
+             "application_status",
+             "type"
+           ]) == "string"
+
+    assert get_in(row_schema, [
+             "properties",
+             "timeline_link",
+             "properties",
+             "source_timeline_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_timeline_protection",
+             "properties",
+             "changed_executed_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(row_schema, ["properties", "source_window", "properties", "id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "replacement_source_window_lineage",
+             "properties",
+             "candidate_activity_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_delta",
+             "properties",
+             "activity_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_requirement",
+             "properties",
+             "activity_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_contact_suppression",
+             "properties",
+             "source_window_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_resource_suppression",
+             "properties",
+             "id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_link_capacity",
+             "properties",
+             "ground_station_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_resource_projection",
+             "properties",
+             "spacecraft_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "changed_fields", "items", "type"]) == "string"
+    assert get_in(row_schema, ["properties", "requires_operator_review", "type"]) == "boolean"
+    assert get_in(row_schema, ["properties", "window_type", "type"]) == "string"
+    assert get_in(row_schema, ["properties", "maneuver_id", "type"]) == "string"
+    assert get_in(row_schema, ["properties", "delta_v_km_s", "items", "type"]) == "number"
+    assert get_in(row_schema, ["properties", "contact_id", "type"]) == "string"
+    assert get_in(row_schema, ["properties", "contact_ids", "items", "type"]) == "string"
+    assert get_in(row_schema, ["properties", "scenario_ids", "items", "type"]) == "string"
+    assert get_in(row_schema, ["properties", "station_calendar_entry_id", "type"]) == "string"
+
+    assert get_in(row_schema, ["properties", "contact_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(row_schema, ["properties", "selected_contact_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(row_schema, ["properties", "observation_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(row_schema, ["properties", "downlink_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(row_schema, ["properties", "max_concurrent_contacts"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(row_schema, ["properties", "overlap_contact_pair_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(row_schema, ["properties", "activity_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(row_schema, ["properties", "effective_activity_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(row_schema, ["properties", "ignored_activity_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(row_schema, ["properties", "resource_flow_count"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(row_schema, ["properties", "left_rank", "type"]) == ["integer", "null"]
+    assert get_in(row_schema, ["properties", "right_rank", "type"]) == ["integer", "null"]
+    assert get_in(row_schema, ["properties", "rank_delta", "type"]) == ["integer", "null"]
+    assert get_in(row_schema, ["properties", "value_delta", "type"]) == ["number", "null"]
+
+    assert get_in(row_schema, ["properties", "selected_contact_ids", "items", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, ["properties", "capacity_adjusted_throughput_mb", "type"]) ==
+             "number"
+
+    Enum.each(["throughput_completion_fraction", "completed_fraction"], fn field ->
+      assert get_in(row_schema, ["properties", field]) == %{
+               "type" => "number",
+               "minimum" => 0.0,
+               "maximum" => 1.0
+             }
+    end)
+
+    Enum.each(
+      [
+        "eclipse_overlap_fraction",
+        "planned_eclipse_overlap_fraction",
+        "realized_eclipse_overlap_fraction"
+      ],
+      fn field ->
+        assert get_in(row_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+    )
+
+    assert get_in(row_schema, ["properties", "eclipse_overlap_s", "type"]) == "number"
+    assert get_in(row_schema, ["properties", "planned_eclipse_overlap_s", "type"]) == "number"
+    assert get_in(row_schema, ["properties", "realized_eclipse_overlap_s", "type"]) == "number"
+    assert get_in(row_schema, ["properties", "lighting_condition", "type"]) == "string"
+    assert get_in(row_schema, ["properties", "planned_lighting_condition", "type"]) == "string"
+    assert get_in(row_schema, ["properties", "realized_lighting_condition", "type"]) == "string"
+
+    assert get_in(row_schema, ["properties", "lighting_condition_match_status", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, ["properties", "lighting_condition_detail", "type"]) == "string"
+    assert get_in(row_schema, ["properties", "lighting_condition_model", "type"]) == "string"
+    assert get_in(row_schema, ["properties", "lighting_detail_model", "type"]) == "string"
+    assert get_in(row_schema, ["properties", "lighting_confidence", "type"]) == "number"
+
+    assert get_in(row_schema, ["properties", "attitude_confidence"]) == %{
+             "type" => "number",
+             "minimum" => 0.0,
+             "maximum" => 1.0
+           }
+
+    Enum.each(
+      [
+        "cloud_cover_fraction",
+        "planned_cloud_cover_fraction",
+        "realized_cloud_cover_fraction",
+        "blur_score",
+        "planned_blur_score",
+        "realized_blur_score"
+      ],
+      fn field ->
+        assert get_in(row_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+    )
+
+    assert get_in(row_schema, ["properties", "scenario_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "planned_timeline_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "activity_count", "type"]) == "integer"
+
+    assert get_in(row_schema, ["properties", "dependency_activity_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "exclusive_with_timeline_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "realized_activity_context", "type"]) == "object"
+
+    assert get_in(row_schema, [
+             "properties",
+             "actual_data_rate_throughput_derivation",
+             "type"
+           ]) == "object"
+
+    assert get_in(row_schema, ["properties", "realized_activity_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "source_protection_decision", "type"]) ==
+             "object"
+
+    assert get_in(row_schema, ["properties", "planned_protection_decision", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, ["properties", "resource_flow_count", "type"]) == "integer"
+    assert get_in(row_schema, ["properties", "peak_storage_overflow_mb", "type"]) == "number"
+    assert get_in(row_schema, ["properties", "review_queue_key", "type"]) == "string"
+
+    assert get_in(row_schema, ["properties", "branch_event_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(row_schema, ["properties", "branch_event_types", "items", "type"]) == "string"
+
+    assert get_in(row_schema, [
+             "properties",
+             "branch_event_trust_boundary_status_counts",
+             "additionalProperties",
+             "type"
+           ]) == "integer"
+
+    assert get_in(row_schema, [
+             "properties",
+             "combined_source_branch_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    Enum.each(
+      [
+        "branch_image_quality_min_score",
+        "branch_cloud_cover_max_fraction",
+        "branch_blur_max_score"
+      ],
+      fn field ->
+        assert get_in(row_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+    )
+
+    assert get_in(row_schema, [
+             "properties",
+             "branch_image_quality_statuses",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(row_schema, [
+             "properties",
+             "branch_image_quality_sources",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(row_schema, ["properties", "spacecraft_id", "type"]) == "string"
+    assert get_in(row_schema, ["properties", "projected_storage_margin", "type"]) == "number"
+    assert get_in(row_schema, ["properties", "payload_available", "type"]) == "boolean"
+    assert get_in(row_schema, ["properties", "warnings", "items", "type"]) == "string"
+    assert get_in(row_schema, ["properties", "timeline_identity", "type"]) == "object"
+    assert get_in(row_schema, ["properties", "required_authority", "type"]) == "string"
+    assert get_in(row_schema, ["properties", "sla_s", "type"]) == "number"
+    assert get_in(row_schema, ["properties", "source_timeline_identity", "type"]) == "object"
+    assert get_in(row_schema, ["properties", "replacement_timeline_identity", "type"]) == "object"
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_timeline_identity",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_activity_context",
+             "properties",
+             "activity_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_activity_context",
+             "properties",
+             "lighting_condition",
+             "type"
+           ]) == "string"
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_activity_context",
+             "properties",
+             "blur_score"
+           ]) == %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0}
+
+    assert get_in(row_schema, [
+             "properties",
+             "replacement_activity_context",
+             "properties",
+             "delta_v_3sigma_km_s",
+             "items",
+             "type"
+           ]) == "number"
+
+    assert get_in(row_schema, ["properties", "protection_category", "enum"]) == [
+             "preserved_locked_or_approved",
+             "preserved_executed",
+             "changed_locked_or_approved",
+             "changed_executed"
+           ]
+
+    assert get_in(row_schema, ["properties", "protection_decision", "enum"]) == [
+             "preserved",
+             "changed"
+           ]
+
+    assert get_in(schema, ["properties", "timeline_protection_count", "type"]) == "integer"
+    assert get_in(schema, ["properties", "timeline_protection_count", "minimum"]) == 0
+    assert get_in(schema, ["properties", "policy_escalation_count", "type"]) == "integer"
+    assert get_in(schema, ["properties", "contention_review_count", "type"]) == "integer"
+    assert get_in(schema, ["properties", "resource_projection_review_count", "type"]) == "integer"
+    assert get_in(schema, ["properties", "command_window_count", "type"]) == "integer"
+    assert get_in(schema, ["properties", "command_window_count", "minimum"]) == 0
+    assert get_in(schema, ["properties", "station_calendar_review_count", "type"]) == "integer"
+    assert get_in(schema, ["properties", "station_calendar_review_count", "minimum"]) == 0
+    assert get_in(schema, ["properties", "link_capacity_review_count", "type"]) == "integer"
+    assert get_in(schema, ["properties", "contact_suppression_count", "type"]) == "integer"
+    assert get_in(schema, ["properties", "resource_suppression_count", "type"]) == "integer"
+    assert get_in(schema, ["properties", "timeline_diff_count", "type"]) == "integer"
+    assert get_in(schema, ["properties", "maneuver_review_count", "type"]) == "integer"
+    assert get_in(schema, ["properties", "tradeoff_count", "type"]) == "integer"
+    assert get_in(schema, ["properties", "ranking_comparison_count", "type"]) == "integer"
+  end
+
+  test "exports and validates timeline dependency-impact summary fields" do
+    assert {:ok, schema} = Schema.json_schema("timeline_dependency_impact_summary.v1")
+    stable_id_pattern = Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(schema, ["properties", "schema_contract", "const"]) ==
+             "timeline_dependency_impact_summary.v1"
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "artifact_only_timeline_dependency_impact_summary"
+
+    assert get_in(schema, ["properties", "validation_level", "const"]) == "artifact_contract"
+    assert get_in(schema, ["properties", "source", "const"]) == "timeline_diff_report.v1"
+
+    assert get_in(schema, ["properties", "model_limits", "const"]) ==
+             OrbitalDynamics.Timeline.model_limits()
+
+    assert get_in(schema, ["properties", "dependency_impact_status", "enum"]) == [
+             "clear",
+             "review_required"
+           ]
+
+    assert get_in(schema, [
+             "properties",
+             "impacted_exclusive_with_timeline_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(schema, ["properties", "dependency_impact_rows", "items", "required"]) == [
+             "id",
+             "scope",
+             "dependency_impact_status",
+             "required_operator_action",
+             "operator_action_reason",
+             "activity_id",
+             "timeline_id",
+             "activity_type"
+           ]
+
+    assert get_in(schema, [
+             "properties",
+             "dependency_impact_rows",
+             "items",
+             "properties",
+             "impacted_dependency_activity_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(schema, [
+             "properties",
+             "dependency_impact_rows",
+             "items",
+             "properties",
+             "operator_action_reason",
+             "enum"
+           ]) == [
+             "dependency_changed_or_removed_source_activity",
+             "exclusivity_changed_or_removed_source_activity",
+             "dependency_and_exclusivity_changed_or_removed_source_activity"
+           ]
+
+    source = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 0.0, ends_at_s: 10.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    replacement = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 5.0, ends_at_s: 15.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    summary = OrbitalDynamics.Timeline.dependency_impact_summary(source, replacement)
+
+    assert {:ok, %{"schema_contract" => "timeline_dependency_impact_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    invalid_source = Map.put(summary, "source", "timeline_diff_report.v2")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_source)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.source" and
+                 &1["message"] == "must equal \"timeline_diff_report.v1\"")
+           )
+
+    invalid_model = Map.put(summary, "model", "custom")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_model)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"artifact_only_timeline_dependency_impact_summary\"")
+           )
+
+    stale_model_limits = Map.put(summary, "model_limits", ["artifact_level_only"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_model_limits)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] == "must match timeline report model limits")
+           )
+
+    stale_changed_source_count = Map.put(summary, "changed_source_activity_count", 2)
+
+    assert {:error, validation_report} =
+             Schema.validate_artifact(stale_changed_source_count)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.changed_source_activity_count" and
+                 &1["message"] == "must equal impacted_source_activity_ids count")
+           )
+
+    stale_dependent_timeline_ids =
+      Map.put(summary, "source_dependent_timeline_ids", ["timeline:other"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_dependent_timeline_ids)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.source_dependent_timeline_ids" and
+                 &1["message"] == "must equal row-derived source_dependent_timeline_ids")
+           )
+
+    stale_impact_status = Map.put(summary, "dependency_impact_status", "clear")
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_impact_status)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.dependency_impact_status" and
+                 &1["message"] == "must equal row-derived dependency_impact_status")
+           )
+
+    invalid_summary_id =
+      Map.put(summary, "impacted_source_activity_ids", ["bad source activity"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_summary_id)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.impacted_source_activity_ids[0]" and
+                 &1["message"] =~ "stable ID")
+           )
+
+    invalid_row_scope =
+      put_in(summary, ["dependency_impact_rows", Access.at(0), "scope"], "both")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_row_scope)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.dependency_impact_rows[0].scope" and
+                 &1["message"] =~ "must be one of")
+           )
+
+    invalid_row_impacted_id =
+      put_in(
+        summary,
+        ["dependency_impact_rows", Access.at(0), "impacted_dependency_activity_ids"],
+        ["bad dependency"]
+      )
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_row_impacted_id)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] ==
+                 "$.dependency_impact_rows[0].impacted_dependency_activity_ids[0]" and
+                 &1["message"] =~ "stable ID")
+           )
+  end
+
+  test "exports dependency-impact handoff fields on review and import row schemas" do
+    stable_id_pattern = Schema.identity_policy()["stable_id_pattern"]
+
+    for contract <- ["operator_review_package.v1", "cadence_import_manifest.v1"] do
+      assert {:ok, schema} = Schema.json_schema(contract)
+      row_properties = get_in(schema, ["properties", "rows", "items", "properties"])
+
+      assert get_in(row_properties, ["dependency_impact_scope", "enum"]) == [
+               "source",
+               "replacement"
+             ]
+
+      Enum.each(
+        [
+          "changed_source_activity_count",
+          "changed_source_timeline_count",
+          "dependent_activity_count",
+          "source_dependent_activity_count",
+          "replacement_dependent_activity_count"
+        ],
+        fn field ->
+          assert Map.get(row_properties, field) == %{"type" => "integer", "minimum" => 0}
+        end
+      )
+
+      Enum.each(
+        [
+          "impacted_source_activity_ids",
+          "impacted_source_timeline_ids",
+          "dependent_activity_ids",
+          "dependent_timeline_ids",
+          "source_dependent_activity_ids",
+          "source_dependent_timeline_ids",
+          "replacement_dependent_activity_ids",
+          "replacement_dependent_timeline_ids",
+          "dependency_activity_ids",
+          "dependency_timeline_ids",
+          "exclusive_with_activity_ids",
+          "exclusive_with_timeline_ids",
+          "impacted_dependency_activity_ids",
+          "impacted_dependency_timeline_ids",
+          "impacted_exclusive_with_activity_ids",
+          "impacted_exclusive_with_timeline_ids"
+        ],
+        fn field ->
+          assert get_in(row_properties, [field, "items", "pattern"]) == stable_id_pattern
+        end
+      )
+
+      assert get_in(row_properties, ["source_timeline_dependency_impact", "type"]) == "object"
+
+      assert get_in(row_properties, [
+               "source_timeline_dependency_impact",
+               "properties",
+               "scope",
+               "enum"
+             ]) == ["source", "replacement"]
+
+      assert get_in(row_properties, [
+               "source_timeline_dependency_impact",
+               "properties",
+               "dependency_impact_status",
+               "enum"
+             ]) == ["review_required"]
+
+      assert get_in(row_properties, [
+               "source_timeline_dependency_impact",
+               "properties",
+               "impacted_dependency_activity_ids",
+               "items",
+               "pattern"
+             ]) == stable_id_pattern
+    end
+  end
+
+  test "declares and enforces stable artifact identity policy" do
+    policy = Schema.identity_policy()
+
+    assert policy["policy_version"] == 1
+    assert policy["stable_id_pattern"] == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+    assert "emit_identifier_with_whitespace" in policy["breaking_changes"]
+
+    assert {:ok, schema} = Schema.json_schema("campaign_plan.v1")
+    assert schema["properties"]["plan_id"]["pattern"] == policy["stable_id_pattern"]
+
+    invalid_artifact = Map.put(campaign_artifact(), "plan_id", "campaign plan with spaces")
+
+    assert {:error, report} = Schema.validate_artifact(invalid_artifact)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.plan_id"))
+  end
+
+  test "declares schema export compatibility policy" do
+    policy = Schema.compatibility_policy()
+
+    assert policy["policy_version"] == 1
+    assert "add_optional_fields" in policy["compatible_changes"]
+    assert "remove_required_fields" in policy["breaking_changes"]
+
+    bundle = Schema.json_schema_bundle()
+
+    assert bundle["compatibility_policy"] == policy
+    assert bundle["identity_policy"] == Schema.identity_policy()
+
+    assert bundle["schemas"]["campaign_plan.v1"]["x-orbital-dynamics"][
+             "compatibility_policy_version"
+           ] == policy["policy_version"]
+
+    assert bundle["schemas"]["campaign_plan.v1"]["x-orbital-dynamics"][
+             "identity_policy_version"
+           ] == Schema.identity_policy()["policy_version"]
+  end
+
+  test "exports deterministic JSON Schema bundles" do
+    bundle = Schema.json_schema_bundle()
+
+    assert bundle["schema_contract"] == "orbital_dynamics.schema_bundle.v1"
+    assert bundle["schema_count"] == map_size(Schema.contracts())
+    assert Map.has_key?(bundle["schemas"], "candidate_refresh.v1")
+    assert Map.has_key?(bundle["schemas"], "policy_decision.v1")
+    assert Map.has_key?(bundle["schemas"], "strategy_recommendation.v1")
+    assert Map.has_key?(bundle["schemas"], "maneuver_recommendation.v1")
+    assert Map.has_key?(bundle["schemas"], "maneuver_review_report.v1")
+    assert Map.has_key?(bundle["schemas"], "execution_report.v1")
+    assert Map.has_key?(bundle["schemas"], "monte_carlo_reproducibility_report.v1")
+    assert Map.has_key?(bundle["schemas"], "objective_tradeoff_report.v1")
+    assert Map.has_key?(bundle["schemas"], "objective_satisfaction_report.v1")
+    assert Map.has_key?(bundle["schemas"], "ranking_comparison_report.v1")
+    assert Map.has_key?(bundle["schemas"], "pareto_frontier_report.v1")
+    assert Map.has_key?(bundle["schemas"], "operational_timeline_report.v1")
+    assert Map.has_key?(bundle["schemas"], "candidate_rejection_report.v1")
+    assert Map.has_key?(bundle["schemas"], "provider_counteroffer_report.v1")
+    assert Map.has_key?(bundle["schemas"], "timeline_diff_report.v1")
+    assert Map.has_key?(bundle["schemas"], "timeline_diff_summary.v1")
+    assert Map.has_key?(bundle["schemas"], "timeline_integrity_report.v1")
+    assert Map.has_key?(bundle["schemas"], "timeline_dependency_impact_summary.v1")
+    assert Map.has_key?(bundle["schemas"], "timeline_activity_state.v1")
+    assert Map.has_key?(bundle["schemas"], "timeline_activity_precondition_summary.v1")
+    assert Map.has_key?(bundle["schemas"], "timeline_activity_status_state.v1")
+    assert Map.has_key?(bundle["schemas"], "timeline_activity_approval_state.v1")
+    assert Map.has_key?(bundle["schemas"], "timeline_activity_lifecycle_state.v1")
+    assert Map.has_key?(bundle["schemas"], "timeline_lifecycle_state_summary.v1")
+    assert Map.has_key?(bundle["schemas"], "timeline_transition_application_report.v1")
+    assert Map.has_key?(bundle["schemas"], "timeline_transition_application_summary.v1")
+    assert Map.has_key?(bundle["schemas"], "command_window_report.v1")
+    assert Map.has_key?(bundle["schemas"], "branch_comparison_report.v1")
+    assert Map.has_key?(bundle["schemas"], "optimizer_contract.v1")
+    assert Map.has_key?(bundle["schemas"], "link_capacity_report.v1")
+    assert Map.has_key?(bundle["schemas"], "link_capacity_summary.v1")
+    assert Map.has_key?(bundle["schemas"], "contact_filter_report.v1")
+    assert Map.has_key?(bundle["schemas"], "contact_contention_report.v1")
+    assert Map.has_key?(bundle["schemas"], "contact_contention_resolution_report.v1")
+    assert Map.has_key?(bundle["schemas"], "contact_contention_resolution_summary.v1")
+    assert Map.has_key?(bundle["schemas"], "station_calendar_report.v1")
+    assert Map.has_key?(bundle["schemas"], "station_calendar_precedence_summary.v1")
+
+    assert get_in(bundle, [
+             "schemas",
+             "station_calendar_precedence_summary.v1",
+             "properties",
+             "source"
+           ]) == %{"type" => "string"}
+
+    assert Map.has_key?(bundle["schemas"], "resource_filter_report.v1")
+    assert Map.has_key?(bundle["schemas"], "resource_filter_summary.v1")
+    assert Map.has_key?(bundle["schemas"], "operational_import_eligibility_summary.v1")
+    assert Map.has_key?(bundle["schemas"], "operational_readiness_gate_summary.v1")
+    assert Map.has_key?(bundle["schemas"], "operational_execution_boundary_summary.v1")
+    assert Map.has_key?(bundle["schemas"], "operational_quality_gate_summary.v1")
+
+    assert Map.has_key?(
+             bundle["schemas"],
+             "operational_quality_gate_unavailable_resource_summary.v1"
+           )
+
+    assert Map.has_key?(
+             bundle["schemas"],
+             "operational_quality_gate_operator_training_summary.v1"
+           )
+
+    assert Map.has_key?(
+             bundle["schemas"],
+             "operational_quality_gate_schema_validation_summary.v1"
+           )
+
+    assert Map.has_key?(
+             bundle["schemas"],
+             "operational_quality_gate_import_readiness_summary.v1"
+           )
+
+    assert Map.has_key?(bundle["schemas"], "schema_validation_report.v1")
+    assert Map.has_key?(bundle["schemas"], "validation_reference_fixture_report.v1")
+    assert Map.has_key?(bundle["schemas"], "result_artifact.v1")
+    assert Map.has_key?(bundle["schemas"], "validation_tolerance_policy.v1")
+    assert Map.has_key?(bundle["schemas"], "backend_acceptance_policy.v1")
+    assert Map.has_key?(bundle["schemas"], "model_acceptance_report.v1")
+    assert Map.has_key?(bundle["schemas"], "validation_safety_case_summary.v1")
+  end
+
+  test "exports and validates validation policy contracts" do
+    assert {:ok, %{"schema_contract" => "validation_tolerance_policy.v1"}} =
+             Validation.tolerance_policy()
+             |> Schema.validate_artifact(schema_contract: "validation_tolerance_policy.v1")
+
+    assert {:ok, %{"schema_contract" => "backend_acceptance_policy.v1"}} =
+             Validation.backend_acceptance_policy()
+             |> Schema.validate_artifact(schema_contract: "backend_acceptance_policy.v1")
+
+    assert {:ok, tolerance_schema} = Schema.json_schema("validation_tolerance_policy.v1")
+
+    assert tolerance_schema["required"] == [
+             "schema_contract",
+             "comparison_model",
+             "event_timing",
+             "artifact_regressions",
+             "validation_levels"
+           ]
+
+    assert {:ok, backend_schema} = Schema.json_schema("backend_acceptance_policy.v1")
+
+    assert backend_schema["x-orbital-dynamics"]["nested_contracts"] == [
+             "validation_tolerance_policy.v1"
+           ]
+
+    report =
+      Validation.model_acceptance_report(["orbit_data.simple_json", "event.access_windows"],
+        intended_use: :operational_import
+      )
+
+    assert {:ok, %{"schema_contract" => "model_acceptance_report.v1"}} =
+             Schema.validate_artifact(report, schema_contract: "model_acceptance_report.v1")
+
+    assert report["status_counts"] == %{"accepted" => 1, "review_required" => 1}
+
+    assert {:ok, model_acceptance_schema} = Schema.json_schema("model_acceptance_report.v1")
+
+    assert model_acceptance_schema["required"] == [
+             "schema_contract",
+             "schema_version",
+             "model",
+             "report_id",
+             "intended_use",
+             "status",
+             "model_count",
+             "accepted_count",
+             "review_required_count",
+             "blocked_count",
+             "unknown_model_count",
+             "validation_level_counts",
+             "records",
+             "rows",
+             "assumptions",
+             "model_limits"
+           ]
+
+    assert model_acceptance_schema["x-orbital-dynamics"]["nested_contracts"] == [
+             "validation_record.v1"
+           ]
+
+    assert get_in(model_acceptance_schema, [
+             "properties",
+             "status_counts",
+             "propertyNames",
+             "enum"
+           ]) ==
+             ["accepted", "review_required", "blocked"]
+
+    assert get_in(model_acceptance_schema, [
+             "properties",
+             "status_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    safety_case_summary =
+      Validation.safety_case_summary(
+        [
+          Validation.model_acceptance_report(["orbit_data.simple_json", "event.access_windows"],
+            intended_use: :operational_import
+          ),
+          %{
+            "schema_contract" => "schema_validation_report.v1",
+            "status" => "pass",
+            "validated_contract" => "candidate_refresh.v1",
+            "error_count" => 0,
+            "warning_count" => 0
+          }
+        ],
+        case_id: "case:schema-export"
+      )
+
+    assert {:ok, %{"schema_contract" => "validation_safety_case_summary.v1"}} =
+             Schema.validate_artifact(safety_case_summary,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    invalid_summary = Map.put(safety_case_summary, "evidence_count", 99)
+
+    assert {:error, validation_report} =
+             Schema.validate_artifact(invalid_summary,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert Enum.any?(validation_report["errors"], &(&1["path"] == "$.evidence_count"))
+
+    assert {:ok, safety_case_schema} = Schema.json_schema("validation_safety_case_summary.v1")
+
+    assert safety_case_schema["required"] == [
+             "schema_contract",
+             "schema_version",
+             "model",
+             "source",
+             "summary_id",
+             "status",
+             "evidence_count",
+             "blocked_evidence_count",
+             "review_required_evidence_count",
+             "accepted_evidence_count",
+             "assumptions",
+             "model_limits"
+           ]
+
+    assert safety_case_schema["x-orbital-dynamics"]["nested_contracts"] == [
+             "model_acceptance_report.v1",
+             "operational_readiness_report.v1",
+             "quality_gate_report.v1",
+             "schema_validation_report.v1",
+             "schema_validation_batch_report.v1",
+             "validation_reference_fixture_report.v1"
+           ]
+
+    migration_report =
+      Validation.schema_migration_report(
+        deprecated_contracts: %{"campaign_plan.v1" => "campaign_strategy.v3"}
+      )
+
+    assert {:ok, %{"schema_contract" => "schema_migration_report.v1"}} =
+             Schema.validate_artifact(migration_report,
+               schema_contract: "schema_migration_report.v1"
+             )
+
+    assert migration_report["status"] == "review_required"
+    assert migration_report["deprecated_contract_count"] == 1
+    assert migration_report["status_counts"] == %{"current" => 116, "deprecated" => 1}
+
+    stale_migration_model =
+      Map.put(migration_report, "model", "stale_schema_migration_report_model")
+
+    assert {:error, stale_migration_model_report} =
+             Schema.validate_artifact(stale_migration_model,
+               schema_contract: "schema_migration_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_migration_model_report["errors"],
+             &(&1["path"] == "$.model")
+           )
+
+    stale_migration_count = Map.put(migration_report, "migration_row_count", 80)
+
+    assert {:error, stale_migration_count_report} =
+             Schema.validate_artifact(stale_migration_count,
+               schema_contract: "schema_migration_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_migration_count_report["errors"],
+             &(&1["path"] == "$.migration_row_count")
+           )
+
+    stale_migration_actions =
+      put_in(migration_report, ["migration_action_counts", "plan_replacement"], 0)
+
+    assert {:error, stale_migration_actions_report} =
+             Schema.validate_artifact(stale_migration_actions,
+               schema_contract: "schema_migration_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_migration_actions_report["errors"],
+             &(&1["path"] == "$.migration_action_counts")
+           )
+
+    assert {:ok, migration_schema} = Schema.json_schema("schema_migration_report.v1")
+
+    assert get_in(migration_schema, ["properties", "model", "const"]) ==
+             "executable_schema_migration_and_deprecation_report"
+
+    assert migration_schema["required"] == [
+             "schema_contract",
+             "schema_version",
+             "model",
+             "source",
+             "status",
+             "compatibility_policy_version",
+             "compatible_change_rule_count",
+             "breaking_change_rule_count",
+             "contract_count",
+             "current_contract_count",
+             "deprecated_contract_count",
+             "future_contract_count",
+             "migration_row_count",
+             "deprecation_warning_count",
+             "status_counts",
+             "migration_action_counts",
+             "rows",
+             "assumptions",
+             "model_limits"
+           ]
+
+    assert get_in(migration_schema, ["properties", "rows", "items", "required"]) == [
+             "schema_contract",
+             "artifact_family",
+             "schema_version",
+             "status",
+             "migration_action",
+             "required_field_count",
+             "optional_field_count",
+             "nested_contract_count"
+           ]
+  end
+
+  test "exports and validates top-level result artifact contracts" do
+    artifact = read_json!("study_results/ground_track_crossings.json")
+
+    assert {:ok, %{"schema_contract" => "result_artifact.v1"}} =
+             Schema.validate_artifact(artifact, schema_contract: "result_artifact.v1")
+
+    assert {:ok, schema} = Schema.json_schema("result_artifact.v1")
+    assert schema["required"] |> Enum.member?("ground_track_crossings")
+
+    assert get_in(schema, [
+             "properties",
+             "ground_track_crossings",
+             "items",
+             "properties",
+             "event_type",
+             "enum"
+           ]) == ["latitude_crossing", "longitude_crossing"]
+
+    assert get_in(schema, [
+             "properties",
+             "payload_metrics",
+             "properties",
+             "schema_contract",
+             "const"
+           ]) == "result_payload_metrics.v1"
+  end
+
+  test "checked-in JSON Schema exports match the executable registry" do
+    Enum.each(Schema.contracts(), fn {contract_name, _contract} ->
+      path = "schemas/#{contract_name}.schema.json"
+      assert File.exists?(path), "missing checked-in schema export #{path}"
+
+      assert {:ok, expected_schema} = Schema.json_schema(contract_name)
+      assert read_json!(path) == expected_schema
+    end)
+
+    assert read_json!("schemas/orbital_dynamics.schema_bundle.v1.json") ==
+             Schema.json_schema_bundle()
+  end
+
+  test "checked-in branch comparison and Cadence import row fields are schema-visible" do
+    assert_fixture_row_fields_are_schema_visible(
+      "branch_comparison_report.v1",
+      "study_results/branch_comparison_report_v1.json",
+      ["properties", "rows", "items", "properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "operator_review_package.v1",
+      "study_results/operator_review_package_v1.json",
+      ["properties", "rows", "items", "properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "operator_review_package.v1",
+      "study_results/operator_review_package_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "operational_timeline_report.v1",
+      "study_results/operational_timeline_report_v1.json",
+      ["properties", "rows", "items", "properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "operational_timeline_report.v1",
+      "study_results/operational_timeline_report_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "command_window_report.v1",
+      "study_results/command_window_report_v1.json",
+      ["properties", "rows", "items", "properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "contact_allocation_report.v1",
+      "study_results/contact_allocation_report_v1.json",
+      ["properties", "rows", "items", "properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "contact_allocation_report.v1",
+      "study_results/contact_allocation_capacity_pack_report_v1.json",
+      ["properties", "rows", "items", "properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "link_capacity_report.v1",
+      "study_results/link_capacity_report_v1.json",
+      ["properties", "rows", "items", "properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "link_capacity_report.v1",
+      "study_results/link_capacity_report_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "resource_filter_report.v1",
+      "study_results/resource_filter_report_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "contact_filter_report.v1",
+      "study_results/contact_filter_report_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "contact_contention_report.v1",
+      "study_results/contact_contention_report_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "contact_contention_resolution_report.v1",
+      "study_results/contact_contention_resolution_report_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "candidate_diff_report.v1",
+      "study_results/candidate_diff_report_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "resource_projection_report.v1",
+      "study_results/resource_projection_report_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "station_calendar_report.v1",
+      "study_results/station_calendar_report_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "proposed_contact.v1",
+      "study_results/proposed_contact_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "planned_activity.v1",
+      "study_results/planned_activity_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "realized_activity.v1",
+      "study_results/realized_activity_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "plan_delta.v1",
+      "study_results/plan_delta_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "timeline_diff_report.v1",
+      "study_results/timeline_diff_report_v1.json",
+      ["properties", "rows", "items", "properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "timeline_diff_report.v1",
+      "study_results/timeline_diff_report_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "timeline_transition_application_report.v1",
+      "study_results/timeline_transition_application_report_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "objective_satisfaction_report.v1",
+      "study_results/objective_satisfaction_report_v1.json",
+      ["properties", "rows", "items", "properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "maneuver_review_report.v1",
+      "study_results/maneuver_review_report_v1.json",
+      ["properties", "rows", "items", "properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "maneuver_review_report.v1",
+      "study_results/maneuver_review_report_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "approval_requirement.v1",
+      "study_results/approval_requirement_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "strategy_recommendation.v1",
+      "study_results/strategy_recommendation_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "strategy_recommendation.v1",
+      "study_results/strategy_recommendation_v1.json",
+      ["properties", "tradeoffs", "items", "properties"],
+      fn artifact -> Map.get(artifact, "tradeoffs", []) end
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "strategy_recommendation.v1",
+      "study_results/strategy_recommendation_v1.json",
+      ["properties", "explanation", "items", "properties"],
+      fn artifact -> Map.get(artifact, "explanation", []) end
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "strategy_recommendation.v1",
+      "study_results/strategy_recommendation_v1.json",
+      ["properties", "risks_remaining", "items", "properties"],
+      fn artifact -> Map.get(artifact, "risks_remaining", []) end
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "strategy_recommendation.v1",
+      "study_results/strategy_recommendation_v1.json",
+      ["properties", "requires_approval", "items", "properties"],
+      fn artifact -> Map.get(artifact, "requires_approval", []) end
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "strategy_branch.v1",
+      "study_results/strategy_branch_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "strategy_branch.v1",
+      "study_results/strategy_branch_v1.json",
+      ["properties", "events", "items", "properties"],
+      fn artifact -> Map.get(artifact, "events", []) end
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "strategy_branch.v1",
+      "study_results/strategy_branch_v1.json",
+      ["properties", "risk_indicators", "items", "properties"],
+      fn artifact -> Map.get(artifact, "risk_indicators", []) end
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "strategy_branch.v1",
+      "study_results/strategy_branch_v1.json",
+      ["properties", "tradeoffs", "items", "properties"],
+      fn artifact -> Map.get(artifact, "tradeoffs", []) end
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "timeline_feedback_report.v1",
+      "study_results/timeline_feedback_report_v1.json",
+      ["properties", "rows", "items", "properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "timeline_feedback_report.v1",
+      "study_results/timeline_feedback_report_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "candidate_activity.v1",
+      "study_results/candidate_activity_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "cadence_import_manifest.v1",
+      "study_results/cadence_import_manifest_v1.json",
+      ["properties", "rows", "items", "properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "cadence_import_manifest.v1",
+      "study_results/cadence_import_manifest_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "cadence_import_manifest.v1",
+      "study_results/cadence_import_manifest_v1.json",
+      ["properties", "rows", "items", "properties", "source_review_row", "properties"],
+      fn artifact ->
+        artifact
+        |> Map.get("rows", [])
+        |> Enum.map(&Map.get(&1, "source_review_row"))
+      end
+    )
+  end
+
+  test "validates standalone contact and resource filter report fixtures" do
+    contact_filter_report = read_json!("study_results/contact_filter_report_v1.json")
+
+    assert {:ok, %{"schema_contract" => "contact_filter_report.v1"}} =
+             Schema.validate_artifact(contact_filter_report,
+               schema_contract: "contact_filter_report.v1"
+             )
+
+    invalid_contact_filter_model =
+      Map.put(contact_filter_report, "model", "stale_contact_filter_model")
+
+    assert {:error, contact_filter_model_report} =
+             Schema.validate_artifact(invalid_contact_filter_model,
+               schema_contract: "contact_filter_report.v1"
+             )
+
+    assert Enum.any?(contact_filter_model_report["errors"], &(&1["path"] == "$.model"))
+
+    assert {:ok, contact_filter_schema} = Schema.json_schema("contact_filter_report.v1")
+
+    assert get_in(contact_filter_schema, ["properties", "model", "const"]) ==
+             "thin_ground_network_availability_filter"
+
+    assert get_in(contact_filter_schema, ["properties", "model_limits", "items", "enum"]) == [
+             "artifact_level_only",
+             "externally_supplied_ground_network",
+             "no_provider_reservation",
+             "no_schedule_mutation",
+             "no_link_budget_model"
+           ]
+
+    assert get_in(contact_filter_schema, [
+             "properties",
+             "station_reservation_match_status_counts",
+             "additionalProperties",
+             "type"
+           ]) == "integer"
+
+    assert get_in(contact_filter_schema, [
+             "properties",
+             "invalid_contact_input_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(contact_filter_schema, ["properties", "input_candidate_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(contact_filter_schema, [
+             "properties",
+             "duplicate_suppressed_candidate_row_count"
+           ]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    invalid_contact_filter_limits =
+      Map.put(contact_filter_report, "model_limits", ["artifact_level_only"])
+
+    assert {:error, contact_filter_limits_report} =
+             Schema.validate_artifact(invalid_contact_filter_limits,
+               schema_contract: "contact_filter_report.v1"
+             )
+
+    assert Enum.any?(contact_filter_limits_report["errors"], &(&1["path"] == "$.model_limits"))
+
+    invalid_contact_filter_input_count =
+      Map.put(contact_filter_report, "input_candidate_count", 1.0)
+
+    assert {:error, contact_filter_input_count_report} =
+             Schema.validate_artifact(invalid_contact_filter_input_count,
+               schema_contract: "contact_filter_report.v1"
+             )
+
+    assert Enum.any?(
+             contact_filter_input_count_report["errors"],
+             &(&1["path"] == "$.input_candidate_count")
+           )
+
+    invalid_contact_filter_optional_count =
+      Map.put(contact_filter_report, "duplicate_suppressed_candidate_row_count", -1)
+
+    assert {:error, contact_filter_optional_count_report} =
+             Schema.validate_artifact(invalid_contact_filter_optional_count,
+               schema_contract: "contact_filter_report.v1"
+             )
+
+    assert Enum.any?(
+             contact_filter_optional_count_report["errors"],
+             &(&1["path"] == "$.duplicate_suppressed_candidate_row_count")
+           )
+
+    invalid_contact_filter_match_count =
+      put_in(contact_filter_report, ["station_reservation_match_status_counts", "overlap"], 99)
+
+    assert {:error, contact_filter_match_count_report} =
+             Schema.validate_artifact(invalid_contact_filter_match_count,
+               schema_contract: "contact_filter_report.v1"
+             )
+
+    assert Enum.any?(
+             contact_filter_match_count_report["errors"],
+             &(&1["path"] == "$.station_reservation_match_status_counts")
+           )
+
+    invalid_contact_filter_duplicate_count =
+      Map.put(contact_filter_report, "duplicate_suppressed_candidate_row_count", 99)
+
+    assert {:error, contact_filter_duplicate_count_report} =
+             Schema.validate_artifact(invalid_contact_filter_duplicate_count,
+               schema_contract: "contact_filter_report.v1"
+             )
+
+    assert Enum.any?(
+             contact_filter_duplicate_count_report["errors"],
+             &(&1["path"] == "$.duplicate_suppressed_candidate_row_count")
+           )
+
+    assert {:ok, %{"schema_contract" => "resource_filter_report.v1"}} =
+             "study_results/resource_filter_report_v1.json"
+             |> read_json!()
+             |> Schema.validate_artifact(schema_contract: "resource_filter_report.v1")
+  end
+
+  test "validates candidate refresh contact and resource filter reports" do
+    artifact = candidate_refresh_artifact()
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact)
+
+    invalid_feedback =
+      put_in(artifact, ["operational_feedback"], %{
+        "image_quality_score" => %{"target_a" => 1.2},
+        "image_quality_status" => %{"target_a" => 5}
+      })
+
+    assert {:error, report} = Schema.validate_artifact(invalid_feedback)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.operational_feedback.image_quality_score.target_a")
+           )
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.operational_feedback.image_quality_status.target_a")
+           )
+
+    invalid_resource =
+      put_in(
+        artifact,
+        ["resource_filter_report", "suppressed_candidates", Access.at(0)],
+        %{"id" => "bad", "type" => "observe", "scenario_id" => "leo_1"}
+      )
+
+    assert {:error, report} = Schema.validate_artifact(invalid_resource)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] ==
+                 "$.resource_filter_report.suppressed_candidates[0].suppressed_reason")
+           )
+
+    invalid_contact =
+      put_in(
+        artifact,
+        ["contact_filter_report", "suppressed_candidates", Access.at(0)],
+        %{"id" => "bad", "type" => "downlink", "scenario_id" => "leo_1"}
+      )
+
+    assert {:error, report} = Schema.validate_artifact(invalid_contact)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] ==
+                 "$.contact_filter_report.suppressed_candidates[0].suppressed_reason")
+           )
+
+    invalid_diff =
+      put_in(
+        artifact,
+        ["candidate_diff_report", "new_candidates", Access.at(0)],
+        %{"id" => "bad", "type" => "observe", "scenario_id" => "leo_1"}
+      )
+
+    assert {:error, report} = Schema.validate_artifact(invalid_diff)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.candidate_diff_report.new_candidates[0].diff_reason")
+           )
+
+    invalid_freshness =
+      put_in(artifact, ["freshness_report", "status"], "maybe_current")
+
+    assert {:error, report} = Schema.validate_artifact(invalid_freshness)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.freshness_report.status")
+           )
+
+    invalid_refresh_budget =
+      artifact
+      |> Map.put(
+        "refresh_budget_report",
+        read_json!("study_results/refresh_budget_report_v1.json")
+      )
+      |> put_in(["refresh_budget_report", "kept_candidate_count"], 99)
+
+    assert {:error, report} = Schema.validate_artifact(invalid_refresh_budget)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.refresh_budget_report.kept_candidate_count")
+           )
+
+    invalid_lineage =
+      put_in(
+        artifact,
+        ["source_window_lineage", Access.at(0)],
+        %{
+          "candidate_activity_id" => "observe_1",
+          "source_window_id" => "window_1",
+          "scenario_id" => "leo_1"
+        }
+      )
+
+    assert {:error, report} = Schema.validate_artifact(invalid_lineage)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.source_window_lineage[0].source_window_type")
+           )
+
+    invalid_invalidated_candidate =
+      put_in(
+        artifact,
+        ["invalidated_candidates", Access.at(0)],
+        %{"id" => "old_observe_1"}
+      )
+
+    assert {:error, report} = Schema.validate_artifact(invalid_invalidated_candidate)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.invalidated_candidates[0].invalidated_reason")
+           )
+  end
+
+  test "reports invalid state-vector arrays in accepted planning state snapshots" do
+    artifact =
+      update_in(accepted_planning_state(), ["spacecraft_states", Access.at(0), "state_vector"], fn
+        state_vector -> Map.put(state_vector, "position_km", [7000.0, 0.0])
+      end)
+
+    assert {:error, report} = Schema.validate_artifact(artifact)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.spacecraft_states[0].state_vector.position_km")
+           )
+  end
+
+  test "requires trust-boundary provenance on accepted planning state rows" do
+    artifact =
+      accepted_planning_state()
+      |> update_in(["spacecraft_states", Access.at(0)], fn state ->
+        state
+        |> Map.delete("trust_boundary")
+        |> Map.delete("provenance")
+      end)
+      |> update_in(["maneuver_execution_deltas", Access.at(0)], fn delta ->
+        delta
+        |> Map.delete("trust_boundary")
+        |> Map.delete("provenance")
+      end)
+
+    assert {:error, report} = Schema.validate_artifact(artifact)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.spacecraft_states[0].trust_boundary" and
+                 &1["message"] =~ "spacecraft_state_estimate.v1 requires trust_boundary")
+           )
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.maneuver_execution_deltas[0].trust_boundary" and
+                 &1["message"] =~ "maneuver_execution_delta.v1 requires trust_boundary")
+           )
+  end
+
+  test "rejects non-list maneuver execution deltas in accepted planning state snapshots" do
+    artifact =
+      Map.put(accepted_planning_state(), "maneuver_execution_deltas", %{
+        "activity_id" => "burn_1",
+        "status" => "completed"
+      })
+
+    assert {:error, report} = Schema.validate_artifact(artifact)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.maneuver_execution_deltas" and &1["message"] == "must be a list")
+           )
+  end
+
+  defp campaign_artifact do
+    result_set =
+      ResultSet.new!(%{
+        study_id: :campaign,
+        trajectory_results: [],
+        event_results: [
+          %{
+            scenario_id: :leo_1,
+            event_type: :ground_station_access,
+            events: [
+              %{
+                type: :ground_station_access,
+                starts_at: Epoch.new!(100.0, :tdb),
+                ends_at: Epoch.new!(160.0, :tdb),
+                metadata: %{
+                  max_elevation_deg: 45.0,
+                  minimum_elevation_deg: 5.0
+                }
+              }
+            ],
+            source: %{ground_station_id: :equator_prime}
+          }
+        ],
+        errors: [],
+        assumptions: %{},
+        metadata: %{}
+      })
+
+    CampaignPlanner.build(result_set,
+      generated_at: ~U[2026-05-14 00:00:00Z],
+      campaign: %{
+        "planning_horizon" => %{"duration_s" => 600.0},
+        "constraints" => %{},
+        "scoring_policy" => %{"downlink_rate_mb_s" => 2.0}
+      }
+    )
+  end
+
+  defp repair_artifact do
+    CampaignPlanner.repair(%{
+      prior_plan: campaign_artifact(),
+      realized_state: %{activities: []},
+      current_epoch_s: 0.0,
+      remaining_horizon: %{"starts_at_s" => 0.0, "ends_at_s" => 600.0},
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    })
+  end
+
+  defp strategy_artifact(repair) do
+    CampaignPlanner.strategy(%{
+      prior_plan: repair,
+      mission_state: %{snapshot_id: "ops-snapshot"},
+      branches: [
+        %{id: "baseline"},
+        %{id: "fuel", events: [%{type: "fuel_preservation_mode"}]}
+      ],
+      current_epoch_s: 0.0,
+      remaining_horizon: %{"starts_at_s" => 0.0, "ends_at_s" => 600.0},
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    })
+  end
+
+  defp accepted_planning_state do
+    %{
+      "schema_version" => 1,
+      "artifact_type" => "accepted_planning_state",
+      "snapshot_id" => "ops-state-2026-05-14",
+      "accepted_at" => "2026-05-14T00:00:00Z",
+      "spacecraft_states" => [
+        %{
+          "spacecraft_id" => "sat_1",
+          "scenario_id" => "leo_1",
+          "epoch" => %{"seconds_since_j2000" => 0.0, "time_scale" => "tdb"},
+          "frame" => "earth_inertial_j2000",
+          "state_vector" => %{
+            "position_km" => [7000.0, 0.0, 0.0],
+            "velocity_km_s" => [0.0, 7.5, 0.0]
+          },
+          "source" => %{"system" => "operator_import", "source_id" => "state_estimate_1"},
+          "provenance" => %{"trust_boundary" => "operator_supplied"},
+          "quality" => %{
+            "level" => "accepted",
+            "position_sigma_km" => [0.1, 0.1, 0.1],
+            "velocity_sigma_km_s" => [0.001, 0.001, 0.001]
+          }
+        }
+      ],
+      "maneuver_execution_deltas" => [
+        %{
+          "activity_id" => "burn_1",
+          "status" => "completed",
+          "source" => %{"system" => "ops_log"},
+          "provenance" => %{"trust_boundary" => "operator_supplied"},
+          "quality" => %{"level" => "operator_reported"}
+        }
+      ],
+      "source" => %{"system" => "cadence_snapshot", "source_id" => "snapshot_1"},
+      "quality" => %{"level" => "planning_accepted"},
+      "provenance" => %{"created_by" => "test"}
+    }
+  end
+
+  defp candidate_refresh_artifact do
+    %{
+      "schema_version" => 1,
+      "schema_contract" => "candidate_refresh.v1",
+      "artifact_type" => "candidate_refresh",
+      "generated_at" => "2026-05-14T00:00:00Z",
+      "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+      "refresh_id" => "candidate_refresh:test",
+      "study_id" => "test",
+      "snapshot_id" => "ops-state-1",
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-1",
+        "spacecraft_state_count" => 1
+      },
+      "refreshed_windows" => %{
+        "access_windows" => [],
+        "target_visibility_windows" => [],
+        "eclipse_intervals" => []
+      },
+      "candidate_activities" => [],
+      "contact_intents" => [],
+      "contact_filter_report" => %{
+        "schema_contract" => "contact_filter_report.v1",
+        "model" => "thin_ground_network_availability_filter",
+        "input_candidate_count" => 1,
+        "kept_candidate_count" => 0,
+        "suppressed_candidate_count" => 1,
+        "suppressed_candidates" => [
+          %{
+            "id" => "downlink_1",
+            "type" => "downlink",
+            "scenario_id" => "leo_1",
+            "starts_at_s" => 10.0,
+            "ends_at_s" => 20.0,
+            "suppressed_reason" => "ground_station_unavailable"
+          }
+        ]
+      },
+      "resource_summaries" => [],
+      "resource_filter_report" => %{
+        "schema_contract" => "resource_filter_report.v1",
+        "model" => "resource_summary_availability_and_margin_filter",
+        "input_candidate_count" => 1,
+        "kept_candidate_count" => 0,
+        "suppressed_candidate_count" => 1,
+        "suppressed_candidates" => [
+          %{
+            "id" => "observe_1",
+            "type" => "observe",
+            "scenario_id" => "leo_1",
+            "starts_at_s" => 10.0,
+            "ends_at_s" => 20.0,
+            "suppressed_reason" => "payload_unavailable"
+          }
+        ]
+      },
+      "candidate_diff_report" => %{
+        "schema_contract" => "candidate_diff_report.v1",
+        "model" => "candidate_id_set_diff_with_semantic_change_reasons",
+        "prior_candidate_count" => 1,
+        "refreshed_candidate_count" => 1,
+        "retained_candidate_count" => 0,
+        "new_candidate_count" => 1,
+        "invalidated_candidate_count" => 1,
+        "retained_candidates" => [],
+        "new_candidates" => [
+          %{
+            "id" => "observe_1",
+            "type" => "observe",
+            "scenario_id" => "leo_1",
+            "starts_at_s" => 10.0,
+            "ends_at_s" => 20.0,
+            "diff_reason" => "not_present_in_prior_candidate_set"
+          }
+        ],
+        "invalidated_candidates" => [
+          %{
+            "id" => "old_observe_1",
+            "invalidated_reason" => "not_present_in_refreshed_candidate_set"
+          }
+        ]
+      },
+      "freshness_report" => %{
+        "schema_contract" => "freshness_report.v1",
+        "model" => "accepted_snapshot_horizon_and_quality_freshness",
+        "generated_at" => "2026-05-14T00:00:00Z",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "current_epoch_s" => 0.0,
+        "horizon_starts_at_s" => 0.0,
+        "accepted_snapshot_age_s" => 0.0,
+        "horizon_start_offset_s" => 0.0,
+        "max_snapshot_age_s" => 86_400.0,
+        "max_horizon_start_offset_s" => 1.0,
+        "accepted_state_quality_level" => "planning_accepted",
+        "allowed_state_quality_levels" => ["accepted", "planning_accepted"],
+        "state_quality_status" => "accepted",
+        "status" => "current",
+        "stale_reasons" => [],
+        "unknown_reasons" => [],
+        "model_limits" => OrbitalDynamics.CandidateRefresh.model_limits()
+      },
+      "invalidated_candidates" => [
+        %{
+          "id" => "old_observe_1",
+          "type" => "observe",
+          "scenario_id" => "leo_1",
+          "starts_at_s" => 0.0,
+          "ends_at_s" => 60.0,
+          "invalidated_reason" => "not_present_in_refreshed_candidate_set",
+          "source_window_id" => "old_window_1"
+        }
+      ],
+      "validation_records" => [],
+      "warnings" => [],
+      "assumptions" => %{},
+      "provenance" => %{},
+      "source_window_lineage" => [
+        %{
+          "candidate_activity_id" => "observe_1",
+          "source_window_id" => "window:leo_1:target_visibility:1",
+          "source_window_type" => "target_visibility",
+          "scenario_id" => "leo_1"
+        }
+      ]
+    }
+  end
+
+  defp campaign_plan_fixture_observations do
+    artifact =
+      "study_results/leo_constellation_campaign.json"
+      |> read_json!()
+      |> Map.fetch!("campaign_plan")
+
+    Validation.artifact_observations("campaign_plan.v1", artifact)
+  end
+
+  defp campaign_repair_fixture_observations do
+    "study_results/leo_constellation_campaign_repair_v2.json"
+    |> read_json!()
+    |> then(&Validation.artifact_observations("campaign_repair.v2", &1))
+  end
+
+  defp campaign_strategy_fixture_observations do
+    "study_results/leo_constellation_campaign_strategy_v3.json"
+    |> read_json!()
+    |> then(&Validation.artifact_observations("campaign_strategy.v3", &1))
+  end
+
+  defp candidate_refresh_fixture_observations do
+    "study_results/candidate_refresh_v1.json"
+    |> read_json!()
+    |> Map.fetch!("candidate_refresh")
+    |> then(&Validation.artifact_observations("candidate_refresh.v1", &1))
+  end
+
+  defp schema_validation_report_fixture_observations do
+    "study_results/schema_validation_report_v1.json"
+    |> read_json!()
+    |> then(&Validation.artifact_observations("schema_validation_report.v1", &1))
+  end
+
+  defp schema_validation_batch_report_fixture_observations do
+    "study_results/schema_validation_batch_report_v1.json"
+    |> read_json!()
+    |> then(&Validation.artifact_observations("schema_validation_batch_report.v1", &1))
+  end
+
+  defp validation_safety_case_summary_fixture_observations do
+    "study_results/validation_safety_case_summary_v1.json"
+    |> read_json!()
+    |> then(&Validation.artifact_observations("validation_safety_case_summary.v1", &1))
+  end
+
+  defp operator_review_package_fixture_observations do
+    "study_results/operator_review_package_v1.json"
+    |> read_json!()
+    |> then(&Validation.artifact_observations("operator_review_package.v1", &1))
+  end
+
+  defp operational_readiness_report_fixture_observations do
+    "operational_readiness_report.v1"
+    |> Validation.artifact_observations(operational_readiness_report_fixture())
+  end
+
+  defp operational_readiness_report_fixture do
+    OperationalReadiness.report(%{
+      "schema_contract" => "cadence_import_manifest.v1",
+      "model" => "cadence_import_manifest_fixture",
+      "manifest_id" => "manifest_1",
+      "source_artifact_type" => "planned_activity.v1",
+      "source_artifact_id" => "activity_1",
+      "model_limits" => ["adapter_handoff_only"],
+      "rows" => [
+        %{
+          "id" => "import_1",
+          "rank" => 1,
+          "import_action" => "import_replacement_activity",
+          "import_status" => "ready_for_import",
+          "cadence_import_status" => "present"
+        }
+      ]
+    })
+  end
+
+  defp quality_gate_report_fixture_observations do
+    "quality_gate_report.v1"
+    |> Validation.artifact_observations(quality_gate_report_fixture())
+  end
+
+  defp quality_gate_report_fixture do
+    operational_readiness_report_fixture()
+    |> OperationalReadiness.quality_gate_report()
+  end
+
+  defp provider_counteroffer_report_fixture_observations do
+    "provider_counteroffer_report.v1"
+    |> Validation.artifact_observations(provider_counteroffer_report_fixture())
+  end
+
+  defp provider_counteroffer_report_fixture do
+    StationCalendar.report(
+      [
+        %{
+          id: :dl_counteroffer,
+          type: :downlink,
+          scenario_id: :leo_1,
+          ground_station_id: :equator_prime,
+          starts_at_s: 100.0,
+          ends_at_s: 140.0
+        }
+      ],
+      %{
+        schema_contract: "station_calendar_provider.v1",
+        id: :ops_calendar,
+        trust_boundary: :declared_station_calendar,
+        entries: [
+          %{
+            id: :provider_counteroffer_window,
+            station_id: :equator_prime,
+            availability: :available,
+            directions: [:downlink],
+            start_s: 130.0,
+            end_s: 170.0,
+            counteroffer_id: :provider_offer_1,
+            counteroffer_status: :proposed,
+            counteroffer_reason_code: :provider_shifted_window,
+            counteroffer_cost_delta: 125.5,
+            schedule_lock_deadline_s: 150.0,
+            counteroffer_start_s: 130.0,
+            counteroffer_end_s: 170.0
+          }
+        ]
+      }
+    )
+    |> StationCalendar.provider_counteroffer_report()
+  end
+
+  defp station_calendar_report_fixture_observations do
+    "station_calendar_report.v1"
+    |> Validation.artifact_observations(station_calendar_report_fixture())
+  end
+
+  defp station_calendar_report_fixture do
+    StationCalendar.report(
+      [
+        %{
+          id: :dl_hold,
+          type: :downlink,
+          scenario_id: :leo_1,
+          ground_station_id: :equator_prime,
+          starts_at_s: 120.0,
+          ends_at_s: 160.0
+        }
+      ],
+      %{
+        schema_contract: "station_calendar_provider.v1",
+        id: :ops_calendar,
+        trust_boundary: :declared_station_calendar,
+        entries: [
+          %{
+            id: :provider_downlink_hold,
+            station_id: :equator_prime,
+            availability: :reservation_hold,
+            directions: [:downlink],
+            start_s: 100.0,
+            end_s: 200.0,
+            hold_id: :provider_hold_1,
+            hold_expires_at_s: 95.0,
+            held_by: :ops_calendar,
+            hold_status: :tentative_hold
+          }
+        ]
+      },
+      source: "stale_provider_calendar"
+    )
+  end
+
+  defp read_json!(path) do
+    path
+    |> File.read!()
+    |> :json.decode()
+  end
+
+  defp reference_fixture_report_observations(%{"reports" => reports}) do
+    Map.new(reports, fn report ->
+      observations =
+        report
+        |> Map.fetch!("checks")
+        |> Map.new(fn check -> {check["field"], check["observed"]} end)
+
+      {report["fixture_id"], observations}
+    end)
+  end
+
+  defp put_readiness_resource_context(artifact, path) do
+    artifact
+    |> put_in(path ++ ["resource_availability_pressure_count"], 3)
+    |> put_in(path ++ ["resource_availability_reason_counts"], %{
+      "antenna_unavailable" => 1,
+      "ground_station_reserved" => 1,
+      "payload_unavailable" => 1
+    })
+    |> put_in(path ++ ["resource_availability_reason_ids"], [
+      "antenna_unavailable",
+      "ground_station_reserved",
+      "payload_unavailable"
+    ])
+    |> put_in(path ++ ["station_availability_reason_ids"], [
+      "ground_station_reserved"
+    ])
+    |> put_in(path ++ ["station_availability_reason_counts"], %{
+      "ground_station_reserved" => 1
+    })
+    |> put_in(path ++ ["unavailable_resource_reason_ids"], [
+      "antenna_unavailable",
+      "payload_unavailable"
+    ])
+    |> put_in(path ++ ["resource_blocking_dimension_counts"], %{
+      "spacecraft" => 1,
+      "station" => 1
+    })
+  end
+
+  defp policy_model_limits do
+    Policy.capabilities()
+    |> Map.fetch!(:known_limits)
+    |> Enum.map(&Atom.to_string/1)
+  end
+
+  defp timeline_feedback_report_model_limits do
+    OrbitalDynamics.TimelineFeedback.capabilities()
+    |> Map.fetch!(:known_limits)
+    |> Enum.map(&Atom.to_string/1)
+  end
+
+  defp maneuver_review_report_model_limits do
+    OrbitalDynamics.ManeuverReview.capabilities()
+    |> Map.fetch!(:known_limits)
+    |> Enum.map(&Atom.to_string/1)
+  end
+
+  defp assert_fixture_row_fields_are_schema_visible(
+         contract,
+         fixture_path,
+         schema_properties_path,
+         rows_fun \\ fn artifact -> Map.get(artifact, "rows", []) end
+       ) do
+    fixture = read_json!(fixture_path)
+    assert {:ok, schema} = Schema.json_schema(contract)
+
+    schema_properties = get_in(schema, schema_properties_path) || %{}
+
+    missing_fields =
+      fixture
+      |> rows_fun.()
+      |> Enum.filter(&is_map/1)
+      |> Enum.flat_map(&Map.keys/1)
+      |> Enum.uniq()
+      |> Enum.reject(&Map.has_key?(schema_properties, &1))
+      |> Enum.sort()
+
+    assert missing_fields == []
+  end
+
+  defp assert_fixture_fields_are_schema_visible(contract, fixture_path, schema_properties_path) do
+    fixture = read_json!(fixture_path)
+    assert {:ok, schema} = Schema.json_schema(contract)
+
+    schema_properties = get_in(schema, schema_properties_path) || %{}
+
+    missing_fields =
+      fixture
+      |> Map.keys()
+      |> Enum.reject(&Map.has_key?(schema_properties, &1))
+      |> Enum.sort()
+
+    assert missing_fields == []
+  end
+
+  defp opaque_identity_property_paths(schema) do
+    schema
+    |> collect_opaque_identity_property_paths([], [])
+    |> Enum.reverse()
+  end
+
+  defp collect_opaque_identity_property_paths(%{} = schema, path, acc) do
+    acc =
+      schema
+      |> Map.get("properties", %{})
+      |> Enum.reduce(acc, fn {field, property}, acc ->
+        property_path = path ++ ["properties", field]
+
+        if identity_property_name?(field) and opaque_identity_property?(property) do
+          [Enum.join(property_path, ".") | acc]
+        else
+          acc
+        end
+      end)
+
+    Enum.reduce(schema, acc, fn {key, value}, acc ->
+      collect_opaque_identity_property_paths(value, path ++ [to_string(key)], acc)
+    end)
+  end
+
+  defp collect_opaque_identity_property_paths(values, path, acc) when is_list(values) do
+    values
+    |> Enum.with_index()
+    |> Enum.reduce(acc, fn {value, index}, acc ->
+      collect_opaque_identity_property_paths(value, path ++ [Integer.to_string(index)], acc)
+    end)
+  end
+
+  defp collect_opaque_identity_property_paths(_value, _path, acc), do: acc
+
+  defp identity_property_name?("id"), do: true
+
+  defp identity_property_name?(field) when is_binary(field),
+    do: String.ends_with?(field, "_id") or String.ends_with?(field, "_ids")
+
+  defp opaque_identity_property?(%{"type" => "object", "additionalProperties" => property})
+       when is_map(property),
+       do: opaque_identity_property?(property)
+
+  defp opaque_identity_property?(%{} = property) do
+    Map.get(property, "type") == "object" or
+      (not Map.has_key?(property, "type") and not Map.has_key?(property, "pattern") and
+         not Map.has_key?(property, "items"))
+  end
+end

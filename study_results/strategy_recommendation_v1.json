@@ -1,0 +1,123 @@
+{
+  "schema_contract": "strategy_recommendation.v1",
+  "status": "pass",
+  "recommended_branch_id": "derived_urgent_target_target_hot",
+  "approval_status": "operator_review_required",
+  "reason": "best_expected_score_requiring_operator_review",
+  "ranked_branch_ids": [
+    "derived_urgent_target_target_hot",
+    "derived_target_revisit_target_hot",
+    "derived_combined_mission_state",
+    "operator_placeholder_urgent"
+  ],
+  "tradeoffs": [
+    {
+      "dimension": "expected_score",
+      "baseline": 425.36900076591616,
+      "recommended": 2835.3981832107565,
+      "delta": 2410.0291824448404
+    },
+    {
+      "dimension": "mission_value",
+      "baseline": 1417.2731832107565,
+      "recommended": 3577.2731832107565,
+      "delta": 2160
+    },
+    {
+      "dimension": "approval_count",
+      "baseline": 0,
+      "recommended": 1,
+      "delta": 1
+    }
+  ],
+  "explanation": [
+    {
+      "type": "strategic_addition",
+      "activity_id": "derived_urgent_target_target_hot_urgent_observe_target_hot",
+      "target_id": "target_hot",
+      "feasibility_status": "validated_candidate_window",
+      "reason": "urgent_high_priority_target_inserted",
+      "requires_approval": true
+    },
+    {
+      "type": "approval_driver",
+      "activity_id": "derived_urgent_target_target_hot_urgent_observe_target_hot",
+      "classification": "operator_review_required",
+      "action": "approve_strategic_addition",
+      "reason": "urgent_high_priority_target_inserted"
+    },
+    {
+      "type": "branch_event_summary",
+      "recommended_branch_id": "derived_urgent_target_target_hot",
+      "reason": "recommended branch includes strategy branch events",
+      "branch_event_count": 1,
+      "branch_event_types": [
+        "urgent_target"
+      ],
+      "branch_event_trust_boundary_status_counts": {
+        "declared": 1
+      },
+      "branch_transition_types": [
+        "approval_state_changed"
+      ],
+      "branch_transition_categories": [
+        "urgent_retarget_review"
+      ],
+      "branch_transition_reasons": [
+        "operator review required for urgent retarget"
+      ],
+      "branch_requires_operator_review": true,
+      "branch_requires_operator_review_count": 1,
+      "combined_source_branch_ids": [
+        "derived_urgent_target_target_hot"
+      ],
+      "branch_target_ids": [
+        "target_hot"
+      ],
+      "branch_feedback_scopes": [
+        "strategy_branch"
+      ]
+    },
+    {
+      "type": "branch_tradeoff",
+      "baseline_branch_id": "baseline",
+      "recommended_branch_id": "derived_urgent_target_target_hot",
+      "summary": "recommended branch has the best selectable expected score under policy"
+    }
+  ],
+  "risks_remaining": [
+    {
+      "type": "no_viable_downlink",
+      "severity": "high",
+      "reason": "branch has no downlink activity"
+    },
+    {
+      "type": "downlink_capacity_low",
+      "severity": "medium",
+      "reason": "downlink capacity margin below required completion target",
+      "value": 0.62
+    }
+  ],
+  "requires_approval": [
+    {
+      "schema_contract": "approval_requirement.v1",
+      "activity_id": "derived_urgent_target_target_hot_urgent_observe_target_hot",
+      "activity_type": "observe",
+      "action": "approve_strategic_addition",
+      "reason": "urgent_high_priority_target_inserted",
+      "requirement_type": "strategic_addition",
+      "policy_classification": "operator_review_required",
+      "approval_rule_matches": [
+        {
+          "rule_id": "strategic_urgent_review",
+          "activity_id": "derived_urgent_target_target_hot_urgent_observe_target_hot",
+          "activity_type": "observe",
+          "classification": "operator_review_required",
+          "action": "approve_strategic_addition",
+          "reason": "strategic urgent target insertion requires operator review",
+          "requirement_type": "strategic_addition"
+        }
+      ]
+    }
+  ]
+}

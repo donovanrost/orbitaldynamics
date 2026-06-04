@@ -1,0 +1,50 @@
+{
+  "schema_contract": "contact_intent.v1",
+  "id": "refresh_downlink",
+  "activity_id": "refresh_downlink",
+  "activity_type": "downlink",
+  "scenario_id": "leo_1",
+  "ground_station_id": "equator_prime",
+  "direction": "downlink",
+  "starts_at_s": 100.0,
+  "ends_at_s": 160.0,
+  "estimated_throughput_mb": 120.0,
+  "source_window_id": "window:leo_1:ground_station_access:equator_prime:1",
+  "station_availability": "available",
+  "schedule_conflict_status": "not_evaluated",
+  "cadence_import": {
+    "external_id": "refresh_downlink",
+    "activity_type": "contact",
+    "schema_contract": "proposed_contact.v1"
+  },
+  "approval_status": "operator_review_required",
+  "approval_requirements": [
+    {
+      "schema_contract": "approval_requirement.v1",
+      "id": "approval:refresh_downlink",
+      "activity_id": "refresh_downlink",
+      "activity_type": "downlink",
+      "action": "review_contact_intent",
+      "requirement_type": "contact_schedule_change",
+      "reason": "contact intent requires schedule authority"
+    }
+  ],
+  "approval_rule_matches": [
+    {
+      "rule_id": "downlink_schedule_authority_review",
+      "required_authority": "contact_schedule_authority"
+    }
+  ],
+  "policy_decision": {
+    "schema_contract": "policy_decision.v1",
+    "policy_bundle_id": "command_contact_authority_v1",
+    "classification": "operator_review_required"
+  },
+  "model_limits": [
+    "no_link_budget_model",
+    "no_provider_reservation",
+    "no_schedule_mutation",
+    "no_command_execution",
+    "station_availability_is_declared_or_not_evaluated"
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "assumptions": {
+    "constraint_model": "artifact_level_metric_thresholds",
+    "missing_or_nil_values": "fail",
+    "source": "study_metadata.constraints"
+  },
+  "constraint_count": 2,
+  "model": "artifact_metric_threshold",
+  "model_limits": [
+    "artifact_level_only",
+    "no_rerun_propagation",
+    "missing_or_nil_values_fail",
+    "numeric_threshold_violations_can_be_warnings",
+    "uses_report_metric_rows"
+  ],
+  "row_count": 3,
+  "rows": [
+    {
+      "constraint_id": "minimum_operational_altitude",
+      "metric": "min_altitude_km",
+      "operator": ">=",
+      "scenario_id": "dispersion_1",
+      "score": 0.42,
+      "status": "pass",
+      "threshold": 621.5,
+      "value": 621.92
+    },
+    {
+      "constraint_id": "minimum_operational_altitude",
+      "metric": "min_altitude_km",
+      "operator": ">=",
+      "scenario_id": "dispersion_2",
+      "score": -0.31,
+      "status": "fail",
+      "threshold": 621.5,
+      "value": 621.19
+    },
+    {
+      "constraint_id": "downlink_margin",
+      "metric": "estimated_throughput_mb",
+      "operator": ">=",
+      "scenario_id": "dispersion_3",
+      "status": "warning",
+      "threshold": 120.0
+    }
+  ],
+  "schema_contract": "constraint_report.v1",
+  "status": "fail",
+  "status_counts": {
+    "fail": 1,
+    "pass": 1,
+    "warning": 1
+  }
+}

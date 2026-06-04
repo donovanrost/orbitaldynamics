@@ -1,0 +1,190 @@
+{
+  "schema_version": 1,
+  "study_id": "mission_plan_checkout",
+  "central_body": "earth",
+  "propagator": "two_body",
+  "propagator_opts": {
+    "max_step_s": 10.0
+  },
+  "outputs": ["trajectories"],
+  "metadata": {
+    "description": "Mission-plan activity timeline compiled into a propagation scenario"
+  },
+  "mission_plans": [
+    {
+      "id": "ops_checkout",
+      "spacecraft": {
+        "id": "demo_sat",
+        "dry_mass_kg": 250.0
+      },
+      "initial_state": {
+        "position_km": [7000.0, 0.0, 0.0],
+        "velocity_km_s": [0.0, 7.546053290107541, 0.0],
+        "epoch": {
+          "seconds_since_j2000": 0.0,
+          "scale": "tdb"
+        },
+        "frame": "earth_inertial_j2000"
+      },
+      "horizon_s": 600.0,
+      "output_step_s": 60.0,
+      "metadata": {
+        "objective": "checkout"
+      },
+      "activities": [
+        {
+          "id": "initial_coast",
+          "type": "coast",
+          "start_s": 0.0,
+          "end_s": 120.0
+        },
+        {
+          "id": "trim_burn",
+          "type": "impulsive_burn",
+          "epoch_s": 180.0,
+          "delta_v_km_s": [0.0, 0.01, 0.0]
+        },
+        {
+          "id": "target_pass",
+          "type": "observe",
+          "start_s": 240.0,
+          "end_s": 360.0,
+          "target_id": "target_a",
+          "pointing_mode": "target_track",
+          "pointing_target_id": "target_a",
+          "boresight_axis": "+Z",
+          "off_nadir_angle_deg": 12.5,
+          "slew_angle_deg": 4.0,
+          "slew_rate_deg_s": 0.2,
+          "pointing_error_deg": 0.05,
+          "pointing_status": "declared",
+          "pointing_model": "operator_supplied",
+          "pointing_source": "mission_database",
+          "pointing_confidence": 0.9,
+          "attitude_mode": "target_track",
+          "attitude_target_id": "target_a",
+          "roll_deg": 1.0,
+          "pitch_deg": -0.5,
+          "yaw_deg": 2.0,
+          "attitude_error_deg": 0.05,
+          "attitude_status": "declared",
+          "attitude_model": "operator_supplied",
+          "attitude_source": "mission_database",
+          "attitude_confidence": 0.9,
+          "thermal_zone_id": "payload_bus",
+          "temperature_c": 18.5,
+          "planned_temperature_c": 19.0,
+          "actual_temperature_c": 21.0,
+          "min_operating_temperature_c": -5.0,
+          "max_operating_temperature_c": 40.0,
+          "thermal_margin_c": 19.0,
+          "thermal_status": "nominal",
+          "thermal_model": "operator_supplied",
+          "thermal_source": "mission_database",
+          "thermal_confidence": 0.8,
+          "metadata": {
+            "mode": "nadir"
+          }
+        },
+        {
+          "id": "downlink_pass",
+          "type": "downlink",
+          "scenario_id": "ops_checkout",
+          "spacecraft_id": "demo_sat",
+          "start_s": 420.0,
+          "end_s": 540.0,
+          "ground_station_id": "dss_14",
+          "status": "approved",
+          "approval_status": "approved",
+          "locked": true,
+          "timeline_id": "timeline:downlink_pass",
+          "resource_id": "payload_bus",
+          "resource_source_quality": "declared",
+          "resource_trust_boundary": "operator_supplied",
+          "resource_trust_boundary_status": "declared",
+          "resource_provenance": {
+            "source": "mission_database"
+          },
+          "resource_blocking_dimension": "power",
+          "fuel_margin": 0.72,
+          "power_margin": 0.35,
+          "storage_margin": 0.42,
+          "downlink_margin": 0.51,
+          "battery_capacity_wh": 240.0,
+          "battery_energy_used_wh": 88.0,
+          "battery_state_of_charge": 0.68,
+          "spacecraft_available": true,
+          "payload_available": false,
+          "antenna_available": true,
+          "degraded": true,
+          "mode": "payload_safe",
+          "incompatible_activity_types": ["observe"],
+          "suppressed_activity_types": ["downlink"],
+          "collection_id": "collection_alpha",
+          "product_id": "image_alpha_1",
+          "product_ids": ["image_alpha_1", "image_alpha_2"],
+          "payload_id": "camera_a",
+          "instrument_id": "wide_field",
+          "data_volume_mb": 120.0,
+          "planned_data_volume_mb": 120.0,
+          "actual_data_volume_mb": 90.0,
+          "estimated_data_volume_mb": 120.0,
+          "estimated_storage_mb": 120.0,
+          "estimated_downlink_mb": 118.0,
+          "required_downlink_mb": 100.0,
+          "collection_ends_at_s": 360.0,
+          "planned_delivery_at_s": 540.0,
+          "actual_delivery_at_s": 550.0,
+          "max_latency_s": 240.0,
+          "planned_latency_s": 180.0,
+          "actual_latency_s": 190.0,
+          "planned_estimated_throughput_mb": 118.0,
+          "actual_throughput_mb": 96.0,
+          "dependencies": ["target_pass"],
+          "dependency_activity_ids": ["target_pass"],
+          "dependency_timeline_ids": ["timeline:target_pass"],
+          "exclusive_with_activity_ids": ["cmd_window"],
+          "exclusive_with_timeline_ids": ["timeline:cmd_window"],
+          "exclusivity_group": "dss_14",
+          "source_window_id": "window:ops_checkout:ground_station_access:dss_14:1",
+          "source_window_type": "ground_station_access",
+          "source_window": {
+            "id": "window:ops_checkout:ground_station_access:dss_14:1",
+            "type": "ground_station_access",
+            "provider": "candidate_refresh.v1"
+          },
+          "cadence_import": {
+            "external_id": "cadence:contact:downlink_pass",
+            "activity_type": "contact",
+            "schema_contract": "cadence_import_manifest.v1"
+          },
+          "provenance": {
+            "source": "operator_review"
+          }
+        },
+        {
+          "id": "cmd_window",
+          "type": "command",
+          "start_s": 545.0,
+          "end_s": 555.0,
+          "ground_station_id": "dss_14",
+          "approval_status": "pending"
+        },
+        {
+          "id": "health_poll",
+          "type": "health_check",
+          "start_s": 560.0,
+          "end_s": 570.0
+        },
+        {
+          "id": "uplink_contact",
+          "type": "planned_contact",
+          "start_s": 580.0,
+          "end_s": 595.0,
+          "ground_station_id": "dss_14",
+          "direction": "uplink"
+        }
+      ]
+    }
+  ]
+}

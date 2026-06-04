@@ -1,0 +1,12544 @@
+defmodule OrbitalDynamics.ValidationTest do
+  use ExUnit.Case, async: true
+
+  alias OrbitalDynamics.EventDetectors.{
+    AccessWindows,
+    Eclipses,
+    GroundTrackCrossings,
+    TargetVisibility
+  }
+
+  alias OrbitalDynamics.Communications.{ContactAllocation, ContactContention, StationCalendar}
+  alias OrbitalDynamics.Propagators.{J2, TwoBody, TwoBodyNxCompiled}
+
+  alias OrbitalDynamics.{
+    CadenceImport,
+    CandidateRefresh,
+    CentralBody,
+    Environment,
+    Epoch,
+    Frame,
+    GroundStation,
+    ResultSet,
+    ResourceFilter,
+    ResourceProjection,
+    Scenario,
+    Schema,
+    Spacecraft,
+    StateVector,
+    Target,
+    Trajectory,
+    OperatorReview,
+    OperationalReadiness,
+    Validation
+  }
+
+  alias OrbitalDynamics.ResultSet.Artifact
+
+  test "fetches validation records by model id and implementation module" do
+    assert {:ok, %{"validation_level" => "educational", "model" => "point_mass_two_body"}} =
+             Validation.record("propagator.two_body")
+
+    assert {:ok, %{"id" => "propagator.j2", "validation_level" => "educational"}} =
+             Validation.record(J2)
+
+    assert {:ok, %{"validation_level" => "educational"}} = Validation.record(TwoBodyNxCompiled)
+  end
+
+  test "public facades expose validation records policies and fixture verification" do
+    assert OrbitalDynamics.validation_registry() == Validation.registry()
+
+    assert OrbitalDynamics.validation_record("propagator.two_body") ==
+             Validation.record("propagator.two_body")
+
+    assert OrbitalDynamics.validation_tolerance_policy() == Validation.tolerance_policy()
+
+    assert OrbitalDynamics.validation_model_acceptance_report(["event.access_windows"]) ==
+             Validation.model_acceptance_report(["event.access_windows"])
+
+    assert OrbitalDynamics.validation_safety_case_summary([]) ==
+             Validation.safety_case_summary([])
+
+    assert OrbitalDynamics.validation_schema_migration_report() ==
+             Validation.schema_migration_report()
+
+    schema_migration_opts = [
+      deprecated_contracts: %{"campaign_plan.v1" => "campaign_strategy.v3"},
+      future_contracts: [
+        %{
+          schema_contract: "campaign_plan.v2",
+          artifact_family: "campaign_plan",
+          schema_version: 2,
+          replacement_contract: "campaign_strategy.v3",
+          required_field_count: 12,
+          optional_field_count: 3,
+          nested_contract_count: 4
+        }
+      ]
+    ]
+
+    schema_migration_report =
+      OrbitalDynamics.validation_schema_migration_report(schema_migration_opts)
+
+    assert schema_migration_report == Validation.schema_migration_report(schema_migration_opts)
+
+    assert %{
+             "status" => "review_required",
+             "deprecated_contract_count" => 1,
+             "future_contract_count" => 1,
+             "status_counts" => %{"current" => 116, "deprecated" => 1, "future" => 1},
+             "migration_action_counts" => %{
+               "continue_current_contract" => 116,
+               "plan_replacement" => 1,
+               "prepare_future_contract" => 1
+             }
+           } = schema_migration_report
+
+    assert OrbitalDynamics.backend_acceptance_policy() == Validation.backend_acceptance_policy()
+
+    assert OrbitalDynamics.backend_acceptance_evidence(TwoBody) ==
+             Validation.backend_acceptance_evidence(TwoBody)
+
+    assert OrbitalDynamics.dependency_policy() == Validation.dependency_policy()
+    assert OrbitalDynamics.validation_reference_fixtures() == Validation.reference_fixtures()
+
+    fixture_id = "fixture.two_body.circular_leo_600s"
+
+    assert OrbitalDynamics.validation_reference_fixture(fixture_id) ==
+             Validation.reference_fixture(fixture_id)
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert OrbitalDynamics.verify_validation_reference_fixture(fixture_id, fixture["expected"]) ==
+             Validation.verify_reference_fixture(fixture_id, fixture["expected"])
+
+    assert %{"schema_contract" => "validation_reference_fixture_report.v1"} =
+             OrbitalDynamics.validation_reference_fixture_report(%{
+               fixture_id => fixture["expected"]
+             })
+  end
+
+  test "builds model acceptance reports for declared intended use" do
+    report =
+      Validation.model_acceptance_report(
+        [
+          "orbit_data.simple_json",
+          "event.access_windows",
+          "propagator.two_body",
+          "missing.model"
+        ],
+        intended_use: :operational_import
+      )
+
+    assert %{
+             "schema_contract" => "model_acceptance_report.v1",
+             "model" => "registry_model_acceptance_classifier",
+             "intended_use" => "operational_import",
+             "status" => "blocked",
+             "model_count" => 4,
+             "accepted_count" => 1,
+             "review_required_count" => 1,
+             "blocked_count" => 2,
+             "unknown_model_count" => 1,
+             "status_counts" => %{
+               "accepted" => 1,
+               "blocked" => 2,
+               "review_required" => 1
+             },
+             "validation_level_counts" => %{
+               "artifact_contract" => 1,
+               "analysis" => 1,
+               "educational" => 1,
+               "unknown" => 1
+             },
+             "model_ids_by_status" => %{
+               "accepted" => ["orbit_data.simple_json"],
+               "blocked" => ["propagator.two_body", "missing.model"],
+               "review_required" => ["event.access_windows"]
+             },
+             "model_ids_by_validation_level" => %{
+               "analysis" => ["event.access_windows"],
+               "artifact_contract" => ["orbit_data.simple_json"],
+               "educational" => ["propagator.two_body"],
+               "unknown" => ["missing.model"]
+             },
+             "model_ids_by_intended_use" => %{
+               "operational_import" => [
+                 "orbit_data.simple_json",
+                 "event.access_windows",
+                 "propagator.two_body",
+                 "missing.model"
+               ]
+             }
+           } = report
+
+    assert [
+             %{"model_id" => "orbit_data.simple_json", "status" => "accepted"},
+             %{"model_id" => "event.access_windows", "status" => "review_required"},
+             %{"model_id" => "propagator.two_body", "status" => "blocked"},
+             %{"model_id" => "missing.model", "status" => "blocked"}
+           ] = report["rows"]
+
+    assert length(report["records"]) == 3
+    assert Enum.all?(report["records"], &(&1["schema_contract"] == "validation_record.v1"))
+
+    assert {:ok, %{"schema_contract" => "model_acceptance_report.v1"}} =
+             Schema.validate_artifact(report, schema_contract: "model_acceptance_report.v1")
+
+    invalid_report = Map.put(report, "accepted_count", 99)
+
+    assert {:error, validation_report} =
+             Schema.validate_artifact(invalid_report,
+               schema_contract: "model_acceptance_report.v1"
+             )
+
+    assert Enum.any?(validation_report["errors"], &(&1["path"] == "$.accepted_count"))
+
+    stale_model_report = Map.put(report, "model", "stale_model_acceptance_classifier")
+
+    assert {:error, validation_report} =
+             Schema.validate_artifact(stale_model_report,
+               schema_contract: "model_acceptance_report.v1"
+             )
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] == "must equal \"registry_model_acceptance_classifier\"")
+           )
+
+    stale_status_counts = put_in(report, ["status_counts", "blocked"], 1)
+
+    assert {:error, validation_report} =
+             Schema.validate_artifact(stale_status_counts,
+               schema_contract: "model_acceptance_report.v1"
+             )
+
+    assert Enum.any?(validation_report["errors"], &(&1["path"] == "$.status_counts"))
+
+    stale_routing_report = put_in(report, ["model_ids_by_status", "accepted"], ["missing.model"])
+
+    assert {:error, validation_report} =
+             Schema.validate_artifact(stale_routing_report,
+               schema_contract: "model_acceptance_report.v1"
+             )
+
+    assert Enum.any?(validation_report["errors"], &(&1["path"] == "$.model_ids_by_status"))
+
+    capabilities = Validation.capabilities()
+
+    assert :model_acceptance_status_counts in capabilities.summary_semantics
+    assert :model_acceptance_model_ids_by_status in capabilities.summary_semantics
+    assert :model_acceptance_model_ids_by_validation_level in capabilities.summary_semantics
+    assert :model_acceptance_model_ids_by_intended_use in capabilities.summary_semantics
+  end
+
+  test "summarizes validation safety-case evidence without granting authority" do
+    model_acceptance_report =
+      Validation.model_acceptance_report(
+        [
+          "orbit_data.simple_json",
+          "event.access_windows",
+          "propagator.two_body",
+          "missing.model"
+        ],
+        intended_use: :operational_import
+      )
+
+    operational_readiness_report = %{
+      "schema_contract" => "operational_readiness_report.v1",
+      "status" => "review_required",
+      "readiness_level" => "operator_review",
+      "import_classification" => "review_only",
+      "review_gate_count" => 1,
+      "blocked_gate_count" => 0,
+      "evidence" => %{
+        "ready_for_import_count" => 0,
+        "review_required_count" => 1
+      }
+    }
+
+    quality_gate_report = %{
+      "schema_contract" => "quality_gate_report.v1",
+      "status" => "review_required",
+      "readiness_level" => "operator_review",
+      "import_classification" => "review_only",
+      "review_gate_count" => 1,
+      "analysis_gate_count" => 0,
+      "blocked_gate_count" => 0
+    }
+
+    schema_validation_report = %{
+      "schema_contract" => "schema_validation_report.v1",
+      "status" => "fail",
+      "validated_contract" => "candidate_refresh.v1",
+      "error_count" => 1,
+      "warning_count" => 2
+    }
+
+    schema_validation_batch_report = %{
+      "schema_contract" => "schema_validation_batch_report.v1",
+      "status" => "fail",
+      "validation_mode" => "artifact_directory",
+      "error_count" => 1,
+      "warning_count" => 1,
+      "reports" => [
+        %{
+          "path" => "study_results/good.json",
+          "report" => %{"schema_contract" => "schema_validation_report.v1", "status" => "pass"}
+        },
+        %{
+          "path" => "study_results/bad.json",
+          "report" => %{"schema_contract" => "schema_validation_report.v1", "status" => "fail"}
+        }
+      ]
+    }
+
+    fixture_report = %{
+      "schema_contract" => "validation_reference_fixture_report.v1",
+      "status" => "fail",
+      "fixture_count" => 2,
+      "reports" => [
+        %{"fixture_id" => "fixture.pass", "status" => "pass"},
+        %{"fixture_id" => "fixture.fail", "status" => "fail"}
+      ]
+    }
+
+    assert %{
+             "schema_contract" => "validation_safety_case_summary.v1",
+             "schema_version" => 1,
+             "model" => "artifact_only_validation_safety_case_summary",
+             "source" => "validation.safety_case_evidence",
+             "summary_id" => "validation_safety_case:case:refresh-import",
+             "case_id" => "case:refresh-import",
+             "status" => "blocked",
+             "evidence_count" => 6,
+             "input_contracts" => [
+               "model_acceptance_report.v1",
+               "operational_readiness_report.v1",
+               "quality_gate_report.v1",
+               "schema_validation_batch_report.v1",
+               "schema_validation_report.v1",
+               "validation_reference_fixture_report.v1"
+             ],
+             "evidence_status_counts" => %{
+               "blocked" => 4,
+               "review_required" => 2
+             },
+             "evidence_refs_by_status" => %{
+               "blocked" => [
+                 "model_acceptance_report.v1:model_acceptance:operational_import:orbit_data.simple_json__event.access_windows__propagator.two_body__missing.model",
+                 "schema_validation_report.v1:candidate_refresh.v1",
+                 "schema_validation_batch_report.v1:artifact_directory",
+                 "validation_reference_fixture_report.v1:6"
+               ],
+               "review_required" => [
+                 "operational_readiness_report.v1:2",
+                 "quality_gate_report.v1:3"
+               ]
+             },
+             "evidence_refs_by_contract" => %{
+               "model_acceptance_report.v1" => [
+                 "model_acceptance_report.v1:model_acceptance:operational_import:orbit_data.simple_json__event.access_windows__propagator.two_body__missing.model"
+               ],
+               "operational_readiness_report.v1" => ["operational_readiness_report.v1:2"],
+               "quality_gate_report.v1" => ["quality_gate_report.v1:3"],
+               "schema_validation_batch_report.v1" => [
+                 "schema_validation_batch_report.v1:artifact_directory"
+               ],
+               "schema_validation_report.v1" => [
+                 "schema_validation_report.v1:candidate_refresh.v1"
+               ],
+               "validation_reference_fixture_report.v1" => [
+                 "validation_reference_fixture_report.v1:6"
+               ]
+             },
+             "blocked_evidence_count" => 4,
+             "review_required_evidence_count" => 2,
+             "model_accepted_count" => 1,
+             "model_review_required_count" => 1,
+             "model_blocked_count" => 2,
+             "unknown_model_count" => 1,
+             "readiness_review_required_count" => 2,
+             "readiness_blocked_count" => 0,
+             "ready_for_import_count" => 0,
+             "quality_gate_review_count" => 1,
+             "quality_gate_blocked_count" => 0,
+             "schema_error_count" => 2,
+             "schema_warning_count" => 3,
+             "schema_validation_report_count" => 2,
+             "schema_validation_failed_report_count" => 1,
+             "fixture_passed_count" => 1,
+             "fixture_failed_count" => 1,
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_cadence_write",
+               "certification_authority" => "not_granted_by_summary",
+               "operator_authority" => "not_granted_by_summary"
+             }
+           } =
+             safety_case_summary =
+             Validation.safety_case_summary(
+               [
+                 model_acceptance_report,
+                 operational_readiness_report,
+                 quality_gate_report,
+                 schema_validation_report,
+                 schema_validation_batch_report,
+                 fixture_report
+               ],
+               case_id: "case:refresh-import"
+             )
+
+    assert {:ok, %{"schema_contract" => "validation_safety_case_summary.v1"}} =
+             Schema.validate_artifact(safety_case_summary,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert {:ok, safety_case_schema} =
+             Schema.json_schema("validation_safety_case_summary.v1")
+
+    assert get_in(safety_case_schema, ["properties", "model", "const"]) ==
+             "artifact_only_validation_safety_case_summary"
+
+    model_evidence_index =
+      Enum.find_index(
+        safety_case_summary["evidence"],
+        &(&1["schema_contract"] == "model_acceptance_report.v1")
+      )
+
+    assert %{
+             "status_counts" => %{
+               "accepted" => 1,
+               "blocked" => 2,
+               "review_required" => 1
+             },
+             "model_ids_by_status" => %{
+               "accepted" => ["orbit_data.simple_json"],
+               "blocked" => ["propagator.two_body", "missing.model"],
+               "review_required" => ["event.access_windows"]
+             },
+             "model_ids_by_validation_level" => %{
+               "analysis" => ["event.access_windows"],
+               "artifact_contract" => ["orbit_data.simple_json"],
+               "educational" => ["propagator.two_body"],
+               "unknown" => ["missing.model"]
+             },
+             "model_ids_by_intended_use" => %{
+               "operational_import" => [
+                 "orbit_data.simple_json",
+                 "event.access_windows",
+                 "propagator.two_body",
+                 "missing.model"
+               ]
+             }
+           } = Enum.at(safety_case_summary["evidence"], model_evidence_index)
+
+    stale_model_status_counts =
+      put_in(
+        safety_case_summary,
+        ["evidence", Access.at(model_evidence_index), "status_counts", "blocked"],
+        1
+      )
+
+    assert {:error, stale_model_status_counts_report} =
+             Schema.validate_artifact(stale_model_status_counts,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_status_counts_report["errors"],
+             &(&1["path"] == "$.evidence[#{model_evidence_index}].status_counts")
+           )
+
+    readiness_evidence_index =
+      Enum.find_index(
+        safety_case_summary["evidence"],
+        &(&1["schema_contract"] == "operational_readiness_report.v1")
+      )
+
+    assert is_integer(readiness_evidence_index)
+
+    readiness_review_count =
+      safety_case_summary["evidence"]
+      |> Enum.at(readiness_evidence_index)
+      |> Map.fetch!("readiness_review_required_count")
+
+    stale_readiness_evidence =
+      safety_case_summary
+      |> put_in(
+        ["evidence", Access.at(readiness_evidence_index), "readiness_review_required_count"],
+        0
+      )
+      |> Map.put(
+        "readiness_review_required_count",
+        Map.fetch!(safety_case_summary, "readiness_review_required_count") -
+          readiness_review_count
+      )
+
+    assert {:error, stale_readiness_evidence_report} =
+             Schema.validate_artifact(stale_readiness_evidence,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_readiness_evidence_report["errors"],
+             &(&1["path"] == "$.evidence[#{readiness_evidence_index}].status" and
+                 &1["message"] == "must match operational-readiness evidence counts")
+           )
+
+    quality_gate_evidence_index =
+      Enum.find_index(
+        safety_case_summary["evidence"],
+        &(&1["schema_contract"] == "quality_gate_report.v1")
+      )
+
+    assert is_integer(quality_gate_evidence_index)
+
+    quality_gate_review_count =
+      safety_case_summary["evidence"]
+      |> Enum.at(quality_gate_evidence_index)
+      |> Map.fetch!("quality_gate_review_count")
+
+    stale_quality_gate_evidence =
+      safety_case_summary
+      |> put_in(
+        ["evidence", Access.at(quality_gate_evidence_index), "quality_gate_review_count"],
+        0
+      )
+      |> Map.put(
+        "quality_gate_review_count",
+        Map.fetch!(safety_case_summary, "quality_gate_review_count") - quality_gate_review_count
+      )
+
+    assert {:error, stale_quality_gate_evidence_report} =
+             Schema.validate_artifact(stale_quality_gate_evidence,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_quality_gate_evidence_report["errors"],
+             &(&1["path"] == "$.evidence[#{quality_gate_evidence_index}].status" and
+                 &1["message"] == "must match quality-gate evidence counts")
+           )
+
+    fixture_evidence_index =
+      Enum.find_index(
+        safety_case_summary["evidence"],
+        &(&1["schema_contract"] == "validation_reference_fixture_report.v1")
+      )
+
+    assert is_integer(fixture_evidence_index)
+
+    stale_fixture_evidence =
+      safety_case_summary
+      |> put_in(["evidence", Access.at(fixture_evidence_index), "fixture_failed_count"], 0)
+      |> Map.put("fixture_failed_count", 0)
+
+    assert {:error, stale_fixture_evidence_report} =
+             Schema.validate_artifact(stale_fixture_evidence,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_fixture_evidence_report["errors"],
+             &(&1["path"] == "$.evidence[#{fixture_evidence_index}].status" and
+                 &1["message"] == "must match validation-fixture evidence counts")
+           )
+
+    operator_handoff = %{
+      "schema_contract" => "operator_review_package.v1",
+      "rows" => [
+        %{
+          "row_type" => "schema_validation_batch",
+          "source_schema_validation_batch_report" => schema_validation_batch_report
+        }
+      ]
+    }
+
+    cadence_handoff = %{
+      "schema_contract" => "cadence_import_manifest.v1",
+      "rows" => [
+        %{
+          "row_type" => "validation_reference_fixture",
+          "source_review_row" => %{
+            "source_validation_reference_fixture_report" => fixture_report
+          }
+        }
+      ]
+    }
+
+    assert %{
+             "status" => "blocked",
+             "evidence_count" => 4,
+             "input_contracts" => [
+               "cadence_import_manifest.v1",
+               "operator_review_package.v1",
+               "schema_validation_batch_report.v1",
+               "validation_reference_fixture_report.v1"
+             ],
+             "evidence_status_counts" => %{
+               "blocked" => 2,
+               "review_required" => 2
+             },
+             "schema_error_count" => 1,
+             "schema_warning_count" => 1,
+             "schema_validation_report_count" => 2,
+             "schema_validation_failed_report_count" => 1,
+             "fixture_passed_count" => 1,
+             "fixture_failed_count" => 1,
+             "evidence_refs_by_contract" => %{
+               "cadence_import_manifest.v1" => ["cadence_import_manifest.v1:3"],
+               "operator_review_package.v1" => ["operator_review_package.v1:1"],
+               "schema_validation_batch_report.v1" => [
+                 "schema_validation_batch_report.v1:artifact_directory"
+               ],
+               "validation_reference_fixture_report.v1" => [
+                 "validation_reference_fixture_report.v1:4"
+               ]
+             }
+           } =
+             handoff_summary =
+             Validation.safety_case_summary([operator_handoff, cadence_handoff],
+               case_id: "case:review-import-handoff"
+             )
+
+    assert {:ok, %{"schema_contract" => "validation_safety_case_summary.v1"}} =
+             Schema.validate_artifact(handoff_summary,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    stale_handoff_input_contracts =
+      Map.put(handoff_summary, "input_contracts", [
+        "schema_validation_batch_report.v1",
+        "validation_reference_fixture_report.v1"
+      ])
+
+    assert {:error, stale_handoff_input_contracts_report} =
+             Schema.validate_artifact(stale_handoff_input_contracts,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_handoff_input_contracts_report["errors"],
+             &(&1["path"] == "$.input_contracts")
+           )
+
+    stale_handoff_refs_by_contract =
+      put_in(handoff_summary, ["evidence_refs_by_contract", "operator_review_package.v1"], [])
+
+    assert {:error, stale_handoff_refs_by_contract_report} =
+             Schema.validate_artifact(stale_handoff_refs_by_contract,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_handoff_refs_by_contract_report["errors"],
+             &(&1["path"] == "$.evidence_refs_by_contract")
+           )
+
+    stale_summary = Map.put(safety_case_summary, "blocked_evidence_count", 99)
+
+    assert {:error, validation_report} =
+             Schema.validate_artifact(stale_summary,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert Enum.any?(validation_report["errors"], &(&1["path"] == "$.blocked_evidence_count"))
+
+    stale_status_counts =
+      put_in(safety_case_summary, ["evidence_status_counts", "blocked"], 99)
+
+    assert {:error, stale_status_counts_report} =
+             Schema.validate_artifact(stale_status_counts,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_status_counts_report["errors"],
+             &(&1["path"] == "$.evidence_status_counts")
+           )
+
+    stale_refs_by_status =
+      put_in(safety_case_summary, ["evidence_refs_by_status", "review_required"], [])
+
+    assert {:error, stale_refs_by_status_report} =
+             Schema.validate_artifact(stale_refs_by_status,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_refs_by_status_report["errors"],
+             &(&1["path"] == "$.evidence_refs_by_status")
+           )
+
+    stale_refs_by_contract =
+      put_in(safety_case_summary, ["evidence_refs_by_contract", "quality_gate_report.v1"], [])
+
+    assert {:error, stale_refs_by_contract_report} =
+             Schema.validate_artifact(stale_refs_by_contract,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_refs_by_contract_report["errors"],
+             &(&1["path"] == "$.evidence_refs_by_contract")
+           )
+
+    assert %{"status" => "missing_evidence", "evidence_count" => 0} =
+             empty_summary =
+             Validation.safety_case_summary([])
+
+    refute Map.has_key?(empty_summary, "evidence_refs_by_status")
+
+    assert {:ok, %{"schema_contract" => "validation_safety_case_summary.v1"}} =
+             Schema.validate_artifact(empty_summary,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    capabilities = Validation.capabilities()
+
+    assert :validation_safety_case_evidence_status_counts in capabilities.summary_semantics
+    assert :validation_safety_case_evidence_refs_by_status in capabilities.summary_semantics
+    assert :validation_safety_case_evidence_refs_by_contract in capabilities.summary_semantics
+
+    assert :validation_safety_case_model_count_rollups in capabilities.safety_case_evidence_semantics
+
+    assert :validation_safety_case_readiness_count_rollups in capabilities.safety_case_evidence_semantics
+
+    assert :validation_safety_case_quality_gate_count_rollups in capabilities.safety_case_evidence_semantics
+
+    assert :validation_safety_case_schema_validation_count_rollups in capabilities.safety_case_evidence_semantics
+
+    assert :validation_safety_case_schema_validation_batch_nested_status_floor in capabilities.safety_case_evidence_semantics
+
+    assert :validation_safety_case_fixture_count_rollups in capabilities.safety_case_evidence_semantics
+
+    assert :validation_safety_case_review_import_handoff_evidence in capabilities.safety_case_evidence_semantics
+  end
+
+  test "discovers nested schema-validation batch evidence in safety-case inputs" do
+    wrapper = %{
+      "schema_validation_batch_report" => %{
+        "schema_contract" => "schema_validation_batch_report.v1",
+        "status" => "fail",
+        "validation_mode" => "artifact_directory",
+        "input_dir" => "study_results",
+        "error_count" => 2,
+        "warning_count" => 1,
+        "reports" => [
+          %{
+            "path" => "study_results/bad.json",
+            "report" => %{"schema_contract" => "schema_validation_report.v1", "status" => "fail"}
+          }
+        ]
+      },
+      "source_schema_validation_batch_report" => %{
+        "schema_contract" => "schema_validation_batch_report.v1",
+        "status" => "pass",
+        "validation_mode" => "source_artifacts",
+        "error_count" => 0,
+        "warning_count" => 0,
+        "reports" => [
+          %{
+            "path" => "source/good.json",
+            "report" => %{"schema_contract" => "schema_validation_report.v1", "status" => "pass"}
+          }
+        ]
+      }
+    }
+
+    assert %{
+             "status" => "blocked",
+             "evidence_count" => 2,
+             "schema_error_count" => 2,
+             "schema_warning_count" => 1,
+             "schema_validation_report_count" => 2,
+             "schema_validation_failed_report_count" => 1,
+             "evidence_refs_by_status" => %{
+               "accepted_for_use" => [
+                 "schema_validation_batch_report.v1:source_artifacts"
+               ],
+               "blocked" => [
+                 "schema_validation_batch_report.v1:study_results"
+               ]
+             },
+             "evidence_refs_by_contract" => %{
+               "schema_validation_batch_report.v1" => [
+                 "schema_validation_batch_report.v1:study_results",
+                 "schema_validation_batch_report.v1:source_artifacts"
+               ]
+             }
+           } = Validation.safety_case_summary(wrapper)
+
+    stale_top_level_batch = %{
+      "schema_contract" => "schema_validation_batch_report.v1",
+      "status" => "pass",
+      "validation_mode" => "artifact_directory",
+      "input_dir" => "study_results",
+      "error_count" => 0,
+      "warning_count" => 0,
+      "reports" => [
+        %{
+          "path" => "study_results/bad.json",
+          "report" => %{
+            "schema_contract" => "schema_validation_report.v1",
+            "status" => "fail",
+            "error_count" => 1
+          }
+        },
+        %{
+          "path" => "study_results/error.json",
+          "report" => %{
+            "schema_contract" => "schema_validation_report.v1",
+            "status" => "error",
+            "error_count" => 1
+          }
+        }
+      ]
+    }
+
+    assert %{
+             "status" => "blocked",
+             "evidence_status_counts" => %{"blocked" => 1},
+             "schema_validation_failed_report_count" => 2,
+             "evidence" => [
+               %{
+                 "schema_contract" => "schema_validation_batch_report.v1",
+                 "status" => "blocked",
+                 "schema_validation_failed_report_count" => 2
+               }
+             ]
+           } = stale_batch_summary = Validation.safety_case_summary(stale_top_level_batch)
+
+    assert {:ok, %{"schema_contract" => "validation_safety_case_summary.v1"}} =
+             Schema.validate_artifact(stale_batch_summary,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    stale_batch_evidence =
+      stale_batch_summary
+      |> put_in(["evidence", Access.at(0), "schema_validation_failed_report_count"], 0)
+      |> Map.put("schema_validation_failed_report_count", 0)
+
+    assert {:error, stale_batch_evidence_report} =
+             Schema.validate_artifact(stale_batch_evidence,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_batch_evidence_report["errors"],
+             &(&1["path"] == "$.evidence[0].status" and
+                 &1["message"] == "must match schema-validation batch evidence counts")
+           )
+  end
+
+  test "discovers schema-validation evidence preserved in review and import containers" do
+    schema_validation_report = %{
+      "schema_contract" => "schema_validation_report.v1",
+      "validation_mode" => "artifact_file",
+      "validated_contract" => "candidate_refresh.v1",
+      "status" => "fail",
+      "error_count" => 1,
+      "warning_count" => 0,
+      "errors" => [
+        %{
+          "severity" => "error",
+          "path" => "$.targets",
+          "message" => "must include at least one target"
+        }
+      ],
+      "warnings" => [],
+      "remediation_count" => 1,
+      "remediation" => [
+        %{
+          "path" => "$.targets",
+          "category" => "missing_required_field",
+          "action" => "Populate this required field"
+        }
+      ]
+    }
+
+    wrapper = %{
+      "source_operator_review_package" =>
+        OperatorReview.from_schema_validation_report(schema_validation_report),
+      "source_cadence_import_manifest" =>
+        CadenceImport.from_schema_validation_report(schema_validation_report)
+    }
+
+    assert %{
+             "status" => "blocked",
+             "evidence_count" => 2,
+             "schema_error_count" => 2,
+             "schema_warning_count" => 0,
+             "evidence_refs_by_contract" => %{
+               "schema_validation_report.v1" => [
+                 "schema_validation_report.v1:candidate_refresh.v1",
+                 "schema_validation_report.v1:candidate_refresh.v1"
+               ]
+             }
+           } = safety_case_summary = Validation.safety_case_summary(wrapper)
+
+    assert {:ok, %{"schema_contract" => "validation_safety_case_summary.v1"}} =
+             Schema.validate_artifact(safety_case_summary,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+  end
+
+  test "dependency policy keeps Nx required while EXLA remains optional" do
+    assert %{
+             "required_dependencies" => [
+               %{
+                 "package" => "nx",
+                 "backend_modules" => nx_modules
+               }
+             ],
+             "optional_dependencies" => [
+               %{
+                 "package" => "exla",
+                 "backend_modules" => exla_modules
+               }
+             ],
+             "backend_acceptance_policy" => "backend_acceptance_policy.v1",
+             "decisions" => decisions
+           } = Validation.dependency_policy()
+
+    assert "OrbitalDynamics.Propagators.TwoBodyNxCompiled" in nx_modules
+    assert "OrbitalDynamics.Propagators.TwoBodyExlaCpu" in exla_modules
+    assert "do_not_mark_nx_optional_while_nx_modules_compile_unconditionally" in decisions
+  end
+
+  test "selects validation records from result-set assumptions" do
+    result_set =
+      result_set(%{
+        propagator: TwoBody,
+        outputs: [:trajectories, :access_windows, :eclipses]
+      })
+
+    ids =
+      result_set
+      |> Validation.records_for_result_set()
+      |> Enum.map(& &1["id"])
+
+    assert ids == [
+             "propagator.two_body",
+             "event.access_windows",
+             "event.eclipses"
+           ]
+
+    assert OrbitalDynamics.validation_records_for_result_set(result_set) ==
+             Validation.records_for_result_set(result_set)
+  end
+
+  test "archives model validation records in result artifacts" do
+    artifact =
+      %{propagator: J2, outputs: [:trajectories, :target_visibility]}
+      |> result_set()
+      |> Artifact.build()
+
+    validation_ids =
+      artifact.assumptions["model_validation"]
+      |> Enum.map(& &1["id"])
+
+    assert validation_ids == ["propagator.j2", "event.target_visibility"]
+  end
+
+  test "selects ground-track crossing validation from result-set assumptions" do
+    result_set =
+      result_set(%{
+        propagator: TwoBody,
+        outputs: [:trajectories, :ground_track_crossings]
+      })
+
+    ids =
+      result_set
+      |> Validation.records_for_result_set()
+      |> Enum.map(& &1["id"])
+
+    assert ids == ["propagator.two_body", "event.ground_track_crossings"]
+  end
+
+  test "documents tolerance policy and validation level vocabulary" do
+    policy = Validation.tolerance_policy()
+
+    assert policy["schema_contract"] == "validation_tolerance_policy.v1"
+    assert policy["comparison_model"]["numeric_vectors"] =~ "maximum component-wise"
+
+    assert policy["event_timing"]["event_time_tolerance_s"] ==
+             "maximum adjacent trajectory sample spacing"
+
+    declared_levels =
+      policy["validation_levels"]
+      |> Map.keys()
+      |> MapSet.new()
+
+    registry_levels =
+      Validation.registry()
+      |> Map.values()
+      |> Enum.map(& &1["validation_level"])
+      |> MapSet.new()
+
+    fixture_levels =
+      Validation.reference_fixtures()
+      |> Map.values()
+      |> Enum.map(& &1["validation_level"])
+      |> MapSet.new()
+
+    assert MapSet.subset?(registry_levels, declared_levels)
+    assert MapSet.subset?(fixture_levels, declared_levels)
+  end
+
+  test "documents orbit-data adapter validation boundaries" do
+    assert {:ok, simple_json} = Validation.record("orbit_data.simple_json")
+    assert simple_json["validation_level"] == "artifact_contract"
+    assert simple_json["model"] == "simple_json_cartesian_state_estimate_batch"
+    assert "no hidden unit conversion" in simple_json["known_limits"]
+
+    assert {:ok, opm} = Validation.record("orbit_data.ccsds_opm_kvn")
+    assert opm["implementation"] == "OrbitalDynamics.OrbitData.import_ccsds_opm"
+    assert "Earth center only" in opm["known_limits"]
+    assert "duplicate single-value KVN fields are rejected" in opm["known_limits"]
+
+    assert "OPM covariance matrices are preserved as metadata-only evidence and are not propagated" in opm[
+             "known_limits"
+           ]
+
+    assert "unit tests import and export complete OPM covariance matrix components as metadata-only evidence" in opm[
+             "evidence"
+           ]
+
+    assert "OPM maneuver metadata is preserved as metadata-only evidence and is not propagated" in opm[
+             "known_limits"
+           ]
+
+    assert "unit tests export and re-import multiple OPM MAN_* maneuver metadata blocks from maneuver_execution_delta evidence" in opm[
+             "evidence"
+           ]
+
+    assert {:ok, oem} = Validation.record("orbit_data.ccsds_oem_kvn")
+    assert oem["tolerances"]["position_km"] == "selected sample is preserved, no interpolation"
+    assert "no interpolation despite OEM interpolation metadata" in oem["known_limits"]
+    assert "duplicate single-value KVN fields are rejected" in oem["known_limits"]
+
+    assert "OEM covariance blocks are preserved as metadata-only evidence and are not propagated" in oem[
+             "known_limits"
+           ]
+
+    assert "unit tests import and export one OEM covariance block as metadata-only evidence" in oem[
+             "evidence"
+           ]
+
+    assert {:ok, tle} = Validation.record("orbit_data.tle_metadata")
+    assert tle["implementation"] == "OrbitalDynamics.OrbitData.inspect_tle"
+    assert tle["tolerances"]["checksum"] == "exact modulo-10 TLE checksum match"
+    assert "single-object metadata preflight only" in tle["known_limits"]
+
+    assert "unit tests reject multi-object TLE drops as ambiguous metadata preflight input" in tle[
+             "evidence"
+           ]
+
+    registry_levels =
+      Validation.registry()
+      |> Map.take([
+        "orbit_data.simple_json",
+        "orbit_data.ccsds_opm_kvn",
+        "orbit_data.ccsds_oem_kvn",
+        "orbit_data.tle_metadata"
+      ])
+      |> Map.values()
+      |> Enum.map(& &1["validation_level"])
+
+    assert Enum.all?(registry_levels, &(&1 == "artifact_contract"))
+  end
+
+  test "documents backend acceptance tiers" do
+    policy = Validation.backend_acceptance_policy()
+
+    assert policy["schema_contract"] == "backend_acceptance_policy.v1"
+    assert policy["reference_backend"]["tier"] == "reference_default"
+
+    assert policy["acceptance_tiers"]["reference_default"] == %{
+             "description" => "default planning backend for current artifacts",
+             "requires_benchmark_artifact" => false,
+             "requires_reference_match" => true
+           }
+
+    assert policy["implementation_tiers"]["OrbitalDynamics.Propagators.TwoBody"] ==
+             "reference_default"
+
+    assert policy["implementation_tiers"]["OrbitalDynamics.Propagators.TwoBodyNxCompiled"] ==
+             "experimental_accelerator"
+
+    assert policy["acceptance_tiers"]["experimental_accelerator"][
+             "requires_benchmark_artifact"
+           ] == true
+
+    assert {:ok,
+            %{
+              "backend_acceptance_policy" => "backend_acceptance_policy.v1",
+              "implementation" => "OrbitalDynamics.Propagators.TwoBody",
+              "tier" => "reference_default",
+              "reference_backend" => true,
+              "requires_reference_match" => true,
+              "requires_benchmark_artifact" => false
+            }} = Validation.backend_acceptance_evidence(TwoBody)
+
+    assert {:ok,
+            %{
+              "implementation" => "OrbitalDynamics.Propagators.TwoBodyNxCompiled",
+              "tier" => "experimental_accelerator",
+              "reference_backend" => false,
+              "requires_reference_match" => true,
+              "requires_benchmark_artifact" => true
+            }} = Validation.backend_acceptance_evidence(TwoBodyNxCompiled)
+
+    assert {:error, {:unknown_backend_implementation, "UnknownBackend"}} =
+             Validation.backend_acceptance_evidence("UnknownBackend")
+
+    assert policy["comparison_requirements"]["numeric_tolerance_policy"] ==
+             "validation_tolerance_policy.v1"
+
+    assert Enum.any?(
+             policy["benchmark_reference_cases"],
+             &(&1["artifact_family"] == "orbital_dynamics.study.benchmark")
+           )
+
+    assert "speedup claims are workload-specific" in policy["known_limits"]
+  end
+
+  test "verifies curated two-body reference fixture observations" do
+    assert {:ok, fixture} = Validation.reference_fixture("fixture.two_body.circular_leo_600s")
+
+    assert fixture["model_id"] == "propagator.two_body"
+    assert fixture["fixture_type"] == "curated_internal_regression"
+
+    assert {:ok, report} =
+             Validation.verify_reference_fixture(
+               "fixture.two_body.circular_leo_600s",
+               two_body_fixture_observations()
+             )
+
+    assert report["schema_contract"] == "validation_reference_report.v1"
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+  end
+
+  test "verifies curated J2 reference fixture observations" do
+    assert {:ok, fixture} = Validation.reference_fixture("fixture.j2.circular_leo_600s")
+
+    assert fixture["model_id"] == "propagator.j2"
+    assert fixture["fixture_type"] == "curated_internal_regression"
+
+    assert {:ok, report} =
+             Validation.verify_reference_fixture(
+               "fixture.j2.circular_leo_600s",
+               j2_fixture_observations()
+             )
+
+    assert report["schema_contract"] == "validation_reference_report.v1"
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+  end
+
+  test "verifies curated access-window reference fixture observations" do
+    assert {:ok, fixture} =
+             Validation.reference_fixture("fixture.event.access.equator_overhead_120s")
+
+    assert fixture["model_id"] == "event.access_windows"
+    assert fixture["fixture_type"] == "curated_internal_regression"
+
+    assert {:ok, report} =
+             Validation.verify_reference_fixture(
+               "fixture.event.access.equator_overhead_120s",
+               access_fixture_observations()
+             )
+
+    assert report["schema_contract"] == "validation_reference_report.v1"
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+  end
+
+  test "verifies curated eclipse reference fixture observations" do
+    assert {:ok, fixture} =
+             Validation.reference_fixture("fixture.event.eclipse.cylindrical_shadow_120s")
+
+    assert fixture["model_id"] == "event.eclipses"
+    assert fixture["fixture_type"] == "curated_internal_regression"
+
+    assert {:ok, report} =
+             Validation.verify_reference_fixture(
+               "fixture.event.eclipse.cylindrical_shadow_120s",
+               eclipse_fixture_observations()
+             )
+
+    assert report["schema_contract"] == "validation_reference_report.v1"
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+  end
+
+  test "verifies curated target-visibility reference fixture observations" do
+    assert {:ok, fixture} =
+             Validation.reference_fixture("fixture.event.target_visibility.equator_overhead_120s")
+
+    assert fixture["model_id"] == "event.target_visibility"
+    assert fixture["fixture_type"] == "curated_internal_regression"
+
+    assert {:ok, report} =
+             Validation.verify_reference_fixture(
+               "fixture.event.target_visibility.equator_overhead_120s",
+               target_visibility_fixture_observations()
+             )
+
+    assert report["schema_contract"] == "validation_reference_report.v1"
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+  end
+
+  test "verifies curated ground-track crossing reference fixture observations" do
+    assert {:ok, fixture} =
+             Validation.reference_fixture("fixture.event.ground_track.latitude_equator_60s")
+
+    assert fixture["model_id"] == "event.ground_track_crossings"
+    assert fixture["fixture_type"] == "curated_internal_regression"
+
+    assert {:ok, report} =
+             Validation.verify_reference_fixture(
+               "fixture.event.ground_track.latitude_equator_60s",
+               ground_track_crossing_fixture_observations()
+             )
+
+    assert report["schema_contract"] == "validation_reference_report.v1"
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+  end
+
+  test "verifies curated campaign artifact reference fixtures" do
+    artifact =
+      "study_results/leo_constellation_campaign.json"
+      |> read_json!()
+      |> Map.fetch!("campaign_plan")
+
+    assert {:ok, fixture} =
+             Validation.reference_fixture("fixture.artifact.campaign_plan.leo_constellation_v1")
+
+    assert fixture["model_id"] == "artifact.campaign_plan.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    assert {:ok, report} =
+             Validation.verify_reference_fixture(
+               "fixture.artifact.campaign_plan.leo_constellation_v1",
+               campaign_plan_fixture_observations()
+             )
+
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+
+    assert OrbitalDynamics.validation_artifact_observations("campaign_plan.v1", artifact) ==
+             Validation.artifact_observations("campaign_plan.v1", artifact)
+  end
+
+  test "verifies curated result artifact reference fixtures" do
+    assert {:ok, fixture} =
+             Validation.reference_fixture(
+               "fixture.artifact.result_artifact.leo_constellation_campaign"
+             )
+
+    assert fixture["model_id"] == "artifact.result_artifact.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    assert {:ok, report} =
+             Validation.verify_reference_fixture(
+               "fixture.artifact.result_artifact.leo_constellation_campaign",
+               result_artifact_fixture_observations()
+             )
+
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      result_artifact_fixture_observations()
+      |> Map.put("payload_metrics_section_count", 14)
+
+    assert {:ok, stale_report} =
+             Validation.verify_reference_fixture(
+               "fixture.artifact.result_artifact.leo_constellation_campaign",
+               stale_observations
+             )
+
+    assert stale_report["status"] == "fail"
+
+    assert Enum.any?(
+             stale_report["checks"],
+             &(&1["field"] == "payload_metrics_section_count" and &1["status"] == "fail")
+           )
+
+    artifact = result_artifact_fixture()
+
+    assert OrbitalDynamics.validation_artifact_observations("result_artifact.v1", artifact) ==
+             Validation.artifact_observations("result_artifact.v1", artifact)
+
+    assert {:ok, %{"schema_contract" => "result_artifact.v1"}} =
+             Schema.validate_artifact(artifact,
+               schema_contract: "result_artifact.v1"
+             )
+
+    stale_payload_top_level_count =
+      put_in(artifact, ["payload_metrics", "top_level_key_count"], 14)
+
+    assert {:error, stale_payload_top_level_count_report} =
+             Schema.validate_artifact(stale_payload_top_level_count,
+               schema_contract: "result_artifact.v1"
+             )
+
+    assert Enum.any?(
+             stale_payload_top_level_count_report["errors"],
+             &(&1["path"] == "$.payload_metrics.top_level_key_count")
+           )
+
+    stale_payload_sections =
+      update_in(artifact, ["payload_metrics", "sections"], &Map.delete(&1, "errors"))
+
+    assert {:error, stale_payload_sections_report} =
+             Schema.validate_artifact(stale_payload_sections,
+               schema_contract: "result_artifact.v1"
+             )
+
+    assert Enum.any?(
+             stale_payload_sections_report["errors"],
+             &(&1["path"] == "$.payload_metrics.sections")
+           )
+
+    invalid_payload_section_bytes =
+      put_in(artifact, ["payload_metrics", "sections", "errors", "bytes"], -1)
+
+    assert {:error, invalid_payload_section_bytes_report} =
+             Schema.validate_artifact(invalid_payload_section_bytes,
+               schema_contract: "result_artifact.v1"
+             )
+
+    assert Enum.any?(
+             invalid_payload_section_bytes_report["errors"],
+             &(&1["path"] == "$.payload_metrics.sections.errors.bytes")
+           )
+  end
+
+  test "verifies curated result artifact variant reference fixtures" do
+    fixtures = [
+      {
+        "fixture.artifact.result_artifact.leo_access_demo",
+        leo_access_result_artifact_fixture(),
+        leo_access_result_artifact_fixture_observations(),
+        "access_window_count",
+        2
+      },
+      {
+        "fixture.artifact.result_artifact.leo_access_demo_manifest",
+        leo_access_manifest_result_artifact_fixture(),
+        leo_access_manifest_result_artifact_fixture_observations(),
+        "payload_metrics_artifact_body_bytes",
+        21_802
+      },
+      {
+        "fixture.artifact.result_artifact.ground_track_crossings",
+        ground_track_result_artifact_fixture(),
+        ground_track_result_artifact_fixture_observations(),
+        "ground_track_crossing_count",
+        11
+      },
+      {
+        "fixture.artifact.result_artifact.raise_apogee_search",
+        raise_apogee_result_artifact_fixture(),
+        raise_apogee_result_artifact_fixture_observations(),
+        "maneuver_recommendation_count",
+        3
+      },
+      {
+        "fixture.artifact.result_artifact.candidate_refresh_v1",
+        candidate_refresh_result_artifact_fixture(),
+        candidate_refresh_result_artifact_fixture_observations(),
+        "candidate_refresh_refreshed_window_count",
+        2
+      },
+      {
+        "fixture.artifact.result_artifact.candidate_refresh_orbit_data_v1",
+        candidate_refresh_orbit_data_result_artifact_fixture(),
+        candidate_refresh_orbit_data_result_artifact_fixture_observations(),
+        "payload_metrics_artifact_body_bytes",
+        81_234
+      },
+      {
+        "fixture.artifact.result_artifact.leo_dispersion_monte_carlo",
+        monte_carlo_result_artifact_fixture(),
+        monte_carlo_result_artifact_fixture_observations(),
+        "trajectory_count",
+        19
+      },
+      {
+        "fixture.artifact.result_artifact.mission_plan_checkout",
+        mission_plan_checkout_result_artifact_fixture(),
+        mission_plan_checkout_result_artifact_fixture_observations(),
+        "maneuver_recommendation_count",
+        0
+      }
+    ]
+
+    for {fixture_id, artifact, observations, stale_field, stale_value} <- fixtures do
+      assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+      assert fixture["model_id"] == "artifact.result_artifact.v1"
+      assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+      assert {:ok, verification} =
+               Validation.verify_reference_fixture(fixture_id, observations)
+
+      assert verification["status"] == "pass"
+      assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+      stale_observations = Map.put(observations, stale_field, stale_value)
+
+      assert {:ok, stale_verification} =
+               Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+      assert stale_verification["status"] == "fail"
+
+      assert Enum.any?(
+               stale_verification["checks"],
+               &(&1["field"] == stale_field and &1["status"] == "fail")
+             )
+
+      assert OrbitalDynamics.validation_artifact_observations("result_artifact.v1", artifact) ==
+               Validation.artifact_observations("result_artifact.v1", artifact)
+    end
+  end
+
+  test "verifies curated repair artifact reference fixtures" do
+    assert {:ok, fixture} =
+             Validation.reference_fixture("fixture.artifact.campaign_repair.leo_constellation_v2")
+
+    assert fixture["model_id"] == "artifact.campaign_repair.v2"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    assert {:ok, report} =
+             Validation.verify_reference_fixture(
+               "fixture.artifact.campaign_repair.leo_constellation_v2",
+               campaign_repair_fixture_observations()
+             )
+
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+  end
+
+  test "verifies curated strategy artifact reference fixtures" do
+    assert {:ok, fixture} =
+             Validation.reference_fixture(
+               "fixture.artifact.campaign_strategy.leo_constellation_v3"
+             )
+
+    assert fixture["model_id"] == "artifact.campaign_strategy.v3"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = read_json!("study_results/leo_constellation_campaign_strategy_v3.json")
+
+    assert {:ok, report} =
+             Validation.verify_reference_fixture(
+               "fixture.artifact.campaign_strategy.leo_constellation_v3",
+               campaign_strategy_fixture_observations()
+             )
+
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(artifact, schema_contract: "campaign_strategy.v3")
+
+    stale_policy_decision_count =
+      put_in(
+        artifact,
+        ["branches", Access.at(2), "policy_decision", "approval_requirement_count"],
+        3
+      )
+
+    assert {:error, stale_count_report} =
+             Schema.validate_artifact(stale_policy_decision_count,
+               schema_contract: "campaign_strategy.v3"
+             )
+
+    assert Enum.any?(
+             stale_count_report["errors"],
+             &(&1["path"] == "$.branches[2].policy_decision.approval_requirement_count")
+           )
+
+    stale_validation_safety_case_event =
+      update_in(artifact, ["branches", Access.at(2), "events"], fn events ->
+        [
+          %{
+            "type" => "validation_safety_case_pressure",
+            "validation_safety_case_status" => "blocked",
+            "evidence_status" => "blocked",
+            "input_contract" => "model_acceptance_report.v1",
+            "evidence_ref" => "model_acceptance_report.v1:model.blocked",
+            "required_operator_action" => "review_blocked_validation_safety_case",
+            "evidence_status_counts" => %{"blocked" => -1}
+          }
+          | List.wrap(events)
+        ]
+      end)
+
+    assert {:error, stale_safety_case_event_report} =
+             Schema.validate_artifact(stale_validation_safety_case_event,
+               schema_contract: "campaign_strategy.v3"
+             )
+
+    assert Enum.any?(
+             stale_safety_case_event_report["errors"],
+             &(&1["path"] == "$.branches[2].events[0].evidence_status_counts.blocked" and
+                 &1["message"] == "must be a non-negative integer")
+           )
+
+    stale_validation_safety_case_action =
+      update_in(artifact, ["branches", Access.at(2), "events"], fn events ->
+        [
+          %{
+            "type" => "validation_safety_case_pressure",
+            "validation_safety_case_status" => "blocked",
+            "evidence_status" => "blocked",
+            "input_contract" => "model_acceptance_report.v1",
+            "evidence_ref" => "model_acceptance_report.v1:model.blocked",
+            "required_operator_action" => "review_validation_safety_case"
+          }
+          | List.wrap(events)
+        ]
+      end)
+
+    assert {:error, stale_safety_case_action_report} =
+             Schema.validate_artifact(stale_validation_safety_case_action,
+               schema_contract: "campaign_strategy.v3"
+             )
+
+    assert Enum.any?(
+             stale_safety_case_action_report["errors"],
+             &(&1["path"] ==
+                 "$.branches[2].events[0].required_operator_action" and
+                 &1["message"] ==
+                   "must equal \"review_blocked_validation_safety_case\"")
+           )
+
+    stale_validation_safety_case_status =
+      update_in(artifact, ["branches", Access.at(2), "events"], fn events ->
+        [
+          %{
+            "type" => "validation_safety_case_pressure",
+            "validation_safety_case_status" => "accepted_for_use",
+            "evidence_status" => "accepted_for_use",
+            "input_contract" => "model_acceptance_report.v1",
+            "evidence_ref" => "model_acceptance_report.v1:model.accepted",
+            "required_operator_action" => "review_validation_safety_case"
+          }
+          | List.wrap(events)
+        ]
+      end)
+
+    assert {:error, stale_safety_case_status_report} =
+             Schema.validate_artifact(stale_validation_safety_case_status,
+               schema_contract: "campaign_strategy.v3"
+             )
+
+    assert Enum.any?(
+             stale_safety_case_status_report["errors"],
+             &(&1["path"] ==
+                 "$.branches[2].events[0].validation_safety_case_status" and
+                 &1["message"] =~ "must be one of")
+           )
+
+    assert Enum.any?(
+             stale_safety_case_status_report["errors"],
+             &(&1["path"] == "$.branches[2].events[0].evidence_status" and
+                 &1["message"] =~ "must be one of")
+           )
+
+    missing_validation_safety_case_evidence_status =
+      update_in(artifact, ["branches", Access.at(2), "events"], fn events ->
+        [
+          %{
+            "type" => "validation_safety_case_pressure",
+            "validation_safety_case_status" => "review_required",
+            "input_contract" => "model_acceptance_report.v1",
+            "evidence_ref" => "model_acceptance_report.v1:model.review",
+            "required_operator_action" => "review_validation_safety_case"
+          }
+          | List.wrap(events)
+        ]
+      end)
+
+    assert {:error, missing_safety_case_evidence_status_report} =
+             Schema.validate_artifact(missing_validation_safety_case_evidence_status,
+               schema_contract: "campaign_strategy.v3"
+             )
+
+    assert Enum.any?(
+             missing_safety_case_evidence_status_report["errors"],
+             &(&1["path"] == "$.branches[2].events[0].evidence_status" and
+                 &1["message"] == "is required")
+           )
+  end
+
+  test "verifies curated operator review package reference fixtures" do
+    assert {:ok, fixture} =
+             Validation.reference_fixture("fixture.artifact.operator_review_package.v1")
+
+    assert fixture["model_id"] == "artifact.operator_review_package.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    assert {:ok, report} =
+             Validation.verify_reference_fixture(
+               "fixture.artifact.operator_review_package.v1",
+               operator_review_package_fixture_observations()
+             )
+
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+
+    stale_row_derived_observations =
+      operator_review_package_fixture_observations()
+      |> put_in(["row_derived_review_type_counts", "timeline_diff_review"], 0)
+
+    assert {:ok, stale_row_derived_report} =
+             Validation.verify_reference_fixture(
+               "fixture.artifact.operator_review_package.v1",
+               stale_row_derived_observations
+             )
+
+    assert stale_row_derived_report["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_report["checks"],
+             &(&1["field"] == "row_derived_review_type_counts" and &1["status"] == "fail")
+           )
+
+    package = operator_review_package_fixture()
+
+    assert {:ok, _schema_report} =
+             Schema.validate_artifact(package,
+               schema_contract: "operator_review_package.v1"
+             )
+
+    stale_review_count = Map.put(package, "review_count", 7)
+
+    assert {:error, stale_review_count_report} =
+             Schema.validate_artifact(stale_review_count,
+               schema_contract: "operator_review_package.v1"
+             )
+
+    assert Enum.any?(
+             stale_review_count_report["errors"],
+             &(&1["path"] == "$.review_count")
+           )
+
+    stale_review_type_counts =
+      put_in(package, ["review_type_counts", "timeline_diff_review"], 0)
+
+    assert {:error, stale_review_type_counts_report} =
+             Schema.validate_artifact(stale_review_type_counts,
+               schema_contract: "operator_review_package.v1"
+             )
+
+    assert Enum.any?(
+             stale_review_type_counts_report["errors"],
+             &(&1["path"] == "$.review_type_counts")
+           )
+
+    stale_review_queue_counts = Map.put(package, "review_queue_counts", %{})
+
+    assert {:error, stale_review_queue_counts_report} =
+             Schema.validate_artifact(stale_review_queue_counts,
+               schema_contract: "operator_review_package.v1"
+             )
+
+    assert Enum.any?(
+             stale_review_queue_counts_report["errors"],
+             &(&1["path"] == "$.review_queue_counts")
+           )
+
+    stale_required_operator_action_counts =
+      Map.put(package, "required_operator_action_counts", %{})
+
+    assert {:error, stale_required_operator_action_counts_report} =
+             Schema.validate_artifact(stale_required_operator_action_counts,
+               schema_contract: "operator_review_package.v1"
+             )
+
+    assert Enum.any?(
+             stale_required_operator_action_counts_report["errors"],
+             &(&1["path"] == "$.required_operator_action_counts")
+           )
+
+    stale_model_limits =
+      Map.put(package, "model_limits", Enum.drop(Map.fetch!(package, "model_limits"), 1))
+
+    assert {:error, stale_model_limits_report} =
+             Schema.validate_artifact(stale_model_limits,
+               schema_contract: "operator_review_package.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits")
+           )
+
+    stale_assumption_boundary =
+      put_in(package, ["assumptions", "boundary"], "api_write_ready")
+
+    assert {:error, stale_assumption_boundary_report} =
+             Schema.validate_artifact(stale_assumption_boundary,
+               schema_contract: "operator_review_package.v1"
+             )
+
+    assert Enum.any?(
+             stale_assumption_boundary_report["errors"],
+             &(&1["path"] == "$.assumptions.boundary")
+           )
+  end
+
+  test "verifies curated operational readiness report reference fixtures" do
+    assert {:ok, fixture} =
+             Validation.reference_fixture("fixture.artifact.operational_readiness_report.v1")
+
+    assert fixture["model_id"] == "artifact.operational_readiness_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = operational_readiness_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               "fixture.artifact.operational_readiness_report.v1",
+               operational_readiness_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    observations = operational_readiness_report_fixture_observations()
+
+    assert observations["row_derived_ready_for_import_count"] == 1
+    assert observations["row_derived_import_status_counts"] == %{"ready_for_import" => 1}
+    assert observations["row_derived_cadence_import_status_counts"] == %{"present" => 1}
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "operational_readiness_report.v1",
+             report
+           ) == Validation.artifact_observations("operational_readiness_report.v1", report)
+
+    stale_row_derived_observations =
+      operational_readiness_report_fixture_observations()
+      |> put_in(["row_derived_gate_status_counts", "passed"], 4)
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(
+               "fixture.artifact.operational_readiness_report.v1",
+               stale_row_derived_observations
+             )
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_gate_status_counts" and
+                 &1["status"] == "fail")
+           )
+
+    stale_import_status_observations =
+      observations
+      |> put_in(["row_derived_import_status_counts", "ready_for_import"], 0)
+
+    assert {:ok, stale_import_status_verification} =
+             Validation.verify_reference_fixture(
+               "fixture.artifact.operational_readiness_report.v1",
+               stale_import_status_observations
+             )
+
+    assert stale_import_status_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_import_status_verification["checks"],
+             &(&1["field"] == "row_derived_import_status_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _schema_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "operational_readiness_report.v1"
+             )
+
+    stale_model = Map.put(report, "model", "stale_operational_readiness_model")
+
+    assert {:error, stale_model_report} =
+             Schema.validate_artifact(stale_model,
+               schema_contract: "operational_readiness_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"artifact_only_operational_readiness_classifier\"")
+           )
+
+    stale_import_classification = Map.put(report, "import_classification", "review_only")
+
+    assert {:error, stale_import_classification_report} =
+             Schema.validate_artifact(stale_import_classification,
+               schema_contract: "operational_readiness_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_import_classification_report["errors"],
+             &(&1["path"] == "$.import_classification")
+           )
+
+    stale_readiness_level = Map.put(report, "readiness_level", "operator_review")
+
+    assert {:error, stale_readiness_level_report} =
+             Schema.validate_artifact(stale_readiness_level,
+               schema_contract: "operational_readiness_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_readiness_level_report["errors"],
+             &(&1["path"] == "$.readiness_level")
+           )
+
+    stale_gate_count = Map.put(report, "gate_count", 4)
+
+    assert {:error, stale_gate_count_report} =
+             Schema.validate_artifact(stale_gate_count,
+               schema_contract: "operational_readiness_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_gate_count_report["errors"],
+             &(&1["path"] == "$.gate_count")
+           )
+
+    stale_passed_gate_count = Map.put(report, "passed_gate_count", 4)
+
+    assert {:error, stale_passed_gate_count_report} =
+             Schema.validate_artifact(stale_passed_gate_count,
+               schema_contract: "operational_readiness_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_passed_gate_count_report["errors"],
+             &(&1["path"] == "$.passed_gate_count")
+           )
+
+    stale_evidence_count = put_in(report, ["evidence", "ready_for_import_count"], 0)
+
+    assert {:error, stale_evidence_count_report} =
+             Schema.validate_artifact(stale_evidence_count,
+               schema_contract: "operational_readiness_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_evidence_count_report["errors"],
+             &(&1["path"] == "$.evidence.ready_for_import_count")
+           )
+
+    stale_evidence_map = put_in(report, ["evidence", "import_status_counts"], %{})
+
+    assert {:error, stale_evidence_map_report} =
+             Schema.validate_artifact(stale_evidence_map,
+               schema_contract: "operational_readiness_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_evidence_map_report["errors"],
+             &(&1["path"] == "$.evidence.import_status_counts")
+           )
+
+    stale_model_limits =
+      Map.put(report, "model_limits", Enum.drop(Map.fetch!(report, "model_limits"), 1))
+
+    assert {:error, stale_model_limits_report} =
+             Schema.validate_artifact(stale_model_limits,
+               schema_contract: "operational_readiness_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits")
+           )
+
+    stale_assumptions =
+      Map.put(
+        report,
+        "assumptions",
+        List.replace_at(Map.fetch!(report, "assumptions"), 1, "external_import_write_ready")
+      )
+
+    assert {:error, stale_assumptions_report} =
+             Schema.validate_artifact(stale_assumptions,
+               schema_contract: "operational_readiness_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_assumptions_report["errors"],
+             &(&1["path"] == "$.assumptions")
+           )
+  end
+
+  test "verifies curated quality gate report reference fixtures" do
+    fixture_id = "fixture.artifact.quality_gate_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.quality_gate_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = quality_gate_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               quality_gate_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    observations = quality_gate_report_fixture_observations()
+
+    assert observations["row_derived_ready_for_import_count"] == 1
+    assert observations["row_derived_import_status_counts"] == %{"ready_for_import" => 1}
+    assert observations["row_derived_cadence_import_status_counts"] == %{"present" => 1}
+
+    assert OrbitalDynamics.validation_artifact_observations("quality_gate_report.v1", report) ==
+             Validation.artifact_observations("quality_gate_report.v1", report)
+
+    stale_row_derived_observations =
+      quality_gate_report_fixture_observations()
+      |> put_in(["row_derived_gate_ids_by_status", "passed"], ["source_contract"])
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_gate_ids_by_status" and &1["status"] == "fail")
+           )
+
+    stale_import_status_observations =
+      observations
+      |> put_in(["row_derived_cadence_import_status_counts", "present"], 0)
+
+    assert {:ok, stale_import_status_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_import_status_observations)
+
+    assert stale_import_status_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_import_status_verification["checks"],
+             &(&1["field"] == "row_derived_cadence_import_status_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _schema_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "quality_gate_report.v1"
+             )
+
+    stale_import_classification = Map.put(report, "import_classification", "review_only")
+
+    assert {:error, stale_import_classification_report} =
+             Schema.validate_artifact(stale_import_classification,
+               schema_contract: "quality_gate_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_import_classification_report["errors"],
+             &(&1["path"] == "$.import_classification")
+           )
+
+    stale_gate_count = Map.put(report, "gate_count", 4)
+
+    assert {:error, stale_gate_count_report} =
+             Schema.validate_artifact(stale_gate_count,
+               schema_contract: "quality_gate_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_gate_count_report["errors"],
+             &(&1["path"] == "$.gate_count")
+           )
+
+    stale_gate_status_counts = Map.put(report, "gate_status_counts", %{"passed" => 4})
+
+    assert {:error, stale_gate_status_counts_report} =
+             Schema.validate_artifact(stale_gate_status_counts,
+               schema_contract: "quality_gate_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_gate_status_counts_report["errors"],
+             &(&1["path"] == "$.gate_status_counts")
+           )
+
+    stale_gate_ids_by_status =
+      put_in(report, ["gate_ids_by_status", "passed"], ["source_contract"])
+
+    assert {:error, stale_gate_ids_by_status_report} =
+             Schema.validate_artifact(stale_gate_ids_by_status,
+               schema_contract: "quality_gate_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_gate_ids_by_status_report["errors"],
+             &(&1["path"] == "$.gate_ids_by_status")
+           )
+
+    stale_model_limits =
+      Map.put(report, "model_limits", Enum.drop(Map.fetch!(report, "model_limits"), 1))
+
+    assert {:error, stale_model_limits_report} =
+             Schema.validate_artifact(stale_model_limits,
+               schema_contract: "quality_gate_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits")
+           )
+
+    stale_execution_boundary =
+      put_in(report, ["assumptions", "execution_boundary"], "cadence_write_ready")
+
+    assert {:error, stale_execution_boundary_report} =
+             Schema.validate_artifact(stale_execution_boundary,
+               schema_contract: "quality_gate_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_execution_boundary_report["errors"],
+             &(&1["path"] == "$.assumptions.execution_boundary")
+           )
+  end
+
+  test "verifies curated operational quality gate import readiness summary reference fixtures" do
+    fixture_id = "fixture.artifact.operational_quality_gate_import_readiness_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.operational_quality_gate_import_readiness_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = operational_quality_gate_import_readiness_summary_fixture()
+    observations = operational_quality_gate_import_readiness_summary_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert observations["ready_for_import_count"] == 1
+    assert observations["row_derived_ready_for_import_count"] == 1
+    assert observations["stale_freshness_count"] == 1
+    assert observations["row_derived_stale_freshness_count"] == 1
+    assert observations["cadence_import_status_counts"] == %{"present" => 1}
+    assert observations["freshness_review_required"] == true
+    assert observations["import_blocked"] == false
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "operational_quality_gate_import_readiness_summary.v1",
+             report
+           ) ==
+             Validation.artifact_observations(
+               "operational_quality_gate_import_readiness_summary.v1",
+               report
+             )
+
+    stale_ready_observations = Map.put(observations, "ready_for_import_count", 0)
+
+    assert {:ok, stale_ready_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_ready_observations)
+
+    assert stale_ready_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_ready_verification["checks"],
+             &(&1["field"] == "ready_for_import_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_freshness_observations =
+      Map.put(observations, "row_derived_stale_freshness_count", 0)
+
+    assert {:ok, stale_row_derived_freshness_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_row_derived_freshness_observations
+             )
+
+    assert stale_row_derived_freshness_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_freshness_verification["checks"],
+             &(&1["field"] == "row_derived_stale_freshness_count" and
+                 &1["status"] == "fail")
+           )
+
+    stale_cadence_status_observations =
+      Map.put(observations, "row_derived_cadence_import_present_count", 0)
+
+    assert {:ok, stale_cadence_status_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_cadence_status_observations)
+
+    assert stale_cadence_status_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_cadence_status_verification["checks"],
+             &(&1["field"] == "row_derived_cadence_import_present_count" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _schema_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "operational_quality_gate_import_readiness_summary.v1"
+             )
+  end
+
+  test "verifies curated operational quality gate unavailable-resource summary reference fixtures" do
+    fixture_id = "fixture.artifact.operational_quality_gate_unavailable_resource_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] ==
+             "artifact.operational_quality_gate_unavailable_resource_summary.v1"
+
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = operational_quality_gate_unavailable_resource_summary_fixture()
+    observations = operational_quality_gate_unavailable_resource_summary_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_reason_count_observations =
+      observations
+      |> put_in(["unavailable_resource_reason_counts", "antenna_unavailable"], 0)
+
+    assert {:ok, stale_reason_count_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_reason_count_observations)
+
+    assert stale_reason_count_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_reason_count_verification["checks"],
+             &(&1["field"] == "unavailable_resource_reason_counts" and
+                 &1["status"] == "fail")
+           )
+
+    stale_contact_routing_observations =
+      observations
+      |> put_in(["blocked_contact_ids_by_blocking_dimension", "antenna"], [])
+
+    assert {:ok, stale_contact_routing_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_contact_routing_observations)
+
+    assert stale_contact_routing_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_contact_routing_verification["checks"],
+             &(&1["field"] == "blocked_contact_ids_by_blocking_dimension" and
+                 &1["status"] == "fail")
+           )
+
+    stale_row_status_observations =
+      observations
+      |> Map.put("row_derived_review_required_quality_gate_row_count", 0)
+
+    assert {:ok, stale_row_status_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_status_observations)
+
+    assert stale_row_status_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_status_verification["checks"],
+             &(&1["field"] == "row_derived_review_required_quality_gate_row_count" and
+                 &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "operational_quality_gate_unavailable_resource_summary.v1",
+             report
+           ) ==
+             Validation.artifact_observations(
+               "operational_quality_gate_unavailable_resource_summary.v1",
+               report
+             )
+
+    assert {:ok, _schema_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "operational_quality_gate_unavailable_resource_summary.v1"
+             )
+  end
+
+  test "verifies curated operational quality gate schema validation summary reference fixtures" do
+    fixture_id = "fixture.artifact.operational_quality_gate_schema_validation_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.operational_quality_gate_schema_validation_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = operational_quality_gate_schema_validation_summary_fixture()
+    observations = operational_quality_gate_schema_validation_summary_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert observations["schema_validation_fail_count"] == 1
+    assert observations["row_derived_schema_validation_fail_count"] == 1
+    assert observations["schema_validation_error_count"] == 1
+    assert observations["schema_validation_remediation_count"] == 1
+    assert observations["schema_validation_import_blocked"] == true
+    assert observations["row_derived_blocked_quality_gate_row_count"] == 1
+    assert observations["row_derived_failed_schema_validation_quality_gate_row_count"] == 1
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "operational_quality_gate_schema_validation_summary.v1",
+             report
+           ) ==
+             Validation.artifact_observations(
+               "operational_quality_gate_schema_validation_summary.v1",
+               report
+             )
+
+    stale_fail_count_observations = Map.put(observations, "schema_validation_fail_count", 0)
+
+    assert {:ok, stale_fail_count_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_fail_count_observations)
+
+    assert stale_fail_count_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_fail_count_verification["checks"],
+             &(&1["field"] == "schema_validation_fail_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_fail_observations =
+      Map.put(observations, "row_derived_schema_validation_fail_count", 0)
+
+    assert {:ok, stale_row_derived_fail_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_fail_observations)
+
+    assert stale_row_derived_fail_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_fail_verification["checks"],
+             &(&1["field"] == "row_derived_schema_validation_fail_count" and
+                 &1["status"] == "fail")
+           )
+
+    stale_blocked_row_observations =
+      Map.put(observations, "row_derived_blocked_quality_gate_row_count", 0)
+
+    assert {:ok, stale_blocked_row_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_blocked_row_observations)
+
+    assert stale_blocked_row_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_blocked_row_verification["checks"],
+             &(&1["field"] == "row_derived_blocked_quality_gate_row_count" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _schema_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "operational_quality_gate_schema_validation_summary.v1"
+             )
+  end
+
+  test "verifies curated operational quality gate operator training summary reference fixtures" do
+    fixture_id = "fixture.artifact.operational_quality_gate_operator_training_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.operational_quality_gate_operator_training_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = operational_quality_gate_operator_training_summary_fixture()
+    observations = operational_quality_gate_operator_training_summary_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert observations["operator_training_requirement_count"] == 5
+    assert observations["row_derived_operator_training_requirement_count"] == 5
+
+    assert observations["operator_training_requirement_counts"] == %{
+             "certification" => 1,
+             "operator_role" => 2,
+             "qualification" => 1,
+             "training" => 1
+           }
+
+    assert observations["operator_training_review_required"] == true
+    assert observations["row_derived_review_required_quality_gate_row_count"] == 1
+    assert observations["row_derived_review_only_quality_gate_row_count"] == 1
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "operational_quality_gate_operator_training_summary.v1",
+             report
+           ) ==
+             Validation.artifact_observations(
+               "operational_quality_gate_operator_training_summary.v1",
+               report
+             )
+
+    stale_requirement_count_observations =
+      Map.put(observations, "operator_training_requirement_count", 4)
+
+    assert {:ok, stale_requirement_count_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_requirement_count_observations)
+
+    assert stale_requirement_count_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_requirement_count_verification["checks"],
+             &(&1["field"] == "operator_training_requirement_count" and
+                 &1["status"] == "fail")
+           )
+
+    stale_row_derived_requirement_observations =
+      Map.put(observations, "row_derived_operator_training_requirement_count", 4)
+
+    assert {:ok, stale_row_derived_requirement_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_row_derived_requirement_observations
+             )
+
+    assert stale_row_derived_requirement_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_requirement_verification["checks"],
+             &(&1["field"] == "row_derived_operator_training_requirement_count" and
+                 &1["status"] == "fail")
+           )
+
+    stale_review_row_observations =
+      Map.put(observations, "row_derived_review_required_quality_gate_row_count", 0)
+
+    assert {:ok, stale_review_row_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_review_row_observations)
+
+    assert stale_review_row_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_review_row_verification["checks"],
+             &(&1["field"] == "row_derived_review_required_quality_gate_row_count" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _schema_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "operational_quality_gate_operator_training_summary.v1"
+             )
+  end
+
+  test "rejects stale copied readiness and quality source reports from challenge fixtures" do
+    readiness_review = read_json!("study_results/operator_review_resource_pressure_v1.json")
+    readiness_import = read_json!("study_results/cadence_import_resource_pressure_v1.json")
+    quality_gate = read_json!("study_results/quality_gate_resource_pressure_v1.json")
+    quality_review = OperatorReview.from_quality_gate_report(quality_gate)
+    quality_import = CadenceImport.from_quality_gate_report(quality_gate)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(readiness_review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(readiness_import)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(quality_review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(quality_import)
+
+    stale_readiness_review =
+      put_in(
+        readiness_review,
+        ["rows", Access.at(0), "source_operational_readiness_report", "status"],
+        "passed"
+      )
+
+    assert {:error, stale_readiness_review_report} =
+             Schema.validate_artifact(stale_readiness_review)
+
+    assert Enum.any?(
+             stale_readiness_review_report["errors"],
+             &(&1["path"] == "$.rows[0].source_operational_readiness_report.status" and
+                 &1["message"] == "must match operational_readiness_status on handoff row")
+           )
+
+    stale_readiness_import =
+      put_in(
+        readiness_import,
+        ["rows", Access.at(0), "source_operational_readiness_report", "readiness_level"],
+        "blocked"
+      )
+
+    assert {:error, stale_readiness_import_report} =
+             Schema.validate_artifact(stale_readiness_import)
+
+    assert Enum.any?(
+             stale_readiness_import_report["errors"],
+             &(&1["path"] == "$.rows[0].source_operational_readiness_report.readiness_level" and
+                 &1["message"] == "must match readiness_level on handoff row")
+           )
+
+    stale_quality_review =
+      put_in(
+        quality_review,
+        ["rows", Access.at(0), "source_quality_gate_report", "readiness_level"],
+        "blocked"
+      )
+
+    assert {:error, stale_quality_review_report} =
+             Schema.validate_artifact(stale_quality_review)
+
+    assert Enum.any?(
+             stale_quality_review_report["errors"],
+             &(&1["path"] == "$.rows[0].source_quality_gate_report.readiness_level" and
+                 &1["message"] == "must match readiness_level on handoff row")
+           )
+
+    stale_quality_import =
+      put_in(
+        quality_import,
+        ["rows", Access.at(0), "source_quality_gate_report", "report_id"],
+        "quality_gate:wrong_report"
+      )
+
+    assert {:error, stale_quality_import_report} =
+             Schema.validate_artifact(stale_quality_import)
+
+    assert Enum.any?(
+             stale_quality_import_report["errors"],
+             &(&1["path"] == "$.rows[0].source_quality_gate_report.report_id" and
+                 &1["message"] == "must match quality_gate_report_id on handoff row")
+           )
+  end
+
+  test "verifies curated station calendar stale reservation hold reference fixtures" do
+    fixtures = [
+      {
+        "fixture.artifact.station_calendar_report.stale_provider_reservation_hold",
+        station_calendar_report_fixture(),
+        station_calendar_report_fixture_observations()
+      },
+      {
+        "fixture.artifact.station_calendar_report.v1",
+        checked_in_station_calendar_report_fixture(),
+        checked_in_station_calendar_report_fixture_observations()
+      }
+    ]
+
+    for {fixture_id, report, observations} <- fixtures do
+      assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+      assert fixture["model_id"] == "artifact.station_calendar_report.v1"
+      assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+      assert {:ok, verification} =
+               Validation.verify_reference_fixture(fixture_id, observations)
+
+      assert verification["status"] == "pass"
+      assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+      stale_row_derived_observations =
+        observations
+        |> put_in(["row_derived_station_reservation_match_status_counts", "overlap"], 0)
+
+      assert {:ok, stale_row_derived_verification} =
+               Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+      assert stale_row_derived_verification["status"] == "fail"
+
+      assert Enum.any?(
+               stale_row_derived_verification["checks"],
+               &(&1["field"] == "row_derived_station_reservation_match_status_counts" and
+                   &1["status"] == "fail")
+             )
+
+      assert OrbitalDynamics.validation_artifact_observations(
+               "station_calendar_report.v1",
+               report
+             ) == Validation.artifact_observations("station_calendar_report.v1", report)
+    end
+
+    report = station_calendar_report_fixture()
+
+    assert {:ok, %{"schema_contract" => "station_calendar_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "station_calendar_report.v1"
+             )
+
+    stale_match_status_counts =
+      put_in(report, ["station_reservation_match_status_counts", "overlap"], 0)
+
+    assert {:error, stale_match_status_counts_report} =
+             Schema.validate_artifact(stale_match_status_counts,
+               schema_contract: "station_calendar_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_match_status_counts_report["errors"],
+             &(&1["path"] == "$.station_reservation_match_status_counts")
+           )
+
+    checked_in_report = checked_in_station_calendar_report_fixture()
+
+    assert {:ok, %{"schema_contract" => "station_calendar_report.v1"}} =
+             Schema.validate_artifact(checked_in_report,
+               schema_contract: "station_calendar_report.v1"
+             )
+
+    stale_affected_duration = Map.put(checked_in_report, "affected_duration_s", 0)
+
+    assert {:error, stale_affected_duration_report} =
+             Schema.validate_artifact(stale_affected_duration,
+               schema_contract: "station_calendar_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_affected_duration_report["errors"],
+             &(&1["path"] == "$.affected_duration_s")
+           )
+
+    stale_trust_counts =
+      put_in(checked_in_report, ["station_calendar_trust_boundary_status_counts", "declared"], 0)
+
+    assert {:error, stale_trust_counts_report} =
+             Schema.validate_artifact(stale_trust_counts,
+               schema_contract: "station_calendar_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_trust_counts_report["errors"],
+             &(&1["path"] == "$.station_calendar_trust_boundary_status_counts")
+           )
+
+    stale_model_limits = Map.put(checked_in_report, "model_limits", ["declared_data_only"])
+
+    assert {:error, stale_model_limits_report} =
+             Schema.validate_artifact(stale_model_limits,
+               schema_contract: "station_calendar_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits")
+           )
+  end
+
+  test "verifies curated station reservation report reference fixtures" do
+    fixture_id = "fixture.artifact.station_reservation_report.stale_provider_reservation_hold"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.station_reservation_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = station_reservation_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               station_reservation_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_row_derived_observations =
+      station_reservation_report_fixture_observations()
+      |> put_in(["row_derived_reservation_status_counts", "tentative_hold"], 1)
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_reservation_status_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "station_reservation_report.v1",
+             report
+           ) == Validation.artifact_observations("station_reservation_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "station_reservation_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "station_reservation_report.v1"
+             )
+
+    stale_match_status_counts =
+      put_in(report, ["station_reservation_match_status_counts", "overlap"], 0)
+
+    assert {:error, stale_match_status_counts_report} =
+             Schema.validate_artifact(stale_match_status_counts,
+               schema_contract: "station_reservation_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_match_status_counts_report["errors"],
+             &(&1["path"] == "$.station_reservation_match_status_counts")
+           )
+
+    stale_reservation_status_counts =
+      put_in(report, ["reservation_status_counts", "tentative_hold"], 1)
+
+    assert {:error, stale_reservation_status_counts_report} =
+             Schema.validate_artifact(stale_reservation_status_counts,
+               schema_contract: "station_reservation_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_reservation_status_counts_report["errors"],
+             &(&1["path"] == "$.reservation_status_counts")
+           )
+
+    stale_reservation_ids = Map.put(report, "reservation_ids", [])
+
+    assert {:error, stale_reservation_ids_report} =
+             Schema.validate_artifact(stale_reservation_ids,
+               schema_contract: "station_reservation_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_reservation_ids_report["errors"],
+             &(&1["path"] == "$.reservation_ids")
+           )
+  end
+
+  test "verifies curated station calendar provider reference fixtures" do
+    fixture_id = "fixture.artifact.station_calendar_provider.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.station_calendar_provider.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = station_calendar_provider_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               station_calendar_provider_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      station_calendar_provider_fixture_observations()
+      |> Map.put("reserved_entry_count", 0)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "reserved_entry_count" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "station_calendar_provider.v1")
+
+    duplicate_entry_id =
+      put_in(
+        report,
+        ["entries", Access.at(1), "id"],
+        get_in(report, ["entries", Access.at(0), "id"])
+      )
+
+    assert {:error, duplicate_entry_id_report} =
+             Schema.validate_artifact(duplicate_entry_id,
+               schema_contract: "station_calendar_provider.v1"
+             )
+
+    assert Enum.any?(
+             duplicate_entry_id_report["errors"],
+             &(&1["path"] == "$.entries")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "station_calendar_provider.v1",
+             report
+           ) == Validation.artifact_observations("station_calendar_provider.v1", report)
+  end
+
+  test "verifies curated provider counteroffer report reference fixtures" do
+    fixture_id = "fixture.artifact.provider_counteroffer_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.provider_counteroffer_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = provider_counteroffer_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               provider_counteroffer_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      provider_counteroffer_report_fixture_observations()
+      |> Map.put("row_derived_counteroffer_cost_delta_total", 0.0)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "row_derived_counteroffer_cost_delta_total" and
+                 &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "provider_counteroffer_report.v1",
+             report
+           ) == Validation.artifact_observations("provider_counteroffer_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "provider_counteroffer_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "provider_counteroffer_report.v1"
+             )
+
+    stale_cost_total = Map.put(report, "counteroffer_cost_delta_total", 0.0)
+
+    assert {:error, stale_cost_total_report} =
+             Schema.validate_artifact(stale_cost_total,
+               schema_contract: "provider_counteroffer_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_cost_total_report["errors"],
+             &(&1["path"] == "$.counteroffer_cost_delta_total")
+           )
+
+    stale_status_counts = put_in(report, ["counteroffer_status_counts", "proposed"], 0)
+
+    assert {:error, stale_status_counts_report} =
+             Schema.validate_artifact(stale_status_counts,
+               schema_contract: "provider_counteroffer_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_status_counts_report["errors"],
+             &(&1["path"] == "$.counteroffer_status_counts")
+           )
+
+    stale_required_action_counts =
+      put_in(report, ["required_operator_action_counts", "review_provider_counteroffer"], 0)
+
+    assert {:error, stale_required_action_counts_report} =
+             Schema.validate_artifact(stale_required_action_counts,
+               schema_contract: "provider_counteroffer_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_required_action_counts_report["errors"],
+             &(&1["path"] == "$.required_operator_action_counts")
+           )
+  end
+
+  test "verifies curated model acceptance report reference fixtures" do
+    fixture_id = "fixture.artifact.model_acceptance_report.operational_import"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.model_acceptance_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = model_acceptance_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               model_acceptance_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert verification["status_counts"] == %{"pass" => 16}
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "model_acceptance_report.v1",
+             report
+           ) == Validation.artifact_observations("model_acceptance_report.v1", report)
+
+    assert {:ok, _schema_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "model_acceptance_report.v1"
+             )
+
+    assert report["status_counts"] == %{
+             "accepted" => 1,
+             "blocked" => 2,
+             "review_required" => 1
+           }
+
+    observations = model_acceptance_report_fixture_observations()
+
+    assert observations["model_ids_by_status"] == %{
+             "accepted" => ["orbit_data.simple_json"],
+             "blocked" => ["propagator.two_body", "missing.model"],
+             "review_required" => ["event.access_windows"]
+           }
+
+    assert observations["model_ids_by_validation_level"] == %{
+             "analysis" => ["event.access_windows"],
+             "artifact_contract" => ["orbit_data.simple_json"],
+             "educational" => ["propagator.two_body"],
+             "unknown" => ["missing.model"]
+           }
+
+    assert observations["model_ids_by_intended_use"] == %{
+             "operational_import" => [
+               "orbit_data.simple_json",
+               "event.access_windows",
+               "propagator.two_body",
+               "missing.model"
+             ]
+           }
+
+    stale_observed_model_ids_by_status =
+      put_in(observations, ["model_ids_by_status", "blocked"], ["missing.model"])
+
+    assert {:ok, stale_observed_model_ids_by_status_report} =
+             Validation.verify_reference_fixture(fixture_id, stale_observed_model_ids_by_status)
+
+    assert stale_observed_model_ids_by_status_report["status"] == "fail"
+
+    assert Enum.any?(
+             stale_observed_model_ids_by_status_report["checks"],
+             &(&1["field"] == "model_ids_by_status" and &1["status"] == "fail")
+           )
+
+    stale_status = Map.put(report, "status", "accepted_for_use")
+
+    assert {:error, stale_status_report} =
+             Schema.validate_artifact(stale_status,
+               schema_contract: "model_acceptance_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_status_report["errors"],
+             &(&1["path"] == "$.status")
+           )
+
+    stale_validation_level_counts =
+      put_in(report, ["validation_level_counts", "unknown"], 0)
+
+    assert {:error, stale_validation_level_counts_report} =
+             Schema.validate_artifact(stale_validation_level_counts,
+               schema_contract: "model_acceptance_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_validation_level_counts_report["errors"],
+             &(&1["path"] == "$.validation_level_counts")
+           )
+
+    stale_status_counts = put_in(report, ["status_counts", "blocked"], 1)
+
+    assert {:error, stale_status_counts_report} =
+             Schema.validate_artifact(stale_status_counts,
+               schema_contract: "model_acceptance_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_status_counts_report["errors"],
+             &(&1["path"] == "$.status_counts" and
+                 &1["message"] == "must match row-derived status_counts")
+           )
+
+    stale_model_ids_by_validation_level =
+      put_in(report, ["model_ids_by_validation_level", "unknown"], [])
+
+    assert {:error, stale_model_ids_by_validation_level_report} =
+             Schema.validate_artifact(stale_model_ids_by_validation_level,
+               schema_contract: "model_acceptance_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_ids_by_validation_level_report["errors"],
+             &(&1["path"] == "$.model_ids_by_validation_level")
+           )
+
+    stale_records = Map.put(report, "records", Enum.drop(Map.fetch!(report, "records"), 1))
+
+    assert {:error, stale_records_report} =
+             Schema.validate_artifact(stale_records,
+               schema_contract: "model_acceptance_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_records_report["errors"],
+             &(&1["path"] == "$.records")
+           )
+
+    stale_assumption_model_ids =
+      put_in(report, ["assumptions", "input_model_ids"], ["orbit_data.simple_json"])
+
+    assert {:error, stale_assumption_model_ids_report} =
+             Schema.validate_artifact(stale_assumption_model_ids,
+               schema_contract: "model_acceptance_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_assumption_model_ids_report["errors"],
+             &(&1["path"] == "$.assumptions.input_model_ids")
+           )
+
+    stale_model_limits =
+      Map.put(report, "model_limits", Enum.drop(Map.fetch!(report, "model_limits"), 1))
+
+    assert {:error, stale_model_limits_report} =
+             Schema.validate_artifact(stale_model_limits,
+               schema_contract: "model_acceptance_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits")
+           )
+  end
+
+  test "verifies curated validation safety-case summary reference fixtures" do
+    fixture_id = "fixture.artifact.validation_safety_case_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.validation_safety_case_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = validation_safety_case_summary_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               validation_safety_case_summary_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "validation_safety_case_summary.v1",
+             report
+           ) == Validation.artifact_observations("validation_safety_case_summary.v1", report)
+
+    assert {:ok, %{"schema_contract" => "validation_safety_case_summary.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    stale_model_limits = Map.put(report, "model_limits", ["artifact_only"])
+
+    assert {:error, stale_model_limits_report} =
+             Schema.validate_artifact(stale_model_limits,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] == "must match validation safety case summary model limits")
+           )
+
+    observations = validation_safety_case_summary_fixture_observations()
+
+    assert observations["model_acceptance_evidence_status_counts"] == %{
+             "accepted" => 1,
+             "review_required" => 1
+           }
+
+    assert observations["model_acceptance_evidence_model_ids_by_status"] == %{
+             "accepted" => ["orbit_data.simple_json"],
+             "review_required" => ["event.access_windows"]
+           }
+
+    assert observations["model_acceptance_evidence_model_ids_by_validation_level"] == %{
+             "analysis" => ["event.access_windows"],
+             "artifact_contract" => ["orbit_data.simple_json"]
+           }
+
+    assert observations["model_acceptance_evidence_model_ids_by_intended_use"] == %{
+             "operational_import" => ["orbit_data.simple_json", "event.access_windows"]
+           }
+
+    assert observations["evidence_refs_by_status"] == %{
+             "accepted_for_use" => ["schema_validation_report.v1:candidate_refresh.v1"],
+             "blocked" => [
+               "schema_validation_report.v1:candidate_refresh.v1",
+               "schema_validation_report.v1:candidate_refresh.v1"
+             ],
+             "review_required" => [
+               "model_acceptance_report.v1:model_acceptance:operational_import:orbit_data.simple_json__event.access_windows"
+             ]
+           }
+
+    assert observations["evidence_refs_by_contract"] == %{
+             "model_acceptance_report.v1" => [
+               "model_acceptance_report.v1:model_acceptance:operational_import:orbit_data.simple_json__event.access_windows"
+             ],
+             "schema_validation_report.v1" => [
+               "schema_validation_report.v1:candidate_refresh.v1",
+               "schema_validation_report.v1:candidate_refresh.v1",
+               "schema_validation_report.v1:candidate_refresh.v1"
+             ]
+           }
+
+    stale_model_acceptance_evidence_status_counts =
+      put_in(observations, ["model_acceptance_evidence_status_counts", "accepted"], 0)
+
+    assert {:ok, stale_model_acceptance_evidence_status_counts_report} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_model_acceptance_evidence_status_counts
+             )
+
+    assert stale_model_acceptance_evidence_status_counts_report["status"] == "fail"
+
+    assert Enum.any?(
+             stale_model_acceptance_evidence_status_counts_report["checks"],
+             &(&1["field"] == "model_acceptance_evidence_status_counts" and
+                 &1["status"] == "fail")
+           )
+
+    stale_model_acceptance_validation_level_ids =
+      put_in(
+        observations,
+        ["model_acceptance_evidence_model_ids_by_validation_level", "artifact_contract"],
+        []
+      )
+
+    assert {:ok, stale_model_acceptance_validation_level_ids_report} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_model_acceptance_validation_level_ids
+             )
+
+    assert stale_model_acceptance_validation_level_ids_report["status"] == "fail"
+
+    assert Enum.any?(
+             stale_model_acceptance_validation_level_ids_report["checks"],
+             &(&1["field"] == "model_acceptance_evidence_model_ids_by_validation_level" and
+                 &1["status"] == "fail")
+           )
+
+    model_acceptance_evidence_index =
+      Enum.find_index(
+        report["evidence"],
+        &(&1["schema_contract"] == "model_acceptance_report.v1")
+      )
+
+    assert is_integer(model_acceptance_evidence_index)
+
+    stale_copied_model_acceptance_ids =
+      put_in(
+        report,
+        [
+          "evidence",
+          Access.at(model_acceptance_evidence_index),
+          "model_ids_by_status",
+          "accepted"
+        ],
+        []
+      )
+
+    assert {:error, stale_copied_model_acceptance_ids_report} =
+             Schema.validate_artifact(stale_copied_model_acceptance_ids,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_copied_model_acceptance_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.evidence[#{model_acceptance_evidence_index}].model_ids_by_status" and
+                 &1["message"] == "must match model acceptance evidence status counts")
+           )
+
+    stale_schema_validation_evidence_index =
+      Enum.find_index(
+        report["evidence"],
+        &(&1["schema_contract"] == "schema_validation_report.v1" and
+            &1["status"] == "blocked")
+      )
+
+    assert is_integer(stale_schema_validation_evidence_index)
+
+    stale_schema_validation_evidence =
+      report
+      |> put_in(
+        ["evidence", Access.at(stale_schema_validation_evidence_index), "schema_error_count"],
+        0
+      )
+      |> Map.put("schema_error_count", Map.fetch!(report, "schema_error_count") - 1)
+
+    assert {:error, stale_schema_validation_evidence_report} =
+             Schema.validate_artifact(stale_schema_validation_evidence,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_schema_validation_evidence_report["errors"],
+             &(&1["path"] == "$.evidence[#{stale_schema_validation_evidence_index}].status" and
+                 &1["message"] == "must match schema-validation evidence counts")
+           )
+
+    stale_observed_refs_by_contract =
+      put_in(observations, ["evidence_refs_by_contract", "schema_validation_report.v1"], [
+        "schema_validation_report.v1:candidate_refresh.v1"
+      ])
+
+    assert {:ok, stale_observed_refs_by_contract_report} =
+             Validation.verify_reference_fixture(fixture_id, stale_observed_refs_by_contract)
+
+    assert stale_observed_refs_by_contract_report["status"] == "fail"
+
+    assert Enum.any?(
+             stale_observed_refs_by_contract_report["checks"],
+             &(&1["field"] == "evidence_refs_by_contract" and &1["status"] == "fail")
+           )
+
+    stale_status_counts = put_in(report, ["evidence_status_counts", "blocked"], 1)
+
+    assert {:error, stale_status_counts_report} =
+             Schema.validate_artifact(stale_status_counts,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_status_counts_report["errors"],
+             &(&1["path"] == "$.evidence_status_counts")
+           )
+
+    stale_refs_by_status =
+      put_in(report, ["evidence_refs_by_status", "blocked"], [
+        "schema_validation_report.v1:candidate_refresh.v1"
+      ])
+
+    assert {:error, stale_refs_by_status_report} =
+             Schema.validate_artifact(stale_refs_by_status,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_refs_by_status_report["errors"],
+             &(&1["path"] == "$.evidence_refs_by_status")
+           )
+
+    stale_refs_by_contract =
+      put_in(report, ["evidence_refs_by_contract", "schema_validation_report.v1"], [
+        "schema_validation_report.v1:candidate_refresh.v1"
+      ])
+
+    assert {:error, stale_refs_by_contract_report} =
+             Schema.validate_artifact(stale_refs_by_contract,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_refs_by_contract_report["errors"],
+             &(&1["path"] == "$.evidence_refs_by_contract")
+           )
+
+    stale_fixture_failed_count = Map.put(report, "fixture_failed_count", 1)
+
+    assert {:error, stale_fixture_failed_count_report} =
+             Schema.validate_artifact(stale_fixture_failed_count,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_fixture_failed_count_report["errors"],
+             &(&1["path"] == "$.fixture_failed_count")
+           )
+  end
+
+  test "verifies curated candidate refresh artifact reference fixtures" do
+    fixture_id = "fixture.artifact.candidate_refresh.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = candidate_refresh_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               candidate_refresh_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert OrbitalDynamics.validation_artifact_observations("candidate_refresh.v1", artifact) ==
+             Validation.artifact_observations("candidate_refresh.v1", artifact)
+
+    assert {:ok, _validated_artifact} =
+             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
+
+    stale_validation_level =
+      put_in(
+        artifact,
+        ["validation_records", Access.at(0), "validation_level"],
+        "flight_certified"
+      )
+
+    assert {:error, stale_validation_level_report} =
+             Schema.validate_artifact(stale_validation_level,
+               schema_contract: "candidate_refresh.v1"
+             )
+
+    assert Enum.any?(
+             stale_validation_level_report["errors"],
+             &(&1["path"] == "$.validation_records[0].validation_level")
+           )
+  end
+
+  test "verifies curated candidate refresh resource provenance reference fixtures" do
+    fixture_id = "fixture.artifact.candidate_refresh.resource_provenance_v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = candidate_refresh_resource_provenance_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               candidate_refresh_resource_provenance_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert get_in(artifact, [
+             "provenance",
+             "source_reports",
+             "operational_readiness_report",
+             "resource_availability_reason_counts"
+           ]) == %{"antenna_unavailable" => 1, "payload_unavailable" => 1}
+
+    assert get_in(artifact, [
+             "provenance",
+             "source_reports",
+             "quality_gate_report",
+             "resource_availability_reason_ids"
+           ]) == ["antenna_unavailable", "payload_unavailable"]
+
+    assert {:ok, _validated_artifact} =
+             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
+
+    stale_resource_pressure_count =
+      put_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "operational_readiness_report",
+          "resource_availability_pressure_count"
+        ],
+        1
+      )
+
+    assert {:error, stale_resource_pressure_report} =
+             Schema.validate_artifact(stale_resource_pressure_count,
+               schema_contract: "candidate_refresh.v1"
+             )
+
+    assert Enum.any?(
+             stale_resource_pressure_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.operational_readiness_report.resource_availability_pressure_count")
+           )
+  end
+
+  test "verifies candidate refresh contact contention challenge replay fixtures" do
+    fixture_id = "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = candidate_refresh_contact_contention_challenge_fixture()
+    observations = candidate_refresh_contact_contention_challenge_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "source_contact_contention_report_count" => 1,
+             "source_contact_contention_row_count" => 1,
+             "source_contact_contention_resource_scope_counts" => %{"spacecraft" => 1},
+             "source_contact_contention_direction_counts" => %{"downlink" => 2},
+             "source_contact_contention_contact_ids_by_direction" => %{
+               "downlink" => ["dl_dsn", "dl_equator"]
+             },
+             "source_contact_contention_required_operator_action_counts" => %{
+               "review_contact_contention" => 1
+             },
+             "source_contact_contention_trust_boundary_status" => "declared"
+           } = observations
+
+    stale_scope_observations =
+      observations
+      |> Map.put("source_contact_contention_resource_scope_counts", %{"ground_station" => 1})
+
+    assert {:ok, stale_scope_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_scope_observations)
+
+    assert stale_scope_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_scope_verification["checks"],
+             &(&1["field"] == "source_contact_contention_resource_scope_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _validated_artifact} =
+             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
+  end
+
+  test "verifies curated candidate rejection report reference fixtures" do
+    fixture_id = "fixture.artifact.candidate_rejection_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_rejection_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = candidate_rejection_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               candidate_rejection_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      candidate_rejection_report_fixture_observations()
+      |> Map.put("required_operator_review_count", 2)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "required_operator_review_count" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "candidate_rejection_report.v1",
+             report
+           ) == Validation.artifact_observations("candidate_rejection_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "candidate_rejection_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "candidate_rejection_report.v1"
+             )
+
+    stale_rejected_count = Map.put(report, "rejected_count", 2)
+
+    assert {:error, stale_rejected_count_report} =
+             Schema.validate_artifact(stale_rejected_count,
+               schema_contract: "candidate_rejection_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_rejected_count_report["errors"],
+             &(&1["path"] == "$.rejected_count")
+           )
+
+    stale_rejection_reason_counts =
+      put_in(report, ["rejection_reason_counts", "station_reserved"], 0)
+
+    assert {:error, stale_rejection_reason_counts_report} =
+             Schema.validate_artifact(stale_rejection_reason_counts,
+               schema_contract: "candidate_rejection_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_rejection_reason_counts_report["errors"],
+             &(&1["path"] == "$.rejection_reason_counts")
+           )
+
+    stale_candidate_id_sets =
+      put_in(report, ["candidate_id_sets_by_rejection_reason", "station_reserved"], [])
+
+    assert {:error, stale_candidate_id_sets_report} =
+             Schema.validate_artifact(stale_candidate_id_sets,
+               schema_contract: "candidate_rejection_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_candidate_id_sets_report["errors"],
+             &(&1["path"] == "$.candidate_id_sets_by_rejection_reason")
+           )
+
+    stale_required_operator_action_counts =
+      put_in(report, ["required_operator_action_counts", "review_candidate_rejection"], 2)
+
+    assert {:error, stale_required_operator_action_counts_report} =
+             Schema.validate_artifact(stale_required_operator_action_counts,
+               schema_contract: "candidate_rejection_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_required_operator_action_counts_report["errors"],
+             &(&1["path"] == "$.required_operator_action_counts")
+           )
+
+    stale_reviewable_candidate_ids = Map.put(report, "reviewable_candidate_ids", ["obs_clouded"])
+
+    assert {:error, stale_reviewable_candidate_ids_report} =
+             Schema.validate_artifact(stale_reviewable_candidate_ids,
+               schema_contract: "candidate_rejection_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_reviewable_candidate_ids_report["errors"],
+             &(&1["path"] == "$.reviewable_candidate_ids")
+           )
+  end
+
+  test "verifies curated candidate diff row reference fixtures" do
+    fixture_id = "fixture.artifact.candidate_diff_row.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_diff_row.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = candidate_diff_row_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               candidate_diff_row_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      candidate_diff_row_fixture_observations()
+      |> Map.put("candidate_diff_changed_field_count", 2)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "candidate_diff_changed_field_count" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "candidate_diff_row.v1")
+
+    stale_changed_field_count = Map.put(report, "candidate_diff_changed_field_count", 2)
+
+    assert {:error, stale_changed_field_count_report} =
+             Schema.validate_artifact(stale_changed_field_count,
+               schema_contract: "candidate_diff_row.v1"
+             )
+
+    assert Enum.any?(
+             stale_changed_field_count_report["errors"],
+             &(&1["path"] == "$.candidate_diff_changed_field_count")
+           )
+
+    stale_changed_field_alias =
+      Map.put(report, "candidate_diff_changed_fields", ["starts_at_s"])
+
+    assert {:error, stale_changed_field_alias_report} =
+             Schema.validate_artifact(stale_changed_field_alias,
+               schema_contract: "candidate_diff_row.v1"
+             )
+
+    assert Enum.any?(
+             stale_changed_field_alias_report["errors"],
+             &(&1["path"] == "$.candidate_diff_changed_fields")
+           )
+
+    stale_semantic_reasons = Map.put(report, "semantic_change_reasons", ["starts_at_s_changed"])
+
+    assert {:error, stale_semantic_reasons_report} =
+             Schema.validate_artifact(stale_semantic_reasons,
+               schema_contract: "candidate_diff_row.v1"
+             )
+
+    assert Enum.any?(
+             stale_semantic_reasons_report["errors"],
+             &(&1["path"] == "$.semantic_change_reasons")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations("candidate_diff_row.v1", report) ==
+             Validation.artifact_observations("candidate_diff_row.v1", report)
+  end
+
+  test "verifies curated accepted planning state reference fixtures" do
+    fixture_id = "fixture.artifact.accepted_planning_state.simple"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.accepted_planning_state.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = accepted_planning_state_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               accepted_planning_state_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      accepted_planning_state_fixture_observations()
+      |> Map.put("provenance_network_access", true)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "provenance_network_access" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "accepted_planning_state.v1")
+
+    stale_state_estimate_count =
+      put_in(report, ["provenance", "state_estimate_count"], 0)
+
+    assert {:error, stale_state_estimate_count_report} =
+             Schema.validate_artifact(stale_state_estimate_count,
+               schema_contract: "accepted_planning_state.v1"
+             )
+
+    assert Enum.any?(
+             stale_state_estimate_count_report["errors"],
+             &(&1["path"] == "$.provenance.state_estimate_count")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "accepted_planning_state.v1",
+             report
+           ) == Validation.artifact_observations("accepted_planning_state.v1", report)
+  end
+
+  test "verifies curated CCSDS OPM accepted planning state reference fixtures" do
+    fixture_id = "fixture.artifact.accepted_planning_state.opm"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.accepted_planning_state.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = accepted_planning_state_opm_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               accepted_planning_state_opm_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      accepted_planning_state_opm_fixture_observations()
+      |> Map.put("provenance_input_format", "simple_json_state_estimate_batch")
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "provenance_input_format" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "accepted_planning_state.v1",
+             report
+           ) == Validation.artifact_observations("accepted_planning_state.v1", report)
+  end
+
+  test "verifies curated CCSDS OEM accepted planning state reference fixtures" do
+    fixture_id = "fixture.artifact.accepted_planning_state.oem"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.accepted_planning_state.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = accepted_planning_state_oem_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               accepted_planning_state_oem_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      accepted_planning_state_oem_fixture_observations()
+      |> Map.put("provenance_input_format", "ccsds_opm_kvn")
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "provenance_input_format" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "accepted_planning_state.v1",
+             report
+           ) == Validation.artifact_observations("accepted_planning_state.v1", report)
+  end
+
+  test "verifies curated campaign request lint reference fixtures" do
+    fixture_id = "fixture.artifact.campaign_request_lint.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.campaign_request_lint.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = campaign_request_lint_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               campaign_request_lint_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      campaign_request_lint_fixture_observations()
+      |> Map.put("status", "fail")
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "status" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "campaign_request_lint.v1")
+
+    stale_status = Map.put(report, "status", "fail")
+
+    assert {:error, stale_status_report} =
+             Schema.validate_artifact(stale_status, schema_contract: "campaign_request_lint.v1")
+
+    assert Enum.any?(
+             stale_status_report["errors"],
+             &(&1["path"] == "$.status")
+           )
+
+    stale_request_sha =
+      put_in(report, ["request", "sha256"], String.upcase(report["request"]["sha256"]))
+
+    assert {:error, stale_request_sha_report} =
+             Schema.validate_artifact(stale_request_sha,
+               schema_contract: "campaign_request_lint.v1"
+             )
+
+    assert Enum.any?(
+             stale_request_sha_report["errors"],
+             &(&1["path"] == "$.request.sha256")
+           )
+
+    stale_source_plan_sha =
+      put_in(report, ["source_plan", "sha256"], "not-a-sha")
+
+    assert {:error, stale_source_plan_sha_report} =
+             Schema.validate_artifact(stale_source_plan_sha,
+               schema_contract: "campaign_request_lint.v1"
+             )
+
+    assert Enum.any?(
+             stale_source_plan_sha_report["errors"],
+             &(&1["path"] == "$.source_plan.sha256")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations("campaign_request_lint.v1", report) ==
+             Validation.artifact_observations("campaign_request_lint.v1", report)
+  end
+
+  test "verifies curated capability catalog reference fixtures" do
+    fixture_id = "fixture.artifact.capability_catalog.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.capability_catalog.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = capability_catalog_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               capability_catalog_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    fixture_observations = capability_catalog_fixture_observations()
+
+    assert fixture_observations["station_calendar_reservation_contract"] ==
+             "station_reservation_report.v1"
+
+    assert fixture_observations["candidate_refresh_input_count"] == 69
+    assert fixture_observations["candidate_refresh_source_report_input_count"] == 52
+    assert fixture_observations["candidate_refresh_source_report_helper_count"] == 38
+
+    assert fixture_observations["candidate_refresh_source_report_input_order"] =~
+             "schema_validation_batch_report"
+
+    assert fixture_observations["candidate_refresh_source_report_input_order"] =~
+             "timeline_dependency_impact_summary"
+
+    assert fixture_observations["candidate_refresh_source_report_input_order"] =~
+             "contact_contention_report"
+
+    stale_observations =
+      fixture_observations
+      |> Map.put("artifact_contract_count", 78)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "artifact_contract_count" and &1["status"] == "fail")
+           )
+
+    stale_candidate_refresh_observations =
+      fixture_observations
+      |> Map.put("candidate_refresh_source_report_input_count", 33)
+
+    assert {:ok, stale_candidate_refresh_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_candidate_refresh_observations)
+
+    assert stale_candidate_refresh_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_candidate_refresh_verification["checks"],
+             &(&1["field"] == "candidate_refresh_source_report_input_count" and
+                 &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations("capability_catalog.v1", report) ==
+             Validation.artifact_observations("capability_catalog.v1", report)
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "capability_catalog.v1")
+
+    stale_contract_list =
+      update_in(report, ["validation", "schema", "artifact_contracts"], &tl/1)
+
+    assert {:error, stale_contract_list_report} =
+             Schema.validate_artifact(stale_contract_list,
+               schema_contract: "capability_catalog.v1"
+             )
+
+    assert Enum.any?(
+             stale_contract_list_report["errors"],
+             &(&1["path"] == "$.validation.schema.artifact_contracts")
+           )
+  end
+
+  test "verifies curated environment capability reference fixtures" do
+    fixtures = [
+      {
+        "fixture.artifact.environment_model_capability.fixed_sun",
+        "environment_model_capability.v1",
+        environment_model_capability_fixture("environment.solar.fixed_inertial_direction")
+      },
+      {
+        "fixture.artifact.environment_model_capability.constant_earth_rotation",
+        "environment_model_capability.v1",
+        environment_model_capability_fixture("environment.earth_rotation.constant_rate")
+      },
+      {
+        "fixture.artifact.environment_provider_capability.fixed_sun",
+        "environment_provider_capability.v1",
+        environment_provider_capability_fixture(
+          "environment.provider.solar.fixed_inertial_direction"
+        )
+      },
+      {
+        "fixture.artifact.environment_provider_capability.constant_earth_rotation",
+        "environment_provider_capability.v1",
+        environment_provider_capability_fixture(
+          "environment.provider.earth_rotation.constant_rate"
+        )
+      },
+      {
+        "fixture.artifact.environment_provider_capability.tabular_earth_orientation",
+        "environment_provider_capability.v1",
+        environment_provider_capability_fixture(
+          "environment.provider.earth_orientation.tabular_rotation"
+        )
+      },
+      {
+        "fixture.artifact.environment_provider_capability.exponential_atmosphere",
+        "environment_provider_capability.v1",
+        environment_provider_capability_fixture(
+          "environment.provider.atmosphere.exponential_reference"
+        )
+      }
+    ]
+
+    for {fixture_id, contract, artifact} <- fixtures do
+      assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+      assert fixture["model_id"] == "artifact.#{contract}"
+      assert fixture["fixture_type"] == "curated_runtime_capability_regression"
+
+      observations = Validation.artifact_observations(contract, artifact)
+
+      assert {:ok, verification} =
+               Validation.verify_reference_fixture(fixture_id, observations)
+
+      assert verification["status"] == "pass"
+      assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+      assert OrbitalDynamics.validation_artifact_observations(contract, artifact) == observations
+    end
+
+    stale_observations =
+      "environment_provider_capability.v1"
+      |> Validation.artifact_observations(
+        environment_provider_capability_fixture(
+          "environment.provider.solar.fixed_inertial_direction"
+        )
+      )
+      |> Map.put("network_access", true)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(
+               "fixture.artifact.environment_provider_capability.fixed_sun",
+               stale_observations
+             )
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "network_access" and &1["status"] == "fail")
+           )
+
+    model_capability =
+      environment_model_capability_fixture("environment.solar.fixed_inertial_direction")
+
+    assert {:ok, _valid_model_capability} =
+             Schema.validate_artifact(model_capability,
+               schema_contract: "environment_model_capability.v1"
+             )
+
+    stale_model_validation_level =
+      Map.put(model_capability, "validation_level", "flight_certified")
+
+    assert {:error, stale_model_validation_level_report} =
+             Schema.validate_artifact(stale_model_validation_level,
+               schema_contract: "environment_model_capability.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_validation_level_report["errors"],
+             &(&1["path"] == "$.validation_level")
+           )
+  end
+
+  test "verifies curated proposed contact reference fixtures" do
+    fixture_id = "fixture.artifact.proposed_contact.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.proposed_contact.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = proposed_contact_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               proposed_contact_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      proposed_contact_fixture_observations()
+      |> Map.put("station_availability", "reserved")
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "station_availability" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "proposed_contact.v1")
+
+    stale_source_window_id =
+      Map.put(report, "source_window_id", "window:leo_1:ground_station_access:equator_prime:2")
+
+    assert {:error, stale_source_window_id_report} =
+             Schema.validate_artifact(stale_source_window_id,
+               schema_contract: "proposed_contact.v1"
+             )
+
+    assert Enum.any?(
+             stale_source_window_id_report["errors"],
+             &(&1["path"] == "$.source_window_id")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations("proposed_contact.v1", report) ==
+             Validation.artifact_observations("proposed_contact.v1", report)
+  end
+
+  test "verifies curated branch comparison report reference fixtures" do
+    fixture_id = "fixture.artifact.branch_comparison_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.branch_comparison_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = branch_comparison_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               branch_comparison_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      branch_comparison_report_fixture_observations()
+      |> Map.put("selected_count", 2)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "selected_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      branch_comparison_report_fixture_observations()
+      |> Map.put("row_derived_approval_status_counts", %{
+        "blocked_by_policy" => 8,
+        "operator_review_required" => 5
+      })
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_approval_status_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "branch_comparison_report.v1")
+
+    stale_branch_count = Map.put(report, "branch_count", 0)
+
+    assert {:error, stale_branch_count_report} =
+             Schema.validate_artifact(stale_branch_count,
+               schema_contract: "branch_comparison_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_branch_count_report["errors"],
+             &(&1["path"] == "$.branch_count")
+           )
+
+    stale_score_delta =
+      put_in(report, ["rows", Access.at(1), "score_delta_from_recommended"], 0)
+
+    assert {:error, stale_score_delta_report} =
+             Schema.validate_artifact(stale_score_delta,
+               schema_contract: "branch_comparison_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_score_delta_report["errors"],
+             &(&1["path"] == "$.rows[1].score_delta_from_recommended")
+           )
+
+    stale_repair_score_term_count =
+      put_in(report, ["rows", Access.at(0), "repair_score_term_count"], 0)
+
+    assert {:error, stale_repair_score_term_count_report} =
+             Schema.validate_artifact(stale_repair_score_term_count,
+               schema_contract: "branch_comparison_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_repair_score_term_count_report["errors"],
+             &(&1["path"] == "$.rows[0].repair_score_term_count")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "branch_comparison_report.v1",
+             report
+           ) == Validation.artifact_observations("branch_comparison_report.v1", report)
+  end
+
+  test "verifies curated optimizer contract reference fixtures" do
+    fixture_id = "fixture.artifact.optimizer_contract.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.optimizer_contract.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = optimizer_contract_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               optimizer_contract_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      optimizer_contract_fixture_observations()
+      |> Map.put("external_solver", true)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "external_solver" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations("optimizer_contract.v1", report) ==
+             Validation.artifact_observations("optimizer_contract.v1", report)
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "optimizer_contract.v1")
+
+    stale_candidate_count = Map.put(report, "candidate_count", 1)
+
+    assert {:error, stale_candidate_count_report} =
+             Schema.validate_artifact(stale_candidate_count,
+               schema_contract: "optimizer_contract.v1"
+             )
+
+    assert Enum.any?(
+             stale_candidate_count_report["errors"],
+             &(&1["path"] == "$.candidate_count")
+           )
+  end
+
+  test "verifies curated invalidated candidate reference fixtures" do
+    fixture_id = "fixture.artifact.invalidated_candidate.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.invalidated_candidate.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = invalidated_candidate_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               invalidated_candidate_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      invalidated_candidate_fixture_observations()
+      |> Map.put("replacement_candidate_id", "other_candidate")
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "replacement_candidate_id" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "invalidated_candidate.v1")
+
+    stale_source_target_id = Map.put(report, "source_target_id", "target_b")
+
+    assert {:error, stale_source_target_id_report} =
+             Schema.validate_artifact(stale_source_target_id,
+               schema_contract: "invalidated_candidate.v1"
+             )
+
+    assert Enum.any?(
+             stale_source_target_id_report["errors"],
+             &(&1["path"] == "$.source_target_id")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations("invalidated_candidate.v1", report) ==
+             Validation.artifact_observations("invalidated_candidate.v1", report)
+  end
+
+  test "verifies curated strategy branch reference fixtures" do
+    fixture_id = "fixture.artifact.strategy_branch.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.strategy_branch.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = strategy_branch_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               strategy_branch_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      strategy_branch_fixture_observations()
+      |> Map.put("approval_status", "blocked_by_policy")
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "approval_status" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations("strategy_branch.v1", report) ==
+             Validation.artifact_observations("strategy_branch.v1", report)
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "strategy_branch.v1")
+
+    stale_score = Map.put(report, "score", report["score"] + 1.0)
+
+    assert {:error, stale_score_report} =
+             Schema.validate_artifact(stale_score,
+               schema_contract: "strategy_branch.v1"
+             )
+
+    assert Enum.any?(stale_score_report["errors"], &(&1["path"] == "$.score"))
+  end
+
+  test "verifies curated strategy recommendation reference fixtures" do
+    fixture_id = "fixture.artifact.strategy_recommendation.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.strategy_recommendation.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = strategy_recommendation_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               strategy_recommendation_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      strategy_recommendation_fixture_observations()
+      |> Map.put("ranked_branch_count", 3)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "ranked_branch_count" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations("strategy_recommendation.v1", report) ==
+             Validation.artifact_observations("strategy_recommendation.v1", report)
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "strategy_recommendation.v1")
+
+    stale_ranked_branch_ids =
+      Map.put(
+        report,
+        "ranked_branch_ids",
+        tl(report["ranked_branch_ids"]) ++ [report["recommended_branch_id"]]
+      )
+
+    assert {:error, stale_rank_report} =
+             Schema.validate_artifact(stale_ranked_branch_ids,
+               schema_contract: "strategy_recommendation.v1"
+             )
+
+    assert Enum.any?(stale_rank_report["errors"], &(&1["path"] == "$.recommended_branch_id"))
+  end
+
+  test "verifies curated study benchmark reference fixtures" do
+    fixtures = [
+      {
+        "fixture.artifact.study_benchmark.v1",
+        study_benchmark_fixture(),
+        study_benchmark_fixture_observations(),
+        "matches_baseline_count",
+        1
+      },
+      {
+        "fixture.artifact.study_benchmark.distributed_concurrency_sweep",
+        distributed_concurrency_benchmark_fixture(),
+        distributed_concurrency_benchmark_fixture_observations(),
+        "distributed_result_count",
+        53
+      },
+      {
+        "fixture.artifact.study_benchmark.distributed_chunk_sweep",
+        distributed_chunk_benchmark_fixture(),
+        distributed_chunk_benchmark_fixture_observations(),
+        "task_chunk_size_option_count",
+        5
+      },
+      {
+        "fixture.artifact.study_benchmark.distributed_monte_carlo_scaling",
+        distributed_monte_carlo_scaling_benchmark_fixture(),
+        distributed_monte_carlo_scaling_benchmark_fixture_observations(),
+        "monte_carlo_count_option_count",
+        2
+      },
+      {
+        "fixture.artifact.study_benchmark.distributed_diagnostic_sweep",
+        distributed_diagnostic_benchmark_fixture(),
+        distributed_diagnostic_benchmark_fixture_observations(),
+        "distributed_result_count",
+        23
+      },
+      {
+        "fixture.artifact.study_benchmark.distributed_monte_carlo_chunked",
+        distributed_monte_carlo_chunked_benchmark_fixture(),
+        distributed_monte_carlo_chunked_benchmark_fixture_observations(),
+        "result_count",
+        17
+      },
+      {
+        "fixture.artifact.study_benchmark.monte_carlo_scaling",
+        monte_carlo_scaling_benchmark_fixture(),
+        monte_carlo_scaling_benchmark_fixture_observations(),
+        "repetition_count",
+        2
+      },
+      {
+        "fixture.artifact.study_benchmark.nx_study_benchmark",
+        nx_study_benchmark_fixture(),
+        nx_study_benchmark_fixture_observations(),
+        "backend_count",
+        2
+      }
+    ]
+
+    for {fixture_id, artifact, observations, stale_field, stale_value} <- fixtures do
+      assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+      assert fixture["model_id"] == "artifact.study_benchmark.v1"
+      assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+      assert {:ok, verification} =
+               Validation.verify_reference_fixture(fixture_id, observations)
+
+      assert verification["status"] == "pass"
+      assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+      stale_observations = Map.put(observations, stale_field, stale_value)
+
+      assert {:ok, stale_verification} =
+               Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+      assert stale_verification["status"] == "fail"
+
+      assert Enum.any?(
+               stale_verification["checks"],
+               &(&1["field"] == stale_field and &1["status"] == "fail")
+             )
+
+      assert OrbitalDynamics.validation_artifact_observations("study_benchmark.v1", artifact) ==
+               Validation.artifact_observations("study_benchmark.v1", artifact)
+    end
+
+    benchmark_report = study_benchmark_fixture()
+
+    assert {:ok, _validated_report} =
+             Schema.validate_artifact(benchmark_report, schema_contract: "study_benchmark.v1")
+
+    stale_scenario_count =
+      put_in(benchmark_report, ["results", Access.at(0), "scenario_count"], 99)
+
+    assert {:error, stale_scenario_count_report} =
+             Schema.validate_artifact(stale_scenario_count,
+               schema_contract: "study_benchmark.v1"
+             )
+
+    assert Enum.any?(
+             stale_scenario_count_report["errors"],
+             &(&1["path"] == "$.results[0].scenario_count")
+           )
+  end
+
+  test "verifies curated validation reference report fixtures" do
+    fixture_id = "fixture.artifact.validation_reference_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.validation_reference_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = validation_reference_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               validation_reference_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert verification["status_counts"] == %{"pass" => 10}
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      validation_reference_report_fixture_observations()
+      |> Map.put("check_count", 2)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+    assert stale_verification["status_counts"] == %{"fail" => 1, "pass" => 9}
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "check_count" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "validation_reference_report.v1",
+             report
+           ) == Validation.artifact_observations("validation_reference_report.v1", report)
+
+    assert {:ok, _schema_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "validation_reference_report.v1"
+             )
+
+    assert report["status_counts"] == %{"pass" => 3}
+
+    stale_check_status =
+      report
+      |> put_in(["checks", Access.at(0), "status"], "fail")
+      |> Map.put("status", "pass")
+
+    assert {:error, stale_check_status_report} =
+             Schema.validate_artifact(stale_check_status,
+               schema_contract: "validation_reference_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_check_status_report["errors"],
+             &(&1["path"] == "$.status")
+           )
+
+    stale_status_counts = put_in(report, ["status_counts", "pass"], 2)
+
+    assert {:error, stale_status_counts_report} =
+             Schema.validate_artifact(stale_status_counts,
+               schema_contract: "validation_reference_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_status_counts_report["errors"],
+             &(&1["path"] == "$.status_counts" and
+                 &1["message"] == "must equal nested check status counts")
+           )
+  end
+
+  test "verifies curated candidate diff report reference fixtures" do
+    fixture_id = "fixture.artifact.candidate_diff_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_diff_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = candidate_diff_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               candidate_diff_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      candidate_diff_report_fixture_observations()
+      |> Map.put("invalidated_candidate_count", 0)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "invalidated_candidate_count" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "candidate_diff_report.v1")
+
+    stale_new_candidate_count = Map.put(report, "new_candidate_count", 0)
+
+    assert {:error, stale_new_candidate_count_report} =
+             Schema.validate_artifact(stale_new_candidate_count,
+               schema_contract: "candidate_diff_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_new_candidate_count_report["errors"],
+             &(&1["path"] == "$.new_candidate_count")
+           )
+
+    stale_changed_field_alias =
+      put_in(report, ["invalidated_candidates", Access.at(0), "candidate_diff_changed_fields"], [
+        "starts_at_s"
+      ])
+
+    assert {:error, stale_changed_field_alias_report} =
+             Schema.validate_artifact(stale_changed_field_alias,
+               schema_contract: "candidate_diff_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_changed_field_alias_report["errors"],
+             &(&1["path"] ==
+                 "$.invalidated_candidates[0].candidate_diff_changed_fields")
+           )
+
+    stale_semantic_reasons =
+      put_in(report, ["invalidated_candidates", Access.at(0), "semantic_change_reasons"], [
+        "starts_at_s_changed"
+      ])
+
+    assert {:error, stale_semantic_reasons_report} =
+             Schema.validate_artifact(stale_semantic_reasons,
+               schema_contract: "candidate_diff_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_semantic_reasons_report["errors"],
+             &(&1["path"] == "$.invalidated_candidates[0].semantic_change_reasons")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "candidate_diff_report.v1",
+             report
+           ) == Validation.artifact_observations("candidate_diff_report.v1", report)
+  end
+
+  test "verifies curated refresh budget report reference fixtures" do
+    fixture_id = "fixture.artifact.refresh_budget_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.refresh_budget_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = refresh_budget_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               refresh_budget_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      refresh_budget_report_fixture_observations()
+      |> Map.put("dropped_candidate_count", 0)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "dropped_candidate_count" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "refresh_budget_report.v1",
+             report
+           ) == Validation.artifact_observations("refresh_budget_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "refresh_budget_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "refresh_budget_report.v1"
+             )
+
+    stale_model = Map.put(report, "model", "stale_refresh_budget_model")
+
+    assert {:error, stale_model_report} =
+             Schema.validate_artifact(stale_model,
+               schema_contract: "refresh_budget_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"deterministic_candidate_limit_after_filters\"")
+           )
+
+    stale_kept_candidate_count = Map.put(report, "kept_candidate_count", 2)
+
+    assert {:error, stale_kept_candidate_count_report} =
+             Schema.validate_artifact(stale_kept_candidate_count,
+               schema_contract: "refresh_budget_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_kept_candidate_count_report["errors"],
+             &(&1["path"] == "$.kept_candidate_count")
+           )
+
+    stale_input_candidate_count = Map.put(report, "input_candidate_count", 3)
+
+    assert {:error, stale_input_candidate_count_report} =
+             Schema.validate_artifact(stale_input_candidate_count,
+               schema_contract: "refresh_budget_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_input_candidate_count_report["errors"],
+             &(&1["path"] == "$.input_candidate_count")
+           )
+
+    stale_duplicate_kept_candidate_ids =
+      Map.put(report, "kept_candidate_ids", [
+        "leo_1_observe_target_a_1",
+        "leo_1_observe_target_a_1"
+      ])
+      |> Map.put("kept_candidate_count", 2)
+      |> Map.put("input_candidate_count", 3)
+
+    assert {:error, stale_duplicate_kept_candidate_ids_report} =
+             Schema.validate_artifact(stale_duplicate_kept_candidate_ids,
+               schema_contract: "refresh_budget_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_duplicate_kept_candidate_ids_report["errors"],
+             &(&1["path"] == "$.kept_candidate_ids")
+           )
+
+    stale_overlapping_candidate_ids =
+      Map.put(report, "dropped_candidate_ids", ["leo_1_observe_target_a_1"])
+
+    assert {:error, stale_overlapping_candidate_ids_report} =
+             Schema.validate_artifact(stale_overlapping_candidate_ids,
+               schema_contract: "refresh_budget_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_overlapping_candidate_ids_report["errors"],
+             &(&1["path"] == "$.dropped_candidate_ids")
+           )
+  end
+
+  test "verifies curated execution report reference fixtures" do
+    fixture_id = "fixture.artifact.execution_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.execution_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = execution_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               execution_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      execution_report_fixture_observations()
+      |> Map.put("failed_scenario_count", 0)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "failed_scenario_count" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "execution_report.v1",
+             report
+           ) == Validation.artifact_observations("execution_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "execution_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "execution_report.v1"
+             )
+
+    stale_scenario_count = Map.put(report, "scenario_count", 1999)
+
+    assert {:error, stale_scenario_count_report} =
+             Schema.validate_artifact(stale_scenario_count,
+               schema_contract: "execution_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_scenario_count_report["errors"],
+             &(&1["path"] == "$.scenario_count")
+           )
+
+    stale_failed_scenario_count = Map.put(report, "failed_scenario_count", 0)
+
+    assert {:error, stale_failed_scenario_count_report} =
+             Schema.validate_artifact(stale_failed_scenario_count,
+               schema_contract: "execution_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_failed_scenario_count_report["errors"],
+             &(&1["path"] == "$.failed_scenario_count")
+           )
+
+    stale_status = Map.put(report, "status", "completed")
+
+    assert {:error, stale_status_report} =
+             Schema.validate_artifact(stale_status,
+               schema_contract: "execution_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_status_report["errors"],
+             &(&1["path"] == "$.status")
+           )
+
+    stale_execution_plan_count = put_in(report, ["execution_plan", "scenario_count"], 1999)
+
+    assert {:error, stale_execution_plan_count_report} =
+             Schema.validate_artifact(stale_execution_plan_count,
+               schema_contract: "execution_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_execution_plan_count_report["errors"],
+             &(&1["path"] == "$.execution_plan.scenario_count")
+           )
+
+    stale_node_distribution = put_in(report, ["node_distribution", "mission_ops@node_b"], 999)
+
+    assert {:error, stale_node_distribution_report} =
+             Schema.validate_artifact(stale_node_distribution,
+               schema_contract: "execution_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_node_distribution_report["errors"],
+             &(&1["path"] == "$.node_distribution")
+           )
+  end
+
+  test "verifies curated freshness report reference fixtures" do
+    fixture_id = "fixture.artifact.freshness_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.freshness_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = freshness_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               freshness_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      freshness_report_fixture_observations()
+      |> Map.put("status", "stale")
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "status" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "freshness_report.v1",
+             report
+           ) == Validation.artifact_observations("freshness_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "freshness_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "freshness_report.v1"
+             )
+
+    stale_status = Map.put(report, "status", "stale")
+
+    assert {:error, stale_status_report} =
+             Schema.validate_artifact(stale_status,
+               schema_contract: "freshness_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_status_report["errors"],
+             &(&1["path"] == "$.status")
+           )
+
+    stale_horizon_offset = Map.put(report, "horizon_start_offset_s", 2)
+
+    assert {:error, stale_horizon_offset_report} =
+             Schema.validate_artifact(stale_horizon_offset,
+               schema_contract: "freshness_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_horizon_offset_report["errors"],
+             &(&1["path"] == "$.stale_reasons")
+           )
+
+    stale_unknown_reasons = Map.put(report, "unknown_reasons", ["horizon_alignment_unknown"])
+
+    assert {:error, stale_unknown_reasons_report} =
+             Schema.validate_artifact(stale_unknown_reasons,
+               schema_contract: "freshness_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_unknown_reasons_report["errors"],
+             &(&1["path"] == "$.unknown_reasons")
+           )
+
+    stale_state_quality_status = Map.put(report, "state_quality_status", "not_accepted")
+
+    assert {:error, stale_state_quality_status_report} =
+             Schema.validate_artifact(stale_state_quality_status,
+               schema_contract: "freshness_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_state_quality_status_report["errors"],
+             &(&1["path"] == "$.state_quality_status")
+           )
+
+    stale_model = Map.put(report, "model", "stale_freshness_model")
+
+    assert {:error, stale_model_report} =
+             Schema.validate_artifact(stale_model,
+               schema_contract: "freshness_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"accepted_snapshot_horizon_and_quality_freshness\"")
+           )
+
+    stale_state_quality_policy_input =
+      Map.put(report, "accepted_state_quality_level", "telemetry_unreviewed")
+
+    assert {:error, stale_state_quality_policy_input_report} =
+             Schema.validate_artifact(stale_state_quality_policy_input,
+               schema_contract: "freshness_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_state_quality_policy_input_report["errors"],
+             &(&1["path"] == "$.stale_reasons" and
+                 &1["message"] == "must equal freshness-policy-derived stale_reasons")
+           )
+
+    assert Enum.any?(
+             stale_state_quality_policy_input_report["errors"],
+             &(&1["path"] == "$.status" and &1["message"] == "must equal stale")
+           )
+
+    stale_model_limits =
+      Map.put(report, "model_limits", Enum.drop(Map.fetch!(report, "model_limits"), 1))
+
+    assert {:error, stale_model_limits_report} =
+             Schema.validate_artifact(stale_model_limits,
+               schema_contract: "freshness_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits")
+           )
+  end
+
+  test "verifies curated manifest field reference fixtures" do
+    fixture_id = "fixture.artifact.manifest_field_reference.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.manifest_field_reference.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = manifest_field_reference_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               manifest_field_reference_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      manifest_field_reference_fixture_observations()
+      |> Map.put("field_row_count", 3719)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "field_row_count" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "manifest_field_reference.v1",
+             report
+           ) == Validation.artifact_observations("manifest_field_reference.v1", report)
+
+    assert {:ok, %{"schema_contract" => "manifest_field_reference.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "manifest_field_reference.v1"
+             )
+
+    stale_field_count = Map.put(report, "field_count", 3719)
+
+    assert {:error, stale_field_count_report} =
+             Schema.validate_artifact(stale_field_count,
+               schema_contract: "manifest_field_reference.v1"
+             )
+
+    assert Enum.any?(
+             stale_field_count_report["errors"],
+             &(&1["path"] == "$.field_count")
+           )
+
+    fields = Map.fetch!(report, "fields")
+
+    duplicate_path_fields =
+      fields
+      |> List.replace_at(1, Map.put(Enum.at(fields, 1), "path", "$.campaign"))
+
+    stale_duplicate_path = Map.put(report, "fields", duplicate_path_fields)
+
+    assert {:error, stale_duplicate_path_report} =
+             Schema.validate_artifact(stale_duplicate_path,
+               schema_contract: "manifest_field_reference.v1"
+             )
+
+    assert Enum.any?(
+             stale_duplicate_path_report["errors"],
+             &(&1["path"] == "$.fields")
+           )
+
+    stale_top_level_required =
+      Map.put(report, "top_level_required", ["schema_version", "study_id"])
+
+    assert {:error, stale_top_level_required_report} =
+             Schema.validate_artifact(stale_top_level_required,
+               schema_contract: "manifest_field_reference.v1"
+             )
+
+    assert Enum.any?(
+             stale_top_level_required_report["errors"],
+             &(&1["path"] == "$.top_level_required")
+           )
+
+    stale_activation_sections =
+      Map.put(
+        report,
+        "activation_sections",
+        List.replace_at(Map.fetch!(report, "activation_sections"), 0, "invalid_section")
+      )
+
+    assert {:error, stale_activation_sections_report} =
+             Schema.validate_artifact(stale_activation_sections,
+               schema_contract: "manifest_field_reference.v1"
+             )
+
+    assert Enum.any?(
+             stale_activation_sections_report["errors"],
+             &(&1["path"] == "$.activation_sections[0]")
+           )
+
+    stale_supported_outputs = put_in(report, ["supported", "outputs"], ["events"])
+
+    assert {:error, stale_supported_outputs_report} =
+             Schema.validate_artifact(stale_supported_outputs,
+               schema_contract: "manifest_field_reference.v1"
+             )
+
+    assert Enum.any?(
+             stale_supported_outputs_report["errors"],
+             &(&1["path"] == "$.supported.outputs")
+           )
+  end
+
+  test "verifies curated study manifest lint reference fixtures" do
+    fixture_id = "fixture.artifact.study_manifest_lint.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.study_manifest_lint.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = study_manifest_lint_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               study_manifest_lint_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      study_manifest_lint_fixture_observations()
+      |> Map.put("error_count", 1)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "error_count" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "study_manifest_lint.v1",
+             report
+           ) == Validation.artifact_observations("study_manifest_lint.v1", report)
+
+    assert {:ok, %{"schema_contract" => "study_manifest_lint.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "study_manifest_lint.v1"
+             )
+
+    stale_error_count = Map.put(report, "error_count", 1)
+
+    assert {:error, stale_error_count_report} =
+             Schema.validate_artifact(stale_error_count,
+               schema_contract: "study_manifest_lint.v1"
+             )
+
+    assert Enum.any?(
+             stale_error_count_report["errors"],
+             &(&1["path"] == "$.error_count")
+           )
+
+    stale_warning_count = Map.put(report, "warning_count", 1)
+
+    assert {:error, stale_warning_count_report} =
+             Schema.validate_artifact(stale_warning_count,
+               schema_contract: "study_manifest_lint.v1"
+             )
+
+    assert Enum.any?(
+             stale_warning_count_report["errors"],
+             &(&1["path"] == "$.warning_count")
+           )
+
+    stale_status = Map.put(report, "status", "fail")
+
+    assert {:error, stale_status_report} =
+             Schema.validate_artifact(stale_status,
+               schema_contract: "study_manifest_lint.v1"
+             )
+
+    assert Enum.any?(
+             stale_status_report["errors"],
+             &(&1["path"] == "$.status")
+           )
+
+    stale_duplicate_outputs =
+      Map.put(report, "outputs", ["trajectories", "trajectories"])
+
+    assert {:error, stale_duplicate_outputs_report} =
+             Schema.validate_artifact(stale_duplicate_outputs,
+               schema_contract: "study_manifest_lint.v1"
+             )
+
+    assert Enum.any?(
+             stale_duplicate_outputs_report["errors"],
+             &(&1["path"] == "$.outputs")
+           )
+
+    stale_unsupported_output = Map.put(report, "outputs", ["unsupported_output"])
+
+    assert {:error, stale_unsupported_output_report} =
+             Schema.validate_artifact(stale_unsupported_output,
+               schema_contract: "study_manifest_lint.v1"
+             )
+
+    assert Enum.any?(
+             stale_unsupported_output_report["errors"],
+             &(&1["path"] == "$.outputs")
+           )
+  end
+
+  test "verifies curated approval requirement reference fixtures" do
+    fixture_id = "fixture.artifact.approval_requirement.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.approval_requirement.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = approval_requirement_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               approval_requirement_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      approval_requirement_fixture_observations()
+      |> Map.put("required_authority", "mission_planning_authority")
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "required_authority" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "approval_requirement.v1",
+             report
+           ) == Validation.artifact_observations("approval_requirement.v1", report)
+
+    assert {:ok, %{"schema_contract" => "approval_requirement.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "approval_requirement.v1"
+             )
+
+    stale_decision_classification =
+      put_in(report, ["policy_decision", "classification"], "auto_approvable")
+
+    assert {:error, stale_decision_classification_report} =
+             Schema.validate_artifact(stale_decision_classification,
+               schema_contract: "approval_requirement.v1"
+             )
+
+    assert Enum.any?(
+             stale_decision_classification_report["errors"],
+             &(&1["path"] == "$.policy_decision.classification")
+           )
+
+    stale_decision_policy_bundle =
+      put_in(report, ["policy_decision", "policy_bundle_id"], "other_policy_bundle")
+
+    assert {:error, stale_decision_policy_bundle_report} =
+             Schema.validate_artifact(stale_decision_policy_bundle,
+               schema_contract: "approval_requirement.v1"
+             )
+
+    assert Enum.any?(
+             stale_decision_policy_bundle_report["errors"],
+             &(&1["path"] == "$.policy_decision.policy_bundle_id")
+           )
+
+    stale_rule_matches = Map.put(report, "approval_rule_matches", [])
+
+    assert {:error, stale_rule_matches_report} =
+             Schema.validate_artifact(stale_rule_matches,
+               schema_contract: "approval_requirement.v1"
+             )
+
+    assert Enum.any?(
+             stale_rule_matches_report["errors"],
+             &(&1["path"] == "$.approval_rule_matches")
+           )
+
+    stale_escalations = put_in(report, ["policy_decision", "escalations"], [])
+
+    assert {:error, stale_escalations_report} =
+             Schema.validate_artifact(stale_escalations,
+               schema_contract: "approval_requirement.v1"
+             )
+
+    assert Enum.any?(
+             stale_escalations_report["errors"],
+             &(&1["path"] == "$.policy_decision.escalations")
+           )
+  end
+
+  test "verifies curated policy decision reference fixtures" do
+    fixture_id = "fixture.artifact.policy_decision.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.policy_decision.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = policy_decision_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               policy_decision_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      policy_decision_fixture_observations()
+      |> Map.put("classification", "approved")
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "classification" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "policy_decision.v1",
+             report
+           ) == Validation.artifact_observations("policy_decision.v1", report)
+
+    assert {:ok, %{"schema_contract" => "policy_decision.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "policy_decision.v1"
+             )
+
+    stale_classification = Map.put(report, "classification", "auto_approvable")
+
+    assert {:error, stale_classification_report} =
+             Schema.validate_artifact(stale_classification,
+               schema_contract: "policy_decision.v1"
+             )
+
+    assert Enum.any?(
+             stale_classification_report["errors"],
+             &(&1["path"] == "$.classification")
+           )
+
+    stale_approval_requirement_count = Map.put(report, "approval_requirement_count", 0)
+
+    assert {:error, stale_approval_requirement_count_report} =
+             Schema.validate_artifact(stale_approval_requirement_count,
+               schema_contract: "policy_decision.v1"
+             )
+
+    assert Enum.any?(
+             stale_approval_requirement_count_report["errors"],
+             &(&1["path"] == "$.approval_requirement_count")
+           )
+
+    stale_risk_count = Map.put(report, "risk_count", 1)
+
+    assert {:error, stale_risk_count_report} =
+             Schema.validate_artifact(stale_risk_count,
+               schema_contract: "policy_decision.v1"
+             )
+
+    assert Enum.any?(
+             stale_risk_count_report["errors"],
+             &(&1["path"] == "$.risk_count")
+           )
+
+    stale_escalation_rule_id =
+      put_in(report, ["escalations", Access.at(0), "rule_id"], "other_rule")
+
+    assert {:error, stale_escalation_rule_id_report} =
+             Schema.validate_artifact(stale_escalation_rule_id,
+               schema_contract: "policy_decision.v1"
+             )
+
+    assert Enum.any?(
+             stale_escalation_rule_id_report["errors"],
+             &(&1["path"] == "$.escalations")
+           )
+
+    stale_model_limits =
+      Map.put(report, "model_limits", Enum.drop(Map.fetch!(report, "model_limits"), 1))
+
+    assert {:error, stale_model_limits_report} =
+             Schema.validate_artifact(stale_model_limits,
+               schema_contract: "policy_decision.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits")
+           )
+  end
+
+  test "verifies curated policy bundle reference fixtures" do
+    fixture_id = "fixture.artifact.policy_bundle.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.policy_bundle.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = policy_bundle_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               policy_bundle_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      policy_bundle_fixture_observations()
+      |> Map.put("action_rule_count", 5)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "action_rule_count" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _schema_report} =
+             Schema.validate_artifact(report, schema_contract: "policy_bundle.v1")
+
+    first_rule_id = get_in(report, ["approval_policy", "action_rules", Access.at(0), "id"])
+
+    stale_duplicate_rule_id =
+      put_in(report, ["approval_policy", "action_rules", Access.at(1), "id"], first_rule_id)
+
+    assert {:error, stale_duplicate_rule_id_report} =
+             Schema.validate_artifact(stale_duplicate_rule_id,
+               schema_contract: "policy_bundle.v1"
+             )
+
+    assert Enum.any?(
+             stale_duplicate_rule_id_report["errors"],
+             &(&1["path"] == "$.approval_policy.action_rules[1].id")
+           )
+
+    stale_provenance_bundle_id =
+      put_in(report, ["provenance", "bundle_id"], "other_policy_bundle")
+
+    assert {:error, stale_provenance_bundle_id_report} =
+             Schema.validate_artifact(stale_provenance_bundle_id,
+               schema_contract: "policy_bundle.v1"
+             )
+
+    assert Enum.any?(
+             stale_provenance_bundle_id_report["errors"],
+             &(&1["path"] == "$.provenance.bundle_id")
+           )
+
+    stale_authority_route =
+      update_in(
+        report,
+        ["approval_policy", "action_rules", Access.at(0)],
+        &Map.delete(&1, "required_authority")
+      )
+
+    assert {:error, stale_authority_route_report} =
+             Schema.validate_artifact(stale_authority_route,
+               schema_contract: "policy_bundle.v1"
+             )
+
+    assert Enum.any?(
+             stale_authority_route_report["errors"],
+             &(&1["path"] == "$.approval_policy.action_rules[0].required_authority")
+           )
+
+    stale_assumption_boundary =
+      put_in(report, ["assumptions", "boundary"], "external_authority_lookup")
+
+    assert {:error, stale_assumption_boundary_report} =
+             Schema.validate_artifact(stale_assumption_boundary,
+               schema_contract: "policy_bundle.v1"
+             )
+
+    assert Enum.any?(
+             stale_assumption_boundary_report["errors"],
+             &(&1["path"] == "$.assumptions.boundary")
+           )
+
+    stale_model_limits =
+      Map.put(report, "model_limits", Enum.drop(Map.fetch!(report, "model_limits"), 1))
+
+    assert {:error, stale_model_limits_report} =
+             Schema.validate_artifact(stale_model_limits,
+               schema_contract: "policy_bundle.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "policy_bundle.v1",
+             report
+           ) == Validation.artifact_observations("policy_bundle.v1", report)
+  end
+
+  test "verifies curated ground-network policy bundle reference fixtures" do
+    fixture_id = "fixture.artifact.policy_bundle.ground_network_allocation"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.policy_bundle.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = ground_network_policy_bundle_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               ground_network_policy_bundle_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      ground_network_policy_bundle_fixture_observations()
+      |> Map.put("reduced_capacity_rule_count", 1)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "reduced_capacity_rule_count" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "policy_bundle.v1",
+             report
+           ) == Validation.artifact_observations("policy_bundle.v1", report)
+
+    assert {:ok, _validated_report} =
+             Schema.validate_artifact(report, schema_contract: "policy_bundle.v1")
+
+    missing_classification =
+      update_in(
+        report,
+        ["approval_policy", "action_rules", Access.at(0)],
+        &Map.delete(&1, "classification")
+      )
+
+    assert {:error, missing_classification_report} =
+             Schema.validate_artifact(missing_classification,
+               schema_contract: "policy_bundle.v1"
+             )
+
+    assert Enum.any?(
+             missing_classification_report["errors"],
+             &(&1["path"] == "$.approval_policy.action_rules[0].classification")
+           )
+
+    missing_reason =
+      update_in(
+        report,
+        ["approval_policy", "action_rules", Access.at(0)],
+        &Map.delete(&1, "reason")
+      )
+
+    assert {:error, missing_reason_report} =
+             Schema.validate_artifact(missing_reason,
+               schema_contract: "policy_bundle.v1"
+             )
+
+    assert Enum.any?(
+             missing_reason_report["errors"],
+             &(&1["path"] == "$.approval_policy.action_rules[0].reason")
+           )
+  end
+
+  test "verifies curated operator-review queue policy bundle reference fixtures" do
+    fixture_id = "fixture.artifact.policy_bundle.operator_review_queue_authority"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.policy_bundle.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = operator_review_queue_policy_bundle_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               operator_review_queue_policy_bundle_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      operator_review_queue_policy_bundle_fixture_observations()
+      |> Map.put("required_authority_counts", %{"mission_operations_authority" => 5})
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "required_authority_counts" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "policy_bundle.v1",
+             report
+           ) == Validation.artifact_observations("policy_bundle.v1", report)
+  end
+
+  test "verifies curated command/contact policy bundle reference fixtures" do
+    fixture_id = "fixture.artifact.policy_bundle.command_contact_authority"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.policy_bundle.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = command_contact_policy_bundle_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               command_contact_policy_bundle_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      command_contact_policy_bundle_fixture_observations()
+      |> Map.put("station_availability_rule_count", 1)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "station_availability_rule_count" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "policy_bundle.v1",
+             report
+           ) == Validation.artifact_observations("policy_bundle.v1", report)
+  end
+
+  test "verifies curated domain authority policy bundle reference fixtures" do
+    fixtures = [
+      {
+        "fixture.artifact.policy_bundle.maneuver_authority",
+        maneuver_authority_policy_bundle_fixture(),
+        maneuver_authority_policy_bundle_fixture_observations(),
+        "escalation_queue_counts",
+        %{"mission_planning" => 4}
+      },
+      {
+        "fixture.artifact.policy_bundle.resource_projection_authority",
+        resource_projection_authority_policy_bundle_fixture(),
+        resource_projection_authority_policy_bundle_fixture_observations(),
+        "required_authority_counts",
+        %{"resource_model_authority" => 7}
+      },
+      {
+        "fixture.artifact.policy_bundle.timeline_protection",
+        timeline_protection_policy_bundle_fixture(),
+        timeline_protection_policy_bundle_fixture_observations(),
+        "action_rule_count",
+        8
+      }
+    ]
+
+    for {fixture_id, report, observations, stale_field, stale_value} <- fixtures do
+      assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+      assert fixture["model_id"] == "artifact.policy_bundle.v1"
+      assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+      assert {:ok, verification} =
+               Validation.verify_reference_fixture(fixture_id, observations)
+
+      assert verification["status"] == "pass"
+      assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+      stale_observations = Map.put(observations, stale_field, stale_value)
+
+      assert {:ok, stale_verification} =
+               Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+      assert stale_verification["status"] == "fail"
+
+      assert Enum.any?(
+               stale_verification["checks"],
+               &(&1["field"] == stale_field and &1["status"] == "fail")
+             )
+
+      assert OrbitalDynamics.validation_artifact_observations(
+               "policy_bundle.v1",
+               report
+             ) == Validation.artifact_observations("policy_bundle.v1", report)
+
+      assert {:ok, _validated_report} =
+               Schema.validate_artifact(report, schema_contract: "policy_bundle.v1")
+    end
+  end
+
+  test "verifies curated remaining policy bundle variant reference fixtures" do
+    fixtures = [
+      {
+        "fixture.artifact.policy_bundle.conservative_ops",
+        conservative_policy_bundle_fixture(),
+        conservative_policy_bundle_fixture_observations(),
+        "blocked_risk_type_count",
+        7
+      },
+      {
+        "fixture.artifact.policy_bundle.contact_command_review",
+        contact_command_review_policy_bundle_fixture(),
+        contact_command_review_policy_bundle_fixture_observations(),
+        "action_rule_count",
+        2
+      },
+      {
+        "fixture.artifact.policy_bundle.degraded_payload_guard",
+        degraded_payload_guard_policy_bundle_fixture(),
+        degraded_payload_guard_policy_bundle_fixture_observations(),
+        "auto_approvable_approval_count_limit",
+        1
+      },
+      {
+        "fixture.artifact.policy_bundle.default",
+        default_policy_bundle_fixture(),
+        default_policy_bundle_fixture_observations(),
+        "operator_review_risk_limit",
+        2
+      },
+      {
+        "fixture.artifact.policy_bundle.organization_adapter",
+        organization_adapter_policy_bundle_fixture(),
+        organization_adapter_policy_bundle_fixture_observations(),
+        "workflow_execution",
+        "external_workflow"
+      }
+    ]
+
+    for {fixture_id, report, observations, stale_field, stale_value} <- fixtures do
+      assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+      assert fixture["model_id"] == "artifact.policy_bundle.v1"
+      assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+      assert {:ok, verification} =
+               Validation.verify_reference_fixture(fixture_id, observations)
+
+      assert verification["status"] == "pass"
+      assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+      stale_observations = Map.put(observations, stale_field, stale_value)
+
+      assert {:ok, stale_verification} =
+               Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+      assert stale_verification["status"] == "fail"
+
+      assert Enum.any?(
+               stale_verification["checks"],
+               &(&1["field"] == stale_field and &1["status"] == "fail")
+             )
+
+      assert OrbitalDynamics.validation_artifact_observations(
+               "policy_bundle.v1",
+               report
+             ) == Validation.artifact_observations("policy_bundle.v1", report)
+    end
+  end
+
+  test "verifies curated planned activity reference fixtures" do
+    fixture_id = "fixture.artifact.planned_activity.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.planned_activity.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = planned_activity_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               planned_activity_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      planned_activity_fixture_observations()
+      |> Map.put("timeline_identity_field_count", 5)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "timeline_identity_field_count" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "planned_activity.v1")
+
+    stale_timeline_identity =
+      put_in(report, ["timeline_identity", "activity_id"], "cmd_other")
+
+    assert {:error, stale_timeline_identity_report} =
+             Schema.validate_artifact(stale_timeline_identity,
+               schema_contract: "planned_activity.v1"
+             )
+
+    assert Enum.any?(
+             stale_timeline_identity_report["errors"],
+             &(&1["path"] == "$.timeline_identity.activity_id")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "planned_activity.v1",
+             report
+           ) == Validation.artifact_observations("planned_activity.v1", report)
+  end
+
+  test "verifies curated realized activity reference fixtures" do
+    fixture_id = "fixture.artifact.realized_activity.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.realized_activity.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = realized_activity_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               realized_activity_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      realized_activity_fixture_observations()
+      |> Map.put("status", "completed")
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "status" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "realized_activity.v1")
+
+    stale_metadata =
+      put_in(report, ["metadata", "planned_activity_id"], "other_activity")
+
+    assert {:error, stale_metadata_report} =
+             Schema.validate_artifact(stale_metadata, schema_contract: "realized_activity.v1")
+
+    assert Enum.any?(
+             stale_metadata_report["errors"],
+             &(&1["path"] == "$.metadata.planned_activity_id")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "realized_activity.v1",
+             report
+           ) == Validation.artifact_observations("realized_activity.v1", report)
+  end
+
+  test "verifies curated plan delta reference fixtures" do
+    fixture_id = "fixture.artifact.plan_delta.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.plan_delta.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = plan_delta_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               plan_delta_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      plan_delta_fixture_observations()
+      |> Map.put("requires_approval", false)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "requires_approval" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "plan_delta.v1")
+
+    stale_source_identity =
+      put_in(report, ["source_activity_context", "timeline_identity", "activity_id"], "other")
+
+    assert {:error, stale_source_identity_report} =
+             Schema.validate_artifact(stale_source_identity, schema_contract: "plan_delta.v1")
+
+    assert Enum.any?(
+             stale_source_identity_report["errors"],
+             &(&1["path"] == "$.source_activity_context.timeline_identity.activity_id")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "plan_delta.v1",
+             report
+           ) == Validation.artifact_observations("plan_delta.v1", report)
+  end
+
+  test "verifies curated candidate activity reference fixtures" do
+    fixture_id = "fixture.artifact.candidate_activity.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_activity.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = candidate_activity_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               candidate_activity_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      candidate_activity_fixture_observations()
+      |> Map.put("score_term_count", 3)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "score_term_count" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "candidate_activity.v1")
+
+    stale_score = Map.put(report, "score", 1.0)
+
+    assert {:error, stale_score_report} =
+             Schema.validate_artifact(stale_score, schema_contract: "candidate_activity.v1")
+
+    assert Enum.any?(
+             stale_score_report["errors"],
+             &(&1["path"] == "$.score")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "candidate_activity.v1",
+             report
+           ) == Validation.artifact_observations("candidate_activity.v1", report)
+  end
+
+  test "verifies curated contact intent reference fixtures" do
+    fixture_id = "fixture.artifact.contact_intent.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.contact_intent.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = contact_intent_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               contact_intent_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      contact_intent_fixture_observations()
+      |> Map.put("approval_status", "approved")
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "approval_status" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "contact_intent.v1")
+
+    stale_policy_classification =
+      put_in(report, ["policy_decision", "classification"], "auto_approvable")
+
+    assert {:error, stale_policy_report} =
+             Schema.validate_artifact(stale_policy_classification,
+               schema_contract: "contact_intent.v1"
+             )
+
+    assert Enum.any?(
+             stale_policy_report["errors"],
+             &(&1["path"] == "$.policy_decision.classification")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "contact_intent.v1",
+             report
+           ) == Validation.artifact_observations("contact_intent.v1", report)
+  end
+
+  test "verifies curated refreshed window reference fixtures" do
+    fixture_id = "fixture.artifact.refreshed_window.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.refreshed_window.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = refreshed_window_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               refreshed_window_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      refreshed_window_fixture_observations()
+      |> Map.put("sample_count", 4)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "sample_count" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "refreshed_window.v1")
+
+    stale_sample_count = Map.put(report, "sample_count", 4)
+
+    assert {:error, stale_sample_count_report} =
+             Schema.validate_artifact(stale_sample_count, schema_contract: "refreshed_window.v1")
+
+    assert Enum.any?(
+             stale_sample_count_report["errors"],
+             &(&1["path"] == "$.sample_count")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "refreshed_window.v1",
+             report
+           ) == Validation.artifact_observations("refreshed_window.v1", report)
+  end
+
+  test "verifies curated source window lineage reference fixtures" do
+    fixture_id = "fixture.artifact.source_window_lineage.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.source_window_lineage.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = source_window_lineage_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               source_window_lineage_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      source_window_lineage_fixture_observations()
+      |> Map.put("source_window_type", "target_visibility")
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "source_window_type" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "source_window_lineage.v1")
+
+    stale_source_window_type = Map.put(report, "source_window_type", "target_visibility")
+
+    assert {:error, stale_source_window_type_report} =
+             Schema.validate_artifact(stale_source_window_type,
+               schema_contract: "source_window_lineage.v1"
+             )
+
+    assert Enum.any?(
+             stale_source_window_type_report["errors"],
+             &(&1["path"] == "$.source_window_type")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "source_window_lineage.v1",
+             report
+           ) == Validation.artifact_observations("source_window_lineage.v1", report)
+  end
+
+  test "verifies curated spacecraft state estimate reference fixtures" do
+    fixture_id = "fixture.artifact.spacecraft_state_estimate.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.spacecraft_state_estimate.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = spacecraft_state_estimate_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               spacecraft_state_estimate_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      spacecraft_state_estimate_fixture_observations()
+      |> Map.put("quality_level", "planning_accepted")
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "quality_level" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "spacecraft_state_estimate.v1")
+
+    stale_quality_sigma =
+      put_in(report, ["quality", "position_sigma_km"], [0.1, 0.1])
+
+    assert {:error, stale_quality_sigma_report} =
+             Schema.validate_artifact(stale_quality_sigma,
+               schema_contract: "spacecraft_state_estimate.v1"
+             )
+
+    assert Enum.any?(
+             stale_quality_sigma_report["errors"],
+             &(&1["path"] == "$.quality.position_sigma_km")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "spacecraft_state_estimate.v1",
+             report
+           ) == Validation.artifact_observations("spacecraft_state_estimate.v1", report)
+  end
+
+  test "verifies curated realized state snapshot reference fixtures" do
+    fixture_id = "fixture.artifact.realized_state_snapshot.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.realized_state_snapshot.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = realized_state_snapshot_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               realized_state_snapshot_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      realized_state_snapshot_fixture_observations()
+      |> Map.put("degraded_count", 0)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "degraded_count" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "realized_state_snapshot.v1")
+
+    stale_degraded_count = Map.put(report, "degraded_count", 0)
+
+    assert {:error, stale_degraded_count_report} =
+             Schema.validate_artifact(stale_degraded_count,
+               schema_contract: "realized_state_snapshot.v1"
+             )
+
+    assert Enum.any?(
+             stale_degraded_count_report["errors"],
+             &(&1["path"] == "$.degraded_count")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "realized_state_snapshot.v1",
+             report
+           ) == Validation.artifact_observations("realized_state_snapshot.v1", report)
+  end
+
+  test "verifies curated remaining horizon reference fixtures" do
+    fixture_id = "fixture.artifact.remaining_horizon.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.remaining_horizon.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = remaining_horizon_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               remaining_horizon_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      remaining_horizon_fixture_observations()
+      |> Map.put("duration_s", 540)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "duration_s" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "remaining_horizon.v1")
+
+    stale_duration = Map.put(report, "duration_s", 540)
+
+    assert {:error, stale_duration_report} =
+             Schema.validate_artifact(stale_duration, schema_contract: "remaining_horizon.v1")
+
+    assert Enum.any?(
+             stale_duration_report["errors"],
+             &(&1["path"] == "$.duration_s")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "remaining_horizon.v1",
+             report
+           ) == Validation.artifact_observations("remaining_horizon.v1", report)
+  end
+
+  test "verifies curated maneuver execution delta reference fixtures" do
+    fixture_id = "fixture.artifact.maneuver_execution_delta.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.maneuver_execution_delta.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = maneuver_execution_delta_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               maneuver_execution_delta_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      maneuver_execution_delta_fixture_observations()
+      |> Map.put("status", "partial")
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "status" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "maneuver_execution_delta.v1")
+
+    stale_delta_v = Map.put(report, "delta_v_km_s", [0.0, 0.01])
+
+    assert {:error, stale_delta_v_report} =
+             Schema.validate_artifact(stale_delta_v,
+               schema_contract: "maneuver_execution_delta.v1"
+             )
+
+    assert Enum.any?(
+             stale_delta_v_report["errors"],
+             &(&1["path"] == "$.delta_v_km_s")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "maneuver_execution_delta.v1",
+             report
+           ) == Validation.artifact_observations("maneuver_execution_delta.v1", report)
+  end
+
+  test "verifies curated maneuver recommendation reference fixtures" do
+    fixture_id = "fixture.artifact.maneuver_recommendation.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.maneuver_recommendation.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = maneuver_recommendation_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               maneuver_recommendation_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      maneuver_recommendation_fixture_observations()
+      |> Map.put("recommendation_only_no_command_execution", false)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "recommendation_only_no_command_execution" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "maneuver_recommendation.v1")
+
+    stale_delta_v_magnitude = Map.put(report, "delta_v_magnitude_km_s", 0.02)
+
+    assert {:error, stale_delta_v_magnitude_report} =
+             Schema.validate_artifact(stale_delta_v_magnitude,
+               schema_contract: "maneuver_recommendation.v1"
+             )
+
+    assert Enum.any?(
+             stale_delta_v_magnitude_report["errors"],
+             &(&1["path"] == "$.delta_v_magnitude_km_s")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "maneuver_recommendation.v1",
+             report
+           ) == Validation.artifact_observations("maneuver_recommendation.v1", report)
+  end
+
+  test "verifies curated backend acceptance policy reference fixtures" do
+    fixture_id = "fixture.artifact.backend_acceptance_policy.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.backend_acceptance_policy.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = backend_acceptance_policy_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               backend_acceptance_policy_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      backend_acceptance_policy_fixture_observations()
+      |> Map.put("implementation_count", 5)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "implementation_count" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "backend_acceptance_policy.v1")
+
+    stale_reference_tier =
+      put_in(
+        report,
+        ["implementation_tiers", "OrbitalDynamics.Propagators.TwoBody"],
+        "experimental_accelerator"
+      )
+
+    assert {:error, stale_reference_tier_report} =
+             Schema.validate_artifact(stale_reference_tier,
+               schema_contract: "backend_acceptance_policy.v1"
+             )
+
+    assert Enum.any?(
+             stale_reference_tier_report["errors"],
+             &(&1["path"] == "$.reference_backend.implementations[0]")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "backend_acceptance_policy.v1",
+             report
+           ) == Validation.artifact_observations("backend_acceptance_policy.v1", report)
+  end
+
+  test "verifies curated validation tolerance policy reference fixtures" do
+    fixture_id = "fixture.artifact.validation_tolerance_policy.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.validation_tolerance_policy.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = validation_tolerance_policy_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               validation_tolerance_policy_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      validation_tolerance_policy_fixture_observations()
+      |> Map.put("validation_level_count", 4)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "validation_level_count" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "validation_tolerance_policy.v1")
+
+    stale_validation_levels =
+      update_in(report, ["validation_levels"], &Map.delete(&1, "validated"))
+
+    assert {:error, stale_validation_levels_report} =
+             Schema.validate_artifact(stale_validation_levels,
+               schema_contract: "validation_tolerance_policy.v1"
+             )
+
+    assert Enum.any?(
+             stale_validation_levels_report["errors"],
+             &(&1["path"] == "$.validation_levels")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "validation_tolerance_policy.v1",
+             report
+           ) == Validation.artifact_observations("validation_tolerance_policy.v1", report)
+  end
+
+  test "verifies curated validation record reference fixtures" do
+    fixture_id = "fixture.artifact.validation_record.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.validation_record.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = validation_record_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               validation_record_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      validation_record_fixture_observations()
+      |> Map.put("validation_level", "validated")
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "validation_level" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "validation_record.v1")
+
+    stale_validation_level = Map.put(report, "validation_level", "flight_certified")
+
+    assert {:error, stale_validation_level_report} =
+             Schema.validate_artifact(stale_validation_level,
+               schema_contract: "validation_record.v1"
+             )
+
+    assert Enum.any?(
+             stale_validation_level_report["errors"],
+             &(&1["path"] == "$.validation_level")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "validation_record.v1",
+             report
+           ) == Validation.artifact_observations("validation_record.v1", report)
+  end
+
+  test "verifies curated validation check reference fixtures" do
+    fixture_id = "fixture.artifact.validation_check.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.validation_check.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = validation_check_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               validation_check_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      validation_check_fixture_observations()
+      |> Map.put("status", "fail")
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "status" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "validation_check.v1",
+             report
+           ) == Validation.artifact_observations("validation_check.v1", report)
+
+    assert {:ok, %{"schema_contract" => "validation_check.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "validation_check.v1"
+             )
+
+    stale_status = Map.put(report, "status", "fail")
+
+    assert {:error, stale_status_report} =
+             Schema.validate_artifact(stale_status,
+               schema_contract: "validation_check.v1"
+             )
+
+    assert Enum.any?(stale_status_report["errors"], &(&1["path"] == "$.status"))
+
+    stale_observed = Map.put(report, "observed", 2)
+
+    assert {:error, stale_observed_report} =
+             Schema.validate_artifact(stale_observed,
+               schema_contract: "validation_check.v1"
+             )
+
+    assert Enum.any?(stale_observed_report["errors"], &(&1["path"] == "$.status"))
+    assert Enum.any?(stale_observed_report["errors"], &(&1["path"] == "$.error"))
+
+    stale_error = Map.put(report, "error", 1)
+
+    assert {:error, stale_error_report} =
+             Schema.validate_artifact(stale_error,
+               schema_contract: "validation_check.v1"
+             )
+
+    assert Enum.any?(stale_error_report["errors"], &(&1["path"] == "$.error"))
+  end
+
+  test "verifies curated timeline diff report reference fixtures" do
+    fixture_id = "fixture.artifact.timeline_diff_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.timeline_diff_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = timeline_diff_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               timeline_diff_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      timeline_diff_report_fixture_observations()
+      |> Map.put("review_required_count", 3)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "review_required_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      timeline_diff_report_fixture_observations()
+      |> put_in(["row_derived_diff_status_counts", "changed"], 1)
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_diff_status_counts" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "timeline_diff_report.v1")
+
+    stale_row_count = Map.put(report, "row_count", 0)
+
+    assert {:error, stale_row_count_report} =
+             Schema.validate_artifact(stale_row_count,
+               schema_contract: "timeline_diff_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_row_count_report["errors"],
+             &(&1["path"] == "$.row_count")
+           )
+
+    stale_added_count = Map.put(report, "added_count", 0)
+
+    assert {:error, stale_added_count_report} =
+             Schema.validate_artifact(stale_added_count,
+               schema_contract: "timeline_diff_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_added_count_report["errors"],
+             &(&1["path"] == "$.added_count")
+           )
+
+    stale_model_limits = Map.put(report, "model_limits", ["artifact_level_only"])
+
+    assert {:error, stale_model_limits_report} =
+             Schema.validate_artifact(stale_model_limits,
+               schema_contract: "timeline_diff_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "timeline_diff_report.v1",
+             report
+           ) == Validation.artifact_observations("timeline_diff_report.v1", report)
+  end
+
+  test "verifies curated timeline activity precondition summary reference fixtures" do
+    fixture_id = "fixture.artifact.timeline_activity_precondition_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.timeline_activity_precondition_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = timeline_activity_precondition_summary_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               timeline_activity_precondition_summary_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      timeline_activity_precondition_summary_fixture_observations()
+      |> Map.put("blocked_precondition_count", 1)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "blocked_precondition_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      timeline_activity_precondition_summary_fixture_observations()
+      |> put_in(["row_derived_precondition_type_counts", "payload_unavailable"], 0)
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_precondition_type_counts" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "timeline_activity_precondition_summary.v1"
+             )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "timeline_activity_precondition_summary.v1",
+             report
+           ) ==
+             Validation.artifact_observations(
+               "timeline_activity_precondition_summary.v1",
+               report
+             )
+  end
+
+  test "verifies curated timeline activity state reference fixtures" do
+    fixture_id = "fixture.artifact.timeline_activity_state.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.timeline_activity_state.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = timeline_activity_state_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               timeline_activity_state_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      timeline_activity_state_fixture_observations()
+      |> Map.put("row_count", 1)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "row_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      timeline_activity_state_fixture_observations()
+      |> put_in(["row_derived_match_strategy_counts", "unmatched_realized"], 0)
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_match_strategy_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "timeline_activity_state.v1")
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "timeline_activity_state.v1",
+             report
+           ) == Validation.artifact_observations("timeline_activity_state.v1", report)
+  end
+
+  test "verifies curated timeline activity approval state reference fixtures" do
+    fixture_id = "fixture.artifact.timeline_activity_approval_state.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.timeline_activity_approval_state.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = timeline_activity_approval_state_fixture()
+    observations = timeline_activity_approval_state_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert observations["transition_decision"] == "review"
+    assert observations["review_required"] == true
+    assert observations["required_operator_action"] == "review_activity_approval"
+    assert observations["operator_action_reason"] == "approval_grant_requires_operator_authority"
+    assert observations["import_action"] == "review_timeline_diff"
+    assert observations["approval_transition_category"] == "approval_granted"
+    assert observations["approval_transition_requires_operator_review"] == true
+    assert observations["no_operator_authority_grant"] == true
+    assert observations["no_command_execution"] == true
+
+    stale_action_observations =
+      observations
+      |> Map.put("required_operator_action", "none")
+
+    assert {:ok, stale_action_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_action_observations)
+
+    assert stale_action_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_action_verification["checks"],
+             &(&1["field"] == "required_operator_action" and &1["status"] == "fail")
+           )
+
+    stale_authority_observations =
+      observations
+      |> Map.put("no_operator_authority_grant", false)
+
+    assert {:ok, stale_authority_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_authority_observations)
+
+    assert stale_authority_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_authority_verification["checks"],
+             &(&1["field"] == "no_operator_authority_grant" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "timeline_activity_approval_state.v1"
+             )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "timeline_activity_approval_state.v1",
+             report
+           ) ==
+             Validation.artifact_observations("timeline_activity_approval_state.v1", report)
+  end
+
+  test "verifies curated timeline activity status state reference fixtures" do
+    fixture_id = "fixture.artifact.timeline_activity_status_state.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.timeline_activity_status_state.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = timeline_activity_status_state_fixture()
+    observations = timeline_activity_status_state_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert observations["transition_decision"] == "record"
+    assert observations["review_required"] == false
+    assert observations["required_operator_action"] == "record_timeline_change"
+    assert observations["operator_action_reason"] == "activity_execution_recorded"
+    assert observations["import_action"] == "import_replacement_activity"
+    assert observations["status_transition_category"] == "execution_recorded"
+    assert observations["status_transition_requires_operator_review"] == false
+    assert observations["no_operator_authority_grant"] == true
+    assert observations["no_command_execution"] == true
+
+    stale_transition_observations =
+      observations
+      |> Map.put("transition_decision", "none")
+
+    assert {:ok, stale_transition_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_transition_observations)
+
+    assert stale_transition_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_transition_verification["checks"],
+             &(&1["field"] == "transition_decision" and &1["status"] == "fail")
+           )
+
+    stale_execution_boundary_observations =
+      observations
+      |> Map.put("no_command_execution", false)
+
+    assert {:ok, stale_execution_boundary_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_execution_boundary_observations
+             )
+
+    assert stale_execution_boundary_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_execution_boundary_verification["checks"],
+             &(&1["field"] == "no_command_execution" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "timeline_activity_status_state.v1"
+             )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "timeline_activity_status_state.v1",
+             report
+           ) ==
+             Validation.artifact_observations("timeline_activity_status_state.v1", report)
+  end
+
+  test "verifies curated timeline activity lifecycle state reference fixtures" do
+    fixture_id = "fixture.artifact.timeline_activity_lifecycle_state.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.timeline_activity_lifecycle_state.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = timeline_activity_lifecycle_state_fixture()
+    observations = timeline_activity_lifecycle_state_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert observations["transition_decision"] == "review"
+    assert observations["status_transition_decision"] == "record"
+    assert observations["approval_transition_decision"] == "review"
+    assert observations["required_operator_action_count"] == 2
+    assert observations["operator_action_reason_count"] == 2
+    assert observations["no_operator_authority_grant"] == true
+    assert observations["no_cadence_import"] == true
+    assert observations["no_command_execution"] == true
+
+    stale_action_observations =
+      observations
+      |> Map.put("required_operator_action_keys", "record_timeline_change")
+
+    assert {:ok, stale_action_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_action_observations)
+
+    assert stale_action_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_action_verification["checks"],
+             &(&1["field"] == "required_operator_action_keys" and &1["status"] == "fail")
+           )
+
+    stale_authority_observations =
+      observations
+      |> Map.put("no_operator_authority_grant", false)
+
+    assert {:ok, stale_authority_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_authority_observations)
+
+    assert stale_authority_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_authority_verification["checks"],
+             &(&1["field"] == "no_operator_authority_grant" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "timeline_activity_lifecycle_state.v1"
+             )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "timeline_activity_lifecycle_state.v1",
+             report
+           ) ==
+             Validation.artifact_observations("timeline_activity_lifecycle_state.v1", report)
+  end
+
+  test "verifies curated timeline lifecycle state summary reference fixtures" do
+    fixture_id = "fixture.artifact.timeline_lifecycle_state_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.timeline_lifecycle_state_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = timeline_lifecycle_state_summary_fixture()
+    observations = timeline_lifecycle_state_summary_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert observations["row_count"] == 4
+    assert observations["row_derived_row_count"] == 4
+    assert observations["review_required_count"] == 2
+    assert observations["row_derived_review_required_count"] == 2
+    assert observations["duplicate_timeline_identity_count"] == 1
+    assert observations["row_derived_duplicate_timeline_identity_count"] == 1
+    assert observations["review_timeline_keys"] == "timeline:cmd_provider|timeline:dup"
+
+    assert observations["row_derived_review_timeline_keys"] ==
+             "timeline:cmd_provider|timeline:dup"
+
+    assert observations["operator_authority"] == "not_granted_by_summary"
+    assert observations["cadence_import"] == "not_performed_by_summary"
+
+    stale_review_count_observations =
+      observations
+      |> Map.put("row_derived_review_required_count", 1)
+
+    assert {:ok, stale_review_count_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_review_count_observations)
+
+    assert stale_review_count_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_review_count_verification["checks"],
+             &(&1["field"] == "row_derived_review_required_count" and &1["status"] == "fail")
+           )
+
+    stale_review_routing_observations =
+      observations
+      |> Map.put("row_derived_review_timeline_ids_by_required_operator_action", %{})
+
+    assert {:ok, stale_review_routing_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_review_routing_observations)
+
+    assert stale_review_routing_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_review_routing_verification["checks"],
+             &(&1["field"] == "row_derived_review_timeline_ids_by_required_operator_action" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "timeline_lifecycle_state_summary.v1"
+             )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "timeline_lifecycle_state_summary.v1",
+             report
+           ) ==
+             Validation.artifact_observations("timeline_lifecycle_state_summary.v1", report)
+  end
+
+  test "verifies curated timeline preservation report reference fixtures" do
+    fixture_id = "fixture.artifact.timeline_preservation_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.timeline_preservation_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = timeline_preservation_report_fixture()
+    observations = timeline_preservation_report_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert observations["activity_count"] == 4
+    assert observations["row_count"] == 3
+    assert observations["row_derived_row_count"] == 3
+    assert observations["preservation_sensitive_activity_count"] == 3
+    assert observations["row_derived_preservation_sensitive_activity_count"] == 3
+    assert observations["review_change_activity_count"] == 1
+    assert observations["row_derived_review_change_activity_count"] == 1
+    assert observations["row_derived_invalid_activity_input_count"] == 1
+    assert observations["timeline_preservation_status"] == "review_required"
+
+    assert observations["row_derived_protection_decision_counts"] == %{
+             "preserve" => 2,
+             "review_change" => 1
+           }
+
+    assert observations["activity_id_sets_by_protection_decision"] == %{
+             "mutable" => ["cmd_mutable"],
+             "preserve" => ["contact_locked", "obs_done"],
+             "review_change" => ["bad_missing_type"]
+           }
+
+    assert observations["row_derived_activity_id_sets_by_protection_decision"] == %{
+             "preserve" => ["contact_locked", "obs_done"],
+             "review_change" => ["bad_missing_type"]
+           }
+
+    assert observations["preservation_sensitive_activity_keys"] ==
+             "bad_missing_type|contact_locked|obs_done"
+
+    assert observations["row_derived_preservation_sensitive_activity_keys"] ==
+             "bad_missing_type|contact_locked|obs_done"
+
+    assert observations["execution_boundary"] == "artifact_only_no_schedule_mutation"
+    assert observations["scope"] == "lifecycle_lock_approval_and_executed_preservation_review"
+    assert observations["model_limit_count"] == 4
+
+    stale_review_observations =
+      observations
+      |> Map.put("row_derived_review_change_activity_count", 0)
+
+    assert {:ok, stale_review_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_review_observations)
+
+    assert stale_review_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_review_verification["checks"],
+             &(&1["field"] == "row_derived_review_change_activity_count" and
+                 &1["status"] == "fail")
+           )
+
+    stale_routing_observations =
+      observations
+      |> Map.put("row_derived_activity_id_sets_by_protection_decision", %{})
+
+    assert {:ok, stale_routing_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_routing_observations)
+
+    assert stale_routing_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_routing_verification["checks"],
+             &(&1["field"] == "row_derived_activity_id_sets_by_protection_decision" and
+                 &1["status"] == "fail")
+           )
+
+    stale_boundary_observations =
+      observations
+      |> Map.put("execution_boundary", "schedule_mutation_allowed")
+
+    assert {:ok, stale_boundary_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_boundary_observations)
+
+    assert stale_boundary_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_boundary_verification["checks"],
+             &(&1["field"] == "execution_boundary" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "timeline_preservation_report.v1"
+             )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "timeline_preservation_report.v1",
+             report
+           ) ==
+             Validation.artifact_observations("timeline_preservation_report.v1", report)
+  end
+
+  test "verifies curated timeline integrity report reference fixtures" do
+    fixture_id = "fixture.artifact.timeline_integrity_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.timeline_integrity_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = timeline_integrity_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               timeline_integrity_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      timeline_integrity_report_fixture_observations()
+      |> Map.put("timeline_integrity_issue_count", 2)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "timeline_integrity_issue_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      timeline_integrity_report_fixture_observations()
+      |> put_in(["row_derived_timeline_integrity_issue_type_counts", "exclusivity_overlap"], 0)
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_timeline_integrity_issue_type_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "timeline_integrity_report.v1")
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "timeline_integrity_report.v1",
+             report
+           ) == Validation.artifact_observations("timeline_integrity_report.v1", report)
+  end
+
+  test "verifies curated timeline dependency impact summary reference fixtures" do
+    fixture_id = "fixture.artifact.timeline_dependency_impact_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.timeline_dependency_impact_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = timeline_dependency_impact_summary_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               timeline_dependency_impact_summary_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      timeline_dependency_impact_summary_fixture_observations()
+      |> Map.put("dependent_activity_count", 3)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "dependent_activity_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      timeline_dependency_impact_summary_fixture_observations()
+      |> put_in(
+        [
+          "row_derived_operator_action_reason_counts",
+          "dependency_changed_or_removed_source_activity"
+        ],
+        1
+      )
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_operator_action_reason_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "timeline_dependency_impact_summary.v1"
+             )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "timeline_dependency_impact_summary.v1",
+             report
+           ) ==
+             Validation.artifact_observations(
+               "timeline_dependency_impact_summary.v1",
+               report
+             )
+  end
+
+  test "verifies curated timeline diff summary reference fixtures" do
+    fixture_id = "fixture.artifact.timeline_diff_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.timeline_diff_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = timeline_diff_summary_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               timeline_diff_summary_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      timeline_diff_summary_fixture_observations()
+      |> Map.put("review_required_count", 2)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "review_required_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      timeline_diff_summary_fixture_observations()
+      |> put_in(["row_derived_status_transition_category_counts", "status_changed"], 0)
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_status_transition_category_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "timeline_diff_summary.v1")
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "timeline_diff_summary.v1",
+             report
+           ) == Validation.artifact_observations("timeline_diff_summary.v1", report)
+  end
+
+  test "verifies curated timeline transition application summary reference fixtures" do
+    fixture_id = "fixture.artifact.timeline_transition_application_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.timeline_transition_application_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = timeline_transition_application_summary_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               timeline_transition_application_summary_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      timeline_transition_application_summary_fixture_observations()
+      |> Map.put("review_required_count", 1)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "review_required_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      timeline_transition_application_summary_fixture_observations()
+      |> put_in(["row_derived_required_operator_action_counts", "review_added_activity"], 0)
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_required_operator_action_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "timeline_transition_application_summary.v1"
+             )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "timeline_transition_application_summary.v1",
+             report
+           ) ==
+             Validation.artifact_observations(
+               "timeline_transition_application_summary.v1",
+               report
+             )
+  end
+
+  test "verifies curated timeline transition application report reference fixtures" do
+    fixture_id = "fixture.artifact.timeline_transition_application_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.timeline_transition_application_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = timeline_transition_application_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               timeline_transition_application_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      timeline_transition_application_report_fixture_observations()
+      |> Map.put("application_count", 3)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "application_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      timeline_transition_application_report_fixture_observations()
+      |> put_in(["row_derived_application_status_counts", "operator_review_required"], 1)
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_application_status_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "timeline_transition_application_report.v1"
+             )
+
+    stale_application_count = Map.put(report, "application_count", 0)
+
+    assert {:error, stale_application_count_report} =
+             Schema.validate_artifact(stale_application_count,
+               schema_contract: "timeline_transition_application_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_application_count_report["errors"],
+             &(&1["path"] == "$.application_count")
+           )
+
+    stale_transition_decision_counts =
+      Map.put(report, "transition_decision_counts", %{"none" => 4})
+
+    assert {:error, stale_transition_decision_counts_report} =
+             Schema.validate_artifact(stale_transition_decision_counts,
+               schema_contract: "timeline_transition_application_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_transition_decision_counts_report["errors"],
+             &(&1["path"] == "$.transition_decision_counts")
+           )
+
+    stale_model_limits = Map.put(report, "model_limits", ["artifact_level_only"])
+
+    assert {:error, stale_model_limits_report} =
+             Schema.validate_artifact(stale_model_limits,
+               schema_contract: "timeline_transition_application_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "timeline_transition_application_report.v1",
+             report
+           ) ==
+             Validation.artifact_observations("timeline_transition_application_report.v1", report)
+  end
+
+  test "verifies curated timeline feedback report reference fixtures" do
+    fixture_id = "fixture.artifact.timeline_feedback_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.timeline_feedback_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = timeline_feedback_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               timeline_feedback_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      timeline_feedback_report_fixture_observations()
+      |> Map.put("execution_uncertainty_missing_count", 0)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "execution_uncertainty_missing_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      timeline_feedback_report_fixture_observations()
+      |> put_in(["row_derived_feedback_kind_counts", "maneuver"], 0)
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_feedback_kind_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "timeline_feedback_report.v1")
+
+    stale_row_count = Map.put(report, "row_count", 0)
+
+    assert {:error, stale_row_count_report} =
+             Schema.validate_artifact(stale_row_count,
+               schema_contract: "timeline_feedback_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_row_count_report["errors"],
+             &(&1["path"] == "$.row_count")
+           )
+
+    stale_model_limits = Map.put(report, "model_limits", ["artifact_level_only"])
+
+    assert {:error, stale_model_limits_report} =
+             Schema.validate_artifact(stale_model_limits,
+               schema_contract: "timeline_feedback_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "timeline_feedback_report.v1",
+             report
+           ) == Validation.artifact_observations("timeline_feedback_report.v1", report)
+  end
+
+  test "verifies curated Cadence import manifest reference fixtures" do
+    fixture_id = "fixture.artifact.cadence_import_manifest.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.cadence_import_manifest.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = cadence_import_manifest_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               cadence_import_manifest_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      cadence_import_manifest_fixture_observations()
+      |> Map.put("blocked_count", 0)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "blocked_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      cadence_import_manifest_fixture_observations()
+      |> put_in(["row_derived_import_status_counts", "blocked_missing_cadence_import"], 0)
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_import_status_counts" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _schema_report} =
+             Schema.validate_artifact(artifact,
+               schema_contract: "cadence_import_manifest.v1"
+             )
+
+    stale_row_count = Map.put(artifact, "row_count", 1)
+
+    assert {:error, stale_row_count_report} =
+             Schema.validate_artifact(stale_row_count,
+               schema_contract: "cadence_import_manifest.v1"
+             )
+
+    assert Enum.any?(
+             stale_row_count_report["errors"],
+             &(&1["path"] == "$.row_count")
+           )
+
+    stale_ready_count = Map.put(artifact, "ready_count", 0)
+
+    assert {:error, stale_ready_count_report} =
+             Schema.validate_artifact(stale_ready_count,
+               schema_contract: "cadence_import_manifest.v1"
+             )
+
+    assert Enum.any?(
+             stale_ready_count_report["errors"],
+             &(&1["path"] == "$.ready_count")
+           )
+
+    stale_import_action_counts = Map.put(artifact, "import_action_counts", %{})
+
+    assert {:error, stale_import_action_counts_report} =
+             Schema.validate_artifact(stale_import_action_counts,
+               schema_contract: "cadence_import_manifest.v1"
+             )
+
+    assert Enum.any?(
+             stale_import_action_counts_report["errors"],
+             &(&1["path"] == "$.import_action_counts")
+           )
+
+    stale_import_status_counts =
+      put_in(artifact, ["import_status_counts", "blocked_missing_cadence_import"], 0)
+
+    assert {:error, stale_import_status_counts_report} =
+             Schema.validate_artifact(stale_import_status_counts,
+               schema_contract: "cadence_import_manifest.v1"
+             )
+
+    assert Enum.any?(
+             stale_import_status_counts_report["errors"],
+             &(&1["path"] == "$.import_status_counts")
+           )
+
+    stale_model_limits =
+      Map.put(artifact, "model_limits", Enum.drop(Map.fetch!(artifact, "model_limits"), 1))
+
+    assert {:error, stale_model_limits_report} =
+             Schema.validate_artifact(stale_model_limits,
+               schema_contract: "cadence_import_manifest.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits")
+           )
+
+    stale_execution_boundary =
+      put_in(artifact, ["assumptions", "execution_boundary"], "cadence_api_write_ready")
+
+    assert {:error, stale_execution_boundary_report} =
+             Schema.validate_artifact(stale_execution_boundary,
+               schema_contract: "cadence_import_manifest.v1"
+             )
+
+    assert Enum.any?(
+             stale_execution_boundary_report["errors"],
+             &(&1["path"] == "$.assumptions.execution_boundary")
+           )
+
+    stale_authorization_boundary =
+      put_in(artifact, ["assumptions", "authorization_boundary"], "already_authorized")
+
+    assert {:error, stale_authorization_boundary_report} =
+             Schema.validate_artifact(stale_authorization_boundary,
+               schema_contract: "cadence_import_manifest.v1"
+             )
+
+    assert Enum.any?(
+             stale_authorization_boundary_report["errors"],
+             &(&1["path"] == "$.assumptions.authorization_boundary")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "cadence_import_manifest.v1",
+             artifact
+           ) == Validation.artifact_observations("cadence_import_manifest.v1", artifact)
+  end
+
+  test "verifies curated command window report reference fixtures" do
+    fixture_id = "fixture.artifact.command_window_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.command_window_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = command_window_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               command_window_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      command_window_report_fixture_observations()
+      |> Map.put("review_required_count", 1)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "review_required_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      command_window_report_fixture_observations()
+      |> put_in(["row_derived_required_operator_action_counts", "monitor_activity"], 1)
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_required_operator_action_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "command_window_report.v1",
+             report
+           ) == Validation.artifact_observations("command_window_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "command_window_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "command_window_report.v1"
+             )
+
+    stale_window_count = Map.put(report, "window_count", 3)
+
+    assert {:error, stale_window_count_report} =
+             Schema.validate_artifact(stale_window_count,
+               schema_contract: "command_window_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_window_count_report["errors"],
+             &(&1["path"] == "$.window_count")
+           )
+
+    stale_command_count = Map.put(report, "command_count", 2)
+
+    assert {:error, stale_command_count_report} =
+             Schema.validate_artifact(stale_command_count,
+               schema_contract: "command_window_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_command_count_report["errors"],
+             &(&1["path"] == "$.command_count")
+           )
+
+    stale_review_required_count = Map.put(report, "review_required_count", 1)
+
+    assert {:error, stale_review_required_count_report} =
+             Schema.validate_artifact(stale_review_required_count,
+               schema_contract: "command_window_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_review_required_count_report["errors"],
+             &(&1["path"] == "$.review_required_count")
+           )
+
+    stale_source_window_lineage_count = Map.put(report, "source_window_lineage_count", 0)
+
+    assert {:error, stale_source_window_lineage_count_report} =
+             Schema.validate_artifact(stale_source_window_lineage_count,
+               schema_contract: "command_window_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_source_window_lineage_count_report["errors"],
+             &(&1["path"] == "$.source_window_lineage_count")
+           )
+  end
+
+  test "verifies curated constraint report reference fixtures" do
+    fixture_id = "fixture.artifact.constraint_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.constraint_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = constraint_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               constraint_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      constraint_report_fixture_observations()
+      |> Map.put("status_counts", %{"fail" => 2, "pass" => 1})
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "status_counts" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      constraint_report_fixture_observations()
+      |> put_in(["row_derived_status_counts", "warning"], 0)
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_status_counts" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "constraint_report.v1",
+             report
+           ) == Validation.artifact_observations("constraint_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "constraint_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "constraint_report.v1"
+             )
+
+    stale_constraint_count = Map.put(report, "constraint_count", 3)
+
+    assert {:error, stale_constraint_count_report} =
+             Schema.validate_artifact(stale_constraint_count,
+               schema_contract: "constraint_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_constraint_count_report["errors"],
+             &(&1["path"] == "$.constraint_count")
+           )
+
+    stale_row_count = Map.put(report, "row_count", 2)
+
+    assert {:error, stale_row_count_report} =
+             Schema.validate_artifact(stale_row_count,
+               schema_contract: "constraint_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_row_count_report["errors"],
+             &(&1["path"] == "$.row_count")
+           )
+
+    stale_status = Map.put(report, "status", "warning")
+
+    assert {:error, stale_status_report} =
+             Schema.validate_artifact(stale_status,
+               schema_contract: "constraint_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_status_report["errors"],
+             &(&1["path"] == "$.status")
+           )
+
+    stale_status_counts = put_in(report, ["status_counts", "warning"], 0)
+
+    assert {:error, stale_status_counts_report} =
+             Schema.validate_artifact(stale_status_counts,
+               schema_contract: "constraint_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_status_counts_report["errors"],
+             &(&1["path"] == "$.status_counts")
+           )
+  end
+
+  test "verifies curated operational timeline report reference fixtures" do
+    fixture_id = "fixture.artifact.operational_timeline_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.operational_timeline_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = operational_timeline_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               operational_timeline_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      operational_timeline_report_fixture_observations()
+      |> Map.put("timeline_integrity_review_count", 1)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "timeline_integrity_review_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      operational_timeline_report_fixture_observations()
+      |> put_in(["row_derived_required_operator_action_counts", "review_timeline_integrity"], 1)
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_required_operator_action_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "operational_timeline_report.v1",
+             report
+           ) == Validation.artifact_observations("operational_timeline_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "operational_timeline_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "operational_timeline_report.v1"
+             )
+
+    stale_row_count = Map.put(report, "row_count", 2)
+
+    assert {:error, stale_row_count_report} =
+             Schema.validate_artifact(stale_row_count,
+               schema_contract: "operational_timeline_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_row_count_report["errors"],
+             &(&1["path"] == "$.row_count")
+           )
+
+    stale_activity_status_counts = put_in(report, ["activity_status_counts", "planned"], 2)
+
+    assert {:error, stale_activity_status_counts_report} =
+             Schema.validate_artifact(stale_activity_status_counts,
+               schema_contract: "operational_timeline_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_activity_status_counts_report["errors"],
+             &(&1["path"] == "$.activity_status_counts")
+           )
+
+    stale_required_operator_action_counts =
+      put_in(report, ["required_operator_action_counts", "review_timeline_integrity"], 1)
+
+    assert {:error, stale_required_operator_action_counts_report} =
+             Schema.validate_artifact(stale_required_operator_action_counts,
+               schema_contract: "operational_timeline_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_required_operator_action_counts_report["errors"],
+             &(&1["path"] == "$.required_operator_action_counts")
+           )
+
+    stale_cadence_import_status_counts =
+      put_in(report, ["cadence_import_status_counts", "present"], 0)
+
+    assert {:error, stale_cadence_import_status_counts_report} =
+             Schema.validate_artifact(stale_cadence_import_status_counts,
+               schema_contract: "operational_timeline_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_cadence_import_status_counts_report["errors"],
+             &(&1["path"] == "$.cadence_import_status_counts")
+           )
+
+    stale_timeline_integrity_issue_count = Map.put(report, "timeline_integrity_issue_count", 4)
+
+    assert {:error, stale_timeline_integrity_issue_count_report} =
+             Schema.validate_artifact(stale_timeline_integrity_issue_count,
+               schema_contract: "operational_timeline_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_timeline_integrity_issue_count_report["errors"],
+             &(&1["path"] == "$.timeline_integrity_issue_count")
+           )
+  end
+
+  test "verifies curated contact allocation report reference fixtures" do
+    fixture_id = "fixture.artifact.contact_allocation_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.contact_allocation_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = contact_allocation_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               contact_allocation_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      contact_allocation_report_fixture_observations()
+      |> Map.put("blocked_contact_count", 2)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "blocked_contact_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_count_observations =
+      contact_allocation_report_fixture_observations()
+      |> Map.put("row_derived_blocked_contact_count", 2)
+
+    assert {:ok, stale_row_derived_count_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_count_observations)
+
+    assert stale_row_derived_count_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_count_verification["checks"],
+             &(&1["field"] == "row_derived_blocked_contact_count" and
+                 &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      contact_allocation_report_fixture_observations()
+      |> put_in(["row_derived_allocation_reason_counts", "ground_station_reserved"], 0)
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_allocation_reason_counts" and
+                 &1["status"] == "fail")
+           )
+
+    stale_reservation_observations =
+      contact_allocation_report_fixture_observations()
+      |> Map.put("row_derived_station_reservation_id_counts", %{})
+
+    assert {:ok, stale_reservation_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_reservation_observations)
+
+    assert stale_reservation_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_reservation_verification["checks"],
+             &(&1["field"] == "row_derived_station_reservation_id_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "contact_allocation_report.v1",
+             report
+           ) ==
+             Validation.artifact_observations("contact_allocation_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "contact_allocation_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "contact_allocation_report.v1"
+             )
+
+    stale_allocation_status_counts =
+      put_in(report, ["allocation_status_counts", "blocked"], 2)
+
+    assert {:error, stale_allocation_status_counts_report} =
+             Schema.validate_artifact(stale_allocation_status_counts,
+               schema_contract: "contact_allocation_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_allocation_status_counts_report["errors"],
+             &(&1["path"] == "$.allocation_status_counts")
+           )
+
+    stale_allocation_reason_counts =
+      put_in(report, ["allocation_reason_counts", "ground_station_reserved"], 0)
+
+    assert {:error, stale_allocation_reason_counts_report} =
+             Schema.validate_artifact(stale_allocation_reason_counts,
+               schema_contract: "contact_allocation_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_allocation_reason_counts_report["errors"],
+             &(&1["path"] == "$.allocation_reason_counts")
+           )
+
+    stale_reservation_match_status_counts =
+      put_in(report, ["station_reservation_match_status_counts", "overlap"], 0)
+
+    assert {:error, stale_reservation_match_status_counts_report} =
+             Schema.validate_artifact(stale_reservation_match_status_counts,
+               schema_contract: "contact_allocation_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_reservation_match_status_counts_report["errors"],
+             &(&1["path"] == "$.station_reservation_match_status_counts")
+           )
+
+    stale_reservation_ids = Map.put(report, "station_reservation_ids", [])
+
+    assert {:error, stale_reservation_ids_report} =
+             Schema.validate_artifact(stale_reservation_ids,
+               schema_contract: "contact_allocation_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_reservation_ids_report["errors"],
+             &(&1["path"] == "$.station_reservation_ids")
+           )
+  end
+
+  test "verifies curated provider reservation request summary reference fixtures" do
+    fixture_id = "fixture.artifact.contact_allocation_provider_reservation_request_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] ==
+             "artifact.contact_allocation_provider_reservation_request_summary.v1"
+
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    summary = contact_allocation_provider_reservation_request_summary_fixture()
+    observations = contact_allocation_provider_reservation_request_summary_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               observations
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_request_direction_observations =
+      observations
+      |> put_in(
+        ["row_derived_provider_reservation_request_contact_ids_by_direction", "downlink"],
+        ["stale_contact"]
+      )
+
+    assert {:ok, stale_request_direction_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_request_direction_observations)
+
+    assert stale_request_direction_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_request_direction_verification["checks"],
+             &(&1["field"] ==
+                 "row_derived_provider_reservation_request_contact_ids_by_direction" and
+                 &1["status"] == "fail")
+           )
+
+    stale_no_request_direction_observations =
+      observations
+      |> put_in(
+        ["row_derived_provider_reservation_no_request_contact_ids_by_direction", "tracking"],
+        []
+      )
+
+    assert {:ok, stale_no_request_direction_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_no_request_direction_observations
+             )
+
+    assert stale_no_request_direction_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_no_request_direction_verification["checks"],
+             &(&1["field"] ==
+                 "row_derived_provider_reservation_no_request_contact_ids_by_direction" and
+                 &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "contact_allocation_provider_reservation_request_summary.v1",
+             summary
+           ) ==
+             Validation.artifact_observations(
+               "contact_allocation_provider_reservation_request_summary.v1",
+               summary
+             )
+
+    assert {:ok,
+            %{"schema_contract" => "contact_allocation_provider_reservation_request_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    stale_request_direction_map =
+      Map.put(summary, "provider_reservation_request_contact_ids_by_direction", %{
+        "downlink" => ["stale_contact"]
+      })
+
+    assert {:error, stale_request_direction_map_report} =
+             Schema.validate_artifact(stale_request_direction_map)
+
+    assert Enum.any?(
+             stale_request_direction_map_report["errors"],
+             &(&1["path"] == "$.provider_reservation_request_contact_ids_by_direction")
+           )
+  end
+
+  test "verifies curated reduced-capacity contact allocation pack reference fixtures" do
+    fixture_id = "fixture.artifact.contact_allocation_report.reduced_capacity_pack"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.contact_allocation_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = contact_allocation_capacity_pack_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               contact_allocation_capacity_pack_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      contact_allocation_capacity_pack_report_fixture_observations()
+      |> Map.put("reduced_capacity_pack_capacity_packed_contact_count", 0)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "reduced_capacity_pack_capacity_packed_contact_count" and
+                 &1["status"] == "fail")
+           )
+
+    stale_reported_observations =
+      contact_allocation_capacity_pack_report_fixture_observations()
+      |> put_in(
+        [
+          "reported_capacity_pack_contact_ids_by_status",
+          "selected_by_reduced_station_capacity_pack"
+        ],
+        ["dl_capacity_primary"]
+      )
+
+    assert {:ok, stale_reported_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_reported_observations)
+
+    assert stale_reported_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_reported_verification["checks"],
+             &(&1["field"] == "reported_capacity_pack_contact_ids_by_status" and
+                 &1["status"] == "fail")
+           )
+
+    stale_station_pressure_observations =
+      contact_allocation_capacity_pack_report_fixture_observations()
+      |> put_in(
+        [
+          "reported_station_pressure_contact_ids_by_availability",
+          "reduced_capacity"
+        ],
+        ["dl_capacity_primary"]
+      )
+
+    assert {:ok, stale_station_pressure_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_station_pressure_observations)
+
+    assert stale_station_pressure_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_station_pressure_verification["checks"],
+             &(&1["field"] == "reported_station_pressure_contact_ids_by_availability" and
+                 &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "contact_allocation_report.v1",
+             report
+           ) ==
+             Validation.artifact_observations("contact_allocation_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "contact_allocation_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "contact_allocation_report.v1"
+             )
+
+    stale_pack_status_counts =
+      put_in(report, ["reduced_capacity_pack_status_counts", "capacity_limited"], 0)
+
+    assert {:error, stale_pack_status_counts_report} =
+             Schema.validate_artifact(stale_pack_status_counts,
+               schema_contract: "contact_allocation_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_pack_status_counts_report["errors"],
+             &(&1["path"] == "$.reduced_capacity_pack_status_counts")
+           )
+
+    stale_contact_status_counts =
+      put_in(
+        report,
+        ["capacity_pack_status_counts", "selected_by_reduced_station_capacity_pack"],
+        0
+      )
+
+    assert {:error, stale_contact_status_counts_report} =
+             Schema.validate_artifact(stale_contact_status_counts,
+               schema_contract: "contact_allocation_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_contact_status_counts_report["errors"],
+             &(&1["path"] == "$.capacity_pack_status_counts")
+           )
+
+    stale_contact_ids_by_status =
+      put_in(
+        report,
+        ["capacity_pack_contact_ids_by_status", "selected_by_reduced_station_capacity_pack"],
+        ["dl_capacity_primary"]
+      )
+
+    assert {:error, stale_contact_ids_by_status_report} =
+             Schema.validate_artifact(stale_contact_ids_by_status,
+               schema_contract: "contact_allocation_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_contact_ids_by_status_report["errors"],
+             &(&1["path"] == "$.capacity_pack_contact_ids_by_status")
+           )
+  end
+
+  test "verifies curated contact filter report reference fixtures" do
+    fixture_id = "fixture.artifact.contact_filter_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.contact_filter_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = contact_filter_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               contact_filter_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      contact_filter_report_fixture_observations()
+      |> Map.put("suppressed_candidate_count", 1)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "suppressed_candidate_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      contact_filter_report_fixture_observations()
+      |> Map.put("row_derived_suppressed_candidate_count", 1)
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_suppressed_candidate_count" and
+                 &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "contact_filter_report.v1",
+             report
+           ) == Validation.artifact_observations("contact_filter_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "contact_filter_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "contact_filter_report.v1"
+             )
+
+    stale_suppressed_count = Map.put(report, "suppressed_candidate_count", 1)
+
+    assert {:error, stale_suppressed_count_report} =
+             Schema.validate_artifact(stale_suppressed_count,
+               schema_contract: "contact_filter_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_suppressed_count_report["errors"],
+             &(&1["path"] == "$.suppressed_candidate_count")
+           )
+
+    stale_kept_count = Map.put(report, "kept_candidate_count", 2)
+
+    assert {:error, stale_kept_count_report} =
+             Schema.validate_artifact(stale_kept_count,
+               schema_contract: "contact_filter_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_kept_count_report["errors"],
+             &(&1["path"] == "$.kept_candidate_count")
+           )
+
+    stale_reservation_match_status_counts =
+      put_in(report, ["station_reservation_match_status_counts", "overlap"], 0)
+
+    assert {:error, stale_reservation_match_status_counts_report} =
+             Schema.validate_artifact(stale_reservation_match_status_counts,
+               schema_contract: "contact_filter_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_reservation_match_status_counts_report["errors"],
+             &(&1["path"] == "$.station_reservation_match_status_counts")
+           )
+
+    stale_invalid_contact_input_ids =
+      Map.put(report, "invalid_contact_input_ids", ["leo_1_downlink_equator_prime_1"])
+
+    assert {:error, stale_invalid_contact_input_ids_report} =
+             Schema.validate_artifact(stale_invalid_contact_input_ids,
+               schema_contract: "contact_filter_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_invalid_contact_input_ids_report["errors"],
+             &(&1["path"] == "$.invalid_contact_input_ids")
+           )
+  end
+
+  test "verifies curated contact contention report reference fixtures" do
+    fixture_id = "fixture.artifact.contact_contention_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.contact_contention_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = contact_contention_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               contact_contention_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      contact_contention_report_fixture_observations()
+      |> Map.put("conflicted_contact_count", 3)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "conflicted_contact_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      contact_contention_report_fixture_observations()
+      |> Map.put("row_derived_conflicted_contact_count", 3)
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_conflicted_contact_count" and
+                 &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "contact_contention_report.v1",
+             report
+           ) == Validation.artifact_observations("contact_contention_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "contact_contention_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "contact_contention_report.v1"
+             )
+
+    stale_conflict_group_count = Map.put(report, "conflict_group_count", 1)
+
+    assert {:error, stale_conflict_group_count_report} =
+             Schema.validate_artifact(stale_conflict_group_count,
+               schema_contract: "contact_contention_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_conflict_group_count_report["errors"],
+             &(&1["path"] == "$.conflict_group_count")
+           )
+
+    stale_conflicted_contact_count = Map.put(report, "conflicted_contact_count", 3)
+
+    assert {:error, stale_conflicted_contact_count_report} =
+             Schema.validate_artifact(stale_conflicted_contact_count,
+               schema_contract: "contact_contention_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_conflicted_contact_count_report["errors"],
+             &(&1["path"] == "$.conflicted_contact_count")
+           )
+  end
+
+  test "verifies cross-station contact contention challenge fixture" do
+    fixture_id = "fixture.artifact.contact_contention_report.cross_station_spacecraft"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.contact_contention_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = contact_contention_cross_station_fixture()
+
+    assert {:ok, %{"schema_contract" => "contact_contention_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "contact_contention_report.v1"
+             )
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               contact_contention_cross_station_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "resource_scope_counts" => %{"spacecraft" => 1},
+             "conflict_group_ids_by_resource_scope" => %{
+               "spacecraft" => ["spacecraft:sat_1:contention:1"]
+             }
+           } = contact_contention_cross_station_fixture_observations()
+
+    stale_scope_counts =
+      contact_contention_cross_station_fixture_observations()
+      |> Map.put("resource_scope_counts", %{"ground_station" => 1})
+
+    assert {:ok, stale_scope_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_scope_counts)
+
+    assert stale_scope_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_scope_verification["checks"],
+             &(&1["field"] == "resource_scope_counts" and &1["status"] == "fail")
+           )
+
+    stale_row_count = Map.put(report, "conflict_group_count", 2)
+
+    assert {:error, stale_row_count_report} =
+             Schema.validate_artifact(stale_row_count,
+               schema_contract: "contact_contention_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_row_count_report["errors"],
+             &(&1["path"] == "$.conflict_group_count")
+           )
+  end
+
+  test "verifies curated contact contention resolution report reference fixtures" do
+    fixture_id = "fixture.artifact.contact_contention_resolution_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.contact_contention_resolution_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = contact_contention_resolution_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               contact_contention_resolution_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      contact_contention_resolution_report_fixture_observations()
+      |> Map.put("selected_contact_count", 1)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "selected_contact_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      contact_contention_resolution_report_fixture_observations()
+      |> Map.put("row_derived_recommendation_count", 1)
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_recommendation_count" and
+                 &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "contact_contention_resolution_report.v1",
+             report
+           ) ==
+             Validation.artifact_observations("contact_contention_resolution_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "contact_contention_resolution_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "contact_contention_resolution_report.v1"
+             )
+
+    stale_recommendation_count = Map.put(report, "recommendation_count", 1)
+
+    assert {:error, stale_recommendation_count_report} =
+             Schema.validate_artifact(stale_recommendation_count,
+               schema_contract: "contact_contention_resolution_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_recommendation_count_report["errors"],
+             &(&1["path"] == "$.recommendation_count")
+           )
+
+    stale_conflict_group_count = Map.put(report, "conflict_group_count", 1)
+
+    assert {:error, stale_conflict_group_count_report} =
+             Schema.validate_artifact(stale_conflict_group_count,
+               schema_contract: "contact_contention_resolution_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_conflict_group_count_report["errors"],
+             &(&1["path"] == "$.conflict_group_count")
+           )
+  end
+
+  test "verifies curated link capacity report reference fixtures" do
+    fixture_id = "fixture.artifact.link_capacity_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.link_capacity_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = link_capacity_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               link_capacity_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      link_capacity_report_fixture_observations()
+      |> Map.put("selected_contact_count", 1)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "selected_contact_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_observations =
+      link_capacity_report_fixture_observations()
+      |> Map.put("row_derived_contact_count", 2)
+
+    assert {:ok, stale_row_derived_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_observations)
+
+    assert stale_row_derived_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_verification["checks"],
+             &(&1["field"] == "row_derived_contact_count" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "link_capacity_report.v1",
+             report
+           ) == Validation.artifact_observations("link_capacity_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "link_capacity_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "link_capacity_report.v1"
+             )
+
+    stale_contact_count = Map.put(report, "contact_count", 2)
+
+    assert {:error, stale_contact_count_report} =
+             Schema.validate_artifact(stale_contact_count,
+               schema_contract: "link_capacity_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_contact_count_report["errors"],
+             &(&1["path"] == "$.contact_count")
+           )
+
+    stale_selected_count = Map.put(report, "selected_contact_count", 1)
+
+    assert {:error, stale_selected_count_report} =
+             Schema.validate_artifact(stale_selected_count,
+               schema_contract: "link_capacity_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_selected_count_report["errors"],
+             &(&1["path"] == "$.selected_contact_count")
+           )
+
+    stale_throughput = Map.put(report, "estimated_throughput_mb", 0.0)
+
+    assert {:error, stale_throughput_report} =
+             Schema.validate_artifact(stale_throughput,
+               schema_contract: "link_capacity_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_throughput_report["errors"],
+             &(&1["path"] == "$.estimated_throughput_mb")
+           )
+
+    stale_ignored_ids = Map.put(report, "ignored_contact_ids", ["leo_1_downlink_equator_prime_1"])
+
+    assert {:error, stale_ignored_ids_report} =
+             Schema.validate_artifact(stale_ignored_ids,
+               schema_contract: "link_capacity_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_ignored_ids_report["errors"],
+             &(&1["path"] == "$.ignored_contact_ids")
+           )
+  end
+
+  test "verifies curated maneuver review report reference fixtures" do
+    fixture_id = "fixture.artifact.maneuver_review_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.maneuver_review_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = maneuver_review_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               maneuver_review_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      maneuver_review_report_fixture_observations()
+      |> Map.put("execution_uncertainty_missing_count", 0)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "execution_uncertainty_missing_count" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "maneuver_review_report.v1")
+
+    stale_model = Map.put(report, "model", "stale_maneuver_review_model")
+
+    assert {:error, stale_model_report} =
+             Schema.validate_artifact(stale_model,
+               schema_contract: "maneuver_review_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] == "must equal \"artifact_only_maneuver_review_report\"")
+           )
+
+    stale_total_delta_v = Map.put(report, "total_delta_v_km_s", 0.0)
+
+    assert {:error, stale_total_delta_v_report} =
+             Schema.validate_artifact(stale_total_delta_v,
+               schema_contract: "maneuver_review_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_total_delta_v_report["errors"],
+             &(&1["path"] == "$.total_delta_v_km_s")
+           )
+
+    stale_model_limits = Map.put(report, "model_limits", ["no_command_execution"])
+
+    assert {:error, stale_model_limits_report} =
+             Schema.validate_artifact(stale_model_limits,
+               schema_contract: "maneuver_review_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits")
+           )
+
+    stale_operator_action_counts =
+      Map.put(report, "required_operator_action_counts", %{"review_maneuver_recommendation" => 0})
+
+    assert {:error, stale_operator_action_counts_report} =
+             Schema.validate_artifact(stale_operator_action_counts,
+               schema_contract: "maneuver_review_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_operator_action_counts_report["errors"],
+             &(&1["path"] == "$.required_operator_action_counts")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "maneuver_review_report.v1",
+             report
+           ) == Validation.artifact_observations("maneuver_review_report.v1", report)
+  end
+
+  test "verifies curated Monte Carlo reproducibility report reference fixtures" do
+    fixture_id = "fixture.artifact.monte_carlo_reproducibility_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.monte_carlo_reproducibility_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = monte_carlo_reproducibility_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               monte_carlo_reproducibility_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      monte_carlo_reproducibility_report_fixture_observations()
+      |> Map.put("generated_scenario_count", 19)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "generated_scenario_count" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "monte_carlo_reproducibility_report.v1",
+             report
+           ) ==
+             Validation.artifact_observations("monte_carlo_reproducibility_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "monte_carlo_reproducibility_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "monte_carlo_reproducibility_report.v1"
+             )
+
+    stale_model = Map.put(report, "model", "stale_monte_carlo_dispersion_model")
+
+    assert {:error, stale_model_report} =
+             Schema.validate_artifact(stale_model,
+               schema_contract: "monte_carlo_reproducibility_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"seeded_independent_normal_cartesian_dispersion\"")
+           )
+
+    stale_generated_scenario_count = Map.put(report, "generated_scenario_count", 19)
+
+    assert {:error, stale_generated_scenario_count_report} =
+             Schema.validate_artifact(stale_generated_scenario_count,
+               schema_contract: "monte_carlo_reproducibility_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_generated_scenario_count_report["errors"],
+             &(&1["path"] == "$.generated_scenario_count")
+           )
+
+    duplicate_generated_scenario_ids =
+      report
+      |> Map.fetch!("generated_scenario_ids")
+      |> List.replace_at(1, "dispersion_1")
+
+    stale_generated_scenario_ids =
+      Map.put(report, "generated_scenario_ids", duplicate_generated_scenario_ids)
+
+    assert {:error, stale_generated_scenario_ids_report} =
+             Schema.validate_artifact(stale_generated_scenario_ids,
+               schema_contract: "monte_carlo_reproducibility_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_generated_scenario_ids_report["errors"],
+             &(&1["path"] == "$.generated_scenario_ids")
+           )
+
+    stale_known_limits =
+      Map.put(report, "known_limits", Enum.drop(Map.fetch!(report, "known_limits"), 1))
+
+    assert {:error, stale_known_limits_report} =
+             Schema.validate_artifact(stale_known_limits,
+               schema_contract: "monte_carlo_reproducibility_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_known_limits_report["errors"],
+             &(&1["path"] == "$.known_limits")
+           )
+  end
+
+  test "verifies curated Pareto frontier report reference fixtures" do
+    fixture_id = "fixture.artifact.pareto_frontier_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.pareto_frontier_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = pareto_frontier_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               pareto_frontier_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      pareto_frontier_report_fixture_observations()
+      |> Map.put("frontier_count", 2)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "frontier_count" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "pareto_frontier_report.v1",
+             report
+           ) == Validation.artifact_observations("pareto_frontier_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "pareto_frontier_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "pareto_frontier_report.v1"
+             )
+
+    stale_model = Map.put(report, "model", "stale_pareto_frontier_model")
+
+    assert {:error, stale_model_report} =
+             Schema.validate_artifact(stale_model,
+               schema_contract: "pareto_frontier_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] == "must equal \"objective_vector_pareto_frontier\"")
+           )
+
+    stale_count_fields = [
+      {"alternative_count", 3},
+      {"frontier_count", 2},
+      {"dominated_count", 0},
+      {"objective_count", 1}
+    ]
+
+    Enum.each(stale_count_fields, fn {field, stale_value} ->
+      stale_report = Map.put(report, field, stale_value)
+
+      assert {:error, stale_validation_report} =
+               Schema.validate_artifact(stale_report,
+                 schema_contract: "pareto_frontier_report.v1"
+               )
+
+      assert Enum.any?(stale_validation_report["errors"], &(&1["path"] == "$.#{field}"))
+    end)
+
+    stale_frontier_ids = Map.put(report, "frontier_ids", ["balanced"])
+
+    assert {:error, stale_frontier_ids_report} =
+             Schema.validate_artifact(stale_frontier_ids,
+               schema_contract: "pareto_frontier_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_frontier_ids_report["errors"],
+             &(&1["path"] == "$.frontier_ids")
+           )
+
+    stale_dominated_ids = Map.put(report, "dominated_ids", [])
+
+    assert {:error, stale_dominated_ids_report} =
+             Schema.validate_artifact(stale_dominated_ids,
+               schema_contract: "pareto_frontier_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_dominated_ids_report["errors"],
+             &(&1["path"] == "$.dominated_ids")
+           )
+
+    stale_objective_keys = put_in(report, ["rows", Access.at(0), "objective_keys"], ["coverage"])
+
+    assert {:error, stale_objective_keys_report} =
+             Schema.validate_artifact(stale_objective_keys,
+               schema_contract: "pareto_frontier_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_objective_keys_report["errors"],
+             &(&1["path"] == "$.rows[0].objective_keys")
+           )
+  end
+
+  test "verifies curated resource projection report reference fixtures" do
+    fixture_id = "fixture.artifact.resource_projection_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.resource_projection_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = resource_projection_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               resource_projection_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      resource_projection_report_fixture_observations()
+      |> Map.put("downlink_shortfall_row_count", 1)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "downlink_shortfall_row_count" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "resource_projection_report.v1",
+             report
+           ) == Validation.artifact_observations("resource_projection_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "resource_projection_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "resource_projection_report.v1"
+             )
+
+    stale_scalar_fields = [
+      {"input_resource_summary_count", 0},
+      {"valid_resource_summary_count", 0},
+      {"activity_count", 2},
+      {"valid_activity_count", 0},
+      {"invalid_activity_input_count", 1}
+    ]
+
+    Enum.each(stale_scalar_fields, fn {field, stale_value} ->
+      stale_report = Map.put(report, field, stale_value)
+
+      assert {:error, stale_validation_report} =
+               Schema.validate_artifact(stale_report,
+                 schema_contract: "resource_projection_report.v1"
+               )
+
+      assert Enum.any?(stale_validation_report["errors"], &(&1["path"] == "$.#{field}"))
+    end)
+
+    stale_warnings = Map.put(report, "warnings", ["stale_resource_projection_warning"])
+
+    assert {:error, stale_warnings_report} =
+             Schema.validate_artifact(stale_warnings,
+               schema_contract: "resource_projection_report.v1"
+             )
+
+    assert Enum.any?(stale_warnings_report["errors"], &(&1["path"] == "$.warnings"))
+
+    stale_source_quality_counts =
+      put_in(report, ["resource_source_quality_counts", "operator_supplied"], 0)
+
+    assert {:error, stale_source_quality_counts_report} =
+             Schema.validate_artifact(stale_source_quality_counts,
+               schema_contract: "resource_projection_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_source_quality_counts_report["errors"],
+             &(&1["path"] == "$.resource_source_quality_counts")
+           )
+
+    stale_trust_boundary_counts =
+      put_in(report, ["resource_trust_boundary_status_counts", "missing"], 0)
+
+    assert {:error, stale_trust_boundary_counts_report} =
+             Schema.validate_artifact(stale_trust_boundary_counts,
+               schema_contract: "resource_projection_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_trust_boundary_counts_report["errors"],
+             &(&1["path"] == "$.resource_trust_boundary_status_counts")
+           )
+
+    stale_limits = Map.put(report, "model_limits", ["stale_resource_projection_boundary"])
+
+    assert {:error, stale_limits_report} =
+             Schema.validate_artifact(stale_limits,
+               schema_contract: "resource_projection_report.v1"
+             )
+
+    assert Enum.any?(stale_limits_report["errors"], &(&1["path"] == "$.model_limits"))
+  end
+
+  test "verifies resource projection battery handoff reference fixtures" do
+    fixtures = [
+      {
+        "fixture.artifact.resource_projection_report.battery_handoff_v1",
+        "resource_projection_report.v1",
+        resource_projection_battery_handoff_fixture(),
+        resource_projection_battery_handoff_fixture_observations()
+      },
+      {
+        "fixture.artifact.operator_review_package.resource_projection_battery_handoff_v1",
+        "operator_review_package.v1",
+        operator_review_resource_projection_battery_handoff_fixture(),
+        operator_review_resource_projection_battery_handoff_fixture_observations()
+      },
+      {
+        "fixture.artifact.cadence_import_manifest.resource_projection_battery_handoff_v1",
+        "cadence_import_manifest.v1",
+        cadence_import_resource_projection_battery_handoff_fixture(),
+        cadence_import_resource_projection_battery_handoff_fixture_observations()
+      }
+    ]
+
+    Enum.each(fixtures, fn {fixture_id, contract, artifact, observations} ->
+      assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+      assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+      assert {:ok, %{"schema_contract" => ^contract}} =
+               OrbitalDynamics.Schema.validate_artifact(artifact)
+
+      assert {:ok, verification} =
+               Validation.verify_reference_fixture(fixture_id, observations)
+
+      assert verification["status"] == "pass"
+      assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+    end)
+
+    stale_observations =
+      operator_review_resource_projection_battery_handoff_fixture_observations()
+      |> Map.put("net_resource_projection_battery_energy_delta_wh", 16.0)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(
+               "fixture.artifact.operator_review_package.resource_projection_battery_handoff_v1",
+               stale_observations
+             )
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "net_resource_projection_battery_energy_delta_wh" and
+                 &1["status"] == "fail")
+           )
+  end
+
+  test "verifies stale derived-margin resource summary reference fixtures" do
+    fixtures = [
+      {
+        "fixture.artifact.resource_projection_report.stale_resource_summary_margins",
+        "resource_projection_report.v1",
+        resource_projection_stale_margin_fixture(),
+        resource_projection_stale_margin_fixture_observations()
+      },
+      {
+        "fixture.artifact.resource_filter_report.stale_resource_summary_margins",
+        "resource_filter_report.v1",
+        resource_filter_stale_margin_fixture(),
+        resource_filter_stale_margin_fixture_observations()
+      }
+    ]
+
+    Enum.each(fixtures, fn {fixture_id, contract, artifact, observations} ->
+      assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+      assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+      assert {:ok, %{"schema_contract" => ^contract}} =
+               Schema.validate_artifact(artifact)
+
+      assert {:ok, verification} =
+               Validation.verify_reference_fixture(fixture_id, observations)
+
+      assert verification["status"] == "pass"
+      assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+      assert observations["invalid_resource_summary_input_reasons"] ==
+               "stale_battery_state_of_charge|stale_storage_margin"
+    end)
+
+    stale_observations =
+      resource_projection_stale_margin_fixture_observations()
+      |> Map.put("stale_storage_margin_count", 0)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(
+               "fixture.artifact.resource_projection_report.stale_resource_summary_margins",
+               stale_observations
+             )
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "stale_storage_margin_count" and &1["status"] == "fail")
+           )
+
+    stale_projection_count =
+      resource_projection_stale_margin_fixture()
+      |> Map.put("invalid_resource_summary_input_count", 1)
+
+    assert {:error, stale_projection_count_report} =
+             Schema.validate_artifact(stale_projection_count,
+               schema_contract: "resource_projection_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_projection_count_report["errors"],
+             &(&1["path"] == "$.invalid_resource_summary_input_count")
+           )
+
+    stale_projection_ids =
+      resource_projection_stale_margin_fixture()
+      |> Map.put("invalid_resource_summary_input_ids", ["leo_2"])
+
+    assert {:error, stale_projection_ids_report} =
+             Schema.validate_artifact(stale_projection_ids,
+               schema_contract: "resource_projection_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_projection_ids_report["errors"],
+             &(&1["path"] == "$.invalid_resource_summary_input_ids")
+           )
+
+    stale_filter_count =
+      resource_filter_stale_margin_fixture()
+      |> Map.put("invalid_resource_summary_input_count", 1)
+
+    assert {:error, stale_filter_count_report} =
+             Schema.validate_artifact(stale_filter_count,
+               schema_contract: "resource_filter_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_filter_count_report["errors"],
+             &(&1["path"] == "$.invalid_resource_summary_input_count")
+           )
+  end
+
+  test "verifies curated resource summary reference fixtures" do
+    fixture_id = "fixture.artifact.resource_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.resource_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = resource_summary_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               resource_summary_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      resource_summary_fixture_observations()
+      |> Map.put("spacecraft_available", true)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "spacecraft_available" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations("resource_summary.v1", report) ==
+             Validation.artifact_observations("resource_summary.v1", report)
+
+    assert {:ok, _validated_report} =
+             Schema.validate_artifact(report, schema_contract: "resource_summary.v1")
+
+    stale_battery_margin = Map.put(report, "battery_state_of_charge", 0.9)
+
+    assert {:error, stale_battery_margin_report} =
+             Schema.validate_artifact(stale_battery_margin,
+               schema_contract: "resource_summary.v1"
+             )
+
+    assert Enum.any?(
+             stale_battery_margin_report["errors"],
+             &(&1["path"] == "$.battery_state_of_charge")
+           )
+  end
+
+  test "verifies curated resource filter report reference fixtures" do
+    fixture_id = "fixture.artifact.resource_filter_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.resource_filter_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = resource_filter_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               resource_filter_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      resource_filter_report_fixture_observations()
+      |> Map.put("suppressed_candidate_count", 1)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "suppressed_candidate_count" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "resource_filter_report.v1")
+
+    stale_kept_candidate_count = Map.put(report, "kept_candidate_count", 0)
+
+    assert {:error, stale_kept_candidate_count_report} =
+             Schema.validate_artifact(stale_kept_candidate_count,
+               schema_contract: "resource_filter_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_kept_candidate_count_report["errors"],
+             &(&1["path"] == "$.kept_candidate_count")
+           )
+
+    stale_model_limits = Map.put(report, "model_limits", ["artifact_level_only"])
+
+    assert {:error, stale_model_limits_report} =
+             Schema.validate_artifact(stale_model_limits,
+               schema_contract: "resource_filter_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits")
+           )
+
+    stale_suppressed_trust_counts =
+      Map.put(report, "suppressed_resource_trust_boundary_status_counts", %{"missing" => 0})
+
+    assert {:error, stale_suppressed_trust_counts_report} =
+             Schema.validate_artifact(stale_suppressed_trust_counts,
+               schema_contract: "resource_filter_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_suppressed_trust_counts_report["errors"],
+             &(&1["path"] == "$.suppressed_resource_trust_boundary_status_counts")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "resource_filter_report.v1",
+             report
+           ) == Validation.artifact_observations("resource_filter_report.v1", report)
+  end
+
+  test "verifies curated objective satisfaction report reference fixtures" do
+    fixture_id = "fixture.artifact.objective_satisfaction_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.objective_satisfaction_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = objective_satisfaction_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               objective_satisfaction_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      objective_satisfaction_report_fixture_observations()
+      |> Map.put("satisfied_count_total", 1)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "satisfied_count_total" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "objective_satisfaction_report.v1",
+             report
+           ) == Validation.artifact_observations("objective_satisfaction_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "objective_satisfaction_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "objective_satisfaction_report.v1"
+             )
+
+    stale_model = Map.put(report, "model", "stale_objective_satisfaction_model")
+
+    assert {:error, stale_model_report} =
+             Schema.validate_artifact(stale_model,
+               schema_contract: "objective_satisfaction_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] ==
+                   "must equal \"campaign_v1_selected_activity_objective_summary\"")
+           )
+
+    stale_objective_count = Map.put(report, "objective_count", 3)
+
+    assert {:error, stale_objective_count_report} =
+             Schema.validate_artifact(stale_objective_count,
+               schema_contract: "objective_satisfaction_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_objective_count_report["errors"],
+             &(&1["path"] == "$.objective_count")
+           )
+
+    stale_candidate_count = put_in(report, ["rows", Access.at(0), "candidate_count"], 2)
+
+    assert {:error, stale_candidate_count_report} =
+             Schema.validate_artifact(stale_candidate_count,
+               schema_contract: "objective_satisfaction_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_candidate_count_report["errors"],
+             &(&1["path"] == "$.rows[0].candidate_count")
+           )
+
+    stale_selected_count = put_in(report, ["rows", Access.at(0), "selected_count"], 2)
+
+    assert {:error, stale_selected_count_report} =
+             Schema.validate_artifact(stale_selected_count,
+               schema_contract: "objective_satisfaction_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_selected_count_report["errors"],
+             &(&1["path"] == "$.rows[0].selected_count")
+           )
+  end
+
+  test "verifies curated objective tradeoff report reference fixtures" do
+    fixture_id = "fixture.artifact.objective_tradeoff_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.objective_tradeoff_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = objective_tradeoff_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               objective_tradeoff_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      objective_tradeoff_report_fixture_observations()
+      |> Map.put("score_term_key_count", 6)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "score_term_key_count" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "objective_tradeoff_report.v1",
+             report
+           ) == Validation.artifact_observations("objective_tradeoff_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "objective_tradeoff_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "objective_tradeoff_report.v1"
+             )
+
+    stale_model = Map.put(report, "model", "stale_objective_tradeoff_model")
+
+    assert {:error, stale_model_report} =
+             Schema.validate_artifact(stale_model,
+               schema_contract: "objective_tradeoff_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_report["errors"],
+             &(&1["path"] == "$.model" and String.starts_with?(&1["message"], "must be one of"))
+           )
+
+    stale_ranking_count = Map.put(report, "ranking_count", 0)
+
+    assert {:error, stale_ranking_count_report} =
+             Schema.validate_artifact(stale_ranking_count,
+               schema_contract: "objective_tradeoff_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_ranking_count_report["errors"],
+             &(&1["path"] == "$.ranking_count")
+           )
+
+    stale_score_term_keys = Map.put(report, "score_term_keys", ["activity_score"])
+
+    assert {:error, stale_score_term_keys_report} =
+             Schema.validate_artifact(stale_score_term_keys,
+               schema_contract: "objective_tradeoff_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_score_term_keys_report["errors"],
+             &(&1["path"] == "$.score_term_keys")
+           )
+
+    stale_activity_count = put_in(report, ["tradeoffs", Access.at(0), "activity_count"], 0)
+
+    assert {:error, stale_activity_count_report} =
+             Schema.validate_artifact(stale_activity_count,
+               schema_contract: "objective_tradeoff_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_activity_count_report["errors"],
+             &(&1["path"] == "$.tradeoffs[0].activity_count")
+           )
+  end
+
+  test "verifies curated score term report reference fixtures" do
+    fixture_id = "fixture.artifact.score_term_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.score_term_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = score_term_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               score_term_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      score_term_report_fixture_observations()
+      |> Map.put("selected_row_count", 6)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "selected_row_count" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "score_term_report.v1",
+             report
+           ) == Validation.artifact_observations("score_term_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "score_term_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "score_term_report.v1"
+             )
+
+    stale_row_count = Map.put(report, "row_count", 6)
+
+    assert {:error, stale_row_count_report} =
+             Schema.validate_artifact(stale_row_count,
+               schema_contract: "score_term_report.v1"
+             )
+
+    assert Enum.any?(stale_row_count_report["errors"], &(&1["path"] == "$.row_count"))
+
+    stale_score_term_keys =
+      Map.put(report, "score_term_keys", ["activity_count_penalty"])
+
+    assert {:error, stale_score_term_keys_report} =
+             Schema.validate_artifact(stale_score_term_keys,
+               schema_contract: "score_term_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_score_term_keys_report["errors"],
+             &(&1["path"] == "$.score_term_keys")
+           )
+  end
+
+  test "verifies curated ranking comparison report reference fixtures" do
+    fixture_id = "fixture.artifact.ranking_comparison_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.ranking_comparison_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = ranking_comparison_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               ranking_comparison_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      ranking_comparison_report_fixture_observations()
+      |> Map.put("matched_count", 0)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "matched_count" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "ranking_comparison_report.v1",
+             report
+           ) == Validation.artifact_observations("ranking_comparison_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "ranking_comparison_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "ranking_comparison_report.v1"
+             )
+
+    stale_model = Map.put(report, "model", "stale_ranking_comparison_model")
+
+    assert {:error, stale_model_report} =
+             Schema.validate_artifact(stale_model,
+               schema_contract: "ranking_comparison_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_report["errors"],
+             &(&1["path"] == "$.model" and
+                 &1["message"] == "must equal \"scenario_ranking_pairwise_delta\"")
+           )
+
+    stale_count_fields = [
+      {"row_count", 2},
+      {"matched_count", 0},
+      {"left_only_count", 0},
+      {"right_only_count", 0},
+      {"left_count", 1},
+      {"right_count", 1}
+    ]
+
+    Enum.each(stale_count_fields, fn {field, stale_value} ->
+      stale_report = Map.put(report, field, stale_value)
+
+      assert {:error, stale_validation_report} =
+               Schema.validate_artifact(stale_report,
+                 schema_contract: "ranking_comparison_report.v1"
+               )
+
+      assert Enum.any?(stale_validation_report["errors"], &(&1["path"] == "$.#{field}"))
+    end)
+
+    stale_rank_delta = put_in(report, ["rows", Access.at(0), "rank_delta"], 0)
+
+    assert {:error, stale_rank_delta_report} =
+             Schema.validate_artifact(stale_rank_delta,
+               schema_contract: "ranking_comparison_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_rank_delta_report["errors"],
+             &(&1["path"] == "$.rows[0].rank_delta")
+           )
+
+    stale_value_delta = put_in(report, ["rows", Access.at(0), "value_delta"], 0)
+
+    assert {:error, stale_value_delta_report} =
+             Schema.validate_artifact(stale_value_delta,
+               schema_contract: "ranking_comparison_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_value_delta_report["errors"],
+             &(&1["path"] == "$.rows[0].value_delta")
+           )
+  end
+
+  test "verifies curated schema validation report reference fixtures" do
+    fixture_id = "fixture.artifact.schema_validation_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.schema_validation_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = schema_validation_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               schema_validation_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert OrbitalDynamics.validation_artifact_observations("schema_validation_report.v1", report) ==
+             Validation.artifact_observations("schema_validation_report.v1", report)
+
+    assert {:ok, _validated_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "schema_validation_report.v1"
+             )
+
+    stale_error_count = Map.put(report, "error_count", 1)
+
+    assert {:error, stale_error_count_report} =
+             Schema.validate_artifact(stale_error_count,
+               schema_contract: "schema_validation_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_error_count_report["errors"],
+             &(&1["path"] == "$.error_count")
+           )
+
+    stale_status = Map.put(report, "status", "fail")
+
+    assert {:error, stale_status_report} =
+             Schema.validate_artifact(stale_status,
+               schema_contract: "schema_validation_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_status_report["errors"],
+             &(&1["path"] == "$.status")
+           )
+  end
+
+  test "verifies curated schema validation batch report reference fixtures" do
+    fixture_id = "fixture.artifact.schema_validation_batch_report.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.schema_validation_batch_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = schema_validation_batch_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               schema_validation_batch_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "schema_validation_batch_report.v1",
+             report
+           ) == Validation.artifact_observations("schema_validation_batch_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "schema_validation_batch_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "schema_validation_batch_report.v1"
+             )
+
+    Enum.each(
+      [
+        {"file_count", 0},
+        {"artifact_count", 0},
+        {"skipped_count", 1},
+        {"error_count", 1},
+        {"warning_count", 1},
+        {"remediation_count", 1}
+      ],
+      fn {field, stale_value} ->
+        stale_report = Map.put(report, field, stale_value)
+
+        assert {:error, validation_report} =
+                 Schema.validate_artifact(stale_report,
+                   schema_contract: "schema_validation_batch_report.v1"
+                 )
+
+        assert Enum.any?(validation_report["errors"], &(&1["path"] == "$.#{field}"))
+      end
+    )
+
+    stale_status_counts = put_in(report, ["status_counts", "pass"], 0)
+
+    assert {:error, stale_status_counts_report} =
+             Schema.validate_artifact(stale_status_counts,
+               schema_contract: "schema_validation_batch_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_status_counts_report["errors"],
+             &(&1["path"] == "$.status_counts")
+           )
+
+    nested_failure =
+      update_in(report, ["reports", Access.at(0), "report"], fn nested_report ->
+        nested_report
+        |> Map.put("status", "fail")
+        |> Map.put("error_count", 1)
+        |> Map.put("errors", [
+          %{"severity" => "error", "path" => "$.status", "message" => "forced stale fixture"}
+        ])
+      end)
+
+    assert {:error, stale_status_report} =
+             Schema.validate_artifact(nested_failure,
+               schema_contract: "schema_validation_batch_report.v1"
+             )
+
+    assert Enum.any?(stale_status_report["errors"], &(&1["path"] == "$.status"))
+
+    stale_limits = Map.put(report, "model_limits", ["stale_schema_validation_boundary"])
+
+    assert {:error, stale_limits_report} =
+             Schema.validate_artifact(stale_limits,
+               schema_contract: "schema_validation_batch_report.v1"
+             )
+
+    assert Enum.any?(stale_limits_report["errors"], &(&1["path"] == "$.model_limits"))
+  end
+
+  test "verifies curated schema migration report reference fixtures" do
+    fixture_id = "fixture.artifact.schema_migration_report.deprecated_campaign_plan"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.schema_migration_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = schema_migration_report_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               schema_migration_report_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "status" => "review_required",
+             "deprecated_contract_count" => 1,
+             "deprecated_contracts" => "campaign_plan.v1",
+             "replacement_contracts" => "campaign_strategy.v3",
+             "status_counts" => %{"current" => 116, "deprecated" => 1},
+             "row_derived_status_counts" => %{"current" => 116, "deprecated" => 1}
+           } = schema_migration_report_fixture_observations()
+
+    stale_status_counts =
+      schema_migration_report_fixture_observations()
+      |> Map.put("row_derived_status_counts", %{"current" => 117})
+
+    assert {:ok, stale_status_counts_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_status_counts)
+
+    assert stale_status_counts_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_status_counts_verification["checks"],
+             &(&1["field"] == "row_derived_status_counts" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations("schema_migration_report.v1", report) ==
+             Validation.artifact_observations("schema_migration_report.v1", report)
+
+    assert {:ok, %{"schema_contract" => "schema_migration_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "schema_migration_report.v1"
+             )
+
+    stale_model_limits = Map.put(report, "model_limits", ["artifact_only"])
+
+    assert {:error, stale_model_limits_report} =
+             Schema.validate_artifact(stale_model_limits,
+               schema_contract: "schema_migration_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] == "must match schema migration report model limits")
+           )
+
+    stale_contract_count = Map.put(report, "contract_count", 116)
+
+    assert {:error, stale_contract_count_report} =
+             Schema.validate_artifact(stale_contract_count,
+               schema_contract: "schema_migration_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_contract_count_report["errors"],
+             &(&1["path"] == "$.contract_count")
+           )
+
+    stale_status = Map.put(report, "status", "current")
+
+    assert {:error, stale_status_report} =
+             Schema.validate_artifact(stale_status,
+               schema_contract: "schema_migration_report.v1"
+             )
+
+    assert Enum.any?(stale_status_report["errors"], &(&1["path"] == "$.status"))
+  end
+
+  test "verifies schema migration future-contract challenge fixtures" do
+    fixture_id = "fixture.artifact.schema_migration_report.future_campaign_plan"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.schema_migration_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = schema_migration_future_contract_fixture()
+    observations = schema_migration_future_contract_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "status" => "review_required",
+             "future_contract_count" => 1,
+             "deprecated_contract_count" => 0,
+             "status_counts" => %{"current" => 117, "future" => 1},
+             "row_derived_status_counts" => %{"current" => 117, "future" => 1},
+             "migration_action_counts" => %{
+               "continue_current_contract" => 117,
+               "prepare_future_contract" => 1
+             },
+             "row_derived_migration_action_counts" => %{
+               "continue_current_contract" => 117,
+               "prepare_future_contract" => 1
+             }
+           } = observations
+
+    stale_action_counts =
+      observations
+      |> Map.put("row_derived_migration_action_counts", %{
+        "continue_current_contract" => 118
+      })
+
+    assert {:ok, stale_action_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_action_counts)
+
+    assert stale_action_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_action_verification["checks"],
+             &(&1["field"] == "row_derived_migration_action_counts" and &1["status"] == "fail")
+           )
+
+    assert {:ok, %{"schema_contract" => "schema_migration_report.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "schema_migration_report.v1"
+             )
+
+    stale_future_count = Map.put(report, "future_contract_count", 0)
+
+    assert {:error, stale_future_count_report} =
+             Schema.validate_artifact(stale_future_count,
+               schema_contract: "schema_migration_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_future_count_report["errors"],
+             &(&1["path"] == "$.future_contract_count")
+           )
+  end
+
+  test "fails reference fixture verification outside declared tolerances" do
+    observations =
+      two_body_fixture_observations()
+      |> Map.update!("final_position_km", fn [x, y, z] -> [x + 0.01, y, z] end)
+
+    assert {:ok, %{"status" => "fail", "checks" => checks}} =
+             Validation.verify_reference_fixture(
+               "fixture.two_body.circular_leo_600s",
+               observations
+             )
+
+    assert %{"status" => "fail", "max_abs_error" => error, "tolerance" => tolerance} =
+             Enum.find(checks, &(&1["field"] == "final_position_km"))
+
+    assert error > tolerance
+  end
+
+  test "builds deterministic reference fixture reports" do
+    report =
+      Validation.reference_fixture_report(%{
+        "fixture.event.access.equator_overhead_120s" => access_fixture_observations(),
+        "fixture.event.eclipse.cylindrical_shadow_120s" => eclipse_fixture_observations(),
+        "fixture.event.target_visibility.equator_overhead_120s" =>
+          target_visibility_fixture_observations(),
+        "fixture.event.ground_track.latitude_equator_60s" =>
+          ground_track_crossing_fixture_observations(),
+        "fixture.artifact.accepted_planning_state.oem" =>
+          accepted_planning_state_oem_fixture_observations(),
+        "fixture.artifact.accepted_planning_state.opm" =>
+          accepted_planning_state_opm_fixture_observations(),
+        "fixture.artifact.accepted_planning_state.simple" =>
+          accepted_planning_state_fixture_observations(),
+        "fixture.artifact.approval_requirement.v1" => approval_requirement_fixture_observations(),
+        "fixture.artifact.backend_acceptance_policy.v1" =>
+          backend_acceptance_policy_fixture_observations(),
+        "fixture.artifact.branch_comparison_report.v1" =>
+          branch_comparison_report_fixture_observations(),
+        "fixture.artifact.cadence_import_manifest.v1" =>
+          cadence_import_manifest_fixture_observations(),
+        "fixture.artifact.cadence_import_manifest.resource_projection_battery_handoff_v1" =>
+          cadence_import_resource_projection_battery_handoff_fixture_observations(),
+        "fixture.artifact.campaign_plan.leo_constellation_v1" =>
+          campaign_plan_fixture_observations(),
+        "fixture.artifact.campaign_repair.leo_constellation_v2" =>
+          campaign_repair_fixture_observations(),
+        "fixture.artifact.campaign_request_lint.v1" =>
+          campaign_request_lint_fixture_observations(),
+        "fixture.artifact.campaign_strategy.leo_constellation_v3" =>
+          campaign_strategy_fixture_observations(),
+        "fixture.artifact.capability_catalog.v1" => capability_catalog_fixture_observations(),
+        "fixture.artifact.candidate_activity.v1" => candidate_activity_fixture_observations(),
+        "fixture.artifact.candidate_diff_report.v1" =>
+          candidate_diff_report_fixture_observations(),
+        "fixture.artifact.candidate_diff_row.v1" => candidate_diff_row_fixture_observations(),
+        "fixture.artifact.candidate_refresh.v1" => candidate_refresh_fixture_observations(),
+        "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay" =>
+          candidate_refresh_contact_contention_challenge_fixture_observations(),
+        "fixture.artifact.candidate_refresh.resource_provenance_v1" =>
+          candidate_refresh_resource_provenance_fixture_observations(),
+        "fixture.artifact.candidate_rejection_report.v1" =>
+          candidate_rejection_report_fixture_observations(),
+        "fixture.artifact.command_window_report.v1" =>
+          command_window_report_fixture_observations(),
+        "fixture.artifact.constraint_report.v1" => constraint_report_fixture_observations(),
+        "fixture.artifact.contact_allocation_report.reduced_capacity_pack" =>
+          contact_allocation_capacity_pack_report_fixture_observations(),
+        "fixture.artifact.contact_allocation_report.v1" =>
+          contact_allocation_report_fixture_observations(),
+        "fixture.artifact.contact_allocation_provider_reservation_request_summary.v1" =>
+          contact_allocation_provider_reservation_request_summary_fixture_observations(),
+        "fixture.artifact.contact_contention_report.v1" =>
+          contact_contention_report_fixture_observations(),
+        "fixture.artifact.contact_contention_report.cross_station_spacecraft" =>
+          contact_contention_cross_station_fixture_observations(),
+        "fixture.artifact.contact_contention_resolution_report.v1" =>
+          contact_contention_resolution_report_fixture_observations(),
+        "fixture.artifact.contact_filter_report.v1" =>
+          contact_filter_report_fixture_observations(),
+        "fixture.artifact.contact_intent.v1" => contact_intent_fixture_observations(),
+        "fixture.artifact.environment_model_capability.constant_earth_rotation" =>
+          environment_model_capability_constant_earth_rotation_fixture_observations(),
+        "fixture.artifact.environment_model_capability.fixed_sun" =>
+          environment_model_capability_fixed_sun_fixture_observations(),
+        "fixture.artifact.environment_provider_capability.constant_earth_rotation" =>
+          environment_provider_capability_constant_earth_rotation_fixture_observations(),
+        "fixture.artifact.environment_provider_capability.exponential_atmosphere" =>
+          environment_provider_capability_exponential_atmosphere_fixture_observations(),
+        "fixture.artifact.environment_provider_capability.fixed_sun" =>
+          environment_provider_capability_fixed_sun_fixture_observations(),
+        "fixture.artifact.environment_provider_capability.tabular_earth_orientation" =>
+          environment_provider_capability_tabular_earth_orientation_fixture_observations(),
+        "fixture.artifact.execution_report.v1" => execution_report_fixture_observations(),
+        "fixture.artifact.freshness_report.v1" => freshness_report_fixture_observations(),
+        "fixture.artifact.invalidated_candidate.v1" =>
+          invalidated_candidate_fixture_observations(),
+        "fixture.artifact.link_capacity_report.v1" => link_capacity_report_fixture_observations(),
+        "fixture.artifact.maneuver_execution_delta.v1" =>
+          maneuver_execution_delta_fixture_observations(),
+        "fixture.artifact.maneuver_review_report.v1" =>
+          maneuver_review_report_fixture_observations(),
+        "fixture.artifact.maneuver_recommendation.v1" =>
+          maneuver_recommendation_fixture_observations(),
+        "fixture.artifact.manifest_field_reference.v1" =>
+          manifest_field_reference_fixture_observations(),
+        "fixture.artifact.model_acceptance_report.operational_import" =>
+          model_acceptance_report_fixture_observations(),
+        "fixture.artifact.monte_carlo_reproducibility_report.v1" =>
+          monte_carlo_reproducibility_report_fixture_observations(),
+        "fixture.artifact.objective_satisfaction_report.v1" =>
+          objective_satisfaction_report_fixture_observations(),
+        "fixture.artifact.objective_tradeoff_report.v1" =>
+          objective_tradeoff_report_fixture_observations(),
+        "fixture.artifact.ranking_comparison_report.v1" =>
+          ranking_comparison_report_fixture_observations(),
+        "fixture.artifact.realized_activity.v1" => realized_activity_fixture_observations(),
+        "fixture.artifact.realized_state_snapshot.v1" =>
+          realized_state_snapshot_fixture_observations(),
+        "fixture.artifact.refresh_budget_report.v1" =>
+          refresh_budget_report_fixture_observations(),
+        "fixture.artifact.refreshed_window.v1" => refreshed_window_fixture_observations(),
+        "fixture.artifact.remaining_horizon.v1" => remaining_horizon_fixture_observations(),
+        "fixture.artifact.pareto_frontier_report.v1" =>
+          pareto_frontier_report_fixture_observations(),
+        "fixture.artifact.plan_delta.v1" => plan_delta_fixture_observations(),
+        "fixture.artifact.planned_activity.v1" => planned_activity_fixture_observations(),
+        "fixture.artifact.policy_bundle.command_contact_authority" =>
+          command_contact_policy_bundle_fixture_observations(),
+        "fixture.artifact.policy_bundle.conservative_ops" =>
+          conservative_policy_bundle_fixture_observations(),
+        "fixture.artifact.policy_bundle.contact_command_review" =>
+          contact_command_review_policy_bundle_fixture_observations(),
+        "fixture.artifact.policy_bundle.default" => default_policy_bundle_fixture_observations(),
+        "fixture.artifact.policy_bundle.degraded_payload_guard" =>
+          degraded_payload_guard_policy_bundle_fixture_observations(),
+        "fixture.artifact.policy_bundle.ground_network_allocation" =>
+          ground_network_policy_bundle_fixture_observations(),
+        "fixture.artifact.policy_bundle.maneuver_authority" =>
+          maneuver_authority_policy_bundle_fixture_observations(),
+        "fixture.artifact.policy_bundle.operator_review_queue_authority" =>
+          operator_review_queue_policy_bundle_fixture_observations(),
+        "fixture.artifact.policy_bundle.organization_adapter" =>
+          organization_adapter_policy_bundle_fixture_observations(),
+        "fixture.artifact.policy_bundle.resource_projection_authority" =>
+          resource_projection_authority_policy_bundle_fixture_observations(),
+        "fixture.artifact.policy_bundle.timeline_protection" =>
+          timeline_protection_policy_bundle_fixture_observations(),
+        "fixture.artifact.policy_bundle.v1" => policy_bundle_fixture_observations(),
+        "fixture.artifact.policy_decision.v1" => policy_decision_fixture_observations(),
+        "fixture.artifact.proposed_contact.v1" => proposed_contact_fixture_observations(),
+        "fixture.artifact.validation_safety_case_summary.v1" =>
+          validation_safety_case_summary_fixture_observations(),
+        "fixture.artifact.operator_review_package.v1" =>
+          operator_review_package_fixture_observations(),
+        "fixture.artifact.operator_review_package.resource_projection_battery_handoff_v1" =>
+          operator_review_resource_projection_battery_handoff_fixture_observations(),
+        "fixture.artifact.operational_readiness_report.v1" =>
+          operational_readiness_report_fixture_observations(),
+        "fixture.artifact.operational_quality_gate_import_readiness_summary.v1" =>
+          operational_quality_gate_import_readiness_summary_fixture_observations(),
+        "fixture.artifact.operational_quality_gate_unavailable_resource_summary.v1" =>
+          operational_quality_gate_unavailable_resource_summary_fixture_observations(),
+        "fixture.artifact.operational_quality_gate_operator_training_summary.v1" =>
+          operational_quality_gate_operator_training_summary_fixture_observations(),
+        "fixture.artifact.operational_quality_gate_schema_validation_summary.v1" =>
+          operational_quality_gate_schema_validation_summary_fixture_observations(),
+        "fixture.artifact.operational_timeline_report.v1" =>
+          operational_timeline_report_fixture_observations(),
+        "fixture.artifact.optimizer_contract.v1" => optimizer_contract_fixture_observations(),
+        "fixture.artifact.provider_counteroffer_report.v1" =>
+          provider_counteroffer_report_fixture_observations(),
+        "fixture.artifact.quality_gate_report.v1" => quality_gate_report_fixture_observations(),
+        "fixture.artifact.resource_filter_report.v1" =>
+          resource_filter_report_fixture_observations(),
+        "fixture.artifact.resource_filter_report.stale_resource_summary_margins" =>
+          resource_filter_stale_margin_fixture_observations(),
+        "fixture.artifact.resource_projection_report.v1" =>
+          resource_projection_report_fixture_observations(),
+        "fixture.artifact.resource_projection_report.battery_handoff_v1" =>
+          resource_projection_battery_handoff_fixture_observations(),
+        "fixture.artifact.resource_projection_report.stale_resource_summary_margins" =>
+          resource_projection_stale_margin_fixture_observations(),
+        "fixture.artifact.resource_summary.v1" => resource_summary_fixture_observations(),
+        "fixture.artifact.result_artifact.candidate_refresh_v1" =>
+          candidate_refresh_result_artifact_fixture_observations(),
+        "fixture.artifact.result_artifact.candidate_refresh_orbit_data_v1" =>
+          candidate_refresh_orbit_data_result_artifact_fixture_observations(),
+        "fixture.artifact.result_artifact.ground_track_crossings" =>
+          ground_track_result_artifact_fixture_observations(),
+        "fixture.artifact.result_artifact.leo_access_demo" =>
+          leo_access_result_artifact_fixture_observations(),
+        "fixture.artifact.result_artifact.leo_access_demo_manifest" =>
+          leo_access_manifest_result_artifact_fixture_observations(),
+        "fixture.artifact.result_artifact.leo_constellation_campaign" =>
+          result_artifact_fixture_observations(),
+        "fixture.artifact.result_artifact.leo_dispersion_monte_carlo" =>
+          monte_carlo_result_artifact_fixture_observations(),
+        "fixture.artifact.result_artifact.mission_plan_checkout" =>
+          mission_plan_checkout_result_artifact_fixture_observations(),
+        "fixture.artifact.result_artifact.raise_apogee_search" =>
+          raise_apogee_result_artifact_fixture_observations(),
+        "fixture.artifact.score_term_report.v1" => score_term_report_fixture_observations(),
+        "fixture.artifact.schema_validation_batch_report.v1" =>
+          schema_validation_batch_report_fixture_observations(),
+        "fixture.artifact.schema_validation_report.v1" =>
+          schema_validation_report_fixture_observations(),
+        "fixture.artifact.schema_migration_report.deprecated_campaign_plan" =>
+          schema_migration_report_fixture_observations(),
+        "fixture.artifact.schema_migration_report.future_campaign_plan" =>
+          schema_migration_future_contract_fixture_observations(),
+        "fixture.artifact.source_window_lineage.v1" =>
+          source_window_lineage_fixture_observations(),
+        "fixture.artifact.spacecraft_state_estimate.v1" =>
+          spacecraft_state_estimate_fixture_observations(),
+        "fixture.artifact.station_calendar_provider.v1" =>
+          station_calendar_provider_fixture_observations(),
+        "fixture.artifact.station_calendar_report.stale_provider_reservation_hold" =>
+          station_calendar_report_fixture_observations(),
+        "fixture.artifact.station_reservation_report.stale_provider_reservation_hold" =>
+          station_reservation_report_fixture_observations(),
+        "fixture.artifact.station_calendar_report.v1" =>
+          checked_in_station_calendar_report_fixture_observations(),
+        "fixture.artifact.strategy_branch.v1" => strategy_branch_fixture_observations(),
+        "fixture.artifact.strategy_recommendation.v1" =>
+          strategy_recommendation_fixture_observations(),
+        "fixture.artifact.study_benchmark.distributed_concurrency_sweep" =>
+          distributed_concurrency_benchmark_fixture_observations(),
+        "fixture.artifact.study_benchmark.distributed_chunk_sweep" =>
+          distributed_chunk_benchmark_fixture_observations(),
+        "fixture.artifact.study_benchmark.distributed_diagnostic_sweep" =>
+          distributed_diagnostic_benchmark_fixture_observations(),
+        "fixture.artifact.study_benchmark.distributed_monte_carlo_chunked" =>
+          distributed_monte_carlo_chunked_benchmark_fixture_observations(),
+        "fixture.artifact.study_benchmark.distributed_monte_carlo_scaling" =>
+          distributed_monte_carlo_scaling_benchmark_fixture_observations(),
+        "fixture.artifact.study_benchmark.monte_carlo_scaling" =>
+          monte_carlo_scaling_benchmark_fixture_observations(),
+        "fixture.artifact.study_benchmark.nx_study_benchmark" =>
+          nx_study_benchmark_fixture_observations(),
+        "fixture.artifact.study_benchmark.v1" => study_benchmark_fixture_observations(),
+        "fixture.artifact.study_manifest_lint.v1" => study_manifest_lint_fixture_observations(),
+        "fixture.artifact.timeline_activity_approval_state.v1" =>
+          timeline_activity_approval_state_fixture_observations(),
+        "fixture.artifact.timeline_activity_lifecycle_state.v1" =>
+          timeline_activity_lifecycle_state_fixture_observations(),
+        "fixture.artifact.timeline_activity_precondition_summary.v1" =>
+          timeline_activity_precondition_summary_fixture_observations(),
+        "fixture.artifact.timeline_activity_state.v1" =>
+          timeline_activity_state_fixture_observations(),
+        "fixture.artifact.timeline_activity_status_state.v1" =>
+          timeline_activity_status_state_fixture_observations(),
+        "fixture.artifact.timeline_dependency_impact_summary.v1" =>
+          timeline_dependency_impact_summary_fixture_observations(),
+        "fixture.artifact.timeline_diff_report.v1" => timeline_diff_report_fixture_observations(),
+        "fixture.artifact.timeline_diff_summary.v1" =>
+          timeline_diff_summary_fixture_observations(),
+        "fixture.artifact.timeline_feedback_report.v1" =>
+          timeline_feedback_report_fixture_observations(),
+        "fixture.artifact.timeline_integrity_report.v1" =>
+          timeline_integrity_report_fixture_observations(),
+        "fixture.artifact.timeline_lifecycle_state_summary.v1" =>
+          timeline_lifecycle_state_summary_fixture_observations(),
+        "fixture.artifact.timeline_preservation_report.v1" =>
+          timeline_preservation_report_fixture_observations(),
+        "fixture.artifact.timeline_transition_application_report.v1" =>
+          timeline_transition_application_report_fixture_observations(),
+        "fixture.artifact.timeline_transition_application_summary.v1" =>
+          timeline_transition_application_summary_fixture_observations(),
+        "fixture.artifact.validation_check.v1" => validation_check_fixture_observations(),
+        "fixture.artifact.validation_record.v1" => validation_record_fixture_observations(),
+        "fixture.artifact.validation_reference_report.v1" =>
+          validation_reference_report_fixture_observations(),
+        "fixture.artifact.validation_tolerance_policy.v1" =>
+          validation_tolerance_policy_fixture_observations(),
+        "fixture.j2.circular_leo_600s" => j2_fixture_observations(),
+        "fixture.two_body.circular_leo_600s" => two_body_fixture_observations()
+      })
+
+    assert %{
+             "schema_contract" => "validation_reference_fixture_report.v1",
+             "status" => "pass",
+             "fixture_count" => 144,
+             "status_counts" => %{"pass" => 144},
+             "reports" => reports
+           } = report
+
+    assert Enum.map(reports, & &1["fixture_id"]) == [
+             "fixture.artifact.accepted_planning_state.oem",
+             "fixture.artifact.accepted_planning_state.opm",
+             "fixture.artifact.accepted_planning_state.simple",
+             "fixture.artifact.approval_requirement.v1",
+             "fixture.artifact.backend_acceptance_policy.v1",
+             "fixture.artifact.branch_comparison_report.v1",
+             "fixture.artifact.cadence_import_manifest.resource_projection_battery_handoff_v1",
+             "fixture.artifact.cadence_import_manifest.v1",
+             "fixture.artifact.campaign_plan.leo_constellation_v1",
+             "fixture.artifact.campaign_repair.leo_constellation_v2",
+             "fixture.artifact.campaign_request_lint.v1",
+             "fixture.artifact.campaign_strategy.leo_constellation_v3",
+             "fixture.artifact.candidate_activity.v1",
+             "fixture.artifact.candidate_diff_report.v1",
+             "fixture.artifact.candidate_diff_row.v1",
+             "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay",
+             "fixture.artifact.candidate_refresh.resource_provenance_v1",
+             "fixture.artifact.candidate_refresh.v1",
+             "fixture.artifact.candidate_rejection_report.v1",
+             "fixture.artifact.capability_catalog.v1",
+             "fixture.artifact.command_window_report.v1",
+             "fixture.artifact.constraint_report.v1",
+             "fixture.artifact.contact_allocation_provider_reservation_request_summary.v1",
+             "fixture.artifact.contact_allocation_report.reduced_capacity_pack",
+             "fixture.artifact.contact_allocation_report.v1",
+             "fixture.artifact.contact_contention_report.cross_station_spacecraft",
+             "fixture.artifact.contact_contention_report.v1",
+             "fixture.artifact.contact_contention_resolution_report.v1",
+             "fixture.artifact.contact_filter_report.v1",
+             "fixture.artifact.contact_intent.v1",
+             "fixture.artifact.environment_model_capability.constant_earth_rotation",
+             "fixture.artifact.environment_model_capability.fixed_sun",
+             "fixture.artifact.environment_provider_capability.constant_earth_rotation",
+             "fixture.artifact.environment_provider_capability.exponential_atmosphere",
+             "fixture.artifact.environment_provider_capability.fixed_sun",
+             "fixture.artifact.environment_provider_capability.tabular_earth_orientation",
+             "fixture.artifact.execution_report.v1",
+             "fixture.artifact.freshness_report.v1",
+             "fixture.artifact.invalidated_candidate.v1",
+             "fixture.artifact.link_capacity_report.v1",
+             "fixture.artifact.maneuver_execution_delta.v1",
+             "fixture.artifact.maneuver_recommendation.v1",
+             "fixture.artifact.maneuver_review_report.v1",
+             "fixture.artifact.manifest_field_reference.v1",
+             "fixture.artifact.model_acceptance_report.operational_import",
+             "fixture.artifact.monte_carlo_reproducibility_report.v1",
+             "fixture.artifact.objective_satisfaction_report.v1",
+             "fixture.artifact.objective_tradeoff_report.v1",
+             "fixture.artifact.operational_quality_gate_import_readiness_summary.v1",
+             "fixture.artifact.operational_quality_gate_operator_training_summary.v1",
+             "fixture.artifact.operational_quality_gate_schema_validation_summary.v1",
+             "fixture.artifact.operational_quality_gate_unavailable_resource_summary.v1",
+             "fixture.artifact.operational_readiness_report.v1",
+             "fixture.artifact.operational_timeline_report.v1",
+             "fixture.artifact.operator_review_package.resource_projection_battery_handoff_v1",
+             "fixture.artifact.operator_review_package.v1",
+             "fixture.artifact.optimizer_contract.v1",
+             "fixture.artifact.pareto_frontier_report.v1",
+             "fixture.artifact.plan_delta.v1",
+             "fixture.artifact.planned_activity.v1",
+             "fixture.artifact.policy_bundle.command_contact_authority",
+             "fixture.artifact.policy_bundle.conservative_ops",
+             "fixture.artifact.policy_bundle.contact_command_review",
+             "fixture.artifact.policy_bundle.default",
+             "fixture.artifact.policy_bundle.degraded_payload_guard",
+             "fixture.artifact.policy_bundle.ground_network_allocation",
+             "fixture.artifact.policy_bundle.maneuver_authority",
+             "fixture.artifact.policy_bundle.operator_review_queue_authority",
+             "fixture.artifact.policy_bundle.organization_adapter",
+             "fixture.artifact.policy_bundle.resource_projection_authority",
+             "fixture.artifact.policy_bundle.timeline_protection",
+             "fixture.artifact.policy_bundle.v1",
+             "fixture.artifact.policy_decision.v1",
+             "fixture.artifact.proposed_contact.v1",
+             "fixture.artifact.provider_counteroffer_report.v1",
+             "fixture.artifact.quality_gate_report.v1",
+             "fixture.artifact.ranking_comparison_report.v1",
+             "fixture.artifact.realized_activity.v1",
+             "fixture.artifact.realized_state_snapshot.v1",
+             "fixture.artifact.refresh_budget_report.v1",
+             "fixture.artifact.refreshed_window.v1",
+             "fixture.artifact.remaining_horizon.v1",
+             "fixture.artifact.resource_filter_report.stale_resource_summary_margins",
+             "fixture.artifact.resource_filter_report.v1",
+             "fixture.artifact.resource_projection_report.battery_handoff_v1",
+             "fixture.artifact.resource_projection_report.stale_resource_summary_margins",
+             "fixture.artifact.resource_projection_report.v1",
+             "fixture.artifact.resource_summary.v1",
+             "fixture.artifact.result_artifact.candidate_refresh_orbit_data_v1",
+             "fixture.artifact.result_artifact.candidate_refresh_v1",
+             "fixture.artifact.result_artifact.ground_track_crossings",
+             "fixture.artifact.result_artifact.leo_access_demo",
+             "fixture.artifact.result_artifact.leo_access_demo_manifest",
+             "fixture.artifact.result_artifact.leo_constellation_campaign",
+             "fixture.artifact.result_artifact.leo_dispersion_monte_carlo",
+             "fixture.artifact.result_artifact.mission_plan_checkout",
+             "fixture.artifact.result_artifact.raise_apogee_search",
+             "fixture.artifact.schema_migration_report.deprecated_campaign_plan",
+             "fixture.artifact.schema_migration_report.future_campaign_plan",
+             "fixture.artifact.schema_validation_batch_report.v1",
+             "fixture.artifact.schema_validation_report.v1",
+             "fixture.artifact.score_term_report.v1",
+             "fixture.artifact.source_window_lineage.v1",
+             "fixture.artifact.spacecraft_state_estimate.v1",
+             "fixture.artifact.station_calendar_provider.v1",
+             "fixture.artifact.station_calendar_report.stale_provider_reservation_hold",
+             "fixture.artifact.station_calendar_report.v1",
+             "fixture.artifact.station_reservation_report.stale_provider_reservation_hold",
+             "fixture.artifact.strategy_branch.v1",
+             "fixture.artifact.strategy_recommendation.v1",
+             "fixture.artifact.study_benchmark.distributed_chunk_sweep",
+             "fixture.artifact.study_benchmark.distributed_concurrency_sweep",
+             "fixture.artifact.study_benchmark.distributed_diagnostic_sweep",
+             "fixture.artifact.study_benchmark.distributed_monte_carlo_chunked",
+             "fixture.artifact.study_benchmark.distributed_monte_carlo_scaling",
+             "fixture.artifact.study_benchmark.monte_carlo_scaling",
+             "fixture.artifact.study_benchmark.nx_study_benchmark",
+             "fixture.artifact.study_benchmark.v1",
+             "fixture.artifact.study_manifest_lint.v1",
+             "fixture.artifact.timeline_activity_approval_state.v1",
+             "fixture.artifact.timeline_activity_lifecycle_state.v1",
+             "fixture.artifact.timeline_activity_precondition_summary.v1",
+             "fixture.artifact.timeline_activity_state.v1",
+             "fixture.artifact.timeline_activity_status_state.v1",
+             "fixture.artifact.timeline_dependency_impact_summary.v1",
+             "fixture.artifact.timeline_diff_report.v1",
+             "fixture.artifact.timeline_diff_summary.v1",
+             "fixture.artifact.timeline_feedback_report.v1",
+             "fixture.artifact.timeline_integrity_report.v1",
+             "fixture.artifact.timeline_lifecycle_state_summary.v1",
+             "fixture.artifact.timeline_preservation_report.v1",
+             "fixture.artifact.timeline_transition_application_report.v1",
+             "fixture.artifact.timeline_transition_application_summary.v1",
+             "fixture.artifact.validation_check.v1",
+             "fixture.artifact.validation_record.v1",
+             "fixture.artifact.validation_reference_report.v1",
+             "fixture.artifact.validation_safety_case_summary.v1",
+             "fixture.artifact.validation_tolerance_policy.v1",
+             "fixture.event.access.equator_overhead_120s",
+             "fixture.event.eclipse.cylindrical_shadow_120s",
+             "fixture.event.ground_track.latitude_equator_60s",
+             "fixture.event.target_visibility.equator_overhead_120s",
+             "fixture.j2.circular_leo_600s",
+             "fixture.two_body.circular_leo_600s"
+           ]
+
+    assert {:ok, %{"schema_contract" => "validation_reference_fixture_report.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(report)
+
+    invalid_observation_report =
+      Validation.reference_fixture_report(%{
+        "fixture.two_body.circular_leo_600s" => :not_an_observation_map
+      })
+
+    assert %{
+             "status" => "fail",
+             "status_counts" => %{"fail" => 144},
+             "reports" => invalid_observation_reports
+           } = invalid_observation_report
+
+    assert %{
+             "schema_contract" => "validation_reference_report.v1",
+             "fixture_id" => "fixture.two_body.circular_leo_600s",
+             "status" => "fail",
+             "checks" => [
+               %{
+                 "field" => "observations",
+                 "status" => "fail",
+                 "expected" => "valid observations map"
+               }
+             ]
+           } =
+             Enum.find(
+               invalid_observation_reports,
+               &(&1["fixture_id"] == "fixture.two_body.circular_leo_600s")
+             )
+
+    assert {:ok, %{"schema_contract" => "validation_reference_fixture_report.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(invalid_observation_report)
+
+    invalid_fixture_count = Map.put(report, "fixture_count", 99)
+
+    assert {:error, fixture_count_report} =
+             OrbitalDynamics.Schema.validate_artifact(invalid_fixture_count)
+
+    assert Enum.any?(
+             fixture_count_report["errors"],
+             &(&1["path"] == "$.fixture_count")
+           )
+
+    inconsistent_status_report =
+      report
+      |> put_in(["reports", Access.at(0), "status"], "fail")
+      |> Map.put("status", "pass")
+
+    assert {:error, inconsistent_status_errors} =
+             OrbitalDynamics.Schema.validate_artifact(inconsistent_status_report)
+
+    assert Enum.any?(
+             inconsistent_status_errors["errors"],
+             &(&1["path"] == "$.status" and
+                 &1["message"] == "must equal nested report statuses")
+           )
+
+    invalid_negative_fixture_count = Map.put(report, "fixture_count", -1)
+
+    assert {:error, negative_fixture_count_report} =
+             OrbitalDynamics.Schema.validate_artifact(invalid_negative_fixture_count)
+
+    assert Enum.any?(
+             negative_fixture_count_report["errors"],
+             &(&1["path"] == "$.fixture_count")
+           )
+
+    stale_status_counts = put_in(report, ["status_counts", "pass"], 123)
+
+    assert {:error, stale_status_counts_report} =
+             OrbitalDynamics.Schema.validate_artifact(stale_status_counts)
+
+    assert Enum.any?(
+             stale_status_counts_report["errors"],
+             &(&1["path"] == "$.status_counts" and
+                 &1["message"] == "must equal nested report status counts")
+           )
+  end
+
+  defp result_set(assumptions) do
+    ResultSet.new!(%{
+      study_id: :validation,
+      trajectory_results: [],
+      event_results: [],
+      errors: [],
+      assumptions: assumptions,
+      metadata: %{}
+    })
+  end
+
+  defp two_body_fixture_observations do
+    central_body = CentralBody.earth()
+    radius_km = 7_000.0
+    velocity_km_s = :math.sqrt(central_body.mu_km3_s2 / radius_km)
+
+    scenario =
+      Scenario.new!(
+        :fixture_two_body_leo_600s,
+        Spacecraft.new!(:sat_1, 250.0),
+        StateVector.new!(
+          {radius_km, 0.0, 0.0},
+          {0.0, velocity_km_s, 0.0},
+          Epoch.new!(0.0, :tdb),
+          Frame.earth_inertial_j2000()
+        ),
+        duration_s: 600.0,
+        output_step_s: 120.0,
+        central_body: central_body
+      )
+
+    assert {:ok, trajectory} = TwoBody.propagate(scenario, max_step_s: 10.0)
+    final_state = List.last(trajectory.states)
+
+    %{
+      "sample_count" => length(trajectory.states),
+      "final_epoch_s" => final_state.epoch.seconds_since_j2000,
+      "final_position_km" => Tuple.to_list(final_state.position_km),
+      "final_velocity_km_s" => Tuple.to_list(final_state.velocity_km_s)
+    }
+  end
+
+  defp campaign_plan_fixture_observations do
+    artifact =
+      "study_results/leo_constellation_campaign.json"
+      |> read_json!()
+      |> Map.fetch!("campaign_plan")
+
+    Validation.artifact_observations("campaign_plan.v1", artifact)
+  end
+
+  defp result_artifact_fixture_observations do
+    "result_artifact.v1"
+    |> Validation.artifact_observations(result_artifact_fixture())
+  end
+
+  defp result_artifact_fixture do
+    read_json!("study_results/leo_constellation_campaign.json")
+  end
+
+  defp leo_access_result_artifact_fixture_observations do
+    "result_artifact.v1"
+    |> Validation.artifact_observations(leo_access_result_artifact_fixture())
+  end
+
+  defp leo_access_result_artifact_fixture do
+    read_json!("study_results/leo_access_demo.json")
+  end
+
+  defp leo_access_manifest_result_artifact_fixture_observations do
+    "result_artifact.v1"
+    |> Validation.artifact_observations(leo_access_manifest_result_artifact_fixture())
+  end
+
+  defp leo_access_manifest_result_artifact_fixture do
+    read_json!("study_results/leo_access_demo_manifest.json")
+  end
+
+  defp ground_track_result_artifact_fixture_observations do
+    "result_artifact.v1"
+    |> Validation.artifact_observations(ground_track_result_artifact_fixture())
+  end
+
+  defp ground_track_result_artifact_fixture do
+    read_json!("study_results/ground_track_crossings.json")
+  end
+
+  defp raise_apogee_result_artifact_fixture_observations do
+    "result_artifact.v1"
+    |> Validation.artifact_observations(raise_apogee_result_artifact_fixture())
+  end
+
+  defp raise_apogee_result_artifact_fixture do
+    read_json!("study_results/raise_apogee_search.json")
+  end
+
+  defp candidate_refresh_result_artifact_fixture_observations do
+    "result_artifact.v1"
+    |> Validation.artifact_observations(candidate_refresh_result_artifact_fixture())
+  end
+
+  defp candidate_refresh_result_artifact_fixture do
+    read_json!("study_results/candidate_refresh_v1.json")
+  end
+
+  defp candidate_refresh_orbit_data_result_artifact_fixture_observations do
+    "result_artifact.v1"
+    |> Validation.artifact_observations(candidate_refresh_orbit_data_result_artifact_fixture())
+  end
+
+  defp candidate_refresh_orbit_data_result_artifact_fixture do
+    read_json!("study_results/candidate_refresh_orbit_data_v1.json")
+  end
+
+  defp monte_carlo_result_artifact_fixture_observations do
+    "result_artifact.v1"
+    |> Validation.artifact_observations(monte_carlo_result_artifact_fixture())
+  end
+
+  defp monte_carlo_result_artifact_fixture do
+    read_json!("study_results/leo_dispersion_monte_carlo.json")
+  end
+
+  defp mission_plan_checkout_result_artifact_fixture_observations do
+    "result_artifact.v1"
+    |> Validation.artifact_observations(mission_plan_checkout_result_artifact_fixture())
+  end
+
+  defp mission_plan_checkout_result_artifact_fixture do
+    read_json!("study_results/mission_plan_checkout.json")
+  end
+
+  defp accepted_planning_state_fixture_observations do
+    "accepted_planning_state.v1"
+    |> Validation.artifact_observations(accepted_planning_state_fixture())
+  end
+
+  defp accepted_planning_state_fixture do
+    read_json!("study_results/accepted_planning_state_simple.json")
+  end
+
+  defp accepted_planning_state_opm_fixture_observations do
+    "accepted_planning_state.v1"
+    |> Validation.artifact_observations(accepted_planning_state_opm_fixture())
+  end
+
+  defp accepted_planning_state_opm_fixture do
+    read_json!("study_results/accepted_planning_state_opm.json")
+  end
+
+  defp accepted_planning_state_oem_fixture_observations do
+    "accepted_planning_state.v1"
+    |> Validation.artifact_observations(accepted_planning_state_oem_fixture())
+  end
+
+  defp accepted_planning_state_oem_fixture do
+    read_json!("study_results/accepted_planning_state_oem.json")
+  end
+
+  defp campaign_repair_fixture_observations do
+    "study_results/leo_constellation_campaign_repair_v2.json"
+    |> read_json!()
+    |> then(&Validation.artifact_observations("campaign_repair.v2", &1))
+  end
+
+  defp campaign_strategy_fixture_observations do
+    "study_results/leo_constellation_campaign_strategy_v3.json"
+    |> read_json!()
+    |> then(&Validation.artifact_observations("campaign_strategy.v3", &1))
+  end
+
+  defp candidate_refresh_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(candidate_refresh_fixture())
+  end
+
+  defp candidate_refresh_fixture do
+    "study_results/candidate_refresh_v1.json"
+    |> read_json!()
+    |> Map.fetch!("candidate_refresh")
+  end
+
+  defp candidate_refresh_resource_provenance_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(candidate_refresh_resource_provenance_fixture())
+  end
+
+  defp candidate_refresh_resource_provenance_fixture do
+    read_json!("study_results/candidate_refresh_resource_provenance_v1.json")
+  end
+
+  defp candidate_refresh_contact_contention_challenge_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(candidate_refresh_contact_contention_challenge_fixture())
+  end
+
+  defp candidate_refresh_contact_contention_challenge_fixture do
+    contact_contention_report =
+      contact_contention_cross_station_fixture()
+      |> update_in(["provenance"], fn provenance ->
+        (provenance || %{})
+        |> Map.put("trust_boundary", "generated_cross_station_spacecraft_contention_fixture")
+      end)
+
+    result_set(%{})
+    |> CandidateRefresh.build(
+      candidate_refresh:
+        candidate_refresh_contact_contention_challenge_request(contact_contention_report),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  defp candidate_refresh_contact_contention_challenge_request(contact_contention_report) do
+    %{
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-contact-contention-challenge",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [],
+        "source" => %{"system" => "validation_challenge"},
+        "quality" => %{"level" => "accepted"},
+        "provenance" => %{"created_by" => "validation_fixture"}
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "targets" => [],
+      "constraints" => %{},
+      "scoring_policy" => %{},
+      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
+      "source_contact_contention_report" => contact_contention_report
+    }
+  end
+
+  defp candidate_rejection_report_fixture_observations do
+    "candidate_rejection_report.v1"
+    |> Validation.artifact_observations(candidate_rejection_report_fixture())
+  end
+
+  defp candidate_rejection_report_fixture do
+    read_json!("study_results/candidate_rejection_report_v1.json")
+  end
+
+  defp candidate_diff_row_fixture_observations do
+    "candidate_diff_row.v1"
+    |> Validation.artifact_observations(candidate_diff_row_fixture())
+  end
+
+  defp candidate_diff_row_fixture do
+    read_json!("study_results/candidate_diff_row_v1.json")
+  end
+
+  defp campaign_request_lint_fixture_observations do
+    "campaign_request_lint.v1"
+    |> Validation.artifact_observations(campaign_request_lint_fixture())
+  end
+
+  defp campaign_request_lint_fixture do
+    read_json!("study_results/campaign_request_lint_v1.json")
+  end
+
+  defp capability_catalog_fixture_observations do
+    "capability_catalog.v1"
+    |> Validation.artifact_observations(capability_catalog_fixture())
+  end
+
+  defp capability_catalog_fixture do
+    read_json!("study_results/capability_catalog_v1.json")
+  end
+
+  defp environment_model_capability_fixed_sun_fixture_observations do
+    "environment_model_capability.v1"
+    |> Validation.artifact_observations(
+      environment_model_capability_fixture("environment.solar.fixed_inertial_direction")
+    )
+  end
+
+  defp environment_model_capability_constant_earth_rotation_fixture_observations do
+    "environment_model_capability.v1"
+    |> Validation.artifact_observations(
+      environment_model_capability_fixture("environment.earth_rotation.constant_rate")
+    )
+  end
+
+  defp environment_model_capability_fixture(id) do
+    Environment.model_capabilities()
+    |> Enum.find(&(Map.get(&1, "id") == id))
+  end
+
+  defp environment_provider_capability_fixed_sun_fixture_observations do
+    "environment_provider_capability.v1"
+    |> Validation.artifact_observations(
+      environment_provider_capability_fixture(
+        "environment.provider.solar.fixed_inertial_direction"
+      )
+    )
+  end
+
+  defp environment_provider_capability_constant_earth_rotation_fixture_observations do
+    "environment_provider_capability.v1"
+    |> Validation.artifact_observations(
+      environment_provider_capability_fixture("environment.provider.earth_rotation.constant_rate")
+    )
+  end
+
+  defp environment_provider_capability_tabular_earth_orientation_fixture_observations do
+    "environment_provider_capability.v1"
+    |> Validation.artifact_observations(
+      environment_provider_capability_fixture(
+        "environment.provider.earth_orientation.tabular_rotation"
+      )
+    )
+  end
+
+  defp environment_provider_capability_exponential_atmosphere_fixture_observations do
+    "environment_provider_capability.v1"
+    |> Validation.artifact_observations(
+      environment_provider_capability_fixture(
+        "environment.provider.atmosphere.exponential_reference"
+      )
+    )
+  end
+
+  defp environment_provider_capability_fixture(id) do
+    Environment.provider_capabilities()
+    |> Enum.find(&(Map.get(&1, "id") == id))
+  end
+
+  defp branch_comparison_report_fixture_observations do
+    "branch_comparison_report.v1"
+    |> Validation.artifact_observations(branch_comparison_report_fixture())
+  end
+
+  defp branch_comparison_report_fixture do
+    read_json!("study_results/branch_comparison_report_v1.json")
+  end
+
+  defp optimizer_contract_fixture_observations do
+    "optimizer_contract.v1"
+    |> Validation.artifact_observations(optimizer_contract_fixture())
+  end
+
+  defp optimizer_contract_fixture do
+    read_json!("study_results/optimizer_contract_v1.json")
+  end
+
+  defp proposed_contact_fixture_observations do
+    "proposed_contact.v1"
+    |> Validation.artifact_observations(proposed_contact_fixture())
+  end
+
+  defp proposed_contact_fixture do
+    read_json!("study_results/proposed_contact_v1.json")
+  end
+
+  defp invalidated_candidate_fixture_observations do
+    "invalidated_candidate.v1"
+    |> Validation.artifact_observations(invalidated_candidate_fixture())
+  end
+
+  defp invalidated_candidate_fixture do
+    read_json!("study_results/invalidated_candidate_v1.json")
+  end
+
+  defp strategy_branch_fixture_observations do
+    "strategy_branch.v1"
+    |> Validation.artifact_observations(strategy_branch_fixture())
+  end
+
+  defp strategy_branch_fixture do
+    read_json!("study_results/strategy_branch_v1.json")
+  end
+
+  defp strategy_recommendation_fixture_observations do
+    "strategy_recommendation.v1"
+    |> Validation.artifact_observations(strategy_recommendation_fixture())
+  end
+
+  defp strategy_recommendation_fixture do
+    read_json!("study_results/strategy_recommendation_v1.json")
+  end
+
+  defp study_benchmark_fixture_observations do
+    "study_benchmark.v1"
+    |> Validation.artifact_observations(study_benchmark_fixture())
+  end
+
+  defp study_benchmark_fixture do
+    read_json!("study_results/study_benchmark.json")
+  end
+
+  defp distributed_concurrency_benchmark_fixture_observations do
+    "study_benchmark.v1"
+    |> Validation.artifact_observations(distributed_concurrency_benchmark_fixture())
+  end
+
+  defp distributed_concurrency_benchmark_fixture do
+    read_json!("study_results/distributed_concurrency_sweep.json")
+  end
+
+  defp distributed_chunk_benchmark_fixture_observations do
+    "study_benchmark.v1"
+    |> Validation.artifact_observations(distributed_chunk_benchmark_fixture())
+  end
+
+  defp distributed_chunk_benchmark_fixture do
+    read_json!("study_results/distributed_chunk_sweep.json")
+  end
+
+  defp distributed_monte_carlo_scaling_benchmark_fixture_observations do
+    "study_benchmark.v1"
+    |> Validation.artifact_observations(distributed_monte_carlo_scaling_benchmark_fixture())
+  end
+
+  defp distributed_monte_carlo_scaling_benchmark_fixture do
+    read_json!("study_results/distributed_monte_carlo_scaling.json")
+  end
+
+  defp distributed_diagnostic_benchmark_fixture_observations do
+    "study_benchmark.v1"
+    |> Validation.artifact_observations(distributed_diagnostic_benchmark_fixture())
+  end
+
+  defp distributed_diagnostic_benchmark_fixture do
+    read_json!("study_results/distributed_diagnostic_sweep.json")
+  end
+
+  defp distributed_monte_carlo_chunked_benchmark_fixture_observations do
+    "study_benchmark.v1"
+    |> Validation.artifact_observations(distributed_monte_carlo_chunked_benchmark_fixture())
+  end
+
+  defp distributed_monte_carlo_chunked_benchmark_fixture do
+    read_json!("study_results/distributed_monte_carlo_chunked.json")
+  end
+
+  defp monte_carlo_scaling_benchmark_fixture_observations do
+    "study_benchmark.v1"
+    |> Validation.artifact_observations(monte_carlo_scaling_benchmark_fixture())
+  end
+
+  defp monte_carlo_scaling_benchmark_fixture do
+    read_json!("study_results/monte_carlo_scaling.json")
+  end
+
+  defp nx_study_benchmark_fixture_observations do
+    "study_benchmark.v1"
+    |> Validation.artifact_observations(nx_study_benchmark_fixture())
+  end
+
+  defp nx_study_benchmark_fixture do
+    read_json!("study_results/nx_study_benchmark.json")
+  end
+
+  defp validation_reference_report_fixture_observations do
+    "validation_reference_report.v1"
+    |> Validation.artifact_observations(validation_reference_report_fixture())
+  end
+
+  defp validation_reference_report_fixture do
+    read_json!("study_results/validation_reference_report_v1.json")
+  end
+
+  defp candidate_diff_report_fixture_observations do
+    "candidate_diff_report.v1"
+    |> Validation.artifact_observations(candidate_diff_report_fixture())
+  end
+
+  defp candidate_diff_report_fixture do
+    read_json!("study_results/candidate_diff_report_v1.json")
+  end
+
+  defp refresh_budget_report_fixture_observations do
+    "refresh_budget_report.v1"
+    |> Validation.artifact_observations(refresh_budget_report_fixture())
+  end
+
+  defp refresh_budget_report_fixture do
+    read_json!("study_results/refresh_budget_report_v1.json")
+  end
+
+  defp execution_report_fixture_observations do
+    "execution_report.v1"
+    |> Validation.artifact_observations(execution_report_fixture())
+  end
+
+  defp execution_report_fixture do
+    read_json!("study_results/execution_report_v1.json")
+  end
+
+  defp freshness_report_fixture_observations do
+    "freshness_report.v1"
+    |> Validation.artifact_observations(freshness_report_fixture())
+  end
+
+  defp freshness_report_fixture do
+    read_json!("study_results/freshness_report_v1.json")
+  end
+
+  defp manifest_field_reference_fixture_observations do
+    "manifest_field_reference.v1"
+    |> Validation.artifact_observations(manifest_field_reference_fixture())
+  end
+
+  defp manifest_field_reference_fixture do
+    read_json!("study_results/manifest_field_reference.json")
+  end
+
+  defp study_manifest_lint_fixture_observations do
+    "study_manifest_lint.v1"
+    |> Validation.artifact_observations(study_manifest_lint_fixture())
+  end
+
+  defp study_manifest_lint_fixture do
+    read_json!("study_results/study_manifest_lint_v1.json")
+  end
+
+  defp approval_requirement_fixture_observations do
+    "approval_requirement.v1"
+    |> Validation.artifact_observations(approval_requirement_fixture())
+  end
+
+  defp approval_requirement_fixture do
+    read_json!("study_results/approval_requirement_v1.json")
+  end
+
+  defp policy_decision_fixture_observations do
+    "policy_decision.v1"
+    |> Validation.artifact_observations(policy_decision_fixture())
+  end
+
+  defp policy_decision_fixture do
+    read_json!("study_results/policy_decision_v1.json")
+  end
+
+  defp policy_bundle_fixture_observations do
+    "policy_bundle.v1"
+    |> Validation.artifact_observations(policy_bundle_fixture())
+  end
+
+  defp policy_bundle_fixture do
+    read_json!("study_results/policy_bundle_v1.json")
+  end
+
+  defp ground_network_policy_bundle_fixture_observations do
+    "policy_bundle.v1"
+    |> Validation.artifact_observations(ground_network_policy_bundle_fixture())
+  end
+
+  defp ground_network_policy_bundle_fixture do
+    read_json!("study_results/policy_bundle_ground_network_allocation_v1.json")
+  end
+
+  defp operator_review_queue_policy_bundle_fixture_observations do
+    "policy_bundle.v1"
+    |> Validation.artifact_observations(operator_review_queue_policy_bundle_fixture())
+  end
+
+  defp operator_review_queue_policy_bundle_fixture do
+    read_json!("study_results/policy_bundle_operator_review_queue_authority_v1.json")
+  end
+
+  defp command_contact_policy_bundle_fixture_observations do
+    "policy_bundle.v1"
+    |> Validation.artifact_observations(command_contact_policy_bundle_fixture())
+  end
+
+  defp command_contact_policy_bundle_fixture do
+    read_json!("study_results/policy_bundle_command_contact_authority_v1.json")
+  end
+
+  defp conservative_policy_bundle_fixture_observations do
+    "policy_bundle.v1"
+    |> Validation.artifact_observations(conservative_policy_bundle_fixture())
+  end
+
+  defp conservative_policy_bundle_fixture do
+    read_json!("study_results/policy_bundle_conservative_ops_v1.json")
+  end
+
+  defp contact_command_review_policy_bundle_fixture_observations do
+    "policy_bundle.v1"
+    |> Validation.artifact_observations(contact_command_review_policy_bundle_fixture())
+  end
+
+  defp contact_command_review_policy_bundle_fixture do
+    read_json!("study_results/policy_bundle_contact_command_review_v1.json")
+  end
+
+  defp degraded_payload_guard_policy_bundle_fixture_observations do
+    "policy_bundle.v1"
+    |> Validation.artifact_observations(degraded_payload_guard_policy_bundle_fixture())
+  end
+
+  defp degraded_payload_guard_policy_bundle_fixture do
+    read_json!("study_results/policy_bundle_degraded_payload_guard_v1.json")
+  end
+
+  defp default_policy_bundle_fixture_observations do
+    "policy_bundle.v1"
+    |> Validation.artifact_observations(default_policy_bundle_fixture())
+  end
+
+  defp default_policy_bundle_fixture do
+    read_json!("study_results/policy_bundle_default_v1.json")
+  end
+
+  defp maneuver_authority_policy_bundle_fixture_observations do
+    "policy_bundle.v1"
+    |> Validation.artifact_observations(maneuver_authority_policy_bundle_fixture())
+  end
+
+  defp maneuver_authority_policy_bundle_fixture do
+    read_json!("study_results/policy_bundle_maneuver_authority_v1.json")
+  end
+
+  defp resource_projection_authority_policy_bundle_fixture_observations do
+    "policy_bundle.v1"
+    |> Validation.artifact_observations(resource_projection_authority_policy_bundle_fixture())
+  end
+
+  defp resource_projection_authority_policy_bundle_fixture do
+    read_json!("study_results/policy_bundle_resource_projection_authority_v1.json")
+  end
+
+  defp timeline_protection_policy_bundle_fixture_observations do
+    "policy_bundle.v1"
+    |> Validation.artifact_observations(timeline_protection_policy_bundle_fixture())
+  end
+
+  defp timeline_protection_policy_bundle_fixture do
+    read_json!("study_results/policy_bundle_timeline_protection_v1.json")
+  end
+
+  defp organization_adapter_policy_bundle_fixture_observations do
+    "policy_bundle.v1"
+    |> Validation.artifact_observations(organization_adapter_policy_bundle_fixture())
+  end
+
+  defp organization_adapter_policy_bundle_fixture do
+    read_json!("study_results/policy_bundle_organization_adapter_v1.json")
+  end
+
+  defp planned_activity_fixture_observations do
+    "planned_activity.v1"
+    |> Validation.artifact_observations(planned_activity_fixture())
+  end
+
+  defp planned_activity_fixture do
+    read_json!("study_results/planned_activity_v1.json")
+  end
+
+  defp realized_activity_fixture_observations do
+    "realized_activity.v1"
+    |> Validation.artifact_observations(realized_activity_fixture())
+  end
+
+  defp realized_activity_fixture do
+    read_json!("study_results/realized_activity_v1.json")
+  end
+
+  defp plan_delta_fixture_observations do
+    "plan_delta.v1"
+    |> Validation.artifact_observations(plan_delta_fixture())
+  end
+
+  defp plan_delta_fixture do
+    read_json!("study_results/plan_delta_v1.json")
+  end
+
+  defp candidate_activity_fixture_observations do
+    "candidate_activity.v1"
+    |> Validation.artifact_observations(candidate_activity_fixture())
+  end
+
+  defp candidate_activity_fixture do
+    read_json!("study_results/candidate_activity_v1.json")
+  end
+
+  defp contact_intent_fixture_observations do
+    "contact_intent.v1"
+    |> Validation.artifact_observations(contact_intent_fixture())
+  end
+
+  defp contact_intent_fixture do
+    read_json!("study_results/contact_intent_v1.json")
+  end
+
+  defp refreshed_window_fixture_observations do
+    "refreshed_window.v1"
+    |> Validation.artifact_observations(refreshed_window_fixture())
+  end
+
+  defp refreshed_window_fixture do
+    read_json!("study_results/refreshed_window_v1.json")
+  end
+
+  defp source_window_lineage_fixture_observations do
+    "source_window_lineage.v1"
+    |> Validation.artifact_observations(source_window_lineage_fixture())
+  end
+
+  defp source_window_lineage_fixture do
+    read_json!("study_results/source_window_lineage_v1.json")
+  end
+
+  defp spacecraft_state_estimate_fixture_observations do
+    "spacecraft_state_estimate.v1"
+    |> Validation.artifact_observations(spacecraft_state_estimate_fixture())
+  end
+
+  defp spacecraft_state_estimate_fixture do
+    read_json!("study_results/spacecraft_state_estimate_v1.json")
+  end
+
+  defp realized_state_snapshot_fixture_observations do
+    "realized_state_snapshot.v1"
+    |> Validation.artifact_observations(realized_state_snapshot_fixture())
+  end
+
+  defp realized_state_snapshot_fixture do
+    read_json!("study_results/realized_state_snapshot_v1.json")
+  end
+
+  defp remaining_horizon_fixture_observations do
+    "remaining_horizon.v1"
+    |> Validation.artifact_observations(remaining_horizon_fixture())
+  end
+
+  defp remaining_horizon_fixture do
+    read_json!("study_results/remaining_horizon_v1.json")
+  end
+
+  defp maneuver_execution_delta_fixture_observations do
+    "maneuver_execution_delta.v1"
+    |> Validation.artifact_observations(maneuver_execution_delta_fixture())
+  end
+
+  defp maneuver_execution_delta_fixture do
+    read_json!("study_results/maneuver_execution_delta_v1.json")
+  end
+
+  defp maneuver_recommendation_fixture_observations do
+    "maneuver_recommendation.v1"
+    |> Validation.artifact_observations(maneuver_recommendation_fixture())
+  end
+
+  defp maneuver_recommendation_fixture do
+    read_json!("study_results/maneuver_recommendation_v1.json")
+  end
+
+  defp backend_acceptance_policy_fixture_observations do
+    "backend_acceptance_policy.v1"
+    |> Validation.artifact_observations(backend_acceptance_policy_fixture())
+  end
+
+  defp backend_acceptance_policy_fixture do
+    read_json!("study_results/backend_acceptance_policy_v1.json")
+  end
+
+  defp validation_tolerance_policy_fixture_observations do
+    "validation_tolerance_policy.v1"
+    |> Validation.artifact_observations(validation_tolerance_policy_fixture())
+  end
+
+  defp validation_tolerance_policy_fixture do
+    read_json!("study_results/validation_tolerance_policy_v1.json")
+  end
+
+  defp validation_record_fixture_observations do
+    "validation_record.v1"
+    |> Validation.artifact_observations(validation_record_fixture())
+  end
+
+  defp validation_record_fixture do
+    read_json!("study_results/validation_record_v1.json")
+  end
+
+  defp validation_check_fixture_observations do
+    "validation_check.v1"
+    |> Validation.artifact_observations(validation_check_fixture())
+  end
+
+  defp validation_check_fixture do
+    read_json!("study_results/validation_check_v1.json")
+  end
+
+  defp timeline_diff_report_fixture_observations do
+    "timeline_diff_report.v1"
+    |> Validation.artifact_observations(timeline_diff_report_fixture())
+  end
+
+  defp timeline_diff_report_fixture do
+    read_json!("study_results/timeline_diff_report_v1.json")
+  end
+
+  defp timeline_diff_summary_fixture_observations do
+    "timeline_diff_summary.v1"
+    |> Validation.artifact_observations(timeline_diff_summary_fixture())
+  end
+
+  defp timeline_diff_summary_fixture do
+    read_json!("study_results/timeline_diff_summary_v1.json")
+  end
+
+  defp timeline_activity_precondition_summary_fixture_observations do
+    "timeline_activity_precondition_summary.v1"
+    |> Validation.artifact_observations(timeline_activity_precondition_summary_fixture())
+  end
+
+  defp timeline_activity_precondition_summary_fixture do
+    read_json!("study_results/timeline_activity_precondition_summary_v1.json")
+  end
+
+  defp timeline_activity_state_fixture_observations do
+    "timeline_activity_state.v1"
+    |> Validation.artifact_observations(timeline_activity_state_fixture())
+  end
+
+  defp timeline_activity_state_fixture do
+    read_json!("study_results/timeline_activity_state_v1.json")
+  end
+
+  defp timeline_activity_approval_state_fixture_observations do
+    "timeline_activity_approval_state.v1"
+    |> Validation.artifact_observations(timeline_activity_approval_state_fixture())
+  end
+
+  defp timeline_activity_approval_state_fixture do
+    read_json!("study_results/timeline_activity_approval_state_v1.json")
+  end
+
+  defp timeline_activity_status_state_fixture_observations do
+    "timeline_activity_status_state.v1"
+    |> Validation.artifact_observations(timeline_activity_status_state_fixture())
+  end
+
+  defp timeline_activity_status_state_fixture do
+    read_json!("study_results/timeline_activity_status_state_v1.json")
+  end
+
+  defp timeline_activity_lifecycle_state_fixture_observations do
+    "timeline_activity_lifecycle_state.v1"
+    |> Validation.artifact_observations(timeline_activity_lifecycle_state_fixture())
+  end
+
+  defp timeline_activity_lifecycle_state_fixture do
+    read_json!("study_results/timeline_activity_lifecycle_state_v1.json")
+  end
+
+  defp timeline_lifecycle_state_summary_fixture_observations do
+    "timeline_lifecycle_state_summary.v1"
+    |> Validation.artifact_observations(timeline_lifecycle_state_summary_fixture())
+  end
+
+  defp timeline_lifecycle_state_summary_fixture do
+    read_json!("study_results/timeline_lifecycle_state_summary_v1.json")
+  end
+
+  defp timeline_preservation_report_fixture_observations do
+    "timeline_preservation_report.v1"
+    |> Validation.artifact_observations(timeline_preservation_report_fixture())
+  end
+
+  defp timeline_preservation_report_fixture do
+    read_json!("study_results/timeline_preservation_report_v1.json")
+  end
+
+  defp timeline_dependency_impact_summary_fixture_observations do
+    "timeline_dependency_impact_summary.v1"
+    |> Validation.artifact_observations(timeline_dependency_impact_summary_fixture())
+  end
+
+  defp timeline_dependency_impact_summary_fixture do
+    read_json!("study_results/timeline_dependency_impact_summary_v1.json")
+  end
+
+  defp timeline_feedback_report_fixture_observations do
+    "timeline_feedback_report.v1"
+    |> Validation.artifact_observations(timeline_feedback_report_fixture())
+  end
+
+  defp timeline_feedback_report_fixture do
+    read_json!("study_results/timeline_feedback_report_v1.json")
+  end
+
+  defp timeline_integrity_report_fixture_observations do
+    "timeline_integrity_report.v1"
+    |> Validation.artifact_observations(timeline_integrity_report_fixture())
+  end
+
+  defp timeline_integrity_report_fixture do
+    read_json!("study_results/timeline_integrity_report_v1.json")
+  end
+
+  defp timeline_transition_application_report_fixture_observations do
+    "timeline_transition_application_report.v1"
+    |> Validation.artifact_observations(timeline_transition_application_report_fixture())
+  end
+
+  defp timeline_transition_application_report_fixture do
+    read_json!("study_results/timeline_transition_application_report_v1.json")
+  end
+
+  defp timeline_transition_application_summary_fixture_observations do
+    "timeline_transition_application_summary.v1"
+    |> Validation.artifact_observations(timeline_transition_application_summary_fixture())
+  end
+
+  defp timeline_transition_application_summary_fixture do
+    read_json!("study_results/timeline_transition_application_summary_v1.json")
+  end
+
+  defp cadence_import_manifest_fixture_observations do
+    "cadence_import_manifest.v1"
+    |> Validation.artifact_observations(cadence_import_manifest_fixture())
+  end
+
+  defp cadence_import_manifest_fixture do
+    read_json!("study_results/cadence_import_manifest_v1.json")
+  end
+
+  defp cadence_import_resource_projection_battery_handoff_fixture_observations do
+    "cadence_import_manifest.v1"
+    |> Validation.artifact_observations(
+      cadence_import_resource_projection_battery_handoff_fixture()
+    )
+  end
+
+  defp cadence_import_resource_projection_battery_handoff_fixture do
+    read_json!("study_results/cadence_import_resource_projection_battery_handoff_v1.json")
+  end
+
+  defp command_window_report_fixture_observations do
+    "command_window_report.v1"
+    |> Validation.artifact_observations(command_window_report_fixture())
+  end
+
+  defp command_window_report_fixture do
+    read_json!("study_results/command_window_report_v1.json")
+  end
+
+  defp constraint_report_fixture_observations do
+    "constraint_report.v1"
+    |> Validation.artifact_observations(constraint_report_fixture())
+  end
+
+  defp constraint_report_fixture do
+    read_json!("study_results/constraint_report_v1.json")
+  end
+
+  defp operational_timeline_report_fixture_observations do
+    "operational_timeline_report.v1"
+    |> Validation.artifact_observations(operational_timeline_report_fixture())
+  end
+
+  defp operational_timeline_report_fixture do
+    read_json!("study_results/operational_timeline_report_v1.json")
+  end
+
+  defp contact_allocation_report_fixture_observations do
+    "contact_allocation_report.v1"
+    |> Validation.artifact_observations(contact_allocation_report_fixture())
+  end
+
+  defp contact_allocation_report_fixture do
+    read_json!("study_results/contact_allocation_report_v1.json")
+  end
+
+  defp contact_allocation_provider_reservation_request_summary_fixture_observations do
+    "contact_allocation_provider_reservation_request_summary.v1"
+    |> Validation.artifact_observations(
+      contact_allocation_provider_reservation_request_summary_fixture()
+    )
+  end
+
+  defp contact_allocation_provider_reservation_request_summary_fixture do
+    contacts = [
+      provider_reservation_contact(:dl_reserved_owner,
+        direction: :downlink,
+        starts_at_s: 100.0,
+        ends_at_s: 160.0,
+        station_reservation_id: :reservation_1,
+        score: 5
+      ),
+      provider_reservation_contact(:dl_review_overlap,
+        direction: :command,
+        starts_at_s: 210.0,
+        ends_at_s: 240.0,
+        station_reservation_id: :reservation_review,
+        station_reservation_match_status: :overlap,
+        station_reservation_status: :confirmed,
+        score: 4
+      ),
+      provider_reservation_contact(:dl_reserved_intruder,
+        direction: :tracking,
+        starts_at_s: 100.0,
+        ends_at_s: 160.0,
+        score: 3
+      ),
+      provider_reservation_contact(:dl_unreserved,
+        direction: :uplink,
+        starts_at_s: 320.0,
+        ends_at_s: 360.0,
+        score: 2
+      )
+    ]
+
+    ground_network = [
+      %{
+        ground_station_id: :equator_prime,
+        status: :reserved,
+        starts_at_s: 90.0,
+        ends_at_s: 170.0,
+        reservation_id: :reservation_1,
+        reserved_by: "ops_team_b",
+        reservation_status: :confirmed,
+        reservation_expires_at_s: 360.0
+      }
+    ]
+
+    {_allocated_contacts, report} =
+      ContactAllocation.allocate_contacts(contacts, ground_network,
+        source: "validation.provider_reservation_request_summary"
+      )
+
+    OrbitalDynamics.contact_allocation_provider_reservation_request_summary(report)
+  end
+
+  defp provider_reservation_contact(id, opts) do
+    direction = Keyword.fetch!(opts, :direction)
+
+    %{
+      id: id,
+      type: direction,
+      direction: direction,
+      scenario_id: :leo_1,
+      spacecraft_id: :sat_ready,
+      ground_station_id: :equator_prime,
+      source_window_id: :"window_#{id}",
+      starts_at_s: Keyword.fetch!(opts, :starts_at_s),
+      ends_at_s: Keyword.fetch!(opts, :ends_at_s),
+      score: Keyword.fetch!(opts, :score)
+    }
+    |> Map.merge(Map.new(Keyword.drop(opts, [:direction, :starts_at_s, :ends_at_s, :score])))
+  end
+
+  defp contact_allocation_capacity_pack_report_fixture_observations do
+    "contact_allocation_report.v1"
+    |> Validation.artifact_observations(contact_allocation_capacity_pack_report_fixture())
+  end
+
+  defp contact_allocation_capacity_pack_report_fixture do
+    read_json!("study_results/contact_allocation_capacity_pack_report_v1.json")
+  end
+
+  defp contact_filter_report_fixture_observations do
+    "contact_filter_report.v1"
+    |> Validation.artifact_observations(contact_filter_report_fixture())
+  end
+
+  defp contact_filter_report_fixture do
+    read_json!("study_results/contact_filter_report_v1.json")
+  end
+
+  defp contact_contention_report_fixture_observations do
+    "contact_contention_report.v1"
+    |> Validation.artifact_observations(contact_contention_report_fixture())
+  end
+
+  defp contact_contention_report_fixture do
+    read_json!("study_results/contact_contention_report_v1.json")
+  end
+
+  defp contact_contention_cross_station_fixture_observations do
+    "contact_contention_report.v1"
+    |> Validation.artifact_observations(contact_contention_cross_station_fixture())
+  end
+
+  defp contact_contention_cross_station_fixture do
+    [
+      %{
+        id: :dl_equator,
+        type: :downlink,
+        scenario_id: :leo_1,
+        spacecraft_id: :sat_1,
+        ground_station_id: :equator_prime,
+        starts_at_s: 100.0,
+        ends_at_s: 160.0,
+        score: 8.0
+      },
+      %{
+        id: :dl_dsn,
+        type: :downlink,
+        scenario_id: :leo_1,
+        spacecraft_id: :sat_1,
+        ground_station_id: :deep_space_net,
+        starts_at_s: 120.0,
+        ends_at_s: 170.0,
+        score: 10.0
+      },
+      %{
+        id: :dl_other_spacecraft,
+        type: :downlink,
+        scenario_id: :leo_1,
+        spacecraft_id: :sat_2,
+        ground_station_id: :polar_aux,
+        starts_at_s: 125.0,
+        ends_at_s: 155.0,
+        score: 7.0
+      }
+    ]
+    |> ContactContention.report(source: "generated_cross_station_spacecraft_contention_fixture")
+  end
+
+  defp contact_contention_resolution_report_fixture_observations do
+    "contact_contention_resolution_report.v1"
+    |> Validation.artifact_observations(contact_contention_resolution_report_fixture())
+  end
+
+  defp contact_contention_resolution_report_fixture do
+    read_json!("study_results/contact_contention_resolution_report_v1.json")
+  end
+
+  defp link_capacity_report_fixture_observations do
+    "link_capacity_report.v1"
+    |> Validation.artifact_observations(link_capacity_report_fixture())
+  end
+
+  defp link_capacity_report_fixture do
+    read_json!("study_results/link_capacity_report_v1.json")
+  end
+
+  defp maneuver_review_report_fixture_observations do
+    "maneuver_review_report.v1"
+    |> Validation.artifact_observations(maneuver_review_report_fixture())
+  end
+
+  defp maneuver_review_report_fixture do
+    read_json!("study_results/maneuver_review_report_v1.json")
+  end
+
+  defp monte_carlo_reproducibility_report_fixture_observations do
+    "monte_carlo_reproducibility_report.v1"
+    |> Validation.artifact_observations(monte_carlo_reproducibility_report_fixture())
+  end
+
+  defp monte_carlo_reproducibility_report_fixture do
+    read_json!("study_results/monte_carlo_reproducibility_report_v1.json")
+  end
+
+  defp pareto_frontier_report_fixture_observations do
+    "pareto_frontier_report.v1"
+    |> Validation.artifact_observations(pareto_frontier_report_fixture())
+  end
+
+  defp pareto_frontier_report_fixture do
+    read_json!("study_results/pareto_frontier_report_v1.json")
+  end
+
+  defp resource_projection_report_fixture_observations do
+    "resource_projection_report.v1"
+    |> Validation.artifact_observations(resource_projection_report_fixture())
+  end
+
+  defp resource_projection_report_fixture do
+    read_json!("study_results/resource_projection_report_v1.json")
+  end
+
+  defp resource_projection_battery_handoff_fixture_observations do
+    "resource_projection_report.v1"
+    |> Validation.artifact_observations(resource_projection_battery_handoff_fixture())
+  end
+
+  defp resource_projection_battery_handoff_fixture do
+    read_json!("study_results/resource_projection_battery_handoff_v1.json")
+  end
+
+  defp resource_projection_stale_margin_fixture_observations do
+    "resource_projection_report.v1"
+    |> Validation.artifact_observations(resource_projection_stale_margin_fixture())
+  end
+
+  defp resource_projection_stale_margin_fixture do
+    ResourceProjection.report(
+      [
+        %{
+          id: :obs_1,
+          type: :observe,
+          scenario_id: :leo_1,
+          starts_at_s: 10.0,
+          estimated_storage_mb: 20.0
+        }
+      ],
+      [
+        %{
+          spacecraft_id: :leo_1,
+          storage_capacity_mb: 100.0,
+          storage_used_mb: 10.0,
+          battery_capacity_wh: 100.0,
+          battery_energy_used_wh: 20.0
+        },
+        %{
+          spacecraft_id: :leo_2,
+          battery_capacity_wh: 100.0,
+          battery_energy_used_wh: 20.0,
+          battery_state_of_charge: 0.7
+        },
+        %{
+          spacecraft_id: :leo_3,
+          storage_capacity_mb: 100.0,
+          storage_used_mb: 10.0,
+          storage_margin: 0.75
+        }
+      ],
+      model: "thin_stale_derived_margin_resource_projection_fixture",
+      source: "generated_resource_projection_stale_derived_margin_fixture",
+      approval_policy: %{policy_bundle_id: "resource_projection_authority_v1"}
+    )
+  end
+
+  defp resource_summary_fixture_observations do
+    "resource_summary.v1"
+    |> Validation.artifact_observations(resource_summary_fixture())
+  end
+
+  defp resource_summary_fixture do
+    read_json!("study_results/resource_summary_v1.json")
+  end
+
+  defp resource_filter_report_fixture_observations do
+    "resource_filter_report.v1"
+    |> Validation.artifact_observations(resource_filter_report_fixture())
+  end
+
+  defp resource_filter_report_fixture do
+    read_json!("study_results/resource_filter_report_v1.json")
+  end
+
+  defp resource_filter_stale_margin_fixture_observations do
+    "resource_filter_report.v1"
+    |> Validation.artifact_observations(resource_filter_stale_margin_fixture())
+  end
+
+  defp resource_filter_stale_margin_fixture do
+    ResourceFilter.report(
+      [
+        %{
+          id: :obs_1,
+          type: :observe,
+          scenario_id: :leo_1,
+          spacecraft_id: :sat_1,
+          target_id: :target_alpha,
+          starts_at_s: 10.0,
+          ends_at_s: 20.0
+        }
+      ],
+      [
+        %{
+          spacecraft_id: :sat_1,
+          battery_capacity_wh: 100.0,
+          battery_energy_used_wh: 20.0,
+          battery_state_of_charge: 0.7
+        },
+        %{
+          spacecraft_id: :sat_2,
+          storage_capacity_mb: 100.0,
+          storage_used_mb: 10.0,
+          storage_margin: 0.75
+        }
+      ],
+      approval_policy: %{policy_bundle_id: "degraded_payload_guard_v1"}
+    )
+  end
+
+  defp objective_satisfaction_report_fixture_observations do
+    "objective_satisfaction_report.v1"
+    |> Validation.artifact_observations(objective_satisfaction_report_fixture())
+  end
+
+  defp objective_satisfaction_report_fixture do
+    read_json!("study_results/objective_satisfaction_report_v1.json")
+  end
+
+  defp objective_tradeoff_report_fixture_observations do
+    "objective_tradeoff_report.v1"
+    |> Validation.artifact_observations(objective_tradeoff_report_fixture())
+  end
+
+  defp objective_tradeoff_report_fixture do
+    read_json!("study_results/objective_tradeoff_report_v1.json")
+  end
+
+  defp score_term_report_fixture_observations do
+    "score_term_report.v1"
+    |> Validation.artifact_observations(score_term_report_fixture())
+  end
+
+  defp score_term_report_fixture do
+    read_json!("study_results/score_term_report_v1.json")
+  end
+
+  defp ranking_comparison_report_fixture_observations do
+    "ranking_comparison_report.v1"
+    |> Validation.artifact_observations(ranking_comparison_report_fixture())
+  end
+
+  defp ranking_comparison_report_fixture do
+    read_json!("study_results/ranking_comparison_report_v1.json")
+  end
+
+  defp schema_validation_report_fixture_observations do
+    "schema_validation_report.v1"
+    |> Validation.artifact_observations(schema_validation_report_fixture())
+  end
+
+  defp schema_validation_report_fixture do
+    read_json!("study_results/schema_validation_report_v1.json")
+  end
+
+  defp schema_validation_batch_report_fixture_observations do
+    "schema_validation_batch_report.v1"
+    |> Validation.artifact_observations(schema_validation_batch_report_fixture())
+  end
+
+  defp schema_validation_batch_report_fixture do
+    read_json!("study_results/schema_validation_batch_report_v1.json")
+  end
+
+  defp schema_migration_report_fixture_observations do
+    "schema_migration_report.v1"
+    |> Validation.artifact_observations(schema_migration_report_fixture())
+  end
+
+  defp schema_migration_report_fixture do
+    read_json!("study_results/schema_migration_report_v1.json")
+  end
+
+  defp schema_migration_future_contract_fixture_observations do
+    "schema_migration_report.v1"
+    |> Validation.artifact_observations(schema_migration_future_contract_fixture())
+  end
+
+  defp schema_migration_future_contract_fixture do
+    Validation.schema_migration_report(
+      future_contracts: [
+        %{
+          "schema_contract" => "campaign_plan.v2",
+          "artifact_family" => "campaign_plan",
+          "schema_version" => 2,
+          "required_field_count" => 4,
+          "optional_field_count" => 2,
+          "nested_contract_count" => 1
+        }
+      ]
+    )
+  end
+
+  defp operator_review_package_fixture_observations do
+    operator_review_package_fixture()
+    |> then(&Validation.artifact_observations("operator_review_package.v1", &1))
+  end
+
+  defp operator_review_package_fixture do
+    read_json!("study_results/operator_review_package_v1.json")
+  end
+
+  defp operator_review_resource_projection_battery_handoff_fixture_observations do
+    "study_results/operator_review_resource_projection_battery_handoff_v1.json"
+    |> read_json!()
+    |> then(&Validation.artifact_observations("operator_review_package.v1", &1))
+  end
+
+  defp operator_review_resource_projection_battery_handoff_fixture do
+    read_json!("study_results/operator_review_resource_projection_battery_handoff_v1.json")
+  end
+
+  defp operational_readiness_report_fixture_observations do
+    "operational_readiness_report.v1"
+    |> Validation.artifact_observations(operational_readiness_report_fixture())
+  end
+
+  defp operational_readiness_report_fixture do
+    read_json!("study_results/operational_readiness_report_v1.json")
+  end
+
+  defp operational_quality_gate_import_readiness_summary_fixture_observations do
+    "operational_quality_gate_import_readiness_summary.v1"
+    |> Validation.artifact_observations(
+      operational_quality_gate_import_readiness_summary_fixture()
+    )
+  end
+
+  defp operational_quality_gate_import_readiness_summary_fixture do
+    read_json!("study_results/operational_quality_gate_import_readiness_summary_v1.json")
+  end
+
+  defp operational_quality_gate_unavailable_resource_summary_fixture_observations do
+    "operational_quality_gate_unavailable_resource_summary.v1"
+    |> Validation.artifact_observations(
+      operational_quality_gate_unavailable_resource_summary_fixture()
+    )
+  end
+
+  defp operational_quality_gate_unavailable_resource_summary_fixture do
+    review_source = %{
+      "schema_contract" => "operator_review_package.v1",
+      "source_artifact_type" => "contact_allocation_report.v1",
+      "package_id" => "validation_unavailable_resource_fixture",
+      "rows" => [
+        %{
+          "id" => "operator_review:contact_allocation:dl_resource_blocked",
+          "review_type" => "contact_allocation_review",
+          "approval_status" => "operator_review_required",
+          "source_contact_allocation" => %{
+            "contact_id" => "dl_resource_blocked",
+            "type" => "downlink",
+            "spacecraft_id" => "leo_1",
+            "ground_station_id" => "equator_prime",
+            "starts_at_s" => 620.0,
+            "ends_at_s" => 680.0,
+            "allocation_status" => "blocked",
+            "allocation_reason" => "antenna_unavailable",
+            "source_resource_suppression" => %{
+              "id" => "dl_resource_blocked",
+              "type" => "downlink",
+              "spacecraft_id" => "leo_1",
+              "suppressed_reason" => "antenna_unavailable",
+              "resource_blocking_dimension" => "antenna",
+              "antenna_available" => false,
+              "resource_source_quality" => "operator_supplied",
+              "resource_trust_boundary_status" => "declared"
+            }
+          }
+        }
+      ]
+    }
+
+    review_source
+    |> OperationalReadiness.report()
+    |> OperationalReadiness.quality_gate_report()
+    |> OrbitalDynamics.operational_quality_gate_unavailable_resource_summary()
+  end
+
+  defp operational_quality_gate_operator_training_summary_fixture_observations do
+    "operational_quality_gate_operator_training_summary.v1"
+    |> Validation.artifact_observations(
+      operational_quality_gate_operator_training_summary_fixture()
+    )
+  end
+
+  defp operational_quality_gate_operator_training_summary_fixture do
+    read_json!("study_results/operational_quality_gate_operator_training_summary_v1.json")
+  end
+
+  defp operational_quality_gate_schema_validation_summary_fixture_observations do
+    "operational_quality_gate_schema_validation_summary.v1"
+    |> Validation.artifact_observations(
+      operational_quality_gate_schema_validation_summary_fixture()
+    )
+  end
+
+  defp operational_quality_gate_schema_validation_summary_fixture do
+    read_json!("study_results/operational_quality_gate_schema_validation_summary_v1.json")
+  end
+
+  defp quality_gate_report_fixture_observations do
+    "quality_gate_report.v1"
+    |> Validation.artifact_observations(quality_gate_report_fixture())
+  end
+
+  defp quality_gate_report_fixture do
+    operational_readiness_report_fixture()
+    |> OperationalReadiness.quality_gate_report()
+  end
+
+  defp model_acceptance_report_fixture_observations do
+    "model_acceptance_report.v1"
+    |> Validation.artifact_observations(model_acceptance_report_fixture())
+  end
+
+  defp model_acceptance_report_fixture do
+    Validation.model_acceptance_report(
+      [
+        "orbit_data.simple_json",
+        "event.access_windows",
+        "propagator.two_body",
+        "missing.model"
+      ],
+      intended_use: :operational_import
+    )
+  end
+
+  defp validation_safety_case_summary_fixture_observations do
+    "validation_safety_case_summary.v1"
+    |> Validation.artifact_observations(validation_safety_case_summary_fixture())
+  end
+
+  defp validation_safety_case_summary_fixture do
+    read_json!("study_results/validation_safety_case_summary_v1.json")
+  end
+
+  defp station_calendar_report_fixture_observations do
+    "station_calendar_report.v1"
+    |> Validation.artifact_observations(station_calendar_report_fixture())
+  end
+
+  defp station_reservation_report_fixture_observations do
+    "station_reservation_report.v1"
+    |> Validation.artifact_observations(station_reservation_report_fixture())
+  end
+
+  defp station_reservation_report_fixture do
+    station_calendar_report_fixture()
+    |> StationCalendar.reservation_report()
+  end
+
+  defp station_calendar_provider_fixture_observations do
+    "station_calendar_provider.v1"
+    |> Validation.artifact_observations(station_calendar_provider_fixture())
+  end
+
+  defp station_calendar_provider_fixture do
+    read_json!("study_results/station_calendar_provider_v1.json")
+  end
+
+  defp checked_in_station_calendar_report_fixture_observations do
+    "station_calendar_report.v1"
+    |> Validation.artifact_observations(checked_in_station_calendar_report_fixture())
+  end
+
+  defp checked_in_station_calendar_report_fixture do
+    read_json!("study_results/station_calendar_report_v1.json")
+  end
+
+  defp station_calendar_report_fixture do
+    contacts = [
+      %{
+        id: :dl_hold,
+        type: :downlink,
+        scenario_id: :leo_1,
+        ground_station_id: :equator_prime,
+        starts_at_s: 120.0,
+        ends_at_s: 160.0
+      }
+    ]
+
+    provider = %{
+      schema_contract: "station_calendar_provider.v1",
+      id: :ops_calendar,
+      trust_boundary: :declared_station_calendar,
+      entries: [
+        %{
+          id: :provider_downlink_hold,
+          station_id: :equator_prime,
+          availability: :reservation_hold,
+          directions: [:downlink],
+          start_s: 100.0,
+          end_s: 200.0,
+          hold_id: :provider_hold_1,
+          hold_expires_at_s: 95.0,
+          held_by: :ops_calendar,
+          hold_status: :tentative_hold
+        }
+      ]
+    }
+
+    StationCalendar.report(contacts, provider, source: "stale_provider_calendar")
+  end
+
+  defp provider_counteroffer_report_fixture_observations do
+    "provider_counteroffer_report.v1"
+    |> Validation.artifact_observations(provider_counteroffer_report_fixture())
+  end
+
+  defp provider_counteroffer_report_fixture do
+    contacts = [
+      %{
+        id: :dl_counteroffer,
+        type: :downlink,
+        scenario_id: :leo_1,
+        ground_station_id: :equator_prime,
+        starts_at_s: 100.0,
+        ends_at_s: 140.0
+      }
+    ]
+
+    provider = %{
+      schema_contract: "station_calendar_provider.v1",
+      id: :ops_calendar,
+      trust_boundary: :declared_station_calendar,
+      entries: [
+        %{
+          id: :provider_counteroffer_window,
+          station_id: :equator_prime,
+          availability: :available,
+          directions: [:downlink],
+          start_s: 130.0,
+          end_s: 170.0,
+          counteroffer_id: :provider_offer_1,
+          counteroffer_status: :proposed,
+          counteroffer_reason_code: :provider_shifted_window,
+          counteroffer_cost_delta: 125.5,
+          schedule_lock_deadline_s: 150.0,
+          counteroffer_start_s: 130.0,
+          counteroffer_end_s: 170.0
+        }
+      ]
+    }
+
+    contacts
+    |> StationCalendar.report(provider, source: "provider_counteroffer_fixture")
+    |> StationCalendar.provider_counteroffer_report()
+  end
+
+  defp read_json!(path) do
+    path
+    |> File.read!()
+    |> :json.decode()
+  end
+
+  defp j2_fixture_observations do
+    central_body = CentralBody.earth()
+    radius_km = 7_000.0
+    velocity_km_s = :math.sqrt(central_body.mu_km3_s2 / radius_km)
+
+    scenario =
+      Scenario.new!(
+        :fixture_j2_leo_600s,
+        Spacecraft.new!(:sat_1, 250.0),
+        StateVector.new!(
+          {radius_km, 0.0, 0.0},
+          {0.0, velocity_km_s, 0.0},
+          Epoch.new!(0.0, :tdb),
+          Frame.earth_inertial_j2000()
+        ),
+        duration_s: 600.0,
+        output_step_s: 120.0,
+        central_body: central_body
+      )
+
+    assert {:ok, trajectory} = J2.propagate(scenario, max_step_s: 10.0)
+    final_state = List.last(trajectory.states)
+
+    %{
+      "sample_count" => length(trajectory.states),
+      "final_epoch_s" => final_state.epoch.seconds_since_j2000,
+      "final_position_km" => Tuple.to_list(final_state.position_km),
+      "final_velocity_km_s" => Tuple.to_list(final_state.velocity_km_s)
+    }
+  end
+
+  defp access_fixture_observations do
+    earth = CentralBody.earth()
+    station = GroundStation.new!(:equator, 0.0, 0.0, minimum_elevation_deg: 0.0)
+
+    trajectory = %Trajectory{
+      scenario_id: :fixture_access_equator,
+      states: [
+        access_state({earth.equatorial_radius_km + 500.0, 0.0, 0.0}, 0.0),
+        access_state({earth.equatorial_radius_km + 500.0, 0.0, 0.0}, 60.0),
+        access_state({-(earth.equatorial_radius_km + 500.0), 0.0, 0.0}, 120.0)
+      ],
+      assumptions: %{force_model: :manual}
+    }
+
+    assert {:ok, [event]} =
+             AccessWindows.detect(trajectory, ground_station: station, central_body: earth)
+
+    starts_at_s = event.starts_at.seconds_since_j2000
+    ends_at_s = event.ends_at.seconds_since_j2000
+
+    %{
+      "window_count" => 1,
+      "first_window_starts_at_s" => starts_at_s,
+      "first_window_ends_at_s" => ends_at_s,
+      "first_window_duration_s" => ends_at_s - starts_at_s,
+      "first_window_sample_count" => event.metadata.sample_count,
+      "first_window_max_elevation_deg" => event.metadata.max_elevation_deg
+    }
+  end
+
+  defp eclipse_fixture_observations do
+    earth = CentralBody.earth()
+    radius_km = earth.equatorial_radius_km + 500.0
+
+    trajectory = %Trajectory{
+      scenario_id: :fixture_eclipse_cylindrical_shadow,
+      states: [
+        access_state({-radius_km, 0.0, 0.0}, 0.0),
+        access_state({-radius_km, 0.0, 0.0}, 60.0),
+        access_state({radius_km, 0.0, 0.0}, 120.0)
+      ],
+      assumptions: %{force_model: :manual}
+    }
+
+    assert {:ok, [event]} =
+             Eclipses.detect(trajectory, central_body: earth, sun_direction: {1.0, 0.0, 0.0})
+
+    starts_at_s = event.starts_at.seconds_since_j2000
+    ends_at_s = event.ends_at.seconds_since_j2000
+
+    %{
+      "interval_count" => 1,
+      "first_interval_starts_at_s" => starts_at_s,
+      "first_interval_ends_at_s" => ends_at_s,
+      "first_interval_duration_s" => ends_at_s - starts_at_s,
+      "first_interval_sample_count" => event.metadata.sample_count,
+      "first_interval_minimum_shadow_axis_distance_km" =>
+        event.metadata.minimum_shadow_axis_distance_km,
+      "first_interval_maximum_shadow_margin_km" => event.metadata.maximum_shadow_margin_km
+    }
+  end
+
+  defp target_visibility_fixture_observations do
+    earth = CentralBody.earth()
+    radius_km = earth.equatorial_radius_km + 500.0
+    target = Target.new!(:target_a, 0.0, 0.0, minimum_elevation_deg: 0.0, priority: 4.0)
+
+    trajectory = %Trajectory{
+      scenario_id: :fixture_target_visibility_equator,
+      states: [
+        access_state({radius_km, 0.0, 0.0}, 0.0),
+        access_state({radius_km, 0.0, 0.0}, 60.0),
+        access_state({-radius_km, 0.0, 0.0}, 120.0)
+      ],
+      assumptions: %{force_model: :manual}
+    }
+
+    assert {:ok, [event]} =
+             TargetVisibility.detect(trajectory, target: target, central_body: earth)
+
+    starts_at_s = event.starts_at.seconds_since_j2000
+    ends_at_s = event.ends_at.seconds_since_j2000
+
+    %{
+      "window_count" => 1,
+      "first_window_starts_at_s" => starts_at_s,
+      "first_window_ends_at_s" => ends_at_s,
+      "first_window_duration_s" => ends_at_s - starts_at_s,
+      "first_window_sample_count" => event.metadata.sample_count,
+      "first_window_max_elevation_deg" => event.metadata.max_elevation_deg,
+      "target_priority" => event.metadata.target_priority
+    }
+  end
+
+  defp ground_track_crossing_fixture_observations do
+    trajectory = %Trajectory{
+      scenario_id: :fixture_ground_track_equator,
+      states: [
+        access_state({1.0, 0.0, -1.0}, 0.0),
+        access_state({1.0, 0.0, 1.0}, 60.0)
+      ],
+      assumptions: %{force_model: :manual}
+    }
+
+    assert {:ok, [event]} =
+             GroundTrackCrossings.detect(trajectory, crossing: :latitude, latitude_deg: 0.0)
+
+    %{
+      "crossing_count" => 1,
+      "first_crossing_epoch_s" => event.starts_at.seconds_since_j2000,
+      "first_crossing_target_deg" => event.metadata.target_deg,
+      "first_crossing_direction" => Atom.to_string(event.metadata.crossing_direction)
+    }
+  end
+
+  defp access_state(position_km, seconds_since_j2000) do
+    StateVector.new!(
+      position_km,
+      {0.0, 0.0, 0.0},
+      Epoch.new!(seconds_since_j2000, :tdb),
+      Frame.earth_inertial_j2000()
+    )
+  end
+end

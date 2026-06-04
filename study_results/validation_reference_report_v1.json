@@ -1,0 +1,33 @@
+{
+  "schema_contract": "validation_reference_report.v1",
+  "fixture_id": "fixture.artifact.campaign_plan.leo_constellation_v1",
+  "model_id": "artifact.campaign_plan.v1",
+  "validation_level": "artifact_contract",
+  "status": "pass",
+  "status_counts": {"pass": 3},
+  "checks": [
+    {
+      "field": "activity_count",
+      "status": "pass",
+      "expected": 1,
+      "observed": 1,
+      "tolerance": 0,
+      "error": 0
+    },
+    {
+      "field": "candidate_activity_count",
+      "status": "pass",
+      "expected": 2,
+      "observed": 2,
+      "tolerance": 0,
+      "error": 0
+    },
+    {
+      "field": "planner",
+      "status": "pass",
+      "expected": "OrbitalDynamics.CampaignPlanner.V1",
+      "observed": "OrbitalDynamics.CampaignPlanner.V1",
+      "tolerance": 0
+    }
+  ]
+}

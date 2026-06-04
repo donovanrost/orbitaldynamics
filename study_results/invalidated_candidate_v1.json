@@ -1,0 +1,70 @@
+{
+  "ends_at_s": 960.0,
+  "id": "old_candidate",
+  "invalidated_reason": "replaced_by_semantically_similar_candidate",
+  "replacement_candidate_id": "leo_1_observe_target_a_1",
+  "scenario_id": "leo_1",
+  "schema_contract": "invalidated_candidate.v1",
+  "changed_fields": [
+    "ends_at_s",
+    "source_window_id",
+    "starts_at_s"
+  ],
+  "candidate_diff_changed_fields": [
+    "ends_at_s",
+    "source_window_id",
+    "starts_at_s"
+  ],
+  "candidate_diff_changed_field_count": 3,
+  "semantic_change_reasons": [
+    "starts_at_s_changed",
+    "ends_at_s_changed",
+    "source_window_id_changed"
+  ],
+  "semantic_change_details": [
+    {
+      "field": "starts_at_s",
+      "prior_path": "starts_at_s",
+      "prior_value": 900.0,
+      "reason": "starts_at_s_changed",
+      "refreshed_path": "starts_at_s",
+      "refreshed_value": 0.0
+    },
+    {
+      "field": "ends_at_s",
+      "prior_path": "ends_at_s",
+      "prior_value": 960.0,
+      "reason": "ends_at_s_changed",
+      "refreshed_path": "ends_at_s",
+      "refreshed_value": 282.8895569509249
+    },
+    {
+      "field": "source_window_id",
+      "prior_path": "source_window_id",
+      "prior_value": "window:leo_1:target_visibility:target_a:old",
+      "reason": "source_window_id_changed",
+      "refreshed_path": "source_window_id",
+      "refreshed_value": "window:leo_1:target_visibility:target_a:1"
+    }
+  ],
+  "source_target": {
+    "id": "target_a",
+    "latitude_deg": 10.0,
+    "longitude_deg": 20.0,
+    "minimum_elevation_deg": 15.0
+  },
+  "source_target_id": "target_a",
+  "source_window_id": "window:leo_1:target_visibility:target_a:old",
+  "starts_at_s": 900.0,
+  "target_id": "target_a",
+  "target_latitude_deg": 10.0,
+  "target_longitude_deg": 20.0,
+  "target_minimum_elevation_deg": 15.0,
+  "target_priority": 12.0,
+  "target_priority_objective_ids": [
+    "urgent:target_a"
+  ],
+  "target_priority_objective_type": "urgent_target",
+  "target_priority_source": "candidate_refresh.objectives.observation_priority",
+  "type": "observe"
+}

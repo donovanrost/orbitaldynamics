@@ -1,0 +1,176 @@
+# Refresh Pipeline and Provenance
+
+## Candidate generation sources
+
+- **V1** can generate candidate observations and downlinks from a study result.
+- **V2** and **V3** can reuse candidate windows carried by prior campaign or repair artifacts.
+
+## Refresh inputs and core regeneration
+
+`candidate_refresh.v1` manifests can start from:
+
+- an `accepted_planning_state.v1` snapshot, or
+- a simple `candidate_refresh.orbit_data` state-estimate batch.
+
+From those inputs the pipeline:
+
+- Propagates accepted spacecraft states.
+- Regenerates access, target-visibility, and eclipse windows.
+- Builds refreshed candidate activities.
+- Filters resource- and ground-network-unavailable candidates.
+- Marks stale prior candidates.
+- Emits freshness metadata for accepted snapshot age and horizon alignment.
+
+## Candidate-set diff and matching
+
+- Emits **occurrence-aware** candidate-set diff explanations that do not collapse duplicate prior/refreshed candidate IDs.
+- Flags ambiguous semantic prior/replacement candidate matches instead of choosing arbitrary replacement links.
+- Preserves malformed prior candidate rows missing or carrying invalid stable identity, scenario identity, source-window/station-calendar identity, or activity type as **sanitized invalidated-candidate review evidence** instead of matching them semantically.
+- Records candidate-diff semantic changes when retained or semantically matched candidates differ only by throughput, contact-success, observation-success, target-priority, station availability, station capacity, or reservation context.
+- Candidate-diff and candidate-rejection report scalar counts export and validate as non-negative integers.
+
+## Contact allocation and filtering
+
+- Embeds a `contact_allocation_report.v1` over refreshed contact candidates for allocated/deferred/blocked branch-refresh review, with optional allocation policy decisions over post-resource-filter contacts plus contact-filtered blocked rows.
+- Keeps only effectively allocated contacts in final `candidate_activities` and `contact_intents`.
+- Reuses the shared contact/resource filter modules so refresh `approval_policy` evidence is preserved on embedded contact and resource suppression rows.
+
+### Station-calendar trust and provider overlays
+
+- Contact-filtered station suppressions preserve declared-or-missing station-calendar trust-boundary status and source provider-calendar evidence.
+- `station_calendar_provider.v1` inputs are normalized directly into the same refresh-local ground-network overlays for contact filtering and allocation.
+- Generated downlink candidates whose station capacity or availability comes from ground-network overlays carry the same trust-boundary status and source calendar evidence.
+
+## Operational feedback application
+
+### Throughput and success feedback
+
+- Applies standalone `operational_feedback.station_throughput_factor` to generated downlink throughput.
+- Preserves contact-success feedback factors and source labels on generated downlink candidates.
+- Applies standalone observation-success and target-priority feedback to generated observations.
+- Applies resource-margin and payload/antenna-availability feedback overlays into the refresh-local `resource_summary.v1` rows used by the same thin resource filter, **without double-applying** V3 branch target feedback already encoded into target rows.
+
+### Capability metadata and trust boundaries
+
+- Declares V1 capability metadata and known limits.
+- Preserves source-window lineage.
+- Classifies standalone operational-feedback trust boundaries in candidate-refresh provenance as `declared` or `missing`.
+- Warns when scoring/filtering feedback is applied without a declared trust boundary, while preserving that warning's structured feedback trust context in operator-review and Cadence import rows.
+
+### Malformed and invalid feedback handling
+
+- Preserves malformed non-object `operational_feedback` inputs as invalid feedback warning provenance instead of raising during candidate generation.
+- Drops malformed scalar feedback entries — such as non-numeric contact-success, station-throughput, downlink-demand, and target-priority values, plus negative downlink-demand or target-priority values — from effective branch refresh, while preserving the rejected entries as invalid feedback provenance.
+- Drops malformed nested resource-margin, resource-availability, or downlink-demand-source feedback sections from filtering/scoring while preserving them as invalid feedback provenance.
+- Rejects non-stable station/target/activity/spacecraft keys from effective operational-feedback maps while preserving those invalid keys as provenance sections.
+- Preserves malformed provider-shaped `operational_feedback.realized_activities` identities as invalid realized-row feedback provenance while still applying valid realized rows.
+
+### Availability alias merging and canonicalization
+
+- Merges the legacy `availability_overrides` alias with canonical `resource_availability_overrides` before resource filtering, so empty canonical maps do not hide adapter-supplied alias entries.
+- Canonicalizes struct-style `payload_available?`, `antenna_available?`, and `degraded?` flags, trimmed case-insensitive `"true"`/`"false"` availability strings, plus `storage_capacity_margin`, `downlink_capacity_margin`, `battery_soc`, and battery state-of-charge before resource filtering.
+- Applies mode/degraded and spacecraft-unavailable availability feedback to refresh-local resource summaries before the shared resource filter runs.
+
+## Pre-filter feedback replay from prior reports
+
+### Resource projection and resource-filter reports
+
+- Emits source `resource_projection_report.v1` storage, downlink, battery, payload, antenna, spacecraft, and degraded pressure rows as the same resource-margin/availability feedback before filtering, including rows preserved in operator-review packages and Cadence-import manifests while retaining report or row trust-boundary evidence.
+- Replays prior `resource_filter_report.v1` suppression rows from direct source reports, result-artifact wrappers, operator-review packages, and Cadence-import manifests as resource-margin/availability feedback before regenerated candidates are filtered.
+
+### Contact-filter reports
+
+- Replays prior `contact_filter_report.v1` station suppressions from the same direct, wrapped, review, and import surfaces as ground-network unavailable/reserved/zero-capacity station intervals before regenerated contacts are filtered, while preserving contact-filter source report provenance, suppression reason counts, invalid contact input counts, and trust-boundary evidence.
+
+### Station-calendar reports
+
+- Replays prior `station_calendar_report.v1` affected-contact rows from direct source reports, result-artifact wrappers, operator-review packages, and Cadence-import manifests as the same unavailable, reserved, and zero-capacity pre-filter station feedback, while preserving calendar-entry, reservation, source-review, source-path, provenance, and trust-boundary evidence — including wrapper trust boundaries inherited by nested operator-review packages or nested Cadence-import manifests when reconstructed review rows omit row-level trust.
+- Replays prior `station_calendar_report.v1` provider-calendar contention groups from the same direct, wrapped, review, and import surfaces as branch-local reserved/unavailable/zero-capacity station intervals derived from their source calendar entries, preserving source provider entries, provider IDs, provider-entry IDs, reservation IDs, owner/status lists, directions, provenance, and trust-boundary evidence, and keeping provider-specific contention status flattened on the generated contact-filter suppression row instead of collapsing it to a generic reserved-overlap label.
+
+### Contact-intent rows
+
+- Replays prior `contact_intent.v1` rows from direct source intents, result-artifact wrappers, operator-review packages, and Cadence-import manifests as the same unavailable/reserved/zero-capacity pre-filter station feedback, while preserving contact-intent policy, reservation, timing, and trust-boundary evidence — including wrapper trust boundaries inherited by embedded contact-intent rows from direct wrappers, nested operator-review packages, or nested Cadence-import manifests when those rows omit row-level trust.
+
+## Downlink-completion objectives from prior reports
+
+- Converts prior `contact_contention_resolution_report.v1` deferred downlink recommendations from direct source reports, result-artifact wrappers, operator-review packages, and Cadence-import manifests into downlink-completion objectives while preserving selected/deferred contact and source-window evidence.
+- Summarizes direct, result-artifact-wrapped, operator-review, and Cadence-import `contact_contention_report.v1` inputs with conflict-group, invalid-contact-input, resource-scope, required-action, path, and trust-boundary counts **without mutating candidate selection**.
+- Converts prior `contact_allocation_report.v1` deferred, blocked, or policy-blocked downlink rows, plus prior `link_capacity_report.v1` selected or actual downlink shortfall rows, from direct source reports, result-artifact wrappers, operator-review packages, and Cadence-import manifests into downlink-completion objectives before regenerated downlinks are scored.
+
+## Result-artifact wrapper handling
+
+Standalone candidate-refresh result-artifact wrappers accept canonical and adapter-facing `source_*_report` keys for:
+
+- objective, constraint, score, resource, link, allocation, contention, and filter reports; plus
+- passive candidate-diff, candidate-rejection, freshness, refresh-budget, schema-validation, operational-readiness, and validation-safety-case provenance reports, including validation-safety-case branch-pressure summaries for blocked/review-required evidence.
+
+Additional wrapper behaviors:
+
+- List-valued embedded report keys whose indexed source paths and inherited wrapper trust boundaries are retained in provenance.
+- Embedded `refresh_budget_report.v1` payloads are executable-validated through the refresh wrapper, so input/kept/dropped count mismatches cannot hide inside `candidate_refresh.v1`.
+- `candidate_rejection_report.v1` rows can be replayed as refresh-scoped candidate-rejection review/import handoff rows.
+- Nested operator-review packages or Cadence-import manifests inside those wrappers inherit the same wrapper trust boundary before review/import rows are reconstructed into source reports.
+
+## `provenance.source_reports` summaries
+
+Summarizes the following source inputs under candidate-refresh `provenance.source_reports`:
+
+- timeline-feedback, operational-timeline, timeline-diff, timeline-transition-application, command-window, maneuver-review, constraint, objective-satisfaction, objective-tradeoff, score-term, station-calendar, contact-contention, contact-contention-resolution, contact-allocation, link-capacity, candidate-rejection, provider-counteroffer, schema-validation, quality-gate, model-acceptance, validation-safety-case, and operational-readiness sources.
+
+Each summary carries paths plus its relevant counts/summaries:
+
+- **Counts and statuses** — row/recommendation counts, status or reason counts, provider counteroffer cost/lock-deadline summaries.
+- **Timeline** — timeline-diff status, required-action, duplicate-scope, and feedback counts; timeline-transition application status, decision, action, and duplicate-scope counts.
+- **Windows and maneuvers** — command-window feedback counts; maneuver-review feedback and uncertainty counts.
+- **Constraints and resources** — constraint metric/resource/spacecraft routing counts; resource-projection pressure type, spacecraft, and activity routing counts; resource-filter spacecraft/resource/blocking-dimension routing counts.
+- **Contacts** — contact-contention ground-station/contact routing counts; candidate-rejection candidate/station routing counts; link-capacity ground-station and selected/actual contact routing counts.
+- **Objectives and scoring** — objective/score-term station, target, and collection routing counts.
+- **Allocation** — contact-allocation station-pressure contact counts by ground station, station availability, precedence availability, and precedence rank.
+- **Station calendars** — station-calendar affected-contact counts by ground station and availability; station-calendar provider-contention counts by provider and ground station.
+- **Contact filter/intent** — contact-filter station-suppression counts by ground station, availability, and status; contact-intent station-feedback and status count maps.
+- **Quality gates and readiness** — quality-gate row/status/classification count maps derived from quality-gate rows when rows are present; readiness and quality-gate Cadence-import gate import-status/freshness/schema-validation count maps.
+- **Adapter boundary** — adapter-boundary declared/missing/untrusted count maps.
+- **Counteroffers** — provider-counteroffer status/action/cost/lock-deadline summaries.
+- **Freshness and budget** — freshness status/reason summaries; refresh-budget kept/dropped/limit summaries.
+- **Schema validation** — schema-validation status/contract/mode count maps.
+- **Model acceptance** — model-acceptance intended-use and validation-level counts, plus model-ID routing maps by acceptance status, validation level, and intended use.
+- **Validation safety case** — validation-safety-case status/evidence counts plus evidence-reference maps by status and input contract, with executable artifact validation rejecting malformed safety-case count and evidence-reference routing summaries.
+- **Readiness routing** — readiness review-type/import-action/source-review-type count maps.
+- **Feedback context** — operational-feedback input keys, and trust-boundary evidence.
+
+### Inspection helpers
+
+Callers can also use `CandidateRefresh.source_report_summary/1` or `OrbitalDynamics.candidate_refresh_source_report_summary/1` to inspect the same normalized source-report provenance from a refresh request or built `candidate_refresh.v1` artifact **without replaying or mutating refresh state** — including top-level source-report path maps by family, contract, and trust-boundary status for branch-local adapter routing, with those summary routing semantics advertised through the public capability catalog.
+
+## Repair- and strategy-generated candidate-source metadata
+
+Repair- and strategy-generated candidate-source metadata also preserves:
+
+- supplied candidate-rejection, provider-counteroffer, freshness, refresh-budget, schema-validation, operational-readiness, quality-gate, model-acceptance, and validation-safety-case source-report input paths;
+- branch-generated `candidate_refresh.mission_state` source-report bundles, plus normalized nested result-artifact provenance paths for branch-local handoff routing;
+- with request-derived paths separately listed in `candidate_source.candidate_refresh_request_source_report_input_paths`.
+
+## V3 strategy-derived branch-local refresh requests
+
+V3 strategy derivation can create branch-local refresh requests from mission-state rows, carrying review evidence without selecting, importing, accepting, certifying, approving, or reserving the underlying item:
+
+- **`candidate_rejection_report.v1` rows** that are rejected, reviewable, and require `review_candidate_rejection` — carrying candidate ID, rejection reasons, trust boundary, and source path as branch event evidence, without selecting or importing the rejected candidate.
+- **`provider_counteroffer_report.v1` rows** that are reviewable and require `review_provider_counteroffer` — carrying counteroffer ID, timing, cost, start/end/duration timing deltas, lock-deadline, provider/station identity, trust boundary, and source path, without accepting the offer or reserving provider time.
+- **`schema_validation_report.v1` error or warning rows** — carrying validation status/mode, validated contract, issue path/message, remediation, trust boundary, and source path, without changing candidate selection.
+- **`operational_readiness_report.v1` non-importable summaries or non-passed gate rows** — carrying readiness level, import classification, gate ID/status/classification, evidence, trust boundary, and source path, without approving operator actions or writing to Cadence.
+- **`quality_gate_report.v1` non-passed rows** — carrying gate ID/status/classification, row-derived readiness/count context, resource-availability reason IDs/counts when present, trust boundary, and source path, without approving operator actions or writing to Cadence.
+- **`model_acceptance_report.v1` rows** that require review or are blocked/unknown — carrying intended use, model ID, validation level, acceptance status, report-level status counts, model ID routing maps, trust boundary, and source path, without certifying models or approving imports.
+
+## Branch-local replay from review/import containers
+
+- Operational readiness provenance also replays from branch-local `operator_review_package.v1` and `cadence_import_manifest.v1` containers, so a branch can preserve readiness routing context even when the original readiness report was only available as review/import rows.
+- Schema-validation provenance follows the same branch-local replay path for `schema_validation_report.v1` rows preserved in review/import containers.
+- Provider counteroffer summaries also replay from branch-local operator-review packages and Cadence import manifests, without accepting counteroffers.
+
+## Validation and integrity
+
+- Candidate-diff and candidate-rejection report scalar counts export and validate as non-negative integers.
+- Emits the same `resource_filter_report.v1` model-limit/source-quality/trust-boundary count shape even when no resource summaries are supplied.
+- Preserves declared operational-feedback trust boundaries on feedback-synthesized resource summaries and downstream resource-suppression review/import rows.
+- Preserves invalid explicit or feedback-mutated resource summaries as nested `invalid_resource_summary_input` review/import evidence, with `review_status` constrained to `operator_review_required`, **without filtering refreshed candidates from malformed resource state**.
+- Validates the emitted artifact through `mix orbital_dynamics.schema.lint`.

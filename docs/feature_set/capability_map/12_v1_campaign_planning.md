@@ -1,0 +1,126 @@
+# 12. V1 Campaign Planning
+
+Status: **implemented** (with `partial`, `near-term`, `later`, and `out of scope` notes below).
+
+## Implemented
+
+V1 produces fixed-horizon campaign manifests spanning multiple spacecraft, targets, ground stations, constraints, and a scoring policy.
+
+From those manifests it generates:
+
+- Candidate observations/downlinks.
+- Ranked timelines.
+- Selected activities.
+- Proposed contacts and contact intents.
+- Contact filter reports.
+- Contact contention reports.
+- Advisory contention-resolution recommendations.
+- Link capacity reports.
+- Station calendar reports.
+- Target commitment summaries.
+- Objective satisfaction reports, including downlink-completion contact-count and required-data-volume fields.
+- Operational timeline reports.
+- Resource projection reports over selected activities, when resource summaries are supplied.
+- Resource filter reports, when campaign resource summaries suppress candidates.
+- Constraint reports.
+- Objective tradeoff reports.
+- Warnings, assumptions, and provenance.
+
+**Constraint reports** come from the reusable campaign-local constraint module, over the active planner-local constraints:
+
+- `max-timeline-activity`
+- `minimum-duration`
+- `eclipse-avoidance`
+- resource projection margin
+- aggregate link-capacity constraints
+
+They include explicit warning severity for local violations.
+
+**Timeline score terms** include:
+
+- selected observation/contact counts
+- observation value
+- contact value
+- eclipse penalty
+- activity score
+- activity-count penalty components
+
+## Partial
+
+- Station contention resolution is deterministic and priority-aware, but still not a live reservation service.
+- Resource/link constraints are planning-grade summaries rather than calibrated subsystem or link-budget models.
+- Constraint reports and objective tradeoffs are reviewable, but still derive from the simple greedy timeline ranking model.
+
+## Near-term
+
+**Goal** — make V1 feature-complete as a reviewable operator artifact by broadening remaining station-contention policy depth, without changing the artifact-only Cadence boundary.
+
+### Contact-contention review/import rows
+
+Contact-contention review/import rows now preserve, for both conflict groups and resolution recommendations:
+
+- resource scope
+- station and spacecraft ID arrays
+- candidate count
+- selection reason
+- matched policy-escalation authority, rule, queue, role, level, and SLA routing metadata
+
+### Approval-policy action rule matching
+
+Approval-policy action rules can match:
+
+- contention resource scope
+- selection reason
+- selected priority source
+- ambiguous resolution status/issue
+- station-calendar provider IDs, provider entry IDs, reservation IDs
+- declared/missing station-calendar trust-boundary status lists
+- applied station-calendar direction lists
+- overlap-pressure thresholds for contention window duration, summed contact duration, overlap duration, maximum concurrent contacts, and pairwise overlap count
+- station reservation identity, owner, and match-status selectors
+
+**Ground-network allocation bundle** — requires review for declared provider-calendar contention, plain same-station contention groups, and deterministic same-station contention recommendations. It routes high-overlap station contention to a priority ground-network queue with overlap-pressure rule evidence.
+
+**Mission-ops escalation bundle** — applies the same high-overlap priority routing alongside generic contact-execution coordination, and blocks duplicate contact identity contention until manual resolution.
+
+**Invalid / reduced-capacity rows** — invalid contact-contention input rows now receive row-level approval-policy evidence that flows through operator-review and Cadence-import handoffs, plus reduced-capacity allocation rows whose declared `required_capacity_fraction` exceeds available station capacity.
+
+### Priority-aware resolution
+
+Priority-aware resolution can use a computed `command_contact_priority` field, so command/uplink contacts can win station conflicts without requiring callers to precompute a mission-specific numeric priority.
+
+The default priority chain now also includes computed `station_reservation_priority`, so direct matched/owned station-reservation evidence, or a direct reservation ID with an active reservation status, can beat higher-score unreserved contacts. This includes the `owner_matched` status emitted by station filtering and contact allocation for caller-owned reserved windows, in advisory station-contention recommendations. It accepts both station-prefixed reservation fields and direct reservation aliases, while aggregate provider-calendar reservation lists remain review evidence instead of phantom ownership.
+
+Direct station-reservation ID, owner, status, and match-status evidence is flattened onto conflict groups, recommendations, review rows, and import rows as plural lists, so adapters can route ownership conflicts without unpacking candidate rows.
+
+Approval-policy action rules can now match `priority_fields_without_numeric_evidence_count_min` plus `priority_field_without_numeric_evidence` / `priority_fields_without_numeric_evidence` evidence, when custom contention priority fields were requested but no candidate carried usable numeric data.
+
+### Alias and input normalization
+
+- **Contact direction aliases** — contact filtering, contact-intent generation, command-window review, link-capacity summaries, and allocation normalize provider contact direction aliases before station-calendar matching.
+- **Contact allocation parsing** — contact allocation parses clean numeric-string timing aliases and capacity-fraction requirements, plus top-level or metadata-supplied trimmed case-insensitive contact/command feedback booleans and confidence factors, before reduced-capacity blocking, packing, policy, and review/import handoff.
+- **Contact contention canonicalization** — contact contention now canonicalizes provider-shaped nested `station` / `ground_station` identity objects, provider direction aliases, and clean numeric-string contact timing aliases before grouping or invalid-input review, so station ownership, direction, and timing evidence are not lost at the standalone API boundary.
+
+### Contention resolution ranking and policy
+
+Contention resolution parses numeric-string score, priority, and top-level or metadata-supplied feedback confidence evidence for ranking and review, while malformed numeric strings remain missing numeric evidence.
+
+**Contact priority override maps** — resolution policies can carry mission-specific contact priority override maps (`contact_priorities`, `contact_priority_overrides`, `priority_overrides`, or `priority_by_contact_id`) that rank contacts through `policy_contact_priority` without mutating candidate rows. Normalized override maps/counts/contact IDs are exported in the resolution schema and semantically linted for count and ID consistency. Malformed override keys or nonnumeric values are retained as ignored priority-override warning evidence through recommendation, operator-review, and import rows.
+
+**Executable tie-breakers** — resolution `tie_breakers` are now executable for starts, ends, score, priority, computed command priority, computed station-reservation priority, and contact identity, so equal-rank contention can be resolved by declared policy instead of hardcoded fallback order.
+
+**Policy robustness** — unsupported caller selection rules normalize back to the default executable policy while preserving requested/ignored policy evidence; keyword-list policies are accepted; and malformed policy inputs become warning evidence instead of crashes.
+
+### Schema and report exposure
+
+- Exported JSON Schema now describes and constrains the nested contention-resolution policy metadata (`selection_rule`, `priority_fields`, `tie_breakers`, `requested_selection_rule`, `ignored_tie_breakers`, `ignored_policy_input`, `policy_warnings`, and `action`) instead of treating it as an opaque object.
+- Each resolution recommendation now carries the effective selection rule, priority fields, tie breakers, unsupported requested rule, ignored tie breakers/input, and policy warnings through operator-review and Cadence-import rows.
+- Resource and link-capacity constraints now expose explicit planning-grade warning/fail rows for operator review.
+
+## Later
+
+Richer candidate activity types, payload constraints, link budgets, and multi-objective timeline selection.
+
+## Out of scope
+
+Auto-importing or approving schedules in Cadence.

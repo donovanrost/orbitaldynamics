@@ -1,0 +1,29 @@
+{
+  "accepted_at": "2026-05-14T00:00:00Z",
+  "accepted_snapshot_age_s": 0.0,
+  "accepted_state_quality_level": "accepted",
+  "allowed_state_quality_levels": [
+    "accepted",
+    "planning_accepted"
+  ],
+  "current_epoch_s": 0.0,
+  "generated_at": "2026-05-14T00:00:00Z",
+  "horizon_start_offset_s": 0.0,
+  "horizon_starts_at_s": 0.0,
+  "max_horizon_start_offset_s": 1.0,
+  "max_snapshot_age_s": 86400.0,
+  "model": "accepted_snapshot_horizon_and_quality_freshness",
+  "model_limits": [
+    "requires_precomputed_refreshed_event_results",
+    "sampled_window_boundaries",
+    "thin_resource_filter",
+    "thin_ground_network_filter",
+    "candidate_budget_is_deterministic_post_filter_selection",
+    "artifact_only_no_schedule_mutation"
+  ],
+  "schema_contract": "freshness_report.v1",
+  "stale_reasons": [],
+  "state_quality_status": "accepted",
+  "status": "current",
+  "unknown_reasons": []
+}

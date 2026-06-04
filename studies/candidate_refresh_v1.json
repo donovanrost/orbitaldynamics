@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "study_id": "candidate_refresh_v1",
+  "central_body": "earth",
+  "propagator": "two_body",
+  "propagator_opts": {
+    "max_step_s": 10.0
+  },
+  "outputs": [
+    "trajectories",
+    "access_windows",
+    "eclipses",
+    "target_visibility"
+  ],
+  "ground_stations": [
+    {
+      "id": "equator_prime",
+      "latitude_deg": 0.0,
+      "longitude_deg": 0.0,
+      "minimum_elevation_deg": 5.0
+    }
+  ],
+  "sun_direction": [
+    1.0,
+    0.0,
+    0.0
+  ],
+  "metadata": {
+    "description": "Candidate refresh V1 from an accepted planning-state snapshot"
+  },
+  "candidate_refresh": {
+    "accepted_planning_state": {
+      "schema_version": 1,
+      "artifact_type": "accepted_planning_state",
+      "snapshot_id": "ops-state-refresh-demo",
+      "accepted_at": "2026-05-14T00:00:00Z",
+      "spacecraft_states": [
+        {
+          "spacecraft_id": "sat_1",
+          "scenario_id": "leo_1",
+          "dry_mass_kg": 250.0,
+          "epoch": {
+            "seconds_since_j2000": 0.0,
+            "time_scale": "tdb"
+          },
+          "frame": "earth_inertial_j2000",
+          "state_vector": {
+            "position_km": [
+              7000.0,
+              0.0,
+              0.0
+            ],
+            "velocity_km_s": [
+              0.0,
+              7.546053290107542,
+              0.0
+            ]
+          },
+          "source": {
+            "system": "operator_import",
+            "source_id": "estimate-1"
+          },
+          "quality": {
+            "level": "accepted"
+          },
+          "provenance": {
+            "trust_boundary": "operator_supplied"
+          }
+        }
+      ],
+      "maneuver_execution_deltas": [],
+      "source": {
+        "system": "cadence_snapshot",
+        "source_id": "snapshot-1"
+      },
+      "quality": {
+        "level": "planning_accepted"
+      },
+      "provenance": {
+        "created_by": "example_manifest",
+        "trust_boundary": "operator_supplied"
+      }
+    },
+    "current_epoch_s": 0.0,
+    "remaining_horizon": {
+      "starts_at_s": 0.0,
+      "ends_at_s": 600.0,
+      "output_step_s": 60.0
+    },
+    "targets": [
+      {
+        "id": "target_a",
+        "latitude_deg": 0.0,
+        "longitude_deg": 0.0,
+        "minimum_elevation_deg": 10.0,
+        "priority": 2.0
+      }
+    ],
+    "constraints": {
+      "avoid_eclipse": false,
+      "min_activity_duration_s": 60.0
+    },
+    "scoring_policy": {
+      "contact_value_weight": 0.2,
+      "target_value_weight": 1.0,
+      "downlink_rate_mb_s": 2.0,
+      "downlink_completion_weight": 50.0,
+      "observation_objective_weight": 40.0,
+      "collection_latency_observation_weight": 35.0
+    },
+    "objectives": [
+      {
+        "id": "urgent:target_a",
+        "type": "urgent_target",
+        "target_id": "target_a",
+        "spacecraft_id": "sat_1",
+        "priority": 12.0
+      },
+      {
+        "id": "latency:collection_alpha",
+        "type": "collection_latency",
+        "target_id": "target_a",
+        "spacecraft_id": "sat_1",
+        "ground_station_id": "equator_prime",
+        "collection_id": "collection_alpha",
+        "product_ids": [
+          "image_l0",
+          "image_l1"
+        ],
+        "payload_id": "camera_a",
+        "instrument_id": "imager",
+        "max_latency_s": 900.0,
+        "required_downlink_mb": 180.0
+      }
+    ],
+    "operational_feedback": {
+      "trust_boundary": "cadence_operational_feedback",
+      "downlink_demand_mb": {
+        "equator_prime": 120.0
+      }
+    },
+    "ground_network": [
+      {
+        "ground_station_id": "equator_prime",
+        "status": "available",
+        "capacity_fraction": 1.0
+      }
+    ],
+    "model_assumptions": {
+      "candidate_refresh_level": "sampled_v1",
+      "event_boundaries": "sampled_outputs_with_linear_interpolation"
+    },
+    "resource_filter_policy": {
+      "min_activity_fuel_margin": 0.1,
+      "min_observe_power_margin": 0.2,
+      "min_observe_storage_margin": 0.2,
+      "min_downlink_power_margin": 0.2,
+      "min_downlink_margin": 0.2
+    },
+    "resource_summaries": [
+      {
+        "spacecraft_id": "sat_1",
+        "mode": "nominal",
+        "fuel_margin": 0.85,
+        "power_margin": 0.72,
+        "storage_capacity_mb": 1000.0,
+        "storage_used_mb": 250.0,
+        "downlink_margin": 0.6,
+        "payload_available": true,
+        "antenna_available": true,
+        "assumptions": {
+          "model": "operator_supplied_summary"
+        },
+        "provenance": {
+          "source": "ops_snapshot"
+        }
+      }
+    ],
+    "prior_candidate_activities": [
+      {
+        "id": "old_candidate",
+        "type": "observe",
+        "scenario_id": "leo_1",
+        "target_id": "target_a",
+        "starts_at_s": 900.0,
+        "ends_at_s": 960.0,
+        "source_window_id": "window:leo_1:target_visibility:target_a:old"
+      }
+    ]
+  }
+}

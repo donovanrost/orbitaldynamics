@@ -1,0 +1,122 @@
+{
+  "assumptions": {
+    "backend_selection_policy": {
+      "backend": "scalar_elixir",
+      "backend_acceptance_evidence": {
+        "acceptance_tier": {
+          "description": "default planning backend for current artifacts",
+          "requires_benchmark_artifact": false,
+          "requires_reference_match": true
+        },
+        "backend_acceptance_policy": "backend_acceptance_policy.v1",
+        "comparison_requirements": {
+          "artifact_public_surface_match": "required for product artifacts",
+          "failure_isolation": "failed scenarios must preserve scenario_id",
+          "numeric_tolerance_policy": "validation_tolerance_policy.v1",
+          "same_manifest_or_scenario_set": true,
+          "same_outputs": true
+        },
+        "implementation": "OrbitalDynamics.Propagators.TwoBody",
+        "known_limits": [
+          "no external reference-tool acceptance yet",
+          "speedup claims are workload-specific",
+          "Nx and EXLA backends remain experimental accelerators",
+          "policy does not certify flight dynamics fidelity"
+        ],
+        "reference_backend": true,
+        "requires_benchmark_artifact": false,
+        "requires_provider_policy": false,
+        "requires_reference_match": true,
+        "tier": "reference_default"
+      },
+      "backend_acceptance_policy": "backend_acceptance_policy.v1",
+      "batch_propagation_selected": false,
+      "batch_selection_reason": "propagator_does_not_support_batching",
+      "performance_claim": "backend selection is explicit; benchmark artifacts are required before claiming speedups",
+      "policy": "reference_default",
+      "reference_backend": true,
+      "requires_benchmark_artifact": false,
+      "requires_reference_match": true,
+      "selected_propagator": "Elixir.OrbitalDynamics.Propagators.TwoBody",
+      "selection_source": "study_manifest_or_study_struct",
+      "validation_level": "educational"
+    },
+    "failure_isolation": "failed scenario is reported without dropping completed scenario counts",
+    "purpose": "failure_isolation_and_long_running_execution_review",
+    "resumability": "not_resumable",
+    "source": "study_run_metadata"
+  },
+  "backend": "Elixir.OrbitalDynamics.Propagators.TwoBody",
+  "batch_propagation": false,
+  "completed_scenario_count": 1999,
+  "effective_task_concurrency": 16,
+  "event_result_count": 5997,
+  "execution_mode": "distributed_task_supervisors",
+  "execution_plan": {
+    "batch_propagation": false,
+    "batches_per_wave": 32,
+    "chunking_enabled": true,
+    "distribution_mode": "distributed_task_supervisors",
+    "effective_task_chunk_size": 50,
+    "effective_task_concurrency": 16,
+    "max_concurrency": 8,
+    "requested_task_chunk_size": 50,
+    "resolved_task_chunk_size": 50,
+    "adaptive_chunking": {
+      "applied_task_chunk_size": 50,
+      "concurrent_task_batches": 16,
+      "policy": "explicit",
+      "reason": "operator_supplied_task_chunk_size",
+      "recommended_task_chunk_size": 50,
+      "requested_task_chunk_size": 50,
+      "supervisor_count": 2,
+      "target_wave_count": null
+    },
+    "resumability": "not_resumable",
+    "scenario_count": 2000,
+    "supervisor_count": 2,
+    "task_batch_count": 40,
+    "wave_count": 2
+  },
+  "failed_scenario_count": 1,
+  "failed_scenarios": [
+    {
+      "error": [
+        "task_timeout",
+        30000
+      ],
+      "scenario_id": "trial_1842",
+      "scenario_index": 1841,
+      "stage": "propagation",
+      "resumability": "manual_rerun_only",
+      "retry_recommendation": "rerun_failed_scenario_from_source_manifest"
+    }
+  ],
+  "model_limits": [
+    "artifact_level_execution_summary",
+    "not_resumable",
+    "no_persistent_queue",
+    "failed_scenarios_are_reported_not_retried"
+  ],
+  "node": "mission_ops@node_a",
+  "node_distribution": {
+    "mission_ops@node_a": 1000,
+    "mission_ops@node_b": 1000
+  },
+  "phase_timings_ms": {
+    "event_detection": 1480,
+    "propagation": 27400
+  },
+  "run_id": "large_monte_carlo-2026-05-14T00:00:00Z",
+  "scenario_count": 2000,
+  "schema_contract": "execution_report.v1",
+  "status": "completed_with_errors",
+  "study_id": "large_monte_carlo",
+  "task_chunk_size": 50,
+  "task_supervisor_node": "mission_ops@node_a",
+  "task_supervisor_nodes": [
+    "mission_ops@node_a",
+    "mission_ops@node_b"
+  ],
+  "timeout": 30000
+}

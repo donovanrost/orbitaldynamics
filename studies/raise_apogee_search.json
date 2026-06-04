@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "study_id": "raise_apogee_search",
+  "central_body": "earth",
+  "propagator": "two_body",
+  "propagator_opts": {
+    "max_step_s": 10.0
+  },
+  "outputs": ["trajectories"],
+  "metadata": {
+    "description": "Small deterministic impulsive-burn grid search"
+  },
+  "constraints": [
+    {
+      "id": "delta_v_budget",
+      "metric": "total_delta_v_km_s",
+      "operator": "<=",
+      "value": 0.008
+    },
+    {
+      "id": "minimum_final_radius",
+      "metric": "final_radius_km",
+      "operator": ">=",
+      "value": 7001.0
+    }
+  ],
+  "search": {
+    "generator": "impulsive_burn_grid",
+    "id_prefix": "raise_apogee",
+    "objective": "final_radius_km",
+    "rank_limit": 3,
+    "burn_epoch_s": [55.0, 60.0],
+    "delta_v_km_s": [
+      [0.0, 0.005, 0.0],
+      [0.0, 0.01, 0.0]
+    ],
+    "base_scenario": {
+      "id": "base_leo",
+      "spacecraft": {
+        "id": "search_sat",
+        "dry_mass_kg": 250.0
+      },
+      "initial_state": {
+        "position_km": [7000.0, 0.0, 0.0],
+        "velocity_km_s": [0.0, 7.546053290107541, 0.0],
+        "epoch": {
+          "seconds_since_j2000": 0.0,
+          "scale": "tdb"
+        },
+        "frame": "earth_inertial_j2000"
+      },
+      "duration_s": 600.0,
+      "output_step_s": 60.0
+    }
+  }
+}

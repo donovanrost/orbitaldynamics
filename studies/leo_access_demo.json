@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "study_id": "leo_access_demo",
+  "central_body": "earth",
+  "propagator": "j2",
+  "propagator_opts": {
+    "max_step_s": 10.0
+  },
+  "outputs": ["trajectories", "access_windows", "eclipses"],
+  "sun_direction": [1.0, 0.0, 0.0],
+  "metadata": {
+    "description": "Demo LEO J2 access-window and eclipse study"
+  },
+  "scenarios": [
+    {
+      "generator": "circular_leo",
+      "count": 2,
+      "duration_s": 3600.0,
+      "output_step_s": 60.0,
+      "id_prefix": "leo_access_demo"
+    }
+  ],
+  "ground_stations": [
+    {
+      "id": "equator_prime",
+      "latitude_deg": 0.0,
+      "longitude_deg": 0.0,
+      "minimum_elevation_deg": 5.0
+    },
+    {
+      "id": "equator_90e",
+      "latitude_deg": 0.0,
+      "longitude_deg": 90.0,
+      "minimum_elevation_deg": 5.0
+    }
+  ]
+}

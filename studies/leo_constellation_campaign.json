@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "study_id": "leo_constellation_campaign",
+  "central_body": "earth",
+  "propagator": "two_body",
+  "propagator_opts": {
+    "max_step_s": 10.0
+  },
+  "outputs": ["trajectories", "access_windows", "eclipses", "target_visibility"],
+  "sun_direction": [1.0, 0.0, 0.0],
+  "metadata": {
+    "description": "LEO constellation campaign planner V1 demo"
+  },
+  "campaign": {
+    "planning_horizon": {
+      "duration_s": 3600.0,
+      "output_step_s": 60.0
+    },
+    "spacecraft": [
+      {
+        "id": "leo_1",
+        "dry_mass_kg": 250.0,
+        "initial_state": {
+          "position_km": [7000.0, 0.0, 0.0],
+          "velocity_km_s": [0.0, 7.5, 0.0],
+          "epoch": {
+            "seconds_since_j2000": 0.0,
+            "scale": "tdb"
+          },
+          "frame": "earth_inertial_j2000"
+        }
+      },
+      {
+        "id": "leo_2",
+        "dry_mass_kg": 260.0,
+        "initial_state": {
+          "position_km": [0.0, 7000.0, 0.0],
+          "velocity_km_s": [-7.5, 0.0, 0.0],
+          "epoch": {
+            "seconds_since_j2000": 0.0,
+            "scale": "tdb"
+          },
+          "frame": "earth_inertial_j2000"
+        }
+      }
+    ],
+    "targets": [
+      {
+        "id": "target_a",
+        "latitude_deg": 0.0,
+        "longitude_deg": 0.0,
+        "minimum_elevation_deg": 10.0,
+        "priority": 5.0
+      },
+      {
+        "id": "target_b",
+        "latitude_deg": 25.0,
+        "longitude_deg": -105.0,
+        "minimum_elevation_deg": 10.0,
+        "priority": 3.0
+      }
+    ],
+    "constraints": {
+      "min_activity_duration_s": 60.0,
+      "avoid_eclipse": true,
+      "max_timeline_activities": 6
+    },
+    "scoring_policy": {
+      "target_value_weight": 1.0,
+      "contact_value_weight": 0.2,
+      "eclipse_penalty_weight": 1.0,
+      "activity_count_penalty": 0.0,
+      "rank_limit": 5
+    },
+    "ground_network": [
+      {
+        "id": "equator_prime_reduced_capacity_demo",
+        "ground_station_id": "equator_prime",
+        "status": "available",
+        "starts_at_s": 0.0,
+        "ends_at_s": 600.0,
+        "capacity_fraction": 0.5
+      }
+    ],
+    "resource_summaries": [
+      {
+        "spacecraft_id": "leo_1",
+        "fuel_margin": 0.82,
+        "power_margin": 0.74,
+        "storage_capacity_mb": 1000.0,
+        "storage_used_mb": 250.0,
+        "downlink_capacity_mb": 600.0,
+        "downlink_margin": 0.65,
+        "payload_available": true,
+        "antenna_available": true,
+        "assumptions": {
+          "source": "campaign_manifest_demo"
+        },
+        "provenance": {
+          "system": "operator_planning_input"
+        }
+      }
+    ]
+  },
+  "ground_stations": [
+    {
+      "id": "equator_prime",
+      "latitude_deg": 0.0,
+      "longitude_deg": 0.0,
+      "minimum_elevation_deg": 5.0
+    },
+    {
+      "id": "new_mexico",
+      "latitude_deg": 34.8,
+      "longitude_deg": -106.6,
+      "minimum_elevation_deg": 5.0
+    }
+  ]
+}
