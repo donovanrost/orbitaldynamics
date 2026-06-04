@@ -2731,6 +2731,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "resource_projection_report",
           "resource_pressure_station_calendar_entry_ids_by_type"
         ),
+      "source_report_resource_projection_resource_pressure_station_calendar_provider_ids_by_status" =>
+        source_report_summary_family_merge_string_list_maps(
+          source_reports,
+          "resource_projection_report",
+          "resource_pressure_station_calendar_provider_ids_by_status"
+        ),
+      "source_report_resource_projection_resource_pressure_station_calendar_provider_ids_by_type" =>
+        source_report_summary_family_merge_string_list_maps(
+          source_reports,
+          "resource_projection_report",
+          "resource_pressure_station_calendar_provider_ids_by_type"
+        ),
       "source_report_resource_projection_resource_pressure_station_calendar_provider_entry_ids_by_status" =>
         source_report_summary_family_merge_string_list_maps(
           source_reports,
@@ -8243,6 +8255,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
     resource_pressure_station_calendar_entry_ids_by_type =
       Map.get(projection_summary, "resource_pressure_station_calendar_entry_ids_by_type")
 
+    resource_pressure_station_calendar_provider_ids_by_status =
+      Map.get(projection_summary, "resource_pressure_station_calendar_provider_ids_by_status")
+
+    resource_pressure_station_calendar_provider_ids_by_type =
+      Map.get(projection_summary, "resource_pressure_station_calendar_provider_ids_by_type")
+
     resource_pressure_station_calendar_provider_entry_ids_by_status =
       Map.get(
         projection_summary,
@@ -8274,6 +8292,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
         map_size(resource_pressure_source_window_ids_by_type || %{}) > 0 or
         map_size(resource_pressure_station_calendar_entry_ids_by_status || %{}) > 0 or
         map_size(resource_pressure_station_calendar_entry_ids_by_type || %{}) > 0 or
+        map_size(resource_pressure_station_calendar_provider_ids_by_status || %{}) > 0 or
+        map_size(resource_pressure_station_calendar_provider_ids_by_type || %{}) > 0 or
         map_size(resource_pressure_station_calendar_provider_entry_ids_by_status || %{}) > 0 or
         map_size(resource_pressure_station_calendar_provider_entry_ids_by_type || %{}) > 0
 
@@ -8321,6 +8341,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
         resource_pressure_station_calendar_entry_ids_by_status,
       "resource_pressure_station_calendar_entry_ids_by_type" =>
         resource_pressure_station_calendar_entry_ids_by_type,
+      "resource_pressure_station_calendar_provider_ids_by_status" =>
+        resource_pressure_station_calendar_provider_ids_by_status,
+      "resource_pressure_station_calendar_provider_ids_by_type" =>
+        resource_pressure_station_calendar_provider_ids_by_type,
       "resource_pressure_station_calendar_provider_entry_ids_by_status" =>
         resource_pressure_station_calendar_provider_entry_ids_by_status,
       "resource_pressure_station_calendar_provider_entry_ids_by_type" =>
@@ -8458,6 +8482,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     resource_pressure_station_calendar_entry_ids_by_type =
       Map.get(projection_summary, "resource_pressure_station_calendar_entry_ids_by_type", %{})
+
+    resource_pressure_station_calendar_provider_ids_by_type =
+      Map.get(
+        projection_summary,
+        "resource_pressure_station_calendar_provider_ids_by_type",
+        %{}
+      )
 
     resource_pressure_station_calendar_provider_entry_ids_by_type =
       Map.get(
@@ -8628,6 +8659,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         map_size(resource_pressure_ground_station_ids_by_type) > 0 or
         map_size(resource_pressure_source_window_ids_by_type) > 0 or
         map_size(resource_pressure_station_calendar_entry_ids_by_type) > 0 or
+        map_size(resource_pressure_station_calendar_provider_ids_by_type) > 0 or
         map_size(resource_pressure_station_calendar_provider_entry_ids_by_type) > 0 or
         map_size(link_requirement_status_counts) > 0 or
         map_size(link_direction_counts) > 0 or
@@ -8750,6 +8782,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
         resource_pressure_source_window_ids_by_type,
       "resource_pressure_station_calendar_entry_ids_by_type" =>
         resource_pressure_station_calendar_entry_ids_by_type,
+      "resource_pressure_station_calendar_provider_ids_by_type" =>
+        resource_pressure_station_calendar_provider_ids_by_type,
       "resource_pressure_station_calendar_provider_entry_ids_by_type" =>
         resource_pressure_station_calendar_provider_entry_ids_by_type,
       "storage_pressure_status_counts" => storage_pressure_status_counts,
@@ -8796,6 +8830,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
           map_size(resource_pressure_ground_station_ids_by_type) > 0 or
           map_size(resource_pressure_source_window_ids_by_type) > 0 or
           map_size(resource_pressure_station_calendar_entry_ids_by_type) > 0 or
+          map_size(resource_pressure_station_calendar_provider_ids_by_type) > 0 or
           map_size(resource_pressure_station_calendar_provider_entry_ids_by_type) > 0,
       "branch_local_capacity_adjusted_throughput_pressure" =>
         branch_local_capacity_adjusted_throughput_pressure,
@@ -20343,6 +20378,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
         reports
         |> Enum.map(&resource_projection_report_pressure_station_calendar_entry_ids_by_type/1)
         |> merge_string_list_maps(),
+      "resource_pressure_station_calendar_provider_ids_by_status" =>
+        reports
+        |> Enum.map(
+          &resource_projection_report_pressure_station_calendar_provider_ids_by_status/1
+        )
+        |> merge_string_list_maps(),
+      "resource_pressure_station_calendar_provider_ids_by_type" =>
+        reports
+        |> Enum.map(&resource_projection_report_pressure_station_calendar_provider_ids_by_type/1)
+        |> merge_string_list_maps(),
       "resource_pressure_station_calendar_provider_entry_ids_by_status" =>
         reports
         |> Enum.map(
@@ -24400,6 +24445,38 @@ defmodule OrbitalDynamics.CandidateRefresh do
     end
   end
 
+  defp resource_projection_report_pressure_station_calendar_provider_ids_by_status(report) do
+    report
+    |> resource_projection_report_pressure_status_id_pairs(
+      &resource_projection_station_calendar_provider_ids/1
+    )
+    |> case do
+      [] ->
+        report
+        |> Map.get("resource_pressure_station_calendar_provider_ids_by_status")
+        |> map_value_lists()
+
+      pairs ->
+        grouped_source_report_ids(pairs)
+    end
+  end
+
+  defp resource_projection_report_pressure_station_calendar_provider_ids_by_type(report) do
+    report
+    |> resource_projection_report_pressure_type_id_pairs(
+      &resource_projection_station_calendar_provider_ids/1
+    )
+    |> case do
+      [] ->
+        report
+        |> Map.get("resource_pressure_station_calendar_provider_ids_by_type")
+        |> map_value_lists()
+
+      pairs ->
+        grouped_source_report_ids(pairs)
+    end
+  end
+
   defp resource_projection_report_pressure_station_calendar_provider_entry_ids_by_status(report) do
     report
     |> resource_projection_report_pressure_status_id_pairs(
@@ -24501,6 +24578,22 @@ defmodule OrbitalDynamics.CandidateRefresh do
       get_in(row, ["station_calendar_entry", "id"]),
       get_in(row, ["source_station_calendar_entry", "station_calendar_entry_id"]),
       get_in(row, ["source_station_calendar_entry", "id"])
+    ]
+    |> List.flatten()
+    |> sorted_string_values()
+  end
+
+  defp resource_projection_station_calendar_provider_ids(row) do
+    [
+      row["station_calendar_provider_id"],
+      row["station_calendar_provider_ids"],
+      row["provider_id"],
+      row["provider_ids"],
+      row["first_resource_pressure_station_calendar_provider_id"],
+      get_in(row, ["station_calendar_entry", "station_calendar_provider_id"]),
+      get_in(row, ["station_calendar_entry", "provider_id"]),
+      get_in(row, ["source_station_calendar_entry", "station_calendar_provider_id"]),
+      get_in(row, ["source_station_calendar_entry", "provider_id"])
     ]
     |> List.flatten()
     |> sorted_string_values()
@@ -44573,6 +44666,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "resource_pressure_source_window_ids_by_type"),
       "resource_pressure_station_calendar_entry_ids_by_type" =>
         Map.get(summary, "resource_pressure_station_calendar_entry_ids_by_type"),
+      "resource_pressure_station_calendar_provider_ids_by_type" =>
+        Map.get(summary, "resource_pressure_station_calendar_provider_ids_by_type"),
       "resource_pressure_station_calendar_provider_entry_ids_by_type" =>
         Map.get(summary, "resource_pressure_station_calendar_provider_entry_ids_by_type"),
       "activity_resource_flow" => activity_resource_flow,

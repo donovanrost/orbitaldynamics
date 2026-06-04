@@ -5776,6 +5776,7 @@ defmodule OrbitalDynamics.Schema do
         "resource_pressure_ground_station_ids_by_type",
         "resource_pressure_source_window_ids_by_type",
         "resource_pressure_station_calendar_entry_ids_by_type",
+        "resource_pressure_station_calendar_provider_ids_by_type",
         "resource_pressure_station_calendar_provider_entry_ids_by_type",
         "max_planned_latency_s",
         "max_actual_latency_s"
@@ -14747,6 +14748,7 @@ defmodule OrbitalDynamics.Schema do
               "resource_pressure_ground_station_ids_by_type",
               "resource_pressure_source_window_ids_by_type",
               "resource_pressure_station_calendar_entry_ids_by_type",
+              "resource_pressure_station_calendar_provider_ids_by_type",
               "resource_pressure_station_calendar_provider_entry_ids_by_type",
               "ignored_activity_ids_by_reason"
             ] do
@@ -33298,6 +33300,17 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(
       path,
       summary,
+      "resource_pressure_station_calendar_provider_ids_by_type",
+      :map
+    )
+    |> validate_optional_stable_id_array_map(
+      path,
+      summary,
+      "resource_pressure_station_calendar_provider_ids_by_type"
+    )
+    |> expect_optional_type(
+      path,
+      summary,
       "resource_pressure_station_calendar_provider_entry_ids_by_type",
       :map
     )
@@ -47501,6 +47514,13 @@ defmodule OrbitalDynamics.Schema do
     |> expect_field_equals(
       path,
       summary,
+      "resource_pressure_station_calendar_provider_ids_by_type",
+      resource_projection_pressure_station_calendar_provider_ids_by_type(flow_rows),
+      "must equal row-derived resource_pressure_station_calendar_provider_ids_by_type"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
       "resource_pressure_station_calendar_provider_entry_ids_by_type",
       resource_projection_pressure_station_calendar_provider_entry_ids_by_type(flow_rows),
       "must equal row-derived resource_pressure_station_calendar_provider_entry_ids_by_type"
@@ -47768,6 +47788,20 @@ defmodule OrbitalDynamics.Schema do
       %{} = row ->
         Enum.map(resource_projection_pressure_kinds(row), fn pressure_type ->
           {pressure_type, Map.get(row, "station_calendar_entry_id")}
+        end)
+
+      _row ->
+        []
+    end)
+    |> stable_values_by_key()
+  end
+
+  defp resource_projection_pressure_station_calendar_provider_ids_by_type(flow_rows) do
+    flow_rows
+    |> Enum.flat_map(fn
+      %{} = row ->
+        Enum.map(resource_projection_pressure_kinds(row), fn pressure_type ->
+          {pressure_type, Map.get(row, "station_calendar_provider_id")}
         end)
 
       _row ->

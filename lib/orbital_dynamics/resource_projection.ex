@@ -626,6 +626,8 @@ defmodule OrbitalDynamics.ResourceProjection do
         resource_pressure_source_window_ids_by_type(flow_rows),
       "resource_pressure_station_calendar_entry_ids_by_type" =>
         resource_pressure_station_calendar_entry_ids_by_type(flow_rows),
+      "resource_pressure_station_calendar_provider_ids_by_type" =>
+        resource_pressure_station_calendar_provider_ids_by_type(flow_rows),
       "resource_pressure_station_calendar_provider_entry_ids_by_type" =>
         resource_pressure_station_calendar_provider_entry_ids_by_type(flow_rows),
       "total_storage_produced_mb" => sum_flow_field(flow_rows, "storage_produced_mb"),
@@ -916,6 +918,14 @@ defmodule OrbitalDynamics.ResourceProjection do
     flow_rows
     |> Enum.flat_map(fn row ->
       Enum.map(resource_pressure_kinds(row), &{&1, row["station_calendar_entry_id"]})
+    end)
+    |> stable_ids_by_key()
+  end
+
+  defp resource_pressure_station_calendar_provider_ids_by_type(flow_rows) do
+    flow_rows
+    |> Enum.flat_map(fn row ->
+      Enum.map(resource_pressure_kinds(row), &{&1, row["station_calendar_provider_id"]})
     end)
     |> stable_ids_by_key()
   end

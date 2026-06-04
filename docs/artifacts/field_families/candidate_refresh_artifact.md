@@ -1192,15 +1192,14 @@ preserves source resource-projection paths, projected-resource and invalid
 input counts, source artifact-type and flow-summary model counts, invalid input
 ID lists, resource-pressure status/type/activity maps, activity-ID maps by
 status/type/station/spacecraft/direction, direction counts, station and spacecraft
-maps, source-window/station-calendar/
-provider-entry routing maps by pressure status and type derived from rows or
-preserved summary maps,
+maps, source-window/station-calendar/provider and provider-entry routing maps
+by pressure status and type derived from rows or preserved summary maps,
 trust-boundary evidence, and branch-local
 projection, projected-resource, invalid-input, and activity pressure booleans without
 mutating resource projection, selecting candidates, approving imports, writing
 to Cadence, or regenerating candidates. The family-level resource-projection
 pressure boolean is true for resource-pressure activity, activity-ID, direction,
-station, spacecraft, source-window, station-calendar, and provider-entry
+station, spacecraft, source-window, station-calendar, provider, and provider-entry
 routing maps, and invalid-input pressure is true for invalid input ID lists even
 when projected-resource and invalid-input counts and status/type maps are absent.
 Raw resource-projection source reports preserve explicit or row-derived invalid
@@ -1214,7 +1213,7 @@ result-artifact-wrapped raw `source_resource_projection_report` /
 `resource_projection_report` inputs with wrapper-qualified request paths,
 indexed embedded replay copies, projected-resource and invalid-input counts,
 resource-pressure status/type/activity/station/spacecraft/direction routing,
-source-window/station-calendar/provider-entry routing, and inherited
+source-window/station-calendar/provider/provider-entry routing, and inherited
 trust-boundary evidence in candidate-source replay metadata.
 When the branch `resource_projection_report` source-report family is non-empty,
 the helper labels its output source and replay scope as candidate-source summary

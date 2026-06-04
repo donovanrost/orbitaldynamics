@@ -9559,6 +9559,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
               "first_resource_pressure_ground_station_id" => "equator_prime",
               "source_window_id" => "flow_access_window_1",
               "station_calendar_entry_id" => "station_flow_window_1",
+              "station_calendar_provider_id" => "ops_calendar_flow",
               "station_calendar_provider_entry_id" => "provider_flow_window_1"
             },
             %{
@@ -9571,6 +9572,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
               "source_window" => %{"id" => "tracking_window_1"},
               "source_station_calendar_entry" => %{
                 "station_calendar_entry_id" => "station_tracking_window_1",
+                "station_calendar_provider_id" => "ops_calendar_tracking",
                 "station_calendar_provider_entry_id" => "provider_tracking_window_1"
               }
             }
@@ -9593,6 +9595,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
           },
           "resource_pressure_station_calendar_entry_ids_by_status" => %{
             "stale_status" => ["stale_station_entry"]
+          },
+          "resource_pressure_station_calendar_provider_ids_by_status" => %{
+            "stale_status" => ["stale_provider"]
           },
           "resource_pressure_station_calendar_provider_entry_ids_by_status" => %{
             "stale_status" => ["stale_provider_entry"]
@@ -9705,6 +9710,17 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  "downlink_shortfall" => ["station_flow_window_1"],
                  "storage_pressure" => ["station_flow_window_1"],
                  "storage_shortfall" => ["station_tracking_window_1"]
+               },
+             "source_report_resource_projection_resource_pressure_station_calendar_provider_ids_by_status" =>
+               %{
+                 "downlink_shortfall" => ["ops_calendar_flow"],
+                 "storage_shortfall" => ["ops_calendar_tracking"]
+               },
+             "source_report_resource_projection_resource_pressure_station_calendar_provider_ids_by_type" =>
+               %{
+                 "downlink_shortfall" => ["ops_calendar_flow"],
+                 "storage_pressure" => ["ops_calendar_flow"],
+                 "storage_shortfall" => ["ops_calendar_tracking"]
                },
              "source_report_resource_projection_resource_pressure_station_calendar_provider_entry_ids_by_status" =>
                %{
@@ -9881,6 +9897,15 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         "storage_pressure" => ["station_flow_window_1"],
         "storage_shortfall" => ["station_tracking_window_1"]
       },
+      "resource_pressure_station_calendar_provider_ids_by_status" => %{
+        "downlink_shortfall" => ["ops_calendar_flow"],
+        "storage_shortfall" => ["ops_calendar_tracking"]
+      },
+      "resource_pressure_station_calendar_provider_ids_by_type" => %{
+        "downlink_shortfall" => ["ops_calendar_flow"],
+        "storage_pressure" => ["ops_calendar_flow"],
+        "storage_shortfall" => ["ops_calendar_tracking"]
+      },
       "resource_pressure_station_calendar_provider_entry_ids_by_status" => %{
         "downlink_shortfall" => ["provider_flow_window_1"],
         "storage_shortfall" => ["provider_tracking_window_1"]
@@ -9990,6 +10015,17 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  "downlink_shortfall" => ["station_flow_window_1"],
                  "storage_pressure" => ["station_flow_window_1"],
                  "storage_shortfall" => ["station_tracking_window_1"]
+               },
+             "source_report_resource_projection_resource_pressure_station_calendar_provider_ids_by_status" =>
+               %{
+                 "downlink_shortfall" => ["ops_calendar_flow"],
+                 "storage_shortfall" => ["ops_calendar_tracking"]
+               },
+             "source_report_resource_projection_resource_pressure_station_calendar_provider_ids_by_type" =>
+               %{
+                 "downlink_shortfall" => ["ops_calendar_flow"],
+                 "storage_pressure" => ["ops_calendar_flow"],
+                 "storage_shortfall" => ["ops_calendar_tracking"]
                },
              "source_report_resource_projection_resource_pressure_station_calendar_provider_entry_ids_by_status" =>
                %{
@@ -10205,6 +10241,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
             "resource_pressure_station_calendar_entry_ids_by_type" => %{
               "downlink_shortfall" => ["station_flow_window_1"]
             },
+            "resource_pressure_station_calendar_provider_ids_by_status" => %{
+              "downlink_shortfall" => ["ops_calendar_flow"]
+            },
+            "resource_pressure_station_calendar_provider_ids_by_type" => %{
+              "downlink_shortfall" => ["ops_calendar_flow"]
+            },
             "resource_pressure_station_calendar_provider_entry_ids_by_status" => %{
               "downlink_shortfall" => ["provider_flow_window_1"]
             },
@@ -10244,6 +10286,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "downlink_shortfall" => ["station_flow_window_1"]
            }
 
+    assert summary["resource_pressure_station_calendar_provider_ids_by_status"] == %{
+             "downlink_shortfall" => ["ops_calendar_flow"]
+           }
+
+    assert summary["resource_pressure_station_calendar_provider_ids_by_type"] == %{
+             "downlink_shortfall" => ["ops_calendar_flow"]
+           }
+
     assert summary["resource_pressure_station_calendar_provider_entry_ids_by_status"] == %{
              "downlink_shortfall" => ["provider_flow_window_1"]
            }
@@ -10257,6 +10307,46 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["branch_local_resource_projection_pressure"]
     assert summary["branch_local_projected_resource_pressure"]
     assert summary["branch_local_invalid_resource_projection_pressure"]
+    refute summary["branch_local_activity_pressure"]
+  end
+
+  test "resource projection replay treats preserved provider ID routing maps as pressure" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "resource_projection_report" => %{
+            "contract" => "resource_projection_report.v1",
+            "count" => 1,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.resource_projection_report"],
+            "projected_resource_count" => 0,
+            "invalid_activity_input_count" => 0,
+            "invalid_resource_summary_input_count" => 0,
+            "resource_pressure_station_calendar_provider_ids_by_status" => %{
+              "downlink_shortfall" => ["ops_calendar"]
+            },
+            "resource_pressure_station_calendar_provider_ids_by_type" => %{
+              "downlink_shortfall" => ["ops_calendar"]
+            }
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.resource_projection_replay_summary(artifact)
+
+    assert summary["resource_pressure_station_calendar_provider_ids_by_status"] == %{
+             "downlink_shortfall" => ["ops_calendar"]
+           }
+
+    assert summary["resource_pressure_station_calendar_provider_ids_by_type"] == %{
+             "downlink_shortfall" => ["ops_calendar"]
+           }
+
+    assert summary["branch_local_resource_projection_pressure"]
+    assert summary["branch_local_projected_resource_pressure"]
+    refute summary["branch_local_invalid_resource_projection_pressure"]
     refute summary["branch_local_activity_pressure"]
   end
 
@@ -10337,6 +10427,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
               },
               "resource_pressure_station_calendar_entry_ids_by_type" => %{
                 "storage_pressure" => ["branch_station_entry"]
+              },
+              "resource_pressure_station_calendar_provider_ids_by_status" => %{
+                "downlink_shortfall" => ["branch_provider"]
+              },
+              "resource_pressure_station_calendar_provider_ids_by_type" => %{
+                "storage_pressure" => ["branch_provider"]
               },
               "resource_pressure_station_calendar_provider_entry_ids_by_status" => %{
                 "downlink_shortfall" => ["branch_provider_entry"]
@@ -10441,6 +10537,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert summary["resource_pressure_station_calendar_entry_ids_by_type"] == %{
              "storage_pressure" => ["branch_station_entry"]
+           }
+
+    assert summary["resource_pressure_station_calendar_provider_ids_by_status"] == %{
+             "downlink_shortfall" => ["branch_provider"]
+           }
+
+    assert summary["resource_pressure_station_calendar_provider_ids_by_type"] == %{
+             "storage_pressure" => ["branch_provider"]
            }
 
     assert summary["resource_pressure_station_calendar_provider_entry_ids_by_status"] == %{
@@ -10681,6 +10785,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         "resource_pressure_station_calendar_provider_entry_ids_by_type" => %{
           "downlink_shortfall" => ["provider_api_window_1"]
         },
+        "resource_pressure_station_calendar_provider_ids_by_type" => %{
+          "downlink_shortfall" => ["ops_calendar_api"]
+        },
         "resource_pressure_station_calendar_entry_ids_by_type" => %{
           "downlink_shortfall" => ["station_api_window_1"]
         },
@@ -10855,6 +10962,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "resource_pressure_station_calendar_entry_ids_by_type" => %{
                "downlink_shortfall" => ["station_api_window_1"]
              },
+             "resource_pressure_station_calendar_provider_ids_by_type" => %{
+               "downlink_shortfall" => ["ops_calendar_api"]
+             },
              "resource_pressure_station_calendar_provider_entry_ids_by_type" => %{
                "downlink_shortfall" => ["provider_api_window_1"]
              },
@@ -10932,6 +11042,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
            ] == %{"downlink_shortfall" => ["station_api_window_1"]}
 
     assert summary[
+             "source_report_resource_projection_resource_pressure_station_calendar_provider_ids_by_type"
+           ] == %{"downlink_shortfall" => ["ops_calendar_api"]}
+
+    assert summary[
              "source_report_resource_projection_resource_pressure_station_calendar_provider_entry_ids_by_type"
            ] == %{"downlink_shortfall" => ["provider_api_window_1"]}
 
@@ -10981,6 +11095,36 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
            } = summary
 
     refute summary["branch_local_downlink_shortfall_pressure"]
+  end
+
+  test "storage downlink pressure replay summary treats provider ID routing maps as downlink pressure" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "resource_projection_report" => %{
+            "contract" => "resource_projection_report.v1",
+            "count" => 1,
+            "row_count" => 0,
+            "paths" => ["source_resource_projection_report"],
+            "resource_pressure_station_calendar_provider_ids_by_type" => %{
+              "downlink_shortfall" => ["ops_calendar"]
+            }
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.storage_downlink_pressure_replay_summary(artifact)
+
+    assert summary["resource_pressure_station_calendar_provider_ids_by_type"] == %{
+             "downlink_shortfall" => ["ops_calendar"]
+           }
+
+    assert summary["branch_local_downlink_pressure"]
+    assert summary["branch_local_downlink_shortfall_pressure"]
+    assert summary["branch_local_storage_downlink_pressure"]
+    refute summary["branch_local_storage_pressure"]
   end
 
   test "storage downlink pressure replay summary treats actual throughput as downlink pressure" do
@@ -38246,6 +38390,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "resource_pressure_station_calendar_entry_ids_by_type" => %{
                "downlink_shortfall" => ["station_flow_window_1"]
              },
+             "resource_pressure_station_calendar_provider_ids_by_type" => %{
+               "downlink_shortfall" => ["ops_calendar_flow"]
+             },
              "resource_pressure_station_calendar_provider_entry_ids_by_type" => %{
                "downlink_shortfall" => ["provider_flow_window_1"]
              },
@@ -45973,6 +46120,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
           ground_station_id: :equator_prime,
           source_window_id: :flow_access_window_1,
           station_calendar_entry_id: :station_flow_window_1,
+          station_calendar_provider_id: :ops_calendar_flow,
           station_calendar_provider_entry_id: :provider_flow_window_1,
           estimated_throughput_mb: 420.0
         }
