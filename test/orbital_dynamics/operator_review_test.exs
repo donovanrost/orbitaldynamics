@@ -12516,6 +12516,103 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(package)
   end
 
+  test "lifecycle transition application provenance survives review and import handoff" do
+    source_activity = %{
+      id: :cmd_lifecycle_complete,
+      type: :command,
+      status: "In Progress",
+      approval_status: :pending,
+      dependencies: [:missing_gate],
+      metadata: %{timeline_id: :"timeline:cmd_lifecycle_complete"}
+    }
+
+    {:ok, replacement_activity} =
+      Timeline.apply_lifecycle_event(source_activity, "record completion")
+
+    report =
+      Timeline.transition_application_report([source_activity], [replacement_activity],
+        source: "timeline_transition_application_report"
+      )
+
+    assert [
+             %{
+               "application_status" => "selected_timeline_integrity_review_required",
+               "requires_operator_review" => true,
+               "transition_application_provenance" => provenance,
+               "selected_activity" => %{
+                 "transition_application_provenance" => selected_provenance,
+                 "activity_context" => %{
+                   "transition_application_provenance" => context_provenance
+                 }
+               }
+             }
+           ] = report["applications"]
+
+    assert selected_provenance == provenance
+    assert context_provenance == provenance
+
+    assert %{
+             "helper" => "apply_lifecycle_event",
+             "operator_action_reason" => "activity_execution_recorded",
+             "transition_category" => "execution_recorded",
+             "transition_type" => "changed",
+             "requires_operator_review" => false
+           } = provenance
+
+    package = OperatorReview.from_timeline_transition_application_report(report)
+
+    assert %{
+             "review_count" => 1,
+             "rows" => [
+               %{
+                 "application_status" => "selected_timeline_integrity_review_required",
+                 "required_operator_action" => "review_timeline_integrity",
+                 "transition_application_provenance" => ^provenance,
+                 "selected_activity" => %{
+                   "activity_context" => %{
+                     "transition_application_provenance" => ^provenance
+                   }
+                 },
+                 "source_timeline_application" => %{
+                   "transition_application_provenance" => ^provenance,
+                   "selected_activity" => %{
+                     "transition_application_provenance" => ^provenance
+                   }
+                 },
+                 "source_timeline_diff" => %{
+                   "transition_application_provenance" => ^provenance
+                 }
+               }
+             ]
+           } = package
+
+    manifest = CadenceImport.from_timeline_transition_application_report(report)
+
+    assert %{
+             "schema_contract" => "cadence_import_manifest.v1",
+             "review_required_count" => 1,
+             "rows" => [
+               %{
+                 "application_status" => "selected_timeline_integrity_review_required",
+                 "import_status" => "review_required_before_import",
+                 "transition_application_provenance" => ^provenance,
+                 "source_review_row" => %{
+                   "transition_application_provenance" => ^provenance
+                 },
+                 "source_timeline_application" => %{
+                   "transition_application_provenance" => ^provenance
+                 }
+               }
+             ]
+           } = manifest
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "timeline transition application summaries become operator review rows" do
     summary = timeline_transition_application_summary()
     package = OperatorReview.from_timeline_transition_application_summary(summary)

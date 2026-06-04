@@ -46,7 +46,8 @@ status/approval transition helpers.
 - **Raw timeline lifecycle events** use the same provider lifecycle-event
   aliases as typed mission-plan activities, then validate the resulting status
   and approval transitions before returning normalized timeline rows with
-  transition provenance.
+  transition provenance; transition-application review/import rows keep that
+  provenance first-class even when selected timeline integrity requires review.
 - **Timeline precondition summaries** expose the same clear, review-required,
   and blocked activity-condition classification used by operational timeline
   rows, without building a report, reserving resources, mutating schedules, or

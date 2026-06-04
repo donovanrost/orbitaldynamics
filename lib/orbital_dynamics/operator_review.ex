@@ -9168,7 +9168,8 @@ defmodule OrbitalDynamics.OperatorReview do
             "selected_missing_dependency_activity_ids",
             "selected_missing_dependency_timeline_ids",
             "selected_self_dependency_activity_ids",
-            "selected_self_dependency_timeline_ids"
+            "selected_self_dependency_timeline_ids",
+            "transition_application_provenance"
           ])
         )
 
@@ -9177,6 +9178,7 @@ defmodule OrbitalDynamics.OperatorReview do
       |> Map.put("application_status", row["application_status"])
       |> Map.put("selected_activity_source", row["selected_activity_source"])
       |> Map.put("selected_activity", row["selected_activity"])
+      |> Map.put("transition_application_provenance", row["transition_application_provenance"])
       |> Map.put("source_timeline_application", row)
       |> compact_map()
     end)

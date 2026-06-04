@@ -305,9 +305,10 @@ reports and summaries pin the timeline model-limit boundary in runtime
 validation and JSON Schema export, so schema-only transition handoffs cannot
 accept stale model-limit lists. Transition-application reports also preserve
 `transition_application_provenance` from safe status/approval helper outputs on
-the selected activity context, selected activity row, and application row so
-review/import consumers can distinguish helper-applied lifecycle state from
-hand-authored replacement rows without applying transitions.
+the selected activity context, selected activity row, application row, and
+operator-review/Cadence-import handoff rows so review/import consumers can
+distinguish helper-applied lifecycle state from hand-authored replacement rows
+without applying transitions.
 `Timeline.integrity_report/2` exposes the same
 dependency/exclusivity validation as a compact validated
 `timeline_integrity_report.v1` artifact-only summary with review rows,

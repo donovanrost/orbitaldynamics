@@ -5191,6 +5191,7 @@ defmodule OrbitalDynamics.CadenceImport do
         row["source_timeline_diff_summary_review_timeline_ids_by_approval_transition_category"],
       "source_timeline_diff_summary_timeline_ids_by_changed_field" =>
         row["source_timeline_diff_summary_timeline_ids_by_changed_field"],
+      "transition_application_provenance" => row["transition_application_provenance"],
       "source_timeline_application" => row["source_timeline_application"],
       "source_timeline_transition_application_summary" =>
         row["source_timeline_transition_application_summary"],
