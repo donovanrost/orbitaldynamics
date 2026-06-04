@@ -323,6 +323,62 @@ defmodule OrbitalDynamics.OperatorReviewTest do
            )
   end
 
+  test "operational readiness analysis-only rows preserve not-for-execution context" do
+    report = analysis_only_operational_readiness_report()
+    package = OperatorReview.from_operational_readiness_report(report)
+
+    assert %{
+             "source_artifact_type" => "operational_readiness_report.v1",
+             "source_artifact_id" => "operational_readiness:resource_pressure",
+             "review_count" => 2,
+             "operational_readiness_review_count" => 2,
+             "readiness_level" => "analysis_only",
+             "import_classification" => "analysis_only",
+             "status" => "analysis_only",
+             "analysis_gate_count" => 1,
+             "review_gate_count" => 0
+           } = package
+
+    summary_row =
+      Enum.find(
+        package["rows"],
+        &(&1["subject_id"] == "operational_readiness:resource_pressure")
+      )
+
+    assert %{
+             "required_operator_action" => "record_operational_readiness_analysis_only",
+             "approval_status" => "not_required",
+             "cadence_import_status" => "not_applicable",
+             "operational_readiness_status" => "analysis_only",
+             "source_operational_readiness_report" => %{
+               "assumptions" => %{"not_for_execution" => true},
+               "model_limits" => ["artifact_only", "does_not_write_cadence"]
+             }
+           } = summary_row
+
+    assert %{
+             "required_operator_action" => "record_operational_readiness_analysis_only",
+             "approval_status" => "not_required",
+             "cadence_import_status" => "not_applicable",
+             "readiness_gate_status" => "analysis_only",
+             "readiness_gate_classification" => "analysis_only",
+             "analysis_mode" => "not_for_execution",
+             "source_operational_readiness_gate" => %{
+               "analysis_mode" => "not_for_execution"
+             },
+             "source_operational_readiness_report" => %{
+               "assumptions" => %{"not_for_execution" => true}
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["readiness_gate_id"] == "resource_availability")
+             )
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+  end
+
   test "builds quality gate review rows with resource reason context" do
     report =
       operational_readiness_resource_report()
@@ -15947,6 +16003,28 @@ defmodule OrbitalDynamics.OperatorReviewTest do
         "resource_blocking_dimension_counts" => %{"communications" => 2}
       }
     }
+  end
+
+  defp analysis_only_operational_readiness_report do
+    operational_readiness_resource_report()
+    |> Map.merge(%{
+      "readiness_level" => "analysis_only",
+      "import_classification" => "analysis_only",
+      "status" => "analysis_only",
+      "review_gate_count" => 0,
+      "analysis_gate_count" => 1,
+      "assumptions" => %{"not_for_execution" => true},
+      "model_limits" => ["artifact_only", "does_not_write_cadence"]
+    })
+    |> update_in(["gates", Access.at(0)], fn gate ->
+      Map.merge(gate, %{
+        "status" => "analysis_only",
+        "classification" => "analysis_only",
+        "reason" => "resource availability gate is analysis-only before execution",
+        "analysis_mode" => "not_for_execution",
+        "analysis_mode_source" => "operator_review_fixture"
+      })
+    end)
   end
 
   defp stale_import_readiness_quality_gate_report do

@@ -447,6 +447,76 @@ defmodule OrbitalDynamics.CadenceImportTest do
            )
   end
 
+  test "operational readiness analysis-only rows remain not-applicable import handoffs" do
+    report = analysis_only_operational_readiness_report()
+    manifest = CadenceImport.from_operational_readiness_report(report)
+
+    assert %{
+             "source_artifact_type" => "operational_readiness_report.v1",
+             "source_artifact_id" => "operational_readiness:resource_pressure",
+             "row_count" => 2,
+             "ready_count" => 0,
+             "review_required_count" => 0,
+             "blocked_count" => 0,
+             "import_status_counts" => %{"not_applicable" => 2},
+             "cadence_import_status_counts" => %{"not_applicable" => 2},
+             "source_review_action_counts" => %{
+               "record_operational_readiness_analysis_only" => 2
+             },
+             "readiness_level" => "analysis_only",
+             "import_classification" => "analysis_only",
+             "status" => "analysis_only",
+             "analysis_gate_count" => 1,
+             "review_gate_count" => 0
+           } = manifest
+
+    summary_row =
+      Enum.find(
+        manifest["rows"],
+        &(&1["subject_id"] == "operational_readiness:resource_pressure")
+      )
+
+    assert %{
+             "import_action" => "review_operational_readiness",
+             "import_status" => "not_applicable",
+             "source_review_type" => "operational_readiness_review",
+             "source_review_action" => "record_operational_readiness_analysis_only",
+             "approval_status" => "not_required",
+             "required_operator_action" => "record_operational_readiness_analysis_only",
+             "cadence_import_status" => "not_applicable",
+             "source_review_row" => %{
+               "approval_status" => "not_required",
+               "cadence_import_status" => "not_applicable",
+               "required_operator_action" => "record_operational_readiness_analysis_only"
+             },
+             "source_operational_readiness_report" => %{
+               "assumptions" => %{"not_for_execution" => true},
+               "model_limits" => ["artifact_only", "does_not_write_cadence"]
+             }
+           } = summary_row
+
+    assert %{
+             "import_status" => "not_applicable",
+             "source_review_action" => "record_operational_readiness_analysis_only",
+             "readiness_gate_status" => "analysis_only",
+             "readiness_gate_classification" => "analysis_only",
+             "analysis_mode" => "not_for_execution",
+             "source_operational_readiness_gate" => %{
+               "analysis_mode" => "not_for_execution"
+             },
+             "source_operational_readiness_report" => %{
+               "assumptions" => %{"not_for_execution" => true}
+             }
+           } =
+             Enum.find(
+               manifest["rows"],
+               &(&1["readiness_gate_id"] == "resource_availability")
+             )
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "builds quality gate import rows with resource reason context" do
     report = quality_gate_report()
     manifest = CadenceImport.from_quality_gate_report(report)
@@ -12951,6 +13021,28 @@ defmodule OrbitalDynamics.CadenceImportTest do
         "resource_blocking_dimension_counts" => %{"communications" => 2}
       }
     }
+  end
+
+  defp analysis_only_operational_readiness_report do
+    operational_readiness_resource_report()
+    |> Map.merge(%{
+      "readiness_level" => "analysis_only",
+      "import_classification" => "analysis_only",
+      "status" => "analysis_only",
+      "review_gate_count" => 0,
+      "analysis_gate_count" => 1,
+      "assumptions" => %{"not_for_execution" => true},
+      "model_limits" => ["artifact_only", "does_not_write_cadence"]
+    })
+    |> update_in(["gates", Access.at(0)], fn gate ->
+      Map.merge(gate, %{
+        "status" => "analysis_only",
+        "classification" => "analysis_only",
+        "reason" => "resource availability gate is analysis-only before execution",
+        "analysis_mode" => "not_for_execution",
+        "analysis_mode_source" => "cadence_import_fixture"
+      })
+    end)
   end
 
   defp resource_projection_flow_summary do
