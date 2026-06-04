@@ -1631,7 +1631,12 @@ the shared single-activity state provenance to
 model/schema counts, transition decisions, required operator/import actions,
 activity/timeline routing, invalid-input counts and reasons,
 trust-boundary evidence, and branch-local pressure booleans without applying
-status or approval changes.
+status or approval changes. The aggregate
+`CandidateRefresh.source_report_summary/1` surface also flattens those
+contract-scoped status-state and approval-state source counts, paths,
+transition/action/import count maps, and action-routing maps so adapters can
+route the single-state replay evidence without reopening nested
+`source_reports.timeline_activity_state` payloads.
 When a branch `timeline_activity_state` source-report family is non-empty and
 matches the requested `timeline_activity_status_state.v1` or
 `timeline_activity_approval_state.v1` contract, these contract-scoped helpers

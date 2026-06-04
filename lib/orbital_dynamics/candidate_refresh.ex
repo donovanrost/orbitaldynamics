@@ -422,6 +422,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :source_report_timeline_diff_routing_count_maps,
         :source_report_timeline_diff_activity_routing_maps,
         :source_report_timeline_activity_state_routing_maps,
+        :source_report_timeline_activity_status_state_routing_maps,
+        :source_report_timeline_activity_approval_state_routing_maps,
         :source_report_timeline_activity_lifecycle_state_routing_maps,
         :source_report_timeline_integrity_routing_maps,
         :source_report_timeline_lifecycle_state_routing_maps,
@@ -465,6 +467,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :source_report_maneuver_review_branch_replay_summary,
         :source_report_contact_intent_branch_replay_summary,
         :source_report_timeline_activity_state_branch_replay_summary,
+        :source_report_timeline_activity_status_state_branch_replay_summary,
+        :source_report_timeline_activity_approval_state_branch_replay_summary,
         :source_report_timeline_activity_lifecycle_state_branch_replay_summary,
         :source_report_timeline_preservation_branch_replay_summary,
         :source_report_timeline_integrity_branch_replay_summary,
@@ -5901,6 +5905,24 @@ defmodule OrbitalDynamics.CandidateRefresh do
         "replay_scope" => "input_provenance_summary_only"
       }
     }
+    |> Map.merge(
+      source_report_timeline_activity_single_state_fields(
+        refresh_or_artifact,
+        source_reports,
+        "timeline_activity_status_state",
+        "timeline_activity_status_state.v1",
+        "artifact_only_timeline_activity_status_state"
+      )
+    )
+    |> Map.merge(
+      source_report_timeline_activity_single_state_fields(
+        refresh_or_artifact,
+        source_reports,
+        "timeline_activity_approval_state",
+        "timeline_activity_approval_state.v1",
+        "artifact_only_timeline_activity_approval_state"
+      )
+    )
     |> compact_map()
   end
 
@@ -10352,6 +10374,78 @@ defmodule OrbitalDynamics.CandidateRefresh do
       true ->
         nil
     end
+  end
+
+  defp source_report_timeline_activity_single_state_fields(
+         refresh_or_artifact,
+         source_reports,
+         family,
+         contract,
+         source_model
+       ) do
+    summary =
+      refresh_or_artifact
+      |> source_timeline_activity_states()
+      |> Enum.filter(fn {_path, state} ->
+        Map.get(state, "schema_contract") == contract or Map.get(state, "model") == source_model
+      end)
+      |> source_timeline_activity_state_input_summary()
+      |> case do
+        nil ->
+          source_reports
+          |> Map.get("timeline_activity_state")
+          |> timeline_activity_single_state_summary_matching_contract(contract)
+
+        summary ->
+          summary
+      end
+
+    source_report_timeline_activity_single_state_fields(family, summary || %{})
+  end
+
+  defp source_report_timeline_activity_single_state_fields(family, state_summary) do
+    prefix = "source_report_#{family}"
+
+    %{
+      "#{prefix}_contract" => source_report_summary_contract(state_summary, nil),
+      "#{prefix}_count" => summary_integer(state_summary, "count"),
+      "#{prefix}_row_count" => summary_integer(state_summary, "row_count"),
+      "#{prefix}_paths" => Map.get(state_summary, "paths", []),
+      "#{prefix}_source_summary_model_counts" =>
+        Map.get(state_summary, "source_summary_model_counts", %{}),
+      "#{prefix}_source_summary_schema_contract_counts" =>
+        Map.get(state_summary, "source_summary_schema_contract_counts", %{}),
+      "#{prefix}_review_required_count" =>
+        summary_integer(state_summary, "review_required_count"),
+      "#{prefix}_invalid_activity_input_count" =>
+        summary_integer(state_summary, "invalid_activity_input_count"),
+      "#{prefix}_invalid_activity_input_reason_counts" =>
+        Map.get(state_summary, "invalid_activity_input_reason_counts", %{}),
+      "#{prefix}_invalid_activity_input_reasons" =>
+        Map.get(state_summary, "invalid_activity_input_reasons", []),
+      "#{prefix}_transition_decision_counts" =>
+        Map.get(state_summary, "transition_decision_counts", %{}),
+      "#{prefix}_required_operator_action_counts" =>
+        Map.get(state_summary, "required_operator_action_counts", %{}),
+      "#{prefix}_import_action_counts" => Map.get(state_summary, "import_action_counts", %{}),
+      "#{prefix}_planned_status_category_counts" =>
+        Map.get(state_summary, "planned_status_category_counts", %{}),
+      "#{prefix}_realized_status_category_counts" =>
+        Map.get(state_summary, "realized_status_category_counts", %{}),
+      "#{prefix}_planned_approval_category_counts" =>
+        Map.get(state_summary, "planned_approval_category_counts", %{}),
+      "#{prefix}_realized_approval_category_counts" =>
+        Map.get(state_summary, "realized_approval_category_counts", %{}),
+      "#{prefix}_status_transition_category_counts" =>
+        Map.get(state_summary, "status_transition_category_counts", %{}),
+      "#{prefix}_approval_transition_category_counts" =>
+        Map.get(state_summary, "approval_transition_category_counts", %{}),
+      "#{prefix}_activity_id_counts" => Map.get(state_summary, "activity_id_counts", %{}),
+      "#{prefix}_timeline_id_counts" => Map.get(state_summary, "timeline_id_counts", %{}),
+      "#{prefix}_review_activity_id_counts" =>
+        Map.get(state_summary, "review_activity_id_counts", %{}),
+      "#{prefix}_action_routing" => Map.get(state_summary, "action_routing", %{})
+    }
   end
 
   @doc """

@@ -341,6 +341,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert :source_report_timeline_activity_state_routing_maps in source_report_summary_semantics
 
+    assert :source_report_timeline_activity_status_state_routing_maps in source_report_summary_semantics
+
+    assert :source_report_timeline_activity_approval_state_routing_maps in source_report_summary_semantics
+
     assert :source_report_timeline_activity_lifecycle_state_routing_maps in source_report_summary_semantics
 
     assert :source_report_timeline_dependency_impact_routing_maps in source_report_summary_semantics
@@ -422,6 +426,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert :source_report_maneuver_review_branch_replay_summary in source_report_summary_semantics
 
     assert :source_report_contact_intent_branch_replay_summary in source_report_summary_semantics
+
+    assert :source_report_timeline_activity_state_branch_replay_summary in source_report_summary_semantics
+
+    assert :source_report_timeline_activity_status_state_branch_replay_summary in source_report_summary_semantics
+
+    assert :source_report_timeline_activity_approval_state_branch_replay_summary in source_report_summary_semantics
 
     assert :source_report_timeline_activity_lifecycle_state_branch_replay_summary in source_report_summary_semantics
 
@@ -17555,6 +17565,64 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "trust_boundary_status" => "missing",
              "trust_boundaries" => []
            } = source_summary["source_reports"]["timeline_activity_state"]
+
+    assert %{
+             "source_report_timeline_activity_status_state_contract" =>
+               "timeline_activity_status_state.v1",
+             "source_report_timeline_activity_status_state_count" => 3,
+             "source_report_timeline_activity_status_state_row_count" => 3,
+             "source_report_timeline_activity_status_state_paths" => ^expected_status_state_paths,
+             "source_report_timeline_activity_status_state_source_summary_schema_contract_counts" =>
+               %{"timeline_activity_status_state.v1" => 3},
+             "source_report_timeline_activity_status_state_source_summary_model_counts" => %{
+               "artifact_only_timeline_activity_status_state" => 3
+             },
+             "source_report_timeline_activity_status_state_review_required_count" => 0,
+             "source_report_timeline_activity_status_state_transition_decision_counts" => %{
+               "record" => 3
+             },
+             "source_report_timeline_activity_status_state_required_operator_action_counts" => %{
+               "record_timeline_change" => 3
+             },
+             "source_report_timeline_activity_status_state_import_action_counts" => %{
+               "import_replacement_activity" => 3
+             },
+             "source_report_timeline_activity_status_state_status_transition_category_counts" =>
+               %{"execution_recorded" => 3}
+           } = source_summary
+
+    assert source_summary["source_report_timeline_activity_status_state_action_routing"] ==
+             status_replay_summary["action_routing"]
+
+    assert %{
+             "source_report_timeline_activity_approval_state_contract" =>
+               "timeline_activity_approval_state.v1",
+             "source_report_timeline_activity_approval_state_count" => 3,
+             "source_report_timeline_activity_approval_state_row_count" => 3,
+             "source_report_timeline_activity_approval_state_paths" =>
+               ^expected_approval_state_paths,
+             "source_report_timeline_activity_approval_state_source_summary_schema_contract_counts" =>
+               %{"timeline_activity_approval_state.v1" => 3},
+             "source_report_timeline_activity_approval_state_source_summary_model_counts" => %{
+               "artifact_only_timeline_activity_approval_state" => 3
+             },
+             "source_report_timeline_activity_approval_state_review_required_count" => 3,
+             "source_report_timeline_activity_approval_state_transition_decision_counts" => %{
+               "review" => 3
+             },
+             "source_report_timeline_activity_approval_state_required_operator_action_counts" =>
+               %{
+                 "review_activity_approval" => 3
+               },
+             "source_report_timeline_activity_approval_state_import_action_counts" => %{
+               "review_timeline_diff" => 3
+             },
+             "source_report_timeline_activity_approval_state_approval_transition_category_counts" =>
+               %{"approval_granted" => 3}
+           } = source_summary
+
+    assert source_summary["source_report_timeline_activity_approval_state_action_routing"] ==
+             approval_replay_summary["action_routing"]
 
     assert %{
              "model" => "artifact_only_candidate_refresh_timeline_activity_state_replay_summary",
