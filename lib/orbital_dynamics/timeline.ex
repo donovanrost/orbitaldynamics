@@ -664,6 +664,7 @@ defmodule OrbitalDynamics.Timeline do
     target_id
     throughput_model
     trust_boundary
+    transition_application_provenance
   )
   @numeric_activity_fields ~w(
     actual_data_volume_mb
@@ -2837,6 +2838,7 @@ defmodule OrbitalDynamics.Timeline do
       "protection_reason" => protection_decision["reason"]
     })
     |> compact_map()
+    |> maybe_preserve_transition_application_provenance(activity)
   end
 
   @doc """
@@ -4217,7 +4219,14 @@ defmodule OrbitalDynamics.Timeline do
     if transition_requires_operator_review?(transition) do
       {:error, transition}
     else
-      {:ok, normalize_activity(replacement_activity)}
+      {:ok,
+       replacement_activity
+       |> put_transition_application_provenance(
+         "transition_activity_status",
+         "status",
+         transition
+       )
+       |> normalize_activity()}
     end
   end
 
@@ -4732,7 +4741,14 @@ defmodule OrbitalDynamics.Timeline do
     if transition_requires_operator_review?(transition) do
       {:error, transition}
     else
-      {:ok, normalize_activity(replacement_activity)}
+      {:ok,
+       replacement_activity
+       |> put_transition_application_provenance(
+         "transition_activity_approval_status",
+         "approval_status",
+         transition
+       )
+       |> normalize_activity()}
     end
   end
 
@@ -5608,6 +5624,7 @@ defmodule OrbitalDynamics.Timeline do
       "selected_activity_source" => "source",
       "selected_activity" => source
     }
+    |> maybe_put_selected_transition_application_provenance(source)
   end
 
   defp transition_application_selection("record", _source, replacement)
@@ -5617,6 +5634,7 @@ defmodule OrbitalDynamics.Timeline do
       "selected_activity_source" => "replacement",
       "selected_activity" => replacement
     }
+    |> maybe_put_selected_transition_application_provenance(replacement)
   end
 
   defp transition_application_selection("none", source, _replacement) when is_map(source) do
@@ -5625,6 +5643,7 @@ defmodule OrbitalDynamics.Timeline do
       "selected_activity_source" => "source",
       "selected_activity" => source
     }
+    |> maybe_put_selected_transition_application_provenance(source)
   end
 
   defp transition_application_selection("none", _source, replacement)
@@ -5634,6 +5653,7 @@ defmodule OrbitalDynamics.Timeline do
       "selected_activity_source" => "replacement",
       "selected_activity" => replacement
     }
+    |> maybe_put_selected_transition_application_provenance(replacement)
   end
 
   defp transition_application_selection("none", _source, _replacement) do
@@ -5646,6 +5666,58 @@ defmodule OrbitalDynamics.Timeline do
 
   defp transition_application_selection(_decision, _source, _replacement) do
     %{"application_status" => "operator_review_required"}
+  end
+
+  defp put_transition_application_provenance(activity, helper, field, transition) do
+    Map.put(
+      activity,
+      "transition_application_provenance",
+      transition_application_provenance(helper, field, transition)
+    )
+  end
+
+  defp transition_application_provenance(helper, field, nil) do
+    %{
+      "helper" => helper,
+      "field" => field,
+      "transition_type" => "unchanged",
+      "requires_operator_review" => false,
+      "operator_action_reason" => transition_application_no_change_reason(field)
+    }
+  end
+
+  defp transition_application_provenance(helper, field, transition) when is_map(transition) do
+    transition
+    |> Map.take([
+      "field",
+      "transition_type",
+      "from",
+      "to",
+      "transition_category",
+      "requires_operator_review",
+      "operator_action_reason"
+    ])
+    |> Map.put("helper", helper)
+    |> Map.put_new("field", field)
+    |> Map.put_new("requires_operator_review", false)
+    |> compact_map()
+  end
+
+  defp transition_application_no_change_reason("approval_status"), do: "no_approval_status_change"
+  defp transition_application_no_change_reason(_field), do: "no_status_change"
+
+  defp maybe_preserve_transition_application_provenance(row, activity) do
+    case Map.get(activity, "transition_application_provenance") do
+      %{} = provenance -> Map.put(row, "transition_application_provenance", provenance)
+      _other -> row
+    end
+  end
+
+  defp maybe_put_selected_transition_application_provenance(application, selected_activity) do
+    case Map.get(selected_activity, "transition_application_provenance") do
+      %{} = provenance -> Map.put(application, "transition_application_provenance", provenance)
+      _other -> application
+    end
   end
 
   defp normalized_activity_groups(activities, opts) do
@@ -6308,9 +6380,19 @@ defmodule OrbitalDynamics.Timeline do
     integrity_review? =
       timeline_integrity_review?(source) or timeline_integrity_review?(replacement)
 
+    helper_application? =
+      not preservation_sensitive_source?(source) and
+        safe_transition_application_provenance?(
+          replacement,
+          status_transition,
+          approval_transition,
+          changed_fields
+        )
+
     requires_review =
       integrity_review? or
         (diff_status == "changed" and
+           not helper_application? and
            (review_significant_change?(changed_fields) or preservation_sensitive_source?(source)))
 
     {required_operator_action, reason} =
@@ -6474,6 +6556,72 @@ defmodule OrbitalDynamics.Timeline do
       diff_reason("changed", source, replacement, changed_fields)
     }
   end
+
+  defp safe_transition_application_provenance?(
+         replacement,
+         status_transition,
+         approval_transition,
+         changed_fields
+       ) do
+    case transition_application_provenance_from_activity(replacement) do
+      %{"helper" => "transition_activity_status"} = provenance ->
+        safe_transition_application_provenance_field?(
+          provenance,
+          "status",
+          status_transition,
+          changed_fields
+        )
+
+      %{"helper" => "transition_activity_approval_status"} = provenance ->
+        safe_transition_application_provenance_field?(
+          provenance,
+          "approval_status",
+          approval_transition,
+          changed_fields
+        )
+
+      _other ->
+        false
+    end
+  end
+
+  defp safe_transition_application_provenance_field?(
+         provenance,
+         field,
+         transition,
+         changed_fields
+       )
+       when is_map(transition) do
+    changed_fields == [field] and
+      provenance["field"] == field and
+      provenance["transition_type"] == transition["transition_type"] and
+      provenance["from"] == transition["from"] and
+      provenance["to"] == transition["to"] and
+      provenance["transition_category"] == transition["transition_category"] and
+      provenance["operator_action_reason"] == transition["operator_action_reason"] and
+      provenance["requires_operator_review"] == false and
+      transition["requires_operator_review"] == false
+  end
+
+  defp safe_transition_application_provenance_field?(
+         _provenance,
+         _field,
+         _transition,
+         _changed_fields
+       ),
+       do: false
+
+  defp transition_application_provenance_from_activity(%{
+         "transition_application_provenance" => %{} = provenance
+       }),
+       do: provenance
+
+  defp transition_application_provenance_from_activity(%{
+         "activity_context" => %{"transition_application_provenance" => %{} = provenance}
+       }),
+       do: provenance
+
+  defp transition_application_provenance_from_activity(_activity), do: nil
 
   defp diff_transition_operator_action_reason(
          %{"requires_operator_review" => true, "operator_action_reason" => reason},
@@ -6924,6 +7072,7 @@ defmodule OrbitalDynamics.Timeline do
   defp activity_to_map(%{} = activity) do
     activity
     |> stringify_keys()
+    |> normalize_activity_row_aliases()
     |> normalize_spacecraft_id()
     |> normalize_target_id()
     |> normalize_station_id()
@@ -6937,6 +7086,12 @@ defmodule OrbitalDynamics.Timeline do
     |> normalize_activity_type_alias()
     |> normalize_provider_downlink_activity()
     |> normalize_direction_contact_activity()
+  end
+
+  defp normalize_activity_row_aliases(activity) do
+    activity
+    |> put_new_present("id", Map.get(activity, "activity_id"))
+    |> put_new_present("type", Map.get(activity, "activity_type"))
   end
 
   defp normalize_source_window(%{"source_window" => %{} = source_window} = activity) do

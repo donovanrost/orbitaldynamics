@@ -6305,6 +6305,18 @@ defmodule OrbitalDynamics.TimelineTest do
 
     assert completed == Timeline.transition_activity_status!(activity, "succeeded")
 
+    assert %{
+             "helper" => "transition_activity_status",
+             "field" => "status",
+             "transition_type" => "changed",
+             "from" => "executing",
+             "to" => "completed",
+             "requires_operator_review" => false
+           } = completed["transition_application_provenance"]
+
+    assert completed["activity_context"]["transition_application_provenance"] ==
+             completed["transition_application_provenance"]
+
     assert OrbitalDynamics.timeline_transition_activity_status(activity, "succeeded") ==
              {:ok, completed}
 
@@ -6326,6 +6338,15 @@ defmodule OrbitalDynamics.TimelineTest do
 
     assert no_review_required ==
              Timeline.transition_activity_approval_status!(activity, "No Review Required")
+
+    assert %{
+             "helper" => "transition_activity_approval_status",
+             "field" => "approval_status",
+             "transition_type" => "changed",
+             "from" => "pending",
+             "to" => "not_required",
+             "requires_operator_review" => false
+           } = no_review_required["transition_application_provenance"]
 
     assert OrbitalDynamics.timeline_transition_activity_approval_status(
              activity,
@@ -7362,6 +7383,83 @@ defmodule OrbitalDynamics.TimelineTest do
              protected_replacement
            ) ==
              Timeline.transition_application(protected_source, protected_replacement)
+  end
+
+  test "preserves helper transition provenance through transition application reports" do
+    activity = %{
+      id: :cmd_transition,
+      type: :command,
+      scenario_id: :leo_1,
+      status: "In Progress",
+      approval_status: :pending,
+      metadata: %{
+        timeline_id: :"timeline:cmd_transition",
+        source_window_id: :"window:cmd_transition"
+      }
+    }
+
+    assert {:ok, completed} = Timeline.transition_activity_status(activity, "succeeded")
+
+    assert %{
+             "helper" => "transition_activity_status",
+             "field" => "status",
+             "transition_type" => "changed",
+             "from" => "executing",
+             "to" => "completed",
+             "requires_operator_review" => false
+           } = provenance = completed["transition_application_provenance"]
+
+    assert %{
+             "transition_decision" => "record",
+             "application_status" => "replacement_recorded",
+             "selected_activity_source" => "replacement",
+             "transition_application_provenance" => ^provenance,
+             "selected_activity" => %{
+               "activity_id" => "cmd_transition",
+               "status" => "completed",
+               "transition_application_provenance" => ^provenance,
+               "activity_context" => %{
+                 "transition_application_provenance" => ^provenance
+               }
+             }
+           } = Timeline.transition_application(activity, completed)
+
+    protected_activity = Map.put(activity, :locked, true)
+
+    assert {:ok, protected_completed} =
+             Timeline.transition_activity_status(protected_activity, "succeeded")
+
+    assert %{
+             "transition_decision" => "preserve_source",
+             "application_status" => "source_preserved_pending_review",
+             "selected_activity_source" => "source",
+             "selected_activity" => %{
+               "activity_id" => "cmd_transition",
+               "status" => "executing"
+             }
+           } =
+             protected_application =
+             Timeline.transition_application(protected_activity, protected_completed)
+
+    refute Map.has_key?(protected_application, "transition_application_provenance")
+
+    assert %{
+             "applications" => [application],
+             "selected_activities" => [selected]
+           } = report = Timeline.transition_application_report([activity], [completed])
+
+    assert application["transition_application_provenance"] == provenance
+
+    assert get_in(application, ["selected_activity", "transition_application_provenance"]) ==
+             provenance
+
+    assert selected["transition_application_provenance"] == provenance
+
+    assert get_in(selected, ["activity_context", "transition_application_provenance"]) ==
+             provenance
+
+    assert {:ok, %{"schema_contract" => "timeline_transition_application_report.v1"}} =
+             Schema.validate_artifact(report)
   end
 
   test "builds batch transition application plans without selecting review gated changes" do
