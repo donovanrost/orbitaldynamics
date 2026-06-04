@@ -30,8 +30,10 @@ No public docs, schema exports, or checked-in study artifacts changed. This is
 focused executable-validation test coverage for existing behavior.
 
 Last commit:
-Pending commit for this slice. The unrelated `.gitignore` scratch-ignore change
-remains unstaged.
+Current slice code commit is `07c6880` (`Cover provider reservation direction drift`).
+`slice_reviewer` was unavailable because valid spawns hit the agent thread
+limit, so review/publish was performed manually with scoped staging. The
+unrelated `.gitignore` scratch-ignore change remains unstaged.
 
 Next candidate:
 After review/publish, re-read the guide/ledger/live worktree and continue with
