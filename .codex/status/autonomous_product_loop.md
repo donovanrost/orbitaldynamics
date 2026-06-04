@@ -1,41 +1,41 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Lifecycle transition provenance review/import handoff.
+Lifecycle-state CandidateRefresh replay transition provenance.
 
 Status:
 Implemented and focused verification is passing locally; pending review and
-publish. Timeline transition-application rows generated from lifecycle helpers
-now preserve `transition_application_provenance` as a first-class field on
-operator-review rows and Cadence import rows while keeping review-gated selected
-timeline integrity paths artifact-only.
+publish. CandidateRefresh single-activity lifecycle-state source summaries and
+replay summaries now retain lifecycle helper transition provenance as compact
+counts by helper, transition category, and operator-action reason while keeping
+the replay artifact-only.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
+- `docs/artifacts/field_families/candidate_refresh_artifact.md`
 - `docs/artifacts/field_families/mission_activities.md`
 - `docs/feature_set/capability_map/08_mission_activities/lifecycle-helpers-diffs-and-transitions.md`
-- `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/operator_review.ex`
-- `test/orbital_dynamics/operator_review_test.exs`
+- `lib/orbital_dynamics/candidate_refresh.ex`
+- `test/orbital_dynamics/candidate_refresh_test.exs`
 
 Tests run:
-- `mix format lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/operator_review_test.exs`
-- `mix test test/orbital_dynamics/operator_review_test.exs`
-- `git diff --check -- .codex/status/autonomous_product_loop.md docs/artifacts/field_families/mission_activities.md docs/feature_set/capability_map/08_mission_activities/lifecycle-helpers-diffs-and-transitions.md lib/orbital_dynamics/cadence_import.ex lib/orbital_dynamics/operator_review.ex test/orbital_dynamics/operator_review_test.exs`
+- `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs`
+- `git diff --check -- .codex/status/autonomous_product_loop.md docs/artifacts/field_families/candidate_refresh_artifact.md docs/artifacts/field_families/mission_activities.md docs/feature_set/capability_map/08_mission_activities/lifecycle-helpers-diffs-and-transitions.md lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
 
 Docs/artifacts changed:
-Mission activity docs now state that lifecycle transition provenance survives
-operator-review and Cadence-import handoff rows. No generated artifacts or
-schema exports changed.
+Mission activity and CandidateRefresh docs now state that branch-local
+single-activity lifecycle-state replay carries helper provenance counters. No
+generated artifacts or schema exports changed.
 
 Last completed/pushed commit before this slice:
-`e56620f` (`Publish lifecycle helper slice`).
+`c58ea23` (`Preserve lifecycle provenance in review handoffs`).
 
 Next candidate:
 Continue priority-1 typed operational activity/timeline semantics. A likely next
-slice is to audit whether lifecycle-state CandidateRefresh replay summaries need
-the same first-class transition provenance handoff now that review/import rows
-preserve it.
+slice is to inspect list-level `timeline_lifecycle_state_replay_summary/1` for
+the same compact provenance counter handoff, or move to the next guide-backed
+resource/allocation slice if list-level lifecycle replay is already complete.
 
 Blocked:
 No.

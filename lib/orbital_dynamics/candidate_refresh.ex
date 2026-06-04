@@ -5147,6 +5147,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "timeline_activity_lifecycle_state",
           "approval_transition_category_counts"
         ),
+      "source_report_timeline_activity_lifecycle_state_transition_application_provenance_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "timeline_activity_lifecycle_state",
+          "transition_application_provenance_count"
+        ),
+      "source_report_timeline_activity_lifecycle_state_transition_application_provenance_helper_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "timeline_activity_lifecycle_state",
+          "transition_application_provenance_helper_counts"
+        ),
+      "source_report_timeline_activity_lifecycle_state_transition_application_provenance_category_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "timeline_activity_lifecycle_state",
+          "transition_application_provenance_category_counts"
+        ),
+      "source_report_timeline_activity_lifecycle_state_transition_application_provenance_operator_action_reason_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "timeline_activity_lifecycle_state",
+          "transition_application_provenance_operator_action_reason_counts"
+        ),
       "source_report_timeline_activity_lifecycle_state_protection_decision_counts" =>
         source_report_summary_family_merge_count_maps(
           source_reports,
@@ -10208,6 +10232,22 @@ defmodule OrbitalDynamics.CandidateRefresh do
     approval_transition_counts =
       Map.get(lifecycle_summary, "approval_transition_category_counts", %{})
 
+    transition_application_provenance_count =
+      summary_integer(lifecycle_summary, "transition_application_provenance_count")
+
+    transition_application_provenance_helper_counts =
+      Map.get(lifecycle_summary, "transition_application_provenance_helper_counts", %{})
+
+    transition_application_provenance_category_counts =
+      Map.get(lifecycle_summary, "transition_application_provenance_category_counts", %{})
+
+    transition_application_provenance_operator_action_reason_counts =
+      Map.get(
+        lifecycle_summary,
+        "transition_application_provenance_operator_action_reason_counts",
+        %{}
+      )
+
     protection_decision_counts =
       Map.get(lifecycle_summary, "protection_decision_counts", %{})
 
@@ -10242,6 +10282,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
         map_size(planned_status_counts) > 0 or map_size(realized_status_counts) > 0 or
         map_size(planned_approval_counts) > 0 or map_size(realized_approval_counts) > 0 or
         map_size(status_transition_counts) > 0 or map_size(approval_transition_counts) > 0 or
+        transition_application_provenance_count > 0 or
+        map_size(transition_application_provenance_helper_counts) > 0 or
+        map_size(transition_application_provenance_category_counts) > 0 or
+        map_size(transition_application_provenance_operator_action_reason_counts) > 0 or
         map_size(protection_decision_counts) > 0 or map_size(protection_category_counts) > 0
 
     review_pressure =
@@ -10277,6 +10321,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "realized_approval_category_counts" => realized_approval_counts,
       "status_transition_category_counts" => status_transition_counts,
       "approval_transition_category_counts" => approval_transition_counts,
+      "transition_application_provenance_count" => transition_application_provenance_count,
+      "transition_application_provenance_helper_counts" =>
+        transition_application_provenance_helper_counts,
+      "transition_application_provenance_category_counts" =>
+        transition_application_provenance_category_counts,
+      "transition_application_provenance_operator_action_reason_counts" =>
+        transition_application_provenance_operator_action_reason_counts,
       "protection_decision_counts" => protection_decision_counts,
       "protection_category_counts" => protection_category_counts,
       "activity_id_counts" => activity_id_counts,
@@ -18423,6 +18474,38 @@ defmodule OrbitalDynamics.CandidateRefresh do
           )
         )
         |> merge_count_maps(),
+      "transition_application_provenance_count" =>
+        states
+        |> Enum.map(&timeline_activity_lifecycle_state_transition_application_provenance_count/1)
+        |> Enum.sum()
+        |> non_zero_count(),
+      "transition_application_provenance_helper_counts" =>
+        states
+        |> Enum.map(
+          &timeline_activity_lifecycle_state_transition_application_provenance_field_counts(
+            &1,
+            "helper"
+          )
+        )
+        |> merge_count_maps(),
+      "transition_application_provenance_category_counts" =>
+        states
+        |> Enum.map(
+          &timeline_activity_lifecycle_state_transition_application_provenance_field_counts(
+            &1,
+            "transition_category"
+          )
+        )
+        |> merge_count_maps(),
+      "transition_application_provenance_operator_action_reason_counts" =>
+        states
+        |> Enum.map(
+          &timeline_activity_lifecycle_state_transition_application_provenance_field_counts(
+            &1,
+            "operator_action_reason"
+          )
+        )
+        |> merge_count_maps(),
       "protection_decision_counts" =>
         states
         |> Enum.map(
@@ -18478,6 +18561,33 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> get_in(path)
     |> List.wrap()
     |> count_source_report_values()
+  end
+
+  defp timeline_activity_lifecycle_state_transition_application_provenance_count(%{} = state) do
+    state
+    |> timeline_activity_lifecycle_state_transition_application_provenances()
+    |> length()
+  end
+
+  defp timeline_activity_lifecycle_state_transition_application_provenance_field_counts(
+         %{} = state,
+         field
+       ) do
+    state
+    |> timeline_activity_lifecycle_state_transition_application_provenances()
+    |> Enum.map(&Map.get(&1, field))
+    |> count_source_report_values()
+  end
+
+  defp timeline_activity_lifecycle_state_transition_application_provenances(%{} = state) do
+    [
+      Map.get(state, "transition_application_provenance"),
+      get_in(state, ["activity_context", "transition_application_provenance"]),
+      get_in(state, ["planned_activity_context", "transition_application_provenance"]),
+      get_in(state, ["realized_activity_context", "transition_application_provenance"])
+    ]
+    |> Enum.filter(&is_map/1)
+    |> Enum.uniq()
   end
 
   defp timeline_activity_lifecycle_state_protection_counts(%{} = state, field) do
@@ -22532,6 +22642,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
   defp list_value(values) when is_list(values), do: values
   defp list_value(_values), do: []
+
+  defp non_zero_count(count) when is_integer(count) and count > 0, do: count
+  defp non_zero_count(_count), do: nil
 
   defp report_count(value) do
     case numeric_value(value) do

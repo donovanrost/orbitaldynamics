@@ -16212,7 +16212,28 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       Timeline.activity_lifecycle_state(planned, realized)
     end
 
-    direct_state = lifecycle_state.("direct_activity_lifecycle")
+    direct_transition_application_provenance = %{
+      "field" => "status",
+      "from" => "planned",
+      "helper" => "apply_lifecycle_event",
+      "operator_action_reason" => "activity_execution_recorded",
+      "requires_operator_review" => false,
+      "to" => "completed",
+      "transition_category" => "execution_recorded",
+      "transition_type" => "changed"
+    }
+
+    direct_state =
+      lifecycle_state.("direct_activity_lifecycle")
+      |> Map.put("transition_application_provenance", direct_transition_application_provenance)
+      |> Map.put("activity_context", %{
+        "transition_application_provenance" => direct_transition_application_provenance
+      })
+      |> put_in(
+        ["realized_activity_context", "transition_application_provenance"],
+        direct_transition_application_provenance
+      )
+
     canonical_state = lifecycle_state.("canonical_activity_lifecycle")
     wrapped_state = lifecycle_state.("wrapped_activity_lifecycle")
 
@@ -16299,6 +16320,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "realized_approval_category_counts" => %{"protected" => 3},
              "status_transition_category_counts" => %{"execution_recorded" => 3},
              "approval_transition_category_counts" => %{"approval_granted" => 3},
+             "transition_application_provenance_count" => 1,
+             "transition_application_provenance_helper_counts" => %{
+               "apply_lifecycle_event" => 1
+             },
+             "transition_application_provenance_category_counts" => %{
+               "execution_recorded" => 1
+             },
+             "transition_application_provenance_operator_action_reason_counts" => %{
+               "activity_execution_recorded" => 1
+             },
              "protection_decision_counts" => %{"mutable" => 3, "preserve" => 3},
              "protection_category_counts" => %{"executed" => 3, "none" => 3},
              "activity_id_counts" => %{
@@ -16331,6 +16362,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_row_count" => 3,
              "source_report_paths" => ^expected_source_paths,
              "action_routing" => ^expected_action_routing,
+             "transition_application_provenance_count" => 1,
+             "transition_application_provenance_helper_counts" => %{
+               "apply_lifecycle_event" => 1
+             },
+             "transition_application_provenance_category_counts" => %{
+               "execution_recorded" => 1
+             },
+             "transition_application_provenance_operator_action_reason_counts" => %{
+               "activity_execution_recorded" => 1
+             },
              "branch_local_timeline_activity_lifecycle_state_pressure" => true,
              "branch_local_activity_lifecycle_review_pressure" => true,
              "branch_local_activity_lifecycle_action_pressure" => true,
@@ -16351,6 +16392,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert %{
              "source_report_timeline_activity_lifecycle_state_row_count" => 3,
              "source_report_timeline_activity_lifecycle_state_review_required_count" => 3,
+             "source_report_timeline_activity_lifecycle_state_transition_application_provenance_count" =>
+               1,
+             "source_report_timeline_activity_lifecycle_state_transition_application_provenance_helper_counts" =>
+               %{"apply_lifecycle_event" => 1},
+             "source_report_timeline_activity_lifecycle_state_transition_application_provenance_category_counts" =>
+               %{"execution_recorded" => 1},
+             "source_report_timeline_activity_lifecycle_state_transition_application_provenance_operator_action_reason_counts" =>
+               %{"activity_execution_recorded" => 1},
              "source_report_timeline_activity_lifecycle_state_action_routing" =>
                ^expected_action_routing
            } = source_summary
@@ -16427,6 +16476,11 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_paths"] == []
     refute Map.has_key?(summary, "contract")
+    assert summary["transition_application_provenance_count"] == 0
+    assert summary["transition_application_provenance_helper_counts"] == %{}
+    assert summary["transition_application_provenance_category_counts"] == %{}
+
+    assert summary["transition_application_provenance_operator_action_reason_counts"] == %{}
     refute summary["branch_local_timeline_activity_lifecycle_state_pressure"]
   end
 
@@ -16464,6 +16518,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
               "realized_approval_category_counts" => %{"protected" => 1},
               "status_transition_category_counts" => %{"execution_recorded" => 1},
               "approval_transition_category_counts" => %{"approval_granted" => 1},
+              "transition_application_provenance_count" => 1,
+              "transition_application_provenance_helper_counts" => %{
+                "apply_lifecycle_event" => 1
+              },
+              "transition_application_provenance_category_counts" => %{
+                "execution_recorded" => 1
+              },
+              "transition_application_provenance_operator_action_reason_counts" => %{
+                "activity_execution_recorded" => 1
+              },
               "protection_decision_counts" => %{"preserve" => 1},
               "protection_category_counts" => %{"executed" => 1},
               "activity_id_counts" => %{"cmd_pending" => 1},
@@ -16522,6 +16586,20 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["realized_approval_category_counts"] == %{"protected" => 1}
     assert summary["status_transition_category_counts"] == %{"execution_recorded" => 1}
     assert summary["approval_transition_category_counts"] == %{"approval_granted" => 1}
+    assert summary["transition_application_provenance_count"] == 1
+
+    assert summary["transition_application_provenance_helper_counts"] == %{
+             "apply_lifecycle_event" => 1
+           }
+
+    assert summary["transition_application_provenance_category_counts"] == %{
+             "execution_recorded" => 1
+           }
+
+    assert summary["transition_application_provenance_operator_action_reason_counts"] == %{
+             "activity_execution_recorded" => 1
+           }
+
     assert summary["protection_decision_counts"] == %{"preserve" => 1}
     assert summary["protection_category_counts"] == %{"executed" => 1}
     assert summary["activity_id_counts"] == %{"cmd_pending" => 1}

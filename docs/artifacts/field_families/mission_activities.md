@@ -407,7 +407,10 @@ ready-for-import boundary as adapter evidence only.
 CandidateRefresh also preserves single-activity lifecycle states through
 `CandidateRefresh.timeline_activity_lifecycle_state_replay_summary/1` and the
 matching `OrbitalDynamics` facade as artifact-only replay provenance without
-applying lifecycle transitions or granting import authority.
+applying lifecycle transitions or granting import authority. That replay path
+also carries lifecycle helper provenance counts from source
+`transition_application_provenance` evidence when branch-local activity
+lifecycle states were derived from helper-applied transitions.
 For V3 strategy branch refreshes, that replay helper prefers a non-empty
 `candidate_source.candidate_refresh_request_source_report_summary.source_reports.timeline_activity_lifecycle_state`
 family over provenance, labels its output source and replay scope as
