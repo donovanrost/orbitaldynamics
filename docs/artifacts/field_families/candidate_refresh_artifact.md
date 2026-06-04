@@ -1729,10 +1729,11 @@ provenance.
 `CandidateRefresh.timeline_transition_application_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_timeline_transition_application_replay_summary/1`
 expose the timeline-transition-application slice as a branch-local replay
-summary. It preserves source application paths, application/selected/review/
-preserved/replacement/withheld counts, selected-activity ID maps,
-status/decision/action maps, duplicate identity counts/maps, trust-boundary
-evidence, and branch-local application, selection, review, preservation,
+summary. It preserves top-level source-report contract/count/path rollups,
+source application paths, application/selected/review/preserved/replacement/
+withheld counts, selected-activity ID maps, status/decision/action maps,
+duplicate identity counts/maps, trust-boundary evidence, and branch-local
+application, selection, review, preservation,
 duplicate-identity, and operator-review pressure booleans without applying
 timeline transitions, mutating timelines, selecting candidates, approving
 imports, writing to Cadence, or regenerating candidates. The family-level

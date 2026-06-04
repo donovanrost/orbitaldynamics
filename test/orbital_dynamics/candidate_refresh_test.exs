@@ -28326,6 +28326,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 1,
+             "source_report_timeline_transition_application_contract" =>
+               "timeline_transition_application_report.v1",
+             "source_report_timeline_transition_application_count" => 1,
+             "source_report_timeline_transition_application_paths" => [
+               "source_timeline_transition_application_report"
+             ],
              "source_report_timeline_transition_application_application_count" => 3,
              "source_report_timeline_transition_application_selected_activity_count" => 1,
              "source_report_timeline_transition_application_selected_activity_id_counts" => %{

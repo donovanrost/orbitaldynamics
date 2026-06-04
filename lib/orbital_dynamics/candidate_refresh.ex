@@ -5807,6 +5807,24 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "timeline_integrity_report",
           "exclusivity_violation_timeline_id_counts"
         ),
+      "source_report_timeline_transition_application_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "timeline_transition_application_report",
+          "contract"
+        ),
+      "source_report_timeline_transition_application_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "timeline_transition_application_report",
+          "count"
+        ),
+      "source_report_timeline_transition_application_paths" =>
+        source_report_summary_family_field(
+          source_reports,
+          "timeline_transition_application_report",
+          "paths"
+        ),
       "source_report_timeline_transition_application_application_count" =>
         source_report_summary_family_count(
           source_reports,

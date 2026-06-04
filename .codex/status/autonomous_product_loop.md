@@ -1,16 +1,17 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh timeline dependency-impact source-report identity rollups.
+CandidateRefresh timeline-transition-application source-report identity
+rollups.
 
 Status:
 Implemented with focused verification passing locally.
 `CandidateRefresh.source_report_summary/1` now
-flattens `source_report_timeline_dependency_impact_contract`,
-`source_report_timeline_dependency_impact_count`, and
-`source_report_timeline_dependency_impact_paths` alongside the existing
-dependency-impact row, source/replacement activity, dependent activity,
-required-action, impacted source/dependency/exclusivity, and dependent routing
+flattens `source_report_timeline_transition_application_contract`,
+`source_report_timeline_transition_application_count`, and
+`source_report_timeline_transition_application_paths` alongside the existing
+transition-application application, selected/review activity, review,
+preserved/replacement, duplicate identity, status, decision, action, and scope
 aggregate fields.
 
 Files changed:
@@ -21,19 +22,19 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:20690`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:28321`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 - `git diff --cached --check`
 
 Definition of done:
-Aggregate CandidateRefresh source-report summaries expose timeline
-dependency-impact contract, count, and source-path identity at top level; tests
-assert those fields against direct/review/import provenance; docs describe the
-compact handoff; and focused plus full CandidateRefresh tests pass.
+Aggregate CandidateRefresh source-report summaries expose timeline-transition-
+application contract, count, and source-path identity at top level; tests assert
+those fields against source transition-application report provenance; docs
+describe the compact handoff; and focused plus full CandidateRefresh tests pass.
 
 Last completed/pushed commit before this slice:
-`c0f72c0` (`Flatten lifecycle state replay identity`).
+`655e305` (`Flatten dependency impact replay identity`).
 
 Next candidate:
 Continue guide-backed CandidateRefresh depth from queue item 4, looking for the
