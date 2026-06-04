@@ -1,44 +1,41 @@
 # Autonomous Product Loop Status
 
 Current slice:
-TimelineFeedback realized activity direction alias normalization.
+Shared Timeline direction alias normalization.
 
 Status:
-Implemented and verified locally; pending review and publish. Realized feedback
-normalization now canonicalizes provider `direction` aliases such as
-`s-band command`, `dl`, `tracking-pass`, and `healthcheck` before realized
-operational kind and command/contact/health-check handoff classification. Raw
-provider direction values remain in the source/realized activity payloads while
-normalized contexts and downstream review/import rows carry the canonical
-direction.
+Implemented, verified, and reviewed locally; ready for publish handoff. Planned
+timeline activity ingress and realized timeline feedback now use
+`Timeline.normalize_contact_direction/1` for provider-shaped contact direction
+labels, keeping command/downlink/tracking/health-check aliases on one canonical
+path while preserving unknown non-empty provider labels as normalized evidence.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
+- `docs/artifacts/field_families/mission_activities.md`
+- `lib/orbital_dynamics/timeline.ex`
 - `lib/orbital_dynamics/timeline_feedback.ex`
+- `test/orbital_dynamics/timeline_test.exs`
 - `test/orbital_dynamics/timeline_feedback_test.exs`
 
 Tests run:
-- `mix format lib/orbital_dynamics/timeline_feedback.ex test/orbital_dynamics/timeline_feedback_test.exs`
-- `mix test test/orbital_dynamics/timeline_feedback_test.exs`
-- `git diff --check -- .codex/status/autonomous_product_loop.md lib/orbital_dynamics/timeline_feedback.ex test/orbital_dynamics/timeline_feedback_test.exs`
+- `mix format lib/orbital_dynamics/timeline.ex lib/orbital_dynamics/timeline_feedback.ex test/orbital_dynamics/timeline_test.exs test/orbital_dynamics/timeline_feedback_test.exs`
+- `mix test test/orbital_dynamics/timeline_test.exs test/orbital_dynamics/timeline_feedback_test.exs`
+- `git diff --check -- .codex/status/autonomous_product_loop.md docs/artifacts/field_families/mission_activities.md lib/orbital_dynamics/timeline.ex lib/orbital_dynamics/timeline_feedback.ex test/orbital_dynamics/timeline_test.exs test/orbital_dynamics/timeline_feedback_test.exs`
 
 Docs/artifacts changed:
-No checked-in docs or generated artifacts changed. Existing mission activity
-field-family docs already describe realized feedback direction normalization
-through `TimelineFeedback.normalize_realized_activity/2` and
-`normalize_realized_activities/2`.
+`docs/artifacts/field_families/mission_activities.md` now names
+`Timeline.normalize_contact_direction/1` as the shared planned/realized
+direction normalizer. No generated artifacts or schema exports changed.
 
-Last published before this slice:
-`eaade37` (`Add objective gap replay validation fixture`) pushed to
-`origin/main`.
-
-Review:
-Pending.
+Last commit:
+`236e93b` (`Normalize realized timeline feedback directions`) was already
+pushed to `origin/main` before this slice.
 
 Next candidate:
 Continue priority-1 typed operational activity/timeline semantics. A likely next
-slice is to compare any remaining planned-side direction/type alias tables with
-realized feedback aliases and collapse any drift behind a shared helper.
+slice is to audit status/approval transition helper drift between typed
+MissionPlan activities and raw timeline-map adapters.
 
 Blocked:
 No.

@@ -2,7 +2,7 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.MissionPlan.Activity
-  alias OrbitalDynamics.{Schema, TimelineFeedback}
+  alias OrbitalDynamics.{Schema, Timeline, TimelineFeedback}
 
   test "declares feedback reconciliation capabilities" do
     assert %{
@@ -543,6 +543,7 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
              TimelineFeedback.normalize_realized_activity(activity)
 
     assert OrbitalDynamics.normalize_realized_timeline_activity(activity) == normalized
+    assert normalized["direction"] == Timeline.normalize_contact_direction("s-band command")
 
     normalized_directions =
       [

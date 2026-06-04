@@ -7370,42 +7370,44 @@ defmodule OrbitalDynamics.Timeline do
 
   defp normalize_activity_direction(activity), do: activity
 
-  defp normalize_contact_direction(direction) when direction in [nil, ""], do: nil
+  @doc """
+  Normalizes provider-shaped contact direction labels into canonical timeline directions.
 
-  defp normalize_contact_direction(direction) do
+  Accepts atoms or strings with case, whitespace, and hyphen variants. Unknown
+  non-empty values are returned as normalized snake-case strings so review
+  artifacts can preserve provider evidence without accepting it as a known
+  contact direction.
+  """
+  def normalize_contact_direction(direction) when direction in [nil, ""], do: nil
+
+  def normalize_contact_direction(direction) do
+    normalized_direction = normalize_contact_direction_token(direction)
+
+    cond do
+      normalized_direction in [nil, "", "nil"] ->
+        nil
+
+      aliased_direction = Map.get(provider_direction_aliases(), normalized_direction) ->
+        aliased_direction
+
+      normalized_direction in contact_direction_values() ->
+        normalized_direction
+
+      normalized_direction == "contact" ->
+        normalized_direction
+
+      true ->
+        normalized_direction
+    end
+  end
+
+  defp normalize_contact_direction_token(direction) do
     direction
     |> encode_value()
     |> to_string()
     |> String.trim()
     |> String.downcase()
     |> String.replace(~r/[\s-]+/, "_")
-    |> case do
-      "cmd" -> "command"
-      "commanding" -> "command"
-      "commands" -> "command"
-      "sband_command" -> "command"
-      "s_band_command" -> "command"
-      "uplink" -> "uplink"
-      "up" -> "uplink"
-      "up_link" -> "uplink"
-      "dl" -> "downlink"
-      "down" -> "downlink"
-      "downlinking" -> "downlink"
-      "downlink" -> "downlink"
-      "down_link" -> "downlink"
-      "tracking" -> "tracking"
-      "track" -> "tracking"
-      "track_ing" -> "tracking"
-      "tracking_pass" -> "tracking"
-      "health" -> "health_check"
-      "health_check" -> "health_check"
-      "healthcheck" -> "health_check"
-      "health_check_window" -> "health_check"
-      "contact" -> "contact"
-      "nil" -> nil
-      "" -> nil
-      value -> value
-    end
   end
 
   defp normalize_numeric_activity_fields(activity) do
@@ -7494,6 +7496,11 @@ defmodule OrbitalDynamics.Timeline do
   defp provider_direction_aliases do
     OrbitalDynamics.MissionPlan.Activity.capabilities().contact_direction_aliases
     |> Map.new(fn {alias_value, direction} -> {alias_value, Atom.to_string(direction)} end)
+  end
+
+  defp contact_direction_values do
+    OrbitalDynamics.MissionPlan.Activity.capabilities().contact_directions
+    |> Enum.map(&Atom.to_string/1)
   end
 
   defp activity_status(activity) do

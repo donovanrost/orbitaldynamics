@@ -101,6 +101,16 @@ defmodule OrbitalDynamics.TimelineTest do
     assert provider_direction_aliases["track_ing"] == "tracking"
     assert provider_direction_aliases["tracking_pass"] == "tracking"
     assert provider_direction_aliases["healthcheck"] == "health_check"
+    assert Timeline.normalize_contact_direction("S-Band Command") == "command"
+    assert Timeline.normalize_contact_direction(:dl) == "downlink"
+    assert Timeline.normalize_contact_direction("Health Check Window") == "health_check"
+    assert Timeline.normalize_contact_direction("Ka-Band Special") == "ka_band_special"
+    assert Timeline.normalize_contact_direction("nil") == nil
+
+    for {provider_alias, canonical_direction} <- provider_direction_aliases do
+      assert Timeline.normalize_contact_direction(provider_alias) == canonical_direction
+    end
+
     assert "result" in provider_result_map_value_keys
     assert "provider_status" in provider_result_map_value_keys
     assert "provider_outcome" in provider_result_map_value_keys

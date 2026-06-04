@@ -18,7 +18,11 @@ command/tracking/health-check aliases before validation, so provider-shaped
 or `healthcheck` handoffs enter the same
 canonical direction path. Provider-shaped `planned_contact` rows with
 `direction: health_check` normalize to typed `health_check` station activities
-instead of remaining generic planned contacts. Top-level
+instead of remaining generic planned contacts. The module-level
+`Timeline.normalize_contact_direction/1` helper is the shared contact-direction
+normalizer used by planned timeline activity ingress and realized feedback
+normalization, so adapters can preflight provider direction labels without
+building a full report. Top-level
 `mission_plan_activity_*` lifecycle facades expose the same pure approval,
 lock, execution, completion, partial, failure, missed, delayed, and canceled
 artifact-state helpers for callers that stay on the public API, with non-bang
