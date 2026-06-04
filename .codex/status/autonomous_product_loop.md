@@ -47,7 +47,7 @@ Docs/artifacts changed:
 - Checked-in schema exports refreshed.
 
 Last commit:
-- Pending review/commit for this slice.
+- `4235ce01db824bb27fb6620e2b06ed018762174b` (`Preserve operational timeline command safety context`).
 
 Next candidate:
 After review and publish, re-read the guide/ledger/live worktree and continue
