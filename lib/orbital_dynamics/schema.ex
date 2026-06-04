@@ -2722,6 +2722,55 @@ defmodule OrbitalDynamics.Schema do
         "ordering" => ["spacecraft_id", "scenario_id", "epoch.seconds_since_j2000"]
       },
       %{
+        "scope" => "contact_contention_report.v1.conflict_groups.generated_group_id",
+        "generated_id_field" => "id",
+        "identity_fields" => [
+          "resource_scope",
+          "ground_station_id",
+          "spacecraft_id",
+          "starts_at_s",
+          "ends_at_s",
+          "contact_ids"
+        ],
+        "ordering" => [
+          "resource_scope",
+          "ground_station_id",
+          "spacecraft_id",
+          "starts_at_s",
+          "id"
+        ],
+        "semantic_invariants" => [
+          "source_record_order_must_not_change_generated_group_id",
+          "canonical_contact_sort_key_must_drive_conflict_group_index",
+          "same_semantic_contention_group_must_keep_generated_group_id"
+        ]
+      },
+      %{
+        "scope" => "contact_contention_resolution_report.v1.recommendations.generated_group_id",
+        "generated_id_field" => "group_id",
+        "identity_fields" => [
+          "group_id",
+          "resource_scope",
+          "ground_station_id",
+          "spacecraft_id",
+          "starts_at_s",
+          "selected_contact_id",
+          "deferred_contact_ids"
+        ],
+        "ordering" => [
+          "resource_scope",
+          "ground_station_id",
+          "spacecraft_id",
+          "starts_at_s",
+          "group_id"
+        ],
+        "semantic_invariants" => [
+          "contention_group_id_must_flow_to_recommendation_group_id",
+          "source_record_order_must_not_change_recommendation_group_id",
+          "resolution_ordering_must_not_change_group_identity"
+        ]
+      },
+      %{
         "scope" => "relay_data_path_summary.v1.rows.generated_route_id",
         "identity_fields" => [
           "source_spacecraft_id",

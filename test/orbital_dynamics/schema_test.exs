@@ -19840,6 +19840,65 @@ defmodule OrbitalDynamics.SchemaTest do
     assert "emit_identifier_with_whitespace" in policy["breaking_changes"]
 
     assert %{
+             "generated_id_field" => "id",
+             "identity_fields" => [
+               "resource_scope",
+               "ground_station_id",
+               "spacecraft_id",
+               "starts_at_s",
+               "ends_at_s",
+               "contact_ids"
+             ],
+             "ordering" => [
+               "resource_scope",
+               "ground_station_id",
+               "spacecraft_id",
+               "starts_at_s",
+               "id"
+             ],
+             "semantic_invariants" => [
+               "source_record_order_must_not_change_generated_group_id",
+               "canonical_contact_sort_key_must_drive_conflict_group_index",
+               "same_semantic_contention_group_must_keep_generated_group_id"
+             ]
+           } =
+             Enum.find(
+               policy["generated_id_scopes"],
+               &(&1["scope"] ==
+                   "contact_contention_report.v1.conflict_groups.generated_group_id")
+             )
+
+    assert %{
+             "generated_id_field" => "group_id",
+             "identity_fields" => [
+               "group_id",
+               "resource_scope",
+               "ground_station_id",
+               "spacecraft_id",
+               "starts_at_s",
+               "selected_contact_id",
+               "deferred_contact_ids"
+             ],
+             "ordering" => [
+               "resource_scope",
+               "ground_station_id",
+               "spacecraft_id",
+               "starts_at_s",
+               "group_id"
+             ],
+             "semantic_invariants" => [
+               "contention_group_id_must_flow_to_recommendation_group_id",
+               "source_record_order_must_not_change_recommendation_group_id",
+               "resolution_ordering_must_not_change_group_identity"
+             ]
+           } =
+             Enum.find(
+               policy["generated_id_scopes"],
+               &(&1["scope"] ==
+                   "contact_contention_resolution_report.v1.recommendations.generated_group_id")
+             )
+
+    assert %{
              "identity_fields" => [
                "source_spacecraft_id",
                "relay_chain_spacecraft_ids",
@@ -19888,10 +19947,14 @@ defmodule OrbitalDynamics.SchemaTest do
     assert bundle["compatibility_policy"] == policy
     assert bundle["identity_policy"] == Schema.identity_policy()
 
-    assert Enum.any?(
-             bundle["identity_policy"]["generated_id_scopes"],
-             &(&1["scope"] == "relay_data_path_summary.v1.rows.generated_route_id")
-           )
+    expected_generated_id_scopes = [
+      "contact_contention_report.v1.conflict_groups.generated_group_id",
+      "contact_contention_resolution_report.v1.recommendations.generated_group_id",
+      "relay_data_path_summary.v1.rows.generated_route_id"
+    ]
+
+    assert expected_generated_id_scopes --
+             Enum.map(bundle["identity_policy"]["generated_id_scopes"], & &1["scope"]) == []
 
     assert bundle["schemas"]["campaign_plan.v1"]["x-orbital-dynamics"][
              "compatibility_policy_version"
