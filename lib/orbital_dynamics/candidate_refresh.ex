@@ -5860,15 +5860,34 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local candidate-rejection replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, mutate candidates, select candidates,
-  import rejected candidates, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, mutate
+  candidates, select candidates, import rejected candidates, or write to
+  Cadence.
   """
   def candidate_rejection_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
+    branch_rejection_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "candidate_rejection_report")
+
     rejection_summary =
-      get_in(source_summary, ["source_reports", "candidate_rejection_report"]) || %{}
+      branch_rejection_summary ||
+        get_in(source_summary, ["source_reports", "candidate_rejection_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_rejection_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.candidate_rejection_report",
+          "candidate_rejection_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.candidate_rejection_report",
+          "candidate_rejection_source_report_provenance_only"
+        }
+      end
 
     rejected_count = summary_integer(rejection_summary, "rejected_count")
     reviewable_count = summary_integer(rejection_summary, "reviewable_count")
@@ -5898,7 +5917,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_candidate_rejection_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.candidate_rejection_report",
+      "source" => summary_source,
       "contract" =>
         source_report_summary_contract(rejection_summary, "candidate_rejection_report.v1"),
       "source_report_count" => summary_integer(rejection_summary, "count"),
@@ -5918,7 +5937,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "branch_local_invalid_input_pressure" => invalid_input_pressure,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "candidate_rejection_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_candidate_rejection_replay_summary",
         "candidate_selection" => "not_performed_by_summary",
         "import_approval" => "not_granted_by_candidate_rejection_replay_summary",

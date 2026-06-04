@@ -638,6 +638,10 @@ metadata that carries
 `candidate_refresh_request_source_report_summary`, so strategy-derived branch
 refreshes preserve rejection reasons and required-action routing through the
 branch provenance boundary.
+When the branch `candidate_rejection_report` source-report family is non-empty,
+the helper labels its output source and replay scope as candidate-source summary
+metadata, treats partial non-empty branch families as authoritative, and falls
+back to provenance labels for absent or empty branch families.
 Branch-generated refresh requests also preserve direct mission-state and
 result-artifact-wrapped raw `source_candidate_rejection_report` /
 `candidate_rejection_report` inputs, retaining wrapper-qualified request paths,
