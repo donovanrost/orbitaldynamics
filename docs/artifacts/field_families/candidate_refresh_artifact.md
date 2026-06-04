@@ -2154,14 +2154,14 @@ CandidateRefresh input alongside refresh-budget replay provenance.
 `CandidateRefresh.schema_validation_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_schema_validation_replay_summary/1` expose
 the schema-validation slice as a branch-local replay summary. It preserves
-source validation paths, status/contract/mode maps, error and warning counts,
-remediation action/category/path maps, trust-boundary evidence, and branch-local
-validation pressure booleans without mutating refresh state, approving imports,
-writing to Cadence, or regenerating candidates. Validation pressure is true for
-preserved status, validated-contract, or validation-mode maps, and error,
-warning, and remediation pressure are true for status maps and remediation
-routing maps even when the aggregate error, warning, or remediation counters are
-absent or zero.
+source validation contract, count, row-count, paths, status/contract/mode maps,
+error and warning counts, remediation action/category/path maps,
+trust-boundary evidence, and branch-local validation pressure booleans without
+mutating refresh state, approving imports, writing to Cadence, or regenerating
+candidates. Validation pressure is true for preserved status,
+validated-contract, or validation-mode maps, and error, warning, and
+remediation pressure are true for status maps and remediation routing maps even
+when the aggregate error, warning, or remediation counters are absent or zero.
 The replay helper can inspect V3 branch `candidate_source` metadata that carries
 `candidate_refresh_request_source_report_summary`, so strategy-derived branch
 refreshes preserve schema-validation status, error, and remediation routing
@@ -2184,7 +2184,11 @@ direct/list-valued `source_operator_review_package`,
 `result_artifact` containers are unpacked into the same review-row family with
 container-qualified `*.rows.source_schema_validation_report` paths.
 When schema-validation provenance is absent, the replay summary omits the
-contract field rather than defaulting to `schema_validation_report.v1`.
+contract field rather than defaulting to `schema_validation_report.v1`, and the
+aggregate source-report summary omits the top-level schema-validation identity
+rollups instead of emitting empty contract/count/row-count/path fields. Partial
+placeholder provenance does not synthesize count, row-count, or path identity
+rollups unless both identity counts are present and non-nil.
 Capability metadata advertises `schema_validation_report` and
 `schema_validation_batch_report` as accepted CandidateRefresh inputs alongside
 schema-validation replay provenance.

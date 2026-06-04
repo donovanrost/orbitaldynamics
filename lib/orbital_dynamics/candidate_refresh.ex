@@ -3767,6 +3767,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "schema_validation_report",
           "status_counts"
         ),
+      "source_report_schema_validation_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "schema_validation_report",
+          "contract"
+        ),
+      "source_report_schema_validation_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "schema_validation_report",
+          "count"
+        ),
+      "source_report_schema_validation_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "schema_validation_report",
+          "row_count"
+        ),
+      "source_report_schema_validation_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "schema_validation_report",
+          "paths"
+        ),
       "source_report_schema_validation_validated_contract_counts" =>
         source_report_summary_family_merge_count_maps(
           source_reports,
@@ -17805,7 +17829,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_report_summary_family_has_identity_counts?(source_reports, family) do
     case Map.get(source_reports, family) do
       %{} = summary ->
-        is_map_key(summary, "count") and is_map_key(summary, "row_count")
+        not is_nil(Map.get(summary, "count")) and not is_nil(Map.get(summary, "row_count"))
 
       _summary ->
         false

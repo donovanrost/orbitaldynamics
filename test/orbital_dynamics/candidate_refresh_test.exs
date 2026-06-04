@@ -22233,6 +22233,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_family_count" => 1,
              "source_report_count" => 2,
              "source_report_row_count" => 2,
+             "source_report_schema_validation_contract" => "schema_validation_report.v1",
+             "source_report_schema_validation_count" => 2,
+             "source_report_schema_validation_row_count" => 2,
+             "source_report_schema_validation_paths" => [
+               "source_schema_validation_report[0]",
+               "source_schema_validation_report[1]"
+             ],
              "source_report_schema_validation_status_counts" => %{
                "fail" => 1,
                "pass" => 1
@@ -22342,6 +22349,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 2,
+             "source_report_schema_validation_contract" => "schema_validation_report.v1",
+             "source_report_schema_validation_count" => 2,
+             "source_report_schema_validation_row_count" => 2,
+             "source_report_schema_validation_paths" => [
+               "source_schema_validation_report[0]",
+               "source_schema_validation_report[1]"
+             ],
              "source_report_schema_validation_status_counts" => %{
                "fail" => 1,
                "pass" => 1
@@ -22435,8 +22449,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "provenance" => %{"source_reports" => %{}}
     }
 
+    source_summary = CandidateRefresh.source_report_summary(artifact)
     summary = CandidateRefresh.schema_validation_replay_summary(artifact)
 
+    refute Map.has_key?(source_summary, "source_report_schema_validation_contract")
+    refute Map.has_key?(source_summary, "source_report_schema_validation_count")
+    refute Map.has_key?(source_summary, "source_report_schema_validation_row_count")
+    refute Map.has_key?(source_summary, "source_report_schema_validation_paths")
     assert summary["source_report_count"] == 0
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_paths"] == []
@@ -22445,6 +22464,45 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     refute summary["branch_local_schema_error_pressure"]
     refute summary["branch_local_schema_warning_pressure"]
     refute summary["branch_local_remediation_pressure"]
+  end
+
+  test "schema validation source summary omits missing identity counts for partial family placeholder" do
+    partial_summaries = [
+      %{"contract" => "schema_validation_report.v1"},
+      %{"count" => 2},
+      %{"row_count" => 2},
+      %{"paths" => ["provenance.source_reports.schema_validation_report"]},
+      %{"count" => nil, "row_count" => nil},
+      %{
+        "count" => nil,
+        "row_count" => nil,
+        "paths" => ["provenance.source_reports.schema_validation_report"]
+      }
+    ]
+
+    for partial_summary <- partial_summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "schema_validation_report" => partial_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      if Map.has_key?(partial_summary, "contract") do
+        assert source_summary["source_report_schema_validation_contract"] ==
+                 "schema_validation_report.v1"
+      else
+        refute Map.has_key?(source_summary, "source_report_schema_validation_contract")
+      end
+
+      refute Map.has_key?(source_summary, "source_report_schema_validation_count")
+      refute Map.has_key?(source_summary, "source_report_schema_validation_row_count")
+      refute Map.has_key?(source_summary, "source_report_schema_validation_paths")
+    end
   end
 
   test "schema validation replay treats status and remediation maps as pressure" do
