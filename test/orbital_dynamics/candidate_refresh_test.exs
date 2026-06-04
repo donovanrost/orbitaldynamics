@@ -2646,6 +2646,15 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         }
       ]
       |> ContactIntent.summary()
+      |> Map.merge(%{
+        "direction_counts" => %{"uplink" => 99},
+        "direction_routing" => %{
+          "uplink" => %{
+            "contact_count" => 99,
+            "contact_ids" => ["stale_route_from_embedded_summary"]
+          }
+        }
+      })
       |> Map.put("provenance", %{"trust_boundary" => "direct_contact_summary"})
 
     wrapped_summary =
@@ -2667,6 +2676,26 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         "schema_contract" => "result_artifact.v1",
         "provenance" => %{"trust_boundary" => "wrapped_contact_summary"},
         "contact_intent_summary" => wrapped_summary
+      }
+    }
+
+    expected_direction_routing = %{
+      "command" => %{
+        "contact_count" => 1,
+        "contact_ids" => ["summary_command_contact"],
+        "capacity_pack_contact_ids" => []
+      },
+      "downlink" => %{
+        "contact_count" => 1,
+        "contact_ids" => ["summary_downlink_contact"],
+        "capacity_pack_required_capacity_fraction" => 0.25,
+        "capacity_pack_contact_ids" => ["summary_downlink_contact"]
+      },
+      "tracking" => %{
+        "contact_count" => 1,
+        "contact_ids" => ["summary_tracking_contact"],
+        "capacity_pack_required_capacity_fraction" => 0.4,
+        "capacity_pack_contact_ids" => ["summary_tracking_contact"]
       }
     }
 
@@ -2734,25 +2763,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                    "source_result_artifact.contact_intent_summary"
                  ],
                  "directions" => ["command", "downlink", "tracking"],
-                 "direction_routing" => %{
-                   "command" => %{
-                     "contact_count" => 1,
-                     "contact_ids" => ["summary_command_contact"],
-                     "capacity_pack_contact_ids" => []
-                   },
-                   "downlink" => %{
-                     "contact_count" => 1,
-                     "contact_ids" => ["summary_downlink_contact"],
-                     "capacity_pack_required_capacity_fraction" => 0.25,
-                     "capacity_pack_contact_ids" => ["summary_downlink_contact"]
-                   },
-                   "tracking" => %{
-                     "contact_count" => 1,
-                     "contact_ids" => ["summary_tracking_contact"],
-                     "capacity_pack_required_capacity_fraction" => 0.4,
-                     "capacity_pack_contact_ids" => ["summary_tracking_contact"]
-                   }
-                 },
+                 "direction_routing" => ^expected_direction_routing,
                  "trust_boundary_status" => "declared",
                  "trust_boundaries" => [
                    "direct_contact_summary",
@@ -2786,25 +2797,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "downlink" => ["summary_downlink_contact"],
                "tracking" => ["summary_tracking_contact"]
              },
-             "direction_routing" => %{
-               "command" => %{
-                 "contact_count" => 1,
-                 "contact_ids" => ["summary_command_contact"],
-                 "capacity_pack_contact_ids" => []
-               },
-               "downlink" => %{
-                 "contact_count" => 1,
-                 "contact_ids" => ["summary_downlink_contact"],
-                 "capacity_pack_required_capacity_fraction" => 0.25,
-                 "capacity_pack_contact_ids" => ["summary_downlink_contact"]
-               },
-               "tracking" => %{
-                 "contact_count" => 1,
-                 "contact_ids" => ["summary_tracking_contact"],
-                 "capacity_pack_required_capacity_fraction" => 0.4,
-                 "capacity_pack_contact_ids" => ["summary_tracking_contact"]
-               }
-             },
+             "direction_routing" => ^expected_direction_routing,
              "trust_boundary_status" => "declared",
              "trust_boundaries" => ["direct_contact_summary", "wrapped_contact_summary"],
              "branch_local_contact_intent_pressure" => true,
