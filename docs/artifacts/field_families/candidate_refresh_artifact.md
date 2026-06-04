@@ -1863,6 +1863,12 @@ The replay helper can inspect V3 branch `candidate_source` metadata that carries
 refreshes preserve operational-timeline feedback, row-derived action/import
 maps, activity-routing, trust-boundary, and branch-local pressure through the
 branch provenance boundary.
+When the V3 branch carries a non-empty
+`candidate_source.candidate_refresh_request_source_report_summary.source_reports.operational_timeline_report`
+family, the replay helper labels its output source and replay scope as
+candidate-source summary metadata, treats partial non-empty branch families as
+authoritative, and falls back to provenance labels only when that branch family
+is absent or empty.
 Candidate-refresh operator-review packages also lift direct
 `source_operational_timeline_report` / `operational_timeline_report` rows and
 operational-timeline reports preserved as exact `source_result_artifact` /

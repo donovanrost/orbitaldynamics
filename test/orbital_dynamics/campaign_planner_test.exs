@@ -30212,6 +30212,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            ]
 
     assert %{
+             "source" =>
+               "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.operational_timeline_report",
              "contract" => "operational_timeline_report.v1",
              "source_report_count" => 3,
              "source_report_row_count" => 3,
@@ -30233,6 +30235,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "branch_local_feedback_pressure" => true,
              "branch_local_activity_routing_pressure" => true,
              "assumptions" => %{
+               "replay_scope" => "operational_timeline_candidate_source_report_summary_only",
                "operational_feedback_application" => "not_performed_by_summary",
                "timeline_mutation" => "not_performed_by_summary",
                "candidate_generation" => "not_performed_by_summary"
@@ -58404,7 +58407,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "candidate_source",
              "source_operational_feedback_provenance",
              "source_operational_timeline_report_paths"
-           ]) == ["source_operational_timeline_report"]
+           ]) == ["operational_timeline_report"]
 
     assert get_in(command_branch, [
              "assumptions",
@@ -58419,10 +58422,12 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       CandidateRefresh.operational_timeline_replay_summary(candidate_source)
 
     assert %{
+             "source" =>
+               "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.operational_timeline_report",
              "contract" => "operational_timeline_report.v1",
              "source_report_count" => 1,
              "source_report_row_count" => 2,
-             "source_report_paths" => ["source_operational_timeline_report"],
+             "source_report_paths" => ["operational_timeline_report"],
              "contact_feedback_count" => 1,
              "command_feedback_count" => 1,
              "maneuver_feedback_count" => 0,
@@ -58448,7 +58453,10 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "branch_local_operational_timeline_pressure" => true,
              "branch_local_feedback_pressure" => true,
              "branch_local_integrity_pressure" => false,
-             "branch_local_station_reservation_pressure" => false
+             "branch_local_station_reservation_pressure" => false,
+             "assumptions" => %{
+               "replay_scope" => "operational_timeline_candidate_source_report_summary_only"
+             }
            } = operational_timeline_replay_summary
 
     assert "command_success_rate" in operational_timeline_input_keys
