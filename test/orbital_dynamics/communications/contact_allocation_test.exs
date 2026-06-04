@@ -2269,6 +2269,9 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              "reservation_conflict_contact_ids_by_match_status" => %{
                "overlap" => ["dl_reserved_intruder"]
              },
+             "reservation_conflict_contact_ids_by_direction_and_ground_station_id" => %{
+               "downlink" => %{"equator_prime" => ["dl_reserved_intruder"]}
+             },
              "station_reservation_contact_ids_by_status" => %{
                "confirmed" => ["dl_reserved_intruder", "dl_reserved_owner"]
              },
@@ -2362,6 +2365,22 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              stale_conflict_count_errors["errors"],
              &(&1["path"] == "$.reservation_conflict_contact_count" and
                  &1["message"] == "must equal row-derived reservation_conflict_contact_count")
+           )
+
+    stale_conflict_direction_station =
+      Map.put(summary, "reservation_conflict_contact_ids_by_direction_and_ground_station_id", %{
+        "uplink" => %{"equator_prime" => ["dl_reserved_intruder"]}
+      })
+
+    assert {:error, stale_conflict_direction_station_errors} =
+             Schema.validate_artifact(stale_conflict_direction_station)
+
+    assert Enum.any?(
+             stale_conflict_direction_station_errors["errors"],
+             &(&1["path"] ==
+                 "$.reservation_conflict_contact_ids_by_direction_and_ground_station_id" and
+                 &1["message"] ==
+                   "must equal row-derived reservation_conflict_contact_ids_by_direction_and_ground_station_id")
            )
 
     stale_conflict_rows =
@@ -6311,6 +6330,15 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              },
              "station_pressure_contact_counts_by_precedence_rank" => %{
                "0" => 1
+             },
+             "station_pressure_contact_ids_by_direction_and_ground_station_id" => %{
+               "downlink" => %{
+                 "equator_prime" => [
+                   "dl_direct_reserved",
+                   "dl_direct_unavailable",
+                   "dl_nested_outage_overrides_flat_available"
+                 ]
+               }
              }
            } = report
 
@@ -6327,6 +6355,15 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              },
              "station_pressure_contact_ids_by_precedence_rank" => %{
                "0" => ["dl_direct_unavailable"]
+             },
+             "station_pressure_contact_ids_by_direction_and_ground_station_id" => %{
+               "downlink" => %{
+                 "equator_prime" => [
+                   "dl_direct_reserved",
+                   "dl_direct_unavailable",
+                   "dl_nested_outage_overrides_flat_available"
+                 ]
+               }
              }
            } = ContactAllocation.summary(report)
 
@@ -6361,6 +6398,22 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              &(&1["path"] == "$.station_pressure_contact_counts_by_precedence_rank" and
                  &1["message"] ==
                    "must equal row-derived station_pressure_contact_counts_by_precedence_rank")
+           )
+
+    stale_direction_station_report =
+      Map.put(report, "station_pressure_contact_ids_by_direction_and_ground_station_id", %{
+        "uplink" => %{"equator_prime" => ["dl_direct_reserved"]}
+      })
+
+    assert {:error, stale_direction_station_validation} =
+             Schema.validate_artifact(stale_direction_station_report)
+
+    assert Enum.any?(
+             stale_direction_station_validation["errors"],
+             &(&1["path"] ==
+                 "$.station_pressure_contact_ids_by_direction_and_ground_station_id" and
+                 &1["message"] ==
+                   "must equal row-derived station_pressure_contact_ids_by_direction_and_ground_station_id")
            )
   end
 

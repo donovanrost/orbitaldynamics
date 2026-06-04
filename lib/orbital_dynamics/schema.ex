@@ -4276,6 +4276,7 @@ defmodule OrbitalDynamics.Schema do
         "station_pressure_contact_counts_by_precedence_availability",
         "station_pressure_contact_ids_by_precedence_rank",
         "station_pressure_contact_counts_by_precedence_rank",
+        "station_pressure_contact_ids_by_direction_and_ground_station_id",
         "allocation_status_counts",
         "effective_allocation_status_counts",
         "allocation_reason_counts",
@@ -4404,6 +4405,7 @@ defmodule OrbitalDynamics.Schema do
         "source",
         "station_reservation_expiration_now_s",
         "earliest_station_reservation_expires_at_s",
+        "station_pressure_contact_ids_by_direction_and_ground_station_id",
         "model_limits"
       ],
       "nested_contracts" => ["contact_allocation_report.v1"]
@@ -4448,6 +4450,7 @@ defmodule OrbitalDynamics.Schema do
         "source",
         "station_reservation_expiration_now_s",
         "earliest_station_reservation_expires_at_s",
+        "reservation_conflict_contact_ids_by_direction_and_ground_station_id",
         "model_limits"
       ],
       "nested_contracts" => ["contact_allocation_report.v1"]
@@ -4479,6 +4482,7 @@ defmodule OrbitalDynamics.Schema do
       ],
       "optional_fields" => [
         "source",
+        "station_pressure_contact_ids_by_direction_and_ground_station_id",
         "model_limits"
       ],
       "nested_contracts" => ["contact_allocation_report.v1"]
@@ -13729,6 +13733,13 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @contact_allocation_report, _contract)
+       when field in [
+              "station_pressure_contact_ids_by_direction_and_ground_station_id"
+            ] do
+    nested_stable_id_array_map_json_schema()
+  end
+
+  defp json_schema_property(field, @contact_allocation_report, _contract)
        when field in ["station_reserved_bys", "station_reservation_statuses"] do
     string_array_schema()
   end
@@ -13945,6 +13956,24 @@ defmodule OrbitalDynamics.Schema do
               "earliest_station_reservation_expires_at_s"
             ] do
     %{"type" => "number"}
+  end
+
+  defp json_schema_property(field, @contact_allocation_summary, _contract)
+       when field in [
+              "station_pressure_contact_ids_by_direction_and_ground_station_id"
+            ] do
+    nested_stable_id_array_map_json_schema()
+  end
+
+  defp json_schema_property(
+         field,
+         @contact_allocation_reservation_conflict_summary,
+         _contract
+       )
+       when field in [
+              "reservation_conflict_contact_ids_by_direction_and_ground_station_id"
+            ] do
+    nested_stable_id_array_map_json_schema()
   end
 
   defp json_schema_property(field, @contact_allocation_summary, _contract)
@@ -14234,6 +14263,13 @@ defmodule OrbitalDynamics.Schema do
               "station_pressure_contact_ids_by_precedence_rank"
             ] do
     stable_id_array_map_schema()
+  end
+
+  defp json_schema_property(field, @contact_allocation_station_pressure_summary, _contract)
+       when field in [
+              "station_pressure_contact_ids_by_direction_and_ground_station_id"
+            ] do
+    nested_stable_id_array_map_json_schema()
   end
 
   defp json_schema_property(field, @contact_allocation_station_pressure_summary, _contract)
@@ -43930,6 +43966,13 @@ defmodule OrbitalDynamics.Schema do
       |> id_array_count_map(),
       "must equal row-derived station_pressure_contact_counts_by_precedence_rank"
     )
+    |> expect_optional_field_equals(
+      path,
+      report,
+      "station_pressure_contact_ids_by_direction_and_ground_station_id",
+      row_ids_by_direction_and_ground_station(station_pressure_rows, "contact_id"),
+      "must equal row-derived station_pressure_contact_ids_by_direction_and_ground_station_id"
+    )
     |> expect_field_equals(
       path,
       report,
@@ -44102,6 +44145,16 @@ defmodule OrbitalDynamics.Schema do
       end)
 
     issues
+    |> expect_optional_type(
+      path,
+      summary,
+      "station_pressure_contact_ids_by_direction_and_ground_station_id",
+      :map
+    )
+    |> validate_nested_stable_id_array_map(
+      path <> ".station_pressure_contact_ids_by_direction_and_ground_station_id",
+      Map.get(summary, "station_pressure_contact_ids_by_direction_and_ground_station_id")
+    )
     |> expect_type(path, summary, "station_reservation_expires_at_s", :list)
     |> validate_number_list_items(path, summary, "station_reservation_expires_at_s")
     |> expect_optional_number(path, summary, "station_reservation_expiration_now_s")
@@ -44741,6 +44794,13 @@ defmodule OrbitalDynamics.Schema do
       |> id_array_count_map(),
       "must equal row-derived station_pressure_contact_counts_by_precedence_rank"
     )
+    |> expect_optional_field_equals(
+      path,
+      summary,
+      "station_pressure_contact_ids_by_direction_and_ground_station_id",
+      row_ids_by_direction_and_ground_station(station_pressure_rows, "contact_id"),
+      "must equal row-derived station_pressure_contact_ids_by_direction_and_ground_station_id"
+    )
     |> expect_field_equals(
       path,
       summary,
@@ -44995,6 +45055,16 @@ defmodule OrbitalDynamics.Schema do
       path <> ".reservation_conflict_contact_ids_by_match_status",
       Map.get(summary, "reservation_conflict_contact_ids_by_match_status")
     )
+    |> expect_optional_type(
+      path,
+      summary,
+      "reservation_conflict_contact_ids_by_direction_and_ground_station_id",
+      :map
+    )
+    |> validate_nested_stable_id_array_map(
+      path <> ".reservation_conflict_contact_ids_by_direction_and_ground_station_id",
+      Map.get(summary, "reservation_conflict_contact_ids_by_direction_and_ground_station_id")
+    )
     |> expect_type(path, summary, "station_reservation_contact_ids_by_status", :map)
     |> validate_stable_id_array_map(
       path <> ".station_reservation_contact_ids_by_status",
@@ -45215,6 +45285,13 @@ defmodule OrbitalDynamics.Schema do
       row_ids_by_field(conflict_rows, "station_reservation_match_status", "contact_id"),
       "must equal row-derived reservation_conflict_contact_ids_by_match_status"
     )
+    |> expect_optional_field_equals(
+      path,
+      summary,
+      "reservation_conflict_contact_ids_by_direction_and_ground_station_id",
+      row_ids_by_direction_and_ground_station(conflict_rows, "contact_id"),
+      "must equal row-derived reservation_conflict_contact_ids_by_direction_and_ground_station_id"
+    )
     |> expect_field_equals(
       path,
       summary,
@@ -45387,6 +45464,16 @@ defmodule OrbitalDynamics.Schema do
       path <> ".station_pressure_contact_counts_by_precedence_rank",
       Map.get(summary, "station_pressure_contact_counts_by_precedence_rank")
     )
+    |> expect_optional_type(
+      path,
+      summary,
+      "station_pressure_contact_ids_by_direction_and_ground_station_id",
+      :map
+    )
+    |> validate_nested_stable_id_array_map(
+      path <> ".station_pressure_contact_ids_by_direction_and_ground_station_id",
+      Map.get(summary, "station_pressure_contact_ids_by_direction_and_ground_station_id")
+    )
     |> expect_type(path, summary, "rows", :list)
     |> validate_rows(
       path <> ".rows",
@@ -45546,6 +45633,13 @@ defmodule OrbitalDynamics.Schema do
       "station_pressure_contact_counts_by_precedence_rank",
       id_array_count_map(ids_by_precedence_rank),
       "must equal row-derived station_pressure_contact_counts_by_precedence_rank"
+    )
+    |> expect_optional_field_equals(
+      path,
+      summary,
+      "station_pressure_contact_ids_by_direction_and_ground_station_id",
+      row_ids_by_direction_and_ground_station(station_pressure_rows, "contact_id"),
+      "must equal row-derived station_pressure_contact_ids_by_direction_and_ground_station_id"
     )
     |> expect_field_equals(
       path,
@@ -53269,6 +53363,30 @@ defmodule OrbitalDynamics.Schema do
     rows
     |> row_ids_by_field(group_field, id_field)
     |> Map.new(fn {group, ids} -> {to_string(group), ids} end)
+  end
+
+  defp row_ids_by_direction_and_ground_station(rows, id_field) do
+    rows
+    |> Enum.filter(&is_map/1)
+    |> Enum.reduce(%{}, fn row, acc ->
+      direction = Map.get(row, "direction")
+      ground_station_id = Map.get(row, "ground_station_id")
+      id = Map.get(row, id_field)
+
+      if direction in [nil, ""] or ground_station_id in [nil, ""] or id in [nil, ""] do
+        acc
+      else
+        Map.update(acc, direction, %{ground_station_id => [id]}, fn station_map ->
+          Map.update(station_map, ground_station_id, [id], fn ids -> [id | ids] end)
+        end)
+      end
+    end)
+    |> Map.new(fn {direction, station_map} ->
+      {direction,
+       Map.new(station_map, fn {ground_station_id, ids} ->
+         {ground_station_id, ids |> Enum.uniq() |> Enum.sort()}
+       end)}
+    end)
   end
 
   defp id_array_count_map(id_arrays) when is_map(id_arrays) do

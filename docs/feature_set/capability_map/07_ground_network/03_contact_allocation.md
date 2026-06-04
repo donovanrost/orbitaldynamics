@@ -70,8 +70,9 @@ The contact-filter, contact-contention, contact-intent, and command-window repor
   through candidate-refresh contact-allocation replay for branch-local
   allocation queues
 - row-derived direction counts/contact-ID maps plus station-pressure and
-  reservation-conflict direction routing, preserved through candidate-refresh
-  contact-allocation replay for branch-local direction-scoped review queues
+  reservation-conflict direction and direction/ground-station routing,
+  preserved through candidate-refresh contact-allocation replay for branch-local
+  direction-scoped review queues
 - invalid-input, duplicate-contact-ID, status-blocked, and resource-blocked
   counts/contact IDs plus resource-blocked maps by blocking dimension and
   spacecraft, preserved through candidate-refresh contact-allocation replay for
@@ -82,9 +83,10 @@ The contact-filter, contact-contention, contact-intent, and command-window repor
   requirement source, contact IDs by capacity-pack status, and reduced-capacity
   packed/deferred ID sets, plus reduced-capacity pack group counts/statuses/IDs
   preserved through candidate-refresh contact-allocation replay
-- station-pressure contact IDs by ground station, availability, precedence
-  availability, precedence rank, and review requirement, preserved through
-  candidate-refresh contact-allocation replay for branch-local station queues
+- station-pressure contact IDs by ground station, direction/ground-station,
+  availability, precedence availability, precedence rank, and review
+  requirement, preserved through candidate-refresh contact-allocation replay for
+  branch-local station queues
 - reservation IDs
 - trust-boundary counts
 - explicit no-provider-reservation / no-authority assumptions

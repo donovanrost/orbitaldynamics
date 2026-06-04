@@ -503,6 +503,9 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     station_pressure_contact_ids_by_precedence_rank =
       contact_ids_by_string_field(station_pressure_rows, "station_calendar_precedence_rank")
 
+    station_pressure_contact_ids_by_direction_and_ground_station_id =
+      contact_ids_by_direction_and_ground_station_id(station_pressure_rows)
+
     reservation_expiration_rows =
       station_reservation_expiration_summary_rows(allocation_rows, nil)
 
@@ -575,6 +578,8 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
           station_pressure_contact_ids_by_precedence_rank,
         "station_pressure_contact_counts_by_precedence_rank" =>
           id_set_count_map(station_pressure_contact_ids_by_precedence_rank),
+        "station_pressure_contact_ids_by_direction_and_ground_station_id" =>
+          station_pressure_contact_ids_by_direction_and_ground_station_id,
         "invalid_contact_input_count" => length(invalid_contact_inputs),
         "invalid_contact_input_ids" =>
           Enum.map(invalid_contact_rows(invalid_contact_inputs), & &1["contact_id"]),
@@ -973,6 +978,9 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     station_pressure_contact_ids_by_precedence_rank =
       contact_ids_by_string_field(station_pressure_rows, "station_calendar_precedence_rank")
 
+    station_pressure_contact_ids_by_direction_and_ground_station_id =
+      contact_ids_by_direction_and_ground_station_id(station_pressure_rows)
+
     capacity_pack_rows = capacity_pack_summary_rows(rows)
     selected_capacity_pack_rows = selected_capacity_pack_summary_rows(capacity_pack_rows)
     deferred_capacity_pack_rows = deferred_capacity_pack_summary_rows(capacity_pack_rows)
@@ -1092,6 +1100,8 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
         station_pressure_contact_ids_by_precedence_rank,
       "station_pressure_contact_counts_by_precedence_rank" =>
         id_set_count_map(station_pressure_contact_ids_by_precedence_rank),
+      "station_pressure_contact_ids_by_direction_and_ground_station_id" =>
+        station_pressure_contact_ids_by_direction_and_ground_station_id,
       "station_reservation_contact_ids_by_match_status" =>
         contact_ids_by_field(rows, "station_reservation_match_status"),
       "station_reservation_contact_ids_by_status" =>
@@ -1173,6 +1183,9 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     contact_ids_by_precedence_rank =
       contact_ids_by_string_field(station_pressure_rows, "station_calendar_precedence_rank")
 
+    contact_ids_by_direction_and_ground_station_id =
+      contact_ids_by_direction_and_ground_station_id(station_pressure_rows)
+
     review_rows = Enum.filter(station_pressure_rows, &allocation_summary_review_row?/1)
 
     %{
@@ -1198,6 +1211,8 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
       "station_pressure_contact_ids_by_precedence_rank" => contact_ids_by_precedence_rank,
       "station_pressure_contact_counts_by_precedence_rank" =>
         id_set_count_map(contact_ids_by_precedence_rank),
+      "station_pressure_contact_ids_by_direction_and_ground_station_id" =>
+        contact_ids_by_direction_and_ground_station_id,
       "rows" => rows,
       "review_rows" => review_rows,
       "model_limits" => model_limits(),
@@ -1305,6 +1320,9 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     review_rows = Enum.filter(reservation_rows, &allocation_summary_review_row?/1)
     expiration_rows = station_reservation_expiration_summary_rows(reservation_rows, now_s)
 
+    conflict_contact_ids_by_direction_and_ground_station_id =
+      contact_ids_by_direction_and_ground_station_id(conflict_rows)
+
     %{
       "schema_contract" => @reservation_conflict_summary_schema_contract,
       "model" => "artifact_only_contact_allocation_reservation_conflict_summary",
@@ -1336,6 +1354,8 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
         contact_ids_by_field(reservation_rows, "station_reservation_match_status"),
       "reservation_conflict_contact_ids_by_match_status" =>
         contact_ids_by_field(conflict_rows, "station_reservation_match_status"),
+      "reservation_conflict_contact_ids_by_direction_and_ground_station_id" =>
+        conflict_contact_ids_by_direction_and_ground_station_id,
       "station_reservation_contact_ids_by_status" =>
         contact_ids_by_field(reservation_rows, "station_reservation_status"),
       "station_reservation_contact_ids_by_reserved_by" =>
@@ -1655,6 +1675,31 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
       is_nil(field_value) or Enum.all?(ids, &is_nil/1)
     end)
     |> Map.new(fn {field_value, ids} -> {field_value, sorted_stable_ids(ids)} end)
+  end
+
+  defp contact_ids_by_direction_and_ground_station_id(rows) do
+    rows
+    |> Enum.reduce(%{}, fn row, acc ->
+      direction = normalize_direction(row["direction"] || row["type"])
+      ground_station_id = row["ground_station_id"]
+      contact_id = row["contact_id"]
+
+      if direction in [nil, ""] or ground_station_id in [nil, ""] or contact_id in [nil, ""] do
+        acc
+      else
+        Map.update(acc, direction, %{ground_station_id => [contact_id]}, fn station_map ->
+          Map.update(station_map, ground_station_id, [contact_id], fn contact_ids ->
+            [contact_id | contact_ids]
+          end)
+        end)
+      end
+    end)
+    |> Map.new(fn {direction, station_map} ->
+      {direction,
+       Map.new(station_map, fn {station_id, contact_ids} ->
+         {station_id, sorted_stable_ids(contact_ids)}
+       end)}
+    end)
   end
 
   defp contact_id_count_map(rows, field) do

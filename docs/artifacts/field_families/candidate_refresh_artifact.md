@@ -905,17 +905,19 @@ Direct or result-artifact-wrapped
 family, preserving the validated
 `contact_allocation_station_pressure_summary.v1` contract, source paths, trust
 boundary, row counts, station-pressure review contact IDs, precedence
-availability/rank maps, direction maps, and station-pressure count/contact-ID
-maps even when replay uses compact summary maps rather than reopening raw rows.
-This remains an artifact-only no-allocation/no candidate-selection boundary.
+availability/rank maps, direction maps, direction/ground-station maps, and
+station-pressure count/contact-ID maps even when replay uses compact summary
+maps rather than reopening raw rows. This remains an artifact-only
+no-allocation/no candidate-selection boundary.
 Direct or result-artifact-wrapped
 `source_contact_allocation_reservation_conflict_summary` /
 `contact_allocation_reservation_conflict_summary` inputs replay through the same
 family, preserving the validated
 `contact_allocation_reservation_conflict_summary.v1` contract, source paths,
 trust boundary, row counts, conflict/contact/reservation routing maps,
-direction-scoped conflict contact routing from compact summary maps, expiration
-evidence, and the artifact-only no-allocation/no candidate-selection boundary.
+direction-scoped and direction/ground-station conflict contact routing from
+compact summary maps, expiration evidence, and the artifact-only
+no-allocation/no candidate-selection boundary.
 Direct or result-artifact-wrapped
 `source_contact_allocation_capacity_pack_summary` /
 `contact_allocation_capacity_pack_summary` inputs replay through the same
@@ -931,9 +933,10 @@ The public contact-allocation report publishes the validated
 `model_limits` pinned by executable validation and schema export.
 Flattened source-report summaries expose station-pressure contact counts and
 count maps by ground station, availability, precedence availability, and
-precedence rank alongside the corresponding contact-ID maps, and they expose
-capacity-pack status and contact-status count maps alongside the capacity-pack
-contact-ID status maps. The public contact-allocation summary publishes the
+precedence rank alongside the corresponding contact-ID maps, preserve
+station-pressure and reservation-conflict direction/ground-station routing, and
+they expose capacity-pack status and contact-status count maps alongside the
+capacity-pack contact-ID status maps. The public contact-allocation summary publishes the
 validated `contact_allocation_summary.v1` contract, with allocation,
 station-pressure, reservation, capacity-pack, resource-blocked, and review
 fields derived from the included allocation rows and reduced-capacity pack

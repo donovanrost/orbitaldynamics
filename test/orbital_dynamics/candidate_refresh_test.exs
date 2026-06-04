@@ -5231,6 +5231,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_contact_allocation_station_pressure_contact_ids_by_direction" => %{
                "command" => ["station_pressure_contact"]
              },
+             "source_report_contact_allocation_station_pressure_contact_ids_by_direction_and_ground_station" =>
+               %{
+                 "command" => %{"polar_prime" => ["station_pressure_contact"]}
+               },
              "source_report_contact_allocation_station_pressure_review_contact_count" => 1,
              "source_report_contact_allocation_station_pressure_review_contact_ids" => [
                "station_pressure_contact"
@@ -5380,6 +5384,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  },
                  "station_pressure_contact_ids_by_direction" => %{
                    "command" => ["station_pressure_contact"]
+                 },
+                 "station_pressure_contact_ids_by_direction_and_ground_station" => %{
+                   "command" => %{"polar_prime" => ["station_pressure_contact"]}
                  },
                  "station_pressure_contact_count" => 1,
                  "station_pressure_review_contact_count" => 1,
@@ -5554,6 +5561,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "station_pressure_direction_counts" => %{"command" => 1},
       "station_pressure_contact_ids_by_direction" => %{
         "command" => ["station_pressure_contact"]
+      },
+      "station_pressure_contact_ids_by_direction_and_ground_station" => %{
+        "command" => %{"polar_prime" => ["station_pressure_contact"]}
       },
       "trust_boundary_status" => "declared",
       "trust_boundaries" => ["ops_contact_allocation"],
@@ -6220,6 +6230,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              },
              "source_report_contact_allocation_station_pressure_contact_ids_by_ground_station" =>
                %{"equator_prime" => ["dl_station_pressure"]},
+             "source_report_contact_allocation_station_pressure_contact_ids_by_direction_and_ground_station" =>
+               %{
+                 "downlink" => %{"equator_prime" => ["dl_station_pressure"]}
+               },
              "source_reports" => %{
                "contact_allocation_report" => %{
                  "paths" => ["source_contact_allocation_station_pressure_summary"],
@@ -6236,6 +6250,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "station_pressure_review_contact_count" => 1,
              "station_pressure_contact_ids_by_ground_station" => %{
                "equator_prime" => ["dl_station_pressure"]
+             },
+             "station_pressure_contact_ids_by_direction_and_ground_station" => %{
+               "downlink" => %{"equator_prime" => ["dl_station_pressure"]}
              },
              "station_pressure_availability_counts" => %{"reserved" => 1},
              "station_pressure_summary_schema_contract" =>
@@ -6271,6 +6288,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_contact_allocation_station_pressure_contact_ids_by_direction" => %{
                "downlink" => ["dl_station_pressure"]
              },
+             "source_report_contact_allocation_station_pressure_contact_ids_by_direction_and_ground_station" =>
+               %{
+                 "downlink" => %{"equator_prime" => ["dl_station_pressure"]}
+               },
              "source_report_contact_allocation_station_pressure_review_contact_ids" => [
                "dl_station_pressure"
              ],
@@ -6284,6 +6305,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  },
                  "station_pressure_contact_ids_by_direction" => %{
                    "downlink" => ["dl_station_pressure"]
+                 },
+                 "station_pressure_contact_ids_by_direction_and_ground_station" => %{
+                   "downlink" => %{"equator_prime" => ["dl_station_pressure"]}
                  },
                  "station_pressure_review_contact_ids" => ["dl_station_pressure"]
                }
@@ -6301,6 +6325,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              },
              "station_pressure_contact_ids_by_direction" => %{
                "downlink" => ["dl_station_pressure"]
+             },
+             "station_pressure_contact_ids_by_direction_and_ground_station" => %{
+               "downlink" => %{"equator_prime" => ["dl_station_pressure"]}
              },
              "station_pressure_review_contact_ids" => ["dl_station_pressure"],
              "branch_local_contact_allocation_pressure" => true,
@@ -6374,6 +6401,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_contact_allocation_reservation_conflict_contact_ids" => [
                "dl_reserved_intruder"
              ],
+             "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction_and_ground_station" =>
+               %{
+                 "downlink" => %{"equator_prime" => ["dl_reserved_intruder"]}
+               },
              "source_report_contact_allocation_reservation_conflict_match_status_counts" => %{
                "overlap" => 1
              },
@@ -6398,6 +6429,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "reservation_conflict_match_status_counts" => %{"overlap" => 1},
              "reservation_conflict_contact_ids_by_match_status" => %{
                "overlap" => ["dl_reserved_intruder"]
+             },
+             "reservation_conflict_contact_ids_by_direction_and_ground_station" => %{
+               "downlink" => %{"equator_prime" => ["dl_reserved_intruder"]}
              },
              "reservation_conflict_reservation_ids_by_match_status" => %{
                "overlap" => ["reservation_1"]
@@ -6433,10 +6467,17 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                %{
                  "downlink" => ["dl_reserved_intruder"]
                },
+             "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction_and_ground_station" =>
+               %{
+                 "downlink" => %{"equator_prime" => ["dl_reserved_intruder"]}
+               },
              "source_reports" => %{
                "contact_allocation_report" => %{
                  "reservation_conflict_contact_ids_by_direction" => %{
                    "downlink" => ["dl_reserved_intruder"]
+                 },
+                 "reservation_conflict_contact_ids_by_direction_and_ground_station" => %{
+                   "downlink" => %{"equator_prime" => ["dl_reserved_intruder"]}
                  }
                }
              }
@@ -6446,6 +6487,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "reservation_conflict_direction_counts" => %{"downlink" => 1},
              "reservation_conflict_contact_ids_by_direction" => %{
                "downlink" => ["dl_reserved_intruder"]
+             },
+             "reservation_conflict_contact_ids_by_direction_and_ground_station" => %{
+               "downlink" => %{"equator_prime" => ["dl_reserved_intruder"]}
              },
              "branch_local_reservation_conflict_pressure" => true
            } = CandidateRefresh.contact_allocation_replay_summary(refresh)
@@ -45506,6 +45550,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "station_pressure_contact_ids_by_direction" => %{
         "downlink" => ["dl_station_pressure"]
       },
+      "station_pressure_contact_ids_by_direction_and_ground_station_id" => %{
+        "downlink" => %{"equator_prime" => ["dl_station_pressure"]}
+      },
       "rows" => [nominal_row, station_pressure_row],
       "review_rows" => [station_pressure_row],
       "assumptions" => %{
@@ -45575,6 +45622,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       },
       "reservation_conflict_contact_ids_by_direction" => %{
         "downlink" => ["dl_reserved_intruder"]
+      },
+      "reservation_conflict_contact_ids_by_direction_and_ground_station_id" => %{
+        "downlink" => %{"equator_prime" => ["dl_reserved_intruder"]}
       },
       "station_reservation_contact_ids_by_status" => %{
         "confirmed" => ["dl_reserved_intruder", "dl_reserved_owner"]
