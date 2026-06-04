@@ -10822,6 +10822,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     summary = CandidateRefresh.command_window_replay_summary(artifact)
 
+    assert summary["source"] ==
+             "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.command_window_report"
+
     assert summary["contract"] == "command_window_report.v1"
     assert summary["source_report_count"] == 1
     assert summary["source_report_row_count"] == 2
@@ -10849,6 +10852,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["branch_local_command_window_pressure"]
     assert summary["branch_local_command_feedback_pressure"]
     assert summary["branch_local_command_window_action_pressure"]
+
+    assert summary["assumptions"]["replay_scope"] ==
+             "command_window_candidate_source_report_summary_only"
 
     assert OrbitalDynamics.candidate_refresh_command_window_replay_summary(artifact) ==
              summary
@@ -10889,11 +10895,15 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     summary = CandidateRefresh.command_window_replay_summary(artifact)
 
+    assert summary["source"] == "candidate_refresh.source_report_provenance.command_window_report"
     assert summary["source_report_paths"] == ["source_command_window_report"]
     assert summary["activity_ids_by_direction"] == %{"command" => ["cmd_provenance"]}
     assert summary["window_ids_by_direction"] == %{"command" => ["window_provenance"]}
     assert summary["required_operator_action_counts"] == %{"review_command_window" => 1}
     assert summary["branch_local_command_window_pressure"]
+
+    assert summary["assumptions"]["replay_scope"] ==
+             "command_window_source_report_provenance_only"
   end
 
   test "command window replay prefers partial branch family over provenance" do
@@ -10928,6 +10938,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     summary = CandidateRefresh.command_window_replay_summary(artifact)
 
+    assert summary["source"] ==
+             "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.command_window_report"
+
     assert summary["source_report_count"] == 1
     assert summary["source_report_row_count"] == 0
 
@@ -10938,6 +10951,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["command_feedback_count"] == 0
     assert summary["direction_counts"] == %{"command" => 1}
     assert summary["branch_local_command_window_pressure"]
+
+    assert summary["assumptions"]["replay_scope"] ==
+             "command_window_candidate_source_report_summary_only"
   end
 
   test "source report summary aggregates maneuver review feedback routing keys" do
@@ -11177,6 +11193,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     summary = CandidateRefresh.maneuver_review_replay_summary(artifact)
 
+    assert summary["source"] ==
+             "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.maneuver_review_report"
+
     assert summary["contract"] == "maneuver_review_report.v1"
     assert summary["source_report_count"] == 1
     assert summary["source_report_row_count"] == 2
@@ -11202,6 +11221,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["branch_local_maneuver_routing_pressure"]
     assert summary["branch_local_maneuver_action_pressure"]
     assert summary["branch_local_execution_uncertainty_pressure"]
+
+    assert summary["assumptions"]["replay_scope"] ==
+             "maneuver_review_candidate_source_report_summary_only"
 
     assert OrbitalDynamics.candidate_refresh_maneuver_review_replay_summary(artifact) ==
              summary
@@ -11243,11 +11265,17 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     summary = CandidateRefresh.maneuver_review_replay_summary(artifact)
 
+    assert summary["source"] ==
+             "candidate_refresh.source_report_provenance.maneuver_review_report"
+
     assert summary["source_report_paths"] == ["source_maneuver_review_report"]
     assert summary["input_keys"] == ["maneuver_success_rate"]
     assert summary["maneuver_id_counts"] == %{"burn_provenance" => 1}
     assert summary["required_operator_action_counts"] == %{"review_maneuver_execution" => 1}
     assert summary["branch_local_maneuver_review_pressure"]
+
+    assert summary["assumptions"]["replay_scope"] ==
+             "maneuver_review_source_report_provenance_only"
   end
 
   test "maneuver review replay prefers partial branch family over provenance" do
@@ -11285,6 +11313,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     summary = CandidateRefresh.maneuver_review_replay_summary(artifact)
 
+    assert summary["source"] ==
+             "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.maneuver_review_report"
+
     assert summary["source_report_count"] == 1
     assert summary["source_report_row_count"] == 0
 
@@ -11298,6 +11329,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["input_keys"] == []
     assert summary["maneuver_id_counts"] == %{"burn_branch_review" => 1}
     assert summary["branch_local_maneuver_review_pressure"]
+
+    assert summary["assumptions"]["replay_scope"] ==
+             "maneuver_review_candidate_source_report_summary_only"
   end
 
   test "source report summary aggregates timeline diff feedback routing maps" do

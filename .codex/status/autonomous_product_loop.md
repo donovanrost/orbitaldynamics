@@ -1,19 +1,18 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Station-reservation replay reads V3 branch
-`candidate_source.candidate_refresh_request_source_report_summary` metadata.
+Command-window and maneuver-review branch replay summaries label branch-sourced
+metadata accurately.
 
 Status:
-Implementation, focused verification, review, commit, and push complete for
-this slice.
-`CandidateRefresh.station_reservation_replay_summary/1` now checks the
-branch-local `station_reservation_report` source-report family before falling
-back to provenance. No other replay helper changed in this slice. Coverage pins
-the intended precedence: an empty branch family falls back to populated
-provenance, while a non-empty requested branch family is authoritative even when
-partial. Branch-sourced summaries now label their `source` and replay scope as
-candidate-source summary metadata instead of provenance-only metadata.
+Implementation and focused verification complete for this slice.
+`CandidateRefresh.command_window_replay_summary/1` and
+`CandidateRefresh.maneuver_review_replay_summary/1` now label non-empty V3
+branch `candidate_source.candidate_refresh_request_source_report_summary`
+families as candidate-source summary metadata. Empty requested branch families
+still fall back to provenance, and provenance fallback keeps the existing
+provenance-only `source` and replay scope labels. Existing branch/fallback/
+partial-family precedence is unchanged.
 
 Files changed for this slice:
 - `.codex/status/autonomous_product_loop.md`
@@ -21,13 +20,10 @@ Files changed for this slice:
 - `test/orbital_dynamics/candidate_refresh_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:18937 test/orbital_dynamics/candidate_refresh_test.exs:18952 test/orbital_dynamics/candidate_refresh_test.exs:19014 test/orbital_dynamics/candidate_refresh_test.exs:19135 test/orbital_dynamics/candidate_refresh_test.exs:19185 test/orbital_dynamics/candidate_refresh_test.exs:19234 --trace --seed 0`
-  passed the nearby station-reservation replay checks, including branch
-  candidate-source replay, empty-family fallback, partial-family branch
-  precedence, provider-contention map pressure, and expiration pressure.
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:17756 --trace --seed 0`
-  passed the existing station-reservation source-report provenance aggregation
-  path.
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:10538 test/orbital_dynamics/candidate_refresh_test.exs:10739 test/orbital_dynamics/candidate_refresh_test.exs:10754 test/orbital_dynamics/candidate_refresh_test.exs:10788 test/orbital_dynamics/candidate_refresh_test.exs:10863 test/orbital_dynamics/candidate_refresh_test.exs:10909 test/orbital_dynamics/candidate_refresh_test.exs:10959 test/orbital_dynamics/candidate_refresh_test.exs:11104 test/orbital_dynamics/candidate_refresh_test.exs:11119 test/orbital_dynamics/candidate_refresh_test.exs:11163 test/orbital_dynamics/candidate_refresh_test.exs:11232 test/orbital_dynamics/candidate_refresh_test.exs:11281 --trace --seed 0`
+  passed the nearby command-window and maneuver-review provenance aggregation,
+  absent-family, preserved-map pressure, branch candidate-source replay,
+  empty-family fallback, and partial-family precedence checks.
 - `git diff --check` passed.
 
 Docs/artifacts changed:
@@ -35,22 +31,20 @@ Docs/artifacts changed:
   slice.
 
 Last product commit:
-- `fdf0a67` (`Replay station reservations from branch summaries`) pushed to
-  `origin/main`.
+- Pending review and publish for this slice.
 
 Next candidate:
 Re-read `docs/autonomous_work_guide.md`, this ledger, and the live worktree
 before choosing another gap. Queue item 1 appears substantially complete in the
-live tree, and the older contact-intent direction-routing memory note is stale.
-Continue auditing queue item 2/3 replay edges from docs/code before selecting
-the next bounded slice.
+live tree except for metadata or replay-surface consistency audits like this
+slice. Continue auditing queue item 2/3 replay edges from docs/code before
+selecting the next bounded slice.
 
 Blocked:
 No.
 
 Notes:
-This slice intentionally does not reserve provider time, mutate station
-calendars or schedules, select candidates, approve imports, write to Cadence, or
-regenerate candidates. The initial review found provenance-only label drift on
-the new branch path; that was corrected and covered before re-review. Treat
-current files as authoritative and do not revert unrelated changes.
+This slice intentionally does not execute commands or maneuvers, mutate
+schedules, select candidates, approve imports, write to Cadence, or regenerate
+candidates. Treat current files as authoritative and do not revert unrelated
+changes.

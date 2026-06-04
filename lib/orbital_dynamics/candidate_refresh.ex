@@ -9235,16 +9235,33 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local command-window replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, execute commands, select candidates,
-  approve imports, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, execute
+  commands, select candidates, approve imports, or write to Cadence.
   """
   def command_window_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
+    branch_command_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "command_window_report")
+
     command_summary =
-      source_report_summary_branch_family(refresh_or_artifact, "command_window_report") ||
-      get_in(source_summary, ["source_reports", "command_window_report"]) || %{}
+      branch_command_summary ||
+        get_in(source_summary, ["source_reports", "command_window_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_command_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.command_window_report",
+          "command_window_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.command_window_report",
+          "command_window_source_report_provenance_only"
+        }
+      end
 
     command_feedback_count = summary_integer(command_summary, "command_feedback_count")
     input_keys = Map.get(command_summary, "input_keys", [])
@@ -9256,7 +9273,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_command_window_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.command_window_report",
+      "source" => summary_source,
       "contract" => source_report_summary_contract(command_summary, "command_window_report.v1"),
       "source_report_count" => summary_integer(command_summary, "count"),
       "source_report_row_count" => summary_integer(command_summary, "row_count"),
@@ -9279,7 +9296,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "branch_local_command_window_action_pressure" => map_size(required_action_counts) > 0,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "command_window_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_command_window_replay_summary",
         "command_execution" => "not_performed_by_summary",
         "candidate_selection" => "not_performed_by_summary",
@@ -9294,16 +9311,33 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local maneuver-review replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, execute maneuvers, select candidates,
-  approve imports, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, execute
+  maneuvers, select candidates, approve imports, or write to Cadence.
   """
   def maneuver_review_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
+    branch_maneuver_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "maneuver_review_report")
+
     maneuver_summary =
-      source_report_summary_branch_family(refresh_or_artifact, "maneuver_review_report") ||
-      get_in(source_summary, ["source_reports", "maneuver_review_report"]) || %{}
+      branch_maneuver_summary ||
+        get_in(source_summary, ["source_reports", "maneuver_review_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_maneuver_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.maneuver_review_report",
+          "maneuver_review_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.maneuver_review_report",
+          "maneuver_review_source_report_provenance_only"
+        }
+      end
 
     success_feedback_count =
       summary_integer(maneuver_summary, "maneuver_success_feedback_count")
@@ -9322,7 +9356,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_maneuver_review_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.maneuver_review_report",
+      "source" => summary_source,
       "contract" => source_report_summary_contract(maneuver_summary, "maneuver_review_report.v1"),
       "source_report_count" => summary_integer(maneuver_summary, "count"),
       "source_report_row_count" => summary_integer(maneuver_summary, "row_count"),
@@ -9347,7 +9381,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         uncertainty_declared_count + uncertainty_missing_count > 0 or maneuver_uncertainty_input?,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "maneuver_review_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_maneuver_review_replay_summary",
         "maneuver_execution" => "not_performed_by_summary",
         "candidate_selection" => "not_performed_by_summary",
