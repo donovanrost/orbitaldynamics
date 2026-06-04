@@ -4477,6 +4477,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "validation_safety_case_summary",
           "fixture_failed_count"
         ),
+      "source_report_constraint_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "constraint_report",
+          "contract"
+        ),
+      "source_report_constraint_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "constraint_report",
+          "count"
+        ),
+      "source_report_constraint_row_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "constraint_report",
+          "row_count"
+        ),
+      "source_report_constraint_paths" =>
+        source_report_summary_family_field(
+          source_reports,
+          "constraint_report",
+          "paths"
+        ),
       "source_report_constraint_downlink_gap_row_count" =>
         source_report_summary_family_count(
           source_reports,

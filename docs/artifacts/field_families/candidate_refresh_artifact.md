@@ -1845,8 +1845,9 @@ CandidateRefresh inputs alongside objective-gap replay provenance.
 `CandidateRefresh.constraint_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_constraint_replay_summary/1` expose the
 constraint slice as a branch-local replay summary. It preserves source
-constraint paths, row counts, downlink-gap and resource-margin counts, status
-maps, constraint-ID maps, source-activity ID maps,
+constraint paths, top-level source-report contract/count/path rollups, row
+counts, downlink-gap and resource-margin counts, status maps, constraint-ID
+maps, source-activity ID maps,
 station/metric/resource/spacecraft routing maps, trust-boundary evidence, and
 branch-local constraint, downlink-gap, resource-margin, and routing pressure
 booleans without creating objectives, mutating resource state, selecting

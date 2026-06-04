@@ -27734,6 +27734,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 1,
+             "source_report_constraint_contract" => "constraint_report.v1",
+             "source_report_constraint_count" => 1,
+             "source_report_constraint_row_count" => 2,
+             "source_report_constraint_paths" => ["source_constraint_report"],
              "source_report_constraint_downlink_gap_row_count" => 1,
              "source_report_constraint_resource_margin_row_count" => 1,
              "source_report_constraint_status_counts" => %{

@@ -1,16 +1,15 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh objective-gap source-report identity rollups.
+CandidateRefresh constraint source-report identity rollups.
 
 Status:
 Implemented with focused verification passing locally.
 `CandidateRefresh.source_report_summary/1` now
-flattens `source_report_objective_gap_contracts`,
-`source_report_objective_gap_count`, `source_report_objective_gap_row_count`,
-and `source_report_objective_gap_paths` alongside the existing cross-family
-objective-gap signal, downlink/target/collection-latency, and routing aggregate
-fields.
+flattens `source_report_constraint_contract`, `source_report_constraint_count`,
+`source_report_constraint_row_count`, and `source_report_constraint_paths`
+alongside the existing constraint downlink-gap, resource-margin, status, ID,
+activity, resource, spacecraft, and station/metric routing aggregate fields.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -20,7 +19,7 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:28060`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:27737`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 - `git diff --cached --check`
@@ -29,7 +28,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`15cb8ea` (`Flatten timeline feedback replay identity`).
+`b2c9c74` (`Flatten objective gap replay identity`).
 
 Next candidate:
 Continue guide-backed CandidateRefresh depth from queue item 4, looking for the
