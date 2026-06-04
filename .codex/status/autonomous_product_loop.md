@@ -5,8 +5,8 @@ Link-capacity replay reads and labels branch
 `candidate_source.candidate_refresh_request_source_report_summary` metadata.
 
 Status:
-Implementation, focused verification, and read-only review are complete.
-Publish is pending.
+Implementation, focused verification, read-only review, product commit, and
+push are complete. This status handoff records the published state.
 `CandidateRefresh.link_capacity_replay_summary/1` now prefers a non-empty
 branch `link_capacity_report` source-report family before falling back to
 provenance. Branch summaries preserve source-report counts, row counts, paths,
@@ -48,7 +48,8 @@ Docs/artifacts changed:
   schema exports or checked-in study artifacts changed in this slice.
 
 Last product commit:
-- Pending.
+- `3932e53c673c09ce296ac0a17a5420533926c709` (`Label link capacity branch
+  replay metadata`) pushed to `origin/main`.
 
 Next candidate:
 After publish, re-read `docs/autonomous_work_guide.md`, this ledger, and the
