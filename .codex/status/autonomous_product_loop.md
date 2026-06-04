@@ -29,7 +29,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-Pending contact-allocation slice commit.
+`0969b95` (`Flatten contact allocation replay identity`).
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth
