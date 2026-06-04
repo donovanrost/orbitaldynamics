@@ -3320,6 +3320,30 @@ defmodule OrbitalDynamics.TimelineTest do
                  &1["message"] == "must equal row-derived impacted_dependency_activity_ids")
            )
 
+    stale_exclusivity_activity_ids =
+      Map.put(summary, "impacted_exclusive_with_activity_ids", ["wrong_exclusive_activity"])
+
+    assert {:error, stale_exclusivity_activity_ids_report} =
+             Schema.validate_artifact(stale_exclusivity_activity_ids)
+
+    assert Enum.any?(
+             stale_exclusivity_activity_ids_report["errors"],
+             &(&1["path"] == "$.impacted_exclusive_with_activity_ids" and
+                 &1["message"] == "must equal row-derived impacted_exclusive_with_activity_ids")
+           )
+
+    stale_exclusivity_timeline_ids =
+      Map.put(summary, "impacted_exclusive_with_timeline_ids", ["timeline:wrong_exclusive"])
+
+    assert {:error, stale_exclusivity_timeline_ids_report} =
+             Schema.validate_artifact(stale_exclusivity_timeline_ids)
+
+    assert Enum.any?(
+             stale_exclusivity_timeline_ids_report["errors"],
+             &(&1["path"] == "$.impacted_exclusive_with_timeline_ids" and
+                 &1["message"] == "must equal row-derived impacted_exclusive_with_timeline_ids")
+           )
+
     assert %{
              "schema_contract" => "timeline_dependency_impact_summary.v1",
              "dependency_impact_status" => "clear",
