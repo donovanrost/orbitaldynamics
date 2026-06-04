@@ -2486,6 +2486,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 1,
+             "source_report_contact_intent_contract" => "contact_intent.v1",
+             "source_report_contact_intent_count" => 3,
+             "source_report_contact_intent_row_count" => 3,
+             "source_report_contact_intent_paths" => [
+               "source_contact_intents[0]",
+               "source_contact_intents[1]",
+               "source_contact_intents[2]"
+             ],
              "source_report_contact_intent_capacity_pack_required_contact_count" => 2,
              "source_report_contact_intent_capacity_pack_required_capacity_fraction" => 0.65,
              "source_report_contact_intent_capacity_pack_required_capacity_fraction_by_ground_station" =>
@@ -2784,6 +2792,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     }
 
     assert %{
+             "source_report_contact_intent_contract" => "contact_intent.v1",
+             "source_report_contact_intent_count" => 3,
+             "source_report_contact_intent_row_count" => 3,
+             "source_report_contact_intent_paths" => [
+               "source_contact_intents[0]",
+               "source_contact_intents[1]",
+               "source_contact_intents[2]"
+             ],
              "source_report_contact_intent_capacity_pack_required_capacity_fraction" => 0.65,
              "source_report_contact_intent_capacity_pack_required_capacity_fraction_by_ground_station" =>
                %{"dss_43" => 0.4, "equator_prime" => 0.25},
@@ -2981,6 +2997,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_row_count" => 3,
              "source_report_counts_by_contract" => %{"contact_intent_summary.v1" => 2},
              "source_report_row_counts_by_contract" => %{"contact_intent_summary.v1" => 3},
+             "source_report_contact_intent_contract" => "contact_intent_summary.v1",
+             "source_report_contact_intent_count" => 2,
+             "source_report_contact_intent_row_count" => 3,
+             "source_report_contact_intent_paths" => [
+               "source_contact_intent_summary",
+               "source_result_artifact.contact_intent_summary"
+             ],
              "source_report_contact_intent_capacity_pack_required_contact_count" => 2,
              "source_report_contact_intent_capacity_pack_required_capacity_fraction" => 0.65,
              "source_report_contact_intent_capacity_pack_required_capacity_fraction_by_ground_station" =>
@@ -3866,13 +3889,57 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "provenance" => %{"source_reports" => %{}}
     }
 
+    source_summary = CandidateRefresh.source_report_summary(artifact)
     summary = CandidateRefresh.contact_intent_replay_summary(artifact)
 
+    refute Map.has_key?(source_summary, "source_report_contact_intent_contract")
+    refute Map.has_key?(source_summary, "source_report_contact_intent_count")
+    refute Map.has_key?(source_summary, "source_report_contact_intent_row_count")
+    refute Map.has_key?(source_summary, "source_report_contact_intent_paths")
     assert summary["source_report_count"] == 0
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_paths"] == []
     refute Map.has_key?(summary, "contract")
     refute summary["branch_local_contact_intent_pressure"]
+  end
+
+  test "contact intent source summary omits missing identity counts for partial family placeholder" do
+    partial_summaries = [
+      %{"contract" => "contact_intent.v1"},
+      %{"count" => 1},
+      %{"row_count" => 2},
+      %{"paths" => ["provenance.source_reports.contact_intent"]},
+      %{"count" => nil, "row_count" => nil},
+      %{
+        "count" => nil,
+        "row_count" => nil,
+        "paths" => ["provenance.source_reports.contact_intent"]
+      }
+    ]
+
+    for partial_summary <- partial_summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "contact_intent" => partial_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      if Map.has_key?(partial_summary, "contract") do
+        assert source_summary["source_report_contact_intent_contract"] ==
+                 "contact_intent.v1"
+      else
+        refute Map.has_key?(source_summary, "source_report_contact_intent_contract")
+      end
+
+      refute Map.has_key?(source_summary, "source_report_contact_intent_count")
+      refute Map.has_key?(source_summary, "source_report_contact_intent_row_count")
+      refute Map.has_key?(source_summary, "source_report_contact_intent_paths")
+    end
   end
 
   test "source report summary aggregates contact intent station feedback maps" do

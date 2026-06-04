@@ -1444,8 +1444,8 @@ operational-feedback handoffs.
 `CandidateRefresh.contact_intent_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_contact_intent_replay_summary/1` expose the
 contact-intent slice as a branch-local replay summary. It preserves source
-contact-intent paths, station-feedback status/import/policy maps,
-capacity-pack required-contact counts, required-capacity totals and
+contact-intent contract, count, row-count, paths, station-feedback
+status/import/policy maps, capacity-pack required-contact counts, required-capacity totals and
 per-station, per-direction, and per-direction/per-ground-station maps,
 required-capacity source/contact routing maps, all-contact
 `contact_ids_by_direction` routing, capacity-pack contact-ID
@@ -1466,6 +1466,11 @@ contact-intent row counts, capacity-demand maps, all-contact station/direction
 and station-scoped direction routing, and compact direction routing without
 reopening raw contact-intent rows. Generated contact-intent summaries also carry the exact contact-intent
 `model_limits` list, pinned by executable validation and schema export. The
+aggregate source-report summary omits the top-level contact-intent identity
+rollups when provenance is absent instead of emitting empty count, row-count, or
+path fields. Partial placeholder provenance may expose an explicit contract,
+but does not synthesize count, row-count, or path identity rollups unless both
+identity counts are present and non-nil. The
 family-level contact-intent pressure
 boolean is true for capacity-pack source/contact routing maps and per-station
 or per-direction contact-ID maps, including all-contact station maps and the

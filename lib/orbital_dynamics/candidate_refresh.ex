@@ -1153,6 +1153,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "station_reservation_report",
           "reservation_ids_by_reserved_by"
         ),
+      "source_report_contact_intent_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "contact_intent",
+          "contract"
+        ),
+      "source_report_contact_intent_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "contact_intent",
+          "count"
+        ),
+      "source_report_contact_intent_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "contact_intent",
+          "row_count"
+        ),
+      "source_report_contact_intent_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "contact_intent",
+          "paths"
+        ),
       "source_report_contact_intent_capacity_pack_required_contact_count" =>
         source_report_summary_family_count(
           source_reports,

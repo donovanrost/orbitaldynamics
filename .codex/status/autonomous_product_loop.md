@@ -1,17 +1,17 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh contact-contention source-report identity rollups.
+CandidateRefresh contact-intent source-report identity rollups.
 
 Status:
 Implemented with focused verification passing locally.
 `CandidateRefresh.source_report_summary/1` now
-flattens `source_report_contact_contention_contract`,
-`source_report_contact_contention_count`,
-`source_report_contact_contention_row_count`, and
-`source_report_contact_contention_paths` alongside the existing
-contact-contention conflict/invalid-input counts, resource/station/contact
-routing maps, direction routing, and required-action aggregate fields.
+flattens `source_report_contact_intent_contract`,
+`source_report_contact_intent_count`,
+`source_report_contact_intent_row_count`, and
+`source_report_contact_intent_paths` alongside the existing contact-intent
+capacity-pack demand, station-feedback, direction, station, and compact
+direction-routing aggregate fields.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -21,7 +21,7 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:1327 test/orbital_dynamics/candidate_refresh_test.exs:1468 test/orbital_dynamics/candidate_refresh_test.exs:1488 test/orbital_dynamics/candidate_refresh_test.exs:1527`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:2437 test/orbital_dynamics/candidate_refresh_test.exs:2897 test/orbital_dynamics/candidate_refresh_test.exs:3416 test/orbital_dynamics/candidate_refresh_test.exs:3886 test/orbital_dynamics/candidate_refresh_test.exs:3906`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 
@@ -29,7 +29,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`e205057` (`Flatten contact contention replay identity`).
+Pending contact-intent slice commit.
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth
