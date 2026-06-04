@@ -1,59 +1,48 @@
 # Autonomous Product Loop Status
 
 Current slice:
-`station_calendar_precedence_summary.v1` top-level `source` JSON Schema
-fidelity.
+Command-window and maneuver-review replay helpers read V3 branch
+`candidate_source.candidate_refresh_request_source_report_summary` metadata.
 
 Status:
-Complete for this slice. Executable validation already treated top-level
-`source` as an optional binary provenance/replay value, but the exported JSON
-Schema advertised it as an object. The standalone schema, generated bundle, and
-focused export tests now agree that `source`, when present, is a string.
+Implementation and focused verification complete for this slice. The
+command-window and maneuver-review replay helpers now check their own
+branch-local `candidate_source` source-report family before falling back to
+artifact provenance. Other `source_report_summary/1` consumers keep their
+existing provenance path. Added fallback coverage proves an unrelated branch
+family or empty requested branch family does not mask populated provenance for
+the requested helper. Added partial-family coverage pins the intended precedence:
+a non-empty requested branch family is authoritative over provenance.
 
 Files changed for this slice:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/schema.ex`
-- `test/orbital_dynamics/communications/station_calendar_test.exs`
-- `test/orbital_dynamics/schema_test.exs`
-- `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `schemas/station_calendar_precedence_summary.v1.schema.json`
-- `schemas/orbital_dynamics.schema_bundle.v1.json`
-- Full schema export refreshed checked-in `schemas/*.schema.json`.
+- `lib/orbital_dynamics/candidate_refresh.ex`
+- `test/orbital_dynamics/candidate_refresh_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/communications/station_calendar_test.exs:2585 --trace --seed 0`
-  passed the precedence summary runtime validation and direct schema shape
-  assertions.
-- `mix test test/orbital_dynamics/schema_test.exs:19415 --trace --seed 0`
-  passed the in-memory bundle assertion for the summary `source` field.
-- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs:39 --trace --seed 0`
-  passed the schema bundle export assertions.
-- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-  passed and refreshed checked-in schemas.
-- `mix test test/orbital_dynamics/schema_test.exs:19751 --trace --seed 0`
-  passed after regeneration, confirming checked-in JSON Schema exports match the
-  executable registry.
-- `mix orbital_dynamics.schema.lint --all` passed (123 artifacts, 0 errors, 0
-  warnings).
-- `jq` spot checks confirmed standalone and bundled
-  `station_calendar_precedence_summary.v1` export `source` as `type: string`.
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:10538 test/orbital_dynamics/candidate_refresh_test.exs:10739 test/orbital_dynamics/candidate_refresh_test.exs:10754 test/orbital_dynamics/candidate_refresh_test.exs:10788 test/orbital_dynamics/candidate_refresh_test.exs:10857 test/orbital_dynamics/candidate_refresh_test.exs:10899 test/orbital_dynamics/candidate_refresh_test.exs:10943 test/orbital_dynamics/candidate_refresh_test.exs:11088 test/orbital_dynamics/candidate_refresh_test.exs:11103 test/orbital_dynamics/candidate_refresh_test.exs:11147 test/orbital_dynamics/candidate_refresh_test.exs:11210 test/orbital_dynamics/candidate_refresh_test.exs:11253 --trace --seed 0`
+  passed the nearby command-window and maneuver-review replay family checks,
+  including branch candidate-source replay, empty-family fallback, and
+  partial-family branch precedence.
 - `git diff --check` passed.
 
 Docs/artifacts changed:
-- Generated schemas were refreshed. No narrative docs were changed in this
+- No narrative docs, schema exports, or checked-in artifacts changed in this
   slice.
 
 Next candidate:
 Re-read `docs/autonomous_work_guide.md`, this ledger, and the live worktree
-before choosing another gap. Prefer another concrete schema-visible
-contract-fidelity issue in resource/communications or typed timeline semantics;
-avoid stale memory notes unless the live tree still proves the gap.
+before choosing another gap. The older contact-intent direction-routing memory
+note is stale in the live tree; resource-summary replay should be re-audited
+from docs/code before selecting it because related resource projection/filter
+helpers already cover several preserved-summary paths.
 
 Blocked:
 No.
 
 Notes:
-The worktree remains dirty from multiple autonomous-loop slices. Treat current
-files as authoritative and do not revert unrelated changes. Continue using
-`MIX_OS_CONCURRENCY_LOCK=0` for schema export and broader Mix commands that need
-the repo-level concurrency lock disabled.
+Initial reviewer feedback found the first implementation too broad because it
+changed the shared mapper and did not preserve per-family provenance fallback.
+That was corrected before publish. Post-slice re-review and publish handoff
+still need to run for this slice. Treat current files as authoritative and do
+not revert unrelated changes.

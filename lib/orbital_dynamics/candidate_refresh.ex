@@ -9224,6 +9224,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     source_summary = source_report_summary(refresh_or_artifact)
 
     command_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "command_window_report") ||
       get_in(source_summary, ["source_reports", "command_window_report"]) || %{}
 
     command_feedback_count = summary_integer(command_summary, "command_feedback_count")
@@ -9282,6 +9283,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     source_summary = source_report_summary(refresh_or_artifact)
 
     maneuver_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "maneuver_review_report") ||
       get_in(source_summary, ["source_reports", "maneuver_review_report"]) || %{}
 
     success_feedback_count =
@@ -16372,6 +16374,21 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_report_summary_source_reports(refresh) do
     source_report_input_provenance(refresh) || %{}
   end
+
+  defp source_report_summary_branch_family(refresh_or_artifact, family)
+       when is_map(refresh_or_artifact) do
+    refresh_or_artifact
+    |> stringify_keys()
+    |> get_in([
+      "candidate_source",
+      "candidate_refresh_request_source_report_summary",
+      "source_reports",
+      family
+    ])
+    |> non_empty_map()
+  end
+
+  defp source_report_summary_branch_family(_refresh_or_artifact, _family), do: nil
 
   defp source_report_summary_count(source_reports, field) do
     source_reports
