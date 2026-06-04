@@ -113,6 +113,11 @@ defmodule Mix.Tasks.OrbitalDynamics.Manifest.Schema.ExportTest do
     assert get_in(activity_schema, ["activity_type", "enum"]) ==
              get_in(activity_schema, ["type", "enum"])
 
+    assert get_in(activity_schema, ["battery_energy_generated_wh"]) == %{
+             "type" => "number",
+             "minimum" => 0.0
+           }
+
     assert get_in(activity_schema, ["eclipse_overlap_fraction", "type"]) == "number"
     assert get_in(activity_schema, ["eclipse_overlap_s", "type"]) == "number"
     assert get_in(activity_schema, ["lighting_condition", "type"]) == "string"
@@ -194,6 +199,23 @@ defmodule Mix.Tasks.OrbitalDynamics.Manifest.Schema.ExportTest do
 
     assert get_in(prior_candidate_schema, ["start_s", "type"]) == "number"
     assert get_in(prior_candidate_schema, ["end_s", "type"]) == "number"
+
+    realized_activity_schema =
+      get_in(schema, [
+        "properties",
+        "candidate_refresh",
+        "properties",
+        "operational_feedback",
+        "properties",
+        "realized_activities",
+        "items",
+        "properties"
+      ])
+
+    assert get_in(realized_activity_schema, ["battery_energy_generated_wh"]) == %{
+             "type" => "number",
+             "minimum" => 0.0
+           }
 
     search_objectives =
       get_in(schema, ["properties", "search", "properties", "objective", "enum"])

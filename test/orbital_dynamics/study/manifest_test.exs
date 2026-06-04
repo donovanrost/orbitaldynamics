@@ -242,6 +242,12 @@ defmodule OrbitalDynamics.Study.ManifestTest do
     assert mission_plan_activity_properties["downlink_margin"] == %{"type" => "number"}
     assert mission_plan_activity_properties["battery_capacity_wh"] == %{"type" => "number"}
     assert mission_plan_activity_properties["battery_energy_used_wh"] == %{"type" => "number"}
+
+    assert mission_plan_activity_properties["battery_energy_generated_wh"] == %{
+             "type" => "number",
+             "minimum" => 0.0
+           }
+
     assert mission_plan_activity_properties["battery_state_of_charge"] == %{"type" => "number"}
     assert mission_plan_activity_properties["spacecraft_available"] == %{"type" => "boolean"}
     assert mission_plan_activity_properties["payload_available"] == %{"type" => "boolean"}
@@ -441,6 +447,12 @@ defmodule OrbitalDynamics.Study.ManifestTest do
     assert realized_activity_properties["downlink_margin"] == %{"type" => "number"}
     assert realized_activity_properties["battery_capacity_wh"] == %{"type" => "number"}
     assert realized_activity_properties["battery_energy_used_wh"] == %{"type" => "number"}
+
+    assert realized_activity_properties["battery_energy_generated_wh"] == %{
+             "type" => "number",
+             "minimum" => 0.0
+           }
+
     assert realized_activity_properties["battery_state_of_charge"] == %{"type" => "number"}
     assert realized_activity_properties["spacecraft_available"] == %{"type" => "boolean"}
     assert realized_activity_properties["payload_available"] == %{"type" => "boolean"}
@@ -1080,6 +1092,7 @@ defmodule OrbitalDynamics.Study.ManifestTest do
     assert downlink_activity.downlink_margin == 0.51
     assert downlink_activity.battery_capacity_wh == 240.0
     assert downlink_activity.battery_energy_used_wh == 88.0
+    assert downlink_activity.battery_energy_generated_wh == 45.0
     assert downlink_activity.battery_state_of_charge == 0.68
     assert downlink_activity.spacecraft_available == true
     assert downlink_activity.payload_available == false
@@ -1200,6 +1213,25 @@ defmodule OrbitalDynamics.Study.ManifestTest do
              scenario.metadata
              |> get_in([:mission_plan, :non_dynamics_activities])
              |> Enum.find(&(&1.id == "track_pass"))
+  end
+
+  test "rejects negative mission plan activity battery generation" do
+    manifest =
+      update_in(mission_plan_manifest(), ["mission_plans", Access.at(0), "activities"], fn
+        activities ->
+          Enum.map(activities, fn
+            %{"id" => "downlink_pass"} = activity ->
+              Map.put(activity, "battery_energy_generated_wh", -1.0)
+
+            activity ->
+              activity
+          end)
+      end)
+
+    assert {:error,
+            {:invalid_manifest,
+             "battery_energy_generated_wh must be nil or a non-negative number"}} =
+             Manifest.from_map(manifest)
   end
 
   test "rejects mission plan activity scope that conflicts with parent plan" do
@@ -2951,6 +2983,7 @@ defmodule OrbitalDynamics.Study.ManifestTest do
               "downlink_margin" => 0.51,
               "battery_capacity_wh" => 240.0,
               "battery_energy_used_wh" => 88.0,
+              "battery_energy_generated_wh" => 45.0,
               "battery_state_of_charge" => 0.68,
               "spacecraft_available" => true,
               "payload_available" => false,

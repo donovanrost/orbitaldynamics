@@ -136,7 +136,8 @@ model-limit boundary in runtime validation and JSON Schema export, so review
 handoffs cannot publish stale maneuver execution assumptions. Resource margin fields and battery state of charge are
 bounded to `0.0..1.0` at typed activity construction, map ingress, executable
 schema validation, and exported JSON Schema boundaries. Typed activities also
-preserve non-negative `battery_energy_generated_wh` evidence, accepting
+preserve non-negative `battery_energy_generated_wh` evidence through typed
+`MissionPlan.Activity` ingress/egress and study-manifest loading, accepting
 declared generated-energy aliases such as `energy_generated_wh`,
 `estimated_energy_generated_wh`, `estimated_battery_energy_generated_wh`, and
 `planned_energy_generated_wh` before review/import handoff. Typed activities also preserve explicit

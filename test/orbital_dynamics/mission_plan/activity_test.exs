@@ -130,6 +130,7 @@ defmodule OrbitalDynamics.MissionPlan.ActivityTest do
     assert :downlink_margin in preserved_fields
     assert :battery_capacity_wh in preserved_fields
     assert :battery_energy_used_wh in preserved_fields
+    assert :battery_energy_generated_wh in preserved_fields
     assert :battery_state_of_charge in preserved_fields
     assert :spacecraft_available in preserved_fields
     assert :payload_available in preserved_fields
@@ -1138,6 +1139,7 @@ defmodule OrbitalDynamics.MissionPlan.ActivityTest do
         "downlink_capacity_margin" => "0.51",
         "battery_capacity_wh" => "240.0",
         "battery_energy_used_wh" => "88.0",
+        "estimated_energy_generated_wh" => "45.0",
         "battery_soc" => "0.68",
         "spacecraft_available?" => "true",
         "payload_available?" => "false",
@@ -1310,6 +1312,7 @@ defmodule OrbitalDynamics.MissionPlan.ActivityTest do
              downlink_margin: 0.51,
              battery_capacity_wh: 240.0,
              battery_energy_used_wh: 88.0,
+             battery_energy_generated_wh: 45.0,
              battery_state_of_charge: 0.68,
              spacecraft_available: true,
              payload_available: false,
@@ -1475,6 +1478,7 @@ defmodule OrbitalDynamics.MissionPlan.ActivityTest do
     assert Activity.to_artifact_map(activity)["target_priority_objective_type"] ==
              "collection_latency"
 
+    assert Activity.to_artifact_map(activity)["battery_energy_generated_wh"] == 45.0
     assert Activity.to_artifact_map(activity)["contact_success"] == false
     assert Activity.to_artifact_map(activity)["contact_success_factor"] == 0.25
     assert Activity.to_artifact_map(activity)["command_success"] == true
@@ -1618,6 +1622,7 @@ defmodule OrbitalDynamics.MissionPlan.ActivityTest do
     assert normalized["activity_context"]["downlink_margin"] == 0.51
     assert normalized["activity_context"]["battery_capacity_wh"] == 240.0
     assert normalized["activity_context"]["battery_energy_used_wh"] == 88.0
+    assert normalized["activity_context"]["battery_energy_generated_wh"] == 45.0
     assert normalized["activity_context"]["battery_state_of_charge"] == 0.68
     assert normalized["activity_context"]["spacecraft_available"] == true
     assert normalized["activity_context"]["payload_available"] == false
@@ -1726,6 +1731,33 @@ defmodule OrbitalDynamics.MissionPlan.ActivityTest do
     assert activity.command_window_type == "uplink_window"
     assert Activity.to_artifact_map(activity)["command_window_id"] == "command_window:cmd_1"
     assert Activity.to_artifact_map(activity)["command_window_type"] == "uplink_window"
+  end
+
+  test "canonicalizes battery energy generation aliases at artifact ingress" do
+    aliases = [
+      "battery_energy_generated_wh",
+      "energy_generated_wh",
+      "estimated_energy_generated_wh",
+      "estimated_battery_energy_generated_wh",
+      "planned_energy_generated_wh"
+    ]
+
+    for {field, index} <- Enum.with_index(aliases, 1) do
+      activity =
+        Activity.from_map!(%{
+          "id" => "battery_generation_alias_#{index}",
+          "type" => "command",
+          "start_s" => 10.0,
+          "end_s" => 20.0,
+          field => "#{40 + index}.5"
+        })
+
+      assert activity.battery_energy_generated_wh == 40 + index + 0.5
+      assert Activity.to_artifact_map(activity)["battery_energy_generated_wh"] == 40 + index + 0.5
+
+      refute Map.has_key?(Activity.to_artifact_map(activity), field) and
+               field != "battery_energy_generated_wh"
+    end
   end
 
   test "canonicalizes cadence import aliases at artifact ingress" do
@@ -2318,6 +2350,29 @@ defmodule OrbitalDynamics.MissionPlan.ActivityTest do
         "storage_capacity_margin" => "1.2"
       })
     end
+
+    assert_raise ArgumentError,
+                 ~r/battery_energy_generated_wh must be nil or a non-negative number/,
+                 fn ->
+                   Activity.command!(
+                     :bad_battery_generation,
+                     10.0,
+                     20.0,
+                     battery_energy_generated_wh: -1.0
+                   )
+                 end
+
+    assert_raise ArgumentError,
+                 ~r/battery_energy_generated_wh must be a non-negative number/,
+                 fn ->
+                   Activity.from_map!(%{
+                     "id" => "bad_battery_generation_alias",
+                     "type" => "command",
+                     "start_s" => 0.0,
+                     "end_s" => 1.0,
+                     "planned_energy_generated_wh" => "-1.0"
+                   })
+                 end
 
     assert_raise ArgumentError, ~r/battery_state_of_charge must be between 0\.0 and 1\.0/, fn ->
       Activity.from_map!(%{

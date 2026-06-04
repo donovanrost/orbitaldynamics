@@ -185,6 +185,13 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     downlink_margin: [:downlink_margin, :downlink_capacity_margin],
     battery_state_of_charge: [:battery_state_of_charge, :battery_soc]
   }
+  @battery_energy_generated_wh_aliases [
+    :battery_energy_generated_wh,
+    :energy_generated_wh,
+    :estimated_energy_generated_wh,
+    :estimated_battery_energy_generated_wh,
+    :planned_energy_generated_wh
+  ]
   @precondition_statuses ~w(blocked clear review_required)
   @precondition_types Enum.sort(
                         [
@@ -225,6 +232,7 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     :downlink_margin,
     :battery_capacity_wh,
     :battery_energy_used_wh,
+    :battery_energy_generated_wh,
     :battery_state_of_charge,
     :spacecraft_available,
     :payload_available,
@@ -428,6 +436,7 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
           downlink_margin: number() | nil,
           battery_capacity_wh: number() | nil,
           battery_energy_used_wh: number() | nil,
+          battery_energy_generated_wh: number() | nil,
           battery_state_of_charge: number() | nil,
           spacecraft_available: boolean() | nil,
           payload_available: boolean() | nil,
@@ -701,6 +710,7 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
         :downlink_margin,
         :battery_capacity_wh,
         :battery_energy_used_wh,
+        :battery_energy_generated_wh,
         :battery_state_of_charge,
         :spacecraft_available,
         :payload_available,
@@ -1578,6 +1588,7 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       downlink_margin: activity.downlink_margin,
       battery_capacity_wh: activity.battery_capacity_wh,
       battery_energy_used_wh: activity.battery_energy_used_wh,
+      battery_energy_generated_wh: activity.battery_energy_generated_wh,
       battery_state_of_charge: activity.battery_state_of_charge,
       spacecraft_available: activity.spacecraft_available,
       payload_available: activity.payload_available,
@@ -1830,6 +1841,7 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     downlink_margin = Keyword.get(opts, :downlink_margin)
     battery_capacity_wh = Keyword.get(opts, :battery_capacity_wh)
     battery_energy_used_wh = Keyword.get(opts, :battery_energy_used_wh)
+    battery_energy_generated_wh = Keyword.get(opts, :battery_energy_generated_wh)
     battery_state_of_charge = Keyword.get(opts, :battery_state_of_charge)
     spacecraft_available = Keyword.get(opts, :spacecraft_available)
     payload_available = Keyword.get(opts, :payload_available)
@@ -2096,6 +2108,9 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
 
       not optional_number?(battery_energy_used_wh) ->
         raise ArgumentError, "battery_energy_used_wh must be nil or a number"
+
+      not optional_non_negative_number?(battery_energy_generated_wh) ->
+        raise ArgumentError, "battery_energy_generated_wh must be nil or a non-negative number"
 
       not optional_unit_interval?(battery_state_of_charge) ->
         raise ArgumentError, "battery_state_of_charge must be nil or between 0.0 and 1.0"
@@ -2598,6 +2613,7 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
           downlink_margin: downlink_margin,
           battery_capacity_wh: battery_capacity_wh,
           battery_energy_used_wh: battery_energy_used_wh,
+          battery_energy_generated_wh: battery_energy_generated_wh,
           battery_state_of_charge: battery_state_of_charge,
           spacecraft_available: spacecraft_available,
           payload_available: payload_available,
@@ -2834,6 +2850,13 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     |> maybe_put_opt(
       :battery_energy_used_wh,
       optional_number!(field(source, :battery_energy_used_wh))
+    )
+    |> maybe_put_opt(
+      :battery_energy_generated_wh,
+      optional_non_negative_number!(
+        first_present_field(source, @battery_energy_generated_wh_aliases),
+        "battery_energy_generated_wh"
+      )
     )
     |> maybe_put_opt(
       :battery_state_of_charge,
@@ -3696,6 +3719,13 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   defp optional_number?(nil), do: true
   defp optional_number?(value), do: is_number(value)
 
+  defp optional_non_negative_number?(nil), do: true
+
+  defp optional_non_negative_number?(value) when is_number(value),
+    do: value >= 0.0
+
+  defp optional_non_negative_number?(_value), do: false
+
   defp optional_unit_interval?(nil), do: true
 
   defp optional_unit_interval?(value) when is_number(value),
@@ -3718,6 +3748,21 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     case numeric_or_nil(value) do
       nil -> raise ArgumentError, "number fields must be numbers"
       number -> number
+    end
+  end
+
+  defp optional_non_negative_number!(nil, _field), do: nil
+
+  defp optional_non_negative_number!(value, field) do
+    case numeric_or_nil(value) do
+      number when is_number(number) and number >= 0.0 ->
+        number
+
+      number when is_number(number) ->
+        raise ArgumentError, "#{field} must be a non-negative number"
+
+      nil ->
+        raise ArgumentError, "#{field} must be a number"
     end
   end
 

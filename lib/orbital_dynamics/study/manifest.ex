@@ -870,6 +870,7 @@ defmodule OrbitalDynamics.Study.Manifest do
         "downlink_margin" => number_property(),
         "battery_capacity_wh" => number_property(),
         "battery_energy_used_wh" => number_property(),
+        "battery_energy_generated_wh" => non_negative_number_property(),
         "battery_state_of_charge" => number_property(),
         "spacecraft_available" => boolean_property(),
         "payload_available" => boolean_property(),
@@ -1519,6 +1520,7 @@ defmodule OrbitalDynamics.Study.Manifest do
         "downlink_margin" => number_property(),
         "battery_capacity_wh" => number_property(),
         "battery_energy_used_wh" => number_property(),
+        "battery_energy_generated_wh" => non_negative_number_property(),
         "battery_state_of_charge" => number_property(),
         "spacecraft_available" => boolean_property(),
         "payload_available" => boolean_property(),
@@ -1715,6 +1717,7 @@ defmodule OrbitalDynamics.Study.Manifest do
     do: maybe_put(%{"type" => "string"}, "description", description)
 
   defp number_property, do: %{"type" => "number"}
+  defp non_negative_number_property, do: %{"type" => "number", "minimum" => 0.0}
   defp integer_property, do: %{"type" => "integer"}
   defp boolean_property, do: %{"type" => "boolean"}
   defp enum_property(values), do: %{"type" => "string", "enum" => Enum.sort(values)}
@@ -2789,6 +2792,8 @@ defmodule OrbitalDynamics.Study.Manifest do
          {:ok, downlink_margin} <- optional_number(spec, "downlink_margin"),
          {:ok, battery_capacity_wh} <- optional_number(spec, "battery_capacity_wh"),
          {:ok, battery_energy_used_wh} <- optional_number(spec, "battery_energy_used_wh"),
+         {:ok, battery_energy_generated_wh} <-
+           optional_number(spec, "battery_energy_generated_wh"),
          {:ok, battery_state_of_charge} <- optional_number(spec, "battery_state_of_charge"),
          {:ok, spacecraft_available} <- optional_boolean_or_nil(spec, "spacecraft_available"),
          {:ok, payload_available} <- optional_boolean_or_nil(spec, "payload_available"),
@@ -2968,6 +2973,7 @@ defmodule OrbitalDynamics.Study.Manifest do
          downlink_margin: downlink_margin,
          battery_capacity_wh: battery_capacity_wh,
          battery_energy_used_wh: battery_energy_used_wh,
+         battery_energy_generated_wh: battery_energy_generated_wh,
          battery_state_of_charge: battery_state_of_charge,
          spacecraft_available: spacecraft_available,
          payload_available: payload_available,
