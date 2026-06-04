@@ -1,33 +1,34 @@
 # Autonomous Product Loop Status
 
 Current slice:
-ContactAllocation provider-reservation request status capability metadata.
+ResourceSummary roll-forward flow-status and pressure capability metadata.
 
 Status:
-Implemented and verification passed. `ContactAllocation.provider_reservation_request_summary/1`
-already emits schema-backed provider-reservation request statuses for clear,
-request-ready, and review-required handoffs. This slice advertises that status
-vocabulary in `ContactAllocation.capabilities/0` and pins the request-only
-`request_ready` path with artifact validation.
+Implemented and verification passed. `ResourceSummary.roll_forward/3` already
+emits schema-backed `resource_projection_flow_summary.v1` artifacts with flow
+status, pressure status, resource-pressure types, resource-effect statuses, and
+ignored-effect reason routing. This slice advertises those roll-forward vocabularies in
+`ResourceSummary.capabilities/0` and pins them against existing roll-forward
+behavior.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/communications/contact_allocation.ex`
-- `test/orbital_dynamics/communications/contact_allocation_test.exs`
+- `lib/orbital_dynamics/resource_summary.ex`
+- `test/orbital_dynamics/resource_summary_test.exs`
 
 Tests run:
-- `mix format lib/orbital_dynamics/communications/contact_allocation.ex test/orbital_dynamics/communications/contact_allocation_test.exs`
-- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs:9 test/orbital_dynamics/communications/contact_allocation_test.exs:2400 --trace --seed 0`
+- `mix format lib/orbital_dynamics/resource_summary.ex test/orbital_dynamics/resource_summary_test.exs`
+- `mix test test/orbital_dynamics/resource_summary_test.exs:6 test/orbital_dynamics/resource_summary_test.exs:627 test/orbital_dynamics/resource_summary_test.exs:737 --trace --seed 0`
 - `git diff --check`
 
 Docs/artifacts changed:
 No schema export is expected. This slice only publishes capability metadata for
-the existing `contact_allocation_provider_reservation_request_summary.v1`
-status vocabulary.
+existing `resource_projection_flow_summary.v1` roll-forward status and pressure
+fields.
 
 Last commit:
-Current slice commit advertises provider-reservation request status semantics
-and is pushed to `origin/main`.
+Current slice commit advertises resource roll-forward status and pressure
+semantics and is pushed to `origin/main`.
 
 Next candidate:
 After this slice is verified and pushed, re-read the guide/ledger/live worktree

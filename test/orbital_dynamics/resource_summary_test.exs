@@ -21,6 +21,12 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
              resource_availability_true_tokens: resource_availability_true_tokens,
              resource_availability_false_tokens: resource_availability_false_tokens,
              resource_activity_type_aliases: resource_activity_type_aliases,
+             roll_forward_flow_statuses: roll_forward_flow_statuses,
+             roll_forward_pressure_statuses: roll_forward_pressure_statuses,
+             roll_forward_pressure_types: roll_forward_pressure_types,
+             roll_forward_resource_effect_statuses: roll_forward_resource_effect_statuses,
+             roll_forward_ignored_effect_reason_families:
+               roll_forward_ignored_effect_reason_families,
              roll_forward_helpers: roll_forward_helpers,
              roll_forward_contract: roll_forward_contract,
              public_facades: public_facades,
@@ -65,8 +71,43 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
     assert :resource_unit_interval_aliases in row_semantics
     assert :resource_activity_type_aliases in row_semantics
     assert :selected_activity_resource_roll_forward in row_semantics
+    assert :resource_summary_roll_forward_flow_status_values in row_semantics
+    assert :resource_summary_roll_forward_pressure_status_values in row_semantics
+    assert :resource_summary_roll_forward_pressure_type_values in row_semantics
+    assert :resource_summary_roll_forward_resource_effect_status_values in row_semantics
+    assert :resource_summary_roll_forward_ignored_effect_reason_families in row_semantics
     assert :thin_selected_activity_roll_forward_contract in row_semantics
     assert roll_forward_helpers == [:roll_forward]
+
+    assert roll_forward_flow_statuses == ["clear", "review_required"]
+    assert roll_forward_pressure_statuses == ["clear", "review_required"]
+
+    assert roll_forward_pressure_types == [
+             "activity_type_incompatible_with_resource_summary",
+             "activity_type_suppressed_by_resource_summary",
+             "antenna_unavailable",
+             "battery_depletion",
+             "downlink_shortfall",
+             "payload_unavailable",
+             "spacecraft_degraded_payload_unavailable",
+             "spacecraft_unavailable",
+             "storage_overflow",
+             "thermal_margin_below_limit"
+           ]
+
+    assert roll_forward_resource_effect_statuses == ["projected", "ignored"]
+
+    assert roll_forward_ignored_effect_reason_families == [
+             "activity_status_*",
+             "approval_status_rejected",
+             "contact_allocation_*",
+             "activity_type_suppressed_by_resource_summary",
+             "activity_type_incompatible_with_resource_summary",
+             "spacecraft_unavailable",
+             "payload_unavailable",
+             "spacecraft_degraded_payload_unavailable",
+             "antenna_unavailable"
+           ]
 
     assert roll_forward_contract == %{
              input_contracts: ["resource_summary.v1", "selected_activity_rows"],
@@ -671,6 +712,14 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
              source: "resource_summary_roll_forward_test"
            ) == report
 
+    assert report["resource_flow_status"] in ResourceSummary.capabilities().roll_forward_flow_statuses
+
+    assert report["resource_pressure_status"] in ResourceSummary.capabilities().roll_forward_pressure_statuses
+
+    assert report["resource_pressure_types"] --
+             ResourceSummary.capabilities().roll_forward_pressure_types ==
+             []
+
     assert {:ok, %{"schema_contract" => "resource_projection_flow_summary.v1"}} =
              OrbitalDynamics.Schema.validate_artifact(report)
 
@@ -807,6 +856,20 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
                  "terminal_or_approval_rejected_activities_are_audited_with_zero_projected_resource_effect"
              }
            } = report = ResourceSummary.roll_forward(summary, selected_activities)
+
+    assert report["activity_resource_flow"]
+           |> Enum.map(& &1["resource_effect_status"])
+           |> Enum.uniq()
+           |> Enum.all?(
+             &(&1 in ResourceSummary.capabilities().roll_forward_resource_effect_statuses)
+           )
+
+    assert report["ignored_activity_reason_counts"]
+           |> Map.keys()
+           |> Enum.all?(fn reason ->
+             reason in ResourceSummary.capabilities().roll_forward_ignored_effect_reason_families or
+               String.starts_with?(reason, "activity_status_")
+           end)
 
     assert {:ok, %{"schema_contract" => "resource_projection_flow_summary.v1"}} =
              OrbitalDynamics.Schema.validate_artifact(report)

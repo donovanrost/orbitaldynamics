@@ -27,6 +27,32 @@ defmodule OrbitalDynamics.ResourceSummary do
   @resource_unit_interval_aliases %{
     "battery_state_of_charge" => ["battery_soc"]
   }
+  @roll_forward_flow_statuses ~w(clear review_required)
+  @roll_forward_pressure_statuses ~w(clear review_required)
+  @roll_forward_pressure_types ~w(
+    activity_type_incompatible_with_resource_summary
+    activity_type_suppressed_by_resource_summary
+    antenna_unavailable
+    battery_depletion
+    downlink_shortfall
+    payload_unavailable
+    spacecraft_degraded_payload_unavailable
+    spacecraft_unavailable
+    storage_overflow
+    thermal_margin_below_limit
+  )
+  @roll_forward_resource_effect_statuses ~w(projected ignored)
+  @roll_forward_ignored_effect_reason_families [
+    "activity_status_*",
+    "approval_status_rejected",
+    "contact_allocation_*",
+    "activity_type_suppressed_by_resource_summary",
+    "activity_type_incompatible_with_resource_summary",
+    "spacecraft_unavailable",
+    "payload_unavailable",
+    "spacecraft_degraded_payload_unavailable",
+    "antenna_unavailable"
+  ]
   @spacecraft_stable_identity_fields ~w(
     spacecraft_id
     satellite_id
@@ -132,6 +158,11 @@ defmodule OrbitalDynamics.ResourceSummary do
       resource_availability_true_tokens: @availability_true_tokens,
       resource_availability_false_tokens: @availability_false_tokens,
       resource_activity_type_aliases: @resource_activity_type_aliases,
+      roll_forward_flow_statuses: @roll_forward_flow_statuses,
+      roll_forward_pressure_statuses: @roll_forward_pressure_statuses,
+      roll_forward_pressure_types: @roll_forward_pressure_types,
+      roll_forward_resource_effect_statuses: @roll_forward_resource_effect_statuses,
+      roll_forward_ignored_effect_reason_families: @roll_forward_ignored_effect_reason_families,
       roll_forward_helpers: [:roll_forward],
       roll_forward_contract: %{
         input_contracts: ["resource_summary.v1", "selected_activity_rows"],
@@ -158,6 +189,11 @@ defmodule OrbitalDynamics.ResourceSummary do
         :resource_unit_interval_aliases,
         :resource_activity_type_aliases,
         :selected_activity_resource_roll_forward,
+        :resource_summary_roll_forward_flow_status_values,
+        :resource_summary_roll_forward_pressure_status_values,
+        :resource_summary_roll_forward_pressure_type_values,
+        :resource_summary_roll_forward_resource_effect_status_values,
+        :resource_summary_roll_forward_ignored_effect_reason_families,
         :thin_selected_activity_roll_forward_contract
       ]
     }
