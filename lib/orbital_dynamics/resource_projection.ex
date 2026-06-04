@@ -1722,7 +1722,12 @@ defmodule OrbitalDynamics.ResourceProjection do
           do: {:percent, field, Map.get(values, field)}
 
     nested_values =
-      [values["throughput_model"], values["capacity_model"], values["activity_context"]]
+      [
+        values["throughput_model"],
+        values["capacity_model"],
+        values["activity_context"],
+        values["source_contact_allocation"]
+      ]
       |> Enum.flat_map(&capacity_evidence_values/1)
 
     fraction_values ++ allocation_fraction_values ++ percent_values ++ nested_values
@@ -3231,7 +3236,18 @@ defmodule OrbitalDynamics.ResourceProjection do
   defp contact_allocation_status_value(activity, field) do
     Map.get(activity, field) ||
       get_in(activity, ["source_contact_allocation", field]) ||
-      get_in(activity, ["source_station_calendar_entry", "source_contact_allocation", field])
+      get_in(activity, ["source_station_calendar_entry", "source_contact_allocation", field]) ||
+      contact_allocation_status_value_from_overlaps(activity, field)
+  end
+
+  defp contact_allocation_status_value_from_overlaps(activity, field) do
+    activity
+    |> Map.get("source_station_calendar_overlaps")
+    |> List.wrap()
+    |> Enum.find_value(fn
+      %{} = overlap -> get_in(overlap, ["source_contact_allocation", field])
+      _overlap -> nil
+    end)
   end
 
   defp status_token(value) when value in [nil, ""], do: nil

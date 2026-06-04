@@ -1,17 +1,17 @@
 # Autonomous Product Loop Status
 
 Current slice:
-ResourceProjection nested contact-allocation status roll-forward.
+ResourceProjection overlap contact-allocation status roll-forward.
 
 Status:
-Implemented and verification passed. ResourceProjection already ignored direct
-deferred/policy-blocked contact-allocation rows during selected-flow
-storage/downlink roll-forward, but branch-local replay can carry those fields
-under nested `source_contact_allocation` evidence. The mapper now reads nested
-allocation status/reason/capacity-pack status and nested capacity-pack capacity
-fraction evidence from both top-level source allocation context and
-`source_station_calendar_entry.source_contact_allocation`, so replayed deferred
-or policy-blocked contacts remain zero-effect and allocated contacts keep
+Implemented and verification passed. ResourceProjection already read nested
+`source_contact_allocation` evidence from top-level activity context and the
+primary `source_station_calendar_entry`, but station-calendar overlap entries
+could still carry replayed allocation status/reason/capacity-pack evidence that
+was ignored by selected-flow roll-forward. The mapper now reads
+`source_station_calendar_overlaps[*].source_contact_allocation` status fields
+and validates nested capacity evidence, so overlap-derived deferred contacts
+remain zero-effect and overlap-derived allocated contacts keep
 capacity-adjusted downlink relief.
 
 Files changed:
@@ -21,8 +21,8 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/resource_projection.ex test/orbital_dynamics/resource_projection_test.exs`
-- `mix test test/orbital_dynamics/resource_projection_test.exs:3545`
-- `mix test test/orbital_dynamics/resource_projection_test.exs:3160 test/orbital_dynamics/resource_projection_test.exs:3329 test/orbital_dynamics/resource_projection_test.exs:3398 test/orbital_dynamics/resource_projection_test.exs:3545`
+- `mix test test/orbital_dynamics/resource_projection_test.exs:3692`
+- `mix test test/orbital_dynamics/resource_projection_test.exs:3329 test/orbital_dynamics/resource_projection_test.exs:3398 test/orbital_dynamics/resource_projection_test.exs:3545 test/orbital_dynamics/resource_projection_test.exs:3692`
 - `mix test test/orbital_dynamics/resource_projection_test.exs`
 
 Docs/artifacts changed:

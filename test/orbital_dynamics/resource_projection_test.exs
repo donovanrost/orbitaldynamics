@@ -3689,6 +3689,126 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
              Schema.validate_artifact(flow_summary)
   end
 
+  test "uses overlap source contact allocation status during downlink roll-forward" do
+    report =
+      ResourceProjection.report(
+        [
+          %{
+            id: :obs_before_overlap_allocation,
+            type: :observe,
+            scenario_id: :leo_1,
+            starts_at_s: 10.0,
+            estimated_storage_mb: 120.0
+          },
+          %{
+            id: :"contact_allocation:dl_overlap_allocated",
+            type: :downlink,
+            direction: :downlink,
+            scenario_id: :leo_1,
+            ground_station_id: :equator_prime,
+            starts_at_s: 20.0,
+            estimated_throughput_mb: 40.0,
+            source_station_calendar_overlaps: [
+              %{
+                id: :overlap_allocated,
+                source_contact_allocation: %{
+                  allocation_status: :allocated,
+                  effective_allocation_status: :allocated,
+                  allocation_reason: :selected_by_reduced_station_capacity_pack,
+                  capacity_pack_status: :selected_by_reduced_station_capacity_pack,
+                  capacity_pack_capacity_fraction: 0.5
+                }
+              }
+            ]
+          },
+          %{
+            id: :"contact_allocation:dl_overlap_deferred",
+            type: :downlink,
+            direction: :downlink,
+            scenario_id: :leo_1,
+            ground_station_id: :equator_prime,
+            starts_at_s: 30.0,
+            estimated_throughput_mb: 40.0,
+            source_station_calendar_overlaps: [
+              %{
+                id: :overlap_deferred,
+                source_contact_allocation: %{
+                  allocation_status: :deferred,
+                  effective_allocation_status: :deferred,
+                  allocation_reason: :same_station_contention,
+                  capacity_pack_status: :deferred_by_reduced_station_capacity_pack
+                }
+              }
+            ]
+          }
+        ],
+        [
+          %{
+            spacecraft_id: :leo_1,
+            storage_capacity_mb: 200.0,
+            storage_used_mb: 0.0,
+            downlink_capacity_mb: 100.0
+          }
+        ]
+      )
+
+    assert %{
+             "projected_resources" => [
+               %{
+                 "effective_activity_count" => 2,
+                 "ignored_activity_count" => 1,
+                 "ignored_activity_ids" => ["contact_allocation:dl_overlap_deferred"],
+                 "estimated_downlink_mb" => 20.0,
+                 "storage_limited_downlinked_mb" => 20.0,
+                 "projected_storage_used_mb" => 100.0,
+                 "activity_resource_flow" => [
+                   %{"activity_id" => "obs_before_overlap_allocation"},
+                   %{
+                     "activity_id" => "contact_allocation:dl_overlap_allocated",
+                     "resource_effect_status" => "projected",
+                     "allocation_status" => "allocated",
+                     "effective_allocation_status" => "allocated",
+                     "allocation_reason" => "selected_by_reduced_station_capacity_pack",
+                     "capacity_pack_status" => "selected_by_reduced_station_capacity_pack",
+                     "capacity_fraction" => 0.5,
+                     "planned_downlink_mb" => 20.0,
+                     "downlinked_mb" => 20.0
+                   },
+                   %{
+                     "activity_id" => "contact_allocation:dl_overlap_deferred",
+                     "resource_effect_status" => "ignored",
+                     "resource_effect_reason" => "contact_allocation_deferred",
+                     "allocation_status" => "deferred",
+                     "effective_allocation_status" => "deferred",
+                     "allocation_reason" => "same_station_contention",
+                     "capacity_pack_status" => "deferred_by_reduced_station_capacity_pack",
+                     "planned_downlink_mb" => +0.0,
+                     "downlinked_mb" => +0.0
+                   }
+                 ]
+               }
+             ]
+           } = report
+
+    assert {:ok, %{"schema_contract" => "resource_projection_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    flow_summary = ResourceProjection.flow_summary(report)
+
+    assert %{
+             "total_planned_downlink_mb" => 20.0,
+             "ignored_activity_reason_counts" => %{"contact_allocation_deferred" => 1},
+             "activity_resource_flow" => [
+               _observation,
+               %{"allocation_status" => "allocated", "capacity_fraction" => 0.5},
+               %{"resource_effect_reason" => "contact_allocation_deferred"}
+             ]
+           } = flow_summary
+
+    assert {:ok, %{"schema_contract" => "resource_projection_flow_summary.v1"}} =
+             Schema.validate_artifact(flow_summary)
+  end
+
   test "preserves station-calendar direction context through resource pressure review" do
     report =
       ResourceProjection.report(
