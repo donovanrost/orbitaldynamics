@@ -1,48 +1,49 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Timeline lifecycle-state capability metadata exposes adapter-discoverable row
-semantics.
+`candidate_rejection_report.v1` exposes row-derived candidate ID routing by
+required operator action.
 
 Status:
-Implementation, focused verification, read-only review, product commit, and
-push are complete. This status handoff records the published state.
-`Timeline.capabilities/0` now advertises row semantics for single-activity
-lifecycle state handoffs and lifecycle-state summaries, including transition
-decision/action fields, row-derived summary counts, required-operator-action
-and import-action count maps, status/approval category counts, review/record/
-preserve timeline ID sets, review routing, duplicate timeline-identity routing,
-and invalid-activity-input routing. This is a metadata/docs slice only;
-lifecycle-state artifact shapes and schema contracts were not changed.
+Implementation, focused verification, schema export refresh, and read-only
+review are complete. Product commit, push, and final ledger publish update are
+pending. `Timeline.candidate_rejection_report/2` now emits
+`candidate_ids_by_required_operator_action` so review/import adapters can route
+`review_candidate_rejection` work without scanning every row. Runtime schema
+validation accepts only supported candidate-rejection action keys, validates
+stable candidate IDs, and rejects stale maps that do not match report rows.
 
 Files changed for this slice:
 - `.codex/status/autonomous_product_loop.md`
 - `docs/artifacts/field_families/mission_activities.md`
+- `lib/orbital_dynamics/schema.ex`
 - `lib/orbital_dynamics/timeline.ex`
+- `schemas/candidate_refresh.v1.schema.json`
+- `schemas/candidate_rejection_report.v1.schema.json`
+- `schemas/orbital_dynamics.schema_bundle.v1.json`
+- `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
+- `test/orbital_dynamics/schema_test.exs`
 - `test/orbital_dynamics/timeline_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/timeline_test.exs:7 test/orbital_dynamics/timeline_test.exs:6094 test/orbital_dynamics/timeline_test.exs:6308 --trace --seed 0`
-  passed the capabilities test plus single-activity lifecycle-state and
-  lifecycle-state-summary tests.
-
-Review:
-- `slice_reviewer` found no must-fix findings. It noted a non-blocking doc
-  coverage gap for single-activity lifecycle-state row semantics; the docs were
-  updated to name those semantics before publish.
+- `mix test test/orbital_dynamics/timeline_test.exs:7 test/orbital_dynamics/timeline_test.exs:7570 test/orbital_dynamics/schema_test.exs:12652 test/mix/tasks/orbital_dynamics.schema.export_test.exs:39 test/orbital_dynamics/schema_test.exs:19804 --trace --seed 0`
+  passed capabilities, generated candidate-rejection report, standalone
+  candidate-rejection schema validation, schema bundle export, and checked-in
+  schema export drift coverage.
 
 Docs/artifacts changed:
-- `docs/artifacts/field_families/mission_activities.md` now states that
-  `Timeline.capabilities/0` row semantics name single-activity lifecycle-state
-  transition/action fields plus lifecycle-state summary count maps,
-  transition/category maps, review/record/preserve timeline ID sets, duplicate
-  identity routing, and invalid-input routing for adapters.
-- No schema exports, schema contracts, or checked-in study artifacts changed in
-  this slice.
+- `docs/artifacts/field_families/mission_activities.md` now documents the
+  action-keyed candidate ID map and preserves the no-approval/no-import
+  boundary.
+- Checked-in JSON schema exports were refreshed with
+  `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`.
+
+Review:
+- `slice_reviewer` reported no findings and recommended publishing after this
+  ledger review update.
 
 Last product commit:
-- `8e658f6b60f033a1d7171217cdc079ce2d79227d` Advertise lifecycle state row
-  semantics.
+- Pending.
 
 Next candidate:
 After publish, re-read `docs/autonomous_work_guide.md`, this ledger, and the
@@ -54,8 +55,8 @@ Blocked:
 No.
 
 Notes:
-This slice intentionally does not change lifecycle-state artifact fields,
-schema validation, planner selection, schedule mutation, Cadence import,
-operator authority, or command execution. Treat current files as authoritative
-and do not revert unrelated changes. `.gitignore` has an unrelated pre-existing
-local scratch-ignore change and is not part of this slice.
+This slice intentionally does not select candidates, approve rejected
+candidates, mutate schedules, import to Cadence, or execute commands. Treat
+current files as authoritative and do not revert unrelated changes. `.gitignore`
+has an unrelated pre-existing local scratch-ignore change and is not part of
+this slice.

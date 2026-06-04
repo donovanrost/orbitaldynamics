@@ -5893,6 +5893,7 @@ defmodule OrbitalDynamics.Schema do
         "reviewable_candidate_ids",
         "invalid_candidate_input_ids",
         "candidate_id_sets_by_rejection_reason",
+        "candidate_ids_by_required_operator_action",
         "required_operator_action_counts"
       ],
       "nested_contracts" => ["planned_activity.v1"]
@@ -11469,6 +11470,20 @@ defmodule OrbitalDynamics.Schema do
       "type" => "object",
       "propertyNames" => %{
         "enum" => OrbitalDynamics.Timeline.capabilities().candidate_rejection_reasons
+      },
+      "additionalProperties" => stable_id_array_schema()
+    }
+  end
+
+  defp json_schema_property(
+         "candidate_ids_by_required_operator_action",
+         @candidate_rejection_report,
+         _contract
+       ) do
+    %{
+      "type" => "object",
+      "propertyNames" => %{
+        "enum" => OrbitalDynamics.Timeline.capabilities().candidate_rejection_actions
       },
       "additionalProperties" => stable_id_array_schema()
     }
@@ -46591,6 +46606,7 @@ defmodule OrbitalDynamics.Schema do
     |> expect_non_negative_integer(path, report, "reviewable_count")
     |> expect_type(path, report, "rejection_reason_counts", :map)
     |> expect_optional_type(path, report, "candidate_id_sets_by_rejection_reason", :map)
+    |> expect_optional_type(path, report, "candidate_ids_by_required_operator_action", :map)
     |> expect_optional_type(path, report, "required_operator_action_counts", :map)
     |> expect_optional_type(path, report, "model_limits", :list)
     |> validate_string_list_items(path, report, "model_limits")
@@ -46607,6 +46623,10 @@ defmodule OrbitalDynamics.Schema do
     |> validate_candidate_id_sets_by_rejection_reason(
       path <> ".candidate_id_sets_by_rejection_reason",
       Map.get(report, "candidate_id_sets_by_rejection_reason")
+    )
+    |> validate_candidate_ids_by_required_operator_action(
+      path <> ".candidate_ids_by_required_operator_action",
+      Map.get(report, "candidate_ids_by_required_operator_action")
     )
     |> expect_type(path, report, "rows", :list)
     |> expect_type(path, report, "assumptions", :map)
@@ -46829,6 +46849,13 @@ defmodule OrbitalDynamics.Schema do
       "candidate_id_sets_by_rejection_reason",
       candidate_id_sets_by_rejection_reason(rows),
       "must equal row-derived candidate_id_sets_by_rejection_reason"
+    )
+    |> expect_field_equals(
+      path,
+      report,
+      "candidate_ids_by_required_operator_action",
+      candidate_ids_by_required_operator_action(rows),
+      "must equal row-derived candidate_ids_by_required_operator_action"
     )
     |> expect_field_equals(
       path,
@@ -47698,6 +47725,46 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_candidate_id_sets_by_rejection_reason(issues, path, _reason_ids),
     do: [error(path, "must be an object") | issues]
+
+  defp validate_candidate_ids_by_required_operator_action(issues, _path, nil), do: issues
+
+  defp validate_candidate_ids_by_required_operator_action(issues, path, %{} = action_ids) do
+    allowed_actions = OrbitalDynamics.Timeline.capabilities().candidate_rejection_actions
+
+    Enum.reduce(action_ids, issues, fn {action, candidate_ids}, acc ->
+      acc =
+        if action in allowed_actions,
+          do: acc,
+          else: [
+            error("#{path}.#{action}", "must use a supported candidate rejection action") | acc
+          ]
+
+      case candidate_ids do
+        ids when is_list(ids) ->
+          validate_stable_id_list(acc, "#{path}.#{action}", ids)
+
+        _value ->
+          [error("#{path}.#{action}", "must be a list") | acc]
+      end
+    end)
+  end
+
+  defp validate_candidate_ids_by_required_operator_action(issues, path, _action_ids),
+    do: [error(path, "must be an object") | issues]
+
+  defp candidate_ids_by_required_operator_action(rows) do
+    rows
+    |> Enum.group_by(&Map.get(&1, "required_operator_action"), &Map.get(&1, "candidate_id"))
+    |> Map.new(fn {action, candidate_ids} ->
+      candidate_ids =
+        candidate_ids
+        |> Enum.reject(&is_nil/1)
+        |> Enum.uniq()
+        |> Enum.sort()
+
+      {action, candidate_ids}
+    end)
+  end
 
   defp operational_approved_row?(row),
     do: row["approval_status"] in ["approved", "auto_approvable"]

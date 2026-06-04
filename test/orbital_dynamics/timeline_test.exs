@@ -358,6 +358,7 @@ defmodule OrbitalDynamics.TimelineTest do
     assert :candidate_rejection_reason_counts in row_semantics
     assert :candidate_rejection_routing_id_sets in row_semantics
     assert :candidate_rejection_reason_id_sets in row_semantics
+    assert :candidate_rejection_action_id_sets in row_semantics
     assert :candidate_rejection_station_capacity_value_paths in row_semantics
     assert :timeline_integrity_report in row_semantics
     assert :timeline_integrity_status in row_semantics
@@ -7642,6 +7643,15 @@ defmodule OrbitalDynamics.TimelineTest do
              "quality_gate_failed" => ["obs_clouded"],
              "station_capacity_reduced" => ["dl_reserved"],
              "station_reserved" => ["dl_reserved"]
+           }
+
+    assert report["candidate_ids_by_required_operator_action"] == %{
+             "none" => ["cmd_ready"],
+             "review_candidate_rejection" => [
+               "dl_reserved",
+               "missing_activity_id:4",
+               "obs_clouded"
+             ]
            }
 
     obs_row = Enum.find(report["rows"], &(&1["candidate_id"] == "obs_clouded"))

@@ -1006,6 +1006,7 @@ defmodule OrbitalDynamics.Timeline do
         :candidate_rejection_reason_counts,
         :candidate_rejection_routing_id_sets,
         :candidate_rejection_reason_id_sets,
+        :candidate_rejection_action_id_sets,
         :candidate_rejection_station_capacity_value_paths,
         :timeline_integrity_report,
         :timeline_integrity_status,
@@ -1346,6 +1347,8 @@ defmodule OrbitalDynamics.Timeline do
           &("invalid_candidate_input" in &1["rejection_reasons"])
         ),
       "candidate_id_sets_by_rejection_reason" => candidate_id_sets_by_rejection_reason(rows),
+      "candidate_ids_by_required_operator_action" =>
+        candidate_ids_by_required_operator_action(rows),
       "required_operator_action_counts" => count_by(rows, "required_operator_action"),
       "model_limits" => [
         "artifact_only",
@@ -2224,6 +2227,12 @@ defmodule OrbitalDynamics.Timeline do
       candidate_id
     end)
     |> Map.new(fn {reason, candidate_ids} -> {reason, sorted_uniq(candidate_ids)} end)
+  end
+
+  defp candidate_ids_by_required_operator_action(rows) do
+    rows
+    |> Enum.group_by(& &1["required_operator_action"], & &1["candidate_id"])
+    |> Map.new(fn {action, candidate_ids} -> {action, sorted_uniq(candidate_ids)} end)
   end
 
   defp normalize_activity_input({activity, sequence}, opts) do

@@ -994,6 +994,13 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "derived_reasons_use_declared_candidate_fields"
            ]
 
+    assert get_in(candidate_rejection_schema, [
+             "properties",
+             "candidate_ids_by_required_operator_action",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().candidate_rejection_actions
+
     assert Map.has_key?(schemas, "timeline_feedback_report.v1")
 
     feedback_schema = schemas["timeline_feedback_report.v1"]

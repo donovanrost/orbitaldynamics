@@ -12671,6 +12671,10 @@ defmodule OrbitalDynamics.SchemaTest do
         "none" => 1,
         "review_candidate_rejection" => 1
       },
+      "candidate_ids_by_required_operator_action" => %{
+        "none" => ["candidate_2"],
+        "review_candidate_rejection" => ["candidate_1"]
+      },
       "rows" => [
         %{
           "id" => "candidate_rejection:candidate_1",
@@ -12754,6 +12758,37 @@ defmodule OrbitalDynamics.SchemaTest do
              &(&1["path"] == "$.rejection_reason_counts.station_unavailable")
            )
 
+    stale_action_ids =
+      put_in(
+        report,
+        ["candidate_ids_by_required_operator_action", "review_candidate_rejection"],
+        [
+          "stale_candidate"
+        ]
+      )
+
+    assert {:error, stale_action_ids_report} = Schema.validate_artifact(stale_action_ids)
+
+    assert Enum.any?(
+             stale_action_ids_report["errors"],
+             &(&1["path"] == "$.candidate_ids_by_required_operator_action" and
+                 &1["message"] ==
+                   "must equal row-derived candidate_ids_by_required_operator_action")
+           )
+
+    invalid_action_ids =
+      put_in(report, ["candidate_ids_by_required_operator_action", "unsupported_action"], [
+        "candidate_1"
+      ])
+
+    assert {:error, invalid_action_ids_report} = Schema.validate_artifact(invalid_action_ids)
+
+    assert Enum.any?(
+             invalid_action_ids_report["errors"],
+             &(&1["path"] == "$.candidate_ids_by_required_operator_action.unsupported_action" and
+                 &1["message"] == "must use a supported candidate rejection action")
+           )
+
     assert {:ok, schema} = Schema.json_schema("candidate_rejection_report.v1")
 
     assert get_in(schema, ["properties", "model", "const"]) ==
@@ -12802,6 +12837,21 @@ defmodule OrbitalDynamics.SchemaTest do
              "propertyNames",
              "enum"
            ]) == OrbitalDynamics.Timeline.capabilities().candidate_rejection_actions
+
+    assert get_in(schema, [
+             "properties",
+             "candidate_ids_by_required_operator_action",
+             "propertyNames",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().candidate_rejection_actions
+
+    assert get_in(schema, [
+             "properties",
+             "candidate_ids_by_required_operator_action",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
 
     assert get_in(schema, [
              "properties",

@@ -91,6 +91,9 @@ canonical rejection reasons, and review actions. The report keeps candidate,
 timeline, activity, source-window, rejected/not-rejected, reason-count,
 reviewability, violated-constraint, margin, and activity-context fields together
 for operator-facing "why rejected" explanations while staying artifact-only.
+Generated reports also expose row-derived candidate ID maps by required operator
+action so review queues can route `review_candidate_rejection` work without
+scanning every row or granting approval/import authority.
 Generated reports publish a four-item `model_limits` list that runtime
 validation and schema export pin for handoff queues.
 Existing `candidate_rejection_report.v1` artifacts are accepted as idempotent
