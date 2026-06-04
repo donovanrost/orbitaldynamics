@@ -52085,6 +52085,11 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp contact_allocation_row_station_state(row, source_contact) do
     reason = normalized_timeline_diff_token(row["allocation_reason"] || row["suppressed_reason"])
 
+    precedence_availability =
+      row["station_calendar_precedence_availability"]
+      |> encode_value()
+      |> normalized_availability_token()
+
     availability =
       normalized_availability_token(
         encode_value(
@@ -52098,18 +52103,20 @@ defmodule OrbitalDynamics.CandidateRefresh do
       )
 
     cond do
-      reason == "ground_station_unavailable" or availability in ["unavailable", "maintenance"] ->
+      reason == "ground_station_unavailable" or availability in ["unavailable", "maintenance"] or
+          precedence_availability in ["unavailable", "maintenance"] ->
         %{"availability" => "unavailable", "status" => "unavailable"}
 
       reason == "ground_station_reserved" or availability == "reserved" or
-          row["station_contention_status"] == "reserved_overlap" ->
+        row["station_contention_status"] == "reserved_overlap" or
+          precedence_availability == "reserved" ->
         %{"availability" => "reserved", "status" => "reserved"}
 
       reason == "ground_station_capacity_zero" ->
         %{"availability" => "reduced_capacity", "capacity_fraction" => 0.0}
 
       reason == "ground_station_reduced_capacity_insufficient" or
-          availability == "reduced_capacity" ->
+        availability == "reduced_capacity" or precedence_availability == "reduced_capacity" ->
         %{
           "availability" => "reduced_capacity",
           "capacity_fraction" => contact_allocation_row_capacity_fraction(row, source_contact)

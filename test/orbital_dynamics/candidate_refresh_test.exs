@@ -38050,6 +38050,84 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "replays source contact allocation precedence station pressure into allocation policy" do
+    report = %{
+      "schema_contract" => "contact_allocation_report.v1",
+      "rows" => [
+        %{
+          "contact_id" => "dl_prior_precedence_capacity_limited",
+          "type" => "downlink",
+          "direction" => "downlink",
+          "allocation_status" => "allocated",
+          "effective_allocation_status" => "allocated",
+          "review_status" => "operator_review_required",
+          "ground_station_id" => "equator_prime",
+          "station_calendar_overlap_count" => 1,
+          "station_calendar_overlap_availabilities" => ["reserved"],
+          "station_calendar_precedence_availability" => "reduced_capacity",
+          "station_calendar_precedence_rank" => 2,
+          "capacity_pack_capacity_fraction" => 0.4,
+          "starts_at_s" => 250.0,
+          "ends_at_s" => 450.0,
+          "source_window_id" => "window_prior_precedence_capacity",
+          "trust_boundary" => "cadence_ops"
+        }
+      ]
+    }
+
+    approval_policy = %{
+      "action_rules" => [
+        %{
+          "id" => "block_replayed_precedence_capacity",
+          "station_availabilities" => ["reduced_capacity"],
+          "classification" => "blocked_by_policy",
+          "reason" => "replayed precedence capacity requires operator review"
+        }
+      ]
+    }
+
+    artifact =
+      result_set()
+      |> CandidateRefresh.build(
+        candidate_refresh:
+          refresh_request()
+          |> Map.put("source_contact_allocation_report", report)
+          |> Map.put("approval_policy", approval_policy),
+        generated_at: ~U[2026-05-14 00:00:00Z]
+      )
+
+    assert [allocation_row] = artifact["contact_allocation_report"]["rows"]
+
+    assert %{
+             "contact_id" => "leo_1_downlink_equator_prime_1",
+             "allocation_status" => "allocated",
+             "effective_allocation_status" => "policy_blocked",
+             "approval_status" => "blocked_by_policy",
+             "station_availability" => "reduced_capacity",
+             "capacity_fraction" => 0.4,
+             "trust_boundary" => "cadence_ops",
+             "policy_decision" => %{"classification" => "blocked_by_policy"},
+             "source_station_calendar_entry" => %{
+               "capacity_fraction" => 0.4,
+               "source_contact_allocation" => %{
+                 "contact_id" => "dl_prior_precedence_capacity_limited",
+                 "station_calendar_overlap_availabilities" => ["reserved"],
+                 "station_calendar_precedence_availability" => "reduced_capacity",
+                 "station_calendar_precedence_rank" => 2
+               }
+             }
+           } = allocation_row
+
+    assert Enum.any?(
+             allocation_row["approval_rule_matches"],
+             &(&1["rule_id"] == "block_replayed_precedence_capacity" and
+                 &1["classification"] == "blocked_by_policy")
+           )
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "replays nested source contact allocation capacity-pack fractions into station feedback" do
     report = %{
       "schema_contract" => "contact_allocation_report.v1",
