@@ -5,10 +5,11 @@ Operational-timeline replay reads and labels V3 branch
 `candidate_source.candidate_refresh_request_source_report_summary` metadata.
 
 Status:
-Implementation, focused verification, and read-only review are complete; commit
-and push are pending. `CandidateRefresh.operational_timeline_replay_summary/1`
-now checks a non-empty V3 branch `operational_timeline_report` source-report
-family before falling back to provenance. Branch-sourced summaries preserve
+Implementation, focused verification, read-only review, product commit, and
+push are complete for this slice. This status handoff records the published
+state. `CandidateRefresh.operational_timeline_replay_summary/1` now checks a
+non-empty V3 branch `operational_timeline_report` source-report family before
+falling back to provenance. Branch-sourced summaries preserve
 source-report counts, row counts, paths, input keys, feedback counts,
 operational-kind maps, activity/status/approval/action/import maps, integrity
 counts and issue maps, station-reservation evidence counts, trust-boundary
@@ -46,7 +47,8 @@ Docs/artifacts changed:
   slice.
 
 Last product commit:
-- Pending.
+- `a6cf8bdd177bed20a5e2838e32366ffcaa9af89f` (`Label operational timeline
+  branch replay metadata`) pushed to `origin/main`.
 
 Next candidate:
 After publish, re-read `docs/autonomous_work_guide.md`, this ledger, and the
