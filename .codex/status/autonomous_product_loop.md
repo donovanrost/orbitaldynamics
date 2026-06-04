@@ -1,15 +1,15 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Raw operational timeline lighting alias normalization.
+Operational timeline lighting alias capability metadata.
 
 Status:
-Implemented and focused verification passed. Raw timeline-map activity context
-now preserves provider lighting aliases alongside canonical fields, so
-`lighting_status`, `lighting_detail`, `lighting_model`,
-`lighting_detail_source`, and `lighting_confidence_label` feed the same
-review/import handoff fields that typed `MissionPlan.Activity` ingress already
-normalizes.
+Implemented and verification passed. `Timeline.capabilities/0` now advertises
+the raw lighting alias pairs already accepted by timeline activity-context
+normalization, including `lighting_status`, `lighting_detail`,
+`lighting_model`, `lighting_detail_source`, and `lighting_confidence_label`.
+The capability map also marks `:activity_lighting_field_aliases` in row
+semantics so adapter-facing consumers can discover the alias family.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -17,18 +17,17 @@ Files changed:
 - `test/orbital_dynamics/timeline_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/timeline_test.exs:5834 test/orbital_dynamics/timeline_test.exs:5900 --trace --seed 0`
-- `mix test test/orbital_dynamics/timeline_test.exs:9101 --trace --seed 0`
 - `mix format lib/orbital_dynamics/timeline.ex test/orbital_dynamics/timeline_test.exs`
-- `git diff --check`
+- `mix test test/orbital_dynamics/timeline_test.exs:7 test/orbital_dynamics/timeline_test.exs:5927 --trace --seed 0`
 - `mix test test/orbital_dynamics/timeline_test.exs --trace --seed 0`
+- `git diff --check`
 
 Docs/artifacts changed:
-No schema exports were needed. This slice only broadens accepted raw input
-aliases for existing canonical timeline activity-context fields.
+No schema exports were needed. This slice only publishes capability metadata for
+existing canonical timeline activity-context fields and their raw aliases.
 
 Last commit:
-Current slice commit normalizes raw operational timeline lighting aliases and is
+Current slice commit advertises operational timeline lighting aliases and is
 pushed to `origin/main`.
 
 Next candidate:

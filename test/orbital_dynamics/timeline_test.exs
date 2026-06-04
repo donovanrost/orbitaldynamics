@@ -39,6 +39,7 @@ defmodule OrbitalDynamics.TimelineTest do
              activity_status_aliases: activity_status_aliases,
              approval_status_aliases: approval_status_aliases,
              provider_result_map_value_keys: provider_result_map_value_keys,
+             activity_lighting_field_aliases: activity_lighting_field_aliases,
              unit_interval_activity_field_aliases: unit_interval_activity_field_aliases,
              required_operator_actions: required_operator_actions,
              timeline_diff_required_operator_actions: timeline_diff_required_operator_actions,
@@ -107,6 +108,31 @@ defmodule OrbitalDynamics.TimelineTest do
     assert approval_status_aliases["review_required"] == "operator_review_required"
     assert approval_status_aliases["policy_blocked"] == "blocked_by_policy"
     assert approval_status_aliases["no_review_required"] == "not_required"
+
+    assert %{
+             field: "lighting_condition",
+             aliases: ["lighting_condition", "lighting_status"]
+           } in activity_lighting_field_aliases
+
+    assert %{
+             field: "lighting_condition_detail",
+             aliases: ["lighting_condition_detail", "lighting_detail"]
+           } in activity_lighting_field_aliases
+
+    assert %{
+             field: "lighting_condition_model",
+             aliases: ["lighting_condition_model", "lighting_model"]
+           } in activity_lighting_field_aliases
+
+    assert %{
+             field: "lighting_detail_model",
+             aliases: ["lighting_detail_model", "lighting_detail_source"]
+           } in activity_lighting_field_aliases
+
+    assert %{
+             field: "lighting_confidence",
+             aliases: ["lighting_confidence", "lighting_confidence_label"]
+           } in activity_lighting_field_aliases
 
     assert %{field: "contact_success_factor", aliases: ["contact_success_factor"]} in unit_interval_activity_field_aliases
 
@@ -315,6 +341,7 @@ defmodule OrbitalDynamics.TimelineTest do
     assert :activity_status_aliases in row_semantics
     assert :approval_status_aliases in row_semantics
     assert :approval_status_counts in row_semantics
+    assert :activity_lighting_field_aliases in row_semantics
     assert :unit_interval_activity_field_aliases in row_semantics
     assert :activity_stable_identity_paths in row_semantics
     assert :command_contact_directions in row_semantics

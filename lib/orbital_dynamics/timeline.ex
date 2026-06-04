@@ -218,6 +218,13 @@ defmodule OrbitalDynamics.Timeline do
   @operational_kinds ~w(activity attitude coast command contact health_check maneuver observation)
   @stable_id_pattern ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
   @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
+  @activity_lighting_field_aliases [
+    {"lighting_condition", ["lighting_condition", "lighting_status"]},
+    {"lighting_condition_detail", ["lighting_condition_detail", "lighting_detail"]},
+    {"lighting_condition_model", ["lighting_condition_model", "lighting_model"]},
+    {"lighting_detail_model", ["lighting_detail_model", "lighting_detail_source"]},
+    {"lighting_confidence", ["lighting_confidence", "lighting_confidence_label"]}
+  ]
   @unit_interval_activity_field_aliases [
     {"contact_success_factor", ["contact_success_factor"]},
     {"command_success_factor", ["command_success_factor"]},
@@ -863,8 +870,9 @@ defmodule OrbitalDynamics.Timeline do
       activity_status_aliases: activity_status_aliases(),
       approval_status_aliases: approval_status_aliases(),
       provider_result_map_value_keys: @provider_result_map_value_keys,
+      activity_lighting_field_aliases: field_alias_metadata(@activity_lighting_field_aliases),
       unit_interval_activity_field_aliases:
-        unit_interval_field_alias_metadata(@unit_interval_activity_field_aliases),
+        field_alias_metadata(@unit_interval_activity_field_aliases),
       required_operator_actions: @required_operator_actions,
       timeline_diff_required_operator_actions: @timeline_diff_required_operator_actions,
       timeline_diff_statuses: @timeline_diff_statuses,
@@ -979,6 +987,7 @@ defmodule OrbitalDynamics.Timeline do
         :activity_status_counts,
         :approval_status_aliases,
         :approval_status_counts,
+        :activity_lighting_field_aliases,
         :unit_interval_activity_field_aliases,
         :required_operator_action,
         :required_operator_action_counts,
@@ -1104,7 +1113,7 @@ defmodule OrbitalDynamics.Timeline do
     Enum.map(paths, fn {unit, path} -> %{unit: unit, path: path} end)
   end
 
-  defp unit_interval_field_alias_metadata(fields) do
+  defp field_alias_metadata(fields) do
     Enum.map(fields, fn {field, aliases} -> %{field: field, aliases: aliases} end)
   end
 
