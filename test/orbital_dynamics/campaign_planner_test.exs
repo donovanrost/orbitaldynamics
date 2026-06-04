@@ -26598,6 +26598,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            } = candidate_source["candidate_refresh_request_source_report_summary"]
 
     assert %{
+             "source" =>
+               "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_dependency_impact_summary",
              "contract" => "timeline_dependency_impact_summary.v1",
              "source_report_count" => 4,
              "source_report_row_count" => 8,
@@ -26625,6 +26627,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "branch_local_dependent_activity_pressure" => true,
              "branch_local_operator_review_pressure" => true,
              "assumptions" => %{
+               "replay_scope" => "timeline_dependency_impact_candidate_source_report_summary_only",
                "timeline_mutation" => "not_performed_by_summary",
                "candidate_selection" => "not_performed_by_summary",
                "import_approval" => "not_granted_by_timeline_dependency_impact_replay_summary"

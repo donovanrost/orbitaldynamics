@@ -10784,15 +10784,36 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local timeline dependency-impact replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, mutate timelines, select candidates,
-  approve imports, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, mutate
+  timelines, select candidates, approve imports, or write to Cadence.
   """
   def timeline_dependency_impact_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
+    branch_impact_summary =
+      source_report_summary_branch_family(
+        refresh_or_artifact,
+        "timeline_dependency_impact_summary"
+      )
+
     impact_summary =
-      get_in(source_summary, ["source_reports", "timeline_dependency_impact_summary"]) || %{}
+      branch_impact_summary ||
+        get_in(source_summary, ["source_reports", "timeline_dependency_impact_summary"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_impact_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_dependency_impact_summary",
+          "timeline_dependency_impact_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.timeline_dependency_impact_summary",
+          "timeline_dependency_impact_source_report_provenance_only"
+        }
+      end
 
     row_count = summary_integer(impact_summary, "row_count")
     source_activity_count = summary_integer(impact_summary, "source_activity_count")
@@ -10861,7 +10882,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_timeline_dependency_impact_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.timeline_dependency_impact_summary",
+      "source" => summary_source,
       "contract" =>
         source_report_summary_contract(
           impact_summary,
@@ -10902,7 +10923,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "branch_local_operator_review_pressure" => review_pressure,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "timeline_dependency_impact_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_timeline_dependency_impact_replay_summary",
         "timeline_mutation" => "not_performed_by_summary",
         "candidate_selection" => "not_performed_by_summary",

@@ -1,22 +1,20 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Timeline-transition application replay reads and labels V3 branch
+Timeline-dependency impact replay reads and labels V3 branch
 `candidate_source.candidate_refresh_request_source_report_summary` metadata.
 
 Status:
-Implementation, focused verification, review, commit, and push complete for
-this slice.
-`CandidateRefresh.timeline_transition_application_replay_summary/1` now checks
-a non-empty V3 branch `timeline_transition_application_report` source-report
-family before falling back to provenance. Branch-sourced summaries preserve
-application, selected, review, preserved-source, replacement, withheld, and
-duplicate-identity counts plus status/decision/action maps, trust-boundary
-metadata, and branch-local pressure booleans while labeling their `source` and
-replay scope as candidate-source summary metadata. Empty branch families fall
-back to provenance and keep existing provenance-only labels; partial non-empty
-branch families remain authoritative. Direct `candidate_source` maps use the
-same branch labels.
+Implementation and focused verification complete; review and publish pending.
+`CandidateRefresh.timeline_dependency_impact_replay_summary/1` now checks a
+non-empty V3 branch `timeline_dependency_impact_summary` source-report family
+before falling back to provenance. Branch-sourced summaries preserve counts,
+paths, status/scope/action maps, impacted source/dependency/exclusivity maps,
+dependent activity/timeline maps, trust-boundary metadata, and branch-local
+pressure booleans while labeling their `source` and replay scope as
+candidate-source summary metadata. Empty branch families fall back to provenance
+and keep existing provenance-only labels; partial non-empty branch families
+remain authoritative. Direct `candidate_source` maps use the same branch labels.
 
 Files changed for this slice:
 - `.codex/status/autonomous_product_loop.md`
@@ -25,13 +23,13 @@ Files changed for this slice:
 - `test/orbital_dynamics/campaign_planner_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:21703 test/orbital_dynamics/candidate_refresh_test.exs:22293 test/orbital_dynamics/candidate_refresh_test.exs:22308 test/orbital_dynamics/candidate_refresh_test.exs:22433 test/orbital_dynamics/candidate_refresh_test.exs:22485 test/orbital_dynamics/candidate_refresh_test.exs:22535 --trace --seed 0`
-  passed timeline-transition application source-summary aggregation,
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:15223 test/orbital_dynamics/candidate_refresh_test.exs:15458 test/orbital_dynamics/candidate_refresh_test.exs:15473 test/orbital_dynamics/candidate_refresh_test.exs:15577 test/orbital_dynamics/candidate_refresh_test.exs:15615 test/orbital_dynamics/candidate_refresh_test.exs:15667 --trace --seed 0`
+  passed timeline-dependency impact source-summary aggregation,
   absent-provenance, branch candidate-source replay, direct candidate-source
   labeling, empty-family fallback, and partial-family precedence checks.
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:26843 --trace --seed 0`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:26480 --trace --seed 0`
   passed the strategy branch refresh caller that passes direct
-  candidate-source maps into timeline-transition application replay.
+  candidate-source maps into timeline-dependency impact replay.
 - `git diff --check` passed.
 
 Docs/artifacts changed:
@@ -40,8 +38,7 @@ Docs/artifacts changed:
   branch candidate-source replay for this helper.
 
 Last product commit:
-- `fe9fd40` (`Label transition-application branch replay metadata`) pushed to
-  `origin/main`.
+- Pending review and publish.
 
 Next candidate:
 Re-read `docs/autonomous_work_guide.md`, this ledger, and the live worktree
