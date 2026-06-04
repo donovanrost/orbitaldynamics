@@ -2227,7 +2227,27 @@ defmodule OrbitalDynamics.Schema do
     {"cadence_import_type", "cadence_import_type"},
     {"cadence_import_id", "cadence_import_id"},
     {"cadence_import_contract", "cadence_import_contract"},
-    {"has_cadence_import", "has_cadence_import"}
+    {"has_cadence_import", "has_cadence_import"},
+    {"command_authority_status", "command_authority_status"},
+    {"planned_command_authority_status", "planned_command_authority_status"},
+    {"realized_command_authority_status", "realized_command_authority_status"},
+    {"command_authority_status_match_status", "command_authority_status_match_status"},
+    {"required_authority", "required_authority"},
+    {"planned_required_authority", "planned_required_authority"},
+    {"realized_required_authority", "realized_required_authority"},
+    {"required_authority_match_status", "required_authority_match_status"},
+    {"command_safety_status", "command_safety_status"},
+    {"planned_command_safety_status", "planned_command_safety_status"},
+    {"realized_command_safety_status", "realized_command_safety_status"},
+    {"command_safety_status_match_status", "command_safety_status_match_status"},
+    {"command_authorized", "command_authorized"},
+    {"planned_command_authorized", "planned_command_authorized"},
+    {"realized_command_authorized", "realized_command_authorized"},
+    {"command_authorized_match_status", "command_authorized_match_status"},
+    {"command_safety_checked", "command_safety_checked"},
+    {"planned_command_safety_checked", "planned_command_safety_checked"},
+    {"realized_command_safety_checked", "realized_command_safety_checked"},
+    {"command_safety_checked_match_status", "command_safety_checked_match_status"}
   ]
   @realized_feedback_handoff_source_review_fields Enum.map(
                                                     [
@@ -2285,7 +2305,27 @@ defmodule OrbitalDynamics.Schema do
                                                       "cadence_import_type",
                                                       "cadence_import_id",
                                                       "cadence_import_contract",
-                                                      "has_cadence_import"
+                                                      "has_cadence_import",
+                                                      "command_authority_status",
+                                                      "planned_command_authority_status",
+                                                      "realized_command_authority_status",
+                                                      "command_authority_status_match_status",
+                                                      "required_authority",
+                                                      "planned_required_authority",
+                                                      "realized_required_authority",
+                                                      "required_authority_match_status",
+                                                      "command_safety_status",
+                                                      "planned_command_safety_status",
+                                                      "realized_command_safety_status",
+                                                      "command_safety_status_match_status",
+                                                      "command_authorized",
+                                                      "planned_command_authorized",
+                                                      "realized_command_authorized",
+                                                      "command_authorized_match_status",
+                                                      "command_safety_checked",
+                                                      "planned_command_safety_checked",
+                                                      "realized_command_safety_checked",
+                                                      "command_safety_checked_match_status"
                                                     ],
                                                     &{&1, &1}
                                                   )
@@ -2993,6 +3033,25 @@ defmodule OrbitalDynamics.Schema do
     "command_success" => "boolean",
     "command_success_factor" => "number",
     "command_success_factor_source" => "string",
+    "command_authority_status" => "string",
+    "planned_command_authority_status" => "string",
+    "realized_command_authority_status" => "string",
+    "command_authority_status_match_status" => "string",
+    "planned_required_authority" => "string",
+    "realized_required_authority" => "string",
+    "required_authority_match_status" => "string",
+    "command_safety_status" => "string",
+    "planned_command_safety_status" => "string",
+    "realized_command_safety_status" => "string",
+    "command_safety_status_match_status" => "string",
+    "command_authorized" => "boolean",
+    "planned_command_authorized" => "boolean",
+    "realized_command_authorized" => "boolean",
+    "command_authorized_match_status" => "string",
+    "command_safety_checked" => "boolean",
+    "planned_command_safety_checked" => "boolean",
+    "realized_command_safety_checked" => "boolean",
+    "command_safety_checked_match_status" => "string",
     "command_window_count" => "integer",
     "command_window_report" => "object",
     "collection_ends_at_s" => "number",
@@ -5641,6 +5700,11 @@ defmodule OrbitalDynamics.Schema do
         "command_result",
         "command_success_factor",
         "command_success_factor_source",
+        "command_authority_status",
+        "required_authority",
+        "command_safety_status",
+        "command_authorized",
+        "command_safety_checked",
         "observation_success",
         "observation_result",
         "observation_success_factor",
@@ -18774,6 +18838,11 @@ defmodule OrbitalDynamics.Schema do
         "contact_success_factor_source" => %{"type" => "string"},
         "command_success_factor" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
         "command_success_factor_source" => %{"type" => "string"},
+        "command_authority_status" => %{"type" => "string"},
+        "required_authority" => %{"type" => "string"},
+        "command_safety_status" => %{"type" => "string"},
+        "command_authorized" => %{"type" => "boolean"},
+        "command_safety_checked" => %{"type" => "boolean"},
         "observation_success_factor" => %{
           "type" => "number",
           "minimum" => 0.0,
@@ -18961,6 +19030,11 @@ defmodule OrbitalDynamics.Schema do
         "contact_success_factor_source" => %{"type" => "string"},
         "command_success_factor" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
         "command_success_factor_source" => %{"type" => "string"},
+        "command_authority_status" => %{"type" => "string"},
+        "required_authority" => %{"type" => "string"},
+        "command_safety_status" => %{"type" => "string"},
+        "command_authorized" => %{"type" => "boolean"},
+        "command_safety_checked" => %{"type" => "boolean"},
         "observation_success" => %{"type" => "boolean"},
         "observation_result" => %{"type" => "string"},
         "observation_success_factor" => %{
@@ -19520,6 +19594,26 @@ defmodule OrbitalDynamics.Schema do
         "command_success_factor" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
         "command_success_factor_source" => %{"type" => "string"},
         "command_result" => %{"type" => "string"},
+        "command_authority_status" => %{"type" => "string"},
+        "planned_command_authority_status" => %{"type" => "string"},
+        "realized_command_authority_status" => %{"type" => "string"},
+        "command_authority_status_match_status" => %{"type" => "string"},
+        "required_authority" => %{"type" => "string"},
+        "planned_required_authority" => %{"type" => "string"},
+        "realized_required_authority" => %{"type" => "string"},
+        "required_authority_match_status" => %{"type" => "string"},
+        "command_safety_status" => %{"type" => "string"},
+        "planned_command_safety_status" => %{"type" => "string"},
+        "realized_command_safety_status" => %{"type" => "string"},
+        "command_safety_status_match_status" => %{"type" => "string"},
+        "command_authorized" => %{"type" => "boolean"},
+        "planned_command_authorized" => %{"type" => "boolean"},
+        "realized_command_authorized" => %{"type" => "boolean"},
+        "command_authorized_match_status" => %{"type" => "string"},
+        "command_safety_checked" => %{"type" => "boolean"},
+        "planned_command_safety_checked" => %{"type" => "boolean"},
+        "realized_command_safety_checked" => %{"type" => "boolean"},
+        "command_safety_checked_match_status" => %{"type" => "string"},
         "observation_success" => %{"type" => "boolean"},
         "observation_success_factor" => %{
           "type" => "number",
@@ -20815,6 +20909,11 @@ defmodule OrbitalDynamics.Schema do
         "command_result" => %{"type" => "string"},
         "command_success_factor" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
         "command_success_factor_source" => %{"type" => "string"},
+        "command_authority_status" => %{"type" => "string"},
+        "required_authority" => %{"type" => "string"},
+        "command_safety_status" => %{"type" => "string"},
+        "command_authorized" => %{"type" => "boolean"},
+        "command_safety_checked" => %{"type" => "boolean"},
         "observation_success" => %{"type" => "boolean"},
         "observation_result" => %{"type" => "string"},
         "observation_success_factor" => %{
@@ -23212,6 +23311,7 @@ defmodule OrbitalDynamics.Schema do
         }
         |> Map.merge(timeline_dependency_impact_handoff_json_schema_properties())
         |> Map.merge(timeline_activity_precondition_handoff_json_schema_properties())
+        |> Map.merge(command_authority_handoff_json_schema_properties())
         |> Map.merge(feedback_maneuver_handoff_json_schema_properties())
         |> Map.merge(link_handoff_json_schema_properties())
         |> Map.merge(thermal_handoff_json_schema_properties())
@@ -23251,6 +23351,40 @@ defmodule OrbitalDynamics.Schema do
       "impacted_exclusive_with_timeline_ids" => stable_id_array_schema(),
       "source_timeline_dependency_impact" => timeline_dependency_impact_row_json_schema()
     }
+  end
+
+  defp command_authority_handoff_json_schema_properties do
+    string_fields =
+      [
+        "command_authority_status",
+        "planned_command_authority_status",
+        "realized_command_authority_status",
+        "command_authority_status_match_status",
+        "required_authority",
+        "planned_required_authority",
+        "realized_required_authority",
+        "required_authority_match_status",
+        "command_safety_status",
+        "planned_command_safety_status",
+        "realized_command_safety_status",
+        "command_safety_status_match_status",
+        "command_authorized_match_status",
+        "command_safety_checked_match_status"
+      ]
+      |> Map.new(&{&1, %{"type" => "string"}})
+
+    boolean_fields =
+      [
+        "command_authorized",
+        "planned_command_authorized",
+        "realized_command_authorized",
+        "command_safety_checked",
+        "planned_command_safety_checked",
+        "realized_command_safety_checked"
+      ]
+      |> Map.new(&{&1, %{"type" => "boolean"}})
+
+    Map.merge(string_fields, boolean_fields)
   end
 
   defp timeline_activity_precondition_handoff_json_schema_properties do
@@ -23702,6 +23836,7 @@ defmodule OrbitalDynamics.Schema do
         }
         |> Map.merge(timeline_dependency_impact_handoff_json_schema_properties())
         |> Map.merge(timeline_activity_precondition_handoff_json_schema_properties())
+        |> Map.merge(command_authority_handoff_json_schema_properties())
         |> Map.merge(feedback_maneuver_handoff_json_schema_properties())
         |> Map.merge(link_handoff_json_schema_properties())
         |> Map.merge(thermal_handoff_json_schema_properties())
@@ -24281,6 +24416,7 @@ defmodule OrbitalDynamics.Schema do
         }
         |> Map.merge(timeline_dependency_impact_handoff_json_schema_properties())
         |> Map.merge(timeline_activity_precondition_handoff_json_schema_properties())
+        |> Map.merge(command_authority_handoff_json_schema_properties())
         |> Map.merge(feedback_maneuver_handoff_json_schema_properties())
         |> Map.merge(link_handoff_json_schema_properties())
         |> Map.merge(thermal_handoff_json_schema_properties())
@@ -32841,6 +32977,11 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(path, activity, "contact_success_factor_source", :binary)
     |> expect_optional_probability(path, activity, "command_success_factor")
     |> expect_optional_type(path, activity, "command_success_factor_source", :binary)
+    |> expect_optional_type(path, activity, "command_authority_status", :binary)
+    |> expect_optional_type(path, activity, "required_authority", :binary)
+    |> expect_optional_type(path, activity, "command_safety_status", :binary)
+    |> expect_optional_type(path, activity, "command_authorized", :boolean)
+    |> expect_optional_type(path, activity, "command_safety_checked", :boolean)
     |> expect_optional_type(path, activity, "observation_success", :boolean)
     |> expect_optional_type(path, activity, "observation_result", :binary)
     |> expect_optional_probability(path, activity, "observation_success_factor")
@@ -33542,6 +33683,26 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_probability(path, row, "command_success_factor")
     |> expect_optional_type(path, row, "command_success_factor_source", :binary)
     |> expect_optional_type(path, row, "command_result", :binary)
+    |> expect_optional_type(path, row, "command_authority_status", :binary)
+    |> expect_optional_type(path, row, "planned_command_authority_status", :binary)
+    |> expect_optional_type(path, row, "realized_command_authority_status", :binary)
+    |> expect_optional_type(path, row, "command_authority_status_match_status", :binary)
+    |> expect_optional_type(path, row, "required_authority", :binary)
+    |> expect_optional_type(path, row, "planned_required_authority", :binary)
+    |> expect_optional_type(path, row, "realized_required_authority", :binary)
+    |> expect_optional_type(path, row, "required_authority_match_status", :binary)
+    |> expect_optional_type(path, row, "command_safety_status", :binary)
+    |> expect_optional_type(path, row, "planned_command_safety_status", :binary)
+    |> expect_optional_type(path, row, "realized_command_safety_status", :binary)
+    |> expect_optional_type(path, row, "command_safety_status_match_status", :binary)
+    |> expect_optional_type(path, row, "command_authorized", :boolean)
+    |> expect_optional_type(path, row, "planned_command_authorized", :boolean)
+    |> expect_optional_type(path, row, "realized_command_authorized", :boolean)
+    |> expect_optional_type(path, row, "command_authorized_match_status", :binary)
+    |> expect_optional_type(path, row, "command_safety_checked", :boolean)
+    |> expect_optional_type(path, row, "planned_command_safety_checked", :boolean)
+    |> expect_optional_type(path, row, "realized_command_safety_checked", :boolean)
+    |> expect_optional_type(path, row, "command_safety_checked_match_status", :binary)
     |> expect_optional_type(path, row, "observation_success", :boolean)
     |> expect_optional_probability(path, row, "observation_success_factor")
     |> expect_optional_type(path, row, "observation_success_factor_source", :binary)

@@ -1394,6 +1394,132 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
              Schema.validate_artifact(report["cadence_import_manifest"])
   end
 
+  test "preserves command authority and safety evidence through realized feedback review and import rows" do
+    report =
+      TimelineFeedback.reconcile(
+        [
+          %{
+            "id" => "cmd_authority",
+            "type" => "command",
+            "scenario_id" => "leo_1",
+            "starts_at_s" => 100.0,
+            "ends_at_s" => 120.0,
+            "command_authority_status" => "authorized",
+            "required_authority" => "payload_ops_lead",
+            "command_safety_status" => "checked",
+            "command_authorized" => "true",
+            "command_safety_checked" => "yes"
+          }
+        ],
+        [
+          %{
+            id: :cmd_authority_feedback,
+            planned_activity_id: :cmd_authority,
+            type: :command,
+            status: :completed,
+            command_authority_status: :operator_override,
+            required_authority: :flight_director,
+            command_safety_status: :rechecked,
+            command_authorized: false,
+            command_safety_checked: true
+          }
+        ]
+      )
+
+    assert %{
+             "activity_id" => "cmd_authority",
+             "command_authority_status" => "authorized",
+             "planned_command_authority_status" => "authorized",
+             "realized_command_authority_status" => "operator_override",
+             "command_authority_status_match_status" => "mismatch",
+             "required_authority" => "payload_ops_lead",
+             "planned_required_authority" => "payload_ops_lead",
+             "realized_required_authority" => "flight_director",
+             "required_authority_match_status" => "mismatch",
+             "command_safety_status" => "checked",
+             "planned_command_safety_status" => "checked",
+             "realized_command_safety_status" => "rechecked",
+             "command_safety_status_match_status" => "mismatch",
+             "command_authorized" => false,
+             "planned_command_authorized" => true,
+             "realized_command_authorized" => false,
+             "command_authorized_match_status" => "mismatch",
+             "command_safety_checked" => true,
+             "planned_command_safety_checked" => true,
+             "realized_command_safety_checked" => true,
+             "command_safety_checked_match_status" => "matched",
+             "source_activity_context" => %{
+               "command_authority_status" => "authorized",
+               "required_authority" => "payload_ops_lead",
+               "command_safety_status" => "checked",
+               "command_authorized" => true,
+               "command_safety_checked" => true
+             },
+             "realized_activity_context" => %{
+               "command_authority_status" => "operator_override",
+               "required_authority" => "flight_director",
+               "command_safety_status" => "rechecked",
+               "command_authorized" => false,
+               "command_safety_checked" => true
+             }
+           } = Enum.find(report["rows"], &(&1["activity_id"] == "cmd_authority"))
+
+    assert %{
+             "activity_id" => "cmd_authority",
+             "command_authority_status" => "authorized",
+             "realized_command_authority_status" => "operator_override",
+             "required_authority" => "payload_ops_lead",
+             "realized_required_authority" => "flight_director",
+             "command_safety_status" => "checked",
+             "realized_command_safety_status" => "rechecked",
+             "command_authorized" => false,
+             "realized_command_authorized" => false,
+             "command_safety_checked" => true,
+             "source_activity_context" => %{
+               "command_authority_status" => "authorized",
+               "command_safety_status" => "checked"
+             },
+             "realized_activity_context" => %{
+               "command_authority_status" => "operator_override",
+               "command_safety_status" => "rechecked"
+             }
+           } =
+             Enum.find(
+               report["operator_review_package"]["rows"],
+               &(&1["activity_id"] == "cmd_authority")
+             )
+
+    assert %{
+             "activity_id" => "cmd_authority",
+             "command_authority_status" => "authorized",
+             "realized_command_authority_status" => "operator_override",
+             "required_authority" => "payload_ops_lead",
+             "realized_required_authority" => "flight_director",
+             "command_safety_status" => "checked",
+             "realized_command_safety_status" => "rechecked",
+             "command_authorized" => false,
+             "realized_command_authorized" => false,
+             "command_safety_checked" => true,
+             "source_review_row" => %{
+               "command_authority_status" => "authorized",
+               "realized_command_authority_status" => "operator_override"
+             }
+           } =
+             Enum.find(
+               report["cadence_import_manifest"]["rows"],
+               &(&1["activity_id"] == "cmd_authority")
+             )
+
+    assert {:ok, %{"schema_contract" => "timeline_feedback_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(report["operator_review_package"])
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(report["cadence_import_manifest"])
+  end
+
   test "preserves product identity and data volume evidence through review and import rows" do
     report =
       TimelineFeedback.reconcile(

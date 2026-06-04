@@ -17936,6 +17936,36 @@ defmodule OrbitalDynamics.SchemaTest do
              "type"
            ]) == "boolean"
 
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "command_authority_status",
+             "type"
+           ]) == "string"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "required_authority",
+             "type"
+           ]) == "string"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "command_safety_status",
+             "type"
+           ]) == "string"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "command_authorized",
+             "type"
+           ]) == "boolean"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "command_safety_checked",
+             "type"
+           ]) == "boolean"
+
     assert get_in(realized_activity_contract_schema, ["properties", "roll_deg", "type"]) ==
              "number"
 
@@ -18090,6 +18120,35 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(row_schema, ["properties", "throughput_delta_mb", "type"]) == "number"
     assert get_in(row_schema, ["properties", "contact_success", "type"]) == "boolean"
     assert get_in(row_schema, ["properties", "command_success", "type"]) == "boolean"
+    assert get_in(row_schema, ["properties", "command_authority_status", "type"]) == "string"
+
+    assert get_in(row_schema, ["properties", "realized_command_authority_status", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, ["properties", "required_authority", "type"]) == "string"
+    assert get_in(row_schema, ["properties", "realized_required_authority", "type"]) == "string"
+    assert get_in(row_schema, ["properties", "command_safety_status", "type"]) == "string"
+
+    assert get_in(row_schema, ["properties", "realized_command_safety_status", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, ["properties", "command_authorized", "type"]) == "boolean"
+
+    assert get_in(row_schema, ["properties", "realized_command_authorized", "type"]) ==
+             "boolean"
+
+    assert get_in(row_schema, ["properties", "command_safety_checked", "type"]) == "boolean"
+
+    assert get_in(row_schema, ["properties", "realized_command_safety_checked", "type"]) ==
+             "boolean"
+
+    assert get_in(row_schema, [
+             "properties",
+             "source_activity_context",
+             "properties",
+             "command_safety_checked",
+             "type"
+           ]) == "boolean"
 
     Enum.each(
       [
@@ -19426,6 +19485,67 @@ defmodule OrbitalDynamics.SchemaTest do
                "pattern"
              ]) == stable_id_pattern
     end
+  end
+
+  test "exports command authority handoff fields on review and import row schemas" do
+    string_fields = [
+      "command_authority_status",
+      "planned_command_authority_status",
+      "realized_command_authority_status",
+      "command_authority_status_match_status",
+      "required_authority",
+      "planned_required_authority",
+      "realized_required_authority",
+      "required_authority_match_status",
+      "command_safety_status",
+      "planned_command_safety_status",
+      "realized_command_safety_status",
+      "command_safety_status_match_status",
+      "command_authorized_match_status",
+      "command_safety_checked_match_status"
+    ]
+
+    boolean_fields = [
+      "command_authorized",
+      "planned_command_authorized",
+      "realized_command_authorized",
+      "command_safety_checked",
+      "planned_command_safety_checked",
+      "realized_command_safety_checked"
+    ]
+
+    for contract <- ["operator_review_package.v1", "cadence_import_manifest.v1"] do
+      assert {:ok, schema} = Schema.json_schema(contract)
+      row_properties = get_in(schema, ["properties", "rows", "items", "properties"])
+
+      Enum.each(string_fields, fn field ->
+        assert get_in(row_properties, [field, "type"]) == "string"
+      end)
+
+      Enum.each(boolean_fields, fn field ->
+        assert get_in(row_properties, [field, "type"]) == "boolean"
+      end)
+    end
+
+    assert {:ok, cadence_schema} = Schema.json_schema("cadence_import_manifest.v1")
+
+    source_review_row_properties =
+      get_in(cadence_schema, [
+        "properties",
+        "rows",
+        "items",
+        "properties",
+        "source_review_row",
+        "properties"
+      ])
+
+    Enum.each(string_fields, fn field ->
+      assert get_in(source_review_row_properties, [field, "type"]) == "string"
+    end)
+
+    Enum.each(boolean_fields, fn field ->
+      assert get_in(source_review_row_properties, [field, "type"]) == "boolean"
+    end)
   end
 
   test "declares and enforces stable artifact identity policy" do

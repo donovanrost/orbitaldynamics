@@ -475,6 +475,11 @@ Timeline-feedback thermal zone, temperature, operating-bound, margin,
 status/model/source, and confidence evidence is preserved on operator-review
 and Cadence-import realized-feedback handoff rows, so adapter queues can route
 thermal variance without reopening nested activity contexts.
+Timeline-feedback command authority and command-safety evidence is likewise
+preserved as artifact-only handoff context, including planned and realized
+authority/safety statuses, required authority, authorization and safety-check
+booleans, and row-level match statuses without granting authority, signing,
+uplinking, or executing commands.
 Operational-timeline review/import handoff rows preserve the same top-level
 thermal evidence from operational timeline rows and activity contexts.
 Operational-timeline review/import handoff rows also preserve top-level

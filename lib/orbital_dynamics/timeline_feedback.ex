@@ -1007,6 +1007,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
     |> Map.merge(resource_context(activity))
     |> Map.merge(pointing_context(activity))
     |> Map.merge(attitude_context(activity))
+    |> Map.merge(command_authority_context(activity))
     |> Map.merge(lighting_context(activity))
     |> Map.merge(observation_quality_context(activity))
     |> Map.merge(thermal_context(activity))
@@ -1093,6 +1094,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
     |> Map.merge(resource_context(activity))
     |> Map.merge(pointing_context(activity))
     |> Map.merge(attitude_context(activity))
+    |> Map.merge(command_authority_context(activity))
     |> Map.merge(lighting_context(activity))
     |> Map.merge(observation_quality_context(activity))
     |> Map.merge(thermal_context(activity))
@@ -1469,6 +1471,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
     |> Map.merge(resource_context(activity))
     |> Map.merge(pointing_context(activity))
     |> Map.merge(attitude_context(activity))
+    |> Map.merge(command_authority_context(activity))
     |> Map.merge(lighting_context(activity))
     |> Map.merge(observation_quality_context(activity))
     |> Map.merge(thermal_context(activity))
@@ -1534,6 +1537,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
     |> Map.merge(resource_context(activity))
     |> Map.merge(pointing_context(activity))
     |> Map.merge(attitude_context(activity))
+    |> Map.merge(command_authority_context(activity))
     |> Map.merge(lighting_context(activity))
     |> Map.merge(observation_quality_context(activity))
     |> Map.merge(thermal_context(activity))
@@ -1623,6 +1627,51 @@ defmodule OrbitalDynamics.TimelineFeedback do
       "attitude_model" => first_string(activity, ["attitude_model"]),
       "attitude_source" => first_string(activity, ["attitude_source"]),
       "attitude_confidence" => first_number(activity, ["attitude_confidence"])
+    }
+    |> compact_map()
+  end
+
+  defp command_authority_context(activity) do
+    %{
+      "command_authority_status" =>
+        first_string(activity, [
+          "command_authority_status",
+          "authority_status",
+          ["metadata", "command_authority_status"],
+          ["metadata", "authority_status"]
+        ]),
+      "required_authority" =>
+        first_string(activity, [
+          "required_authority",
+          "required_escalation_authority",
+          ["metadata", "required_authority"],
+          ["metadata", "required_escalation_authority"]
+        ]),
+      "command_safety_status" =>
+        first_string(activity, [
+          "command_safety_status",
+          "safety_status",
+          ["metadata", "command_safety_status"],
+          ["metadata", "safety_status"]
+        ]),
+      "command_authorized" =>
+        first_boolean(activity, [
+          "command_authorized",
+          "command_authorized?",
+          "authority_granted",
+          ["metadata", "command_authorized"],
+          ["metadata", "command_authorized?"],
+          ["metadata", "authority_granted"]
+        ]),
+      "command_safety_checked" =>
+        first_boolean(activity, [
+          "command_safety_checked",
+          "command_safety_checked?",
+          "safety_checked",
+          ["metadata", "command_safety_checked"],
+          ["metadata", "command_safety_checked?"],
+          ["metadata", "safety_checked"]
+        ])
     }
     |> compact_map()
   end
@@ -2381,7 +2430,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
       "source_protection_decision" => protection_decision,
       "planned_activity" => value(planned, "source_activity"),
       "realized_activity" => value(realized, "source_activity"),
-      "source_activity_context" => value(planned, "source_activity_context"),
+      "source_activity_context" => feedback_source_activity_context(planned),
       "realized_activity_context" => value(realized, "realized_activity_context"),
       "planned_starts_at_s" => value(planned, "starts_at_s"),
       "planned_ends_at_s" => value(planned, "ends_at_s"),
@@ -2551,6 +2600,45 @@ defmodule OrbitalDynamics.TimelineFeedback do
       "attitude_model" => realized_or_planned(realized, planned, "attitude_model"),
       "attitude_source" => realized_or_planned(realized, planned, "attitude_source"),
       "attitude_confidence" => realized_or_planned(realized, planned, "attitude_confidence"),
+      "command_authority_status" =>
+        value(planned, "command_authority_status") ||
+          value(realized, "command_authority_status"),
+      "planned_command_authority_status" => value(planned, "command_authority_status"),
+      "realized_command_authority_status" => value(realized, "command_authority_status"),
+      "command_authority_status_match_status" =>
+        match_status(
+          value(planned, "command_authority_status"),
+          value(realized, "command_authority_status")
+        ),
+      "required_authority" =>
+        value(planned, "required_authority") || value(realized, "required_authority"),
+      "planned_required_authority" => value(planned, "required_authority"),
+      "realized_required_authority" => value(realized, "required_authority"),
+      "required_authority_match_status" =>
+        match_status(value(planned, "required_authority"), value(realized, "required_authority")),
+      "command_safety_status" =>
+        value(planned, "command_safety_status") || value(realized, "command_safety_status"),
+      "planned_command_safety_status" => value(planned, "command_safety_status"),
+      "realized_command_safety_status" => value(realized, "command_safety_status"),
+      "command_safety_status_match_status" =>
+        match_status(
+          value(planned, "command_safety_status"),
+          value(realized, "command_safety_status")
+        ),
+      "command_authorized" => realized_or_planned(realized, planned, "command_authorized"),
+      "planned_command_authorized" => value(planned, "command_authorized"),
+      "realized_command_authorized" => value(realized, "command_authorized"),
+      "command_authorized_match_status" =>
+        match_status(value(planned, "command_authorized"), value(realized, "command_authorized")),
+      "command_safety_checked" =>
+        realized_or_planned(realized, planned, "command_safety_checked"),
+      "planned_command_safety_checked" => value(planned, "command_safety_checked"),
+      "realized_command_safety_checked" => value(realized, "command_safety_checked"),
+      "command_safety_checked_match_status" =>
+        match_status(
+          value(planned, "command_safety_checked"),
+          value(realized, "command_safety_checked")
+        ),
       "eclipse_overlap_fraction" =>
         realized_or_planned(realized, planned, "eclipse_overlap_fraction"),
       "planned_eclipse_overlap_fraction" => value(planned, "eclipse_overlap_fraction"),
@@ -3842,6 +3930,20 @@ defmodule OrbitalDynamics.TimelineFeedback do
   defp value(nil, _key), do: nil
   defp value(map, key), do: Map.get(map, key)
 
+  defp feedback_source_activity_context(nil), do: nil
+
+  defp feedback_source_activity_context(planned) do
+    (value(planned, "source_activity_context") || %{})
+    |> Map.merge(%{
+      "command_authority_status" => value(planned, "command_authority_status"),
+      "required_authority" => value(planned, "required_authority"),
+      "command_safety_status" => value(planned, "command_safety_status"),
+      "command_authorized" => value(planned, "command_authorized"),
+      "command_safety_checked" => value(planned, "command_safety_checked")
+    })
+    |> compact_map()
+  end
+
   defp source_activity_value(%{} = source_activity, primary_key, fallback_key) do
     Map.get(source_activity, primary_key) || Map.get(source_activity, fallback_key)
   end
@@ -5023,23 +5125,44 @@ defmodule OrbitalDynamics.TimelineFeedback do
 
   defp first_value(map, keys) do
     Enum.reduce_while(keys, nil, fn key, _value ->
-      case Map.fetch(map, key) do
+      metadata = Map.get(map, "metadata") || Map.get(map, :metadata) || %{}
+
+      case fetch_key_or_atom(map, key) do
         {:ok, nil} ->
-          case get_in(map, ["metadata", key]) do
-            nil -> {:cont, nil}
-            value -> {:halt, value}
-          end
+          first_value_from_metadata(metadata, key)
 
         {:ok, value} ->
           {:halt, value}
 
         :error ->
-          case get_in(map, ["metadata", key]) do
-            nil -> {:cont, nil}
-            value -> {:halt, value}
-          end
+          first_value_from_metadata(metadata, key)
       end
     end)
+  end
+
+  defp first_value_from_metadata(metadata, key) do
+    case fetch_key_or_atom(metadata, key) do
+      {:ok, nil} -> {:cont, nil}
+      {:ok, value} -> {:halt, value}
+      :error -> {:cont, nil}
+    end
+  end
+
+  defp fetch_key_or_atom(map, key) when is_map(map) do
+    case Map.fetch(map, key) do
+      {:ok, value} -> {:ok, value}
+      :error when is_binary(key) -> fetch_existing_atom_key(map, key)
+      :error -> :error
+    end
+  end
+
+  defp fetch_key_or_atom(_map, _key), do: :error
+
+  defp fetch_existing_atom_key(map, key) do
+    atom_key = String.to_existing_atom(key)
+    Map.fetch(map, atom_key)
+  rescue
+    ArgumentError -> :error
   end
 
   defp normalize_id_list(nil, _map_keys), do: nil

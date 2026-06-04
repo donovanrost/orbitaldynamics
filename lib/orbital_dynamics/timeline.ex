@@ -2538,6 +2538,7 @@ defmodule OrbitalDynamics.Timeline do
     |> Map.merge(activity_pointing_context(activity))
     |> Map.merge(activity_attitude_context(activity))
     |> Map.merge(activity_link_context(activity))
+    |> Map.merge(activity_command_authority_context(activity))
     |> Map.merge(activity_lighting_context(activity))
     |> Map.merge(activity_thermal_context(activity))
     |> Map.merge(activity_throughput_context(activity))
@@ -2769,6 +2770,26 @@ defmodule OrbitalDynamics.Timeline do
     else
       context
     end
+  end
+
+  defp activity_command_authority_context(activity) do
+    %{
+      "command_authority_status" =>
+        first_scalar_string(activity, ["command_authority_status", "authority_status"]),
+      "required_authority" =>
+        first_scalar_string(activity, ["required_authority", "required_escalation_authority"]),
+      "command_safety_status" =>
+        first_scalar_string(activity, ["command_safety_status", "safety_status"]),
+      "command_authorized" =>
+        first_boolean(activity, ["command_authorized", "command_authorized?", "authority_granted"]),
+      "command_safety_checked" =>
+        first_boolean(activity, [
+          "command_safety_checked",
+          "command_safety_checked?",
+          "safety_checked"
+        ])
+    }
+    |> compact_map()
   end
 
   defp activity_timing_context(activity) do
@@ -7916,8 +7937,36 @@ defmodule OrbitalDynamics.Timeline do
 
   defp first_value(activity, keys) do
     Enum.find_value(keys, fn key ->
-      Map.get(activity, key) || get_in(activity, ["metadata", key])
+      metadata = Map.get(activity, "metadata") || Map.get(activity, :metadata) || %{}
+
+      case fetch_key_or_atom(activity, key) do
+        {:ok, value} when not is_nil(value) ->
+          value
+
+        _value ->
+          case fetch_key_or_atom(metadata, key) do
+            {:ok, value} -> value
+            :error -> nil
+          end
+      end
     end)
+  end
+
+  defp fetch_key_or_atom(map, key) when is_map(map) do
+    case Map.fetch(map, key) do
+      {:ok, value} -> {:ok, value}
+      :error when is_binary(key) -> fetch_existing_atom_key(map, key)
+      :error -> :error
+    end
+  end
+
+  defp fetch_key_or_atom(_map, _key), do: :error
+
+  defp fetch_existing_atom_key(map, key) do
+    atom_key = String.to_existing_atom(key)
+    Map.fetch(map, atom_key)
+  rescue
+    ArgumentError -> :error
   end
 
   defp first_number(activity, keys) do

@@ -4556,6 +4556,38 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
            ]) == "number"
 
     assert get_in(schemas, [
+             "timeline_feedback_report.v1",
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             "command_authority_status",
+             "type"
+           ]) == "string"
+
+    assert get_in(schemas, [
+             "timeline_feedback_report.v1",
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             "realized_command_authorized",
+             "type"
+           ]) == "boolean"
+
+    assert get_in(schemas, [
+             "timeline_feedback_report.v1",
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             "realized_activity_context",
+             "properties",
+             "command_safety_checked",
+             "type"
+           ]) == "boolean"
+
+    assert get_in(schemas, [
              "realized_activity.v1",
              "properties",
              "attitude_target_id",
@@ -4587,6 +4619,20 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "realized_activity.v1",
              "properties",
              "payload_available",
+             "type"
+           ]) == "boolean"
+
+    assert get_in(schemas, [
+             "realized_activity.v1",
+             "properties",
+             "command_authority_status",
+             "type"
+           ]) == "string"
+
+    assert get_in(schemas, [
+             "realized_activity.v1",
+             "properties",
+             "command_authorized",
              "type"
            ]) == "boolean"
 
@@ -4996,6 +5042,26 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
            ]) == "number"
 
     assert get_in(schemas, [
+             "operator_review_package.v1",
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             "command_authority_status",
+             "type"
+           ]) == "string"
+
+    assert get_in(schemas, [
+             "operator_review_package.v1",
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             "realized_command_authorized",
+             "type"
+           ]) == "boolean"
+
+    assert get_in(schemas, [
              "strategy_branch.v1",
              "properties",
              "events",
@@ -5107,6 +5173,38 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "attitude_source",
              "type"
            ]) == "string"
+
+    assert get_in(schemas, [
+             "cadence_import_manifest.v1",
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             "command_safety_status",
+             "type"
+           ]) == "string"
+
+    assert get_in(schemas, [
+             "cadence_import_manifest.v1",
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             "command_safety_checked",
+             "type"
+           ]) == "boolean"
+
+    assert get_in(schemas, [
+             "cadence_import_manifest.v1",
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             "source_review_row",
+             "properties",
+             "realized_command_safety_checked",
+             "type"
+           ]) == "boolean"
 
     assert get_in(schemas, [
              "cadence_import_manifest.v1",
