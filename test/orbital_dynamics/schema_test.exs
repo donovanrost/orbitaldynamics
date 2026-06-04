@@ -3975,6 +3975,21 @@ defmodule OrbitalDynamics.SchemaTest do
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
              Schema.validate_artifact(manifest)
 
+    invalid_import_generated_energy =
+      put_in(
+        manifest,
+        ["rows", Access.at(0), "import_activity_context"],
+        %{"battery_energy_generated_wh" => -1.0}
+      )
+
+    assert {:error, invalid_import_generated_energy_report} =
+             Schema.validate_artifact(invalid_import_generated_energy)
+
+    assert Enum.any?(
+             invalid_import_generated_energy_report["errors"],
+             &(&1["path"] == "$.rows[0].import_activity_context.battery_energy_generated_wh")
+           )
+
     invalid_source_review_analysis_mode =
       put_in(
         manifest,
@@ -17696,6 +17711,12 @@ defmodule OrbitalDynamics.SchemaTest do
              "battery_state_of_charge",
              "type"
            ]) == "number"
+
+    assert get_in(realized_activity_contract_schema, [
+             "properties",
+             "battery_energy_generated_wh",
+             "minimum"
+           ]) == 0.0
 
     assert get_in(realized_activity_contract_schema, [
              "properties",

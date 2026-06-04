@@ -779,6 +779,7 @@ defmodule OrbitalDynamics.Schema do
           "downlink_margin",
           "battery_capacity_wh",
           "battery_energy_used_wh",
+          "battery_energy_generated_wh",
           "battery_state_of_charge",
           "spacecraft_available",
           "payload_available",
@@ -2975,6 +2976,7 @@ defmodule OrbitalDynamics.Schema do
     "antenna_available" => "boolean",
     "battery_capacity_wh" => "number",
     "battery_energy_used_wh" => "number",
+    "battery_energy_generated_wh" => "number",
     "battery_state_of_charge" => "number",
     "boresight_axis" => "string",
     "backend" => "string",
@@ -5685,6 +5687,7 @@ defmodule OrbitalDynamics.Schema do
         "downlink_margin",
         "battery_capacity_wh",
         "battery_energy_used_wh",
+        "battery_energy_generated_wh",
         "battery_state_of_charge",
         "spacecraft_available",
         "payload_available",
@@ -11054,7 +11057,11 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @realized_activity, _contract)
-       when field in ["battery_capacity_wh", "battery_energy_used_wh"] do
+       when field in [
+              "battery_capacity_wh",
+              "battery_energy_used_wh",
+              "battery_energy_generated_wh"
+            ] do
     %{"type" => "number", "minimum" => 0.0}
   end
 
@@ -16290,7 +16297,11 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @planned_activity, _contract)
-       when field in ["battery_capacity_wh", "battery_energy_used_wh"] do
+       when field in [
+              "battery_capacity_wh",
+              "battery_energy_used_wh",
+              "battery_energy_generated_wh"
+            ] do
     %{"type" => "number", "minimum" => 0.0}
   end
 
@@ -17256,6 +17267,7 @@ defmodule OrbitalDynamics.Schema do
         "thermal_margin_c" => %{"type" => "number"},
         "battery_capacity_wh" => %{"type" => "number"},
         "battery_energy_used_wh" => %{"type" => "number"},
+        "battery_energy_generated_wh" => %{"type" => "number", "minimum" => 0.0},
         "battery_state_of_charge" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
         "spacecraft_available" => %{"type" => "boolean"},
         "payload_available" => %{"type" => "boolean"},
@@ -19019,6 +19031,7 @@ defmodule OrbitalDynamics.Schema do
         "downlink_margin" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
         "battery_capacity_wh" => %{"type" => "number"},
         "battery_energy_used_wh" => %{"type" => "number"},
+        "battery_energy_generated_wh" => %{"type" => "number", "minimum" => 0.0},
         "battery_state_of_charge" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
         "spacecraft_available" => %{"type" => "boolean"},
         "payload_available" => %{"type" => "boolean"},
@@ -19510,6 +19523,7 @@ defmodule OrbitalDynamics.Schema do
         "status_transition" => lifecycle_transition_json_schema(),
         "battery_capacity_wh" => %{"type" => "number"},
         "battery_energy_used_wh" => %{"type" => "number"},
+        "battery_energy_generated_wh" => %{"type" => "number", "minimum" => 0.0},
         "battery_state_of_charge" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
         "thermal_margin_c" => %{"type" => "number"},
         "eclipse_overlap_fraction" => probability_json_schema(),
@@ -21023,6 +21037,7 @@ defmodule OrbitalDynamics.Schema do
         "downlink_margin" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
         "battery_capacity_wh" => %{"type" => "number"},
         "battery_energy_used_wh" => %{"type" => "number"},
+        "battery_energy_generated_wh" => %{"type" => "number", "minimum" => 0.0},
         "battery_state_of_charge" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
         "spacecraft_available" => %{"type" => "boolean"},
         "payload_available" => %{"type" => "boolean"},
@@ -21289,6 +21304,7 @@ defmodule OrbitalDynamics.Schema do
         "power_margin" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
         "battery_capacity_wh" => %{"type" => "number", "minimum" => 0.0},
         "battery_energy_used_wh" => %{"type" => "number", "minimum" => 0.0},
+        "battery_energy_generated_wh" => %{"type" => "number", "minimum" => 0.0},
         "battery_state_of_charge" => %{
           "type" => "number",
           "minimum" => 0.0,
@@ -29051,6 +29067,7 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_number(path, row, "thermal_margin_c")
     |> expect_optional_number(path, row, "battery_capacity_wh")
     |> expect_optional_number(path, row, "battery_energy_used_wh")
+    |> expect_optional_non_negative_number(path, row, "battery_energy_generated_wh")
     |> expect_optional_number(path, row, "battery_state_of_charge")
     |> expect_optional_type(path, row, "spacecraft_available", :boolean)
     |> expect_optional_type(path, row, "payload_available", :boolean)
@@ -32937,6 +32954,7 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_probability(path, activity, "downlink_margin")
     |> expect_optional_non_negative_number(path, activity, "battery_capacity_wh")
     |> expect_optional_non_negative_number(path, activity, "battery_energy_used_wh")
+    |> expect_optional_non_negative_number(path, activity, "battery_energy_generated_wh")
     |> expect_optional_probability(path, activity, "battery_state_of_charge")
     |> expect_optional_type(path, activity, "spacecraft_available", :boolean)
     |> expect_optional_type(path, activity, "payload_available", :boolean)
@@ -59019,6 +59037,7 @@ defmodule OrbitalDynamics.Schema do
     |> validate_optional_execution_uncertainty(path, context, "execution_uncertainty")
     |> expect_optional_type(path, context, "source_window", :map)
     |> validate_activity_context_source_window(path, context)
+    |> expect_optional_non_negative_number(path, context, "battery_energy_generated_wh")
     |> expect_optional_number_or_string(path, context, "lighting_confidence")
     |> expect_optional_type(path, context, "feasibility_status", :binary)
     |> expect_optional_type(path, context, "repair_reason", :binary)

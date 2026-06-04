@@ -338,6 +338,7 @@ defmodule OrbitalDynamics.Timeline do
     downlink_margin
     battery_capacity_wh
     battery_energy_used_wh
+    battery_energy_generated_wh
     battery_state_of_charge
     spacecraft_available
     payload_available
@@ -551,6 +552,7 @@ defmodule OrbitalDynamics.Timeline do
     downlink_margin
     battery_capacity_wh
     battery_energy_used_wh
+    battery_energy_generated_wh
     battery_state_of_charge
     spacecraft_available
     payload_available
@@ -649,6 +651,7 @@ defmodule OrbitalDynamics.Timeline do
     attitude_error_deg
     battery_capacity_wh
     battery_energy_used_wh
+    battery_energy_generated_wh
     battery_state_of_charge
     bit_error_rate
     blur_score
@@ -3167,6 +3170,19 @@ defmodule OrbitalDynamics.Timeline do
       "downlink_margin" => first_number(activity, ["downlink_margin"]),
       "battery_capacity_wh" => first_number(activity, ["battery_capacity_wh"]),
       "battery_energy_used_wh" => first_number(activity, ["battery_energy_used_wh"]),
+      "battery_energy_generated_wh" =>
+        first_number(activity, [
+          "battery_energy_generated_wh",
+          "energy_generated_wh",
+          "estimated_energy_generated_wh",
+          "estimated_battery_energy_generated_wh",
+          "planned_energy_generated_wh",
+          ["metadata", "battery_energy_generated_wh"],
+          ["metadata", "energy_generated_wh"],
+          ["metadata", "estimated_energy_generated_wh"],
+          ["metadata", "estimated_battery_energy_generated_wh"],
+          ["metadata", "planned_energy_generated_wh"]
+        ]),
       "battery_state_of_charge" => first_number(activity, ["battery_state_of_charge"]),
       "spacecraft_available" => first_boolean(activity, ["spacecraft_available"]),
       "payload_available" => first_boolean(activity, ["payload_available"]),

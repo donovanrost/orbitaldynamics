@@ -172,7 +172,7 @@ It advertises those identity objects in the exported `realized_activity.v1` JSON
 
 ## Resource-margin and resource-availability feedback
 
-- Timeline-feedback reports now also derive resource-margin and resource-availability operational-feedback maps from realized resource telemetry, preserving battery capacity, energy-used, and state-of-charge evidence while deriving planning-grade power margin from battery state of charge when explicit power margin is absent, and V3 strategy can consume those maps from a prior plan's source feedback report to derive resource-pressure refresh branches without raw telemetry rows.
+- Timeline-feedback reports now also derive resource-margin and resource-availability operational-feedback maps from realized resource telemetry, preserving battery capacity, energy-used, generated-energy, and state-of-charge evidence while deriving planning-grade power margin from battery state of charge when explicit power margin is absent, and V3 strategy can consume those maps from a prior plan's source feedback report to derive resource-pressure refresh branches without raw telemetry rows.
 
 ## Operational-feedback provenance
 

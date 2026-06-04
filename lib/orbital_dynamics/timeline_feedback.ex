@@ -1555,6 +1555,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
         first_number(activity, ["downlink_margin", "downlink_capacity_margin"]),
       "battery_capacity_wh" => first_number(activity, ["battery_capacity_wh"]),
       "battery_energy_used_wh" => first_number(activity, ["battery_energy_used_wh"]),
+      "battery_energy_generated_wh" => battery_energy_generated_wh(activity),
       "battery_state_of_charge" => first_number(activity, ["battery_state_of_charge"]),
       "spacecraft_available" =>
         first_boolean(activity, [
@@ -2070,6 +2071,21 @@ defmodule OrbitalDynamics.TimelineFeedback do
   defp resource_power_margin(activity) do
     first_number(activity, ["power_margin"]) ||
       first_number(activity, ["battery_state_of_charge"])
+  end
+
+  defp battery_energy_generated_wh(activity) do
+    first_number(activity, [
+      "battery_energy_generated_wh",
+      "energy_generated_wh",
+      "estimated_energy_generated_wh",
+      "estimated_battery_energy_generated_wh",
+      "planned_energy_generated_wh",
+      ["metadata", "battery_energy_generated_wh"],
+      ["metadata", "energy_generated_wh"],
+      ["metadata", "estimated_energy_generated_wh"],
+      ["metadata", "estimated_battery_energy_generated_wh"],
+      ["metadata", "planned_energy_generated_wh"]
+    ])
   end
 
   defp first_boolean(map, keys) do
@@ -2823,6 +2839,8 @@ defmodule OrbitalDynamics.TimelineFeedback do
       "battery_capacity_wh" => realized_or_planned(realized, planned, "battery_capacity_wh"),
       "battery_energy_used_wh" =>
         realized_or_planned(realized, planned, "battery_energy_used_wh"),
+      "battery_energy_generated_wh" =>
+        realized_or_planned(realized, planned, "battery_energy_generated_wh"),
       "battery_state_of_charge" =>
         realized_or_planned(realized, planned, "battery_state_of_charge"),
       "spacecraft_available" => realized_or_planned(realized, planned, "spacecraft_available"),
@@ -3483,6 +3501,8 @@ defmodule OrbitalDynamics.TimelineFeedback do
       "thermal_margin_c" => first_feedback_resource_number(row, ["thermal_margin_c"]),
       "battery_capacity_wh" => first_feedback_resource_number(row, ["battery_capacity_wh"]),
       "battery_energy_used_wh" => first_feedback_resource_number(row, ["battery_energy_used_wh"]),
+      "battery_energy_generated_wh" =>
+        first_feedback_resource_number(row, ["battery_energy_generated_wh"]),
       "battery_state_of_charge" =>
         first_feedback_resource_number(row, ["battery_state_of_charge"])
     }
@@ -3507,8 +3527,9 @@ defmodule OrbitalDynamics.TimelineFeedback do
     end)
   end
 
-  defp merge_resource_margin_value("battery_energy_used_wh", current, candidate),
-    do: max(current, candidate)
+  defp merge_resource_margin_value(field, current, candidate)
+       when field in ["battery_energy_used_wh", "battery_energy_generated_wh"],
+       do: max(current, candidate)
 
   defp merge_resource_margin_value(_field, current, candidate), do: min(current, candidate)
 

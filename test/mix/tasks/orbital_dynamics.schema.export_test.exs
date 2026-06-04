@@ -4642,6 +4642,13 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
     assert get_in(schemas, [
              "realized_activity.v1",
              "properties",
+             "battery_energy_generated_wh",
+             "minimum"
+           ]) == 0.0
+
+    assert get_in(schemas, [
+             "realized_activity.v1",
+             "properties",
              "payload_available",
              "type"
            ]) == "boolean"

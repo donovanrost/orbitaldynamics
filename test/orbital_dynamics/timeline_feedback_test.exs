@@ -189,6 +189,7 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
 
     assert get_in(row_properties, ["battery_capacity_wh", "type"]) == "number"
     assert get_in(row_properties, ["battery_energy_used_wh", "type"]) == "number"
+    assert get_in(row_properties, ["battery_energy_generated_wh", "minimum"]) == 0.0
     assert get_in(row_properties, ["battery_state_of_charge", "type"]) == "number"
     assert get_in(row_properties, ["thermal_margin_c", "type"]) == "number"
     assert get_in(row_properties, ["eclipse_overlap_fraction", "type"]) == "number"
@@ -1241,6 +1242,7 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
             thermal_margin_c: 4.0,
             battery_capacity_wh: 1200.0,
             battery_energy_used_wh: 400.0,
+            battery_energy_generated_wh: "45.5",
             battery_state_of_charge: 0.42,
             payload_available?: " TRUE ",
             spacecraft_available: " True ",
@@ -1255,6 +1257,7 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
             storage_margin: 0.05,
             thermal_margin_c: 1.5,
             battery_energy_used_wh: 900.0,
+            estimated_energy_generated_wh: 70.0,
             battery_state_of_charge: 0.15,
             spacecraft_availability: " FALSE ",
             payload_available?: " False ",
@@ -1270,6 +1273,7 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
              "leo_1" => %{
                "battery_capacity_wh" => 1200.0,
                "battery_energy_used_wh" => 900.0,
+               "battery_energy_generated_wh" => 70.0,
                "battery_state_of_charge" => 0.15,
                "downlink_margin" => 0.6,
                "power_margin" => 0.15,
@@ -1299,6 +1303,7 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
              "thermal_margin_c" => 4.0,
              "battery_capacity_wh" => 1200.0,
              "battery_energy_used_wh" => 400.0,
+             "battery_energy_generated_wh" => 45.5,
              "battery_state_of_charge" => 0.42,
              "power_margin" => 0.42,
              "payload_available" => true,
@@ -1311,6 +1316,7 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
                "thermal_margin_c" => 4.0,
                "battery_capacity_wh" => 1200.0,
                "battery_energy_used_wh" => 400.0,
+               "battery_energy_generated_wh" => 45.5,
                "battery_state_of_charge" => 0.42,
                "power_margin" => 0.42,
                "payload_available" => true,
@@ -1323,6 +1329,7 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
              "storage_margin" => 0.05,
              "thermal_margin_c" => 1.5,
              "battery_energy_used_wh" => 900.0,
+             "battery_energy_generated_wh" => 70.0,
              "battery_state_of_charge" => 0.15,
              "power_margin" => 0.15,
              "payload_available" => false,
@@ -1339,6 +1346,7 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
              "thermal_margin_c" => 4.0,
              "battery_capacity_wh" => 1200.0,
              "battery_energy_used_wh" => 400.0,
+             "battery_energy_generated_wh" => 45.5,
              "battery_state_of_charge" => 0.42,
              "power_margin" => 0.42,
              "payload_available" => true,
@@ -1354,6 +1362,7 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
              "storage_margin" => 0.05,
              "thermal_margin_c" => 1.5,
              "battery_energy_used_wh" => 900.0,
+             "battery_energy_generated_wh" => 70.0,
              "battery_state_of_charge" => 0.15,
              "power_margin" => 0.15,
              "payload_available" => false,
