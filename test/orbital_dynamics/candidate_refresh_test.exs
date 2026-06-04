@@ -15527,9 +15527,38 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       }
     ]
 
+    transition_application_provenance = %{
+      "field" => "status",
+      "from" => "planned",
+      "helper" => "apply_lifecycle_event",
+      "operator_action_reason" => "activity_execution_recorded",
+      "requires_operator_review" => false,
+      "to" => "completed",
+      "transition_category" => "execution_recorded",
+      "transition_type" => "changed"
+    }
+
+    put_transition_application_provenance = fn
+      %{"timeline_id" => "timeline:cmd_pending"} = row ->
+        row
+        |> Map.put("transition_application_provenance", transition_application_provenance)
+        |> Map.put("activity_context", %{
+          "transition_application_provenance" => transition_application_provenance
+        })
+        |> put_in(
+          ["realized_activity_context", "transition_application_provenance"],
+          transition_application_provenance
+        )
+
+      row ->
+        row
+    end
+
     lifecycle_summary =
       planned
       |> Timeline.lifecycle_state_summary(realized)
+      |> update_in(["rows"], &Enum.map(&1, put_transition_application_provenance))
+      |> update_in(["review_rows"], &Enum.map(&1, put_transition_application_provenance))
       |> Map.put("provenance", %{"trust_boundary" => "ops_lifecycle_summary"})
 
     assert {:ok, %{"schema_contract" => "timeline_lifecycle_state_summary.v1"}} =
@@ -15621,6 +15650,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_timeline_lifecycle_state_approval_transition_category_counts" => %{
                "approval_granted" => 4
              },
+             "source_report_timeline_lifecycle_state_transition_application_provenance_count" =>
+               4,
+             "source_report_timeline_lifecycle_state_transition_application_provenance_helper_counts" =>
+               %{"apply_lifecycle_event" => 4},
+             "source_report_timeline_lifecycle_state_transition_application_provenance_category_counts" =>
+               %{"execution_recorded" => 4},
+             "source_report_timeline_lifecycle_state_transition_application_provenance_operator_action_reason_counts" =>
+               %{"activity_execution_recorded" => 4},
              "source_report_timeline_lifecycle_state_preserved_timeline_ids" => [
                "timeline:obs_done"
              ],
@@ -15655,6 +15692,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  "review_required_count" => 12,
                  "invalid_activity_input_count" => 4,
                  "invalid_activity_input_ids" => ["timeline_row:5:bad_missing_type"],
+                 "transition_application_provenance_count" => 4,
+                 "transition_application_provenance_helper_counts" => %{
+                   "apply_lifecycle_event" => 4
+                 },
+                 "transition_application_provenance_category_counts" => %{
+                   "execution_recorded" => 4
+                 },
+                 "transition_application_provenance_operator_action_reason_counts" => %{
+                   "activity_execution_recorded" => 4
+                 },
                  "source_summary_model_counts" => %{
                    "artifact_only_timeline_lifecycle_state_summary" => 4
                  },
@@ -15709,6 +15756,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "import_action_counts" => %{
                "record_preserved_activity" => 4,
                "review_timeline_diff" => 12
+             },
+             "transition_application_provenance_count" => 4,
+             "transition_application_provenance_helper_counts" => %{
+               "apply_lifecycle_event" => 4
+             },
+             "transition_application_provenance_category_counts" => %{
+               "execution_recorded" => 4
+             },
+             "transition_application_provenance_operator_action_reason_counts" => %{
+               "activity_execution_recorded" => 4
              },
              "review_timeline_ids" => [
                "timeline:cmd_pending",
@@ -15766,6 +15823,11 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_paths"] == []
     refute Map.has_key?(summary, "contract")
+    assert summary["transition_application_provenance_count"] == 0
+    assert summary["transition_application_provenance_helper_counts"] == %{}
+    assert summary["transition_application_provenance_category_counts"] == %{}
+
+    assert summary["transition_application_provenance_operator_action_reason_counts"] == %{}
     refute summary["branch_local_timeline_lifecycle_state_pressure"]
   end
 
@@ -15805,6 +15867,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
               "realized_approval_category_counts" => %{"protected" => 1},
               "status_transition_category_counts" => %{"execution_recorded" => 1},
               "approval_transition_category_counts" => %{"approval_granted" => 1},
+              "transition_application_provenance_count" => 1,
+              "transition_application_provenance_helper_counts" => %{
+                "apply_lifecycle_event" => 1
+              },
+              "transition_application_provenance_category_counts" => %{
+                "execution_recorded" => 1
+              },
+              "transition_application_provenance_operator_action_reason_counts" => %{
+                "activity_execution_recorded" => 1
+              },
               "recordable_timeline_ids" => ["timeline:cmd_recordable"],
               "preserved_timeline_ids" => ["timeline:obs_done"],
               "review_timeline_ids" => ["timeline:cmd_pending"],
@@ -15870,6 +15942,20 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["realized_approval_category_counts"] == %{"protected" => 1}
     assert summary["status_transition_category_counts"] == %{"execution_recorded" => 1}
     assert summary["approval_transition_category_counts"] == %{"approval_granted" => 1}
+    assert summary["transition_application_provenance_count"] == 1
+
+    assert summary["transition_application_provenance_helper_counts"] == %{
+             "apply_lifecycle_event" => 1
+           }
+
+    assert summary["transition_application_provenance_category_counts"] == %{
+             "execution_recorded" => 1
+           }
+
+    assert summary["transition_application_provenance_operator_action_reason_counts"] == %{
+             "activity_execution_recorded" => 1
+           }
+
     assert summary["recordable_timeline_ids"] == ["timeline:cmd_recordable"]
     assert summary["preserved_timeline_ids"] == ["timeline:obs_done"]
     assert summary["review_timeline_ids"] == ["timeline:cmd_pending"]

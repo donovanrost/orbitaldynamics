@@ -1534,7 +1534,10 @@ recordable, preserved, review, duplicate-identity, invalid-input counts and
 invalid activity input IDs,
 transition decision/import/action/status/approval maps, recordable/preserved/
 review timeline IDs, review activity IDs, trust-boundary evidence, and review
-timeline IDs routed by required action and status/approval transition category.
+timeline IDs routed by required action and status/approval transition category,
+plus lifecycle transition application provenance counts by helper/category/
+operator-action reason when source rows were derived from helper-applied
+transitions.
 For V3 strategy branch refreshes, the replay helper prefers a non-empty
 `candidate_source.candidate_refresh_request_source_report_summary.source_reports.timeline_lifecycle_state_summary`
 family over provenance, labels the output source and replay scope as

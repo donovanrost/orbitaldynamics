@@ -48,8 +48,8 @@ status/approval transition helpers.
   and approval transitions before returning normalized timeline rows with
   transition provenance; transition-application review/import rows keep that
   provenance first-class even when selected timeline integrity requires review,
-  and CandidateRefresh single-activity lifecycle-state replay summarizes helper
-  provenance counts for branch-local refresh decisions.
+  and CandidateRefresh lifecycle-state replay summarizes helper provenance
+  counts for branch-local refresh decisions.
 - **Timeline precondition summaries** expose the same clear, review-required,
   and blocked activity-condition classification used by operational timeline
   rows, without building a report, reserving resources, mutating schedules, or

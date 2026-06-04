@@ -1,14 +1,14 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Lifecycle-state CandidateRefresh replay transition provenance.
+List-level CandidateRefresh lifecycle-state replay transition provenance.
 
 Status:
 Implemented and focused verification is passing locally; pending review and
-publish. CandidateRefresh single-activity lifecycle-state source summaries and
-replay summaries now retain lifecycle helper transition provenance as compact
-counts by helper, transition category, and operator-action reason while keeping
-the replay artifact-only.
+publish. CandidateRefresh list-level lifecycle-state source summaries and replay
+summaries now retain lifecycle helper transition provenance as compact counts by
+helper, transition category, and operator-action reason while preserving
+artifact-only replay boundaries.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -24,18 +24,17 @@ Tests run:
 - `git diff --check -- .codex/status/autonomous_product_loop.md docs/artifacts/field_families/candidate_refresh_artifact.md docs/artifacts/field_families/mission_activities.md docs/feature_set/capability_map/08_mission_activities/lifecycle-helpers-diffs-and-transitions.md lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
 
 Docs/artifacts changed:
-Mission activity and CandidateRefresh docs now state that branch-local
-single-activity lifecycle-state replay carries helper provenance counters. No
-generated artifacts or schema exports changed.
+Mission activity and CandidateRefresh docs now state that list-level lifecycle
+state replay carries helper provenance counters. No generated artifacts or
+schema exports changed.
 
 Last completed/pushed commit before this slice:
-`c58ea23` (`Preserve lifecycle provenance in review handoffs`).
+`0e1ebc6` (`Replay lifecycle provenance in candidate refresh`).
 
 Next candidate:
-Continue priority-1 typed operational activity/timeline semantics. A likely next
-slice is to inspect list-level `timeline_lifecycle_state_replay_summary/1` for
-the same compact provenance counter handoff, or move to the next guide-backed
-resource/allocation slice if list-level lifecycle replay is already complete.
+Continue priority-1 typed operational activity/timeline semantics, or move to
+the next guide-backed resource/allocation slice if lifecycle replay provenance
+is now sufficiently covered across CandidateRefresh surfaces.
 
 Blocked:
 No.
