@@ -5,8 +5,8 @@ Contact-contention-resolution replay reads and labels branch
 `candidate_source.candidate_refresh_request_source_report_summary` metadata.
 
 Status:
-Implementation, focused verification, and read-only review are complete.
-Product commit, push, and final ledger publish update are pending.
+Implementation, focused verification, read-only review, product commit, and
+push are complete. This status handoff records the published state.
 `CandidateRefresh.contact_contention_resolution_replay_summary/1` now prefers
 a non-empty branch `contact_contention_resolution_report` source-report family
 before falling back to provenance. Branch summaries preserve source-report
@@ -48,7 +48,8 @@ Docs/artifacts changed:
   slice.
 
 Last product commit:
-- Pending.
+- `572d93beecee488d7c1dfed79f25b86fb20f5418` Label contention resolution
+  branch replay metadata.
 
 Next candidate:
 After publish, re-read `docs/autonomous_work_guide.md`, this ledger, and the
