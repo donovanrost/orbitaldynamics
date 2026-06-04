@@ -805,7 +805,9 @@ pass/fail counts, aggregate issue/remediation counts, explicit status-count
 maps, and the same model-limit boundary. Executable validation rejects stale
 batch status, scalar counts, status-count maps, model identifiers, and
 model-limit drift so the batch rollup cannot hide nested schema-validation
-failures or skipped-artifact drift.
+failures or skipped-artifact drift. The schema-lint task regression suite also
+regenerates the `study_results` batch report and compares it with the
+checked-in artifact so new public fixtures cannot leave the batch rollup stale.
 `study_results/resource_projection_report_v1.json` is observed for selected
 activity/resource summary counts, flow-row counts, pressure-row counts,
 storage/downlink pressure totals, warnings, source-quality/trust maps, and

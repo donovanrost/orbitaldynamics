@@ -299,6 +299,41 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.LintTest do
     assert output =~ "contract=planned_activity.v1 status=pass"
   end
 
+  test "checked-in study_results schema validation batch report is fresh" do
+    output_path =
+      Path.join(
+        System.tmp_dir!(),
+        "orbital_dynamics_schema_lint_study_results_#{System.unique_integer([:positive])}.json"
+      )
+
+    on_exit(fn ->
+      File.rm(output_path)
+      Mix.Task.reenable("orbital_dynamics.schema.lint")
+    end)
+
+    capture_io(fn ->
+      Mix.Task.run("orbital_dynamics.schema.lint", [
+        "--all",
+        "--input-dir",
+        "study_results",
+        "--output",
+        output_path
+      ])
+    end)
+
+    checked_in_report =
+      "study_results/schema_validation_batch_report_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
+    regenerated_report =
+      output_path
+      |> File.read!()
+      |> :json.decode()
+
+    assert checked_in_report == regenerated_report
+  end
+
   test "reports unsupported requested contracts instead of crashing" do
     input_path =
       Path.join(System.tmp_dir!(), "orbital_dynamics_schema_lint_unknown_contract.json")
