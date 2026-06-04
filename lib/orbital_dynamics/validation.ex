@@ -41,6 +41,7 @@ defmodule OrbitalDynamics.Validation do
                                                    "timeline_feedback_report",
                                                    "operational_timeline_report",
                                                    "timeline_integrity_report",
+                                                   "timeline_activity_precondition_summary",
                                                    "timeline_preservation_report",
                                                    "timeline_diff_report",
                                                    "timeline_diff_summary",
@@ -1439,11 +1440,11 @@ defmodule OrbitalDynamics.Validation do
         "cadence_import_contract" => "cadence_import_manifest.v1",
         "operational_readiness_contract" => "operational_readiness_report.v1",
         "station_calendar_reservation_contract" => "station_reservation_report.v1",
-        "candidate_refresh_input_count" => 69,
-        "candidate_refresh_source_report_input_count" => 52,
+        "candidate_refresh_input_count" => 70,
+        "candidate_refresh_source_report_input_count" => 53,
         "candidate_refresh_source_report_input_order" =>
           @candidate_refresh_source_report_input_order,
-        "candidate_refresh_source_report_helper_count" => 38
+        "candidate_refresh_source_report_helper_count" => 39
       },
       "tolerances" => %{
         "schema_version" => 0,
@@ -5123,7 +5124,7 @@ defmodule OrbitalDynamics.Validation do
         "no_schedule_mutation" => true,
         "no_command_execution" => true,
         "source" => "timeline_feedback.reconcile",
-        "model_limit_count" => 4
+        "model_limit_count" => 5
       },
       "tolerances" => %{
         "row_count" => 0,

@@ -3775,15 +3775,18 @@ defmodule OrbitalDynamics.ValidationTest do
     assert fixture_observations["station_calendar_reservation_contract"] ==
              "station_reservation_report.v1"
 
-    assert fixture_observations["candidate_refresh_input_count"] == 69
-    assert fixture_observations["candidate_refresh_source_report_input_count"] == 52
-    assert fixture_observations["candidate_refresh_source_report_helper_count"] == 38
+    assert fixture_observations["candidate_refresh_input_count"] == 70
+    assert fixture_observations["candidate_refresh_source_report_input_count"] == 53
+    assert fixture_observations["candidate_refresh_source_report_helper_count"] == 39
 
     assert fixture_observations["candidate_refresh_source_report_input_order"] =~
              "schema_validation_batch_report"
 
     assert fixture_observations["candidate_refresh_source_report_input_order"] =~
              "timeline_dependency_impact_summary"
+
+    assert fixture_observations["candidate_refresh_source_report_input_order"] =~
+             "timeline_activity_precondition_summary"
 
     assert fixture_observations["candidate_refresh_source_report_input_order"] =~
              "contact_contention_report"
