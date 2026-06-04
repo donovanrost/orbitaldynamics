@@ -67,7 +67,10 @@ defmodule OrbitalDynamics.TimelineTest do
                timeline_diff_activity_context_compare_fields,
              timeline_integrity_issue_types: timeline_integrity_issue_types,
              dependency_impact_summary_fields: dependency_impact_summary_fields,
+             dependency_impact_statuses: dependency_impact_statuses,
              publication_summary_fields: publication_summary_fields,
+             publication_dependency_impact_statuses: publication_dependency_impact_statuses,
+             publication_statuses: publication_statuses,
              candidate_rejection_reasons: candidate_rejection_reasons,
              candidate_rejection_station_capacity_fraction_paths:
                candidate_rejection_station_capacity_fraction_paths,
@@ -259,9 +262,18 @@ defmodule OrbitalDynamics.TimelineTest do
     assert "impacted_dependency_timeline_ids" in dependency_impact_summary_fields
     assert "impacted_exclusive_with_activity_ids" in dependency_impact_summary_fields
     assert "impacted_exclusive_with_timeline_ids" in dependency_impact_summary_fields
+    assert dependency_impact_statuses == ["clear", "review_required"]
     assert "publication_sequence" in publication_summary_fields
     assert "invalidated_downstream_product_ids" in publication_summary_fields
     assert "dependency_impact_row_count" in publication_summary_fields
+    assert publication_dependency_impact_statuses == ["clear", "not_evaluated", "review_required"]
+
+    assert publication_statuses == [
+             "published",
+             "published_with_downstream_invalidations",
+             "review_required"
+           ]
+
     assert "station_reserved" in candidate_rejection_reasons
     assert "station_capacity_reduced" in candidate_rejection_reasons
     assert "quality_gate_failed" in candidate_rejection_reasons
@@ -582,6 +594,20 @@ defmodule OrbitalDynamics.TimelineTest do
              "properties",
              "replacement_allow_overlap"
            ]) == %{"type" => "boolean"}
+
+    assert {:ok, dependency_impact_schema} =
+             Schema.json_schema("timeline_dependency_impact_summary.v1")
+
+    assert get_in(dependency_impact_schema, ["properties", "dependency_impact_status", "enum"]) ==
+             dependency_impact_statuses
+
+    assert {:ok, publication_schema} = Schema.json_schema("timeline_publication_summary.v1")
+
+    assert get_in(publication_schema, ["properties", "dependency_impact_status", "enum"]) ==
+             publication_dependency_impact_statuses
+
+    assert get_in(publication_schema, ["properties", "publication_status", "enum"]) ==
+             publication_statuses
   end
 
   test "advertised activity-state facade preserves feedback artifact semantics" do
@@ -3267,6 +3293,8 @@ defmodule OrbitalDynamics.TimelineTest do
 
     assert "artifact_level_only" in model_limits
     assert OrbitalDynamics.timeline_dependency_impact_summary(source, replacement) == summary
+    advertised_statuses = Timeline.capabilities().dependency_impact_statuses
+    assert summary["dependency_impact_status"] in advertised_statuses
 
     assert {:ok, %{"schema_contract" => "timeline_dependency_impact_summary.v1"}} =
              Schema.validate_artifact(summary)
@@ -3298,6 +3326,8 @@ defmodule OrbitalDynamics.TimelineTest do
              "dependent_activity_count" => 0,
              "dependency_impact_rows" => []
            } = Timeline.dependency_impact_summary(source, source)
+
+    assert "clear" in advertised_statuses
 
     assert_raise ArgumentError, ~r/source and replacement activities must be lists/, fn ->
       Timeline.dependency_impact_summary(:not_a_list, replacement)
@@ -3452,6 +3482,11 @@ defmodule OrbitalDynamics.TimelineTest do
              )
 
     assert "artifact_level_only" in model_limits
+    advertised_statuses = Timeline.capabilities()
+
+    assert summary["publication_status"] in advertised_statuses.publication_statuses
+
+    assert summary["dependency_impact_status"] in advertised_statuses.publication_dependency_impact_statuses
 
     assert OrbitalDynamics.timeline_publication_summary(source_artifact,
              publication_sequence: 7,
@@ -3481,6 +3516,10 @@ defmodule OrbitalDynamics.TimelineTest do
              "dependency_impact_row_count" => 0,
              "invalidated_downstream_product_ids" => []
            } = no_impact_summary = Timeline.publication_summary(source_artifact)
+
+    assert no_impact_summary["publication_status"] in advertised_statuses.publication_statuses
+
+    assert no_impact_summary["dependency_impact_status"] in advertised_statuses.publication_dependency_impact_statuses
 
     stale_dependency_count = Map.put(no_impact_summary, "dependency_impact_row_count", 1)
 

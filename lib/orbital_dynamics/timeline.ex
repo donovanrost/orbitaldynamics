@@ -162,6 +162,9 @@ defmodule OrbitalDynamics.Timeline do
     impacted_exclusive_with_activity_ids
     impacted_exclusive_with_timeline_ids
   )
+  @dependency_impact_statuses ~w(clear review_required)
+  @publication_dependency_impact_statuses ~w(clear not_evaluated review_required)
+  @publication_statuses ~w(published published_with_downstream_invalidations review_required)
   @candidate_rejection_reasons ~w(
     no_access_window
     no_target_visibility_window
@@ -961,7 +964,10 @@ defmodule OrbitalDynamics.Timeline do
       execution_boundaries: @execution_boundaries,
       timeline_integrity_issue_types: @timeline_integrity_issue_types,
       dependency_impact_summary_fields: @dependency_impact_summary_fields,
+      dependency_impact_statuses: @dependency_impact_statuses,
       publication_summary_fields: @publication_summary_fields,
+      publication_dependency_impact_statuses: @publication_dependency_impact_statuses,
+      publication_statuses: @publication_statuses,
       candidate_rejection_reasons: @candidate_rejection_reasons,
       candidate_rejection_station_capacity_fraction_paths:
         @candidate_rejection_station_capacity_fraction_paths,

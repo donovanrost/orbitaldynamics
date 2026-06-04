@@ -1,32 +1,33 @@
 # Autonomous Product Loop Status
 
 Current slice:
-OperationalReadiness import-readiness status vocabulary capability metadata.
+Timeline dependency-impact and publication-summary status vocabulary capability metadata.
 
 Status:
-Implemented and verification passed. `OperationalReadiness.quality_gate_import_readiness_summary/2`
-already emits schema-validated `freshness_status_ids`, `import_status_ids`, and
-`cadence_import_status_ids` from quality-gate rows. This slice advertises those
-vocabularies in `OperationalReadiness.capabilities/0` and pins the existing
-stale and analysis-only import-readiness summary paths against them.
+Implemented and verification passed. `Timeline.dependency_impact_summary/3` and
+`Timeline.publication_summary/2` already emit schema-validated status fields for
+dependency impact and publication handoffs. This slice advertises those
+vocabularies in `Timeline.capabilities/0` and pins them against existing summary
+outputs plus exported schema enums.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/operational_readiness.ex`
-- `test/orbital_dynamics/operational_readiness_test.exs`
+- `lib/orbital_dynamics/timeline.ex`
+- `test/orbital_dynamics/timeline_test.exs`
 
 Tests run:
-- `mix format lib/orbital_dynamics/operational_readiness.ex test/orbital_dynamics/operational_readiness_test.exs`
-- `mix test test/orbital_dynamics/operational_readiness_test.exs:12 test/orbital_dynamics/operational_readiness_test.exs:3057 test/orbital_dynamics/operational_readiness_test.exs:3460 --trace --seed 0`
+- `mix format lib/orbital_dynamics/timeline.ex test/orbital_dynamics/timeline_test.exs`
+- `mix test test/orbital_dynamics/timeline_test.exs:7 test/orbital_dynamics/timeline_test.exs:3157 test/orbital_dynamics/timeline_test.exs:3409 --trace --seed 0`
 - `git diff --check`
 
 Docs/artifacts changed:
 No schema export is expected. This slice only publishes capability metadata for
-existing `operational_quality_gate_import_readiness_summary.v1` status ID fields.
+existing `timeline_dependency_impact_summary.v1` and
+`timeline_publication_summary.v1` status fields.
 
 Last commit:
-Current slice commit advertises import-readiness status vocabularies and is
-pushed to `origin/main`.
+Current slice commit advertises timeline dependency-impact and publication
+summary status vocabularies and is pushed to `origin/main`.
 
 Next candidate:
 After this slice is verified and pushed, re-read the guide/ledger/live worktree
