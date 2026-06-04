@@ -17041,11 +17041,49 @@ defmodule OrbitalDynamics.CandidateRefresh do
          "candidate_refresh_request_source_report_summary",
          "source_reports",
          family
-       ]))
+       ]) ||
+       source_report_summary_branch_input_family(refresh_or_artifact, family))
     |> non_empty_map()
   end
 
   defp source_report_summary_branch_family(_refresh_or_artifact, _family), do: nil
+
+  defp source_report_summary_branch_input_family(
+         %{"candidate_source" => %{} = candidate_source},
+         "contact_intent"
+       ) do
+    case source_report_input_provenance(candidate_source) do
+      %{} = source_reports ->
+        source_reports
+        |> Map.get("contact_intent")
+        |> source_report_summary_relabel_branch_paths()
+
+      _source_reports ->
+        nil
+    end
+  end
+
+  defp source_report_summary_branch_input_family(_refresh_or_artifact, _family), do: nil
+
+  defp source_report_summary_relabel_branch_paths(%{} = summary) do
+    Map.update(summary, "paths", [], fn paths ->
+      paths
+      |> List.wrap()
+      |> Enum.map(&source_report_summary_branch_path/1)
+    end)
+  end
+
+  defp source_report_summary_relabel_branch_paths(summary), do: summary
+
+  defp source_report_summary_branch_path(path) when is_binary(path) do
+    if String.starts_with?(path, "candidate_source.") do
+      path
+    else
+      "candidate_source.candidate_refresh_request.#{path}"
+    end
+  end
+
+  defp source_report_summary_branch_path(path), do: path
 
   defp source_report_summary_count(source_reports, field) do
     source_reports

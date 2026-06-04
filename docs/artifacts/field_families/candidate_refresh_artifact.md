@@ -1440,7 +1440,8 @@ and capacity-pack contact ID maps plus direction-routing maps alongside the
 nested `source_reports.contact_intent` provenance.
 The replay helper can inspect V3 branch
 `candidate_source` metadata that carries
-`candidate_refresh_request_source_report_summary`, so strategy-derived branch
+`candidate_refresh_request_source_report_summary`, or derive the same family
+from raw branch request contact-intent inputs, so strategy-derived branch
 refreshes preserve contact-intent station-feedback and import-status routing
 through the branch provenance boundary.
 Branch-generated refresh requests preserve direct and `source_result_artifact` /
