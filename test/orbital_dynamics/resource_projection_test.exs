@@ -3278,6 +3278,22 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
             source_station_calendar_overlaps: [
               %{activity_context: %{capacity_percent: "140"}}
             ]
+          },
+          %{
+            id: :invalid_overlap_allocation_capacity,
+            type: :downlink,
+            scenario_id: :leo_1,
+            starts_at_s: 40.0,
+            estimated_throughput_mb: 100.0,
+            source_station_calendar_overlaps: [
+              %{
+                source_contact_allocation: %{
+                  allocation_status: :allocated,
+                  effective_allocation_status: :allocated,
+                  capacity_pack_capacity_fraction: 1.25
+                }
+              }
+            ]
           }
         ],
         [
@@ -3291,10 +3307,13 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
       )
 
     assert %{
-             "activity_count" => 2,
+             "activity_count" => 3,
              "valid_activity_count" => 1,
-             "invalid_activity_input_count" => 1,
-             "invalid_activity_input_ids" => ["invalid_overlap_downlink"],
+             "invalid_activity_input_count" => 2,
+             "invalid_activity_input_ids" => [
+               "invalid_overlap_downlink",
+               "invalid_overlap_allocation_capacity"
+             ],
              "projected_resources" => [
                %{
                  "estimated_downlink_mb" => 40.0,
@@ -3312,6 +3331,8 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
              ]
            } = report
 
+    invalid_inputs = report["invalid_activity_inputs"]
+
     assert %{
              "activity_id" => "invalid_overlap_downlink",
              "invalid_activity_input_reason" => "invalid_capacity_percent",
@@ -3320,7 +3341,25 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
                  %{"activity_context" => %{"capacity_percent" => "140"}}
                ]
              }
-           } = hd(report["invalid_activity_inputs"])
+           } = Enum.find(invalid_inputs, &(&1["activity_id"] == "invalid_overlap_downlink"))
+
+    assert %{
+             "activity_id" => "invalid_overlap_allocation_capacity",
+             "invalid_activity_input_reason" => "invalid_capacity_pack_capacity_fraction",
+             "source_activity" => %{
+               "source_station_calendar_overlaps" => [
+                 %{
+                   "source_contact_allocation" => %{
+                     "capacity_pack_capacity_fraction" => 1.25
+                   }
+                 }
+               ]
+             }
+           } =
+             Enum.find(
+               invalid_inputs,
+               &(&1["activity_id"] == "invalid_overlap_allocation_capacity")
+             )
 
     assert {:ok, %{"schema_contract" => "resource_projection_report.v1"}} =
              Schema.validate_artifact(report)
