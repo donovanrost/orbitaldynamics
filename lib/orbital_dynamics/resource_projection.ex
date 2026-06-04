@@ -1693,7 +1693,9 @@ defmodule OrbitalDynamics.ResourceProjection do
       activity,
       activity["throughput_model"],
       activity["capacity_model"],
-      activity["activity_context"]
+      activity["activity_context"],
+      activity["source_contact_allocation"],
+      get_in(activity, ["source_station_calendar_entry", "source_contact_allocation"])
     ]
     |> Enum.flat_map(&capacity_evidence_values/1)
     |> Kernel.++(capacity_evidence_values(activity["source_station_calendar_entry"]))
@@ -3222,8 +3224,14 @@ defmodule OrbitalDynamics.ResourceProjection do
 
   defp contact_allocation_status(activity, field) do
     activity
-    |> Map.get(field)
+    |> contact_allocation_status_value(field)
     |> status_token()
+  end
+
+  defp contact_allocation_status_value(activity, field) do
+    Map.get(activity, field) ||
+      get_in(activity, ["source_contact_allocation", field]) ||
+      get_in(activity, ["source_station_calendar_entry", "source_contact_allocation", field])
   end
 
   defp status_token(value) when value in [nil, ""], do: nil
@@ -3328,6 +3336,10 @@ defmodule OrbitalDynamics.ResourceProjection do
 
   defp contact_capacity_fraction_candidates(contact) do
     capacity_value_candidates(contact, @station_capacity_value_paths) ++
+      capacity_value_candidates(
+        contact["source_contact_allocation"],
+        @source_station_capacity_value_paths
+      ) ++
       source_station_capacity_fraction_candidates(contact["source_station_calendar_entry"]) ++
       source_station_capacity_fraction_candidates(contact["source_station_calendar_overlaps"])
   end
@@ -3336,7 +3348,11 @@ defmodule OrbitalDynamics.ResourceProjection do
     do: Enum.flat_map(sources, &source_station_capacity_fraction_candidates/1)
 
   defp source_station_capacity_fraction_candidates(%{} = source) do
-    capacity_value_candidates(source, @source_station_capacity_value_paths)
+    capacity_value_candidates(source, @source_station_capacity_value_paths) ++
+      capacity_value_candidates(
+        source["source_contact_allocation"],
+        @source_station_capacity_value_paths
+      )
   end
 
   defp source_station_capacity_fraction_candidates(_source), do: []
@@ -3349,12 +3365,14 @@ defmodule OrbitalDynamics.ResourceProjection do
 
   defp source_station_calendar_values(_source, _fields), do: []
 
-  defp capacity_value_candidates(source, paths) do
+  defp capacity_value_candidates(%{} = source, paths) do
     Enum.map(paths, fn
       {:fraction, path} -> path_value(source, path)
       {:percent, path} -> capacity_percent_fraction(path_value(source, path))
     end)
   end
+
+  defp capacity_value_candidates(_source, _paths), do: []
 
   defp path_value(source, [field]), do: Map.get(source, field)
   defp path_value(source, path), do: get_in(source, path)
