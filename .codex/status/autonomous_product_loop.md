@@ -30,7 +30,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`5fd0bae` (`Record latest autonomous loop commit`).
+`7470667` (`Flatten operational timeline replay identity`).
 
 Next candidate:
 Continue guide-backed CandidateRefresh depth from queue item 4, looking for the
