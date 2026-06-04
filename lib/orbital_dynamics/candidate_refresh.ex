@@ -33951,6 +33951,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       {"source_timeline_feedback_report", Map.get(refresh, "source_timeline_feedback_report")},
       {"timeline_feedback_report", Map.get(refresh, "timeline_feedback_report")}
     ]
+    |> reject_root_shadowed_mission_state_reports()
     |> Kernel.++(source_result_artifact_timeline_feedback_reports(refresh))
     |> Enum.filter(fn {_path, report} -> timeline_feedback_report?(report) end)
     |> Enum.map(fn {path, report} -> {path, stringify_keys(report)} end)
@@ -33970,6 +33971,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
        Map.get(refresh, "source_operational_timeline_report")},
       {"operational_timeline_report", Map.get(refresh, "operational_timeline_report")}
     ]
+    |> reject_root_shadowed_mission_state_reports()
     |> Enum.flat_map(fn {path, report_or_reports} ->
       source_operational_timeline_report_entries(path, report_or_reports)
     end)
@@ -33978,6 +33980,21 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Kernel.++(source_cadence_import_operational_timeline_reports(refresh))
     |> Enum.filter(fn {_path, report} -> operational_timeline_report?(report) end)
     |> Enum.map(fn {path, report} -> {path, stringify_keys(report)} end)
+  end
+
+  defp reject_root_shadowed_mission_state_reports(entries) do
+    root_reports =
+      entries
+      |> Enum.reject(fn {path, _report} -> String.starts_with?(path, "mission_state.") end)
+      |> Map.new(fn {path, report} -> {path, stringify_keys(report)} end)
+
+    Enum.reject(entries, fn
+      {"mission_state." <> root_path, %{} = report} ->
+        Map.get(root_reports, root_path) == stringify_keys(report)
+
+      {_path, _report} ->
+        false
+    end)
   end
 
   defp source_timeline_diff_reports(refresh) do

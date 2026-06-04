@@ -34745,6 +34745,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp put_missing_candidate_refresh_result_artifact_source_aliases(source_reports, mission_state) do
     candidate_refresh_source_report_input_fields()
+    |> Enum.reject(fn {source_key, _canonical_key} ->
+      source_key in [
+        "source_timeline_feedback_report",
+        "source_operational_timeline_report"
+      ]
+    end)
     |> Enum.reduce(source_reports, fn {source_key, canonical_key}, acc ->
       if source_report_input_present?(Map.get(acc, source_key)) do
         acc

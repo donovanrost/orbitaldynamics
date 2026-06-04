@@ -1,18 +1,18 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Branch-generated CandidateRefresh source-report provenance for result-artifact
-wrappers.
+Timeline-feedback and operational-timeline branch-refresh source-report
+provenance.
 
 Status:
-Implemented and verified. Branch-generated refresh requests now retain
-wrapper metadata/trust-boundary evidence on mission-state result-artifact
-source-report wrappers, synthesize missing direct `source_*` request aliases
-from wrapper-embedded reports, and let replay summaries read request source
-reports from repair artifacts stored under `assumptions.candidate_source`.
-Provider-counteroffer replay now uses the branch request-summary source label
-when summarizing branch candidate sources while preserving the standalone
-provenance label for ordinary artifacts.
+Implemented and verified. Branch-generated CandidateRefresh requests no longer
+double-count timeline-feedback or operational-timeline result-artifact wrappers
+through synthesized `mission_state.source_*` aliases. Those reports still remain
+visible through their direct root request fields and their wrapper-qualified
+`mission_state.source_result_artifact.*` / `mission_state.result_artifact.*`
+paths. CandidateRefresh also ignores identical `mission_state.*` timeline report
+entries when an equivalent root request entry is already present, keeping replay
+summaries deterministic for generated branch-refresh handoffs.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -20,40 +20,33 @@ Files changed:
 - `lib/orbital_dynamics/candidate_refresh.ex`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:50986`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:4444 test/orbital_dynamics/campaign_planner_test.exs:20047 test/orbital_dynamics/campaign_planner_test.exs:23434 test/orbital_dynamics/campaign_planner_test.exs:39992 test/orbital_dynamics/campaign_planner_test.exs:50606 test/orbital_dynamics/campaign_planner_test.exs:50986`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:30020`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:23434 test/orbital_dynamics/campaign_planner_test.exs:30020`
 - `mix test`
 
 Docs/artifacts changed:
 No schema or docs changes. This slice preserves existing artifact contracts and
-changes branch-refresh request provenance mapping only.
+changes branch-refresh request provenance summarization only.
 
 Full-suite status:
-`mix test` now reports `2815/2817 passed`; 2 failures remain. The previous
-provider-counteroffer, station-reservation, objective/constraint wrapper, and
-list-valued result-artifact source-report failures are resolved. Remaining
-failures are CampaignPlanner source-report duplicate-count/path drift in the
-timeline-feedback/operational-timeline case and the broad result-artifact
-candidate-diff/source-report summary case. The known `:propagator_exit` log
-still appears during the suite.
+`mix test` reports `2816/2817 passed`; 1 failure remains. The selected
+timeline-feedback/operational-timeline failure is resolved. The remaining
+failure is CampaignPlanner's broad result-artifact source-report summary case,
+where candidate-diff wrapper evidence is still double-counted across
+`mission_state.source_candidate_diff_report` and
+`mission_state.source_result_artifact.candidate_diff_report`. The known
+`:propagator_exit` log still appears during the suite.
 
 Review:
-`slice_reviewer` was unavailable because valid spawns hit the agent thread
-limit. Manual scoped review passed: the diff is limited to branch-refresh
-source-report mapping, repair-artifact branch-summary lookup, provider-
-counteroffer replay source labeling, and the ledger; `git diff --check` passed;
-the final full suite improves the residual count from 6 to 2.
+Pending final scoped review, commit, and push for this slice.
 
 Last commit:
-Slice code/tests/ledger committed as `8e042e0`
-(`Preserve branch refresh result-artifact source reports`); this ledger line was
-recorded in a follow-up handoff commit.
+Pending.
 
 Next candidate:
-Re-read the guide/ledger/live worktree and continue the source-report
-provenance burn-down with the two remaining CampaignPlanner failures:
-timeline-feedback/operational-timeline branch refresh source reports and
-candidate-diff duplicate-count handling for broad result-artifact wrappers.
+Re-read the guide/ledger/live worktree and continue with the remaining broad
+result-artifact candidate-diff duplicate-count/path drift in
+`test/orbital_dynamics/campaign_planner_test.exs:23434`.
 
 Blocked:
 No.
