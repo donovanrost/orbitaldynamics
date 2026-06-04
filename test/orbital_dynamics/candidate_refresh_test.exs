@@ -16153,7 +16153,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_counts_by_contract" => %{
                "timeline_lifecycle_state_summary.v1" => 4
              },
+             "source_report_timeline_lifecycle_state_contract" =>
+               "timeline_lifecycle_state_summary.v1",
+             "source_report_timeline_lifecycle_state_count" => 4,
              "source_report_timeline_lifecycle_state_row_count" => 16,
+             "source_report_timeline_lifecycle_state_paths" => [
+               "accepted_planning_state.timeline_lifecycle_state_summary",
+               "mission_state.source_timeline_lifecycle_state_summary",
+               "source_timeline_lifecycle_state_summary",
+               "source_result_artifact.timeline_lifecycle_state_summary"
+             ],
              "source_report_timeline_lifecycle_state_planned_activity_count" => 20,
              "source_report_timeline_lifecycle_state_realized_activity_count" => 8,
              "source_report_timeline_lifecycle_state_preserved_count" => 4,

@@ -1,17 +1,16 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh timeline activity-precondition source-report identity and
-capability semantics.
+CandidateRefresh timeline lifecycle-state source-report identity rollups.
 
 Status:
-Implemented with focused verification passing locally. `CandidateRefresh.source_report_summary/1`
-now flattens `source_report_timeline_activity_precondition_contract`,
-`source_report_timeline_activity_precondition_count`, and
-`source_report_timeline_activity_precondition_paths` alongside the existing
-precondition status, type, dependency, exclusivity, overlap, invalid-input, and
-activity/timeline routing maps. `CandidateRefresh.capabilities/0` now advertises
-the timeline activity-precondition routing and branch-replay semantics.
+Implemented with focused verification passing locally.
+`CandidateRefresh.source_report_summary/1` now
+flattens `source_report_timeline_lifecycle_state_contract`,
+`source_report_timeline_lifecycle_state_count`, and
+`source_report_timeline_lifecycle_state_paths` alongside the existing
+lifecycle-state row, planned/realized activity, preservation, review,
+invalid-input, transition provenance, and review-routing aggregate fields.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -21,19 +20,19 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:27`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:20154`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:16108`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
+- `git diff --cached --check`
 
 Definition of done:
-Aggregate CandidateRefresh source-report summaries expose precondition contract,
-count, and source-path identity at top level; capability metadata advertises the
-precondition routing and branch replay semantics; docs describe the compact
+Aggregate CandidateRefresh source-report summaries expose timeline
+lifecycle-state contract, count, and source-path identity at top level; tests
+assert those fields against multi-path provenance; docs describe the compact
 handoff; and focused plus full CandidateRefresh tests pass.
 
 Last completed/pushed commit before this slice:
-`887a317` (`Flatten timeline single-state replay summaries`).
+`a387c62` (`Advertise precondition replay summary fields`).
 
 Next candidate:
 Continue guide-backed CandidateRefresh depth from queue item 4, looking for the

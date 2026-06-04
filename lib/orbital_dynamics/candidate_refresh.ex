@@ -5387,6 +5387,24 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "timeline_activity_precondition_summary",
           "allow_overlap_counts"
         ),
+      "source_report_timeline_lifecycle_state_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "timeline_lifecycle_state_summary",
+          "contract"
+        ),
+      "source_report_timeline_lifecycle_state_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "timeline_lifecycle_state_summary",
+          "count"
+        ),
+      "source_report_timeline_lifecycle_state_paths" =>
+        source_report_summary_family_field(
+          source_reports,
+          "timeline_lifecycle_state_summary",
+          "paths"
+        ),
       "source_report_timeline_lifecycle_state_row_count" =>
         source_report_summary_family_count(
           source_reports,
