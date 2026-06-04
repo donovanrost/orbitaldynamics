@@ -1577,6 +1577,12 @@ model/schema counts, transition decisions, required operator/import actions,
 activity/timeline routing, invalid-input counts and reasons,
 trust-boundary evidence, and branch-local pressure booleans without applying
 status or approval changes.
+When a branch `timeline_activity_state` source-report family is non-empty and
+matches the requested `timeline_activity_status_state.v1` or
+`timeline_activity_approval_state.v1` contract, these contract-scoped helpers
+label their output source and replay scope as candidate-source summary metadata,
+treat partial non-empty branch families as authoritative, and fall back to
+provenance labels for absent, empty, or contract-mismatched branch families.
 `CandidateRefresh.timeline_activity_state_replay_summary/1` and its matching
 `OrbitalDynamics` facade prefer a non-empty V3
 `candidate_source.candidate_refresh_request_source_report_summary.source_reports.timeline_activity_state`

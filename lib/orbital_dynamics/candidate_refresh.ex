@@ -9645,9 +9645,11 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local timeline activity-status-state replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not apply status changes, mutate timelines, select candidates, approve
-  imports, execute commands, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not apply status changes, mutate
+  timelines, select candidates, approve imports, execute commands, or write to
+  Cadence.
   """
   def timeline_activity_status_state_replay_summary(refresh_or_artifact) do
     timeline_activity_single_state_replay_summary(
@@ -9663,9 +9665,11 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local timeline activity-approval-state replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not apply approval changes, mutate timelines, select candidates, approve
-  imports, execute commands, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not apply approval changes, mutate
+  timelines, select candidates, approve imports, execute commands, or write to
+  Cadence.
   """
   def timeline_activity_approval_state_replay_summary(refresh_or_artifact) do
     timeline_activity_single_state_replay_summary(
@@ -9686,7 +9690,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
          application_boundary,
          authority_boundary
        ) do
-    state_summary =
+    {state_summary, branch_summary?} =
       refresh_or_artifact
       |> source_timeline_activity_states()
       |> Enum.filter(fn {_path, state} ->
@@ -9701,11 +9705,24 @@ defmodule OrbitalDynamics.CandidateRefresh do
           )
 
         summary ->
-          summary
+          {summary, false}
       end
       |> case do
-        nil -> %{}
-        summary -> summary
+        nil -> {%{}, false}
+        {summary, branch_summary?} -> {summary, branch_summary?}
+      end
+
+    {summary_source, replay_scope} =
+      if branch_summary? do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.#{family}",
+          "#{family}_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.#{family}",
+          "#{family}_source_report_provenance_only"
+        }
       end
 
     row_count = summary_integer(state_summary, "row_count")
@@ -9768,7 +9785,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_#{family}_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.#{family}",
+      "source" => summary_source,
       "contract" => source_report_summary_contract(state_summary, nil),
       "source_report_count" => summary_integer(state_summary, "count"),
       "source_report_row_count" => row_count,
@@ -9801,7 +9818,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "branch_local_#{family}_routing_pressure" => routing_pressure,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "#{family}_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => authority_boundary,
         "timeline_mutation" => "not_performed_by_summary",
         application_boundary => "not_performed_by_summary",
@@ -9816,11 +9833,29 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp timeline_activity_single_state_summary_from_source_reports(refresh_or_artifact, contract) do
-    state_summary =
+    branch_state_summary =
       refresh_or_artifact
-      |> source_report_summary()
-      |> get_in(["source_reports", "timeline_activity_state"])
+      |> source_report_summary_branch_family("timeline_activity_state")
+      |> timeline_activity_single_state_summary_matching_contract(contract)
 
+    if branch_state_summary do
+      {branch_state_summary, true}
+    else
+      state_summary =
+        refresh_or_artifact
+        |> source_report_summary()
+        |> get_in(["source_reports", "timeline_activity_state"])
+
+      state_summary
+      |> timeline_activity_single_state_summary_matching_contract(contract)
+      |> case do
+        nil -> nil
+        state_summary -> {state_summary, false}
+      end
+    end
+  end
+
+  defp timeline_activity_single_state_summary_matching_contract(state_summary, contract) do
     contract_counts = Map.get(state_summary || %{}, "source_summary_schema_contract_counts", %{})
 
     cond do
