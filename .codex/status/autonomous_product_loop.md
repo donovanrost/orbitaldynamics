@@ -1,17 +1,17 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh operational-timeline source-report identity rollups.
+CandidateRefresh operational-readiness source-report identity rollups.
 
 Status:
 Implemented with focused verification passing locally.
 `CandidateRefresh.source_report_summary/1` now
-flattens `source_report_operational_timeline_contract`,
-`source_report_operational_timeline_count`,
-`source_report_operational_timeline_row_count`, and
-`source_report_operational_timeline_paths` alongside the existing operational
-kind, activity, status, approval, required-action, and Cadence-import routing
-aggregate fields.
+flattens `source_report_operational_readiness_contract`,
+`source_report_operational_readiness_count`,
+`source_report_operational_readiness_row_count`, and
+`source_report_operational_readiness_paths` alongside the existing readiness,
+import, freshness, schema-validation, adapter-boundary, resource-availability,
+review, and import-action aggregate fields.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -21,7 +21,8 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:27076`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:22564`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:22778`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 - `git diff --cached --check`
@@ -30,7 +31,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`7470667` (`Flatten operational timeline replay identity`).
+`0135f99` (`Record operational timeline slice commit`).
 
 Next candidate:
 Continue guide-backed CandidateRefresh depth from queue item 4, looking for the

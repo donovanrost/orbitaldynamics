@@ -22561,6 +22561,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 1,
+             "source_report_operational_readiness_contract" => "operational_readiness_report.v1",
+             "source_report_operational_readiness_count" => 1,
+             "source_report_operational_readiness_row_count" => 1,
+             "source_report_operational_readiness_paths" => [
+               "source_operational_readiness_report"
+             ],
              "source_report_operational_readiness_readiness_level_counts" => %{
                "operator_review" => 1
              },
@@ -22742,6 +22748,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 2,
+             "source_report_operational_readiness_contract" => "operational_readiness_report.v1",
+             "source_report_operational_readiness_count" => 1,
+             "source_report_operational_readiness_row_count" => 1,
+             "source_report_operational_readiness_paths" => [
+               "source_operational_readiness_report"
+             ],
              "source_report_operational_readiness_readiness_level_counts" => %{
                "operator_review" => 1
              },
@@ -22769,8 +22781,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "provenance" => %{"source_reports" => %{}}
     }
 
+    source_summary = CandidateRefresh.source_report_summary(artifact)
     summary = CandidateRefresh.operational_readiness_replay_summary(artifact)
 
+    refute Map.has_key?(source_summary, "source_report_operational_readiness_contract")
+    refute Map.has_key?(source_summary, "source_report_operational_readiness_count")
+    refute Map.has_key?(source_summary, "source_report_operational_readiness_row_count")
+    refute Map.has_key?(source_summary, "source_report_operational_readiness_paths")
     assert summary["source_report_count"] == 0
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_paths"] == []

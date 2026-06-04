@@ -568,8 +568,9 @@ boundary for maneuver-review rows.
 `CandidateRefresh.operational_readiness_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_operational_readiness_replay_summary/1`
 expose the operational-readiness slice of that provenance as a branch-local
-replay summary. It preserves source readiness paths, readiness/import/status
-maps, gate counts, analysis-mode counts, import/freshness/schema-validation
+replay summary. It preserves top-level source-report contract/count/path
+rollups, source readiness paths, readiness/import/status maps, gate counts,
+analysis-mode counts, import/freshness/schema-validation
 evidence, adapter-boundary counts, resource-availability reason maps including
 station-specific availability reason counts, review/import action maps, and
 review/import/resource pressure booleans without approving operator actions,
