@@ -16086,6 +16086,49 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(row_schema, ["properties", "contact_ids", "items", "type"]) == "string"
   end
 
+  test "exports relay data-path summary row schema" do
+    assert {:ok, schema} = Schema.json_schema("relay_data_path_summary.v1")
+
+    row_schema = get_in(schema, ["properties", "rows", "items"])
+
+    assert row_schema["type"] == "object"
+    assert "route_id" in row_schema["required"]
+    assert "relay_hop_count" in row_schema["required"]
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "artifact_only_relay_data_path_summary"
+
+    assert get_in(schema, ["properties", "route_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(schema, ["properties", "custody_status_counts", "additionalProperties"]) ==
+             %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "custody_acknowledgement_delivery",
+             "const"
+           ]) == "not_performed"
+
+    assert get_in(row_schema, ["properties", "route_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "relay_hop_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(row_schema, ["properties", "relay_chain_spacecraft_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "latency_s", "type"]) == "number"
+    assert get_in(row_schema, ["properties", "risk_reasons", "items", "type"]) == "string"
+  end
+
   test "exports nested objective satisfaction report row schema" do
     assert {:ok, schema} = Schema.json_schema("objective_satisfaction_report.v1")
 
@@ -19862,6 +19905,7 @@ defmodule OrbitalDynamics.SchemaTest do
     assert Map.has_key?(bundle["schemas"], "optimizer_contract.v1")
     assert Map.has_key?(bundle["schemas"], "link_capacity_report.v1")
     assert Map.has_key?(bundle["schemas"], "link_capacity_summary.v1")
+    assert Map.has_key?(bundle["schemas"], "relay_data_path_summary.v1")
     assert Map.has_key?(bundle["schemas"], "contact_filter_report.v1")
     assert Map.has_key?(bundle["schemas"], "contact_contention_report.v1")
     assert Map.has_key?(bundle["schemas"], "contact_contention_resolution_report.v1")
@@ -20056,7 +20100,7 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert migration_report["status"] == "review_required"
     assert migration_report["deprecated_contract_count"] == 1
-    assert migration_report["status_counts"] == %{"current" => 117, "deprecated" => 1}
+    assert migration_report["status_counts"] == %{"current" => 118, "deprecated" => 1}
 
     stale_migration_model =
       Map.put(migration_report, "model", "stale_schema_migration_report_model")

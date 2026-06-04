@@ -57,6 +57,23 @@ Existing `link_capacity_report.v1` artifacts are also accepted by
 `LinkCapacity.report/1` and `OrbitalDynamics.link_capacity_report/1` as
 idempotent handoff inputs before any raw-contact capacity rows are derived.
 
+## Relay data-path summaries
+
+`relay_data_path_summary.v1` publishes artifact-only relay and
+store-and-forward route evidence for paths that are not direct ground contacts.
+`LinkCapacity.relay_data_path_summary/2` and
+`OrbitalDynamics.relay_data_path_summary/2` derive rows and top-level routing
+from route inputs with source spacecraft, relay chain spacecraft, ground station,
+ground downlink contact, custody status, latency/limit, risk status/reasons,
+product IDs, and collection IDs.
+
+The summary keeps row-derived route counts, relay/direct counts, custody,
+latency, and risk status counts, route IDs by status and ground station, source
+spacecraft IDs, relay spacecraft IDs, ground station IDs, downlink contact IDs,
+and latency maxima. It does not model crosslink visibility, schedule relay
+contacts, deliver custody acknowledgements, reserve provider contacts, or mutate
+the mission schedule.
+
 ## Validation and review gating
 
 Link-capacity reports preserve downlink-like candidate or selected rows that

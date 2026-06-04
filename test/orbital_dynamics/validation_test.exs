@@ -86,9 +86,9 @@ defmodule OrbitalDynamics.ValidationTest do
              "status" => "review_required",
              "deprecated_contract_count" => 1,
              "future_contract_count" => 1,
-             "status_counts" => %{"current" => 117, "deprecated" => 1, "future" => 1},
+             "status_counts" => %{"current" => 118, "deprecated" => 1, "future" => 1},
              "migration_action_counts" => %{
-               "continue_current_contract" => 117,
+               "continue_current_contract" => 118,
                "plan_replacement" => 1,
                "prepare_future_contract" => 1
              }
@@ -10124,8 +10124,8 @@ defmodule OrbitalDynamics.ValidationTest do
              "deprecated_contract_count" => 1,
              "deprecated_contracts" => "campaign_plan.v1",
              "replacement_contracts" => "campaign_strategy.v3",
-             "status_counts" => %{"current" => 117, "deprecated" => 1},
-             "row_derived_status_counts" => %{"current" => 117, "deprecated" => 1}
+             "status_counts" => %{"current" => 118, "deprecated" => 1},
+             "row_derived_status_counts" => %{"current" => 118, "deprecated" => 1}
            } = schema_migration_report_fixture_observations()
 
     stale_status_counts =
@@ -10206,14 +10206,14 @@ defmodule OrbitalDynamics.ValidationTest do
              "status" => "review_required",
              "future_contract_count" => 1,
              "deprecated_contract_count" => 0,
-             "status_counts" => %{"current" => 117, "future" => 1},
-             "row_derived_status_counts" => %{"current" => 117, "future" => 1},
+             "status_counts" => %{"current" => 119, "future" => 1},
+             "row_derived_status_counts" => %{"current" => 119, "future" => 1},
              "migration_action_counts" => %{
-               "continue_current_contract" => 117,
+               "continue_current_contract" => 119,
                "prepare_future_contract" => 1
              },
              "row_derived_migration_action_counts" => %{
-               "continue_current_contract" => 117,
+               "continue_current_contract" => 119,
                "prepare_future_contract" => 1
              }
            } = observations
@@ -10221,7 +10221,7 @@ defmodule OrbitalDynamics.ValidationTest do
     stale_action_counts =
       observations
       |> Map.put("row_derived_migration_action_counts", %{
-        "continue_current_contract" => 118
+        "continue_current_contract" => 119
       })
 
     assert {:ok, stale_action_verification} =

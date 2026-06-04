@@ -1,9 +1,9 @@
 # 7. Ground Network and Communications Planning
 
 Capability area covering ground station definitions, contact candidate
-filtering and contention, link-capacity accounting, contact allocation,
-station-calendar provider overlays, contact-intent generation, and the
-candidate-refresh review gates that feed Cadence handoff.
+filtering and contention, link-capacity accounting, relay data-path summaries,
+contact allocation, station-calendar provider overlays, contact-intent
+generation, and the candidate-refresh review gates that feed Cadence handoff.
 
 - [Overview, Contact Filter, and Contact Contention](07_ground_network/01_overview_filter_and_contention.md)
 - [Link Capacity Reports](07_ground_network/02_link_capacity.md)

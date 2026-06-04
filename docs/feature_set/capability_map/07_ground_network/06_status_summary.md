@@ -8,6 +8,8 @@ Status: **partial**.
 - V1 can report:
   - same-station and same-spacecraft cross-station contention;
   - fixed-rate link-capacity summaries;
+  - artifact-only relay/store-and-forward data-path summaries with route,
+    custody, latency, risk, relay-chain, and ground-downlink routing;
   - manifest-supplied and declared-provider station calendar overlays, including reserved-overlap contention metadata and overlapping-entry context;
   - optional direction scoping for uplink/command/downlink/tracking-specific station state;
   - optional policy classification evidence.
@@ -58,7 +60,8 @@ Status: **partial**.
 
 ## Not modeled
 
-- Link budgets, live external provider calendars, and schedule mutation/reservation are not modeled.
+- Link budgets, crosslink visibility, live external provider calendars, custody
+  acknowledgement delivery, and schedule mutation/reservation are not modeled.
 
 ## Roadmap
 

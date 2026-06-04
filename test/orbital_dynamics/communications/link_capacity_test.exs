@@ -10,6 +10,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
     assert %{
              artifact_contract: "link_capacity_report.v1",
              summary_artifact_contract: "link_capacity_summary.v1",
+             relay_data_path_summary_artifact_contract: "relay_data_path_summary.v1",
              validation_level: :artifact_contract,
              model: :fixed_rate_downlink_capacity_summary,
              station_unavailable_aliases: station_unavailable_aliases,
@@ -32,6 +33,9 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
              provider_direction_aliases: provider_direction_aliases,
              provider_result_map_value_keys: provider_result_map_value_keys,
              contact_stable_identity_fields: contact_stable_identity_fields,
+             relay_data_path_statuses: relay_data_path_statuses,
+             relay_data_path_model_limits: relay_data_path_model_limits,
+             public_facades: public_facades,
              row_semantics: row_semantics,
              known_limits: known_limits
            } = LinkCapacity.capabilities()
@@ -254,6 +258,29 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
     assert :provider_result_map_value_keys in row_semantics
     assert :link_capacity_summary_row_derived_counts in row_semantics
     assert :link_capacity_row_count_list_consistency in row_semantics
+    assert :artifact_only_relay_data_path_summary in row_semantics
+    assert :relay_data_path_row_derived_counts in row_semantics
+    assert :relay_data_path_custody_latency_risk_routing in row_semantics
+
+    assert relay_data_path_statuses == %{
+             custody: ["confirmed", "pending", "missing_ack", "failed", "unknown"],
+             latency: ["within_limit", "exceeds_limit", "not_evaluated", "unknown"],
+             risk: ["nominal", "review", "high", "unknown"]
+           }
+
+    assert relay_data_path_model_limits == [
+             "artifact_level_relay_data_path_summary",
+             "no_crosslink_visibility_model",
+             "no_relay_scheduling",
+             "no_custody_acknowledgement_delivery",
+             "no_provider_reservation",
+             "no_schedule_mutation"
+           ]
+
+    assert :link_capacity_report in public_facades
+    assert :link_capacity_summary in public_facades
+    assert :relay_data_path_summary in public_facades
+
     assert :fixed_rate_summary in known_limits
     assert :no_link_budget_model in known_limits
     assert :limited_realized_selected_throughput_reconciliation in known_limits
@@ -261,6 +288,216 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
     assert :no_full_realized_contact_reconciliation in known_limits
     assert :no_provider_reservation in known_limits
     assert :no_schedule_mutation in known_limits
+  end
+
+  test "builds artifact-only relay data-path summaries" do
+    routes = [
+      %{
+        source_spacecraft_id: :sat_a,
+        relay_chain_spacecraft_ids: [:relay_2, :relay_1],
+        ground_station_id: :dss_14,
+        ground_downlink_contact_id: :downlink_1,
+        custody_status: :acknowledged,
+        latency_s: "180",
+        latency_limit_s: 240,
+        product_ids: [:image_alpha],
+        collection_id: :collection_alpha
+      },
+      %{
+        id: :route_direct,
+        source: %{spacecraft_id: :sat_b},
+        ground_downlink: %{station_id: :dss_35, id: :downlink_2},
+        custody: %{status: "missing acknowledgement"},
+        delivery_latency_s: 500,
+        max_latency_s: 300,
+        risk_reasons: ["operator review queued"],
+        product_id: :image_beta
+      }
+    ]
+
+    summary = LinkCapacity.relay_data_path_summary(routes, source: "relay_ops")
+
+    assert %{"route_ids" => [relay_route_id, "route_direct"]} = summary
+    assert String.starts_with?(relay_route_id, "relay_data_path:sat_a:downlink_1:")
+    assert relay_route_id =~ ~r/^relay_data_path:sat_a:downlink_1:[0-9a-f]{12}$/
+
+    reordered_summary =
+      LinkCapacity.relay_data_path_summary(
+        [
+          %{
+            id: :route_inserted,
+            source_spacecraft_id: :sat_inserted,
+            ground_station_id: :dss_99,
+            ground_downlink_contact_id: :downlink_inserted
+          }
+          | Enum.reverse(routes)
+        ],
+        source: "relay_ops"
+      )
+
+    assert reordered_summary["rows"]
+           |> Enum.find(&(&1["source_spacecraft_id"] == "sat_a"))
+           |> Map.fetch!("route_id") == relay_route_id
+
+    assert %{
+             "schema_contract" => "relay_data_path_summary.v1",
+             "schema_version" => 1,
+             "model" => "artifact_only_relay_data_path_summary",
+             "source" => "relay_ops",
+             "route_count" => 2,
+             "relay_route_count" => 1,
+             "direct_downlink_route_count" => 1,
+             "custody_status_counts" => %{"confirmed" => 1, "missing_ack" => 1},
+             "latency_status_counts" => %{"exceeds_limit" => 1, "within_limit" => 1},
+             "risk_status_counts" => %{"high" => 1, "nominal" => 1},
+             "route_ids" => [
+               ^relay_route_id,
+               "route_direct"
+             ],
+             "source_spacecraft_ids" => ["sat_a", "sat_b"],
+             "relay_spacecraft_ids" => ["relay_1", "relay_2"],
+             "ground_station_ids" => ["dss_14", "dss_35"],
+             "ground_downlink_contact_ids" => ["downlink_1", "downlink_2"],
+             "route_ids_by_custody_status" => %{
+               "confirmed" => [^relay_route_id],
+               "missing_ack" => ["route_direct"]
+             },
+             "route_ids_by_latency_status" => %{
+               "exceeds_limit" => ["route_direct"],
+               "within_limit" => [^relay_route_id]
+             },
+             "route_ids_by_risk_status" => %{
+               "high" => ["route_direct"],
+               "nominal" => [^relay_route_id]
+             },
+             "route_ids_by_ground_station_id" => %{
+               "dss_14" => [^relay_route_id],
+               "dss_35" => ["route_direct"]
+             },
+             "maximum_latency_s" => 500.0,
+             "maximum_latency_limit_s" => 300.0,
+             "model_limits" => model_limits,
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_relay_scheduling_or_schedule_mutation",
+               "crosslink_visibility_model" => "not_evaluated",
+               "custody_acknowledgement_delivery" => "not_performed",
+               "provider_reservation" => "not_performed",
+               "operator_authority" => "not_granted_by_summary"
+             },
+             "rows" => [
+               %{
+                 "route_id" => ^relay_route_id,
+                 "source_spacecraft_id" => "sat_a",
+                 "relay_chain_spacecraft_ids" => ["relay_2", "relay_1"],
+                 "relay_hop_count" => 2,
+                 "ground_station_id" => "dss_14",
+                 "ground_downlink_contact_id" => "downlink_1",
+                 "custody_status" => "confirmed",
+                 "latency_s" => 180.0,
+                 "latency_limit_s" => 240.0,
+                 "latency_status" => "within_limit",
+                 "risk_status" => "nominal",
+                 "risk_reasons" => [],
+                 "product_ids" => ["image_alpha"],
+                 "collection_ids" => ["collection_alpha"]
+               },
+               %{
+                 "route_id" => "route_direct",
+                 "source_spacecraft_id" => "sat_b",
+                 "relay_chain_spacecraft_ids" => [],
+                 "relay_hop_count" => 0,
+                 "ground_station_id" => "dss_35",
+                 "ground_downlink_contact_id" => "downlink_2",
+                 "custody_status" => "missing_ack",
+                 "latency_s" => 500.0,
+                 "latency_limit_s" => 300.0,
+                 "latency_status" => "exceeds_limit",
+                 "risk_status" => "high",
+                 "risk_reasons" => [
+                   "custody_missing_ack",
+                   "latency_exceeds_limit",
+                   "operator review queued"
+                 ],
+                 "product_ids" => ["image_beta"],
+                 "collection_ids" => []
+               }
+             ]
+           } = summary
+
+    assert model_limits == LinkCapacity.capabilities().relay_data_path_model_limits
+    assert OrbitalDynamics.relay_data_path_summary(routes, source: "relay_ops") == summary
+    assert LinkCapacity.relay_data_path_summary(summary) == summary
+
+    assert {:ok, %{"schema_contract" => "relay_data_path_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert {:ok, schema} = Schema.json_schema("relay_data_path_summary.v1")
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             "artifact_only_relay_data_path_summary"
+
+    assert get_in(schema, ["properties", "model_limits", "const"]) == model_limits
+
+    assert get_in(schema, ["properties", "assumptions", "required"]) == [
+             "execution_boundary",
+             "crosslink_visibility_model",
+             "custody_acknowledgement_delivery",
+             "provider_reservation",
+             "operator_authority"
+           ]
+
+    assert get_in(schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "provider_reservation",
+             "const"
+           ]) == "not_performed"
+
+    stale_route_count = Map.put(summary, "route_count", 99)
+
+    assert {:error, stale_route_count_report} = Schema.validate_artifact(stale_route_count)
+
+    assert Enum.any?(
+             stale_route_count_report["errors"],
+             &(&1["path"] == "$.route_count" and &1["message"] == "must equal 2")
+           )
+
+    stale_route_map =
+      Map.put(summary, "route_ids_by_latency_status", %{"within_limit" => ["route_direct"]})
+
+    assert {:error, stale_route_map_report} = Schema.validate_artifact(stale_route_map)
+
+    assert Enum.any?(
+             stale_route_map_report["errors"],
+             &(&1["path"] == "$.route_ids_by_latency_status" and
+                 &1["message"] == "must equal row-derived route_ids_by_latency_status")
+           )
+
+    malformed_route_id = put_in(summary, ["rows", Access.at(0), "route_id"], "bad route id")
+
+    assert {:error, malformed_route_id_report} = Schema.validate_artifact(malformed_route_id)
+
+    assert Enum.any?(
+             malformed_route_id_report["errors"],
+             &(&1["path"] == "$.rows[0].route_id" and &1["message"] =~ "stable ID")
+           )
+
+    forged_provider_reservation =
+      put_in(summary, ["assumptions", "provider_reservation"], "reserved")
+
+    assert {:error, forged_provider_reservation_report} =
+             Schema.validate_artifact(forged_provider_reservation)
+
+    assert Enum.any?(
+             forged_provider_reservation_report["errors"],
+             &(&1["path"] == "$.assumptions.provider_reservation" and
+                 &1["message"] == "must equal \"not_performed\"")
+           )
+
+    assert_raise ArgumentError, ~r/relay data path routes must be a list/, fn ->
+      LinkCapacity.relay_data_path_summary(:not_routes)
+    end
   end
 
   test "counts planned and actual data-volume aliases as downlink capacity evidence" do

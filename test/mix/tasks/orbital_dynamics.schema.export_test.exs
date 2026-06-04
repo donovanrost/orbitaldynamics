@@ -76,12 +76,14 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
     assert Map.has_key?(schemas, "resource_filter_summary.v1")
     assert Map.has_key?(schemas, "link_capacity_report.v1")
     assert Map.has_key?(schemas, "link_capacity_summary.v1")
+    assert Map.has_key?(schemas, "relay_data_path_summary.v1")
     assert Map.has_key?(schemas, "contact_contention_resolution_summary.v1")
     assert Map.has_key?(schemas, "contact_intent_summary.v1")
 
+    link_capacity_capabilities = OrbitalDynamics.Communications.LinkCapacity.capabilities()
+
     link_capacity_model_limits =
-      OrbitalDynamics.Communications.LinkCapacity.capabilities().known_limits
-      |> Enum.map(&Atom.to_string/1)
+      Enum.map(link_capacity_capabilities.known_limits, &Atom.to_string/1)
 
     assert get_in(schemas, [
              "link_capacity_report.v1",
@@ -96,6 +98,13 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "model_limits",
              "const"
            ]) == link_capacity_model_limits
+
+    assert get_in(schemas, [
+             "relay_data_path_summary.v1",
+             "properties",
+             "model_limits",
+             "const"
+           ]) == link_capacity_capabilities.relay_data_path_model_limits
 
     assert get_in(schemas, ["resource_filter_summary.v1", "properties", "model", "const"]) ==
              "artifact_only_resource_filter_summary"
@@ -2916,6 +2925,41 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "model",
              "const"
            ]) == "artifact_only_link_capacity_summary"
+
+    assert get_in(schemas, [
+             "relay_data_path_summary.v1",
+             "properties",
+             "model",
+             "const"
+           ]) == "artifact_only_relay_data_path_summary"
+
+    assert get_in(schemas, [
+             "relay_data_path_summary.v1",
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             "route_id",
+             "pattern"
+           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+
+    assert get_in(schemas, [
+             "relay_data_path_summary.v1",
+             "properties",
+             "assumptions",
+             "properties",
+             "provider_reservation",
+             "const"
+           ]) == "not_performed"
+
+    assert get_in(schemas, [
+             "relay_data_path_summary.v1",
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             "relay_hop_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
 
     assert get_in(schemas, [
              "link_capacity_report.v1",

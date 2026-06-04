@@ -1881,6 +1881,13 @@ defmodule OrbitalDynamics do
   end
 
   @doc """
+  Builds an artifact-only relay/store-and-forward data-path summary.
+  """
+  def relay_data_path_summary(routes, opts \\ []) do
+    LinkCapacity.relay_data_path_summary(routes, opts)
+  end
+
+  @doc """
   Filters contact candidates using externally supplied ground-network availability
   rows or a `station_calendar_provider.v1` object.
   """

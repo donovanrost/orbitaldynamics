@@ -323,6 +323,13 @@ Feature areas:
 
 Planning artifacts should make the data path explicit: source spacecraft,
 relay chain, ground downlink, custody status, latency, and risk.
+`relay_data_path_summary.v1` provides that artifact-only handoff surface through
+`LinkCapacity.relay_data_path_summary/2` and
+`OrbitalDynamics.relay_data_path_summary/2`. Its counts, status routing, route
+IDs, relay spacecraft IDs, ground-station IDs, latency maxima, and risk rows are
+derived from published rows without crosslink visibility modeling, relay
+scheduling, custody acknowledgement delivery, provider reservation, or schedule
+mutation.
 
 ## Space Traffic and Safety
 

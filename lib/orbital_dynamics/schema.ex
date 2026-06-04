@@ -96,6 +96,7 @@ defmodule OrbitalDynamics.Schema do
   ]
   @link_capacity_report "link_capacity_report.v1"
   @link_capacity_summary "link_capacity_summary.v1"
+  @relay_data_path_summary "relay_data_path_summary.v1"
   @contact_intent_summary "contact_intent_summary.v1"
   @contact_allocation_report "contact_allocation_report.v1"
   @contact_allocation_summary "contact_allocation_summary.v1"
@@ -4080,6 +4081,40 @@ defmodule OrbitalDynamics.Schema do
         "station_calendar_provider_entry_ids"
       ],
       "nested_contracts" => ["link_capacity_report.v1"]
+    },
+    @relay_data_path_summary => %{
+      "schema_contract" => @relay_data_path_summary,
+      "artifact_family" => "relay_data_path_summary",
+      "schema_version" => 1,
+      "required_fields" => [
+        "schema_contract",
+        "schema_version",
+        "model",
+        "source",
+        "route_count",
+        "relay_route_count",
+        "direct_downlink_route_count",
+        "custody_status_counts",
+        "latency_status_counts",
+        "risk_status_counts",
+        "route_ids",
+        "source_spacecraft_ids",
+        "relay_spacecraft_ids",
+        "ground_station_ids",
+        "ground_downlink_contact_ids",
+        "route_ids_by_custody_status",
+        "route_ids_by_latency_status",
+        "route_ids_by_risk_status",
+        "route_ids_by_ground_station_id",
+        "model_limits",
+        "assumptions",
+        "rows"
+      ],
+      "optional_fields" => [
+        "maximum_latency_s",
+        "maximum_latency_limit_s"
+      ],
+      "nested_contracts" => []
     },
     @contact_allocation_report => %{
       "schema_contract" => @contact_allocation_report,
@@ -8300,6 +8335,9 @@ defmodule OrbitalDynamics.Schema do
 
   defp infer_contract(%{"schema_contract" => "link_capacity_summary.v1"}),
     do: @link_capacity_summary
+
+  defp infer_contract(%{"schema_contract" => "relay_data_path_summary.v1"}),
+    do: @relay_data_path_summary
 
   defp infer_contract(%{"schema_contract" => "contact_allocation_report.v1"}),
     do: @contact_allocation_report
@@ -13377,6 +13415,88 @@ defmodule OrbitalDynamics.Schema do
     stable_id_array_map_schema()
   end
 
+  defp json_schema_property("schema_contract", @relay_data_path_summary, _contract) do
+    %{"type" => "string", "const" => @relay_data_path_summary}
+  end
+
+  defp json_schema_property("schema_version", @relay_data_path_summary, _contract) do
+    %{"type" => "integer", "const" => 1}
+  end
+
+  defp json_schema_property("model", @relay_data_path_summary, _contract) do
+    %{"type" => "string", "const" => "artifact_only_relay_data_path_summary"}
+  end
+
+  defp json_schema_property("source", @relay_data_path_summary, _contract) do
+    %{"type" => "string"}
+  end
+
+  defp json_schema_property("model_limits", @relay_data_path_summary, _contract) do
+    %{
+      "type" => "array",
+      "const" => relay_data_path_model_limits(),
+      "items" => %{"type" => "string", "enum" => relay_data_path_model_limits()}
+    }
+  end
+
+  defp json_schema_property("assumptions", @relay_data_path_summary, _contract) do
+    relay_data_path_assumptions_json_schema()
+  end
+
+  defp json_schema_property("rows", @relay_data_path_summary, _contract) do
+    %{
+      "type" => "array",
+      "items" => relay_data_path_row_json_schema()
+    }
+  end
+
+  defp json_schema_property(field, @relay_data_path_summary, _contract)
+       when field in [
+              "route_count",
+              "relay_route_count",
+              "direct_downlink_route_count"
+            ] do
+    %{"type" => "integer", "minimum" => 0}
+  end
+
+  defp json_schema_property(field, @relay_data_path_summary, _contract)
+       when field in [
+              "maximum_latency_s",
+              "maximum_latency_limit_s"
+            ] do
+    %{"type" => "number"}
+  end
+
+  defp json_schema_property(field, @relay_data_path_summary, _contract)
+       when field in [
+              "custody_status_counts",
+              "latency_status_counts",
+              "risk_status_counts"
+            ] do
+    non_negative_integer_count_map_json_schema()
+  end
+
+  defp json_schema_property(field, @relay_data_path_summary, _contract)
+       when field in [
+              "route_ids",
+              "source_spacecraft_ids",
+              "relay_spacecraft_ids",
+              "ground_station_ids",
+              "ground_downlink_contact_ids"
+            ] do
+    stable_id_array_schema()
+  end
+
+  defp json_schema_property(field, @relay_data_path_summary, _contract)
+       when field in [
+              "route_ids_by_custody_status",
+              "route_ids_by_latency_status",
+              "route_ids_by_risk_status",
+              "route_ids_by_ground_station_id"
+            ] do
+    stable_id_array_map_schema()
+  end
+
   defp json_schema_property("rows", @contact_allocation_report, _contract) do
     %{
       "type" => "array",
@@ -16507,6 +16627,70 @@ defmodule OrbitalDynamics.Schema do
     |> maybe_add_stable_id_pattern(field)
   end
 
+  defp relay_data_path_row_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => [
+        "route_id",
+        "source_spacecraft_id",
+        "relay_chain_spacecraft_ids",
+        "relay_hop_count",
+        "ground_station_id",
+        "ground_downlink_contact_id",
+        "custody_status",
+        "latency_status",
+        "risk_status",
+        "risk_reasons",
+        "product_ids",
+        "collection_ids"
+      ],
+      "properties" => %{
+        "route_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "source_spacecraft_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "relay_chain_spacecraft_ids" => stable_id_array_schema(),
+        "relay_hop_count" => %{"type" => "integer", "minimum" => 0},
+        "ground_station_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "ground_downlink_contact_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "custody_status" => %{"type" => "string", "enum" => relay_custody_statuses()},
+        "latency_s" => %{"type" => "number"},
+        "latency_limit_s" => %{"type" => "number"},
+        "latency_status" => %{"type" => "string", "enum" => relay_latency_statuses()},
+        "risk_status" => %{"type" => "string", "enum" => relay_risk_statuses()},
+        "risk_reasons" => string_array_schema(),
+        "product_ids" => stable_id_array_schema(),
+        "collection_ids" => stable_id_array_schema()
+      }
+    }
+  end
+
+  defp relay_data_path_assumptions_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => [
+        "execution_boundary",
+        "crosslink_visibility_model",
+        "custody_acknowledgement_delivery",
+        "provider_reservation",
+        "operator_authority"
+      ],
+      "properties" => %{
+        "execution_boundary" => %{
+          "type" => "string",
+          "const" => "artifact_only_no_relay_scheduling_or_schedule_mutation"
+        },
+        "crosslink_visibility_model" => %{"type" => "string", "const" => "not_evaluated"},
+        "custody_acknowledgement_delivery" => %{
+          "type" => "string",
+          "const" => "not_performed"
+        },
+        "provider_reservation" => %{"type" => "string", "const" => "not_performed"},
+        "operator_authority" => %{"type" => "string", "const" => "not_granted_by_summary"}
+      }
+    }
+  end
+
   defp approval_policy_json_schema do
     %{
       "type" => "object",
@@ -18762,6 +18946,11 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Communications.LinkCapacity.capabilities()
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
+  end
+
+  defp relay_data_path_model_limits do
+    OrbitalDynamics.Communications.LinkCapacity.capabilities()
+    |> Map.fetch!(:relay_data_path_model_limits)
   end
 
   defp candidate_rejection_report_model_limits do
@@ -25233,6 +25422,12 @@ defmodule OrbitalDynamics.Schema do
     []
     |> require_fields("$", artifact, contract["required_fields"])
     |> validate_link_capacity_summary("$", artifact)
+  end
+
+  defp validate_contract(@relay_data_path_summary, contract, artifact) do
+    []
+    |> require_fields("$", artifact, contract["required_fields"])
+    |> validate_relay_data_path_summary("$", artifact)
   end
 
   defp validate_contract(@contact_contention_report, _contract, artifact) do
@@ -42355,6 +42550,319 @@ defmodule OrbitalDynamics.Schema do
       "must equal station_reservation_ids_by_ground_station_id values"
     )
   end
+
+  defp validate_relay_data_path_summary(issues, path, summary) do
+    issues
+    |> expect_equal(path, summary, "schema_contract", "relay_data_path_summary.v1")
+    |> expect_equal(path, summary, "schema_version", 1)
+    |> expect_equal(path, summary, "model", "artifact_only_relay_data_path_summary")
+    |> expect_type(path, summary, "source", :binary)
+    |> expect_non_negative_integer(path, summary, "route_count")
+    |> expect_non_negative_integer(path, summary, "relay_route_count")
+    |> expect_non_negative_integer(path, summary, "direct_downlink_route_count")
+    |> validate_relay_data_path_summary_field_types(path, summary)
+    |> expect_type(path, summary, "assumptions", :map)
+    |> validate_relay_data_path_summary_assumptions(path, summary)
+    |> expect_type(path, summary, "rows", :list)
+    |> validate_rows(
+      path <> ".rows",
+      Map.get(summary, "rows", []),
+      &validate_relay_data_path_row/3
+    )
+    |> validate_relay_data_path_summary_counts(path, summary)
+  end
+
+  defp validate_relay_data_path_summary_field_types(issues, path, summary) do
+    issues =
+      Enum.reduce(
+        ["custody_status_counts", "latency_status_counts", "risk_status_counts"],
+        issues,
+        fn field, acc ->
+          acc
+          |> expect_type(path, summary, field, :map)
+          |> validate_non_negative_integer_count_map(path <> ".#{field}", Map.get(summary, field))
+        end
+      )
+
+    issues =
+      Enum.reduce(
+        [
+          "route_ids",
+          "source_spacecraft_ids",
+          "relay_spacecraft_ids",
+          "ground_station_ids",
+          "ground_downlink_contact_ids"
+        ],
+        issues,
+        fn field, acc ->
+          acc
+          |> expect_type(path, summary, field, :list)
+          |> validate_stable_id_list(path <> ".#{field}", Map.get(summary, field))
+        end
+      )
+
+    issues =
+      Enum.reduce(
+        [
+          "route_ids_by_custody_status",
+          "route_ids_by_latency_status",
+          "route_ids_by_risk_status",
+          "route_ids_by_ground_station_id"
+        ],
+        issues,
+        fn field, acc ->
+          acc
+          |> expect_type(path, summary, field, :map)
+          |> validate_stable_id_array_map(path <> ".#{field}", Map.get(summary, field))
+        end
+      )
+
+    issues
+    |> expect_optional_number(path, summary, "maximum_latency_s")
+    |> expect_optional_number(path, summary, "maximum_latency_limit_s")
+    |> expect_type(path, summary, "model_limits", :list)
+    |> validate_string_list_items(path, summary, "model_limits")
+    |> validate_optional_exact_model_limits(
+      path,
+      summary,
+      relay_data_path_model_limits(),
+      "must match relay data-path capability model limits"
+    )
+  end
+
+  defp validate_relay_data_path_summary_assumptions(issues, path, summary) do
+    case Map.get(summary, "assumptions") do
+      %{} = assumptions ->
+        issues
+        |> expect_equal(
+          path <> ".assumptions",
+          assumptions,
+          "execution_boundary",
+          "artifact_only_no_relay_scheduling_or_schedule_mutation"
+        )
+        |> expect_equal(
+          path <> ".assumptions",
+          assumptions,
+          "crosslink_visibility_model",
+          "not_evaluated"
+        )
+        |> expect_equal(
+          path <> ".assumptions",
+          assumptions,
+          "custody_acknowledgement_delivery",
+          "not_performed"
+        )
+        |> expect_equal(
+          path <> ".assumptions",
+          assumptions,
+          "provider_reservation",
+          "not_performed"
+        )
+        |> expect_equal(
+          path <> ".assumptions",
+          assumptions,
+          "operator_authority",
+          "not_granted_by_summary"
+        )
+
+      _assumptions ->
+        issues
+    end
+  end
+
+  defp validate_relay_data_path_row(issues, path, row) do
+    issues
+    |> require_fields(path, row, [
+      "route_id",
+      "source_spacecraft_id",
+      "relay_chain_spacecraft_ids",
+      "relay_hop_count",
+      "ground_station_id",
+      "ground_downlink_contact_id",
+      "custody_status",
+      "latency_status",
+      "risk_status",
+      "risk_reasons",
+      "product_ids",
+      "collection_ids"
+    ])
+    |> validate_stable_ids(path, row, [
+      "route_id",
+      "source_spacecraft_id",
+      "ground_station_id",
+      "ground_downlink_contact_id"
+    ])
+    |> expect_non_negative_integer(path, row, "relay_hop_count")
+    |> expect_optional_number(path, row, "latency_s")
+    |> expect_optional_number(path, row, "latency_limit_s")
+    |> expect_one_of(path, row, "custody_status", relay_custody_statuses())
+    |> expect_one_of(path, row, "latency_status", relay_latency_statuses())
+    |> expect_one_of(path, row, "risk_status", relay_risk_statuses())
+    |> expect_type(path, row, "relay_chain_spacecraft_ids", :list)
+    |> validate_stable_id_list(
+      path <> ".relay_chain_spacecraft_ids",
+      Map.get(row, "relay_chain_spacecraft_ids")
+    )
+    |> expect_type(path, row, "risk_reasons", :list)
+    |> validate_string_list_items(path, row, "risk_reasons")
+    |> expect_type(path, row, "product_ids", :list)
+    |> validate_stable_id_list(path <> ".product_ids", Map.get(row, "product_ids"))
+    |> expect_type(path, row, "collection_ids", :list)
+    |> validate_stable_id_list(path <> ".collection_ids", Map.get(row, "collection_ids"))
+    |> expect_field_equals(
+      path,
+      row,
+      "relay_hop_count",
+      list_count(row, "relay_chain_spacecraft_ids"),
+      "must equal relay_chain_spacecraft_ids count"
+    )
+  end
+
+  defp validate_relay_data_path_summary_counts(issues, path, summary) do
+    rows =
+      summary
+      |> Map.get("rows", [])
+      |> Enum.filter(&is_map/1)
+
+    issues
+    |> expect_field_equals(path, summary, "route_count", length(rows))
+    |> expect_field_equals(
+      path,
+      summary,
+      "relay_route_count",
+      Enum.count(rows, &(Map.get(&1, "relay_hop_count", 0) > 0)),
+      "must equal rows with relay_hop_count greater than zero"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "direct_downlink_route_count",
+      Enum.count(rows, &(Map.get(&1, "relay_hop_count", 0) == 0)),
+      "must equal rows with relay_hop_count equal to zero"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "custody_status_counts",
+      frequency_map(rows, "custody_status"),
+      "must equal row-derived custody_status_counts"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "latency_status_counts",
+      frequency_map(rows, "latency_status"),
+      "must equal row-derived latency_status_counts"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "risk_status_counts",
+      frequency_map(rows, "risk_status"),
+      "must equal row-derived risk_status_counts"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "route_ids",
+      relay_data_path_row_stable_ids(rows, "route_id"),
+      "must equal row-derived route_ids"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "source_spacecraft_ids",
+      relay_data_path_row_stable_ids(rows, "source_spacecraft_id"),
+      "must equal row-derived source_spacecraft_ids"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "relay_spacecraft_ids",
+      relay_data_path_row_stable_ids(rows, "relay_chain_spacecraft_ids"),
+      "must equal row-derived relay_spacecraft_ids"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "ground_station_ids",
+      relay_data_path_row_stable_ids(rows, "ground_station_id"),
+      "must equal row-derived ground_station_ids"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "ground_downlink_contact_ids",
+      relay_data_path_row_stable_ids(rows, "ground_downlink_contact_id"),
+      "must equal row-derived ground_downlink_contact_ids"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "route_ids_by_custody_status",
+      relay_data_path_route_ids_by_field(rows, "custody_status"),
+      "must equal row-derived route_ids_by_custody_status"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "route_ids_by_latency_status",
+      relay_data_path_route_ids_by_field(rows, "latency_status"),
+      "must equal row-derived route_ids_by_latency_status"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "route_ids_by_risk_status",
+      relay_data_path_route_ids_by_field(rows, "risk_status"),
+      "must equal row-derived route_ids_by_risk_status"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "route_ids_by_ground_station_id",
+      relay_data_path_route_ids_by_field(rows, "ground_station_id"),
+      "must equal row-derived route_ids_by_ground_station_id"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "maximum_latency_s",
+      relay_data_path_maximum_number(rows, "latency_s"),
+      "must equal maximum row latency_s"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "maximum_latency_limit_s",
+      relay_data_path_maximum_number(rows, "latency_limit_s"),
+      "must equal maximum row latency_limit_s"
+    )
+  end
+
+  defp relay_data_path_row_stable_ids(rows, field) do
+    rows
+    |> Enum.flat_map(fn row -> row |> Map.get(field, []) |> List.wrap() end)
+    |> sorted_unique_binary_values()
+  end
+
+  defp relay_data_path_route_ids_by_field(rows, field) do
+    rows
+    |> Enum.group_by(&Map.get(&1, field), &Map.get(&1, "route_id"))
+    |> Enum.reject(fn {value, route_ids} -> is_nil(value) or route_ids == [] end)
+    |> Map.new(fn {value, route_ids} -> {value, sorted_unique_binary_values(route_ids)} end)
+  end
+
+  defp relay_data_path_maximum_number(rows, field) do
+    rows
+    |> Enum.map(&Map.get(&1, field))
+    |> Enum.filter(&is_number/1)
+    |> Enum.max(fn -> nil end)
+  end
+
+  defp relay_custody_statuses, do: ~w(confirmed pending missing_ack failed unknown)
+  defp relay_latency_statuses, do: ~w(within_limit exceeds_limit not_evaluated unknown)
+  defp relay_risk_statuses, do: ~w(nominal review high unknown)
 
   defp sorted_stable_id_array_map_values(values) when is_map(values) do
     values
