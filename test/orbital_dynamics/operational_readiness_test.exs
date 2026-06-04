@@ -795,6 +795,96 @@ defmodule OrbitalDynamics.OperationalReadinessTest do
            } = blocked_report
   end
 
+  test "quality gate import-readiness summaries route review and blocked import rows" do
+    review_report = OperationalReadiness.report(review_required_manifest())
+    review_quality_gate_report = OperationalReadiness.quality_gate_report(review_report)
+
+    assert %{
+             "id" => review_quality_gate_row_id,
+             "gate_id" => "cadence_import",
+             "status" => "review_required",
+             "classification" => "review_only",
+             "manifest_review_required_count" => 1,
+             "import_status_counts" => %{"review_required_before_import" => 1},
+             "cadence_import_status_counts" => %{"present" => 1}
+           } = Enum.find(review_quality_gate_report["rows"], &(&1["gate_id"] == "cadence_import"))
+
+    review_summary =
+      OperationalReadiness.quality_gate_import_readiness_summary(review_quality_gate_report)
+
+    assert %{
+             "import_readiness_row_count" => 1,
+             "ready_for_import_count" => 0,
+             "manifest_review_required_count" => 1,
+             "blocked_import_count" => 0,
+             "missing_import_count" => 0,
+             "invalid_cadence_import_count" => 0,
+             "import_status_counts" => %{"review_required_before_import" => 1},
+             "cadence_import_status_counts" => %{"present" => 1},
+             "freshness_review_required" => false,
+             "import_preparation_required" => true,
+             "import_blocked" => false,
+             "quality_gate_row_ids_by_status" => %{
+               "review_required" => [^review_quality_gate_row_id]
+             },
+             "review_required_quality_gate_row_ids" => [^review_quality_gate_row_id],
+             "blocked_quality_gate_row_ids" => [],
+             "ready_quality_gate_row_ids" => [],
+             "analysis_only_quality_gate_row_ids" => [],
+             "stale_or_unknown_freshness_quality_gate_row_ids" => [],
+             "import_preparation_quality_gate_row_ids" => [^review_quality_gate_row_id],
+             "blocked_import_quality_gate_row_ids" => []
+           } = review_summary
+
+    assert {:ok, %{"schema_contract" => "operational_quality_gate_import_readiness_summary.v1"}} =
+             Schema.validate_artifact(review_summary)
+
+    blocked_report = OperationalReadiness.report(blocked_manifest())
+    blocked_quality_gate_report = OperationalReadiness.quality_gate_report(blocked_report)
+
+    assert %{
+             "id" => blocked_quality_gate_row_id,
+             "gate_id" => "cadence_import",
+             "status" => "blocked",
+             "classification" => "blocked",
+             "blocked_import_count" => 1,
+             "invalid_cadence_import_count" => 1,
+             "import_status_counts" => %{"blocked_missing_cadence_import" => 1},
+             "cadence_import_status_counts" => %{"invalid" => 1}
+           } =
+             Enum.find(blocked_quality_gate_report["rows"], &(&1["gate_id"] == "cadence_import"))
+
+    blocked_summary =
+      OperationalReadiness.quality_gate_import_readiness_summary(blocked_quality_gate_report)
+
+    assert %{
+             "import_readiness_row_count" => 1,
+             "ready_for_import_count" => 0,
+             "manifest_review_required_count" => 0,
+             "blocked_import_count" => 1,
+             "missing_import_count" => 0,
+             "invalid_cadence_import_count" => 1,
+             "import_status_counts" => %{"blocked_missing_cadence_import" => 1},
+             "cadence_import_status_counts" => %{"invalid" => 1},
+             "freshness_review_required" => false,
+             "import_preparation_required" => false,
+             "import_blocked" => true,
+             "quality_gate_row_ids_by_status" => %{
+               "blocked" => [^blocked_quality_gate_row_id]
+             },
+             "review_required_quality_gate_row_ids" => [],
+             "blocked_quality_gate_row_ids" => [^blocked_quality_gate_row_id],
+             "ready_quality_gate_row_ids" => [],
+             "analysis_only_quality_gate_row_ids" => [],
+             "stale_or_unknown_freshness_quality_gate_row_ids" => [],
+             "import_preparation_quality_gate_row_ids" => [],
+             "blocked_import_quality_gate_row_ids" => [^blocked_quality_gate_row_id]
+           } = blocked_summary
+
+    assert {:ok, %{"schema_contract" => "operational_quality_gate_import_readiness_summary.v1"}} =
+             Schema.validate_artifact(blocked_summary)
+  end
+
   test "not-for-execution inputs stay analysis only even with ready import rows" do
     report = OperationalReadiness.report(ready_manifest(), not_for_execution: true)
 
