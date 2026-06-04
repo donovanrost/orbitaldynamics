@@ -1559,6 +1559,12 @@ top-level rollups for compact consumers that do not inspect the nested
 `source_reports` block. The helper does not evaluate preconditions, select
 candidates, approve imports, reserve resources, execute commands, write to
 Cadence, or regenerate candidates.
+When the branch carries a non-empty
+`candidate_source.candidate_refresh_request_source_report_summary.source_reports.timeline_activity_precondition_summary`
+family, the replay helper labels its output source and replay scope as
+candidate-source summary metadata, treats partial non-empty branch families as
+authoritative, and falls back to provenance labels only when that branch family
+is absent or empty.
 The status-only and approval-only handoffs are also available as
 contract-scoped replay summaries through
 `CandidateRefresh.timeline_activity_status_state_replay_summary/1`,

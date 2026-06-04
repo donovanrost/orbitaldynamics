@@ -10006,15 +10006,38 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local timeline activity-precondition replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not evaluate preconditions, mutate timelines, select candidates, approve
-  imports, execute commands, reserve resources, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not evaluate preconditions, mutate
+  timelines, select candidates, approve imports, execute commands, reserve
+  resources, or write to Cadence.
   """
   def timeline_activity_precondition_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
+    branch_precondition_summary =
+      source_report_summary_branch_family(
+        refresh_or_artifact,
+        "timeline_activity_precondition_summary"
+      )
+
     precondition_summary =
-      get_in(source_summary, ["source_reports", "timeline_activity_precondition_summary"]) || %{}
+      branch_precondition_summary ||
+        get_in(source_summary, ["source_reports", "timeline_activity_precondition_summary"]) ||
+        %{}
+
+    {summary_source, replay_scope} =
+      if branch_precondition_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_activity_precondition_summary",
+          "timeline_activity_precondition_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.timeline_activity_precondition_summary",
+          "timeline_activity_precondition_summary_source_report_provenance_only"
+        }
+      end
 
     row_count = summary_integer(precondition_summary, "row_count")
 
@@ -10084,8 +10107,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_timeline_activity_precondition_replay_summary",
-      "source" =>
-        "candidate_refresh.source_report_provenance.timeline_activity_precondition_summary",
+      "source" => summary_source,
       "contract" =>
         source_report_summary_contract(
           precondition_summary,
@@ -10126,7 +10148,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "branch_local_activity_precondition_routing_pressure" => routing_pressure,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "timeline_activity_precondition_summary_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_timeline_activity_precondition_replay_summary",
         "timeline_mutation" => "not_performed_by_summary",
         "activity_precondition_evaluation" => "not_performed_by_summary",
