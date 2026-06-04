@@ -439,6 +439,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :source_report_freshness_status_count_maps,
         :source_report_refresh_budget_count_maps,
         :source_report_schema_validation_count_maps,
+        :source_report_quality_gate_import_readiness_maps,
         :source_report_quality_gate_row_derived_counts,
         :source_report_operational_readiness_branch_replay_summary,
         :source_report_quality_gate_branch_replay_summary,

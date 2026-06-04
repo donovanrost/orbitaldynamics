@@ -371,6 +371,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert :source_report_schema_validation_count_maps in source_report_summary_semantics
 
+    assert :source_report_quality_gate_import_readiness_maps in source_report_summary_semantics
+
     assert :source_report_quality_gate_row_derived_counts in source_report_summary_semantics
 
     assert :source_report_operational_readiness_branch_replay_summary in source_report_summary_semantics
