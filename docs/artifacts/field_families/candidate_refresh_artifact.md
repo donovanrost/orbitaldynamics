@@ -707,6 +707,10 @@ refreshes preserve contact-contention conflict/review pressure through the
 branch provenance boundary. Invalid contact input IDs count as branch-local
 invalid-input pressure even when aggregate invalid-input counters are absent or
 zero.
+When the branch `contact_contention_report` source-report family is non-empty,
+the helper labels its output source and replay scope as candidate-source
+summary metadata, treats partial non-empty branch families as authoritative,
+and falls back to provenance labels for absent or empty branch families.
 Branch-generated refresh requests also preserve direct mission-state and
 result-artifact-wrapped raw `source_contact_contention_report` /
 `contact_contention_report` inputs, keeping wrapper-qualified request paths,
