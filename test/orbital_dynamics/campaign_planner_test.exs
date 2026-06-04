@@ -30171,6 +30171,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            } = candidate_source["candidate_refresh_request_source_report_summary"]
 
     assert %{
+             "source" =>
+               "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_feedback_report",
              "contract" => "timeline_feedback_report.v1",
              "source_report_count" => 3,
              "source_report_row_count" => 3,
@@ -30190,6 +30192,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "branch_local_match_review_pressure" => true,
              "branch_local_import_review_pressure" => true,
              "assumptions" => %{
+               "replay_scope" => "timeline_feedback_candidate_source_report_summary_only",
                "operational_feedback_application" => "not_performed_by_summary",
                "timeline_mutation" => "not_performed_by_summary",
                "candidate_generation" => "not_performed_by_summary"
@@ -56750,6 +56753,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       CandidateRefresh.timeline_feedback_replay_summary(candidate_source)
 
     assert %{
+             "source" =>
+               "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_feedback_report",
              "contract" => "timeline_feedback_report.v1",
              "source_report_count" => 1,
              "source_report_row_count" => 1,
@@ -56765,7 +56770,10 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "branch_local_timeline_feedback_pressure" => true,
              "branch_local_feedback_input_pressure" => true,
              "branch_local_match_review_pressure" => true,
-             "branch_local_station_reservation_pressure" => false
+             "branch_local_station_reservation_pressure" => false,
+             "assumptions" => %{
+               "replay_scope" => "timeline_feedback_candidate_source_report_summary_only"
+             }
            } = timeline_feedback_replay_summary
 
     assert "downlink_demand_mb" in timeline_feedback_input_keys

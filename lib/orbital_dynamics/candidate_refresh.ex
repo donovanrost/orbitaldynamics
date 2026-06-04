@@ -11407,15 +11407,34 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local timeline-feedback replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, apply operational feedback, mutate
-  timelines, select candidates, approve imports, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, apply
+  operational feedback, mutate timelines, select candidates, approve imports,
+  or write to Cadence.
   """
   def timeline_feedback_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
+    branch_feedback_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "timeline_feedback_report")
+
     feedback_summary =
-      get_in(source_summary, ["source_reports", "timeline_feedback_report"]) || %{}
+      branch_feedback_summary ||
+        get_in(source_summary, ["source_reports", "timeline_feedback_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_feedback_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_feedback_report",
+          "timeline_feedback_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.timeline_feedback_report",
+          "timeline_feedback_source_report_provenance_only"
+        }
+      end
 
     input_keys = Map.get(feedback_summary, "input_keys", [])
     status_counts = Map.get(feedback_summary, "status_counts", %{})
@@ -11434,7 +11453,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_timeline_feedback_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.timeline_feedback_report",
+      "source" => summary_source,
       "contract" =>
         source_report_summary_contract(feedback_summary, "timeline_feedback_report.v1"),
       "source_report_count" => summary_integer(feedback_summary, "count"),
@@ -11463,7 +11482,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         reservation_count + reservation_expiration_count > 0,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "timeline_feedback_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_timeline_feedback_replay_summary",
         "operational_feedback_application" => "not_performed_by_summary",
         "timeline_mutation" => "not_performed_by_summary",
