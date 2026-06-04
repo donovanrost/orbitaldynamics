@@ -5,9 +5,10 @@ Timeline-activity-precondition replay reads and labels branch
 `candidate_source.candidate_refresh_request_source_report_summary` metadata.
 
 Status:
-Implementation, focused verification, and read-only review are complete; commit
-and push are pending. `CandidateRefresh.timeline_activity_precondition_replay_summary/1`
-now checks a non-empty branch `timeline_activity_precondition_summary`
+Implementation, focused verification, read-only review, product commit, and
+push are complete for this slice. This status handoff records the published
+state. `CandidateRefresh.timeline_activity_precondition_replay_summary/1` now
+checks a non-empty branch `timeline_activity_precondition_summary`
 source-report family before falling back to provenance. Branch-sourced summaries
 preserve source-report counts, row counts, paths, source-summary model/schema
 counts, precondition status/count/type maps, invalid-input counts and reasons,
@@ -38,7 +39,8 @@ Docs/artifacts changed:
   schema exports or checked-in study artifacts changed in this slice.
 
 Last product commit:
-- Pending.
+- `9f60838aca4c698a74b241b2460fbe5513358714` (`Label activity precondition
+  branch replay metadata`) pushed to `origin/main`.
 
 Next candidate:
 After publish, re-read `docs/autonomous_work_guide.md`, this ledger, and the
