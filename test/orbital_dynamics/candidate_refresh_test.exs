@@ -21727,6 +21727,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_family_count" => 1,
              "source_report_count" => 2,
              "source_report_row_count" => 2,
+             "source_report_freshness_contract" => "freshness_report.v1",
+             "source_report_freshness_count" => 2,
+             "source_report_freshness_row_count" => 2,
+             "source_report_freshness_paths" => [
+               "source_freshness_report[0]",
+               "source_freshness_report[1]"
+             ],
              "source_report_freshness_status_counts" => %{
                "stale" => 1,
                "unknown" => 1
@@ -21824,6 +21831,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 2,
+             "source_report_freshness_contract" => "freshness_report.v1",
+             "source_report_freshness_count" => 2,
+             "source_report_freshness_row_count" => 2,
+             "source_report_freshness_paths" => [
+               "source_freshness_report[0]",
+               "source_freshness_report[1]"
+             ],
              "source_report_freshness_status_counts" => %{
                "stale" => 1,
                "unknown" => 1
@@ -21854,8 +21868,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "provenance" => %{"source_reports" => %{}}
     }
 
+    source_summary = CandidateRefresh.source_report_summary(artifact)
     summary = CandidateRefresh.freshness_replay_summary(artifact)
 
+    refute Map.has_key?(source_summary, "source_report_freshness_contract")
+    refute Map.has_key?(source_summary, "source_report_freshness_count")
+    refute Map.has_key?(source_summary, "source_report_freshness_row_count")
+    refute Map.has_key?(source_summary, "source_report_freshness_paths")
     assert summary["source_report_count"] == 0
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_paths"] == []

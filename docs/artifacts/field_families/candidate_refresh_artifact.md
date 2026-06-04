@@ -2075,8 +2075,9 @@ same review-row family with wrapper-qualified
 `CandidateRefresh.freshness_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_freshness_replay_summary/1` expose the
 freshness slice as a branch-local replay summary. It preserves source freshness
-paths, stale/unknown status maps, stale/unknown reason lists/count maps,
-trust-boundary evidence, and branch-local stale/unknown pressure booleans
+contract, count, row-count, source paths, stale/unknown status maps,
+stale/unknown reason lists/count maps, trust-boundary evidence, and branch-local
+stale/unknown pressure booleans
 without mutating refresh state, approving imports, writing to Cadence, or
 regenerating candidates. Stale/unknown pressure is true for reason lists and
 reason-count maps even when the aggregate reason counters are absent or zero.
@@ -2097,7 +2098,9 @@ The same operator-review handoff accepts freshness reports inside
 candidate-refresh `source_result_artifact` / `result_artifact` wrappers,
 preserving wrapper-qualified source paths and list indexes.
 When freshness provenance is absent, the replay summary omits the contract
-field rather than defaulting to `freshness_report.v1`.
+field rather than defaulting to `freshness_report.v1`, and the aggregate
+source-report summary omits the top-level freshness identity rollups instead of
+emitting empty contract/count/row-count/path fields.
 Capability metadata advertises `freshness_report` as an accepted CandidateRefresh
 input alongside freshness replay provenance.
 

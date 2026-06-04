@@ -1,16 +1,15 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh quality-gate source-report identity rollups.
+CandidateRefresh freshness source-report identity rollups.
 
 Status:
 Implemented with focused verification passing locally.
 `CandidateRefresh.source_report_summary/1` now
-flattens `source_report_quality_gate_contract`,
-`source_report_quality_gate_count`, `source_report_quality_gate_row_count`, and
-`source_report_quality_gate_paths` alongside the existing quality-gate
-readiness, import, status, gate, freshness, schema-validation,
-adapter-boundary, resource-availability, and import-readiness aggregate fields.
+flattens `source_report_freshness_contract`,
+`source_report_freshness_count`, `source_report_freshness_row_count`, and
+`source_report_freshness_paths` alongside the existing freshness status and
+stale/unknown reason aggregate fields.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -20,25 +19,21 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:23210`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:23383`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:23405`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:21705`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:21865`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
-- `git diff --cached --check`
 
 Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`1d29ed9` (`Flatten quality gate replay identity`).
+`a3746cb` (`Record quality gate slice commit`).
 
 Next candidate:
-Continue guide-backed CandidateRefresh depth from queue item 4, looking for the
-next source-report family where replay helpers exist but aggregate source-report
-identity, routing, or capability advertisement is incomplete. If live inspection
-shows queue item 4 saturated, move to queue item 5 validation/compatibility
-fixtures.
+After verification and publish, continue guide-backed CandidateRefresh depth
+from queue item 4 with the next source-report family whose replay helper exists
+but aggregate identity, routing, or capability advertisement is incomplete.
 
 Blocked:
 No.

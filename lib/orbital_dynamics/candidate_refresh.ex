@@ -3635,6 +3635,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "freshness_report",
           "status_counts"
         ),
+      "source_report_freshness_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "freshness_report",
+          "contract"
+        ),
+      "source_report_freshness_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "freshness_report",
+          "count"
+        ),
+      "source_report_freshness_row_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "freshness_report",
+          "row_count"
+        ),
+      "source_report_freshness_paths" =>
+        source_report_summary_family_field(
+          source_reports,
+          "freshness_report",
+          "paths"
+        ),
       "source_report_freshness_stale_reason_count" =>
         source_report_summary_family_count(
           source_reports,
