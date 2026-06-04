@@ -47,7 +47,9 @@ and Cadence import schemas, and the residual full-suite failures remain outside
 this slice.
 
 Last commit:
-Pending publish for current slice.
+Slice code/docs/tests committed as `94145d3`
+(`Gate invalid maneuver review source metadata`); this ledger line was recorded
+in a follow-up handoff commit.
 
 Next candidate:
 Re-read the guide/ledger/live worktree and choose the next guide-backed slice.
