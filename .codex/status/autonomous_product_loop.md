@@ -7,7 +7,8 @@ metadata.
 
 Status:
 Implementation, focused verification, and read-only review are complete for
-this slice. Publish is pending. The shared
+this slice. Product commit and push are complete. This status handoff records
+the published state. The shared
 `CandidateRefresh.timeline_activity_status_state_replay_summary/1` and
 `CandidateRefresh.timeline_activity_approval_state_replay_summary/1` path now
 checks a non-empty branch `timeline_activity_state` source-report family that
@@ -50,14 +51,14 @@ Docs/artifacts changed:
   in this slice.
 
 Last product commit:
-- Pending.
+- `d59196ade12049b9362c926706c350b1d44c6c53` (`Label status approval branch
+  replay metadata`) pushed to `origin/main`.
 
 Next candidate:
-After this slice is reviewed and published, re-read
-`docs/autonomous_work_guide.md`, this ledger, and the live worktree before
-choosing another gap. Continue auditing one narrow typed timeline/activity
-replay helper at a time for branch `candidate_source` summary metadata before
-moving to broader resource, readiness, or validation work.
+After publish, re-read `docs/autonomous_work_guide.md`, this ledger, and the
+live worktree before choosing another gap. Continue auditing one narrow typed
+timeline/activity replay helper at a time for branch `candidate_source` summary
+metadata before moving to broader resource, readiness, or validation work.
 
 Blocked:
 No.
