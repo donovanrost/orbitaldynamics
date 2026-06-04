@@ -679,6 +679,9 @@ First nested coverage exists for:
 - Contact-contention duplicate candidates are canonicalized by
   source-window/provider identity so reversing source contact order does not
   change public group IDs or review evidence.
+- Relay data-path summaries advertise a capability-level generated route-ID
+  scope: explicit route IDs take precedence, while fallback IDs are stable under
+  route ordering changes and change when semantic route evidence changes.
 - Broader cross-version invariants beyond the current public-ID policy scopes are
   still partial.
 

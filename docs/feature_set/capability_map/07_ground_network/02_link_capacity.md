@@ -74,6 +74,13 @@ and latency maxima. It does not model crosslink visibility, schedule relay
 contacts, deliver custody acknowledgements, reserve provider contacts, or mutate
 the mission schedule.
 
+Generated relay route IDs are stable under source route ordering changes:
+explicit `route_id`, `id`, or `data_path_id` values win when present, while
+generated IDs use source spacecraft, relay chain, ground station, downlink
+contact, latency/limit, product IDs, and collection IDs as the semantic
+fingerprint. `LinkCapacity.capabilities/0` publishes that generated-ID scope for
+adapter compatibility checks.
+
 ## Validation and review gating
 
 Link-capacity reports preserve downlink-like candidate or selected rows that

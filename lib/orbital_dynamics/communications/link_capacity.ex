@@ -245,8 +245,30 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
         :link_capacity_row_count_list_consistency,
         :artifact_only_relay_data_path_summary,
         :relay_data_path_row_derived_counts,
-        :relay_data_path_custody_latency_risk_routing
+        :relay_data_path_custody_latency_risk_routing,
+        :relay_data_path_generated_route_id_invariant
       ],
+      relay_data_path_generated_id_scope: %{
+        scope: "relay_data_path_summary.v1.rows.generated_route_id",
+        generated_id_field: "route_id",
+        explicit_id_fields: ["route_id", "id", "data_path_id"],
+        readable_prefix_fields: ["source_spacecraft_id", "ground_downlink_contact_id"],
+        fingerprint_fields: [
+          "source_spacecraft_id",
+          "relay_chain_spacecraft_ids",
+          "ground_station_id",
+          "ground_downlink_contact_id",
+          "latency_s",
+          "latency_limit_s",
+          "product_ids",
+          "collection_ids"
+        ],
+        semantic_invariants: [
+          "source_record_order_must_not_change_generated_route_id",
+          "semantic_route_evidence_changes_must_change_generated_route_id",
+          "explicit_route_id_takes_precedence_over_generated_route_id"
+        ]
+      },
       relay_data_path_statuses: %{
         custody: @relay_custody_statuses,
         latency: @relay_latency_statuses,

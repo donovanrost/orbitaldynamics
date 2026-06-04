@@ -33,6 +33,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
              provider_direction_aliases: provider_direction_aliases,
              provider_result_map_value_keys: provider_result_map_value_keys,
              contact_stable_identity_fields: contact_stable_identity_fields,
+             relay_data_path_generated_id_scope: relay_data_path_generated_id_scope,
              relay_data_path_statuses: relay_data_path_statuses,
              relay_data_path_model_limits: relay_data_path_model_limits,
              public_facades: public_facades,
@@ -261,6 +262,29 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
     assert :artifact_only_relay_data_path_summary in row_semantics
     assert :relay_data_path_row_derived_counts in row_semantics
     assert :relay_data_path_custody_latency_risk_routing in row_semantics
+    assert :relay_data_path_generated_route_id_invariant in row_semantics
+
+    assert relay_data_path_generated_id_scope == %{
+             scope: "relay_data_path_summary.v1.rows.generated_route_id",
+             generated_id_field: "route_id",
+             explicit_id_fields: ["route_id", "id", "data_path_id"],
+             readable_prefix_fields: ["source_spacecraft_id", "ground_downlink_contact_id"],
+             fingerprint_fields: [
+               "source_spacecraft_id",
+               "relay_chain_spacecraft_ids",
+               "ground_station_id",
+               "ground_downlink_contact_id",
+               "latency_s",
+               "latency_limit_s",
+               "product_ids",
+               "collection_ids"
+             ],
+             semantic_invariants: [
+               "source_record_order_must_not_change_generated_route_id",
+               "semantic_route_evidence_changes_must_change_generated_route_id",
+               "explicit_route_id_takes_precedence_over_generated_route_id"
+             ]
+           }
 
     assert relay_data_path_statuses == %{
              custody: ["confirmed", "pending", "missing_ack", "failed", "unknown"],
@@ -338,6 +362,24 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
     assert reordered_summary["rows"]
            |> Enum.find(&(&1["source_spacecraft_id"] == "sat_a"))
            |> Map.fetch!("route_id") == relay_route_id
+
+    changed_semantic_summary =
+      routes
+      |> update_in([Access.at(0), :latency_limit_s], fn _limit -> 360 end)
+      |> LinkCapacity.relay_data_path_summary(source: "relay_ops")
+
+    refute changed_semantic_summary["rows"]
+           |> Enum.find(&(&1["source_spacecraft_id"] == "sat_a"))
+           |> Map.fetch!("route_id") == relay_route_id
+
+    explicit_id_summary =
+      routes
+      |> update_in([Access.at(1), :delivery_latency_s], fn _latency -> 900 end)
+      |> LinkCapacity.relay_data_path_summary(source: "relay_ops")
+
+    assert explicit_id_summary["rows"]
+           |> Enum.find(&(&1["source_spacecraft_id"] == "sat_b"))
+           |> Map.fetch!("route_id") == "route_direct"
 
     assert %{
              "schema_contract" => "relay_data_path_summary.v1",
