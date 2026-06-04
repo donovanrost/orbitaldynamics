@@ -716,11 +716,12 @@ rollups unless both identity counts are present and non-nil.
 `CandidateRefresh.contact_contention_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_contact_contention_replay_summary/1` expose
 the contact-contention slice as a branch-local replay summary. It preserves
-source contention paths, conflict-group and invalid-contact-input counts,
-invalid contact input IDs, resource-scope maps, ground-station/contact routing
-maps, direction counts/contact-ID maps, required-action maps, trust-boundary
-evidence, and branch-local contention/conflict/invalid-input/review pressure
-booleans without mutating contact allocation, selecting
+source report contract, count, row-count, paths, conflict-group and
+invalid-contact-input counts, invalid contact input IDs, resource-scope maps,
+ground-station/contact routing maps, direction counts/contact-ID maps,
+required-action maps, trust-boundary evidence, and branch-local
+contention/conflict/invalid-input/review pressure booleans without mutating
+contact allocation, selecting
 candidates, approving imports, writing to Cadence, or regenerating candidates.
 The replay helper can inspect V3 branch `candidate_source` metadata that carries
 `candidate_refresh_request_source_report_summary`, so strategy-derived branch
@@ -732,6 +733,13 @@ When the branch `contact_contention_report` source-report family is non-empty,
 the helper labels its output source and replay scope as candidate-source
 summary metadata, treats partial non-empty branch families as authoritative,
 and falls back to provenance labels for absent or empty branch families.
+When contact-contention provenance is absent, the replay summary omits the
+contract field rather than defaulting to `contact_contention_report.v1`, and the
+aggregate source-report summary omits the top-level contact-contention identity
+rollups instead of emitting empty count, row-count, or path fields. Partial
+placeholder provenance may expose an explicit contract, but does not synthesize
+count, row-count, or path identity rollups unless both identity counts are
+present and non-nil.
 Branch-generated refresh requests also preserve direct mission-state and
 result-artifact-wrapped raw `source_contact_contention_report` /
 `contact_contention_report` inputs, keeping wrapper-qualified request paths,

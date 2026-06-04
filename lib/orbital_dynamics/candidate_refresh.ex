@@ -1265,6 +1265,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "contact_intent",
           "policy_classification_counts"
         ),
+      "source_report_contact_contention_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "contact_contention_report",
+          "contract"
+        ),
+      "source_report_contact_contention_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "contact_contention_report",
+          "count"
+        ),
+      "source_report_contact_contention_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "contact_contention_report",
+          "row_count"
+        ),
+      "source_report_contact_contention_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "contact_contention_report",
+          "paths"
+        ),
       "source_report_contact_contention_conflict_group_count" =>
         source_report_summary_family_count(
           source_reports,
