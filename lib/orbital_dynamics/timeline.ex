@@ -35,6 +35,19 @@ defmodule OrbitalDynamics.Timeline do
                        ~w(draft planned approved delayed invalid executing) ++
                          @executed_statuses ++ @terminal_exception_statuses ++ @approval_statuses
                      )
+  @lifecycle_events ~w(
+    approve
+    reject
+    lock
+    start_execution
+    record_execution
+    record_completion
+    record_partial
+    record_failure
+    record_miss
+    delay
+    cancel
+  )
   @required_operator_actions ~w(
     monitor_activity
     none_locked_activity
@@ -928,6 +941,7 @@ defmodule OrbitalDynamics.Timeline do
         :approval_transition,
         :transition_activity_status,
         :transition_activity_approval_status,
+        :apply_lifecycle_event,
         :protection_decision,
         :transition_decision,
         :transition_application,
@@ -957,6 +971,8 @@ defmodule OrbitalDynamics.Timeline do
         :timeline_transition_activity_status!,
         :timeline_transition_activity_approval_status,
         :timeline_transition_activity_approval_status!,
+        :timeline_apply_lifecycle_event,
+        :timeline_apply_lifecycle_event!,
         :timeline_protection_decision,
         :timeline_integrity_report,
         :candidate_rejection_report,
@@ -4772,6 +4788,58 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   @doc """
+  Applies a normalized lifecycle event to one timeline activity row.
+
+  The helper is artifact state only: it uses `MissionPlan.Activity` lifecycle
+  event aliases to derive the replacement state, validates the resulting status
+  and approval transitions with timeline review semantics, and does not mutate
+  schedules, grant operator authority, or execute commands.
+  """
+  def apply_lifecycle_event(activity, event) when is_map(activity) do
+    source_activity = activity_to_map(activity)
+    replacement_activity = lifecycle_event_replacement_activity!(source_activity, event)
+    source_state = optional_activity_state_input(source_activity, 1)
+    replacement_state = optional_activity_state_input(replacement_activity, 2)
+    status_transition = activity_state_status_transition(source_state, replacement_state)
+    approval_transition = activity_state_approval_transition(source_state, replacement_state)
+
+    case lifecycle_event_review_transition(status_transition, approval_transition) do
+      nil ->
+        {:ok,
+         replacement_activity
+         |> put_transition_application_provenance(
+           "apply_lifecycle_event",
+           lifecycle_event_provenance_field(status_transition, approval_transition),
+           lifecycle_event_provenance_transition(status_transition, approval_transition)
+         )
+         |> normalize_activity()}
+
+      transition ->
+        {:error, transition}
+    end
+  end
+
+  def apply_lifecycle_event(_activity, _event),
+    do: raise(ArgumentError, "activity must be a map or MissionPlan.Activity")
+
+  @doc """
+  Applies a normalized lifecycle event to one timeline activity row.
+
+  Raises when the resulting status or approval transition would require
+  operator review.
+  """
+  def apply_lifecycle_event!(activity, event) do
+    case apply_lifecycle_event(activity, event) do
+      {:ok, activity} ->
+        activity
+
+      {:error, transition} ->
+        raise ArgumentError,
+              "unsafe timeline activity lifecycle event #{transition["field"]} transition #{transition["from"]} -> #{transition["to"]}: #{transition["operator_action_reason"]}"
+    end
+  end
+
+  @doc """
   Classifies the artifact-only transition decision for one proposed activity change.
 
   The helper reuses the same timeline-diff semantics as `diff_report/3` while
@@ -5706,6 +5774,64 @@ defmodule OrbitalDynamics.Timeline do
   defp transition_application_no_change_reason("approval_status"), do: "no_approval_status_change"
   defp transition_application_no_change_reason(_field), do: "no_status_change"
 
+  defp lifecycle_event_replacement_activity!(source_activity, event) do
+    case timeline_lifecycle_event!(event) do
+      "approve" ->
+        source_activity
+        |> Map.put("approval_status", "approved")
+        |> maybe_put_lifecycle_status_unless_preserved("approved")
+
+      "reject" ->
+        Map.put(source_activity, "approval_status", "rejected")
+
+      "lock" ->
+        source_activity
+        |> Map.put("approval_status", "locked")
+        |> Map.put("locked", true)
+        |> maybe_put_lifecycle_status_unless_preserved("locked")
+
+      "start_execution" ->
+        Map.put(source_activity, "status", "executing")
+
+      "record_execution" ->
+        Map.put(source_activity, "status", "executed")
+
+      "record_completion" ->
+        Map.put(source_activity, "status", "completed")
+
+      "record_partial" ->
+        Map.put(source_activity, "status", "partial")
+
+      "record_failure" ->
+        Map.put(source_activity, "status", "failed")
+
+      "record_miss" ->
+        Map.put(source_activity, "status", "missed")
+
+      "delay" ->
+        Map.put(source_activity, "status", "delayed")
+
+      "cancel" ->
+        Map.put(source_activity, "status", "canceled")
+    end
+  end
+
+  defp lifecycle_event_review_transition(status_transition, approval_transition) do
+    Enum.find([status_transition, approval_transition], &transition_requires_operator_review?/1)
+  end
+
+  defp lifecycle_event_provenance_field(status_transition, approval_transition) do
+    cond do
+      is_map(status_transition) -> "status"
+      is_map(approval_transition) -> "approval_status"
+      true -> "lifecycle_event"
+    end
+  end
+
+  defp lifecycle_event_provenance_transition(status_transition, approval_transition) do
+    status_transition || approval_transition
+  end
+
   defp maybe_preserve_transition_application_provenance(row, activity) do
     case Map.get(activity, "transition_application_provenance") do
       %{} = provenance -> Map.put(row, "transition_application_provenance", provenance)
@@ -6580,6 +6706,14 @@ defmodule OrbitalDynamics.Timeline do
           changed_fields
         )
 
+      %{"helper" => "apply_lifecycle_event"} = provenance ->
+        safe_lifecycle_event_transition_application_provenance?(
+          provenance,
+          status_transition,
+          approval_transition,
+          changed_fields
+        )
+
       _other ->
         false
     end
@@ -6593,14 +6727,7 @@ defmodule OrbitalDynamics.Timeline do
        )
        when is_map(transition) do
     changed_fields == [field] and
-      provenance["field"] == field and
-      provenance["transition_type"] == transition["transition_type"] and
-      provenance["from"] == transition["from"] and
-      provenance["to"] == transition["to"] and
-      provenance["transition_category"] == transition["transition_category"] and
-      provenance["operator_action_reason"] == transition["operator_action_reason"] and
-      provenance["requires_operator_review"] == false and
-      transition["requires_operator_review"] == false
+      safe_transition_application_provenance_values?(provenance, field, transition)
   end
 
   defp safe_transition_application_provenance_field?(
@@ -6610,6 +6737,64 @@ defmodule OrbitalDynamics.Timeline do
          _changed_fields
        ),
        do: false
+
+  defp safe_transition_application_provenance_values?(provenance, field, transition)
+       when is_map(transition) do
+    provenance["field"] == field and
+      provenance["transition_type"] == transition["transition_type"] and
+      provenance["from"] == transition["from"] and
+      provenance["to"] == transition["to"] and
+      provenance["transition_category"] == transition["transition_category"] and
+      provenance["operator_action_reason"] == transition["operator_action_reason"] and
+      provenance["requires_operator_review"] == false and
+      transition["requires_operator_review"] == false
+  end
+
+  defp safe_lifecycle_event_transition_application_provenance?(
+         provenance,
+         status_transition,
+         approval_transition,
+         changed_fields
+       ) do
+    not transition_requires_operator_review?(status_transition) and
+      not transition_requires_operator_review?(approval_transition) and
+      lifecycle_event_provenance_matches_transition?(
+        provenance,
+        status_transition,
+        approval_transition,
+        changed_fields
+      )
+  end
+
+  defp lifecycle_event_provenance_matches_transition?(
+         provenance,
+         %{} = status_transition,
+         _approval_transition,
+         changed_fields
+       ) do
+    changed_fields == ["status"] and
+      safe_transition_application_provenance_values?(provenance, "status", status_transition)
+  end
+
+  defp lifecycle_event_provenance_matches_transition?(
+         provenance,
+         _status_transition,
+         %{} = approval_transition,
+         changed_fields
+       ) do
+    changed_fields == ["approval_status"] and
+      safe_transition_application_provenance_values?(
+        provenance,
+        "approval_status",
+        approval_transition
+      )
+  end
+
+  defp lifecycle_event_provenance_matches_transition?(provenance, nil, nil, changed_fields) do
+    changed_fields == [] and
+      provenance["field"] == "lifecycle_event" and
+      provenance["requires_operator_review"] == false
+  end
 
   defp transition_application_provenance_from_activity(%{
          "transition_application_provenance" => %{} = provenance
@@ -7501,6 +7686,34 @@ defmodule OrbitalDynamics.Timeline do
   defp contact_direction_values do
     OrbitalDynamics.MissionPlan.Activity.capabilities().contact_directions
     |> Enum.map(&Atom.to_string/1)
+  end
+
+  defp timeline_lifecycle_event!(event) do
+    normalized = normalize_lifecycle_value(event)
+
+    cond do
+      aliased_event = Map.get(lifecycle_event_aliases(), normalized) ->
+        aliased_event
+
+      normalized in @lifecycle_events ->
+        normalized
+
+      true ->
+        raise ArgumentError, "lifecycle event must be one of #{inspect(@lifecycle_events)}"
+    end
+  end
+
+  defp lifecycle_event_aliases do
+    OrbitalDynamics.MissionPlan.Activity.capabilities().lifecycle_event_aliases
+    |> Map.new(fn {alias_value, event} -> {alias_value, Atom.to_string(event)} end)
+  end
+
+  defp maybe_put_lifecycle_status_unless_preserved(activity, status) do
+    if activity_status(activity) in (@executed_statuses ++ @terminal_exception_statuses) do
+      activity
+    else
+      Map.put(activity, "status", status)
+    end
   end
 
   defp activity_status(activity) do

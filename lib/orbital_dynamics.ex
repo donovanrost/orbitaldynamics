@@ -1536,6 +1536,22 @@ defmodule OrbitalDynamics do
   end
 
   @doc """
+  Applies a normalized lifecycle event to one timeline activity row.
+  """
+  def timeline_apply_lifecycle_event(activity, event) do
+    Timeline.apply_lifecycle_event(activity, event)
+  end
+
+  @doc """
+  Applies a normalized lifecycle event to one timeline activity row.
+
+  Raises when the resulting status or approval transition requires operator review.
+  """
+  def timeline_apply_lifecycle_event!(activity, event) do
+    Timeline.apply_lifecycle_event!(activity, event)
+  end
+
+  @doc """
   Classifies the artifact-only transition decision for one proposed activity change.
   """
   def timeline_transition_decision(source_activity, replacement_activity, opts \\ []) do

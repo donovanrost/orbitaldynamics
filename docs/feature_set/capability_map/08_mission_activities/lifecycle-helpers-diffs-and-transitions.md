@@ -43,6 +43,10 @@ status/approval transition helpers.
 - **Reusable context** includes normalized dependency and exclusivity stable-ID
   arrays, plus timing, target, station availability, and schedule-conflict
   context, plus top-level or metadata-supplied command/contact feedback evidence.
+- **Raw timeline lifecycle events** use the same provider lifecycle-event
+  aliases as typed mission-plan activities, then validate the resulting status
+  and approval transitions before returning normalized timeline rows with
+  transition provenance.
 - **Timeline precondition summaries** expose the same clear, review-required,
   and blocked activity-condition classification used by operational timeline
   rows, without building a report, reserving resources, mutating schedules, or

@@ -213,6 +213,7 @@ defmodule OrbitalDynamics.TimelineTest do
     assert :approval_transition in transition_helpers
     assert :transition_activity_status in transition_helpers
     assert :transition_activity_approval_status in transition_helpers
+    assert :apply_lifecycle_event in transition_helpers
     assert :protection_decision in transition_helpers
     assert :transition_decision in transition_helpers
     assert :transition_application in transition_helpers
@@ -240,6 +241,8 @@ defmodule OrbitalDynamics.TimelineTest do
     assert :timeline_transition_activity_status! in public_facades
     assert :timeline_transition_activity_approval_status in public_facades
     assert :timeline_transition_activity_approval_status! in public_facades
+    assert :timeline_apply_lifecycle_event in public_facades
+    assert :timeline_apply_lifecycle_event! in public_facades
     assert :timeline_protection_decision in public_facades
     assert :timeline_preservation_status in public_facades
     assert :timeline_integrity_report in public_facades
@@ -6368,6 +6371,64 @@ defmodule OrbitalDynamics.TimelineTest do
              "No Review Required"
            ) == no_review_required
 
+    assert {:ok,
+            %{
+              "activity_id" => "cmd_transition",
+              "status" => "completed",
+              "approval_status" => "pending",
+              "timeline_id" => "timeline:cmd_transition",
+              "activity_context" => %{
+                "status" => "completed",
+                "timeline_identity" => %{"timeline_id" => "timeline:cmd_transition"}
+              }
+            } = lifecycle_completed} =
+             Timeline.apply_lifecycle_event(activity, "record completion")
+
+    assert lifecycle_completed == Timeline.apply_lifecycle_event!(activity, "record completion")
+
+    assert %{
+             "helper" => "apply_lifecycle_event",
+             "field" => "status",
+             "transition_type" => "changed",
+             "from" => "executing",
+             "to" => "completed",
+             "requires_operator_review" => false
+           } = lifecycle_provenance = lifecycle_completed["transition_application_provenance"]
+
+    assert lifecycle_completed["activity_context"]["transition_application_provenance"] ==
+             lifecycle_provenance
+
+    assert OrbitalDynamics.timeline_apply_lifecycle_event(activity, "record completion") ==
+             {:ok, lifecycle_completed}
+
+    assert OrbitalDynamics.timeline_apply_lifecycle_event!(activity, "record completion") ==
+             lifecycle_completed
+
+    assert %{
+             "transition_decision" => "record",
+             "application_status" => "replacement_recorded",
+             "transition_application_provenance" => ^lifecycle_provenance,
+             "selected_activity" => %{
+               "activity_id" => "cmd_transition",
+               "status" => "completed",
+               "transition_application_provenance" => ^lifecycle_provenance
+             }
+           } = Timeline.transition_application(activity, lifecycle_completed)
+
+    forged_lifecycle_completed = Map.put(lifecycle_completed, "locked", true)
+    forged_application = Timeline.transition_application(activity, forged_lifecycle_completed)
+
+    refute forged_application["application_status"] == "replacement_recorded"
+    refute Map.has_key?(forged_application, "transition_application_provenance")
+
+    forged_approval_completed = Map.put(lifecycle_completed, "approval_status", "not_required")
+
+    forged_approval_application =
+      Timeline.transition_application(activity, forged_approval_completed)
+
+    refute forged_approval_application["application_status"] == "replacement_recorded"
+    refute Map.has_key?(forged_approval_application, "transition_application_provenance")
+
     completed_activity = Map.put(activity, :status, :completed)
 
     assert {:error,
@@ -6382,6 +6443,42 @@ defmodule OrbitalDynamics.TimelineTest do
                  fn ->
                    Timeline.transition_activity_status!(completed_activity, :planned)
                  end
+
+    assert {:error,
+            %{
+              "field" => "status",
+              "transition_category" => "executed_activity_changed",
+              "requires_operator_review" => true,
+              "operator_action_reason" => "executed_status_changed"
+            }} = Timeline.apply_lifecycle_event(completed_activity, "record partial")
+
+    assert_raise ArgumentError,
+                 ~r/unsafe timeline activity lifecycle event status transition completed -> partial/,
+                 fn ->
+                   Timeline.apply_lifecycle_event!(completed_activity, "record partial")
+                 end
+
+    assert {:error,
+            %{
+              "field" => "approval_status",
+              "transition_category" => "approval_granted",
+              "requires_operator_review" => true,
+              "operator_action_reason" => "approval_grant_requires_operator_authority"
+            }} = Timeline.apply_lifecycle_event(activity, "lock")
+
+    assert_raise ArgumentError,
+                 ~r/unsafe timeline activity lifecycle event approval_status transition pending -> locked/,
+                 fn ->
+                   Timeline.apply_lifecycle_event!(activity, "lock")
+                 end
+
+    assert {:error,
+            %{
+              "field" => "status",
+              "transition_category" => "invalid_activity_input",
+              "requires_operator_review" => true,
+              "operator_action_reason" => "invalid_activity_input"
+            }} = Timeline.apply_lifecycle_event(%{id: :missing_type}, "record completion")
 
     assert {:error,
             %{

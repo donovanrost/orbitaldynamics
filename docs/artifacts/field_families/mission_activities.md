@@ -62,8 +62,9 @@ top-level `mission_plan_activity_approval_transition/2` and
 Timeline-map adapters can use `Timeline.transition_activity_status/2`,
 `Timeline.transition_activity_status!/2`,
 `Timeline.transition_activity_approval_status/2`, and
-`Timeline.transition_activity_approval_status!/2`, plus the matching
-`OrbitalDynamics.timeline_transition_activity_*` facades, to get normalized
+`Timeline.transition_activity_approval_status!/2`, plus
+`Timeline.apply_lifecycle_event/2` and `Timeline.apply_lifecycle_event!/2`,
+plus the matching `OrbitalDynamics.timeline_*` facades, to get normalized
 timeline rows only for transitions that do not require operator review while
 preserving timeline identity and activity context.
 For callers that need a compact preflight over declared activity conditions,
