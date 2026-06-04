@@ -3546,6 +3546,71 @@ defmodule OrbitalDynamics.ValidationTest do
              Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
   end
 
+  test "verifies candidate refresh objective gap replay fixtures" do
+    fixture_id = "fixture.artifact.candidate_refresh.objective_gap_replay"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = candidate_refresh_objective_gap_fixture()
+    observations = candidate_refresh_objective_gap_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "source_report_family_count" => 3,
+             "source_report_row_count" => 9,
+             "source_objective_satisfaction_gap_row_count" => 3,
+             "source_objective_satisfaction_status_counts" => %{
+               "partial" => 2,
+               "unmet" => 1
+             },
+             "source_objective_satisfaction_objective_type_counts" => %{
+               "collection_latency" => 1,
+               "downlink_completion" => 1,
+               "target_coverage" => 1
+             },
+             "source_objective_tradeoff_collection_latency_gap_row_count" => 2,
+             "source_score_term_term_key_counts" => %{
+               "collection_latency_gap_s" => 1,
+               "downlink_shortfall_mb" => 1,
+               "target_gap_count" => 1
+             },
+             "source_score_term_source_activity_id_counts" => %{
+               "score_collection_activity" => 1,
+               "score_downlink_activity" => 1,
+               "score_target_activity" => 1
+             },
+             "source_objective_satisfaction_trust_boundary_status" => "declared",
+             "source_objective_tradeoff_trust_boundary_status" => "declared",
+             "source_score_term_trust_boundary_status" => "declared"
+           } = observations
+
+    stale_status_observations =
+      observations
+      |> put_in(["source_objective_satisfaction_status_counts", "unmet"], 2)
+
+    assert {:ok, stale_status_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_status_observations)
+
+    assert stale_status_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_status_verification["checks"],
+             &(&1["field"] == "source_objective_satisfaction_status_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _validated_artifact} =
+             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
+  end
+
   test "verifies curated candidate rejection report reference fixtures" do
     fixture_id = "fixture.artifact.candidate_rejection_report.v1"
 
@@ -10629,6 +10694,8 @@ defmodule OrbitalDynamics.ValidationTest do
           candidate_refresh_contact_contention_challenge_fixture_observations(),
         "fixture.artifact.candidate_refresh.contact_intent_direction_replay" =>
           candidate_refresh_contact_intent_direction_fixture_observations(),
+        "fixture.artifact.candidate_refresh.objective_gap_replay" =>
+          candidate_refresh_objective_gap_fixture_observations(),
         "fixture.artifact.candidate_refresh.resource_provenance_v1" =>
           candidate_refresh_resource_provenance_fixture_observations(),
         "fixture.artifact.candidate_rejection_report.v1" =>
@@ -10856,8 +10923,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 147,
-             "status_counts" => %{"pass" => 147},
+             "fixture_count" => 148,
+             "status_counts" => %{"pass" => 148},
              "reports" => reports
            } = report
 
@@ -10879,6 +10946,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.candidate_diff_row.v1",
              "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay",
              "fixture.artifact.candidate_refresh.contact_intent_direction_replay",
+             "fixture.artifact.candidate_refresh.objective_gap_replay",
              "fixture.artifact.candidate_refresh.resource_provenance_v1",
              "fixture.artifact.candidate_refresh.v1",
              "fixture.artifact.candidate_rejection_report.v1",
@@ -11021,7 +11089,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 147},
+             "status_counts" => %{"fail" => 148},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -11413,6 +11481,132 @@ defmodule OrbitalDynamics.ValidationTest do
           }
         }
       ]
+    }
+  end
+
+  defp candidate_refresh_objective_gap_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(candidate_refresh_objective_gap_fixture())
+  end
+
+  defp candidate_refresh_objective_gap_fixture do
+    result_set(%{})
+    |> CandidateRefresh.build(
+      candidate_refresh: candidate_refresh_objective_gap_request(),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  defp candidate_refresh_objective_gap_request do
+    %{
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-objective-gap-challenge",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [],
+        "source" => %{"system" => "validation_challenge"},
+        "quality" => %{"level" => "accepted"},
+        "provenance" => %{"created_by" => "validation_fixture"}
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "targets" => [],
+      "constraints" => %{},
+      "scoring_policy" => %{},
+      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
+      "source_objective_satisfaction_report" => %{
+        "schema_contract" => "objective_satisfaction_report.v1",
+        "rows" => [
+          %{
+            "gap_id" => "gap_downlink",
+            "objective_type" => "downlink_completion",
+            "status" => "unmet",
+            "ground_station_id" => "equator_prime",
+            "missing_downlink_mb" => 20.0,
+            "source_activity_id" => "dl_gap_activity",
+            "trust_boundary" => "objective_gap_rows"
+          },
+          %{
+            "gap_id" => "gap_target",
+            "objective_type" => "target_coverage",
+            "status" => "partial",
+            "target_id" => "target_a",
+            "missing_revisits" => 1,
+            "source_activity_id" => "target_gap_activity",
+            "trust_boundary" => "objective_gap_rows"
+          },
+          %{
+            "gap_id" => "gap_latency",
+            "objective_type" => "collection_latency",
+            "status" => "partial",
+            "collection_id" => "collection_alpha",
+            "max_latency_s" => 600.0,
+            "missed_downlink_activity_ids" => ["collection_latency_activity"],
+            "trust_boundary" => "objective_gap_rows"
+          }
+        ],
+        "source_activity_id_counts" => %{"stale_objective_activity" => 99},
+        "provenance" => %{"trust_boundary" => "objective_gap_report"}
+      },
+      "source_objective_tradeoff_report" => %{
+        "schema_contract" => "objective_tradeoff_report.v1",
+        "tradeoffs" => [
+          %{
+            "tradeoff_id" => "tradeoff_downlink",
+            "required_downlink_mb" => 20.0,
+            "ground_station_id" => "equator_prime",
+            "activity_ids" => ["tradeoff_downlink_activity"],
+            "trust_boundary" => "objective_gap_tradeoff_rows"
+          },
+          %{
+            "tradeoff_id" => "tradeoff_target",
+            "target_id" => "target_a",
+            "required_revisits" => 1.0,
+            "source_activity_ids" => ["tradeoff_target_activity"],
+            "trust_boundary" => "objective_gap_tradeoff_rows"
+          },
+          %{
+            "tradeoff_id" => "tradeoff_latency",
+            "collection_id" => "collection_alpha",
+            "collection_latency_gap_s" => 300.0,
+            "source_activity_id" => "tradeoff_latency_activity",
+            "trust_boundary" => "objective_gap_tradeoff_rows"
+          }
+        ],
+        "source_activity_id_counts" => %{"stale_tradeoff_activity" => 99},
+        "provenance" => %{"trust_boundary" => "objective_gap_tradeoff_report"}
+      },
+      "source_score_term_report" => %{
+        "schema_contract" => "score_term_report.v1",
+        "rows" => [
+          %{
+            "term_key" => "downlink_shortfall_mb",
+            "value" => 20.0,
+            "ground_station_id" => "equator_prime",
+            "source_activity_id" => "score_downlink_activity",
+            "trust_boundary" => "objective_gap_score_rows"
+          },
+          %{
+            "term_key" => "target_gap_count",
+            "value" => 1.0,
+            "target_id" => "target_a",
+            "source_activity_id" => "score_target_activity",
+            "trust_boundary" => "objective_gap_score_rows"
+          },
+          %{
+            "term_key" => "collection_latency_gap_s",
+            "value" => 300.0,
+            "collection_id" => "collection_alpha",
+            "selected_contact" => %{"contact_id" => "score_collection_activity"},
+            "trust_boundary" => "objective_gap_score_rows"
+          }
+        ],
+        "source_activity_id_counts" => %{"stale_score_activity" => 99},
+        "provenance" => %{"trust_boundary" => "objective_gap_score_report"}
+      }
     }
   end
 

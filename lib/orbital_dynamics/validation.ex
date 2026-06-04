@@ -1665,6 +1665,127 @@ defmodule OrbitalDynamics.Validation do
         "checks candidate-refresh replay of contact-intent direction and capacity-pack provenance without contact generation, contact allocation, candidate selection, import approval, or Cadence writes"
       ]
     },
+    "fixture.artifact.candidate_refresh.objective_gap_replay" => %{
+      "id" => "fixture.artifact.candidate_refresh.objective_gap_replay",
+      "model_id" => "artifact.candidate_refresh.v1",
+      "reference_case" =>
+        "generated candidate refresh replay of objective-gap source-report provenance",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "source" => "generated_candidate_refresh_objective_gap_fixture",
+        "contract" => "candidate_refresh.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "candidate_refresh.v1",
+        "schema_version" => 1,
+        "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 3,
+        "source_report_row_count" => 9,
+        "source_objective_satisfaction_report_count" => 1,
+        "source_objective_satisfaction_gap_row_count" => 3,
+        "source_objective_satisfaction_downlink_gap_row_count" => 1,
+        "source_objective_satisfaction_target_gap_row_count" => 1,
+        "source_objective_satisfaction_collection_latency_gap_row_count" => 1,
+        "source_objective_satisfaction_status_counts" => %{
+          "partial" => 2,
+          "unmet" => 1
+        },
+        "source_objective_satisfaction_objective_type_counts" => %{
+          "collection_latency" => 1,
+          "downlink_completion" => 1,
+          "target_coverage" => 1
+        },
+        "source_objective_satisfaction_ground_station_counts" => %{
+          "equator_prime" => 1
+        },
+        "source_objective_satisfaction_target_counts" => %{"target_a" => 1},
+        "source_objective_satisfaction_collection_counts" => %{
+          "collection_alpha" => 1
+        },
+        "source_objective_satisfaction_source_activity_id_counts" => %{
+          "collection_latency_activity" => 1,
+          "dl_gap_activity" => 1,
+          "target_gap_activity" => 1
+        },
+        "source_objective_satisfaction_trust_boundary_status" => "declared",
+        "source_objective_tradeoff_report_count" => 1,
+        "source_objective_tradeoff_row_count" => 3,
+        "source_objective_tradeoff_downlink_gap_row_count" => 1,
+        "source_objective_tradeoff_target_gap_row_count" => 1,
+        "source_objective_tradeoff_collection_latency_gap_row_count" => 2,
+        "source_objective_tradeoff_ground_station_counts" => %{
+          "equator_prime" => 1
+        },
+        "source_objective_tradeoff_target_counts" => %{"target_a" => 1},
+        "source_objective_tradeoff_collection_counts" => %{
+          "collection_alpha" => 1
+        },
+        "source_objective_tradeoff_source_activity_id_counts" => %{
+          "tradeoff_downlink_activity" => 1,
+          "tradeoff_latency_activity" => 1,
+          "tradeoff_target_activity" => 1
+        },
+        "source_objective_tradeoff_trust_boundary_status" => "declared",
+        "source_score_term_report_count" => 1,
+        "source_score_term_row_count" => 3,
+        "source_score_term_downlink_gap_row_count" => 1,
+        "source_score_term_target_gap_row_count" => 1,
+        "source_score_term_collection_latency_gap_row_count" => 1,
+        "source_score_term_term_key_counts" => %{
+          "collection_latency_gap_s" => 1,
+          "downlink_shortfall_mb" => 1,
+          "target_gap_count" => 1
+        },
+        "source_score_term_ground_station_counts" => %{"equator_prime" => 1},
+        "source_score_term_target_counts" => %{"target_a" => 1},
+        "source_score_term_collection_counts" => %{"collection_alpha" => 1},
+        "source_score_term_source_activity_id_counts" => %{
+          "score_collection_activity" => 1,
+          "score_downlink_activity" => 1,
+          "score_target_activity" => 1
+        },
+        "source_score_term_trust_boundary_status" => "declared"
+      },
+      "tolerances" => %{
+        "schema_version" => 0,
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 0,
+        "source_report_row_count" => 0,
+        "source_objective_satisfaction_report_count" => 0,
+        "source_objective_satisfaction_gap_row_count" => 0,
+        "source_objective_satisfaction_downlink_gap_row_count" => 0,
+        "source_objective_satisfaction_target_gap_row_count" => 0,
+        "source_objective_satisfaction_collection_latency_gap_row_count" => 0,
+        "source_objective_tradeoff_report_count" => 0,
+        "source_objective_tradeoff_row_count" => 0,
+        "source_objective_tradeoff_downlink_gap_row_count" => 0,
+        "source_objective_tradeoff_target_gap_row_count" => 0,
+        "source_objective_tradeoff_collection_latency_gap_row_count" => 0,
+        "source_score_term_report_count" => 0,
+        "source_score_term_row_count" => 0,
+        "source_score_term_downlink_gap_row_count" => 0,
+        "source_score_term_target_gap_row_count" => 0,
+        "source_score_term_collection_latency_gap_row_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal generated artifact regression, not objective or scoring validation",
+        "checks candidate-refresh replay of objective-gap provenance without objective generation, score recalculation, candidate selection, import approval, or Cadence writes"
+      ]
+    },
     "fixture.artifact.candidate_refresh.resource_provenance_v1" => %{
       "id" => "fixture.artifact.candidate_refresh.resource_provenance_v1",
       "model_id" => "artifact.candidate_refresh.v1",
@@ -10792,6 +10913,12 @@ defmodule OrbitalDynamics.Validation do
     contact_contention_summary = Map.get(source_reports, "contact_contention_report") || %{}
     contact_intent_summary = Map.get(source_reports, "contact_intent") || %{}
 
+    objective_satisfaction_summary =
+      Map.get(source_reports, "objective_satisfaction_report") || %{}
+
+    objective_tradeoff_summary = Map.get(source_reports, "objective_tradeoff_report") || %{}
+    score_term_summary = Map.get(source_reports, "score_term_report") || %{}
+
     %{
       "schema_contract" => Map.get(artifact, "schema_contract"),
       "schema_version" => Map.get(artifact, "schema_version"),
@@ -10848,7 +10975,68 @@ defmodule OrbitalDynamics.Validation do
       "source_contact_intent_direction_routing" =>
         Map.get(contact_intent_summary, "direction_routing") || %{},
       "source_contact_intent_trust_boundary_status" =>
-        Map.get(contact_intent_summary, "trust_boundary_status")
+        Map.get(contact_intent_summary, "trust_boundary_status"),
+      "source_objective_satisfaction_report_count" =>
+        Map.get(objective_satisfaction_summary, "count"),
+      "source_objective_satisfaction_gap_row_count" =>
+        Map.get(objective_satisfaction_summary, "gap_row_count"),
+      "source_objective_satisfaction_downlink_gap_row_count" =>
+        Map.get(objective_satisfaction_summary, "downlink_gap_row_count"),
+      "source_objective_satisfaction_target_gap_row_count" =>
+        Map.get(objective_satisfaction_summary, "target_gap_row_count"),
+      "source_objective_satisfaction_collection_latency_gap_row_count" =>
+        Map.get(objective_satisfaction_summary, "collection_latency_gap_row_count"),
+      "source_objective_satisfaction_status_counts" =>
+        Map.get(objective_satisfaction_summary, "status_counts") || %{},
+      "source_objective_satisfaction_objective_type_counts" =>
+        Map.get(objective_satisfaction_summary, "objective_type_counts") || %{},
+      "source_objective_satisfaction_ground_station_counts" =>
+        Map.get(objective_satisfaction_summary, "ground_station_counts") || %{},
+      "source_objective_satisfaction_target_counts" =>
+        Map.get(objective_satisfaction_summary, "target_counts") || %{},
+      "source_objective_satisfaction_collection_counts" =>
+        Map.get(objective_satisfaction_summary, "collection_counts") || %{},
+      "source_objective_satisfaction_source_activity_id_counts" =>
+        Map.get(objective_satisfaction_summary, "source_activity_id_counts") || %{},
+      "source_objective_satisfaction_trust_boundary_status" =>
+        Map.get(objective_satisfaction_summary, "trust_boundary_status"),
+      "source_objective_tradeoff_report_count" => Map.get(objective_tradeoff_summary, "count"),
+      "source_objective_tradeoff_row_count" => Map.get(objective_tradeoff_summary, "row_count"),
+      "source_objective_tradeoff_downlink_gap_row_count" =>
+        Map.get(objective_tradeoff_summary, "downlink_gap_row_count"),
+      "source_objective_tradeoff_target_gap_row_count" =>
+        Map.get(objective_tradeoff_summary, "target_gap_row_count"),
+      "source_objective_tradeoff_collection_latency_gap_row_count" =>
+        Map.get(objective_tradeoff_summary, "collection_latency_gap_row_count"),
+      "source_objective_tradeoff_ground_station_counts" =>
+        Map.get(objective_tradeoff_summary, "ground_station_counts") || %{},
+      "source_objective_tradeoff_target_counts" =>
+        Map.get(objective_tradeoff_summary, "target_counts") || %{},
+      "source_objective_tradeoff_collection_counts" =>
+        Map.get(objective_tradeoff_summary, "collection_counts") || %{},
+      "source_objective_tradeoff_source_activity_id_counts" =>
+        Map.get(objective_tradeoff_summary, "source_activity_id_counts") || %{},
+      "source_objective_tradeoff_trust_boundary_status" =>
+        Map.get(objective_tradeoff_summary, "trust_boundary_status"),
+      "source_score_term_report_count" => Map.get(score_term_summary, "count"),
+      "source_score_term_row_count" => Map.get(score_term_summary, "row_count"),
+      "source_score_term_downlink_gap_row_count" =>
+        Map.get(score_term_summary, "downlink_gap_row_count"),
+      "source_score_term_target_gap_row_count" =>
+        Map.get(score_term_summary, "target_gap_row_count"),
+      "source_score_term_collection_latency_gap_row_count" =>
+        Map.get(score_term_summary, "collection_latency_gap_row_count"),
+      "source_score_term_term_key_counts" =>
+        Map.get(score_term_summary, "term_key_counts") || %{},
+      "source_score_term_ground_station_counts" =>
+        Map.get(score_term_summary, "ground_station_counts") || %{},
+      "source_score_term_target_counts" => Map.get(score_term_summary, "target_counts") || %{},
+      "source_score_term_collection_counts" =>
+        Map.get(score_term_summary, "collection_counts") || %{},
+      "source_score_term_source_activity_id_counts" =>
+        Map.get(score_term_summary, "source_activity_id_counts") || %{},
+      "source_score_term_trust_boundary_status" =>
+        Map.get(score_term_summary, "trust_boundary_status")
     }
     |> compact_validation_map()
   end

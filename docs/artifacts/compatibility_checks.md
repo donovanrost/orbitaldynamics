@@ -434,6 +434,11 @@ contact-intent direction replay fixture. It checks row-derived contact-intent
 direction counts, contact IDs by direction, capacity-pack fraction/contact
 routing maps, and trust-boundary status without contact generation, contact
 allocation, candidate selection, import approval, or Cadence writes.
+The registry also includes a generated CandidateRefresh objective-gap replay
+fixture. It checks objective-satisfaction, objective-tradeoff, and score-term
+source-report provenance counts, row-derived gap/status/term maps, source
+activity routing, and trust-boundary status without objective generation, score
+recalculation, candidate selection, import approval, or Cadence writes.
 `study_results/branch_comparison_report_v1.json` and
 `study_results/candidate_diff_report_v1.json` now feed curated
 validation-reference fixtures. The observations check branch ranking and
