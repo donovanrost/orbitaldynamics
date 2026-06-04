@@ -21953,6 +21953,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_family_count" => 1,
              "source_report_count" => 2,
              "source_report_row_count" => 2,
+             "source_report_refresh_budget_contract" => "refresh_budget_report.v1",
+             "source_report_refresh_budget_count" => 2,
+             "source_report_refresh_budget_row_count" => 2,
+             "source_report_refresh_budget_paths" => [
+               "source_refresh_budget_report[0]",
+               "source_refresh_budget_report[1]"
+             ],
              "source_report_refresh_budget_input_candidate_count" => 5,
              "source_report_refresh_budget_kept_candidate_count" => 3,
              "source_report_refresh_budget_dropped_candidate_count" => 2,
@@ -22054,6 +22061,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 2,
+             "source_report_refresh_budget_contract" => "refresh_budget_report.v1",
+             "source_report_refresh_budget_count" => 2,
+             "source_report_refresh_budget_row_count" => 2,
+             "source_report_refresh_budget_paths" => [
+               "source_refresh_budget_report[0]",
+               "source_refresh_budget_report[1]"
+             ],
              "source_report_refresh_budget_input_candidate_count" => 5,
              "source_report_refresh_budget_dropped_candidate_count" => 2,
              "source_report_refresh_budget_invalid_candidate_limit_policy_reason_counts" => %{
@@ -22077,8 +22091,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "provenance" => %{"source_reports" => %{}}
     }
 
+    source_summary = CandidateRefresh.source_report_summary(artifact)
     summary = CandidateRefresh.refresh_budget_replay_summary(artifact)
 
+    refute Map.has_key?(source_summary, "source_report_refresh_budget_contract")
+    refute Map.has_key?(source_summary, "source_report_refresh_budget_count")
+    refute Map.has_key?(source_summary, "source_report_refresh_budget_row_count")
+    refute Map.has_key?(source_summary, "source_report_refresh_budget_paths")
     assert summary["source_report_count"] == 0
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_paths"] == []

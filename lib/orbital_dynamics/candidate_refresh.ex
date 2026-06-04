@@ -3701,6 +3701,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "refresh_budget_report",
           "input_candidate_count"
         ),
+      "source_report_refresh_budget_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "refresh_budget_report",
+          "contract"
+        ),
+      "source_report_refresh_budget_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "refresh_budget_report",
+          "count"
+        ),
+      "source_report_refresh_budget_row_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "refresh_budget_report",
+          "row_count"
+        ),
+      "source_report_refresh_budget_paths" =>
+        source_report_summary_family_field(
+          source_reports,
+          "refresh_budget_report",
+          "paths"
+        ),
       "source_report_refresh_budget_kept_candidate_count" =>
         source_report_summary_family_count(
           source_reports,

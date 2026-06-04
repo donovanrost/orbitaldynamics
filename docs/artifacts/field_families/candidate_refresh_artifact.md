@@ -2107,15 +2107,16 @@ input alongside freshness replay provenance.
 `CandidateRefresh.refresh_budget_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_refresh_budget_replay_summary/1` expose the
 refresh-budget slice as a branch-local replay summary. It preserves source
-budget paths, input/kept/dropped candidate counts, invalid-limit reason maps,
-kept/dropped candidate IDs, trust-boundary evidence, and branch-local budget
-pressure booleans without mutating refresh state, approving imports, writing to
-Cadence, or regenerating candidates. Budget/drop/invalid-limit pressure is true
-for invalid-limit reason maps and kept/dropped candidate ID sets even when the
-aggregate dropped-candidate or invalid-limit counters are absent or zero. The
-family-level budget pressure boolean is also true when preserved input/kept
-counts show a candidate limit was applied, even if dropped-candidate and
-invalid-limit evidence is absent or zero. The replay helper can inspect V3
+budget contract, count, row-count, source paths, input/kept/dropped candidate
+counts, invalid-limit reason maps, kept/dropped candidate IDs, trust-boundary
+evidence, and branch-local budget pressure booleans without mutating refresh
+state, approving imports, writing to Cadence, or regenerating candidates.
+Budget/drop/invalid-limit pressure is true for invalid-limit reason maps and
+kept/dropped candidate ID sets even when the aggregate dropped-candidate or
+invalid-limit counters are absent or zero. The family-level budget pressure
+boolean is also true when preserved input/kept counts show a candidate limit was
+applied, even if dropped-candidate and invalid-limit evidence is absent or zero.
+The replay helper can inspect V3
 branch `candidate_source` metadata that carries
 `candidate_refresh_request_source_report_summary`, so strategy-derived branch
 refreshes preserve refresh-budget counts and limit-pressure routing through the
@@ -2135,7 +2136,9 @@ The same operator-review handoff accepts refresh-budget reports inside
 candidate-refresh `source_result_artifact` / `result_artifact` wrappers,
 preserving wrapper-qualified source paths and list indexes.
 When refresh-budget provenance is absent, the replay summary omits the contract
-field rather than defaulting to `refresh_budget_report.v1`.
+field rather than defaulting to `refresh_budget_report.v1`, and the aggregate
+source-report summary omits the top-level refresh-budget identity rollups
+instead of emitting empty contract/count/row-count/path fields.
 Capability metadata advertises `refresh_budget_report` as an accepted
 CandidateRefresh input alongside refresh-budget replay provenance.
 
