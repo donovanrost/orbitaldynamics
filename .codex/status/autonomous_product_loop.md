@@ -6,7 +6,8 @@ Contact-allocation replay reads and labels branch
 
 Status:
 Implementation, focused verification, and read-only review are complete for
-this slice. Publish is pending.
+this slice. Product commit and push are complete. This status handoff records
+the published state.
 `CandidateRefresh.contact_allocation_replay_summary/1` now prefers a non-empty
 branch `contact_allocation_report` source-report family before falling back to
 provenance. Branch summaries preserve source-report counts, row counts, paths,
@@ -42,7 +43,8 @@ Docs/artifacts changed:
   schema exports or checked-in study artifacts changed in this slice.
 
 Last product commit:
-- Pending.
+- `887c25ffda5f8aed14835f67b11b1e13cc3a2738` (`Label contact allocation
+  branch replay metadata`) pushed to `origin/main`.
 
 Next candidate:
 After publish, re-read `docs/autonomous_work_guide.md`, this ledger, and the
