@@ -1135,6 +1135,10 @@ branch provenance boundary. Branch-generated refresh requests also preserve
 direct and `source_result_artifact` / `result_artifact` wrapped
 `source_resource_filter_summary` / `resource_filter_summary` inputs with
 wrapper-qualified source paths and direct plus inherited trust-boundary evidence.
+When the branch `resource_filter_report` source-report family is non-empty, the
+helper labels its output source and replay scope as candidate-source summary
+metadata, treats partial non-empty branch families as authoritative, and falls
+back to provenance labels for absent or empty branch families.
 Suppressed-reason, suppression-reason
 candidate-ID, spacecraft/resource/blocking-dimension count and candidate-ID
 maps, direction/candidate-ID maps, and invalid resource-summary input IDs count
