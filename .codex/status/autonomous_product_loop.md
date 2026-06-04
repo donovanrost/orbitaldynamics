@@ -5,14 +5,14 @@ Timeline-lifecycle state replay reads and labels V3 branch
 `candidate_source.candidate_refresh_request_source_report_summary` metadata.
 
 Status:
-Implementation and focused verification complete; review, commit, and push are
-pending for this slice. `CandidateRefresh.timeline_lifecycle_state_replay_summary/1`
-now checks a non-empty V3 branch `timeline_lifecycle_state_summary`
-source-report family before falling back to provenance. Branch-sourced
-summaries preserve counts, paths, summary model/schema counts, transition,
-action, status, approval, timeline/activity routing, trust-boundary metadata,
-and branch-local pressure booleans while labeling their `source` and replay
-scope as candidate-source summary metadata. Empty branch families fall back to
+Implementation, focused verification, review, commit, and push complete for
+this slice. `CandidateRefresh.timeline_lifecycle_state_replay_summary/1` now
+checks a non-empty V3 branch `timeline_lifecycle_state_summary` source-report
+family before falling back to provenance. Branch-sourced summaries preserve
+counts, paths, summary model/schema counts, transition, action, status,
+approval, timeline/activity routing, trust-boundary metadata, and branch-local
+pressure booleans while labeling their `source` and replay scope as
+candidate-source summary metadata. Empty branch families fall back to
 provenance and keep existing provenance-only labels; partial non-empty branch
 families remain authoritative. Direct `candidate_source` maps use the same
 branch labels.
@@ -41,7 +41,8 @@ Docs/artifacts changed:
   No schema exports or checked-in artifacts changed in this slice.
 
 Last product commit:
-- Pending review and publish for this slice.
+- `5f1309e` (`Label lifecycle-state branch replay metadata`) pushed to
+  `origin/main`.
 
 Next candidate:
 Re-read `docs/autonomous_work_guide.md`, this ledger, and the live worktree
