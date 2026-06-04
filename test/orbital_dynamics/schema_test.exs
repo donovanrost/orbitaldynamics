@@ -20267,6 +20267,23 @@ defmodule OrbitalDynamics.SchemaTest do
              &(&1["path"] == "$.migration_action_counts")
            )
 
+    stale_row_action =
+      put_in(
+        migration_report,
+        ["rows", Access.at(0), "migration_action"],
+        "silently_rewrite_contract"
+      )
+
+    assert {:error, stale_row_action_report} =
+             Schema.validate_artifact(stale_row_action,
+               schema_contract: "schema_migration_report.v1"
+             )
+
+    assert Enum.any?(
+             stale_row_action_report["errors"],
+             &(&1["path"] == "$.rows[0].migration_action")
+           )
+
     assert {:ok, migration_schema} = Schema.json_schema("schema_migration_report.v1")
 
     assert get_in(migration_schema, ["properties", "model", "const"]) ==
@@ -20304,6 +20321,15 @@ defmodule OrbitalDynamics.SchemaTest do
              "optional_field_count",
              "nested_contract_count"
            ]
+
+    assert get_in(migration_schema, [
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             "migration_action",
+             "enum"
+           ]) == Validation.capabilities().schema_migration_actions
   end
 
   test "exports and validates top-level result artifact contracts" do

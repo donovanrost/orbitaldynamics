@@ -94,6 +94,18 @@ defmodule OrbitalDynamics.ValidationTest do
              }
            } = schema_migration_report
 
+    schema_migration_capabilities = Validation.capabilities()
+
+    assert schema_migration_capabilities.schema_migration_actions == [
+             "continue_current_contract",
+             "plan_replacement",
+             "prepare_future_contract",
+             "review_deprecated_contract"
+           ]
+
+    assert Map.keys(schema_migration_report["migration_action_counts"]) --
+             schema_migration_capabilities.schema_migration_actions == []
+
     assert OrbitalDynamics.backend_acceptance_policy() == Validation.backend_acceptance_policy()
 
     assert OrbitalDynamics.backend_acceptance_evidence(TwoBody) ==
@@ -10217,6 +10229,13 @@ defmodule OrbitalDynamics.ValidationTest do
                "prepare_future_contract" => 1
              }
            } = observations
+
+    schema_migration_actions = Validation.capabilities().schema_migration_actions
+
+    assert Map.keys(observations["migration_action_counts"]) -- schema_migration_actions == []
+
+    assert Map.keys(observations["row_derived_migration_action_counts"]) --
+             schema_migration_actions == []
 
     stale_action_counts =
       observations

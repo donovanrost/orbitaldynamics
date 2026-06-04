@@ -21,6 +21,12 @@ defmodule OrbitalDynamics.Validation do
   @safety_case_statuses ["accepted_for_use", "review_required", "blocked", "missing_evidence"]
   @schema_migration_statuses ["current", "review_required"]
   @schema_migration_row_statuses ["current", "deprecated", "future"]
+  @schema_migration_actions [
+    "continue_current_contract",
+    "plan_replacement",
+    "prepare_future_contract",
+    "review_deprecated_contract"
+  ]
   @candidate_refresh_source_report_input_order Enum.join(
                                                  [
                                                    "station_calendar_report",
@@ -9161,6 +9167,7 @@ defmodule OrbitalDynamics.Validation do
       safety_case_statuses: @safety_case_statuses,
       schema_migration_statuses: @schema_migration_statuses,
       schema_migration_row_statuses: @schema_migration_row_statuses,
+      schema_migration_actions: @schema_migration_actions,
       summary_semantics: [
         :model_acceptance_status_counts,
         :model_acceptance_model_ids_by_status,

@@ -20184,7 +20184,10 @@ defmodule OrbitalDynamics.Schema do
           "type" => "string",
           "enum" => OrbitalDynamics.Validation.capabilities().schema_migration_row_statuses
         },
-        "migration_action" => %{"type" => "string"},
+        "migration_action" => %{
+          "type" => "string",
+          "enum" => OrbitalDynamics.Validation.capabilities().schema_migration_actions
+        },
         "replacement_contract" => %{"type" => "string"},
         "required_field_count" => %{"type" => "integer", "minimum" => 0},
         "optional_field_count" => %{"type" => "integer", "minimum" => 0},
@@ -58028,8 +58031,18 @@ defmodule OrbitalDynamics.Schema do
     |> expect_type(path, row, "schema_contract", :binary)
     |> expect_type(path, row, "artifact_family", :binary)
     |> expect_non_negative_integer(path, row, "schema_version")
-    |> expect_one_of(path, row, "status", ["current", "deprecated", "future"])
-    |> expect_type(path, row, "migration_action", :binary)
+    |> expect_one_of(
+      path,
+      row,
+      "status",
+      OrbitalDynamics.Validation.capabilities().schema_migration_row_statuses
+    )
+    |> expect_one_of(
+      path,
+      row,
+      "migration_action",
+      OrbitalDynamics.Validation.capabilities().schema_migration_actions
+    )
     |> expect_optional_type(path, row, "replacement_contract", :binary)
     |> expect_optional_type(path, row, "deprecation_warning", :binary)
     |> expect_non_negative_integer(path, row, "required_field_count")

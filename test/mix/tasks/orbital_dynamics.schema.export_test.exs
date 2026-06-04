@@ -3,7 +3,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
 
   import ExUnit.CaptureIO
 
-  alias OrbitalDynamics.Schema
+  alias OrbitalDynamics.{Schema, Validation}
 
   test "exports a single contract schema" do
     output_path = Path.join(System.tmp_dir!(), "campaign_plan.v1.schema.json")
@@ -1388,6 +1388,16 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "status",
              "enum"
            ]) == ["current", "deprecated", "future"]
+
+    assert get_in(schemas, [
+             "schema_migration_report.v1",
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             "migration_action",
+             "enum"
+           ]) == Validation.capabilities().schema_migration_actions
 
     assert get_in(schemas, ["campaign_request_lint.v1", "properties", "error_count"]) == %{
              "type" => "integer",
