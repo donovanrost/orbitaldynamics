@@ -79,7 +79,8 @@ explicit `route_id`, `id`, or `data_path_id` values win when present, while
 generated IDs use source spacecraft, relay chain, ground station, downlink
 contact, latency/limit, product IDs, and collection IDs as the semantic
 fingerprint. `LinkCapacity.capabilities/0` publishes that generated-ID scope for
-adapter compatibility checks.
+adapter compatibility checks, and `Schema.identity_policy/0` exports the same
+scope in checked-in JSON Schema metadata.
 
 ## Validation and review gating
 

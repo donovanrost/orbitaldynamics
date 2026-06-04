@@ -19839,6 +19839,34 @@ defmodule OrbitalDynamics.SchemaTest do
     assert policy["stable_id_pattern"] == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
     assert "emit_identifier_with_whitespace" in policy["breaking_changes"]
 
+    assert %{
+             "identity_fields" => [
+               "source_spacecraft_id",
+               "relay_chain_spacecraft_ids",
+               "ground_station_id",
+               "ground_downlink_contact_id",
+               "latency_s",
+               "latency_limit_s",
+               "product_ids",
+               "collection_ids"
+             ],
+             "explicit_id_fields" => ["route_id", "id", "data_path_id"],
+             "ordering" => [
+               "source_spacecraft_id",
+               "ground_downlink_contact_id",
+               "semantic_route_fingerprint"
+             ],
+             "semantic_invariants" => [
+               "source_record_order_must_not_change_generated_route_id",
+               "semantic_route_evidence_changes_must_change_generated_route_id",
+               "explicit_route_id_takes_precedence_over_generated_route_id"
+             ]
+           } =
+             Enum.find(
+               policy["generated_id_scopes"],
+               &(&1["scope"] == "relay_data_path_summary.v1.rows.generated_route_id")
+             )
+
     assert {:ok, schema} = Schema.json_schema("campaign_plan.v1")
     assert schema["properties"]["plan_id"]["pattern"] == policy["stable_id_pattern"]
 
@@ -19859,6 +19887,11 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert bundle["compatibility_policy"] == policy
     assert bundle["identity_policy"] == Schema.identity_policy()
+
+    assert Enum.any?(
+             bundle["identity_policy"]["generated_id_scopes"],
+             &(&1["scope"] == "relay_data_path_summary.v1.rows.generated_route_id")
+           )
 
     assert bundle["schemas"]["campaign_plan.v1"]["x-orbital-dynamics"][
              "compatibility_policy_version"

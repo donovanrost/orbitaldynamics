@@ -2720,6 +2720,30 @@ defmodule OrbitalDynamics.Schema do
         "scope" => "accepted_planning_state.v1.spacecraft_states",
         "identity_fields" => ["spacecraft_id", "scenario_id", "epoch.seconds_since_j2000"],
         "ordering" => ["spacecraft_id", "scenario_id", "epoch.seconds_since_j2000"]
+      },
+      %{
+        "scope" => "relay_data_path_summary.v1.rows.generated_route_id",
+        "identity_fields" => [
+          "source_spacecraft_id",
+          "relay_chain_spacecraft_ids",
+          "ground_station_id",
+          "ground_downlink_contact_id",
+          "latency_s",
+          "latency_limit_s",
+          "product_ids",
+          "collection_ids"
+        ],
+        "explicit_id_fields" => ["route_id", "id", "data_path_id"],
+        "ordering" => [
+          "source_spacecraft_id",
+          "ground_downlink_contact_id",
+          "semantic_route_fingerprint"
+        ],
+        "semantic_invariants" => [
+          "source_record_order_must_not_change_generated_route_id",
+          "semantic_route_evidence_changes_must_change_generated_route_id",
+          "explicit_route_id_takes_precedence_over_generated_route_id"
+        ]
       }
     ],
     "breaking_changes" => [

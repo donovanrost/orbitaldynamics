@@ -31,10 +31,11 @@ references without duplicating the full policy maps. The structural
 `study_manifest.v1` schema exposes the same policy metadata for manifest
 preflight tooling, and the generated manifest field reference carries the
 policy version numbers so CLI consumers can detect which compatibility and
-public-ID rules informed the reference. `LinkCapacity.capabilities/0` also names
-the generated route-ID scope used by `relay_data_path_summary.v1`: explicit
-route IDs take precedence, and fallback IDs derive from semantic route evidence
-rather than source record order. The reference exports and validates
+public-ID rules informed the reference. The exported identity policy and
+`LinkCapacity.capabilities/0` also name the generated route-ID scope used by
+`relay_data_path_summary.v1`: explicit route IDs take precedence, and fallback
+IDs derive from semantic route evidence rather than source record order. The
+reference exports and validates
 `field_count` as a non-negative integer matching the emitted field rows, so
 preflight tooling can detect truncated or duplicated field catalogs. The same
 reference also publishes the supported manifest-lint error-code vocabulary under

@@ -1,33 +1,37 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Relay data-path generated route-ID invariant.
+Schema-visible relay generated route-ID scope.
 
 Status:
 Implemented and focused verification passed. Local review found no blocking
-scope or behavior issues. Local commit prepared for publish.
+scope or behavior issues. The current handoff commits and pushes this slice.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `docs/artifacts/compatibility_checks.md`
 - `docs/feature_set/capability_map/07_ground_network/02_link_capacity.md`
 - `docs/feature_set/capability_map/17_reproducibility_artifacts_and_audit.md`
-- `lib/orbital_dynamics/communications/link_capacity.ex`
-- `test/orbital_dynamics/communications/link_capacity_test.exs`
+- `lib/orbital_dynamics/schema.ex`
+- `schemas/*.schema.json`
+- `schemas/orbital_dynamics.schema_bundle.v1.json`
+- `test/orbital_dynamics/schema_test.exs`
 
 Tests run:
-- `mix format lib/orbital_dynamics/communications/link_capacity.ex test/orbital_dynamics/communications/link_capacity_test.exs`
-- `mix test test/orbital_dynamics/communications/link_capacity_test.exs:9 test/orbital_dynamics/communications/link_capacity_test.exs:293 --trace --seed 0`
-- `mix test test/orbital_dynamics/communications/link_capacity_test.exs:9 test/orbital_dynamics/communications/link_capacity_test.exs:317 --trace --seed 0`
+- `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
+- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
+- `mix test test/orbital_dynamics/schema_test.exs:19835 test/orbital_dynamics/schema_test.exs:19879 test/orbital_dynamics/schema_test.exs:19905 test/orbital_dynamics/schema_test.exs:20242 test/mix/tasks/orbital_dynamics.schema.export_test.exs:39 test/mix/tasks/orbital_dynamics.schema.export_test.exs:5663 --trace --seed 0`
+- `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 
 Docs/artifacts changed:
-Docs now name the relay data-path generated route-ID invariant. No schema or
-generated artifact refresh was required because this slice adds capability
-metadata and focused compatibility coverage, not a schema-visible field.
+Docs now state that the relay data-path generated route-ID scope is exported
+through `Schema.identity_policy/0` and advertised by `LinkCapacity.capabilities/0`.
+All checked-in JSON Schema exports were regenerated because identity-policy
+metadata is embedded in every exported schema.
 
 Last commit:
-Current slice commit advertises relay route ID invariants and is prepared for
+Current slice commit exports the relay generated route-ID scope and is pushed to
 `origin/main`.
 
 Next candidate:
