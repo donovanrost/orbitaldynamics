@@ -37,8 +37,10 @@ contact-intent replay can derive the same family from raw branch request
 contact-intent inputs, not only precomputed branch summary metadata.
 
 Last commit:
-Pending commit for this slice. The unrelated `.gitignore` scratch-ignore change
-remains unstaged.
+Current slice code commit is `4321df7` (`Replay branch contact intent routing`).
+`slice_reviewer` was unavailable because valid spawns hit the agent thread
+limit, so review/publish was performed manually with scoped staging. The
+unrelated `.gitignore` scratch-ignore change remains unstaged.
 
 Next candidate:
 After review/publish, re-read the guide/ledger/live worktree and continue with
