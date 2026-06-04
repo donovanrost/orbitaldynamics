@@ -4497,6 +4497,21 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
                  &1["message"] == "must equal row-derived resource_pressure_count")
            )
 
+    invalid_pressure_spacecraft_ids =
+      put_in(report, ["resource_pressure_spacecraft_ids_by_type", "storage_overflow"], [
+        "wrong_sat"
+      ])
+
+    assert {:error, pressure_spacecraft_ids_validation} =
+             Schema.validate_artifact(invalid_pressure_spacecraft_ids)
+
+    assert Enum.any?(
+             pressure_spacecraft_ids_validation["errors"],
+             &(&1["path"] == "$.resource_pressure_spacecraft_ids_by_type" and
+                 &1["message"] ==
+                   "must equal row-derived resource_pressure_spacecraft_ids_by_type")
+           )
+
     invalid_pressure_ids =
       put_in(report, ["resource_pressure_activity_ids_by_type", "storage_overflow"], ["dl_1"])
 
