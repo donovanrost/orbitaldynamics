@@ -867,13 +867,13 @@ wrapper-qualified request paths and indexed embedded replay copies, keeping raw
 allocation rows, capacity-pack demand/routing, direction routing, station
 pressure, and trust-boundary evidence visible to the replay helper.
 Preserved selected/deferred capacity-pack contact-ID station maps,
-deferred-contact ID maps, station-pressure contact-ID maps, station-pressure
-review contact IDs, and reservation-conflict contact IDs also count as the
-corresponding capacity-pack, deferred-allocation, station-pressure, and
-reservation-conflict pressure even when aggregate counters or demand totals are
-absent or zero. Invalid contact input IDs and generic review contact IDs still
-drive family-level contact-allocation pressure without granting allocation or
-import authority.
+selected/deferred capacity-pack contact-ID direction maps, deferred-contact ID
+maps, station-pressure contact-ID maps, station-pressure review contact IDs, and
+reservation-conflict contact IDs also count as the corresponding capacity-pack,
+deferred-allocation, station-pressure, and reservation-conflict pressure even
+when aggregate counters or demand totals are absent or zero. Invalid contact
+input IDs and generic review contact IDs still drive family-level
+contact-allocation pressure without granting allocation or import authority.
 Direct or result-artifact-wrapped
 `source_contact_allocation_provider_reservation_request_summary` /
 `contact_allocation_provider_reservation_request_summary` inputs replay through

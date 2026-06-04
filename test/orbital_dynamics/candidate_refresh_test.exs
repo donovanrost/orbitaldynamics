@@ -4614,6 +4614,15 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id" => %{
           "stale_station" => 99.0
         },
+        "capacity_pack_required_capacity_fraction_by_direction" => %{
+          "stale_direction" => 99.0
+        },
+        "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+          "stale_direction" => 99.0
+        },
+        "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+          "stale_direction" => 99.0
+        },
         "capacity_pack_selected_contact_ids_by_ground_station_id" => %{
           "stale_station" => ["stale_selected_contact"]
         },
@@ -4622,6 +4631,15 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         },
         "capacity_pack_contact_ids_by_ground_station_id" => %{
           "stale_station" => ["stale_capacity_pack_contact"]
+        },
+        "capacity_pack_selected_contact_ids_by_direction" => %{
+          "stale_direction" => ["stale_selected_contact"]
+        },
+        "capacity_pack_deferred_contact_ids_by_direction" => %{
+          "stale_direction" => ["stale_deferred_contact"]
+        },
+        "capacity_pack_contact_ids_by_direction" => %{
+          "stale_direction" => ["stale_capacity_pack_contact"]
         },
         "required_capacity_fraction_contact_ids_by_source" => %{
           "stale_source" => ["stale_contact"]
@@ -4735,12 +4753,25 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                %{"equator_prime" => 0.25},
              "source_report_contact_allocation_capacity_pack_deferred_required_capacity_fraction_by_ground_station" =>
                %{"equator_prime" => 0.35},
+             "source_report_contact_allocation_capacity_pack_required_capacity_fraction_by_direction" =>
+               %{"downlink" => 0.6},
+             "source_report_contact_allocation_capacity_pack_selected_required_capacity_fraction_by_direction" =>
+               %{"downlink" => 0.25},
+             "source_report_contact_allocation_capacity_pack_deferred_required_capacity_fraction_by_direction" =>
+               %{"downlink" => 0.35},
              "source_report_contact_allocation_capacity_pack_selected_contact_ids_by_ground_station" =>
                %{"equator_prime" => ["selected_contact"]},
              "source_report_contact_allocation_capacity_pack_deferred_contact_ids_by_ground_station" =>
                %{"equator_prime" => ["deferred_contact"]},
              "source_report_contact_allocation_capacity_pack_contact_ids_by_ground_station" => %{
                "equator_prime" => ["deferred_contact", "selected_contact"]
+             },
+             "source_report_contact_allocation_capacity_pack_selected_contact_ids_by_direction" =>
+               %{"downlink" => ["selected_contact"]},
+             "source_report_contact_allocation_capacity_pack_deferred_contact_ids_by_direction" =>
+               %{"downlink" => ["deferred_contact"]},
+             "source_report_contact_allocation_capacity_pack_contact_ids_by_direction" => %{
+               "downlink" => ["deferred_contact", "selected_contact"]
              },
              "source_report_contact_allocation_capacity_pack_contact_ids_by_status" => %{
                "deferred_by_reduced_station_capacity_pack" => ["deferred_contact"],
@@ -4892,6 +4923,24 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  },
                  "capacity_pack_contact_ids_by_ground_station" => %{
                    "equator_prime" => ["deferred_contact", "selected_contact"]
+                 },
+                 "capacity_pack_required_capacity_fraction_by_direction" => %{
+                   "downlink" => 0.6
+                 },
+                 "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+                   "downlink" => 0.25
+                 },
+                 "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+                   "downlink" => 0.35
+                 },
+                 "capacity_pack_selected_contact_ids_by_direction" => %{
+                   "downlink" => ["selected_contact"]
+                 },
+                 "capacity_pack_deferred_contact_ids_by_direction" => %{
+                   "downlink" => ["deferred_contact"]
+                 },
+                 "capacity_pack_contact_ids_by_direction" => %{
+                   "downlink" => ["deferred_contact", "selected_contact"]
                  },
                  "capacity_pack_contact_ids_by_status" => %{
                    "deferred_by_reduced_station_capacity_pack" => ["deferred_contact"],
@@ -5059,6 +5108,15 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "capacity_pack_deferred_required_capacity_fraction_by_ground_station" => %{
         "equator_prime" => 0.35
       },
+      "capacity_pack_required_capacity_fraction_by_direction" => %{
+        "downlink" => 0.6
+      },
+      "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+        "downlink" => 0.25
+      },
+      "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+        "downlink" => 0.35
+      },
       "capacity_pack_selected_contact_ids_by_ground_station" => %{
         "equator_prime" => ["selected_contact"]
       },
@@ -5067,6 +5125,15 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       },
       "capacity_pack_contact_ids_by_ground_station" => %{
         "equator_prime" => ["deferred_contact", "selected_contact"]
+      },
+      "capacity_pack_selected_contact_ids_by_direction" => %{
+        "downlink" => ["selected_contact"]
+      },
+      "capacity_pack_deferred_contact_ids_by_direction" => %{
+        "downlink" => ["deferred_contact"]
+      },
+      "capacity_pack_contact_ids_by_direction" => %{
+        "downlink" => ["deferred_contact", "selected_contact"]
       },
       "capacity_pack_contact_ids_by_status" => %{
         "deferred_by_reduced_station_capacity_pack" => ["deferred_contact"],
@@ -5201,12 +5268,25 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  "deferred_by_reduced_station_capacity_pack" => 0.35,
                  "selected_by_reduced_station_capacity_pack" => 0.25
                },
+             "source_report_contact_allocation_capacity_pack_required_capacity_fraction_by_direction" =>
+               %{"downlink" => 0.6},
+             "source_report_contact_allocation_capacity_pack_selected_required_capacity_fraction_by_direction" =>
+               %{"downlink" => 0.25},
+             "source_report_contact_allocation_capacity_pack_deferred_required_capacity_fraction_by_direction" =>
+               %{"downlink" => 0.35},
              "source_report_contact_allocation_capacity_pack_selected_contact_ids_by_ground_station" =>
                %{"equator_prime" => ["selected_contact"]},
              "source_report_contact_allocation_capacity_pack_deferred_contact_ids_by_ground_station" =>
                %{"equator_prime" => ["deferred_contact"]},
              "source_report_contact_allocation_capacity_pack_contact_ids_by_ground_station" => %{
                "equator_prime" => ["deferred_contact", "selected_contact"]
+             },
+             "source_report_contact_allocation_capacity_pack_selected_contact_ids_by_direction" =>
+               %{"downlink" => ["selected_contact"]},
+             "source_report_contact_allocation_capacity_pack_deferred_contact_ids_by_direction" =>
+               %{"downlink" => ["deferred_contact"]},
+             "source_report_contact_allocation_capacity_pack_contact_ids_by_direction" => %{
+               "downlink" => ["deferred_contact", "selected_contact"]
              },
              "source_report_contact_allocation_capacity_pack_contact_ids_by_status" => %{
                "deferred_by_reduced_station_capacity_pack" => ["deferred_contact"],
@@ -6114,6 +6194,23 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                0.5,
              "source_report_contact_allocation_capacity_pack_deferred_required_capacity_fraction" =>
                0.25,
+             "source_report_contact_allocation_capacity_pack_required_capacity_fraction_by_direction" =>
+               %{"downlink" => 0.75},
+             "source_report_contact_allocation_capacity_pack_selected_required_capacity_fraction_by_direction" =>
+               %{"downlink" => 0.5},
+             "source_report_contact_allocation_capacity_pack_deferred_required_capacity_fraction_by_direction" =>
+               %{"downlink" => 0.25},
+             "source_report_contact_allocation_capacity_pack_contact_ids_by_direction" => %{
+               "downlink" => [
+                 "dl_capacity_overflow",
+                 "dl_capacity_primary",
+                 "dl_capacity_secondary"
+               ]
+             },
+             "source_report_contact_allocation_capacity_pack_selected_contact_ids_by_direction" =>
+               %{"downlink" => ["dl_capacity_primary", "dl_capacity_secondary"]},
+             "source_report_contact_allocation_capacity_pack_deferred_contact_ids_by_direction" =>
+               %{"downlink" => ["dl_capacity_overflow"]},
              "source_report_contact_allocation_reduced_capacity_pack_group_count" => 1,
              "source_report_contact_allocation_capacity_pack_group_ids" => [
                "pack_equator_prime"
@@ -6159,6 +6256,28 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "capacity_pack_deferred_contact_ids_by_ground_station" => %{
                "equator_prime" => ["dl_capacity_overflow"]
              },
+             "capacity_pack_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.75
+             },
+             "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.5
+             },
+             "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.25
+             },
+             "capacity_pack_contact_ids_by_direction" => %{
+               "downlink" => [
+                 "dl_capacity_overflow",
+                 "dl_capacity_primary",
+                 "dl_capacity_secondary"
+               ]
+             },
+             "capacity_pack_selected_contact_ids_by_direction" => %{
+               "downlink" => ["dl_capacity_primary", "dl_capacity_secondary"]
+             },
+             "capacity_pack_deferred_contact_ids_by_direction" => %{
+               "downlink" => ["dl_capacity_overflow"]
+             },
              "reduced_capacity_pack_group_count" => 1,
              "capacity_pack_group_ids" => ["pack_equator_prime"],
              "source_summary_model_counts" => %{
@@ -6194,6 +6313,23 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_contact_allocation_reduced_capacity_pack_status_counts" => %{
                "capacity_limited" => 1
              },
+             "source_report_contact_allocation_capacity_pack_required_capacity_fraction_by_direction" =>
+               %{"downlink" => 0.75},
+             "source_report_contact_allocation_capacity_pack_selected_required_capacity_fraction_by_direction" =>
+               %{"downlink" => 0.5},
+             "source_report_contact_allocation_capacity_pack_deferred_required_capacity_fraction_by_direction" =>
+               %{"downlink" => 0.25},
+             "source_report_contact_allocation_capacity_pack_contact_ids_by_direction" => %{
+               "downlink" => [
+                 "dl_capacity_overflow",
+                 "dl_capacity_primary",
+                 "dl_capacity_secondary"
+               ]
+             },
+             "source_report_contact_allocation_capacity_pack_selected_contact_ids_by_direction" =>
+               %{"downlink" => ["dl_capacity_primary", "dl_capacity_secondary"]},
+             "source_report_contact_allocation_capacity_pack_deferred_contact_ids_by_direction" =>
+               %{"downlink" => ["dl_capacity_overflow"]},
              "source_report_contact_allocation_capacity_pack_group_ids" => [
                "pack_equator_prime"
              ],
@@ -6218,6 +6354,28 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "capacity_pack_group_ids" => ["pack_equator_prime"],
              "capacity_pack_group_ids_by_status" => %{
                "capacity_limited" => ["pack_equator_prime"]
+             },
+             "capacity_pack_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.75
+             },
+             "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.5
+             },
+             "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.25
+             },
+             "capacity_pack_contact_ids_by_direction" => %{
+               "downlink" => [
+                 "dl_capacity_overflow",
+                 "dl_capacity_primary",
+                 "dl_capacity_secondary"
+               ]
+             },
+             "capacity_pack_selected_contact_ids_by_direction" => %{
+               "downlink" => ["dl_capacity_primary", "dl_capacity_secondary"]
+             },
+             "capacity_pack_deferred_contact_ids_by_direction" => %{
+               "downlink" => ["dl_capacity_overflow"]
              },
              "branch_local_capacity_pack_pressure" => true
            } = CandidateRefresh.contact_allocation_replay_summary(refresh)
@@ -44975,6 +45133,28 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       },
       "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id" => %{
         "equator_prime" => 0.25
+      },
+      "capacity_pack_required_capacity_fraction_by_direction" => %{
+        "downlink" => 0.75
+      },
+      "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+        "downlink" => 0.5
+      },
+      "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+        "downlink" => 0.25
+      },
+      "capacity_pack_contact_ids_by_direction" => %{
+        "downlink" => [
+          "dl_capacity_overflow",
+          "dl_capacity_primary",
+          "dl_capacity_secondary"
+        ]
+      },
+      "capacity_pack_selected_contact_ids_by_direction" => %{
+        "downlink" => ["dl_capacity_primary", "dl_capacity_secondary"]
+      },
+      "capacity_pack_deferred_contact_ids_by_direction" => %{
+        "downlink" => ["dl_capacity_overflow"]
       },
       "required_capacity_fraction_source_counts" => %{
         "contact_required_capacity_fraction" => 3
