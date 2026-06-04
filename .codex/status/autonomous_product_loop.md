@@ -1,68 +1,59 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Contact-contention-resolution replay reads and labels branch
-`candidate_source.candidate_refresh_request_source_report_summary` metadata.
+Timeline lifecycle-state capability metadata exposes adapter-discoverable row
+semantics.
 
 Status:
-Implementation, focused verification, read-only review, product commit, and
-push are complete. This status handoff records the published state.
-`CandidateRefresh.contact_contention_resolution_replay_summary/1` now prefers
-a non-empty branch `contact_contention_resolution_report` source-report family
-before falling back to provenance. Branch summaries preserve source-report
-counts, row counts, paths, source-summary/source-artifact identity maps,
-recommendation/deferred/review/conflict counts and ID sets, ambiguous group
-routing, resolution-status and selection-reason maps, selected/deferred/review
-contact routing by group, station, resource scope, direction, and action,
-capacity-pack demand totals and status/station/source maps, trust-boundary
-metadata, and branch-local resolution, deferred-contact, capacity-pack, and
-action pressure booleans while labeling their `source` and replay scope as
-candidate-source summary metadata. Empty or absent branch families fall back to
-provenance labels; partial non-empty branch families remain authoritative.
-Direct `candidate_source` maps use the same branch labels.
+Implementation, focused verification, and read-only review are complete.
+Product commit, push, and final ledger publish update are pending.
+`Timeline.capabilities/0` now advertises row semantics for single-activity
+lifecycle state handoffs and lifecycle-state summaries, including transition
+decision/action fields, row-derived summary counts, required-operator-action
+and import-action count maps, status/approval category counts, review/record/
+preserve timeline ID sets, review routing, duplicate timeline-identity routing,
+and invalid-activity-input routing. This is a metadata/docs slice only;
+lifecycle-state artifact shapes and schema contracts were not changed.
 
 Files changed for this slice:
 - `.codex/status/autonomous_product_loop.md`
-- `docs/artifacts/field_families/candidate_refresh_artifact.md`
-- `lib/orbital_dynamics/candidate_refresh.ex`
-- `test/orbital_dynamics/candidate_refresh_test.exs`
+- `docs/artifacts/field_families/mission_activities.md`
+- `lib/orbital_dynamics/timeline.ex`
+- `test/orbital_dynamics/timeline_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:3536 test/orbital_dynamics/candidate_refresh_test.exs:3777 test/orbital_dynamics/candidate_refresh_test.exs:4014 test/orbital_dynamics/candidate_refresh_test.exs:4029 test/orbital_dynamics/candidate_refresh_test.exs:4307 test/orbital_dynamics/candidate_refresh_test.exs:4345 test/orbital_dynamics/candidate_refresh_test.exs:4387 test/orbital_dynamics/candidate_refresh_test.exs:4426 test/orbital_dynamics/candidate_refresh_test.exs:4478 --trace --seed 0`
-  passed existing capacity-pack, compact-summary, absent, and preserved-ID
-  checks plus new branch candidate-source replay, direct candidate-source
-  labeling, empty-branch fallback, absent-branch fallback, and partial-family
-  precedence checks.
+- `mix test test/orbital_dynamics/timeline_test.exs:7 test/orbital_dynamics/timeline_test.exs:6094 test/orbital_dynamics/timeline_test.exs:6308 --trace --seed 0`
+  passed the capabilities test plus single-activity lifecycle-state and
+  lifecycle-state-summary tests.
 
 Review:
-- `slice_reviewer` found no must-fix or should-fix findings. It confirmed the
-  branch preference, empty/absent-branch fallback, candidate-source
-  source/replay-scope labels, partial-family precedence tests, docs, and ledger
-  alignment.
+- `slice_reviewer` found no must-fix findings. It noted a non-blocking doc
+  coverage gap for single-activity lifecycle-state row semantics; the docs were
+  updated to name those semantics before publish.
 
 Docs/artifacts changed:
-- `docs/artifacts/field_families/candidate_refresh_artifact.md` now documents
-  the branch candidate-source contact-contention-resolution summary preference,
-  source and replay-scope labels, partial-family precedence, and provenance
-  fallback. No schema exports or checked-in study artifacts changed in this
-  slice.
+- `docs/artifacts/field_families/mission_activities.md` now states that
+  `Timeline.capabilities/0` row semantics name lifecycle-state summary count
+  maps, transition/category maps, review/record/preserve timeline ID sets,
+  duplicate identity routing, and invalid-input routing for adapters.
+- No schema exports, schema contracts, or checked-in study artifacts changed in
+  this slice.
 
 Last product commit:
-- `572d93beecee488d7c1dfed79f25b86fb20f5418` Label contention resolution
-  branch replay metadata.
+- Pending.
 
 Next candidate:
 After publish, re-read `docs/autonomous_work_guide.md`, this ledger, and the
-live worktree before choosing another gap. Continue one narrow resource/
-communications replay helper or branch-local source preservation gap at a time
-before moving to broader readiness, validation, or compatibility work.
+live worktree before choosing another gap. Continue with the highest-priority
+unimplemented typed timeline/activity semantics before returning to resource/
+communications replay helpers.
 
 Blocked:
 No.
 
 Notes:
-This slice intentionally does not replay refresh generation, mutate contact
-allocation, select candidates, approve imports, resolve contention, write to
-Cadence, or regenerate candidates. Treat current files as authoritative and do
-not revert unrelated changes. `.gitignore` has an unrelated pre-existing local
-scratch-ignore change and is not part of this slice.
+This slice intentionally does not change lifecycle-state artifact fields,
+schema validation, planner selection, schedule mutation, Cadence import,
+operator authority, or command execution. Treat current files as authoritative
+and do not revert unrelated changes. `.gitignore` has an unrelated pre-existing
+local scratch-ignore change and is not part of this slice.

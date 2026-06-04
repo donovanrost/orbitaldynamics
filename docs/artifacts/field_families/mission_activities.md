@@ -306,7 +306,12 @@ report helper and matching `OrbitalDynamics` facade names for adapters that need
 to discover typed activity normalization, preconditions, status, approval,
 planned/realized lifecycle summaries, preservation, integrity, rejection,
 decision, diff-summary, application-report, transition-summary, and
-selected-activity helpers without hard-coding module internals.
+selected-activity helpers without hard-coding module internals. Its row
+semantics also name the single-activity lifecycle-state transition decision and
+required-action fields plus lifecycle-state summary count maps,
+transition/category maps, review/record/preserve timeline ID sets, duplicate
+identity routing, and invalid-input routing that adapters can consume without
+scanning source rows.
 `Timeline.lifecycle_state_summary/3` and
 `OrbitalDynamics.timeline_lifecycle_state_summary/3` pair planned and realized
 activity sets by durable timeline identity, derive row-based record/review/

@@ -339,6 +339,19 @@ defmodule OrbitalDynamics.TimelineTest do
     assert :approval_transition_counts in row_semantics
     assert :status_transition_category_counts in row_semantics
     assert :approval_transition_category_counts in row_semantics
+    assert :activity_lifecycle_state in row_semantics
+    assert :activity_lifecycle_state_transition_decision in row_semantics
+    assert :activity_lifecycle_state_required_operator_actions in row_semantics
+    assert :lifecycle_state_summary in row_semantics
+    assert :lifecycle_state_summary_row_derived_counts in row_semantics
+    assert :lifecycle_state_summary_transition_decision_counts in row_semantics
+    assert :lifecycle_state_summary_required_operator_action_counts in row_semantics
+    assert :lifecycle_state_summary_import_action_counts in row_semantics
+    assert :lifecycle_state_summary_status_approval_category_counts in row_semantics
+    assert :lifecycle_state_summary_timeline_id_sets in row_semantics
+    assert :lifecycle_state_summary_review_routing in row_semantics
+    assert :lifecycle_state_summary_duplicate_timeline_identity in row_semantics
+    assert :lifecycle_state_summary_invalid_activity_input in row_semantics
     assert :candidate_rejection_report in row_semantics
     assert :candidate_rejection_status in row_semantics
     assert :candidate_rejection_reason in row_semantics
