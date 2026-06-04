@@ -1,44 +1,49 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Candidate-rejection operator-action count generation coverage.
+Quality-gate import-readiness routing coverage for review-required and blocked
+import rows.
 
 Status:
-Implemented and verification passed. `candidate_rejection_report.v1` generation
-now has direct facade-level test coverage for the row-derived
-`required_operator_action_counts` routing aggregate, matching the already-tested
-`candidate_ids_by_required_operator_action` map and the executable validation
-contract that rejects stale action counts. No runtime behavior changed.
+Implemented and verification passed. `operational_quality_gate_import_readiness_summary.v1`
+generation now has focused coverage for non-stale Cadence import routing:
+review-required import rows must populate `import_preparation_quality_gate_row_ids`,
+and blocked/invalid import rows must populate `blocked_import_quality_gate_row_ids`.
+Both generated compact summaries are schema-validated. No runtime behavior changed.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `test/orbital_dynamics/timeline_test.exs`
+- `test/orbital_dynamics/operational_readiness_test.exs`
 
 Docs read:
 - `docs/autonomous_work_guide.md`
-- `docs/artifacts/field_families/mission_activities.md`
+- `.codex/prompts/context_efficient_autonomous_product_loop.md`
+- `.codex/status/autonomous_product_loop.md`
+- `docs/mission_planning/high_fidelity/12_operational_readiness.md`
+- `docs/artifacts/compatibility_checks.md`
+- `docs/feature_set/capability_map/17_reproducibility_artifacts_and_audit.md`
+- `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`
 
 Tests run:
-- `mix format test/orbital_dynamics/timeline_test.exs`
-- `mix test test/orbital_dynamics/timeline_test.exs:8029`
-- `mix test test/orbital_dynamics/timeline_test.exs:8170 test/orbital_dynamics/timeline_test.exs:8231`
-- `mix test test/orbital_dynamics/timeline_test.exs`
+- `mix format test/orbital_dynamics/operational_readiness_test.exs`
+- `mix test test/orbital_dynamics/operational_readiness_test.exs:798`
+- `mix test test/orbital_dynamics/operational_readiness_test.exs`
 
 Docs/artifacts changed:
 No public docs, schema exports, or checked-in study artifacts changed. This is
 focused generation-contract test coverage for existing behavior.
 
 Last commit:
-Current slice commit is pushed to `origin/main` as `21abda6` (`Cover candidate
-rejection action counts`). `slice_reviewer` and `git_slice_publisher` were both
-unavailable because valid spawns hit the agent thread limit, so review and
-publish were performed manually with scoped staging. The unrelated `.gitignore`
-scratch-ignore change was left unstaged.
+Current slice code commit is `1a988ea` (`Cover import-readiness routing rows`).
+`slice_reviewer` was unavailable because valid spawns hit the agent thread
+limit, so review/publish was performed manually with scoped staging. The
+unrelated `.gitignore` scratch-ignore change was left unstaged.
 
 Next candidate:
 After review/publish, re-read the guide/ledger/live worktree and continue with
-the highest-priority current gap. Older memory notes about CandidateRefresh
-contact-intent direction routing appear implemented in the live checkout.
+the highest-priority current artifact-contract gap. Older memory notes about
+CandidateRefresh contact-intent direction routing appear implemented in the live
+checkout.
 
 Blocked:
 No.
