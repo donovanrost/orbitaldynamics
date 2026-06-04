@@ -410,6 +410,9 @@ defmodule OrbitalDynamics.TimelineTest do
     assert :dependency_impact_impacted_source_id_sets in row_semantics
     assert :dependency_impact_impacted_dependency_id_sets in row_semantics
     assert :dependency_impact_impacted_exclusivity_id_sets in row_semantics
+    assert :publication_summary in row_semantics
+    assert :publication_summary_downstream_invalidation in row_semantics
+    assert :publication_summary_dependency_impact in row_semantics
     assert :single_activity_transition_integrity_gate in row_semantics
     assert :lifecycle_preservation_report in row_semantics
     assert :lifecycle_preservation_status in row_semantics
