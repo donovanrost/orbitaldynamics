@@ -42,7 +42,7 @@ Docs/artifacts changed:
 - Checked-in schema exports refreshed.
 
 Last commit:
-- Pending review/commit for this slice.
+- `763fec1d2f664b6c1264d7b423b6eed90d258e5f` (`Preserve timeline precondition handoff context`).
 
 Next candidate:
 After review and publish, re-read the guide/ledger/live worktree and continue
