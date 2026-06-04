@@ -13368,6 +13368,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
           "station_calendar_provider_contention:equator_prime:1"
         ],
         "provider_contention_source_entry_ids" => ["provider_a", "provider_b"],
+        "provider_contention_provider_ids" => ["ops_calendar", "partner_calendar"],
         "provider_contention_provider_entry_ids" => [
           "provider_entry_ops",
           "provider_entry_partner"
@@ -13384,6 +13385,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
           "station_calendar_provider_contention:equator_prime:1"
         ],
         "provider_contention_source_entry_ids" => ["provider_a", "provider_b"],
+        "provider_contention_provider_ids" => ["ops_calendar", "partner_calendar"],
         "provider_contention_provider_entry_ids" => [
           "provider_entry_ops",
           "provider_entry_partner"
@@ -13398,6 +13400,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         "station_capacity_fractions" => [],
         "provider_contention_group_ids" => [],
         "provider_contention_source_entry_ids" => [],
+        "provider_contention_provider_ids" => [],
         "provider_contention_provider_entry_ids" => [],
         "provider_contention_capacity_fractions" => []
       }
@@ -13456,6 +13459,11 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                %{
                  "downlink" => ["provider_a", "provider_b"],
                  "tracking" => ["provider_a", "provider_b"]
+               },
+             "source_report_station_calendar_provider_calendar_contention_provider_ids_by_direction" =>
+               %{
+                 "downlink" => ["ops_calendar", "partner_calendar"],
+                 "tracking" => ["ops_calendar", "partner_calendar"]
                },
              "source_report_station_calendar_provider_calendar_contention_provider_entry_ids_by_direction" =>
                %{
@@ -13629,6 +13637,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                    "downlink" => ["provider_a", "provider_b"],
                    "tracking" => ["provider_a", "provider_b"]
                  },
+                 "provider_calendar_contention_provider_ids_by_direction" => %{
+                   "downlink" => ["ops_calendar", "partner_calendar"],
+                   "tracking" => ["ops_calendar", "partner_calendar"]
+                 },
                  "provider_calendar_contention_provider_entry_ids_by_direction" => %{
                    "downlink" => ["provider_entry_ops", "provider_entry_partner"],
                    "tracking" => ["provider_entry_ops", "provider_entry_partner"]
@@ -13788,6 +13800,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "provider_calendar_contention_source_entry_ids_by_direction" => %{
         "downlink" => ["provider_a", "provider_b"],
         "tracking" => ["provider_a", "provider_b"]
+      },
+      "provider_calendar_contention_provider_ids_by_direction" => %{
+        "downlink" => ["ops_calendar", "partner_calendar"],
+        "tracking" => ["ops_calendar", "partner_calendar"]
       },
       "provider_calendar_contention_provider_entry_ids_by_direction" => %{
         "downlink" => ["provider_entry_ops", "provider_entry_partner"],
@@ -13962,6 +13978,11 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "downlink" => 1,
                "tracking" => 1
              },
+             "source_report_station_calendar_provider_calendar_contention_provider_ids_by_direction" =>
+               %{
+                 "downlink" => ["ops_calendar", "partner_calendar"],
+                 "tracking" => ["ops_calendar", "partner_calendar"]
+               },
              "source_report_station_calendar_contact_ids_by_ground_station" => %{
                "dss_43" => ["dl_reserved"],
                "equator_prime" => ["dl_reduced", "dl_unavailable"]
@@ -14210,6 +14231,11 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "provider_calendar_contention_provider_entry_ids_by_direction"
            )
 
+    refute Map.has_key?(
+             station_summary,
+             "provider_calendar_contention_provider_ids_by_direction"
+           )
+
     refute Map.has_key?(station_summary, "direction_routing")
   end
 
@@ -14253,6 +14279,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
             "provider_calendar_contention_provider_entry_ids_by_ground_station" => %{
               "equator_prime" => ["provider_calendar_entry_map_only"]
             },
+            "provider_calendar_contention_provider_ids_by_direction" => %{
+              "downlink" => ["ops_calendar"]
+            },
             "provider_calendar_contention_provider_entry_ids_by_direction" => %{
               "downlink" => ["provider_calendar_entry_map_only"]
             },
@@ -14293,6 +14322,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert summary["provider_calendar_contention_provider_entry_ids_by_ground_station"] == %{
              "equator_prime" => ["provider_calendar_entry_map_only"]
+           }
+
+    assert summary["provider_calendar_contention_provider_ids_by_direction"] == %{
+             "downlink" => ["ops_calendar"]
            }
 
     assert summary["provider_calendar_contention_provider_entry_ids_by_direction"] == %{

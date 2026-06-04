@@ -3071,6 +3071,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "station_calendar_report",
           "provider_calendar_contention_provider_entry_ids_by_ground_station"
         ),
+      "source_report_station_calendar_provider_calendar_contention_provider_ids_by_direction" =>
+        source_report_summary_family_merge_string_list_maps(
+          source_reports,
+          "station_calendar_report",
+          "provider_calendar_contention_provider_ids_by_direction"
+        ),
       "source_report_station_calendar_provider_calendar_contention_direction_counts" =>
         source_report_summary_family_merge_count_maps(
           source_reports,
@@ -8921,6 +8927,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
         %{}
       )
 
+    provider_contention_provider_ids_by_direction =
+      Map.get(station_summary, "provider_calendar_contention_provider_ids_by_direction", %{})
+
     provider_contention_direction_counts =
       Map.get(station_summary, "provider_calendar_contention_direction_counts", %{})
 
@@ -9094,6 +9103,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
         provider_contention_provider_entry_ids_by_provider,
       "provider_calendar_contention_provider_entry_ids_by_ground_station" =>
         provider_contention_provider_entry_ids_by_ground_station,
+      "provider_calendar_contention_provider_ids_by_direction" =>
+        provider_contention_provider_ids_by_direction,
       "provider_calendar_contention_direction_counts" => provider_contention_direction_counts,
       "provider_calendar_contention_group_ids_by_direction" =>
         provider_contention_group_ids_by_direction,
@@ -9186,6 +9197,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
           map_size(provider_contention_capacity_fractions_by_ground_station) > 0 or
           map_size(provider_contention_provider_entry_ids_by_provider) > 0 or
           map_size(provider_contention_provider_entry_ids_by_ground_station) > 0 or
+          map_size(provider_contention_provider_ids_by_direction) > 0 or
           map_size(provider_contention_direction_counts) > 0 or
           map_size(provider_contention_group_ids_by_direction) > 0 or
           map_size(provider_contention_source_entry_ids_by_direction) > 0 or
@@ -9240,6 +9252,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
           map_size(provider_contention_capacity_fractions_by_ground_station) > 0 or
           map_size(provider_contention_provider_entry_ids_by_provider) > 0 or
           map_size(provider_contention_provider_entry_ids_by_ground_station) > 0 or
+          map_size(provider_contention_provider_ids_by_direction) > 0 or
           map_size(provider_contention_direction_counts) > 0 or
           map_size(provider_contention_group_ids_by_direction) > 0 or
           map_size(provider_contention_source_entry_ids_by_direction) > 0 or
@@ -20703,6 +20716,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
           &station_calendar_report_provider_contention_provider_entry_ids_by_ground_station/1
         )
         |> merge_string_list_maps(),
+      "provider_calendar_contention_provider_ids_by_direction" =>
+        reports
+        |> Enum.map(&station_calendar_report_provider_contention_provider_ids_by_direction/1)
+        |> merge_string_list_maps(),
       "provider_calendar_contention_direction_counts" =>
         reports
         |> Enum.map(&station_calendar_report_provider_contention_direction_counts/1)
@@ -27607,6 +27624,17 @@ defmodule OrbitalDynamics.CandidateRefresh do
     )
   end
 
+  defp station_calendar_report_provider_contention_provider_ids_by_direction(report) do
+    report
+    |> Map.get("provider_calendar_contention_groups", [])
+    |> station_calendar_report_provider_contention_values_by_direction(fn group ->
+      group
+      |> stringify_keys()
+      |> Map.get("provider_ids")
+      |> station_calendar_group_ids()
+    end)
+  end
+
   defp station_calendar_report_provider_contention_capacity_fractions_by_direction(report) do
     report
     |> Map.get("provider_calendar_contention_groups", [])
@@ -27836,6 +27864,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
       |> merge_string_list_maps()
       |> empty_map_if_nil()
 
+    provider_contention_provider_ids_by_direction =
+      reports
+      |> Enum.map(&station_calendar_report_provider_contention_provider_ids_by_direction/1)
+      |> merge_string_list_maps()
+      |> empty_map_if_nil()
+
     provider_contention_provider_entry_ids_by_direction =
       reports
       |> Enum.map(&station_calendar_report_provider_contention_provider_entry_ids_by_direction/1)
@@ -27857,6 +27891,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       Map.keys(provider_contention_direction_counts),
       Map.keys(provider_contention_group_ids_by_direction),
       Map.keys(provider_contention_source_entry_ids_by_direction),
+      Map.keys(provider_contention_provider_ids_by_direction),
       Map.keys(provider_contention_provider_entry_ids_by_direction),
       Map.keys(provider_contention_capacity_fractions_by_direction)
     ]
@@ -27881,6 +27916,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
             Map.get(provider_contention_group_ids_by_direction, direction, []),
           "provider_contention_source_entry_ids" =>
             Map.get(provider_contention_source_entry_ids_by_direction, direction, []),
+          "provider_contention_provider_ids" =>
+            Map.get(provider_contention_provider_ids_by_direction, direction, []),
           "provider_contention_provider_entry_ids" =>
             Map.get(provider_contention_provider_entry_ids_by_direction, direction, []),
           "provider_contention_capacity_fractions" =>

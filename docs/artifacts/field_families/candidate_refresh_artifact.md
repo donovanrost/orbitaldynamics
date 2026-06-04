@@ -1291,15 +1291,15 @@ provider-contention counts, provider-contention group IDs and embedded source
 entry IDs, provider-entry IDs, provider-contention capacity fractions, minimum
 provider-contention capacity fraction, and provider-contention capacity-fraction
 maps by provider and station, provider-entry maps by provider and station, plus
-provider-contention direction counts and group/source-entry/provider-entry/
-capacity-fraction maps by direction when direction evidence is present,
+provider-contention direction counts and group/source-entry/provider/
+provider-entry/capacity-fraction maps by direction when direction evidence is present,
 provider/station/status/availability maps, trust-boundary evidence, and
 branch-local station-calendar, affected-contact, provider-contention, and
 station-availability pressure booleans. Preserved station-capacity maps keyed by
 ground station and provider-contention capacity maps keyed by provider, station,
-or direction remain station-availability pressure, and preserved provider-entry
-routing maps remain provider-contention pressure, even when aggregate affected
-or contention counters are absent or zero. The replay summary does not mutate
+or direction remain station-availability pressure, and preserved provider and
+provider-entry routing maps remain provider-contention pressure, even when
+aggregate affected or contention counters are absent or zero. The replay summary does not mutate
 station calendars or schedules, select candidates, approve imports, write to
 Cadence, or regenerate candidates.
 `OperatorReview.from_candidate_refresh_artifact/1` also lifts direct
