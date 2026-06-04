@@ -7557,13 +7557,33 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local contact-filter replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, mutate contact allocation, select
-  candidates, approve imports, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, mutate
+  contact allocation, select candidates, approve imports, or write to Cadence.
   """
   def contact_filter_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
-    filter_summary = get_in(source_summary, ["source_reports", "contact_filter_report"]) || %{}
+
+    branch_filter_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "contact_filter_report")
+
+    filter_summary =
+      branch_filter_summary ||
+        get_in(source_summary, ["source_reports", "contact_filter_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_filter_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.contact_filter_report",
+          "contact_filter_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.contact_filter_report",
+          "contact_filter_source_report_provenance_only"
+        }
+      end
 
     suppressed_candidate_count =
       summary_integer(filter_summary, "suppressed_candidate_count")
@@ -7657,7 +7677,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_contact_filter_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.contact_filter_report",
+      "source" => summary_source,
       "contract" => source_report_summary_contract(filter_summary, "contact_filter_report.v1"),
       "source_report_count" => summary_integer(filter_summary, "count"),
       "source_report_row_count" => summary_integer(filter_summary, "row_count"),
@@ -7751,7 +7771,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
           map_size(station_suppression_station_reservation_ids_by_status) > 0,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "contact_filter_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_contact_filter_replay_summary",
         "contact_allocation" => "not_performed_by_summary",
         "candidate_selection" => "not_performed_by_summary",

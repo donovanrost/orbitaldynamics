@@ -1,19 +1,20 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Resource-filter replay reads and labels branch
+Contact-filter replay reads and labels branch
 `candidate_source.candidate_refresh_request_source_report_summary` metadata.
 
 Status:
-Implementation, focused verification, read-only review, product commit, and
-push are complete. This status handoff records the published state.
-`CandidateRefresh.resource_filter_replay_summary/1` now prefers a non-empty
-branch `resource_filter_report` source-report family before falling back to
+Implementation, focused verification, and read-only review are complete.
+Product commit, push, and final ledger publish update are pending.
+`CandidateRefresh.contact_filter_replay_summary/1` now prefers a non-empty
+branch `contact_filter_report` source-report family before falling back to
 provenance. Branch summaries preserve source-report counts, row counts, paths,
-suppressed and invalid resource-summary input counts, invalid resource-summary
-input IDs, suppressed-reason maps, spacecraft/resource/blocking-dimension
-routing, direction routing, trust-boundary metadata, and branch-local resource
-filter, candidate suppression, invalid resource-summary, and resource-blocking
+suppressed and invalid contact-input counts, invalid contact input IDs,
+suppressed-reason maps, direction routing, station-suppression station,
+availability, status, contact-ID, station-calendar entry, provider-entry, and
+reservation-ID routing, trust-boundary metadata, and branch-local contact
+filter, candidate suppression, invalid contact-input, and station-suppression
 pressure booleans while labeling their `source` and replay scope as
 candidate-source summary metadata. Empty or absent branch families fall back to
 provenance labels; partial non-empty branch families remain authoritative.
@@ -26,26 +27,25 @@ Files changed for this slice:
 - `test/orbital_dynamics/candidate_refresh_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:9802 test/orbital_dynamics/candidate_refresh_test.exs:10093 test/orbital_dynamics/candidate_refresh_test.exs:10148 test/orbital_dynamics/candidate_refresh_test.exs:10183 test/orbital_dynamics/candidate_refresh_test.exs:10212 test/orbital_dynamics/candidate_refresh_test.exs:10227 test/orbital_dynamics/candidate_refresh_test.exs:10352 test/orbital_dynamics/candidate_refresh_test.exs:10391 test/orbital_dynamics/candidate_refresh_test.exs:10439 test/orbital_dynamics/candidate_refresh_test.exs:10485 test/orbital_dynamics/candidate_refresh_test.exs:10546 --trace --seed 0`
-  passed existing aggregate/suppression/blocking/invalid/absent checks and new
-  branch candidate-source replay, direct candidate-source labeling,
-  empty-branch fallback, absent-branch fallback, partial-family precedence, and
-  compact summary checks.
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:10690 test/orbital_dynamics/candidate_refresh_test.exs:11234 test/orbital_dynamics/candidate_refresh_test.exs:11372 test/orbital_dynamics/candidate_refresh_test.exs:11387 test/orbital_dynamics/candidate_refresh_test.exs:11581 test/orbital_dynamics/candidate_refresh_test.exs:11619 test/orbital_dynamics/candidate_refresh_test.exs:11663 test/orbital_dynamics/candidate_refresh_test.exs:11708 --trace --seed 0`
+  passed existing aggregate/station-map/invalid/absent checks and new branch
+  candidate-source replay, direct candidate-source labeling, empty-branch
+  fallback, absent-branch fallback, and partial-family precedence checks.
 
 Review:
-- `slice_reviewer` found no must-fix findings. It flagged one should-fix
-  coverage gap for absent branch-family fallback; this slice added that focused
-  test and reran the resource-filter test cluster successfully.
+- `slice_reviewer` found no must-fix or should-fix findings. It confirmed the
+  branch preference, empty/absent-branch fallback, candidate-source
+  source/replay-scope labels, partial-family precedence tests, docs, and ledger
+  alignment.
 
 Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md` now documents
-  the branch candidate-source resource-filter summary preference, source and
+  the branch candidate-source contact-filter summary preference, source and
   replay-scope labels, partial-family precedence, and provenance fallback. No
   schema exports or checked-in study artifacts changed in this slice.
 
 Last product commit:
-- `cdc2752d48d2f1b11d2f8f1f221e3b7fdc2a5a8e` (`Label resource filter branch
-  replay metadata`) pushed to `origin/main`.
+- Pending.
 
 Next candidate:
 After publish, re-read `docs/autonomous_work_guide.md`, this ledger, and the
@@ -57,8 +57,8 @@ Blocked:
 No.
 
 Notes:
-This slice intentionally does not replay refresh generation, mutate resource
-filtering, select candidates, approve imports, write to Cadence, or regenerate
-candidates. Treat current files as authoritative and do not revert unrelated
-changes. `.gitignore` has an unrelated pre-existing local scratch-ignore change
-and is not part of this slice.
+This slice intentionally does not replay refresh generation, mutate contact
+filtering or contact allocation, select candidates, approve imports, write to
+Cadence, or regenerate candidates. Treat current files as authoritative and do
+not revert unrelated changes. `.gitignore` has an unrelated pre-existing local
+scratch-ignore change and is not part of this slice.

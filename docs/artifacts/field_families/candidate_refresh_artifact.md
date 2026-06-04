@@ -1085,6 +1085,10 @@ result-artifact-wrapped mission-state contact-filter reports with
 wrapper-qualified request input paths and indexed embedded replay copies, so
 suppression, invalid-input, direction, and station-suppression routing remains
 visible to `CandidateRefresh.contact_filter_replay_summary/1`.
+When the branch `contact_filter_report` source-report family is non-empty, the
+helper labels its output source and replay scope as candidate-source summary
+metadata, treats partial non-empty branch families as authoritative, and falls
+back to provenance labels for absent or empty branch families.
 Suppression-reason, direction/contact-ID,
 suppression-reason contact-ID, station-suppression station/availability/status
 count, contact-ID, station-calendar entry, station-calendar provider-entry, and
