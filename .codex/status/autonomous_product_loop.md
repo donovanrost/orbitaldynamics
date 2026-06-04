@@ -29,7 +29,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`651f7f8` (`Record freshness slice commit`).
+`6eb5b01` (`Flatten refresh budget replay identity`).
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth
