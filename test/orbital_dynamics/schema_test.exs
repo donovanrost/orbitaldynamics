@@ -17475,6 +17475,7 @@ defmodule OrbitalDynamics.SchemaTest do
              ]
 
     assert %{"required" => ["ground_station_id"]} in entry_schema["anyOf"]
+    assert %{"required" => ["station_id"]} in entry_schema["anyOf"]
     assert %{"required" => ["availability"]} in hd(entry_schema["allOf"])["anyOf"]
 
     assert get_in(entry_schema, ["properties", "capacity_pack_capacity_fraction"]) == %{

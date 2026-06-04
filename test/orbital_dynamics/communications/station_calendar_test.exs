@@ -4684,6 +4684,42 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
                  &1["message"] =~ "requires trust_boundary")
            )
 
+    invalid_reservation_hold_id = %{
+      "schema_contract" => "station_calendar_provider.v1",
+      "id" => "ops_calendar",
+      "trust_boundary" => "declared_station_calendar",
+      "entries" => [
+        %{
+          "station_id" => "equator_prime",
+          "availability" => "reservation_hold",
+          "reservation_hold_id" => "bad hold id",
+          "starts_at_s" => 10.0,
+          "ends_at_s" => 20.0
+        }
+      ]
+    }
+
+    assert {:error, invalid_reservation_hold_id_report} =
+             Schema.validate_artifact(invalid_reservation_hold_id)
+
+    assert Enum.any?(
+             invalid_reservation_hold_id_report["errors"],
+             &(&1["path"] == "$.entries[0].reservation_hold_id" and
+                 &1["message"] =~ "stable ID pattern")
+           )
+
+    invalid_hold_id =
+      put_in(invalid_reservation_hold_id, ["entries", Access.at(0), "hold_id"], "bad hold id")
+      |> put_in(["entries", Access.at(0), "reservation_hold_id"], "provider_hold_1")
+
+    assert {:error, invalid_hold_id_report} = Schema.validate_artifact(invalid_hold_id)
+
+    assert Enum.any?(
+             invalid_hold_id_report["errors"],
+             &(&1["path"] == "$.entries[0].hold_id" and
+                 &1["message"] =~ "stable ID pattern")
+           )
+
     assert_raise ArgumentError, ~r/entries must be a list/, fn ->
       StationCalendar.to_ground_network(%{id: "ops_calendar", entries: %{}})
     end
