@@ -607,10 +607,11 @@ CandidateRefresh input alongside operational-readiness replay provenance.
 `CandidateRefresh.candidate_diff_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_candidate_diff_replay_summary/1` expose the
 candidate-diff slice as a branch-local replay summary. It preserves source diff
-paths, retained/new/invalidated counts, diff/invalidated/semantic-change reason
-maps, changed-field maps, candidate/station routing maps, trust-boundary
-evidence, and branch-local diff pressure booleans without mutating refresh
-state, selecting candidates, writing to Cadence, or regenerating candidates.
+contract, count, row-count, paths, retained/new/invalidated counts,
+diff/invalidated/semantic-change reason maps, changed-field maps,
+candidate/station routing maps, trust-boundary evidence, and branch-local diff
+pressure booleans without mutating refresh state, selecting candidates, writing
+to Cadence, or regenerating candidates.
 Preserved diff, invalidated, semantic-change, changed-field, candidate, and
 station routing maps can drive branch-local pressure when aggregate
 retained/new/invalidated counters are absent or zero. The replay helper can
@@ -628,6 +629,12 @@ result-artifact-wrapped raw `source_candidate_diff_report` /
 indexed embedded replay copies, retained/new/invalidated counts, reason and
 changed-field maps, candidate/station routing maps, and inherited
 trust-boundary evidence for artifact-only replay.
+When candidate-diff provenance is absent, the replay summary omits the contract
+field rather than defaulting to `candidate_diff_report.v1`, and the aggregate
+source-report summary omits the top-level candidate-diff identity rollups
+instead of emitting empty contract/count/row-count/path fields. Partial
+placeholder provenance does not synthesize count, row-count, or path identity
+rollups unless both identity counts are present and non-nil.
 Capability metadata advertises `candidate_diff_report` as an accepted
 CandidateRefresh input alongside candidate-diff replay provenance.
 

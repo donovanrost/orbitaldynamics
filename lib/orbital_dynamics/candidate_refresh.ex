@@ -3371,6 +3371,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "candidate_diff_report",
           "retained_candidate_count"
         ),
+      "source_report_candidate_diff_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "candidate_diff_report",
+          "contract"
+        ),
+      "source_report_candidate_diff_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "candidate_diff_report",
+          "count"
+        ),
+      "source_report_candidate_diff_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "candidate_diff_report",
+          "row_count"
+        ),
+      "source_report_candidate_diff_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "candidate_diff_report",
+          "paths"
+        ),
       "source_report_candidate_diff_new_candidate_count" =>
         source_report_summary_family_count(
           source_reports,

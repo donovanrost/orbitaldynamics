@@ -1,17 +1,17 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh schema-validation source-report identity rollups.
+CandidateRefresh candidate-diff source-report identity rollups.
 
 Status:
 Implemented with focused verification passing locally.
 `CandidateRefresh.source_report_summary/1` now
-flattens `source_report_schema_validation_contract`,
-`source_report_schema_validation_count`,
-`source_report_schema_validation_row_count`, and
-`source_report_schema_validation_paths` alongside the existing
-schema-validation status, validated-contract, mode, error/warning, and
-remediation aggregate fields.
+flattens `source_report_candidate_diff_contract`,
+`source_report_candidate_diff_count`,
+`source_report_candidate_diff_row_count`, and
+`source_report_candidate_diff_paths` alongside the existing candidate-diff
+retained/new/invalidated counts, reason maps, changed-field maps, and
+candidate/station routing aggregate fields.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -21,9 +21,9 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:22194`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:22446`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:22469`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:1814`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:2028`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:2048`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 
@@ -31,7 +31,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`c70b56a` (`Flatten schema validation replay identity`).
+Pending candidate-diff slice commit.
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth

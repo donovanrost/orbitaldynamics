@@ -1856,6 +1856,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert %{
              "source_report_family_count" => 1,
              "source_report_row_count" => 3,
+             "source_report_candidate_diff_contract" => "candidate_diff_report.v1",
+             "source_report_candidate_diff_count" => 1,
+             "source_report_candidate_diff_row_count" => 3,
+             "source_report_candidate_diff_paths" => [
+               "mission_state.source_candidate_diff_report"
+             ],
              "source_report_candidate_diff_retained_candidate_count" => 1,
              "source_report_candidate_diff_new_candidate_count" => 1,
              "source_report_candidate_diff_invalidated_candidate_count" => 1,
@@ -1996,6 +2002,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 2,
+             "source_report_candidate_diff_contract" => "candidate_diff_report.v1",
+             "source_report_candidate_diff_count" => 1,
+             "source_report_candidate_diff_row_count" => 3,
+             "source_report_candidate_diff_paths" => [
+               "mission_state.source_candidate_diff_report"
+             ],
              "source_report_candidate_diff_retained_candidate_count" => 1,
              "source_report_candidate_diff_diff_reason_counts" => %{
                "not_present_in_prior_candidate_set" => 1,
@@ -2019,13 +2031,57 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "provenance" => %{"source_reports" => %{}}
     }
 
+    source_summary = CandidateRefresh.source_report_summary(artifact)
     summary = CandidateRefresh.candidate_diff_replay_summary(artifact)
 
+    refute Map.has_key?(source_summary, "source_report_candidate_diff_contract")
+    refute Map.has_key?(source_summary, "source_report_candidate_diff_count")
+    refute Map.has_key?(source_summary, "source_report_candidate_diff_row_count")
+    refute Map.has_key?(source_summary, "source_report_candidate_diff_paths")
     assert summary["source_report_count"] == 0
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_paths"] == []
     refute Map.has_key?(summary, "contract")
     refute summary["branch_local_diff_pressure"]
+  end
+
+  test "candidate diff source summary omits missing identity counts for partial family placeholder" do
+    partial_summaries = [
+      %{"contract" => "candidate_diff_report.v1"},
+      %{"count" => 1},
+      %{"row_count" => 3},
+      %{"paths" => ["provenance.source_reports.candidate_diff_report"]},
+      %{"count" => nil, "row_count" => nil},
+      %{
+        "count" => nil,
+        "row_count" => nil,
+        "paths" => ["provenance.source_reports.candidate_diff_report"]
+      }
+    ]
+
+    for partial_summary <- partial_summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "candidate_diff_report" => partial_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      if Map.has_key?(partial_summary, "contract") do
+        assert source_summary["source_report_candidate_diff_contract"] ==
+                 "candidate_diff_report.v1"
+      else
+        refute Map.has_key?(source_summary, "source_report_candidate_diff_contract")
+      end
+
+      refute Map.has_key?(source_summary, "source_report_candidate_diff_count")
+      refute Map.has_key?(source_summary, "source_report_candidate_diff_row_count")
+      refute Map.has_key?(source_summary, "source_report_candidate_diff_paths")
+    end
   end
 
   test "candidate diff replay treats preserved maps as branch-local pressure" do
