@@ -5,9 +5,10 @@ Timeline-feedback replay reads and labels V3 branch
 `candidate_source.candidate_refresh_request_source_report_summary` metadata.
 
 Status:
-Implementation, focused verification, and read-only review are complete; commit
-and push are pending. `CandidateRefresh.timeline_feedback_replay_summary/1` now
-checks a non-empty V3 branch `timeline_feedback_report` source-report family before
+Implementation, focused verification, read-only review, product commit, and
+push are complete for this slice. This status handoff records the published
+state. `CandidateRefresh.timeline_feedback_replay_summary/1` now checks a
+non-empty V3 branch `timeline_feedback_report` source-report family before
 falling back to provenance. Branch-sourced summaries preserve source-report
 counts, row counts, paths, input keys, status/feedback-kind/match-strategy/
 activity/import maps, station-reservation evidence counts, trust-boundary
@@ -42,7 +43,8 @@ Docs/artifacts changed:
   No schema exports or checked-in study artifacts changed in this slice.
 
 Last product commit:
-- Pending.
+- `8cc90e209386f50c91eeefa9e38934716fc3b7e9` (`Label timeline feedback branch
+  replay metadata`) pushed to `origin/main`.
 
 Next candidate:
 After publish, re-read `docs/autonomous_work_guide.md`, this ledger, and the
