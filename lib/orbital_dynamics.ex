@@ -1504,6 +1504,38 @@ defmodule OrbitalDynamics do
   end
 
   @doc """
+  Applies a safe lifecycle-status transition to one timeline activity row.
+  """
+  def timeline_transition_activity_status(activity, status) do
+    Timeline.transition_activity_status(activity, status)
+  end
+
+  @doc """
+  Applies a safe lifecycle-status transition to one timeline activity row.
+
+  Raises when the transition requires operator review.
+  """
+  def timeline_transition_activity_status!(activity, status) do
+    Timeline.transition_activity_status!(activity, status)
+  end
+
+  @doc """
+  Applies a safe approval-status transition to one timeline activity row.
+  """
+  def timeline_transition_activity_approval_status(activity, approval_status) do
+    Timeline.transition_activity_approval_status(activity, approval_status)
+  end
+
+  @doc """
+  Applies a safe approval-status transition to one timeline activity row.
+
+  Raises when the transition requires operator review.
+  """
+  def timeline_transition_activity_approval_status!(activity, approval_status) do
+    Timeline.transition_activity_approval_status!(activity, approval_status)
+  end
+
+  @doc """
   Classifies the artifact-only transition decision for one proposed activity change.
   """
   def timeline_transition_decision(source_activity, replacement_activity, opts \\ []) do

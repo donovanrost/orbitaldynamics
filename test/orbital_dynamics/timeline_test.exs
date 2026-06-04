@@ -201,6 +201,8 @@ defmodule OrbitalDynamics.TimelineTest do
     assert :activity_approval_state in transition_helpers
     assert :status_transition in transition_helpers
     assert :approval_transition in transition_helpers
+    assert :transition_activity_status in transition_helpers
+    assert :transition_activity_approval_status in transition_helpers
     assert :protection_decision in transition_helpers
     assert :transition_decision in transition_helpers
     assert :transition_application in transition_helpers
@@ -224,6 +226,10 @@ defmodule OrbitalDynamics.TimelineTest do
     assert :timeline_activity_approval_state in public_facades
     assert :timeline_status_transition in public_facades
     assert :timeline_approval_transition in public_facades
+    assert :timeline_transition_activity_status in public_facades
+    assert :timeline_transition_activity_status! in public_facades
+    assert :timeline_transition_activity_approval_status in public_facades
+    assert :timeline_transition_activity_approval_status! in public_facades
     assert :timeline_protection_decision in public_facades
     assert :timeline_preservation_status in public_facades
     assert :timeline_integrity_report in public_facades
@@ -6263,6 +6269,107 @@ defmodule OrbitalDynamics.TimelineTest do
 
     assert OrbitalDynamics.timeline_approval_transition(source, replacement) ==
              Timeline.approval_transition(source, replacement)
+  end
+
+  test "applies safe timeline activity status and approval transitions" do
+    activity = %{
+      id: :cmd_transition,
+      type: :command,
+      scenario_id: :leo_1,
+      status: "In Progress",
+      approval_status: :pending,
+      metadata: %{
+        timeline_id: :"timeline:cmd_transition",
+        source_window_id: :"window:cmd_transition"
+      }
+    }
+
+    assert {:ok,
+            %{
+              "activity_id" => "cmd_transition",
+              "activity_type" => "command",
+              "status" => "completed",
+              "approval_status" => "pending",
+              "timeline_id" => "timeline:cmd_transition",
+              "source_window_id" => "window:cmd_transition",
+              "activity_context" => %{
+                "status" => "completed",
+                "approval_status" => "pending",
+                "timeline_identity" => %{
+                  "activity_id" => "cmd_transition",
+                  "timeline_id" => "timeline:cmd_transition",
+                  "source_window_id" => "window:cmd_transition"
+                }
+              }
+            } = completed} = Timeline.transition_activity_status(activity, "succeeded")
+
+    assert completed == Timeline.transition_activity_status!(activity, "succeeded")
+
+    assert OrbitalDynamics.timeline_transition_activity_status(activity, "succeeded") ==
+             {:ok, completed}
+
+    assert OrbitalDynamics.timeline_transition_activity_status!(activity, "succeeded") ==
+             completed
+
+    assert {:ok,
+            %{
+              "activity_id" => "cmd_transition",
+              "status" => "executing",
+              "approval_status" => "not_required",
+              "timeline_id" => "timeline:cmd_transition",
+              "activity_context" => %{
+                "approval_status" => "not_required",
+                "timeline_identity" => %{"timeline_id" => "timeline:cmd_transition"}
+              }
+            } = no_review_required} =
+             Timeline.transition_activity_approval_status(activity, "No Review Required")
+
+    assert no_review_required ==
+             Timeline.transition_activity_approval_status!(activity, "No Review Required")
+
+    assert OrbitalDynamics.timeline_transition_activity_approval_status(
+             activity,
+             "No Review Required"
+           ) == {:ok, no_review_required}
+
+    assert OrbitalDynamics.timeline_transition_activity_approval_status!(
+             activity,
+             "No Review Required"
+           ) == no_review_required
+
+    completed_activity = Map.put(activity, :status, :completed)
+
+    assert {:error,
+            %{
+              "transition_category" => "executed_activity_changed",
+              "requires_operator_review" => true,
+              "operator_action_reason" => "executed_status_changed"
+            }} = Timeline.transition_activity_status(completed_activity, :planned)
+
+    assert_raise ArgumentError,
+                 ~r/unsafe timeline activity status transition completed -> planned/,
+                 fn ->
+                   Timeline.transition_activity_status!(completed_activity, :planned)
+                 end
+
+    assert {:error,
+            %{
+              "transition_category" => "approval_granted",
+              "requires_operator_review" => true,
+              "operator_action_reason" => "approval_grant_requires_operator_authority"
+            }} = Timeline.transition_activity_approval_status(activity, :approved)
+
+    assert_raise ArgumentError,
+                 ~r/unsafe timeline activity approval transition pending -> approved/,
+                 fn ->
+                   Timeline.transition_activity_approval_status!(activity, :approved)
+                 end
+
+    assert {:error,
+            %{
+              "transition_category" => "invalid_activity_input",
+              "operator_action_reason" => "invalid_activity_input"
+            }} = Timeline.transition_activity_status(activity, "provider magic")
   end
 
   test "normalizes planned and realized activity status state for review and import handoff" do

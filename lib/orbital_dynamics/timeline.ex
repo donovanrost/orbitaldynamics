@@ -925,6 +925,8 @@ defmodule OrbitalDynamics.Timeline do
         :activity_approval_state,
         :status_transition,
         :approval_transition,
+        :transition_activity_status,
+        :transition_activity_approval_status,
         :protection_decision,
         :transition_decision,
         :transition_application,
@@ -950,6 +952,10 @@ defmodule OrbitalDynamics.Timeline do
         :timeline_activity_approval_state,
         :timeline_status_transition,
         :timeline_approval_transition,
+        :timeline_transition_activity_status,
+        :timeline_transition_activity_status!,
+        :timeline_transition_activity_approval_status,
+        :timeline_transition_activity_approval_status!,
         :timeline_protection_decision,
         :timeline_integrity_report,
         :candidate_rejection_report,
@@ -4193,6 +4199,48 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   @doc """
+  Returns a normalized timeline activity row with a safe lifecycle status transition.
+
+  The helper is artifact state only: it reuses `status_transition/2` semantics,
+  blocks transitions that require operator review, and does not mutate schedules,
+  grant operator authority, or execute commands.
+  """
+  def transition_activity_status(activity, status) when is_map(activity) do
+    source_activity = activity_to_map(activity)
+    replacement_activity = Map.put(source_activity, "status", status)
+
+    transition =
+      source_activity
+      |> optional_activity_state_input(1)
+      |> activity_state_status_transition(optional_activity_state_input(replacement_activity, 2))
+
+    if transition_requires_operator_review?(transition) do
+      {:error, transition}
+    else
+      {:ok, normalize_activity(replacement_activity)}
+    end
+  end
+
+  def transition_activity_status(_activity, _status),
+    do: raise(ArgumentError, "activity must be a map or MissionPlan.Activity")
+
+  @doc """
+  Returns a normalized timeline activity row with a safe lifecycle status transition.
+
+  Raises when the transition would require operator review.
+  """
+  def transition_activity_status!(activity, status) do
+    case transition_activity_status(activity, status) do
+      {:ok, activity} ->
+        activity
+
+      {:error, transition} ->
+        raise ArgumentError,
+              "unsafe timeline activity status transition #{transition["from"]} -> #{transition["to"]}: #{transition["operator_action_reason"]}"
+    end
+  end
+
+  @doc """
   Normalizes planned and realized activity status into a compact state surface.
 
   The helper reuses the same status aliases and transition semantics as
@@ -4661,6 +4709,50 @@ defmodule OrbitalDynamics.Timeline do
       source_activity && activity_approval_status(source_activity),
       replacement_activity && activity_approval_status(replacement_activity)
     )
+  end
+
+  @doc """
+  Returns a normalized timeline activity row with a safe approval-status transition.
+
+  The helper is artifact state only: it reuses `approval_transition/2` semantics,
+  blocks transitions that require operator review, and does not grant operator
+  authority, mutate schedules, or execute commands.
+  """
+  def transition_activity_approval_status(activity, approval_status) when is_map(activity) do
+    source_activity = activity_to_map(activity)
+    replacement_activity = Map.put(source_activity, "approval_status", approval_status)
+
+    transition =
+      source_activity
+      |> optional_activity_state_input(1)
+      |> activity_state_approval_transition(
+        optional_activity_state_input(replacement_activity, 2)
+      )
+
+    if transition_requires_operator_review?(transition) do
+      {:error, transition}
+    else
+      {:ok, normalize_activity(replacement_activity)}
+    end
+  end
+
+  def transition_activity_approval_status(_activity, _approval_status),
+    do: raise(ArgumentError, "activity must be a map or MissionPlan.Activity")
+
+  @doc """
+  Returns a normalized timeline activity row with a safe approval-status transition.
+
+  Raises when the transition would require operator review.
+  """
+  def transition_activity_approval_status!(activity, approval_status) do
+    case transition_activity_approval_status(activity, approval_status) do
+      {:ok, activity} ->
+        activity
+
+      {:error, transition} ->
+        raise ArgumentError,
+              "unsafe timeline activity approval transition #{transition["from"]} -> #{transition["to"]}: #{transition["operator_action_reason"]}"
+    end
   end
 
   @doc """
@@ -7814,6 +7906,11 @@ defmodule OrbitalDynamics.Timeline do
       "operator_action_reason" => reason
     }
   end
+
+  defp transition_requires_operator_review?(nil), do: false
+
+  defp transition_requires_operator_review?(%{"requires_operator_review" => requires_review?}),
+    do: requires_review?
 
   defp status_lifecycle_category(nil), do: nil
   defp status_lifecycle_category(status) when status in @executed_statuses, do: "executed"

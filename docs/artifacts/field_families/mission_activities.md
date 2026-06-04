@@ -55,6 +55,13 @@ automatic approval grants or clearing blocked, rejected, or locked approval
 states without explicit operator authority; the same behavior is exposed through
 top-level `mission_plan_activity_approval_transition/2` and
 `mission_plan_activity_transition_approval_status!/2` facades.
+Timeline-map adapters can use `Timeline.transition_activity_status/2`,
+`Timeline.transition_activity_status!/2`,
+`Timeline.transition_activity_approval_status/2`, and
+`Timeline.transition_activity_approval_status!/2`, plus the matching
+`OrbitalDynamics.timeline_transition_activity_*` facades, to get normalized
+timeline rows only for transitions that do not require operator review while
+preserving timeline identity and activity context.
 For callers that need a compact preflight over declared activity conditions,
 `precondition_summary/1` reports clear, review-required, or blocked state from
 explicit resource availability, degraded mode, resource-blocking dimensions,
