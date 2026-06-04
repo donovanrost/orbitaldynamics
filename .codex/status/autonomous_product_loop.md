@@ -29,7 +29,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-Pending timeline-integrity slice commit.
+`733e13d` (`Flatten timeline integrity replay identity`).
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth
