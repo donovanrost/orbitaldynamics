@@ -1619,7 +1619,7 @@ defmodule OrbitalDynamics.Study.Manifest do
         "lighting_condition_detail" => string_property(),
         "lighting_condition_model" => string_property(),
         "lighting_detail_model" => string_property(),
-        "lighting_confidence" => number_property(),
+        "lighting_confidence" => %{"type" => ["number", "string"]},
         "link_protocol" => string_property(),
         "frequency_band" => string_property(),
         "modulation" => string_property(),

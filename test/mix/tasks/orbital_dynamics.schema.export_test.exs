@@ -4819,7 +4819,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "lighting_confidence",
              "type"
-           ]) == "number"
+           ]) == ["number", "string"]
 
     assert get_in(schemas, [
              "realized_activity.v1",
@@ -5359,7 +5359,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "lighting_confidence",
              "type"
-           ]) == "number"
+           ]) == ["number", "string"]
 
     assert get_in(schemas, [
              "cadence_import_manifest.v1",

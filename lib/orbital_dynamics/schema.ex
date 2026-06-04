@@ -3321,7 +3321,7 @@ defmodule OrbitalDynamics.Schema do
     "lighting_condition" => "string",
     "lighting_condition_detail" => "string",
     "lighting_condition_model" => "string",
-    "lighting_confidence" => "number",
+    "lighting_confidence" => "number_or_string",
     "lighting_detail_model" => "string",
     "link_capacity_report" => "object",
     "link_capacity_review_count" => "integer",
@@ -16717,6 +16717,10 @@ defmodule OrbitalDynamics.Schema do
     probability_json_schema()
   end
 
+  defp json_schema_property("lighting_confidence", _name, _contract) do
+    number_or_string_json_schema()
+  end
+
   defp json_schema_property(field, name, contract) do
     type = Map.get(@field_type_hints, field, "object")
 
@@ -19542,7 +19546,7 @@ defmodule OrbitalDynamics.Schema do
         "lighting_condition_detail" => %{"type" => "string"},
         "lighting_condition_model" => %{"type" => "string"},
         "lighting_detail_model" => %{"type" => "string"},
-        "lighting_confidence" => %{"type" => "number"},
+        "lighting_confidence" => number_or_string_json_schema(),
         "link_protocol" => %{"type" => "string"},
         "frequency_band" => %{"type" => "string"},
         "modulation" => %{"type" => "string"},
@@ -19943,7 +19947,7 @@ defmodule OrbitalDynamics.Schema do
         "lighting_condition_detail" => %{"type" => "string"},
         "lighting_condition_model" => %{"type" => "string"},
         "lighting_detail_model" => %{"type" => "string"},
-        "lighting_confidence" => %{"type" => "number"},
+        "lighting_confidence" => number_or_string_json_schema(),
         "bit_error_rate" => probability_json_schema(),
         "planned_bit_error_rate" => probability_json_schema(),
         "realized_bit_error_rate" => probability_json_schema(),
@@ -23683,7 +23687,7 @@ defmodule OrbitalDynamics.Schema do
           "lighting_condition_detail" => %{"type" => "string"},
           "lighting_condition_model" => %{"type" => "string"},
           "lighting_detail_model" => %{"type" => "string"},
-          "lighting_confidence" => %{"type" => "number"},
+          "lighting_confidence" => number_or_string_json_schema(),
           "bit_error_rate" => probability_json_schema(),
           "planned_bit_error_rate" => probability_json_schema(),
           "realized_bit_error_rate" => probability_json_schema(),
@@ -24195,7 +24199,7 @@ defmodule OrbitalDynamics.Schema do
           "lighting_condition_detail" => %{"type" => "string"},
           "lighting_condition_model" => %{"type" => "string"},
           "lighting_detail_model" => %{"type" => "string"},
-          "lighting_confidence" => %{"type" => "number"},
+          "lighting_confidence" => number_or_string_json_schema(),
           "bit_error_rate" => probability_json_schema(),
           "planned_bit_error_rate" => probability_json_schema(),
           "realized_bit_error_rate" => probability_json_schema(),
@@ -24708,7 +24712,7 @@ defmodule OrbitalDynamics.Schema do
           "lighting_condition_detail" => %{"type" => "string"},
           "lighting_condition_model" => %{"type" => "string"},
           "lighting_detail_model" => %{"type" => "string"},
-          "lighting_confidence" => %{"type" => "number"},
+          "lighting_confidence" => number_or_string_json_schema(),
           "bit_error_rate" => probability_json_schema(),
           "planned_bit_error_rate" => probability_json_schema(),
           "realized_bit_error_rate" => probability_json_schema(),
@@ -30838,7 +30842,7 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(path, row, "lighting_condition_detail", :binary)
     |> expect_optional_type(path, row, "lighting_condition_model", :binary)
     |> expect_optional_type(path, row, "lighting_detail_model", :binary)
-    |> expect_optional_number(path, row, "lighting_confidence")
+    |> expect_optional_number_or_string(path, row, "lighting_confidence")
   end
 
   defp validate_thermal_handoff_fields(issues, path, row) do
@@ -33508,7 +33512,7 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(path, activity, "lighting_condition_detail", :binary)
     |> expect_optional_type(path, activity, "lighting_condition_model", :binary)
     |> expect_optional_type(path, activity, "lighting_detail_model", :binary)
-    |> expect_optional_number(path, activity, "lighting_confidence")
+    |> expect_optional_number_or_string(path, activity, "lighting_confidence")
     |> expect_optional_type(path, activity, "link_protocol", :binary)
     |> expect_optional_type(path, activity, "frequency_band", :binary)
     |> expect_optional_type(path, activity, "modulation", :binary)

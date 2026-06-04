@@ -577,7 +577,11 @@ defmodule OrbitalDynamics.Study.ManifestTest do
     assert realized_activity_properties["lighting_condition_detail"] == %{"type" => "string"}
     assert realized_activity_properties["lighting_condition_model"] == %{"type" => "string"}
     assert realized_activity_properties["lighting_detail_model"] == %{"type" => "string"}
-    assert realized_activity_properties["lighting_confidence"] == %{"type" => "number"}
+
+    assert realized_activity_properties["lighting_confidence"] == %{
+             "type" => ["number", "string"]
+           }
+
     assert realized_activity_properties["link_protocol"] == %{"type" => "string"}
     assert realized_activity_properties["frequency_band"] == %{"type" => "string"}
     assert realized_activity_properties["modulation"] == %{"type" => "string"}

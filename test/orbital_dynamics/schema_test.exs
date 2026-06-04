@@ -2499,7 +2499,7 @@ defmodule OrbitalDynamics.SchemaTest do
     assert Enum.any?(eclipse_report["errors"], &(&1["path"] == "$.eclipse_overlap_fraction"))
 
     invalid_lighting_confidence =
-      put_in(realized_activity, ["lighting_confidence"], "sampled")
+      put_in(realized_activity, ["lighting_confidence"], %{"label" => "sampled"})
 
     assert {:error, lighting_report} = Schema.validate_artifact(invalid_lighting_confidence)
     assert Enum.any?(lighting_report["errors"], &(&1["path"] == "$.lighting_confidence"))
@@ -3474,7 +3474,7 @@ defmodule OrbitalDynamics.SchemaTest do
       package
       |> put_in(["rows", Access.at(2), "eclipse_overlap_s"], "long")
       |> put_in(["rows", Access.at(2), "planned_lighting_condition"], 42)
-      |> put_in(["rows", Access.at(2), "lighting_confidence"], "high")
+      |> put_in(["rows", Access.at(2), "lighting_confidence"], %{"label" => "high"})
 
     assert {:error, row_eclipse_lighting_handoff_report} =
              Schema.validate_artifact(invalid_row_eclipse_lighting_handoff)
@@ -4053,7 +4053,7 @@ defmodule OrbitalDynamics.SchemaTest do
         %{
           "realized_eclipse_overlap_s" => "long",
           "lighting_condition_detail" => 42,
-          "lighting_confidence" => "high"
+          "lighting_confidence" => %{"label" => "high"}
         }
       )
 
@@ -5119,7 +5119,7 @@ defmodule OrbitalDynamics.SchemaTest do
       manifest_with_feedback_source
       |> put_in(["rows", Access.at(0), "planned_eclipse_overlap_s"], "long")
       |> put_in(["rows", Access.at(0), "realized_lighting_condition"], 42)
-      |> put_in(["rows", Access.at(0), "lighting_confidence"], "high")
+      |> put_in(["rows", Access.at(0), "lighting_confidence"], %{"label" => "high"})
 
     assert {:error, row_eclipse_lighting_handoff_report} =
              Schema.validate_artifact(invalid_row_eclipse_lighting_handoff)
@@ -14633,7 +14633,7 @@ defmodule OrbitalDynamics.SchemaTest do
              "properties",
              "lighting_confidence",
              "type"
-           ]) == "number"
+           ]) == ["number", "string"]
 
     Enum.each(["attitude_confidence", "thermal_confidence"], fn field ->
       assert get_in(cadence_row_schema, ["properties", field]) == %{
@@ -14709,11 +14709,15 @@ defmodule OrbitalDynamics.SchemaTest do
       for field <- [
             "eclipse_overlap_s",
             "planned_eclipse_overlap_s",
-            "realized_eclipse_overlap_s",
-            "lighting_confidence"
+            "realized_eclipse_overlap_s"
           ] do
         assert get_in(row_schema, ["properties", field, "type"]) == "number"
       end
+
+      assert get_in(row_schema, ["properties", "lighting_confidence", "type"]) == [
+               "number",
+               "string"
+             ]
 
       for field <- [
             "lighting_condition",
@@ -18110,7 +18114,7 @@ defmodule OrbitalDynamics.SchemaTest do
              "properties",
              "lighting_confidence",
              "type"
-           ]) == "number"
+           ]) == ["number", "string"]
 
     assert get_in(realized_activity_contract_schema, [
              "properties",
@@ -19224,7 +19228,11 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(row_schema, ["properties", "lighting_condition_detail", "type"]) == "string"
     assert get_in(row_schema, ["properties", "lighting_condition_model", "type"]) == "string"
     assert get_in(row_schema, ["properties", "lighting_detail_model", "type"]) == "string"
-    assert get_in(row_schema, ["properties", "lighting_confidence", "type"]) == "number"
+
+    assert get_in(row_schema, ["properties", "lighting_confidence", "type"]) == [
+             "number",
+             "string"
+           ]
 
     assert get_in(row_schema, ["properties", "attitude_confidence"]) == %{
              "type" => "number",

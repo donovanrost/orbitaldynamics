@@ -205,7 +205,7 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
     assert get_in(row_properties, ["lighting_condition_detail", "type"]) == "string"
     assert get_in(row_properties, ["lighting_condition_model", "type"]) == "string"
     assert get_in(row_properties, ["lighting_detail_model", "type"]) == "string"
-    assert get_in(row_properties, ["lighting_confidence", "type"]) == "number"
+    assert get_in(row_properties, ["lighting_confidence", "type"]) == ["number", "string"]
 
     assert get_in(row_properties, ["station_calendar_provider_id", "pattern"]) ==
              Schema.identity_policy()["stable_id_pattern"]
@@ -407,7 +407,12 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
 
     assert get_in(realized_schema, ["properties", "lighting_condition_model", "type"]) == "string"
     assert get_in(realized_schema, ["properties", "lighting_detail_model", "type"]) == "string"
-    assert get_in(realized_schema, ["properties", "lighting_confidence", "type"]) == "number"
+
+    assert get_in(realized_schema, ["properties", "lighting_confidence", "type"]) == [
+             "number",
+             "string"
+           ]
+
     assert get_in(realized_schema, ["properties", "link_protocol", "type"]) == "string"
     assert get_in(realized_schema, ["properties", "frequency_band", "type"]) == "string"
     assert get_in(realized_schema, ["properties", "modulation", "type"]) == "string"
