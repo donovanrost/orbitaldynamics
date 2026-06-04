@@ -5,8 +5,8 @@ Timeline lifecycle-state capability metadata exposes adapter-discoverable row
 semantics.
 
 Status:
-Implementation, focused verification, and read-only review are complete.
-Product commit, push, and final ledger publish update are pending.
+Implementation, focused verification, read-only review, product commit, and
+push are complete. This status handoff records the published state.
 `Timeline.capabilities/0` now advertises row semantics for single-activity
 lifecycle state handoffs and lifecycle-state summaries, including transition
 decision/action fields, row-derived summary counts, required-operator-action
@@ -33,14 +33,16 @@ Review:
 
 Docs/artifacts changed:
 - `docs/artifacts/field_families/mission_activities.md` now states that
-  `Timeline.capabilities/0` row semantics name lifecycle-state summary count
-  maps, transition/category maps, review/record/preserve timeline ID sets,
-  duplicate identity routing, and invalid-input routing for adapters.
+  `Timeline.capabilities/0` row semantics name single-activity lifecycle-state
+  transition/action fields plus lifecycle-state summary count maps,
+  transition/category maps, review/record/preserve timeline ID sets, duplicate
+  identity routing, and invalid-input routing for adapters.
 - No schema exports, schema contracts, or checked-in study artifacts changed in
   this slice.
 
 Last product commit:
-- Pending.
+- `8e658f6b60f033a1d7171217cdc079ce2d79227d` Advertise lifecycle state row
+  semantics.
 
 Next candidate:
 After publish, re-read `docs/autonomous_work_guide.md`, this ledger, and the
