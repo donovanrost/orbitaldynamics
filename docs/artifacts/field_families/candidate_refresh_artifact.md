@@ -845,8 +845,9 @@ omits the contract field rather than defaulting to
 `CandidateRefresh.contact_allocation_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_contact_allocation_replay_summary/1` expose
 the contact-allocation slice as a branch-local replay summary. It preserves
-source allocation paths, blocked/deferred row counts, declared allocation-status
-maps, effective allocation-status maps, allocation-reason maps,
+source allocation contract, count, row-count, paths, blocked/deferred row
+counts, declared allocation-status maps, effective allocation-status maps,
+allocation-reason maps,
 allocated/returned/policy-blocked
 allocated counts, declared deferred/blocked contact counts,
 allocated/returned/deferred/blocked/policy-blocked contact
@@ -890,6 +891,13 @@ When the branch `contact_allocation_report` source-report family is non-empty,
 the helper labels its output source and replay scope as candidate-source
 summary metadata, treats partial non-empty branch families as authoritative,
 and falls back to provenance labels for absent or empty branch families.
+When contact-allocation provenance is absent, the replay summary omits the
+contract field rather than defaulting to `contact_allocation_report.v1`, and the
+aggregate source-report summary omits the top-level contact-allocation identity
+rollups instead of emitting empty count, row-count, or path fields. Partial
+placeholder provenance may expose an explicit contract, but does not synthesize
+count, row-count, or path identity rollups unless both identity counts are
+present and non-nil.
 Branch-generated refresh requests preserve direct and result-artifact-wrapped
 `source_contact_allocation_report` / `contact_allocation_report` inputs with
 wrapper-qualified request paths and indexed embedded replay copies, keeping raw

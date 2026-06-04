@@ -1619,6 +1619,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "contact_contention_resolution_report",
           "review_contact_ids_by_action"
         ),
+      "source_report_contact_allocation_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "contact_allocation_report",
+          "contract"
+        ),
+      "source_report_contact_allocation_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "contact_allocation_report",
+          "count"
+        ),
+      "source_report_contact_allocation_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "contact_allocation_report",
+          "row_count"
+        ),
+      "source_report_contact_allocation_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "contact_allocation_report",
+          "paths"
+        ),
       "source_report_contact_allocation_capacity_pack_required_capacity_fraction" =>
         source_report_summary_family_numeric_sum(
           source_reports,
