@@ -1,40 +1,36 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Contact-intent replay reads and labels V3 branch
+Timeline-diff replay reads and labels V3 branch
 `candidate_source.candidate_refresh_request_source_report_summary` metadata.
 
 Status:
-Implementation, focused verification, review, commit, and push complete for
-this slice.
-`CandidateRefresh.contact_intent_replay_summary/1` now checks a non-empty V3
-branch `contact_intent` source-report family before falling back to provenance.
-Branch-sourced summaries preserve station-feedback, import/policy,
-capacity-pack, station, direction, and direction-routing maps while labeling
-their `source` and replay scope as candidate-source summary metadata. Empty
-branch families fall back to provenance and keep existing provenance-only
-labels; partial non-empty branch families remain authoritative. The shared
-branch-family reader also handles direct `candidate_source` maps so existing
-campaign planner callers receive the same branch labels as enclosing artifacts.
+Implementation and focused verification complete for this slice. Pending
+review and publish.
+`CandidateRefresh.timeline_diff_replay_summary/1` now checks a non-empty V3
+branch `timeline_diff_report` source-report family before falling back to
+provenance. Branch-sourced summaries preserve duplicate identity,
+removed/changed activity, status/action, activity-routing, and trust-boundary
+maps while labeling their `source` and replay scope as candidate-source summary
+metadata. Empty branch families fall back to provenance and keep existing
+provenance-only labels; partial non-empty branch families remain authoritative.
+Direct `candidate_source` maps use the same branch labels.
 
 Files changed for this slice:
 - `.codex/status/autonomous_product_loop.md`
 - `lib/orbital_dynamics/candidate_refresh.ex`
 - `test/orbital_dynamics/candidate_refresh_test.exs`
+- `test/orbital_dynamics/campaign_planner_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:1766 test/orbital_dynamics/candidate_refresh_test.exs:2082 test/orbital_dynamics/candidate_refresh_test.exs:2413 test/orbital_dynamics/candidate_refresh_test.exs:2500 test/orbital_dynamics/candidate_refresh_test.exs:2549 test/orbital_dynamics/candidate_refresh_test.exs:2701 test/orbital_dynamics/candidate_refresh_test.exs:2757 test/orbital_dynamics/candidate_refresh_test.exs:2819 test/orbital_dynamics/candidate_refresh_test.exs:2872 --trace --seed 0`
-  passed raw and compact contact-intent source-summary aggregation,
-  capacity-pack/all-contact pressure, branch candidate-source replay, direct
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:11660 test/orbital_dynamics/candidate_refresh_test.exs:11925 test/orbital_dynamics/candidate_refresh_test.exs:11940 test/orbital_dynamics/candidate_refresh_test.exs:11987 test/orbital_dynamics/candidate_refresh_test.exs:12096 test/orbital_dynamics/candidate_refresh_test.exs:12138 test/orbital_dynamics/candidate_refresh_test.exs:12185 test/orbital_dynamics/candidate_refresh_test.exs:12239 --trace --seed 0`
+  passed timeline-diff source-summary aggregation, absent-provenance,
+  duplicate-scope pressure, branch candidate-source replay, direct
   candidate-source labeling, empty-family fallback, partial-family precedence,
-  and absent-provenance checks.
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:29221 test/orbital_dynamics/campaign_planner_test.exs:29656 test/orbital_dynamics/campaign_planner_test.exs:29903 --trace --seed 0`
-  passed the existing strategy branch refresh callers that pass direct
-  candidate-source maps into replay helpers.
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:19229 test/orbital_dynamics/campaign_planner_test.exs:19421 test/orbital_dynamics/campaign_planner_test.exs:19657 --trace --seed 0`
-  passed neighboring command-window, maneuver-review, and station-reservation
-  direct candidate-source caller checks affected by the shared branch-family
-  reader.
+  and compact-summary replay checks.
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:19840 test/orbital_dynamics/campaign_planner_test.exs:25525 --trace --seed 0`
+  passed the strategy branch refresh report/summary callers that pass direct
+  candidate-source maps into timeline-diff replay.
 - `git diff --check` passed.
 
 Docs/artifacts changed:
@@ -42,19 +38,22 @@ Docs/artifacts changed:
   slice.
 
 Last product commit:
-- `ffc509c` (`Label contact-intent branch replay metadata`) pushed to
-  `origin/main`.
+- Pending review and publish for this slice.
 
 Next candidate:
 Re-read `docs/autonomous_work_guide.md`, this ledger, and the live worktree
-before choosing another gap. Queue item 2 still has several replay helpers whose
-docs mention V3 branch `candidate_source` summaries; audit one narrow helper at
-a time for branch-family reads and accurate source/replay-scope labels.
+before choosing another gap. Candidate-refresh replay helpers still have a few
+provenance-only labels; audit one narrow helper at a time against docs and
+existing V3 branch candidate-source call sites.
 
 Blocked:
 No.
 
 Notes:
-This slice intentionally does not generate contacts, mutate contact allocation,
-select candidates, approve imports, write to Cadence, or regenerate candidates.
+This slice intentionally does not mutate timelines, select candidates, approve
+imports, write to Cadence, or regenerate candidates. A broader exploratory test
+line selection at `campaign_planner_test.exs:24776` executed
+`strategy carries mission-state result artifact source reports into branch
+refresh requests` and failed on an unrelated station-calendar source-path
+assertion; it was not used as a gate for this timeline-diff label slice.
 Treat current files as authoritative and do not revert unrelated changes.

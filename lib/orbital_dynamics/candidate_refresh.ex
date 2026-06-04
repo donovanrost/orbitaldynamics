@@ -10349,13 +10349,33 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
    Builds a compact branch-local timeline-diff replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, mutate timelines, select candidates,
-  approve imports, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, mutate
+  timelines, select candidates, approve imports, or write to Cadence.
   """
   def timeline_diff_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
-    diff_summary = get_in(source_summary, ["source_reports", "timeline_diff_report"]) || %{}
+
+    branch_diff_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "timeline_diff_report")
+
+    diff_summary =
+      branch_diff_summary ||
+        get_in(source_summary, ["source_reports", "timeline_diff_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_diff_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_diff_report",
+          "timeline_diff_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.timeline_diff_report",
+          "timeline_diff_source_report_provenance_only"
+        }
+      end
 
     duplicate_count = summary_integer(diff_summary, "duplicate_timeline_identity_count")
 
@@ -10407,7 +10427,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_timeline_diff_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.timeline_diff_report",
+      "source" => summary_source,
       "contract" => source_report_summary_contract(diff_summary, "timeline_diff_report.v1"),
       "source_report_count" => summary_integer(diff_summary, "count"),
       "source_report_row_count" => summary_integer(diff_summary, "row_count"),
@@ -10442,7 +10462,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "branch_local_operator_review_pressure" => map_size(required_action_counts) > 0,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "timeline_diff_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_timeline_diff_replay_summary",
         "timeline_mutation" => "not_performed_by_summary",
         "candidate_selection" => "not_performed_by_summary",

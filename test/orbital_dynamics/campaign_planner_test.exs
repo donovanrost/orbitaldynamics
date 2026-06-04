@@ -19975,6 +19975,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            } = candidate_source["candidate_refresh_request_source_report_summary"]
 
     assert %{
+             "source" =>
+               "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_diff_report",
              "contract" => "timeline_diff_report.v1",
              "source_report_count" => 4,
              "source_report_row_count" => 4,
@@ -20015,6 +20017,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "branch_local_activity_routing_pressure" => true,
              "branch_local_operator_review_pressure" => true,
              "assumptions" => %{
+               "replay_scope" => "timeline_diff_candidate_source_report_summary_only",
                "timeline_mutation" => "not_performed_by_summary",
                "candidate_selection" => "not_performed_by_summary",
                "cadence_write" => "not_performed_by_summary"
@@ -25647,6 +25650,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              quadruple_numeric_map.(base_diff_summary["required_operator_action_counts"])
 
     assert %{
+             "source" =>
+               "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_diff_report",
              "contract" => "timeline_diff_summary.v1",
              "source_report_count" => 4,
              "source_report_row_count" => ^source_report_row_count,
@@ -25657,7 +25662,10 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "trust_boundaries" => replay_trust_boundaries,
              "branch_local_timeline_diff_pressure" => true,
              "branch_local_activity_routing_pressure" => true,
-             "branch_local_operator_review_pressure" => true
+             "branch_local_operator_review_pressure" => true,
+             "assumptions" => %{
+               "replay_scope" => "timeline_diff_candidate_source_report_summary_only"
+             }
            } = CandidateRefresh.timeline_diff_replay_summary(candidate_source)
 
     assert Enum.sort(replay_trust_boundaries) == [
