@@ -7874,15 +7874,33 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local resource-projection replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, mutate resource projection, select
-  candidates, approve imports, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, mutate
+  resource projection, select candidates, approve imports, or write to Cadence.
   """
   def resource_projection_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
+    branch_projection_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "resource_projection_report")
+
     projection_summary =
-      get_in(source_summary, ["source_reports", "resource_projection_report"]) || %{}
+      branch_projection_summary ||
+        get_in(source_summary, ["source_reports", "resource_projection_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_projection_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.resource_projection_report",
+          "resource_projection_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.resource_projection_report",
+          "resource_projection_source_report_provenance_only"
+        }
+      end
 
     projected_resource_count =
       summary_integer(projection_summary, "projected_resource_count")
@@ -7995,7 +8013,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_resource_projection_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.resource_projection_report",
+      "source" => summary_source,
       "contract" =>
         source_report_summary_contract(projection_summary, "resource_projection_report.v1"),
       "source_report_count" => summary_integer(projection_summary, "count"),
@@ -8054,7 +8072,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
           map_size(resource_pressure_activity_ids_by_direction) > 0,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "resource_projection_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_resource_projection_replay_summary",
         "resource_projection" => "not_performed_by_summary",
         "candidate_selection" => "not_performed_by_summary",
