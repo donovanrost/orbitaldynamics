@@ -19493,6 +19493,82 @@ defmodule OrbitalDynamics.SchemaTest do
     end
   end
 
+  test "exports operational timeline precondition handoff fields on review and import row schemas" do
+    capabilities = OrbitalDynamics.Timeline.capabilities()
+
+    assert_precondition_handoff_schema = fn properties ->
+      assert get_in(properties, ["precondition_status", "enum"]) ==
+               capabilities.activity_precondition_statuses
+
+      assert Map.get(properties, "blocked_precondition_count") == %{
+               "type" => "integer",
+               "minimum" => 0
+             }
+
+      assert Map.get(properties, "review_precondition_count") == %{
+               "type" => "integer",
+               "minimum" => 0
+             }
+
+      assert get_in(properties, ["blocked_precondition_types", "items", "type"]) == "string"
+      assert get_in(properties, ["review_precondition_types", "items", "type"]) == "string"
+
+      assert get_in(properties, [
+               "preconditions",
+               "items",
+               "properties",
+               "type",
+               "enum"
+             ]) == capabilities.activity_precondition_types
+
+      assert get_in(properties, [
+               "preconditions",
+               "items",
+               "properties",
+               "status",
+               "enum"
+             ]) == capabilities.activity_precondition_statuses
+
+      assert get_in(properties, ["preconditions", "items", "required"]) == [
+               "type",
+               "status",
+               "field",
+               "reason"
+             ]
+    end
+
+    for contract <- ["operator_review_package.v1", "cadence_import_manifest.v1"] do
+      assert {:ok, schema} = Schema.json_schema(contract)
+      row_properties = get_in(schema, ["properties", "rows", "items", "properties"])
+
+      assert_precondition_handoff_schema.(row_properties)
+
+      source_operational_timeline_properties =
+        get_in(row_properties, ["source_operational_timeline", "properties"])
+
+      assert_precondition_handoff_schema.(source_operational_timeline_properties)
+    end
+
+    assert {:ok, cadence_schema} = Schema.json_schema("cadence_import_manifest.v1")
+
+    source_review_row_properties =
+      get_in(cadence_schema, [
+        "properties",
+        "rows",
+        "items",
+        "properties",
+        "source_review_row",
+        "properties"
+      ])
+
+    assert_precondition_handoff_schema.(source_review_row_properties)
+
+    source_review_operational_timeline_properties =
+      get_in(source_review_row_properties, ["source_operational_timeline", "properties"])
+
+    assert_precondition_handoff_schema.(source_review_operational_timeline_properties)
+  end
+
   test "exports command authority handoff fields on review and import row schemas" do
     string_fields = [
       "command_authority_status",

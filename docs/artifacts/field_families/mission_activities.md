@@ -79,6 +79,11 @@ the summary precondition status, counts, typed rows, dependency/exclusivity
 arrays, `allow_overlap`, invalid-input evidence, and the source summary whether
 the artifact is accepted directly or through CandidateRefresh direct/result
 artifact wrappers.
+Operational timeline review/import handoffs also preserve row-derived
+precondition status, counts, type arrays, and typed precondition rows from the
+source operational timeline row; schema validation rejects stale copied
+precondition values across `source_operational_timeline` and Cadence
+`source_review_row` boundaries.
 Existing `operational_timeline_report.v1` artifacts are accepted as idempotent
 inputs by the operational timeline report facade when queues already hold the
 root timeline artifact.

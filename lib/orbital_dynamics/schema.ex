@@ -1955,6 +1955,12 @@ defmodule OrbitalDynamics.Schema do
     {"command_safety_status", "command_safety_status"},
     {"command_authorized", "command_authorized"},
     {"command_safety_checked", "command_safety_checked"},
+    {"precondition_status", "precondition_status"},
+    {"blocked_precondition_count", "blocked_precondition_count"},
+    {"review_precondition_count", "review_precondition_count"},
+    {"blocked_precondition_types", "blocked_precondition_types"},
+    {"review_precondition_types", "review_precondition_types"},
+    {"preconditions", "preconditions"},
     {"action", "required_operator_action"},
     {"required_operator_action", "required_operator_action"},
     {"operator_action_reason", "operator_action_reason"},
@@ -2002,6 +2008,12 @@ defmodule OrbitalDynamics.Schema do
                                                          "command_safety_status",
                                                          "command_authorized",
                                                          "command_safety_checked",
+                                                         "precondition_status",
+                                                         "blocked_precondition_count",
+                                                         "review_precondition_count",
+                                                         "blocked_precondition_types",
+                                                         "review_precondition_types",
+                                                         "preconditions",
                                                          "action",
                                                          "required_operator_action",
                                                          "reason",
@@ -21353,22 +21365,7 @@ defmodule OrbitalDynamics.Schema do
         "review_precondition_types" => string_array_schema(),
         "preconditions" => %{
           "type" => "array",
-          "items" => %{
-            "type" => "object",
-            "additionalProperties" => true,
-            "properties" => %{
-              "type" => %{
-                "type" => "string",
-                "enum" => OrbitalDynamics.Timeline.capabilities().activity_precondition_types
-              },
-              "status" => %{
-                "type" => "string",
-                "enum" => OrbitalDynamics.Timeline.capabilities().activity_precondition_statuses
-              },
-              "field" => %{"type" => "string"},
-              "reason" => %{"type" => "string"}
-            }
-          }
+          "items" => timeline_precondition_json_schema()
         },
         "execution_boundary" => %{
           "type" => "string",

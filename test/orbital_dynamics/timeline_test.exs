@@ -5511,7 +5511,18 @@ defmodule OrbitalDynamics.TimelineTest do
                "resource_block_declared"
              ],
              "review_precondition_types" => ["degraded_mode"],
-             "preconditions" => ^preconditions
+             "preconditions" => ^preconditions,
+             "source_operational_timeline" => %{
+               "precondition_status" => "blocked",
+               "blocked_precondition_count" => 2,
+               "review_precondition_count" => 1,
+               "blocked_precondition_types" => [
+                 "payload_unavailable",
+                 "resource_block_declared"
+               ],
+               "review_precondition_types" => ["degraded_mode"],
+               "preconditions" => ^preconditions
+             }
            } = List.first(review["rows"])
 
     assert %{
@@ -5523,7 +5534,29 @@ defmodule OrbitalDynamics.TimelineTest do
                "resource_block_declared"
              ],
              "review_precondition_types" => ["degraded_mode"],
-             "preconditions" => ^preconditions
+             "preconditions" => ^preconditions,
+             "source_review_row" => %{
+               "precondition_status" => "blocked",
+               "blocked_precondition_count" => 2,
+               "review_precondition_count" => 1,
+               "blocked_precondition_types" => [
+                 "payload_unavailable",
+                 "resource_block_declared"
+               ],
+               "review_precondition_types" => ["degraded_mode"],
+               "preconditions" => ^preconditions
+             },
+             "source_operational_timeline" => %{
+               "precondition_status" => "blocked",
+               "blocked_precondition_count" => 2,
+               "review_precondition_count" => 1,
+               "blocked_precondition_types" => [
+                 "payload_unavailable",
+                 "resource_block_declared"
+               ],
+               "review_precondition_types" => ["degraded_mode"],
+               "preconditions" => ^preconditions
+             }
            } = List.first(import["rows"])
 
     assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
@@ -5540,6 +5573,69 @@ defmodule OrbitalDynamics.TimelineTest do
              validation_report["errors"],
              &(&1["path"] == "$.rows[0].precondition_status" and
                  &1["message"] =~ "must be one of")
+           )
+
+    stale_review =
+      put_in(review, ["rows", Access.at(0), "blocked_precondition_count"], 0)
+
+    assert {:error, stale_review_report} = Schema.validate_artifact(stale_review)
+
+    assert Enum.any?(
+             stale_review_report["errors"],
+             &(&1["path"] == "$.rows[0].blocked_precondition_count" and
+                 &1["message"] ==
+                   "must match source_operational_timeline.blocked_precondition_count")
+           )
+
+    stale_import =
+      put_in(import, ["rows", Access.at(0), "source_review_row", "precondition_status"], "clear")
+
+    assert {:error, stale_import_report} = Schema.validate_artifact(stale_import)
+
+    assert Enum.any?(
+             stale_import_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.precondition_status" and
+                 &1["message"] == "must match precondition_status on Cadence import row")
+           )
+
+    stale_import_source_timeline =
+      put_in(
+        import,
+        ["rows", Access.at(0), "source_operational_timeline", "blocked_precondition_count"],
+        0
+      )
+
+    assert {:error, stale_import_source_timeline_report} =
+             Schema.validate_artifact(stale_import_source_timeline)
+
+    assert Enum.any?(
+             stale_import_source_timeline_report["errors"],
+             &(&1["path"] == "$.rows[0].blocked_precondition_count" and
+                 &1["message"] ==
+                   "must match source_operational_timeline.blocked_precondition_count")
+           )
+
+    stale_import_source_review_timeline =
+      put_in(
+        import,
+        [
+          "rows",
+          Access.at(0),
+          "source_review_row",
+          "source_operational_timeline",
+          "blocked_precondition_count"
+        ],
+        0
+      )
+
+    assert {:error, stale_import_source_review_timeline_report} =
+             Schema.validate_artifact(stale_import_source_review_timeline)
+
+    assert Enum.any?(
+             stale_import_source_review_timeline_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.blocked_precondition_count" and
+                 &1["message"] ==
+                   "must match source_operational_timeline.blocked_precondition_count")
            )
 
     assert %{

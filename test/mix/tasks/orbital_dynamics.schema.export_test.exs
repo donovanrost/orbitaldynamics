@@ -5105,6 +5105,69 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              ]) == type
     end
 
+    assert_exported_precondition_handoff = fn properties_path ->
+      assert get_in(schemas, properties_path ++ ["precondition_status", "enum"]) ==
+               precondition_capabilities.activity_precondition_statuses
+
+      assert get_in(schemas, properties_path ++ ["blocked_precondition_count", "minimum"]) == 0
+      assert get_in(schemas, properties_path ++ ["review_precondition_count", "minimum"]) == 0
+
+      assert get_in(schemas, properties_path ++ ["blocked_precondition_types", "items", "type"]) ==
+               "string"
+
+      assert get_in(schemas, properties_path ++ ["review_precondition_types", "items", "type"]) ==
+               "string"
+
+      assert get_in(
+               schemas,
+               properties_path ++
+                 [
+                   "preconditions",
+                   "items",
+                   "properties",
+                   "type",
+                   "enum"
+                 ]
+             ) == precondition_capabilities.activity_precondition_types
+
+      assert get_in(
+               schemas,
+               properties_path ++
+                 [
+                   "preconditions",
+                   "items",
+                   "properties",
+                   "status",
+                   "enum"
+                 ]
+             ) == precondition_capabilities.activity_precondition_statuses
+
+      assert get_in(schemas, properties_path ++ ["preconditions", "items", "required"]) == [
+               "type",
+               "status",
+               "field",
+               "reason"
+             ]
+    end
+
+    operator_review_row_properties_path = [
+      "operator_review_package.v1",
+      "properties",
+      "rows",
+      "items",
+      "properties"
+    ]
+
+    assert_exported_precondition_handoff.(operator_review_row_properties_path)
+
+    assert_exported_precondition_handoff.(
+      operator_review_row_properties_path ++
+        [
+          "source_operational_timeline",
+          "properties"
+        ]
+    )
+
     assert get_in(schemas, [
              "strategy_branch.v1",
              "properties",
@@ -5271,6 +5334,41 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                "type"
              ]) == type
     end
+
+    cadence_import_row_properties_path = [
+      "cadence_import_manifest.v1",
+      "properties",
+      "rows",
+      "items",
+      "properties"
+    ]
+
+    assert_exported_precondition_handoff.(cadence_import_row_properties_path)
+
+    assert_exported_precondition_handoff.(
+      cadence_import_row_properties_path ++
+        [
+          "source_operational_timeline",
+          "properties"
+        ]
+    )
+
+    cadence_source_review_row_properties_path =
+      cadence_import_row_properties_path ++
+        [
+          "source_review_row",
+          "properties"
+        ]
+
+    assert_exported_precondition_handoff.(cadence_source_review_row_properties_path)
+
+    assert_exported_precondition_handoff.(
+      cadence_source_review_row_properties_path ++
+        [
+          "source_operational_timeline",
+          "properties"
+        ]
+    )
 
     assert get_in(schemas, [
              "cadence_import_manifest.v1",
