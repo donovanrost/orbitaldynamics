@@ -18473,12 +18473,22 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_report_summary_counts_by_family(source_reports, field) do
     source_reports
     |> Enum.map(fn {family, source_report} ->
-      {family, source_report |> numeric_report_count(field) |> report_count()}
+      {family, source_report_summary_count_by_family(source_report, field)}
     end)
-    |> Enum.reject(fn {_family, count} -> count == 0 end)
+    |> Enum.reject(fn {_family, count} -> is_nil(count) end)
     |> Map.new()
     |> non_empty_map()
   end
+
+  defp source_report_summary_count_by_family(source_report, field) when is_map(source_report) do
+    if is_nil(Map.get(source_report, field)) do
+      nil
+    else
+      source_report |> numeric_report_count(field) |> report_count()
+    end
+  end
+
+  defp source_report_summary_count_by_family(_source_report, _field), do: nil
 
   defp source_report_summary_counts_by_value(source_reports, group_field, count_field) do
     source_reports

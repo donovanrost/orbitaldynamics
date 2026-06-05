@@ -568,6 +568,10 @@ Command-window operational-feedback provenance uses the same row-first
 required-action rule when command-window rows are present.
 Maneuver-review feedback provenance follows that same row-first required-action
 boundary for maneuver-review rows.
+Top-level `source_report_counts_by_family` and
+`source_report_row_counts_by_family` aggregate maps preserve explicit zero
+count fields for declared families, but omit families whose count field is
+missing or nil.
 
 `CandidateRefresh.operational_readiness_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_operational_readiness_replay_summary/1`

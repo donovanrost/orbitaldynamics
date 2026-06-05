@@ -2029,6 +2029,50 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     refute Map.has_key?(summary, "trust_boundary_status_counts")
   end
 
+  test "source report summary preserves explicit zero aggregate family counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => []
+          },
+          "link_capacity_report" => %{
+            "contract" => "link_capacity_report.v1",
+            "count" => nil,
+            "row_count" => nil,
+            "paths" => nil
+          },
+          "resource_projection_report" => %{
+            "contract" => "resource_projection_report.v1"
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert summary["source_report_count"] == 0
+    assert summary["source_report_row_count"] == 0
+
+    assert summary["source_report_counts_by_family"] == %{
+             "contact_allocation_report" => 0
+           }
+
+    assert summary["source_report_row_counts_by_family"] == %{
+             "contact_allocation_report" => 0
+           }
+
+    assert summary["source_report_families"] == [
+             "contact_allocation_report",
+             "link_capacity_report",
+             "resource_projection_report"
+           ]
+  end
+
   test "source report summary preserves candidate diff reasons and routing maps" do
     refresh = %{
       "mission_state" => %{

@@ -1,16 +1,15 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh storage/downlink aggregate source-report identity contract.
+CandidateRefresh top-level source-report by-family identity contract.
 
 Status:
-Implemented, reviewed, committed, and pushed.
-The storage/downlink replay summary composes contact-allocation, link-capacity,
-and resource-projection source-report provenance. This slice tightens the
-aggregate identity contract so by-family pressure count and row-count maps
-preserve explicit zero identity while omitting missing or nil identity, matching
-the leaf source-report families already hardened. Non-identity routing maps
-still drive branch-local pressure when aggregate identity is partial.
+Implemented, locally verified, and reviewed; publish pending.
+Leaf family summaries and storage/downlink aggregate provenance preserve
+explicit zero source-report identity. This slice tightens the shared
+top-level `source_report_counts_by_family` and
+`source_report_row_counts_by_family` maps so declared zero values remain visible
+while missing or nil fields are omitted.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -20,7 +19,7 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:13105 test/orbital_dynamics/candidate_refresh_test.exs:13145 test/orbital_dynamics/candidate_refresh_test.exs:13194 test/orbital_dynamics/candidate_refresh_test.exs:13233`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:1996 test/orbital_dynamics/candidate_refresh_test.exs:2032`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 - `slice_reviewer`: no must-fix blockers
