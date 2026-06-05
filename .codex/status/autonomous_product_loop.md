@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh contact-contention direction routing schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 Runtime CandidateRefresh contact-contention source summaries already preserve
 conflict groups, invalid contact IDs, resource-scope counts, direction counts,
 per-direction contact IDs, route contact IDs, and operator-action counts, but the
@@ -43,13 +43,13 @@ Tests run:
   `schemas/candidate_refresh.v1.schema.json` and the schema bundle.
 - `slice_reviewer`: no must-fix findings; reran focused export test and
   whitespace check.
-- `git_slice_publisher`: pending.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`6d05bb2503ff530679d0d7beb0d328c4380b161d` pushed to `origin/main`.
+`d2d3c17299367b0253cb15bb6536b57f4264de00` pushed to `origin/main`.
 
 Last ledger correction commit:
-`bccd6e85e3fd4ff8c23b0af48dc92a8a27781a6f` pushed to `origin/main`.
+Pending for this slice.
 
 Next candidate:
 After this slice, evaluate contact-contention-resolution direction routing from
