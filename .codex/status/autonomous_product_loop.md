@@ -1,20 +1,22 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Expose CandidateRefresh resource-projection source-report schema property.
+Expose CandidateRefresh provider-counteroffer source-report schema property.
 
 Status:
-Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
-CandidateRefresh resource-projection source summaries already preserve
-projected-resource and invalid-input counts, resource pressure count maps,
-source artifact/model count maps, resource pressure ID maps, direction
-lists/counts, and resource pressure direction routing. The
-`candidate_refresh.v1` source-report JSON Schema now names
-`resource_projection_report` as a family-specific source report instead of
-leaving it discoverable only through the generic `source_reports`
-`additionalProperties` shape. This is a contract discoverability slice only: no
-replay behavior, runtime validation helpers, artifact generation logic, or
-operator/Cadence authority behavior changed.
+Implemented, locally verified, and reviewed clean after a reviewer-found
+validation fix; publish pending. Runtime CandidateRefresh provider-counteroffer
+source summaries already preserve reviewable counts, counteroffer cost and
+timing delta counts, cost-delta totals, lock-deadline summaries,
+counteroffer-status count maps, required-operator-action count maps, plus
+import-readiness and plan-impact fields. The `candidate_refresh.v1`
+source-report JSON Schema now names `provider_counteroffer_report` as a
+family-specific source report and advertises the core counteroffer fields
+instead of leaving them as loose extra properties. This is a contract
+discoverability slice only: no replay behavior, artifact generation logic, or
+operator/Cadence authority behavior changed; executable schema validation now
+rejects invalid provider-counteroffer source-report count/map/number shapes,
+including non-map count-map values.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -22,35 +24,53 @@ Files changed:
 - `schemas/candidate_refresh.v1.schema.json`
 - `schemas/orbital_dynamics.schema_bundle.v1.json`
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
+- `test/orbital_dynamics/schema_test.exs`
 
 Definition of done:
-- `candidate_refresh.v1` exposes a family-specific `resource_projection_report`
+- `candidate_refresh.v1` exposes a family-specific `provider_counteroffer_report`
   source-report schema.
-- Its source-report object advertises projected-resource and invalid-input
-  counts, resource pressure count maps, source artifact/model count maps,
-  resource pressure ID maps, direction lists/counts, and direction routing.
+- Its source-report object advertises reviewable counts, counteroffer cost and
+  timing delta counts, cost-delta totals, lock-deadline summaries,
+  counteroffer-status count maps, required-operator-action count maps, and the
+  existing import-readiness/plan-impact fields.
+- Schema validation rejects obvious invalid core counteroffer count/map/number
+  shapes.
 - Checked-in `candidate_refresh.v1` schema and schema bundle are refreshed.
 - Schema export tests, schema tests, schema lint, and whitespace checks pass.
 
 Tests run:
-- `mix format lib/orbital_dynamics/schema.ex test/mix/tasks/orbital_dynamics.schema.export_test.exs`
+- `mix format lib/orbital_dynamics/schema.ex test/mix/tasks/orbital_dynamics.schema.export_test.exs test/orbital_dynamics/schema_test.exs`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
+- `mix test test/orbital_dynamics/schema_test.exs` (initially failed on stale
+  checked-in schema export after validation passed; passed after export refresh)
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - `mix test test/orbital_dynamics/schema_test.exs`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
-- `jq` spot-checks for `resource_projection_report` source-report fields in
+- `jq` spot-checks for `provider_counteroffer_report` source-report fields in
   `schemas/candidate_refresh.v1.schema.json` and the schema bundle.
 - `git diff --check`
-- `slice_reviewer`: no must-fix findings; reran focused export test, schema
-  test, schema lint, whitespace check, and generated-schema `jq` spot-checks.
-- `git_slice_publisher`: committed and pushed.
+- `slice_reviewer`: found provider-counteroffer count maps accepted non-map
+  values in executable validation; parent fixed with map-shape validation and
+  regression coverage.
+- `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
+- `mix test test/orbital_dynamics/schema_test.exs`
+- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
+- `mix orbital_dynamics.schema.lint --all`
+- `jq` spot-checks for `provider_counteroffer_report` source-report fields in
+  `schemas/candidate_refresh.v1.schema.json` and the schema bundle.
+- `git diff --check -- . ':!.gitignore'`
+- `slice_reviewer`: no must-fix findings on corrected slice; reran focused
+  export test, schema test, schema lint, format check, whitespace check, and
+  generated-schema `jq` spot-checks. Noted non-blocking executable validation
+  does not enforce `required_operator_action_counts` enum keys, matching the
+  existing standalone provider-counteroffer validator pattern.
 
 Last completed implementation commit:
-`f253b9d66bed04838f95109b53ed54acb6b150d3` pushed to `origin/main`.
+Pending for this slice.
 
 Last ledger correction commit:
-`de66fb4` pushed to `origin/main`.
+Pending for this slice.
 
 Next candidate:
 After this slice, run a bounded mapper pass to identify the next

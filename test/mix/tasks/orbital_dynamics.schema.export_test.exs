@@ -1031,6 +1031,73 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       end
     )
 
+    candidate_refresh_provider_counteroffer_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "provider_counteroffer_report",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        "reviewable_count",
+        "counteroffer_cost_delta_count",
+        "counteroffer_timing_shift_count",
+        "counteroffer_start_delta_count",
+        "counteroffer_end_delta_count",
+        "counteroffer_duration_delta_count",
+        "counteroffer_lock_deadline_count"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_provider_counteroffer_source_report, [
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_provider_counteroffer_source_report, [
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "counteroffer_cost_delta_total",
+        "earliest_counteroffer_lock_deadline_s"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_provider_counteroffer_source_report, [
+                 field,
+                 "type"
+               ]) == "number"
+      end
+    )
+
+    assert get_in(candidate_refresh_provider_counteroffer_source_report, [
+             "counteroffer_status_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(candidate_refresh_provider_counteroffer_source_report, [
+             "required_operator_action_counts",
+             "propertyNames",
+             "enum"
+           ]) ==
+             OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_actions
+
+    assert get_in(candidate_refresh_provider_counteroffer_source_report, [
+             "required_operator_action_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
     candidate_refresh_constraint_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",

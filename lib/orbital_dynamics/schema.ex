@@ -21180,6 +21180,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_link_capacity_source_report_summary_json_schema(),
             "maneuver_review_report" =>
               candidate_refresh_maneuver_review_source_report_summary_json_schema(),
+            "provider_counteroffer_report" =>
+              candidate_refresh_provider_counteroffer_source_report_summary_json_schema(),
             "resource_projection_report" =>
               candidate_refresh_resource_projection_source_report_summary_json_schema(),
             "resource_filter_report" =>
@@ -21370,6 +21372,32 @@ defmodule OrbitalDynamics.Schema do
       )
       |> Map.merge(%{
         "input_keys" => string_array_schema()
+      })
+    end)
+  end
+
+  defp candidate_refresh_provider_counteroffer_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      properties
+      |> Map.merge(
+        non_negative_integer_property_schemas([
+          "reviewable_count",
+          "counteroffer_cost_delta_count",
+          "counteroffer_timing_shift_count",
+          "counteroffer_start_delta_count",
+          "counteroffer_end_delta_count",
+          "counteroffer_duration_delta_count",
+          "counteroffer_lock_deadline_count"
+        ])
+      )
+      |> Map.merge(%{
+        "counteroffer_cost_delta_total" => %{"type" => "number"},
+        "earliest_counteroffer_lock_deadline_s" => %{"type" => "number"},
+        "counteroffer_status_counts" => non_negative_integer_count_map_json_schema(),
+        "required_operator_action_counts" =>
+          OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_actions
+          |> enum_count_map_json_schema()
       })
     end)
   end
@@ -26254,10 +26282,25 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_candidate_refresh_provider_counteroffer_context(issues, path, summary) do
     issues
+    |> expect_optional_non_negative_integer(path, summary, "reviewable_count")
+    |> expect_optional_non_negative_integer(path, summary, "counteroffer_cost_delta_count")
     |> expect_optional_non_negative_integer(path, summary, "counteroffer_timing_shift_count")
     |> expect_optional_non_negative_integer(path, summary, "counteroffer_start_delta_count")
     |> expect_optional_non_negative_integer(path, summary, "counteroffer_end_delta_count")
     |> expect_optional_non_negative_integer(path, summary, "counteroffer_duration_delta_count")
+    |> expect_optional_non_negative_integer(path, summary, "counteroffer_lock_deadline_count")
+    |> expect_optional_number(path, summary, "counteroffer_cost_delta_total")
+    |> expect_optional_number(path, summary, "earliest_counteroffer_lock_deadline_s")
+    |> expect_optional_type(path, summary, "counteroffer_status_counts", :map)
+    |> validate_non_negative_integer_count_map(
+      path <> ".counteroffer_status_counts",
+      Map.get(summary, "counteroffer_status_counts")
+    )
+    |> expect_optional_type(path, summary, "required_operator_action_counts", :map)
+    |> validate_non_negative_integer_count_map(
+      path <> ".required_operator_action_counts",
+      Map.get(summary, "required_operator_action_counts")
+    )
     |> expect_optional_non_negative_integer(path, summary, "plan_impact_summary_count")
     |> expect_optional_non_negative_integer(path, summary, "import_readiness_summary_count")
     |> validate_non_negative_integer_count_map(

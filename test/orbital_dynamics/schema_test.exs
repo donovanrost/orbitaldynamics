@@ -12128,6 +12128,161 @@ defmodule OrbitalDynamics.SchemaTest do
                  "$.provenance.source_reports.maneuver_review_report.input_keys[0]")
            )
 
+    artifact_with_provider_counteroffer_summary =
+      put_in(artifact, ["provenance", "source_reports", "provider_counteroffer_report"], %{
+        "paths" => ["source_provider_counteroffer_report"],
+        "contract" => "provider_counteroffer_report.v1",
+        "count" => 1,
+        "row_count" => 2,
+        "reviewable_count" => 1,
+        "counteroffer_cost_delta_count" => 1,
+        "counteroffer_cost_delta_total" => 125.5,
+        "counteroffer_timing_shift_count" => 1,
+        "counteroffer_start_delta_count" => 1,
+        "counteroffer_end_delta_count" => 1,
+        "counteroffer_duration_delta_count" => 1,
+        "counteroffer_lock_deadline_count" => 1,
+        "earliest_counteroffer_lock_deadline_s" => 150.0,
+        "counteroffer_status_counts" => %{"proposed" => 1},
+        "required_operator_action_counts" => %{"review_provider_counteroffer" => 1}
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_provider_counteroffer_summary)
+
+    provider_counteroffer_source_report_properties =
+      get_in(candidate_refresh_schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "provider_counteroffer_report",
+        "properties"
+      ])
+
+    assert get_in(provider_counteroffer_source_report_properties, [
+             "reviewable_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(provider_counteroffer_source_report_properties, [
+             "counteroffer_cost_delta_total",
+             "type"
+           ]) == "number"
+
+    assert get_in(provider_counteroffer_source_report_properties, [
+             "required_operator_action_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    invalid_provider_counteroffer_count =
+      put_in(
+        artifact_with_provider_counteroffer_summary,
+        [
+          "provenance",
+          "source_reports",
+          "provider_counteroffer_report",
+          "reviewable_count"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_provider_counteroffer_count_report} =
+             Schema.validate_artifact(invalid_provider_counteroffer_count)
+
+    assert Enum.any?(
+             invalid_provider_counteroffer_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.provider_counteroffer_report.reviewable_count")
+           )
+
+    invalid_provider_counteroffer_status_count =
+      put_in(
+        artifact_with_provider_counteroffer_summary,
+        [
+          "provenance",
+          "source_reports",
+          "provider_counteroffer_report",
+          "counteroffer_status_counts",
+          "proposed"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_provider_counteroffer_status_count_report} =
+             Schema.validate_artifact(invalid_provider_counteroffer_status_count)
+
+    assert Enum.any?(
+             invalid_provider_counteroffer_status_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.provider_counteroffer_report.counteroffer_status_counts.proposed")
+           )
+
+    invalid_provider_counteroffer_status_counts_shape =
+      put_in(
+        artifact_with_provider_counteroffer_summary,
+        [
+          "provenance",
+          "source_reports",
+          "provider_counteroffer_report",
+          "counteroffer_status_counts"
+        ],
+        "proposed"
+      )
+
+    assert {:error, invalid_provider_counteroffer_status_counts_shape_report} =
+             Schema.validate_artifact(invalid_provider_counteroffer_status_counts_shape)
+
+    assert Enum.any?(
+             invalid_provider_counteroffer_status_counts_shape_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.provider_counteroffer_report.counteroffer_status_counts")
+           )
+
+    invalid_provider_counteroffer_required_action_counts_shape =
+      put_in(
+        artifact_with_provider_counteroffer_summary,
+        [
+          "provenance",
+          "source_reports",
+          "provider_counteroffer_report",
+          "required_operator_action_counts"
+        ],
+        "review_provider_counteroffer"
+      )
+
+    assert {:error, invalid_provider_counteroffer_required_action_counts_shape_report} =
+             Schema.validate_artifact(invalid_provider_counteroffer_required_action_counts_shape)
+
+    assert Enum.any?(
+             invalid_provider_counteroffer_required_action_counts_shape_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.provider_counteroffer_report.required_operator_action_counts")
+           )
+
+    invalid_provider_counteroffer_total =
+      put_in(
+        artifact_with_provider_counteroffer_summary,
+        [
+          "provenance",
+          "source_reports",
+          "provider_counteroffer_report",
+          "counteroffer_cost_delta_total"
+        ],
+        "125.5"
+      )
+
+    assert {:error, invalid_provider_counteroffer_total_report} =
+             Schema.validate_artifact(invalid_provider_counteroffer_total)
+
+    assert Enum.any?(
+             invalid_provider_counteroffer_total_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.provider_counteroffer_report.counteroffer_cost_delta_total")
+           )
+
     artifact_with_link_capacity_summary =
       put_in(artifact, ["provenance", "source_reports", "link_capacity_report"], %{
         "paths" => ["source_link_capacity_report"],
