@@ -1,16 +1,16 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Make CandidateRefresh source-report resource-availability reason fields schema-visible.
+Make CandidateRefresh resource-projection direction routing schema-visible.
 
 Status:
-Implemented, locally verified, reviewed clean, committed, and pushed.
-Runtime CandidateRefresh source summaries already preserve operational-readiness
-and quality-gate resource-availability pressure/reason fields, but the root
-`candidate_refresh.v1` JSON Schema does not advertise those top-level fields.
-This is a contract discoverability slice only: no replay behavior, validation
-semantics, artifact generation logic, or operator/Cadence authority behavior
-changed.
+Implemented, locally verified, and reviewed clean; commit/push pending.
+Runtime CandidateRefresh resource-projection replay summaries already preserve
+direction-scoped resource pressure fields, but the nested
+`candidate_refresh.v1` source-report JSON Schema does not advertise those
+fields. This is a contract discoverability slice only: no replay behavior,
+runtime validation helpers, artifact generation logic, or operator/Cadence
+authority behavior changed.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -20,10 +20,12 @@ Files changed:
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 
 Definition of done:
-- `candidate_refresh.v1` explicitly includes operational-readiness and
-  quality-gate resource-availability pressure/reason fields.
-- Export tests assert integer, non-negative integer count map, and string-array
-  shapes for those top-level fields.
+- Nested `candidate_refresh.v1` source-report JSON Schema explicitly includes
+  `resource_pressure_direction_counts`, `resource_pressure_directions`,
+  `resource_pressure_activity_ids_by_direction`, and
+  `resource_pressure_direction_routing`.
+- Export tests assert count-map, string-array, stable-ID-array-map, and object
+  shapes for those nested fields.
 - Checked-in `candidate_refresh.v1` schema and schema bundle are refreshed.
 - Schema export tests, schema tests, schema lint, and whitespace checks pass.
 
@@ -36,16 +38,16 @@ Tests run:
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings.
-- `git_slice_publisher`: committed and pushed.
+- `git_slice_publisher`: pending.
 
 Last completed implementation commit:
 `f889a0a9a2b53b8fe7285ea7a0db0c46865070c0` pushed to `origin/main`.
 
 Last ledger correction commit:
-`fa14f45d4adeffb217bdbca019415677f0840b1b` pushed to `origin/main`.
+`ec134ef` pushed to `origin/main`.
 
 Next candidate:
-After this slice, rerun the mapper against the current checkout.
+Resource-projection status/type ID routing maps from the mapper result.
 
 Blocked:
 No.

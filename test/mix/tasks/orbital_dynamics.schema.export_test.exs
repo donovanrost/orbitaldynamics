@@ -4305,6 +4305,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
         "resource_projection_spacecraft_counts",
         "resource_pressure_type_counts",
         "resource_pressure_activity_id_counts",
+        "resource_pressure_direction_counts",
         "source_artifact_type_counts",
         "source_flow_summary_model_counts",
         "resource_filter_spacecraft_counts",
@@ -4380,6 +4381,48 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                ) == "string"
       end
     )
+
+    assert get_in(
+             schemas,
+             ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
+               ["resource_pressure_directions", "items", "type"]
+           ) == "string"
+
+    assert get_in(
+             schemas,
+             ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
+               [
+                 "resource_pressure_activity_ids_by_direction",
+                 "additionalProperties",
+                 "items",
+                 "pattern"
+               ]
+           ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+
+    assert get_in(
+             schemas,
+             ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
+               [
+                 "resource_pressure_direction_routing",
+                 "additionalProperties",
+                 "properties",
+                 "pressure_count",
+                 "minimum"
+               ]
+           ) == 0
+
+    assert get_in(
+             schemas,
+             ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
+               [
+                 "resource_pressure_direction_routing",
+                 "additionalProperties",
+                 "properties",
+                 "activity_ids",
+                 "items",
+                 "pattern"
+               ]
+           ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
 
     assert get_in(
              schemas,
