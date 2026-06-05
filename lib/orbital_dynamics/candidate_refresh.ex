@@ -5344,6 +5344,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           )
         ]
         |> merge_count_maps(),
+      "source_report_command_window_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "command_window_report",
+          "contract"
+        ),
+      "source_report_command_window_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "command_window_report",
+          "count"
+        ),
+      "source_report_command_window_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "command_window_report",
+          "row_count"
+        ),
+      "source_report_command_window_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "command_window_report",
+          "paths"
+        ),
       "source_report_command_window_command_feedback_count" =>
         source_report_summary_family_count(
           source_reports,

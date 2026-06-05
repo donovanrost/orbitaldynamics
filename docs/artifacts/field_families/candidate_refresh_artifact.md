@@ -1403,8 +1403,8 @@ both identity counts are present.
 `CandidateRefresh.command_window_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_command_window_replay_summary/1` expose the
 command-window slice as a branch-local replay summary. It preserves source
-command-window paths, row counts, command-feedback counts, feedback input
-keys, direction counts plus activity/window ID maps by direction,
+command-window contract, count, row-count, paths, command-feedback counts,
+feedback input keys, direction counts plus activity/window ID maps by direction,
 required-operator-action counts, trust-boundary evidence, and branch-local
 command-window, command-feedback, and command-action pressure booleans without
 executing commands, selecting
@@ -1430,6 +1430,9 @@ no-command-execution assumptions visible in generated candidate-source
 provenance.
 When command-window provenance is absent, the replay summary omits the contract
 field rather than defaulting to `command_window_report.v1`.
+Partial command-window source-report family placeholders can preserve the
+declared contract, but omit flattened count, row-count, and path fields until
+both identity counts are present.
 Operational-feedback provenance for source command-window reports derives
 required-action maps from rows when rows are present, preventing stale top-level
 command-window aggregates from steering branch-local feedback pressure.
