@@ -4394,7 +4394,16 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
         "resource_pressure_activity_ids_by_type",
         "resource_pressure_activity_ids_by_ground_station",
         "resource_pressure_activity_ids_by_spacecraft",
-        "resource_pressure_activity_ids_by_direction"
+        "resource_pressure_activity_ids_by_direction",
+        "resource_pressure_ground_station_ids_by_type",
+        "resource_pressure_source_window_ids_by_status",
+        "resource_pressure_source_window_ids_by_type",
+        "resource_pressure_station_calendar_entry_ids_by_status",
+        "resource_pressure_station_calendar_entry_ids_by_type",
+        "resource_pressure_station_calendar_provider_ids_by_status",
+        "resource_pressure_station_calendar_provider_ids_by_type",
+        "resource_pressure_station_calendar_provider_entry_ids_by_status",
+        "resource_pressure_station_calendar_provider_entry_ids_by_type"
       ],
       fn field ->
         assert get_in(

@@ -21280,6 +21280,17 @@ defmodule OrbitalDynamics.Schema do
       "resource_pressure_activity_ids_by_direction" => stable_id_array_map_schema(),
       "resource_pressure_direction_routing" =>
         resource_projection_direction_routing_json_schema(),
+      "resource_pressure_ground_station_ids_by_type" => stable_id_array_map_schema(),
+      "resource_pressure_source_window_ids_by_status" => stable_id_array_map_schema(),
+      "resource_pressure_source_window_ids_by_type" => stable_id_array_map_schema(),
+      "resource_pressure_station_calendar_entry_ids_by_status" => stable_id_array_map_schema(),
+      "resource_pressure_station_calendar_entry_ids_by_type" => stable_id_array_map_schema(),
+      "resource_pressure_station_calendar_provider_ids_by_status" => stable_id_array_map_schema(),
+      "resource_pressure_station_calendar_provider_ids_by_type" => stable_id_array_map_schema(),
+      "resource_pressure_station_calendar_provider_entry_ids_by_status" =>
+        stable_id_array_map_schema(),
+      "resource_pressure_station_calendar_provider_entry_ids_by_type" =>
+        stable_id_array_map_schema(),
       "source_artifact_type_counts" => non_negative_integer_count_map_json_schema(),
       "source_flow_summary_model_counts" => non_negative_integer_count_map_json_schema()
     }
