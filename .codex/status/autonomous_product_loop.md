@@ -4,7 +4,7 @@ Current slice:
 CandidateRefresh top-level source-report grouped aggregate identity contract.
 
 Status:
-Implemented, locally verified, and reviewed; publish pending.
+Implemented, reviewed, committed, and pushed.
 The top-level by-family aggregate maps now preserve explicit zero source-report
 identity. This slice tightens the adjacent grouped aggregate maps for
 contract and trust-boundary status so declared zero values remain visible while
@@ -28,7 +28,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`8591a7ba5859305b29ea80c128b7e81d0fc8a5ec` pushed to `origin/main`.
+`fad0f9445c43931988a60d86ab455383a2943676` pushed to `origin/main`.
 
 Next candidate:
 After this slice, continue guide-backed CandidateRefresh depth from queue item 4
