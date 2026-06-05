@@ -2149,6 +2149,13 @@ approving imports, writing to Cadence, or regenerating candidates. Review,
 blocking, and unknown-model pressure are true for status maps and model-ID
 routing maps even when the aggregate review, blocked, or unknown-model counters
 are absent or zero.
+`CandidateRefresh.source_report_summary/1` also exposes compact top-level
+model-acceptance contract/count/row-count/path rollups for source-report
+provenance. Compact model-acceptance source-count/source-row-count and
+source-path fields require complete source-report identity (`count` and
+`row_count` present), so partial placeholders preserve only the declared
+contract while non-identity model-status/routing rollups, explicit zero counts,
+and explicit empty paths remain replayable evidence.
 The replay helper can inspect V3 branch `candidate_source` metadata that carries
 `candidate_refresh_request_source_report_summary`, so strategy-derived branch
 refreshes preserve model-acceptance review/blocking/unknown-model pressure

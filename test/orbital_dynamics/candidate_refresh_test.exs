@@ -26460,6 +26460,149 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     refute summary["branch_local_unknown_model_pressure"]
   end
 
+  test "model acceptance source summary keeps declared contract without partial identity placeholders" do
+    placeholder_fields = [
+      %{"count" => 1},
+      %{"row_count" => 2},
+      %{"paths" => ["provenance.source_reports.model_acceptance_report"]},
+      %{"count" => nil, "row_count" => 2},
+      %{"count" => 1, "row_count" => nil}
+    ]
+
+    for placeholder <- placeholder_fields do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "model_acceptance_report" =>
+              Map.put(
+                placeholder,
+                "contract",
+                "model_acceptance_report.v1"
+              )
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      assert source_summary["source_report_model_acceptance_contract"] ==
+               "model_acceptance_report.v1"
+
+      refute Map.has_key?(source_summary, "source_report_model_acceptance_count")
+      refute Map.has_key?(source_summary, "source_report_model_acceptance_row_count")
+      refute Map.has_key?(source_summary, "source_report_model_acceptance_paths")
+    end
+  end
+
+  test "model acceptance source summary preserves non-identity rollups with partial identity" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "model_acceptance_report" => %{
+            "contract" => "model_acceptance_report.v1",
+            "count" => 1,
+            "status_counts" => %{"blocked" => 1},
+            "model_ids_by_status" => %{"blocked" => ["missing.model"]}
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_model_acceptance_contract"] ==
+             "model_acceptance_report.v1"
+
+    refute Map.has_key?(source_summary, "source_report_model_acceptance_count")
+    refute Map.has_key?(source_summary, "source_report_model_acceptance_row_count")
+    refute Map.has_key?(source_summary, "source_report_model_acceptance_paths")
+
+    assert source_summary["source_report_model_acceptance_status_counts"] ==
+             %{"blocked" => 1}
+
+    assert source_summary["source_report_model_acceptance_model_ids_by_status"] ==
+             %{"blocked" => ["missing.model"]}
+  end
+
+  test "model acceptance source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "model_acceptance_report" => %{
+            "contract" => "model_acceptance_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.model_acceptance_report"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_model_acceptance_contract"] ==
+             "model_acceptance_report.v1"
+
+    assert source_summary["source_report_model_acceptance_count"] == 0
+    assert source_summary["source_report_model_acceptance_row_count"] == 0
+
+    assert source_summary["source_report_model_acceptance_paths"] == [
+             "provenance.source_reports.model_acceptance_report"
+           ]
+  end
+
+  test "model acceptance source summary omits missing identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "model_acceptance_report" => %{
+            "contract" => "model_acceptance_report.v1",
+            "count" => 1,
+            "row_count" => 2
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_model_acceptance_contract"] ==
+             "model_acceptance_report.v1"
+
+    assert source_summary["source_report_model_acceptance_count"] == 1
+    assert source_summary["source_report_model_acceptance_row_count"] == 2
+    refute Map.has_key?(source_summary, "source_report_model_acceptance_paths")
+  end
+
+  test "model acceptance source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "model_acceptance_report" => %{
+            "contract" => "model_acceptance_report.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_model_acceptance_contract"] ==
+             "model_acceptance_report.v1"
+
+    assert source_summary["source_report_model_acceptance_count"] == 1
+    assert source_summary["source_report_model_acceptance_row_count"] == 2
+    assert source_summary["source_report_model_acceptance_paths"] == []
+  end
+
   test "model acceptance replay treats status and model routing maps as review pressure" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
@@ -26515,6 +26658,43 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "operational_import" => ["event.access_windows", "missing.model"]
            }
 
+    assert summary["branch_local_review_pressure"]
+    assert summary["branch_local_blocking_pressure"]
+    assert summary["branch_local_unknown_model_pressure"]
+  end
+
+  test "model acceptance replay preserves routing pressure with partial identity" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "model_acceptance_report" => %{
+            "contract" => "model_acceptance_report.v1",
+            "count" => 1,
+            "paths" => ["provenance.source_reports.model_acceptance_report"],
+            "review_required_count" => 0,
+            "blocked_count" => 0,
+            "unknown_model_count" => 0,
+            "status_counts" => %{"blocked" => 1},
+            "model_ids_by_status" => %{"blocked" => ["missing.model"]},
+            "model_ids_by_validation_level" => %{"unknown" => ["missing.model"]},
+            "model_ids_by_intended_use" => %{
+              "operational_import" => ["missing.model"]
+            }
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.model_acceptance_replay_summary(artifact)
+
+    assert summary["source_report_count"] == 1
+    assert summary["source_report_row_count"] == 0
+    assert summary["source_report_paths"] == ["provenance.source_reports.model_acceptance_report"]
+    assert summary["status_counts"] == %{"blocked" => 1}
+    assert summary["model_ids_by_status"] == %{"blocked" => ["missing.model"]}
+    assert summary["model_ids_by_validation_level"] == %{"unknown" => ["missing.model"]}
+    assert summary["model_ids_by_intended_use"] == %{"operational_import" => ["missing.model"]}
     assert summary["branch_local_review_pressure"]
     assert summary["branch_local_blocking_pressure"]
     assert summary["branch_local_unknown_model_pressure"]
