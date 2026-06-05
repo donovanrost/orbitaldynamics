@@ -21110,6 +21110,8 @@ defmodule OrbitalDynamics.Schema do
           "count" => %{"type" => "integer", "minimum" => 0},
           "row_count" => %{"type" => "integer", "minimum" => 0},
           "analysis_mode_counts" => non_negative_integer_count_map_json_schema(),
+          "source_summary_model_counts" => non_negative_integer_count_map_json_schema(),
+          "source_summary_schema_contract_counts" => non_negative_integer_count_map_json_schema(),
           "trust_boundary_status" => %{"type" => "string"},
           "trust_boundaries" => string_array_schema(),
           "station_reservation_evidence_row_count" => %{

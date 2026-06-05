@@ -4197,6 +4197,8 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
         "station_pressure_precedence_availability_counts",
         "station_pressure_precedence_rank_counts",
         "analysis_mode_counts",
+        "source_summary_model_counts",
+        "source_summary_schema_contract_counts",
         "invalid_activity_input_reason_counts",
         "status_counts",
         "stale_reason_counts",
