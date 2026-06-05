@@ -25782,6 +25782,149 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     refute summary["branch_local_resource_pressure"]
   end
 
+  test "quality gate source summary keeps declared contract without partial identity placeholders" do
+    placeholder_fields = [
+      %{"count" => 1},
+      %{"row_count" => 2},
+      %{"paths" => ["provenance.source_reports.quality_gate_report"]},
+      %{"count" => nil, "row_count" => 2},
+      %{"count" => 1, "row_count" => nil}
+    ]
+
+    for placeholder <- placeholder_fields do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "quality_gate_report" =>
+              Map.put(
+                placeholder,
+                "contract",
+                "quality_gate_report.v1"
+              )
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      assert source_summary["source_report_quality_gate_contract"] ==
+               "quality_gate_report.v1"
+
+      refute Map.has_key?(source_summary, "source_report_quality_gate_count")
+      refute Map.has_key?(source_summary, "source_report_quality_gate_row_count")
+      refute Map.has_key?(source_summary, "source_report_quality_gate_paths")
+    end
+  end
+
+  test "quality gate source summary preserves non-identity rollups with partial identity" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "quality_gate_report" => %{
+            "contract" => "quality_gate_report.v1",
+            "count" => 1,
+            "gate_status_counts" => %{"blocked" => 1},
+            "resource_blocking_dimension_counts" => %{"communications" => 1}
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_quality_gate_contract"] ==
+             "quality_gate_report.v1"
+
+    refute Map.has_key?(source_summary, "source_report_quality_gate_count")
+    refute Map.has_key?(source_summary, "source_report_quality_gate_row_count")
+    refute Map.has_key?(source_summary, "source_report_quality_gate_paths")
+
+    assert source_summary["source_report_quality_gate_gate_status_counts"] ==
+             %{"blocked" => 1}
+
+    assert source_summary["source_report_quality_gate_resource_blocking_dimension_counts"] ==
+             %{"communications" => 1}
+  end
+
+  test "quality gate source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "quality_gate_report" => %{
+            "contract" => "quality_gate_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.quality_gate_report"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_quality_gate_contract"] ==
+             "quality_gate_report.v1"
+
+    assert source_summary["source_report_quality_gate_count"] == 0
+    assert source_summary["source_report_quality_gate_row_count"] == 0
+
+    assert source_summary["source_report_quality_gate_paths"] == [
+             "provenance.source_reports.quality_gate_report"
+           ]
+  end
+
+  test "quality gate source summary omits missing identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "quality_gate_report" => %{
+            "contract" => "quality_gate_report.v1",
+            "count" => 1,
+            "row_count" => 2
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_quality_gate_contract"] ==
+             "quality_gate_report.v1"
+
+    assert source_summary["source_report_quality_gate_count"] == 1
+    assert source_summary["source_report_quality_gate_row_count"] == 2
+    refute Map.has_key?(source_summary, "source_report_quality_gate_paths")
+  end
+
+  test "quality gate source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "quality_gate_report" => %{
+            "contract" => "quality_gate_report.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_quality_gate_contract"] ==
+             "quality_gate_report.v1"
+
+    assert source_summary["source_report_quality_gate_count"] == 1
+    assert source_summary["source_report_quality_gate_row_count"] == 2
+    assert source_summary["source_report_quality_gate_paths"] == []
+  end
+
   test "quality gate replay accepts operational import-readiness summaries" do
     import_readiness_summary = quality_gate_import_readiness_summary_fixture()
 

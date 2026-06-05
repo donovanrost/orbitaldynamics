@@ -2130,6 +2130,13 @@ Quality-gate reports wrapped in direct/list-valued `source_result_artifact` /
 wrapper-qualified `candidate_refresh.*.quality_gate_report.rows` source paths.
 When quality-gate provenance is absent, the replay summary omits the contract
 field rather than defaulting to `quality_gate_report.v1`.
+`CandidateRefresh.source_report_summary/1` also exposes compact top-level
+quality-gate contract/count/row-count/path rollups for source-report
+provenance. Compact quality-gate source-count/source-row-count and source-path
+fields require complete source-report identity (`count` and `row_count`
+present), so partial placeholders preserve only the declared contract while
+non-identity review/import/resource rollups, explicit zero counts, and explicit
+empty paths remain replayable evidence.
 
 `CandidateRefresh.model_acceptance_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_model_acceptance_replay_summary/1` expose the

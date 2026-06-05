@@ -1,16 +1,15 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh operational-readiness source-report identity gating.
+CandidateRefresh quality-gate source-report identity gating.
 
 Status:
 Implemented with focused verification passing locally.
 `CandidateRefresh.source_report_summary/1` now flattens
-`source_report_operational_readiness_count`,
-`source_report_operational_readiness_row_count`, and
-`source_report_operational_readiness_paths` only when the nested
-operational-readiness source-report identity is complete. Declared contracts
-and readiness/import/resource pressure fields remain independent of that compact
+`source_report_quality_gate_count`, `source_report_quality_gate_row_count`, and
+`source_report_quality_gate_paths` only when the nested quality-gate
+source-report identity is complete. Declared contracts and
+review/import/resource pressure rollups remain independent of that compact
 identity gate, explicit zero counts and explicit empty paths are preserved, and
 missing paths remain omitted after valid counts.
 
@@ -22,7 +21,7 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:24719 test/orbital_dynamics/candidate_refresh_test.exs:25004 test/orbital_dynamics/candidate_refresh_test.exs:25026 test/orbital_dynamics/candidate_refresh_test.exs:25066 test/orbital_dynamics/candidate_refresh_test.exs:25103 test/orbital_dynamics/candidate_refresh_test.exs:25131 test/orbital_dynamics/candidate_refresh_test.exs:25155 test/orbital_dynamics/candidate_refresh_test.exs:25180 test/orbital_dynamics/candidate_refresh_test.exs:25223`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:25531 test/orbital_dynamics/candidate_refresh_test.exs:25763 test/orbital_dynamics/candidate_refresh_test.exs:25785 test/orbital_dynamics/candidate_refresh_test.exs:25820 test/orbital_dynamics/candidate_refresh_test.exs:25851 test/orbital_dynamics/candidate_refresh_test.exs:25879 test/orbital_dynamics/candidate_refresh_test.exs:25903 test/orbital_dynamics/candidate_refresh_test.exs:25928`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 
@@ -30,7 +29,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-7a26d70 Flatten operational readiness replay identity.
+Pending publish.
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth from

@@ -4420,19 +4420,19 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "contract"
         ),
       "source_report_quality_gate_count" =>
-        source_report_summary_family_count(
+        source_report_summary_family_identity_count(
           source_reports,
           "quality_gate_report",
           "count"
         ),
       "source_report_quality_gate_row_count" =>
-        source_report_summary_family_count(
+        source_report_summary_family_identity_count(
           source_reports,
           "quality_gate_report",
           "row_count"
         ),
       "source_report_quality_gate_paths" =>
-        source_report_summary_family_field(
+        source_report_summary_family_identity_field(
           source_reports,
           "quality_gate_report",
           "paths"
