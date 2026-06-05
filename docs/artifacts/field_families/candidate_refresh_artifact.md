@@ -1810,7 +1810,7 @@ provenance.
 `CandidateRefresh.timeline_transition_application_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_timeline_transition_application_replay_summary/1`
 expose the timeline-transition-application slice as a branch-local replay
-summary. It preserves top-level source-report contract/count/path rollups,
+summary. It preserves top-level source-report contract/count/row-count/path rollups,
 source application paths, application/selected/review/preserved/replacement/
 withheld counts, selected-activity ID maps, status/decision/action maps,
 duplicate identity counts/maps, trust-boundary evidence, and branch-local
@@ -1832,6 +1832,9 @@ inputs are absent or zero.
 When timeline-transition-application provenance is absent, the replay summary
 omits the contract field rather than defaulting to
 `timeline_transition_application_report.v1`.
+Partial timeline-transition-application source-report family placeholders can
+preserve the declared contract, but omit flattened count, row-count, and path
+fields until both identity counts are present.
 The same replay family accepts direct, accepted-state, mission-state, exact
 `source_result_artifact` / `result_artifact`, and wrapped
 `source_timeline_transition_application_summary` /

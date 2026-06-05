@@ -6389,13 +6389,19 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "contract"
         ),
       "source_report_timeline_transition_application_count" =>
-        source_report_summary_family_count(
+        source_report_summary_family_identity_count(
           source_reports,
           "timeline_transition_application_report",
           "count"
         ),
+      "source_report_timeline_transition_application_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "timeline_transition_application_report",
+          "row_count"
+        ),
       "source_report_timeline_transition_application_paths" =>
-        source_report_summary_family_field(
+        source_report_summary_family_identity_field(
           source_reports,
           "timeline_transition_application_report",
           "paths"
@@ -12548,6 +12554,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "timeline_transition_application_report.v1"
         ),
       "source_report_count" => summary_integer(transition_summary, "count"),
+      "source_report_row_count" =>
+        timeline_transition_application_report_source_row_count(transition_summary),
       "source_application_count" => application_count,
       "source_report_paths" => Map.get(transition_summary, "paths", []),
       "selected_activity_count" => selected_activity_count,
@@ -20346,6 +20354,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "paths" => Enum.map(sources, fn {path, _report} -> path end),
       "contract" => timeline_transition_application_input_summary_contract(reports),
       "count" => length(sources),
+      "row_count" =>
+        sum_report_count(reports, &timeline_transition_application_report_source_row_count/1),
       "application_count" =>
         sum_report_count(reports, &timeline_transition_application_report_application_count/1),
       "selected_activity_count" =>
@@ -27539,6 +27549,40 @@ defmodule OrbitalDynamics.CandidateRefresh do
           rows -> length(rows)
         end
     end
+  end
+
+  defp timeline_transition_application_report_source_row_count(report) do
+    cond do
+      timeline_transition_application_summary_source?(report) ->
+        timeline_transition_application_first_numeric_report_count(report, [
+          "source_report_row_count",
+          "row_count",
+          "application_count"
+        ])
+
+      true ->
+        case timeline_transition_application_report_rows(report) do
+          [] ->
+            timeline_transition_application_first_numeric_report_count(report, [
+              "row_count",
+              "application_count"
+            ])
+
+          rows ->
+            length(rows)
+        end
+    end
+  end
+
+  defp timeline_transition_application_first_numeric_report_count(report, fields) do
+    fields
+    |> Enum.find_value(fn field ->
+      case numeric_value(Map.get(report, field)) do
+        value when is_number(value) -> report_count(value)
+        _value -> nil
+      end
+    end)
+    |> Kernel.||(0)
   end
 
   defp timeline_transition_application_summary_source?(%{} = report) do

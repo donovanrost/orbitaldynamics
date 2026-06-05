@@ -30024,6 +30024,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_timeline_transition_application_contract" =>
                "timeline_transition_application_report.v1",
              "source_report_timeline_transition_application_count" => 1,
+             "source_report_timeline_transition_application_row_count" => 3,
              "source_report_timeline_transition_application_paths" => [
                "source_timeline_transition_application_report"
              ],
@@ -30064,6 +30065,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                },
              "source_reports" => %{
                "timeline_transition_application_report" => %{
+                 "contract" => "timeline_transition_application_report.v1",
+                 "count" => 1,
+                 "row_count" => 3,
+                 "paths" => ["source_timeline_transition_application_report"],
                  "application_count" => 3,
                  "selected_activity_count" => 1,
                  "selected_activity_id_counts" => %{"selected_downlink_activity" => 1},
@@ -30085,6 +30090,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         "candidate_refresh.source_report_provenance.timeline_transition_application_report",
       "contract" => "timeline_transition_application_report.v1",
       "source_report_count" => 1,
+      "source_report_row_count" => 3,
       "source_application_count" => 3,
       "source_report_paths" => ["source_timeline_transition_application_report"],
       "selected_activity_count" => 1,
@@ -30150,6 +30156,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     }
 
     assert %{
+             "source_report_timeline_transition_application_contract" =>
+               "timeline_transition_application_report.v1",
+             "source_report_timeline_transition_application_count" => 1,
+             "source_report_timeline_transition_application_row_count" => 3,
+             "source_report_timeline_transition_application_paths" => [
+               "source_timeline_transition_application_report"
+             ],
              "source_report_timeline_transition_application_application_count" => 3,
              "source_report_timeline_transition_application_selected_activity_id_counts" => %{
                "selected_downlink_activity" => 1
@@ -30278,9 +30291,23 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert %{
              "source_report_family_count" => 1,
              "source_report_count" => 4,
+             "source_report_row_count" => 12,
              "source_report_counts_by_contract" => %{
                "timeline_transition_application_summary.v1" => 4
              },
+             "source_report_row_counts_by_contract" => %{
+               "timeline_transition_application_summary.v1" => 12
+             },
+             "source_report_timeline_transition_application_contract" =>
+               "timeline_transition_application_summary.v1",
+             "source_report_timeline_transition_application_count" => 4,
+             "source_report_timeline_transition_application_row_count" => 12,
+             "source_report_timeline_transition_application_paths" => [
+               "accepted_planning_state.timeline_transition_application_summary",
+               "mission_state.source_timeline_transition_application_summary",
+               "source_timeline_transition_application_summary",
+               "source_result_artifact.timeline_transition_application_summary"
+             ],
              "source_report_timeline_transition_application_application_count" => 12,
              "source_report_timeline_transition_application_selected_activity_count" => 4,
              "source_report_timeline_transition_application_selected_activity_id_counts" => %{
@@ -30312,6 +30339,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "timeline_transition_application_report" => %{
                  "contract" => "timeline_transition_application_summary.v1",
                  "count" => 4,
+                 "row_count" => 12,
                  "paths" => [
                    "accepted_planning_state.timeline_transition_application_summary",
                    "mission_state.source_timeline_transition_application_summary",
@@ -30344,6 +30372,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert %{
              "contract" => "timeline_transition_application_summary.v1",
              "source_report_count" => 4,
+             "source_report_row_count" => 12,
              "source_application_count" => 12,
              "source_report_paths" => [
                "accepted_planning_state.timeline_transition_application_summary",
@@ -30459,9 +30488,21 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert %{
              "source_report_family_count" => 1,
              "source_report_count" => 2,
+             "source_report_row_count" => 6,
              "source_report_counts_by_contract" => %{
                "timeline_transition_application_summary.v1" => 2
              },
+             "source_report_row_counts_by_contract" => %{
+               "timeline_transition_application_summary.v1" => 6
+             },
+             "source_report_timeline_transition_application_contract" =>
+               "timeline_transition_application_summary.v1",
+             "source_report_timeline_transition_application_count" => 2,
+             "source_report_timeline_transition_application_row_count" => 6,
+             "source_report_timeline_transition_application_paths" => [
+               "source_result_artifact",
+               "result_artifact"
+             ],
              "source_report_timeline_transition_application_application_count" => 6,
              "source_report_timeline_transition_application_selected_activity_count" => 2,
              "source_report_timeline_transition_application_selected_activity_id_counts" => %{
@@ -30479,6 +30520,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "timeline_transition_application_report" => %{
                  "contract" => "timeline_transition_application_summary.v1",
                  "count" => 2,
+                 "row_count" => 6,
                  "paths" => ["source_result_artifact", "result_artifact"],
                  "application_count" => 6,
                  "selected_activity_count" => 2,
@@ -30503,6 +30545,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert %{
              "contract" => "timeline_transition_application_summary.v1",
              "source_report_count" => 2,
+             "source_report_row_count" => 6,
              "source_application_count" => 6,
              "source_report_paths" => ["source_result_artifact", "result_artifact"],
              "selected_activity_count" => 2,
@@ -30535,6 +30578,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
           "timeline_transition_application_report" => %{
             "contract" => "timeline_transition_application_report.v1",
             "count" => 1,
+            "row_count" => 0,
             "paths" => ["source_timeline_transition_application_report"],
             "application_count" => 0,
             "selected_activity_count" => 1,
@@ -30551,6 +30595,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     summary = CandidateRefresh.timeline_transition_application_replay_summary(artifact)
 
     assert summary["source_report_count"] == 1
+    assert summary["source_report_row_count"] == 0
     assert summary["source_application_count"] == 0
     assert summary["selected_activity_count"] == 1
     assert summary["selected_activity_id_counts"] == %{"selected_downlink_activity" => 1}
@@ -30568,6 +30613,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     base_summary = %{
       "contract" => "timeline_transition_application_report.v1",
       "count" => 1,
+      "row_count" => 0,
       "paths" => ["source_timeline_transition_application_report"],
       "application_count" => 0,
       "selected_activity_count" => 0,
@@ -30605,6 +30651,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       summary = CandidateRefresh.timeline_transition_application_replay_summary(artifact)
 
       assert summary["source_application_count"] == 0, label
+      assert summary["source_report_row_count"] == 0, label
       assert summary["selected_activity_count"] == 0, label
       assert summary["selected_activity_id_counts"] == %{}, label
       assert summary["application_status_counts"] == %{}, label
@@ -30621,13 +30668,143 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "provenance" => %{"source_reports" => %{}}
     }
 
+    source_summary = CandidateRefresh.source_report_summary(artifact)
     summary = CandidateRefresh.timeline_transition_application_replay_summary(artifact)
 
+    refute Map.has_key?(source_summary, "source_report_timeline_transition_application_contract")
+    refute Map.has_key?(source_summary, "source_report_timeline_transition_application_count")
+    refute Map.has_key?(source_summary, "source_report_timeline_transition_application_row_count")
+    refute Map.has_key?(source_summary, "source_report_timeline_transition_application_paths")
     assert summary["source_report_count"] == 0
+    assert summary["source_report_row_count"] == 0
     assert summary["source_application_count"] == 0
     assert summary["source_report_paths"] == []
     refute Map.has_key?(summary, "contract")
     refute summary["branch_local_timeline_transition_application_pressure"]
+  end
+
+  test "timeline transition application source summary omits missing identity counts for partial family placeholder" do
+    partial_summaries = [
+      %{"contract" => "timeline_transition_application_report.v1"},
+      %{"count" => 1},
+      %{"row_count" => 2},
+      %{"paths" => ["provenance.source_reports.timeline_transition_application_report"]},
+      %{"count" => nil, "row_count" => nil},
+      %{
+        "count" => nil,
+        "row_count" => nil,
+        "paths" => ["provenance.source_reports.timeline_transition_application_report"]
+      }
+    ]
+
+    for partial_summary <- partial_summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "timeline_transition_application_report" => partial_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      if Map.has_key?(partial_summary, "contract") do
+        assert source_summary["source_report_timeline_transition_application_contract"] ==
+                 "timeline_transition_application_report.v1"
+      else
+        refute Map.has_key?(
+                 source_summary,
+                 "source_report_timeline_transition_application_contract"
+               )
+      end
+
+      refute Map.has_key?(source_summary, "source_report_timeline_transition_application_count")
+
+      refute Map.has_key?(
+               source_summary,
+               "source_report_timeline_transition_application_row_count"
+             )
+
+      refute Map.has_key?(source_summary, "source_report_timeline_transition_application_paths")
+    end
+  end
+
+  test "timeline transition application source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "timeline_transition_application_report" => %{
+            "contract" => "timeline_transition_application_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.timeline_transition_application_report"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_timeline_transition_application_contract"] ==
+             "timeline_transition_application_report.v1"
+
+    assert source_summary["source_report_timeline_transition_application_count"] == 0
+    assert source_summary["source_report_timeline_transition_application_row_count"] == 0
+
+    assert source_summary["source_report_timeline_transition_application_paths"] == [
+             "provenance.source_reports.timeline_transition_application_report"
+           ]
+  end
+
+  test "timeline transition application source summary omits missing identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "timeline_transition_application_report" => %{
+            "contract" => "timeline_transition_application_report.v1",
+            "count" => 1,
+            "row_count" => 2
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_timeline_transition_application_contract"] ==
+             "timeline_transition_application_report.v1"
+
+    assert source_summary["source_report_timeline_transition_application_count"] == 1
+    assert source_summary["source_report_timeline_transition_application_row_count"] == 2
+    refute Map.has_key?(source_summary, "source_report_timeline_transition_application_paths")
+  end
+
+  test "timeline transition application source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "timeline_transition_application_report" => %{
+            "contract" => "timeline_transition_application_report.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_timeline_transition_application_contract"] ==
+             "timeline_transition_application_report.v1"
+
+    assert source_summary["source_report_timeline_transition_application_count"] == 1
+    assert source_summary["source_report_timeline_transition_application_row_count"] == 2
+    assert source_summary["source_report_timeline_transition_application_paths"] == []
   end
 
   test "timeline transition application replay reads strategy branch candidate-source summary metadata" do
@@ -30687,6 +30864,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert summary["contract"] == "timeline_transition_application_report.v1"
     assert summary["source_report_count"] == 1
+    assert summary["source_report_row_count"] == 3
     assert summary["source_application_count"] == 3
 
     assert summary["source_report_paths"] == [
@@ -30750,6 +30928,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
           "timeline_transition_application_report" => %{
             "contract" => "timeline_transition_application_report.v1",
             "count" => 1,
+            "row_count" => 1,
             "paths" => [
               "candidate_source.candidate_refresh_request.source_timeline_transition_application_report"
             ],
@@ -30767,6 +30946,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_transition_application_report"
 
     assert summary["source_report_count"] == 1
+    assert summary["source_report_row_count"] == 1
     assert summary["source_application_count"] == 1
 
     assert summary["source_report_paths"] == [
@@ -30806,7 +30986,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
             "contract" => "timeline_transition_application_report.v1",
             "count" => 1,
             "paths" => ["source_timeline_transition_application_report"],
-            "application_count" => 1,
+            "application_count" => 2,
             "selected_activity_id_counts" => %{"provenance_selected_activity" => 1},
             "required_operator_action_counts" => %{"review_timeline_change" => 1}
           }
@@ -30820,7 +31000,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "candidate_refresh.source_report_provenance.timeline_transition_application_report"
 
     assert summary["source_report_paths"] == ["source_timeline_transition_application_report"]
-    assert summary["source_application_count"] == 1
+    assert summary["source_report_count"] == 1
+    assert summary["source_report_row_count"] == 2
+    assert summary["source_application_count"] == 2
     assert summary["selected_activity_id_counts"] == %{"provenance_selected_activity" => 1}
     assert summary["required_operator_action_counts"] == %{"review_timeline_change" => 1}
     assert summary["branch_local_timeline_transition_application_pressure"]
