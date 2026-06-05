@@ -4,7 +4,7 @@ Current slice:
 CandidateRefresh candidate-rejection source-report identity contract.
 
 Status:
-Implemented with focused verification passing locally.
+Implemented, reviewed, committed, and pushed.
 Candidate-rejection source-report identity already uses the shared
 count/row-count gate. This slice tightens the replay contract and tests so
 declared contract is independent from flattened count/row/path identity,
@@ -23,17 +23,18 @@ Tests run:
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs:27192 test/orbital_dynamics/candidate_refresh_test.exs:27231 test/orbital_dynamics/candidate_refresh_test.exs:27259 test/orbital_dynamics/candidate_refresh_test.exs:27298 test/orbital_dynamics/candidate_refresh_test.exs:27323`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
+- `slice_reviewer`: no must-fix blockers
 
 Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-Pending publish.
+`b3f61fade8a9f9639b9b8946e6c63c1f627cae00` pushed to `origin/main`.
 
 Next candidate:
-After verification and publish, continue guide-backed CandidateRefresh depth
-from queue item 4 with the next source-report family whose replay helper exists
-but aggregate identity, routing, or capability advertisement is incomplete.
+Continue guide-backed CandidateRefresh depth from queue item 4 with the next
+source-report family whose replay helper exists but aggregate identity, routing,
+or capability advertisement is incomplete.
 
 Blocked:
 No.
