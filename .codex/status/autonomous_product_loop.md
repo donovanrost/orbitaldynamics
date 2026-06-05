@@ -4,12 +4,13 @@ Current slice:
 Timeline publication summary CandidateRefresh replay provenance.
 
 Status:
-Implemented, locally verified, and reviewed clean. `timeline_publication_summary.v1`
-can now be summarized through CandidateRefresh branch-local replay provenance.
-The replay preserves direct summaries, result-artifact wrapped summaries, and
-publication review/import handoff rows without publishing, notifying, importing,
-mutating timelines, selecting candidates, writing to Cadence, regenerating
-candidates, or granting authority.
+Implemented, locally verified, reviewed clean, committed, and pushed.
+`timeline_publication_summary.v1` can now be summarized through
+CandidateRefresh branch-local replay provenance. The replay preserves direct
+summaries, result-artifact wrapped summaries, and publication review/import
+handoff rows without publishing, notifying, importing, mutating timelines,
+selecting candidates, writing to Cadence, regenerating candidates, or granting
+authority.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -80,14 +81,13 @@ Tests run:
   which matches the current one-row-per-summary producer shape
 
 Last completed implementation commit:
-Pending.
+`72e58b73fe2c1f2c990e3caac9cdd654cead937e` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending.
 
 Next candidate:
-After this slice is reviewed and published, rerun the mapper against the
-current checkout.
+Rerun the mapper against the current checkout.
 
 Blocked:
 No.
