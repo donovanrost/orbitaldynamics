@@ -49,7 +49,7 @@ Last completed implementation commit:
 `d2d3c17299367b0253cb15bb6536b57f4264de00` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending for this slice.
+`b3de8b1ba33623d4ea0deaf83d0bedb8149f826b` pushed to `origin/main`.
 
 Next candidate:
 After this slice, evaluate contact-contention-resolution direction routing from
