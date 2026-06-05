@@ -1209,7 +1209,10 @@ When contact-filter provenance is absent, the replay summary omits the contract
 field rather than defaulting to `contact_filter_report.v1`.
 Partial contact-filter source-report family placeholders can preserve the
 declared contract, but omit flattened count, row-count, and path fields until
-both identity counts are present.
+both identity counts are present. Explicit zero identity counts are retained,
+missing or nil paths remain omitted after valid counts, explicit empty path
+lists are preserved, and non-identity suppression, direction, invalid-input, and
+station-suppression maps still drive branch-local replay pressure.
 
 `CandidateRefresh.resource_filter_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_resource_filter_replay_summary/1` expose
