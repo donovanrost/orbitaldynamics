@@ -2877,6 +2877,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "resource_projection_report",
           "resource_pressure_station_calendar_provider_entry_ids_by_type"
         ),
+      "source_report_resource_filter_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "resource_filter_report",
+          "contract"
+        ),
+      "source_report_resource_filter_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "resource_filter_report",
+          "count"
+        ),
+      "source_report_resource_filter_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "resource_filter_report",
+          "row_count"
+        ),
+      "source_report_resource_filter_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "resource_filter_report",
+          "paths"
+        ),
       "source_report_resource_filter_suppressed_candidate_count" =>
         source_report_summary_family_count(
           source_reports,

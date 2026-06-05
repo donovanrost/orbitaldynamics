@@ -1173,8 +1173,9 @@ both identity counts are present.
 `CandidateRefresh.resource_filter_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_resource_filter_replay_summary/1` expose
 the resource-filter slice as a branch-local replay summary. It preserves source
-resource-filter paths, suppressed-candidate and invalid-resource-summary-input
-counts, invalid resource-summary input IDs, suppression-reason maps,
+resource-filter contract, count, row-count, paths, suppressed-candidate and
+invalid-resource-summary-input counts, invalid resource-summary input IDs,
+suppression-reason maps,
 suppression-reason candidate-ID maps, spacecraft/resource/blocking-dimension
 maps and candidate-ID maps, suppressed-candidate direction counts and
 candidate-ID maps by direction,
@@ -1233,6 +1234,9 @@ resource-filter summaries inside candidate-refresh `source_result_artifact` /
 indexes.
 When resource-filter provenance is absent, the replay summary omits the
 contract field rather than defaulting to `resource_filter_report.v1`.
+Partial resource-filter source-report family placeholders can preserve the
+declared contract, but omit flattened count, row-count, and path fields until
+both identity counts are present.
 
 `CandidateRefresh.resource_projection_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_resource_projection_replay_summary/1`
