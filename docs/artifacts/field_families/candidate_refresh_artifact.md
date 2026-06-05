@@ -1907,10 +1907,14 @@ candidates, approving imports, writing to Cadence, or regenerating candidates.
 The source-report summary exposes the same aggregate objective-gap signal count
 and combined station/target/collection/source-activity routing maps so
 branch-local consumers do not need to recompute cross-family objective pressure
-from per-family fields. These maps are derived from objective/score rows before
-stale top-level source-activity aggregates. The family-level objective-gap
-pressure boolean is true for objective status/type, score-term key, or routing
-evidence even when routed gap counts are absent.
+from per-family fields. Compact aggregate objective-gap count/row-count/path
+rollups require complete source-report identity (`count` and `row_count`
+present) for each contributing source family, so partial placeholders preserve
+declared contracts and routed pressure evidence without implying complete
+aggregate identity. These maps are derived from objective/score rows before stale
+top-level source-activity aggregates. The family-level objective-gap pressure
+boolean is true for objective status/type, score-term key, or routing evidence
+even when routed gap counts are absent.
 `OperatorReview.from_candidate_refresh_artifact/1` also lifts direct
 `source_objective_satisfaction_report` and `objective_satisfaction_report`
 non-passing rows, plus objective-satisfaction reports preserved in

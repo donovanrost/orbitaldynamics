@@ -5180,10 +5180,11 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "source_report_objective_gap_contracts" =>
         source_report_objective_gap_contracts(source_reports),
       "source_report_objective_gap_count" =>
-        source_report_objective_gap_count(source_reports, "count"),
+        source_report_objective_gap_identity_count(source_reports, "count"),
       "source_report_objective_gap_row_count" =>
-        source_report_objective_gap_count(source_reports, "row_count"),
-      "source_report_objective_gap_paths" => source_report_objective_gap_paths(source_reports),
+        source_report_objective_gap_identity_count(source_reports, "row_count"),
+      "source_report_objective_gap_paths" =>
+        source_report_objective_gap_identity_paths(source_reports),
       "source_report_objective_gap_routed_gap_signal_count" =>
         source_report_summary_family_count_or_zero(
           source_reports,
@@ -18268,21 +18269,39 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> sorted_string_values()
   end
 
-  defp source_report_objective_gap_paths(source_reports) do
-    source_reports
-    |> source_report_objective_gap_families()
-    |> Enum.flat_map(fn family ->
+  defp source_report_objective_gap_identity_paths(source_reports) do
+    complete_families =
       source_reports
-      |> source_report_summary_family_field(family, "paths")
-      |> List.wrap()
-    end)
-    |> sorted_string_values()
+      |> source_report_objective_gap_families()
+      |> Enum.filter(&source_report_summary_family_has_identity_counts?(source_reports, &1))
+
+    if Enum.any?(
+         complete_families,
+         &(source_reports |> Map.get(&1, %{}) |> Map.has_key?("paths"))
+       ) do
+      paths =
+        complete_families
+        |> Enum.flat_map(fn family ->
+          source_reports
+          |> source_report_summary_family_field(family, "paths")
+          |> List.wrap()
+        end)
+        |> sorted_string_values()
+
+      if paths != [] or
+           Enum.any?(
+             complete_families,
+             &(source_reports |> Map.get(&1, %{}) |> Map.get("paths") == [])
+           ) do
+        paths
+      end
+    end
   end
 
-  defp source_report_objective_gap_count(source_reports, field) do
+  defp source_report_objective_gap_identity_count(source_reports, field) do
     source_reports
     |> source_report_objective_gap_families()
-    |> Enum.map(&source_report_summary_family_count(source_reports, &1, field))
+    |> Enum.map(&source_report_summary_family_identity_count(source_reports, &1, field))
     |> Enum.reject(&is_nil/1)
     |> case do
       [] -> nil

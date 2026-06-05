@@ -31720,6 +31720,257 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     refute summary["branch_local_routing_pressure"]
   end
 
+  test "objective gap source summary keeps declared contracts without partial aggregate identity placeholders" do
+    placeholder_fields = [
+      %{"count" => 1},
+      %{"row_count" => 2},
+      %{"paths" => ["provenance.source_reports.objective_satisfaction_report"]},
+      %{"count" => nil, "row_count" => 2},
+      %{"count" => 1, "row_count" => nil}
+    ]
+
+    for placeholder <- placeholder_fields do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "objective_satisfaction_report" =>
+              Map.put(
+                placeholder,
+                "contract",
+                "objective_satisfaction_report.v1"
+              )
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      assert source_summary["source_report_objective_gap_contracts"] ==
+               ["objective_satisfaction_report.v1"]
+
+      refute Map.has_key?(source_summary, "source_report_objective_gap_count")
+      refute Map.has_key?(source_summary, "source_report_objective_gap_row_count")
+      refute Map.has_key?(source_summary, "source_report_objective_gap_paths")
+    end
+  end
+
+  test "objective gap source summary preserves non-identity rollups with partial identity" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "objective_satisfaction_report" => %{
+            "contract" => "objective_satisfaction_report.v1",
+            "count" => 1,
+            "status_counts" => %{"review_required" => 1},
+            "ground_station_counts" => %{"equator_prime" => 1}
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_objective_gap_contracts"] ==
+             ["objective_satisfaction_report.v1"]
+
+    refute Map.has_key?(source_summary, "source_report_objective_gap_count")
+    refute Map.has_key?(source_summary, "source_report_objective_gap_row_count")
+    refute Map.has_key?(source_summary, "source_report_objective_gap_paths")
+
+    assert source_summary["source_report_objective_satisfaction_status_counts"] ==
+             %{"review_required" => 1}
+
+    assert source_summary["source_report_objective_gap_ground_station_counts"] ==
+             %{"equator_prime" => 1}
+  end
+
+  test "objective gap source summary aggregates identity from complete families only" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "objective_satisfaction_report" => %{
+            "contract" => "objective_satisfaction_report.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => ["provenance.source_reports.objective_satisfaction_report"]
+          },
+          "score_term_report" => %{
+            "contract" => "score_term_report.v1",
+            "count" => 1,
+            "term_key_counts" => %{"downlink_shortfall_mb" => 1},
+            "ground_station_counts" => %{"equator_prime" => 1},
+            "source_activity_id_counts" => %{"score_downlink_activity" => 1}
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_objective_gap_contracts"] == [
+             "objective_satisfaction_report.v1",
+             "score_term_report.v1"
+           ]
+
+    assert source_summary["source_report_objective_gap_count"] == 1
+    assert source_summary["source_report_objective_gap_row_count"] == 2
+
+    assert source_summary["source_report_objective_gap_paths"] == [
+             "provenance.source_reports.objective_satisfaction_report"
+           ]
+
+    assert source_summary["source_report_score_term_term_key_counts"] == %{
+             "downlink_shortfall_mb" => 1
+           }
+
+    assert source_summary["source_report_objective_gap_ground_station_counts"] ==
+             %{"equator_prime" => 1}
+
+    assert source_summary["source_report_objective_gap_source_activity_id_counts"] ==
+             %{"score_downlink_activity" => 1}
+  end
+
+  test "objective gap source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "score_term_report" => %{
+            "contract" => "score_term_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.score_term_report"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_objective_gap_contracts"] == ["score_term_report.v1"]
+    assert source_summary["source_report_objective_gap_count"] == 0
+    assert source_summary["source_report_objective_gap_row_count"] == 0
+
+    assert source_summary["source_report_objective_gap_paths"] == [
+             "provenance.source_reports.score_term_report"
+           ]
+  end
+
+  test "objective gap source summary omits missing aggregate paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "objective_tradeoff_report" => %{
+            "contract" => "objective_tradeoff_report.v1",
+            "count" => 1,
+            "row_count" => 2
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_objective_gap_contracts"] ==
+             ["objective_tradeoff_report.v1"]
+
+    assert source_summary["source_report_objective_gap_count"] == 1
+    assert source_summary["source_report_objective_gap_row_count"] == 2
+    refute Map.has_key?(source_summary, "source_report_objective_gap_paths")
+  end
+
+  test "objective gap source summary omits nil aggregate paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "objective_tradeoff_report" => %{
+            "contract" => "objective_tradeoff_report.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => nil
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_objective_gap_contracts"] ==
+             ["objective_tradeoff_report.v1"]
+
+    assert source_summary["source_report_objective_gap_count"] == 1
+    assert source_summary["source_report_objective_gap_row_count"] == 2
+    refute Map.has_key?(source_summary, "source_report_objective_gap_paths")
+  end
+
+  test "objective gap source summary preserves empty aggregate paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "objective_tradeoff_report" => %{
+            "contract" => "objective_tradeoff_report.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_objective_gap_contracts"] ==
+             ["objective_tradeoff_report.v1"]
+
+    assert source_summary["source_report_objective_gap_count"] == 1
+    assert source_summary["source_report_objective_gap_row_count"] == 2
+    assert source_summary["source_report_objective_gap_paths"] == []
+  end
+
+  test "objective gap replay preserves routing pressure with partial identity" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "objective_satisfaction_report" => %{
+            "contract" => "objective_satisfaction_report.v1",
+            "count" => 1,
+            "paths" => ["source_objective_satisfaction_report"],
+            "gap_row_count" => 0,
+            "downlink_gap_row_count" => 0,
+            "target_gap_row_count" => 0,
+            "collection_latency_gap_row_count" => 0,
+            "status_counts" => %{"review_required" => 1},
+            "objective_type_counts" => %{"downlink_completion" => 1},
+            "ground_station_counts" => %{"equator_prime" => 1},
+            "target_counts" => %{},
+            "collection_counts" => %{},
+            "source_activity_id_counts" => %{"dl_gap_activity" => 1}
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.objective_gap_replay_summary(artifact)
+
+    assert summary["contracts"] == ["objective_satisfaction_report.v1"]
+    assert summary["source_report_count"] == 1
+    assert summary["source_report_row_count"] == 0
+    assert summary["source_report_paths"] == ["source_objective_satisfaction_report"]
+    assert summary["objective_satisfaction_status_counts"] == %{"review_required" => 1}
+    assert summary["ground_station_counts"] == %{"equator_prime" => 1}
+    assert summary["source_activity_id_counts"] == %{"dl_gap_activity" => 1}
+    assert summary["branch_local_objective_gap_pressure"]
+    assert summary["branch_local_objective_status_pressure"]
+    assert summary["branch_local_routing_pressure"]
+  end
+
   test "source report summary derives timeline transition application routing maps from rows" do
     refresh = %{
       "source_timeline_transition_application_report" => %{
