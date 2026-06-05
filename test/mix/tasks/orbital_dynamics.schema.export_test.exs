@@ -4388,16 +4388,27 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                ["resource_pressure_directions", "items", "type"]
            ) == "string"
 
-    assert get_in(
-             schemas,
-             ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
-               [
-                 "resource_pressure_activity_ids_by_direction",
-                 "additionalProperties",
-                 "items",
-                 "pattern"
-               ]
-           ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+    Enum.each(
+      [
+        "resource_pressure_activity_ids_by_status",
+        "resource_pressure_activity_ids_by_type",
+        "resource_pressure_activity_ids_by_ground_station",
+        "resource_pressure_activity_ids_by_spacecraft",
+        "resource_pressure_activity_ids_by_direction"
+      ],
+      fn field ->
+        assert get_in(
+                 schemas,
+                 ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
+                   [
+                     field,
+                     "additionalProperties",
+                     "items",
+                     "pattern"
+                   ]
+               ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+      end
+    )
 
     assert get_in(
              schemas,
