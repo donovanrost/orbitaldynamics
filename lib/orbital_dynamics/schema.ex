@@ -21232,7 +21232,9 @@ defmodule OrbitalDynamics.Schema do
     %{
       "resource_projection_spacecraft_counts" => non_negative_integer_count_map_json_schema(),
       "resource_pressure_type_counts" => non_negative_integer_count_map_json_schema(),
-      "resource_pressure_activity_id_counts" => non_negative_integer_count_map_json_schema()
+      "resource_pressure_activity_id_counts" => non_negative_integer_count_map_json_schema(),
+      "source_artifact_type_counts" => non_negative_integer_count_map_json_schema(),
+      "source_flow_summary_model_counts" => non_negative_integer_count_map_json_schema()
     }
   end
 

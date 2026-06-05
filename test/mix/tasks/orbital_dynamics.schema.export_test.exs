@@ -4236,6 +4236,8 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
         "resource_projection_spacecraft_counts",
         "resource_pressure_type_counts",
         "resource_pressure_activity_id_counts",
+        "source_artifact_type_counts",
+        "source_flow_summary_model_counts",
         "resource_filter_spacecraft_counts",
         "resource_filter_resource_counts",
         "resource_filter_blocking_dimension_counts",
