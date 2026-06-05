@@ -36,7 +36,8 @@ The following facades expose the same report-compatible realized feedback normal
 `timeline_activity_state.v1` contract for callers that need a single
 planned/realized activity-state artifact. The contract validates the
 row-derived state status, row count, status/feedback/match/Cadence/protection
-count maps, review IDs, and artifact-only no-mutation/no-command assumptions
+count maps, realized provider/source-quality/trust-boundary summaries, review
+IDs, and artifact-only no-mutation/no-command assumptions
 against the embedded feedback rows. It also pins the timeline model-limit list
 in executable validation and JSON Schema export.
 `Timeline.dependency_impact_summary/3` and

@@ -6069,10 +6069,14 @@ defmodule OrbitalDynamics.Schema do
         "realized_approval_status",
         "realized_executed",
         "realized_locked",
+        "realized_provider_counts",
         "realized_protection_decision",
+        "realized_source_quality_counts",
         "realized_status",
         "realized_status_category",
         "realized_timeline_id",
+        "realized_trust_boundaries",
+        "realized_trust_boundary_status",
         "source_activity_context",
         "source_protection_decision",
         "realized_activity_context",
@@ -10138,7 +10142,9 @@ defmodule OrbitalDynamics.Schema do
               "feedback_kind_counts",
               "match_strategy_counts",
               "cadence_import_status_counts",
-              "planned_protection_decision_counts"
+              "planned_protection_decision_counts",
+              "realized_provider_counts",
+              "realized_source_quality_counts"
             ] do
     capability = OrbitalDynamics.TimelineFeedback.capabilities()
 
@@ -10149,8 +10155,12 @@ defmodule OrbitalDynamics.Schema do
       "match_strategy_counts" -> capability.match_strategies
       "cadence_import_status_counts" -> capability.cadence_import_statuses
       "planned_protection_decision_counts" -> capability.planned_protection_decisions
+      _field -> nil
     end
-    |> enum_count_map_json_schema()
+    |> case do
+      nil -> non_negative_integer_count_map_json_schema()
+      values -> enum_count_map_json_schema(values)
+    end
   end
 
   defp json_schema_property(field, @timeline_activity_state, _contract)
@@ -10163,6 +10173,9 @@ defmodule OrbitalDynamics.Schema do
 
   defp json_schema_property("review_activity_ids", @timeline_activity_state, _contract),
     do: stable_id_array_schema()
+
+  defp json_schema_property("realized_trust_boundaries", @timeline_activity_state, _contract),
+    do: string_array_schema()
 
   defp json_schema_property("review_required", @timeline_activity_state, _contract) do
     %{"type" => "boolean"}
@@ -10204,7 +10217,8 @@ defmodule OrbitalDynamics.Schema do
               "realized_approval_category",
               "realized_approval_status",
               "realized_status",
-              "realized_status_category"
+              "realized_status_category",
+              "realized_trust_boundary_status"
             ] do
     %{"type" => "string"}
   end
@@ -22458,6 +22472,10 @@ defmodule OrbitalDynamics.Schema do
         "realized_locked" => %{"type" => "boolean"},
         "planned_executed" => %{"type" => "boolean"},
         "realized_executed" => %{"type" => "boolean"},
+        "realized_provider_counts" => non_negative_integer_count_map_json_schema(),
+        "realized_source_quality_counts" => non_negative_integer_count_map_json_schema(),
+        "realized_trust_boundary_status" => %{"type" => "string"},
+        "realized_trust_boundaries" => string_array_schema(),
         "status_transition" => lifecycle_transition_json_schema(),
         "approval_transition" => lifecycle_transition_json_schema(),
         "source_protection_decision" => protection_decision_json_schema(),
@@ -37224,6 +37242,11 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(path, state, "realized_executed", :boolean)
     |> expect_optional_type(path, state, "source_protection_decision", :map)
     |> expect_optional_type(path, state, "realized_protection_decision", :map)
+    |> expect_optional_type(path, state, "realized_provider_counts", :map)
+    |> expect_optional_type(path, state, "realized_source_quality_counts", :map)
+    |> expect_optional_type(path, state, "realized_trust_boundary_status", :binary)
+    |> expect_optional_type(path, state, "realized_trust_boundaries", :list)
+    |> validate_string_list_items(path, state, "realized_trust_boundaries")
     |> validate_optional_protection_decision(path, state, "source_protection_decision")
     |> validate_optional_protection_decision(path, state, "realized_protection_decision")
     |> expect_optional_type(path, state, "source_activity_context", :map)
@@ -37288,6 +37311,14 @@ defmodule OrbitalDynamics.Schema do
       path <> ".planned_protection_decision_counts",
       Map.get(state, "planned_protection_decision_counts")
     )
+    |> validate_non_negative_integer_count_map(
+      path <> ".realized_provider_counts",
+      Map.get(state, "realized_provider_counts")
+    )
+    |> validate_non_negative_integer_count_map(
+      path <> ".realized_source_quality_counts",
+      Map.get(state, "realized_source_quality_counts")
+    )
     |> expect_field_equals(path, state, "row_count", length(rows))
     |> expect_field_equals(
       path,
@@ -37324,6 +37355,75 @@ defmodule OrbitalDynamics.Schema do
       frequency_map(rows, "planned_protection_decision"),
       "must equal row-derived planned_protection_decision_counts"
     )
+    |> expect_field_equals(
+      path,
+      state,
+      "realized_provider_counts",
+      timeline_activity_state_optional_frequency_map(rows, "realized_provider"),
+      "must equal row-derived realized_provider_counts"
+    )
+    |> expect_field_equals(
+      path,
+      state,
+      "realized_source_quality_counts",
+      timeline_activity_state_optional_frequency_map(rows, "realized_source_quality"),
+      "must equal row-derived realized_source_quality_counts"
+    )
+    |> expect_field_equals(
+      path,
+      state,
+      "realized_trust_boundary_status",
+      timeline_activity_state_realized_trust_boundary_status(rows),
+      "must equal row-derived realized_trust_boundary_status"
+    )
+    |> expect_field_equals(
+      path,
+      state,
+      "realized_trust_boundaries",
+      timeline_activity_state_realized_trust_boundaries(rows),
+      "must equal row-derived realized_trust_boundaries"
+    )
+  end
+
+  defp timeline_activity_state_optional_frequency_map(rows, field) do
+    case frequency_map(rows, field) do
+      counts when map_size(counts) == 0 -> nil
+      counts -> counts
+    end
+  end
+
+  defp timeline_activity_state_realized_trust_boundary_status(rows) do
+    if timeline_activity_state_realized_row_count(rows) == 0 do
+      nil
+    else
+      case timeline_activity_state_realized_trust_boundary_values(rows) do
+        [] -> "missing"
+        _boundaries -> "declared"
+      end
+    end
+  end
+
+  defp timeline_activity_state_realized_trust_boundaries(rows) do
+    case timeline_activity_state_realized_trust_boundary_values(rows) do
+      [] -> nil
+      boundaries -> boundaries
+    end
+  end
+
+  defp timeline_activity_state_realized_trust_boundary_values(rows) do
+    rows
+    |> Enum.map(&Map.get(&1, "realized_trust_boundary"))
+    |> Enum.filter(&present_string?/1)
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp timeline_activity_state_realized_row_count(rows) do
+    Enum.count(rows, fn row ->
+      Map.get(row, "status") in ["matched", "realized_only"] or
+        present_string?(Map.get(row, "realized_activity_id")) or
+        present_string?(Map.get(row, "realized_status"))
+    end)
   end
 
   defp timeline_activity_state_status([]), do: "empty"

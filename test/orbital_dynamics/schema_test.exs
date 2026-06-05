@@ -7263,6 +7263,23 @@ defmodule OrbitalDynamics.SchemaTest do
              "enum"
            ]) == capabilities.planned_protection_decisions
 
+    assert get_in(schema, [
+             "properties",
+             "realized_provider_counts",
+             "additionalProperties"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, [
+             "properties",
+             "realized_source_quality_counts",
+             "additionalProperties"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(schema, ["properties", "realized_trust_boundary_status", "type"]) == "string"
+
+    assert get_in(schema, ["properties", "realized_trust_boundaries", "items", "type"]) ==
+             "string"
+
     assert get_in(schema, ["properties", "planned_approval_status", "type"]) == "string"
     assert get_in(schema, ["properties", "realized_approval_status", "type"]) == "string"
     assert get_in(schema, ["properties", "planned_status_category", "type"]) == "string"
@@ -7330,6 +7347,9 @@ defmodule OrbitalDynamics.SchemaTest do
       type: :downlink,
       status: :completed,
       actual_throughput_mb: 72.0,
+      provider: :ksat,
+      source_quality: :provider_declared,
+      trust_boundary: :provider_adapter,
       metadata: %{timeline_id: :"timeline:downlink_equator"}
     }
 
@@ -7406,6 +7426,48 @@ defmodule OrbitalDynamics.SchemaTest do
              validation_report["errors"],
              &(&1["path"] == "$.status_counts" and
                  &1["message"] == "must equal row-derived status_counts")
+           )
+
+    stale_provider_counts = Map.put(valid_state, "realized_provider_counts", %{"ksat" => 2})
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_provider_counts)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.realized_provider_counts" and
+                 &1["message"] == "must equal row-derived realized_provider_counts")
+           )
+
+    stale_source_quality_counts =
+      Map.put(valid_state, "realized_source_quality_counts", %{"provider_declared" => 2})
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_source_quality_counts)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.realized_source_quality_counts" and
+                 &1["message"] == "must equal row-derived realized_source_quality_counts")
+           )
+
+    stale_trust_boundary_status =
+      Map.put(valid_state, "realized_trust_boundary_status", "missing")
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_trust_boundary_status)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.realized_trust_boundary_status" and
+                 &1["message"] == "must equal row-derived realized_trust_boundary_status")
+           )
+
+    stale_trust_boundaries = Map.put(valid_state, "realized_trust_boundaries", ["other_adapter"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_trust_boundaries)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.realized_trust_boundaries" and
+                 &1["message"] == "must equal row-derived realized_trust_boundaries")
            )
 
     stale_state_status = Map.put(valid_state, "state_status", "review_required")

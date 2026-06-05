@@ -191,6 +191,9 @@ defmodule OrbitalDynamics.TimelineFeedback do
         :cadence_import_status_counts,
         :realized_provider_provenance,
         :realized_source_quality,
+        :activity_state_realized_provider_counts,
+        :activity_state_realized_source_quality_counts,
+        :activity_state_realized_trust_boundary_status,
         :station_calendar_capacity_fraction_context,
         :station_calendar_capacity_percent_aliases,
         :station_calendar_reservation_expiration_context,
@@ -409,6 +412,11 @@ defmodule OrbitalDynamics.TimelineFeedback do
       "match_strategy_counts" => count_by(rows, "match_strategy"),
       "cadence_import_status_counts" => count_by(rows, "cadence_import_status"),
       "planned_protection_decision_counts" => count_by(rows, "planned_protection_decision"),
+      "realized_provider_counts" => activity_state_count_by(rows, "realized_provider"),
+      "realized_source_quality_counts" =>
+        activity_state_count_by(rows, "realized_source_quality"),
+      "realized_trust_boundary_status" => activity_state_realized_trust_boundary_status(rows),
+      "realized_trust_boundaries" => activity_state_realized_trust_boundaries(rows),
       "activity_id" => value(primary, "activity_id"),
       "activity_ids" => activity_state_ids(rows, "activity_id"),
       "timeline_id" =>
@@ -509,6 +517,49 @@ defmodule OrbitalDynamics.TimelineFeedback do
 
   defp present_review_action?(action) when action in [nil, "", "none"], do: false
   defp present_review_action?(_action), do: true
+
+  defp activity_state_count_by(rows, field) do
+    rows
+    |> count_by(field)
+    |> case do
+      counts when map_size(counts) == 0 -> nil
+      counts -> counts
+    end
+  end
+
+  defp activity_state_realized_trust_boundary_status(rows) do
+    if activity_state_realized_row_count(rows) == 0 do
+      nil
+    else
+      case activity_state_realized_trust_boundary_values(rows) do
+        [] -> "missing"
+        _boundaries -> "declared"
+      end
+    end
+  end
+
+  defp activity_state_realized_trust_boundaries(rows) do
+    case activity_state_realized_trust_boundary_values(rows) do
+      [] -> nil
+      boundaries -> boundaries
+    end
+  end
+
+  defp activity_state_realized_trust_boundary_values(rows) do
+    rows
+    |> Enum.map(&Map.get(&1, "realized_trust_boundary"))
+    |> Enum.filter(&present_string?/1)
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp activity_state_realized_row_count(rows) do
+    Enum.count(rows, fn row ->
+      Map.get(row, "status") in ["matched", "realized_only"] or
+        present_string?(Map.get(row, "realized_activity_id")) or
+        present_string?(Map.get(row, "realized_status"))
+    end)
+  end
 
   defp activity_state_planned_status(row) do
     value(row, "planned_status") || get_in(row, ["status_transition", "from"])

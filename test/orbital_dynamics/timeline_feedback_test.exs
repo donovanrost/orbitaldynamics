@@ -604,6 +604,9 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
       actual_starts_at_s: 102.0,
       actual_ends_at_s: 150.0,
       actual_throughput_mb: 72.0,
+      provider_id: "ksat",
+      quality_level: "provider_declared",
+      trust_boundary: "provider_adapter",
       reason: "provider reported reduced throughput"
     }
 
@@ -618,6 +621,10 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
              "match_strategy_counts" => %{"activity_id" => 1},
              "cadence_import_status_counts" => %{"present" => 1},
              "planned_protection_decision_counts" => %{"preserve" => 1},
+             "realized_provider_counts" => %{"ksat" => 1},
+             "realized_source_quality_counts" => %{"provider_declared" => 1},
+             "realized_trust_boundary_status" => "declared",
+             "realized_trust_boundaries" => ["provider_adapter"],
              "activity_id" => "downlink_equator",
              "activity_ids" => ["downlink_equator"],
              "feedback_kind" => "contact",
@@ -654,7 +661,10 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
              },
              "realized_activity_context" => %{
                "realized_activity_id" => "downlink_equator",
-               "actual_throughput_mb" => 72.0
+               "actual_throughput_mb" => 72.0,
+               "provider" => "ksat",
+               "source_quality" => "provider_declared",
+               "trust_boundary" => "provider_adapter"
              },
              "assumptions" => %{
                "artifact_only" => true,
