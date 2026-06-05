@@ -21170,6 +21170,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_contact_intent_source_report_summary_json_schema(),
             "link_capacity_report" =>
               candidate_refresh_link_capacity_source_report_summary_json_schema(),
+            "resource_filter_report" =>
+              candidate_refresh_resource_filter_source_report_summary_json_schema(),
             "station_calendar_report" =>
               candidate_refresh_station_calendar_source_report_summary_json_schema(),
             "station_reservation_report" =>
@@ -21505,6 +21507,55 @@ defmodule OrbitalDynamics.Schema do
     end)
   end
 
+  defp candidate_refresh_resource_filter_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      properties
+      |> Map.merge(
+        non_negative_integer_property_schemas([
+          "suppressed_candidate_count",
+          "invalid_resource_summary_input_count"
+        ])
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "suppressed_reason_counts",
+            "resource_filter_spacecraft_counts",
+            "resource_filter_resource_counts",
+            "resource_filter_blocking_dimension_counts",
+            "direction_counts"
+          ],
+          &{&1, non_negative_integer_count_map_json_schema()}
+        )
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "invalid_resource_summary_input_ids"
+          ],
+          &{&1, stable_id_array_schema()}
+        )
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "candidate_ids_by_suppressed_reason",
+            "candidate_ids_by_spacecraft",
+            "candidate_ids_by_resource",
+            "candidate_ids_by_blocking_dimension",
+            "candidate_ids_by_direction"
+          ],
+          &{&1, stable_id_array_map_schema()}
+        )
+      )
+      |> Map.merge(%{
+        "directions" => string_array_schema(),
+        "direction_routing" => resource_filter_direction_routing_json_schema()
+      })
+    end)
+  end
+
   defp candidate_refresh_link_capacity_context_json_schema_properties do
     %{
       "ground_station_counts" => non_negative_integer_count_map_json_schema(),
@@ -21827,6 +21878,20 @@ defmodule OrbitalDynamics.Schema do
         "properties" => %{
           "contact_count" => %{"type" => "integer", "minimum" => 0},
           "contact_ids" => stable_id_array_schema()
+        }
+      }
+    }
+  end
+
+  defp resource_filter_direction_routing_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => %{
+        "type" => "object",
+        "additionalProperties" => true,
+        "properties" => %{
+          "candidate_count" => %{"type" => "integer", "minimum" => 0},
+          "candidate_ids" => stable_id_array_schema()
         }
       }
     }

@@ -1,18 +1,18 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Make CandidateRefresh contact-filter source-report routing and station-suppression maps schema-visible.
+Make CandidateRefresh resource-filter source-report direction routing schema-visible.
 
 Status:
-Implemented, locally verified, reviewed clean, committed, and pushed.
-Runtime CandidateRefresh contact-filter source summaries already preserve
-suppressed contact counts, invalid contact IDs, suppressed-reason maps,
-direction routing, and station-suppression contact/calendar/reservation maps,
-but the
-`candidate_refresh.v1` family-specific source-report JSON Schema does not
-advertise those contact-filter fields. This is a contract
-discoverability slice only: no replay behavior, runtime validation helpers,
-artifact generation logic, or operator/Cadence authority behavior changed.
+Implemented, locally verified, and reviewed clean; publish pending. Runtime
+CandidateRefresh resource-filter source summaries already preserve suppressed
+candidate counts, invalid resource-summary inputs, suppressed-reason maps,
+spacecraft/resource/blocking-dimension maps, directions, candidate IDs by
+direction, and direction routing with candidate counts and candidate IDs. The
+`candidate_refresh.v1` family-specific source-report JSON Schema now advertises
+those resource-filter fields. This is a contract discoverability slice only: no
+replay behavior, runtime validation helpers, artifact generation logic, or
+operator/Cadence authority behavior changed.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -22,11 +22,12 @@ Files changed:
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 
 Definition of done:
-- `candidate_refresh.v1` exposes a family-specific `contact_filter_report`
+- `candidate_refresh.v1` exposes a family-specific `resource_filter_report`
   source-report schema.
-- Its source-report object advertises contact-filter counts, invalid contact
-  IDs, suppressed-reason count/contact maps, directions and direction routing,
-  and station-suppression contact/calendar/provider/reservation ID maps.
+- Its source-report object advertises resource-filter suppressed counts,
+  invalid resource-summary input IDs, suppressed-reason maps,
+  spacecraft/resource/blocking-dimension maps, directions, candidate IDs by
+  direction, and direction routing with candidate counts and candidate IDs.
 - Checked-in `candidate_refresh.v1` schema and schema bundle are refreshed.
 - Schema export tests, schema tests, schema lint, and whitespace checks pass.
 
@@ -37,22 +38,21 @@ Tests run:
 - `mix test test/orbital_dynamics/schema_test.exs`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
-- `git diff --check`
-- `jq` spot-checks for `contact_filter_report` in
+- `jq` spot-checks for `resource_filter_report` in
   `schemas/candidate_refresh.v1.schema.json` and the schema bundle.
+- `git diff --check`
 - `slice_reviewer`: no must-fix findings; reran focused export test,
   whitespace check, and generated-schema `jq` spot-checks.
-- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`69b4268b8e37a2df29bf1d4a2c81f2d8a23c6ff0` pushed to `origin/main`.
+Pending for this slice.
 
 Last ledger correction commit:
-`63ec97bfd6847945c0c600900674e4f315a312c3` pushed to `origin/main`.
+Pending for this slice.
 
 Next candidate:
-After this slice, evaluate resource-filter direction routing from the mapper
-result.
+After this slice, re-run a bounded mapper pass to find the next
+schema-visible CandidateRefresh source-report routing gap.
 
 Blocked:
 No.
