@@ -23796,6 +23796,112 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     refute summary["branch_local_freshness_pressure"]
   end
 
+  test "freshness source summary keeps declared contract without partial identity placeholders" do
+    placeholder_fields = [
+      %{"count" => 1},
+      %{"row_count" => 2},
+      %{"paths" => ["provenance.source_reports.freshness_report"]},
+      %{"count" => nil, "row_count" => 2},
+      %{"count" => 1, "row_count" => nil}
+    ]
+
+    for placeholder <- placeholder_fields do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "freshness_report" =>
+              Map.put(
+                placeholder,
+                "contract",
+                "freshness_report.v1"
+              )
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      assert source_summary["source_report_freshness_contract"] ==
+               "freshness_report.v1"
+
+      refute Map.has_key?(source_summary, "source_report_freshness_count")
+      refute Map.has_key?(source_summary, "source_report_freshness_row_count")
+      refute Map.has_key?(source_summary, "source_report_freshness_paths")
+    end
+  end
+
+  test "freshness source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "freshness_report" => %{
+            "contract" => "freshness_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.freshness_report"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_freshness_contract"] == "freshness_report.v1"
+    assert source_summary["source_report_freshness_count"] == 0
+    assert source_summary["source_report_freshness_row_count"] == 0
+
+    assert source_summary["source_report_freshness_paths"] == [
+             "provenance.source_reports.freshness_report"
+           ]
+  end
+
+  test "freshness source summary omits missing identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "freshness_report" => %{
+            "contract" => "freshness_report.v1",
+            "count" => 1,
+            "row_count" => 2
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_freshness_contract"] == "freshness_report.v1"
+    assert source_summary["source_report_freshness_count"] == 1
+    assert source_summary["source_report_freshness_row_count"] == 2
+    refute Map.has_key?(source_summary, "source_report_freshness_paths")
+  end
+
+  test "freshness source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "freshness_report" => %{
+            "contract" => "freshness_report.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_freshness_contract"] == "freshness_report.v1"
+    assert source_summary["source_report_freshness_count"] == 1
+    assert source_summary["source_report_freshness_row_count"] == 2
+    assert source_summary["source_report_freshness_paths"] == []
+  end
+
   test "freshness replay treats reason lists and maps as freshness pressure" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",

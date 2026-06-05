@@ -3946,19 +3946,19 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "contract"
         ),
       "source_report_freshness_count" =>
-        source_report_summary_family_count(
+        source_report_summary_family_identity_count(
           source_reports,
           "freshness_report",
           "count"
         ),
       "source_report_freshness_row_count" =>
-        source_report_summary_family_count(
+        source_report_summary_family_identity_count(
           source_reports,
           "freshness_report",
           "row_count"
         ),
       "source_report_freshness_paths" =>
-        source_report_summary_family_field(
+        source_report_summary_family_identity_field(
           source_reports,
           "freshness_report",
           "paths"

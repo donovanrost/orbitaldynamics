@@ -2202,8 +2202,13 @@ contract, count, row-count, source paths, stale/unknown status maps,
 stale/unknown reason lists/count maps, trust-boundary evidence, and branch-local
 stale/unknown pressure booleans
 without mutating refresh state, approving imports, writing to Cadence, or
-regenerating candidates. Stale/unknown pressure is true for reason lists and
-reason-count maps even when the aggregate reason counters are absent or zero.
+regenerating candidates. `CandidateRefresh.source_report_summary/1` also
+exposes compact top-level freshness contract/count/row-count/path rollups; those
+compact source-count, source-row-count, and source-path fields require complete
+source-report identity (`count` and `row_count` present), while partial
+placeholders only expose the declared contract. Stale/unknown pressure is true
+for reason lists and reason-count maps even when the aggregate reason counters
+are absent or zero.
 The replay helper can inspect V3 branch `candidate_source` metadata that carries
 `candidate_refresh_request_source_report_summary`, so
 strategy-derived branch refreshes preserve freshness status and stale/unknown
