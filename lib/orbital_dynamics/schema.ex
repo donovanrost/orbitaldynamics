@@ -73,6 +73,28 @@ defmodule OrbitalDynamics.Schema do
     "downlink_completion_source",
     "downlink_completion_sources"
   ]
+  @candidate_refresh_publication_lineage_id_array_fields [
+    "source_report_timeline_publication_ids",
+    "source_report_timeline_publication_source_artifact_ids",
+    "source_report_timeline_publication_supersedes_artifact_ids",
+    "source_report_timeline_publication_downstream_product_ids",
+    "source_report_timeline_publication_invalidated_downstream_product_ids",
+    "source_report_operational_readiness_publication_ids",
+    "source_report_operational_readiness_source_artifact_ids",
+    "source_report_operational_readiness_supersedes_artifact_ids",
+    "source_report_operational_readiness_downstream_product_ids",
+    "source_report_operational_readiness_invalidated_downstream_product_ids",
+    "source_report_quality_gate_publication_ids",
+    "source_report_quality_gate_source_artifact_ids",
+    "source_report_quality_gate_supersedes_artifact_ids",
+    "source_report_quality_gate_downstream_product_ids",
+    "source_report_quality_gate_invalidated_downstream_product_ids"
+  ]
+  @candidate_refresh_publication_lineage_count_map_fields [
+    "source_report_timeline_publication_source_artifact_type_counts",
+    "source_report_operational_readiness_timeline_publication_source_artifact_type_counts",
+    "source_report_quality_gate_timeline_publication_source_artifact_type_counts"
+  ]
   @spacecraft_state_estimate "spacecraft_state_estimate.v1"
   @maneuver_execution_delta "maneuver_execution_delta.v1"
   @validation_reference_fixture_report "validation_reference_fixture_report.v1"
@@ -7394,15 +7416,15 @@ defmodule OrbitalDynamics.Schema do
         "freshness_report.v1",
         "refresh_budget_report.v1"
       ],
-      "optional_fields" => [
-        "candidate_rejection_report",
-        "source_candidate_rejection_report",
-        "refresh_budget_report",
-        "operational_feedback",
-        "source_report_timeline_publication_source_artifact_ids",
-        "source_report_operational_readiness_source_artifact_ids",
-        "source_report_quality_gate_source_artifact_ids"
-      ]
+      "optional_fields" =>
+        [
+          "candidate_rejection_report",
+          "source_candidate_rejection_report",
+          "refresh_budget_report",
+          "operational_feedback"
+        ] ++
+          @candidate_refresh_publication_lineage_id_array_fields ++
+          @candidate_refresh_publication_lineage_count_map_fields
     },
     @candidate_activity => %{
       "schema_contract" => @candidate_activity,
@@ -16970,12 +16992,13 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @candidate_refresh, _contract)
-       when field in [
-              "source_report_timeline_publication_source_artifact_ids",
-              "source_report_operational_readiness_source_artifact_ids",
-              "source_report_quality_gate_source_artifact_ids"
-            ] do
+       when field in @candidate_refresh_publication_lineage_id_array_fields do
     stable_id_array_schema()
+  end
+
+  defp json_schema_property(field, @candidate_refresh, _contract)
+       when field in @candidate_refresh_publication_lineage_count_map_fields do
+    non_negative_integer_count_map_json_schema()
   end
 
   defp json_schema_property(field, name, contract) do

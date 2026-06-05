@@ -3154,9 +3154,21 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
 
     Enum.each(
       [
+        "source_report_timeline_publication_ids",
         "source_report_timeline_publication_source_artifact_ids",
+        "source_report_timeline_publication_supersedes_artifact_ids",
+        "source_report_timeline_publication_downstream_product_ids",
+        "source_report_timeline_publication_invalidated_downstream_product_ids",
+        "source_report_operational_readiness_publication_ids",
         "source_report_operational_readiness_source_artifact_ids",
-        "source_report_quality_gate_source_artifact_ids"
+        "source_report_operational_readiness_supersedes_artifact_ids",
+        "source_report_operational_readiness_downstream_product_ids",
+        "source_report_operational_readiness_invalidated_downstream_product_ids",
+        "source_report_quality_gate_publication_ids",
+        "source_report_quality_gate_source_artifact_ids",
+        "source_report_quality_gate_supersedes_artifact_ids",
+        "source_report_quality_gate_downstream_product_ids",
+        "source_report_quality_gate_invalidated_downstream_product_ids"
       ],
       fn field ->
         assert get_in(schemas, [
@@ -3173,6 +3185,23 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                  "items",
                  "pattern"
                ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+      end
+    )
+
+    Enum.each(
+      [
+        "source_report_timeline_publication_source_artifact_type_counts",
+        "source_report_operational_readiness_timeline_publication_source_artifact_type_counts",
+        "source_report_quality_gate_timeline_publication_source_artifact_type_counts"
+      ],
+      fn field ->
+        assert get_in(schemas, [
+                 "candidate_refresh.v1",
+                 "properties",
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
       end
     )
 
