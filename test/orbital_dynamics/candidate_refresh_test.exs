@@ -12707,6 +12707,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 1,
+             "source_report_contact_filter_contract" => "contact_filter_report.v1",
+             "source_report_contact_filter_count" => 1,
+             "source_report_contact_filter_row_count" => 4,
+             "source_report_contact_filter_paths" => ["source_contact_filter_report"],
              "source_report_contact_filter_suppressed_candidate_count" => 4,
              "source_report_contact_filter_invalid_contact_input_count" => 1,
              "source_report_contact_filter_invalid_contact_input_ids" => [
@@ -13075,6 +13079,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     }
 
     assert %{
+             "source_report_contact_filter_contract" => "contact_filter_report.v1",
+             "source_report_contact_filter_count" => 1,
+             "source_report_contact_filter_row_count" => 4,
+             "source_report_contact_filter_paths" => ["source_contact_filter_report"],
              "source_report_contact_filter_contact_ids_by_suppressed_reason" => %{
                "ground_station_capacity_zero" => ["dl_station_capacity_zero"],
                "ground_station_reserved" => ["dl_station_reserved"],
@@ -13337,13 +13345,109 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "provenance" => %{"source_reports" => %{}}
     }
 
+    source_summary = CandidateRefresh.source_report_summary(artifact)
     summary = CandidateRefresh.contact_filter_replay_summary(artifact)
 
+    refute Map.has_key?(source_summary, "source_report_contact_filter_contract")
+    refute Map.has_key?(source_summary, "source_report_contact_filter_count")
+    refute Map.has_key?(source_summary, "source_report_contact_filter_row_count")
+    refute Map.has_key?(source_summary, "source_report_contact_filter_paths")
     assert summary["source_report_count"] == 0
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_paths"] == []
     refute Map.has_key?(summary, "contract")
     refute summary["branch_local_contact_filter_pressure"]
+  end
+
+  test "contact filter source summary omits missing identity counts for partial family placeholder" do
+    partial_summaries = [
+      %{"contract" => "contact_filter_report.v1"},
+      %{"count" => 1},
+      %{"row_count" => 2},
+      %{"paths" => ["provenance.source_reports.contact_filter_report"]},
+      %{"count" => nil, "row_count" => nil},
+      %{
+        "count" => nil,
+        "row_count" => nil,
+        "paths" => ["provenance.source_reports.contact_filter_report"]
+      }
+    ]
+
+    for partial_summary <- partial_summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "contact_filter_report" => partial_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      if Map.has_key?(partial_summary, "contract") do
+        assert source_summary["source_report_contact_filter_contract"] ==
+                 "contact_filter_report.v1"
+      else
+        refute Map.has_key?(source_summary, "source_report_contact_filter_contract")
+      end
+
+      refute Map.has_key?(source_summary, "source_report_contact_filter_count")
+      refute Map.has_key?(source_summary, "source_report_contact_filter_row_count")
+      refute Map.has_key?(source_summary, "source_report_contact_filter_paths")
+    end
+  end
+
+  test "contact filter source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_filter_report" => %{
+            "contract" => "contact_filter_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.contact_filter_report"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_contact_filter_contract"] ==
+             "contact_filter_report.v1"
+
+    assert source_summary["source_report_contact_filter_count"] == 0
+    assert source_summary["source_report_contact_filter_row_count"] == 0
+
+    assert source_summary["source_report_contact_filter_paths"] == [
+             "provenance.source_reports.contact_filter_report"
+           ]
+  end
+
+  test "contact filter source summary omits missing identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_filter_report" => %{
+            "contract" => "contact_filter_report.v1",
+            "count" => 1,
+            "row_count" => 2
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_contact_filter_contract"] ==
+             "contact_filter_report.v1"
+
+    assert source_summary["source_report_contact_filter_count"] == 1
+    assert source_summary["source_report_contact_filter_row_count"] == 2
+    refute Map.has_key?(source_summary, "source_report_contact_filter_paths")
   end
 
   test "contact filter replay reads strategy branch candidate-source summary metadata" do

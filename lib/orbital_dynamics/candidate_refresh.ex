@@ -2963,6 +2963,26 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "resource_filter_report",
           "direction_routing"
         ),
+      "source_report_contact_filter_contract" =>
+        source_report_summary_family_field(source_reports, "contact_filter_report", "contract"),
+      "source_report_contact_filter_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "contact_filter_report",
+          "count"
+        ),
+      "source_report_contact_filter_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "contact_filter_report",
+          "row_count"
+        ),
+      "source_report_contact_filter_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "contact_filter_report",
+          "paths"
+        ),
       "source_report_contact_filter_suppressed_candidate_count" =>
         source_report_summary_family_count(
           source_reports,

@@ -1124,8 +1124,9 @@ both identity counts are present.
 `CandidateRefresh.contact_filter_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_contact_filter_replay_summary/1` expose the
 contact-filter slice as a branch-local replay summary. It preserves source
-contact-filter paths, suppressed-candidate and invalid-contact-input counts,
-invalid contact input IDs, suppression-reason maps, suppression-reason
+contact-filter contract, count, row-count, paths, suppressed-candidate and
+invalid-contact-input counts, invalid contact input IDs, suppression-reason maps,
+suppression-reason
 contact-ID maps, direction counts/contact-ID maps, station-suppression
 station/availability/status count, contact-ID, station-calendar entry,
 station-calendar provider-entry, and reservation-ID maps, trust-boundary
@@ -1165,6 +1166,9 @@ candidate-refresh `source_result_artifact` / `result_artifact` wrappers,
 preserving wrapper-qualified source paths and list indexes.
 When contact-filter provenance is absent, the replay summary omits the contract
 field rather than defaulting to `contact_filter_report.v1`.
+Partial contact-filter source-report family placeholders can preserve the
+declared contract, but omit flattened count, row-count, and path fields until
+both identity counts are present.
 
 `CandidateRefresh.resource_filter_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_resource_filter_replay_summary/1` expose
