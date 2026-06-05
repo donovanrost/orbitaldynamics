@@ -335,3 +335,13 @@ IDs, optional dependency-impact status/counts, publication authority token,
 model limits, and an explicit artifact-only no-schedule-mutation/no-delivery
 boundary. Cadence or another host system still owns actual notification
 delivery, import authority, and publication execution.
+The same publication summary can be promoted through
+`OperatorReview.from_timeline_publication_summary/1`,
+`CadenceImport.from_timeline_publication_summary/2`, and the public
+`OrbitalDynamics.operator_review_package/1` /
+`OrbitalDynamics.cadence_import_manifest/2` facades as handoff-only
+`timeline_publication_review` and `review_timeline_publication` rows. Those rows
+preserve publication ID/sequence/status/authority, supersession and downstream
+invalidation IDs, dependency-impact counts, changed-field audit routing, and the
+nested source publication summary for review without publishing, notifying,
+importing, or mutating schedules.

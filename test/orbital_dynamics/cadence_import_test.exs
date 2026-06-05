@@ -48,6 +48,7 @@ defmodule OrbitalDynamics.CadenceImportTest do
                "timeline_diff_report.v1",
                "timeline_diff_summary.v1",
                "timeline_dependency_impact_summary.v1",
+               "timeline_publication_summary.v1",
                "timeline_activity_precondition_summary.v1",
                "timeline_activity_state.v1",
                "timeline_activity_status_state.v1",
@@ -109,6 +110,7 @@ defmodule OrbitalDynamics.CadenceImportTest do
     assert "review_maneuver" in import_actions
     assert "review_timeline_diff" in import_actions
     assert "review_timeline_dependency_impact" in import_actions
+    assert "review_timeline_publication" in import_actions
     assert "review_timeline_precondition" in import_actions
     assert "review_timeline_lifecycle_state" in import_actions
     assert "review_timeline_preservation" in import_actions
@@ -128,6 +130,7 @@ defmodule OrbitalDynamics.CadenceImportTest do
     assert "record_preserved_executed_activity" in import_actions
     assert "plan_delta_review" in source_review_types
     assert "timeline_activity_precondition_review" in source_review_types
+    assert "timeline_publication_review" in source_review_types
     assert "timeline_lifecycle_state_review" in source_review_types
     assert "timeline_integrity_review" in source_review_types
     assert "station_reservation_review" in source_review_types
@@ -161,6 +164,8 @@ defmodule OrbitalDynamics.CadenceImportTest do
     assert :timeline_diff_summary_source_handoff_consistency in handoff_row_semantics
     assert :timeline_dependency_impact_import_rows in handoff_row_semantics
     assert :timeline_dependency_impact_source_handoff_consistency in handoff_row_semantics
+    assert :timeline_publication_import_rows in handoff_row_semantics
+    assert :timeline_publication_source_handoff_consistency in handoff_row_semantics
     assert :timeline_lifecycle_state_import_rows in handoff_row_semantics
     assert :timeline_lifecycle_state_source_handoff_consistency in handoff_row_semantics
     assert :timeline_activity_precondition_import_rows in handoff_row_semantics
@@ -11230,6 +11235,130 @@ defmodule OrbitalDynamics.CadenceImportTest do
              manifest
   end
 
+  test "timeline publication summaries become Cadence review rows" do
+    source = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 0.0, ends_at_s: 10.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    replacement = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 5.0, ends_at_s: 15.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    dependency_impact = Timeline.dependency_impact_summary(source, replacement)
+    timeline_diff_summary = Timeline.diff_summary(source, replacement)
+
+    summary =
+      Timeline.publication_summary(
+        %{
+          "schema_contract" => "operational_timeline_report.v1",
+          "id" => "timeline:published_plan:v2"
+        },
+        publication_sequence: 7,
+        publication_authority: :mission_operations,
+        supersedes_artifact_ids: ["timeline:published_plan:v1"],
+        downstream_product_ids: ["operator_review:plan:v1", "cadence_import:plan:v1"],
+        dependency_impact_summary: dependency_impact,
+        timeline_diff_summary: timeline_diff_summary
+      )
+
+    manifest = CadenceImport.from_timeline_publication_summary(summary)
+
+    atom_key_summary =
+      summary |> Enum.map(fn {key, value} -> {String.to_atom(key), value} end) |> Map.new()
+
+    assert %{
+             "source_artifact_type" => "timeline_publication_summary.v1",
+             "source_artifact_id" =>
+               "timeline_publication:7:timeline:published_plan:v2:timeline:published_plan:v1",
+             "row_count" => 1,
+             "review_required_count" => 1,
+             "import_action_counts" => %{"review_timeline_publication" => 1},
+             "source_review_type_counts" => %{"timeline_publication_review" => 1}
+           } = manifest
+
+    assert [
+             %{
+               "import_action" => "review_timeline_publication",
+               "import_status" => "review_required_before_import",
+               "source_review_type" => "timeline_publication_review",
+               "source_review_action" => "review_timeline_publication",
+               "publication_id" =>
+                 "timeline_publication:7:timeline:published_plan:v2:timeline:published_plan:v1",
+               "publication_sequence" => 7,
+               "publication_status" => "published_with_downstream_invalidations",
+               "publication_authority" => "mission_operations",
+               "source_artifact_id" => "timeline:published_plan:v2",
+               "source_artifact_type" => "operational_timeline_report.v1",
+               "dependency_impact_status" => "review_required",
+               "dependency_impact_row_count" => 2,
+               "timeline_diff_row_count" => 3,
+               "timeline_diff_review_required_count" => 2,
+               "changed_field_counts" => %{"timeline_presence" => 2},
+               "source_timeline_publication_summary" => ^summary,
+               "source_review_row" => %{
+                 "review_type" => "timeline_publication_review",
+                 "source_timeline_publication_summary" => ^summary
+               }
+             }
+           ] = manifest["rows"]
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+
+    stale_publication_status =
+      put_in(manifest, ["rows", Access.at(0), "publication_status"], "published")
+
+    assert {:error, stale_publication_status_report} =
+             Schema.validate_artifact(stale_publication_status)
+
+    assert Enum.any?(
+             stale_publication_status_report["errors"],
+             &(&1["path"] == "$.rows[0].publication_status" and
+                 &1["message"] ==
+                   "must equal source_timeline_publication_summary.publication_status")
+           )
+
+    invalid_nested_source_publication =
+      put_in(
+        manifest,
+        ["rows", Access.at(0), "source_review_row", "source_timeline_publication_summary"],
+        Map.put(summary, "publication_status", "published")
+      )
+
+    assert {:error, invalid_nested_source_publication_report} =
+             Schema.validate_artifact(invalid_nested_source_publication)
+
+    assert Enum.any?(
+             invalid_nested_source_publication_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_review_row.source_timeline_publication_summary.publication_status")
+           )
+
+    assert OrbitalDynamics.cadence_import_manifest(summary) == manifest
+
+    assert OrbitalDynamics.cadence_import_manifest(Map.delete(summary, "schema_contract")) ==
+             manifest
+
+    assert OrbitalDynamics.cadence_import_manifest(atom_key_summary) == manifest
+
+    assert OrbitalDynamics.cadence_import_manifest(Map.delete(atom_key_summary, :schema_contract)) ==
+             manifest
+  end
+
   test "timeline lifecycle-state summaries become import review rows" do
     planned = [
       %{
@@ -12508,6 +12637,7 @@ defmodule OrbitalDynamics.CadenceImportTest do
       "timeline_diff_summary.v1" => {:artifact, timeline_diff_summary()},
       "timeline_dependency_impact_summary.v1" =>
         {:artifact, timeline_dependency_impact_summary()},
+      "timeline_publication_summary.v1" => {:artifact, timeline_publication_summary()},
       "timeline_activity_precondition_summary.v1" =>
         {:artifact, timeline_activity_precondition_summary()},
       "timeline_activity_state.v1" => {:artifact, timeline_activity_state()},
@@ -12577,6 +12707,43 @@ defmodule OrbitalDynamics.CadenceImportTest do
     ]
 
     Timeline.dependency_impact_summary(source, replacement)
+  end
+
+  defp timeline_publication_summary do
+    source = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 0.0, ends_at_s: 10.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    replacement = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 5.0, ends_at_s: 15.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    Timeline.publication_summary(
+      %{
+        "schema_contract" => "operational_timeline_report.v1",
+        "id" => "timeline:published_plan:v2"
+      },
+      publication_sequence: 7,
+      publication_authority: :mission_operations,
+      supersedes_artifact_ids: ["timeline:published_plan:v1"],
+      downstream_product_ids: ["operator_review:plan:v1", "cadence_import:plan:v1"],
+      dependency_impact_summary: Timeline.dependency_impact_summary(source, replacement),
+      timeline_diff_summary: Timeline.diff_summary(source, replacement)
+    )
   end
 
   defp timeline_activity_precondition_summary do

@@ -2155,6 +2155,16 @@ defmodule OrbitalDynamics do
       do: OperatorReview.from_timeline_dependency_impact_summary(artifact)
 
   def operator_review_package(
+        %{"schema_contract" => "timeline_publication_summary.v1"} = artifact
+      ),
+      do: OperatorReview.from_timeline_publication_summary(artifact)
+
+  def operator_review_package(
+        %{"model" => "artifact_only_timeline_publication_summary"} = artifact
+      ),
+      do: OperatorReview.from_timeline_publication_summary(artifact)
+
+  def operator_review_package(
         %{"schema_contract" => "timeline_activity_precondition_summary.v1"} = artifact
       ),
       do: OperatorReview.from_timeline_activity_precondition_summary(artifact)
@@ -2407,6 +2417,12 @@ defmodule OrbitalDynamics do
         %{model: "artifact_only_timeline_dependency_impact_summary"} = artifact
       ),
       do: OperatorReview.from_timeline_dependency_impact_summary(artifact)
+
+  def operator_review_package(%{schema_contract: "timeline_publication_summary.v1"} = artifact),
+    do: OperatorReview.from_timeline_publication_summary(artifact)
+
+  def operator_review_package(%{model: "artifact_only_timeline_publication_summary"} = artifact),
+    do: OperatorReview.from_timeline_publication_summary(artifact)
 
   def operator_review_package(
         %{schema_contract: "timeline_activity_precondition_summary.v1"} = artifact

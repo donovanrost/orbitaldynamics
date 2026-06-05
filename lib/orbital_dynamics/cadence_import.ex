@@ -115,6 +115,7 @@ defmodule OrbitalDynamics.CadenceImport do
         "timeline_diff_report.v1",
         "timeline_diff_summary.v1",
         "timeline_dependency_impact_summary.v1",
+        "timeline_publication_summary.v1",
         "timeline_activity_precondition_summary.v1",
         "timeline_activity_state.v1",
         "timeline_activity_status_state.v1",
@@ -169,6 +170,7 @@ defmodule OrbitalDynamics.CadenceImport do
         "review_maneuver",
         "review_timeline_diff",
         "review_timeline_dependency_impact",
+        "review_timeline_publication",
         "review_timeline_precondition",
         "review_timeline_lifecycle_state",
         "review_timeline_preservation",
@@ -216,6 +218,8 @@ defmodule OrbitalDynamics.CadenceImport do
         :timeline_diff_summary_source_handoff_consistency,
         :timeline_dependency_impact_import_rows,
         :timeline_dependency_impact_source_handoff_consistency,
+        :timeline_publication_import_rows,
+        :timeline_publication_source_handoff_consistency,
         :timeline_lifecycle_state_import_rows,
         :timeline_lifecycle_state_source_handoff_consistency,
         :timeline_activity_precondition_import_rows,
@@ -312,6 +316,16 @@ defmodule OrbitalDynamics.CadenceImport do
   def manifest(%{model: "artifact_only_timeline_dependency_impact_summary"} = summary, opts)
       when not is_map_key(summary, :schema_contract) do
     summary |> stringify_keys() |> from_timeline_dependency_impact_summary(opts)
+  end
+
+  def manifest(%{"model" => "artifact_only_timeline_publication_summary"} = summary, opts)
+      when not is_map_key(summary, "schema_contract") do
+    from_timeline_publication_summary(summary, opts)
+  end
+
+  def manifest(%{model: "artifact_only_timeline_publication_summary"} = summary, opts)
+      when not is_map_key(summary, :schema_contract) do
+    summary |> stringify_keys() |> from_timeline_publication_summary(opts)
   end
 
   def manifest(
@@ -707,6 +721,12 @@ defmodule OrbitalDynamics.CadenceImport do
 
   def manifest(%{schema_contract: "timeline_dependency_impact_summary.v1"} = summary, opts),
     do: summary |> stringify_keys() |> from_timeline_dependency_impact_summary(opts)
+
+  def manifest(%{"schema_contract" => "timeline_publication_summary.v1"} = summary, opts),
+    do: from_timeline_publication_summary(summary, opts)
+
+  def manifest(%{schema_contract: "timeline_publication_summary.v1"} = summary, opts),
+    do: summary |> stringify_keys() |> from_timeline_publication_summary(opts)
 
   def manifest(
         %{"schema_contract" => "timeline_activity_precondition_summary.v1"} = summary,
@@ -1624,6 +1644,27 @@ defmodule OrbitalDynamics.CadenceImport do
       opts,
       "timeline_dependency_impact_summary.v1",
       source_artifact_id || "timeline_dependency_impact_summary"
+    )
+  end
+
+  @doc """
+  Builds an import manifest from a timeline publication summary.
+  """
+  def from_timeline_publication_summary(%{} = summary, opts \\ []) do
+    summary = stringify_keys(summary)
+
+    source_artifact_id =
+      option(
+        opts,
+        :source_artifact_id,
+        summary["publication_id"] || summary["source_artifact_id"]
+      )
+
+    from_review_report(
+      OperatorReview.from_timeline_publication_summary(summary),
+      opts,
+      "timeline_publication_summary.v1",
+      source_artifact_id || "timeline_publication_summary"
     )
   end
 
@@ -3172,6 +3213,7 @@ defmodule OrbitalDynamics.CadenceImport do
               "maneuver_review",
               "timeline_diff_review",
               "timeline_dependency_impact_review",
+              "timeline_publication_review",
               "timeline_activity_precondition_review",
               "timeline_lifecycle_state_review",
               "timeline_preservation_review",
@@ -7189,6 +7231,9 @@ defmodule OrbitalDynamics.CadenceImport do
   defp generic_review_import_action("timeline_dependency_impact_review"),
     do: "review_timeline_dependency_impact"
 
+  defp generic_review_import_action("timeline_publication_review"),
+    do: "review_timeline_publication"
+
   defp generic_review_import_action("timeline_activity_precondition_review"),
     do: "review_timeline_precondition"
 
@@ -7279,6 +7324,21 @@ defmodule OrbitalDynamics.CadenceImport do
       "impacted_exclusive_with_activity_ids",
       "impacted_exclusive_with_timeline_ids",
       "source_timeline_dependency_impact",
+      "publication_id",
+      "publication_sequence",
+      "publication_status",
+      "publication_authority",
+      "supersedes_artifact_ids",
+      "downstream_product_ids",
+      "invalidated_downstream_product_ids",
+      "dependency_impact_row_count",
+      "timeline_diff_row_count",
+      "timeline_diff_changed_count",
+      "timeline_diff_review_required_count",
+      "changed_field_counts",
+      "changed_timeline_ids",
+      "timeline_ids_by_changed_field",
+      "source_timeline_publication_summary",
       "precondition_status",
       "blocked_precondition_count",
       "review_precondition_count",

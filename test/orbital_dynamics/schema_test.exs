@@ -20235,6 +20235,64 @@ defmodule OrbitalDynamics.SchemaTest do
                "items",
                "pattern"
              ]) == stable_id_pattern
+
+      assert get_in(row_properties, ["publication_id", "pattern"]) == stable_id_pattern
+      assert get_in(row_properties, ["publication_sequence", "minimum"]) == 0
+
+      assert get_in(row_properties, ["publication_status", "enum"]) == [
+               "published",
+               "published_with_downstream_invalidations",
+               "review_required"
+             ]
+
+      assert get_in(row_properties, ["publication_authority", "pattern"]) == stable_id_pattern
+
+      Enum.each(
+        [
+          "supersedes_artifact_ids",
+          "downstream_product_ids",
+          "invalidated_downstream_product_ids",
+          "changed_timeline_ids",
+          "review_timeline_ids"
+        ],
+        fn field ->
+          assert get_in(row_properties, [field, "items", "pattern"]) == stable_id_pattern
+        end
+      )
+
+      Enum.each(
+        [
+          "dependency_impact_row_count",
+          "timeline_diff_row_count",
+          "timeline_diff_changed_count",
+          "timeline_diff_review_required_count"
+        ],
+        fn field ->
+          assert Map.get(row_properties, field) == %{"type" => "integer", "minimum" => 0}
+        end
+      )
+
+      assert get_in(row_properties, [
+               "changed_field_counts",
+               "additionalProperties",
+               "minimum"
+             ]) == 0
+
+      assert get_in(row_properties, [
+               "timeline_ids_by_changed_field",
+               "additionalProperties",
+               "items",
+               "pattern"
+             ]) == stable_id_pattern
+
+      assert get_in(row_properties, ["source_timeline_publication_summary", "type"]) == "object"
+
+      assert get_in(row_properties, [
+               "source_timeline_publication_summary",
+               "properties",
+               "schema_contract",
+               "const"
+             ]) == "timeline_publication_summary.v1"
     end
   end
 

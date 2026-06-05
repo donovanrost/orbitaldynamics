@@ -504,6 +504,15 @@ runtime validation and JSON Schema export. Executable validation rejects stale
 copied audit projections that no longer match the nested diff summary. The
 summary does not mutate schedules, deliver notifications, approve imports, or
 grant operator authority.
+Publication summaries can now route through
+`OperatorReview.from_timeline_publication_summary/1`,
+`CadenceImport.from_timeline_publication_summary/2`, and the matching public
+facades as `timeline_publication_review` / `review_timeline_publication`
+handoff rows. Those rows preserve publication identity, sequence, status,
+authority, supersession, downstream invalidation, dependency-impact rollups,
+changed-field audit counts and routing, and the nested source publication
+summary while leaving publication execution, notification delivery, and import
+authorization to downstream operators or host systems.
 Operational-timeline report activity/row/contact/command/protection/execution
 totals and optional dependency, exclusivity, uncertainty, integrity, duplicate,
 valid, invalid, and terminal-exception counters are non-negative integers in

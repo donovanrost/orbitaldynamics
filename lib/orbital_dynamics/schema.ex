@@ -22616,6 +22616,26 @@ defmodule OrbitalDynamics.Schema do
     }
   end
 
+  defp timeline_publication_summary_source_json_schema do
+    contract = Map.fetch!(@contracts, @timeline_publication_summary)
+    required_fields = contract["required_fields"]
+
+    properties =
+      (required_fields ++ Map.get(contract, "optional_fields", []))
+      |> Enum.uniq()
+      |> Enum.sort()
+      |> Map.new(fn field ->
+        {field, json_schema_property(field, @timeline_publication_summary, contract)}
+      end)
+
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => required_fields,
+      "properties" => properties
+    }
+  end
+
   defp timeline_transition_application_row_json_schema do
     %{
       "type" => "object",
@@ -24038,6 +24058,7 @@ defmodule OrbitalDynamics.Schema do
           "attitude_confidence" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0}
         }
         |> Map.merge(timeline_dependency_impact_handoff_json_schema_properties())
+        |> Map.merge(timeline_publication_handoff_json_schema_properties())
         |> Map.merge(timeline_activity_precondition_handoff_json_schema_properties())
         |> Map.merge(command_authority_handoff_json_schema_properties())
         |> Map.merge(feedback_maneuver_handoff_json_schema_properties())
@@ -24079,6 +24100,32 @@ defmodule OrbitalDynamics.Schema do
       "impacted_exclusive_with_activity_ids" => stable_id_array_schema(),
       "impacted_exclusive_with_timeline_ids" => stable_id_array_schema(),
       "source_timeline_dependency_impact" => timeline_dependency_impact_row_json_schema()
+    }
+  end
+
+  defp timeline_publication_handoff_json_schema_properties do
+    %{
+      "publication_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+      "publication_sequence" => %{"type" => "integer", "minimum" => 0},
+      "publication_status" => %{
+        "type" => "string",
+        "enum" => ["published", "published_with_downstream_invalidations", "review_required"]
+      },
+      "publication_authority" => %{"type" => "string", "pattern" => @stable_id_pattern},
+      "source_artifact_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+      "source_artifact_type" => %{"type" => "string", "minLength" => 1},
+      "supersedes_artifact_ids" => stable_id_array_schema(),
+      "downstream_product_ids" => stable_id_array_schema(),
+      "invalidated_downstream_product_ids" => stable_id_array_schema(),
+      "dependency_impact_row_count" => %{"type" => "integer", "minimum" => 0},
+      "timeline_diff_row_count" => %{"type" => "integer", "minimum" => 0},
+      "timeline_diff_changed_count" => %{"type" => "integer", "minimum" => 0},
+      "timeline_diff_review_required_count" => %{"type" => "integer", "minimum" => 0},
+      "changed_field_counts" => non_negative_integer_count_map_json_schema(),
+      "changed_timeline_ids" => stable_id_array_schema(),
+      "review_timeline_ids" => stable_id_array_schema(),
+      "timeline_ids_by_changed_field" => stable_id_array_map_schema(),
+      "source_timeline_publication_summary" => timeline_publication_summary_source_json_schema()
     }
   end
 
@@ -24600,6 +24647,7 @@ defmodule OrbitalDynamics.Schema do
           "priority_fields_without_numeric_evidence" => string_array_schema()
         }
         |> Map.merge(timeline_dependency_impact_handoff_json_schema_properties())
+        |> Map.merge(timeline_publication_handoff_json_schema_properties())
         |> Map.merge(timeline_activity_precondition_handoff_json_schema_properties())
         |> Map.merge(command_authority_handoff_json_schema_properties())
         |> Map.merge(feedback_maneuver_handoff_json_schema_properties())
@@ -25183,6 +25231,7 @@ defmodule OrbitalDynamics.Schema do
           "source_timeline_protection" => timeline_protection_summary_json_schema()
         }
         |> Map.merge(timeline_dependency_impact_handoff_json_schema_properties())
+        |> Map.merge(timeline_publication_handoff_json_schema_properties())
         |> Map.merge(timeline_activity_precondition_handoff_json_schema_properties())
         |> Map.merge(command_authority_handoff_json_schema_properties())
         |> Map.merge(feedback_maneuver_handoff_json_schema_properties())
@@ -36395,6 +36444,119 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_optional_timeline_diff_summary_source(issues, path, _summary),
     do: [error(path, "must be an object") | issues]
+
+  defp validate_optional_timeline_publication_summary_source(issues, _path, nil), do: issues
+
+  defp validate_optional_timeline_publication_summary_source(issues, path, %{} = summary),
+    do: validate_timeline_publication_summary(issues, path, summary)
+
+  defp validate_optional_timeline_publication_summary_source(issues, path, _summary),
+    do: [error(path, "must be an object") | issues]
+
+  defp validate_timeline_publication_handoff_matches_source(issues, path, row) do
+    source_summary = Map.get(row, "source_timeline_publication_summary")
+
+    issues
+    |> expect_optional_type(path, row, "source_timeline_publication_summary", :map)
+    |> validate_optional_timeline_publication_summary_source(
+      path <> ".source_timeline_publication_summary",
+      source_summary
+    )
+    |> validate_timeline_publication_handoff_matches_source_summary(path, row, source_summary)
+  end
+
+  defp validate_timeline_publication_handoff_matches_source_summary(
+         issues,
+         path,
+         row,
+         %{} = source_summary
+       ) do
+    timeline_publication_handoff_fields()
+    |> Enum.reduce(issues, fn field, acc ->
+      acc
+      |> require_timeline_publication_handoff_field(path, row, source_summary, field)
+      |> expect_field_equals(
+        path,
+        row,
+        field,
+        Map.get(source_summary, field),
+        "must equal source_timeline_publication_summary.#{field}"
+      )
+    end)
+  end
+
+  defp validate_timeline_publication_handoff_matches_source_summary(issues, path, row, _source) do
+    if Enum.any?(timeline_publication_unique_handoff_fields(), &Map.has_key?(row, &1)) do
+      [
+        error(
+          path <> ".source_timeline_publication_summary",
+          "must be present when timeline publication handoff fields are present"
+        )
+        | issues
+      ]
+    else
+      issues
+    end
+  end
+
+  defp require_timeline_publication_handoff_field(issues, path, row, source_summary, field) do
+    if Map.has_key?(source_summary, field) and not Map.has_key?(row, field) do
+      [
+        error(
+          "#{path}.#{field}",
+          "must be present when source_timeline_publication_summary.#{field} is present"
+        )
+        | issues
+      ]
+    else
+      issues
+    end
+  end
+
+  defp timeline_publication_handoff_fields do
+    [
+      "publication_id",
+      "publication_sequence",
+      "publication_status",
+      "publication_authority",
+      "source_artifact_id",
+      "source_artifact_type",
+      "supersedes_artifact_ids",
+      "downstream_product_ids",
+      "invalidated_downstream_product_ids",
+      "dependency_impact_status",
+      "dependency_impact_row_count",
+      "impacted_dependency_activity_ids",
+      "impacted_dependency_timeline_ids",
+      "impacted_exclusive_with_activity_ids",
+      "impacted_exclusive_with_timeline_ids",
+      "timeline_diff_row_count",
+      "timeline_diff_changed_count",
+      "timeline_diff_review_required_count",
+      "changed_field_counts",
+      "changed_timeline_ids",
+      "review_timeline_ids",
+      "timeline_ids_by_changed_field"
+    ]
+  end
+
+  defp timeline_publication_unique_handoff_fields do
+    [
+      "publication_id",
+      "publication_sequence",
+      "publication_status",
+      "publication_authority",
+      "supersedes_artifact_ids",
+      "downstream_product_ids",
+      "invalidated_downstream_product_ids",
+      "timeline_diff_row_count",
+      "timeline_diff_changed_count",
+      "timeline_diff_review_required_count",
+      "changed_field_counts",
+      "changed_timeline_ids",
+      "timeline_ids_by_changed_field"
+    ]
+  end
 
   defp validate_timeline_integrity_report(issues, path, report) do
     rows =
@@ -53578,6 +53740,7 @@ defmodule OrbitalDynamics.Schema do
     |> validate_contact_allocation_capacity_pack_group(path, row)
     |> validate_contact_allocation_capacity_pack_handoff_matches_source(path, row)
     |> validate_cadence_source_review_contact_allocation_capacity_pack_handoff_matches(path, row)
+    |> validate_timeline_publication_handoff_matches_source(path, row)
     |> validate_selected_timeline_integrity_fields(path, row)
     |> expect_optional_type(path, row, "source_timeline_diff_summary", :map)
     |> expect_optional_type(path, row, "source_timeline_transition_application_summary", :map)
@@ -53589,6 +53752,7 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(path, row, "source_timeline_activity_precondition_summary", :map)
     |> expect_optional_type(path, row, "source_timeline_preservation", :map)
     |> expect_optional_type(path, row, "source_timeline_dependency_impact", :map)
+    |> expect_optional_type(path, row, "source_timeline_publication_summary", :map)
     |> validate_optional_timeline_diff_summary_source(
       path <> ".source_timeline_diff_summary",
       Map.get(row, "source_timeline_diff_summary")
@@ -53625,6 +53789,10 @@ defmodule OrbitalDynamics.Schema do
     |> validate_optional_timeline_dependency_impact_source_row(
       path <> ".source_timeline_dependency_impact",
       Map.get(row, "source_timeline_dependency_impact")
+    )
+    |> validate_optional_timeline_publication_summary_source(
+      path <> ".source_timeline_publication_summary",
+      Map.get(row, "source_timeline_publication_summary")
     )
   end
 
@@ -53684,10 +53852,16 @@ defmodule OrbitalDynamics.Schema do
       Map.get(row, "source_candidate_rejection")
     )
     |> expect_optional_type(path, row, "source_timeline_dependency_impact", :map)
+    |> expect_optional_type(path, row, "source_timeline_publication_summary", :map)
     |> validate_optional_timeline_dependency_impact_source_row(
       path <> ".source_timeline_dependency_impact",
       Map.get(row, "source_timeline_dependency_impact")
     )
+    |> validate_optional_timeline_publication_summary_source(
+      path <> ".source_timeline_publication_summary",
+      Map.get(row, "source_timeline_publication_summary")
+    )
+    |> validate_timeline_publication_handoff_matches_source(path, row)
     |> expect_optional_type(path, row, "source_link_capacity", :map)
     |> expect_optional_type(path, row, "source_resource_projection", :map)
     |> expect_optional_type(path, row, "source_resource_projection_flow_summary", :map)
@@ -58594,10 +58768,16 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(path, row, "source_resource_suppression", :map)
     |> expect_optional_type(path, row, "source_candidate_rejection", :map)
     |> expect_optional_type(path, row, "source_timeline_dependency_impact", :map)
+    |> expect_optional_type(path, row, "source_timeline_publication_summary", :map)
     |> validate_optional_timeline_dependency_impact_source_row(
       path <> ".source_timeline_dependency_impact",
       Map.get(row, "source_timeline_dependency_impact")
     )
+    |> validate_optional_timeline_publication_summary_source(
+      path <> ".source_timeline_publication_summary",
+      Map.get(row, "source_timeline_publication_summary")
+    )
+    |> validate_timeline_publication_handoff_matches_source(path, row)
     |> expect_optional_type(path, row, "source_timeline_diff", :map)
     |> expect_optional_type(path, row, "source_quality_gate_row", :map)
     |> validate_source_evidence_fields(path, row)

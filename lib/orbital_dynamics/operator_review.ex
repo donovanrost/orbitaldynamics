@@ -103,6 +103,7 @@ defmodule OrbitalDynamics.OperatorReview do
     timeline_diff_report.v1
     timeline_diff_summary.v1
     timeline_dependency_impact_summary.v1
+    timeline_publication_summary.v1
     timeline_activity_precondition_summary.v1
     timeline_activity_state.v1
     timeline_activity_status_state.v1
@@ -159,6 +160,7 @@ defmodule OrbitalDynamics.OperatorReview do
         "realized_feedback",
         "timeline_diff_review",
         "timeline_dependency_impact_review",
+        "timeline_publication_review",
         "timeline_activity_precondition_review",
         "timeline_lifecycle_state_review",
         "timeline_preservation_review",
@@ -215,6 +217,8 @@ defmodule OrbitalDynamics.OperatorReview do
         :timeline_diff_summary_source_handoff_consistency,
         :timeline_dependency_impact_review_rows,
         :timeline_dependency_impact_source_handoff_consistency,
+        :timeline_publication_review_rows,
+        :timeline_publication_source_handoff_consistency,
         :timeline_activity_precondition_review_rows,
         :timeline_activity_precondition_source_handoff_consistency,
         :timeline_lifecycle_state_review_rows,
@@ -431,6 +435,26 @@ defmodule OrbitalDynamics.OperatorReview do
       "timeline_dependency_impact_summary.v1",
       Map.get(summary, "id") || Map.get(summary, "source") ||
         "timeline_dependency_impact_summary",
+      Map.get(summary, "provenance", %{})
+    )
+  end
+
+  @doc """
+  Builds an `operator_review_package.v1` from a timeline publication summary.
+  """
+  def from_timeline_publication_summary(%{} = summary) do
+    summary =
+      summary
+      |> stringify_keys()
+      |> Map.put_new("schema_contract", "timeline_publication_summary.v1")
+
+    rows = timeline_publication_rows(summary)
+
+    package(
+      rows,
+      "timeline_publication_summary.v1",
+      Map.get(summary, "publication_id") || Map.get(summary, "source_artifact_id") ||
+        "timeline_publication_summary",
       Map.get(summary, "provenance", %{})
     )
   end
@@ -1650,6 +1674,8 @@ defmodule OrbitalDynamics.OperatorReview do
       "timeline_diff_count" => Enum.count(rows, &(&1["review_type"] == "timeline_diff_review")),
       "timeline_dependency_impact_review_count" =>
         Enum.count(rows, &(&1["review_type"] == "timeline_dependency_impact_review")),
+      "timeline_publication_review_count" =>
+        Enum.count(rows, &(&1["review_type"] == "timeline_publication_review")),
       "timeline_activity_precondition_review_count" =>
         Enum.count(rows, &(&1["review_type"] == "timeline_activity_precondition_review")),
       "timeline_lifecycle_state_review_count" =>
@@ -9526,6 +9552,79 @@ defmodule OrbitalDynamics.OperatorReview do
     }
     |> compact_map()
   end
+
+  defp timeline_publication_rows(summary),
+    do: timeline_publication_rows(summary, "timeline_publication_summary")
+
+  defp timeline_publication_rows(%{} = summary, source) do
+    [
+      %{
+        "id" =>
+          review_id([
+            "timeline_publication",
+            summary["publication_id"] || summary["source_artifact_id"] || "summary",
+            summary["publication_sequence"] || 0
+          ]),
+        "review_type" => "timeline_publication_review",
+        "source" => source,
+        "subject_id" => summary["publication_id"] || summary["source_artifact_id"],
+        "publication_id" => summary["publication_id"],
+        "publication_sequence" => summary["publication_sequence"],
+        "publication_status" => summary["publication_status"],
+        "publication_authority" => summary["publication_authority"],
+        "source_artifact_id" => summary["source_artifact_id"],
+        "source_artifact_type" => summary["source_artifact_type"],
+        "supersedes_artifact_ids" => summary["supersedes_artifact_ids"],
+        "downstream_product_ids" => summary["downstream_product_ids"],
+        "invalidated_downstream_product_ids" => summary["invalidated_downstream_product_ids"],
+        "dependency_impact_status" => summary["dependency_impact_status"],
+        "dependency_impact_row_count" => summary["dependency_impact_row_count"],
+        "impacted_dependency_activity_ids" => summary["impacted_dependency_activity_ids"],
+        "impacted_dependency_timeline_ids" => summary["impacted_dependency_timeline_ids"],
+        "impacted_exclusive_with_activity_ids" => summary["impacted_exclusive_with_activity_ids"],
+        "impacted_exclusive_with_timeline_ids" => summary["impacted_exclusive_with_timeline_ids"],
+        "timeline_diff_row_count" => summary["timeline_diff_row_count"],
+        "timeline_diff_changed_count" => summary["timeline_diff_changed_count"],
+        "timeline_diff_review_required_count" => summary["timeline_diff_review_required_count"],
+        "changed_field_counts" => summary["changed_field_counts"],
+        "changed_timeline_ids" => summary["changed_timeline_ids"],
+        "review_timeline_ids" => summary["review_timeline_ids"],
+        "timeline_ids_by_changed_field" => summary["timeline_ids_by_changed_field"],
+        "action" => "review_timeline_publication",
+        "required_operator_action" => "review_timeline_publication",
+        "approval_status" => "operator_review_required",
+        "reason" => timeline_publication_review_reason(summary),
+        "operator_action_reason" => timeline_publication_operator_action_reason(summary),
+        "source_timeline_publication_summary" => summary
+      }
+      |> compact_map()
+    ]
+  end
+
+  defp timeline_publication_rows(_summary, _source), do: []
+
+  defp timeline_publication_review_reason(%{} = summary) do
+    "review publication #{summary["publication_id"] || summary["source_artifact_id"]} before downstream handoff"
+  end
+
+  defp timeline_publication_operator_action_reason(%{
+         "publication_status" => "published_with_downstream_invalidations"
+       }),
+       do: "publication_invalidates_downstream_products"
+
+  defp timeline_publication_operator_action_reason(%{
+         "dependency_impact_status" => "review_required"
+       }),
+       do: "publication_dependency_impact_review_required"
+
+  defp timeline_publication_operator_action_reason(%{
+         "timeline_diff_review_required_count" => count
+       })
+       when is_integer(count) and count > 0,
+       do: "publication_timeline_diff_review_required"
+
+  defp timeline_publication_operator_action_reason(_summary),
+    do: "publication_metadata_review_required"
 
   defp timeline_lifecycle_state_rows(summary),
     do: timeline_lifecycle_state_rows(summary, "timeline_lifecycle_state_summary.review_rows")
