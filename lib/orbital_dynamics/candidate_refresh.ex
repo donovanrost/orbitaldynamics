@@ -2703,6 +2703,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "link_capacity_report",
           "station_calendar_provider_entry_ids_by_requirement_status"
         ),
+      "source_report_resource_projection_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "resource_projection_report",
+          "contract"
+        ),
+      "source_report_resource_projection_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "resource_projection_report",
+          "count"
+        ),
+      "source_report_resource_projection_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "resource_projection_report",
+          "row_count"
+        ),
+      "source_report_resource_projection_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "resource_projection_report",
+          "paths"
+        ),
       "source_report_resource_projection_projected_resource_count" =>
         source_report_summary_family_count(
           source_reports,

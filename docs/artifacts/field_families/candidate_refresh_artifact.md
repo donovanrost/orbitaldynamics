@@ -1241,7 +1241,8 @@ both identity counts are present.
 `CandidateRefresh.resource_projection_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_resource_projection_replay_summary/1`
 expose the resource-projection slice as a branch-local replay summary. It
-preserves source resource-projection paths, projected-resource and invalid
+preserves source resource-projection contract, count, row-count, paths,
+projected-resource and invalid
 input counts, source artifact-type and flow-summary model counts, invalid input
 ID lists, resource-pressure status/type/activity maps, activity-ID maps by
 status/type/station/spacecraft/direction, direction counts, station and spacecraft
@@ -1292,6 +1293,9 @@ flow summaries when they are preserved inside candidate-refresh
 wrapper-qualified source paths and list indexes intact.
 When resource-projection provenance is absent, the replay summary omits the
 contract field rather than defaulting to `resource_projection_report.v1`.
+Partial resource-projection source-report family placeholders can preserve the
+declared contract, but omit flattened count, row-count, and path fields until
+both identity counts are present.
 
 `CandidateRefresh.storage_downlink_pressure_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_storage_downlink_pressure_replay_summary/1`

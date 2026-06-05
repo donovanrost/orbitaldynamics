@@ -10063,6 +10063,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 1,
+             "source_report_resource_projection_contract" => "resource_projection_report.v1",
+             "source_report_resource_projection_count" => 1,
+             "source_report_resource_projection_row_count" => 4,
+             "source_report_resource_projection_paths" => ["source_resource_projection_report[0]"],
              "source_report_resource_projection_projected_resource_count" => 2,
              "source_report_resource_projection_invalid_activity_input_count" => 1,
              "source_report_resource_projection_invalid_resource_summary_input_count" => 1,
@@ -10387,6 +10391,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     }
 
     assert %{
+             "source_report_resource_projection_contract" => "resource_projection_report.v1",
+             "source_report_resource_projection_count" => 1,
+             "source_report_resource_projection_row_count" => 4,
+             "source_report_resource_projection_paths" => ["source_resource_projection_report[0]"],
              "source_report_resource_projection_projected_resource_count" => 2,
              "source_report_resource_projection_invalid_activity_input_ids" => [
                "bad_activity"
@@ -10799,13 +10807,134 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "provenance" => %{"source_reports" => %{}}
     }
 
+    source_summary = CandidateRefresh.source_report_summary(artifact)
     summary = CandidateRefresh.resource_projection_replay_summary(artifact)
 
+    refute Map.has_key?(source_summary, "source_report_resource_projection_contract")
+    refute Map.has_key?(source_summary, "source_report_resource_projection_count")
+    refute Map.has_key?(source_summary, "source_report_resource_projection_row_count")
+    refute Map.has_key?(source_summary, "source_report_resource_projection_paths")
     assert summary["source_report_count"] == 0
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_paths"] == []
     refute Map.has_key?(summary, "contract")
     refute summary["branch_local_resource_projection_pressure"]
+  end
+
+  test "resource projection source summary omits missing identity counts for partial family placeholder" do
+    partial_summaries = [
+      %{"contract" => "resource_projection_report.v1"},
+      %{"count" => 1},
+      %{"row_count" => 2},
+      %{"paths" => ["provenance.source_reports.resource_projection_report"]},
+      %{"count" => nil, "row_count" => nil},
+      %{
+        "count" => nil,
+        "row_count" => nil,
+        "paths" => ["provenance.source_reports.resource_projection_report"]
+      }
+    ]
+
+    for partial_summary <- partial_summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "resource_projection_report" => partial_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      if Map.has_key?(partial_summary, "contract") do
+        assert source_summary["source_report_resource_projection_contract"] ==
+                 "resource_projection_report.v1"
+      else
+        refute Map.has_key?(source_summary, "source_report_resource_projection_contract")
+      end
+
+      refute Map.has_key?(source_summary, "source_report_resource_projection_count")
+      refute Map.has_key?(source_summary, "source_report_resource_projection_row_count")
+      refute Map.has_key?(source_summary, "source_report_resource_projection_paths")
+    end
+  end
+
+  test "resource projection source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "resource_projection_report" => %{
+            "contract" => "resource_projection_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.resource_projection_report"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_resource_projection_contract"] ==
+             "resource_projection_report.v1"
+
+    assert source_summary["source_report_resource_projection_count"] == 0
+    assert source_summary["source_report_resource_projection_row_count"] == 0
+
+    assert source_summary["source_report_resource_projection_paths"] == [
+             "provenance.source_reports.resource_projection_report"
+           ]
+  end
+
+  test "resource projection source summary omits missing identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "resource_projection_report" => %{
+            "contract" => "resource_projection_report.v1",
+            "count" => 1,
+            "row_count" => 2
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_resource_projection_contract"] ==
+             "resource_projection_report.v1"
+
+    assert source_summary["source_report_resource_projection_count"] == 1
+    assert source_summary["source_report_resource_projection_row_count"] == 2
+    refute Map.has_key?(source_summary, "source_report_resource_projection_paths")
+  end
+
+  test "resource projection source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "resource_projection_report" => %{
+            "contract" => "resource_projection_report.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_resource_projection_contract"] ==
+             "resource_projection_report.v1"
+
+    assert source_summary["source_report_resource_projection_count"] == 1
+    assert source_summary["source_report_resource_projection_row_count"] == 2
+    assert source_summary["source_report_resource_projection_paths"] == []
   end
 
   test "resource projection replay reads strategy branch candidate-source summary metadata" do
@@ -39637,6 +39766,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
            } = get_in(artifact, ["provenance", "source_reports", "resource_projection_report"])
 
     source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_resource_projection_contract"] ==
+             "resource_projection_report.v1"
+
+    assert source_summary["source_report_resource_projection_count"] == 1
+    assert source_summary["source_report_resource_projection_row_count"] == 1
+
+    assert source_summary["source_report_resource_projection_paths"] == [
+             "mission_state.source_resource_projection_flow_summary"
+           ]
 
     assert source_summary[
              "source_report_resource_projection_source_artifact_type_counts"
