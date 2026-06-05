@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh timeline-publication source-artifact type counts schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean. Awaiting commit/push.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 CandidateRefresh source-report summary JSON Schema now explicitly advertises
 `timeline_publication_source_artifact_type_counts`, matching the runtime replay
 field and docs already added for timeline-publication provenance. This is a
@@ -54,15 +54,16 @@ Tests run:
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`9271a509c9d38d148fc67c748b381c1610fb9ea2` pushed to `origin/main`.
+`5f88048fdea0fd91800165c81747ce746e347be0` pushed to `origin/main`.
 
 Last ledger correction commit:
-`6a6aba421ca4d8307c44bb2f71489d5f405827e7` pushed to `origin/main`.
+Pending.
 
 Next candidate:
-After review/publish, rerun the mapper against the current checkout.
+Rerun the mapper against the current checkout.
 
 Blocked:
 No.
