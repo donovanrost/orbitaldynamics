@@ -4,7 +4,7 @@ Current slice:
 CandidateRefresh storage/downlink aggregate source-report identity contract.
 
 Status:
-Implemented, locally verified, and reviewed; publish pending.
+Implemented, reviewed, committed, and pushed.
 The storage/downlink replay summary composes contact-allocation, link-capacity,
 and resource-projection source-report provenance. This slice tightens the
 aggregate identity contract so by-family pressure count and row-count maps
@@ -29,7 +29,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`f86acc5938727d1cf7f82f8476e4a8b2c13a3291` pushed to `origin/main`.
+`8770820e5a2c1140b617deb7e11537e2058cd7dc` pushed to `origin/main`.
 
 Next candidate:
 After this slice, continue guide-backed CandidateRefresh depth from queue item 4
