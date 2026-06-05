@@ -4,7 +4,7 @@ Current slice:
 CandidateRefresh contact-allocation source-report identity contract.
 
 Status:
-Implemented, verified, and reviewed; pending publish.
+Implemented, reviewed, committed, and pushed.
 Contact-allocation source-report identity already uses the shared count/row-count
 gate. This slice tightens the replay contract and tests so declared contract is
 independent from flattened count/row/path identity, explicit zero identity
@@ -31,12 +31,12 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-Previous published slice: `06b859daece63c68e67d96f3157391a93fb04362`.
+`fc19b0a82b3b0387443f50027b6aaa02e98b316f` pushed to `origin/main`.
 
 Next candidate:
-After verification and publish, continue guide-backed CandidateRefresh depth
-from queue item 4 with the next source-report family whose replay helper exists
-but aggregate identity, routing, or capability advertisement is incomplete.
+Continue guide-backed CandidateRefresh depth from queue item 4 with the next
+source-report family whose replay helper exists but aggregate identity, routing,
+or capability advertisement is incomplete.
 
 Blocked:
 No.
