@@ -4,19 +4,18 @@ Current slice:
 Expose CandidateRefresh provider-counteroffer source-report schema property.
 
 Status:
-Implemented, locally verified, and reviewed clean after a reviewer-found
-validation fix; publish pending. Runtime CandidateRefresh provider-counteroffer
-source summaries already preserve reviewable counts, counteroffer cost and
-timing delta counts, cost-delta totals, lock-deadline summaries,
-counteroffer-status count maps, required-operator-action count maps, plus
-import-readiness and plan-impact fields. The `candidate_refresh.v1`
-source-report JSON Schema now names `provider_counteroffer_report` as a
-family-specific source report and advertises the core counteroffer fields
-instead of leaving them as loose extra properties. This is a contract
-discoverability slice only: no replay behavior, artifact generation logic, or
-operator/Cadence authority behavior changed; executable schema validation now
-rejects invalid provider-counteroffer source-report count/map/number shapes,
-including non-map count-map values.
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
+CandidateRefresh provider-counteroffer source summaries already preserve
+reviewable counts, counteroffer cost and timing delta counts, cost-delta totals,
+lock-deadline summaries, counteroffer-status count maps,
+required-operator-action count maps, plus import-readiness and plan-impact
+fields. The `candidate_refresh.v1` source-report JSON Schema now names
+`provider_counteroffer_report` as a family-specific source report and advertises
+the core counteroffer fields instead of leaving them as loose extra properties.
+This is a contract discoverability slice only: no replay behavior, artifact
+generation logic, or operator/Cadence authority behavior changed; executable
+schema validation now rejects invalid provider-counteroffer source-report
+count/map/number shapes, including non-map count-map values.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -65,9 +64,10 @@ Tests run:
   generated-schema `jq` spot-checks. Noted non-blocking executable validation
   does not enforce `required_operator_action_counts` enum keys, matching the
   existing standalone provider-counteroffer validator pattern.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-Pending for this slice.
+`e9081479f79d14a60aaeade6c3dd81f3210a6a7c` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending for this slice.
