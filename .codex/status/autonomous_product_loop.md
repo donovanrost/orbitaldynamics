@@ -30,7 +30,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-Pending publish.
+`8017de7` (`Flatten activity precondition replay identity`).
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth from
