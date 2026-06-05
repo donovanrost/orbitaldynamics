@@ -1443,10 +1443,10 @@ operational-feedback handoffs.
 `CandidateRefresh.maneuver_review_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_maneuver_review_replay_summary/1` expose
 the maneuver-review slice as a branch-local replay summary. It preserves source
-maneuver-review paths, row counts, maneuver-success feedback counts,
-execution-uncertainty declared/missing counts, feedback input keys,
-row-derived maneuver-ID maps, required-operator-action counts,
-trust-boundary evidence, and branch-local maneuver-review, maneuver-feedback,
+maneuver-review contract, count, row-count, paths, maneuver-success feedback
+counts, execution-uncertainty declared/missing counts, feedback input keys,
+row-derived maneuver-ID maps, required-operator-action counts, trust-boundary
+evidence, and branch-local maneuver-review, maneuver-feedback,
 maneuver-routing, action, and execution-uncertainty pressure booleans without
 executing maneuvers, selecting candidates, approving imports, writing to
 Cadence, or regenerating candidates.
@@ -1472,6 +1472,9 @@ artifact-only no-maneuver-execution assumptions visible in generated
 candidate-source provenance.
 When maneuver-review provenance is absent, the replay summary omits the
 contract field rather than defaulting to `maneuver_review_report.v1`.
+Partial maneuver-review source-report family placeholders can preserve the
+declared contract, but omit flattened count, row-count, and path fields until
+both identity counts are present.
 Operational-feedback provenance for source maneuver-review reports derives
 required-action and maneuver-ID maps from rows when rows are present, preventing
 stale top-level maneuver-review aggregates from steering branch-local feedback

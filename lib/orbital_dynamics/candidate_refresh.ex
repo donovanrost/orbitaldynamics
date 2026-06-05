@@ -5410,6 +5410,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "command_window_report",
           "required_operator_action_counts"
         ),
+      "source_report_maneuver_review_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "maneuver_review_report",
+          "contract"
+        ),
+      "source_report_maneuver_review_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "maneuver_review_report",
+          "count"
+        ),
+      "source_report_maneuver_review_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "maneuver_review_report",
+          "row_count"
+        ),
+      "source_report_maneuver_review_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "maneuver_review_report",
+          "paths"
+        ),
       "source_report_maneuver_review_maneuver_success_feedback_count" =>
         source_report_summary_family_count(
           source_reports,

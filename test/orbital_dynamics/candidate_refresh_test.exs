@@ -15885,6 +15885,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_family_count" => 1,
+             "source_report_maneuver_review_contract" => "maneuver_review_report.v1",
+             "source_report_maneuver_review_count" => 1,
+             "source_report_maneuver_review_row_count" => 3,
+             "source_report_maneuver_review_paths" => ["source_maneuver_review_report"],
              "source_report_maneuver_review_maneuver_success_feedback_count" => 2,
              "source_report_maneuver_review_execution_uncertainty_declared_count" => 1,
              "source_report_maneuver_review_execution_uncertainty_missing_count" => 1,
@@ -15903,7 +15907,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              },
              "source_reports" => %{
                "maneuver_review_report" => %{
+                 "contract" => "maneuver_review_report.v1",
+                 "count" => 1,
                  "row_count" => 3,
+                 "paths" => ["source_maneuver_review_report"],
                  "maneuver_success_feedback_count" => 2,
                  "execution_uncertainty_declared_count" => 1,
                  "execution_uncertainty_missing_count" => 1,
@@ -15977,6 +15984,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     }
 
     assert %{
+             "source_report_maneuver_review_contract" => "maneuver_review_report.v1",
+             "source_report_maneuver_review_count" => 1,
+             "source_report_maneuver_review_row_count" => 3,
+             "source_report_maneuver_review_paths" => ["source_maneuver_review_report"],
              "source_report_maneuver_review_maneuver_success_feedback_count" => 2,
              "source_report_maneuver_review_execution_uncertainty_missing_count" => 1,
              "source_report_maneuver_review_input_keys" => [
@@ -16006,13 +16017,134 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "provenance" => %{"source_reports" => %{}}
     }
 
+    source_summary = CandidateRefresh.source_report_summary(artifact)
     summary = CandidateRefresh.maneuver_review_replay_summary(artifact)
 
+    refute Map.has_key?(source_summary, "source_report_maneuver_review_contract")
+    refute Map.has_key?(source_summary, "source_report_maneuver_review_count")
+    refute Map.has_key?(source_summary, "source_report_maneuver_review_row_count")
+    refute Map.has_key?(source_summary, "source_report_maneuver_review_paths")
     assert summary["source_report_count"] == 0
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_paths"] == []
     refute Map.has_key?(summary, "contract")
     refute summary["branch_local_maneuver_review_pressure"]
+  end
+
+  test "maneuver review source summary omits missing identity counts for partial family placeholder" do
+    partial_summaries = [
+      %{"contract" => "maneuver_review_report.v1"},
+      %{"count" => 1},
+      %{"row_count" => 2},
+      %{"paths" => ["provenance.source_reports.maneuver_review_report"]},
+      %{"count" => nil, "row_count" => nil},
+      %{
+        "count" => nil,
+        "row_count" => nil,
+        "paths" => ["provenance.source_reports.maneuver_review_report"]
+      }
+    ]
+
+    for partial_summary <- partial_summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "maneuver_review_report" => partial_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      if Map.has_key?(partial_summary, "contract") do
+        assert source_summary["source_report_maneuver_review_contract"] ==
+                 "maneuver_review_report.v1"
+      else
+        refute Map.has_key?(source_summary, "source_report_maneuver_review_contract")
+      end
+
+      refute Map.has_key?(source_summary, "source_report_maneuver_review_count")
+      refute Map.has_key?(source_summary, "source_report_maneuver_review_row_count")
+      refute Map.has_key?(source_summary, "source_report_maneuver_review_paths")
+    end
+  end
+
+  test "maneuver review source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "maneuver_review_report" => %{
+            "contract" => "maneuver_review_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.maneuver_review_report"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_maneuver_review_contract"] ==
+             "maneuver_review_report.v1"
+
+    assert source_summary["source_report_maneuver_review_count"] == 0
+    assert source_summary["source_report_maneuver_review_row_count"] == 0
+
+    assert source_summary["source_report_maneuver_review_paths"] == [
+             "provenance.source_reports.maneuver_review_report"
+           ]
+  end
+
+  test "maneuver review source summary omits missing identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "maneuver_review_report" => %{
+            "contract" => "maneuver_review_report.v1",
+            "count" => 1,
+            "row_count" => 2
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_maneuver_review_contract"] ==
+             "maneuver_review_report.v1"
+
+    assert source_summary["source_report_maneuver_review_count"] == 1
+    assert source_summary["source_report_maneuver_review_row_count"] == 2
+    refute Map.has_key?(source_summary, "source_report_maneuver_review_paths")
+  end
+
+  test "maneuver review source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "maneuver_review_report" => %{
+            "contract" => "maneuver_review_report.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_maneuver_review_contract"] ==
+             "maneuver_review_report.v1"
+
+    assert source_summary["source_report_maneuver_review_count"] == 1
+    assert source_summary["source_report_maneuver_review_row_count"] == 2
+    assert source_summary["source_report_maneuver_review_paths"] == []
   end
 
   test "maneuver review replay treats preserved feedback and uncertainty keys as pressure" do
