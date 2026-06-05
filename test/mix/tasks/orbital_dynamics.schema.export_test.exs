@@ -3205,6 +3205,75 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       end
     )
 
+    Enum.each(
+      [
+        "source_report_operational_readiness_resource_availability_pressure_count",
+        "source_report_quality_gate_resource_availability_pressure_count"
+      ],
+      fn field ->
+        assert get_in(schemas, [
+                 "candidate_refresh.v1",
+                 "properties",
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(schemas, [
+                 "candidate_refresh.v1",
+                 "properties",
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "source_report_operational_readiness_resource_availability_reason_counts",
+        "source_report_operational_readiness_station_availability_reason_counts",
+        "source_report_operational_readiness_resource_blocking_dimension_counts",
+        "source_report_quality_gate_resource_availability_reason_counts",
+        "source_report_quality_gate_station_availability_reason_counts",
+        "source_report_quality_gate_resource_blocking_dimension_counts"
+      ],
+      fn field ->
+        assert get_in(schemas, [
+                 "candidate_refresh.v1",
+                 "properties",
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "source_report_operational_readiness_resource_availability_reason_ids",
+        "source_report_operational_readiness_station_availability_reason_ids",
+        "source_report_operational_readiness_unavailable_resource_reason_ids",
+        "source_report_quality_gate_resource_availability_reason_ids",
+        "source_report_quality_gate_station_availability_reason_ids",
+        "source_report_quality_gate_unavailable_resource_reason_ids"
+      ],
+      fn field ->
+        assert get_in(schemas, [
+                 "candidate_refresh.v1",
+                 "properties",
+                 field,
+                 "type"
+               ]) == "array"
+
+        assert get_in(schemas, [
+                 "candidate_refresh.v1",
+                 "properties",
+                 field,
+                 "items",
+                 "type"
+               ]) == "string"
+      end
+    )
+
     assert get_in(schemas, [
              "candidate_refresh.v1",
              "properties",

@@ -95,6 +95,26 @@ defmodule OrbitalDynamics.Schema do
     "source_report_operational_readiness_timeline_publication_source_artifact_type_counts",
     "source_report_quality_gate_timeline_publication_source_artifact_type_counts"
   ]
+  @candidate_refresh_resource_availability_count_fields [
+    "source_report_operational_readiness_resource_availability_pressure_count",
+    "source_report_quality_gate_resource_availability_pressure_count"
+  ]
+  @candidate_refresh_resource_availability_count_map_fields [
+    "source_report_operational_readiness_resource_availability_reason_counts",
+    "source_report_operational_readiness_station_availability_reason_counts",
+    "source_report_operational_readiness_resource_blocking_dimension_counts",
+    "source_report_quality_gate_resource_availability_reason_counts",
+    "source_report_quality_gate_station_availability_reason_counts",
+    "source_report_quality_gate_resource_blocking_dimension_counts"
+  ]
+  @candidate_refresh_resource_availability_string_array_fields [
+    "source_report_operational_readiness_resource_availability_reason_ids",
+    "source_report_operational_readiness_station_availability_reason_ids",
+    "source_report_operational_readiness_unavailable_resource_reason_ids",
+    "source_report_quality_gate_resource_availability_reason_ids",
+    "source_report_quality_gate_station_availability_reason_ids",
+    "source_report_quality_gate_unavailable_resource_reason_ids"
+  ]
   @spacecraft_state_estimate "spacecraft_state_estimate.v1"
   @maneuver_execution_delta "maneuver_execution_delta.v1"
   @validation_reference_fixture_report "validation_reference_fixture_report.v1"
@@ -7424,7 +7444,10 @@ defmodule OrbitalDynamics.Schema do
           "operational_feedback"
         ] ++
           @candidate_refresh_publication_lineage_id_array_fields ++
-          @candidate_refresh_publication_lineage_count_map_fields
+          @candidate_refresh_publication_lineage_count_map_fields ++
+          @candidate_refresh_resource_availability_count_fields ++
+          @candidate_refresh_resource_availability_count_map_fields ++
+          @candidate_refresh_resource_availability_string_array_fields
     },
     @candidate_activity => %{
       "schema_contract" => @candidate_activity,
@@ -16999,6 +17022,21 @@ defmodule OrbitalDynamics.Schema do
   defp json_schema_property(field, @candidate_refresh, _contract)
        when field in @candidate_refresh_publication_lineage_count_map_fields do
     non_negative_integer_count_map_json_schema()
+  end
+
+  defp json_schema_property(field, @candidate_refresh, _contract)
+       when field in @candidate_refresh_resource_availability_count_fields do
+    %{"type" => "integer", "minimum" => 0}
+  end
+
+  defp json_schema_property(field, @candidate_refresh, _contract)
+       when field in @candidate_refresh_resource_availability_count_map_fields do
+    non_negative_integer_count_map_json_schema()
+  end
+
+  defp json_schema_property(field, @candidate_refresh, _contract)
+       when field in @candidate_refresh_resource_availability_string_array_fields do
+    string_array_schema()
   end
 
   defp json_schema_property(field, name, contract) do
