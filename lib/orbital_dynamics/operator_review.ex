@@ -3066,10 +3066,25 @@ defmodule OrbitalDynamics.OperatorReview do
         "battery_energy_generated_wh" => row["battery_energy_generated_wh"],
         "battery_state_of_charge" => row["battery_state_of_charge"],
         "spacecraft_available" => row["spacecraft_available"],
+        "planned_spacecraft_available" => row["planned_spacecraft_available"],
+        "realized_spacecraft_available" => row["realized_spacecraft_available"],
+        "spacecraft_available_match_status" => row["spacecraft_available_match_status"],
         "payload_available" => row["payload_available"],
+        "planned_payload_available" => row["planned_payload_available"],
+        "realized_payload_available" => row["realized_payload_available"],
+        "payload_available_match_status" => row["payload_available_match_status"],
         "antenna_available" => row["antenna_available"],
+        "planned_antenna_available" => row["planned_antenna_available"],
+        "realized_antenna_available" => row["realized_antenna_available"],
+        "antenna_available_match_status" => row["antenna_available_match_status"],
         "degraded" => row["degraded"],
+        "planned_degraded" => row["planned_degraded"],
+        "realized_degraded" => row["realized_degraded"],
+        "degraded_match_status" => row["degraded_match_status"],
         "mode" => row["mode"],
+        "planned_mode" => row["planned_mode"],
+        "realized_mode" => row["realized_mode"],
+        "mode_match_status" => row["mode_match_status"],
         "incompatible_activity_types" => row["incompatible_activity_types"],
         "suppressed_activity_types" => row["suppressed_activity_types"],
         "action" => "review_contact_allocation",
@@ -7495,10 +7510,25 @@ defmodule OrbitalDynamics.OperatorReview do
         "battery_energy_generated_wh" => row["battery_energy_generated_wh"],
         "battery_state_of_charge" => row["battery_state_of_charge"],
         "spacecraft_available" => row["spacecraft_available"],
+        "planned_spacecraft_available" => row["planned_spacecraft_available"],
+        "realized_spacecraft_available" => row["realized_spacecraft_available"],
+        "spacecraft_available_match_status" => row["spacecraft_available_match_status"],
         "payload_available" => row["payload_available"],
+        "planned_payload_available" => row["planned_payload_available"],
+        "realized_payload_available" => row["realized_payload_available"],
+        "payload_available_match_status" => row["payload_available_match_status"],
         "antenna_available" => row["antenna_available"],
+        "planned_antenna_available" => row["planned_antenna_available"],
+        "realized_antenna_available" => row["realized_antenna_available"],
+        "antenna_available_match_status" => row["antenna_available_match_status"],
         "degraded" => row["degraded"],
+        "planned_degraded" => row["planned_degraded"],
+        "realized_degraded" => row["realized_degraded"],
+        "degraded_match_status" => row["degraded_match_status"],
         "mode" => row["mode"],
+        "planned_mode" => row["planned_mode"],
+        "realized_mode" => row["realized_mode"],
+        "mode_match_status" => row["mode_match_status"],
         "incompatible_activity_types" => row["incompatible_activity_types"],
         "suppressed_activity_types" => row["suppressed_activity_types"],
         "station_availability" => row["station_availability"],
@@ -7658,6 +7688,13 @@ defmodule OrbitalDynamics.OperatorReview do
            "realized contact #{status} with planned/realized identity variance"
          )}
 
+      realized_resource_availability_variance?(row) ->
+        {"review_contact_variance", "operator_review_required",
+         feedback_reason(
+           row,
+           "realized contact #{status} with planned/realized resource availability variance"
+         )}
+
       timing_variance?(row) ->
         {"review_contact_variance", "operator_review_required",
          feedback_reason(row, "realized contact #{status} exceeded timing variance threshold")}
@@ -7708,6 +7745,13 @@ defmodule OrbitalDynamics.OperatorReview do
          feedback_reason(
            row,
            "realized command activity #{status} with planned/realized contact identity variance"
+         )}
+
+      realized_resource_availability_variance?(row) ->
+        {"review_command_variance", "operator_review_required",
+         feedback_reason(
+           row,
+           "realized command activity #{status} with planned/realized resource availability variance"
          )}
 
       timing_variance?(row) ->
@@ -7761,6 +7805,13 @@ defmodule OrbitalDynamics.OperatorReview do
          feedback_reason(
            row,
            "realized activity #{status} with planned/realized identity variance"
+         )}
+
+      realized_resource_availability_variance?(row) ->
+        {"review_realized_variance", "operator_review_required",
+         feedback_reason(
+           row,
+           "realized activity #{status} with planned/realized resource availability variance"
          )}
 
       realized_maneuver_delta_v_variance?(row) ->
@@ -7889,6 +7940,19 @@ defmodule OrbitalDynamics.OperatorReview do
         ],
         &(&1 == "mismatch")
       )
+  end
+
+  defp realized_resource_availability_variance?(row) do
+    Enum.any?(
+      [
+        row["spacecraft_available_match_status"],
+        row["payload_available_match_status"],
+        row["antenna_available_match_status"],
+        row["degraded_match_status"],
+        row["mode_match_status"]
+      ],
+      &(&1 == "mismatch")
+    )
   end
 
   defp realized_maneuver_delta_v_variance?(%{"feedback_kind" => "maneuver"} = row) do

@@ -4026,6 +4026,26 @@ defmodule OrbitalDynamics.SchemaTest do
              &(&1["path"] == "$.rows[0].source_review_row.throughput_completion_fraction")
            )
 
+    invalid_source_review_resource_variance =
+      put_in(
+        manifest,
+        ["rows", Access.at(0), "source_review_row"],
+        %{"planned_spacecraft_available" => "not_boolean", "mode_match_status" => 42}
+      )
+
+    assert {:error, invalid_source_review_resource_variance_report} =
+             Schema.validate_artifact(invalid_source_review_resource_variance)
+
+    assert Enum.any?(
+             invalid_source_review_resource_variance_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.planned_spacecraft_available")
+           )
+
+    assert Enum.any?(
+             invalid_source_review_resource_variance_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.mode_match_status")
+           )
+
     invalid_source_review_eclipse_overlap_fraction =
       put_in(
         manifest,
@@ -4261,6 +4281,67 @@ defmodule OrbitalDynamics.SchemaTest do
     assert Enum.any?(
              invalid_source_review_thermal_handoff_report["errors"],
              &(&1["path"] == "$.rows[0].source_review_row.thermal_confidence")
+           )
+
+    realized_feedback_manifest =
+      OrbitalDynamics.TimelineFeedback.reconcile(
+        [
+          %{
+            "id" => "obs_resource_variance_schema",
+            "type" => "observe",
+            "target_id" => "target_a",
+            "spacecraft_available" => true,
+            "cadence_import" => %{
+              "activity_type" => "observation",
+              "external_id" => "cadence_obs_resource_variance_schema",
+              "schema_contract" => "planned_activity.v1"
+            }
+          }
+        ],
+        [
+          %{
+            "id" => "provider_obs_resource_variance_schema",
+            "planned_activity_id" => "obs_resource_variance_schema",
+            "type" => "observe",
+            "status" => "completed",
+            "target_id" => "target_a",
+            "spacecraft_available" => false
+          }
+        ]
+      )["cadence_import_manifest"]
+
+    realized_feedback_index =
+      Enum.find_index(
+        realized_feedback_manifest["rows"],
+        &(&1["source_review_type"] == "realized_feedback" and
+            Map.has_key?(&1, "source_review_row"))
+      )
+
+    assert is_integer(realized_feedback_index)
+
+    mismatched_source_review_resource_variance =
+      realized_feedback_manifest
+      |> put_in(
+        [
+          "rows",
+          Access.at(realized_feedback_index),
+          "source_review_row",
+          "planned_spacecraft_available"
+        ],
+        true
+      )
+      |> put_in(
+        ["rows", Access.at(realized_feedback_index), "planned_spacecraft_available"],
+        false
+      )
+
+    assert {:error, mismatched_source_review_resource_variance_report} =
+             Schema.validate_artifact(mismatched_source_review_resource_variance)
+
+    assert Enum.any?(
+             mismatched_source_review_resource_variance_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[#{realized_feedback_index}].source_review_row.planned_spacecraft_available")
            )
 
     invalid_import_count =
@@ -18583,6 +18664,36 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(row_schema, ["properties", "realized_command_safety_checked", "type"]) ==
              "boolean"
 
+    for field <- [
+          "spacecraft_available",
+          "planned_spacecraft_available",
+          "realized_spacecraft_available",
+          "payload_available",
+          "planned_payload_available",
+          "realized_payload_available",
+          "antenna_available",
+          "planned_antenna_available",
+          "realized_antenna_available",
+          "degraded",
+          "planned_degraded",
+          "realized_degraded"
+        ] do
+      assert get_in(row_schema, ["properties", field, "type"]) == "boolean"
+    end
+
+    for field <- [
+          "spacecraft_available_match_status",
+          "payload_available_match_status",
+          "antenna_available_match_status",
+          "degraded_match_status",
+          "mode",
+          "planned_mode",
+          "realized_mode",
+          "mode_match_status"
+        ] do
+      assert get_in(row_schema, ["properties", field, "type"]) == "string"
+    end
+
     assert get_in(row_schema, [
              "properties",
              "source_activity_context",
@@ -20204,6 +20315,67 @@ defmodule OrbitalDynamics.SchemaTest do
 
     Enum.each(operational_timeline_boolean_fields, fn field ->
       assert get_in(source_review_operational_timeline_properties, [field, "type"]) == "boolean"
+    end)
+  end
+
+  test "exports resource availability variance handoff schema fields" do
+    string_fields = [
+      "spacecraft_available_match_status",
+      "payload_available_match_status",
+      "antenna_available_match_status",
+      "degraded_match_status",
+      "mode",
+      "planned_mode",
+      "realized_mode",
+      "mode_match_status"
+    ]
+
+    boolean_fields = [
+      "spacecraft_available",
+      "planned_spacecraft_available",
+      "realized_spacecraft_available",
+      "payload_available",
+      "planned_payload_available",
+      "realized_payload_available",
+      "antenna_available",
+      "planned_antenna_available",
+      "realized_antenna_available",
+      "degraded",
+      "planned_degraded",
+      "realized_degraded"
+    ]
+
+    for contract <- ["operator_review_package.v1", "cadence_import_manifest.v1"] do
+      assert {:ok, schema} = Schema.json_schema(contract)
+      row_properties = get_in(schema, ["properties", "rows", "items", "properties"])
+
+      Enum.each(string_fields, fn field ->
+        assert get_in(row_properties, [field, "type"]) == "string"
+      end)
+
+      Enum.each(boolean_fields, fn field ->
+        assert get_in(row_properties, [field, "type"]) == "boolean"
+      end)
+    end
+
+    assert {:ok, cadence_schema} = Schema.json_schema("cadence_import_manifest.v1")
+
+    source_review_row_properties =
+      get_in(cadence_schema, [
+        "properties",
+        "rows",
+        "items",
+        "properties",
+        "source_review_row",
+        "properties"
+      ])
+
+    Enum.each(string_fields, fn field ->
+      assert get_in(source_review_row_properties, [field, "type"]) == "string"
+    end)
+
+    Enum.each(boolean_fields, fn field ->
+      assert get_in(source_review_row_properties, [field, "type"]) == "boolean"
     end)
   end
 

@@ -123,6 +123,7 @@ Scoped downlink-completion context is flattened into branch risks, comparison ro
 
 - Explicit realized success factors drive operational feedback ahead of planned confidence factors when provider execution evidence is present.
 - Planned/realized contact direction, station, or source-window mismatches, plus observation target mismatches, are marked review-only for derived `operational_feedback`, so mismatched telemetry cannot silently alter branch scoring inputs while still flowing through operator review and Cadence import review rows.
+- Planned/realized spacecraft, payload, and antenna availability, degraded-state, and mode fields are emitted with `planned_*`, `realized_*`, and `*_match_status` row fields. Completed feedback whose realized resource context contradicts planned context is marked `review_only_resource_variance` for derived `operational_feedback` and routed through variance review/import rows.
 
 ## Candidate refresh
 
@@ -148,6 +149,7 @@ Feedback rows preserve:
 - planned-versus-actual data-volume deltas,
 - product/collection identity, payload/instrument IDs, planned timeline identity, and
 - planned-versus-realized match statuses for target, collection, product, payload, and instrument identity (so completed observation/product feedback mismatches are review-gated instead of becoming record-only imports),
+- planned-versus-realized match statuses for spacecraft/payload/antenna availability, degraded-state, and mode (so completed resource-context contradictions are review-gated instead of becoming effective operational feedback),
 - dependency/exclusivity stable-ID arrays,
 - timeline-integrity review evidence from the shared typed activity normalizer, and
 - normalized source planned and realized activity rows.

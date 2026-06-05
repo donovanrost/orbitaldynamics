@@ -4018,6 +4018,122 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
              Schema.validate_artifact(report["cadence_import_manifest"])
   end
 
+  test "review-gates completed observation feedback with resource availability variance" do
+    report =
+      TimelineFeedback.reconcile(
+        [
+          %{
+            "id" => "obs_resource_variance",
+            "type" => "observe",
+            "status" => "planned",
+            "starts_at_s" => 100.0,
+            "ends_at_s" => 160.0,
+            "target_id" => "target_a",
+            "spacecraft_available" => true,
+            "payload_available" => true,
+            "antenna_available" => true,
+            "degraded" => false,
+            "mode" => "nominal",
+            "cadence_import" => %{
+              "activity_type" => "observation",
+              "external_id" => "cadence_obs_resource_variance",
+              "schema_contract" => "planned_activity.v1"
+            }
+          }
+        ],
+        [
+          %{
+            "id" => "provider_obs_resource_variance",
+            "planned_activity_id" => "obs_resource_variance",
+            "type" => "observe",
+            "status" => "completed",
+            "target_id" => "target_a",
+            "spacecraft_available" => false,
+            "payload_available" => false,
+            "antenna_available" => false,
+            "degraded" => true,
+            "mode" => "safe"
+          }
+        ]
+      )
+
+    assert %{
+             "activity_id" => "obs_resource_variance",
+             "status" => "matched",
+             "spacecraft_available" => false,
+             "planned_spacecraft_available" => true,
+             "realized_spacecraft_available" => false,
+             "spacecraft_available_match_status" => "mismatch",
+             "payload_available" => false,
+             "planned_payload_available" => true,
+             "realized_payload_available" => false,
+             "payload_available_match_status" => "mismatch",
+             "antenna_available" => false,
+             "planned_antenna_available" => true,
+             "realized_antenna_available" => false,
+             "antenna_available_match_status" => "mismatch",
+             "degraded" => true,
+             "planned_degraded" => false,
+             "realized_degraded" => true,
+             "degraded_match_status" => "mismatch",
+             "mode" => "safe",
+             "planned_mode" => "nominal",
+             "realized_mode" => "safe",
+             "mode_match_status" => "mismatch",
+             "operational_feedback_excluded" => true,
+             "operational_feedback_status" => "review_only_resource_variance",
+             "operational_feedback_exclusion_reason" =>
+               "resource_availability_variance_review_required"
+           } = row = Enum.find(report["rows"], &(&1["activity_id"] == "obs_resource_variance"))
+
+    refute Map.has_key?(row, "identity_match_status")
+    refute Map.has_key?(row, "identity_mismatch_fields")
+    assert report["operational_feedback_excluded_count"] == 1
+
+    assert %{
+             "activity_id" => "obs_resource_variance",
+             "required_operator_action" => "review_realized_variance",
+             "approval_status" => "operator_review_required",
+             "spacecraft_available_match_status" => "mismatch",
+             "payload_available_match_status" => "mismatch",
+             "antenna_available_match_status" => "mismatch",
+             "degraded_match_status" => "mismatch",
+             "mode_match_status" => "mismatch",
+             "planned_mode" => "nominal",
+             "realized_mode" => "safe"
+           } =
+             Enum.find(
+               report["operator_review_package"]["rows"],
+               &(&1["activity_id"] == "obs_resource_variance")
+             )
+
+    assert %{
+             "activity_id" => "obs_resource_variance",
+             "import_action" => "review_realized_feedback",
+             "source_review_action" => "review_realized_variance",
+             "spacecraft_available_match_status" => "mismatch",
+             "payload_available_match_status" => "mismatch",
+             "antenna_available_match_status" => "mismatch",
+             "degraded_match_status" => "mismatch",
+             "mode_match_status" => "mismatch",
+             "planned_mode" => "nominal",
+             "realized_mode" => "safe"
+           } =
+             Enum.find(
+               report["cadence_import_manifest"]["rows"],
+               &(&1["activity_id"] == "obs_resource_variance")
+             )
+
+    assert {:ok, %{"schema_contract" => "timeline_feedback_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(report["operator_review_package"])
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(report["cadence_import_manifest"])
+  end
+
   test "ignores malformed planned and realized product ids instead of creating phantom mismatches" do
     report =
       TimelineFeedback.reconcile(

@@ -208,6 +208,11 @@ collapsing. `TimelineFeedback.normalize_realized_activity/2`,
 `TimelineFeedback.normalize_realized_activities/2`, and the matching
 top-level facades expose that same report-compatible realized feedback
 normalization without requiring a full timeline-feedback reconciliation report.
+Timeline-feedback rows also preserve planned, realized, and match-status fields
+for spacecraft/payload/antenna availability, degraded-state, and mode. Completed
+realized feedback with contradictory resource context is excluded from effective
+operational feedback as `review_only_resource_variance` while remaining visible
+in operator-review and Cadence-import variance rows.
 Typed activities also preserve lighting/eclipsing evidence,
 including eclipse overlap fraction/duration, lighting condition/detail/model
 labels, and numeric or qualitative lighting confidence, so manifest-authored

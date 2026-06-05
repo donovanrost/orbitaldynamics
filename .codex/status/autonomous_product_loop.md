@@ -1,20 +1,24 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Compact activity-state realized provenance summary.
+Resource-availability variance semantics in timeline feedback rows.
 
 Status:
-Implemented, locally verified, reviewed, committed, and pushed.
-`timeline_activity_state.v1` now has a typed source handoff, but its top-level
-artifact still requires adapters to unpack embedded feedback rows to route
-realized provider/source-quality/trust-boundary evidence. This slice lifts those
-row-derived realized provenance summaries into the compact activity-state
-contract while preserving the artifact-only boundary.
+Implemented, locally verified, reviewed clean after one reviewer-found fix, and
+ready to publish.
+Feedback rows now
+emit planned/realized/match fields for spacecraft, payload, and antenna
+availability, degraded state, and mode. Completed feedback with contradictory
+resource context is excluded from effective operational feedback as
+`review_only_resource_variance` and routed through operator-review and
+Cadence-import variance rows.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `docs/artifacts/field_families/mission_activities.md`
 - `docs/feature_set/capability_map/08_mission_activities/timeline-feedback-reconciliation.md`
+- `lib/orbital_dynamics/cadence_import.ex`
+- `lib/orbital_dynamics/operator_review.ex`
 - `lib/orbital_dynamics/schema.ex`
 - `lib/orbital_dynamics/timeline_feedback.ex`
 - `schemas/cadence_import_manifest.v1.schema.json`
@@ -31,27 +35,27 @@ Files changed:
 - `test/orbital_dynamics/timeline_feedback_test.exs`
 
 Tests run:
-- `mix format lib/orbital_dynamics/timeline_feedback.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/timeline_feedback_test.exs test/orbital_dynamics/schema_test.exs`
-- `mix test test/orbital_dynamics/timeline_feedback_test.exs:591 test/orbital_dynamics/timeline_feedback_test.exs:707`
-- `mix test test/orbital_dynamics/schema_test.exs:7206 test/orbital_dynamics/schema_test.exs:7338`
+- `mix format lib/orbital_dynamics/timeline_feedback.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/timeline_feedback_test.exs test/orbital_dynamics/schema_test.exs`
+- `mix test test/orbital_dynamics/timeline_feedback_test.exs:4021` (failed once before operator-review passthrough fix, then passed)
+- `mix test test/orbital_dynamics/schema_test.exs:18439`
+- `mix test test/orbital_dynamics/schema_test.exs:20240`
 - `mix test test/orbital_dynamics/timeline_feedback_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:7206 test/orbital_dynamics/schema_test.exs:7338 test/orbital_dynamics/schema_test.exs:20335`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
 - `mix test test/orbital_dynamics/schema_test.exs`
-- `slice_reviewer`: found standalone JSON Schema count-map shape gap; fixed by moving open-key count-map schema dispatch to `timeline_activity_state.v1`
-- `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:7206 test/orbital_dynamics/schema_test.exs:7338`
-- `mix test test/orbital_dynamics/timeline_feedback_test.exs:591 test/orbital_dynamics/timeline_feedback_test.exs:707`
-- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix orbital_dynamics.schema.lint --all`
-- `mix test test/orbital_dynamics/schema_test.exs`
-- `node -e` direct check confirming exported `realized_provider_counts` and `realized_source_quality_counts` additionalProperties are non-negative integers
-- `mix test test/orbital_dynamics/timeline_feedback_test.exs`
+- `node -e` direct check confirming exported timeline-feedback, operator-review, Cadence-import, and embedded source-review schemas expose `planned_spacecraft_available`, `realized_mode`, and `mode_match_status`
 - `git diff --check`
-- `slice_reviewer` re-review: no remaining must-fix blockers
+- `slice_reviewer`: found embedded Cadence `source_review_row` runtime validation/source-review handoff gap for resource variance fields
+- `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
+- `mix test test/orbital_dynamics/schema_test.exs:3979`
+- `mix test test/orbital_dynamics/schema_test.exs`
+- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
+- `mix orbital_dynamics.schema.lint --all`
+- `mix test test/orbital_dynamics/schema_test.exs:3979` after strengthening the embedded source-review regression
+- `mix test test/orbital_dynamics/schema_test.exs` after strengthening the embedded source-review regression
+- `git diff --check`
+- `slice_reviewer` re-review: no remaining must-fix findings
 
 Docs/artifacts changed:
 - `docs/artifacts/field_families/mission_activities.md`
@@ -68,13 +72,10 @@ Docs/artifacts changed:
 - `schemas/timeline_feedback_report.v1.schema.json`
 
 Last commit:
-`535fbb1b680fa2645e2d70874c135cf5a28c7aa5` pushed to `origin/main`.
+`c0711c6e1cb791c7782ac4df736567c8bb4d8330` pushed to `origin/main`.
 
 Next candidate:
-Mapper-recommended resource-availability variance semantics for timeline
-feedback rows: planned/realized/match fields for spacecraft/payload/antenna
-availability, degraded, and mode, with completed-feedback review gating when
-realized resource context contradicts planned context.
+After this slice is complete, rerun the mapper against the current checkout.
 
 Blocked:
 No.

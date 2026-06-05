@@ -2349,7 +2349,27 @@ defmodule OrbitalDynamics.Schema do
                                                       "command_safety_checked",
                                                       "planned_command_safety_checked",
                                                       "realized_command_safety_checked",
-                                                      "command_safety_checked_match_status"
+                                                      "command_safety_checked_match_status",
+                                                      "spacecraft_available",
+                                                      "planned_spacecraft_available",
+                                                      "realized_spacecraft_available",
+                                                      "spacecraft_available_match_status",
+                                                      "payload_available",
+                                                      "planned_payload_available",
+                                                      "realized_payload_available",
+                                                      "payload_available_match_status",
+                                                      "antenna_available",
+                                                      "planned_antenna_available",
+                                                      "realized_antenna_available",
+                                                      "antenna_available_match_status",
+                                                      "degraded",
+                                                      "planned_degraded",
+                                                      "realized_degraded",
+                                                      "degraded_match_status",
+                                                      "mode",
+                                                      "planned_mode",
+                                                      "realized_mode",
+                                                      "mode_match_status"
                                                     ],
                                                     &{&1, &1}
                                                   )
@@ -20080,6 +20100,26 @@ defmodule OrbitalDynamics.Schema do
         "battery_energy_used_wh" => %{"type" => "number"},
         "battery_energy_generated_wh" => %{"type" => "number", "minimum" => 0.0},
         "battery_state_of_charge" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
+        "spacecraft_available" => %{"type" => "boolean"},
+        "planned_spacecraft_available" => %{"type" => "boolean"},
+        "realized_spacecraft_available" => %{"type" => "boolean"},
+        "spacecraft_available_match_status" => %{"type" => "string"},
+        "payload_available" => %{"type" => "boolean"},
+        "planned_payload_available" => %{"type" => "boolean"},
+        "realized_payload_available" => %{"type" => "boolean"},
+        "payload_available_match_status" => %{"type" => "string"},
+        "antenna_available" => %{"type" => "boolean"},
+        "planned_antenna_available" => %{"type" => "boolean"},
+        "realized_antenna_available" => %{"type" => "boolean"},
+        "antenna_available_match_status" => %{"type" => "string"},
+        "degraded" => %{"type" => "boolean"},
+        "planned_degraded" => %{"type" => "boolean"},
+        "realized_degraded" => %{"type" => "boolean"},
+        "degraded_match_status" => %{"type" => "string"},
+        "mode" => %{"type" => "string"},
+        "planned_mode" => %{"type" => "string"},
+        "realized_mode" => %{"type" => "string"},
+        "mode_match_status" => %{"type" => "string"},
         "thermal_margin_c" => %{"type" => "number"},
         "eclipse_overlap_fraction" => probability_json_schema(),
         "planned_eclipse_overlap_fraction" => probability_json_schema(),
@@ -23960,6 +24000,7 @@ defmodule OrbitalDynamics.Schema do
         |> Map.merge(feedback_maneuver_handoff_json_schema_properties())
         |> Map.merge(link_handoff_json_schema_properties())
         |> Map.merge(thermal_handoff_json_schema_properties())
+        |> Map.merge(resource_availability_variance_json_schema_properties())
         |> Map.merge(operational_readiness_resource_context_json_schema_properties())
         |> Map.merge(operational_readiness_operator_training_context_json_schema_properties())
         |> Map.merge(operational_readiness_adapter_boundary_context_json_schema_properties())
@@ -24030,6 +24071,40 @@ defmodule OrbitalDynamics.Schema do
       |> Map.new(&{&1, %{"type" => "boolean"}})
 
     Map.merge(string_fields, boolean_fields)
+  end
+
+  defp resource_availability_variance_json_schema_properties do
+    boolean_fields =
+      [
+        "spacecraft_available",
+        "planned_spacecraft_available",
+        "realized_spacecraft_available",
+        "payload_available",
+        "planned_payload_available",
+        "realized_payload_available",
+        "antenna_available",
+        "planned_antenna_available",
+        "realized_antenna_available",
+        "degraded",
+        "planned_degraded",
+        "realized_degraded"
+      ]
+      |> Map.new(&{&1, %{"type" => "boolean"}})
+
+    string_fields =
+      [
+        "spacecraft_available_match_status",
+        "payload_available_match_status",
+        "antenna_available_match_status",
+        "degraded_match_status",
+        "mode",
+        "planned_mode",
+        "realized_mode",
+        "mode_match_status"
+      ]
+      |> Map.new(&{&1, %{"type" => "string"}})
+
+    Map.merge(boolean_fields, string_fields)
   end
 
   defp timeline_activity_precondition_handoff_json_schema_properties do
@@ -24487,6 +24562,7 @@ defmodule OrbitalDynamics.Schema do
         |> Map.merge(feedback_maneuver_handoff_json_schema_properties())
         |> Map.merge(link_handoff_json_schema_properties())
         |> Map.merge(thermal_handoff_json_schema_properties())
+        |> Map.merge(resource_availability_variance_json_schema_properties())
         |> Map.merge(operational_readiness_resource_context_json_schema_properties())
         |> Map.merge(operational_readiness_operator_training_context_json_schema_properties())
         |> Map.merge(operational_readiness_adapter_boundary_context_json_schema_properties())
@@ -25069,6 +25145,7 @@ defmodule OrbitalDynamics.Schema do
         |> Map.merge(feedback_maneuver_handoff_json_schema_properties())
         |> Map.merge(link_handoff_json_schema_properties())
         |> Map.merge(thermal_handoff_json_schema_properties())
+        |> Map.merge(resource_availability_variance_json_schema_properties())
         |> Map.merge(operational_readiness_resource_context_json_schema_properties())
         |> Map.merge(operational_readiness_operator_training_context_json_schema_properties())
         |> Map.merge(operational_readiness_adapter_boundary_context_json_schema_properties())
@@ -34712,6 +34789,7 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(path, row, "realized_provenance", :map)
     |> expect_optional_type(path, row, "realized_source", :map)
     |> expect_optional_type(path, row, "timeline_identity", :map)
+    |> validate_resource_availability_variance_fields(path, row)
     |> validate_eclipse_lighting_handoff_fields(path, row)
     |> validate_link_handoff_fields(path, row)
     |> validate_image_quality_score_fields(path, row)
@@ -34754,6 +34832,30 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(path, row, "attitude_source", :binary)
     |> expect_optional_probability(path, row, "attitude_confidence")
     |> expect_optional_probability(path, row, "completed_fraction")
+  end
+
+  defp validate_resource_availability_variance_fields(issues, path, row) do
+    issues
+    |> expect_optional_type(path, row, "spacecraft_available", :boolean)
+    |> expect_optional_type(path, row, "planned_spacecraft_available", :boolean)
+    |> expect_optional_type(path, row, "realized_spacecraft_available", :boolean)
+    |> expect_optional_type(path, row, "spacecraft_available_match_status", :binary)
+    |> expect_optional_type(path, row, "payload_available", :boolean)
+    |> expect_optional_type(path, row, "planned_payload_available", :boolean)
+    |> expect_optional_type(path, row, "realized_payload_available", :boolean)
+    |> expect_optional_type(path, row, "payload_available_match_status", :binary)
+    |> expect_optional_type(path, row, "antenna_available", :boolean)
+    |> expect_optional_type(path, row, "planned_antenna_available", :boolean)
+    |> expect_optional_type(path, row, "realized_antenna_available", :boolean)
+    |> expect_optional_type(path, row, "antenna_available_match_status", :binary)
+    |> expect_optional_type(path, row, "degraded", :boolean)
+    |> expect_optional_type(path, row, "planned_degraded", :boolean)
+    |> expect_optional_type(path, row, "realized_degraded", :boolean)
+    |> expect_optional_type(path, row, "degraded_match_status", :binary)
+    |> expect_optional_type(path, row, "mode", :binary)
+    |> expect_optional_type(path, row, "planned_mode", :binary)
+    |> expect_optional_type(path, row, "realized_mode", :binary)
+    |> expect_optional_type(path, row, "mode_match_status", :binary)
   end
 
   defp validate_maneuver_recommendation(issues, path, maneuver) do
@@ -53090,6 +53192,7 @@ defmodule OrbitalDynamics.Schema do
     |> validate_observation_quality_handoff_fields(path, row)
     |> validate_feedback_maneuver_handoff_fields(path, row)
     |> validate_link_handoff_fields(path, row)
+    |> validate_resource_availability_variance_fields(path, row)
     |> validate_eclipse_lighting_handoff_fields(path, row)
     |> validate_thermal_handoff_fields(path, row)
     |> validate_branch_event_summary_fields(path, row)
@@ -53335,6 +53438,7 @@ defmodule OrbitalDynamics.Schema do
     |> validate_observation_quality_handoff_fields(path, row)
     |> validate_feedback_maneuver_handoff_fields(path, row)
     |> validate_link_handoff_fields(path, row)
+    |> validate_resource_availability_variance_fields(path, row)
     |> validate_completion_fraction_fields(path, row)
     |> validate_eclipse_lighting_handoff_fields(path, row)
     |> validate_thermal_handoff_fields(path, row)
@@ -58132,8 +58236,7 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_number(path, row, "projected_downlink_shortfall_mb")
     |> expect_optional_number(path, row, "fuel_margin")
     |> expect_optional_number(path, row, "power_margin")
-    |> expect_optional_type(path, row, "payload_available", :boolean)
-    |> expect_optional_type(path, row, "antenna_available", :boolean)
+    |> validate_resource_availability_variance_fields(path, row)
     |> expect_optional_type(path, row, "warnings", :list)
     |> expect_optional_type(path, row, "station_contention_status", :binary)
     |> expect_optional_type(path, row, "station_reservation_id", :binary)

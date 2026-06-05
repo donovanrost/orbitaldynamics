@@ -2925,10 +2925,32 @@ defmodule OrbitalDynamics.TimelineFeedback do
       "battery_state_of_charge" =>
         realized_or_planned(realized, planned, "battery_state_of_charge"),
       "spacecraft_available" => realized_or_planned(realized, planned, "spacecraft_available"),
+      "planned_spacecraft_available" => value(planned, "spacecraft_available"),
+      "realized_spacecraft_available" => value(realized, "spacecraft_available"),
+      "spacecraft_available_match_status" =>
+        match_status(
+          value(planned, "spacecraft_available"),
+          value(realized, "spacecraft_available")
+        ),
       "payload_available" => realized_or_planned(realized, planned, "payload_available"),
+      "planned_payload_available" => value(planned, "payload_available"),
+      "realized_payload_available" => value(realized, "payload_available"),
+      "payload_available_match_status" =>
+        match_status(value(planned, "payload_available"), value(realized, "payload_available")),
       "antenna_available" => realized_or_planned(realized, planned, "antenna_available"),
+      "planned_antenna_available" => value(planned, "antenna_available"),
+      "realized_antenna_available" => value(realized, "antenna_available"),
+      "antenna_available_match_status" =>
+        match_status(value(planned, "antenna_available"), value(realized, "antenna_available")),
       "degraded" => realized_or_planned(realized, planned, "degraded"),
+      "planned_degraded" => value(planned, "degraded"),
+      "realized_degraded" => value(realized, "degraded"),
+      "degraded_match_status" =>
+        match_status(value(planned, "degraded"), value(realized, "degraded")),
       "mode" => realized_or_planned(realized, planned, "mode"),
+      "planned_mode" => value(planned, "mode"),
+      "realized_mode" => value(realized, "mode"),
+      "mode_match_status" => match_status(value(planned, "mode"), value(realized, "mode")),
       "incompatible_activity_types" =>
         realized_or_planned(realized, planned, "incompatible_activity_types"),
       "suppressed_activity_types" =>
@@ -3046,6 +3068,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
           case reason do
             "contact_link_quality_review_required" -> "review_only_link_quality"
             "feedback_weight_invalid_review_required" -> "review_only_invalid_feedback_weight"
+            "resource_availability_variance_review_required" -> "review_only_resource_variance"
             _reason -> "review_only_identity_mismatch"
           end
 
@@ -3057,11 +3080,27 @@ defmodule OrbitalDynamics.TimelineFeedback do
   end
 
   defp operational_feedback_exclusion_reason(%{} = row) do
-    if invalid_feedback_weight_section?(row) do
-      "feedback_weight_invalid_review_required"
-    else
-      operational_feedback_exclusion_reason_for_kind(row)
+    cond do
+      invalid_feedback_weight_section?(row) ->
+        "feedback_weight_invalid_review_required"
+
+      resource_availability_variance?(row) ->
+        "resource_availability_variance_review_required"
+
+      true ->
+        operational_feedback_exclusion_reason_for_kind(row)
     end
+  end
+
+  defp resource_availability_variance?(row) do
+    [
+      "spacecraft_available_match_status",
+      "payload_available_match_status",
+      "antenna_available_match_status",
+      "degraded_match_status",
+      "mode_match_status"
+    ]
+    |> Enum.any?(&(row[&1] == "mismatch"))
   end
 
   defp operational_feedback_exclusion_reason_for_kind(%{"feedback_kind" => kind} = row)
