@@ -513,6 +513,12 @@ authority, supersession, downstream invalidation, dependency-impact rollups,
 changed-field audit counts and routing, and the nested source publication
 summary while leaving publication execution, notification delivery, and import
 authorization to downstream operators or host systems.
+Operational-readiness and quality-gate summaries preserve that same publication
+context when classifying direct publication summaries, their review packages, or
+Cadence-import manifests. The context explains review-only routing with
+publication status, downstream invalidations, dependency-impact IDs/counts, and
+changed-field review counts, but remains artifact-only and does not publish,
+notify, import, mutate schedules, or grant operator authority.
 CandidateRefresh publication replay now preserves the same publication summary
 evidence through `CandidateRefresh.timeline_publication_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_timeline_publication_replay_summary/1`.

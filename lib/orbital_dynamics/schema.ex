@@ -5448,7 +5448,28 @@ defmodule OrbitalDynamics.Schema do
         "model_limits"
       ],
       "optional_fields" => [
-        "analysis_only_quality_gate_row_ids"
+        "analysis_only_quality_gate_row_ids",
+        "publication_status_counts",
+        "dependency_impact_status_counts",
+        "publication_authority_counts",
+        "source_artifact_type_counts",
+        "publication_ids",
+        "source_artifact_ids",
+        "supersedes_artifact_ids",
+        "downstream_product_ids",
+        "invalidated_downstream_product_ids",
+        "dependency_impact_row_count",
+        "impacted_dependency_activity_ids",
+        "impacted_dependency_timeline_ids",
+        "impacted_exclusive_with_activity_ids",
+        "impacted_exclusive_with_timeline_ids",
+        "timeline_diff_row_count",
+        "timeline_diff_changed_count",
+        "timeline_diff_review_required_count",
+        "changed_field_counts",
+        "changed_timeline_ids",
+        "review_timeline_ids",
+        "timeline_ids_by_changed_field"
       ],
       "nested_contracts" => ["quality_gate_report.v1"]
     },
@@ -16242,7 +16263,11 @@ defmodule OrbitalDynamics.Schema do
               "invalid_cadence_import_count",
               "current_freshness_count",
               "stale_freshness_count",
-              "unknown_freshness_count"
+              "unknown_freshness_count",
+              "dependency_impact_row_count",
+              "timeline_diff_row_count",
+              "timeline_diff_changed_count",
+              "timeline_diff_review_required_count"
             ] do
     %{"type" => "integer", "minimum" => 0}
   end
@@ -16255,7 +16280,12 @@ defmodule OrbitalDynamics.Schema do
        when field in [
               "freshness_status_counts",
               "import_status_counts",
-              "cadence_import_status_counts"
+              "cadence_import_status_counts",
+              "publication_status_counts",
+              "dependency_impact_status_counts",
+              "publication_authority_counts",
+              "source_artifact_type_counts",
+              "changed_field_counts"
             ] do
     non_negative_integer_count_map_json_schema()
   end
@@ -16281,6 +16311,17 @@ defmodule OrbitalDynamics.Schema do
               "freshness_status_ids",
               "import_status_ids",
               "cadence_import_status_ids",
+              "publication_ids",
+              "source_artifact_ids",
+              "supersedes_artifact_ids",
+              "downstream_product_ids",
+              "invalidated_downstream_product_ids",
+              "impacted_dependency_activity_ids",
+              "impacted_dependency_timeline_ids",
+              "impacted_exclusive_with_activity_ids",
+              "impacted_exclusive_with_timeline_ids",
+              "changed_timeline_ids",
+              "review_timeline_ids",
               "review_required_quality_gate_row_ids",
               "blocked_quality_gate_row_ids",
               "ready_quality_gate_row_ids",
@@ -16291,6 +16332,14 @@ defmodule OrbitalDynamics.Schema do
               "import_readiness_gate_ids"
             ] do
     string_array_schema()
+  end
+
+  defp json_schema_property(
+         "timeline_ids_by_changed_field",
+         @operational_quality_gate_import_readiness_summary,
+         _contract
+       ) do
+    stable_id_array_map_schema()
   end
 
   defp json_schema_property(
@@ -23516,6 +23565,7 @@ defmodule OrbitalDynamics.Schema do
         |> Map.merge(operational_readiness_resource_context_json_schema_properties())
         |> Map.merge(operational_readiness_operator_training_context_json_schema_properties())
         |> Map.merge(operational_readiness_cadence_import_context_json_schema_properties())
+        |> Map.merge(candidate_refresh_timeline_publication_context_json_schema_properties())
     }
   end
 
@@ -23544,6 +23594,8 @@ defmodule OrbitalDynamics.Schema do
         |> Map.merge(operational_readiness_resource_context_json_schema_properties())
         |> Map.merge(operational_readiness_operator_training_context_json_schema_properties())
         |> Map.merge(operational_readiness_adapter_boundary_context_json_schema_properties())
+        |> Map.merge(operational_readiness_cadence_import_context_json_schema_properties())
+        |> Map.merge(candidate_refresh_timeline_publication_context_json_schema_properties())
     }
   end
 
@@ -23620,72 +23672,74 @@ defmodule OrbitalDynamics.Schema do
     %{
       "type" => "object",
       "additionalProperties" => true,
-      "properties" => %{
-        "review_row_count" => %{"type" => "integer", "minimum" => 0},
-        "import_row_count" => %{"type" => "integer", "minimum" => 0},
-        "review_required_count" => %{"type" => "integer", "minimum" => 0},
-        "blocked_review_count" => %{"type" => "integer", "minimum" => 0},
-        "ready_for_import_count" => %{"type" => "integer", "minimum" => 0},
-        "manifest_review_required_count" => %{"type" => "integer", "minimum" => 0},
-        "blocked_import_count" => %{"type" => "integer", "minimum" => 0},
-        "missing_import_count" => %{"type" => "integer", "minimum" => 0},
-        "invalid_cadence_import_count" => %{"type" => "integer", "minimum" => 0},
-        "current_freshness_count" => %{"type" => "integer", "minimum" => 0},
-        "stale_freshness_count" => %{"type" => "integer", "minimum" => 0},
-        "unknown_freshness_count" => %{"type" => "integer", "minimum" => 0},
-        "schema_validation_pass_count" => %{"type" => "integer", "minimum" => 0},
-        "schema_validation_fail_count" => %{"type" => "integer", "minimum" => 0},
-        "schema_validation_error_count" => %{"type" => "integer", "minimum" => 0},
-        "schema_validation_warning_count" => %{"type" => "integer", "minimum" => 0},
-        "schema_validation_remediation_count" => %{"type" => "integer", "minimum" => 0},
-        "source_model_count" => %{"type" => "integer", "minimum" => 0},
-        "source_model_limit_count" => %{"type" => "integer", "minimum" => 0},
-        "policy_decision_count" => %{"type" => "integer", "minimum" => 0},
-        "policy_auto_approvable_count" => %{"type" => "integer", "minimum" => 0},
-        "policy_review_required_count" => %{"type" => "integer", "minimum" => 0},
-        "policy_blocked_count" => %{"type" => "integer", "minimum" => 0},
-        "adapter_context_count" => %{"type" => "integer", "minimum" => 0},
-        "adapter_trust_boundary_declared_count" => %{"type" => "integer", "minimum" => 0},
-        "adapter_trust_boundary_missing_count" => %{"type" => "integer", "minimum" => 0},
-        "adapter_trust_boundary_untrusted_count" => %{"type" => "integer", "minimum" => 0},
-        "operator_training_requirement_count" => %{"type" => "integer", "minimum" => 0},
-        "resource_availability_pressure_count" => %{"type" => "integer", "minimum" => 0},
-        "resource_blocking_dimension_count" => %{"type" => "integer", "minimum" => 0},
-        "review_type_counts" => non_negative_integer_count_map_json_schema(),
-        "approval_status_counts" => non_negative_integer_count_map_json_schema(),
-        "import_action_counts" => non_negative_integer_count_map_json_schema(),
-        "source_review_type_counts" => non_negative_integer_count_map_json_schema(),
-        "import_status_counts" => non_negative_integer_count_map_json_schema(),
-        "cadence_import_status_counts" => non_negative_integer_count_map_json_schema(),
-        "freshness_status_counts" => non_negative_integer_count_map_json_schema(),
-        "schema_validation_status_counts" => non_negative_integer_count_map_json_schema(),
-        "source_model_counts" => non_negative_integer_count_map_json_schema(),
-        "source_model_limit_counts" => non_negative_integer_count_map_json_schema(),
-        "policy_classification_counts" => non_negative_integer_count_map_json_schema(),
-        "adapter_boundary_status_counts" =>
-          branch_event_trust_boundary_status_counts_json_schema(),
-        "operator_training_requirement_counts" => non_negative_integer_count_map_json_schema(),
-        "required_operator_roles" => string_array_schema(),
-        "required_training_ids" => string_array_schema(),
-        "required_certification_ids" => string_array_schema(),
-        "required_qualification_ids" => string_array_schema(),
-        "resource_availability_reason_counts" => non_negative_integer_count_map_json_schema(),
-        "resource_availability_reason_ids" => string_array_schema(),
-        "station_availability_reason_ids" => string_array_schema(),
-        "station_availability_reason_counts" => non_negative_integer_count_map_json_schema(),
-        "unavailable_resource_reason_ids" => string_array_schema(),
-        "resource_blocking_dimension_counts" => non_negative_integer_count_map_json_schema(),
-        "resource_blocked_contact_ids_by_blocking_dimension" => %{
-          "type" => "object",
-          "additionalProperties" => stable_id_array_schema()
-        },
-        "resource_blocked_contact_ids_by_spacecraft_id" => %{
-          "type" => "object",
-          "additionalProperties" => stable_id_array_schema()
-        },
-        "resource_source_quality_counts" => non_negative_integer_count_map_json_schema(),
-        "resource_trust_boundary_status_counts" => non_negative_integer_count_map_json_schema()
-      }
+      "properties" =>
+        %{
+          "review_row_count" => %{"type" => "integer", "minimum" => 0},
+          "import_row_count" => %{"type" => "integer", "minimum" => 0},
+          "review_required_count" => %{"type" => "integer", "minimum" => 0},
+          "blocked_review_count" => %{"type" => "integer", "minimum" => 0},
+          "ready_for_import_count" => %{"type" => "integer", "minimum" => 0},
+          "manifest_review_required_count" => %{"type" => "integer", "minimum" => 0},
+          "blocked_import_count" => %{"type" => "integer", "minimum" => 0},
+          "missing_import_count" => %{"type" => "integer", "minimum" => 0},
+          "invalid_cadence_import_count" => %{"type" => "integer", "minimum" => 0},
+          "current_freshness_count" => %{"type" => "integer", "minimum" => 0},
+          "stale_freshness_count" => %{"type" => "integer", "minimum" => 0},
+          "unknown_freshness_count" => %{"type" => "integer", "minimum" => 0},
+          "schema_validation_pass_count" => %{"type" => "integer", "minimum" => 0},
+          "schema_validation_fail_count" => %{"type" => "integer", "minimum" => 0},
+          "schema_validation_error_count" => %{"type" => "integer", "minimum" => 0},
+          "schema_validation_warning_count" => %{"type" => "integer", "minimum" => 0},
+          "schema_validation_remediation_count" => %{"type" => "integer", "minimum" => 0},
+          "source_model_count" => %{"type" => "integer", "minimum" => 0},
+          "source_model_limit_count" => %{"type" => "integer", "minimum" => 0},
+          "policy_decision_count" => %{"type" => "integer", "minimum" => 0},
+          "policy_auto_approvable_count" => %{"type" => "integer", "minimum" => 0},
+          "policy_review_required_count" => %{"type" => "integer", "minimum" => 0},
+          "policy_blocked_count" => %{"type" => "integer", "minimum" => 0},
+          "adapter_context_count" => %{"type" => "integer", "minimum" => 0},
+          "adapter_trust_boundary_declared_count" => %{"type" => "integer", "minimum" => 0},
+          "adapter_trust_boundary_missing_count" => %{"type" => "integer", "minimum" => 0},
+          "adapter_trust_boundary_untrusted_count" => %{"type" => "integer", "minimum" => 0},
+          "operator_training_requirement_count" => %{"type" => "integer", "minimum" => 0},
+          "resource_availability_pressure_count" => %{"type" => "integer", "minimum" => 0},
+          "resource_blocking_dimension_count" => %{"type" => "integer", "minimum" => 0},
+          "review_type_counts" => non_negative_integer_count_map_json_schema(),
+          "approval_status_counts" => non_negative_integer_count_map_json_schema(),
+          "import_action_counts" => non_negative_integer_count_map_json_schema(),
+          "source_review_type_counts" => non_negative_integer_count_map_json_schema(),
+          "import_status_counts" => non_negative_integer_count_map_json_schema(),
+          "cadence_import_status_counts" => non_negative_integer_count_map_json_schema(),
+          "freshness_status_counts" => non_negative_integer_count_map_json_schema(),
+          "schema_validation_status_counts" => non_negative_integer_count_map_json_schema(),
+          "source_model_counts" => non_negative_integer_count_map_json_schema(),
+          "source_model_limit_counts" => non_negative_integer_count_map_json_schema(),
+          "policy_classification_counts" => non_negative_integer_count_map_json_schema(),
+          "adapter_boundary_status_counts" =>
+            branch_event_trust_boundary_status_counts_json_schema(),
+          "operator_training_requirement_counts" => non_negative_integer_count_map_json_schema(),
+          "required_operator_roles" => string_array_schema(),
+          "required_training_ids" => string_array_schema(),
+          "required_certification_ids" => string_array_schema(),
+          "required_qualification_ids" => string_array_schema(),
+          "resource_availability_reason_counts" => non_negative_integer_count_map_json_schema(),
+          "resource_availability_reason_ids" => string_array_schema(),
+          "station_availability_reason_ids" => string_array_schema(),
+          "station_availability_reason_counts" => non_negative_integer_count_map_json_schema(),
+          "unavailable_resource_reason_ids" => string_array_schema(),
+          "resource_blocking_dimension_counts" => non_negative_integer_count_map_json_schema(),
+          "resource_blocked_contact_ids_by_blocking_dimension" => %{
+            "type" => "object",
+            "additionalProperties" => stable_id_array_schema()
+          },
+          "resource_blocked_contact_ids_by_spacecraft_id" => %{
+            "type" => "object",
+            "additionalProperties" => stable_id_array_schema()
+          },
+          "resource_source_quality_counts" => non_negative_integer_count_map_json_schema(),
+          "resource_trust_boundary_status_counts" => non_negative_integer_count_map_json_schema()
+        }
+        |> Map.merge(candidate_refresh_timeline_publication_context_json_schema_properties())
     }
   end
 
@@ -26008,6 +26062,10 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp validate_candidate_refresh_timeline_publication_context(issues, path, summary) do
+    validate_timeline_publication_context(issues, path, summary)
+  end
+
+  defp validate_timeline_publication_context(issues, path, summary) do
     issues =
       Enum.reduce(
         [
@@ -51452,7 +51510,11 @@ defmodule OrbitalDynamics.Schema do
       "schema_validation_remediation_count",
       "operator_training_requirement_count",
       "resource_availability_pressure_count",
-      "resource_blocking_dimension_count"
+      "resource_blocking_dimension_count",
+      "dependency_impact_row_count",
+      "timeline_diff_row_count",
+      "timeline_diff_changed_count",
+      "timeline_diff_review_required_count"
     ]
 
     count_map_fields = [
@@ -51465,12 +51527,32 @@ defmodule OrbitalDynamics.Schema do
       "station_availability_reason_counts",
       "resource_blocking_dimension_counts",
       "resource_source_quality_counts",
-      "resource_trust_boundary_status_counts"
+      "resource_trust_boundary_status_counts",
+      "publication_status_counts",
+      "dependency_impact_status_counts",
+      "publication_authority_counts",
+      "source_artifact_type_counts",
+      "changed_field_counts"
     ]
 
     stable_id_array_map_fields = [
       "resource_blocked_contact_ids_by_blocking_dimension",
-      "resource_blocked_contact_ids_by_spacecraft_id"
+      "resource_blocked_contact_ids_by_spacecraft_id",
+      "timeline_ids_by_changed_field"
+    ]
+
+    stable_id_array_fields = [
+      "publication_ids",
+      "source_artifact_ids",
+      "supersedes_artifact_ids",
+      "downstream_product_ids",
+      "invalidated_downstream_product_ids",
+      "impacted_dependency_activity_ids",
+      "impacted_dependency_timeline_ids",
+      "impacted_exclusive_with_activity_ids",
+      "impacted_exclusive_with_timeline_ids",
+      "changed_timeline_ids",
+      "review_timeline_ids"
     ]
 
     issues =
@@ -51497,13 +51579,25 @@ defmodule OrbitalDynamics.Schema do
         )
       end)
 
-    Enum.reduce(stable_id_array_map_fields, issues, fn field, acc ->
+    issues =
+      Enum.reduce(stable_id_array_map_fields, issues, fn field, acc ->
+        expect_field_equals(
+          acc,
+          path,
+          evidence,
+          field,
+          operational_readiness_gate_stable_id_array_map(gates, field),
+          "must equal gate-derived #{field}"
+        )
+      end)
+
+    Enum.reduce(stable_id_array_fields, issues, fn field, acc ->
       expect_field_equals(
         acc,
         path,
         evidence,
         field,
-        operational_readiness_gate_stable_id_array_map(gates, field),
+        operational_readiness_gate_stable_id_array(gates, field),
         "must equal gate-derived #{field}"
       )
     end)
@@ -51556,6 +51650,16 @@ defmodule OrbitalDynamics.Schema do
     end
   end
 
+  defp operational_readiness_gate_stable_id_array(gates, field) do
+    ids =
+      gates
+      |> Enum.filter(&(is_map(&1) and Map.has_key?(&1, field)))
+      |> Enum.flat_map(fn gate -> List.wrap(Map.get(gate, field)) end)
+      |> stable_sorted_ids()
+
+    if ids == [], do: nil, else: ids
+  end
+
   defp merge_count_maps(count_maps) do
     Enum.reduce(count_maps, %{}, fn counts, acc ->
       Enum.reduce(counts, acc, fn {key, value}, inner_acc ->
@@ -51595,6 +51699,7 @@ defmodule OrbitalDynamics.Schema do
     |> validate_operational_readiness_operator_training_context(path, gate)
     |> validate_operational_readiness_adapter_boundary_context(path, gate)
     |> validate_operational_readiness_cadence_import_context(path, gate)
+    |> validate_timeline_publication_context(path, gate)
   end
 
   defp validate_operational_readiness_evidence(issues, path, evidence) when is_map(evidence) do
@@ -51628,7 +51733,11 @@ defmodule OrbitalDynamics.Schema do
       "adapter_trust_boundary_untrusted_count",
       "operator_training_requirement_count",
       "resource_availability_pressure_count",
-      "resource_blocking_dimension_count"
+      "resource_blocking_dimension_count",
+      "dependency_impact_row_count",
+      "timeline_diff_row_count",
+      "timeline_diff_changed_count",
+      "timeline_diff_review_required_count"
     ]
     |> Enum.reduce(issues, fn field, acc ->
       acc
@@ -51660,6 +51769,7 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(path, evidence, "resource_blocking_dimension_counts", :map)
     |> expect_optional_type(path, evidence, "resource_source_quality_counts", :map)
     |> expect_optional_type(path, evidence, "resource_trust_boundary_status_counts", :map)
+    |> validate_timeline_publication_context(path, evidence)
     |> validate_operational_readiness_evidence_count_maps(path, evidence)
   end
 
@@ -51686,7 +51796,12 @@ defmodule OrbitalDynamics.Schema do
       "station_availability_reason_counts",
       "resource_blocking_dimension_counts",
       "resource_source_quality_counts",
-      "resource_trust_boundary_status_counts"
+      "resource_trust_boundary_status_counts",
+      "publication_status_counts",
+      "dependency_impact_status_counts",
+      "publication_authority_counts",
+      "source_artifact_type_counts",
+      "changed_field_counts"
     ]
     |> Enum.reduce(issues, fn field, acc ->
       validate_non_negative_integer_count_map(
@@ -52729,6 +52844,7 @@ defmodule OrbitalDynamics.Schema do
     |> validate_operational_quality_gate_import_readiness_summary_assumptions(path, summary)
     |> validate_operational_quality_gate_import_readiness_summary_counts(path, summary)
     |> validate_operational_quality_gate_import_readiness_summary_id_sets(path, summary)
+    |> validate_timeline_publication_context(path, summary)
   end
 
   defp validate_operational_quality_gate_import_readiness_summary_id_list_types(
@@ -53288,6 +53404,7 @@ defmodule OrbitalDynamics.Schema do
     |> validate_operational_readiness_operator_training_context(path, row)
     |> validate_operational_readiness_adapter_boundary_context(path, row)
     |> validate_operational_readiness_cadence_import_context(path, row)
+    |> validate_timeline_publication_context(path, row)
   end
 
   defp validate_operational_readiness_operator_training_context(issues, path, row) do

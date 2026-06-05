@@ -3715,6 +3715,52 @@ defmodule OrbitalDynamics.OperationalReadinessTest do
              Schema.validate_artifact(readiness_report)
   end
 
+  test "preserves timeline publication context across readiness quality gates" do
+    summary = timeline_publication_summary()
+    review_package = OperatorReview.from_timeline_publication_summary(summary)
+    import_manifest = CadenceImport.from_timeline_publication_summary(summary)
+
+    for source <- [summary, review_package, import_manifest] do
+      report = OperationalReadiness.report(source)
+      quality_gate_report = OperationalReadiness.quality_gate_report(report)
+
+      import_readiness_summary =
+        OperationalReadiness.quality_gate_import_readiness_summary(quality_gate_report)
+
+      cadence_gate = Enum.find(report["gates"], &(&1["id"] == "cadence_import"))
+
+      cadence_quality_row =
+        Enum.find(quality_gate_report["rows"], &(&1["gate_id"] == "cadence_import"))
+
+      assert %{
+               "readiness_level" => "operator_review",
+               "import_classification" => "review_only",
+               "status" => "review_required",
+               "evidence" => evidence
+             } = report
+
+      assert_publication_readiness_context(evidence)
+
+      assert %{
+               "status" => "review_required",
+               "classification" => "review_only"
+             } = cadence_gate
+
+      assert_publication_readiness_context(cadence_gate)
+      assert_publication_readiness_context(cadence_quality_row)
+      assert_publication_readiness_context(import_readiness_summary)
+
+      assert {:ok, %{"schema_contract" => "operational_readiness_report.v1"}} =
+               Schema.validate_artifact(report)
+
+      assert {:ok, %{"schema_contract" => "quality_gate_report.v1"}} =
+               Schema.validate_artifact(quality_gate_report)
+
+      assert {:ok, %{"schema_contract" => "operational_quality_gate_import_readiness_summary.v1"}} =
+               Schema.validate_artifact(import_readiness_summary)
+    end
+  end
+
   defp ready_manifest do
     %{
       "schema_contract" => "cadence_import_manifest.v1",
@@ -3826,6 +3872,78 @@ defmodule OrbitalDynamics.OperationalReadinessTest do
       ],
       source: :candidate_refresh
     )
+  end
+
+  defp timeline_publication_summary do
+    source = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 0.0, ends_at_s: 10.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    replacement = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 5.0, ends_at_s: 15.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    Timeline.publication_summary(
+      %{
+        "schema_contract" => "operational_timeline_report.v1",
+        "id" => "timeline:published_plan:v2"
+      },
+      publication_sequence: 7,
+      publication_authority: :mission_operations,
+      supersedes_artifact_ids: ["timeline:published_plan:v1"],
+      downstream_product_ids: ["operator_review:plan:v1", "cadence_import:plan:v1"],
+      dependency_impact_summary: Timeline.dependency_impact_summary(source, replacement),
+      timeline_diff_summary: Timeline.diff_summary(source, replacement)
+    )
+  end
+
+  defp assert_publication_readiness_context(context) do
+    assert %{
+             "publication_status_counts" => %{
+               "published_with_downstream_invalidations" => 1
+             },
+             "dependency_impact_status_counts" => %{"review_required" => 1},
+             "publication_authority_counts" => %{"mission_operations" => 1},
+             "source_artifact_type_counts" => %{"operational_timeline_report.v1" => 1},
+             "publication_ids" => [
+               "timeline_publication:7:timeline:published_plan:v2:timeline:published_plan:v1"
+             ],
+             "source_artifact_ids" => ["timeline:published_plan:v2"],
+             "supersedes_artifact_ids" => ["timeline:published_plan:v1"],
+             "downstream_product_ids" => [
+               "cadence_import:plan:v1",
+               "operator_review:plan:v1"
+             ],
+             "invalidated_downstream_product_ids" => [
+               "cadence_import:plan:v1",
+               "operator_review:plan:v1"
+             ],
+             "dependency_impact_row_count" => 2,
+             "timeline_diff_row_count" => 3,
+             "timeline_diff_review_required_count" => 2,
+             "changed_field_counts" => %{"timeline_presence" => 2},
+             "review_timeline_ids" => ["timeline:health_check:0.0", "timeline:health_check:5.0"],
+             "timeline_ids_by_changed_field" => %{
+               "timeline_presence" => ["timeline:health_check:0.0", "timeline:health_check:5.0"]
+             }
+           } = context
+
+    assert Map.get(context, "timeline_diff_changed_count", 0) == 0
+    assert Map.get(context, "changed_timeline_ids", []) == []
   end
 
   defp freshness_report(status) do
