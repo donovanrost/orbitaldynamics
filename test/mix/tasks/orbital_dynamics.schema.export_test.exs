@@ -802,6 +802,112 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "minimum"
            ]) == 0
 
+    candidate_refresh_timeline_activity_state_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "timeline_activity_state",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        "review_required_count",
+        "invalid_activity_input_count"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_timeline_activity_state_source_report, [
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_timeline_activity_state_source_report, [
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "invalid_activity_input_reason_counts",
+        "state_status_counts",
+        "transition_decision_counts",
+        "planned_status_category_counts",
+        "realized_status_category_counts",
+        "planned_approval_category_counts",
+        "realized_approval_category_counts",
+        "status_transition_category_counts",
+        "approval_transition_category_counts",
+        "required_operator_action_counts",
+        "import_action_counts",
+        "activity_id_counts",
+        "timeline_id_counts",
+        "review_activity_id_counts"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_timeline_activity_state_source_report, [
+                 field,
+                 "additionalProperties",
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_timeline_activity_state_source_report, [
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    assert get_in(candidate_refresh_timeline_activity_state_source_report, [
+             "invalid_activity_input_reasons",
+             "items",
+             "type"
+           ]) == "string"
+
+    Enum.each(
+      [
+        ["action_routing", "additionalProperties", "properties", "activity_ids", "items"],
+        ["action_routing", "additionalProperties", "properties", "timeline_ids", "items"]
+      ],
+      fn path ->
+        assert get_in(
+                 candidate_refresh_timeline_activity_state_source_report,
+                 path ++ ["pattern"]
+               ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+      end
+    )
+
+    assert get_in(candidate_refresh_timeline_activity_state_source_report, [
+             "action_routing",
+             "additionalProperties",
+             "properties",
+             "review_count",
+             "minimum"
+           ]) == 0
+
+    Enum.each(
+      [
+        "status_transition_categories",
+        "approval_transition_categories"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_timeline_activity_state_source_report, [
+                 "action_routing",
+                 "additionalProperties",
+                 "properties",
+                 field,
+                 "items",
+                 "type"
+               ]) == "string"
+      end
+    )
+
     candidate_refresh_contact_filter_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",

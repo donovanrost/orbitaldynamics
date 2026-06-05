@@ -21177,7 +21177,9 @@ defmodule OrbitalDynamics.Schema do
             "station_calendar_report" =>
               candidate_refresh_station_calendar_source_report_summary_json_schema(),
             "station_reservation_report" =>
-              candidate_refresh_station_reservation_source_report_summary_json_schema()
+              candidate_refresh_station_reservation_source_report_summary_json_schema(),
+            "timeline_activity_state" =>
+              candidate_refresh_timeline_activity_state_source_report_summary_json_schema()
           }
         },
         "run_input_sources" => %{
@@ -21281,6 +21283,44 @@ defmodule OrbitalDynamics.Schema do
       |> Map.merge(%{
         "input_keys" => string_array_schema(),
         "direction_routing" => command_window_direction_routing_json_schema()
+      })
+    end)
+  end
+
+  defp candidate_refresh_timeline_activity_state_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      properties
+      |> Map.merge(
+        non_negative_integer_property_schemas([
+          "review_required_count",
+          "invalid_activity_input_count"
+        ])
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "invalid_activity_input_reason_counts",
+            "state_status_counts",
+            "transition_decision_counts",
+            "planned_status_category_counts",
+            "realized_status_category_counts",
+            "planned_approval_category_counts",
+            "realized_approval_category_counts",
+            "status_transition_category_counts",
+            "approval_transition_category_counts",
+            "required_operator_action_counts",
+            "import_action_counts",
+            "activity_id_counts",
+            "timeline_id_counts",
+            "review_activity_id_counts"
+          ],
+          &{&1, non_negative_integer_count_map_json_schema()}
+        )
+      )
+      |> Map.merge(%{
+        "invalid_activity_input_reasons" => string_array_schema(),
+        "action_routing" => timeline_activity_state_action_routing_json_schema()
       })
     end)
   end
@@ -21669,6 +21709,23 @@ defmodule OrbitalDynamics.Schema do
           "activity_count" => %{"type" => "integer", "minimum" => 0},
           "activity_ids" => stable_id_array_schema(),
           "window_ids" => stable_id_array_schema()
+        }
+      }
+    }
+  end
+
+  defp timeline_activity_state_action_routing_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => %{
+        "type" => "object",
+        "additionalProperties" => true,
+        "properties" => %{
+          "review_count" => %{"type" => "integer", "minimum" => 0},
+          "activity_ids" => stable_id_array_schema(),
+          "timeline_ids" => stable_id_array_schema(),
+          "status_transition_categories" => string_array_schema(),
+          "approval_transition_categories" => string_array_schema()
         }
       }
     }
