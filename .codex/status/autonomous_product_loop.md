@@ -47,7 +47,7 @@ Last completed implementation commit:
 `3cbeeab68777b5d0ba8621f2088c8dfdf629505d` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending.
+`fd4375d9c630c996ef010c7f2cfb3f71237373e5` pushed to `origin/main`.
 
 Next candidate:
 Contact-allocation source-report direction routing schema visibility from the
