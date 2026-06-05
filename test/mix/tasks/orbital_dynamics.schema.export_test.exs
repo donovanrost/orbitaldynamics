@@ -265,6 +265,72 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "minimum"
            ]) == 0
 
+    candidate_refresh_contact_allocation_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "contact_allocation_report",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        "contact_count",
+        "station_pressure_contact_count",
+        "reservation_conflict_contact_count"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_contact_allocation_source_report, [
+                 "direction_routing",
+                 "additionalProperties",
+                 "properties",
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_contact_allocation_source_report, [
+                 "direction_routing",
+                 "additionalProperties",
+                 "properties",
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "contact_ids",
+        "station_pressure_contact_ids",
+        "reservation_conflict_contact_ids",
+        "provider_reservation_no_request_contact_ids",
+        "provider_reservation_request_contact_ids",
+        "provider_reservation_review_contact_ids"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_contact_allocation_source_report, [
+                 "direction_routing",
+                 "additionalProperties",
+                 "properties",
+                 field,
+                 "type"
+               ]) == "array"
+
+        assert get_in(candidate_refresh_contact_allocation_source_report, [
+                 "direction_routing",
+                 "additionalProperties",
+                 "properties",
+                 field,
+                 "items",
+                 "pattern"
+               ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+      end
+    )
+
     assert Map.has_key?(schemas, "contact_allocation_summary.v1")
     assert Map.has_key?(schemas, "contact_allocation_reservation_conflict_summary.v1")
     assert Map.has_key?(schemas, "contact_allocation_station_pressure_summary.v1")

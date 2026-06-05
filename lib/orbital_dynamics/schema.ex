@@ -21158,6 +21158,8 @@ defmodule OrbitalDynamics.Schema do
           "type" => "object",
           "additionalProperties" => candidate_refresh_source_report_summary_json_schema(),
           "properties" => %{
+            "contact_allocation_report" =>
+              candidate_refresh_contact_allocation_source_report_summary_json_schema(),
             "contact_intent" =>
               candidate_refresh_contact_intent_source_report_summary_json_schema(),
             "station_calendar_report" =>
@@ -21255,6 +21257,14 @@ defmodule OrbitalDynamics.Schema do
     |> put_in(
       ["properties", "direction_routing"],
       station_reservation_direction_routing_json_schema()
+    )
+  end
+
+  defp candidate_refresh_contact_allocation_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> put_in(
+      ["properties", "direction_routing"],
+      contact_allocation_direction_routing_json_schema()
     )
   end
 
@@ -21497,6 +21507,27 @@ defmodule OrbitalDynamics.Schema do
           "contact_ids" => stable_id_array_schema(),
           "reservation_hold_ids" => stable_id_array_schema(),
           "reservation_hold_contact_ids" => stable_id_array_schema()
+        }
+      }
+    }
+  end
+
+  defp contact_allocation_direction_routing_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => %{
+        "type" => "object",
+        "additionalProperties" => true,
+        "properties" => %{
+          "contact_count" => %{"type" => "integer", "minimum" => 0},
+          "contact_ids" => stable_id_array_schema(),
+          "station_pressure_contact_count" => %{"type" => "integer", "minimum" => 0},
+          "station_pressure_contact_ids" => stable_id_array_schema(),
+          "reservation_conflict_contact_count" => %{"type" => "integer", "minimum" => 0},
+          "reservation_conflict_contact_ids" => stable_id_array_schema(),
+          "provider_reservation_no_request_contact_ids" => stable_id_array_schema(),
+          "provider_reservation_request_contact_ids" => stable_id_array_schema(),
+          "provider_reservation_review_contact_ids" => stable_id_array_schema()
         }
       }
     }
