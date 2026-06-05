@@ -47,7 +47,7 @@ Last completed implementation commit:
 `4fcc191a28d330dc7827fc4e4cd067a0a3373ffa` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending for this slice.
+`cf2e8c457a179a2ae5a62cecdce0d1d837ef24b5` pushed to `origin/main`.
 
 Next candidate:
 After this slice, evaluate candidate-diff source-report maps from the mapper
