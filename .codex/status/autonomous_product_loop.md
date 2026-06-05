@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh resource-projection source-artifact provenance schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean. Awaiting commit/push.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 CandidateRefresh nested source-report JSON Schema now explicitly advertises the
 resource-projection source-artifact provenance count maps that runtime
 replay/source-report helpers already preserve:
@@ -38,15 +38,16 @@ Tests run:
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`d1830152262cb2c9e4b8e72cd0e406f55e0375ad` pushed to `origin/main`.
+`23ac4636357b67b8029a60752319b0daa2a3cccc` pushed to `origin/main`.
 
 Last ledger correction commit:
-`76162f275ed5c7b5f50595e2022592079dac0dff` pushed to `origin/main`.
+Pending.
 
 Next candidate:
-After review/publish, rerun the mapper against the current checkout.
+Rerun the mapper against the current checkout.
 
 Blocked:
 No.
