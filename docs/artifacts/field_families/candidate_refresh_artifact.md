@@ -1782,11 +1782,14 @@ The helper accepts direct `timeline_dependency_impact_summary` inputs, exact
 wrapped `source_timeline_dependency_impact_summary` /
 `timeline_dependency_impact_summary` result-artifact inputs, and the same rows
 preserved through operator-review packages or Cadence-import manifests,
-preserving top-level source-report contract/count/path rollups,
+preserving top-level source-report contract/count/row-count/path rollups,
 source/replacement scope counts, impacted source, dependency, and exclusivity
 ID maps, dependent activity/timeline routing, trust boundaries, and
 operator-review pressure without mutating timelines, selecting candidates,
-approving imports, writing to Cadence, or regenerating candidates.
+approving imports, writing to Cadence, or regenerating candidates. Compact
+top-level dependency-impact source-count, source-row-count, and source-path
+rollups require complete source-report identity (`count` and `row_count`
+present); partial placeholders only expose the declared contract.
 Generated V3 branch refresh requests preserve the same source/dependency/
 exclusivity and dependent activity/timeline ID maps through branch-local
 candidate-source provenance.

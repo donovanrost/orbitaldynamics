@@ -22534,12 +22534,134 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     }
 
     summary = CandidateRefresh.timeline_dependency_impact_replay_summary(artifact)
+    source_summary = CandidateRefresh.source_report_summary(artifact)
 
     assert summary["source_report_count"] == 0
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_paths"] == []
     refute Map.has_key?(summary, "contract")
     refute summary["branch_local_timeline_dependency_impact_pressure"]
+    refute Map.has_key?(source_summary, "source_report_timeline_dependency_impact_contract")
+    refute Map.has_key?(source_summary, "source_report_timeline_dependency_impact_count")
+    refute Map.has_key?(source_summary, "source_report_timeline_dependency_impact_row_count")
+    refute Map.has_key?(source_summary, "source_report_timeline_dependency_impact_paths")
+  end
+
+  test "timeline dependency impact source summary keeps declared contract without partial identity placeholders" do
+    placeholder_fields = [
+      %{"count" => 1},
+      %{"row_count" => 2},
+      %{"paths" => ["provenance.source_reports.timeline_dependency_impact_summary"]},
+      %{"count" => nil, "row_count" => 2},
+      %{"count" => 1, "row_count" => nil}
+    ]
+
+    for placeholder <- placeholder_fields do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "timeline_dependency_impact_summary" =>
+              Map.put(
+                placeholder,
+                "contract",
+                "timeline_dependency_impact_summary.v1"
+              )
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      assert source_summary["source_report_timeline_dependency_impact_contract"] ==
+               "timeline_dependency_impact_summary.v1"
+
+      refute Map.has_key?(source_summary, "source_report_timeline_dependency_impact_count")
+
+      refute Map.has_key?(
+               source_summary,
+               "source_report_timeline_dependency_impact_row_count"
+             )
+
+      refute Map.has_key?(source_summary, "source_report_timeline_dependency_impact_paths")
+    end
+  end
+
+  test "timeline dependency impact source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "timeline_dependency_impact_summary" => %{
+            "contract" => "timeline_dependency_impact_summary.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.timeline_dependency_impact_summary"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_timeline_dependency_impact_contract"] ==
+             "timeline_dependency_impact_summary.v1"
+
+    assert source_summary["source_report_timeline_dependency_impact_count"] == 0
+    assert source_summary["source_report_timeline_dependency_impact_row_count"] == 0
+
+    assert source_summary["source_report_timeline_dependency_impact_paths"] == [
+             "provenance.source_reports.timeline_dependency_impact_summary"
+           ]
+  end
+
+  test "timeline dependency impact source summary omits missing identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "timeline_dependency_impact_summary" => %{
+            "contract" => "timeline_dependency_impact_summary.v1",
+            "count" => 1,
+            "row_count" => 2
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_timeline_dependency_impact_contract"] ==
+             "timeline_dependency_impact_summary.v1"
+
+    assert source_summary["source_report_timeline_dependency_impact_count"] == 1
+    assert source_summary["source_report_timeline_dependency_impact_row_count"] == 2
+    refute Map.has_key?(source_summary, "source_report_timeline_dependency_impact_paths")
+  end
+
+  test "timeline dependency impact source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "timeline_dependency_impact_summary" => %{
+            "contract" => "timeline_dependency_impact_summary.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_timeline_dependency_impact_contract"] ==
+             "timeline_dependency_impact_summary.v1"
+
+    assert source_summary["source_report_timeline_dependency_impact_count"] == 1
+    assert source_summary["source_report_timeline_dependency_impact_row_count"] == 2
+    assert source_summary["source_report_timeline_dependency_impact_paths"] == []
   end
 
   test "timeline dependency impact replay reads strategy branch candidate-source summary metadata" do

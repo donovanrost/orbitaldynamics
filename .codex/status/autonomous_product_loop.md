@@ -1,15 +1,15 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh timeline-activity-precondition source-report identity gating.
+CandidateRefresh timeline-dependency-impact source-report identity gating.
 
 Status:
 Implemented with focused verification passing locally.
 `CandidateRefresh.source_report_summary/1` now flattens
-`source_report_timeline_activity_precondition_count`,
-`source_report_timeline_activity_precondition_row_count`, and
-`source_report_timeline_activity_precondition_paths` only when the nested
-timeline-activity-precondition source-report identity is complete. Declared
+`source_report_timeline_dependency_impact_count`,
+`source_report_timeline_dependency_impact_row_count`, and
+`source_report_timeline_dependency_impact_paths` only when the nested
+timeline-dependency-impact source-report identity is complete. Declared
 contracts still surface for placeholder families, explicit zero counts and
 explicit empty paths are preserved, and missing paths remain omitted after valid
 counts.
@@ -22,7 +22,7 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:21639 test/orbital_dynamics/candidate_refresh_test.exs:21863 test/orbital_dynamics/candidate_refresh_test.exs:21888 test/orbital_dynamics/candidate_refresh_test.exs:21928 test/orbital_dynamics/candidate_refresh_test.exs:21956 test/orbital_dynamics/candidate_refresh_test.exs:21980 test/orbital_dynamics/candidate_refresh_test.exs:22005 test/orbital_dynamics/candidate_refresh_test.exs:22101 test/orbital_dynamics/candidate_refresh_test.exs:22143 test/orbital_dynamics/candidate_refresh_test.exs:22187`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:22239 test/orbital_dynamics/candidate_refresh_test.exs:22530 test/orbital_dynamics/candidate_refresh_test.exs:22550 test/orbital_dynamics/candidate_refresh_test.exs:22590 test/orbital_dynamics/candidate_refresh_test.exs:22618 test/orbital_dynamics/candidate_refresh_test.exs:22642 test/orbital_dynamics/candidate_refresh_test.exs:22667 test/orbital_dynamics/candidate_refresh_test.exs:22754 test/orbital_dynamics/candidate_refresh_test.exs:22791 test/orbital_dynamics/candidate_refresh_test.exs:22838`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 
@@ -30,7 +30,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`8017de7` (`Flatten activity precondition replay identity`).
+Pending publish.
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth from

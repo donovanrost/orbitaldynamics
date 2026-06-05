@@ -6191,19 +6191,19 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "contract"
         ),
       "source_report_timeline_dependency_impact_count" =>
-        source_report_summary_family_count(
+        source_report_summary_family_identity_count(
           source_reports,
           "timeline_dependency_impact_summary",
           "count"
         ),
       "source_report_timeline_dependency_impact_paths" =>
-        source_report_summary_family_field(
+        source_report_summary_family_identity_field(
           source_reports,
           "timeline_dependency_impact_summary",
           "paths"
         ),
       "source_report_timeline_dependency_impact_row_count" =>
-        source_report_summary_family_count(
+        source_report_summary_family_identity_count(
           source_reports,
           "timeline_dependency_impact_summary",
           "row_count"
