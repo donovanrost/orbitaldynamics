@@ -9080,6 +9080,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
         invalid_activity_input_ids not in [nil, []] or
         invalid_resource_summary_input_ids not in [nil, []]
 
+    source_report_paths = Map.get(projection_summary, "paths") || []
+
     %{
       "model" => "artifact_only_candidate_refresh_resource_projection_replay_summary",
       "source" => summary_source,
@@ -9087,7 +9089,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         source_report_summary_contract(projection_summary, "resource_projection_report.v1"),
       "source_report_count" => summary_integer(projection_summary, "count"),
       "source_report_row_count" => summary_integer(projection_summary, "row_count"),
-      "source_report_paths" => Map.get(projection_summary, "paths", []),
+      "source_report_paths" => source_report_paths,
       "projected_resource_count" => projected_resource_count,
       "source_artifact_type_counts" => source_artifact_type_counts,
       "source_flow_summary_model_counts" => source_flow_summary_model_counts,

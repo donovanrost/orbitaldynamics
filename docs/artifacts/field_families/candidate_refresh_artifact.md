@@ -1303,6 +1303,10 @@ pressure boolean is true for resource-pressure activity, activity-ID, direction,
 station, spacecraft, source-window, station-calendar, provider, and provider-entry
 routing maps, and invalid-input pressure is true for invalid input ID lists even
 when projected-resource and invalid-input counts and status/type maps are absent.
+When flattened partial source-report identity is incomplete, explicit zero
+identity counts are retained, missing or nil paths remain omitted after valid
+counts, explicit empty path lists are preserved, and non-identity pressure,
+routing, and invalid-input maps still drive branch-local replay pressure.
 Raw resource-projection source reports preserve explicit or row-derived invalid
 activity/resource-summary input IDs into the same replay provenance.
 The replay helper can inspect V3 branch
