@@ -21158,6 +21158,8 @@ defmodule OrbitalDynamics.Schema do
           "type" => "object",
           "additionalProperties" => candidate_refresh_source_report_summary_json_schema(),
           "properties" => %{
+            "candidate_rejection_report" =>
+              candidate_refresh_candidate_rejection_source_report_summary_json_schema(),
             "command_window_report" =>
               candidate_refresh_command_window_source_report_summary_json_schema(),
             "contact_allocation_report" =>
@@ -21251,6 +21253,31 @@ defmodule OrbitalDynamics.Schema do
         |> Map.merge(candidate_refresh_model_acceptance_context_json_schema_properties())
         |> Map.merge(candidate_refresh_passive_replay_context_json_schema_properties())
     }
+  end
+
+  defp candidate_refresh_candidate_rejection_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      properties
+      |> Map.merge(
+        non_negative_integer_property_schemas([
+          "rejected_count",
+          "reviewable_count",
+          "invalid_candidate_input_count"
+        ])
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "rejection_reason_counts",
+            "required_operator_action_counts",
+            "candidate_rejection_candidate_id_counts",
+            "candidate_rejection_ground_station_counts"
+          ],
+          &{&1, non_negative_integer_count_map_json_schema()}
+        )
+      )
+    end)
   end
 
   defp candidate_refresh_command_window_source_report_summary_json_schema do

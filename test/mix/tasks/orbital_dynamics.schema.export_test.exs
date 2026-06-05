@@ -802,6 +802,59 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "minimum"
            ]) == 0
 
+    candidate_refresh_candidate_rejection_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "candidate_rejection_report",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        "rejected_count",
+        "reviewable_count",
+        "invalid_candidate_input_count"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_candidate_rejection_source_report, [
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_candidate_rejection_source_report, [
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "rejection_reason_counts",
+        "required_operator_action_counts",
+        "candidate_rejection_candidate_id_counts",
+        "candidate_rejection_ground_station_counts"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_candidate_rejection_source_report, [
+                 field,
+                 "additionalProperties",
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_candidate_rejection_source_report, [
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
     candidate_refresh_timeline_activity_state_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",

@@ -1,19 +1,17 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Make CandidateRefresh timeline-activity-state source-report action routing schema-visible.
+Make CandidateRefresh candidate-rejection source-report maps schema-visible.
 
 Status:
-Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
-CandidateRefresh timeline-activity-state source summaries already preserve
-review counts, invalid activity input fields, state and transition category
-count maps, required-operator/import action count maps, activity/timeline ID
-count maps, review activity ID counts, and action routing with review counts
-plus activity/timeline IDs and transition-category arrays. The
-`candidate_refresh.v1` family-specific source-report JSON Schema now advertises
-those timeline activity state fields. This is a contract discoverability slice
-only: no replay behavior, runtime validation helpers, artifact generation
-logic, or operator/Cadence authority behavior changed.
+Implemented, locally verified, and reviewed clean; publish pending. Runtime
+CandidateRefresh candidate-rejection source summaries already preserve rejected
+counts, reviewable counts, invalid candidate input counts, rejection reason
+maps, required-operator-action maps, candidate ID counts, and ground-station
+counts. The `candidate_refresh.v1` family-specific source-report JSON Schema
+now advertises those candidate-rejection fields. This is a contract
+discoverability slice only: no replay behavior, runtime validation helpers,
+artifact generation logic, or operator/Cadence authority behavior changed.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -23,12 +21,11 @@ Files changed:
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 
 Definition of done:
-- `candidate_refresh.v1` exposes a family-specific `timeline_activity_state`
-  source-report schema.
-- Its source-report object advertises review and invalid-input counts,
-  invalid-input reasons, state/transition/action count maps,
-  activity/timeline ID count maps, review activity ID counts, and action routing
-  with review counts plus activity/timeline IDs and transition categories.
+- `candidate_refresh.v1` exposes a family-specific
+  `candidate_rejection_report` source-report schema.
+- Its source-report object advertises rejected, reviewable, and invalid input
+  counts plus rejection reason, required-operator-action, candidate ID, and
+  ground-station count maps.
 - Checked-in `candidate_refresh.v1` schema and schema bundle are refreshed.
 - Schema export tests, schema tests, schema lint, and whitespace checks pass.
 
@@ -39,22 +36,21 @@ Tests run:
 - `mix test test/orbital_dynamics/schema_test.exs`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
-- `jq` spot-checks for `timeline_activity_state` in
+- `jq` spot-checks for `candidate_rejection_report` in
   `schemas/candidate_refresh.v1.schema.json` and the schema bundle.
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
   test, schema lint, whitespace check, and generated-schema `jq` spot-checks.
-- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`c77ca7a680e141427dfa40a533ec2106c540b41b` pushed to `origin/main`.
+Pending for this slice.
 
 Last ledger correction commit:
-`e36bc518bf916049b092f83a0918af4a6a22a208` pushed to `origin/main`.
+Pending for this slice.
 
 Next candidate:
-After this slice, evaluate candidate rejection source-report maps from the
-mapper result.
+After this slice, evaluate candidate-diff source-report maps from the mapper
+result.
 
 Blocked:
 No.
