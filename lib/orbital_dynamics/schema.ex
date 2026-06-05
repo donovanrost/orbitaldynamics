@@ -21158,6 +21158,8 @@ defmodule OrbitalDynamics.Schema do
           "type" => "object",
           "additionalProperties" => candidate_refresh_source_report_summary_json_schema(),
           "properties" => %{
+            "command_window_report" =>
+              candidate_refresh_command_window_source_report_summary_json_schema(),
             "contact_allocation_report" =>
               candidate_refresh_contact_allocation_source_report_summary_json_schema(),
             "contact_contention_report" =>
@@ -21247,6 +21249,40 @@ defmodule OrbitalDynamics.Schema do
         |> Map.merge(candidate_refresh_model_acceptance_context_json_schema_properties())
         |> Map.merge(candidate_refresh_passive_replay_context_json_schema_properties())
     }
+  end
+
+  defp candidate_refresh_command_window_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      properties
+      |> Map.merge(
+        non_negative_integer_property_schemas([
+          "command_feedback_count"
+        ])
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "direction_counts",
+            "required_operator_action_counts"
+          ],
+          &{&1, non_negative_integer_count_map_json_schema()}
+        )
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "activity_ids_by_direction",
+            "window_ids_by_direction"
+          ],
+          &{&1, stable_id_array_map_schema()}
+        )
+      )
+      |> Map.merge(%{
+        "input_keys" => string_array_schema(),
+        "direction_routing" => command_window_direction_routing_json_schema()
+      })
+    end)
   end
 
   defp candidate_refresh_contact_intent_source_report_summary_json_schema do
@@ -21618,6 +21654,21 @@ defmodule OrbitalDynamics.Schema do
         "properties" => %{
           "pressure_count" => %{"type" => "integer", "minimum" => 0},
           "activity_ids" => stable_id_array_schema()
+        }
+      }
+    }
+  end
+
+  defp command_window_direction_routing_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => %{
+        "type" => "object",
+        "additionalProperties" => true,
+        "properties" => %{
+          "activity_count" => %{"type" => "integer", "minimum" => 0},
+          "activity_ids" => stable_id_array_schema(),
+          "window_ids" => stable_id_array_schema()
         }
       }
     }

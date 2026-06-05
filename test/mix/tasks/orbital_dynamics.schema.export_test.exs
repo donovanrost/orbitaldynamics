@@ -721,6 +721,87 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       end
     )
 
+    candidate_refresh_command_window_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "command_window_report",
+        "properties"
+      ])
+
+    assert get_in(candidate_refresh_command_window_source_report, [
+             "command_feedback_count",
+             "type"
+           ]) == "integer"
+
+    assert get_in(candidate_refresh_command_window_source_report, [
+             "command_feedback_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(candidate_refresh_command_window_source_report, [
+             "input_keys",
+             "items",
+             "type"
+           ]) == "string"
+
+    Enum.each(
+      [
+        "direction_counts",
+        "required_operator_action_counts"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_command_window_source_report, [
+                 field,
+                 "additionalProperties",
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_command_window_source_report, [
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        ["activity_ids_by_direction", "additionalProperties", "items"],
+        ["window_ids_by_direction", "additionalProperties", "items"],
+        [
+          "direction_routing",
+          "additionalProperties",
+          "properties",
+          "activity_ids",
+          "items"
+        ],
+        [
+          "direction_routing",
+          "additionalProperties",
+          "properties",
+          "window_ids",
+          "items"
+        ]
+      ],
+      fn path ->
+        assert get_in(candidate_refresh_command_window_source_report, path ++ ["pattern"]) ==
+                 "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+      end
+    )
+
+    assert get_in(candidate_refresh_command_window_source_report, [
+             "direction_routing",
+             "additionalProperties",
+             "properties",
+             "activity_count",
+             "minimum"
+           ]) == 0
+
     candidate_refresh_contact_filter_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",
