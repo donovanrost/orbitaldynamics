@@ -4,8 +4,8 @@ Current slice:
 Resource-availability variance semantics in timeline feedback rows.
 
 Status:
-Implemented, locally verified, reviewed clean after one reviewer-found fix, and
-ready to publish.
+Implemented, locally verified, reviewed clean after one reviewer-found fix,
+committed, and pushed.
 Feedback rows now
 emit planned/realized/match fields for spacecraft, payload, and antenna
 availability, degraded state, and mode. Completed feedback with contradictory
@@ -56,6 +56,8 @@ Tests run:
 - `mix test test/orbital_dynamics/schema_test.exs` after strengthening the embedded source-review regression
 - `git diff --check`
 - `slice_reviewer` re-review: no remaining must-fix findings
+- `git_slice_publisher`: staged only slice-owned files, confirmed `.gitignore`
+  remained unstaged, committed, and pushed
 
 Docs/artifacts changed:
 - `docs/artifacts/field_families/mission_activities.md`
@@ -72,7 +74,7 @@ Docs/artifacts changed:
 - `schemas/timeline_feedback_report.v1.schema.json`
 
 Last commit:
-`c0711c6e1cb791c7782ac4df736567c8bb4d8330` pushed to `origin/main`.
+`2b8efbd4f779b80d1c18541ff9e8125a56389eb9` pushed to `origin/main`.
 
 Next candidate:
 After this slice is complete, rerun the mapper against the current checkout.
