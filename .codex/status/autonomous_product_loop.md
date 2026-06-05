@@ -4,7 +4,7 @@ Current slice:
 TimelineFeedback compact activity-state status category evidence.
 
 Status:
-Implemented, locally verified, reviewed, and ready to publish.
+Implemented, locally verified, reviewed, committed, and pushed.
 The validated `timeline_activity_state.v1` compact facade now carries approval
 categories and lifecycle evidence, but it still omits the planned/realized
 status categories that `Timeline.activity_lifecycle_state/2` already computes
@@ -41,7 +41,7 @@ Docs/artifacts changed:
 - `schemas/timeline_activity_state.v1.schema.json`
 
 Last commit:
-`44561a46807fe953c2142ef035e5253197915a26` pushed to `origin/main`.
+`99e84cd2cc99883082d0374dc460d2d526264b77` pushed to `origin/main`.
 
 Next candidate:
 Add a typed `source_timeline_activity_state` handoff for
