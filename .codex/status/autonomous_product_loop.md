@@ -4,7 +4,7 @@ Current slice:
 Compact activity-state realized provenance summary.
 
 Status:
-Implemented, locally verified, reviewed, and ready for publish.
+Implemented, locally verified, reviewed, committed, and pushed.
 `timeline_activity_state.v1` now has a typed source handoff, but its top-level
 artifact still requires adapters to unpack embedded feedback rows to route
 realized provider/source-quality/trust-boundary evidence. This slice lifts those
@@ -68,7 +68,7 @@ Docs/artifacts changed:
 - `schemas/timeline_feedback_report.v1.schema.json`
 
 Last commit:
-`e365e510130ae2b711af9e4d97267040b708b4a0` pushed to `origin/main`.
+`535fbb1b680fa2645e2d70874c135cf5a28c7aa5` pushed to `origin/main`.
 
 Next candidate:
 Mapper-recommended resource-availability variance semantics for timeline
