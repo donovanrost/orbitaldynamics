@@ -914,6 +914,11 @@ contact allocation, selecting candidates, approving imports, writing to
 Cadence, or regenerating candidates. The family-level contact-allocation
 pressure boolean is true for capacity-pack demand/routing evidence even when
 blocked/deferred allocation counts and allocation-status maps are absent. When
+flattened partial source-report identity is incomplete, explicit zero identity
+counts are retained, missing or nil paths remain omitted after valid counts,
+explicit empty path lists are preserved, and non-identity capacity-pack,
+deferred-contact, station-pressure, reservation-conflict, invalid-input, review,
+and direction maps still drive branch-local replay pressure. When
 allocation rows are present, allocation-reason contact IDs, generic
 allocation-review contact IDs, declared allocation-status and allocation-reason maps,
 declared deferred/blocked contact counts,

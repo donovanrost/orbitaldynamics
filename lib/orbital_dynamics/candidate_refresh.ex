@@ -7936,6 +7936,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
     provider_reservation_review_ids_by_match_status =
       Map.get(allocation_summary, "provider_reservation_review_ids_by_match_status")
 
+    source_report_paths = Map.get(allocation_summary, "paths") || []
+
     capacity_pack_pressure =
       required_capacity_fraction + selected_capacity_fraction + deferred_capacity_fraction > 0.0 or
         map_size(required_by_status) > 0 or map_size(required_by_station) > 0 or
@@ -7984,7 +7986,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         source_report_summary_contract(allocation_summary, "contact_allocation_report.v1"),
       "source_report_count" => summary_integer(allocation_summary, "count"),
       "source_report_row_count" => summary_integer(allocation_summary, "row_count"),
-      "source_report_paths" => Map.get(allocation_summary, "paths", []),
+      "source_report_paths" => source_report_paths,
       "blocked_row_count" => blocked_row_count,
       "deferred_row_count" => deferred_row_count,
       "allocation_status_counts" => allocation_status_counts,

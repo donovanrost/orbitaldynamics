@@ -8109,6 +8109,240 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     end
   end
 
+  test "contact allocation source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.contact_allocation_report"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_contact_allocation_contract"] ==
+             "contact_allocation_report.v1"
+
+    assert source_summary["source_report_contact_allocation_count"] == 0
+    assert source_summary["source_report_contact_allocation_row_count"] == 0
+
+    assert source_summary["source_report_contact_allocation_paths"] == [
+             "provenance.source_reports.contact_allocation_report"
+           ]
+  end
+
+  test "contact allocation source summary omits missing identity paths after preserving counts" do
+    partial_summaries = [
+      %{
+        "contract" => "contact_allocation_report.v1",
+        "count" => 1,
+        "row_count" => 2
+      },
+      %{
+        "contract" => "contact_allocation_report.v1",
+        "count" => 1,
+        "row_count" => 2,
+        "paths" => nil
+      }
+    ]
+
+    for partial_summary <- partial_summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "contact_allocation_report" => partial_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+      replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
+
+      assert source_summary["source_report_contact_allocation_contract"] ==
+               "contact_allocation_report.v1"
+
+      assert source_summary["source_report_contact_allocation_count"] == 1
+      assert source_summary["source_report_contact_allocation_row_count"] == 2
+      refute Map.has_key?(source_summary, "source_report_contact_allocation_paths")
+
+      assert replay_summary["contract"] == "contact_allocation_report.v1"
+      assert replay_summary["source_report_count"] == 1
+      assert replay_summary["source_report_row_count"] == 2
+      assert replay_summary["source_report_paths"] == []
+    end
+  end
+
+  test "contact allocation source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
+
+    assert source_summary["source_report_contact_allocation_contract"] ==
+             "contact_allocation_report.v1"
+
+    assert source_summary["source_report_contact_allocation_count"] == 1
+    assert source_summary["source_report_contact_allocation_row_count"] == 2
+    assert Map.has_key?(source_summary, "source_report_contact_allocation_paths")
+    assert source_summary["source_report_contact_allocation_paths"] == []
+
+    assert replay_summary["contract"] == "contact_allocation_report.v1"
+    assert replay_summary["source_report_count"] == 1
+    assert replay_summary["source_report_row_count"] == 2
+    assert replay_summary["source_report_paths"] == []
+  end
+
+  test "contact allocation replay preserves pressure maps with partial identity" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 1,
+            "capacity_pack_selected_contact_ids_by_ground_station" => %{
+              "equator_prime" => ["selected_contact"]
+            },
+            "capacity_pack_deferred_contact_ids_by_ground_station" => %{
+              "equator_prime" => ["deferred_contact"]
+            },
+            "deferred_contact_ids" => ["deferred_contact"],
+            "station_pressure_contact_ids_by_ground_station" => %{
+              "polar_prime" => ["station_pressure_contact"]
+            },
+            "station_pressure_review_contact_ids" => ["station_pressure_contact"],
+            "reservation_conflict_contact_ids" => ["reservation_conflict_contact"],
+            "invalid_contact_input_ids" => ["invalid_contact"],
+            "review_contact_ids" => ["review_contact"],
+            "direction_counts" => %{"downlink" => 1},
+            "contact_ids_by_direction" => %{"downlink" => ["selected_contact"]},
+            "direction_routing" => %{
+              "downlink" => %{
+                "contact_count" => 1,
+                "contact_ids" => ["selected_contact"]
+              }
+            }
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
+
+    assert source_summary["source_report_contact_allocation_contract"] ==
+             "contact_allocation_report.v1"
+
+    refute Map.has_key?(source_summary, "source_report_contact_allocation_count")
+    refute Map.has_key?(source_summary, "source_report_contact_allocation_row_count")
+    refute Map.has_key?(source_summary, "source_report_contact_allocation_paths")
+
+    assert source_summary[
+             "source_report_contact_allocation_capacity_pack_selected_contact_ids_by_ground_station"
+           ] == %{"equator_prime" => ["selected_contact"]}
+
+    assert source_summary[
+             "source_report_contact_allocation_capacity_pack_deferred_contact_ids_by_ground_station"
+           ] == %{"equator_prime" => ["deferred_contact"]}
+
+    assert source_summary["source_report_contact_allocation_deferred_contact_ids"] == [
+             "deferred_contact"
+           ]
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_contact_ids_by_ground_station"
+           ] == %{"polar_prime" => ["station_pressure_contact"]}
+
+    assert source_summary["source_report_contact_allocation_station_pressure_review_contact_ids"] ==
+             ["station_pressure_contact"]
+
+    assert source_summary["source_report_contact_allocation_reservation_conflict_contact_ids"] ==
+             [
+               "reservation_conflict_contact"
+             ]
+
+    assert source_summary["source_report_contact_allocation_invalid_contact_input_ids"] == [
+             "invalid_contact"
+           ]
+
+    assert source_summary["source_report_contact_allocation_review_contact_ids"] == [
+             "review_contact"
+           ]
+
+    assert source_summary["source_report_contact_allocation_direction_counts"] == %{
+             "downlink" => 1
+           }
+
+    assert source_summary["source_report_contact_allocation_contact_ids_by_direction"] == %{
+             "downlink" => ["selected_contact"]
+           }
+
+    assert source_summary["source_report_contact_allocation_direction_routing"] == %{
+             "downlink" => %{
+               "contact_count" => 1,
+               "contact_ids" => ["selected_contact"]
+             }
+           }
+
+    assert replay_summary["contract"] == "contact_allocation_report.v1"
+    assert replay_summary["source_report_count"] == 1
+    assert replay_summary["source_report_row_count"] == 0
+    assert replay_summary["source_report_paths"] == []
+
+    assert replay_summary["capacity_pack_selected_contact_ids_by_ground_station"] == %{
+             "equator_prime" => ["selected_contact"]
+           }
+
+    assert replay_summary["capacity_pack_deferred_contact_ids_by_ground_station"] == %{
+             "equator_prime" => ["deferred_contact"]
+           }
+
+    assert replay_summary["deferred_contact_ids"] == ["deferred_contact"]
+
+    assert replay_summary["station_pressure_contact_ids_by_ground_station"] == %{
+             "polar_prime" => ["station_pressure_contact"]
+           }
+
+    assert replay_summary["station_pressure_review_contact_ids"] == ["station_pressure_contact"]
+    assert replay_summary["reservation_conflict_contact_ids"] == ["reservation_conflict_contact"]
+    assert replay_summary["invalid_contact_input_ids"] == ["invalid_contact"]
+    assert replay_summary["review_contact_ids"] == ["review_contact"]
+    assert replay_summary["direction_counts"] == %{"downlink" => 1}
+    assert replay_summary["contact_ids_by_direction"] == %{"downlink" => ["selected_contact"]}
+
+    assert replay_summary["direction_routing"] == %{
+             "downlink" => %{
+               "contact_count" => 1,
+               "contact_ids" => ["selected_contact"]
+             }
+           }
+
+    assert replay_summary["branch_local_contact_allocation_pressure"]
+    assert replay_summary["branch_local_capacity_pack_pressure"]
+    assert replay_summary["branch_local_deferred_allocation_pressure"]
+    assert replay_summary["branch_local_station_pressure"]
+    assert replay_summary["branch_local_reservation_conflict_pressure"]
+  end
+
   test "contact allocation replay treats preserved ID maps as pressure" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
