@@ -4,7 +4,7 @@ Current slice:
 CandidateRefresh top-level source-report by-family identity contract.
 
 Status:
-Implemented, locally verified, and reviewed; publish pending.
+Implemented, reviewed, committed, and pushed.
 Leaf family summaries and storage/downlink aggregate provenance preserve
 explicit zero source-report identity. This slice tightens the shared
 top-level `source_report_counts_by_family` and
@@ -28,7 +28,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`8770820e5a2c1140b617deb7e11537e2058cd7dc` pushed to `origin/main`.
+`8591a7ba5859305b29ea80c128b7e81d0fc8a5ec` pushed to `origin/main`.
 
 Next candidate:
 After this slice, continue guide-backed CandidateRefresh depth from queue item 4
