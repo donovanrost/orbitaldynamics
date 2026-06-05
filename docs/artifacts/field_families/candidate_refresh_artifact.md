@@ -1054,8 +1054,9 @@ contract field rather than defaulting to `contact_allocation_report.v1`.
 `CandidateRefresh.link_capacity_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_link_capacity_replay_summary/1` expose the
 link-capacity slice as a branch-local replay summary. It preserves source
-link-capacity paths, selected/actual shortfall and actual-throughput row
-counts, selected/actual/unused capacity-adjusted throughput totals plus
+link-capacity contract, count, row-count, paths, selected/actual shortfall and
+actual-throughput row counts, selected/actual/unused capacity-adjusted
+throughput totals plus
 station and direction maps, selected/actual contact ID lists and count maps,
 selected/actual source-window ID lists, selected/actual station-calendar/
 provider-entry ID lists, direction/spacecraft counts, contact-ID maps by
@@ -1116,6 +1117,9 @@ link-capacity summaries inside candidate-refresh `source_result_artifact` /
 indexes.
 When link-capacity provenance is absent, the replay summary omits the contract
 field rather than defaulting to `link_capacity_report.v1`.
+Partial link-capacity source-report family placeholders can preserve the
+declared contract, but omit flattened count, row-count, and path fields until
+both identity counts are present.
 
 `CandidateRefresh.contact_filter_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_contact_filter_replay_summary/1` expose the

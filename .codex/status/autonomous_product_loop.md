@@ -1,17 +1,17 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh contact-contention-resolution source-report identity rollups.
+CandidateRefresh link-capacity source-report identity rollups.
 
 Status:
 Implemented with focused verification passing locally.
 `CandidateRefresh.source_report_summary/1` now
-flattens `source_report_contact_contention_resolution_contract`,
-`source_report_contact_contention_resolution_count`,
-`source_report_contact_contention_resolution_row_count`, and
-`source_report_contact_contention_resolution_paths` alongside the existing
-contact-contention-resolution recommendation, capacity-pack, direction,
-contact-ID, resource-scope, and required-action aggregate fields.
+flattens `source_report_link_capacity_contract`,
+`source_report_link_capacity_count`,
+`source_report_link_capacity_row_count`, and
+`source_report_link_capacity_paths` alongside the existing link-capacity
+shortfall, throughput, direction, ground-station, spacecraft, contact-ID,
+source-window, and station-calendar routing aggregate fields.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -21,7 +21,7 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:4047 test/orbital_dynamics/candidate_refresh_test.exs:4537 test/orbital_dynamics/candidate_refresh_test.exs:4557 test/orbital_dynamics/candidate_refresh_test.exs:4599`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:8251 test/orbital_dynamics/candidate_refresh_test.exs:9113 test/orbital_dynamics/candidate_refresh_test.exs:9133 test/orbital_dynamics/candidate_refresh_test.exs:9172 test/orbital_dynamics/candidate_refresh_test.exs:9200 test/orbital_dynamics/candidate_refresh_test.exs:9600`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 
@@ -29,7 +29,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`dc524ec` (`Flatten contact contention resolution replay identity`).
+Pending publish for this slice.
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth

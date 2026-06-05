@@ -2417,6 +2417,26 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "contact_allocation_report",
           "provider_reservation_review_ids_by_match_status"
         ),
+      "source_report_link_capacity_contract" =>
+        source_report_summary_family_field(source_reports, "link_capacity_report", "contract"),
+      "source_report_link_capacity_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "link_capacity_report",
+          "count"
+        ),
+      "source_report_link_capacity_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "link_capacity_report",
+          "row_count"
+        ),
+      "source_report_link_capacity_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "link_capacity_report",
+          "paths"
+        ),
       "source_report_link_capacity_selected_shortfall_row_count" =>
         source_report_summary_family_count(
           source_reports,
