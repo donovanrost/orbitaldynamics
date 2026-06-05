@@ -7398,7 +7398,10 @@ defmodule OrbitalDynamics.Schema do
         "candidate_rejection_report",
         "source_candidate_rejection_report",
         "refresh_budget_report",
-        "operational_feedback"
+        "operational_feedback",
+        "source_report_timeline_publication_source_artifact_ids",
+        "source_report_operational_readiness_source_artifact_ids",
+        "source_report_quality_gate_source_artifact_ids"
       ]
     },
     @candidate_activity => %{
@@ -16964,6 +16967,15 @@ defmodule OrbitalDynamics.Schema do
 
   defp json_schema_property("lighting_confidence", _name, _contract) do
     number_or_string_json_schema()
+  end
+
+  defp json_schema_property(field, @candidate_refresh, _contract)
+       when field in [
+              "source_report_timeline_publication_source_artifact_ids",
+              "source_report_operational_readiness_source_artifact_ids",
+              "source_report_quality_gate_source_artifact_ids"
+            ] do
+    stable_id_array_schema()
   end
 
   defp json_schema_property(field, name, contract) do

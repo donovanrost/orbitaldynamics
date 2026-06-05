@@ -3152,6 +3152,30 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "type"
            ]) == "string"
 
+    Enum.each(
+      [
+        "source_report_timeline_publication_source_artifact_ids",
+        "source_report_operational_readiness_source_artifact_ids",
+        "source_report_quality_gate_source_artifact_ids"
+      ],
+      fn field ->
+        assert get_in(schemas, [
+                 "candidate_refresh.v1",
+                 "properties",
+                 field,
+                 "type"
+               ]) == "array"
+
+        assert get_in(schemas, [
+                 "candidate_refresh.v1",
+                 "properties",
+                 field,
+                 "items",
+                 "pattern"
+               ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+      end
+    )
+
     assert get_in(schemas, [
              "candidate_refresh.v1",
              "properties",
