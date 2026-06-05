@@ -31,7 +31,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-Pending publish for this command-window slice.
+`1965e15` (`Flatten command window replay identity`).
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth from
