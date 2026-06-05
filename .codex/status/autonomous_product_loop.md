@@ -4,7 +4,7 @@ Current slice:
 Expose CandidateRefresh maneuver-review source-report schema.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 CandidateRefresh maneuver-review source summaries already preserve
 maneuver-success feedback counts, execution-uncertainty declared/missing counts,
 input keys, maneuver ID count maps, and required-operator-action count maps. The
@@ -48,9 +48,10 @@ Tests run:
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
   test, schema lint, whitespace check, and generated-schema `jq` spot-checks.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-Pending for this slice.
+`67238b1789d79f2ff7f814f52264bcc570337371` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending for this slice.
