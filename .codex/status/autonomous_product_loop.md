@@ -27,7 +27,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-Pending publish.
+bdc9252 Flatten validation safety case replay identity.
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth
