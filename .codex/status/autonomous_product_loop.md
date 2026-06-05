@@ -44,7 +44,7 @@ Last completed implementation commit:
 `d7782fc54127d70e0acdbf7235f37195b57bd1cd` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending.
+`212a218a8f18718b0911d447997d77c5a1cbd7d5` pushed to `origin/main`.
 
 Next candidate:
 Resource-projection source-window and station-calendar routing maps from the
