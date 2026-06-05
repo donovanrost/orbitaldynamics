@@ -4,7 +4,7 @@ Current slice:
 Timeline publication summary review/import handoff.
 
 Status:
-Implemented, locally verified, reviewed clean, and ready to publish.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 `timeline_publication_summary.v1` now routes into operator-review and
 Cadence-import handoff rows. The rows preserve publication identity, sequence,
 status, authority, supersession, downstream invalidation, dependency-impact
@@ -68,12 +68,14 @@ Tests run:
   `timeline_publication_summary.v1`
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings; noted only coverage-depth residual risk
+- `git_slice_publisher`: staged only slice-owned files, confirmed `.gitignore`
+  remained unstaged, committed, and pushed
 
 Last completed implementation commit:
-`a9aed78548e2ef8eae204f13bd7fc98dff565a7f` pushed to `origin/main`.
+`a838f01bb04716cda5d723607491c9f269c5cf53` pushed to `origin/main`.
 
 Last ledger correction commit:
-`d30c764` pushed to `origin/main`.
+Pending for this slice.
 
 Next candidate:
 After this slice is complete, rerun the mapper against the current checkout.
