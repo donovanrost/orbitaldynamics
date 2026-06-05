@@ -1384,7 +1384,8 @@ contributes to the composed storage/downlink pressure flag even when
 storage/downlink status, type, and direction maps are absent.
 Aggregate pressure-family count and row-count maps preserve explicit zero
 identity for contact-allocation, link-capacity, and resource-projection families,
-but omit missing or nil identity counts. Explicit empty path lists remain
+and the trust-boundary-status count map follows the same declared-count rule,
+but missing or nil identity counts are omitted. Explicit empty path lists remain
 normalized to an empty aggregate path set while non-identity routing maps can
 still drive branch-local storage/downlink pressure.
 

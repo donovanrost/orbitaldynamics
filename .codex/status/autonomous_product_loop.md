@@ -1,14 +1,14 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh top-level source-report grouped aggregate identity contract.
+CandidateRefresh storage/downlink trust-boundary aggregate identity contract.
 
 Status:
-Implemented, reviewed, committed, and pushed.
-The top-level by-family aggregate maps now preserve explicit zero source-report
-identity. This slice tightens the adjacent grouped aggregate maps for
-contract and trust-boundary status so declared zero values remain visible while
-missing or nil count fields are omitted.
+Implemented, locally verified, and reviewed; publish pending.
+Storage/downlink pressure aggregate family counts preserve explicit zero
+identity, but trust-boundary-status counts still treat missing or nil count
+fields as zero. This slice tightens that composed aggregate so only declared
+count identity contributes to trust-boundary status counts.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -18,11 +18,11 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:1996 test/orbital_dynamics/candidate_refresh_test.exs:2032`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:13202 test/orbital_dynamics/candidate_refresh_test.exs:13255 test/orbital_dynamics/candidate_refresh_test.exs:13296`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 - `slice_reviewer`: no must-fix blockers
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:1996 test/orbital_dynamics/candidate_refresh_test.exs:2032`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:13202 test/orbital_dynamics/candidate_refresh_test.exs:13255 test/orbital_dynamics/candidate_refresh_test.exs:13297`
 
 Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`

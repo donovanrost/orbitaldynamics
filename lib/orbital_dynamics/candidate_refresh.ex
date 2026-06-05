@@ -24598,13 +24598,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp pressure_summary_counts_by_trust_boundary_status(pressure_reports) do
     pressure_reports
     |> Enum.reduce(%{}, fn {_family, summary}, acc ->
-      case Map.get(summary, "trust_boundary_status") do
-        status when is_binary(status) and status != "" ->
-          count = summary_integer(summary, "count")
-          Map.update(acc, status, count, &(&1 + count))
+      status = Map.get(summary, "trust_boundary_status")
+      count = pressure_summary_count(summary, "count")
 
-        _status ->
-          acc
+      if is_binary(status) and status != "" and not is_nil(count) do
+        Map.update(acc, status, count, &(&1 + count))
+      else
+        acc
       end
     end)
   end

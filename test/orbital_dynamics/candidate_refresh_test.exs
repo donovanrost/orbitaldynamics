@@ -13208,19 +13208,22 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
             "contract" => "contact_allocation_report.v1",
             "count" => 0,
             "row_count" => 0,
-            "paths" => []
+            "paths" => [],
+            "trust_boundary_status" => "declared"
           },
           "link_capacity_report" => %{
             "contract" => "link_capacity_report.v1",
             "count" => 0,
             "row_count" => 0,
-            "paths" => []
+            "paths" => [],
+            "trust_boundary_status" => "declared"
           },
           "resource_projection_report" => %{
             "contract" => "resource_projection_report.v1",
             "count" => 0,
             "row_count" => 0,
-            "paths" => []
+            "paths" => [],
+            "trust_boundary_status" => "declared"
           }
         }
       }
@@ -13242,7 +13245,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "resource_projection_report" => 0
              },
              "source_report_paths" => [],
-             "source_report_paths_by_family" => %{}
+             "source_report_paths_by_family" => %{},
+             "source_report_counts_by_trust_boundary_status" => %{"declared" => 0}
            } = summary
 
     refute summary["branch_local_storage_downlink_pressure"]
@@ -13256,6 +13260,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
           "contact_allocation_report" => %{
             "contract" => "contact_allocation_report.v1",
             "paths" => ["source_contact_allocation_report"],
+            "trust_boundary_status" => "declared",
             "capacity_pack_contact_ids_by_direction" => %{"downlink" => ["contact_only"]}
           },
           "link_capacity_report" => %{
@@ -13263,6 +13268,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
             "count" => nil,
             "row_count" => nil,
             "paths" => nil,
+            "trust_boundary_status" => "declared",
             "selected_contact_id_counts" => %{"selected_only" => 1}
           }
         }
@@ -13275,6 +13281,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_counts_by_family"] == %{}
     assert summary["source_report_row_counts_by_family"] == %{}
+    assert summary["source_report_counts_by_trust_boundary_status"] == %{}
     assert summary["source_report_paths"] == ["source_contact_allocation_report"]
 
     assert summary["source_report_paths_by_family"] == %{
