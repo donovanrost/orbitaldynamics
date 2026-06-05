@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh resource-projection source/station routing maps schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean; commit/push pending.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 Runtime CandidateRefresh resource-projection replay summaries already preserve
 source-window and station-calendar routing maps by status/type, but the nested
 `candidate_refresh.v1` source-report JSON Schema does not advertise those
@@ -36,13 +36,13 @@ Tests run:
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings.
-- `git_slice_publisher`: pending.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`d7782fc54127d70e0acdbf7235f37195b57bd1cd` pushed to `origin/main`.
+`35f4ba210c831a20e920ec5ddecbf7e180131054` pushed to `origin/main`.
 
 Last ledger correction commit:
-`eb136f3e13433e49516759b0e8a75c2f4b57c95b` pushed to `origin/main`.
+Pending.
 
 Next candidate:
 Rerun the mapper against the current checkout.
