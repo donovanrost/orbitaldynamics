@@ -32,7 +32,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-Pending publish for this resource-projection slice.
+`af950dd` (`Flatten resource projection replay identity`).
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth from
