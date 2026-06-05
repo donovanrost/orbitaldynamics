@@ -629,8 +629,21 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
                "from" => "planned",
                "to" => "partial"
              },
+             "planned_approval_status" => "not_evaluated",
+             "realized_approval_status" => "not_evaluated",
+             "planned_approval_category" => "review_required",
+             "realized_approval_category" => "review_required",
+             "planned_locked" => false,
+             "realized_locked" => false,
+             "planned_executed" => false,
+             "realized_executed" => true,
              "planned_protection_decision" => "preserve",
              "planned_protection_category" => "executed",
+             "realized_protection_decision" => %{
+               "protection_decision" => "preserve",
+               "protection_category" => "executed",
+               "reason" => "activity_already_partial"
+             },
              "review_required" => false,
              "review_activity_ids" => [],
              "source_activity_context" => %{
@@ -667,6 +680,68 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
              &(&1["path"] == "$.status_counts" and
                  &1["message"] == "must equal row-derived status_counts")
            )
+  end
+
+  test "activity state carries lifecycle approval lock and executed evidence" do
+    planned = %{
+      "id" => "cmd_review",
+      "type" => "command",
+      "status" => "planned",
+      "approval_status" => "approved",
+      "locked" => true,
+      "cadence_import" => %{
+        "activity_type" => "command",
+        "external_id" => "cmd_review"
+      }
+    }
+
+    realized = %{
+      "id" => "cmd_review",
+      "type" => "command",
+      "status" => "executed",
+      "approval_status" => "operator_review_required"
+    }
+
+    state = TimelineFeedback.activity_state(planned, realized)
+    lifecycle_state = Timeline.activity_lifecycle_state(planned, realized)
+
+    lifecycle_fields = [
+      "planned_approval_status",
+      "realized_approval_status",
+      "planned_approval_category",
+      "realized_approval_category",
+      "approval_transition",
+      "planned_locked",
+      "realized_locked",
+      "planned_executed",
+      "realized_executed",
+      "realized_protection_decision"
+    ]
+
+    assert Map.take(state, lifecycle_fields) == Map.take(lifecycle_state, lifecycle_fields)
+
+    assert %{
+             "planned_approval_status" => "approved",
+             "realized_approval_status" => "operator_review_required",
+             "planned_approval_category" => "protected",
+             "realized_approval_category" => "review_required",
+             "planned_locked" => true,
+             "planned_executed" => false,
+             "realized_executed" => true,
+             "approval_transition" => %{
+               "transition_type" => "changed",
+               "transition_category" => "approval_regressed",
+               "requires_operator_review" => true
+             },
+             "realized_protection_decision" => %{
+               "protection_decision" => "preserve",
+               "protection_category" => "executed",
+               "reason" => "activity_already_executed"
+             }
+           } = state
+
+    assert {:ok, %{"schema_contract" => "timeline_activity_state.v1"}} =
+             Schema.validate_artifact(state)
   end
 
   test "activity state preserves unmatched planned and realized rows for review" do

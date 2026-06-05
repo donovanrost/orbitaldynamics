@@ -6053,12 +6053,22 @@ defmodule OrbitalDynamics.Schema do
         "activity_ids",
         "feedback_kind",
         "feedback_status",
+        "approval_transition",
         "match_strategy",
+        "planned_approval_category",
+        "planned_approval_status",
+        "planned_executed",
+        "planned_locked",
         "planned_protection_category",
         "planned_protection_decision",
         "planned_protection_reason",
         "planned_status",
         "planned_timeline_id",
+        "realized_approval_category",
+        "realized_approval_status",
+        "realized_executed",
+        "realized_locked",
+        "realized_protection_decision",
         "realized_status",
         "realized_timeline_id",
         "source_activity_context",
@@ -10183,11 +10193,14 @@ defmodule OrbitalDynamics.Schema do
   defp json_schema_property(field, @timeline_activity_state, _contract)
        when field in [
               "feedback_status",
+              "planned_approval_category",
+              "planned_approval_status",
               "planned_protection_category",
               "planned_protection_reason",
               "planned_status",
-              "realized_status",
-              "source_protection_decision"
+              "realized_approval_category",
+              "realized_approval_status",
+              "realized_status"
             ] do
     %{"type" => "string"}
   end
@@ -10203,12 +10216,29 @@ defmodule OrbitalDynamics.Schema do
     do: timeline_identity_json_schema()
 
   defp json_schema_property(field, @timeline_activity_state, _contract)
+       when field in [
+              "planned_locked",
+              "realized_locked",
+              "planned_executed",
+              "realized_executed"
+            ] do
+    %{"type" => "boolean"}
+  end
+
+  defp json_schema_property(field, @timeline_activity_state, _contract)
        when field in ["source_activity_context", "realized_activity_context"] do
     activity_context_json_schema()
   end
 
-  defp json_schema_property("status_transition", @timeline_activity_state, _contract),
-    do: lifecycle_transition_json_schema()
+  defp json_schema_property(field, @timeline_activity_state, _contract)
+       when field in ["status_transition", "approval_transition"] do
+    lifecycle_transition_json_schema()
+  end
+
+  defp json_schema_property(field, @timeline_activity_state, _contract)
+       when field in ["source_protection_decision", "realized_protection_decision"] do
+    protection_decision_json_schema()
+  end
 
   defp json_schema_property("assumptions", @timeline_activity_state, _contract) do
     %{"type" => "object", "additionalProperties" => true}
@@ -37137,7 +37167,21 @@ defmodule OrbitalDynamics.Schema do
       "no_command_execution"
     ])
     |> expect_optional_type(path, state, "status_transition", :map)
+    |> expect_optional_type(path, state, "approval_transition", :map)
     |> validate_optional_lifecycle_transition(path, state, "status_transition")
+    |> validate_optional_lifecycle_transition(path, state, "approval_transition")
+    |> expect_optional_type(path, state, "planned_approval_status", :binary)
+    |> expect_optional_type(path, state, "realized_approval_status", :binary)
+    |> expect_optional_type(path, state, "planned_approval_category", :binary)
+    |> expect_optional_type(path, state, "realized_approval_category", :binary)
+    |> expect_optional_type(path, state, "planned_locked", :boolean)
+    |> expect_optional_type(path, state, "realized_locked", :boolean)
+    |> expect_optional_type(path, state, "planned_executed", :boolean)
+    |> expect_optional_type(path, state, "realized_executed", :boolean)
+    |> expect_optional_type(path, state, "source_protection_decision", :map)
+    |> expect_optional_type(path, state, "realized_protection_decision", :map)
+    |> validate_optional_protection_decision(path, state, "source_protection_decision")
+    |> validate_optional_protection_decision(path, state, "realized_protection_decision")
     |> expect_optional_type(path, state, "source_activity_context", :map)
     |> expect_optional_type(path, state, "realized_activity_context", :map)
     |> validate_optional_activity_context(path, state, "source_activity_context")

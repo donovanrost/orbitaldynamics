@@ -7263,6 +7263,39 @@ defmodule OrbitalDynamics.SchemaTest do
              "enum"
            ]) == capabilities.planned_protection_decisions
 
+    assert get_in(schema, ["properties", "planned_approval_status", "type"]) == "string"
+    assert get_in(schema, ["properties", "realized_approval_status", "type"]) == "string"
+    assert get_in(schema, ["properties", "planned_approval_category", "type"]) == "string"
+    assert get_in(schema, ["properties", "realized_approval_category", "type"]) == "string"
+    assert get_in(schema, ["properties", "planned_locked", "type"]) == "boolean"
+    assert get_in(schema, ["properties", "realized_locked", "type"]) == "boolean"
+    assert get_in(schema, ["properties", "planned_executed", "type"]) == "boolean"
+    assert get_in(schema, ["properties", "realized_executed", "type"]) == "boolean"
+
+    assert get_in(schema, [
+             "properties",
+             "approval_transition",
+             "properties",
+             "transition_type",
+             "enum"
+           ]) == ["added", "removed", "changed"]
+
+    assert get_in(schema, [
+             "properties",
+             "source_protection_decision",
+             "properties",
+             "protection_decision",
+             "type"
+           ]) == "string"
+
+    assert get_in(schema, [
+             "properties",
+             "realized_protection_decision",
+             "properties",
+             "protection_decision",
+             "type"
+           ]) == "string"
+
     row_properties = get_in(schema, ["properties", "rows", "items", "properties"])
 
     assert get_in(schema, ["properties", "rows", "items", "required"]) == [
@@ -7302,6 +7335,26 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert {:ok, %{"schema_contract" => "timeline_activity_state.v1"}} =
              Schema.validate_artifact(valid_state)
+
+    invalid_planned_locked = Map.put(valid_state, "planned_locked", "false")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_planned_locked)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.planned_locked" and &1["message"] =~ "must be a boolean")
+           )
+
+    invalid_realized_protection =
+      Map.put(valid_state, "realized_protection_decision", "mutable")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_realized_protection)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.realized_protection_decision" and
+                 &1["message"] =~ "must be a map")
+           )
 
     invalid_model = Map.put(valid_state, "model", "custom")
 

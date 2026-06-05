@@ -396,6 +396,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
     report = reconcile(planned, realized, opts)
     rows = Map.get(report, "rows", [])
     primary = primary_activity_state_row(rows)
+    lifecycle_state = Timeline.activity_lifecycle_state(planned_activity, realized_activity)
 
     %{
       "schema_contract" => @activity_state_schema_contract,
@@ -421,10 +422,20 @@ defmodule OrbitalDynamics.TimelineFeedback do
       "realized_status" => activity_state_realized_status(primary),
       "feedback_status" => value(primary, "feedback_status"),
       "status_transition" => value(primary, "status_transition"),
+      "planned_approval_status" => Map.get(lifecycle_state, "planned_approval_status"),
+      "realized_approval_status" => Map.get(lifecycle_state, "realized_approval_status"),
+      "planned_approval_category" => Map.get(lifecycle_state, "planned_approval_category"),
+      "realized_approval_category" => Map.get(lifecycle_state, "realized_approval_category"),
+      "approval_transition" => Map.get(lifecycle_state, "approval_transition"),
+      "planned_locked" => Map.get(lifecycle_state, "planned_locked"),
+      "realized_locked" => Map.get(lifecycle_state, "realized_locked"),
+      "planned_executed" => Map.get(lifecycle_state, "planned_executed"),
+      "realized_executed" => Map.get(lifecycle_state, "realized_executed"),
       "planned_protection_decision" => value(primary, "planned_protection_decision"),
       "planned_protection_category" => value(primary, "planned_protection_category"),
       "planned_protection_reason" => value(primary, "planned_protection_reason"),
       "source_protection_decision" => value(primary, "source_protection_decision"),
+      "realized_protection_decision" => Map.get(lifecycle_state, "realized_protection_decision"),
       "source_activity_context" => value(primary, "source_activity_context"),
       "realized_activity_context" => value(primary, "realized_activity_context"),
       "review_required" => activity_state_review_required?(rows),

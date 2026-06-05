@@ -365,9 +365,11 @@ adapter handoff evidence.
 `OrbitalDynamics.timeline_activity_state/3` expose a compact artifact-only
 planned/realized activity-state facade over timeline feedback reconciliation,
 including normalized source and realized contexts, status transition,
-protection decision, match strategy, review flags, row-derived status/match/
-feedback/protection count maps, model limits, and row-level evidence without
-mutating schedules or executing commands. The facade publishes the validated
+approval status/category, approval-transition, lock/executed booleans,
+protection decision, realized protection decision, match strategy, review flags,
+row-derived status/match/feedback/protection count maps, model limits, and
+row-level evidence without mutating schedules or executing commands. The facade
+publishes the validated
 `timeline_activity_state.v1` schema contract so stale row counts, stale
 count maps, review IDs, and explicit no-mutation/no-command assumptions remain
 adapter-safe. Runtime validation and schema export also pin its timeline
