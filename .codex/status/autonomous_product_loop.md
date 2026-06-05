@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh source-summary provenance counts schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean. Awaiting commit/push.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 CandidateRefresh source-report summary JSON Schema now explicitly advertises
 `source_summary_model_counts` and
 `source_summary_schema_contract_counts`, matching runtime replay/source-report
@@ -37,15 +37,16 @@ Tests run:
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`5f88048fdea0fd91800165c81747ce746e347be0` pushed to `origin/main`.
+`e48e89bc956d5ab41339921cb8182a80fbc11877` pushed to `origin/main`.
 
 Last ledger correction commit:
-`0c57bed16aedfa8a9072e07f80e1c96d5be242ca` pushed to `origin/main`.
+Pending.
 
 Next candidate:
-After review/publish, rerun the mapper against the current checkout.
+Rerun the mapper against the current checkout.
 
 Blocked:
 No.
