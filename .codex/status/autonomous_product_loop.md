@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh timeline-activity-state source-report action routing schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 CandidateRefresh timeline-activity-state source summaries already preserve
 review counts, invalid activity input fields, state and transition category
 count maps, required-operator/import action count maps, activity/timeline ID
@@ -44,9 +44,10 @@ Tests run:
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
   test, schema lint, whitespace check, and generated-schema `jq` spot-checks.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-Pending for this slice.
+`c77ca7a680e141427dfa40a533ec2106c540b41b` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending for this slice.
