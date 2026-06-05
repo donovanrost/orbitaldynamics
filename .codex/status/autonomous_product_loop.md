@@ -4,7 +4,7 @@ Current slice:
 Timeline publication operational-readiness context.
 
 Status:
-Implemented, locally verified, reviewed clean, ready to publish.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 Operational-readiness reports now preserve publication-specific context from
 direct `timeline_publication_summary.v1` artifacts, their operator-review
 packages, and their Cadence-import manifests. The context is carried through
@@ -70,13 +70,13 @@ Tests run:
 - `slice_reviewer`: no must-fix findings.
 
 Last completed implementation commit:
-Pending publication for this slice.
+`fc32b20ac8b1c9bd63cba13a1bf33151868e0c37` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending publication for this slice.
+Pending publication for this ledger correction.
 
 Next candidate:
-Rerun the mapper against the current checkout after publication.
+Rerun the mapper against the current checkout.
 
 Blocked:
 No.
