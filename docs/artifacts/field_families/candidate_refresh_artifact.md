@@ -1985,17 +1985,22 @@ CandidateRefresh input alongside constraint replay provenance.
 `CandidateRefresh.timeline_feedback_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_timeline_feedback_replay_summary/1` expose
 the timeline-feedback slice as a branch-local replay summary. It preserves
-top-level source-report contract/count/path rollups, source timeline-feedback
-paths, row counts, feedback input keys, status, feedback-kind, match-strategy,
-activity-ID, Cadence-import-status,
+source timeline-feedback paths, row counts, feedback input keys, status,
+feedback-kind, match-strategy, activity-ID, Cadence-import-status,
 station-reservation evidence counts, trust-boundary evidence, and branch-local
 feedback, input, activity-routing, match-review, import-review, and
 station-reservation pressure booleans without applying operational feedback,
-mutating timelines, selecting candidates, approving imports, writing to Cadence,
-or regenerating candidates. The family-level timeline-feedback pressure boolean
-is true for station-reservation evidence even when no operational feedback
-input, activity, status, or import-review map is present, and is also true for
-match-strategy-only evidence. Status, feedback-kind, match-strategy, and
+mutating timelines, selecting candidates, approving imports, writing to
+Cadence, or regenerating candidates. `CandidateRefresh.source_report_summary/1`
+also exposes compact top-level timeline-feedback contract/count/row-count/path
+rollups; those compact source-count, source-row-count, and source-path fields
+require complete source-report identity (`count` and `row_count` present), while
+partial placeholders only expose the declared contract. The replay summary
+itself still treats partial non-empty branch families as authoritative
+provenance. The family-level timeline-feedback pressure boolean is true for
+station-reservation evidence even when no operational feedback input, activity,
+status, or import-review map is present, and is also true for match-strategy-only
+evidence. Status, feedback-kind, match-strategy, and
 activity-ID maps, plus Cadence-import-status maps, are derived from
 timeline-feedback rows instead of trusted from stale top-level report aggregate
 maps.
