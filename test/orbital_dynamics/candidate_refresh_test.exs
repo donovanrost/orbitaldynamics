@@ -1524,6 +1524,172 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     end
   end
 
+  test "contact contention source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_contention_report" => %{
+            "contract" => "contact_contention_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.contact_contention_report"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_contact_contention_contract"] ==
+             "contact_contention_report.v1"
+
+    assert source_summary["source_report_contact_contention_count"] == 0
+    assert source_summary["source_report_contact_contention_row_count"] == 0
+
+    assert source_summary["source_report_contact_contention_paths"] == [
+             "provenance.source_reports.contact_contention_report"
+           ]
+  end
+
+  test "contact contention source summary omits missing identity paths after preserving counts" do
+    summaries = [
+      {"missing paths",
+       %{
+         "contract" => "contact_contention_report.v1",
+         "count" => 1,
+         "row_count" => 2
+       }},
+      {"nil paths",
+       %{
+         "contract" => "contact_contention_report.v1",
+         "count" => 1,
+         "row_count" => 2,
+         "paths" => nil
+       }}
+    ]
+
+    for {label, contact_contention_summary} <- summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "contact_contention_report" => contact_contention_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      assert source_summary["source_report_contact_contention_contract"] ==
+               "contact_contention_report.v1",
+             label
+
+      assert source_summary["source_report_contact_contention_count"] == 1, label
+      assert source_summary["source_report_contact_contention_row_count"] == 2, label
+      refute Map.has_key?(source_summary, "source_report_contact_contention_paths"), label
+    end
+  end
+
+  test "contact contention source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_contention_report" => %{
+            "contract" => "contact_contention_report.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_contact_contention_contract"] ==
+             "contact_contention_report.v1"
+
+    assert source_summary["source_report_contact_contention_count"] == 1
+    assert source_summary["source_report_contact_contention_row_count"] == 2
+    assert source_summary["source_report_contact_contention_paths"] == []
+  end
+
+  test "contact contention replay preserves pressure maps with partial identity" do
+    direction_routing = %{
+      "downlink" => %{
+        "contact_count" => 1,
+        "contact_ids" => ["contention_contact_a"]
+      }
+    }
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_contention_report" => %{
+            "contract" => "contact_contention_report.v1",
+            "count" => 1,
+            "conflict_group_count" => 0,
+            "invalid_contact_input_count" => 0,
+            "invalid_contact_input_ids" => ["bad_contact"],
+            "resource_scope_counts" => %{"ground_station" => 1},
+            "contact_contention_ground_station_counts" => %{"equator_prime" => 1},
+            "contact_contention_contact_id_counts" => %{"contention_contact_a" => 1},
+            "direction_counts" => %{"downlink" => 1},
+            "contact_ids_by_direction" => %{"downlink" => ["contention_contact_a"]},
+            "direction_routing" => direction_routing,
+            "required_operator_action_counts" => %{"review_contact_contention" => 1}
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    refute Map.has_key?(source_summary, "source_report_contact_contention_count")
+    refute Map.has_key?(source_summary, "source_report_contact_contention_row_count")
+    refute Map.has_key?(source_summary, "source_report_contact_contention_paths")
+
+    assert source_summary["source_report_contact_contention_invalid_contact_input_ids"] == [
+             "bad_contact"
+           ]
+
+    assert source_summary["source_report_contact_contention_resource_scope_counts"] == %{
+             "ground_station" => 1
+           }
+
+    assert source_summary["source_report_contact_contention_ground_station_counts"] == %{
+             "equator_prime" => 1
+           }
+
+    assert source_summary["source_report_contact_contention_contact_id_counts"] == %{
+             "contention_contact_a" => 1
+           }
+
+    assert source_summary["source_report_contact_contention_direction_counts"] == %{
+             "downlink" => 1
+           }
+
+    assert source_summary["source_report_contact_contention_contact_ids_by_direction"] == %{
+             "downlink" => ["contention_contact_a"]
+           }
+
+    assert source_summary["source_report_contact_contention_direction_routing"] ==
+             direction_routing
+
+    assert source_summary["source_report_contact_contention_required_operator_action_counts"] ==
+             %{"review_contact_contention" => 1}
+
+    summary = CandidateRefresh.contact_contention_replay_summary(artifact)
+
+    assert summary["branch_local_contact_contention_pressure"]
+    refute summary["branch_local_contact_contention_conflict_pressure"]
+    assert summary["branch_local_invalid_contact_input_pressure"]
+    assert summary["branch_local_contact_contention_review_pressure"]
+  end
+
   test "contact contention replay reads strategy branch candidate-source summary metadata" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
