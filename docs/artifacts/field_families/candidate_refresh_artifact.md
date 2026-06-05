@@ -2032,22 +2032,26 @@ contract field rather than defaulting to `timeline_feedback_report.v1`.
 `CandidateRefresh.operational_timeline_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_operational_timeline_replay_summary/1`
 expose the operational-timeline slice as a branch-local replay summary. It
-preserves top-level source-report contract/count/path rollups, source
-operational-timeline paths, row counts, contact/command/maneuver/observation/
-station-throughput feedback counts, integrity issue counts, row-derived
-operational-kind, activity-ID, activity-status,
+preserves source operational-timeline paths, row counts,
+contact/command/maneuver/observation/station-throughput feedback counts,
+integrity issue counts, row-derived operational-kind, activity-ID, activity-status,
 approval-status, required-action, Cadence-import-status, and integrity-issue-type maps,
 station-reservation evidence counts, input keys, trust-boundary evidence, and
 branch-local operational-timeline, feedback, activity-routing, integrity, and
 station-reservation pressure booleans without applying operational feedback,
 mutating timelines, selecting candidates, approving imports, writing to Cadence,
-or regenerating candidates. The family-level operational-timeline pressure
-boolean is true for station-reservation evidence even when no operational
-feedback input, activity, status, import-review, or integrity map is present.
-It is also true for operational-kind, activity-status, approval-status,
-required-action, Cadence-import-status, or integrity-issue-type maps even when
-feedback, activity-routing, integrity-count, and station-reservation counters
-are absent.
+or regenerating candidates. `CandidateRefresh.source_report_summary/1` also
+exposes compact top-level operational-timeline contract/count/row-count/path
+rollups; those compact source-count, source-row-count, and source-path fields
+require complete source-report identity (`count` and `row_count` present), while
+partial placeholders only expose the declared contract. The replay summary
+itself still treats partial non-empty branch families as authoritative
+provenance. The family-level operational-timeline pressure boolean is true for
+station-reservation evidence even when no operational feedback input, activity,
+status, import-review, or integrity map is present. It is also true for
+operational-kind, activity-status, approval-status, required-action,
+Cadence-import-status, or integrity-issue-type maps even when feedback,
+activity-routing, integrity-count, and station-reservation counters are absent.
 These maps and integrity counts are derived from rows rather than trusted from
 stale top-level report aggregates.
 Operational-feedback provenance for operational-timeline, timeline-diff,
