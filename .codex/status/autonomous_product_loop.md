@@ -47,7 +47,7 @@ Last completed implementation commit:
 `6f5e3eb483a49d74c1495773fa1ff5415a949564` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending for this slice.
+`81389c6` pushed to `origin/main`.
 
 Next candidate:
 After this slice, run a bounded mapper pass to identify the next
