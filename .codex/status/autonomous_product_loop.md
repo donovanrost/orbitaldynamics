@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh link-capacity route/source-window maps schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 Runtime CandidateRefresh link-capacity source summaries already preserve
 direction, source-window, station-calendar, ground-station, spacecraft,
 selected/actual-throughput, and requirement-status routing maps, but the
@@ -43,13 +43,13 @@ Tests run:
   `schemas/candidate_refresh.v1.schema.json` and the schema bundle.
 - `slice_reviewer`: no must-fix findings; reran focused export test,
   whitespace check, and generated-schema `jq` spot-checks.
-- `git_slice_publisher`: pending.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`2e3db4a48f6db94e32d0c1a12ee5370c7d3ff0a3` pushed to `origin/main`.
+`18a8d094605ca5b56b7aa33a55c9bea34226b928` pushed to `origin/main`.
 
 Last ledger correction commit:
-`90162e029b956beceec2967194404e3674ee797b` pushed to `origin/main`.
+Pending for this slice.
 
 Next candidate:
 Rerun the mapper against the current checkout.
