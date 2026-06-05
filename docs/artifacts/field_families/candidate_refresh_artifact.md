@@ -1612,9 +1612,15 @@ contract field rather than defaulting to
 the top-level timeline-integrity identity rollups instead of emitting empty
 count, row-count, or path fields. Partial placeholder provenance may expose an
 explicit contract, but does not synthesize count, row-count, or path identity
-rollups unless both identity counts are present and non-nil. Capability metadata
-advertises `timeline_integrity_report` as an accepted CandidateRefresh input
-alongside timeline-integrity replay provenance.
+rollups unless both identity counts are present and non-nil. Explicit zero
+count and row-count values are preserved as declared identity, paths remain
+omitted when the path field is missing or nil, and an explicit empty path list
+remains a declared empty path set. Non-identity status, issue-type,
+required-action, review, dependency, and exclusivity routing maps remain
+available to branch-local replay pressure even when the source-report identity
+is only partial. Capability metadata advertises `timeline_integrity_report` as
+an accepted CandidateRefresh input alongside timeline-integrity replay
+provenance.
 `OperatorReview.from_candidate_refresh_artifact/1` and
 `CadenceImport.from_candidate_refresh_artifact/1` also lift direct/list-valued
 and wrapped `source_timeline_integrity_report` / `timeline_integrity_report`

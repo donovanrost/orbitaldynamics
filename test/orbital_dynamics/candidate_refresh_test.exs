@@ -30180,6 +30180,157 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     end
   end
 
+  test "timeline integrity source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "timeline_integrity_report" => %{
+            "contract" => "timeline_integrity_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.timeline_integrity_report"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_timeline_integrity_contract"] ==
+             "timeline_integrity_report.v1"
+
+    assert source_summary["source_report_timeline_integrity_count"] == 0
+    assert source_summary["source_report_timeline_integrity_row_count"] == 0
+
+    assert source_summary["source_report_timeline_integrity_paths"] == [
+             "provenance.source_reports.timeline_integrity_report"
+           ]
+  end
+
+  test "timeline integrity source summary omits missing identity paths after preserving counts" do
+    summaries = [
+      {"missing paths",
+       %{
+         "contract" => "timeline_integrity_report.v1",
+         "count" => 1,
+         "row_count" => 2
+       }},
+      {"nil paths",
+       %{
+         "contract" => "timeline_integrity_report.v1",
+         "count" => 1,
+         "row_count" => 2,
+         "paths" => nil
+       }}
+    ]
+
+    for {label, timeline_integrity_summary} <- summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "timeline_integrity_report" => timeline_integrity_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      assert source_summary["source_report_timeline_integrity_contract"] ==
+               "timeline_integrity_report.v1",
+             label
+
+      assert source_summary["source_report_timeline_integrity_count"] == 1, label
+      assert source_summary["source_report_timeline_integrity_row_count"] == 2, label
+      refute Map.has_key?(source_summary, "source_report_timeline_integrity_paths"), label
+    end
+  end
+
+  test "timeline integrity source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "timeline_integrity_report" => %{
+            "contract" => "timeline_integrity_report.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_timeline_integrity_contract"] ==
+             "timeline_integrity_report.v1"
+
+    assert source_summary["source_report_timeline_integrity_count"] == 1
+    assert source_summary["source_report_timeline_integrity_row_count"] == 2
+    assert source_summary["source_report_timeline_integrity_paths"] == []
+  end
+
+  test "timeline integrity replay preserves pressure maps with partial identity" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "timeline_integrity_report" => %{
+            "contract" => "timeline_integrity_report.v1",
+            "count" => 1,
+            "timeline_integrity_status_counts" => %{"review_required" => 1},
+            "timeline_integrity_issue_type_counts" => %{"missing_dependency_timeline" => 1},
+            "required_operator_action_counts" => %{"review_timeline_integrity" => 1},
+            "review_activity_id_counts" => %{"cmd_main" => 1},
+            "missing_dependency_timeline_id_counts" => %{"timeline:missing_gate" => 1},
+            "exclusivity_violation_timeline_id_counts" => %{
+              "timeline:downlink:12.0" => 1
+            }
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    refute Map.has_key?(source_summary, "source_report_timeline_integrity_count")
+    refute Map.has_key?(source_summary, "source_report_timeline_integrity_row_count")
+    refute Map.has_key?(source_summary, "source_report_timeline_integrity_paths")
+
+    assert source_summary["source_report_timeline_integrity_status_counts"] == %{
+             "review_required" => 1
+           }
+
+    assert source_summary["source_report_timeline_integrity_issue_type_counts"] == %{
+             "missing_dependency_timeline" => 1
+           }
+
+    assert source_summary[
+             "source_report_timeline_integrity_required_operator_action_counts"
+           ] == %{"review_timeline_integrity" => 1}
+
+    assert source_summary[
+             "source_report_timeline_integrity_review_activity_id_counts"
+           ] == %{"cmd_main" => 1}
+
+    assert source_summary[
+             "source_report_timeline_integrity_missing_dependency_timeline_id_counts"
+           ] == %{"timeline:missing_gate" => 1}
+
+    assert source_summary[
+             "source_report_timeline_integrity_exclusivity_violation_timeline_id_counts"
+           ] == %{"timeline:downlink:12.0" => 1}
+
+    summary = CandidateRefresh.timeline_integrity_replay_summary(artifact)
+
+    assert summary["branch_local_timeline_integrity_pressure"]
+    assert summary["branch_local_timeline_integrity_review_pressure"]
+    assert summary["branch_local_dependency_integrity_pressure"]
+    assert summary["branch_local_exclusivity_integrity_pressure"]
+  end
+
   test "timeline integrity replay reads strategy branch candidate-source summary metadata" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
