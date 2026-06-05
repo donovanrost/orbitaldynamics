@@ -4,7 +4,7 @@ Current slice:
 Make top-level CandidateRefresh publication lineage fields schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean. Awaiting commit/push.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 CandidateRefresh top-level JSON Schema now explicitly advertises the
 already-emitted publication lineage fields for timeline-publication,
 operational-readiness, and quality-gate source-report aggregates. This is a
@@ -43,15 +43,16 @@ Tests run:
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`231ca1555b0f6e59674adadbc2d074a02d8ecb56` pushed to `origin/main`.
+`d1830152262cb2c9e4b8e72cd0e406f55e0375ad` pushed to `origin/main`.
 
 Last ledger correction commit:
-`3d954f7e40904e72203d6a5db713286082556245` pushed to `origin/main`.
+Pending.
 
 Next candidate:
-After review/publish, rerun the mapper against the current checkout.
+Rerun the mapper against the current checkout.
 
 Blocked:
 No.
