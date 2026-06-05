@@ -2267,6 +2267,12 @@ When refresh-budget provenance is absent, the replay summary omits the contract
 field rather than defaulting to `refresh_budget_report.v1`, and the aggregate
 source-report summary omits the top-level refresh-budget identity rollups
 instead of emitting empty contract/count/row-count/path fields.
+`CandidateRefresh.source_report_summary/1` also exposes compact top-level
+refresh-budget contract/count/row-count/path rollups for source-report
+provenance. Compact refresh-budget source-count/source-row-count/source-path
+fields require complete source-report identity (`count` and `row_count`
+present), so partial placeholders preserve only the declared contract while
+explicit zero counts and explicit empty paths remain replayable identity.
 Capability metadata advertises `refresh_budget_report` as an accepted
 CandidateRefresh input alongside refresh-budget replay provenance.
 

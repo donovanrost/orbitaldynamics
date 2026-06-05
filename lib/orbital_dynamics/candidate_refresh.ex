@@ -4012,19 +4012,19 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "contract"
         ),
       "source_report_refresh_budget_count" =>
-        source_report_summary_family_count(
+        source_report_summary_family_identity_count(
           source_reports,
           "refresh_budget_report",
           "count"
         ),
       "source_report_refresh_budget_row_count" =>
-        source_report_summary_family_count(
+        source_report_summary_family_identity_count(
           source_reports,
           "refresh_budget_report",
           "row_count"
         ),
       "source_report_refresh_budget_paths" =>
-        source_report_summary_family_field(
+        source_report_summary_family_identity_field(
           source_reports,
           "refresh_budget_report",
           "paths"
