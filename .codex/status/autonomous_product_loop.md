@@ -50,7 +50,7 @@ Last completed implementation commit:
 `c77ca7a680e141427dfa40a533ec2106c540b41b` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending for this slice.
+`e36bc518bf916049b092f83a0918af4a6a22a208` pushed to `origin/main`.
 
 Next candidate:
 After this slice, evaluate candidate rejection source-report maps from the
