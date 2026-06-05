@@ -8867,13 +8867,15 @@ defmodule OrbitalDynamics.CandidateRefresh do
     candidate_ids_by_suppressed_reason =
       Map.get(filter_summary, "candidate_ids_by_suppressed_reason", %{})
 
+    source_report_paths = Map.get(filter_summary, "paths") || []
+
     %{
       "model" => "artifact_only_candidate_refresh_resource_filter_replay_summary",
       "source" => summary_source,
       "contract" => source_report_summary_contract(filter_summary, "resource_filter_report.v1"),
       "source_report_count" => summary_integer(filter_summary, "count"),
       "source_report_row_count" => summary_integer(filter_summary, "row_count"),
-      "source_report_paths" => Map.get(filter_summary, "paths", []),
+      "source_report_paths" => source_report_paths,
       "suppressed_candidate_count" => suppressed_candidate_count,
       "invalid_resource_summary_input_count" => invalid_resource_summary_input_count,
       "invalid_resource_summary_input_ids" => invalid_resource_summary_input_ids,

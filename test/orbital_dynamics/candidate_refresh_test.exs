@@ -13474,6 +13474,48 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
   end
 
   test "resource filter source summary omits missing identity paths after preserving counts" do
+    partial_summaries = [
+      %{
+        "contract" => "resource_filter_report.v1",
+        "count" => 1,
+        "row_count" => 2
+      },
+      %{
+        "contract" => "resource_filter_report.v1",
+        "count" => 1,
+        "row_count" => 2,
+        "paths" => nil
+      }
+    ]
+
+    for partial_summary <- partial_summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "resource_filter_report" => partial_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+      replay_summary = CandidateRefresh.resource_filter_replay_summary(artifact)
+
+      assert source_summary["source_report_resource_filter_contract"] ==
+               "resource_filter_report.v1"
+
+      assert source_summary["source_report_resource_filter_count"] == 1
+      assert source_summary["source_report_resource_filter_row_count"] == 2
+      refute Map.has_key?(source_summary, "source_report_resource_filter_paths")
+
+      assert replay_summary["contract"] == "resource_filter_report.v1"
+      assert replay_summary["source_report_count"] == 1
+      assert replay_summary["source_report_row_count"] == 2
+      assert replay_summary["source_report_paths"] == []
+    end
+  end
+
+  test "resource filter replay preserves suppression and resource maps with partial identity" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
       "provenance" => %{
@@ -13481,20 +13523,125 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
           "resource_filter_report" => %{
             "contract" => "resource_filter_report.v1",
             "count" => 1,
-            "row_count" => 2
+            "suppressed_reason_counts" => %{"payload_unavailable" => 1},
+            "candidate_ids_by_suppressed_reason" => %{
+              "payload_unavailable" => ["filtered_candidate"]
+            },
+            "invalid_resource_summary_input_ids" => ["invalid_summary"],
+            "resource_filter_spacecraft_counts" => %{"leo_1" => 1},
+            "candidate_ids_by_spacecraft" => %{"leo_1" => ["filtered_candidate"]},
+            "resource_filter_resource_counts" => %{"payload_1" => 1},
+            "candidate_ids_by_resource" => %{"payload_1" => ["filtered_candidate"]},
+            "resource_filter_blocking_dimension_counts" => %{"payload" => 1},
+            "candidate_ids_by_blocking_dimension" => %{
+              "payload" => ["filtered_candidate"]
+            },
+            "direction_counts" => %{"downlink" => 1},
+            "directions" => ["downlink"],
+            "candidate_ids_by_direction" => %{"downlink" => ["filtered_candidate"]},
+            "direction_routing" => %{
+              "downlink" => %{
+                "candidate_count" => 1,
+                "candidate_ids" => ["filtered_candidate"]
+              }
+            }
           }
         }
       }
     }
 
     source_summary = CandidateRefresh.source_report_summary(artifact)
+    replay_summary = CandidateRefresh.resource_filter_replay_summary(artifact)
 
     assert source_summary["source_report_resource_filter_contract"] ==
              "resource_filter_report.v1"
 
-    assert source_summary["source_report_resource_filter_count"] == 1
-    assert source_summary["source_report_resource_filter_row_count"] == 2
+    refute Map.has_key?(source_summary, "source_report_resource_filter_count")
+    refute Map.has_key?(source_summary, "source_report_resource_filter_row_count")
     refute Map.has_key?(source_summary, "source_report_resource_filter_paths")
+
+    assert source_summary["source_report_resource_filter_suppressed_reason_counts"] == %{
+             "payload_unavailable" => 1
+           }
+
+    assert source_summary["source_report_resource_filter_candidate_ids_by_suppressed_reason"] ==
+             %{"payload_unavailable" => ["filtered_candidate"]}
+
+    assert source_summary["source_report_resource_filter_invalid_resource_summary_input_ids"] == [
+             "invalid_summary"
+           ]
+
+    assert source_summary["source_report_resource_filter_spacecraft_counts"] == %{"leo_1" => 1}
+
+    assert source_summary["source_report_resource_filter_candidate_ids_by_spacecraft"] == %{
+             "leo_1" => ["filtered_candidate"]
+           }
+
+    assert source_summary["source_report_resource_filter_resource_counts"] == %{
+             "payload_1" => 1
+           }
+
+    assert source_summary["source_report_resource_filter_candidate_ids_by_resource"] == %{
+             "payload_1" => ["filtered_candidate"]
+           }
+
+    assert source_summary["source_report_resource_filter_blocking_dimension_counts"] == %{
+             "payload" => 1
+           }
+
+    assert source_summary["source_report_resource_filter_candidate_ids_by_blocking_dimension"] ==
+             %{"payload" => ["filtered_candidate"]}
+
+    assert source_summary["source_report_resource_filter_direction_counts"] == %{"downlink" => 1}
+    assert source_summary["source_report_resource_filter_directions"] == ["downlink"]
+
+    assert source_summary["source_report_resource_filter_candidate_ids_by_direction"] == %{
+             "downlink" => ["filtered_candidate"]
+           }
+
+    assert source_summary["source_report_resource_filter_direction_routing"] == %{
+             "downlink" => %{
+               "candidate_count" => 1,
+               "candidate_ids" => ["filtered_candidate"]
+             }
+           }
+
+    assert replay_summary["contract"] == "resource_filter_report.v1"
+    assert replay_summary["source_report_count"] == 1
+    assert replay_summary["source_report_row_count"] == 0
+    assert replay_summary["source_report_paths"] == []
+    assert replay_summary["suppressed_reason_counts"] == %{"payload_unavailable" => 1}
+
+    assert replay_summary["candidate_ids_by_suppressed_reason"] == %{
+             "payload_unavailable" => ["filtered_candidate"]
+           }
+
+    assert replay_summary["invalid_resource_summary_input_ids"] == ["invalid_summary"]
+    assert replay_summary["resource_filter_spacecraft_counts"] == %{"leo_1" => 1}
+    assert replay_summary["candidate_ids_by_spacecraft"] == %{"leo_1" => ["filtered_candidate"]}
+    assert replay_summary["resource_filter_resource_counts"] == %{"payload_1" => 1}
+    assert replay_summary["candidate_ids_by_resource"] == %{"payload_1" => ["filtered_candidate"]}
+    assert replay_summary["resource_filter_blocking_dimension_counts"] == %{"payload" => 1}
+
+    assert replay_summary["candidate_ids_by_blocking_dimension"] == %{
+             "payload" => ["filtered_candidate"]
+           }
+
+    assert replay_summary["direction_counts"] == %{"downlink" => 1}
+    assert replay_summary["directions"] == ["downlink"]
+    assert replay_summary["candidate_ids_by_direction"] == %{"downlink" => ["filtered_candidate"]}
+
+    assert replay_summary["direction_routing"] == %{
+             "downlink" => %{
+               "candidate_count" => 1,
+               "candidate_ids" => ["filtered_candidate"]
+             }
+           }
+
+    assert replay_summary["branch_local_resource_filter_pressure"]
+    assert replay_summary["branch_local_candidate_suppression_pressure"]
+    assert replay_summary["branch_local_invalid_resource_summary_pressure"]
+    assert replay_summary["branch_local_resource_blocking_pressure"]
   end
 
   test "resource filter source summary preserves empty identity paths after preserving counts" do
