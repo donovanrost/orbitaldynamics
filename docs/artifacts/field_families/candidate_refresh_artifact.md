@@ -764,7 +764,8 @@ CandidateRefresh input alongside contact-contention replay provenance.
 `CandidateRefresh.contact_contention_resolution_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_contact_contention_resolution_replay_summary/1`
 expose the contact-contention-resolution slice as a branch-local replay summary.
-It preserves source resolution paths, recommendation/deferred-contact counts,
+It preserves source resolution contract, count, row-count, paths,
+recommendation/deferred-contact counts,
 resolution-status and selection-reason maps, capacity-pack required/selected/
 deferred demand totals and station maps, selected/deferred contact-ID sets and
 per-station maps, direction counts/contact-ID maps, required-operator-action
@@ -841,6 +842,9 @@ preserving wrapper-qualified source paths and list indexes.
 When contact-contention-resolution provenance is absent, the replay summary
 omits the contract field rather than defaulting to
 `contact_contention_resolution_report.v1`.
+Partial contact-contention-resolution source-report family placeholders can
+preserve the declared contract, but omit flattened count, row-count, and path
+fields until both identity counts are present.
 
 `CandidateRefresh.contact_allocation_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_contact_allocation_replay_summary/1` expose

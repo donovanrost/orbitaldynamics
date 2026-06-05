@@ -1517,6 +1517,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "contact_contention_resolution_report",
           "required_capacity_fraction_contact_ids_by_source"
         ),
+      "source_report_contact_contention_resolution_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "contact_contention_resolution_report",
+          "contract"
+        ),
+      "source_report_contact_contention_resolution_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "contact_contention_resolution_report",
+          "count"
+        ),
+      "source_report_contact_contention_resolution_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "contact_contention_resolution_report",
+          "row_count"
+        ),
+      "source_report_contact_contention_resolution_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "contact_contention_resolution_report",
+          "paths"
+        ),
       "source_report_contact_contention_resolution_selected_contact_ids" =>
         source_report_summary_family_merge_string_lists(
           source_reports,
