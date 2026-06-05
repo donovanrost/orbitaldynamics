@@ -629,6 +629,8 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
                "from" => "planned",
                "to" => "partial"
              },
+             "planned_status_category" => "planned",
+             "realized_status_category" => "executed",
              "planned_approval_status" => "not_evaluated",
              "realized_approval_status" => "not_evaluated",
              "planned_approval_category" => "review_required",
@@ -708,6 +710,8 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
     lifecycle_fields = [
       "planned_approval_status",
       "realized_approval_status",
+      "planned_status_category",
+      "realized_status_category",
       "planned_approval_category",
       "realized_approval_category",
       "approval_transition",
@@ -723,6 +727,8 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
     assert %{
              "planned_approval_status" => "approved",
              "realized_approval_status" => "operator_review_required",
+             "planned_status_category" => "planned",
+             "realized_status_category" => "executed",
              "planned_approval_category" => "protected",
              "realized_approval_category" => "review_required",
              "planned_locked" => true,

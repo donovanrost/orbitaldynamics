@@ -7265,6 +7265,8 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert get_in(schema, ["properties", "planned_approval_status", "type"]) == "string"
     assert get_in(schema, ["properties", "realized_approval_status", "type"]) == "string"
+    assert get_in(schema, ["properties", "planned_status_category", "type"]) == "string"
+    assert get_in(schema, ["properties", "realized_status_category", "type"]) == "string"
     assert get_in(schema, ["properties", "planned_approval_category", "type"]) == "string"
     assert get_in(schema, ["properties", "realized_approval_category", "type"]) == "string"
     assert get_in(schema, ["properties", "planned_locked", "type"]) == "boolean"
@@ -7335,6 +7337,17 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert {:ok, %{"schema_contract" => "timeline_activity_state.v1"}} =
              Schema.validate_artifact(valid_state)
+
+    invalid_planned_status_category = Map.put(valid_state, "planned_status_category", 42)
+
+    assert {:error, validation_report} =
+             Schema.validate_artifact(invalid_planned_status_category)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.planned_status_category" and
+                 &1["message"] =~ "must be a binary")
+           )
 
     invalid_planned_locked = Map.put(valid_state, "planned_locked", "false")
 

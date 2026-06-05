@@ -420,6 +420,8 @@ defmodule OrbitalDynamics.TimelineFeedback do
       "match_strategy" => value(primary, "match_strategy"),
       "planned_status" => activity_state_planned_status(primary),
       "realized_status" => activity_state_realized_status(primary),
+      "planned_status_category" => Map.get(lifecycle_state, "planned_status_category"),
+      "realized_status_category" => Map.get(lifecycle_state, "realized_status_category"),
       "feedback_status" => value(primary, "feedback_status"),
       "status_transition" => value(primary, "status_transition"),
       "planned_approval_status" => Map.get(lifecycle_state, "planned_approval_status"),

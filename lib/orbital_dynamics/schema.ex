@@ -6063,6 +6063,7 @@ defmodule OrbitalDynamics.Schema do
         "planned_protection_decision",
         "planned_protection_reason",
         "planned_status",
+        "planned_status_category",
         "planned_timeline_id",
         "realized_approval_category",
         "realized_approval_status",
@@ -6070,6 +6071,7 @@ defmodule OrbitalDynamics.Schema do
         "realized_locked",
         "realized_protection_decision",
         "realized_status",
+        "realized_status_category",
         "realized_timeline_id",
         "source_activity_context",
         "source_protection_decision",
@@ -10198,9 +10200,11 @@ defmodule OrbitalDynamics.Schema do
               "planned_protection_category",
               "planned_protection_reason",
               "planned_status",
+              "planned_status_category",
               "realized_approval_category",
               "realized_approval_status",
-              "realized_status"
+              "realized_status",
+              "realized_status_category"
             ] do
     %{"type" => "string"}
   end
@@ -37170,6 +37174,8 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(path, state, "approval_transition", :map)
     |> validate_optional_lifecycle_transition(path, state, "status_transition")
     |> validate_optional_lifecycle_transition(path, state, "approval_transition")
+    |> expect_optional_type(path, state, "planned_status_category", :binary)
+    |> expect_optional_type(path, state, "realized_status_category", :binary)
     |> expect_optional_type(path, state, "planned_approval_status", :binary)
     |> expect_optional_type(path, state, "realized_approval_status", :binary)
     |> expect_optional_type(path, state, "planned_approval_category", :binary)
