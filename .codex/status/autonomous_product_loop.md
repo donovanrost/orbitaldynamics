@@ -1,15 +1,16 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Make CandidateRefresh link-capacity route/source-window maps schema-visible.
+Make CandidateRefresh contact-filter source-report routing and station-suppression maps schema-visible.
 
 Status:
-Implemented, locally verified, reviewed clean, committed, and pushed.
-Runtime CandidateRefresh link-capacity source summaries already preserve
-direction, source-window, station-calendar, ground-station, spacecraft,
-selected/actual-throughput, and requirement-status routing maps, but the
+Implemented, locally verified, and reviewed clean; publish pending.
+Runtime CandidateRefresh contact-filter source summaries already preserve
+suppressed contact counts, invalid contact IDs, suppressed-reason maps,
+direction routing, and station-suppression contact/calendar/reservation maps,
+but the
 `candidate_refresh.v1` family-specific source-report JSON Schema does not
-advertise those link-capacity fields. This is a contract
+advertise those contact-filter fields. This is a contract
 discoverability slice only: no replay behavior, runtime validation helpers,
 artifact generation logic, or operator/Cadence authority behavior changed.
 
@@ -21,13 +22,11 @@ Files changed:
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 
 Definition of done:
-- `candidate_refresh.v1` exposes a family-specific `link_capacity_report`
+- `candidate_refresh.v1` exposes a family-specific `contact_filter_report`
   source-report schema.
-- Its source-report object advertises link-capacity row counts, throughput
-  totals/maps, selected/actual-throughput ID lists, direction/source-window/
-  station-calendar/ground-station/spacecraft/requirement-status ID maps, and
-  `direction_routing` route objects with contact, source-window, station
-  calendar, and throughput fields.
+- Its source-report object advertises contact-filter counts, invalid contact
+  IDs, suppressed-reason count/contact maps, directions and direction routing,
+  and station-suppression contact/calendar/provider/reservation ID maps.
 - Checked-in `candidate_refresh.v1` schema and schema bundle are refreshed.
 - Schema export tests, schema tests, schema lint, and whitespace checks pass.
 
@@ -39,20 +38,21 @@ Tests run:
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
-- `jq` spot-checks for `link_capacity_report` in
+- `jq` spot-checks for `contact_filter_report` in
   `schemas/candidate_refresh.v1.schema.json` and the schema bundle.
 - `slice_reviewer`: no must-fix findings; reran focused export test,
   whitespace check, and generated-schema `jq` spot-checks.
-- `git_slice_publisher`: committed and pushed.
+- `git_slice_publisher`: pending.
 
 Last completed implementation commit:
 `18a8d094605ca5b56b7aa33a55c9bea34226b928` pushed to `origin/main`.
 
 Last ledger correction commit:
-`f3ec8941b833f67a1190621dd0de9a0dce900651` pushed to `origin/main`.
+`775bcfc4ae033644839d96ac9bc54d2311349fe3` pushed to `origin/main`.
 
 Next candidate:
-Rerun the mapper against the current checkout.
+After this slice, evaluate resource-filter direction routing from the mapper
+result.
 
 Blocked:
 No.

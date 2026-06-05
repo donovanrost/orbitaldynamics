@@ -721,6 +721,149 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       end
     )
 
+    candidate_refresh_contact_filter_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "contact_filter_report",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        "suppressed_candidate_count",
+        "invalid_contact_input_count",
+        "station_suppression_count"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_contact_filter_source_report, [
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_contact_filter_source_report, [
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "suppressed_reason_counts",
+        "direction_counts",
+        "station_suppression_ground_station_counts",
+        "station_suppression_availability_counts",
+        "station_suppression_status_counts"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_contact_filter_source_report, [
+                 field,
+                 "additionalProperties",
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_contact_filter_source_report, [
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    assert get_in(candidate_refresh_contact_filter_source_report, [
+             "directions",
+             "items",
+             "type"
+           ]) == "string"
+
+    Enum.each(
+      [
+        ["invalid_contact_input_ids", "items"],
+        ["contact_ids_by_suppressed_reason", "additionalProperties", "items"],
+        ["contact_ids_by_direction", "additionalProperties", "items"],
+        [
+          "station_suppression_contact_ids_by_ground_station",
+          "additionalProperties",
+          "items"
+        ],
+        [
+          "station_suppression_contact_ids_by_availability",
+          "additionalProperties",
+          "items"
+        ],
+        ["station_suppression_contact_ids_by_status", "additionalProperties", "items"],
+        [
+          "station_suppression_station_calendar_entry_ids_by_ground_station",
+          "additionalProperties",
+          "items"
+        ],
+        [
+          "station_suppression_station_calendar_entry_ids_by_availability",
+          "additionalProperties",
+          "items"
+        ],
+        [
+          "station_suppression_station_calendar_entry_ids_by_status",
+          "additionalProperties",
+          "items"
+        ],
+        [
+          "station_suppression_station_calendar_provider_entry_ids_by_ground_station",
+          "additionalProperties",
+          "items"
+        ],
+        [
+          "station_suppression_station_calendar_provider_entry_ids_by_availability",
+          "additionalProperties",
+          "items"
+        ],
+        [
+          "station_suppression_station_calendar_provider_entry_ids_by_status",
+          "additionalProperties",
+          "items"
+        ],
+        [
+          "station_suppression_station_reservation_ids_by_ground_station",
+          "additionalProperties",
+          "items"
+        ],
+        [
+          "station_suppression_station_reservation_ids_by_availability",
+          "additionalProperties",
+          "items"
+        ],
+        [
+          "station_suppression_station_reservation_ids_by_status",
+          "additionalProperties",
+          "items"
+        ],
+        [
+          "direction_routing",
+          "additionalProperties",
+          "properties",
+          "contact_ids",
+          "items"
+        ]
+      ],
+      fn path ->
+        assert get_in(candidate_refresh_contact_filter_source_report, path ++ ["pattern"]) ==
+                 "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+      end
+    )
+
+    assert get_in(candidate_refresh_contact_filter_source_report, [
+             "direction_routing",
+             "additionalProperties",
+             "properties",
+             "contact_count",
+             "minimum"
+           ]) == 0
+
     assert Map.has_key?(schemas, "contact_allocation_summary.v1")
     assert Map.has_key?(schemas, "contact_allocation_reservation_conflict_summary.v1")
     assert Map.has_key?(schemas, "contact_allocation_station_pressure_summary.v1")
