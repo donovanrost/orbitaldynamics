@@ -4,7 +4,7 @@ Current slice:
 Expose CandidateRefresh resource-projection source-report schema property.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 CandidateRefresh resource-projection source summaries already preserve
 projected-resource and invalid-input counts, resource pressure count maps,
 source artifact/model count maps, resource pressure ID maps, direction
@@ -44,9 +44,10 @@ Tests run:
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
   test, schema lint, whitespace check, and generated-schema `jq` spot-checks.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-Pending for this slice.
+`f253b9d66bed04838f95109b53ed54acb6b150d3` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending for this slice.
