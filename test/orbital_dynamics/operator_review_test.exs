@@ -2733,7 +2733,7 @@ defmodule OrbitalDynamics.OperatorReviewTest do
                "timeline_lifecycle_state_status" => "review_required",
                "approval_status" => "not_required",
                "source_lifecycle_state_review_required_count" => 0,
-               "source_timeline_lifecycle_state" => %{
+               "source_timeline_activity_state" => %{
                  "schema_contract" => "timeline_activity_state.v1",
                  "timeline_id" => "timeline:cmd_provider",
                  "state_status" => "matched",
@@ -2741,6 +2741,11 @@ defmodule OrbitalDynamics.OperatorReviewTest do
                }
              }
            ] = activity_state_package["rows"]
+
+    refute Map.has_key?(
+             hd(activity_state_package["rows"]),
+             "source_timeline_lifecycle_state"
+           )
 
     approval_package = OperatorReview.from_timeline_activity_approval_state(approval_state)
 
@@ -2808,6 +2813,25 @@ defmodule OrbitalDynamics.OperatorReviewTest do
 
     assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
              Schema.validate_artifact(lifecycle_package)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(activity_state_package)
+
+    invalid_activity_state_source =
+      put_in(
+        activity_state_package,
+        ["rows", Access.at(0), "source_timeline_activity_state", "timeline_id"],
+        "bad timeline id"
+      )
+
+    assert {:error, invalid_activity_state_source_report} =
+             Schema.validate_artifact(invalid_activity_state_source)
+
+    assert Enum.any?(
+             invalid_activity_state_source_report["errors"],
+             &(&1["path"] == "$.rows[0].source_timeline_activity_state.timeline_id" and
+                 &1["message"] =~ "stable ID")
+           )
 
     invalid_status_state =
       Timeline.activity_status_state(

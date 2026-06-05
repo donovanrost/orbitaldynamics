@@ -7293,6 +7293,7 @@ defmodule OrbitalDynamics.CadenceImport do
       "realized_activity_id",
       "planned_activity_context",
       "realized_activity_context",
+      "source_timeline_activity_state",
       "source_timeline_lifecycle_state",
       "timeline_preservation_status",
       "requires_preservation",

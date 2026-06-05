@@ -22431,6 +22431,41 @@ defmodule OrbitalDynamics.Schema do
     }
   end
 
+  defp timeline_activity_state_source_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "properties" => %{
+        "schema_contract" => %{"type" => "string", "const" => "timeline_activity_state.v1"},
+        "model" => %{"type" => "string", "const" => "artifact_only_timeline_activity_state"},
+        "validation_level" => %{"type" => "string", "const" => "artifact_contract"},
+        "state_status" => %{"type" => "string"},
+        "row_count" => %{"type" => "integer", "minimum" => 0},
+        "timeline_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "activity_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "activity_ids" => stable_id_array_schema(),
+        "review_required" => %{"type" => "boolean"},
+        "review_activity_ids" => stable_id_array_schema(),
+        "planned_status" => %{"type" => "string"},
+        "realized_status" => %{"type" => "string"},
+        "planned_status_category" => %{"type" => "string"},
+        "realized_status_category" => %{"type" => "string"},
+        "planned_approval_status" => %{"type" => "string"},
+        "realized_approval_status" => %{"type" => "string"},
+        "planned_approval_category" => %{"type" => "string"},
+        "realized_approval_category" => %{"type" => "string"},
+        "planned_locked" => %{"type" => "boolean"},
+        "realized_locked" => %{"type" => "boolean"},
+        "planned_executed" => %{"type" => "boolean"},
+        "realized_executed" => %{"type" => "boolean"},
+        "status_transition" => lifecycle_transition_json_schema(),
+        "approval_transition" => lifecycle_transition_json_schema(),
+        "source_protection_decision" => protection_decision_json_schema(),
+        "realized_protection_decision" => protection_decision_json_schema()
+      }
+    }
+  end
+
   defp timeline_activity_precondition_summary_source_json_schema do
     contract = Map.fetch!(@contracts, @timeline_activity_precondition_summary)
     required_fields = contract["required_fields"]
@@ -23804,6 +23839,7 @@ defmodule OrbitalDynamics.Schema do
           "source_timeline_application" => timeline_transition_application_row_json_schema(),
           "source_timeline_integrity" => operational_timeline_row_json_schema(),
           "source_timeline_protection" => timeline_protection_summary_json_schema(),
+          "source_timeline_activity_state" => timeline_activity_state_source_json_schema(),
           "source_timeline_lifecycle_state" => timeline_lifecycle_state_source_json_schema(),
           "source_timeline_activity_precondition_summary" =>
             timeline_activity_precondition_summary_source_json_schema(),
@@ -24277,6 +24313,7 @@ defmodule OrbitalDynamics.Schema do
           "source_timeline_application" => timeline_transition_application_row_json_schema(),
           "source_timeline_integrity" => operational_timeline_row_json_schema(),
           "source_timeline_protection" => timeline_protection_summary_json_schema(),
+          "source_timeline_activity_state" => timeline_activity_state_source_json_schema(),
           "source_timeline_lifecycle_state" => timeline_lifecycle_state_source_json_schema(),
           "source_timeline_activity_precondition_summary" =>
             timeline_activity_precondition_summary_source_json_schema(),
@@ -24995,6 +25032,7 @@ defmodule OrbitalDynamics.Schema do
           "source_timeline_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
           "source_timeline_application" => timeline_transition_application_row_json_schema(),
           "source_timeline_integrity" => operational_timeline_row_json_schema(),
+          "source_timeline_activity_state" => timeline_activity_state_source_json_schema(),
           "source_timeline_lifecycle_state" => timeline_lifecycle_state_source_json_schema(),
           "source_timeline_activity_precondition_summary" =>
             timeline_activity_precondition_summary_source_json_schema(),
@@ -38851,6 +38889,15 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp validate_optional_timeline_lifecycle_state_source_row(issues, path, _row),
+    do: [error(path, "must be an object") | issues]
+
+  defp validate_optional_timeline_activity_state_source(issues, _path, nil), do: issues
+
+  defp validate_optional_timeline_activity_state_source(issues, path, %{} = state) do
+    validate_timeline_activity_state(issues, path, state)
+  end
+
+  defp validate_optional_timeline_activity_state_source(issues, path, _state),
     do: [error(path, "must be an object") | issues]
 
   defp validate_optional_lifecycle_state_source_protection_decision(issues, path, row, field) do
@@ -53127,6 +53174,7 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(path, row, "source_timeline_application", :map)
     |> expect_optional_type(path, row, "source_timeline_integrity", :map)
     |> expect_optional_type(path, row, "source_timeline_protection", :map)
+    |> expect_optional_type(path, row, "source_timeline_activity_state", :map)
     |> expect_optional_type(path, row, "source_timeline_lifecycle_state", :map)
     |> expect_optional_type(path, row, "source_timeline_activity_precondition_summary", :map)
     |> expect_optional_type(path, row, "source_timeline_preservation", :map)
@@ -53148,6 +53196,10 @@ defmodule OrbitalDynamics.Schema do
       Map.get(row, "source_timeline_integrity")
     )
     |> validate_optional_timeline_protection_summary(path, row, "source_timeline_protection")
+    |> validate_optional_timeline_activity_state_source(
+      path <> ".source_timeline_activity_state",
+      Map.get(row, "source_timeline_activity_state")
+    )
     |> validate_optional_timeline_lifecycle_state_source_row(
       path <> ".source_timeline_lifecycle_state",
       Map.get(row, "source_timeline_lifecycle_state")
@@ -53310,8 +53362,13 @@ defmodule OrbitalDynamics.Schema do
     |> validate_optional_timeline_identity(path, row, "replacement_timeline_identity")
     |> expect_optional_type(path, row, "source_timeline_protection", :map)
     |> validate_optional_timeline_protection_summary(path, row, "source_timeline_protection")
+    |> expect_optional_type(path, row, "source_timeline_activity_state", :map)
     |> expect_optional_type(path, row, "source_timeline_lifecycle_state", :map)
     |> expect_optional_type(path, row, "source_timeline_activity_precondition_summary", :map)
+    |> validate_optional_timeline_activity_state_source(
+      path <> ".source_timeline_activity_state",
+      Map.get(row, "source_timeline_activity_state")
+    )
     |> validate_optional_timeline_lifecycle_state_source_row(
       path <> ".source_timeline_lifecycle_state",
       Map.get(row, "source_timeline_lifecycle_state")
@@ -58145,6 +58202,7 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(path, row, "source_timeline_transition_application_summary", :map)
     |> expect_optional_type(path, row, "source_timeline_application", :map)
     |> expect_optional_type(path, row, "source_timeline_integrity", :map)
+    |> expect_optional_type(path, row, "source_timeline_activity_state", :map)
     |> expect_optional_type(path, row, "source_timeline_lifecycle_state", :map)
     |> expect_optional_type(path, row, "source_timeline_activity_precondition_summary", :map)
     |> expect_optional_type(path, row, "source_timeline_preservation", :map)
@@ -58163,6 +58221,10 @@ defmodule OrbitalDynamics.Schema do
     |> validate_optional_timeline_integrity_source_row(
       path <> ".source_timeline_integrity",
       Map.get(row, "source_timeline_integrity")
+    )
+    |> validate_optional_timeline_activity_state_source(
+      path <> ".source_timeline_activity_state",
+      Map.get(row, "source_timeline_activity_state")
     )
     |> validate_optional_timeline_lifecycle_state_source_row(
       path <> ".source_timeline_lifecycle_state",

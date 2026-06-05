@@ -13806,6 +13806,22 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert get_in(cadence_row_schema, [
              "properties",
+             "source_timeline_activity_state",
+             "properties",
+             "schema_contract",
+             "const"
+           ]) == "timeline_activity_state.v1"
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_timeline_activity_state",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
              "source_timeline_lifecycle_state",
              "properties",
              "timeline_id",
@@ -14405,6 +14421,22 @@ defmodule OrbitalDynamics.SchemaTest do
              "properties",
              "review_required_count"
            ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "source_timeline_activity_state",
+             "properties",
+             "schema_contract",
+             "const"
+           ]) == "timeline_activity_state.v1"
+
+    assert get_in(operator_review_row_schema, [
+             "properties",
+             "source_timeline_activity_state",
+             "properties",
+             "timeline_id",
+             "pattern"
+           ]) == stable_id_pattern
 
     assert get_in(operator_review_row_schema, [
              "properties",
@@ -15264,6 +15296,26 @@ defmodule OrbitalDynamics.SchemaTest do
              "properties",
              "preserved_locked_or_approved_activity_ids",
              "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_timeline_activity_state",
+             "properties",
+             "schema_contract",
+             "const"
+           ]) == "timeline_activity_state.v1"
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "source_timeline_activity_state",
+             "properties",
+             "timeline_id",
              "pattern"
            ]) == stable_id_pattern
 

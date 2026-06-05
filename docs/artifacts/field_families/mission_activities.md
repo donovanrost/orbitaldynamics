@@ -376,8 +376,9 @@ adapter-safe. Runtime validation and schema export also pin its timeline
 model-limit boundary, so schema-only handoffs cannot accept stale model-limit
 lists. Operator-review packages and Cadence-import manifests accept the
 same compact activity-state artifact directly, preserving source activity-state
-rows, source artifact identity, and the no-schedule-mutation/no-command-execution
-boundary as adapter handoff evidence. Unmatched planned/realized pairs remain
+rows under `source_timeline_activity_state`, source artifact identity, and the
+no-schedule-mutation/no-command-execution boundary as adapter handoff evidence.
+Unmatched planned/realized pairs remain
 visible as review-required state rows instead of being collapsed into a single
 arbitrary activity.
 For callers that only need status normalization without full feedback

@@ -11622,9 +11622,15 @@ defmodule OrbitalDynamics.CadenceImportTest do
                "timeline_id" => "timeline:cmd_provider",
                "activity_id" => "cmd_provider",
                "approval_status" => "not_required",
+               "source_timeline_activity_state" => %{
+                 "schema_contract" => "timeline_activity_state.v1",
+                 "timeline_id" => "timeline:cmd_provider",
+                 "state_status" => "matched",
+                 "row_count" => 1
+               },
                "source_review_row" => %{
                  "source" => "timeline_activity_state.state",
-                 "source_timeline_lifecycle_state" => %{
+                 "source_timeline_activity_state" => %{
                    "schema_contract" => "timeline_activity_state.v1",
                    "timeline_id" => "timeline:cmd_provider",
                    "state_status" => "matched",
@@ -11633,6 +11639,11 @@ defmodule OrbitalDynamics.CadenceImportTest do
                }
              }
            ] = activity_state_manifest["rows"]
+
+    refute Map.has_key?(
+             hd(activity_state_manifest["rows"]),
+             "source_timeline_lifecycle_state"
+           )
 
     approval_manifest = CadenceImport.from_timeline_activity_approval_state(approval_state)
 
@@ -11714,7 +11725,7 @@ defmodule OrbitalDynamics.CadenceImportTest do
     invalid_activity_state_source =
       put_in(
         activity_state_manifest,
-        ["rows", Access.at(0), "source_timeline_lifecycle_state", "timeline_id"],
+        ["rows", Access.at(0), "source_timeline_activity_state", "timeline_id"],
         "bad timeline id"
       )
 
@@ -11724,7 +11735,7 @@ defmodule OrbitalDynamics.CadenceImportTest do
     assert Enum.any?(
              invalid_activity_state_source_report["errors"],
              &(&1["path"] ==
-                 "$.rows[0].source_timeline_lifecycle_state.timeline_id")
+                 "$.rows[0].source_timeline_activity_state.timeline_id")
            )
 
     invalid_status_state =

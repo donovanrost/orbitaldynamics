@@ -9647,11 +9647,21 @@ defmodule OrbitalDynamics.OperatorReview do
       "source_realized_activity_count" => summary["realized_activity_count"],
       "source_lifecycle_state_review_required_count" => summary["review_required_count"],
       "planned_activity_context" => row["planned_activity_context"],
-      "realized_activity_context" => row["realized_activity_context"],
-      "source_timeline_lifecycle_state" => row
+      "realized_activity_context" => row["realized_activity_context"]
     }
+    |> Map.put(timeline_activity_state_source_field(row), row)
     |> compact_map()
   end
+
+  defp timeline_activity_state_source_field(%{"schema_contract" => "timeline_activity_state.v1"}),
+    do: "source_timeline_activity_state"
+
+  defp timeline_activity_state_source_field(%{
+         "model" => "artifact_only_timeline_activity_state"
+       }),
+       do: "source_timeline_activity_state"
+
+  defp timeline_activity_state_source_field(_row), do: "source_timeline_lifecycle_state"
 
   defp lifecycle_state_approval_status(%{"review_required" => false}), do: "not_required"
   defp lifecycle_state_approval_status(_row), do: "operator_review_required"
