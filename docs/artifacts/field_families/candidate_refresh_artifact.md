@@ -1378,6 +1378,11 @@ actual-throughput row or contact evidence contribute to the same composed
 pressure flags without implying a shortfall. Resource-activity routing evidence
 contributes to the composed storage/downlink pressure flag even when
 storage/downlink status, type, and direction maps are absent.
+Aggregate pressure-family count and row-count maps preserve explicit zero
+identity for contact-allocation, link-capacity, and resource-projection families,
+but omit missing or nil identity counts. Explicit empty path lists remain
+normalized to an empty aggregate path set while non-identity routing maps can
+still drive branch-local storage/downlink pressure.
 
 `CandidateRefresh.station_calendar_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_station_calendar_replay_summary/1` expose

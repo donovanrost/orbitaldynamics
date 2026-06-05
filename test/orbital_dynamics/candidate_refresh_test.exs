@@ -13142,6 +13142,94 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     refute summary["branch_local_downlink_shortfall_pressure"]
   end
 
+  test "storage downlink pressure replay summary preserves explicit zero family identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => []
+          },
+          "link_capacity_report" => %{
+            "contract" => "link_capacity_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => []
+          },
+          "resource_projection_report" => %{
+            "contract" => "resource_projection_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.storage_downlink_pressure_replay_summary(artifact)
+
+    assert %{
+             "source_report_count" => 0,
+             "source_report_row_count" => 0,
+             "source_report_counts_by_family" => %{
+               "contact_allocation_report" => 0,
+               "link_capacity_report" => 0,
+               "resource_projection_report" => 0
+             },
+             "source_report_row_counts_by_family" => %{
+               "contact_allocation_report" => 0,
+               "link_capacity_report" => 0,
+               "resource_projection_report" => 0
+             },
+             "source_report_paths" => [],
+             "source_report_paths_by_family" => %{}
+           } = summary
+
+    refute summary["branch_local_storage_downlink_pressure"]
+  end
+
+  test "storage downlink pressure replay summary omits missing family identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "paths" => ["source_contact_allocation_report"],
+            "capacity_pack_contact_ids_by_direction" => %{"downlink" => ["contact_only"]}
+          },
+          "link_capacity_report" => %{
+            "contract" => "link_capacity_report.v1",
+            "count" => nil,
+            "row_count" => nil,
+            "paths" => nil,
+            "selected_contact_id_counts" => %{"selected_only" => 1}
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.storage_downlink_pressure_replay_summary(artifact)
+
+    assert summary["source_report_count"] == 0
+    assert summary["source_report_row_count"] == 0
+    assert summary["source_report_counts_by_family"] == %{}
+    assert summary["source_report_row_counts_by_family"] == %{}
+    assert summary["source_report_paths"] == ["source_contact_allocation_report"]
+
+    assert summary["source_report_paths_by_family"] == %{
+             "contact_allocation_report" => ["source_contact_allocation_report"]
+           }
+
+    assert summary["capacity_pack_contact_ids_by_direction"] == %{"downlink" => ["contact_only"]}
+    assert summary["selected_contact_id_counts"] == %{"selected_only" => 1}
+    assert summary["branch_local_storage_downlink_pressure"]
+    assert summary["branch_local_downlink_pressure"]
+  end
+
   test "storage downlink pressure replay summary is clear when pressure provenance is absent" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",

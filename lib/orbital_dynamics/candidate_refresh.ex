@@ -24574,10 +24574,20 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
   defp pressure_summary_counts_by_family(pressure_reports, field \\ "count") do
     pressure_reports
-    |> Map.new(fn {family, summary} -> {family, summary_integer(summary, field)} end)
-    |> Enum.reject(fn {_family, count} -> count == 0 end)
+    |> Map.new(fn {family, summary} -> {family, pressure_summary_count(summary, field)} end)
+    |> Enum.reject(fn {_family, count} -> is_nil(count) end)
     |> Map.new()
   end
+
+  defp pressure_summary_count(summary, field) when is_map(summary) do
+    if is_nil(Map.get(summary, field)) do
+      nil
+    else
+      summary_integer(summary, field)
+    end
+  end
+
+  defp pressure_summary_count(_summary, _field), do: nil
 
   defp pressure_summary_counts_by_trust_boundary_status(pressure_reports) do
     pressure_reports
