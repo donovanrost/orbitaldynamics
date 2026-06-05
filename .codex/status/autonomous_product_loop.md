@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh source-report publication artifact ID arrays schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean. Awaiting commit/push.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 CandidateRefresh top-level JSON Schema now explicitly advertises the
 already-emitted source-report publication artifact ID arrays:
 `source_report_timeline_publication_source_artifact_ids`,
@@ -39,15 +39,16 @@ Tests run:
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`e48e89bc956d5ab41339921cb8182a80fbc11877` pushed to `origin/main`.
+`231ca1555b0f6e59674adadbc2d074a02d8ecb56` pushed to `origin/main`.
 
 Last ledger correction commit:
-`cb221d74c4faaf32b572785c00189852b2da4ccf` pushed to `origin/main`.
+Pending.
 
 Next candidate:
-After review/publish, rerun the mapper against the current checkout.
+Rerun the mapper against the current checkout.
 
 Blocked:
 No.
