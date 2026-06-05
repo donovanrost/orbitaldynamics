@@ -1,20 +1,20 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh station-calendar source-report identity rollups.
+CandidateRefresh station-reservation source-report identity rollups.
 
 Status:
 Implemented with focused verification passing locally.
 `CandidateRefresh.source_report_summary/1` now
-flattens `source_report_station_calendar_contract`,
-`source_report_station_calendar_count`,
-`source_report_station_calendar_row_count`, and
-`source_report_station_calendar_paths` alongside the existing station-calendar
-affected-contact, provider-contention, direction, reserved-by, reservation,
-capacity-fraction, summary-model, and trust-boundary aggregate fields. Partial
-family placeholders preserve only a declared contract until both identity
-counts are present; explicit zero counts and explicit empty paths are
-preserved.
+flattens `source_report_station_reservation_contract`,
+`source_report_station_reservation_count`,
+`source_report_station_reservation_row_count`, and
+`source_report_station_reservation_paths` alongside the existing
+station-reservation affected-contact, provider-contention, reservation-review,
+hold, import-readiness, direction, owner, match/status, expiration, summary
+model, and trust-boundary aggregate fields. Partial family placeholders
+preserve only a declared contract until both identity counts are present;
+explicit zero counts and explicit empty paths are preserved.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -24,7 +24,7 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:14102 test/orbital_dynamics/candidate_refresh_test.exs:14842 test/orbital_dynamics/candidate_refresh_test.exs:15074 test/orbital_dynamics/candidate_refresh_test.exs:15094 test/orbital_dynamics/candidate_refresh_test.exs:15133 test/orbital_dynamics/candidate_refresh_test.exs:15161 test/orbital_dynamics/candidate_refresh_test.exs:15185`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:25741 test/orbital_dynamics/candidate_refresh_test.exs:26158 test/orbital_dynamics/candidate_refresh_test.exs:26538 test/orbital_dynamics/candidate_refresh_test.exs:26938 test/orbital_dynamics/candidate_refresh_test.exs:26958 test/orbital_dynamics/candidate_refresh_test.exs:26997 test/orbital_dynamics/candidate_refresh_test.exs:27025 test/orbital_dynamics/candidate_refresh_test.exs:27049`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 
@@ -32,7 +32,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`1644c15` (`Flatten station calendar replay identity`).
+Pending publish for this station-reservation slice.
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth from

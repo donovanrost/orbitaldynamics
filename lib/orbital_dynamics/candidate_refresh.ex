@@ -794,6 +794,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "trust_boundary_status",
           "row_count"
         ),
+      "source_report_station_reservation_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "station_reservation_report",
+          "contract"
+        ),
+      "source_report_station_reservation_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "station_reservation_report",
+          "count"
+        ),
+      "source_report_station_reservation_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "station_reservation_report",
+          "row_count"
+        ),
+      "source_report_station_reservation_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "station_reservation_report",
+          "paths"
+        ),
       "source_report_station_reservation_evidence_row_count" =>
         source_report_summary_count(source_reports, "station_reservation_evidence_row_count"),
       "source_report_station_reservation_expiration_evidence_row_count" =>

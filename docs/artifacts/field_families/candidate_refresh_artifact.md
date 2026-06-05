@@ -272,7 +272,8 @@ wrapper-qualified source paths and list indexes.
 `CandidateRefresh.station_reservation_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_station_reservation_replay_summary/1` expose
 that same provenance as a compact branch-local replay summary. It preserves
-station-reservation paths, affected-contact and provider-contention counts,
+station-reservation contract, count, row-count, paths, affected-contact and
+provider-contention counts,
 affected contact IDs plus contact-ID maps by match status and reservation
 status, affected-contact direction counts and contact-ID maps by direction,
 provider-contention provider/station routing maps, provider-contention group
@@ -300,6 +301,9 @@ station-reservation reports with wrapper-qualified request paths and indexed
 embedded replay copies, keeping affected-contact/provider-contention counts,
 reservation review, direction, owner, match/status, expiration, and
 trust-boundary evidence visible in generated candidate-source provenance.
+Partial station-reservation source-report family placeholders can preserve the
+declared contract, but omit flattened count, row-count, and path fields until
+both identity counts are present.
 Direct, accepted-state, and mission-state
 `source_station_reservation_hold_summary` /
 `station_reservation_hold_summary` inputs replay through the same
