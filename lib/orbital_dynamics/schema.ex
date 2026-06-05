@@ -21160,6 +21160,8 @@ defmodule OrbitalDynamics.Schema do
           "properties" => %{
             "contact_allocation_report" =>
               candidate_refresh_contact_allocation_source_report_summary_json_schema(),
+            "contact_contention_report" =>
+              candidate_refresh_contact_contention_source_report_summary_json_schema(),
             "contact_intent" =>
               candidate_refresh_contact_intent_source_report_summary_json_schema(),
             "station_calendar_report" =>
@@ -21266,6 +21268,22 @@ defmodule OrbitalDynamics.Schema do
       ["properties", "direction_routing"],
       contact_allocation_direction_routing_json_schema()
     )
+  end
+
+  defp candidate_refresh_contact_contention_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      Map.merge(properties, %{
+        "conflict_group_count" => %{"type" => "integer", "minimum" => 0},
+        "invalid_contact_input_count" => %{"type" => "integer", "minimum" => 0},
+        "invalid_contact_input_ids" => stable_id_array_schema(),
+        "resource_scope_counts" => non_negative_integer_count_map_json_schema(),
+        "direction_counts" => non_negative_integer_count_map_json_schema(),
+        "contact_ids_by_direction" => stable_id_array_map_schema(),
+        "required_operator_action_counts" => non_negative_integer_count_map_json_schema(),
+        "direction_routing" => contact_contention_direction_routing_json_schema()
+      })
+    end)
   end
 
   defp candidate_refresh_link_capacity_context_json_schema_properties do
@@ -21528,6 +21546,20 @@ defmodule OrbitalDynamics.Schema do
           "provider_reservation_no_request_contact_ids" => stable_id_array_schema(),
           "provider_reservation_request_contact_ids" => stable_id_array_schema(),
           "provider_reservation_review_contact_ids" => stable_id_array_schema()
+        }
+      }
+    }
+  end
+
+  defp contact_contention_direction_routing_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => %{
+        "type" => "object",
+        "additionalProperties" => true,
+        "properties" => %{
+          "contact_count" => %{"type" => "integer", "minimum" => 0},
+          "contact_ids" => stable_id_array_schema()
         }
       }
     }
