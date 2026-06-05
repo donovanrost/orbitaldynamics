@@ -44,7 +44,7 @@ Last completed implementation commit:
 `f80a08d54cf5934b94ffecd351e39da98b94c8aa` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending.
+`891ac9c5a0b1fa0e16c24358042e2d0f02a01cd1` pushed to `origin/main`.
 
 Next candidate:
 Resource-projection status/type ID routing maps from the mapper result.
