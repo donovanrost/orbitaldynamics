@@ -31,7 +31,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-Pending publish.
+`b7b9046` (`Flatten transition application replay row count`).
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth from
