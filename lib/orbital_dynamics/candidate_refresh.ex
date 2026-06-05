@@ -6813,6 +6813,20 @@ defmodule OrbitalDynamics.CandidateRefresh do
       }
     }
     |> Map.merge(
+      source_report_timeline_publication_context_fields(
+        source_reports,
+        "operational_readiness_report",
+        "source_report_operational_readiness"
+      )
+    )
+    |> Map.merge(
+      source_report_timeline_publication_context_fields(
+        source_reports,
+        "quality_gate_report",
+        "source_report_quality_gate"
+      )
+    )
+    |> Map.merge(
       source_report_timeline_activity_single_state_fields(
         refresh_or_artifact,
         source_reports,
@@ -13545,6 +13559,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
       import_review_count + missing_import_count + blocked_import_count + invalid_import_count >
         0 or map_size(import_action_counts) > 0
 
+    timeline_publication_context =
+      timeline_publication_context_replay_fields(readiness_summary, true)
+
     %{
       "model" => "artifact_only_candidate_refresh_operational_readiness_replay_summary",
       "source" => summary_source,
@@ -13617,6 +13634,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         "candidate_generation" => "not_performed_by_summary"
       }
     }
+    |> Map.merge(timeline_publication_context)
     |> compact_map()
   end
 
@@ -13718,6 +13736,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
       import_review_count + missing_import_count + blocked_import_count + invalid_import_count >
         0 or map_size(import_status_counts) > 0 or map_size(cadence_import_status_counts) > 0
 
+    timeline_publication_context =
+      timeline_publication_context_replay_fields(quality_gate_summary, false)
+
     %{
       "model" => "artifact_only_candidate_refresh_quality_gate_replay_summary",
       "source" => "candidate_refresh.source_report_provenance.quality_gate_report",
@@ -13784,6 +13805,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         "candidate_generation" => "not_performed_by_summary"
       }
     }
+    |> Map.merge(timeline_publication_context)
     |> compact_map()
   end
 
@@ -18812,6 +18834,126 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> source_report_summary_merge_string_lists(field)
   end
 
+  defp source_report_timeline_publication_context_fields(source_reports, family, prefix) do
+    %{
+      "#{prefix}_publication_status_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          family,
+          "publication_status_counts"
+        ),
+      "#{prefix}_dependency_impact_status_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          family,
+          "dependency_impact_status_counts"
+        ),
+      "#{prefix}_publication_authority_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          family,
+          "publication_authority_counts"
+        ),
+      "#{prefix}_timeline_publication_source_artifact_type_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          family,
+          "timeline_publication_source_artifact_type_counts"
+        ),
+      "#{prefix}_publication_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          family,
+          "publication_ids"
+        ),
+      "#{prefix}_source_artifact_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          family,
+          "source_artifact_ids"
+        ),
+      "#{prefix}_supersedes_artifact_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          family,
+          "supersedes_artifact_ids"
+        ),
+      "#{prefix}_downstream_product_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          family,
+          "downstream_product_ids"
+        ),
+      "#{prefix}_invalidated_downstream_product_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          family,
+          "invalidated_downstream_product_ids"
+        ),
+      "#{prefix}_dependency_impact_row_count" =>
+        source_report_summary_family_count(source_reports, family, "dependency_impact_row_count"),
+      "#{prefix}_impacted_dependency_activity_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          family,
+          "impacted_dependency_activity_ids"
+        ),
+      "#{prefix}_impacted_dependency_timeline_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          family,
+          "impacted_dependency_timeline_ids"
+        ),
+      "#{prefix}_impacted_exclusive_with_activity_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          family,
+          "impacted_exclusive_with_activity_ids"
+        ),
+      "#{prefix}_impacted_exclusive_with_timeline_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          family,
+          "impacted_exclusive_with_timeline_ids"
+        ),
+      "#{prefix}_timeline_diff_row_count" =>
+        source_report_summary_family_count(source_reports, family, "timeline_diff_row_count"),
+      "#{prefix}_timeline_diff_changed_count" =>
+        source_report_summary_family_count(source_reports, family, "timeline_diff_changed_count"),
+      "#{prefix}_timeline_diff_review_required_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          family,
+          "timeline_diff_review_required_count"
+        ),
+      "#{prefix}_changed_field_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          family,
+          "changed_field_counts"
+        ),
+      "#{prefix}_changed_timeline_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          family,
+          "changed_timeline_ids"
+        ),
+      "#{prefix}_review_timeline_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          family,
+          "review_timeline_ids"
+        ),
+      "#{prefix}_timeline_ids_by_changed_field" =>
+        source_report_summary_family_merge_string_list_maps(
+          source_reports,
+          family,
+          "timeline_ids_by_changed_field"
+        )
+    }
+    |> compact_map()
+  end
+
   defp source_report_summary_counts_by_family(source_reports, field) do
     source_reports
     |> Enum.map(fn {family, source_report} ->
@@ -21299,6 +21441,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "trust_boundary_status" => source_report_trust_boundary_status(reports),
       "trust_boundaries" => source_report_trust_boundaries(reports)
     }
+    |> Map.merge(operational_readiness_timeline_publication_input_summary(reports))
     |> compact_map()
   end
 
@@ -21499,6 +21642,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "trust_boundary_status" => source_report_trust_boundary_status(reports),
       "trust_boundaries" => source_report_trust_boundaries(reports)
     }
+    |> Map.merge(quality_gate_timeline_publication_input_summary(reports))
     |> compact_map()
   end
 
@@ -25148,6 +25292,148 @@ defmodule OrbitalDynamics.CandidateRefresh do
     end
   end
 
+  defp operational_readiness_timeline_publication_input_summary(reports) do
+    %{
+      "publication_status_counts" =>
+        reports
+        |> Enum.map(&operational_readiness_evidence_count_map(&1, "publication_status_counts"))
+        |> merge_count_maps(),
+      "dependency_impact_status_counts" =>
+        reports
+        |> Enum.map(
+          &operational_readiness_evidence_count_map(&1, "dependency_impact_status_counts")
+        )
+        |> merge_count_maps(),
+      "publication_authority_counts" =>
+        reports
+        |> Enum.map(&operational_readiness_evidence_count_map(&1, "publication_authority_counts"))
+        |> merge_count_maps(),
+      "source_artifact_type_counts" =>
+        reports
+        |> Enum.map(&operational_readiness_evidence_count_map(&1, "source_artifact_type_counts"))
+        |> merge_count_maps(),
+      "timeline_publication_source_artifact_type_counts" =>
+        reports
+        |> Enum.map(&operational_readiness_evidence_count_map(&1, "source_artifact_type_counts"))
+        |> merge_count_maps(),
+      "publication_ids" =>
+        reports
+        |> Enum.flat_map(&operational_readiness_evidence_string_list(&1, "publication_ids"))
+        |> sorted_string_values(),
+      "source_artifact_ids" =>
+        reports
+        |> Enum.flat_map(&operational_readiness_evidence_string_list(&1, "source_artifact_ids"))
+        |> sorted_string_values(),
+      "supersedes_artifact_ids" =>
+        reports
+        |> Enum.flat_map(
+          &operational_readiness_evidence_string_list(&1, "supersedes_artifact_ids")
+        )
+        |> sorted_string_values(),
+      "downstream_product_ids" =>
+        reports
+        |> Enum.flat_map(
+          &operational_readiness_evidence_string_list(&1, "downstream_product_ids")
+        )
+        |> sorted_string_values(),
+      "invalidated_downstream_product_ids" =>
+        reports
+        |> Enum.flat_map(
+          &operational_readiness_evidence_string_list(
+            &1,
+            "invalidated_downstream_product_ids"
+          )
+        )
+        |> sorted_string_values(),
+      "dependency_impact_row_count" =>
+        sum_report_count(
+          reports,
+          &operational_readiness_evidence_count(&1, "dependency_impact_row_count")
+        ),
+      "impacted_dependency_activity_ids" =>
+        reports
+        |> Enum.flat_map(
+          &operational_readiness_evidence_string_list(&1, "impacted_dependency_activity_ids")
+        )
+        |> sorted_string_values(),
+      "impacted_dependency_timeline_ids" =>
+        reports
+        |> Enum.flat_map(
+          &operational_readiness_evidence_string_list(&1, "impacted_dependency_timeline_ids")
+        )
+        |> sorted_string_values(),
+      "impacted_exclusive_with_activity_ids" =>
+        reports
+        |> Enum.flat_map(
+          &operational_readiness_evidence_string_list(
+            &1,
+            "impacted_exclusive_with_activity_ids"
+          )
+        )
+        |> sorted_string_values(),
+      "impacted_exclusive_with_timeline_ids" =>
+        reports
+        |> Enum.flat_map(
+          &operational_readiness_evidence_string_list(
+            &1,
+            "impacted_exclusive_with_timeline_ids"
+          )
+        )
+        |> sorted_string_values(),
+      "timeline_diff_row_count" =>
+        sum_report_count(
+          reports,
+          &operational_readiness_evidence_count(&1, "timeline_diff_row_count")
+        ),
+      "timeline_diff_changed_count" =>
+        sum_report_count(
+          reports,
+          &operational_readiness_evidence_count(&1, "timeline_diff_changed_count")
+        ),
+      "timeline_diff_review_required_count" =>
+        sum_report_count(
+          reports,
+          &operational_readiness_evidence_count(&1, "timeline_diff_review_required_count")
+        ),
+      "changed_field_counts" =>
+        reports
+        |> Enum.map(&operational_readiness_evidence_count_map(&1, "changed_field_counts"))
+        |> merge_count_maps(),
+      "changed_timeline_ids" =>
+        reports
+        |> Enum.flat_map(&operational_readiness_evidence_string_list(&1, "changed_timeline_ids"))
+        |> sorted_string_values(),
+      "review_timeline_ids" =>
+        reports
+        |> Enum.flat_map(&operational_readiness_evidence_string_list(&1, "review_timeline_ids"))
+        |> sorted_string_values(),
+      "timeline_ids_by_changed_field" =>
+        reports
+        |> Enum.map(
+          &operational_readiness_evidence_string_list_map(
+            &1,
+            "timeline_ids_by_changed_field"
+          )
+        )
+        |> merge_string_list_maps()
+    }
+    |> compact_map()
+  end
+
+  defp operational_readiness_evidence_string_list(report, field) do
+    report
+    |> Map.get("evidence", %{})
+    |> Map.get(field)
+    |> list_value()
+  end
+
+  defp operational_readiness_evidence_string_list_map(report, field) do
+    case report |> Map.get("evidence", %{}) |> Map.get(field) do
+      %{} = list_map -> list_map
+      _value -> %{}
+    end
+  end
+
   defp operational_readiness_resource_reason_ids(report) do
     report
     |> Map.get("gates", [])
@@ -25377,6 +25663,246 @@ defmodule OrbitalDynamics.CandidateRefresh do
       %{} = list_map -> list_map
       _value -> %{}
     end
+  end
+
+  defp quality_gate_timeline_publication_input_summary(reports) do
+    %{
+      "publication_status_counts" =>
+        reports
+        |> Enum.map(&quality_gate_row_count_map(&1, "publication_status_counts"))
+        |> merge_count_maps(),
+      "dependency_impact_status_counts" =>
+        reports
+        |> Enum.map(&quality_gate_row_count_map(&1, "dependency_impact_status_counts"))
+        |> merge_count_maps(),
+      "publication_authority_counts" =>
+        reports
+        |> Enum.map(&quality_gate_row_count_map(&1, "publication_authority_counts"))
+        |> merge_count_maps(),
+      "timeline_publication_source_artifact_type_counts" =>
+        reports
+        |> Enum.map(&quality_gate_row_count_map(&1, "source_artifact_type_counts"))
+        |> merge_count_maps(),
+      "publication_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_row_string_list(&1, "publication_ids"))
+        |> sorted_string_values(),
+      "source_artifact_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_row_string_list(&1, "source_artifact_ids"))
+        |> sorted_string_values(),
+      "supersedes_artifact_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_row_string_list(&1, "supersedes_artifact_ids"))
+        |> sorted_string_values(),
+      "downstream_product_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_row_string_list(&1, "downstream_product_ids"))
+        |> sorted_string_values(),
+      "invalidated_downstream_product_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_row_string_list(&1, "invalidated_downstream_product_ids"))
+        |> sorted_string_values(),
+      "dependency_impact_row_count" =>
+        sum_report_count(reports, &quality_gate_row_count(&1, "dependency_impact_row_count")),
+      "impacted_dependency_activity_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_row_string_list(&1, "impacted_dependency_activity_ids"))
+        |> sorted_string_values(),
+      "impacted_dependency_timeline_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_row_string_list(&1, "impacted_dependency_timeline_ids"))
+        |> sorted_string_values(),
+      "impacted_exclusive_with_activity_ids" =>
+        reports
+        |> Enum.flat_map(
+          &quality_gate_row_string_list(&1, "impacted_exclusive_with_activity_ids")
+        )
+        |> sorted_string_values(),
+      "impacted_exclusive_with_timeline_ids" =>
+        reports
+        |> Enum.flat_map(
+          &quality_gate_row_string_list(&1, "impacted_exclusive_with_timeline_ids")
+        )
+        |> sorted_string_values(),
+      "timeline_diff_row_count" =>
+        sum_report_count(reports, &quality_gate_row_count(&1, "timeline_diff_row_count")),
+      "timeline_diff_changed_count" =>
+        sum_report_count(reports, &quality_gate_row_count(&1, "timeline_diff_changed_count")),
+      "timeline_diff_review_required_count" =>
+        sum_report_count(
+          reports,
+          &quality_gate_row_count(&1, "timeline_diff_review_required_count")
+        ),
+      "changed_field_counts" =>
+        reports
+        |> Enum.map(&quality_gate_row_count_map(&1, "changed_field_counts"))
+        |> merge_count_maps(),
+      "changed_timeline_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_row_string_list(&1, "changed_timeline_ids"))
+        |> sorted_string_values(),
+      "review_timeline_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_row_string_list(&1, "review_timeline_ids"))
+        |> sorted_string_values(),
+      "timeline_ids_by_changed_field" =>
+        reports
+        |> Enum.map(&quality_gate_row_string_list_map(&1, "timeline_ids_by_changed_field"))
+        |> merge_string_list_maps()
+    }
+    |> compact_map()
+  end
+
+  defp quality_gate_row_string_list(report, field) do
+    case quality_gate_report_rows(report) do
+      [] ->
+        quality_gate_string_list(report, field)
+
+      rows ->
+        Enum.flat_map(rows, &(Map.get(&1, field) |> list_value()))
+    end
+  end
+
+  defp quality_gate_row_string_list_map(report, field) do
+    case quality_gate_report_rows(report) do
+      [] ->
+        quality_gate_string_list_map(report, field)
+
+      rows ->
+        rows
+        |> Enum.map(&Map.get(&1, field))
+        |> merge_string_list_maps()
+        |> case do
+          nil -> %{}
+          map -> map
+        end
+    end
+  end
+
+  defp timeline_publication_context_replay_fields(summary, allow_source_artifact_type_fallback?) do
+    publication_status_counts = Map.get(summary, "publication_status_counts", %{})
+
+    dependency_impact_status_counts =
+      Map.get(summary, "dependency_impact_status_counts", %{})
+
+    publication_authority_counts =
+      Map.get(summary, "publication_authority_counts", %{})
+
+    source_artifact_type_counts =
+      timeline_publication_source_artifact_type_counts(
+        summary,
+        allow_source_artifact_type_fallback?
+      )
+
+    publication_ids = Map.get(summary, "publication_ids", [])
+    source_artifact_ids = Map.get(summary, "source_artifact_ids", [])
+    supersedes_artifact_ids = Map.get(summary, "supersedes_artifact_ids", [])
+    downstream_product_ids = Map.get(summary, "downstream_product_ids", [])
+
+    invalidated_downstream_product_ids =
+      Map.get(summary, "invalidated_downstream_product_ids", [])
+
+    dependency_impact_row_count = summary_integer(summary, "dependency_impact_row_count")
+
+    impacted_dependency_activity_ids =
+      Map.get(summary, "impacted_dependency_activity_ids", [])
+
+    impacted_dependency_timeline_ids =
+      Map.get(summary, "impacted_dependency_timeline_ids", [])
+
+    impacted_exclusive_with_activity_ids =
+      Map.get(summary, "impacted_exclusive_with_activity_ids", [])
+
+    impacted_exclusive_with_timeline_ids =
+      Map.get(summary, "impacted_exclusive_with_timeline_ids", [])
+
+    timeline_diff_row_count = summary_integer(summary, "timeline_diff_row_count")
+    timeline_diff_changed_count = summary_integer(summary, "timeline_diff_changed_count")
+
+    timeline_diff_review_required_count =
+      summary_integer(summary, "timeline_diff_review_required_count")
+
+    changed_field_counts = Map.get(summary, "changed_field_counts", %{})
+    changed_timeline_ids = Map.get(summary, "changed_timeline_ids", [])
+    review_timeline_ids = Map.get(summary, "review_timeline_ids", [])
+
+    timeline_ids_by_changed_field =
+      Map.get(summary, "timeline_ids_by_changed_field", %{})
+
+    dependency_pressure =
+      dependency_impact_row_count > 0 or impacted_dependency_activity_ids != [] or
+        impacted_dependency_timeline_ids != [] or impacted_exclusive_with_activity_ids != [] or
+        impacted_exclusive_with_timeline_ids != [] or
+        summary_integer(dependency_impact_status_counts, "review_required") > 0
+
+    changed_field_pressure =
+      timeline_diff_row_count + timeline_diff_changed_count > 0 or
+        map_size(changed_field_counts) > 0 or changed_timeline_ids != [] or
+        map_size(timeline_ids_by_changed_field) > 0
+
+    invalidation_pressure =
+      invalidated_downstream_product_ids != [] or
+        summary_integer(publication_status_counts, "published_with_downstream_invalidations") > 0
+
+    review_pressure =
+      timeline_diff_review_required_count > 0 or review_timeline_ids != [] or
+        summary_integer(publication_status_counts, "review_required") > 0 or dependency_pressure
+
+    publication_pressure =
+      map_size(publication_status_counts) > 0 or map_size(publication_authority_counts) > 0 or
+        map_size(source_artifact_type_counts) > 0 or publication_ids != [] or
+        source_artifact_ids != [] or supersedes_artifact_ids != [] or
+        downstream_product_ids != []
+
+    %{
+      "publication_status_counts" => publication_status_counts,
+      "dependency_impact_status_counts" => dependency_impact_status_counts,
+      "publication_authority_counts" => publication_authority_counts,
+      "timeline_publication_source_artifact_type_counts" => source_artifact_type_counts,
+      "publication_ids" => publication_ids,
+      "source_artifact_ids" => source_artifact_ids,
+      "supersedes_artifact_ids" => supersedes_artifact_ids,
+      "downstream_product_ids" => downstream_product_ids,
+      "invalidated_downstream_product_ids" => invalidated_downstream_product_ids,
+      "dependency_impact_row_count" => dependency_impact_row_count,
+      "impacted_dependency_activity_ids" => impacted_dependency_activity_ids,
+      "impacted_dependency_timeline_ids" => impacted_dependency_timeline_ids,
+      "impacted_exclusive_with_activity_ids" => impacted_exclusive_with_activity_ids,
+      "impacted_exclusive_with_timeline_ids" => impacted_exclusive_with_timeline_ids,
+      "timeline_diff_row_count" => timeline_diff_row_count,
+      "timeline_diff_changed_count" => timeline_diff_changed_count,
+      "timeline_diff_review_required_count" => timeline_diff_review_required_count,
+      "changed_field_counts" => changed_field_counts,
+      "changed_timeline_ids" => changed_timeline_ids,
+      "review_timeline_ids" => review_timeline_ids,
+      "timeline_ids_by_changed_field" => timeline_ids_by_changed_field,
+      "branch_local_timeline_publication_pressure" =>
+        publication_pressure or dependency_pressure or changed_field_pressure or
+          invalidation_pressure or review_pressure,
+      "branch_local_timeline_publication_dependency_pressure" => dependency_pressure,
+      "branch_local_timeline_publication_changed_field_pressure" => changed_field_pressure,
+      "branch_local_timeline_publication_invalidation_pressure" => invalidation_pressure,
+      "branch_local_timeline_publication_review_pressure" => review_pressure
+    }
+  end
+
+  defp timeline_publication_source_artifact_type_counts(
+         summary,
+         true = _allow_source_artifact_type_fallback?
+       ) do
+    Map.get(
+      summary,
+      "timeline_publication_source_artifact_type_counts",
+      Map.get(summary, "source_artifact_type_counts", %{})
+    )
+  end
+
+  defp timeline_publication_source_artifact_type_counts(
+         summary,
+         false = _allow_source_artifact_type_fallback?
+       ) do
+    Map.get(summary, "timeline_publication_source_artifact_type_counts", %{})
   end
 
   defp quality_gate_source_summary_model(report),
@@ -41803,6 +42329,27 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "cadence_import_status_counts" => summary["cadence_import_status_counts"],
       "quality_gate_row_ids_by_status" => summary["quality_gate_row_ids_by_status"],
       "quality_gate_ids_by_status" => summary["quality_gate_ids_by_status"],
+      "publication_status_counts" => summary["publication_status_counts"],
+      "dependency_impact_status_counts" => summary["dependency_impact_status_counts"],
+      "publication_authority_counts" => summary["publication_authority_counts"],
+      "source_artifact_type_counts" => summary["source_artifact_type_counts"],
+      "publication_ids" => summary["publication_ids"],
+      "source_artifact_ids" => summary["source_artifact_ids"],
+      "supersedes_artifact_ids" => summary["supersedes_artifact_ids"],
+      "downstream_product_ids" => summary["downstream_product_ids"],
+      "invalidated_downstream_product_ids" => summary["invalidated_downstream_product_ids"],
+      "dependency_impact_row_count" => summary["dependency_impact_row_count"],
+      "impacted_dependency_activity_ids" => summary["impacted_dependency_activity_ids"],
+      "impacted_dependency_timeline_ids" => summary["impacted_dependency_timeline_ids"],
+      "impacted_exclusive_with_activity_ids" => summary["impacted_exclusive_with_activity_ids"],
+      "impacted_exclusive_with_timeline_ids" => summary["impacted_exclusive_with_timeline_ids"],
+      "timeline_diff_row_count" => summary["timeline_diff_row_count"],
+      "timeline_diff_changed_count" => summary["timeline_diff_changed_count"],
+      "timeline_diff_review_required_count" => summary["timeline_diff_review_required_count"],
+      "changed_field_counts" => summary["changed_field_counts"],
+      "changed_timeline_ids" => summary["changed_timeline_ids"],
+      "review_timeline_ids" => summary["review_timeline_ids"],
+      "timeline_ids_by_changed_field" => summary["timeline_ids_by_changed_field"],
       "review_required_quality_gate_row_ids" => summary["review_required_quality_gate_row_ids"],
       "blocked_quality_gate_row_ids" => summary["blocked_quality_gate_row_ids"],
       "ready_quality_gate_row_ids" => summary["ready_quality_gate_row_ids"],

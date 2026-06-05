@@ -26973,7 +26973,31 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
           "resource_blocking_dimension_counts" => %{"communications" => 1},
           "review_type_counts" => %{"contact_allocation_review" => 1},
           "import_action_counts" => %{"review_contact_allocation" => 1},
-          "source_review_type_counts" => %{"contact_allocation_review" => 1}
+          "source_review_type_counts" => %{"contact_allocation_review" => 1},
+          "publication_status_counts" => %{
+            "published_with_downstream_invalidations" => 1,
+            "review_required" => 1
+          },
+          "dependency_impact_status_counts" => %{"review_required" => 2},
+          "publication_authority_counts" => %{"operator_review" => 1},
+          "source_artifact_type_counts" => %{"operational_timeline_report.v1" => 1},
+          "publication_ids" => ["timeline_publication:ops_review"],
+          "source_artifact_ids" => ["operational_timeline:activity_1"],
+          "supersedes_artifact_ids" => ["timeline_publication:prior"],
+          "downstream_product_ids" => ["cadence_import:activity_1"],
+          "invalidated_downstream_product_ids" => ["timeline_product:stale"],
+          "dependency_impact_row_count" => 2,
+          "impacted_dependency_activity_ids" => ["activity_dependency:antenna"],
+          "impacted_dependency_timeline_ids" => ["timeline:dependency"],
+          "impacted_exclusive_with_activity_ids" => ["activity:exclusive"],
+          "impacted_exclusive_with_timeline_ids" => ["timeline:exclusive"],
+          "timeline_diff_row_count" => 2,
+          "timeline_diff_changed_count" => 1,
+          "timeline_diff_review_required_count" => 1,
+          "changed_field_counts" => %{"start_time" => 1},
+          "changed_timeline_ids" => ["timeline:changed"],
+          "review_timeline_ids" => ["timeline:review"],
+          "timeline_ids_by_changed_field" => %{"start_time" => ["timeline:changed"]}
         },
         "provenance" => %{"trust_boundary" => "ops_readiness"}
       }
@@ -27063,11 +27087,76 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_operational_readiness_import_action_counts" => %{
                "review_contact_allocation" => 1
              },
+             "source_report_operational_readiness_publication_status_counts" => %{
+               "published_with_downstream_invalidations" => 1,
+               "review_required" => 1
+             },
+             "source_report_operational_readiness_dependency_impact_status_counts" => %{
+               "review_required" => 2
+             },
+             "source_report_operational_readiness_publication_authority_counts" => %{
+               "operator_review" => 1
+             },
+             "source_report_operational_readiness_timeline_publication_source_artifact_type_counts" =>
+               %{
+                 "operational_timeline_report.v1" => 1
+               },
+             "source_report_operational_readiness_publication_ids" => [
+               "timeline_publication:ops_review"
+             ],
+             "source_report_operational_readiness_source_artifact_ids" => [
+               "operational_timeline:activity_1"
+             ],
+             "source_report_operational_readiness_supersedes_artifact_ids" => [
+               "timeline_publication:prior"
+             ],
+             "source_report_operational_readiness_downstream_product_ids" => [
+               "cadence_import:activity_1"
+             ],
+             "source_report_operational_readiness_invalidated_downstream_product_ids" => [
+               "timeline_product:stale"
+             ],
+             "source_report_operational_readiness_dependency_impact_row_count" => 2,
+             "source_report_operational_readiness_impacted_dependency_activity_ids" => [
+               "activity_dependency:antenna"
+             ],
+             "source_report_operational_readiness_impacted_dependency_timeline_ids" => [
+               "timeline:dependency"
+             ],
+             "source_report_operational_readiness_impacted_exclusive_with_activity_ids" => [
+               "activity:exclusive"
+             ],
+             "source_report_operational_readiness_impacted_exclusive_with_timeline_ids" => [
+               "timeline:exclusive"
+             ],
+             "source_report_operational_readiness_timeline_diff_row_count" => 2,
+             "source_report_operational_readiness_timeline_diff_changed_count" => 1,
+             "source_report_operational_readiness_timeline_diff_review_required_count" => 1,
+             "source_report_operational_readiness_changed_field_counts" => %{
+               "start_time" => 1
+             },
+             "source_report_operational_readiness_changed_timeline_ids" => [
+               "timeline:changed"
+             ],
+             "source_report_operational_readiness_review_timeline_ids" => [
+               "timeline:review"
+             ],
+             "source_report_operational_readiness_timeline_ids_by_changed_field" => %{
+               "start_time" => ["timeline:changed"]
+             },
              "source_reports" => %{
                "operational_readiness_report" => %{
                  "gate_count" => 5,
                  "analysis_mode_counts" => %{"not_for_execution" => 1},
                  "readiness_level_counts" => %{"operator_review" => 1},
+                 "publication_status_counts" => %{
+                   "published_with_downstream_invalidations" => 1,
+                   "review_required" => 1
+                 },
+                 "timeline_publication_source_artifact_type_counts" => %{
+                   "operational_timeline_report.v1" => 1
+                 },
+                 "timeline_ids_by_changed_field" => %{"start_time" => ["timeline:changed"]},
                  "resource_availability_reason_counts" => %{
                    "antenna_unavailable" => 1,
                    "ground_station_reserved" => 1,
@@ -27137,9 +27226,40 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "review_type_counts" => %{"contact_allocation_review" => 1},
              "import_action_counts" => %{"review_contact_allocation" => 1},
              "source_review_type_counts" => %{"contact_allocation_review" => 1},
+             "publication_status_counts" => %{
+               "published_with_downstream_invalidations" => 1,
+               "review_required" => 1
+             },
+             "dependency_impact_status_counts" => %{"review_required" => 2},
+             "publication_authority_counts" => %{"operator_review" => 1},
+             "timeline_publication_source_artifact_type_counts" => %{
+               "operational_timeline_report.v1" => 1
+             },
+             "publication_ids" => ["timeline_publication:ops_review"],
+             "source_artifact_ids" => ["operational_timeline:activity_1"],
+             "supersedes_artifact_ids" => ["timeline_publication:prior"],
+             "downstream_product_ids" => ["cadence_import:activity_1"],
+             "invalidated_downstream_product_ids" => ["timeline_product:stale"],
+             "dependency_impact_row_count" => 2,
+             "impacted_dependency_activity_ids" => ["activity_dependency:antenna"],
+             "impacted_dependency_timeline_ids" => ["timeline:dependency"],
+             "impacted_exclusive_with_activity_ids" => ["activity:exclusive"],
+             "impacted_exclusive_with_timeline_ids" => ["timeline:exclusive"],
+             "timeline_diff_row_count" => 2,
+             "timeline_diff_changed_count" => 1,
+             "timeline_diff_review_required_count" => 1,
+             "changed_field_counts" => %{"start_time" => 1},
+             "changed_timeline_ids" => ["timeline:changed"],
+             "review_timeline_ids" => ["timeline:review"],
+             "timeline_ids_by_changed_field" => %{"start_time" => ["timeline:changed"]},
              "branch_local_review_pressure" => true,
              "branch_local_import_pressure" => true,
              "branch_local_resource_pressure" => true,
+             "branch_local_timeline_publication_pressure" => true,
+             "branch_local_timeline_publication_dependency_pressure" => true,
+             "branch_local_timeline_publication_changed_field_pressure" => true,
+             "branch_local_timeline_publication_invalidation_pressure" => true,
+             "branch_local_timeline_publication_review_pressure" => true,
              "assumptions" => %{
                "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
                "replay_scope" => "operational_readiness_source_report_provenance_only",
@@ -27768,7 +27888,30 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
             },
             "station_availability_reason_ids" => ["ground_station_reserved"],
             "unavailable_resource_reason_ids" => ["payload_unavailable"],
-            "resource_blocking_dimension_counts" => %{"communications" => 1}
+            "resource_blocking_dimension_counts" => %{"communications" => 1},
+            "publication_status_counts" => %{"review_required" => 1},
+            "dependency_impact_status_counts" => %{"review_required" => 1},
+            "publication_authority_counts" => %{"operator_review" => 1},
+            "source_artifact_type_counts" => %{"operational_timeline_report.v1" => 1},
+            "publication_ids" => ["timeline_publication:quality_review"],
+            "source_artifact_ids" => ["operational_timeline:quality_activity"],
+            "supersedes_artifact_ids" => ["timeline_publication:quality_prior"],
+            "downstream_product_ids" => ["cadence_import:quality_activity"],
+            "invalidated_downstream_product_ids" => ["timeline_product:quality_stale"],
+            "dependency_impact_row_count" => 1,
+            "impacted_dependency_activity_ids" => ["activity_dependency:quality_antenna"],
+            "impacted_dependency_timeline_ids" => ["timeline:quality_dependency"],
+            "impacted_exclusive_with_activity_ids" => ["activity:quality_exclusive"],
+            "impacted_exclusive_with_timeline_ids" => ["timeline:quality_exclusive"],
+            "timeline_diff_row_count" => 1,
+            "timeline_diff_changed_count" => 1,
+            "timeline_diff_review_required_count" => 1,
+            "changed_field_counts" => %{"resource_assignment" => 1},
+            "changed_timeline_ids" => ["timeline:quality_changed"],
+            "review_timeline_ids" => ["timeline:quality_review"],
+            "timeline_ids_by_changed_field" => %{
+              "resource_assignment" => ["timeline:quality_changed"]
+            }
           }
         ],
         "provenance" => %{"trust_boundary" => "ops_quality_gate"}
@@ -27836,6 +27979,59 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "communications" => 1
              },
              "source_report_quality_gate_source_readiness_report_count" => 1,
+             "source_report_quality_gate_publication_status_counts" => %{
+               "review_required" => 1
+             },
+             "source_report_quality_gate_dependency_impact_status_counts" => %{
+               "review_required" => 1
+             },
+             "source_report_quality_gate_publication_authority_counts" => %{
+               "operator_review" => 1
+             },
+             "source_report_quality_gate_timeline_publication_source_artifact_type_counts" => %{
+               "operational_timeline_report.v1" => 1
+             },
+             "source_report_quality_gate_publication_ids" => [
+               "timeline_publication:quality_review"
+             ],
+             "source_report_quality_gate_source_artifact_ids" => [
+               "operational_timeline:quality_activity"
+             ],
+             "source_report_quality_gate_supersedes_artifact_ids" => [
+               "timeline_publication:quality_prior"
+             ],
+             "source_report_quality_gate_downstream_product_ids" => [
+               "cadence_import:quality_activity"
+             ],
+             "source_report_quality_gate_invalidated_downstream_product_ids" => [
+               "timeline_product:quality_stale"
+             ],
+             "source_report_quality_gate_dependency_impact_row_count" => 1,
+             "source_report_quality_gate_impacted_dependency_activity_ids" => [
+               "activity_dependency:quality_antenna"
+             ],
+             "source_report_quality_gate_impacted_dependency_timeline_ids" => [
+               "timeline:quality_dependency"
+             ],
+             "source_report_quality_gate_impacted_exclusive_with_activity_ids" => [
+               "activity:quality_exclusive"
+             ],
+             "source_report_quality_gate_impacted_exclusive_with_timeline_ids" => [
+               "timeline:quality_exclusive"
+             ],
+             "source_report_quality_gate_timeline_diff_row_count" => 1,
+             "source_report_quality_gate_timeline_diff_changed_count" => 1,
+             "source_report_quality_gate_timeline_diff_review_required_count" => 1,
+             "source_report_quality_gate_changed_field_counts" => %{
+               "resource_assignment" => 1
+             },
+             "source_report_quality_gate_changed_timeline_ids" => [
+               "timeline:quality_changed"
+             ],
+             "source_report_quality_gate_review_timeline_ids" => ["timeline:quality_review"],
+             "source_report_quality_gate_timeline_ids_by_changed_field" => %{
+               "resource_assignment" => ["timeline:quality_changed"]
+             },
              "source_reports" => %{
                "quality_gate_report" => %{
                  "gate_count" => 3,
@@ -27849,7 +28045,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                    "ground_station_reserved" => 1,
                    "payload_unavailable" => 1
                  },
-                 "station_availability_reason_counts" => %{"ground_station_reserved" => 1}
+                 "station_availability_reason_counts" => %{"ground_station_reserved" => 1},
+                 "publication_status_counts" => %{"review_required" => 1},
+                 "timeline_publication_source_artifact_type_counts" => %{
+                   "operational_timeline_report.v1" => 1
+                 },
+                 "timeline_ids_by_changed_field" => %{
+                   "resource_assignment" => ["timeline:quality_changed"]
+                 }
                }
              }
            } = summary = CandidateRefresh.source_report_summary(refresh)
@@ -27903,9 +28106,39 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "unavailable_resource_reason_ids" => ["payload_unavailable"],
              "resource_blocking_dimension_counts" => %{"communications" => 1},
              "source_readiness_report_count" => 1,
+             "publication_status_counts" => %{"review_required" => 1},
+             "dependency_impact_status_counts" => %{"review_required" => 1},
+             "publication_authority_counts" => %{"operator_review" => 1},
+             "timeline_publication_source_artifact_type_counts" => %{
+               "operational_timeline_report.v1" => 1
+             },
+             "publication_ids" => ["timeline_publication:quality_review"],
+             "source_artifact_ids" => ["operational_timeline:quality_activity"],
+             "supersedes_artifact_ids" => ["timeline_publication:quality_prior"],
+             "downstream_product_ids" => ["cadence_import:quality_activity"],
+             "invalidated_downstream_product_ids" => ["timeline_product:quality_stale"],
+             "dependency_impact_row_count" => 1,
+             "impacted_dependency_activity_ids" => ["activity_dependency:quality_antenna"],
+             "impacted_dependency_timeline_ids" => ["timeline:quality_dependency"],
+             "impacted_exclusive_with_activity_ids" => ["activity:quality_exclusive"],
+             "impacted_exclusive_with_timeline_ids" => ["timeline:quality_exclusive"],
+             "timeline_diff_row_count" => 1,
+             "timeline_diff_changed_count" => 1,
+             "timeline_diff_review_required_count" => 1,
+             "changed_field_counts" => %{"resource_assignment" => 1},
+             "changed_timeline_ids" => ["timeline:quality_changed"],
+             "review_timeline_ids" => ["timeline:quality_review"],
+             "timeline_ids_by_changed_field" => %{
+               "resource_assignment" => ["timeline:quality_changed"]
+             },
              "branch_local_review_pressure" => true,
              "branch_local_import_pressure" => true,
              "branch_local_resource_pressure" => true,
+             "branch_local_timeline_publication_pressure" => true,
+             "branch_local_timeline_publication_dependency_pressure" => true,
+             "branch_local_timeline_publication_changed_field_pressure" => true,
+             "branch_local_timeline_publication_invalidation_pressure" => true,
+             "branch_local_timeline_publication_review_pressure" => true,
              "assumptions" => %{
                "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
                "replay_scope" => "quality_gate_source_report_provenance_only",
@@ -28145,6 +28378,24 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_quality_gate_source_artifact_type_counts" => %{
                "quality_gate_report.v1" => 1
              },
+             "source_report_quality_gate_publication_status_counts" => %{
+               "published" => 1
+             },
+             "source_report_quality_gate_timeline_publication_source_artifact_type_counts" => %{
+               "operational_timeline_report.v1" => 1
+             },
+             "source_report_quality_gate_publication_ids" => [
+               "timeline_publication:import_ready"
+             ],
+             "source_report_quality_gate_source_artifact_ids" => [
+               "operational_timeline:import_ready"
+             ],
+             "source_report_quality_gate_timeline_diff_changed_count" => 1,
+             "source_report_quality_gate_changed_field_counts" => %{"end_time" => 1},
+             "source_report_quality_gate_changed_timeline_ids" => ["timeline:import_ready"],
+             "source_report_quality_gate_timeline_ids_by_changed_field" => %{
+               "end_time" => ["timeline:import_ready"]
+             },
              "source_report_quality_gate_gate_count" => 2,
              "source_report_quality_gate_review_gate_count" => 1,
              "source_report_quality_gate_blocked_gate_count" => 1,
@@ -28193,6 +28444,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  "source_summary_schema_contract_counts" => %{
                    "operational_quality_gate_import_readiness_summary.v1" => 1
                  },
+                 "publication_status_counts" => %{"published" => 1},
+                 "timeline_publication_source_artifact_type_counts" => %{
+                   "operational_timeline_report.v1" => 1
+                 },
                  "quality_gate_row_ids_by_status" => %{
                    "blocked" => ["quality_gate:cadence_import:blocked"],
                    "review_required" => ["quality_gate:cadence_import:stale"]
@@ -28213,6 +28468,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "operational_quality_gate_import_readiness_summary.v1" => 1
              },
              "source_artifact_type_counts" => %{"quality_gate_report.v1" => 1},
+             "publication_status_counts" => %{"published" => 1},
+             "timeline_publication_source_artifact_type_counts" => %{
+               "operational_timeline_report.v1" => 1
+             },
+             "publication_ids" => ["timeline_publication:import_ready"],
+             "source_artifact_ids" => ["operational_timeline:import_ready"],
+             "timeline_diff_changed_count" => 1,
+             "changed_field_counts" => %{"end_time" => 1},
+             "changed_timeline_ids" => ["timeline:import_ready"],
+             "timeline_ids_by_changed_field" => %{"end_time" => ["timeline:import_ready"]},
              "gate_count" => 2,
              "review_gate_count" => 1,
              "blocked_gate_count" => 1,
@@ -28252,7 +28517,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "import_readiness_gate_ids" => ["cadence_import"],
              "branch_local_review_pressure" => true,
              "branch_local_import_pressure" => true,
-             "branch_local_resource_pressure" => false
+             "branch_local_resource_pressure" => false,
+             "branch_local_timeline_publication_pressure" => true,
+             "branch_local_timeline_publication_changed_field_pressure" => true
            } = replay_summary = CandidateRefresh.quality_gate_replay_summary(refresh)
 
     artifact = %{
@@ -52822,6 +53089,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         "blocked" => ["cadence_import"],
         "review_required" => ["cadence_import"]
       },
+      "publication_status_counts" => %{"published" => 1},
+      "dependency_impact_status_counts" => %{},
+      "publication_authority_counts" => %{"automation" => 1},
+      "source_artifact_type_counts" => %{"operational_timeline_report.v1" => 1},
+      "publication_ids" => ["timeline_publication:import_ready"],
+      "source_artifact_ids" => ["operational_timeline:import_ready"],
+      "timeline_diff_changed_count" => 1,
+      "changed_field_counts" => %{"end_time" => 1},
+      "changed_timeline_ids" => ["timeline:import_ready"],
+      "timeline_ids_by_changed_field" => %{"end_time" => ["timeline:import_ready"]},
       "review_required_quality_gate_row_ids" => ["quality_gate:cadence_import:stale"],
       "blocked_quality_gate_row_ids" => ["quality_gate:cadence_import:blocked"],
       "ready_quality_gate_row_ids" => [],

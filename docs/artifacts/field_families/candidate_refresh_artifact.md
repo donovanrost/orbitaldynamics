@@ -581,7 +581,13 @@ rollups, source readiness paths, readiness/import/status maps, gate counts,
 analysis-mode counts, import/freshness/schema-validation
 evidence, adapter-boundary counts, resource-availability reason maps including
 station-specific availability reason counts, review/import action maps, and
-review/import/resource pressure booleans without approving operator actions,
+timeline-publication context from readiness evidence: publication status,
+authority, source-artifact type, source/publication/downstream IDs,
+dependency-impact rows and IDs, timeline-diff changed/review counts, changed
+field maps, changed/review timeline IDs, and changed-field timeline routing.
+It also exposes review/import/resource pressure booleans and branch-local
+timeline-publication pressure, dependency-pressure, changed-field-pressure,
+invalidation-pressure, and review-pressure booleans without approving operator actions,
 writing to Cadence, or regenerating candidates. The replay helper can inspect
 V3 branch `candidate_source` metadata that carries
 `candidate_refresh_request_source_report_summary`, so strategy-derived branch
@@ -2185,8 +2191,15 @@ quality-gate paths, readiness/import/status maps, gate status/classification
 maps, analysis-mode counts,
 import/freshness/schema-validation count maps, resource-availability reason
 maps including station-specific availability reason counts, resource-blocking
-dimension maps, source-readiness report counts, and review/import/resource
-pressure booleans while explicitly avoiding candidate generation, Cadence
+dimension maps, source-readiness report counts, and timeline-publication context
+from quality-gate rows and compact operational quality-gate import-readiness
+summaries: publication status, authority, timeline-publication source-artifact
+type counts, source/publication/downstream IDs, dependency-impact rows and IDs,
+timeline-diff changed/review counts, changed field maps, changed/review timeline
+IDs, and changed-field timeline routing. It also exposes review/import/resource
+pressure booleans and branch-local timeline-publication pressure,
+dependency-pressure, changed-field-pressure, invalidation-pressure, and
+review-pressure booleans while explicitly avoiding candidate generation, Cadence
 writes, or operator approval. Review pressure is true for preserved
 readiness/status/gate status, classification, and analysis-mode maps; import
 pressure is true for preserved import-status and Cadence-import-status maps
