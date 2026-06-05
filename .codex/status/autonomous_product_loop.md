@@ -48,7 +48,7 @@ Last completed implementation commit:
 `69b4268b8e37a2df29bf1d4a2c81f2d8a23c6ff0` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending for this slice.
+`63ec97bfd6847945c0c600900674e4f315a312c3` pushed to `origin/main`.
 
 Next candidate:
 After this slice, evaluate resource-filter direction routing from the mapper
