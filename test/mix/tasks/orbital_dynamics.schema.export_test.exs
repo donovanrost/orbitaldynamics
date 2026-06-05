@@ -529,6 +529,198 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "minimum"
            ]) == 0
 
+    candidate_refresh_link_capacity_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "link_capacity_report",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        "selected_shortfall_row_count",
+        "actual_shortfall_row_count",
+        "actual_throughput_row_count",
+        "capacity_adjusted_throughput_row_count"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_link_capacity_source_report, [
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_link_capacity_source_report, [
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "capacity_adjusted_throughput_mb_total",
+        "selected_capacity_adjusted_throughput_mb_total",
+        "unused_capacity_adjusted_throughput_mb_total"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_link_capacity_source_report, [
+                 field,
+                 "type"
+               ]) == "number"
+      end
+    )
+
+    Enum.each(
+      [
+        "ground_station_counts",
+        "spacecraft_counts",
+        "direction_counts",
+        "selected_contact_id_counts",
+        "actual_throughput_contact_id_counts",
+        "downlink_requirement_status_counts"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_link_capacity_source_report, [
+                 field,
+                 "additionalProperties",
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_link_capacity_source_report, [
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "capacity_adjusted_throughput_mb_by_ground_station",
+        "selected_capacity_adjusted_throughput_mb_by_ground_station",
+        "unused_capacity_adjusted_throughput_mb_by_ground_station",
+        "capacity_adjusted_throughput_mb_by_direction",
+        "selected_capacity_adjusted_throughput_mb_by_direction",
+        "unused_capacity_adjusted_throughput_mb_by_direction"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_link_capacity_source_report, [
+                 field,
+                 "additionalProperties",
+                 "type"
+               ]) == "number"
+      end
+    )
+
+    assert get_in(candidate_refresh_link_capacity_source_report, [
+             "directions",
+             "items",
+             "type"
+           ]) == "string"
+
+    Enum.each(
+      [
+        ["selected_contact_ids", "items"],
+        ["selected_source_window_ids", "items"],
+        ["selected_station_calendar_entry_ids", "items"],
+        ["selected_station_calendar_provider_entry_ids", "items"],
+        ["actual_throughput_contact_ids", "items"],
+        ["actual_throughput_source_window_ids", "items"],
+        ["actual_throughput_station_calendar_entry_ids", "items"],
+        ["actual_throughput_station_calendar_provider_entry_ids", "items"],
+        ["contact_ids_by_direction", "additionalProperties", "items"],
+        ["source_window_ids_by_direction", "additionalProperties", "items"],
+        ["station_calendar_entry_ids_by_direction", "additionalProperties", "items"],
+        ["station_calendar_provider_entry_ids_by_direction", "additionalProperties", "items"],
+        ["contact_ids_by_ground_station", "additionalProperties", "items"],
+        ["source_window_ids_by_ground_station", "additionalProperties", "items"],
+        ["station_calendar_entry_ids_by_ground_station", "additionalProperties", "items"],
+        [
+          "station_calendar_provider_entry_ids_by_ground_station",
+          "additionalProperties",
+          "items"
+        ],
+        ["contact_ids_by_spacecraft", "additionalProperties", "items"],
+        ["source_window_ids_by_spacecraft", "additionalProperties", "items"],
+        ["station_calendar_entry_ids_by_spacecraft", "additionalProperties", "items"],
+        ["station_calendar_provider_entry_ids_by_spacecraft", "additionalProperties", "items"],
+        ["contact_ids_by_requirement_status", "additionalProperties", "items"],
+        ["source_window_ids_by_requirement_status", "additionalProperties", "items"],
+        [
+          "station_calendar_entry_ids_by_requirement_status",
+          "additionalProperties",
+          "items"
+        ],
+        [
+          "station_calendar_provider_entry_ids_by_requirement_status",
+          "additionalProperties",
+          "items"
+        ],
+        [
+          "direction_routing",
+          "additionalProperties",
+          "properties",
+          "contact_ids",
+          "items"
+        ],
+        [
+          "direction_routing",
+          "additionalProperties",
+          "properties",
+          "source_window_ids",
+          "items"
+        ],
+        [
+          "direction_routing",
+          "additionalProperties",
+          "properties",
+          "station_calendar_entry_ids",
+          "items"
+        ],
+        [
+          "direction_routing",
+          "additionalProperties",
+          "properties",
+          "station_calendar_provider_entry_ids",
+          "items"
+        ]
+      ],
+      fn path ->
+        assert get_in(candidate_refresh_link_capacity_source_report, path ++ ["pattern"]) ==
+                 "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+      end
+    )
+
+    assert get_in(candidate_refresh_link_capacity_source_report, [
+             "direction_routing",
+             "additionalProperties",
+             "properties",
+             "contact_count",
+             "minimum"
+           ]) == 0
+
+    Enum.each(
+      [
+        "capacity_adjusted_throughput_mb",
+        "selected_capacity_adjusted_throughput_mb",
+        "unused_capacity_adjusted_throughput_mb"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_link_capacity_source_report, [
+                 "direction_routing",
+                 "additionalProperties",
+                 "properties",
+                 field,
+                 "type"
+               ]) == "number"
+      end
+    )
+
     assert Map.has_key?(schemas, "contact_allocation_summary.v1")
     assert Map.has_key?(schemas, "contact_allocation_reservation_conflict_summary.v1")
     assert Map.has_key?(schemas, "contact_allocation_station_pressure_summary.v1")

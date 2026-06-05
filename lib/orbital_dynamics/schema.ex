@@ -21166,6 +21166,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_contact_contention_resolution_source_report_summary_json_schema(),
             "contact_intent" =>
               candidate_refresh_contact_intent_source_report_summary_json_schema(),
+            "link_capacity_report" =>
+              candidate_refresh_link_capacity_source_report_summary_json_schema(),
             "station_calendar_report" =>
               candidate_refresh_station_calendar_source_report_summary_json_schema(),
             "station_reservation_report" =>
@@ -21349,6 +21351,96 @@ defmodule OrbitalDynamics.Schema do
         "direction_routing",
         contact_contention_resolution_direction_routing_json_schema()
       )
+    end)
+  end
+
+  defp candidate_refresh_link_capacity_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      properties
+      |> Map.merge(
+        non_negative_integer_property_schemas([
+          "selected_shortfall_row_count",
+          "actual_shortfall_row_count",
+          "actual_throughput_row_count",
+          "capacity_adjusted_throughput_row_count"
+        ])
+      )
+      |> Map.merge(
+        number_property_schemas([
+          "capacity_adjusted_throughput_mb_total",
+          "selected_capacity_adjusted_throughput_mb_total",
+          "unused_capacity_adjusted_throughput_mb_total"
+        ])
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "ground_station_counts",
+            "spacecraft_counts",
+            "direction_counts",
+            "selected_contact_id_counts",
+            "actual_throughput_contact_id_counts",
+            "downlink_requirement_status_counts"
+          ],
+          &{&1, non_negative_integer_count_map_json_schema()}
+        )
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "capacity_adjusted_throughput_mb_by_ground_station",
+            "selected_capacity_adjusted_throughput_mb_by_ground_station",
+            "unused_capacity_adjusted_throughput_mb_by_ground_station",
+            "capacity_adjusted_throughput_mb_by_direction",
+            "selected_capacity_adjusted_throughput_mb_by_direction",
+            "unused_capacity_adjusted_throughput_mb_by_direction"
+          ],
+          &{&1, numeric_map_json_schema()}
+        )
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "selected_contact_ids",
+            "selected_source_window_ids",
+            "selected_station_calendar_entry_ids",
+            "selected_station_calendar_provider_entry_ids",
+            "actual_throughput_contact_ids",
+            "actual_throughput_source_window_ids",
+            "actual_throughput_station_calendar_entry_ids",
+            "actual_throughput_station_calendar_provider_entry_ids"
+          ],
+          &{&1, stable_id_array_schema()}
+        )
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "contact_ids_by_direction",
+            "source_window_ids_by_direction",
+            "station_calendar_entry_ids_by_direction",
+            "station_calendar_provider_entry_ids_by_direction",
+            "contact_ids_by_ground_station",
+            "source_window_ids_by_ground_station",
+            "station_calendar_entry_ids_by_ground_station",
+            "station_calendar_provider_entry_ids_by_ground_station",
+            "contact_ids_by_spacecraft",
+            "source_window_ids_by_spacecraft",
+            "station_calendar_entry_ids_by_spacecraft",
+            "station_calendar_provider_entry_ids_by_spacecraft",
+            "contact_ids_by_requirement_status",
+            "source_window_ids_by_requirement_status",
+            "station_calendar_entry_ids_by_requirement_status",
+            "station_calendar_provider_entry_ids_by_requirement_status"
+          ],
+          &{&1, stable_id_array_map_schema()}
+        )
+      )
+      |> Map.merge(%{
+        "directions" => string_array_schema(),
+        "direction_routing" => link_capacity_direction_routing_json_schema()
+      })
     end)
   end
 
@@ -21640,6 +21732,26 @@ defmodule OrbitalDynamics.Schema do
         "properties" => %{
           "contact_count" => %{"type" => "integer", "minimum" => 0},
           "contact_ids" => stable_id_array_schema()
+        }
+      }
+    }
+  end
+
+  defp link_capacity_direction_routing_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => %{
+        "type" => "object",
+        "additionalProperties" => true,
+        "properties" => %{
+          "contact_count" => %{"type" => "integer", "minimum" => 0},
+          "contact_ids" => stable_id_array_schema(),
+          "source_window_ids" => stable_id_array_schema(),
+          "station_calendar_entry_ids" => stable_id_array_schema(),
+          "station_calendar_provider_entry_ids" => stable_id_array_schema(),
+          "capacity_adjusted_throughput_mb" => %{"type" => "number"},
+          "selected_capacity_adjusted_throughput_mb" => %{"type" => "number"},
+          "unused_capacity_adjusted_throughput_mb" => %{"type" => "number"}
         }
       }
     }
