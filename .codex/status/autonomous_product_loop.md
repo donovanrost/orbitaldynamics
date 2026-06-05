@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh command-window source-report direction routing schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 CandidateRefresh command-window source summaries already preserve
 command-feedback counts, input keys, direction counts, activity IDs by
 direction, window IDs by direction, direction routing with activity counts and
@@ -43,9 +43,10 @@ Tests run:
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings; reran focused export test,
   whitespace check, and generated-schema `jq` spot-checks.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-Pending for this slice.
+`e2dfc848d06542978774f0f326c866e6e9ca46b7` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending for this slice.
