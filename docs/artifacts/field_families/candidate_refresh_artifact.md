@@ -1869,6 +1869,25 @@ contract field rather than defaulting to
 `timeline_dependency_impact_summary.v1`. Capability metadata advertises
 `timeline_dependency_impact_summary` as an accepted CandidateRefresh input
 alongside timeline dependency-impact replay provenance.
+`CandidateRefresh.timeline_publication_replay_summary/1` and
+`OrbitalDynamics.candidate_refresh_timeline_publication_replay_summary/1`
+expose timeline publication summaries as branch-local replay provenance. The
+helper accepts direct `timeline_publication_summary` /
+`source_timeline_publication_summary` inputs, exact `source_result_artifact` /
+`result_artifact` publication summaries, wrapped publication-summary fields,
+and publication rows preserved through operator-review packages or
+Cadence-import manifests. Replay preserves source-report contract/count/
+row-count/path rollups, publication ID/status/authority, source artifact IDs
+and types, superseded and downstream product IDs, invalidated downstream IDs,
+dependency-impact status/count/ID evidence, changed-field audit counts and
+timeline routing, trust boundaries, and branch-local dependency, changed-field,
+invalidation, review, and publication pressure booleans. It never publishes,
+delivers notifications, mutates timelines, selects candidates, approves
+imports, writes to Cadence, or regenerates candidates. Candidate-source
+`candidate_refresh_request_source_report_summary` metadata is authoritative
+when present; when publication provenance is absent, the replay summary omits
+the contract field rather than defaulting to
+`timeline_publication_summary.v1`.
 
 `OperatorReview.from_candidate_refresh_artifact/1` lifts review-required
 direct/list-valued `source_contact_intent`, `source_contact_intents`, and

@@ -216,6 +216,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :timeline_diff_summary,
         :timeline_lifecycle_state_summary,
         :timeline_dependency_impact_summary,
+        :timeline_publication_summary,
         :timeline_transition_application_report,
         :timeline_transition_application_summary,
         :objective_satisfaction_report,
@@ -300,6 +301,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :candidate_refresh_timeline_diff_replay_summary,
         :candidate_refresh_timeline_lifecycle_state_replay_summary,
         :candidate_refresh_timeline_dependency_impact_replay_summary,
+        :candidate_refresh_timeline_publication_replay_summary,
         :candidate_refresh_timeline_transition_application_replay_summary,
         :candidate_refresh_objective_gap_replay_summary,
         :candidate_refresh_constraint_replay_summary,
@@ -334,6 +336,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :timeline_diff_replay_summary,
         :timeline_lifecycle_state_replay_summary,
         :timeline_dependency_impact_replay_summary,
+        :timeline_publication_replay_summary,
         :timeline_transition_application_replay_summary,
         :objective_gap_replay_summary,
         :constraint_replay_summary,
@@ -429,6 +432,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :source_report_timeline_integrity_routing_maps,
         :source_report_timeline_lifecycle_state_routing_maps,
         :source_report_timeline_dependency_impact_routing_maps,
+        :source_report_timeline_publication_routing_maps,
         :source_report_timeline_transition_application_routing_count_maps,
         :source_report_timeline_transition_application_selected_activity_routing_maps,
         :source_report_command_window_direction_routing_maps,
@@ -476,6 +480,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :source_report_timeline_integrity_branch_replay_summary,
         :source_report_timeline_diff_branch_replay_summary,
         :source_report_timeline_dependency_impact_branch_replay_summary,
+        :source_report_timeline_publication_branch_replay_summary,
         :source_report_timeline_transition_application_branch_replay_summary,
         :source_report_objective_gap_branch_replay_summary,
         :source_report_constraint_branch_replay_summary,
@@ -6316,6 +6321,168 @@ defmodule OrbitalDynamics.CandidateRefresh do
           source_reports,
           "timeline_dependency_impact_summary",
           "dependent_timeline_id_counts"
+        ),
+      "source_report_timeline_publication_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "timeline_publication_summary",
+          "contract"
+        ),
+      "source_report_timeline_publication_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "timeline_publication_summary",
+          "count"
+        ),
+      "source_report_timeline_publication_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "timeline_publication_summary",
+          "paths"
+        ),
+      "source_report_timeline_publication_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "timeline_publication_summary",
+          "row_count"
+        ),
+      "source_report_timeline_publication_source_summary_model_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "timeline_publication_summary",
+          "source_summary_model_counts"
+        ),
+      "source_report_timeline_publication_source_summary_schema_contract_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "timeline_publication_summary",
+          "source_summary_schema_contract_counts"
+        ),
+      "source_report_timeline_publication_status_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "timeline_publication_summary",
+          "publication_status_counts"
+        ),
+      "source_report_timeline_publication_dependency_impact_status_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "timeline_publication_summary",
+          "dependency_impact_status_counts"
+        ),
+      "source_report_timeline_publication_authority_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "timeline_publication_summary",
+          "publication_authority_counts"
+        ),
+      "source_report_timeline_publication_source_artifact_type_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "timeline_publication_summary",
+          "source_artifact_type_counts"
+        ),
+      "source_report_timeline_publication_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "timeline_publication_summary",
+          "publication_ids"
+        ),
+      "source_report_timeline_publication_source_artifact_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "timeline_publication_summary",
+          "source_artifact_ids"
+        ),
+      "source_report_timeline_publication_supersedes_artifact_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "timeline_publication_summary",
+          "supersedes_artifact_ids"
+        ),
+      "source_report_timeline_publication_downstream_product_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "timeline_publication_summary",
+          "downstream_product_ids"
+        ),
+      "source_report_timeline_publication_invalidated_downstream_product_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "timeline_publication_summary",
+          "invalidated_downstream_product_ids"
+        ),
+      "source_report_timeline_publication_dependency_impact_row_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "timeline_publication_summary",
+          "dependency_impact_row_count"
+        ),
+      "source_report_timeline_publication_impacted_dependency_activity_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "timeline_publication_summary",
+          "impacted_dependency_activity_ids"
+        ),
+      "source_report_timeline_publication_impacted_dependency_timeline_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "timeline_publication_summary",
+          "impacted_dependency_timeline_ids"
+        ),
+      "source_report_timeline_publication_impacted_exclusive_with_activity_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "timeline_publication_summary",
+          "impacted_exclusive_with_activity_ids"
+        ),
+      "source_report_timeline_publication_impacted_exclusive_with_timeline_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "timeline_publication_summary",
+          "impacted_exclusive_with_timeline_ids"
+        ),
+      "source_report_timeline_publication_diff_row_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "timeline_publication_summary",
+          "timeline_diff_row_count"
+        ),
+      "source_report_timeline_publication_diff_changed_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "timeline_publication_summary",
+          "timeline_diff_changed_count"
+        ),
+      "source_report_timeline_publication_diff_review_required_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "timeline_publication_summary",
+          "timeline_diff_review_required_count"
+        ),
+      "source_report_timeline_publication_changed_field_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "timeline_publication_summary",
+          "changed_field_counts"
+        ),
+      "source_report_timeline_publication_changed_timeline_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "timeline_publication_summary",
+          "changed_timeline_ids"
+        ),
+      "source_report_timeline_publication_review_timeline_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "timeline_publication_summary",
+          "review_timeline_ids"
+        ),
+      "source_report_timeline_publication_timeline_ids_by_changed_field" =>
+        source_report_summary_family_merge_string_list_maps(
+          source_reports,
+          "timeline_publication_summary",
+          "timeline_ids_by_changed_field"
         ),
       "source_report_timeline_integrity_contract" =>
         source_report_summary_family_field(
@@ -12510,6 +12677,177 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   @doc """
+  Builds a compact branch-local timeline-publication replay summary.
+
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not publish, notify, mutate timelines,
+  select candidates, approve imports, or write to Cadence.
+  """
+  def timeline_publication_replay_summary(refresh_or_artifact) do
+    source_summary = source_report_summary(refresh_or_artifact)
+
+    branch_publication_summary =
+      source_report_summary_branch_family(
+        refresh_or_artifact,
+        "timeline_publication_summary"
+      )
+
+    publication_summary =
+      branch_publication_summary ||
+        get_in(source_summary, ["source_reports", "timeline_publication_summary"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_publication_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_publication_summary",
+          "timeline_publication_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.timeline_publication_summary",
+          "timeline_publication_source_report_provenance_only"
+        }
+      end
+
+    row_count = summary_integer(publication_summary, "row_count")
+
+    dependency_impact_row_count =
+      summary_integer(publication_summary, "dependency_impact_row_count")
+
+    timeline_diff_row_count = summary_integer(publication_summary, "timeline_diff_row_count")
+
+    timeline_diff_changed_count =
+      summary_integer(publication_summary, "timeline_diff_changed_count")
+
+    timeline_diff_review_required_count =
+      summary_integer(publication_summary, "timeline_diff_review_required_count")
+
+    publication_status_counts = Map.get(publication_summary, "publication_status_counts", %{})
+
+    dependency_impact_status_counts =
+      Map.get(publication_summary, "dependency_impact_status_counts", %{})
+
+    publication_authority_counts =
+      Map.get(publication_summary, "publication_authority_counts", %{})
+
+    source_artifact_type_counts =
+      Map.get(publication_summary, "source_artifact_type_counts", %{})
+
+    publication_ids = Map.get(publication_summary, "publication_ids", [])
+    source_artifact_ids = Map.get(publication_summary, "source_artifact_ids", [])
+    supersedes_artifact_ids = Map.get(publication_summary, "supersedes_artifact_ids", [])
+    downstream_product_ids = Map.get(publication_summary, "downstream_product_ids", [])
+
+    invalidated_downstream_product_ids =
+      Map.get(publication_summary, "invalidated_downstream_product_ids", [])
+
+    impacted_dependency_activity_ids =
+      Map.get(publication_summary, "impacted_dependency_activity_ids", [])
+
+    impacted_dependency_timeline_ids =
+      Map.get(publication_summary, "impacted_dependency_timeline_ids", [])
+
+    impacted_exclusive_with_activity_ids =
+      Map.get(publication_summary, "impacted_exclusive_with_activity_ids", [])
+
+    impacted_exclusive_with_timeline_ids =
+      Map.get(publication_summary, "impacted_exclusive_with_timeline_ids", [])
+
+    changed_field_counts = Map.get(publication_summary, "changed_field_counts", %{})
+    changed_timeline_ids = Map.get(publication_summary, "changed_timeline_ids", [])
+    review_timeline_ids = Map.get(publication_summary, "review_timeline_ids", [])
+
+    timeline_ids_by_changed_field =
+      Map.get(publication_summary, "timeline_ids_by_changed_field", %{})
+
+    dependency_pressure =
+      dependency_impact_row_count > 0 or impacted_dependency_activity_ids != [] or
+        impacted_dependency_timeline_ids != [] or impacted_exclusive_with_activity_ids != [] or
+        impacted_exclusive_with_timeline_ids != [] or
+        summary_integer(dependency_impact_status_counts, "review_required") > 0
+
+    changed_field_pressure =
+      timeline_diff_row_count + timeline_diff_changed_count > 0 or
+        map_size(changed_field_counts) > 0 or changed_timeline_ids != [] or
+        map_size(timeline_ids_by_changed_field) > 0
+
+    invalidation_pressure =
+      invalidated_downstream_product_ids != [] or
+        summary_integer(publication_status_counts, "published_with_downstream_invalidations") > 0
+
+    review_pressure =
+      timeline_diff_review_required_count > 0 or review_timeline_ids != [] or
+        summary_integer(publication_status_counts, "review_required") > 0 or dependency_pressure
+
+    publication_pressure =
+      row_count > 0 or map_size(publication_status_counts) > 0 or
+        map_size(publication_authority_counts) > 0 or map_size(source_artifact_type_counts) > 0 or
+        publication_ids != [] or source_artifact_ids != [] or supersedes_artifact_ids != [] or
+        downstream_product_ids != []
+
+    %{
+      "model" => "artifact_only_candidate_refresh_timeline_publication_replay_summary",
+      "source" => summary_source,
+      "contract" =>
+        source_report_summary_contract(
+          publication_summary,
+          "timeline_publication_summary.v1"
+        ),
+      "source_report_count" => summary_integer(publication_summary, "count"),
+      "source_report_row_count" => row_count,
+      "source_report_paths" => Map.get(publication_summary, "paths", []),
+      "source_summary_model_counts" =>
+        Map.get(publication_summary, "source_summary_model_counts", %{}),
+      "source_summary_schema_contract_counts" =>
+        Map.get(publication_summary, "source_summary_schema_contract_counts", %{}),
+      "publication_status_counts" => publication_status_counts,
+      "dependency_impact_status_counts" => dependency_impact_status_counts,
+      "publication_authority_counts" => publication_authority_counts,
+      "source_artifact_type_counts" => source_artifact_type_counts,
+      "publication_ids" => publication_ids,
+      "source_artifact_ids" => source_artifact_ids,
+      "supersedes_artifact_ids" => supersedes_artifact_ids,
+      "downstream_product_ids" => downstream_product_ids,
+      "invalidated_downstream_product_ids" => invalidated_downstream_product_ids,
+      "dependency_impact_row_count" => dependency_impact_row_count,
+      "impacted_dependency_activity_ids" => impacted_dependency_activity_ids,
+      "impacted_dependency_timeline_ids" => impacted_dependency_timeline_ids,
+      "impacted_exclusive_with_activity_ids" => impacted_exclusive_with_activity_ids,
+      "impacted_exclusive_with_timeline_ids" => impacted_exclusive_with_timeline_ids,
+      "timeline_diff_row_count" => timeline_diff_row_count,
+      "timeline_diff_changed_count" => timeline_diff_changed_count,
+      "timeline_diff_review_required_count" => timeline_diff_review_required_count,
+      "changed_field_counts" => changed_field_counts,
+      "changed_timeline_ids" => changed_timeline_ids,
+      "review_timeline_ids" => review_timeline_ids,
+      "timeline_ids_by_changed_field" => timeline_ids_by_changed_field,
+      "trust_boundary_status" => Map.get(publication_summary, "trust_boundary_status"),
+      "trust_boundaries" => Map.get(publication_summary, "trust_boundaries", []),
+      "branch_local_timeline_publication_pressure" =>
+        publication_pressure or dependency_pressure or changed_field_pressure or
+          invalidation_pressure or review_pressure,
+      "branch_local_timeline_publication_dependency_pressure" => dependency_pressure,
+      "branch_local_timeline_publication_changed_field_pressure" => changed_field_pressure,
+      "branch_local_timeline_publication_invalidation_pressure" => invalidation_pressure,
+      "branch_local_timeline_publication_review_pressure" => review_pressure,
+      "assumptions" => %{
+        "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
+        "replay_scope" => replay_scope,
+        "publication_execution" => "not_performed_by_summary",
+        "notification_delivery" => "not_performed_by_summary",
+        "operator_authority" => "not_granted_by_timeline_publication_replay_summary",
+        "timeline_mutation" => "not_performed_by_summary",
+        "candidate_selection" => "not_performed_by_summary",
+        "import_approval" => "not_granted_by_timeline_publication_replay_summary",
+        "cadence_write" => "not_performed_by_summary",
+        "candidate_generation" => "not_performed_by_summary"
+      }
+    }
+    |> compact_map()
+  end
+
+  @doc """
   Builds a compact branch-local timeline-transition-application replay summary.
 
   The summary is derived from candidate-refresh source-report summaries,
@@ -18062,6 +18400,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
         refresh
         |> source_timeline_dependency_impact_summaries()
         |> source_timeline_dependency_impact_summary_input_summary(),
+      "timeline_publication_summary" =>
+        refresh
+        |> source_timeline_publication_summaries()
+        |> source_timeline_publication_summary_input_summary(),
       "timeline_transition_application_report" =>
         refresh
         |> source_timeline_transition_application_reports()
@@ -20414,6 +20756,109 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "trust_boundary_status" =>
         source_timeline_dependency_impact_summary_trust_boundary_status(reports),
       "trust_boundaries" => source_timeline_dependency_impact_trust_boundaries(reports)
+    }
+    |> compact_map()
+  end
+
+  defp source_timeline_publication_summary_input_summary([]), do: nil
+
+  defp source_timeline_publication_summary_input_summary(sources) do
+    summaries = Enum.map(sources, fn {_path, summary} -> summary end)
+
+    %{
+      "paths" => Enum.map(sources, fn {path, _summary} -> path end),
+      "contract" => "timeline_publication_summary.v1",
+      "count" => length(sources),
+      "row_count" => length(sources),
+      "source_summary_model_counts" =>
+        summaries
+        |> count_report_field_values("model")
+        |> non_empty_map(),
+      "source_summary_schema_contract_counts" =>
+        summaries
+        |> count_report_field_values("schema_contract")
+        |> non_empty_map(),
+      "publication_status_counts" =>
+        summaries
+        |> count_report_field_values("publication_status")
+        |> non_empty_map(),
+      "dependency_impact_status_counts" =>
+        summaries
+        |> count_report_field_values("dependency_impact_status")
+        |> non_empty_map(),
+      "publication_authority_counts" =>
+        summaries
+        |> count_report_field_values("publication_authority")
+        |> non_empty_map(),
+      "source_artifact_type_counts" =>
+        summaries
+        |> count_report_field_values("source_artifact_type")
+        |> non_empty_map(),
+      "publication_ids" =>
+        summaries
+        |> Enum.map(&Map.get(&1, "publication_id"))
+        |> sorted_string_values(),
+      "source_artifact_ids" =>
+        summaries
+        |> Enum.map(&Map.get(&1, "source_artifact_id"))
+        |> sorted_string_values(),
+      "supersedes_artifact_ids" =>
+        summaries
+        |> Enum.flat_map(&Map.get(&1, "supersedes_artifact_ids", []))
+        |> sorted_string_values(),
+      "downstream_product_ids" =>
+        summaries
+        |> Enum.flat_map(&Map.get(&1, "downstream_product_ids", []))
+        |> sorted_string_values(),
+      "invalidated_downstream_product_ids" =>
+        summaries
+        |> Enum.flat_map(&Map.get(&1, "invalidated_downstream_product_ids", []))
+        |> sorted_string_values(),
+      "dependency_impact_row_count" =>
+        sum_report_count(summaries, &numeric_report_count(&1, "dependency_impact_row_count")),
+      "impacted_dependency_activity_ids" =>
+        summaries
+        |> Enum.flat_map(&Map.get(&1, "impacted_dependency_activity_ids", []))
+        |> sorted_string_values(),
+      "impacted_dependency_timeline_ids" =>
+        summaries
+        |> Enum.flat_map(&Map.get(&1, "impacted_dependency_timeline_ids", []))
+        |> sorted_string_values(),
+      "impacted_exclusive_with_activity_ids" =>
+        summaries
+        |> Enum.flat_map(&Map.get(&1, "impacted_exclusive_with_activity_ids", []))
+        |> sorted_string_values(),
+      "impacted_exclusive_with_timeline_ids" =>
+        summaries
+        |> Enum.flat_map(&Map.get(&1, "impacted_exclusive_with_timeline_ids", []))
+        |> sorted_string_values(),
+      "timeline_diff_row_count" =>
+        sum_report_count(summaries, &numeric_report_count(&1, "timeline_diff_row_count")),
+      "timeline_diff_changed_count" =>
+        sum_report_count(summaries, &numeric_report_count(&1, "timeline_diff_changed_count")),
+      "timeline_diff_review_required_count" =>
+        sum_report_count(
+          summaries,
+          &numeric_report_count(&1, "timeline_diff_review_required_count")
+        ),
+      "changed_field_counts" =>
+        summaries
+        |> Enum.map(&Map.get(&1, "changed_field_counts", %{}))
+        |> merge_count_maps(),
+      "changed_timeline_ids" =>
+        summaries
+        |> Enum.flat_map(&Map.get(&1, "changed_timeline_ids", []))
+        |> sorted_string_values(),
+      "review_timeline_ids" =>
+        summaries
+        |> Enum.flat_map(&Map.get(&1, "review_timeline_ids", []))
+        |> sorted_string_values(),
+      "timeline_ids_by_changed_field" =>
+        summaries
+        |> Enum.map(&Map.get(&1, "timeline_ids_by_changed_field", %{}))
+        |> merge_string_list_maps(),
+      "trust_boundary_status" => source_report_trust_boundary_status(summaries),
+      "trust_boundaries" => source_report_trust_boundaries(summaries)
     }
     |> compact_map()
   end
@@ -36139,6 +36584,146 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Enum.map(fn {path, summary} -> {path, stringify_keys(summary)} end)
   end
 
+  defp source_timeline_publication_summaries(refresh) do
+    direct =
+      [
+        {"accepted_planning_state.source_timeline_publication_summary",
+         get_in(refresh, ["accepted_planning_state", "source_timeline_publication_summary"])},
+        {"accepted_planning_state.timeline_publication_summary",
+         get_in(refresh, ["accepted_planning_state", "timeline_publication_summary"])},
+        {"mission_state.source_timeline_publication_summary",
+         get_in(refresh, ["mission_state", "source_timeline_publication_summary"])},
+        {"mission_state.timeline_publication_summary",
+         get_in(refresh, ["mission_state", "timeline_publication_summary"])},
+        {"source_timeline_publication_summary",
+         Map.get(refresh, "source_timeline_publication_summary")},
+        {"timeline_publication_summary", Map.get(refresh, "timeline_publication_summary")}
+      ]
+      |> Enum.flat_map(fn {path, summary_or_summaries} ->
+        source_timeline_publication_summary_entries(path, summary_or_summaries)
+      end)
+
+    embedded =
+      refresh
+      |> source_result_artifacts()
+      |> Enum.flat_map(fn {path, artifact} ->
+        artifact = stringify_keys(artifact)
+
+        exact = source_timeline_publication_summary_entries(path, artifact)
+
+        nested =
+          [
+            {"#{path}.source_timeline_publication_summary",
+             Map.get(artifact, "source_timeline_publication_summary")},
+            {"#{path}.timeline_publication_summary",
+             Map.get(artifact, "timeline_publication_summary")}
+          ]
+          |> Enum.flat_map(fn {entry_path, summary} ->
+            source_timeline_publication_summary_entries(
+              entry_path,
+              inherit_result_artifact_trust_boundary(summary, artifact)
+            )
+          end)
+
+        exact ++ nested
+      end)
+
+    (direct ++
+       embedded ++
+       source_operator_review_timeline_publication_summaries(refresh) ++
+       source_cadence_import_timeline_publication_summaries(refresh))
+    |> Enum.filter(fn {_path, summary} -> timeline_publication_summary?(summary) end)
+    |> Enum.map(fn {path, summary} -> {path, stringify_keys(summary)} end)
+  end
+
+  defp source_operator_review_timeline_publication_summaries(refresh) do
+    direct =
+      [
+        {"accepted_planning_state.source_operator_review_package",
+         get_in(refresh, ["accepted_planning_state", "source_operator_review_package"])},
+        {"accepted_planning_state.operator_review_package",
+         get_in(refresh, ["accepted_planning_state", "operator_review_package"])},
+        {"mission_state.source_operator_review_package",
+         get_in(refresh, ["mission_state", "source_operator_review_package"])},
+        {"mission_state.operator_review_package",
+         get_in(refresh, ["mission_state", "operator_review_package"])},
+        {"source_operator_review_package", Map.get(refresh, "source_operator_review_package")},
+        {"operator_review_package", Map.get(refresh, "operator_review_package")}
+      ]
+      |> Enum.flat_map(fn {path, package_or_packages} ->
+        source_timeline_publication_summary_entries(
+          path,
+          package_or_packages,
+          &operator_review_package_timeline_publication_summary/2
+        )
+      end)
+
+    embedded =
+      refresh
+      |> source_result_artifacts()
+      |> Enum.flat_map(fn {path, artifact} ->
+        artifact = stringify_keys(artifact)
+
+        [
+          {"#{path}", artifact},
+          {"#{path}.operator_review_package", Map.get(artifact, "operator_review_package")}
+        ]
+        |> Enum.flat_map(fn {entry_path, package} ->
+          source_timeline_publication_summary_entries(
+            entry_path,
+            inherit_result_artifact_trust_boundary(package, artifact),
+            &operator_review_package_timeline_publication_summary/2
+          )
+        end)
+      end)
+
+    direct ++ embedded
+  end
+
+  defp source_cadence_import_timeline_publication_summaries(refresh) do
+    direct =
+      [
+        {"accepted_planning_state.source_cadence_import_manifest",
+         get_in(refresh, ["accepted_planning_state", "source_cadence_import_manifest"])},
+        {"accepted_planning_state.cadence_import_manifest",
+         get_in(refresh, ["accepted_planning_state", "cadence_import_manifest"])},
+        {"mission_state.source_cadence_import_manifest",
+         get_in(refresh, ["mission_state", "source_cadence_import_manifest"])},
+        {"mission_state.cadence_import_manifest",
+         get_in(refresh, ["mission_state", "cadence_import_manifest"])},
+        {"source_cadence_import_manifest", Map.get(refresh, "source_cadence_import_manifest")},
+        {"cadence_import_manifest", Map.get(refresh, "cadence_import_manifest")}
+      ]
+      |> Enum.flat_map(fn {path, manifest_or_manifests} ->
+        source_timeline_publication_summary_entries(
+          path,
+          manifest_or_manifests,
+          &cadence_import_manifest_timeline_publication_summary/2
+        )
+      end)
+
+    embedded =
+      refresh
+      |> source_result_artifacts()
+      |> Enum.flat_map(fn {path, artifact} ->
+        artifact = stringify_keys(artifact)
+
+        [
+          {"#{path}", artifact},
+          {"#{path}.cadence_import_manifest", Map.get(artifact, "cadence_import_manifest")}
+        ]
+        |> Enum.flat_map(fn {entry_path, manifest} ->
+          source_timeline_publication_summary_entries(
+            entry_path,
+            inherit_result_artifact_trust_boundary(manifest, artifact),
+            &cadence_import_manifest_timeline_publication_summary/2
+          )
+        end)
+      end)
+
+    direct ++ embedded
+  end
+
   defp source_timeline_lifecycle_state_summaries(refresh) do
     direct =
       [
@@ -41702,6 +42287,44 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
   defp source_timeline_dependency_impact_summary_entries(_path, _value, _builder), do: []
 
+  defp source_timeline_publication_summary_entries(path, values) when is_list(values) do
+    values
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {value, index} ->
+      source_timeline_publication_summary_entries("#{path}[#{index}]", value)
+    end)
+  end
+
+  defp source_timeline_publication_summary_entries(path, %{} = value) do
+    value = stringify_keys(value)
+
+    if timeline_publication_summary?(value) do
+      [{path, value}]
+    else
+      []
+    end
+  end
+
+  defp source_timeline_publication_summary_entries(_path, _value), do: []
+
+  defp source_timeline_publication_summary_entries(path, values, builder)
+       when is_list(values) do
+    values
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {value, index} ->
+      source_timeline_publication_summary_entries("#{path}[#{index}]", value, builder)
+    end)
+  end
+
+  defp source_timeline_publication_summary_entries(path, %{} = value, builder) do
+    case builder.(path, stringify_keys(value)) do
+      {entry_path, %{} = summary} -> [{entry_path, summary}]
+      _summary -> []
+    end
+  end
+
+  defp source_timeline_publication_summary_entries(_path, _value, _builder), do: []
+
   defp source_timeline_activity_precondition_summary_entries(path, values) when is_list(values) do
     values
     |> Enum.with_index()
@@ -41759,6 +42382,47 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp source_timeline_lifecycle_state_summary_entries(_path, _value), do: []
+
+  defp operator_review_package_timeline_publication_summary(path, %{} = package) do
+    timeline_publication_summary_from_handoff_rows(
+      "#{path}.rows.source_timeline_publication_summary",
+      package,
+      "timeline_publication_review"
+    )
+  end
+
+  defp cadence_import_manifest_timeline_publication_summary(path, %{} = manifest) do
+    timeline_publication_summary_from_handoff_rows(
+      "#{path}.rows.source_timeline_publication_summary",
+      manifest,
+      "review_timeline_publication"
+    )
+  end
+
+  defp timeline_publication_summary_from_handoff_rows(path, %{} = artifact, row_type) do
+    artifact
+    |> Map.get("rows", [])
+    |> List.wrap()
+    |> Enum.map(&stringify_keys/1)
+    |> Enum.find_value(fn row ->
+      if timeline_publication_handoff_row?(row, row_type) do
+        case Map.get(row, "source_timeline_publication_summary") do
+          %{} = summary ->
+            {path, inherit_result_artifact_trust_boundary(summary, artifact)}
+
+          _summary ->
+            nil
+        end
+      end
+    end)
+  end
+
+  defp timeline_publication_handoff_row?(%{"review_type" => row_type}, row_type), do: true
+  defp timeline_publication_handoff_row?(%{"import_type" => row_type}, row_type), do: true
+  defp timeline_publication_handoff_row?(%{"row_type" => row_type}, row_type), do: true
+  defp timeline_publication_handoff_row?(%{"action" => row_type}, row_type), do: true
+  defp timeline_publication_handoff_row?(%{"import_action" => row_type}, row_type), do: true
+  defp timeline_publication_handoff_row?(_row, _row_type), do: false
 
   defp operator_review_package_timeline_dependency_impact_summary(path, %{} = package) do
     rows =
@@ -45535,6 +46199,22 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp timeline_dependency_impact_summary?(_summary), do: false
+
+  defp timeline_publication_summary?(%{} = summary) do
+    model = Map.get(summary, "model") || Map.get(summary, :model)
+    schema_contract = Map.get(summary, "schema_contract") || Map.get(summary, :schema_contract)
+
+    publication_id = Map.get(summary, "publication_id") || Map.get(summary, :publication_id)
+
+    source_artifact_id =
+      Map.get(summary, "source_artifact_id") || Map.get(summary, :source_artifact_id)
+
+    is_binary(publication_id) and is_binary(source_artifact_id) and
+      (model == "artifact_only_timeline_publication_summary" or
+         schema_contract == "timeline_publication_summary.v1")
+  end
+
+  defp timeline_publication_summary?(_summary), do: false
 
   defp timeline_activity_precondition_summary?(%{} = summary) do
     model = Map.get(summary, "model") || Map.get(summary, :model)

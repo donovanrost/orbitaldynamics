@@ -12473,6 +12473,130 @@ defmodule OrbitalDynamics.SchemaTest do
                  "$.provenance.source_reports.timeline_activity_lifecycle_state.invalid_activity_input_reasons[0]")
            )
 
+    artifact_with_timeline_publication_summary =
+      put_in(artifact, ["provenance", "source_reports", "timeline_publication_summary"], %{
+        "paths" => ["source_timeline_publication_summary"],
+        "contract" => "timeline_publication_summary.v1",
+        "count" => 1,
+        "row_count" => 1,
+        "publication_status_counts" => %{"review_required" => 1},
+        "dependency_impact_status_counts" => %{"review_required" => 1},
+        "publication_authority_counts" => %{"mission_operations" => 1},
+        "source_artifact_type_counts" => %{"operational_timeline_report.v1" => 1},
+        "publication_ids" => ["timeline_publication:branch"],
+        "source_artifact_ids" => ["timeline:branch_plan"],
+        "supersedes_artifact_ids" => ["timeline:previous_plan"],
+        "downstream_product_ids" => ["cadence_import:branch_plan"],
+        "invalidated_downstream_product_ids" => ["cadence_import:branch_plan"],
+        "dependency_impact_row_count" => 1,
+        "impacted_dependency_activity_ids" => ["branch_dependency"],
+        "impacted_dependency_timeline_ids" => ["timeline:branch_dependency"],
+        "impacted_exclusive_with_activity_ids" => ["branch_exclusive"],
+        "impacted_exclusive_with_timeline_ids" => ["timeline:branch_exclusive"],
+        "timeline_diff_row_count" => 2,
+        "timeline_diff_changed_count" => 1,
+        "timeline_diff_review_required_count" => 1,
+        "changed_field_counts" => %{"starts_at_s" => 1},
+        "changed_timeline_ids" => ["timeline:branch_changed"],
+        "review_timeline_ids" => ["timeline:branch_review"],
+        "timeline_ids_by_changed_field" => %{
+          "starts_at_s" => ["timeline:branch_changed"]
+        }
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_timeline_publication_summary)
+
+    assert {:ok, candidate_refresh_schema} = Schema.json_schema("candidate_refresh.v1")
+
+    timeline_publication_source_report_properties =
+      get_in(candidate_refresh_schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "additionalProperties",
+        "properties"
+      ])
+
+    assert get_in(timeline_publication_source_report_properties, [
+             "publication_ids",
+             "items",
+             "pattern"
+           ])
+
+    assert get_in(timeline_publication_source_report_properties, [
+             "timeline_ids_by_changed_field",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ])
+
+    invalid_timeline_publication_dependency_count =
+      put_in(
+        artifact_with_timeline_publication_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_publication_summary",
+          "dependency_impact_row_count"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_timeline_publication_dependency_count_report} =
+             Schema.validate_artifact(invalid_timeline_publication_dependency_count)
+
+    assert Enum.any?(
+             invalid_timeline_publication_dependency_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_publication_summary.dependency_impact_row_count")
+           )
+
+    invalid_timeline_publication_changed_field_count =
+      put_in(
+        artifact_with_timeline_publication_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_publication_summary",
+          "changed_field_counts",
+          "starts_at_s"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_timeline_publication_changed_field_count_report} =
+             Schema.validate_artifact(invalid_timeline_publication_changed_field_count)
+
+    assert Enum.any?(
+             invalid_timeline_publication_changed_field_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_publication_summary.changed_field_counts.starts_at_s")
+           )
+
+    invalid_timeline_publication_id =
+      put_in(
+        artifact_with_timeline_publication_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_publication_summary",
+          "publication_ids",
+          Access.at(0)
+        ],
+        "bad id"
+      )
+
+    assert {:error, invalid_timeline_publication_id_report} =
+             Schema.validate_artifact(invalid_timeline_publication_id)
+
+    assert Enum.any?(
+             invalid_timeline_publication_id_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_publication_summary.publication_ids[0]")
+           )
+
     artifact_with_station_calendar_summary =
       put_in(artifact, ["provenance", "source_reports", "station_calendar_report"], %{
         "paths" => ["source_station_calendar_report"],

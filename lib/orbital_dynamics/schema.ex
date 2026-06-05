@@ -21105,6 +21105,7 @@ defmodule OrbitalDynamics.Schema do
         |> Map.merge(candidate_refresh_contact_filter_context_json_schema_properties())
         |> Map.merge(candidate_refresh_station_calendar_context_json_schema_properties())
         |> Map.merge(candidate_refresh_timeline_activity_context_json_schema_properties())
+        |> Map.merge(candidate_refresh_timeline_publication_context_json_schema_properties())
         |> Map.merge(candidate_refresh_model_acceptance_context_json_schema_properties())
     }
   end
@@ -21322,6 +21323,32 @@ defmodule OrbitalDynamics.Schema do
       "invalid_activity_input_count" => %{"type" => "integer", "minimum" => 0},
       "invalid_activity_input_reason_counts" => non_negative_integer_count_map_json_schema(),
       "invalid_activity_input_reasons" => string_array_schema()
+    }
+  end
+
+  defp candidate_refresh_timeline_publication_context_json_schema_properties do
+    %{
+      "publication_status_counts" => non_negative_integer_count_map_json_schema(),
+      "dependency_impact_status_counts" => non_negative_integer_count_map_json_schema(),
+      "publication_authority_counts" => non_negative_integer_count_map_json_schema(),
+      "source_artifact_type_counts" => non_negative_integer_count_map_json_schema(),
+      "publication_ids" => stable_id_array_schema(),
+      "source_artifact_ids" => stable_id_array_schema(),
+      "supersedes_artifact_ids" => stable_id_array_schema(),
+      "downstream_product_ids" => stable_id_array_schema(),
+      "invalidated_downstream_product_ids" => stable_id_array_schema(),
+      "dependency_impact_row_count" => %{"type" => "integer", "minimum" => 0},
+      "impacted_dependency_activity_ids" => stable_id_array_schema(),
+      "impacted_dependency_timeline_ids" => stable_id_array_schema(),
+      "impacted_exclusive_with_activity_ids" => stable_id_array_schema(),
+      "impacted_exclusive_with_timeline_ids" => stable_id_array_schema(),
+      "timeline_diff_row_count" => %{"type" => "integer", "minimum" => 0},
+      "timeline_diff_changed_count" => %{"type" => "integer", "minimum" => 0},
+      "timeline_diff_review_required_count" => %{"type" => "integer", "minimum" => 0},
+      "changed_field_counts" => non_negative_integer_count_map_json_schema(),
+      "changed_timeline_ids" => stable_id_array_schema(),
+      "review_timeline_ids" => stable_id_array_schema(),
+      "timeline_ids_by_changed_field" => stable_id_array_map_schema()
     }
   end
 
@@ -25357,6 +25384,7 @@ defmodule OrbitalDynamics.Schema do
         |> validate_candidate_refresh_contact_filter_context(path, summary)
         |> validate_candidate_refresh_station_calendar_context(path, summary)
         |> validate_candidate_refresh_timeline_activity_context(path, summary)
+        |> validate_candidate_refresh_timeline_publication_context(path, summary)
         |> validate_candidate_refresh_model_acceptance_context(path, summary)
         |> validate_candidate_refresh_validation_safety_case_context(path, summary)
       else
@@ -25977,6 +26005,64 @@ defmodule OrbitalDynamics.Schema do
       Map.get(summary, "invalid_activity_input_reason_counts")
     )
     |> validate_string_list_items(path, summary, "invalid_activity_input_reasons")
+  end
+
+  defp validate_candidate_refresh_timeline_publication_context(issues, path, summary) do
+    issues =
+      Enum.reduce(
+        [
+          "publication_status_counts",
+          "dependency_impact_status_counts",
+          "publication_authority_counts",
+          "source_artifact_type_counts",
+          "changed_field_counts"
+        ],
+        issues,
+        fn field, acc ->
+          validate_non_negative_integer_count_map(
+            acc,
+            path <> ".#{field}",
+            Map.get(summary, field)
+          )
+        end
+      )
+
+    issues =
+      Enum.reduce(
+        [
+          "dependency_impact_row_count",
+          "timeline_diff_row_count",
+          "timeline_diff_changed_count",
+          "timeline_diff_review_required_count"
+        ],
+        issues,
+        fn field, acc -> expect_optional_non_negative_integer(acc, path, summary, field) end
+      )
+
+    issues =
+      Enum.reduce(
+        [
+          "publication_ids",
+          "source_artifact_ids",
+          "supersedes_artifact_ids",
+          "downstream_product_ids",
+          "invalidated_downstream_product_ids",
+          "impacted_dependency_activity_ids",
+          "impacted_dependency_timeline_ids",
+          "impacted_exclusive_with_activity_ids",
+          "impacted_exclusive_with_timeline_ids",
+          "changed_timeline_ids",
+          "review_timeline_ids"
+        ],
+        issues,
+        fn field, acc -> validate_optional_stable_id_list(acc, path, summary, field) end
+      )
+
+    validate_stable_id_array_map(
+      issues,
+      path <> ".timeline_ids_by_changed_field",
+      Map.get(summary, "timeline_ids_by_changed_field")
+    )
   end
 
   defp validate_candidate_refresh_validation_safety_case_context(issues, path, summary) do

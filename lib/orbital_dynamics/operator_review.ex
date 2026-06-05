@@ -9812,9 +9812,61 @@ defmodule OrbitalDynamics.OperatorReview do
       "planned_activity_context" => row["planned_activity_context"],
       "realized_activity_context" => row["realized_activity_context"]
     }
+    |> maybe_put_candidate_refresh_timeline_activity_state_lifecycle_source(row, source)
     |> Map.put(timeline_activity_state_source_field(row), row)
     |> compact_map()
   end
+
+  defp maybe_put_candidate_refresh_timeline_activity_state_lifecycle_source(
+         review_row,
+         row,
+         "candidate_refresh." <> _source
+       ) do
+    Map.put_new(
+      review_row,
+      "source_timeline_lifecycle_state",
+      timeline_activity_state_lifecycle_source(row)
+    )
+  end
+
+  defp maybe_put_candidate_refresh_timeline_activity_state_lifecycle_source(
+         review_row,
+         _row,
+         _source
+       ),
+       do: review_row
+
+  defp timeline_activity_state_lifecycle_source(%{} = row) do
+    row
+    |> Map.put_new("schema_contract", timeline_activity_state_source_contract(row))
+    |> compact_map()
+  end
+
+  defp timeline_activity_state_source_contract(%{"schema_contract" => contract})
+       when is_binary(contract),
+       do: contract
+
+  defp timeline_activity_state_source_contract(%{
+         "model" => "artifact_only_timeline_activity_state"
+       }),
+       do: "timeline_activity_state.v1"
+
+  defp timeline_activity_state_source_contract(%{
+         "model" => "artifact_only_timeline_activity_status_state"
+       }),
+       do: "timeline_activity_status_state.v1"
+
+  defp timeline_activity_state_source_contract(%{
+         "model" => "artifact_only_timeline_activity_approval_state"
+       }),
+       do: "timeline_activity_approval_state.v1"
+
+  defp timeline_activity_state_source_contract(%{
+         "model" => "artifact_only_timeline_activity_lifecycle_state"
+       }),
+       do: "timeline_activity_lifecycle_state.v1"
+
+  defp timeline_activity_state_source_contract(_row), do: nil
 
   defp timeline_activity_state_source_field(%{"schema_contract" => "timeline_activity_state.v1"}),
     do: "source_timeline_activity_state"

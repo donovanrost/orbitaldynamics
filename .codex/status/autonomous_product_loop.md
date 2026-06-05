@@ -1,84 +1,93 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Timeline publication summary review/import handoff.
+Timeline publication summary CandidateRefresh replay provenance.
 
 Status:
-Implemented, locally verified, reviewed clean, committed, and pushed.
-`timeline_publication_summary.v1` now routes into operator-review and
-Cadence-import handoff rows. The rows preserve publication identity, sequence,
-status, authority, supersession, downstream invalidation, dependency-impact
-rollups, changed-field audit evidence, and the nested source publication
-summary without approving, notifying, importing, mutating schedules, or granting
-authority. Runtime validation rejects stale copied publication handoff fields.
+Implemented, locally verified, and reviewed clean. `timeline_publication_summary.v1`
+can now be summarized through CandidateRefresh branch-local replay provenance.
+The replay preserves direct summaries, result-artifact wrapped summaries, and
+publication review/import handoff rows without publishing, notifying, importing,
+mutating timelines, selecting candidates, writing to Cadence, regenerating
+candidates, or granting authority.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
+- `docs/artifacts/field_families/candidate_refresh_artifact.md`
 - `docs/artifacts/field_families/mission_activities.md`
 - `docs/mission_planning/high_fidelity/04_plan_structure_and_lifecycle.md`
 - `lib/orbital_dynamics.ex`
-- `lib/orbital_dynamics/cadence_import.ex`
+- `lib/orbital_dynamics/candidate_refresh.ex`
 - `lib/orbital_dynamics/operator_review.ex`
 - `lib/orbital_dynamics/schema.ex`
-- `schemas/cadence_import_manifest.v1.schema.json`
-- `schemas/campaign_plan.v1.schema.json`
-- `schemas/campaign_repair.v2.schema.json`
-- `schemas/campaign_strategy.v3.schema.json`
-- `schemas/operational_readiness_report.v1.schema.json`
-- `schemas/operator_review_package.v1.schema.json`
+- `schemas/candidate_refresh.v1.schema.json`
 - `schemas/orbital_dynamics.schema_bundle.v1.json`
-- `schemas/realized_state_snapshot.v1.schema.json`
-- `schemas/timeline_feedback_report.v1.schema.json`
-- `test/orbital_dynamics/cadence_import_test.exs`
-- `test/orbital_dynamics/operator_review_test.exs`
+- `test/orbital_dynamics/candidate_refresh_test.exs`
 - `test/orbital_dynamics/schema_test.exs`
 
 Definition of done:
-- `OperatorReview.from_timeline_publication_summary/1` emits deterministic
-  `timeline_publication_review` rows without approving, notifying, importing,
-  mutating schedules, or granting authority.
-- `CadenceImport.from_timeline_publication_summary/2` emits
-  `review_timeline_publication` rows with the same handoff-only boundary.
-- Public facades accept schema-contract and model-only publication summary
-  artifacts.
-- Rows preserve publication ID/sequence/status/authority,
-  superseded/downstream/invalidated IDs, dependency-impact status/counts,
-  changed-field audit counts and routing, and nested source publication
-  evidence.
-- Runtime validation and JSON Schema exports cover the new row fields and reject
-  stale copied source evidence.
-- Docs, focused tests, schema export, schema export tests, schema lint, reviewer,
-  and `git diff --check` pass.
+- `CandidateRefresh.timeline_publication_replay_summary/1` emits
+  artifact-only branch-local replay summaries.
+- `OrbitalDynamics.candidate_refresh_timeline_publication_replay_summary/1`
+  delegates to the CandidateRefresh helper.
+- Capability metadata advertises `timeline_publication_summary` input,
+  public facade, source-report helper, routing-map semantics, and branch replay
+  semantics.
+- Source-report provenance accepts direct
+  `source_timeline_publication_summary` / `timeline_publication_summary`
+  inputs, exact and wrapped `source_result_artifact` / `result_artifact`
+  summaries, and publication rows preserved through operator-review packages
+  and Cadence-import manifests.
+- Replay preserves source paths/counts, publication IDs/status/authority,
+  source artifact IDs/types, superseded/downstream/invalidated IDs,
+  dependency-impact status/count/ID evidence, changed-field audit counts and
+  routing, trust boundaries, and branch-local publication/dependency/
+  changed-field/invalidation/review pressure booleans.
+- Runtime validation and JSON Schema exports cover publication source-report
+  provenance fields on `candidate_refresh.v1`.
+- CandidateRefresh-derived activity-state handoff rows normalize
+  `source_timeline_lifecycle_state` contract evidence without changing direct
+  single-state operator-review rows.
+- Docs, focused tests, full focused suites, schema export, schema export tests,
+  schema lint, direct exported-schema check, and `git diff --check` pass.
 
 Tests run:
-- `mix format lib/orbital_dynamics.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/operator_review_test.exs test/orbital_dynamics/cadence_import_test.exs test/orbital_dynamics/schema_test.exs`
-- `mix test test/orbital_dynamics/operator_review_test.exs:2278`
-- `mix test test/orbital_dynamics/cadence_import_test.exs:11059`
-- `mix test test/orbital_dynamics/schema_test.exs:20166` (failed once before adding `review_timeline_ids` to publication row schema, then passed)
-- `mix test test/orbital_dynamics/operator_review_test.exs:6 test/orbital_dynamics/operator_review_test.exs:2380`
-- `mix test test/orbital_dynamics/cadence_import_test.exs:9 test/orbital_dynamics/cadence_import_test.exs:11238` (failed once before admitting `timeline_publication_review` through the generic import-row filter, then passed)
-- `mix test test/orbital_dynamics/operator_review_test.exs`
-- `mix test test/orbital_dynamics/cadence_import_test.exs` (failed once before adding the supported-source fixture, then passed)
+- `mix format lib/orbital_dynamics.ex lib/orbital_dynamics/candidate_refresh.ex lib/orbital_dynamics/schema.ex`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:120` (passed after fixing one schema validation helper typo)
+- `mix format lib/orbital_dynamics.ex lib/orbital_dynamics/candidate_refresh.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/candidate_refresh_test.exs`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:120 test/orbital_dynamics/candidate_refresh_test.exs:24792`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:24929 test/orbital_dynamics/candidate_refresh_test.exs:24948 test/orbital_dynamics/candidate_refresh_test.exs:25014` (failed once before adding the `import_action` Cadence-row alias, then passed focused)
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:25014`
+- `mix test test/orbital_dynamics/schema_test.exs:11372`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:120 test/orbital_dynamics/candidate_refresh_test.exs:24793 test/orbital_dynamics/candidate_refresh_test.exs:24929 test/orbital_dynamics/candidate_refresh_test.exs:24948 test/orbital_dynamics/candidate_refresh_test.exs:25014 test/orbital_dynamics/schema_test.exs:11372`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `mix test test/orbital_dynamics/schema_test.exs`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
-- `node - <<'NODE'` direct check confirming exported operator-review and
-  Cadence-import schemas expose publication handoff fields and nested
-  `timeline_publication_summary.v1`
+- `mix test test/orbital_dynamics/schema_test.exs`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs` (failed once on an existing activity-state handoff assertion before narrowing CandidateRefresh-derived lifecycle-source normalization, then passed)
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:20668`
+- `mix test test/orbital_dynamics/operator_review_test.exs` (failed once before limiting lifecycle-source normalization to `candidate_refresh.*` sources, then passed)
+- `mix test test/orbital_dynamics/operator_review_test.exs:2781 test/orbital_dynamics/candidate_refresh_test.exs:20668`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs`
+- `mix test test/orbital_dynamics/operator_review_test.exs`
+- `mix test test/orbital_dynamics/cadence_import_test.exs`
+- `mix test test/orbital_dynamics/schema_test.exs`
+- `node - <<'NODE'` direct check confirming exported `candidate_refresh.v1`
+  source-report schema exposes timeline publication provenance fields
 - `git diff --check`
-- `slice_reviewer`: no must-fix findings; noted only coverage-depth residual risk
-- `git_slice_publisher`: staged only slice-owned files, confirmed `.gitignore`
-  remained unstaged, committed, and pushed
+- `slice_reviewer`: no must-fix findings; noted only residual risk that
+  publication handoff extraction selects the first matching review/import row,
+  which matches the current one-row-per-summary producer shape
 
 Last completed implementation commit:
-`a838f01bb04716cda5d723607491c9f269c5cf53` pushed to `origin/main`.
+Pending.
 
 Last ledger correction commit:
-`ed15cf1` pushed to `origin/main`.
+Pending.
 
 Next candidate:
-After this slice is complete, rerun the mapper against the current checkout.
+After this slice is reviewed and published, rerun the mapper against the
+current checkout.
 
 Blocked:
 No.

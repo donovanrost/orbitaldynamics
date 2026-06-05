@@ -513,6 +513,14 @@ authority, supersession, downstream invalidation, dependency-impact rollups,
 changed-field audit counts and routing, and the nested source publication
 summary while leaving publication execution, notification delivery, and import
 authorization to downstream operators or host systems.
+CandidateRefresh publication replay now preserves the same publication summary
+evidence through `CandidateRefresh.timeline_publication_replay_summary/1` and
+`OrbitalDynamics.candidate_refresh_timeline_publication_replay_summary/1`.
+Replay accepts direct publication summaries, result-artifact wrapped summaries,
+and review/import handoff rows, then emits artifact-only branch-local
+publication, dependency, changed-field, invalidation, and review pressure
+without publishing, notifying, importing, mutating schedules, or granting
+authority.
 Operational-timeline report activity/row/contact/command/protection/execution
 totals and optional dependency, exclusivity, uncertainty, integrity, duplicate,
 valid, invalid, and terminal-exception counters are non-negative integers in

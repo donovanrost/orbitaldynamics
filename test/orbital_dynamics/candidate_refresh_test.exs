@@ -84,6 +84,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert :timeline_diff_summary in inputs
     assert :timeline_lifecycle_state_summary in inputs
     assert :timeline_dependency_impact_summary in inputs
+    assert :timeline_publication_summary in inputs
     assert :timeline_transition_application_report in inputs
     assert :timeline_transition_application_summary in inputs
     assert :objective_satisfaction_report in inputs
@@ -157,6 +158,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert :candidate_refresh_timeline_diff_replay_summary in public_facades
     assert :candidate_refresh_timeline_lifecycle_state_replay_summary in public_facades
     assert :candidate_refresh_timeline_dependency_impact_replay_summary in public_facades
+    assert :candidate_refresh_timeline_publication_replay_summary in public_facades
     assert :candidate_refresh_timeline_transition_application_replay_summary in public_facades
     assert :candidate_refresh_objective_gap_replay_summary in public_facades
     assert :candidate_refresh_constraint_replay_summary in public_facades
@@ -189,6 +191,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert :timeline_diff_replay_summary in source_report_helpers
     assert :timeline_lifecycle_state_replay_summary in source_report_helpers
     assert :timeline_dependency_impact_replay_summary in source_report_helpers
+    assert :timeline_publication_replay_summary in source_report_helpers
     assert :timeline_transition_application_replay_summary in source_report_helpers
     assert :objective_gap_replay_summary in source_report_helpers
     assert :constraint_replay_summary in source_report_helpers
@@ -351,6 +354,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert :source_report_timeline_dependency_impact_routing_maps in source_report_summary_semantics
 
+    assert :source_report_timeline_publication_routing_maps in source_report_summary_semantics
+
     assert :source_report_timeline_transition_application_routing_count_maps in source_report_summary_semantics
 
     assert :source_report_timeline_transition_application_selected_activity_routing_maps in source_report_summary_semantics
@@ -448,6 +453,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert :source_report_timeline_diff_branch_replay_summary in source_report_summary_semantics
 
     assert :source_report_timeline_dependency_impact_branch_replay_summary in source_report_summary_semantics
+
+    assert :source_report_timeline_publication_branch_replay_summary in source_report_summary_semantics
 
     assert :source_report_timeline_transition_application_branch_replay_summary in source_report_summary_semantics
 
@@ -24781,6 +24788,268 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert summary["assumptions"]["replay_scope"] ==
              "timeline_dependency_impact_candidate_source_report_summary_only"
+  end
+
+  test "timeline publication replay summary preserves publication provenance without publishing" do
+    source = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 0.0, ends_at_s: 10.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    replacement = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 5.0, ends_at_s: 15.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    dependency_impact = Timeline.dependency_impact_summary(source, replacement)
+    timeline_diff_summary = Timeline.diff_summary(source, replacement)
+
+    publication_summary =
+      %{
+        "schema_contract" => "operational_timeline_report.v1",
+        "id" => "timeline:published_plan:v2"
+      }
+      |> Timeline.publication_summary(
+        publication_sequence: 7,
+        publication_authority: :mission_operations,
+        supersedes_artifact_ids: ["timeline:published_plan:v1"],
+        downstream_product_ids: ["operator_review:plan:v1", "cadence_import:plan:v1"],
+        dependency_impact_summary: dependency_impact,
+        timeline_diff_summary: timeline_diff_summary
+      )
+      |> Map.put("provenance", %{"trust_boundary" => "publication_boundary"})
+
+    refresh = %{"source_timeline_publication_summary" => publication_summary}
+
+    assert %{
+             "source_report_timeline_publication_contract" => "timeline_publication_summary.v1",
+             "source_report_timeline_publication_count" => 1,
+             "source_report_timeline_publication_row_count" => 1,
+             "source_report_timeline_publication_paths" => [
+               "source_timeline_publication_summary"
+             ],
+             "source_report_timeline_publication_status_counts" => %{
+               "published_with_downstream_invalidations" => 1
+             },
+             "source_report_timeline_publication_dependency_impact_status_counts" => %{
+               "review_required" => 1
+             },
+             "source_report_timeline_publication_ids" => [
+               "timeline_publication:7:timeline:published_plan:v2:timeline:published_plan:v1"
+             ],
+             "source_report_timeline_publication_source_artifact_ids" => [
+               "timeline:published_plan:v2"
+             ],
+             "source_report_timeline_publication_invalidated_downstream_product_ids" => [
+               "cadence_import:plan:v1",
+               "operator_review:plan:v1"
+             ],
+             "source_report_timeline_publication_dependency_impact_row_count" => 2,
+             "source_report_timeline_publication_diff_row_count" => 3,
+             "source_report_timeline_publication_diff_review_required_count" => 2,
+             "source_report_timeline_publication_changed_field_counts" => %{
+               "timeline_presence" => 2
+             },
+             "source_reports" => %{
+               "timeline_publication_summary" => %{
+                 "trust_boundary_status" => "declared",
+                 "trust_boundaries" => ["publication_boundary"]
+               }
+             }
+           } = CandidateRefresh.source_report_summary(refresh)
+
+    assert %{
+             "model" => "artifact_only_candidate_refresh_timeline_publication_replay_summary",
+             "source" =>
+               "candidate_refresh.source_report_provenance.timeline_publication_summary",
+             "contract" => "timeline_publication_summary.v1",
+             "source_report_count" => 1,
+             "source_report_row_count" => 1,
+             "source_report_paths" => ["source_timeline_publication_summary"],
+             "publication_status_counts" => %{
+               "published_with_downstream_invalidations" => 1
+             },
+             "dependency_impact_status_counts" => %{"review_required" => 1},
+             "publication_authority_counts" => %{"mission_operations" => 1},
+             "source_artifact_type_counts" => %{"operational_timeline_report.v1" => 1},
+             "publication_ids" => [
+               "timeline_publication:7:timeline:published_plan:v2:timeline:published_plan:v1"
+             ],
+             "source_artifact_ids" => ["timeline:published_plan:v2"],
+             "supersedes_artifact_ids" => ["timeline:published_plan:v1"],
+             "downstream_product_ids" => [
+               "cadence_import:plan:v1",
+               "operator_review:plan:v1"
+             ],
+             "invalidated_downstream_product_ids" => [
+               "cadence_import:plan:v1",
+               "operator_review:plan:v1"
+             ],
+             "dependency_impact_row_count" => 2,
+             "impacted_dependency_activity_ids" => ["health_gate"],
+             "timeline_diff_row_count" => 3,
+             "timeline_diff_changed_count" => 0,
+             "timeline_diff_review_required_count" => 2,
+             "changed_field_counts" => %{"timeline_presence" => 2},
+             "review_timeline_ids" => [
+               "timeline:health_check:0.0",
+               "timeline:health_check:5.0"
+             ],
+             "trust_boundary_status" => "declared",
+             "trust_boundaries" => ["publication_boundary"],
+             "branch_local_timeline_publication_pressure" => true,
+             "branch_local_timeline_publication_dependency_pressure" => true,
+             "branch_local_timeline_publication_changed_field_pressure" => true,
+             "branch_local_timeline_publication_invalidation_pressure" => true,
+             "branch_local_timeline_publication_review_pressure" => true,
+             "assumptions" => %{
+               "publication_execution" => "not_performed_by_summary",
+               "notification_delivery" => "not_performed_by_summary",
+               "operator_authority" => "not_granted_by_timeline_publication_replay_summary",
+               "import_approval" => "not_granted_by_timeline_publication_replay_summary"
+             }
+           } = replay_summary = CandidateRefresh.timeline_publication_replay_summary(refresh)
+
+    assert OrbitalDynamics.candidate_refresh_timeline_publication_replay_summary(refresh) ==
+             replay_summary
+  end
+
+  test "timeline publication replay summary omits contract when source report is absent" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{"source_reports" => %{}}
+    }
+
+    summary = CandidateRefresh.timeline_publication_replay_summary(artifact)
+
+    assert summary["source_report_count"] == 0
+    assert summary["source_report_row_count"] == 0
+    assert summary["source_report_paths"] == []
+    refute Map.has_key?(summary, "contract")
+    refute summary["branch_local_timeline_publication_pressure"]
+    refute summary["branch_local_timeline_publication_dependency_pressure"]
+    refute summary["branch_local_timeline_publication_changed_field_pressure"]
+    refute summary["branch_local_timeline_publication_invalidation_pressure"]
+    refute summary["branch_local_timeline_publication_review_pressure"]
+  end
+
+  test "timeline publication replay reads strategy branch candidate-source summary metadata" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "candidate_source" => %{
+        "candidate_refresh_request_source_report_summary" => %{
+          "source_reports" => %{
+            "timeline_publication_summary" => %{
+              "contract" => "timeline_publication_summary.v1",
+              "count" => 1,
+              "row_count" => 1,
+              "paths" => [
+                "candidate_source.candidate_refresh_request.source_timeline_publication_summary"
+              ],
+              "publication_status_counts" => %{"review_required" => 1},
+              "dependency_impact_status_counts" => %{"review_required" => 1},
+              "publication_ids" => ["timeline_publication:branch"],
+              "source_artifact_ids" => ["timeline:branch_plan"],
+              "dependency_impact_row_count" => 1,
+              "impacted_dependency_activity_ids" => ["branch_dependency"],
+              "timeline_diff_review_required_count" => 1,
+              "review_timeline_ids" => ["timeline:branch_review"],
+              "trust_boundary_status" => "declared",
+              "trust_boundaries" => ["branch_publication"]
+            }
+          }
+        }
+      },
+      "provenance" => %{
+        "source_reports" => %{
+          "timeline_publication_summary" => %{
+            "contract" => "timeline_publication_summary.v1",
+            "count" => 9,
+            "row_count" => 9,
+            "publication_ids" => ["timeline_publication:stale"]
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.timeline_publication_replay_summary(artifact)
+
+    assert summary["source"] ==
+             "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_publication_summary"
+
+    assert summary["source_report_count"] == 1
+    assert summary["source_report_row_count"] == 1
+
+    assert summary["source_report_paths"] == [
+             "candidate_source.candidate_refresh_request.source_timeline_publication_summary"
+           ]
+
+    assert summary["publication_ids"] == ["timeline_publication:branch"]
+    assert summary["source_artifact_ids"] == ["timeline:branch_plan"]
+    assert summary["dependency_impact_row_count"] == 1
+    assert summary["impacted_dependency_activity_ids"] == ["branch_dependency"]
+    assert summary["timeline_diff_review_required_count"] == 1
+    assert summary["review_timeline_ids"] == ["timeline:branch_review"]
+    assert summary["trust_boundaries"] == ["branch_publication"]
+    assert summary["branch_local_timeline_publication_pressure"]
+    assert summary["branch_local_timeline_publication_dependency_pressure"]
+    assert summary["branch_local_timeline_publication_review_pressure"]
+
+    assert summary["assumptions"]["replay_scope"] ==
+             "timeline_publication_candidate_source_report_summary_only"
+  end
+
+  test "timeline publication replay lifts review and import handoff rows" do
+    summary =
+      Timeline.publication_summary(
+        %{
+          "schema_contract" => "operational_timeline_report.v1",
+          "id" => "timeline:handoff_plan:v1"
+        },
+        publication_sequence: 3,
+        publication_authority: :mission_operations
+      )
+
+    package = OperatorReview.from_timeline_publication_summary(summary)
+    manifest = CadenceImport.from_timeline_publication_summary(summary)
+
+    assert %{
+             "source_report_count" => 1,
+             "source_report_row_count" => 1,
+             "source_report_paths" => [
+               "source_operator_review_package.rows.source_timeline_publication_summary"
+             ],
+             "publication_ids" => [publication_id]
+           } =
+             CandidateRefresh.timeline_publication_replay_summary(%{
+               "source_operator_review_package" => package
+             })
+
+    assert publication_id == summary["publication_id"]
+
+    assert %{
+             "source_report_count" => 1,
+             "source_report_row_count" => 1,
+             "source_report_paths" => [
+               "source_cadence_import_manifest.rows.source_timeline_publication_summary"
+             ],
+             "publication_ids" => [^publication_id]
+           } =
+             CandidateRefresh.timeline_publication_replay_summary(%{
+               "source_cadence_import_manifest" => manifest
+             })
   end
 
   test "operator review and import lift exact timeline dependency-impact summaries from candidate refresh result artifacts" do

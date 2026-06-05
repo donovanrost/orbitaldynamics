@@ -345,3 +345,11 @@ preserve publication ID/sequence/status/authority, supersession and downstream
 invalidation IDs, dependency-impact counts, changed-field audit routing, and the
 nested source publication summary for review without publishing, notifying,
 importing, or mutating schedules.
+CandidateRefresh replay can also carry the same publication evidence through
+`CandidateRefresh.timeline_publication_replay_summary/1` and
+`OrbitalDynamics.candidate_refresh_timeline_publication_replay_summary/1`.
+The replay summary is branch-local and artifact-only: it preserves publication
+identity, source paths/counts, dependency-impact rollups, changed-field audit
+routing, downstream invalidation IDs, trust boundaries, and pressure booleans
+without publishing, delivering notifications, approving imports, writing to
+Cadence, or mutating timelines.

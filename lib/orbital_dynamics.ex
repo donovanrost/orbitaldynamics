@@ -451,6 +451,13 @@ defmodule OrbitalDynamics do
   end
 
   @doc """
+  Summarizes branch-local timeline-publication replay provenance without mutating refresh state.
+  """
+  def candidate_refresh_timeline_publication_replay_summary(refresh_or_artifact) do
+    CandidateRefresh.timeline_publication_replay_summary(refresh_or_artifact)
+  end
+
+  @doc """
   Summarizes branch-local timeline-transition-application replay provenance without mutating refresh state.
   """
   def candidate_refresh_timeline_transition_application_replay_summary(refresh_or_artifact) do
