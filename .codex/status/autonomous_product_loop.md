@@ -1,15 +1,15 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Make CandidateRefresh contact-contention direction routing schema-visible.
+Make CandidateRefresh contact-contention-resolution direction routing schema-visible.
 
 Status:
-Implemented, locally verified, reviewed clean, committed, and pushed.
-Runtime CandidateRefresh contact-contention source summaries already preserve
-conflict groups, invalid contact IDs, resource-scope counts, direction counts,
-per-direction contact IDs, route contact IDs, and operator-action counts, but the
+Implemented, locally verified, and reviewed clean; publish pending.
+Runtime CandidateRefresh contact-contention-resolution source summaries already
+preserve recommendation counts, deferred/review contact IDs, grouped contact ID
+maps, direction counts, route contact IDs, and operator-action counts, but the
 `candidate_refresh.v1` family-specific source-report JSON Schema does not
-advertise those contact-contention fields. This is a contract
+advertise those contact-contention-resolution fields. This is a contract
 discoverability slice only: no replay behavior, runtime validation helpers,
 artifact generation logic, or operator/Cadence authority behavior changed.
 
@@ -21,12 +21,12 @@ Files changed:
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 
 Definition of done:
-- `candidate_refresh.v1` exposes a family-specific `contact_contention_report`
+- `candidate_refresh.v1` exposes a family-specific
+  `contact_contention_resolution_report`
   source-report schema.
-- Its source-report object advertises `conflict_group_count`,
-  `invalid_contact_input_count`, `invalid_contact_input_ids`,
-  `resource_scope_counts`, `direction_counts`, `contact_ids_by_direction`,
-  `required_operator_action_counts`, and `direction_routing` route objects with
+- Its source-report object advertises recommendation/review/deferred counts,
+  selected/deferred/review contact ID arrays and maps, resolution/selection/
+  direction/action count maps, and `direction_routing` route objects with
   `contact_count` and `contact_ids`.
 - Checked-in `candidate_refresh.v1` schema and schema bundle are refreshed.
 - Schema export tests, schema tests, schema lint, and whitespace checks pass.
@@ -39,21 +39,21 @@ Tests run:
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
-- `jq` spot-checks for `contact_contention_report` in
+- `jq` spot-checks for `contact_contention_resolution_report` in
   `schemas/candidate_refresh.v1.schema.json` and the schema bundle.
-- `slice_reviewer`: no must-fix findings; reran focused export test and
-  whitespace check.
-- `git_slice_publisher`: committed and pushed.
+- `slice_reviewer`: no must-fix findings; reran focused export test,
+  whitespace check, and generated-schema `jq` spot-checks.
+- `git_slice_publisher`: pending.
 
 Last completed implementation commit:
 `d2d3c17299367b0253cb15bb6536b57f4264de00` pushed to `origin/main`.
 
 Last ledger correction commit:
-`b3de8b1ba33623d4ea0deaf83d0bedb8149f826b` pushed to `origin/main`.
+`7af9c0aa7e1810bd40405a7c5d87708a533582a8` pushed to `origin/main`.
 
 Next candidate:
-After this slice, evaluate contact-contention-resolution direction routing from
-the mapper result.
+After this slice, evaluate link-capacity route/source-window maps from the
+mapper result.
 
 Blocked:
 No.

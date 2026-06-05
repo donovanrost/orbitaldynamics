@@ -21162,6 +21162,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_contact_allocation_source_report_summary_json_schema(),
             "contact_contention_report" =>
               candidate_refresh_contact_contention_source_report_summary_json_schema(),
+            "contact_contention_resolution_report" =>
+              candidate_refresh_contact_contention_resolution_source_report_summary_json_schema(),
             "contact_intent" =>
               candidate_refresh_contact_intent_source_report_summary_json_schema(),
             "station_calendar_report" =>
@@ -21283,6 +21285,70 @@ defmodule OrbitalDynamics.Schema do
         "required_operator_action_counts" => non_negative_integer_count_map_json_schema(),
         "direction_routing" => contact_contention_direction_routing_json_schema()
       })
+    end)
+  end
+
+  defp candidate_refresh_contact_contention_resolution_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      properties
+      |> Map.merge(
+        non_negative_integer_property_schemas([
+          "conflict_group_count",
+          "recommendation_count",
+          "review_recommendation_count",
+          "deferred_contact_count"
+        ])
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "resolution_status_counts",
+            "selection_reason_counts",
+            "resource_scope_counts",
+            "direction_counts",
+            "required_operator_action_counts"
+          ],
+          &{&1, non_negative_integer_count_map_json_schema()}
+        )
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "recommendation_group_ids",
+            "review_group_ids",
+            "ambiguous_group_ids",
+            "ambiguous_duplicate_contact_ids",
+            "selected_contact_ids",
+            "deferred_contact_ids",
+            "review_contact_ids"
+          ],
+          &{&1, stable_id_array_schema()}
+        )
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "ambiguous_duplicate_contact_ids_by_group_id",
+            "selected_contact_ids_by_group_id",
+            "deferred_contact_ids_by_group_id",
+            "review_contact_ids_by_group_id",
+            "selected_contact_ids_by_selection_reason",
+            "selected_contact_ids_by_ground_station",
+            "deferred_contact_ids_by_ground_station",
+            "selected_contact_ids_by_resource_scope",
+            "deferred_contact_ids_by_resource_scope",
+            "review_contact_ids_by_resource_scope",
+            "contact_ids_by_direction",
+            "review_contact_ids_by_action"
+          ],
+          &{&1, stable_id_array_map_schema()}
+        )
+      )
+      |> Map.put(
+        "direction_routing",
+        contact_contention_resolution_direction_routing_json_schema()
+      )
     end)
   end
 
@@ -21552,6 +21618,20 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp contact_contention_direction_routing_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => %{
+        "type" => "object",
+        "additionalProperties" => true,
+        "properties" => %{
+          "contact_count" => %{"type" => "integer", "minimum" => 0},
+          "contact_ids" => stable_id_array_schema()
+        }
+      }
+    }
+  end
+
+  defp contact_contention_resolution_direction_routing_json_schema do
     %{
       "type" => "object",
       "additionalProperties" => %{
