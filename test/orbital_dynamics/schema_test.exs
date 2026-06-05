@@ -19995,6 +19995,35 @@ defmodule OrbitalDynamics.SchemaTest do
              "review_required"
            ]
 
+    assert "timeline_diff_summary.v1" in get_in(schema, [
+             "x-orbital-dynamics",
+             "nested_contracts"
+           ])
+
+    assert get_in(schema, ["properties", "timeline_diff_row_count", "minimum"]) == 0
+
+    assert get_in(schema, [
+             "properties",
+             "changed_field_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(schema, [
+             "properties",
+             "changed_timeline_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(schema, [
+             "properties",
+             "timeline_ids_by_changed_field",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
     assert get_in(schema, [
              "properties",
              "invalidated_downstream_product_ids",
@@ -20005,6 +20034,26 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(schema, ["properties", "model_limits", "const"]) ==
              OrbitalDynamics.Timeline.model_limits()
 
+    timeline_diff_summary =
+      OrbitalDynamics.Timeline.diff_summary(
+        [
+          %{
+            id: :health_gate,
+            type: :health_check,
+            starts_at_s: 0.0,
+            ends_at_s: 10.0
+          }
+        ],
+        [
+          %{
+            id: :health_gate,
+            type: :health_check,
+            starts_at_s: 5.0,
+            ends_at_s: 15.0
+          }
+        ]
+      )
+
     summary =
       OrbitalDynamics.Timeline.publication_summary(
         %{
@@ -20014,8 +20063,12 @@ defmodule OrbitalDynamics.SchemaTest do
         publication_sequence: 2,
         publication_authority: :mission_operations,
         downstream_product_ids: ["cadence_import:plan:v1"],
-        invalidated_downstream_product_ids: ["cadence_import:plan:v1"]
+        invalidated_downstream_product_ids: ["cadence_import:plan:v1"],
+        timeline_diff_summary: timeline_diff_summary
       )
+
+    assert summary["source_timeline_diff_summary"] == timeline_diff_summary
+    assert summary["timeline_diff_changed_count"] == timeline_diff_summary["changed_count"]
 
     assert {:ok, %{"schema_contract" => "timeline_publication_summary.v1"}} =
              Schema.validate_artifact(summary)
@@ -20048,6 +20101,43 @@ defmodule OrbitalDynamics.SchemaTest do
              validation_report["errors"],
              &(&1["path"] == "$.model_limits" and
                  &1["message"] == "must match timeline report model limits")
+           )
+
+    stale_diff_ids =
+      Map.put(summary, "changed_timeline_ids", ["timeline:stale_changed"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_diff_ids)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.changed_timeline_ids" and
+                 &1["message"] == "must equal source_timeline_diff_summary.changed_timeline_ids")
+           )
+
+    missing_diff_projection =
+      Map.delete(summary, "changed_field_counts")
+
+    assert {:error, validation_report} = Schema.validate_artifact(missing_diff_projection)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.changed_field_counts" and
+                 &1["message"] ==
+                   "must be present when source_timeline_diff_summary is present")
+           )
+
+    orphan_diff_count =
+      summary
+      |> Map.delete("source_timeline_diff_summary")
+      |> Map.put("timeline_diff_changed_count", 1)
+
+    assert {:error, validation_report} = Schema.validate_artifact(orphan_diff_count)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.source_timeline_diff_summary" and
+                 &1["message"] ==
+                   "must be present when timeline diff audit fields are present")
            )
 
     invalid_downstream_id =

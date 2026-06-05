@@ -285,6 +285,8 @@ defmodule OrbitalDynamics.TimelineTest do
     assert "publication_sequence" in publication_summary_fields
     assert "invalidated_downstream_product_ids" in publication_summary_fields
     assert "dependency_impact_row_count" in publication_summary_fields
+    assert "changed_field_counts" in publication_summary_fields
+    assert "timeline_ids_by_changed_field" in publication_summary_fields
     assert publication_dependency_impact_statuses == ["clear", "not_evaluated", "review_required"]
 
     assert publication_statuses == [
@@ -444,6 +446,7 @@ defmodule OrbitalDynamics.TimelineTest do
     assert :publication_summary in row_semantics
     assert :publication_summary_downstream_invalidation in row_semantics
     assert :publication_summary_dependency_impact in row_semantics
+    assert :publication_summary_changed_field_audit in row_semantics
     assert :single_activity_transition_integrity_gate in row_semantics
     assert :lifecycle_preservation_report in row_semantics
     assert :lifecycle_preservation_status in row_semantics
@@ -3473,6 +3476,7 @@ defmodule OrbitalDynamics.TimelineTest do
     ]
 
     dependency_impact = Timeline.dependency_impact_summary(source, replacement)
+    timeline_diff_summary = Timeline.diff_summary(source, replacement)
 
     source_artifact = %{
       "schema_contract" => "operational_timeline_report.v1",
@@ -3503,6 +3507,16 @@ defmodule OrbitalDynamics.TimelineTest do
              "impacted_dependency_timeline_ids" => [],
              "impacted_exclusive_with_activity_ids" => [],
              "impacted_exclusive_with_timeline_ids" => [],
+             "source_timeline_diff_summary" => ^timeline_diff_summary,
+             "timeline_diff_row_count" => 3,
+             "timeline_diff_changed_count" => 0,
+             "timeline_diff_review_required_count" => 2,
+             "changed_field_counts" => %{"timeline_presence" => 2},
+             "changed_timeline_ids" => [],
+             "review_timeline_ids" => ["timeline:health_check:0.0", "timeline:health_check:5.0"],
+             "timeline_ids_by_changed_field" => %{
+               "timeline_presence" => ["timeline:health_check:0.0", "timeline:health_check:5.0"]
+             },
              "assumptions" => %{
                "execution_boundary" => "artifact_only_no_schedule_mutation",
                "notification_delivery" => "host_system_owned",
@@ -3521,7 +3535,8 @@ defmodule OrbitalDynamics.TimelineTest do
                  "cadence_import:plan:v1",
                  "operator_review:plan:v1"
                ],
-               dependency_impact_summary: dependency_impact
+               dependency_impact_summary: dependency_impact,
+               timeline_diff_summary: timeline_diff_summary
              )
 
     assert "artifact_level_only" in model_limits
@@ -3536,7 +3551,8 @@ defmodule OrbitalDynamics.TimelineTest do
              publication_authority: :mission_operations,
              supersedes_artifact_ids: ["timeline:published_plan:v1"],
              downstream_product_ids: ["operator_review:plan:v1", "cadence_import:plan:v1"],
-             dependency_impact_summary: dependency_impact
+             dependency_impact_summary: dependency_impact,
+             timeline_diff_summary: timeline_diff_summary
            ) == summary
 
     assert {:ok, %{"schema_contract" => "timeline_publication_summary.v1"}} =
@@ -3574,6 +3590,16 @@ defmodule OrbitalDynamics.TimelineTest do
              &(&1["path"] == "$.dependency_impact_row_count" and
                  &1["message"] ==
                    "must be zero unless dependency_impact_status is review_required")
+           )
+
+    stale_diff_count = Map.put(summary, "timeline_diff_changed_count", 2)
+
+    assert {:error, stale_diff_count_report} = Schema.validate_artifact(stale_diff_count)
+
+    assert Enum.any?(
+             stale_diff_count_report["errors"],
+             &(&1["path"] == "$.timeline_diff_changed_count" and
+                 &1["message"] == "must equal source_timeline_diff_summary.changed_count")
            )
 
     assert_raise ArgumentError,

@@ -496,10 +496,14 @@ and model-only inputs.
 handoff. It preserves deterministic publication ID/sequence, source artifact
 identity/type, superseded artifact IDs, downstream product IDs, invalidated
 downstream product IDs, optional dependency-impact status and impact ID sets,
-publication authority, host-owned notification delivery assumptions, and the
-same timeline model-limit boundary in runtime validation and JSON Schema export.
-The summary does not mutate schedules, deliver notifications, approve imports,
-or grant operator authority.
+optional nested `timeline_diff_summary.v1` changed-field audit evidence,
+row/changed/review diff counts, changed-field counts, changed/review timeline
+IDs, changed-field timeline routing, publication authority, host-owned
+notification delivery assumptions, and the same timeline model-limit boundary in
+runtime validation and JSON Schema export. Executable validation rejects stale
+copied audit projections that no longer match the nested diff summary. The
+summary does not mutate schedules, deliver notifications, approve imports, or
+grant operator authority.
 Operational-timeline report activity/row/contact/command/protection/execution
 totals and optional dependency, exclusivity, uncertainty, integrity, duplicate,
 valid, invalid, and terminal-exception counters are non-negative integers in

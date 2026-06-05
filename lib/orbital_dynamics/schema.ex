@@ -6820,8 +6820,20 @@ defmodule OrbitalDynamics.Schema do
         "assumptions",
         "model_limits"
       ],
-      "optional_fields" => [],
-      "nested_contracts" => ["timeline_dependency_impact_summary.v1"]
+      "optional_fields" => [
+        "source_timeline_diff_summary",
+        "timeline_diff_row_count",
+        "timeline_diff_changed_count",
+        "timeline_diff_review_required_count",
+        "changed_field_counts",
+        "changed_timeline_ids",
+        "review_timeline_ids",
+        "timeline_ids_by_changed_field"
+      ],
+      "nested_contracts" => [
+        "timeline_dependency_impact_summary.v1",
+        "timeline_diff_summary.v1"
+      ]
     },
     @timeline_activity_status_state => %{
       "schema_contract" => @timeline_activity_status_state,
@@ -10100,11 +10112,32 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(
+         "source_timeline_diff_summary",
+         @timeline_publication_summary,
+         _contract
+       ) do
+    timeline_diff_summary_source_json_schema()
+  end
+
+  defp json_schema_property(
          "dependency_impact_row_count",
          @timeline_publication_summary,
          _contract
        ) do
     %{"type" => "integer", "minimum" => 0}
+  end
+
+  defp json_schema_property(field, @timeline_publication_summary, _contract)
+       when field in [
+              "timeline_diff_row_count",
+              "timeline_diff_changed_count",
+              "timeline_diff_review_required_count"
+            ] do
+    %{"type" => "integer", "minimum" => 0}
+  end
+
+  defp json_schema_property("changed_field_counts", @timeline_publication_summary, _contract) do
+    non_negative_integer_count_map_json_schema()
   end
 
   defp json_schema_property(field, @timeline_publication_summary, _contract)
@@ -10115,9 +10148,19 @@ defmodule OrbitalDynamics.Schema do
               "impacted_dependency_activity_ids",
               "impacted_dependency_timeline_ids",
               "impacted_exclusive_with_activity_ids",
-              "impacted_exclusive_with_timeline_ids"
+              "impacted_exclusive_with_timeline_ids",
+              "changed_timeline_ids",
+              "review_timeline_ids"
             ] do
     stable_id_array_schema()
+  end
+
+  defp json_schema_property(
+         "timeline_ids_by_changed_field",
+         @timeline_publication_summary,
+         _contract
+       ) do
+    stable_id_array_map_schema()
   end
 
   defp json_schema_property("assumptions", @timeline_publication_summary, _contract) do
@@ -37168,6 +37211,7 @@ defmodule OrbitalDynamics.Schema do
       timeline_report_model_limits(),
       "must match timeline report model limits"
     )
+    |> validate_timeline_publication_summary_diff_audit(path, summary)
     |> validate_timeline_publication_summary_derived_fields(path, summary)
   end
 
@@ -37212,6 +37256,169 @@ defmodule OrbitalDynamics.Schema do
     |> validate_timeline_publication_summary_dependency_count(path, summary)
     |> validate_timeline_publication_summary_no_impact_without_review(path, summary)
     |> validate_timeline_publication_summary_invalidation_subset(path, summary)
+  end
+
+  defp validate_timeline_publication_summary_diff_audit(issues, path, summary) do
+    source_summary = Map.get(summary, "source_timeline_diff_summary")
+
+    issues
+    |> expect_optional_type(path, summary, "source_timeline_diff_summary", :map)
+    |> validate_timeline_publication_summary_diff_audit_count_fields(path, summary)
+    |> validate_timeline_publication_summary_diff_audit_routing_fields(path, summary)
+    |> validate_optional_timeline_diff_summary_source(
+      path <> ".source_timeline_diff_summary",
+      source_summary
+    )
+    |> validate_timeline_publication_summary_diff_audit_source(path, summary, source_summary)
+  end
+
+  defp validate_timeline_publication_summary_diff_audit_count_fields(issues, path, summary) do
+    count_fields = [
+      "timeline_diff_row_count",
+      "timeline_diff_changed_count",
+      "timeline_diff_review_required_count"
+    ]
+
+    issues =
+      Enum.reduce(count_fields, issues, fn field, acc ->
+        expect_optional_non_negative_integer(acc, path, summary, field)
+      end)
+
+    issues
+    |> expect_optional_type(path, summary, "changed_field_counts", :map)
+    |> validate_non_negative_integer_count_map(
+      path <> ".changed_field_counts",
+      Map.get(summary, "changed_field_counts")
+    )
+  end
+
+  defp validate_timeline_publication_summary_diff_audit_routing_fields(issues, path, summary) do
+    id_fields = [
+      "changed_timeline_ids",
+      "review_timeline_ids"
+    ]
+
+    issues =
+      Enum.reduce(id_fields, issues, fn field, acc ->
+        acc
+        |> expect_optional_type(path, summary, field, :list)
+        |> validate_optional_stable_id_list(path, summary, field)
+      end)
+
+    issues
+    |> expect_optional_type(path, summary, "timeline_ids_by_changed_field", :map)
+    |> validate_stable_id_array_map(
+      path <> ".timeline_ids_by_changed_field",
+      Map.get(summary, "timeline_ids_by_changed_field")
+    )
+  end
+
+  defp validate_timeline_publication_summary_diff_audit_source(
+         issues,
+         path,
+         summary,
+         %{} = source_summary
+       ) do
+    issues
+    |> require_timeline_publication_summary_diff_audit_fields(path, summary)
+    |> expect_field_equals(
+      path,
+      summary,
+      "timeline_diff_row_count",
+      Map.get(source_summary, "row_count"),
+      "must equal source_timeline_diff_summary.row_count"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "timeline_diff_changed_count",
+      Map.get(source_summary, "changed_count"),
+      "must equal source_timeline_diff_summary.changed_count"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "timeline_diff_review_required_count",
+      Map.get(source_summary, "review_required_count"),
+      "must equal source_timeline_diff_summary.review_required_count"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "changed_field_counts",
+      Map.get(source_summary, "changed_field_counts"),
+      "must equal source_timeline_diff_summary.changed_field_counts"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "changed_timeline_ids",
+      Map.get(source_summary, "changed_timeline_ids"),
+      "must equal source_timeline_diff_summary.changed_timeline_ids"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "review_timeline_ids",
+      Map.get(source_summary, "review_timeline_ids"),
+      "must equal source_timeline_diff_summary.review_timeline_ids"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "timeline_ids_by_changed_field",
+      Map.get(source_summary, "timeline_ids_by_changed_field"),
+      "must equal source_timeline_diff_summary.timeline_ids_by_changed_field"
+    )
+  end
+
+  defp validate_timeline_publication_summary_diff_audit_source(issues, path, summary, _source) do
+    audit_fields = [
+      "timeline_diff_row_count",
+      "timeline_diff_changed_count",
+      "timeline_diff_review_required_count",
+      "changed_field_counts",
+      "changed_timeline_ids",
+      "review_timeline_ids",
+      "timeline_ids_by_changed_field"
+    ]
+
+    if Enum.any?(audit_fields, &Map.has_key?(summary, &1)) do
+      [
+        error(
+          path <> ".source_timeline_diff_summary",
+          "must be present when timeline diff audit fields are present"
+        )
+        | issues
+      ]
+    else
+      issues
+    end
+  end
+
+  defp require_timeline_publication_summary_diff_audit_fields(issues, path, summary) do
+    [
+      "timeline_diff_row_count",
+      "timeline_diff_changed_count",
+      "timeline_diff_review_required_count",
+      "changed_field_counts",
+      "changed_timeline_ids",
+      "review_timeline_ids",
+      "timeline_ids_by_changed_field"
+    ]
+    |> Enum.reduce(issues, fn field, acc ->
+      if Map.has_key?(summary, field) do
+        acc
+      else
+        [
+          error(
+            "#{path}.#{field}",
+            "must be present when source_timeline_diff_summary is present"
+          )
+          | acc
+        ]
+      end
+    end)
   end
 
   defp validate_timeline_publication_summary_dependency_count(issues, path, summary) do

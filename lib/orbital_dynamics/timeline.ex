@@ -174,6 +174,14 @@ defmodule OrbitalDynamics.Timeline do
     impacted_dependency_timeline_ids
     impacted_exclusive_with_activity_ids
     impacted_exclusive_with_timeline_ids
+    source_timeline_diff_summary
+    timeline_diff_row_count
+    timeline_diff_changed_count
+    timeline_diff_review_required_count
+    changed_field_counts
+    changed_timeline_ids
+    review_timeline_ids
+    timeline_ids_by_changed_field
   )
   @dependency_impact_statuses ~w(clear review_required)
   @publication_dependency_impact_statuses ~w(clear not_evaluated review_required)
@@ -1090,6 +1098,7 @@ defmodule OrbitalDynamics.Timeline do
         :publication_summary,
         :publication_summary_downstream_invalidation,
         :publication_summary_dependency_impact,
+        :publication_summary_changed_field_audit,
         :single_activity_transition_integrity_gate,
         :lifecycle_preservation_report,
         :lifecycle_preservation_status,
@@ -1742,6 +1751,11 @@ defmodule OrbitalDynamics.Timeline do
       |> Keyword.get(:dependency_impact_summary)
       |> publication_dependency_impact_summary()
 
+    timeline_diff_summary =
+      opts
+      |> Keyword.get(:timeline_diff_summary)
+      |> publication_timeline_diff_summary()
+
     invalidated_downstream_product_ids =
       opts
       |> publication_stable_id_list(:invalidated_downstream_product_ids)
@@ -1784,6 +1798,21 @@ defmodule OrbitalDynamics.Timeline do
         Map.get(dependency_impact_summary, "impacted_exclusive_with_activity_ids", []),
       "impacted_exclusive_with_timeline_ids" =>
         Map.get(dependency_impact_summary, "impacted_exclusive_with_timeline_ids", []),
+      "source_timeline_diff_summary" =>
+        publication_optional_source_timeline_diff_summary(timeline_diff_summary),
+      "timeline_diff_row_count" => Map.get(timeline_diff_summary, "row_count"),
+      "timeline_diff_changed_count" => Map.get(timeline_diff_summary, "changed_count"),
+      "timeline_diff_review_required_count" =>
+        Map.get(timeline_diff_summary, "review_required_count"),
+      "changed_field_counts" => Map.get(timeline_diff_summary, "changed_field_counts"),
+      "changed_timeline_ids" =>
+        timeline_diff_summary |> Map.get("changed_timeline_ids") |> publication_id_list(),
+      "review_timeline_ids" =>
+        timeline_diff_summary |> Map.get("review_timeline_ids") |> publication_id_list(),
+      "timeline_ids_by_changed_field" =>
+        timeline_diff_summary
+        |> Map.get("timeline_ids_by_changed_field")
+        |> publication_id_array_map(),
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_schedule_mutation",
         "notification_delivery" => "host_system_owned",
@@ -1792,6 +1821,7 @@ defmodule OrbitalDynamics.Timeline do
       },
       "model_limits" => model_limits()
     }
+    |> compact_map()
   end
 
   def publication_summary(_source_artifact, _opts),
@@ -1863,6 +1893,44 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp publication_dependency_impact_summary(_summary), do: %{}
+
+  defp publication_timeline_diff_summary(%{} = summary) do
+    summary
+    |> stringify_keys()
+    |> case do
+      %{"schema_contract" => @diff_summary_schema_contract} = summary -> summary
+      %{"model" => "artifact_only_timeline_diff_summary"} = summary -> summary
+      _summary -> %{}
+    end
+  end
+
+  defp publication_timeline_diff_summary(_summary), do: %{}
+
+  defp publication_optional_source_timeline_diff_summary(summary) when summary == %{}, do: nil
+
+  defp publication_optional_source_timeline_diff_summary(summary), do: summary
+
+  defp publication_id_list(nil), do: nil
+
+  defp publication_id_list(values) do
+    values
+    |> List.wrap()
+    |> Enum.flat_map(&stable_id_value/1)
+    |> sorted_uniq()
+  end
+
+  defp publication_id_array_map(%{} = values) do
+    values
+    |> Enum.map(fn {key, ids} ->
+      {to_string(key), publication_id_list(ids)}
+    end)
+    |> Enum.reject(fn {key, ids} -> key in ["", "nil"] or ids in [nil, []] end)
+    |> Map.new()
+  end
+
+  defp publication_id_array_map(nil), do: nil
+
+  defp publication_id_array_map(_values), do: %{}
 
   defp publication_invalidation_ids(
          [],

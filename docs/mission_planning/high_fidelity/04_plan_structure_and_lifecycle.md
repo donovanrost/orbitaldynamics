@@ -309,6 +309,14 @@ operator-review and Cadence-import facades as `timeline_integrity_report.v1`
 source-artifact handoffs with `timeline_integrity_review` rows that preserve
 the source integrity row and dependency/exclusivity issue IDs without mutating
 schedules.
+`Timeline.publication_summary/2` and
+`OrbitalDynamics.timeline_publication_summary/2` also accept optional
+`timeline_diff_summary.v1` evidence so publication metadata can preserve
+changed-field counts, changed/review timeline IDs, and changed-field routing for
+audit and downstream invalidation decisions. The publication summary nests the
+source diff summary and exposes only derived audit fields; it does not publish
+notifications, import replacements, mutate schedules, or grant operator
+authority.
 CandidateRefresh also accepts those direct or result-artifact-wrapped integrity
 reports as source-report provenance, preserving row-derived review/action maps,
 dependency and exclusivity evidence IDs, source paths, trust boundaries, and
