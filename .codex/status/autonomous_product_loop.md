@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh candidate-rejection source-report maps schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 CandidateRefresh candidate-rejection source summaries already preserve rejected
 counts, reviewable counts, invalid candidate input counts, rejection reason
 maps, required-operator-action maps, candidate ID counts, and ground-station
@@ -41,9 +41,10 @@ Tests run:
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
   test, schema lint, whitespace check, and generated-schema `jq` spot-checks.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-Pending for this slice.
+`4fcc191a28d330dc7827fc4e4cd067a0a3373ffa` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending for this slice.
