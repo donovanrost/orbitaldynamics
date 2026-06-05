@@ -18493,20 +18493,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_report_summary_counts_by_value(source_reports, group_field, count_field) do
     source_reports
     |> Enum.reduce(%{}, fn {_family, source_report}, counts ->
-      source_report
-      |> Map.get(group_field)
-      |> case do
-        value when not is_binary(value) or value == "" ->
-          counts
+      value = Map.get(source_report, group_field)
+      count = source_report_summary_count_by_family(source_report, count_field)
 
-        value ->
-          Map.update(counts, value, numeric_report_count(source_report, count_field), fn count ->
-            count + numeric_report_count(source_report, count_field)
-          end)
+      if is_binary(value) and value != "" and not is_nil(count) do
+        Map.update(counts, value, count, &(&1 + count))
+      else
+        counts
       end
     end)
     |> Enum.map(fn {value, count} -> {value, report_count(count)} end)
-    |> Enum.reject(fn {_value, count} -> count == 0 end)
     |> Map.new()
     |> non_empty_map()
   end

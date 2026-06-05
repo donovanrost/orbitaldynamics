@@ -2029,7 +2029,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     refute Map.has_key?(summary, "trust_boundary_status_counts")
   end
 
-  test "source report summary preserves explicit zero aggregate family counts" do
+  test "source report summary preserves explicit zero aggregate counts" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
       "provenance" => %{
@@ -2038,13 +2038,15 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
             "contract" => "contact_allocation_report.v1",
             "count" => 0,
             "row_count" => 0,
-            "paths" => []
+            "paths" => [],
+            "trust_boundary_status" => "declared"
           },
           "link_capacity_report" => %{
             "contract" => "link_capacity_report.v1",
             "count" => nil,
             "row_count" => nil,
-            "paths" => nil
+            "paths" => nil,
+            "trust_boundary_status" => "declared"
           },
           "resource_projection_report" => %{
             "contract" => "resource_projection_report.v1"
@@ -2065,6 +2067,17 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["source_report_row_counts_by_family"] == %{
              "contact_allocation_report" => 0
            }
+
+    assert summary["source_report_counts_by_contract"] == %{
+             "contact_allocation_report.v1" => 0
+           }
+
+    assert summary["source_report_row_counts_by_contract"] == %{
+             "contact_allocation_report.v1" => 0
+           }
+
+    assert summary["source_report_counts_by_trust_boundary_status"] == %{"declared" => 0}
+    assert summary["source_report_row_counts_by_trust_boundary_status"] == %{"declared" => 0}
 
     assert summary["source_report_families"] == [
              "contact_allocation_report",
