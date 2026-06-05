@@ -2211,10 +2211,15 @@ Cadence, or regenerate candidates.
 When validation-safety-case provenance is absent, the replay summary omits the
 contract field rather than defaulting to `validation_safety_case_summary.v1`,
 and the aggregate source-report summary omits the top-level
-validation-safety-case identity rollups instead of emitting empty
-contract/count/row-count/path fields. Empty or partial placeholder provenance
-does not synthesize count, row-count, or path identity rollups unless both
-identity counts are present.
+validation-safety-case count, row-count, and path identity rollups instead of
+emitting empty identity fields. Empty or partial placeholder provenance can
+still preserve a declared contract, but does not synthesize count, row-count, or
+path identity rollups unless both identity counts are present. Explicit zero
+count and row-count values are preserved as declared identity, paths remain
+omitted when the path field is missing or nil, and an explicit empty path list
+remains a declared empty path set. Non-identity evidence status,
+input-contract, and evidence-reference maps remain available to branch-local
+replay pressure even when the source-report identity is only partial.
 Operator-review packages built from candidate-refresh artifacts also lift
 direct `source_validation_safety_case_summary` /
 `validation_safety_case_summary` evidence rows that are review-required or

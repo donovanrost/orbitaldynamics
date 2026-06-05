@@ -1,29 +1,25 @@
 # Autonomous Product Loop Status
 
 Current slice:
-CandidateRefresh objective-gap aggregate source-report identity gating.
+CandidateRefresh validation-safety-case source-report identity contract.
 
 Status:
 Implemented with focused verification passing locally.
-`CandidateRefresh.source_report_summary/1` now flattens aggregate
-`source_report_objective_gap_count`,
-`source_report_objective_gap_row_count`, and
-`source_report_objective_gap_paths` only from objective-gap source-report
-families whose identity is complete. Declared contracts and routed
-status/score/activity pressure evidence remain independent of that aggregate
-identity gate, replay pressure survives partial family identity, explicit zero
-counts and explicit empty paths are preserved, and missing paths remain omitted
-after valid counts.
+Validation-safety-case source-report identity already uses the shared
+count/row-count gate. This slice tightens the replay contract and tests so
+explicit zero identity counts and explicit empty path lists are preserved,
+missing or nil paths remain omitted after valid counts, and non-identity
+evidence status/input-contract/reference maps still drive branch-local replay
+pressure when the family identity is only partial.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
-- `lib/orbital_dynamics/candidate_refresh.ex`
 - `test/orbital_dynamics/candidate_refresh_test.exs`
 
 Tests run:
-- `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:31337 test/orbital_dynamics/candidate_refresh_test.exs:31647 test/orbital_dynamics/candidate_refresh_test.exs:31676 test/orbital_dynamics/candidate_refresh_test.exs:31723 test/orbital_dynamics/candidate_refresh_test.exs:31758 test/orbital_dynamics/candidate_refresh_test.exs:31789 test/orbital_dynamics/candidate_refresh_test.exs:31836 test/orbital_dynamics/candidate_refresh_test.exs:31862 test/orbital_dynamics/candidate_refresh_test.exs:31886 test/orbital_dynamics/candidate_refresh_test.exs:31911 test/orbital_dynamics/candidate_refresh_test.exs:31936`
+- `mix format test/orbital_dynamics/candidate_refresh_test.exs`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:33318 test/orbital_dynamics/candidate_refresh_test.exs:33357 test/orbital_dynamics/candidate_refresh_test.exs:33385 test/orbital_dynamics/candidate_refresh_test.exs:33424 test/orbital_dynamics/candidate_refresh_test.exs:33449`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 
@@ -31,12 +27,12 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-7980831 Flatten objective gap replay identity.
+Pending publish.
 
 Next candidate:
-After verification and publish, continue guide-backed CandidateRefresh depth from
-queue item 4 with the next source-report family whose replay helper exists but
-aggregate identity, routing, or capability advertisement is incomplete.
+After verification and publish, continue guide-backed CandidateRefresh depth
+from queue item 4 with the next source-report family whose replay helper exists
+but aggregate identity, routing, or capability advertisement is incomplete.
 
 Blocked:
 No.

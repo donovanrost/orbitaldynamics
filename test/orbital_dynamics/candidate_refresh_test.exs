@@ -33320,7 +33320,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       %{"contract" => "validation_safety_case_summary.v1"},
       %{"count" => 2},
       %{"row_count" => 3},
-      %{"paths" => ["provenance.source_reports.validation_safety_case_summary"]}
+      %{"paths" => ["provenance.source_reports.validation_safety_case_summary"]},
+      %{"count" => nil, "row_count" => nil},
+      %{
+        "count" => nil,
+        "row_count" => nil,
+        "paths" => ["provenance.source_reports.validation_safety_case_summary"]
+      }
     ]
 
     for partial_summary <- partial_summaries do
@@ -33346,6 +33352,156 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       refute Map.has_key?(source_summary, "source_report_validation_safety_case_row_count")
       refute Map.has_key?(source_summary, "source_report_validation_safety_case_paths")
     end
+  end
+
+  test "validation safety case source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "validation_safety_case_summary" => %{
+            "contract" => "validation_safety_case_summary.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.validation_safety_case_summary"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_validation_safety_case_contract"] ==
+             "validation_safety_case_summary.v1"
+
+    assert source_summary["source_report_validation_safety_case_count"] == 0
+    assert source_summary["source_report_validation_safety_case_row_count"] == 0
+
+    assert source_summary["source_report_validation_safety_case_paths"] == [
+             "provenance.source_reports.validation_safety_case_summary"
+           ]
+  end
+
+  test "validation safety case source summary omits missing identity paths after preserving counts" do
+    summaries = [
+      {"missing paths",
+       %{
+         "contract" => "validation_safety_case_summary.v1",
+         "count" => 1,
+         "row_count" => 2
+       }},
+      {"nil paths",
+       %{
+         "contract" => "validation_safety_case_summary.v1",
+         "count" => 1,
+         "row_count" => 2,
+         "paths" => nil
+       }}
+    ]
+
+    for {label, validation_safety_case_summary} <- summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "validation_safety_case_summary" => validation_safety_case_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      assert source_summary["source_report_validation_safety_case_contract"] ==
+               "validation_safety_case_summary.v1",
+             label
+
+      assert source_summary["source_report_validation_safety_case_count"] == 1, label
+      assert source_summary["source_report_validation_safety_case_row_count"] == 2, label
+      refute Map.has_key?(source_summary, "source_report_validation_safety_case_paths"), label
+    end
+  end
+
+  test "validation safety case source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "validation_safety_case_summary" => %{
+            "contract" => "validation_safety_case_summary.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_validation_safety_case_contract"] ==
+             "validation_safety_case_summary.v1"
+
+    assert source_summary["source_report_validation_safety_case_count"] == 1
+    assert source_summary["source_report_validation_safety_case_row_count"] == 2
+    assert source_summary["source_report_validation_safety_case_paths"] == []
+  end
+
+  test "validation safety case replay preserves pressure maps with partial identity" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "validation_safety_case_summary" => %{
+            "contract" => "validation_safety_case_summary.v1",
+            "count" => 1,
+            "status_counts" => %{"review_required" => 1},
+            "evidence_status_counts" => %{"blocked" => 1},
+            "input_contract_counts" => %{"schema_validation_report.v1" => 1},
+            "evidence_refs_by_status" => %{
+              "blocked" => ["schema_validation_report.v1:error"]
+            },
+            "evidence_refs_by_contract" => %{
+              "validation_reference_fixture.v1" => ["fixture:challenge_case"]
+            }
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    refute Map.has_key?(source_summary, "source_report_validation_safety_case_count")
+    refute Map.has_key?(source_summary, "source_report_validation_safety_case_row_count")
+    refute Map.has_key?(source_summary, "source_report_validation_safety_case_paths")
+
+    assert source_summary["source_report_validation_safety_case_status_counts"] == %{
+             "review_required" => 1
+           }
+
+    assert source_summary["source_report_validation_safety_case_evidence_status_counts"] == %{
+             "blocked" => 1
+           }
+
+    assert source_summary["source_report_validation_safety_case_input_contract_counts"] == %{
+             "schema_validation_report.v1" => 1
+           }
+
+    assert source_summary["source_report_validation_safety_case_evidence_refs_by_status"] == %{
+             "blocked" => ["schema_validation_report.v1:error"]
+           }
+
+    assert source_summary[
+             "source_report_validation_safety_case_evidence_refs_by_contract"
+           ] == %{
+             "validation_reference_fixture.v1" => ["fixture:challenge_case"]
+           }
+
+    summary = CandidateRefresh.validation_safety_case_replay_summary(artifact)
+
+    assert summary["branch_local_review_pressure"]
+    assert summary["branch_local_blocking_pressure"]
+    assert summary["branch_local_schema_pressure"]
+    assert summary["branch_local_fixture_pressure"]
   end
 
   test "validation safety case replay treats status and contract maps as pressure" do
