@@ -7284,6 +7284,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
     review_contact_ids_by_action =
       Map.get(resolution_summary, "review_contact_ids_by_action", %{})
 
+    source_report_paths = Map.get(resolution_summary, "paths") || []
+
     capacity_pack_pressure =
       required_capacity_fraction + selected_capacity_fraction + deferred_capacity_fraction > 0.0 or
         map_size(required_by_station) > 0 or map_size(selected_by_station) > 0 or
@@ -7320,7 +7322,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         ),
       "source_report_count" => summary_integer(resolution_summary, "count"),
       "source_report_row_count" => summary_integer(resolution_summary, "row_count"),
-      "source_report_paths" => Map.get(resolution_summary, "paths", []),
+      "source_report_paths" => source_report_paths,
       "source_summary_model_counts" => source_summary_model_counts,
       "source_summary_schema_contract_counts" => source_summary_schema_contract_counts,
       "source_artifact_type_counts" => source_artifact_type_counts,

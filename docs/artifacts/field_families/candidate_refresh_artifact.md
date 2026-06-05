@@ -801,6 +801,11 @@ counts, trust-boundary evidence, and branch-local
 resolution/deferred/capacity-pack/action pressure booleans without mutating
 contact allocation, selecting candidates, approving imports, writing to Cadence,
 or regenerating candidates.
+Flattened partial source-report identity does not synthesize missing
+count/row-count/path identity: explicit zero counts are retained, missing or nil
+paths remain omitted after valid counts, explicit empty path lists are
+preserved, and non-identity status/selection/contact/station/direction/action maps
+still drive branch-local replay pressure.
 The replay helper can inspect V3 branch `candidate_source` metadata that carries
 `candidate_refresh_request_source_report_summary`, so strategy-derived branch
 refreshes preserve contention-resolution and capacity-pack pressure through the
