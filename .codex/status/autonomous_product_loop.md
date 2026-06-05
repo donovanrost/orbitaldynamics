@@ -4,7 +4,7 @@ Current slice:
 CandidateRefresh storage/downlink trust-boundary aggregate identity contract.
 
 Status:
-Implemented, locally verified, and reviewed; publish pending.
+Implemented, reviewed, committed, and pushed.
 Storage/downlink pressure aggregate family counts preserve explicit zero
 identity, but trust-boundary-status counts still treat missing or nil count
 fields as zero. This slice tightens that composed aggregate so only declared
@@ -28,7 +28,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-`fad0f9445c43931988a60d86ab455383a2943676` pushed to `origin/main`.
+`75a96a34f3d51023647c467c57f5f391c9feef8a` pushed to `origin/main`.
 
 Next candidate:
 After this slice, continue guide-backed CandidateRefresh depth from queue item 4
