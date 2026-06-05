@@ -2136,6 +2136,161 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     end
   end
 
+  test "candidate diff source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "candidate_diff_report" => %{
+            "contract" => "candidate_diff_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.candidate_diff_report"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_candidate_diff_contract"] ==
+             "candidate_diff_report.v1"
+
+    assert source_summary["source_report_candidate_diff_count"] == 0
+    assert source_summary["source_report_candidate_diff_row_count"] == 0
+
+    assert source_summary["source_report_candidate_diff_paths"] == [
+             "provenance.source_reports.candidate_diff_report"
+           ]
+  end
+
+  test "candidate diff source summary omits missing identity paths after preserving counts" do
+    summaries = [
+      {"missing paths",
+       %{
+         "contract" => "candidate_diff_report.v1",
+         "count" => 1,
+         "row_count" => 3
+       }},
+      {"nil paths",
+       %{
+         "contract" => "candidate_diff_report.v1",
+         "count" => 1,
+         "row_count" => 3,
+         "paths" => nil
+       }}
+    ]
+
+    for {label, candidate_diff_summary} <- summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "candidate_diff_report" => candidate_diff_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      assert source_summary["source_report_candidate_diff_contract"] ==
+               "candidate_diff_report.v1",
+             label
+
+      assert source_summary["source_report_candidate_diff_count"] == 1, label
+      assert source_summary["source_report_candidate_diff_row_count"] == 3, label
+      refute Map.has_key?(source_summary, "source_report_candidate_diff_paths"), label
+    end
+  end
+
+  test "candidate diff source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "candidate_diff_report" => %{
+            "contract" => "candidate_diff_report.v1",
+            "count" => 1,
+            "row_count" => 3,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_candidate_diff_contract"] ==
+             "candidate_diff_report.v1"
+
+    assert source_summary["source_report_candidate_diff_count"] == 1
+    assert source_summary["source_report_candidate_diff_row_count"] == 3
+    assert source_summary["source_report_candidate_diff_paths"] == []
+  end
+
+  test "candidate diff replay preserves pressure maps with partial identity" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "candidate_diff_report" => %{
+            "contract" => "candidate_diff_report.v1",
+            "count" => 1,
+            "diff_reason_counts" => %{
+              "not_present_in_prior_candidate_set" => 1,
+              "present_in_prior_candidate_set_with_semantic_changes" => 1
+            },
+            "invalidated_reason_counts" => %{
+              "not_present_in_refreshed_candidate_set" => 1
+            },
+            "semantic_change_reason_counts" => %{"contact_window_shifted" => 1},
+            "candidate_diff_changed_field_counts" => %{"starts_at_s" => 1},
+            "candidate_diff_candidate_id_counts" => %{"changed_candidate" => 1},
+            "candidate_diff_ground_station_counts" => %{"equator_prime" => 1}
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    refute Map.has_key?(source_summary, "source_report_candidate_diff_count")
+    refute Map.has_key?(source_summary, "source_report_candidate_diff_row_count")
+    refute Map.has_key?(source_summary, "source_report_candidate_diff_paths")
+
+    assert source_summary["source_report_candidate_diff_diff_reason_counts"] == %{
+             "not_present_in_prior_candidate_set" => 1,
+             "present_in_prior_candidate_set_with_semantic_changes" => 1
+           }
+
+    assert source_summary["source_report_candidate_diff_invalidated_reason_counts"] == %{
+             "not_present_in_refreshed_candidate_set" => 1
+           }
+
+    assert source_summary["source_report_candidate_diff_semantic_change_reason_counts"] == %{
+             "contact_window_shifted" => 1
+           }
+
+    assert source_summary["source_report_candidate_diff_changed_field_counts"] == %{
+             "starts_at_s" => 1
+           }
+
+    assert source_summary["source_report_candidate_diff_candidate_id_counts"] == %{
+             "changed_candidate" => 1
+           }
+
+    assert source_summary["source_report_candidate_diff_ground_station_counts"] == %{
+             "equator_prime" => 1
+           }
+
+    summary = CandidateRefresh.candidate_diff_replay_summary(artifact)
+
+    assert summary["branch_local_diff_pressure"]
+    assert summary["branch_local_new_candidate_pressure"]
+    assert summary["branch_local_invalidated_candidate_pressure"]
+    assert summary["branch_local_semantic_change_pressure"]
+  end
+
   test "candidate diff replay treats preserved maps as branch-local pressure" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",

@@ -644,8 +644,14 @@ When candidate-diff provenance is absent, the replay summary omits the contract
 field rather than defaulting to `candidate_diff_report.v1`, and the aggregate
 source-report summary omits the top-level candidate-diff identity rollups
 instead of emitting empty contract/count/row-count/path fields. Partial
-placeholder provenance does not synthesize count, row-count, or path identity
-rollups unless both identity counts are present and non-nil.
+placeholder provenance may preserve a declared contract, but does not
+synthesize count, row-count, or path identity rollups unless both identity
+counts are present and non-nil. Explicit zero count and row-count values are
+preserved as declared identity, paths remain omitted when the path field is
+missing or nil, and an explicit empty path list remains a declared empty path
+set. Non-identity diff, invalidated, semantic-change, changed-field,
+candidate, and station routing maps remain available to branch-local replay
+pressure even when the source-report identity is only partial.
 Capability metadata advertises `candidate_diff_report` as an accepted
 CandidateRefresh input alongside candidate-diff replay provenance.
 
