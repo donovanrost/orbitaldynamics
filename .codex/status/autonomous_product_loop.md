@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh passive replay fields schema-visible.
 
 Status:
-Implemented and locally verified; awaiting read-only review and publish.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 CandidateRefresh source-report summary JSON Schema now explicitly advertises
 the passive replay context fields that runtime and docs already expose for
 freshness, refresh-budget, and schema-validation provenance. This is a contract
@@ -36,15 +36,17 @@ Tests run:
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
+- `slice_reviewer`: no must-fix findings.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-Pending.
+`9271a509c9d38d148fc67c748b381c1610fb9ea2` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending.
 
 Next candidate:
-After publish, rerun the mapper against the current checkout.
+Rerun the mapper against the current checkout.
 
 Blocked:
 No.
