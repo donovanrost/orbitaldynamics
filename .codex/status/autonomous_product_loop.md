@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh resource-projection direction routing schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean; commit/push pending.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 Runtime CandidateRefresh resource-projection replay summaries already preserve
 direction-scoped resource pressure fields, but the nested
 `candidate_refresh.v1` source-report JSON Schema does not advertise those
@@ -38,13 +38,13 @@ Tests run:
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings.
-- `git_slice_publisher`: pending.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`f889a0a9a2b53b8fe7285ea7a0db0c46865070c0` pushed to `origin/main`.
+`f80a08d54cf5934b94ffecd351e39da98b94c8aa` pushed to `origin/main`.
 
 Last ledger correction commit:
-`ec134ef` pushed to `origin/main`.
+Pending.
 
 Next candidate:
 Resource-projection status/type ID routing maps from the mapper result.
