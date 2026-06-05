@@ -5981,19 +5981,19 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "contract"
         ),
       "source_report_timeline_lifecycle_state_count" =>
-        source_report_summary_family_count(
+        source_report_summary_family_identity_count(
           source_reports,
           "timeline_lifecycle_state_summary",
           "count"
         ),
       "source_report_timeline_lifecycle_state_paths" =>
-        source_report_summary_family_field(
+        source_report_summary_family_identity_field(
           source_reports,
           "timeline_lifecycle_state_summary",
           "paths"
         ),
       "source_report_timeline_lifecycle_state_row_count" =>
-        source_report_summary_family_count(
+        source_report_summary_family_identity_count(
           source_reports,
           "timeline_lifecycle_state_summary",
           "row_count"

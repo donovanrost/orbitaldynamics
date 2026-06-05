@@ -1618,15 +1618,18 @@ CandidateRefresh accepts direct, accepted-state, mission-state, exact
 `source_result_artifact` / `result_artifact`, and wrapped
 `source_timeline_lifecycle_state_summary` /
 `timeline_lifecycle_state_summary` inputs, preserving source paths,
-source-summary model/schema identity, top-level source-report contract/count/
-path rollups, planned/realized activity and row counts, recordable, preserved,
-review, duplicate-identity, invalid-input counts and invalid activity input IDs,
-transition decision/import/action/status/approval maps, recordable/preserved/
-review timeline IDs, review activity IDs, trust-boundary evidence, and review
-timeline IDs routed by required action and status/approval transition category,
-plus lifecycle transition application provenance counts by helper/category/
-operator-action reason when source rows were derived from helper-applied
-transitions.
+source-summary model/schema identity, top-level source-report
+contract/count/row-count/path rollups, planned/realized activity and row
+counts, recordable, preserved, review, duplicate-identity, invalid-input counts
+and invalid activity input IDs, transition decision/import/action/status/
+approval maps, recordable/preserved/review timeline IDs, review activity IDs,
+trust-boundary evidence, and review timeline IDs routed by required action and
+status/approval transition category, plus lifecycle transition application
+provenance counts by helper/category/operator-action reason when source rows
+were derived from helper-applied transitions. Compact top-level lifecycle
+source-count, source-row-count, and source-path rollups require complete
+source-report identity (`count` and `row_count` present); partial placeholders
+only expose the declared contract.
 For V3 strategy branch refreshes, the replay helper prefers a non-empty
 `candidate_source.candidate_refresh_request_source_report_summary.source_reports.timeline_lifecycle_state_summary`
 family over provenance, labels the output source and replay scope as

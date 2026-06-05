@@ -17571,6 +17571,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     }
 
     summary = CandidateRefresh.timeline_lifecycle_state_replay_summary(artifact)
+    source_summary = CandidateRefresh.source_report_summary(artifact)
 
     assert summary["source_report_count"] == 0
     assert summary["source_report_row_count"] == 0
@@ -17582,6 +17583,127 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert summary["transition_application_provenance_operator_action_reason_counts"] == %{}
     refute summary["branch_local_timeline_lifecycle_state_pressure"]
+    refute Map.has_key?(source_summary, "source_report_timeline_lifecycle_state_contract")
+    refute Map.has_key?(source_summary, "source_report_timeline_lifecycle_state_count")
+    refute Map.has_key?(source_summary, "source_report_timeline_lifecycle_state_row_count")
+    refute Map.has_key?(source_summary, "source_report_timeline_lifecycle_state_paths")
+  end
+
+  test "timeline lifecycle state source summary keeps declared contract without partial identity placeholders" do
+    placeholder_fields = [
+      %{"count" => 1},
+      %{"row_count" => 2},
+      %{"paths" => ["provenance.source_reports.timeline_lifecycle_state_summary"]},
+      %{"count" => nil, "row_count" => 2},
+      %{"count" => 1, "row_count" => nil}
+    ]
+
+    for placeholder <- placeholder_fields do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "timeline_lifecycle_state_summary" =>
+              Map.put(
+                placeholder,
+                "contract",
+                "timeline_lifecycle_state_summary.v1"
+              )
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      assert source_summary["source_report_timeline_lifecycle_state_contract"] ==
+               "timeline_lifecycle_state_summary.v1"
+
+      refute Map.has_key?(source_summary, "source_report_timeline_lifecycle_state_count")
+
+      refute Map.has_key?(
+               source_summary,
+               "source_report_timeline_lifecycle_state_row_count"
+             )
+
+      refute Map.has_key?(source_summary, "source_report_timeline_lifecycle_state_paths")
+    end
+  end
+
+  test "timeline lifecycle state source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "timeline_lifecycle_state_summary" => %{
+            "contract" => "timeline_lifecycle_state_summary.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.timeline_lifecycle_state_summary"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_timeline_lifecycle_state_contract"] ==
+             "timeline_lifecycle_state_summary.v1"
+
+    assert source_summary["source_report_timeline_lifecycle_state_count"] == 0
+    assert source_summary["source_report_timeline_lifecycle_state_row_count"] == 0
+
+    assert source_summary["source_report_timeline_lifecycle_state_paths"] == [
+             "provenance.source_reports.timeline_lifecycle_state_summary"
+           ]
+  end
+
+  test "timeline lifecycle state source summary omits missing identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "timeline_lifecycle_state_summary" => %{
+            "contract" => "timeline_lifecycle_state_summary.v1",
+            "count" => 1,
+            "row_count" => 2
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_timeline_lifecycle_state_contract"] ==
+             "timeline_lifecycle_state_summary.v1"
+
+    assert source_summary["source_report_timeline_lifecycle_state_count"] == 1
+    assert source_summary["source_report_timeline_lifecycle_state_row_count"] == 2
+    refute Map.has_key?(source_summary, "source_report_timeline_lifecycle_state_paths")
+  end
+
+  test "timeline lifecycle state source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "timeline_lifecycle_state_summary" => %{
+            "contract" => "timeline_lifecycle_state_summary.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_timeline_lifecycle_state_contract"] ==
+             "timeline_lifecycle_state_summary.v1"
+
+    assert source_summary["source_report_timeline_lifecycle_state_count"] == 1
+    assert source_summary["source_report_timeline_lifecycle_state_row_count"] == 2
+    assert source_summary["source_report_timeline_lifecycle_state_paths"] == []
   end
 
   test "timeline lifecycle state replay reads strategy branch candidate-source summary metadata" do
