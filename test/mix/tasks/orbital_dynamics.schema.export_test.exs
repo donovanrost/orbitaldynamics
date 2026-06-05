@@ -865,6 +865,63 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "minimum"
            ]) == 0
 
+    candidate_refresh_maneuver_review_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "maneuver_review_report",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        "maneuver_success_feedback_count",
+        "execution_uncertainty_declared_count",
+        "execution_uncertainty_missing_count"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_maneuver_review_source_report, [
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_maneuver_review_source_report, [
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    assert get_in(candidate_refresh_maneuver_review_source_report, [
+             "input_keys",
+             "items",
+             "type"
+           ]) == "string"
+
+    Enum.each(
+      [
+        "maneuver_id_counts",
+        "required_operator_action_counts"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_maneuver_review_source_report, [
+                 field,
+                 "additionalProperties",
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_maneuver_review_source_report, [
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
     candidate_refresh_constraint_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",

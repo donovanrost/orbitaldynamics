@@ -21178,6 +21178,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_contact_intent_source_report_summary_json_schema(),
             "link_capacity_report" =>
               candidate_refresh_link_capacity_source_report_summary_json_schema(),
+            "maneuver_review_report" =>
+              candidate_refresh_maneuver_review_source_report_summary_json_schema(),
             "resource_filter_report" =>
               candidate_refresh_resource_filter_source_report_summary_json_schema(),
             "station_calendar_report" =>
@@ -21340,6 +21342,32 @@ defmodule OrbitalDynamics.Schema do
       |> Map.merge(%{
         "input_keys" => string_array_schema(),
         "direction_routing" => command_window_direction_routing_json_schema()
+      })
+    end)
+  end
+
+  defp candidate_refresh_maneuver_review_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      properties
+      |> Map.merge(
+        non_negative_integer_property_schemas([
+          "maneuver_success_feedback_count",
+          "execution_uncertainty_declared_count",
+          "execution_uncertainty_missing_count"
+        ])
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "maneuver_id_counts",
+            "required_operator_action_counts"
+          ],
+          &{&1, non_negative_integer_count_map_json_schema()}
+        )
+      )
+      |> Map.merge(%{
+        "input_keys" => string_array_schema()
       })
     end)
   end
@@ -26195,6 +26223,7 @@ defmodule OrbitalDynamics.Schema do
         |> validate_candidate_refresh_contact_contention_context(path, summary)
         |> validate_candidate_refresh_candidate_rejection_context(path, summary)
         |> validate_candidate_refresh_provider_counteroffer_context(path, summary)
+        |> validate_candidate_refresh_maneuver_review_context(path, summary)
         |> validate_candidate_refresh_station_pressure_context(path, summary)
         |> validate_candidate_refresh_contact_intent_context(path, summary)
         |> validate_candidate_refresh_contact_filter_context(path, summary)
@@ -26264,6 +26293,25 @@ defmodule OrbitalDynamics.Schema do
     |> validate_string_list_items(path, summary, "impact_counteroffer_ids")
     |> validate_string_list_items(path, summary, "timing_shift_counteroffer_ids")
     |> validate_string_list_items(path, summary, "cost_delta_counteroffer_ids")
+  end
+
+  defp validate_candidate_refresh_maneuver_review_context(issues, path, summary) do
+    issues
+    |> expect_optional_non_negative_integer(path, summary, "maneuver_success_feedback_count")
+    |> expect_optional_non_negative_integer(path, summary, "execution_uncertainty_declared_count")
+    |> expect_optional_non_negative_integer(path, summary, "execution_uncertainty_missing_count")
+    |> expect_optional_type(path, summary, "input_keys", :list)
+    |> validate_string_list_items(path, summary, "input_keys")
+    |> expect_optional_type(path, summary, "maneuver_id_counts", :map)
+    |> validate_non_negative_integer_count_map(
+      path <> ".maneuver_id_counts",
+      Map.get(summary, "maneuver_id_counts")
+    )
+    |> expect_optional_type(path, summary, "required_operator_action_counts", :map)
+    |> validate_non_negative_integer_count_map(
+      path <> ".required_operator_action_counts",
+      Map.get(summary, "required_operator_action_counts")
+    )
   end
 
   defp validate_candidate_refresh_link_capacity_context(issues, path, summary) do

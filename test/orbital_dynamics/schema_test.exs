@@ -12018,6 +12018,116 @@ defmodule OrbitalDynamics.SchemaTest do
                  "$.provenance.source_reports.contact_intent.direction_routing.downlink.contact_ids_by_ground_station")
            )
 
+    artifact_with_maneuver_review_summary =
+      put_in(artifact, ["provenance", "source_reports", "maneuver_review_report"], %{
+        "paths" => ["source_maneuver_review_report"],
+        "contract" => "maneuver_review_report.v1",
+        "count" => 1,
+        "row_count" => 2,
+        "maneuver_success_feedback_count" => 1,
+        "execution_uncertainty_declared_count" => 1,
+        "execution_uncertainty_missing_count" => 0,
+        "input_keys" => ["maneuver_success_rate", "maneuver_execution_uncertainty"],
+        "maneuver_id_counts" => %{"mnv_raise_apogee" => 2},
+        "required_operator_action_counts" => %{"review_maneuver_execution" => 1}
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_maneuver_review_summary)
+
+    maneuver_review_source_report_properties =
+      get_in(candidate_refresh_schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "maneuver_review_report",
+        "properties"
+      ])
+
+    assert get_in(maneuver_review_source_report_properties, [
+             "maneuver_success_feedback_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(maneuver_review_source_report_properties, [
+             "input_keys",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(maneuver_review_source_report_properties, [
+             "maneuver_id_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    invalid_maneuver_review_count =
+      put_in(
+        artifact_with_maneuver_review_summary,
+        [
+          "provenance",
+          "source_reports",
+          "maneuver_review_report",
+          "execution_uncertainty_missing_count"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_maneuver_review_count_report} =
+             Schema.validate_artifact(invalid_maneuver_review_count)
+
+    assert Enum.any?(
+             invalid_maneuver_review_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.maneuver_review_report.execution_uncertainty_missing_count")
+           )
+
+    invalid_maneuver_review_id_count =
+      put_in(
+        artifact_with_maneuver_review_summary,
+        [
+          "provenance",
+          "source_reports",
+          "maneuver_review_report",
+          "maneuver_id_counts",
+          "mnv_raise_apogee"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_maneuver_review_id_count_report} =
+             Schema.validate_artifact(invalid_maneuver_review_id_count)
+
+    assert Enum.any?(
+             invalid_maneuver_review_id_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.maneuver_review_report.maneuver_id_counts.mnv_raise_apogee")
+           )
+
+    invalid_maneuver_review_input_key =
+      put_in(
+        artifact_with_maneuver_review_summary,
+        [
+          "provenance",
+          "source_reports",
+          "maneuver_review_report",
+          "input_keys",
+          Access.at(0)
+        ],
+        42
+      )
+
+    assert {:error, invalid_maneuver_review_input_key_report} =
+             Schema.validate_artifact(invalid_maneuver_review_input_key)
+
+    assert Enum.any?(
+             invalid_maneuver_review_input_key_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.maneuver_review_report.input_keys[0]")
+           )
+
     artifact_with_link_capacity_summary =
       put_in(artifact, ["provenance", "source_reports", "link_capacity_report"], %{
         "paths" => ["source_link_capacity_report"],
