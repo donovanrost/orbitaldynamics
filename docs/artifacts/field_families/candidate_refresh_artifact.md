@@ -2336,6 +2336,18 @@ mission-state `source_schema_validation_batch_report` inputs and
 `source_result_artifact` / `result_artifact` wrapped batch reports, flattening
 nested `reports[*].report` entries while retaining inherited trust-boundary
 evidence.
+When schema-validation provenance is absent, the replay summary omits the
+contract field rather than defaulting to `schema_validation_report.v1`, and the
+aggregate source-report summary omits the top-level schema-validation count,
+row-count, and path identity rollups instead of emitting empty identity fields.
+Empty or partial placeholder provenance can still preserve a declared contract,
+but does not synthesize count, row-count, or path identity rollups unless both
+identity counts are present. Explicit zero count and row-count values are
+preserved as declared identity, paths remain omitted when the path field is
+missing or nil, and an explicit empty path list remains a declared empty path
+set. Non-identity status, validated-contract, validation-mode, and remediation
+routing maps remain available to branch-local replay pressure even when the
+source-report identity is only partial.
 Candidate-refresh operator-review packages also lift direct
 `source_schema_validation_report` / `schema_validation_report` rows into
 `schema_validation_review` rows, preserving source paths, validation issue

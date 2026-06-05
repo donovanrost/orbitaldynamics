@@ -24635,6 +24635,156 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     end
   end
 
+  test "schema validation source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "schema_validation_report" => %{
+            "contract" => "schema_validation_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.schema_validation_report"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_schema_validation_contract"] ==
+             "schema_validation_report.v1"
+
+    assert source_summary["source_report_schema_validation_count"] == 0
+    assert source_summary["source_report_schema_validation_row_count"] == 0
+
+    assert source_summary["source_report_schema_validation_paths"] == [
+             "provenance.source_reports.schema_validation_report"
+           ]
+  end
+
+  test "schema validation source summary omits missing identity paths after preserving counts" do
+    summaries = [
+      {"missing paths",
+       %{
+         "contract" => "schema_validation_report.v1",
+         "count" => 1,
+         "row_count" => 2
+       }},
+      {"nil paths",
+       %{
+         "contract" => "schema_validation_report.v1",
+         "count" => 1,
+         "row_count" => 2,
+         "paths" => nil
+       }}
+    ]
+
+    for {label, schema_validation_summary} <- summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "schema_validation_report" => schema_validation_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      assert source_summary["source_report_schema_validation_contract"] ==
+               "schema_validation_report.v1",
+             label
+
+      assert source_summary["source_report_schema_validation_count"] == 1, label
+      assert source_summary["source_report_schema_validation_row_count"] == 2, label
+      refute Map.has_key?(source_summary, "source_report_schema_validation_paths"), label
+    end
+  end
+
+  test "schema validation source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "schema_validation_report" => %{
+            "contract" => "schema_validation_report.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_schema_validation_contract"] ==
+             "schema_validation_report.v1"
+
+    assert source_summary["source_report_schema_validation_count"] == 1
+    assert source_summary["source_report_schema_validation_row_count"] == 2
+    assert source_summary["source_report_schema_validation_paths"] == []
+  end
+
+  test "schema validation replay preserves pressure maps with partial identity" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "schema_validation_report" => %{
+            "contract" => "schema_validation_report.v1",
+            "count" => 1,
+            "status_counts" => %{"fail" => 1, "warning" => 1},
+            "validated_contract_counts" => %{"candidate_refresh.v1" => 1},
+            "validation_mode_counts" => %{"artifact_file" => 1},
+            "remediation_action_counts" => %{"populate_id" => 1},
+            "remediation_category_counts" => %{"missing_required_field" => 1},
+            "remediation_path_counts" => %{"$.candidate_activities[0].id" => 1}
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    refute Map.has_key?(source_summary, "source_report_schema_validation_count")
+    refute Map.has_key?(source_summary, "source_report_schema_validation_row_count")
+    refute Map.has_key?(source_summary, "source_report_schema_validation_paths")
+
+    assert source_summary["source_report_schema_validation_status_counts"] == %{
+             "fail" => 1,
+             "warning" => 1
+           }
+
+    assert source_summary["source_report_schema_validation_validated_contract_counts"] == %{
+             "candidate_refresh.v1" => 1
+           }
+
+    assert source_summary["source_report_schema_validation_mode_counts"] == %{
+             "artifact_file" => 1
+           }
+
+    assert source_summary["source_report_schema_validation_remediation_action_counts"] == %{
+             "populate_id" => 1
+           }
+
+    assert source_summary["source_report_schema_validation_remediation_category_counts"] == %{
+             "missing_required_field" => 1
+           }
+
+    assert source_summary["source_report_schema_validation_remediation_path_counts"] == %{
+             "$.candidate_activities[0].id" => 1
+           }
+
+    summary = CandidateRefresh.schema_validation_replay_summary(artifact)
+
+    assert summary["branch_local_validation_pressure"]
+    assert summary["branch_local_schema_error_pressure"]
+    assert summary["branch_local_schema_warning_pressure"]
+    assert summary["branch_local_remediation_pressure"]
+  end
+
   test "schema validation replay treats status and remediation maps as pressure" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
