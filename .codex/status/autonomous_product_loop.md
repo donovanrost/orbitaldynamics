@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh contact-allocation direction routing schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 Runtime CandidateRefresh contact-allocation source summaries already preserve
 direction routing with station-pressure, reservation-conflict, and provider
 reservation request/review/no-request contact IDs, but the
@@ -39,13 +39,13 @@ Tests run:
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings; reran focused export test and
   whitespace check.
-- `git_slice_publisher`: pending.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`3cbeeab68777b5d0ba8621f2088c8dfdf629505d` pushed to `origin/main`.
+`6d05bb2503ff530679d0d7beb0d328c4380b161d` pushed to `origin/main`.
 
 Last ledger correction commit:
-`22de43958ff0a95c4c5a3bfc6e80ddef3517dfcd` pushed to `origin/main`.
+Pending for this slice.
 
 Next candidate:
 Rerun the mapper against the current checkout.
