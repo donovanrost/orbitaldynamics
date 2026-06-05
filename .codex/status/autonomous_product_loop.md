@@ -4,8 +4,8 @@ Current slice:
 Publication changed-field audit summary.
 
 Status:
-Implemented, locally verified, reviewed clean after one reviewer-found fix, and
-ready to publish.
+Implemented, locally verified, reviewed clean after one reviewer-found fix,
+committed, and pushed.
 `timeline_publication_summary.v1` now accepts optional
 `timeline_diff_summary.v1` audit evidence, nests that source summary, and emits
 derived row/changed/review counts, changed-field counts, changed/review timeline
@@ -58,12 +58,14 @@ Tests run:
 - `node - <<'NODE'` direct exported schema field check after reviewer fix
 - `git diff --check`
 - `slice_reviewer` re-review: no remaining must-fix findings
+- `git_slice_publisher`: staged only slice-owned files, confirmed `.gitignore`
+  remained unstaged, committed, and pushed
 
 Last completed implementation commit:
-`2b8efbd4f779b80d1c18541ff9e8125a56389eb9` pushed to `origin/main`.
+`a9aed78548e2ef8eae204f13bd7fc98dff565a7f` pushed to `origin/main`.
 
 Last ledger correction commit:
-`c7636f9` pushed to `origin/main`.
+Pending for this slice.
 
 Next candidate:
 After this slice is complete, rerun the mapper against the current checkout.
