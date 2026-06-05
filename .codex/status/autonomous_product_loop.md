@@ -4,7 +4,7 @@ Current slice:
 CandidateRefresh replay for timeline-publication operational-readiness context.
 
 Status:
-Implemented and locally verified; awaiting read-only review and publish.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 CandidateRefresh now carries timeline-publication readiness context from
 `operational_readiness_report.v1`, `quality_gate_report.v1`, and compact
 operational quality-gate import-readiness summaries through source-report
@@ -47,15 +47,17 @@ Tests run:
 - `mix test test/orbital_dynamics/schema_test.exs`
 - `git diff --check`
 - `mix orbital_dynamics.schema.lint --all`
+- `slice_reviewer`: no must-fix findings.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-Pending.
+`57f78b8dd72c82b3df956608c933bc33e7914f42` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending.
 
 Next candidate:
-After publish, rerun the mapper against the current checkout.
+Rerun the mapper against the current checkout.
 
 Blocked:
 No.
