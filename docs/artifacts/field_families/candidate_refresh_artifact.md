@@ -1732,6 +1732,12 @@ family over provenance, label their output source and replay scope as
 candidate-source summary metadata, and treat partial non-empty branch families
 as authoritative while preserving provenance fallback for absent or empty branch
 families.
+`CandidateRefresh.source_report_summary/1` also flattens
+`source_report_timeline_activity_state_count`, `row_count`, and `paths`, plus a
+single `contract` when the family summary declares one, for compact consumers;
+partial activity-state source-report family placeholders can preserve the
+declared contract, but omit flattened count, row-count, and path fields until
+both identity counts are present.
 CandidateRefresh review/import handoff also accepts direct/list-valued and
 wrapped `source_timeline_preservation_report` /
 `timeline_preservation_report` and `source_timeline_preservation_status` /

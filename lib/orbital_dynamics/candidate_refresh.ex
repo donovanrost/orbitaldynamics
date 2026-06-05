@@ -5566,11 +5566,29 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "timeline_diff_report",
           "replacement_activity_id_counts"
         ),
+      "source_report_timeline_activity_state_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "timeline_activity_state",
+          "contract"
+        ),
+      "source_report_timeline_activity_state_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "timeline_activity_state",
+          "count"
+        ),
       "source_report_timeline_activity_state_row_count" =>
-        source_report_summary_family_count(
+        source_report_summary_family_identity_count(
           source_reports,
           "timeline_activity_state",
           "row_count"
+        ),
+      "source_report_timeline_activity_state_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "timeline_activity_state",
+          "paths"
         ),
       "source_report_timeline_activity_state_source_summary_model_counts" =>
         source_report_summary_family_merge_count_maps(
