@@ -4197,7 +4197,16 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
         "station_pressure_precedence_availability_counts",
         "station_pressure_precedence_rank_counts",
         "analysis_mode_counts",
-        "invalid_activity_input_reason_counts"
+        "invalid_activity_input_reason_counts",
+        "status_counts",
+        "stale_reason_counts",
+        "unknown_reason_counts",
+        "invalid_candidate_limit_policy_reason_counts",
+        "validated_contract_counts",
+        "validation_mode_counts",
+        "remediation_action_counts",
+        "remediation_category_counts",
+        "remediation_path_counts"
       ],
       fn field ->
         assert get_in(
@@ -4205,6 +4214,43 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                  ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
                    [field, "additionalProperties", "minimum"]
                ) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "stale_reason_count",
+        "unknown_reason_count",
+        "input_candidate_count",
+        "kept_candidate_count",
+        "dropped_candidate_count",
+        "invalid_candidate_limit_policy_count",
+        "error_count",
+        "warning_count",
+        "remediation_count"
+      ],
+      fn field ->
+        assert get_in(
+                 schemas,
+                 ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
+                   [field, "minimum"]
+               ) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "stale_reasons",
+        "unknown_reasons",
+        "kept_candidate_ids",
+        "dropped_candidate_ids"
+      ],
+      fn field ->
+        assert get_in(
+                 schemas,
+                 ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
+                   [field, "items", "type"]
+               ) == "string"
       end
     )
 

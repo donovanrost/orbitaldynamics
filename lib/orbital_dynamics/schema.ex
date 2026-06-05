@@ -21156,6 +21156,7 @@ defmodule OrbitalDynamics.Schema do
         |> Map.merge(candidate_refresh_timeline_activity_context_json_schema_properties())
         |> Map.merge(candidate_refresh_timeline_publication_context_json_schema_properties())
         |> Map.merge(candidate_refresh_model_acceptance_context_json_schema_properties())
+        |> Map.merge(candidate_refresh_passive_replay_context_json_schema_properties())
     }
   end
 
@@ -21364,6 +21365,34 @@ defmodule OrbitalDynamics.Schema do
       "model_ids_by_status" => string_list_map_json_schema(),
       "model_ids_by_validation_level" => string_list_map_json_schema(),
       "model_ids_by_intended_use" => string_list_map_json_schema()
+    }
+  end
+
+  defp candidate_refresh_passive_replay_context_json_schema_properties do
+    %{
+      "status_counts" => non_negative_integer_count_map_json_schema(),
+      "stale_reason_count" => %{"type" => "integer", "minimum" => 0},
+      "stale_reasons" => string_array_schema(),
+      "stale_reason_counts" => non_negative_integer_count_map_json_schema(),
+      "unknown_reason_count" => %{"type" => "integer", "minimum" => 0},
+      "unknown_reasons" => string_array_schema(),
+      "unknown_reason_counts" => non_negative_integer_count_map_json_schema(),
+      "input_candidate_count" => %{"type" => "integer", "minimum" => 0},
+      "kept_candidate_count" => %{"type" => "integer", "minimum" => 0},
+      "dropped_candidate_count" => %{"type" => "integer", "minimum" => 0},
+      "invalid_candidate_limit_policy_count" => %{"type" => "integer", "minimum" => 0},
+      "invalid_candidate_limit_policy_reason_counts" =>
+        non_negative_integer_count_map_json_schema(),
+      "kept_candidate_ids" => stable_id_array_schema(),
+      "dropped_candidate_ids" => stable_id_array_schema(),
+      "validated_contract_counts" => non_negative_integer_count_map_json_schema(),
+      "validation_mode_counts" => non_negative_integer_count_map_json_schema(),
+      "error_count" => %{"type" => "integer", "minimum" => 0},
+      "warning_count" => %{"type" => "integer", "minimum" => 0},
+      "remediation_count" => %{"type" => "integer", "minimum" => 0},
+      "remediation_action_counts" => non_negative_integer_count_map_json_schema(),
+      "remediation_category_counts" => non_negative_integer_count_map_json_schema(),
+      "remediation_path_counts" => non_negative_integer_count_map_json_schema()
     }
   end
 
