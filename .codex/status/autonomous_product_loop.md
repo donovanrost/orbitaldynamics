@@ -47,7 +47,7 @@ Last completed implementation commit:
 `c2bddf45f9149b2eafa42af3f4681e17f7dc0fac` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending for this slice.
+`f62f17fec9d3b16278ceae8c56cd9b396c5e68a0` pushed to `origin/main`.
 
 Next candidate:
 After this slice, evaluate constraint-report source-report maps from the mapper
