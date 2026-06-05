@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh contact-intent source-report fields family-schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 CandidateRefresh contact-intent source summaries already preserve
 station-feedback counts, station-calendar, Cadence-import, and
 policy-classification count maps, capacity-pack counts and fractions, contact ID
@@ -46,9 +46,10 @@ Tests run:
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
   test, schema lint, whitespace check, and generated-schema `jq` spot-checks.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-Pending for this slice.
+`bc94d10709b06907f47174bca27d6ca7ce95c196` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending for this slice.
