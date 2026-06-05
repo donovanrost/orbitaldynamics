@@ -1664,11 +1664,18 @@ review/import rows without requiring a list-level lifecycle summary.
 `CandidateRefresh.timeline_activity_lifecycle_state_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_timeline_activity_lifecycle_state_replay_summary/1`
 also expose those single-activity lifecycle-state handoffs as source-report
-provenance, preserving paths, model/schema identity, transition decisions,
+provenance, preserving contract/count/row-count/path identity, model/schema
+identity, transition decisions,
 operator/import actions, activity/timeline routing, protection evidence, trust
 boundaries, invalid-activity input counts and reasons, lifecycle transition
 application provenance counts by helper/category/operator-action reason, and
 no-mutation/no-authority assumptions.
+`CandidateRefresh.source_report_summary/1` flattens the same
+`source_report_timeline_activity_lifecycle_state_contract`, `count`,
+`row_count`, and `paths` identity fields for compact consumers. Partial
+lifecycle-state source-report family placeholders can preserve the declared
+contract, but omit flattened count, row-count, and path fields until both
+identity counts are present.
 For V3 strategy branch refreshes, the replay helper prefers a non-empty
 `candidate_source.candidate_refresh_request_source_report_summary.source_reports.timeline_activity_lifecycle_state`
 family over provenance, labels the output source and replay scope as

@@ -5668,11 +5668,29 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "timeline_activity_state",
           "action_routing"
         ),
+      "source_report_timeline_activity_lifecycle_state_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "timeline_activity_lifecycle_state",
+          "contract"
+        ),
+      "source_report_timeline_activity_lifecycle_state_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "timeline_activity_lifecycle_state",
+          "count"
+        ),
       "source_report_timeline_activity_lifecycle_state_row_count" =>
-        source_report_summary_family_count(
+        source_report_summary_family_identity_count(
           source_reports,
           "timeline_activity_lifecycle_state",
           "row_count"
+        ),
+      "source_report_timeline_activity_lifecycle_state_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "timeline_activity_lifecycle_state",
+          "paths"
         ),
       "source_report_timeline_activity_lifecycle_state_source_summary_model_counts" =>
         source_report_summary_family_merge_count_maps(
