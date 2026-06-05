@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh resource-projection activity routing maps schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean; commit/push pending.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 Runtime CandidateRefresh resource-projection replay summaries already preserve
 activity routing maps by status, type, ground station, and spacecraft, but the nested
 `candidate_refresh.v1` source-report JSON Schema does not advertise those
@@ -38,13 +38,13 @@ Tests run:
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings.
-- `git_slice_publisher`: pending.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`f80a08d54cf5934b94ffecd351e39da98b94c8aa` pushed to `origin/main`.
+`d7782fc54127d70e0acdbf7235f37195b57bd1cd` pushed to `origin/main`.
 
 Last ledger correction commit:
-`6008f85` pushed to `origin/main`.
+Pending.
 
 Next candidate:
 Resource-projection source-window and station-calendar routing maps from the
