@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh source-report resource-availability reason fields schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean; commit/push pending.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 Runtime CandidateRefresh source summaries already preserve operational-readiness
 and quality-gate resource-availability pressure/reason fields, but the root
 `candidate_refresh.v1` JSON Schema does not advertise those top-level fields.
@@ -36,13 +36,13 @@ Tests run:
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings.
-- `git_slice_publisher`: pending.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`23ac4636357b67b8029a60752319b0daa2a3cccc` pushed to `origin/main`.
+`f889a0a9a2b53b8fe7285ea7a0db0c46865070c0` pushed to `origin/main`.
 
 Last ledger correction commit:
-`7081f4a77df9ad9fa0432879c8236f1f445ddfd7` pushed to `origin/main`.
+Pending.
 
 Next candidate:
 After this slice, rerun the mapper against the current checkout.
