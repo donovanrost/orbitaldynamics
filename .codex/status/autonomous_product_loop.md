@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh contact-filter source-report routing and station-suppression maps schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 Runtime CandidateRefresh contact-filter source summaries already preserve
 suppressed contact counts, invalid contact IDs, suppressed-reason maps,
 direction routing, and station-suppression contact/calendar/reservation maps,
@@ -42,13 +42,13 @@ Tests run:
   `schemas/candidate_refresh.v1.schema.json` and the schema bundle.
 - `slice_reviewer`: no must-fix findings; reran focused export test,
   whitespace check, and generated-schema `jq` spot-checks.
-- `git_slice_publisher`: pending.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`18a8d094605ca5b56b7aa33a55c9bea34226b928` pushed to `origin/main`.
+`69b4268b8e37a2df29bf1d4a2c81f2d8a23c6ff0` pushed to `origin/main`.
 
 Last ledger correction commit:
-`775bcfc4ae033644839d96ac9bc54d2311349fe3` pushed to `origin/main`.
+Pending for this slice.
 
 Next candidate:
 After this slice, evaluate resource-filter direction routing from the mapper
