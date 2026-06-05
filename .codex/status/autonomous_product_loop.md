@@ -73,7 +73,7 @@ Last completed implementation commit:
 `fc32b20ac8b1c9bd63cba13a1bf33151868e0c37` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending publication for this ledger correction.
+`df06bcf` pushed to `origin/main`.
 
 Next candidate:
 Rerun the mapper against the current checkout.
