@@ -4,7 +4,7 @@ Current slice:
 Typed source handoff for compact timeline activity state.
 
 Status:
-Implemented, locally verified, reviewed, and ready to publish.
+Implemented, locally verified, reviewed, committed, and pushed.
 Review/import rows currently preserve direct `timeline_activity_state.v1`
 sources under `source_timeline_lifecycle_state`, even though the compact
 activity-state artifact is now its own schema-backed handoff. This slice adds a
@@ -57,7 +57,7 @@ Docs/artifacts changed:
 - `schemas/timeline_feedback_report.v1.schema.json`
 
 Last commit:
-`7fc6b8832bb03a82e3f870f9500f69f9ad61e040` pushed to `origin/main`.
+`5bbe6a4570143d9bcd40abc4c7cc64a8e6c683bf` pushed to `origin/main`.
 
 Next candidate:
 Continue guide-backed typed operational activity and timeline semantics from
