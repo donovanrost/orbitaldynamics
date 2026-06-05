@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh station-reservation direction routing schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean; commit/push pending.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 Runtime CandidateRefresh station-reservation source summaries already preserve
 direction routing with reservation-hold IDs and hold-contact IDs, but the
 `candidate_refresh.v1` family-specific source-report JSON Schema does not
@@ -41,13 +41,13 @@ Tests run:
 - `mix format test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `git diff --check`
-- `git_slice_publisher`: pending.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`395cada4d1c59910acb01457fbc4a816f5454251` pushed to `origin/main`.
+`3cbeeab68777b5d0ba8621f2088c8dfdf629505d` pushed to `origin/main`.
 
 Last ledger correction commit:
-`401f6b1457771f12b68c8eb8416ede31e59c8b5e` pushed to `origin/main`.
+Pending.
 
 Next candidate:
 Contact-allocation source-report direction routing schema visibility from the
