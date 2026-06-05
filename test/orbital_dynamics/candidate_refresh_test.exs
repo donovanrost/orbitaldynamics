@@ -31120,6 +31120,139 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     refute summary["branch_local_constraint_pressure"]
   end
 
+  test "constraint source summary keeps declared contract without partial identity placeholders" do
+    placeholder_fields = [
+      %{"count" => 1},
+      %{"row_count" => 2},
+      %{"paths" => ["provenance.source_reports.constraint_report"]},
+      %{"count" => nil, "row_count" => 2},
+      %{"count" => 1, "row_count" => nil}
+    ]
+
+    for placeholder <- placeholder_fields do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "constraint_report" =>
+              Map.put(
+                placeholder,
+                "contract",
+                "constraint_report.v1"
+              )
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      assert source_summary["source_report_constraint_contract"] ==
+               "constraint_report.v1"
+
+      refute Map.has_key?(source_summary, "source_report_constraint_count")
+      refute Map.has_key?(source_summary, "source_report_constraint_row_count")
+      refute Map.has_key?(source_summary, "source_report_constraint_paths")
+    end
+  end
+
+  test "constraint source summary preserves non-identity rollups with partial identity" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "constraint_report" => %{
+            "contract" => "constraint_report.v1",
+            "count" => 1,
+            "status_counts" => %{"fail" => 1},
+            "constraint_id_counts" => %{"visibility_conflict" => 1}
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_constraint_contract"] == "constraint_report.v1"
+    refute Map.has_key?(source_summary, "source_report_constraint_count")
+    refute Map.has_key?(source_summary, "source_report_constraint_row_count")
+    refute Map.has_key?(source_summary, "source_report_constraint_paths")
+    assert source_summary["source_report_constraint_status_counts"] == %{"fail" => 1}
+
+    assert source_summary["source_report_constraint_id_counts"] ==
+             %{"visibility_conflict" => 1}
+  end
+
+  test "constraint source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "constraint_report" => %{
+            "contract" => "constraint_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.constraint_report"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_constraint_contract"] == "constraint_report.v1"
+    assert source_summary["source_report_constraint_count"] == 0
+    assert source_summary["source_report_constraint_row_count"] == 0
+
+    assert source_summary["source_report_constraint_paths"] == [
+             "provenance.source_reports.constraint_report"
+           ]
+  end
+
+  test "constraint source summary omits missing identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "constraint_report" => %{
+            "contract" => "constraint_report.v1",
+            "count" => 1,
+            "row_count" => 2
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_constraint_contract"] == "constraint_report.v1"
+    assert source_summary["source_report_constraint_count"] == 1
+    assert source_summary["source_report_constraint_row_count"] == 2
+    refute Map.has_key?(source_summary, "source_report_constraint_paths")
+  end
+
+  test "constraint source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "constraint_report" => %{
+            "contract" => "constraint_report.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_constraint_contract"] == "constraint_report.v1"
+    assert source_summary["source_report_constraint_count"] == 1
+    assert source_summary["source_report_constraint_row_count"] == 2
+    assert source_summary["source_report_constraint_paths"] == []
+  end
+
   test "constraint replay summary treats routing maps as family pressure" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
@@ -31153,6 +31286,44 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["downlink_gap_row_count"] == 0
     assert summary["resource_margin_row_count"] == 0
     assert summary["status_counts"] == %{}
+    assert summary["ground_station_counts"] == %{"equator_prime" => 1}
+    assert summary["constraint_metric_counts"] == %{"visibility_window_s" => 1}
+    assert summary["constraint_id_counts"] == %{"visibility_conflict" => 1}
+    assert summary["source_activity_id_counts"] == %{"imaging_1" => 1}
+    assert summary["branch_local_constraint_pressure"]
+    assert summary["branch_local_constraint_routing_pressure"]
+    refute summary["branch_local_downlink_gap_pressure"]
+    refute summary["branch_local_resource_margin_pressure"]
+  end
+
+  test "constraint replay preserves routing pressure with partial identity" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "constraint_report" => %{
+            "contract" => "constraint_report.v1",
+            "count" => 1,
+            "paths" => ["source_constraint_report"],
+            "downlink_gap_row_count" => 0,
+            "resource_margin_row_count" => 0,
+            "status_counts" => %{},
+            "ground_station_counts" => %{"equator_prime" => 1},
+            "constraint_metric_counts" => %{"visibility_window_s" => 1},
+            "constraint_id_counts" => %{"visibility_conflict" => 1},
+            "source_activity_id_counts" => %{"imaging_1" => 1},
+            "constraint_resource_counts" => %{},
+            "constraint_spacecraft_counts" => %{}
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.constraint_replay_summary(artifact)
+
+    assert summary["source_report_count"] == 1
+    assert summary["source_report_row_count"] == 0
+    assert summary["source_report_paths"] == ["source_constraint_report"]
     assert summary["ground_station_counts"] == %{"equator_prime" => 1}
     assert summary["constraint_metric_counts"] == %{"visibility_window_s" => 1}
     assert summary["constraint_id_counts"] == %{"visibility_conflict" => 1}

@@ -1986,6 +1986,13 @@ and `constraint_report` inputs with wrapper-qualified request paths, indexed
 embedded replay copies, and inherited trust-boundary evidence.
 When constraint provenance is absent, the replay summary omits the contract
 field rather than defaulting to `constraint_report.v1`.
+`CandidateRefresh.source_report_summary/1` also exposes compact top-level
+constraint contract/count/row-count/path rollups for source-report provenance.
+Compact constraint source-count/source-row-count and source-path fields require
+complete source-report identity (`count` and `row_count` present), so partial
+placeholders preserve only the declared contract while non-identity
+constraint/routing rollups, explicit zero counts, and explicit empty paths
+remain replayable evidence.
 Capability metadata advertises `constraint_report` as an accepted
 CandidateRefresh input alongside constraint replay provenance.
 
