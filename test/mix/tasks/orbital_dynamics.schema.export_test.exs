@@ -802,6 +802,61 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "minimum"
            ]) == 0
 
+    candidate_refresh_constraint_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "constraint_report",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        "downlink_gap_row_count",
+        "resource_margin_row_count"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_constraint_source_report, [
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_constraint_source_report, [
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "status_counts",
+        "ground_station_counts",
+        "constraint_metric_counts",
+        "constraint_id_counts",
+        "source_activity_id_counts",
+        "constraint_resource_counts",
+        "constraint_spacecraft_counts"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_constraint_source_report, [
+                 field,
+                 "additionalProperties",
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_constraint_source_report, [
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
     candidate_refresh_candidate_diff_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",

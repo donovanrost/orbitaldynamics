@@ -21164,6 +21164,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_candidate_rejection_source_report_summary_json_schema(),
             "command_window_report" =>
               candidate_refresh_command_window_source_report_summary_json_schema(),
+            "constraint_report" =>
+              candidate_refresh_constraint_source_report_summary_json_schema(),
             "contact_allocation_report" =>
               candidate_refresh_contact_allocation_source_report_summary_json_schema(),
             "contact_contention_report" =>
@@ -21340,6 +21342,33 @@ defmodule OrbitalDynamics.Schema do
         "input_keys" => string_array_schema(),
         "direction_routing" => command_window_direction_routing_json_schema()
       })
+    end)
+  end
+
+  defp candidate_refresh_constraint_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      properties
+      |> Map.merge(
+        non_negative_integer_property_schemas([
+          "downlink_gap_row_count",
+          "resource_margin_row_count"
+        ])
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "status_counts",
+            "ground_station_counts",
+            "constraint_metric_counts",
+            "constraint_id_counts",
+            "source_activity_id_counts",
+            "constraint_resource_counts",
+            "constraint_spacecraft_counts"
+          ],
+          &{&1, non_negative_integer_count_map_json_schema()}
+        )
+      )
     end)
   end
 
