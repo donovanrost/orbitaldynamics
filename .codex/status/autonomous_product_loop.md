@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh resource-filter source-report direction routing schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 CandidateRefresh resource-filter source summaries already preserve suppressed
 candidate counts, invalid resource-summary inputs, suppressed-reason maps,
 spacecraft/resource/blocking-dimension maps, directions, candidate IDs by
@@ -43,9 +43,10 @@ Tests run:
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings; reran focused export test,
   whitespace check, and generated-schema `jq` spot-checks.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-Pending for this slice.
+`985d03c9d8aa65d460204527e5b4babb3a41bba2` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending for this slice.
