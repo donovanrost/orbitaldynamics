@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh constraint-report source-report maps schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 CandidateRefresh constraint source summaries already preserve downlink-gap and
 resource-margin row counts plus status, ground station, constraint metric,
 constraint ID, source activity ID, resource, and spacecraft count maps. The
@@ -41,9 +41,10 @@ Tests run:
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
   test, whitespace check, and generated-schema `jq` spot-checks.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-Pending for this slice.
+`6f5e3eb483a49d74c1495773fa1ff5415a949564` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending for this slice.
