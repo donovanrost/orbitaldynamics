@@ -1,31 +1,48 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Make CandidateRefresh passive replay fields schema-visible.
+Make CandidateRefresh timeline-publication source-artifact type counts schema-visible.
 
 Status:
-Implemented, locally verified, reviewed clean, committed, and pushed.
+Implemented, locally verified, and reviewed clean. Awaiting commit/push.
 CandidateRefresh source-report summary JSON Schema now explicitly advertises
-the passive replay context fields that runtime and docs already expose for
-freshness, refresh-budget, and schema-validation provenance. This is a contract
-discoverability slice only: no replay behavior, validation semantics, artifact
-generation, or Cadence/operator authority behavior changed.
+`timeline_publication_source_artifact_type_counts`, matching the runtime replay
+field and docs already added for timeline-publication provenance. This is a
+contract discoverability slice only: no replay behavior, validation semantics,
+artifact generation logic, or operator/Cadence authority behavior changed.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `lib/orbital_dynamics/schema.ex`
+- `schemas/cadence_import_manifest.v1.schema.json`
+- `schemas/campaign_plan.v1.schema.json`
+- `schemas/campaign_repair.v2.schema.json`
+- `schemas/campaign_strategy.v3.schema.json`
 - `schemas/candidate_refresh.v1.schema.json`
+- `schemas/operational_execution_boundary_summary.v1.schema.json`
+- `schemas/operational_import_eligibility_summary.v1.schema.json`
+- `schemas/operational_quality_gate_import_readiness_summary.v1.schema.json`
+- `schemas/operational_quality_gate_operator_training_summary.v1.schema.json`
+- `schemas/operational_quality_gate_schema_validation_summary.v1.schema.json`
+- `schemas/operational_quality_gate_summary.v1.schema.json`
+- `schemas/operational_quality_gate_unavailable_resource_summary.v1.schema.json`
+- `schemas/operational_readiness_gate_summary.v1.schema.json`
+- `schemas/operational_readiness_report.v1.schema.json`
+- `schemas/operator_review_package.v1.schema.json`
 - `schemas/orbital_dynamics.schema_bundle.v1.json`
+- `schemas/quality_gate_report.v1.schema.json`
+- `schemas/realized_state_snapshot.v1.schema.json`
+- `schemas/timeline_feedback_report.v1.schema.json`
+- `schemas/validation_safety_case_summary.v1.schema.json`
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 
 Definition of done:
 - `candidate_refresh_source_report_summary_json_schema/0` explicitly includes
-  freshness status/reason fields, refresh-budget input/kept/dropped/invalid
-  limit fields, and schema-validation status/contract/mode/error/warning/
-  remediation fields.
-- Export tests assert representative count-map, integer, and string-array schema
-  shapes for those passive replay fields.
-- Checked-in `candidate_refresh.v1` schema and schema bundle are refreshed.
+  `timeline_publication_source_artifact_type_counts` as a non-negative integer
+  count map in the timeline-publication context property set.
+- Export tests assert the field shape through the CandidateRefresh source-report
+  summary schema path.
+- Checked-in schema exports that embed CandidateRefresh definitions are refreshed.
 - Schema export tests, schema tests, schema lint, and whitespace checks pass.
 
 Tests run:
@@ -37,16 +54,15 @@ Tests run:
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings.
-- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
 `9271a509c9d38d148fc67c748b381c1610fb9ea2` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending.
+`6a6aba421ca4d8307c44bb2f71489d5f405827e7` pushed to `origin/main`.
 
 Next candidate:
-Rerun the mapper against the current checkout.
+After review/publish, rerun the mapper against the current checkout.
 
 Blocked:
 No.

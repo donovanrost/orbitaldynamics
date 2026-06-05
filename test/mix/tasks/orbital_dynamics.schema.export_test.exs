@@ -4206,7 +4206,8 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
         "validation_mode_counts",
         "remediation_action_counts",
         "remediation_category_counts",
-        "remediation_path_counts"
+        "remediation_path_counts",
+        "timeline_publication_source_artifact_type_counts"
       ],
       fn field ->
         assert get_in(

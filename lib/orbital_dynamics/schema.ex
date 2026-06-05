@@ -21410,6 +21410,8 @@ defmodule OrbitalDynamics.Schema do
       "dependency_impact_status_counts" => non_negative_integer_count_map_json_schema(),
       "publication_authority_counts" => non_negative_integer_count_map_json_schema(),
       "source_artifact_type_counts" => non_negative_integer_count_map_json_schema(),
+      "timeline_publication_source_artifact_type_counts" =>
+        non_negative_integer_count_map_json_schema(),
       "publication_ids" => stable_id_array_schema(),
       "source_artifact_ids" => stable_id_array_schema(),
       "supersedes_artifact_ids" => stable_id_array_schema(),
