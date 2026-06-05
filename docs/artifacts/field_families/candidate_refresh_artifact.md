@@ -674,9 +674,15 @@ back to provenance labels for absent or empty branch families.
 When candidate-rejection provenance is absent, the replay summary omits the
 contract field rather than defaulting to `candidate_rejection_report.v1`, and
 the aggregate source-report summary omits the top-level candidate-rejection
-identity rollups instead of emitting empty contract/count/row-count/path fields.
-Partial placeholder provenance does not synthesize count, row-count, or path
-identity rollups unless both identity counts are present and non-nil.
+count, row-count, and path identity rollups instead of emitting empty identity
+fields. Empty or partial placeholder provenance can still preserve a declared
+contract, but does not synthesize count, row-count, or path identity rollups
+unless both identity counts are present and non-nil. Explicit zero count and
+row-count values are preserved as declared identity, paths remain omitted when
+the path field is missing or nil, and an explicit empty path list remains a
+declared empty path set. Non-identity rejection-reason, required-action,
+candidate, and station routing maps remain available to branch-local replay
+pressure even when the source-report identity is only partial.
 Branch-generated refresh requests also preserve direct mission-state and
 result-artifact-wrapped raw `source_candidate_rejection_report` /
 `candidate_rejection_report` inputs, retaining wrapper-qualified request paths,

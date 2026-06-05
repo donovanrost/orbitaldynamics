@@ -27228,6 +27228,144 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     end
   end
 
+  test "candidate rejection source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "candidate_rejection_report" => %{
+            "contract" => "candidate_rejection_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.candidate_rejection_report"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_candidate_rejection_contract"] ==
+             "candidate_rejection_report.v1"
+
+    assert source_summary["source_report_candidate_rejection_count"] == 0
+    assert source_summary["source_report_candidate_rejection_row_count"] == 0
+
+    assert source_summary["source_report_candidate_rejection_paths"] == [
+             "provenance.source_reports.candidate_rejection_report"
+           ]
+  end
+
+  test "candidate rejection source summary omits missing identity paths after preserving counts" do
+    summaries = [
+      {"missing paths",
+       %{
+         "contract" => "candidate_rejection_report.v1",
+         "count" => 1,
+         "row_count" => 2
+       }},
+      {"nil paths",
+       %{
+         "contract" => "candidate_rejection_report.v1",
+         "count" => 1,
+         "row_count" => 2,
+         "paths" => nil
+       }}
+    ]
+
+    for {label, candidate_rejection_summary} <- summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "candidate_rejection_report" => candidate_rejection_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      assert source_summary["source_report_candidate_rejection_contract"] ==
+               "candidate_rejection_report.v1",
+             label
+
+      assert source_summary["source_report_candidate_rejection_count"] == 1, label
+      assert source_summary["source_report_candidate_rejection_row_count"] == 2, label
+      refute Map.has_key?(source_summary, "source_report_candidate_rejection_paths"), label
+    end
+  end
+
+  test "candidate rejection source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "candidate_rejection_report" => %{
+            "contract" => "candidate_rejection_report.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_candidate_rejection_contract"] ==
+             "candidate_rejection_report.v1"
+
+    assert source_summary["source_report_candidate_rejection_count"] == 1
+    assert source_summary["source_report_candidate_rejection_row_count"] == 2
+    assert source_summary["source_report_candidate_rejection_paths"] == []
+  end
+
+  test "candidate rejection replay preserves pressure maps with partial identity" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "candidate_rejection_report" => %{
+            "contract" => "candidate_rejection_report.v1",
+            "count" => 1,
+            "rejection_reason_counts" => %{"invalid_candidate_input" => 1},
+            "required_operator_action_counts" => %{"review_candidate_rejection" => 1},
+            "candidate_rejection_candidate_id_counts" => %{"bad_candidate" => 1},
+            "candidate_rejection_ground_station_counts" => %{"equator_prime" => 1}
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    refute Map.has_key?(source_summary, "source_report_candidate_rejection_count")
+    refute Map.has_key?(source_summary, "source_report_candidate_rejection_row_count")
+    refute Map.has_key?(source_summary, "source_report_candidate_rejection_paths")
+
+    assert source_summary["source_report_candidate_rejection_rejection_reason_counts"] == %{
+             "invalid_candidate_input" => 1
+           }
+
+    assert source_summary[
+             "source_report_candidate_rejection_required_operator_action_counts"
+           ] == %{"review_candidate_rejection" => 1}
+
+    assert source_summary[
+             "source_report_candidate_rejection_candidate_id_counts"
+           ] == %{"bad_candidate" => 1}
+
+    assert source_summary[
+             "source_report_candidate_rejection_ground_station_counts"
+           ] == %{"equator_prime" => 1}
+
+    summary = CandidateRefresh.candidate_rejection_replay_summary(artifact)
+
+    assert summary["branch_local_rejection_pressure"]
+    assert summary["branch_local_review_pressure"]
+    assert summary["branch_local_invalid_input_pressure"]
+  end
+
   test "candidate rejection replay treats preserved maps as branch-local pressure" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
