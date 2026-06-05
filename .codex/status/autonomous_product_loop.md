@@ -44,7 +44,7 @@ Last completed implementation commit:
 `23ac4636357b67b8029a60752319b0daa2a3cccc` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending.
+`7081f4a77df9ad9fa0432879c8236f1f445ddfd7` pushed to `origin/main`.
 
 Next candidate:
 Rerun the mapper against the current checkout.
