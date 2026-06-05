@@ -8426,6 +8426,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
         station_calendar_provider_entry_ids_by_requirement_status
       )
 
+    source_report_paths = Map.get(link_summary, "paths") || []
+
     capacity_adjusted_throughput_pressure =
       capacity_adjusted_row_count > 0 or capacity_adjusted_total > 0.0 or
         selected_capacity_adjusted_total > 0.0 or unused_capacity_adjusted_total > 0.0 or
@@ -8442,7 +8444,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "contract" => source_report_summary_contract(link_summary, "link_capacity_report.v1"),
       "source_report_count" => summary_integer(link_summary, "count"),
       "source_report_row_count" => summary_integer(link_summary, "row_count"),
-      "source_report_paths" => Map.get(link_summary, "paths", []),
+      "source_report_paths" => source_report_paths,
       "selected_shortfall_row_count" => selected_shortfall_row_count,
       "actual_shortfall_row_count" => actual_shortfall_row_count,
       "actual_throughput_row_count" => actual_throughput_row_count,

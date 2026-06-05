@@ -1157,7 +1157,10 @@ When link-capacity provenance is absent, the replay summary omits the contract
 field rather than defaulting to `link_capacity_report.v1`.
 Partial link-capacity source-report family placeholders can preserve the
 declared contract, but omit flattened count, row-count, and path fields until
-both identity counts are present.
+both identity counts are present. Explicit zero identity counts are retained,
+missing or nil paths remain omitted after valid counts, explicit empty path
+lists are preserved, and non-identity throughput, direction, station, contact,
+and requirement-status maps still drive branch-local replay pressure.
 
 `CandidateRefresh.contact_filter_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_contact_filter_replay_summary/1` expose the
