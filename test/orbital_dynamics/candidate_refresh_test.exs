@@ -14392,6 +14392,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  "dss_43" => 1,
                  "equator_prime" => 1
                },
+             "source_report_station_calendar_contract" => "station_calendar_report.v1",
+             "source_report_station_calendar_count" => 1,
+             "source_report_station_calendar_row_count" => 4,
+             "source_report_station_calendar_paths" => ["source_station_calendar_report"],
              "source_report_station_calendar_status_counts" => %{
                "reduced_capacity" => 1,
                "reserved" => 1,
@@ -14773,6 +14777,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     }
 
     assert %{
+             "source_report_station_calendar_contract" => "station_calendar_report.v1",
+             "source_report_station_calendar_count" => 1,
+             "source_report_station_calendar_row_count" => 4,
+             "source_report_station_calendar_paths" => ["source_station_calendar_report"],
              "source_report_station_calendar_affected_contact_count" => 3,
              "source_report_station_calendar_provider_calendar_contention_provider_counts" => %{
                "ops_calendar" => 1,
@@ -14896,6 +14904,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     }
 
     assert %{
+             "source_report_station_calendar_contract" =>
+               "station_calendar_precedence_summary.v1",
+             "source_report_station_calendar_count" => 4,
+             "source_report_station_calendar_row_count" => 4,
+             "source_report_station_calendar_paths" => [
+               "accepted_planning_state.station_calendar_precedence_summary",
+               "mission_state.source_station_calendar_precedence_summary",
+               "source_station_calendar_precedence_summary",
+               "source_result_artifact.station_calendar_precedence_summary"
+             ],
              "source_report_station_calendar_affected_contact_count" => 4,
              "source_report_station_calendar_source_summary_model_counts" => %{
                "artifact_only_station_calendar_precedence_summary" => 4
@@ -15059,13 +15077,134 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "provenance" => %{"source_reports" => %{}}
     }
 
+    source_summary = CandidateRefresh.source_report_summary(artifact)
     summary = CandidateRefresh.station_calendar_replay_summary(artifact)
 
+    refute Map.has_key?(source_summary, "source_report_station_calendar_contract")
+    refute Map.has_key?(source_summary, "source_report_station_calendar_count")
+    refute Map.has_key?(source_summary, "source_report_station_calendar_row_count")
+    refute Map.has_key?(source_summary, "source_report_station_calendar_paths")
     assert summary["source_report_count"] == 0
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_paths"] == []
     refute Map.has_key?(summary, "contract")
     refute summary["branch_local_station_calendar_pressure"]
+  end
+
+  test "station calendar source summary omits missing identity counts for partial family placeholder" do
+    partial_summaries = [
+      %{"contract" => "station_calendar_report.v1"},
+      %{"count" => 1},
+      %{"row_count" => 2},
+      %{"paths" => ["provenance.source_reports.station_calendar_report"]},
+      %{"count" => nil, "row_count" => nil},
+      %{
+        "count" => nil,
+        "row_count" => nil,
+        "paths" => ["provenance.source_reports.station_calendar_report"]
+      }
+    ]
+
+    for partial_summary <- partial_summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "station_calendar_report" => partial_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      if Map.has_key?(partial_summary, "contract") do
+        assert source_summary["source_report_station_calendar_contract"] ==
+                 "station_calendar_report.v1"
+      else
+        refute Map.has_key?(source_summary, "source_report_station_calendar_contract")
+      end
+
+      refute Map.has_key?(source_summary, "source_report_station_calendar_count")
+      refute Map.has_key?(source_summary, "source_report_station_calendar_row_count")
+      refute Map.has_key?(source_summary, "source_report_station_calendar_paths")
+    end
+  end
+
+  test "station calendar source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "station_calendar_report" => %{
+            "contract" => "station_calendar_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.station_calendar_report"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_station_calendar_contract"] ==
+             "station_calendar_report.v1"
+
+    assert source_summary["source_report_station_calendar_count"] == 0
+    assert source_summary["source_report_station_calendar_row_count"] == 0
+
+    assert source_summary["source_report_station_calendar_paths"] == [
+             "provenance.source_reports.station_calendar_report"
+           ]
+  end
+
+  test "station calendar source summary omits missing identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "station_calendar_report" => %{
+            "contract" => "station_calendar_report.v1",
+            "count" => 1,
+            "row_count" => 2
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_station_calendar_contract"] ==
+             "station_calendar_report.v1"
+
+    assert source_summary["source_report_station_calendar_count"] == 1
+    assert source_summary["source_report_station_calendar_row_count"] == 2
+    refute Map.has_key?(source_summary, "source_report_station_calendar_paths")
+  end
+
+  test "station calendar source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "station_calendar_report" => %{
+            "contract" => "station_calendar_report.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_station_calendar_contract"] ==
+             "station_calendar_report.v1"
+
+    assert source_summary["source_report_station_calendar_count"] == 1
+    assert source_summary["source_report_station_calendar_row_count"] == 2
+    assert source_summary["source_report_station_calendar_paths"] == []
   end
 
   test "station calendar replay treats preserved capacity and routing maps as pressure" do

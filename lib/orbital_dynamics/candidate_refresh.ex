@@ -3177,6 +3177,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "contact_filter_report",
           "station_suppression_station_reservation_ids_by_status"
         ),
+      "source_report_station_calendar_contract" =>
+        source_report_summary_family_field(
+          source_reports,
+          "station_calendar_report",
+          "contract"
+        ),
+      "source_report_station_calendar_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "station_calendar_report",
+          "count"
+        ),
+      "source_report_station_calendar_row_count" =>
+        source_report_summary_family_identity_count(
+          source_reports,
+          "station_calendar_report",
+          "row_count"
+        ),
+      "source_report_station_calendar_paths" =>
+        source_report_summary_family_identity_field(
+          source_reports,
+          "station_calendar_report",
+          "paths"
+        ),
       "source_report_station_calendar_affected_contact_count" =>
         source_report_summary_family_count(
           source_reports,

@@ -1331,7 +1331,8 @@ storage/downlink status, type, and direction maps are absent.
 `CandidateRefresh.station_calendar_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_station_calendar_replay_summary/1` expose
 the station-calendar slice as a branch-local replay summary. It preserves
-source station-calendar paths, affected-contact IDs and counts, contact IDs by
+source station-calendar contract, count, row-count, paths, affected-contact IDs
+and counts, contact IDs by
 station-calendar status, ground station, and availability, affected
 station-calendar entry IDs and entry IDs by status/station/availability,
 affected station-reservation IDs and reservation IDs by
@@ -1391,6 +1392,9 @@ no-calendar-mutation assumptions visible in generated candidate-source
 provenance.
 When station-calendar provenance is absent, the replay summary omits the
 contract field rather than defaulting to `station_calendar_report.v1`.
+Partial station-calendar source-report family placeholders can preserve the
+declared contract, but omit flattened count, row-count, and path fields until
+both identity counts are present.
 
 `CandidateRefresh.command_window_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_command_window_replay_summary/1` expose the
