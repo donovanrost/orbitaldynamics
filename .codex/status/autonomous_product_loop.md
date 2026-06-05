@@ -49,7 +49,7 @@ Last completed implementation commit:
 `2e3db4a48f6db94e32d0c1a12ee5370c7d3ff0a3` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending for this slice.
+`dd326f988f84546d31f3fd2b4800fd28159edac7` pushed to `origin/main`.
 
 Next candidate:
 After this slice, evaluate link-capacity route/source-window maps from the
