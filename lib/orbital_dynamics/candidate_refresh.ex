@@ -5855,19 +5855,19 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "contract"
         ),
       "source_report_timeline_activity_precondition_count" =>
-        source_report_summary_family_count(
+        source_report_summary_family_identity_count(
           source_reports,
           "timeline_activity_precondition_summary",
           "count"
         ),
       "source_report_timeline_activity_precondition_paths" =>
-        source_report_summary_family_field(
+        source_report_summary_family_identity_field(
           source_reports,
           "timeline_activity_precondition_summary",
           "paths"
         ),
       "source_report_timeline_activity_precondition_row_count" =>
-        source_report_summary_family_count(
+        source_report_summary_family_identity_count(
           source_reports,
           "timeline_activity_precondition_summary",
           "row_count"

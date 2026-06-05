@@ -21867,12 +21867,139 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     }
 
     summary = CandidateRefresh.timeline_activity_precondition_replay_summary(artifact)
+    source_summary = CandidateRefresh.source_report_summary(artifact)
 
     assert summary["source_report_count"] == 0
     assert summary["source_report_row_count"] == 0
     assert summary["source_report_paths"] == []
     refute Map.has_key?(summary, "contract")
     refute summary["branch_local_timeline_activity_precondition_pressure"]
+    refute Map.has_key?(source_summary, "source_report_timeline_activity_precondition_contract")
+    refute Map.has_key?(source_summary, "source_report_timeline_activity_precondition_count")
+
+    refute Map.has_key?(
+             source_summary,
+             "source_report_timeline_activity_precondition_row_count"
+           )
+
+    refute Map.has_key?(source_summary, "source_report_timeline_activity_precondition_paths")
+  end
+
+  test "timeline activity precondition source summary keeps declared contract without partial identity placeholders" do
+    placeholder_fields = [
+      %{"count" => 1},
+      %{"row_count" => 2},
+      %{"paths" => ["provenance.source_reports.timeline_activity_precondition_summary"]},
+      %{"count" => nil, "row_count" => 2},
+      %{"count" => 1, "row_count" => nil}
+    ]
+
+    for placeholder <- placeholder_fields do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "timeline_activity_precondition_summary" =>
+              Map.put(
+                placeholder,
+                "contract",
+                "timeline_activity_precondition_summary.v1"
+              )
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      assert source_summary["source_report_timeline_activity_precondition_contract"] ==
+               "timeline_activity_precondition_summary.v1"
+
+      refute Map.has_key?(source_summary, "source_report_timeline_activity_precondition_count")
+
+      refute Map.has_key?(
+               source_summary,
+               "source_report_timeline_activity_precondition_row_count"
+             )
+
+      refute Map.has_key?(source_summary, "source_report_timeline_activity_precondition_paths")
+    end
+  end
+
+  test "timeline activity precondition source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "timeline_activity_precondition_summary" => %{
+            "contract" => "timeline_activity_precondition_summary.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.timeline_activity_precondition_summary"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_timeline_activity_precondition_contract"] ==
+             "timeline_activity_precondition_summary.v1"
+
+    assert source_summary["source_report_timeline_activity_precondition_count"] == 0
+    assert source_summary["source_report_timeline_activity_precondition_row_count"] == 0
+
+    assert source_summary["source_report_timeline_activity_precondition_paths"] == [
+             "provenance.source_reports.timeline_activity_precondition_summary"
+           ]
+  end
+
+  test "timeline activity precondition source summary omits missing identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "timeline_activity_precondition_summary" => %{
+            "contract" => "timeline_activity_precondition_summary.v1",
+            "count" => 1,
+            "row_count" => 2
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_timeline_activity_precondition_contract"] ==
+             "timeline_activity_precondition_summary.v1"
+
+    assert source_summary["source_report_timeline_activity_precondition_count"] == 1
+    assert source_summary["source_report_timeline_activity_precondition_row_count"] == 2
+    refute Map.has_key?(source_summary, "source_report_timeline_activity_precondition_paths")
+  end
+
+  test "timeline activity precondition source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "timeline_activity_precondition_summary" => %{
+            "contract" => "timeline_activity_precondition_summary.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_timeline_activity_precondition_contract"] ==
+             "timeline_activity_precondition_summary.v1"
+
+    assert source_summary["source_report_timeline_activity_precondition_count"] == 1
+    assert source_summary["source_report_timeline_activity_precondition_row_count"] == 2
+    assert source_summary["source_report_timeline_activity_precondition_paths"] == []
   end
 
   test "timeline activity precondition replay reads branch candidate-source summary metadata" do

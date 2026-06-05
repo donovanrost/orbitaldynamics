@@ -1696,11 +1696,14 @@ precondition counts and type maps, dependency and exclusivity ID maps,
 `allow_overlap`, invalid-input counts and reasons, activity/timeline routing,
 trust-boundary evidence, and explicit no-mutation/no-authority assumptions.
 `CandidateRefresh.source_report_summary/1` also exposes the same precondition
-contract, source-count, source-path, status, count, type, dependency,
-exclusivity, overlap, invalid-input, and activity/timeline routing maps as
-`source_report_timeline_activity_precondition_*` top-level rollups for compact
-consumers that do not inspect the nested `source_reports` block. The helper does
-not evaluate preconditions, select
+contract, source-count, source-row-count, source-path, status, count, type,
+dependency, exclusivity, overlap, invalid-input, and activity/timeline routing
+maps as `source_report_timeline_activity_precondition_*` top-level rollups for
+compact consumers that do not inspect the nested `source_reports` block. The
+top-level source-count, source-row-count, and source-path rollups require a
+complete precondition source-report identity (`count` and `row_count` present);
+partial placeholders only expose the declared contract. The helper does not
+evaluate preconditions, select
 candidates, approve imports, reserve resources, execute commands, write to
 Cadence, or regenerate candidates.
 When the branch carries a non-empty
