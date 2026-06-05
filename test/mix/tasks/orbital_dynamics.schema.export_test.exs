@@ -784,6 +784,115 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       end
     )
 
+    candidate_refresh_resource_projection_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "resource_projection_report",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        "projected_resource_count",
+        "invalid_activity_input_count",
+        "invalid_resource_summary_input_count"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_resource_projection_source_report, [
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_resource_projection_source_report, [
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "resource_pressure_status_counts",
+        "resource_projection_spacecraft_counts",
+        "resource_pressure_type_counts",
+        "resource_pressure_activity_id_counts",
+        "resource_pressure_direction_counts"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_resource_projection_source_report, [
+                 field,
+                 "additionalProperties",
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_resource_projection_source_report, [
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    assert get_in(candidate_refresh_resource_projection_source_report, [
+             "resource_pressure_directions",
+             "items",
+             "type"
+           ]) == "string"
+
+    Enum.each(
+      [
+        "invalid_activity_input_ids",
+        "invalid_resource_summary_input_ids"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_resource_projection_source_report, [
+                 field,
+                 "items",
+                 "pattern"
+               ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+      end
+    )
+
+    Enum.each(
+      [
+        "resource_pressure_activity_ids_by_status",
+        "resource_pressure_activity_ids_by_type",
+        "resource_pressure_activity_ids_by_ground_station",
+        "resource_pressure_activity_ids_by_spacecraft",
+        "resource_pressure_activity_ids_by_direction"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_resource_projection_source_report, [
+                 field,
+                 "additionalProperties",
+                 "items",
+                 "pattern"
+               ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+      end
+    )
+
+    assert get_in(candidate_refresh_resource_projection_source_report, [
+             "resource_pressure_direction_routing",
+             "additionalProperties",
+             "properties",
+             "pressure_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(candidate_refresh_resource_projection_source_report, [
+             "resource_pressure_direction_routing",
+             "additionalProperties",
+             "properties",
+             "activity_ids",
+             "items",
+             "pattern"
+           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+
     candidate_refresh_command_window_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",

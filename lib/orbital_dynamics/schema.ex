@@ -21180,6 +21180,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_link_capacity_source_report_summary_json_schema(),
             "maneuver_review_report" =>
               candidate_refresh_maneuver_review_source_report_summary_json_schema(),
+            "resource_projection_report" =>
+              candidate_refresh_resource_projection_source_report_summary_json_schema(),
             "resource_filter_report" =>
               candidate_refresh_resource_filter_source_report_summary_json_schema(),
             "station_calendar_report" =>
@@ -21395,6 +21397,16 @@ defmodule OrbitalDynamics.Schema do
           ],
           &{&1, non_negative_integer_count_map_json_schema()}
         )
+      )
+    end)
+  end
+
+  defp candidate_refresh_resource_projection_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      Map.merge(
+        properties,
+        candidate_refresh_resource_projection_context_json_schema_properties()
       )
     end)
   end
