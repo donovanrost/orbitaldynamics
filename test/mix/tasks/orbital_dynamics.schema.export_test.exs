@@ -211,6 +211,60 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "type"
            ]) == "number"
 
+    candidate_refresh_station_reservation_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "station_reservation_report",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        "contact_ids",
+        "reservation_hold_ids",
+        "reservation_hold_contact_ids"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_station_reservation_source_report, [
+                 "direction_routing",
+                 "additionalProperties",
+                 "properties",
+                 field,
+                 "type"
+               ]) == "array"
+
+        assert get_in(candidate_refresh_station_reservation_source_report, [
+                 "direction_routing",
+                 "additionalProperties",
+                 "properties",
+                 field,
+                 "items",
+                 "pattern"
+               ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+      end
+    )
+
+    assert get_in(candidate_refresh_station_reservation_source_report, [
+             "direction_routing",
+             "additionalProperties",
+             "properties",
+             "contact_count",
+             "type"
+           ]) == "integer"
+
+    assert get_in(candidate_refresh_station_reservation_source_report, [
+             "direction_routing",
+             "additionalProperties",
+             "properties",
+             "contact_count",
+             "minimum"
+           ]) == 0
+
     assert Map.has_key?(schemas, "contact_allocation_summary.v1")
     assert Map.has_key?(schemas, "contact_allocation_reservation_conflict_summary.v1")
     assert Map.has_key?(schemas, "contact_allocation_station_pressure_summary.v1")

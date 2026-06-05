@@ -21161,7 +21161,9 @@ defmodule OrbitalDynamics.Schema do
             "contact_intent" =>
               candidate_refresh_contact_intent_source_report_summary_json_schema(),
             "station_calendar_report" =>
-              candidate_refresh_station_calendar_source_report_summary_json_schema()
+              candidate_refresh_station_calendar_source_report_summary_json_schema(),
+            "station_reservation_report" =>
+              candidate_refresh_station_reservation_source_report_summary_json_schema()
           }
         },
         "run_input_sources" => %{
@@ -21245,6 +21247,14 @@ defmodule OrbitalDynamics.Schema do
     |> put_in(
       ["properties", "direction_routing"],
       station_calendar_direction_routing_json_schema()
+    )
+  end
+
+  defp candidate_refresh_station_reservation_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> put_in(
+      ["properties", "direction_routing"],
+      station_reservation_direction_routing_json_schema()
     )
   end
 
@@ -21471,6 +21481,22 @@ defmodule OrbitalDynamics.Schema do
           "provider_contention_source_entry_ids" => stable_id_array_schema(),
           "provider_contention_provider_entry_ids" => stable_id_array_schema(),
           "provider_contention_capacity_fractions" => number_array_schema()
+        }
+      }
+    }
+  end
+
+  defp station_reservation_direction_routing_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => %{
+        "type" => "object",
+        "additionalProperties" => true,
+        "properties" => %{
+          "contact_count" => %{"type" => "integer", "minimum" => 0},
+          "contact_ids" => stable_id_array_schema(),
+          "reservation_hold_ids" => stable_id_array_schema(),
+          "reservation_hold_contact_ids" => stable_id_array_schema()
         }
       }
     }
