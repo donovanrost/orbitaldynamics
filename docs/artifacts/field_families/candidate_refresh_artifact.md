@@ -605,6 +605,13 @@ readiness, import, gate, and resource-pressure context without approving
 operator actions.
 When operational-readiness provenance is absent, the replay summary omits the
 contract field rather than defaulting to `operational_readiness_report.v1`.
+`CandidateRefresh.source_report_summary/1` also exposes compact top-level
+operational-readiness contract/count/row-count/path rollups for source-report
+provenance. Compact operational-readiness source-count/source-row-count and
+source-path fields require complete source-report identity (`count` and
+`row_count` present), so partial placeholders preserve only the declared
+contract while explicit zero counts and explicit empty paths remain replayable
+identity.
 Capability metadata advertises `operational_readiness_report` as an accepted
 CandidateRefresh input alongside operational-readiness replay provenance.
 

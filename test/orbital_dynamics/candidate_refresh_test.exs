@@ -25023,6 +25023,160 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     refute summary["branch_local_resource_pressure"]
   end
 
+  test "operational readiness source summary keeps declared contract without partial identity placeholders" do
+    placeholder_fields = [
+      %{"count" => 1},
+      %{"row_count" => 2},
+      %{"paths" => ["provenance.source_reports.operational_readiness_report"]},
+      %{"count" => nil, "row_count" => 2},
+      %{"count" => 1, "row_count" => nil}
+    ]
+
+    for placeholder <- placeholder_fields do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "operational_readiness_report" =>
+              Map.put(
+                placeholder,
+                "contract",
+                "operational_readiness_report.v1"
+              )
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      assert source_summary["source_report_operational_readiness_contract"] ==
+               "operational_readiness_report.v1"
+
+      refute Map.has_key?(source_summary, "source_report_operational_readiness_count")
+
+      refute Map.has_key?(
+               source_summary,
+               "source_report_operational_readiness_row_count"
+             )
+
+      refute Map.has_key?(source_summary, "source_report_operational_readiness_paths")
+    end
+  end
+
+  test "operational readiness source summary preserves non-identity rollups with partial identity" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "operational_readiness_report" => %{
+            "contract" => "operational_readiness_report.v1",
+            "count" => 1,
+            "readiness_level_counts" => %{"operator_review" => 1},
+            "resource_blocking_dimension_counts" => %{"communications" => 1}
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_operational_readiness_contract"] ==
+             "operational_readiness_report.v1"
+
+    refute Map.has_key?(source_summary, "source_report_operational_readiness_count")
+
+    refute Map.has_key?(
+             source_summary,
+             "source_report_operational_readiness_row_count"
+           )
+
+    refute Map.has_key?(source_summary, "source_report_operational_readiness_paths")
+
+    assert source_summary["source_report_operational_readiness_readiness_level_counts"] ==
+             %{"operator_review" => 1}
+
+    assert source_summary[
+             "source_report_operational_readiness_resource_blocking_dimension_counts"
+           ] == %{"communications" => 1}
+  end
+
+  test "operational readiness source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "operational_readiness_report" => %{
+            "contract" => "operational_readiness_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.operational_readiness_report"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_operational_readiness_contract"] ==
+             "operational_readiness_report.v1"
+
+    assert source_summary["source_report_operational_readiness_count"] == 0
+    assert source_summary["source_report_operational_readiness_row_count"] == 0
+
+    assert source_summary["source_report_operational_readiness_paths"] == [
+             "provenance.source_reports.operational_readiness_report"
+           ]
+  end
+
+  test "operational readiness source summary omits missing identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "operational_readiness_report" => %{
+            "contract" => "operational_readiness_report.v1",
+            "count" => 1,
+            "row_count" => 2
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_operational_readiness_contract"] ==
+             "operational_readiness_report.v1"
+
+    assert source_summary["source_report_operational_readiness_count"] == 1
+    assert source_summary["source_report_operational_readiness_row_count"] == 2
+    refute Map.has_key?(source_summary, "source_report_operational_readiness_paths")
+  end
+
+  test "operational readiness source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "operational_readiness_report" => %{
+            "contract" => "operational_readiness_report.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_operational_readiness_contract"] ==
+             "operational_readiness_report.v1"
+
+    assert source_summary["source_report_operational_readiness_count"] == 1
+    assert source_summary["source_report_operational_readiness_row_count"] == 2
+    assert source_summary["source_report_operational_readiness_paths"] == []
+  end
+
   test "operational readiness replay treats resource routing maps as resource pressure" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
