@@ -183,6 +183,69 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "minimum"
            ]) == 0.0
 
+    assert get_in(candidate_refresh_contact_intent_source_report, [
+             "station_feedback_count",
+             "minimum"
+           ]) == 0
+
+    Enum.each(
+      [
+        "station_calendar_status_counts",
+        "cadence_import_status_counts",
+        "policy_classification_counts",
+        "direction_counts"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_contact_intent_source_report, [
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    assert get_in(candidate_refresh_contact_intent_source_report, [
+             "capacity_pack_required_contact_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(candidate_refresh_contact_intent_source_report, [
+             "capacity_pack_required_capacity_fraction",
+             "type"
+           ]) == ["number", "null"]
+
+    assert get_in(candidate_refresh_contact_intent_source_report, [
+             "capacity_pack_required_capacity_fraction_by_direction_and_ground_station",
+             "additionalProperties",
+             "additionalProperties",
+             "minimum"
+           ]) == 0.0
+
+    Enum.each(
+      [
+        "required_capacity_fraction_contact_ids_by_source",
+        "capacity_pack_contact_ids_by_ground_station",
+        "contact_ids_by_ground_station",
+        "capacity_pack_contact_ids_by_direction"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_contact_intent_source_report, [
+                 field,
+                 "additionalProperties",
+                 "items",
+                 "pattern"
+               ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+      end
+    )
+
+    assert get_in(candidate_refresh_contact_intent_source_report, [
+             "contact_ids_by_direction_and_ground_station",
+             "additionalProperties",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+
     candidate_refresh_station_calendar_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",
@@ -5572,24 +5635,23 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                ]
            ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
 
-    assert get_in(
-             schemas,
-             ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
-               ["station_feedback_count", "minimum"]
-           ) == 0
-
     Enum.each(
       [
+        "station_feedback_count",
         "station_calendar_status_counts",
-        "cadence_import_status_counts",
-        "policy_classification_counts"
+        "policy_classification_counts",
+        "capacity_pack_required_contact_count",
+        "capacity_pack_required_capacity_fraction",
+        "required_capacity_fraction_contact_ids_by_source",
+        "directions"
       ],
       fn field ->
-        assert get_in(
-                 schemas,
-                 ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
-                   [field, "additionalProperties", "minimum"]
-               ) == 0
+        refute Map.has_key?(
+                 get_in(schemas, [
+                   "candidate_refresh.v1" | candidate_refresh_source_report_summary_path
+                 ]),
+                 field
+               )
       end
     )
 

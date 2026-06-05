@@ -1,17 +1,19 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Make CandidateRefresh constraint-report source-report maps schema-visible.
+Make CandidateRefresh contact-intent source-report fields family-schema-visible.
 
 Status:
-Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
-CandidateRefresh constraint source summaries already preserve downlink-gap and
-resource-margin row counts plus status, ground station, constraint metric,
-constraint ID, source activity ID, resource, and spacecraft count maps. The
-`candidate_refresh.v1` family-specific source-report JSON Schema now advertises
-those constraint fields. This is a contract discoverability slice only: no
-replay behavior, runtime validation helpers, artifact generation logic, or
-operator/Cadence authority behavior changed.
+Implemented, locally verified, and reviewed clean; publish pending. Runtime
+CandidateRefresh contact-intent source summaries already preserve
+station-feedback counts, station-calendar, Cadence-import, and
+policy-classification count maps, capacity-pack counts and fractions, contact ID
+maps, directions, direction counts, and direction routing. The
+`candidate_refresh.v1` family-specific `contact_intent` source-report JSON
+Schema now owns those fields instead of relying on the generic
+`source_reports.additionalProperties` summary shape. This is a contract
+discoverability slice only: no replay behavior, runtime validation helpers,
+artifact generation logic, or operator/Cadence authority behavior changed.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -21,11 +23,13 @@ Files changed:
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 
 Definition of done:
-- `candidate_refresh.v1` exposes a family-specific `constraint_report`
+- `candidate_refresh.v1` keeps a family-specific `contact_intent`
   source-report schema.
-- Its source-report object advertises downlink-gap and resource-margin row
-  counts plus status, ground station, constraint metric, constraint ID, source
-  activity ID, resource, and spacecraft count maps.
+- Its source-report object explicitly advertises contact-intent counts,
+  capacity-pack fraction maps, contact ID maps, direction lists/counts, and
+  direction routing.
+- Generic `source_reports.additionalProperties` no longer needs to carry the
+  contact-intent-only field definitions.
 - Checked-in `candidate_refresh.v1` schema and schema bundle are refreshed.
 - Schema export tests, schema tests, schema lint, and whitespace checks pass.
 
@@ -36,18 +40,18 @@ Tests run:
 - `mix test test/orbital_dynamics/schema_test.exs`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
-- `jq` spot-checks for `constraint_report` in
-  `schemas/candidate_refresh.v1.schema.json` and the schema bundle.
+- `jq` spot-checks for family-owned `contact_intent` fields and generic
+  source-report absence in `schemas/candidate_refresh.v1.schema.json` and the
+  schema bundle.
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
-  test, whitespace check, and generated-schema `jq` spot-checks.
-- `git_slice_publisher`: committed and pushed.
+  test, schema lint, whitespace check, and generated-schema `jq` spot-checks.
 
 Last completed implementation commit:
-`6f5e3eb483a49d74c1495773fa1ff5415a949564` pushed to `origin/main`.
+Pending for this slice.
 
 Last ledger correction commit:
-`81389c6` pushed to `origin/main`.
+Pending for this slice.
 
 Next candidate:
 After this slice, run a bounded mapper pass to identify the next

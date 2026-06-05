@@ -21249,7 +21249,6 @@ defmodule OrbitalDynamics.Schema do
         |> Map.merge(candidate_refresh_contact_contention_context_json_schema_properties())
         |> Map.merge(candidate_refresh_candidate_rejection_context_json_schema_properties())
         |> Map.merge(candidate_refresh_station_pressure_context_json_schema_properties())
-        |> Map.merge(candidate_refresh_contact_intent_context_json_schema_properties())
         |> Map.merge(candidate_refresh_contact_filter_context_json_schema_properties())
         |> Map.merge(candidate_refresh_station_calendar_context_json_schema_properties())
         |> Map.merge(candidate_refresh_timeline_activity_context_json_schema_properties())
@@ -21412,7 +21411,9 @@ defmodule OrbitalDynamics.Schema do
 
   defp candidate_refresh_contact_intent_source_report_summary_json_schema do
     candidate_refresh_source_report_summary_json_schema()
-    |> put_in(["properties", "direction_routing"], contact_intent_direction_routing_json_schema())
+    |> update_in(["properties"], fn properties ->
+      Map.merge(properties, candidate_refresh_contact_intent_context_json_schema_properties())
+    end)
   end
 
   defp candidate_refresh_station_calendar_source_report_summary_json_schema do
