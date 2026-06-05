@@ -21268,6 +21268,11 @@ defmodule OrbitalDynamics.Schema do
 
   defp candidate_refresh_resource_projection_context_json_schema_properties do
     %{
+      "projected_resource_count" => %{"type" => "integer", "minimum" => 0},
+      "invalid_resource_summary_input_count" => %{"type" => "integer", "minimum" => 0},
+      "invalid_activity_input_ids" => stable_id_array_schema(),
+      "invalid_resource_summary_input_ids" => stable_id_array_schema(),
+      "resource_pressure_status_counts" => non_negative_integer_count_map_json_schema(),
       "resource_projection_spacecraft_counts" => non_negative_integer_count_map_json_schema(),
       "resource_pressure_type_counts" => non_negative_integer_count_map_json_schema(),
       "resource_pressure_activity_id_counts" => non_negative_integer_count_map_json_schema(),

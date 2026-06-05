@@ -4282,11 +4282,26 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                ["trust_boundaries", "items", "type"]
            ) == "string"
 
-    assert get_in(
-             schemas,
-             ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
-               ["invalid_activity_input_count", "minimum"]
-           ) == 0
+    Enum.each(
+      [
+        "invalid_activity_input_count",
+        "projected_resource_count",
+        "invalid_resource_summary_input_count"
+      ],
+      fn field ->
+        assert get_in(
+                 schemas,
+                 ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
+                   [field, "type"]
+               ) == "integer"
+
+        assert get_in(
+                 schemas,
+                 ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
+                   [field, "minimum"]
+               ) == 0
+      end
+    )
 
     assert get_in(
              schemas,
@@ -4302,6 +4317,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
         "constraint_metric_counts",
         "constraint_resource_counts",
         "constraint_spacecraft_counts",
+        "resource_pressure_status_counts",
         "resource_projection_spacecraft_counts",
         "resource_pressure_type_counts",
         "resource_pressure_activity_id_counts",
@@ -4337,6 +4353,12 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
         "timeline_publication_source_artifact_type_counts"
       ],
       fn field ->
+        assert get_in(
+                 schemas,
+                 ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
+                   [field, "type"]
+               ) == "object"
+
         assert get_in(
                  schemas,
                  ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
@@ -4379,6 +4401,20 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                  ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
                    [field, "items", "type"]
                ) == "string"
+      end
+    )
+
+    Enum.each(
+      [
+        "invalid_activity_input_ids",
+        "invalid_resource_summary_input_ids"
+      ],
+      fn field ->
+        assert get_in(
+                 schemas,
+                 ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
+                   [field, "items", "pattern"]
+               ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
       end
     )
 

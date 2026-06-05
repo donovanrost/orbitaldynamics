@@ -1,12 +1,12 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Make CandidateRefresh resource-projection source/station routing maps schema-visible.
+Make CandidateRefresh resource-projection invalid-input/status summary fields schema-visible.
 
 Status:
-Implemented, locally verified, reviewed clean, committed, and pushed.
+Implemented, locally verified, and reviewed clean; commit/push pending.
 Runtime CandidateRefresh resource-projection replay summaries already preserve
-source-window and station-calendar routing maps by status/type, but the nested
+projected-resource, invalid-input, and pressure-status summary fields, but the nested
 `candidate_refresh.v1` source-report JSON Schema does not advertise those
 fields. This is a contract discoverability slice only: no replay behavior,
 runtime validation helpers, artifact generation logic, or operator/Cadence
@@ -21,9 +21,11 @@ Files changed:
 
 Definition of done:
 - Nested `candidate_refresh.v1` source-report JSON Schema explicitly includes
-  source-window ID routing maps and station-calendar entry/provider/provider-entry
-  ID routing maps by status/type.
-- Export tests assert stable-ID-array-map shapes for those nested fields.
+  `projected_resource_count`, `invalid_resource_summary_input_count`,
+  `invalid_activity_input_ids`, `invalid_resource_summary_input_ids`, and
+  `resource_pressure_status_counts`.
+- Export tests assert non-negative integer, stable-ID-array, and count-map
+  shapes for those nested fields.
 - Checked-in `candidate_refresh.v1` schema and schema bundle are refreshed.
 - Schema export tests, schema tests, schema lint, and whitespace checks pass.
 
@@ -35,14 +37,18 @@ Tests run:
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
-- `slice_reviewer`: no must-fix findings.
-- `git_slice_publisher`: committed and pushed.
+- `slice_reviewer`: no must-fix findings; tightened export type assertions after
+  non-blocking review note.
+- `mix format test/mix/tasks/orbital_dynamics.schema.export_test.exs`
+- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
+- `git diff --check`
+- `git_slice_publisher`: pending.
 
 Last completed implementation commit:
 `35f4ba210c831a20e920ec5ddecbf7e180131054` pushed to `origin/main`.
 
 Last ledger correction commit:
-`4fd708dc9dd85563dcd57510b67a6ec2e643bff6` pushed to `origin/main`.
+`784c818d3d119a543ebff12b5751a65857161138` pushed to `origin/main`.
 
 Next candidate:
 Rerun the mapper against the current checkout.
