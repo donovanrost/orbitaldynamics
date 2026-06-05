@@ -4,7 +4,7 @@ Current slice:
 Make CandidateRefresh candidate-diff source-report maps schema-visible.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 CandidateRefresh candidate-diff source summaries already preserve retained,
 new, and invalidated candidate counts plus diff reason, invalidated reason,
 semantic-change reason, changed-field, candidate ID, and ground-station count
@@ -41,9 +41,10 @@ Tests run:
 - `git diff --check`
 - `slice_reviewer`: no must-fix findings; reran focused export test,
   whitespace check, and generated-schema `jq` spot-checks.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-Pending for this slice.
+`c2bddf45f9149b2eafa42af3f4681e17f7dc0fac` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending for this slice.
