@@ -30,7 +30,7 @@ Docs/artifacts changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Last commit:
-Pending publish.
+`a98b9d6` (`Flatten dependency impact replay identity`).
 
 Next candidate:
 After verification and publish, continue guide-backed CandidateRefresh depth from
