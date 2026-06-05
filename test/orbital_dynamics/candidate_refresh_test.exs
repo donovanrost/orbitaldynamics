@@ -3942,6 +3942,155 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     end
   end
 
+  test "contact intent source summary preserves explicit empty identity counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_intent" => %{
+            "contract" => "contact_intent.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.contact_intent"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_contact_intent_contract"] == "contact_intent.v1"
+    assert source_summary["source_report_contact_intent_count"] == 0
+    assert source_summary["source_report_contact_intent_row_count"] == 0
+
+    assert source_summary["source_report_contact_intent_paths"] == [
+             "provenance.source_reports.contact_intent"
+           ]
+  end
+
+  test "contact intent source summary omits missing identity paths after preserving counts" do
+    summaries = [
+      {"missing paths",
+       %{
+         "contract" => "contact_intent.v1",
+         "count" => 1,
+         "row_count" => 2
+       }},
+      {"nil paths",
+       %{
+         "contract" => "contact_intent.v1",
+         "count" => 1,
+         "row_count" => 2,
+         "paths" => nil
+       }}
+    ]
+
+    for {label, contact_intent_summary} <- summaries do
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "provenance" => %{
+          "source_reports" => %{
+            "contact_intent" => contact_intent_summary
+          }
+        }
+      }
+
+      source_summary = CandidateRefresh.source_report_summary(artifact)
+
+      assert source_summary["source_report_contact_intent_contract"] == "contact_intent.v1",
+             label
+
+      assert source_summary["source_report_contact_intent_count"] == 1, label
+      assert source_summary["source_report_contact_intent_row_count"] == 2, label
+      refute Map.has_key?(source_summary, "source_report_contact_intent_paths"), label
+    end
+  end
+
+  test "contact intent source summary preserves empty identity paths after preserving counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_intent" => %{
+            "contract" => "contact_intent.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "paths" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_contact_intent_contract"] == "contact_intent.v1"
+    assert source_summary["source_report_contact_intent_count"] == 1
+    assert source_summary["source_report_contact_intent_row_count"] == 2
+    assert source_summary["source_report_contact_intent_paths"] == []
+  end
+
+  test "contact intent replay preserves direction routing pressure with partial identity" do
+    direction_routing = %{
+      "downlink" => %{
+        "contact_count" => 1,
+        "contact_ids" => ["contact_downlink"],
+        "capacity_pack_required_capacity_fraction" => 0.35,
+        "capacity_pack_contact_ids" => ["contact_downlink"],
+        "ground_station_ids" => ["equator_prime"],
+        "contact_ids_by_ground_station" => %{
+          "equator_prime" => ["contact_downlink"]
+        },
+        "capacity_pack_required_capacity_fraction_by_ground_station" => %{
+          "equator_prime" => 0.35
+        },
+        "capacity_pack_contact_ids_by_ground_station" => %{
+          "equator_prime" => ["contact_downlink"]
+        }
+      }
+    }
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_intent" => %{
+            "contract" => "contact_intent.v1",
+            "count" => 1,
+            "directions" => ["downlink"],
+            "direction_counts" => %{"downlink" => 1},
+            "contact_ids_by_direction" => %{"downlink" => ["contact_downlink"]},
+            "direction_routing" => direction_routing
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    refute Map.has_key?(source_summary, "source_report_contact_intent_count")
+    refute Map.has_key?(source_summary, "source_report_contact_intent_row_count")
+    refute Map.has_key?(source_summary, "source_report_contact_intent_paths")
+
+    assert source_summary["source_report_contact_intent_directions"] == ["downlink"]
+    assert source_summary["source_report_contact_intent_direction_counts"] == %{"downlink" => 1}
+
+    assert source_summary["source_report_contact_intent_contact_ids_by_direction"] == %{
+             "downlink" => ["contact_downlink"]
+           }
+
+    assert source_summary["source_report_contact_intent_direction_routing"] ==
+             direction_routing
+
+    summary = CandidateRefresh.contact_intent_replay_summary(artifact)
+
+    assert summary["directions"] == ["downlink"]
+    assert summary["direction_counts"] == %{"downlink" => 1}
+    assert summary["contact_ids_by_direction"] == %{"downlink" => ["contact_downlink"]}
+    assert summary["direction_routing"] == direction_routing
+    assert summary["branch_local_contact_intent_pressure"]
+    assert summary["branch_local_capacity_pack_pressure"]
+  end
+
   test "source report summary aggregates contact intent station feedback maps" do
     refresh = %{
       "source_contact_intents" => [

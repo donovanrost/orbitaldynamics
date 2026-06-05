@@ -1525,7 +1525,12 @@ aggregate source-report summary omits the top-level contact-intent identity
 rollups when provenance is absent instead of emitting empty count, row-count, or
 path fields. Partial placeholder provenance may expose an explicit contract,
 but does not synthesize count, row-count, or path identity rollups unless both
-identity counts are present and non-nil. The
+identity counts are present and non-nil. Explicit zero count and row-count
+values are preserved as declared identity, paths remain omitted when the path
+field is missing or nil, and an explicit empty path list remains a declared
+empty path set. Non-identity direction lists, direction counts, contact-ID maps,
+and compact direction-routing maps remain available to branch-local replay
+pressure even when the source-report identity is only partial. The
 family-level contact-intent pressure
 boolean is true for capacity-pack source/contact routing maps and per-station
 or per-direction contact-ID maps, including all-contact station maps and the
