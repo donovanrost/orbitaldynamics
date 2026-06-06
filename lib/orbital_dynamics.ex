@@ -73,6 +73,7 @@ defmodule OrbitalDynamics do
   @activity_template_assumptions %{
     "boundary" => "template_only_no_schedule_mutation"
   }
+  @activity_template_activity_metadata_fields ~w(metadata)
   @activity_template_lifecycle_defaults %{
     "status" => "planned",
     "approval_status" => "not_evaluated",
@@ -1582,6 +1583,23 @@ defmodule OrbitalDynamics do
   def activity_template(_id_or_activity_type), do: :error
 
   @doc """
+  Instantiates an activity template into a normalized timeline activity row.
+  """
+  def activity_from_template(template_or_id, fields \\ %{})
+
+  def activity_from_template(template_or_id, fields) when is_map(fields) do
+    with {:ok, template} <- resolve_activity_template(template_or_id),
+         overrides <- stringify_activity_template_keys(fields),
+         :ok <- validate_activity_template_overrides(template, overrides),
+         {:ok, activity} <- build_activity_from_template(template, overrides) do
+      {:ok, activity}
+    end
+  end
+
+  def activity_from_template(_template_or_id, _fields),
+    do: {:error, %{reason: "invalid_activity_template_fields"}}
+
+  @doc """
   Builds an artifact-only timeline diff report for source and replacement activities.
   """
   def timeline_diff_report(timeline_diff_report) do
@@ -3043,6 +3061,217 @@ defmodule OrbitalDynamics do
   defp activity_template_match?(template, id_or_activity_type) do
     id_or_activity_type in [template["id"], template["activity_type"]]
   end
+
+  defp resolve_activity_template(id_or_activity_type) when is_binary(id_or_activity_type) do
+    case activity_template(id_or_activity_type) do
+      {:ok, template} -> {:ok, template}
+      :error -> {:error, %{reason: "unknown_activity_template"}}
+    end
+  end
+
+  defp resolve_activity_template(%{} = template) do
+    template = stringify_activity_template_keys(template)
+
+    with "activity_template.v1" <- Map.get(template, "schema_contract"),
+         {:ok, _report} <- Schema.validate_artifact(template) do
+      {:ok, template}
+    else
+      nil ->
+        {:error, %{reason: "invalid_activity_template", error: "missing_schema_contract"}}
+
+      contract when is_binary(contract) ->
+        {:error,
+         %{
+           reason: "invalid_activity_template",
+           error: "unsupported_schema_contract",
+           schema_contract: contract
+         }}
+
+      {:error, validation_report} ->
+        {:error,
+         %{
+           reason: "invalid_activity_template",
+           validation_report: validation_report
+         }}
+
+      contract ->
+        {:error,
+         %{
+           reason: "invalid_activity_template",
+           error: "unsupported_schema_contract",
+           schema_contract: inspect(contract)
+         }}
+    end
+  end
+
+  defp resolve_activity_template(_template_or_id),
+    do: {:error, %{reason: "unknown_activity_template"}}
+
+  defp validate_activity_template_overrides(template, overrides) do
+    allowed_fields = activity_template_allowed_fields(template)
+
+    undeclared_fields =
+      overrides
+      |> Map.keys()
+      |> Enum.reject(&MapSet.member?(allowed_fields, &1))
+      |> Enum.sort()
+
+    if undeclared_fields == [] do
+      :ok
+    else
+      {:error,
+       %{
+         reason: "undeclared_activity_template_fields",
+         fields: undeclared_fields
+       }}
+    end
+  end
+
+  defp activity_template_allowed_fields(template) do
+    template
+    |> activity_template_declared_fields()
+    |> Enum.concat(["id", "type"])
+    |> Enum.concat(Map.keys(Map.get(template, "lifecycle_defaults", %{})))
+    |> Enum.concat(@activity_template_activity_metadata_fields)
+    |> MapSet.new()
+  end
+
+  defp activity_template_declared_fields(template) do
+    (Map.get(template, "required_fields", []) ++ Map.get(template, "optional_fields", []))
+    |> Enum.filter(&is_binary/1)
+  end
+
+  defp build_activity_from_template(template, overrides) do
+    metadata = activity_template_metadata(template, Map.get(overrides, "metadata", %{}))
+    fields = Map.drop(overrides, ["metadata"])
+
+    activity =
+      template
+      |> Map.get("lifecycle_defaults", %{})
+      |> Map.merge(Map.get(template, "default_fields", %{}))
+      |> Map.merge(fields)
+      |> Map.put("metadata", metadata)
+
+    with :ok <- validate_activity_template_required_fields(template, activity),
+         :ok <- validate_activity_template_activity_type(template, activity) do
+      activity
+      |> Timeline.normalize_activity()
+      |> activity_template_normalized_result(template)
+    end
+  end
+
+  defp activity_template_metadata(_template, metadata) when not is_map(metadata), do: metadata
+
+  defp activity_template_metadata(template, metadata) do
+    metadata
+    |> stringify_activity_template_keys()
+    |> Map.put("activity_template", activity_template_provenance(template))
+  end
+
+  defp activity_template_provenance(template) do
+    %{
+      "schema_contract" => Map.get(template, "schema_contract"),
+      "id" => Map.get(template, "id"),
+      "activity_type" => Map.get(template, "activity_type"),
+      "template_version" => Map.get(template, "template_version"),
+      "validation_level" => Map.get(template, "validation_level"),
+      "known_limits" => Map.get(template, "known_limits", []),
+      "assumptions" => Map.get(template, "assumptions", %{})
+    }
+  end
+
+  defp validate_activity_template_required_fields(template, activity) do
+    missing_fields =
+      template
+      |> Map.get("required_fields", [])
+      |> Enum.concat(["id", "type"])
+      |> Enum.uniq()
+      |> Enum.reject(&activity_template_present_field?(activity, &1))
+      |> Enum.sort()
+
+    if missing_fields == [] do
+      :ok
+    else
+      {:error,
+       %{
+         reason: "missing_required_activity_template_fields",
+         fields: missing_fields
+       }}
+    end
+  end
+
+  defp activity_template_present_field?(activity, field) do
+    case Map.get(activity, field) do
+      nil -> false
+      "" -> false
+      _value -> true
+    end
+  end
+
+  defp validate_activity_template_activity_type(template, activity) do
+    activity_type = activity["type"]
+    template_type = template["activity_type"]
+
+    cond do
+      is_nil(activity_type) ->
+        {:error,
+         %{
+           reason: "missing_required_activity_template_fields",
+           fields: ["type"]
+         }}
+
+      to_string(activity_type) == template_type ->
+        :ok
+
+      true ->
+        {:error,
+         %{
+           reason: "activity_template_type_mismatch",
+           activity_type: activity_type,
+           template_activity_type: template_type
+         }}
+    end
+  end
+
+  defp activity_template_normalized_result(
+         %{"invalid_activity_input" => true} = activity,
+         _template
+       ) do
+    {:error,
+     %{
+       reason: "invalid_activity_from_template",
+       invalid_activity_input_reason: activity["invalid_activity_input_reason"],
+       activity: activity
+     }}
+  end
+
+  defp activity_template_normalized_result(activity, template) do
+    provenance = activity_template_provenance(template)
+
+    activity =
+      activity
+      |> Map.put("activity_template", provenance)
+      |> Map.update("activity_context", %{"activity_template" => provenance}, fn context ->
+        Map.put(context, "activity_template", provenance)
+      end)
+
+    {:ok, activity}
+  end
+
+  defp stringify_activity_template_keys(%{} = map) do
+    Map.new(map, fn {key, value} ->
+      {stringify_activity_template_key(key), stringify_activity_template_keys(value)}
+    end)
+  end
+
+  defp stringify_activity_template_keys(values) when is_list(values),
+    do: Enum.map(values, &stringify_activity_template_keys/1)
+
+  defp stringify_activity_template_keys(value), do: value
+
+  defp stringify_activity_template_key(key) when is_atom(key), do: Atom.to_string(key)
+  defp stringify_activity_template_key(key) when is_binary(key), do: key
+  defp stringify_activity_template_key(key), do: to_string(key)
 
   defp json_safe_capability_value(%{} = map) do
     Map.new(map, fn {key, value} ->

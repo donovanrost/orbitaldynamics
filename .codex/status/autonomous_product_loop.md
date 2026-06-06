@@ -1,47 +1,56 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Expose a small public `activity_template.v1` catalog helper.
+Instantiate `activity_template.v1` artifacts into transition-ready timeline
+activity rows.
 
 Status:
-Completed and pushed.
+Implemented, verified, and read-only reviewed.
 
 What changed:
-- Added `OrbitalDynamics.activity_templates/0`, returning deterministic
-  JSON-facing `activity_template.v1` artifacts for baseline supported activity
-  types: observe, downlink, command, health check, slew, and impulsive burn
-  as the maneuver template.
-- Added `OrbitalDynamics.activity_template/1` lookup by template id or
-  activity type, returning `{:ok, template}` or `:error`.
-- Kept the helper artifact-only: no schedule mutation, no planner execution
-  changes, no transition engine changes, and no generated capability-catalog
-  refresh.
-- Preserved the checked-in `study_results/activity_template_v1.json` observe
-  fixture by decoded map equality against the first helper-produced template.
-- Added focused public facade tests for deterministic IDs, supported activity
-  types, default-field declarations, executable schema validation, fixture
-  equality, and unknown/non-binary lookup paths.
+- Added `OrbitalDynamics.activity_from_template/2`.
+- The helper resolves a template by catalog id, activity type, or direct
+  `activity_template.v1` map.
+- It validates direct template maps with `Schema.validate_artifact/1`, merges
+  template `lifecycle_defaults`, template `default_fields`, and caller
+  overrides, enforces declared required fields plus intrinsic `id`/`type`, and
+  rejects undeclared top-level override fields except `metadata`.
+- It normalizes the result through `Timeline.normalize_activity/1` and returns
+  `{:ok, normalized_activity}` or a structured `{:error, reason}` map.
+- It preserves template provenance on the normalized activity and nested
+  `activity_context`.
+- Added a focused public facade test that instantiates observe and downlink
+  templates, verifies direct template-map input, covers unknown/missing/
+  undeclared/type-mismatch/invalid-template errors, feeds a helper-produced
+  replacement into `timeline_transition_application/2`, and validates a
+  `timeline_transition_application_report.v1` no-mutation handoff.
 
 Verification:
-- `mix test test/orbital_dynamics/capabilities_test.exs` -> 5 passed.
-- `mix test test/orbital_dynamics/schema_test.exs:58` -> 1 passed.
-- `mix orbital_dynamics.schema.lint --input study_results/activity_template_v1.json` -> pass.
+- `mix test test/orbital_dynamics/capabilities_test.exs` -> 6 passed.
+- `mix test test/orbital_dynamics/timeline_test.exs:7359` -> 1 passed.
+- Reviewer also ran
+  `mix test test/orbital_dynamics/capabilities_test.exs test/orbital_dynamics/timeline_test.exs:7359`
+  -> 7 passed, 124 excluded.
+- Reviewer ran `mix orbital_dynamics.schema.lint --input study_results/activity_template_v1.json`
+  -> pass.
 - `git diff --check` -> pass.
 
 Read-only review:
-- Sidecar `019e9c63-ed9b-7bb3-9856-61f816723f81` reported no findings.
-- Reviewer also reran the focused facade test, single-artifact lint, and scoped
-  whitespace check.
+Sidecar `019e9c7e-e3c9-77b0-9f9d-abe44dcf49af` reported no findings.
 
 Implementation commit:
+Pending.
+
+Last completed implementation commit:
 `c58367c010f84e9c6e933bbbb0faeedc37904c50` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending this ledger-only correction.
+`c225b36595e00e919ff31ee4e47761ac559d4058` pushed to `origin/main`.
 
 Next candidate:
-Validate one transition path that consumes a template without mutating
-schedules.
+Add a schema-backed or checked-in transition application example if the helper
+surface warrants a durable fixture; otherwise continue deeper into typed
+activity state/dependency validation.
 
 Blocked:
 No.

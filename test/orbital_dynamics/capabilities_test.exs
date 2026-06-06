@@ -185,6 +185,128 @@ defmodule OrbitalDynamics.CapabilitiesTest do
     assert observe_fixture == observe_template
   end
 
+  test "public activity template instantiation returns transition-ready timeline rows" do
+    assert {:ok, observe} = OrbitalDynamics.activity_template("observe")
+
+    fields = %{
+      id: :obs_template_transition,
+      target_id: :target_alpha,
+      starts_at_s: 10.0,
+      ends_at_s: 20.0,
+      metadata: %{timeline_id: :"timeline:obs_template_transition"}
+    }
+
+    assert {:ok,
+            %{
+              "activity_id" => "obs_template_transition",
+              "activity_type" => "observe",
+              "status" => "planned",
+              "approval_status" => "not_evaluated",
+              "locked" => false,
+              "allow_overlap" => false,
+              "timeline_id" => "timeline:obs_template_transition",
+              "target_id" => "target_alpha",
+              "activity_template" => %{
+                "schema_contract" => "activity_template.v1",
+                "id" => "template:observe:basic",
+                "activity_type" => "observe",
+                "template_version" => 1,
+                "validation_level" => "artifact_contract"
+              },
+              "activity_context" => %{
+                "activity_template" => %{
+                  "id" => "template:observe:basic",
+                  "activity_type" => "observe"
+                }
+              }
+            } = replacement} = OrbitalDynamics.activity_from_template("observe", fields)
+
+    assert OrbitalDynamics.activity_from_template(observe, fields) == {:ok, replacement}
+
+    source = %{
+      id: :obs_template_transition,
+      type: :observe,
+      target_id: :target_alpha,
+      starts_at_s: 8.0,
+      ends_at_s: 18.0,
+      metadata: %{timeline_id: :"timeline:obs_template_transition"}
+    }
+
+    assert %{
+             "transition_decision" => "review",
+             "application_status" => "operator_review_required",
+             "requires_operator_review" => true,
+             "required_operator_action" => "review_timeline_change",
+             "changed_fields" => ["allow_overlap", "starts_at_s", "ends_at_s"]
+           } = OrbitalDynamics.timeline_transition_application(source, replacement)
+
+    assert %{
+             "schema_contract" => "timeline_transition_application_report.v1",
+             "transition_decision_counts" => %{"review" => 1},
+             "selected_activity_count" => 0,
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_schedule_mutation"
+             }
+           } =
+             report =
+             OrbitalDynamics.timeline_transition_application_report([source], [replacement])
+
+    assert {:ok, %{"schema_contract" => "timeline_transition_application_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert {:ok,
+            %{
+              "activity_type" => "downlink",
+              "allow_overlap" => false,
+              "activity_template" => %{"id" => "template:downlink:basic"}
+            }} =
+             OrbitalDynamics.activity_from_template("template:downlink:basic", %{
+               id: :downlink_from_template,
+               ground_station_id: :gs_1,
+               starts_at_s: 30.0,
+               ends_at_s: 40.0
+             })
+
+    assert {:error, %{reason: "unknown_activity_template"}} =
+             OrbitalDynamics.activity_from_template("payload_warmup", fields)
+
+    assert {:error,
+            %{
+              reason: "missing_required_activity_template_fields",
+              fields: ["target_id"]
+            }} =
+             OrbitalDynamics.activity_from_template("observe", Map.delete(fields, :target_id))
+
+    assert {:error,
+            %{
+              reason: "undeclared_activity_template_fields",
+              fields: ["operator_note"]
+            }} =
+             OrbitalDynamics.activity_from_template(
+               "observe",
+               Map.put(fields, :operator_note, "go")
+             )
+
+    assert {:error,
+            %{
+              reason: "activity_template_type_mismatch",
+              activity_type: "downlink",
+              template_activity_type: "observe"
+            }} =
+             OrbitalDynamics.activity_from_template("observe", Map.put(fields, :type, "downlink"))
+
+    invalid_template = Map.put(observe, "activity_type", "payload_warmup")
+
+    assert {:error,
+            %{
+              reason: "invalid_activity_template",
+              validation_report: %{
+                "schema_contract" => "activity_template.v1",
+                "status" => "fail"
+              }
+            }} = OrbitalDynamics.activity_from_template(invalid_template, fields)
+  end
+
   test "public capability facades resolve to exported top-level functions" do
     missing_facades =
       OrbitalDynamics.capability_catalog()
