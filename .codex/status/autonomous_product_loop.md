@@ -48,7 +48,7 @@ Last completed implementation commit:
 `e3592be8ca29c033be05c299740dc55c2b7c2338` pushed to `origin/main`.
 
 Last ledger correction commit:
-`ab57244704979e88d407e7f91cdd459f3e1c294b` pushed to `origin/main`.
+`d979c68e567c1f7fa5541a7eeeacda9a571bfb09` pushed to `origin/main`.
 
 Next candidate:
 Continue the resource/communications allocation queue after this replay contract
