@@ -5,8 +5,8 @@ Expose CandidateRefresh timeline-activity-precondition-summary source-report
 schema property.
 
 Status:
-Implemented, locally verified, and reviewed clean; mechanical commit/push
-pending. Runtime CandidateRefresh source-report provenance already emits
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
+CandidateRefresh source-report provenance already emits
 `timeline_activity_precondition_summary` summaries, and replay helpers already
 consume their precondition status/count maps, dependency/exclusivity counts,
 invalid-input reasons, source-summary counts, and trust-boundary fields. This
@@ -53,12 +53,13 @@ Tests run:
 - `slice_reviewer`: no must-fix findings; reran focused schema test, export
   test, focused CandidateRefresh runtime test, schema lint, and whitespace
   check.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`26a416c44a48f5858f16dc58edcea09488df2628` pushed to `origin/main`.
+`6acccc92ace84b66628d1ba6fe96049e7fe6f98c` pushed to `origin/main`.
 
 Last ledger correction commit:
-`95d6700` pushed to `origin/main`.
+Pending for this ledger update. Previous ledger correction commit was `95d6700`.
 
 Next candidate:
 After this slice, continue the CandidateRefresh source-report schema visibility
