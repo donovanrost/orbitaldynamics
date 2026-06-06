@@ -4,8 +4,8 @@ Current slice:
 Expose CandidateRefresh timeline-integrity source-report schema property.
 
 Status:
-Implemented, locally verified, and reviewed clean; mechanical commit/push
-pending. Runtime CandidateRefresh source-report provenance already emits
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
+CandidateRefresh source-report provenance already emits
 `timeline_integrity_report` summaries, and replay helpers already consume their
 integrity, dependency, exclusivity, review, ID count-map, and trust-boundary
 fields. This slice makes that emitted family schema-visible under
@@ -52,12 +52,13 @@ Tests run:
 - `slice_reviewer`: no must-fix findings; reran focused schema test, export
   test, focused CandidateRefresh runtime test, schema lint, whitespace check,
   and generated-schema `jq` spot-checks.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`a1379ba5edf955e4940088481bec4f745b3c341d` pushed to `origin/main`.
+`5a5c16edcad4e3aaa6e31ebcd5ea2c14a3cab669` pushed to `origin/main`.
 
 Last ledger correction commit:
-`b322a4c` pushed to `origin/main`.
+Pending for this ledger update. Previous ledger correction commit was `b322a4c`.
 
 Next candidate:
 After this slice, run a bounded mapper pass to identify the next schema-visible
