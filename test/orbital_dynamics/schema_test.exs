@@ -8509,6 +8509,25 @@ defmodule OrbitalDynamics.SchemaTest do
              "reason"
            ]
 
+    review_row_properties =
+      get_in(schema, ["properties", "review_rows", "items", "properties"])
+
+    assert get_in(review_row_properties, ["operator_action_reason", "type"]) == "string"
+
+    for field <- [
+          "source_ground_station_id",
+          "replacement_ground_station_id",
+          "source_source_window_id",
+          "replacement_source_window_id",
+          "source_spacecraft_id",
+          "replacement_spacecraft_id",
+          "source_target_id",
+          "replacement_target_id"
+        ] do
+      assert get_in(review_row_properties, [field, "pattern"]) ==
+               Schema.identity_policy()["stable_id_pattern"]
+    end
+
     protected_source = %{
       id: :cmd_lock,
       type: :command,
@@ -8548,6 +8567,17 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert {:ok, %{"schema_contract" => "timeline_diff_summary.v1"}} =
              Schema.validate_artifact(summary)
+
+    invalid_review_row_evidence_id =
+      put_in(summary, ["review_rows", Access.at(0), "source_spacecraft_id"], "bad id")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_review_row_evidence_id)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.review_rows[0].source_spacecraft_id" and
+                 &1["message"] =~ "stable ID")
+           )
 
     invalid_source_contract = Map.put(summary, "source_artifact_type", "timeline_diff_report.v2")
 
@@ -24169,6 +24199,13 @@ defmodule OrbitalDynamics.SchemaTest do
       "timeline_diff_report.v1",
       "study_results/timeline_diff_report_v1.json",
       ["properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "timeline_diff_summary.v1",
+      "study_results/timeline_diff_summary_v1.json",
+      ["properties", "review_rows", "items", "properties"],
+      fn artifact -> Map.get(artifact, "review_rows", []) end
     )
 
     assert_fixture_row_fields_are_schema_visible(

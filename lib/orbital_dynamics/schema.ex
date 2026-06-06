@@ -24141,6 +24141,14 @@ defmodule OrbitalDynamics.Schema do
         "source_activity_type" => %{"type" => "string"},
         "replacement_activity_type" => %{"type" => "string"},
         "scenario_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "source_spacecraft_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "replacement_spacecraft_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "source_ground_station_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "replacement_ground_station_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "source_target_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "replacement_target_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "source_source_window_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "replacement_source_window_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
         "source_starts_at_s" => %{"type" => "number"},
         "source_ends_at_s" => %{"type" => "number"},
         "replacement_starts_at_s" => %{"type" => "number"},
@@ -24172,6 +24180,7 @@ defmodule OrbitalDynamics.Schema do
           "enum" =>
             OrbitalDynamics.Timeline.capabilities().timeline_diff_required_operator_actions
         },
+        "operator_action_reason" => %{"type" => "string"},
         "reason" => %{"type" => "string"},
         "source_timeline_identity" => timeline_identity_json_schema(),
         "replacement_timeline_identity" => timeline_identity_json_schema(),
@@ -38771,7 +38780,15 @@ defmodule OrbitalDynamics.Schema do
       "timeline_id",
       "source_activity_id",
       "replacement_activity_id",
-      "scenario_id"
+      "scenario_id",
+      "source_spacecraft_id",
+      "replacement_spacecraft_id",
+      "source_ground_station_id",
+      "replacement_ground_station_id",
+      "source_target_id",
+      "replacement_target_id",
+      "source_source_window_id",
+      "replacement_source_window_id"
     ])
     |> expect_type(path, row, "diff_status", :binary)
     |> expect_one_of(
@@ -38797,6 +38814,7 @@ defmodule OrbitalDynamics.Schema do
       "required_operator_action",
       OrbitalDynamics.Timeline.capabilities().timeline_diff_required_operator_actions
     )
+    |> expect_optional_type(path, row, "operator_action_reason", :binary)
     |> expect_type(path, row, "reason", :binary)
     |> expect_optional_number(path, row, "source_starts_at_s")
     |> expect_optional_number(path, row, "source_ends_at_s")
