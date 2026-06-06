@@ -13678,6 +13678,11 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "downlink" => ["downlink_margin_block"]
              },
              "source_report_resource_filter_direction_routing" => ^expected_direction_routing,
+             "source_report_resource_filter_branch_local_resource_filter_pressure" => true,
+             "source_report_resource_filter_branch_local_candidate_suppression_pressure" => true,
+             "source_report_resource_filter_branch_local_invalid_resource_summary_pressure" =>
+               true,
+             "source_report_resource_filter_branch_local_resource_blocking_pressure" => true,
              "source_reports" => %{
                "resource_filter_report" => %{
                  "suppressed_candidate_count" => 3,
@@ -14660,6 +14665,11 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_resource_filter_candidate_ids_by_blocking_dimension" => %{
                "payload" => ["obs_payload_block"]
              },
+             "source_report_resource_filter_branch_local_resource_filter_pressure" => true,
+             "source_report_resource_filter_branch_local_candidate_suppression_pressure" => true,
+             "source_report_resource_filter_branch_local_invalid_resource_summary_pressure" =>
+               true,
+             "source_report_resource_filter_branch_local_resource_blocking_pressure" => true,
              "source_reports" => %{
                "resource_filter_report" => %{
                  "paths" => [

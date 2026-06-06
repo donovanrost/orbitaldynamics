@@ -6887,6 +6887,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_contact_intent_replay_summary_fields(source_reports))
     |> Map.merge(source_report_link_capacity_replay_summary_fields(source_reports))
     |> Map.merge(source_report_contact_filter_replay_summary_fields(source_reports))
+    |> Map.merge(source_report_resource_filter_replay_summary_fields(source_reports))
     |> Map.merge(source_report_station_reservation_replay_summary_fields(source_reports))
     |> Map.merge(
       source_report_timeline_publication_context_fields(
@@ -9178,6 +9179,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    resource_filter_replay_summary_from_summary(filter_summary, summary_source, replay_scope)
+  end
+
+  defp resource_filter_replay_summary_from_summary(
+         filter_summary,
+         summary_source,
+         replay_scope
+       ) do
     suppressed_candidate_count =
       summary_integer(filter_summary, "suppressed_candidate_count")
 
@@ -9628,6 +9637,27 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "branch_local_invalid_contact_input_pressure"),
       "source_report_contact_filter_branch_local_station_suppression_pressure" =>
         Map.get(summary, "branch_local_station_suppression_pressure")
+    }
+  end
+
+  defp source_report_resource_filter_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("resource_filter_report", %{})
+      |> resource_filter_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.resource_filter_report",
+        "resource_filter_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_resource_filter_branch_local_resource_filter_pressure" =>
+        Map.get(summary, "branch_local_resource_filter_pressure"),
+      "source_report_resource_filter_branch_local_candidate_suppression_pressure" =>
+        Map.get(summary, "branch_local_candidate_suppression_pressure"),
+      "source_report_resource_filter_branch_local_invalid_resource_summary_pressure" =>
+        Map.get(summary, "branch_local_invalid_resource_summary_pressure"),
+      "source_report_resource_filter_branch_local_resource_blocking_pressure" =>
+        Map.get(summary, "branch_local_resource_blocking_pressure")
     }
   end
 
