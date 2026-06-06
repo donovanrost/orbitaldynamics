@@ -221,6 +221,10 @@ Status: **implemented**.
     status-aware ignored-effect model for terminal or approval-rejected
     activities **without introducing a new propagated state model**;
   - schema-validated `model_limits` copied from `ResourceProjection.capabilities/0`.
+- V1 `campaign_plan.v1` artifacts attach that compact flow summary whenever
+  selected-activity resource projection is available, letting campaign-level
+  review/import queues route storage, downlink, ignored-activity, and pressure
+  evidence without reopening full projection rows or mutating schedules.
 - Capability metadata advertises the report and flow-summary public facades plus operator-review/Cadence-import handoff artifact contracts and `resource_projection_review` / `review_resource_projection` action names, plus:
   - resource availability alias/status-token metadata;
   - degraded-alias metadata;

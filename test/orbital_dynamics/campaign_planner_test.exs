@@ -180,7 +180,43 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact["resource_projection_report"])
 
     assert %{
-             "resource_projection_review_count" => 1
+             "schema_contract" => "resource_projection_flow_summary.v1",
+             "model" => "artifact_only_selected_activity_resource_flow_summary",
+             "source" => "campaign.resource_summaries",
+             "activity_count" => 1,
+             "valid_activity_count" => 1,
+             "projected_resource_count" => 1,
+             "flow_row_count" => 1,
+             "resource_flow_status" => "clear",
+             "resource_pressure_status" => "clear",
+             "resource_pressure_count" => 0,
+             "projected_resources" => [
+               %{
+                 "spacecraft_id" => "sunlit",
+                 "activity_count" => 1,
+                 "projected_storage_remaining_mb" => 90.0,
+                 "projected_downlink_remaining_mb" => 50.0
+               }
+             ],
+             "activity_resource_flow" => [
+               %{
+                 "activity_id" => ^selected_id,
+                 "activity_type" => "observe",
+                 "storage_used_after_mb" => 10.0,
+                 "downlink_used_after_mb" => +0.0
+               }
+             ],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_schedule_mutation",
+               "subsystem_simulation" => "not_performed"
+             }
+           } = artifact["resource_projection_flow_summary"]
+
+    assert {:ok, %{"schema_contract" => "resource_projection_flow_summary.v1"}} =
+             Schema.validate_artifact(artifact["resource_projection_flow_summary"])
+
+    assert %{
+             "resource_projection_review_count" => 2
            } = artifact["operator_review_package"]
 
     assert %{
@@ -201,6 +237,24 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              )
 
     assert %{
+             "review_type" => "resource_projection_review",
+             "source" => "campaign_plan.resource_projection_flow_summary.projected_resources",
+             "spacecraft_id" => "sunlit",
+             "resource_flow_count" => 1,
+             "source_resource_projection_flow_summary" => %{
+               "schema_contract" => "resource_projection_flow_summary.v1",
+               "source" => "campaign.resource_summaries",
+               "resource_flow_status" => "clear"
+             },
+             "source_resource_projection" => %{"spacecraft_id" => "sunlit"}
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_plan.resource_projection_flow_summary.projected_resources")
+             )
+
+    assert %{
              "import_action" => "review_resource_projection",
              "source_review_type" => "resource_projection_review",
              "spacecraft_id" => "sunlit",
@@ -216,6 +270,23 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              )
 
     assert %{
+             "import_action" => "review_resource_projection",
+             "source_review_type" => "resource_projection_review",
+             "spacecraft_id" => "sunlit",
+             "resource_flow_count" => 1,
+             "source_resource_projection_flow_summary" => %{
+               "schema_contract" => "resource_projection_flow_summary.v1",
+               "source" => "campaign.resource_summaries",
+               "resource_flow_status" => "clear"
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_plan.resource_projection_flow_summary.projected_resources")
+             )
+
+    assert %{
              "schema_contract" => "operational_readiness_report.v1",
              "source_artifact_type" => "campaign_plan.v1",
              "source_artifact_id" => source_artifact_id,
@@ -226,8 +297,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            } = artifact["operational_readiness_report"]
 
     assert source_artifact_id == artifact["plan_id"]
-    assert readiness_evidence["review_type_counts"]["resource_projection_review"] == 1
-    assert readiness_evidence["import_action_counts"]["review_resource_projection"] == 1
+    assert readiness_evidence["review_type_counts"]["resource_projection_review"] == 2
+    assert readiness_evidence["import_action_counts"]["review_resource_projection"] == 2
 
     assert {:ok, %{"schema_contract" => "operational_readiness_report.v1"}} =
              Schema.validate_artifact(artifact["operational_readiness_report"])

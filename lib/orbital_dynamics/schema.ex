@@ -7740,6 +7740,7 @@ defmodule OrbitalDynamics.Schema do
         "contact_contention_resolution_report",
         "resource_filter_report",
         "resource_projection_report",
+        "resource_projection_flow_summary",
         "objective_satisfaction_report",
         "operational_timeline_report",
         "operator_review_package",
@@ -7755,6 +7756,7 @@ defmodule OrbitalDynamics.Schema do
         "contact_contention_resolution_report.v1",
         "resource_filter_report.v1",
         "resource_projection_report.v1",
+        "resource_projection_flow_summary.v1",
         "objective_satisfaction_report.v1",
         "operational_timeline_report.v1",
         "operator_review_package.v1",
@@ -30682,6 +30684,10 @@ defmodule OrbitalDynamics.Schema do
       "$.resource_projection_report",
       Map.get(artifact, "resource_projection_report")
     )
+    |> validate_optional_resource_projection_flow_summary(
+      "$.resource_projection_flow_summary",
+      Map.get(artifact, "resource_projection_flow_summary")
+    )
     |> validate_optional_resource_filter_report(
       "$.resource_filter_report",
       Map.get(artifact, "resource_filter_report")
@@ -37017,6 +37023,15 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp validate_optional_resource_projection_report(issues, path, _report),
+    do: [error(path, "must be an object") | issues]
+
+  defp validate_optional_resource_projection_flow_summary(issues, _path, nil), do: issues
+
+  defp validate_optional_resource_projection_flow_summary(issues, path, %{} = summary) do
+    validate_resource_projection_flow_summary(issues, path, summary)
+  end
+
+  defp validate_optional_resource_projection_flow_summary(issues, path, _summary),
     do: [error(path, "must be an object") | issues]
 
   defp validate_optional_operational_readiness_report(issues, _path, nil), do: issues

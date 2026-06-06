@@ -1327,6 +1327,10 @@ defmodule OrbitalDynamics.OperatorReview do
           projected_resource_rows(Map.get(artifact, "resource_projection_report")),
           "campaign_plan.resource_projection_report.projected_resources"
         ) ++
+        resource_projection_flow_summary_rows(
+          Map.get(artifact, "resource_projection_flow_summary") || %{},
+          "campaign_plan.resource_projection_flow_summary.projected_resources"
+        ) ++
         objective_satisfaction_rows(
           get_in(artifact, ["objective_satisfaction_report", "rows"]) || [],
           "campaign_plan.objective_satisfaction_report.rows"

@@ -417,6 +417,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     resource_projection_report =
       campaign_resource_projection_report(selected_activities, campaign)
 
+    resource_projection_flow_summary =
+      resource_projection_flow_summary(resource_projection_report)
+
     optimizer_contract =
       Optimizer.greedy_timeline_contract(candidates, timelines,
         plan_id: plan_id,
@@ -443,6 +446,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "contact_allocation_report" => contact_allocation_report,
       "link_capacity_report" => link_capacity_report,
       "resource_projection_report" => resource_projection_report,
+      "resource_projection_flow_summary" => resource_projection_flow_summary,
       "target_commitments" => target_commitments(campaign, candidates, selected_activities),
       "objective_satisfaction_report" =>
         objective_satisfaction_report(campaign, candidates, selected_activities),
@@ -44985,6 +44989,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "campaign.resource_summaries",
       Map.get(campaign, "approval_policy") || Map.get(campaign, :approval_policy)
     )
+  end
+
+  defp resource_projection_flow_summary(nil), do: nil
+
+  defp resource_projection_flow_summary(%{} = report) do
+    ResourceProjection.flow_summary(report)
   end
 
   defp repair_resource_projection_report(activities, summaries, approval_policy) do
