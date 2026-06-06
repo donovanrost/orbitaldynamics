@@ -5784,6 +5784,7 @@ defmodule OrbitalDynamics.Schema do
         "assumptions"
       ],
       "optional_fields" => [
+        "source",
         "model_limits",
         "valid_resource_summary_count",
         "invalid_resource_summary_input_count",
@@ -14880,6 +14881,10 @@ defmodule OrbitalDynamics.Schema do
 
   defp json_schema_property("model", @resource_projection_report, _contract) do
     %{"type" => "string", "enum" => resource_projection_report_models()}
+  end
+
+  defp json_schema_property("source", @resource_projection_report, _contract) do
+    %{"type" => "string"}
   end
 
   defp json_schema_property("model_limits", @resource_projection_report, _contract) do
@@ -35944,6 +35949,7 @@ defmodule OrbitalDynamics.Schema do
     ])
     |> expect_equal(path, report, "schema_contract", "resource_projection_report.v1")
     |> expect_one_of(path, report, "model", resource_projection_report_models())
+    |> expect_optional_type(path, report, "source", :binary)
     |> expect_non_negative_integer(path, report, "input_resource_summary_count")
     |> expect_non_negative_integer(path, report, "activity_count")
     |> expect_optional_non_negative_integer(path, report, "valid_resource_summary_count")

@@ -1755,6 +1755,23 @@ defmodule OrbitalDynamics.SchemaTest do
              &(&1["path"] == "$.resource_trust_boundary_status_counts")
            )
 
+    battery_handoff_resource_projection_report =
+      read_json!("study_results/resource_projection_battery_handoff_v1.json")
+
+    assert {:ok, %{"schema_contract" => "resource_projection_report.v1"}} =
+             Schema.validate_artifact(battery_handoff_resource_projection_report)
+
+    invalid_resource_projection_source =
+      Map.put(battery_handoff_resource_projection_report, "source", %{"fixture" => true})
+
+    assert {:error, resource_projection_source_report} =
+             Schema.validate_artifact(invalid_resource_projection_source)
+
+    assert Enum.any?(
+             resource_projection_source_report["errors"],
+             &(&1["path"] == "$.source" and &1["message"] =~ "must be a binary")
+           )
+
     assert {:ok, %{"schema_contract" => "resource_filter_report.v1"}} =
              Schema.validate_artifact(resource_filter_report)
 
@@ -19392,6 +19409,8 @@ defmodule OrbitalDynamics.SchemaTest do
              "thin_strategy_branch_activity_resource_projection"
            ]
 
+    assert get_in(schema, ["properties", "source", "type"]) == "string"
+
     assert get_in(schema, ["properties", "input_resource_summary_count"]) == %{
              "type" => "integer",
              "minimum" => 0
@@ -24101,6 +24120,12 @@ defmodule OrbitalDynamics.SchemaTest do
     assert_fixture_fields_are_schema_visible(
       "resource_projection_report.v1",
       "study_results/resource_projection_report_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "resource_projection_report.v1",
+      "study_results/resource_projection_battery_handoff_v1.json",
       ["properties"]
     )
 
