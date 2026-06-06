@@ -8,7 +8,7 @@ Current slice:
 Refresh checked-in study manifest schema export.
 
 Status:
-Implemented and verified; committed locally and push pending.
+Implemented, verified, committed, and pushed.
 
 Completed slices:
 - Prompt/guide continuation semantics committed as
@@ -23,8 +23,8 @@ Completed slices:
   `fb99be2334f330f31bb30cb03531371df88dc74e` and pushed to `origin/main`.
 - Numeric-string contact contention score normalization committed as
   `0e5ec49473b878321cd513b08597abaf7cefb819` and pushed to `origin/main`.
-- Study manifest schema export refresh is in the current handoff commit; push
-  pending.
+- Study manifest schema export refresh committed as
+  `5b52eb5106f3a0520533df79a589bc0fa689c591` and pushed to `origin/main`.
 
 Files changed:
 - `schemas/study_manifest.v1.schema.json`
@@ -50,7 +50,8 @@ Remaining maturity gaps:
   Level 6 maturity.
 
 Last commit:
-- Current handoff commit for study manifest schema export refresh; push pending.
+- `5b52eb5106f3a0520533df79a589bc0fa689c591` pushed to `origin/main`
+  for study manifest schema export refresh.
 
 Next candidate:
 Select the next live maturity gap from the guide/roadmap and current test
