@@ -11597,6 +11597,46 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert {:ok, candidate_refresh_schema} = Schema.json_schema("candidate_refresh.v1")
 
+    candidate_refresh_properties = candidate_refresh_schema["properties"]
+
+    assert get_in(candidate_refresh_properties, ["model_limits", "items", "enum"]) ==
+             OrbitalDynamics.CandidateRefresh.model_limits()
+
+    assert get_in(candidate_refresh_properties, [
+             "candidate_diff_report",
+             "properties",
+             "schema_contract",
+             "const"
+           ]) == "candidate_diff_report.v1"
+
+    assert get_in(candidate_refresh_properties, [
+             "contact_allocation_report",
+             "properties",
+             "schema_contract",
+             "const"
+           ]) == "contact_allocation_report.v1"
+
+    assert get_in(candidate_refresh_properties, [
+             "contact_filter_report",
+             "properties",
+             "schema_contract",
+             "const"
+           ]) == "contact_filter_report.v1"
+
+    assert get_in(candidate_refresh_properties, [
+             "freshness_report",
+             "properties",
+             "schema_contract",
+             "const"
+           ]) == "freshness_report.v1"
+
+    assert get_in(candidate_refresh_properties, [
+             "resource_filter_report",
+             "properties",
+             "schema_contract",
+             "const"
+           ]) == "resource_filter_report.v1"
+
     operational_readiness_source_report_properties =
       get_in(candidate_refresh_schema, [
         "properties",
@@ -11832,6 +11872,27 @@ defmodule OrbitalDynamics.SchemaTest do
              invalid_trust_boundary_report["errors"],
              &(&1["path"] ==
                  "$.provenance.source_reports.quality_gate_report.trust_boundaries[0]")
+           )
+
+    invalid_model_limits = Map.put(artifact, "model_limits", ["stale_candidate_refresh_limit"])
+
+    assert {:error, invalid_model_limits_report} =
+             Schema.validate_artifact(invalid_model_limits)
+
+    assert Enum.any?(
+             invalid_model_limits_report["errors"],
+             &(&1["path"] == "$.model_limits")
+           )
+
+    invalid_top_level_contact_allocation =
+      put_in(artifact, ["contact_allocation_report", "allocated_contact_count"], -1)
+
+    assert {:error, invalid_top_level_contact_allocation_report} =
+             Schema.validate_artifact(invalid_top_level_contact_allocation)
+
+    assert Enum.any?(
+             invalid_top_level_contact_allocation_report["errors"],
+             &(&1["path"] == "$.contact_allocation_report.allocated_contact_count")
            )
 
     artifact_with_station_pressure_summary =
@@ -24340,6 +24401,12 @@ defmodule OrbitalDynamics.SchemaTest do
     assert_fixture_fields_are_schema_visible(
       "candidate_activity.v1",
       "study_results/candidate_activity_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "candidate_refresh.v1",
+      "study_results/candidate_refresh_resource_provenance_v1.json",
       ["properties"]
     )
 

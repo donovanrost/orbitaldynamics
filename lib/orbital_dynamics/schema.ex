@@ -7437,10 +7437,19 @@ defmodule OrbitalDynamics.Schema do
         "candidate_diff_report.v1",
         "candidate_rejection_report.v1",
         "freshness_report.v1",
+        "contact_allocation_report.v1",
+        "contact_filter_report.v1",
+        "resource_filter_report.v1",
         "refresh_budget_report.v1"
       ],
       "optional_fields" =>
         [
+          "model_limits",
+          "candidate_diff_report",
+          "contact_allocation_report",
+          "contact_filter_report",
+          "freshness_report",
+          "resource_filter_report",
           "candidate_rejection_report",
           "source_candidate_rejection_report",
           "refresh_budget_report",
@@ -9407,6 +9416,32 @@ defmodule OrbitalDynamics.Schema do
       "items" => validation_record_json_schema()
     }
   end
+
+  defp json_schema_property("model_limits", @candidate_refresh, _contract) do
+    %{
+      "type" => "array",
+      "const" => OrbitalDynamics.CandidateRefresh.model_limits(),
+      "items" => %{
+        "type" => "string",
+        "enum" => OrbitalDynamics.CandidateRefresh.model_limits()
+      }
+    }
+  end
+
+  defp json_schema_property("candidate_diff_report", @candidate_refresh, _contract),
+    do: embedded_contract_json_schema(@candidate_diff_report)
+
+  defp json_schema_property("contact_allocation_report", @candidate_refresh, _contract),
+    do: embedded_contract_json_schema(@contact_allocation_report)
+
+  defp json_schema_property("contact_filter_report", @candidate_refresh, _contract),
+    do: embedded_contract_json_schema(@contact_filter_report)
+
+  defp json_schema_property("freshness_report", @candidate_refresh, _contract),
+    do: embedded_contract_json_schema(@freshness_report)
+
+  defp json_schema_property("resource_filter_report", @candidate_refresh, _contract),
+    do: embedded_contract_json_schema(@resource_filter_report)
 
   defp json_schema_property("schema_contract", @candidate_diff_row, _contract) do
     %{"type" => "string", "const" => "candidate_diff_row.v1"}
@@ -17065,6 +17100,23 @@ defmodule OrbitalDynamics.Schema do
     %{"type" => type}
     |> maybe_add_const(field, name, contract)
     |> maybe_add_stable_id_pattern(field)
+  end
+
+  defp embedded_contract_json_schema(contract_name) do
+    contract = Map.fetch!(@contracts, contract_name)
+    required_fields = contract["required_fields"]
+    optional_fields = Map.get(contract, "optional_fields", [])
+
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => required_fields,
+      "properties" =>
+        (required_fields ++ optional_fields)
+        |> Enum.uniq()
+        |> Enum.sort()
+        |> Map.new(&{&1, json_schema_property(&1, contract_name, contract)})
+    }
   end
 
   defp relay_data_path_row_json_schema do
@@ -29445,6 +29497,14 @@ defmodule OrbitalDynamics.Schema do
     |> expect_type("$", artifact, "warnings", :list)
     |> expect_type("$", artifact, "assumptions", :map)
     |> expect_type("$", artifact, "provenance", :map)
+    |> expect_optional_type("$", artifact, "model_limits", :list)
+    |> validate_string_list_items("$", artifact, "model_limits")
+    |> validate_optional_exact_model_limits(
+      "$",
+      artifact,
+      OrbitalDynamics.CandidateRefresh.model_limits(),
+      "must match candidate refresh model limits"
+    )
     |> validate_candidate_refresh_source_report_provenance(artifact)
     |> validate_operational_feedback("$", Map.get(artifact, "operational_feedback"))
     |> expect_type("$", artifact, "source_window_lineage", :list)
@@ -29467,6 +29527,7 @@ defmodule OrbitalDynamics.Schema do
       Map.get(artifact, "contact_intents", []),
       &validate_contact_intent/3
     )
+    |> validate_optional_contact_allocation_report(Map.get(artifact, "contact_allocation_report"))
     |> validate_optional_contact_filter_report(Map.get(artifact, "contact_filter_report"))
     |> validate_rows(
       "$.resource_summaries",
@@ -32438,6 +32499,15 @@ defmodule OrbitalDynamics.Schema do
       "must equal ambiguous_actual_completion_contact_ids count"
     )
   end
+
+  defp validate_optional_contact_allocation_report(issues, nil), do: issues
+
+  defp validate_optional_contact_allocation_report(issues, %{} = report) do
+    validate_contact_allocation_report(issues, "$.contact_allocation_report", report)
+  end
+
+  defp validate_optional_contact_allocation_report(issues, _report),
+    do: [error("$.contact_allocation_report", "must be an object") | issues]
 
   defp validate_contact_allocation_report(issues, path, report) do
     rows = Map.get(report, "rows", [])
