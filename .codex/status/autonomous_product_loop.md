@@ -8,11 +8,11 @@ Current slice:
 V1 campaign readiness and quality-gate attachment.
 
 Status:
-Implemented, verified, and committed locally; push pending.
+Implemented, verified, committed, and pushed.
 
 Product commit:
-- `375037e65ec3b1de1688cfc1f1273f5e49e4037b` for V1 campaign readiness and
-  quality-gate attachment.
+- `375037e65ec3b1de1688cfc1f1273f5e49e4037b` pushed to `origin/main` for V1
+  campaign readiness and quality-gate attachment.
 
 Completed slice:
 Attached artifact-only `operational_readiness_report.v1` and
@@ -55,8 +55,8 @@ Verification:
 - `git diff --check` passed.
 
 Recently completed slices:
-- `375037e65ec3b1de1688cfc1f1273f5e49e4037b` committed locally for V1 campaign
-  readiness and quality-gate attachment.
+- `375037e65ec3b1de1688cfc1f1273f5e49e4037b` pushed to `origin/main` for V1
+  campaign readiness and quality-gate attachment.
 - `625a2aac24b2ba5d0117efe649968357ea763cd9` pushed to `origin/main` for
   subsystem-state required-state precondition rows.
 - `61315e1a0e0a2b2ca43c70d420f852ea2bf60c36` pushed to `origin/main` for
