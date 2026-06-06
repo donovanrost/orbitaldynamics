@@ -461,6 +461,32 @@ defmodule OrbitalDynamics.SchemaTest do
              "type"
            ]) == "object"
 
+    assert get_in(recommendation_schema, ["properties", "resource_scope", "type"]) == "string"
+    assert get_in(recommendation_schema, ["properties", "direction", "type"]) == "string"
+
+    assert get_in(recommendation_schema, ["properties", "directions", "items", "type"]) ==
+             "string"
+
+    for field <- ["ground_station_ids", "spacecraft_ids"] do
+      assert get_in(recommendation_schema, ["properties", field, "items", "pattern"]) ==
+               Schema.identity_policy()["stable_id_pattern"]
+    end
+
+    assert get_in(recommendation_schema, ["properties", "spacecraft_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    source_candidate_schema =
+      get_in(recommendation_schema, ["properties", "source_contact_candidates", "items"])
+
+    assert get_in(source_candidate_schema, ["properties", "id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(source_candidate_schema, ["properties", "source_window_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(source_candidate_schema, ["properties", "direction", "type"]) == "string"
+    assert get_in(source_candidate_schema, ["properties", "score", "type"]) == "number"
+
     invalid_resolution_limits =
       Map.put(resolution_report, "model_limits", ["artifact_level_only"])
 
@@ -468,6 +494,36 @@ defmodule OrbitalDynamics.SchemaTest do
              Schema.validate_artifact(invalid_resolution_limits)
 
     assert Enum.any?(resolution_limits_report["errors"], &(&1["path"] == "$.model_limits"))
+
+    invalid_recommendation_station_id =
+      put_in(
+        resolution_report,
+        ["recommendations", Access.at(0), "ground_station_ids"],
+        ["bad id"]
+      )
+
+    assert {:error, recommendation_station_id_report} =
+             Schema.validate_artifact(invalid_recommendation_station_id)
+
+    assert Enum.any?(
+             recommendation_station_id_report["errors"],
+             &(&1["path"] == "$.recommendations[0].ground_station_ids[0]")
+           )
+
+    invalid_source_candidate_id =
+      put_in(
+        resolution_report,
+        ["recommendations", Access.at(0), "source_contact_candidates", Access.at(0), "id"],
+        "bad id"
+      )
+
+    assert {:error, source_candidate_id_report} =
+             Schema.validate_artifact(invalid_source_candidate_id)
+
+    assert Enum.any?(
+             source_candidate_id_report["errors"],
+             &(&1["path"] == "$.recommendations[0].source_contact_candidates[0].id")
+           )
 
     assert %{
              "recommendation_count" => 2,
@@ -24563,6 +24619,13 @@ defmodule OrbitalDynamics.SchemaTest do
       "contact_contention_resolution_report.v1",
       "study_results/contact_contention_resolution_report_v1.json",
       ["properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "contact_contention_resolution_report.v1",
+      "study_results/contact_contention_resolution_report_v1.json",
+      ["properties", "recommendations", "items", "properties"],
+      fn artifact -> Map.get(artifact, "recommendations", []) end
     )
 
     assert_fixture_fields_are_schema_visible(

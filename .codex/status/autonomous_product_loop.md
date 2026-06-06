@@ -1,74 +1,79 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Expose Cadence import resource-pressure readiness evidence schemas.
+Expose contact contention resolution recommendation scope schemas.
 
 Status:
-Implemented, locally verified, read-only reviewed clean, committed, and pushed.
+Implemented, locally verified, and read-only reviewed clean; pending publish.
 
 Discovery:
-Contract-shaped fixture/schema visibility comparison shows
-`study_results/cadence_import_resource_pressure_v1.json` now has the remaining
-Cadence import manifest visibility gap. Top-level Cadence import rows emit
-operational-readiness import status counters that `cadence_import_manifest.v1`
-does not name. Nested `source_review_row` objects emit readiness gate context,
-gate counts, gate evidence, Cadence import status, and readiness classification
-fields that the nested source-review schema does not name.
+Broad fixture/schema visibility discovery now reports no missing top-level,
+row, or Cadence source-review fields for the recently completed schema-fidelity
+families. The remaining live row-container gap in the communications lane is
+`study_results/contact_contention_resolution_report_v1.json`: emitted
+`contact_contention_resolution_report.v1` recommendations include
+`resource_scope`, `direction`, `directions`, `ground_station_ids`,
+`spacecraft_id`, `spacecraft_ids`, and `source_contact_candidates`, but the
+recommendation item schema does not name those fields.
 
 Why this matters:
-Cadence import manifests explain why an adapter-facing import is ready,
-review-only, analysis-only, or blocked. The resource-pressure fixture already
-validates as a Cadence import manifest, but the generated row schemas hide the
-readiness evidence that downstream import tooling needs for diagnostics and
-operator review.
+Contact contention resolution recommendations are the operator/adaptor-facing
+explanation of which contact should be selected and which contacts should be
+deferred. The emitted resource scope and station/spacecraft identity fields are
+needed for downstream grouping, replay provenance, and import/review adapters.
 
 Likely files:
 - `.codex/status/autonomous_product_loop.md`
 - `lib/orbital_dynamics/schema.ex`
-- `schemas/cadence_import_manifest.v1.schema.json`
-- generated schemas embedding `cadence_import_manifest.v1`
+- `schemas/contact_contention_resolution_report.v1.schema.json`
+- generated schemas embedding contact contention recommendations
 - `schemas/orbital_dynamics.schema_bundle.v1.json`
 - `test/orbital_dynamics/schema_test.exs`
 
 Definition of done:
-- `cadence_import_manifest.v1` row schema exposes emitted import/readiness
-  status counters from `study_results/cadence_import_resource_pressure_v1.json`.
-- Nested `source_review_row` schema exposes emitted readiness level,
-  classification, gate count, gate evidence, and source readiness report fields.
-- Existing operational-readiness helper schemas are reused where they already
-  define the correct readiness/cadence import field shapes.
-- Focused schema tests assert row/source-review schema shape and fixture row
-  visibility for the Cadence resource-pressure fixture.
-- Checked-in schemas and bundle are refreshed.
-- Focused schema tests, schema export tests, schema lint, generated-schema
+- [x] `contact_contention_resolution_report.v1` recommendation schema exposes the
+  emitted scope, direction, station/spacecraft ID, and source contact candidate
+  evidence fields.
+- [x] Stable ID arrays are used for emitted station/spacecraft ID lists where
+  applicable.
+- [x] Executable validation rejects malformed ID lists for the newly exposed fields.
+- [x] Focused schema tests assert recommendation schema shape and fixture
+  recommendation visibility.
+- [x] Checked-in schemas and bundle are refreshed.
+- [x] Focused schema tests, schema export tests, schema lint, generated-schema
   spot-checks, and whitespace checks pass.
-- Read-only review finds no must-fix issues.
-- Slice-owned files only are committed and pushed.
+- [x] Read-only review finds no must-fix issues.
+- [ ] Slice-owned files only are committed and pushed.
 
 Tests run:
 - `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:23834 test/orbital_dynamics/schema_test.exs:24452 test/orbital_dynamics/schema_test.exs:24465`
+- `mix test test/orbital_dynamics/schema_test.exs:160 test/orbital_dynamics/schema_test.exs:24508 test/orbital_dynamics/schema_test.exs:24521`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- Runtime `mix run` fixture/schema visibility spot-check for
-  `study_results/cadence_import_resource_pressure_v1.json` reported no missing
-  row or source-review fields.
-- `jq` spot-checks for checked-in `cadence_import_manifest.v1` row and
-  `source_review_row` readiness evidence properties.
+- Runtime visibility spot-check for `contact_contention_resolution_report.v1`
+  recommendations in `study_results/contact_contention_resolution_report_v1.json`
+- `jq -e` spot-check for recommendation scope fields and nested source contact
+  candidate fields in
+  `schemas/contact_contention_resolution_report.v1.schema.json`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix test test/orbital_dynamics/schema_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check -- . ':!.gitignore'`
-- Read-only reviewer reran the focused schema tests, schema lint, and
-  `git diff --check -- . ':!.gitignore'`, and reported no must-fix findings.
+- Read-only reviewer reran `git diff --check -- . ':!.gitignore'`,
+  `mix test test/orbital_dynamics/schema_test.exs:160`,
+  `mix test test/orbital_dynamics/schema_test.exs:24521`, and
+  `mix run -e 'IO.inspect(OrbitalDynamics.Schema.lint_file("study_results/contact_contention_resolution_report_v1.json"), limit: :infinity)'`,
+  and reported no must-fix findings.
 
 Last completed implementation commit:
 `0c96df16553ae11689418b0fd202fbe474a8e876` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending this ledger-only correction.
+`35788c891810bcde7cc6eed670891a0bc99dbac3` pushed to `origin/main`.
 
 Next candidate:
-After this slice, rerun contract-shaped fixture/schema visibility discovery.
+After this slice, rerun broad nested row-container fixture/schema visibility
+discovery. Known lower-priority remaining candidates include contact/resource
+filter suppressed candidate evidence fields.
 
 Blocked:
 No.
