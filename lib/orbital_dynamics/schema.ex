@@ -5664,6 +5664,8 @@ defmodule OrbitalDynamics.Schema do
         "spacecraft_available",
         "source_quality",
         "trust_boundary",
+        "suppressed_activity_types",
+        "incompatible_activity_types",
         "payload_available",
         "antenna_available",
         "degraded",
@@ -10657,6 +10659,11 @@ defmodule OrbitalDynamics.Schema do
   defp json_schema_property(field, @resource_summary, _contract)
        when field in ["mode", "source_quality", "trust_boundary"] do
     %{"type" => "string"}
+  end
+
+  defp json_schema_property(field, @resource_summary, _contract)
+       when field in ["incompatible_activity_types", "suppressed_activity_types"] do
+    string_array_schema()
   end
 
   defp json_schema_property(field, @resource_summary, _contract)
@@ -24056,7 +24063,8 @@ defmodule OrbitalDynamics.Schema do
           "enum" => OrbitalDynamics.Timeline.capabilities().activity_precondition_statuses
         },
         "field" => %{"type" => "string"},
-        "reason" => %{"type" => "string"}
+        "reason" => %{"type" => "string"},
+        "value" => %{"type" => ["string", "number", "boolean"]}
       }
     }
   end

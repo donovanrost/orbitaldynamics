@@ -1117,6 +1117,22 @@ defmodule OrbitalDynamics.SchemaTest do
     assert {:ok, %{"schema_contract" => "resource_summary.v1"}} =
              Schema.validate_artifact(resource_summary)
 
+    assert {:ok, resource_summary_schema} = Schema.json_schema("resource_summary.v1")
+
+    assert get_in(resource_summary_schema, [
+             "properties",
+             "suppressed_activity_types",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(resource_summary_schema, [
+             "properties",
+             "incompatible_activity_types",
+             "items",
+             "type"
+           ]) == "string"
+
     invalid_resource_soc = Map.put(resource_summary, "battery_state_of_charge", 1.2)
 
     assert {:error, invalid_resource_soc_report} =
@@ -8915,6 +8931,15 @@ defmodule OrbitalDynamics.SchemaTest do
              "field",
              "reason"
            ]
+
+    assert get_in(schema, [
+             "properties",
+             "preconditions",
+             "items",
+             "properties",
+             "value",
+             "type"
+           ]) == ["string", "number", "boolean"]
 
     assert get_in(schema, [
              "properties",
@@ -23212,6 +23237,14 @@ defmodule OrbitalDynamics.SchemaTest do
                "field",
                "reason"
              ]
+
+      assert get_in(properties, [
+               "preconditions",
+               "items",
+               "properties",
+               "value",
+               "type"
+             ]) == ["string", "number", "boolean"]
     end
 
     for contract <- ["operator_review_package.v1", "cadence_import_manifest.v1"] do
