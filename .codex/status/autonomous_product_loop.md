@@ -61,9 +61,8 @@ permits spawning when the user explicitly requests delegation.
 Implementation commit:
 `f1ca0008aafbbda772f2edbe5dd8402d306fee2b` pushed to `origin/main`.
 
-Last pushed commit:
-`f1ca0008aafbbda772f2edbe5dd8402d306fee2b` on `origin/main` before this
-ledger correction.
+Ledger:
+This status file is in pushed history after the implementation commit.
 
 Previous completed implementation commit:
 `cc5200fd7206e756ab4f64e42d8a03e269f9bb3f` pushed to `origin/main`.
