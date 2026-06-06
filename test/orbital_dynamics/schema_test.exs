@@ -391,6 +391,44 @@ defmodule OrbitalDynamics.SchemaTest do
              "type"
            ]) == "object"
 
+    assert get_in(group_schema, ["properties", "resource_scope", "type"]) == "string"
+    assert get_in(group_schema, ["properties", "direction", "type"]) == "string"
+
+    assert get_in(group_schema, ["properties", "directions", "items", "type"]) ==
+             "string"
+
+    for field <- ["ground_station_ids", "spacecraft_ids", "duplicate_contact_ids"] do
+      assert get_in(group_schema, ["properties", field, "items", "pattern"]) ==
+               Schema.identity_policy()["stable_id_pattern"]
+    end
+
+    assert get_in(group_schema, ["properties", "spacecraft_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(group_schema, [
+             "properties",
+             "duplicate_contact_candidate_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(group_schema, [
+             "properties",
+             "duplicate_contact_id_count",
+             "minimum"
+           ]) == 0
+
+    source_candidate_schema =
+      get_in(group_schema, ["properties", "source_contact_candidates", "items"])
+
+    assert get_in(source_candidate_schema, ["properties", "id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(source_candidate_schema, ["properties", "source_window_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(source_candidate_schema, ["properties", "spacecraft_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
     invalid_contention_limits =
       Map.put(contention_report, "model_limits", ["artifact_level_only"])
 
@@ -408,6 +446,48 @@ defmodule OrbitalDynamics.SchemaTest do
     assert Enum.any?(
              contention_duplicate_count_report["errors"],
              &(&1["path"] == "$.duplicate_contact_candidate_count")
+           )
+
+    invalid_group_station_id =
+      put_in(contention_report, ["conflict_groups", Access.at(0), "ground_station_ids"], [
+        "bad id"
+      ])
+
+    assert {:error, group_station_id_report} = Schema.validate_artifact(invalid_group_station_id)
+
+    assert Enum.any?(
+             group_station_id_report["errors"],
+             &(&1["path"] == "$.conflict_groups[0].ground_station_ids[0]")
+           )
+
+    invalid_group_duplicate_id_count =
+      put_in(
+        contention_report,
+        ["conflict_groups", Access.at(0), "duplicate_contact_id_count"],
+        -1
+      )
+
+    assert {:error, group_duplicate_id_count_report} =
+             Schema.validate_artifact(invalid_group_duplicate_id_count)
+
+    assert Enum.any?(
+             group_duplicate_id_count_report["errors"],
+             &(&1["path"] == "$.conflict_groups[0].duplicate_contact_id_count")
+           )
+
+    invalid_group_source_candidate_id =
+      put_in(
+        contention_report,
+        ["conflict_groups", Access.at(1), "source_contact_candidates", Access.at(0), "id"],
+        "bad id"
+      )
+
+    assert {:error, group_source_candidate_id_report} =
+             Schema.validate_artifact(invalid_group_source_candidate_id)
+
+    assert Enum.any?(
+             group_source_candidate_id_report["errors"],
+             &(&1["path"] == "$.conflict_groups[1].source_contact_candidates[0].id")
            )
 
     assert %{
@@ -24627,6 +24707,13 @@ defmodule OrbitalDynamics.SchemaTest do
       "contact_contention_report.v1",
       "study_results/contact_contention_report_v1.json",
       ["properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "contact_contention_report.v1",
+      "study_results/contact_contention_report_v1.json",
+      ["properties", "conflict_groups", "items", "properties"],
+      fn artifact -> Map.get(artifact, "conflict_groups", []) end
     )
 
     assert_fixture_fields_are_schema_visible(

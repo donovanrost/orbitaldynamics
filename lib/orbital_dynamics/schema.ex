@@ -18218,7 +18218,11 @@ defmodule OrbitalDynamics.Schema do
       ],
       "properties" => %{
         "id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "resource_scope" => %{"type" => "string"},
         "ground_station_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "ground_station_ids" => stable_id_array_schema(),
+        "spacecraft_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "spacecraft_ids" => stable_id_array_schema(),
         "contact_count" => %{"type" => "integer", "minimum" => 0},
         "starts_at_s" => %{"type" => "number"},
         "ends_at_s" => %{"type" => "number"},
@@ -18228,6 +18232,7 @@ defmodule OrbitalDynamics.Schema do
         "max_concurrent_contacts" => %{"type" => "integer", "minimum" => 0},
         "overlap_contact_pair_count" => %{"type" => "integer", "minimum" => 0},
         "direction" => %{"type" => "string"},
+        "directions" => string_array_schema(),
         "required_operator_action" => %{"type" => "string"},
         "approval_status" => %{"type" => "string"},
         "operator_action_reason" => %{"type" => "string"},
@@ -18243,6 +18248,13 @@ defmodule OrbitalDynamics.Schema do
         "contact_ids" => string_array_schema(),
         "source_window_ids" => string_array_schema(),
         "scenario_ids" => string_array_schema(),
+        "duplicate_contact_candidate_count" => %{"type" => "integer", "minimum" => 0},
+        "duplicate_contact_id_count" => %{"type" => "integer", "minimum" => 0},
+        "duplicate_contact_ids" => stable_id_array_schema(),
+        "source_contact_candidates" => %{
+          "type" => "array",
+          "items" => contact_contention_source_contact_candidate_json_schema()
+        },
         "policy_decision" => policy_decision_json_schema()
       }
     }
@@ -33251,7 +33263,14 @@ defmodule OrbitalDynamics.Schema do
       "source_window_ids",
       "scenario_ids"
     ])
-    |> validate_stable_ids(path, group, ["id", "ground_station_id"])
+    |> validate_stable_ids(path, group, ["id", "ground_station_id", "spacecraft_id"])
+    |> expect_optional_type(path, group, "resource_scope", :binary)
+    |> expect_optional_type(path, group, "directions", :list)
+    |> validate_string_list_items(path, group, "directions")
+    |> expect_optional_type(path, group, "ground_station_ids", :list)
+    |> validate_optional_stable_id_list(path, group, "ground_station_ids")
+    |> expect_optional_type(path, group, "spacecraft_ids", :list)
+    |> validate_optional_stable_id_list(path, group, "spacecraft_ids")
     |> expect_non_negative_integer(path, group, "contact_count")
     |> expect_number(path, group, "starts_at_s")
     |> expect_number(path, group, "ends_at_s")
@@ -33287,6 +33306,16 @@ defmodule OrbitalDynamics.Schema do
     |> expect_type(path, group, "contact_ids", :list)
     |> expect_type(path, group, "source_window_ids", :list)
     |> expect_type(path, group, "scenario_ids", :list)
+    |> expect_optional_non_negative_integer(path, group, "duplicate_contact_candidate_count")
+    |> expect_optional_non_negative_integer(path, group, "duplicate_contact_id_count")
+    |> expect_optional_type(path, group, "duplicate_contact_ids", :list)
+    |> validate_optional_stable_id_list(path, group, "duplicate_contact_ids")
+    |> expect_optional_type(path, group, "source_contact_candidates", :list)
+    |> validate_optional_rows(
+      path <> ".source_contact_candidates",
+      Map.get(group, "source_contact_candidates"),
+      &validate_contact_contention_source_contact_candidate/3
+    )
     |> expect_field_equals(
       path,
       group,

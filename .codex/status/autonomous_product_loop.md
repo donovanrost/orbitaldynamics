@@ -1,75 +1,78 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Expose contact/resource filter suppressed-candidate evidence schemas.
+Expose contact-contention conflict-group scope schemas.
 
 Status:
-Implemented, locally verified, read-only reviewed clean, committed, and pushed.
+Implemented, locally verified, and read-only reviewed clean; pending publish.
 
 Discovery:
-Live fixture/schema comparison after the contact-contention slice reports the
-remaining bounded communications/resource row gap in the shared
-`suppressed_candidates` schema:
-- `study_results/contact_filter_report_v1.json` emits `capacity_fraction` and
-  `station_reservation_match_status`.
-- `study_results/resource_filter_report_v1.json` emits
-  `resource_blocking_dimension` and `resource_trust_boundary_status`.
+Broad fixture/schema visibility discovery now reports no missing top-level,
+suppressed-candidate, recommendation, or Cadence source-review fields for the
+recent schema-fidelity families. The next bounded communications row gap is
+`study_results/contact_contention_report_v1.json`: emitted
+`contact_contention_report.v1` conflict groups include `resource_scope`,
+`directions`, `ground_station_ids`, `spacecraft_id`, `spacecraft_ids`,
+`duplicate_contact_candidate_count`, `duplicate_contact_id_count`,
+`duplicate_contact_ids`, and `source_contact_candidates`, but the conflict-group
+item schema does not name those fields.
 
 Why this matters:
-Suppressed candidates are the operator/adaptor-facing explanation for why
-contact or resource candidates were filtered out. The missing fields preserve
-reduced-capacity station context, reservation ownership/overlap routing, and
-resource/trust-boundary suppression routing that downstream review/import
-adapters should not have to infer from opaque extra properties.
+Contact-contention conflict groups are the review/import-facing explanation for
+station- and spacecraft-scoped overlapping contacts. The missing fields preserve
+resource scope, station/spacecraft identity, direction aggregation,
+duplicate-contact ambiguity, and source candidate provenance that downstream
+adapters should validate directly instead of treating as opaque extras.
 
 Likely files:
 - `.codex/status/autonomous_product_loop.md`
 - `lib/orbital_dynamics/schema.ex`
-- generated schemas embedding `suppressed_candidate_json_schema/0`
+- generated schemas embedding `contact_contention_group_json_schema/0`
 - `schemas/orbital_dynamics.schema_bundle.v1.json`
 - `test/orbital_dynamics/schema_test.exs`
 
 Definition of done:
-- [x] Shared suppressed-candidate JSON Schema exposes `capacity_fraction`,
-  `station_reservation_match_status`, `resource_blocking_dimension`, and
-  `resource_trust_boundary_status`.
-- [x] Executable validation rejects malformed scalar types for the newly exposed
-  fields where meaningful.
-- [x] Focused schema tests assert contact/resource suppressed-candidate schema
-  shape and fixture row visibility.
+- [x] `contact_contention_report.v1` conflict-group schema exposes the emitted
+  scope, direction, station/spacecraft ID, duplicate-contact, and source contact
+  candidate evidence fields.
+- [x] Stable ID patterns are used for emitted station/spacecraft ID lists and nested
+  source contact candidate identity fields.
+- [x] Executable validation rejects malformed newly exposed ID lists and nested
+  source contact candidate IDs.
+- [x] Focused schema tests assert conflict-group schema shape and fixture row
+  visibility.
 - [x] Checked-in schemas and bundle are refreshed.
 - [x] Focused schema tests, schema export tests, schema lint, generated-schema
   spot-checks, and whitespace checks pass.
 - [x] Read-only review finds no must-fix issues.
-- [x] Slice-owned files only are committed and pushed.
+- [ ] Slice-owned files only are committed and pushed.
 
 Tests run:
 - `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:24508 test/orbital_dynamics/schema_test.exs:24898`
+- `mix test test/orbital_dynamics/schema_test.exs:314 test/orbital_dynamics/schema_test.exs:24508 test/orbital_dynamics/schema_test.exs:24621`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `jq -e` spot-checks for contact/resource filter suppressed-candidate fields in
-  `schemas/contact_filter_report.v1.schema.json` and
-  `schemas/resource_filter_report.v1.schema.json`
-- Runtime fixture/schema visibility spot-check for contact/resource filter
-  `suppressed_candidates` reported no missing fields.
+- `jq -e` spot-check for conflict-group scope/source-candidate fields in
+  `schemas/contact_contention_report.v1.schema.json`
+- Runtime fixture/schema visibility spot-check for
+  `contact_contention_report.v1` conflict groups reported no missing fields.
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix test test/orbital_dynamics/schema_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check -- . ':!.gitignore'`
 - Read-only reviewer reran `git diff --check -- . ':!.gitignore'`,
-  `mix test test/orbital_dynamics/schema_test.exs:24508 test/orbital_dynamics/schema_test.exs:24898`,
-  and fixture lint for `contact_filter_report_v1.json` and
-  `resource_filter_report_v1.json`, and reported no must-fix findings.
+  `mix test test/orbital_dynamics/schema_test.exs:314 test/orbital_dynamics/schema_test.exs:24508 test/orbital_dynamics/schema_test.exs:24621`,
+  `mix run -e 'IO.inspect(OrbitalDynamics.Schema.lint_file("study_results/contact_contention_report_v1.json"), limit: :infinity)'`,
+  and a `jq -e` generated-schema spot-check, and reported no must-fix findings.
 
 Last completed implementation commit:
 `efc3bf3f31dbb7d77354aae57d41018ebee864b4` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending this ledger-only correction.
+`29e3cf00966164bd24b3b0aa5b00ef7505bac218` pushed to `origin/main`.
 
 Next candidate:
-After this slice, rerun broad nested row-container fixture/schema visibility
-discovery before choosing another schema-fidelity gap.
+After this slice, inspect the larger `resource_projection_report.v1`
+`projected_resources` visibility gaps and choose a bounded row-family subset.
 
 Blocked:
 No.
