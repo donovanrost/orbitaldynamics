@@ -35656,6 +35656,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              },
              "source_report_constraint_resource_counts" => %{"battery_1" => 1},
              "source_report_constraint_spacecraft_counts" => %{"scout_1" => 1},
+             "source_report_constraint_branch_local_constraint_pressure" => true,
+             "source_report_constraint_branch_local_downlink_gap_pressure" => true,
+             "source_report_constraint_branch_local_resource_margin_pressure" => true,
+             "source_report_constraint_branch_local_constraint_routing_pressure" => true,
              "source_reports" => %{
                "constraint_report" => %{
                  "row_count" => 2,
@@ -35742,7 +35746,11 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_constraint_source_activity_id_counts" => %{
                "charge_activity_1" => 1,
                "downlink_activity_1" => 2
-             }
+             },
+             "source_report_constraint_branch_local_constraint_pressure" => true,
+             "source_report_constraint_branch_local_downlink_gap_pressure" => true,
+             "source_report_constraint_branch_local_resource_margin_pressure" => true,
+             "source_report_constraint_branch_local_constraint_routing_pressure" => true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.constraint_replay_summary(artifact) == replay_summary

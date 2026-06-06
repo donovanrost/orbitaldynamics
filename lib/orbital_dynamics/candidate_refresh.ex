@@ -6892,6 +6892,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_station_reservation_replay_summary_fields(source_reports))
     |> Map.merge(source_report_command_window_replay_summary_fields(source_reports))
     |> Map.merge(source_report_maneuver_review_replay_summary_fields(source_reports))
+    |> Map.merge(source_report_constraint_replay_summary_fields(source_reports))
     |> Map.merge(
       source_report_timeline_publication_context_fields(
         source_reports,
@@ -9763,6 +9764,27 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "branch_local_maneuver_action_pressure"),
       "source_report_maneuver_review_branch_local_execution_uncertainty_pressure" =>
         Map.get(summary, "branch_local_execution_uncertainty_pressure")
+    }
+  end
+
+  defp source_report_constraint_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("constraint_report", %{})
+      |> constraint_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.constraint_report",
+        "constraint_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_constraint_branch_local_constraint_pressure" =>
+        Map.get(summary, "branch_local_constraint_pressure"),
+      "source_report_constraint_branch_local_downlink_gap_pressure" =>
+        Map.get(summary, "branch_local_downlink_gap_pressure"),
+      "source_report_constraint_branch_local_resource_margin_pressure" =>
+        Map.get(summary, "branch_local_resource_margin_pressure"),
+      "source_report_constraint_branch_local_constraint_routing_pressure" =>
+        Map.get(summary, "branch_local_constraint_routing_pressure")
     }
   end
 
@@ -13664,6 +13686,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
     source_summary = source_report_summary(refresh_or_artifact)
     constraint_summary = get_in(source_summary, ["source_reports", "constraint_report"]) || %{}
 
+    constraint_replay_summary_from_summary(
+      constraint_summary,
+      "candidate_refresh.source_report_provenance.constraint_report",
+      "constraint_source_report_provenance_only"
+    )
+  end
+
+  defp constraint_replay_summary_from_summary(constraint_summary, summary_source, replay_scope) do
     downlink_gap_count = summary_integer(constraint_summary, "downlink_gap_row_count")
     resource_margin_count = summary_integer(constraint_summary, "resource_margin_row_count")
     status_counts = Map.get(constraint_summary, "status_counts", %{})
@@ -13685,7 +13715,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_constraint_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.constraint_report",
+      "source" => summary_source,
       "contract" => source_report_summary_contract(constraint_summary, "constraint_report.v1"),
       "source_report_count" => summary_integer(constraint_summary, "count"),
       "source_report_row_count" => summary_integer(constraint_summary, "row_count"),
@@ -13709,7 +13739,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "branch_local_constraint_routing_pressure" => constraint_routing_pressure,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "constraint_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_constraint_replay_summary",
         "objective_generation" => "not_performed_by_summary",
         "resource_mutation" => "not_performed_by_summary",
