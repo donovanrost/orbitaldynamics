@@ -4,7 +4,7 @@ Current slice:
 Expose `timeline_feedback_report.v1` operational-feedback provenance schema.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 `timeline_feedback_report.v1` artifacts emit a structured
 `operational_feedback_provenance` envelope with model, merge order, input keys,
 source count, explicit override status, and per-source report metadata. This
@@ -53,12 +53,13 @@ Tests run:
   permissive for source metadata; accepted for this schema-visibility slice.
 - `mix format test/orbital_dynamics/schema_test.exs`
 - `mix test test/orbital_dynamics/schema_test.exs:21317 test/orbital_dynamics/schema_test.exs:23810`
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`507cdbb9fc37325fd7c50b81cc7314d54f3e6219` pushed to `origin/main`.
+`5430efdd22b0a5e5d621c65eda1145657decabb0` pushed to `origin/main`.
 
 Last ledger correction commit:
-`b83c147` pushed to `origin/main`.
+Pending.
 
 Next candidate:
 Continue contract-fidelity discovery from fixture/schema visibility gaps outside
