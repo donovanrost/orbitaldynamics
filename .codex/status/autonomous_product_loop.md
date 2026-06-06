@@ -29,13 +29,13 @@ accuracy issue: ledger status was stale after implementation. This update fixes
 that before commit.
 
 Implementation commit:
-Pending.
+`9f40254c9adaf99fb1ccff3321f42b79e8329bf1` pushed to `origin/main`.
 
 Last completed implementation commit:
-`3de21c0d40223c92b67861c8528f324daf6b6c7f` pushed to `origin/main`.
+`9f40254c9adaf99fb1ccff3321f42b79e8329bf1` pushed to `origin/main`.
 
 Last ledger correction commit:
-`d0360f63654394baca67c217c78b7a519f5eeb85` pushed to `origin/main`.
+Pending for this post-commit handoff correction.
 
 Next candidate:
 After this slice, move to the resource/communications allocation queue unless a
