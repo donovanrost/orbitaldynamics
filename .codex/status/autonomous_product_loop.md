@@ -8,7 +8,7 @@ Current slice:
 Accept existing timeline diff summaries idempotently.
 
 Status:
-Implemented and verified; commit/push pending.
+Implemented, verified, committed, and pushed.
 
 Completed slices:
 - Prompt/guide continuation semantics committed as
@@ -31,6 +31,8 @@ Completed slices:
   `e23cac76f666690f8c8a37b40149c16e6b0afd86` and pushed to `origin/main`.
 - Timeline preservation status idempotent handoff behavior committed as
   `c43829f0c5c0786f78f60db41f336c5bfb16ad2f` and pushed to `origin/main`.
+- Timeline diff summary idempotent handoff behavior committed as
+  `a80bff8f991226b55f379759ecfe9303ac6cf02c` and pushed to `origin/main`.
 
 Files changed:
 - `lib/orbital_dynamics/timeline.ex`
@@ -56,8 +58,8 @@ Remaining maturity gaps:
   the guide toward Level 6 maturity.
 
 Last commit:
-- `57f488854a5f4eebddc7f219fa3dbfcbb54e6e6e` pushed to `origin/main`
-  for the preservation-status ledger correction.
+- `a80bff8f991226b55f379759ecfe9303ac6cf02c` pushed to `origin/main`
+  for timeline diff summary idempotent handoff behavior.
 
 Next candidate:
 Select the next live maturity gap from the guide/roadmap and current test
