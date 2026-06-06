@@ -1370,6 +1370,114 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       end
     )
 
+    candidate_refresh_quality_gate_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "quality_gate_report",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        "gate_count",
+        "passed_gate_count",
+        "review_gate_count",
+        "analysis_gate_count",
+        "blocked_gate_count",
+        "ready_for_import_count",
+        "manifest_review_required_count",
+        "blocked_import_count",
+        "missing_import_count",
+        "invalid_cadence_import_count",
+        "resource_availability_pressure_count",
+        "source_readiness_report_count"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_quality_gate_source_report, [
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_quality_gate_source_report, [
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "readiness_level_counts",
+        "import_classification_counts",
+        "status_counts",
+        "gate_status_counts",
+        "gate_classification_counts",
+        "freshness_status_counts",
+        "schema_validation_status_counts",
+        "import_status_counts",
+        "cadence_import_status_counts",
+        "resource_availability_reason_counts",
+        "station_availability_reason_counts",
+        "resource_blocking_dimension_counts"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_quality_gate_source_report, [
+                 field,
+                 "additionalProperties",
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_quality_gate_source_report, [
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "resource_availability_reason_ids",
+        "station_availability_reason_ids",
+        "unavailable_resource_reason_ids",
+        "review_required_quality_gate_row_ids",
+        "blocked_quality_gate_row_ids",
+        "ready_quality_gate_row_ids",
+        "analysis_only_quality_gate_row_ids",
+        "stale_or_unknown_freshness_quality_gate_row_ids",
+        "import_preparation_quality_gate_row_ids",
+        "blocked_import_quality_gate_row_ids",
+        "import_readiness_gate_ids"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_quality_gate_source_report, [
+                 field,
+                 "items",
+                 "type"
+               ]) == "string"
+      end
+    )
+
+    Enum.each(
+      [
+        "quality_gate_row_ids_by_status",
+        "quality_gate_ids_by_status"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_quality_gate_source_report, [
+                 field,
+                 "additionalProperties",
+                 "items",
+                 "pattern"
+               ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+      end
+    )
+
     candidate_refresh_timeline_feedback_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",

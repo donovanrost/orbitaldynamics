@@ -21184,6 +21184,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_model_acceptance_source_report_summary_json_schema(),
             "operational_timeline_report" =>
               candidate_refresh_operational_timeline_source_report_summary_json_schema(),
+            "quality_gate_report" =>
+              candidate_refresh_quality_gate_source_report_summary_json_schema(),
             "provider_counteroffer_report" =>
               candidate_refresh_provider_counteroffer_source_report_summary_json_schema(),
             "resource_projection_report" =>
@@ -21575,6 +21577,50 @@ defmodule OrbitalDynamics.Schema do
           &{&1, non_negative_integer_count_map_json_schema()}
         )
       )
+    end)
+  end
+
+  defp candidate_refresh_quality_gate_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      properties
+      |> Map.merge(operational_readiness_resource_context_json_schema_properties())
+      |> Map.merge(operational_readiness_adapter_boundary_context_json_schema_properties())
+      |> Map.merge(operational_readiness_cadence_import_context_json_schema_properties())
+      |> Map.merge(
+        non_negative_integer_property_schemas([
+          "gate_count",
+          "passed_gate_count",
+          "review_gate_count",
+          "analysis_gate_count",
+          "blocked_gate_count",
+          "source_readiness_report_count"
+        ])
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "readiness_level_counts",
+            "import_classification_counts",
+            "status_counts",
+            "gate_status_counts",
+            "gate_classification_counts"
+          ],
+          &{&1, non_negative_integer_count_map_json_schema()}
+        )
+      )
+      |> Map.merge(%{
+        "quality_gate_row_ids_by_status" => stable_id_array_map_schema(),
+        "quality_gate_ids_by_status" => stable_id_array_map_schema(),
+        "review_required_quality_gate_row_ids" => stable_id_array_schema(),
+        "blocked_quality_gate_row_ids" => stable_id_array_schema(),
+        "ready_quality_gate_row_ids" => stable_id_array_schema(),
+        "analysis_only_quality_gate_row_ids" => stable_id_array_schema(),
+        "stale_or_unknown_freshness_quality_gate_row_ids" => stable_id_array_schema(),
+        "import_preparation_quality_gate_row_ids" => stable_id_array_schema(),
+        "blocked_import_quality_gate_row_ids" => stable_id_array_schema(),
+        "import_readiness_gate_ids" => stable_id_array_schema()
+      })
     end)
   end
 
@@ -26431,6 +26477,7 @@ defmodule OrbitalDynamics.Schema do
         |> validate_candidate_refresh_timeline_feedback_context(path, summary)
         |> validate_candidate_refresh_timeline_transition_application_context(path, summary)
         |> validate_candidate_refresh_operational_timeline_context(path, summary)
+        |> validate_candidate_refresh_quality_gate_context(path, summary)
         |> validate_candidate_refresh_model_acceptance_context(path, summary)
         |> validate_candidate_refresh_validation_safety_case_context(path, summary)
       else
@@ -26591,6 +26638,70 @@ defmodule OrbitalDynamics.Schema do
         acc
         |> expect_optional_type(path, summary, field, :map)
         |> validate_non_negative_integer_count_map(path <> ".#{field}", Map.get(summary, field))
+      end
+    )
+  end
+
+  defp validate_candidate_refresh_quality_gate_context(issues, path, summary) do
+    issues =
+      Enum.reduce(
+        [
+          "gate_count",
+          "passed_gate_count",
+          "review_gate_count",
+          "analysis_gate_count",
+          "blocked_gate_count",
+          "source_readiness_report_count"
+        ],
+        issues,
+        fn field, acc ->
+          expect_optional_non_negative_integer(acc, path, summary, field)
+        end
+      )
+
+    issues =
+      Enum.reduce(
+        [
+          "readiness_level_counts",
+          "import_classification_counts",
+          "status_counts",
+          "gate_status_counts",
+          "gate_classification_counts"
+        ],
+        issues,
+        fn field, acc ->
+          acc
+          |> expect_optional_type(path, summary, field, :map)
+          |> validate_non_negative_integer_count_map(path <> ".#{field}", Map.get(summary, field))
+        end
+      )
+
+    issues =
+      Enum.reduce(
+        [
+          "quality_gate_row_ids_by_status",
+          "quality_gate_ids_by_status"
+        ],
+        issues,
+        fn field, acc ->
+          validate_optional_stable_id_array_map(acc, path, summary, field)
+        end
+      )
+
+    Enum.reduce(
+      [
+        "review_required_quality_gate_row_ids",
+        "blocked_quality_gate_row_ids",
+        "ready_quality_gate_row_ids",
+        "analysis_only_quality_gate_row_ids",
+        "stale_or_unknown_freshness_quality_gate_row_ids",
+        "import_preparation_quality_gate_row_ids",
+        "blocked_import_quality_gate_row_ids",
+        "import_readiness_gate_ids"
+      ],
+      issues,
+      fn field, acc ->
+        validate_stable_id_list(acc, path <> ".#{field}", Map.get(summary, field))
       end
     )
   end

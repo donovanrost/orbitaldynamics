@@ -1,22 +1,19 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Expose CandidateRefresh timeline-transition-application source-report schema
-property.
+Expose CandidateRefresh quality-gate source-report schema property.
 
 Status:
-Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
-CandidateRefresh timeline-transition-application source summaries already
-preserve application, selected/review activity, operator-review,
-preserved/replacement, duplicate timeline identity, and transition decision
-counts. Replay helpers already consume `timeline_transition_application_report`
-from source-report provenance and branch-local candidate-source summaries. The
-`candidate_refresh.v1` source-report JSON Schema now names
-`timeline_transition_application_report` as a family-specific source report
-instead of leaving it discoverable only through the generic `source_reports`
-`additionalProperties` shape. This is a contract discoverability slice only: no
-replay behavior, artifact generation logic, timeline mutation, or Cadence write
-behavior changed.
+Implemented, locally verified, and reviewed clean; publish pending. Runtime
+CandidateRefresh quality-gate source summaries already preserve
+readiness/import/status/gate counts, resource availability pressure, and
+quality-gate row ID routing. Replay helpers already consume
+`quality_gate_report` from source-report provenance. The `candidate_refresh.v1`
+source-report JSON Schema now names `quality_gate_report` as a family-specific
+source report instead of leaving it discoverable only through the generic
+`source_reports` `additionalProperties` shape. This is a contract
+discoverability slice only: no replay behavior, artifact generation logic,
+operator authority, import approval, or Cadence write behavior changed.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -28,12 +25,12 @@ Files changed:
 
 Definition of done:
 - `candidate_refresh.v1` exposes a family-specific
-  `timeline_transition_application_report`
+  `quality_gate_report`
   source-report schema.
-- Its source-report object advertises transition-application integer counts and
-  count maps.
-- Schema validation rejects obvious invalid transition-application integer and
-  count-map shapes.
+- Its source-report object advertises quality-gate integer counts, count maps,
+  and replay-visible ID lists/maps.
+- Schema validation rejects obvious invalid quality-gate integer/count-map and
+  ID-list/map shapes.
 - Checked-in `candidate_refresh.v1` schema and schema bundle are refreshed.
 - Schema export tests, schema tests, focused CandidateRefresh runtime tests,
   schema lint, generated-schema spot-checks, and whitespace checks pass.
@@ -46,22 +43,20 @@ Tests run:
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - `mix test test/orbital_dynamics/schema_test.exs`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:35246`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:44426`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:27845`
 - `mix orbital_dynamics.schema.lint --all`
-- `jq` spot-checks for `timeline_transition_application_report` source-report
-  fields in `schemas/candidate_refresh.v1.schema.json` and the schema bundle.
+- `jq` spot-checks for `quality_gate_report` source-report fields in
+  `schemas/candidate_refresh.v1.schema.json` and the schema bundle.
 - `git diff --check -- . ':!.gitignore'`
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
-  test, focused CandidateRefresh runtime tests, schema lint, whitespace check,
+  test, focused CandidateRefresh runtime test, schema lint, whitespace check,
   and generated-schema `jq` spot-checks.
-- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`93b8d0a80f3d56a585cd37d1d9ac71ef7ff784c7` pushed to `origin/main`.
+Pending for this slice.
 
 Last ledger correction commit:
-`040048b` pushed to `origin/main`.
+Pending for this slice.
 
 Next candidate:
 After this slice, run a bounded mapper pass to identify the next

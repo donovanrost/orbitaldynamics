@@ -12685,6 +12685,168 @@ defmodule OrbitalDynamics.SchemaTest do
                  "$.provenance.source_reports.timeline_transition_application_report.application_status_counts")
            )
 
+    artifact_with_quality_gate_summary =
+      put_in(artifact, ["provenance", "source_reports", "quality_gate_report"], %{
+        "paths" => ["source_quality_gate_report"],
+        "contract" => "quality_gate_report.v1",
+        "count" => 1,
+        "row_count" => 3,
+        "readiness_level_counts" => %{"blocked" => 1},
+        "import_classification_counts" => %{"review_only" => 1},
+        "status_counts" => %{"review_required" => 1},
+        "gate_count" => 3,
+        "passed_gate_count" => 1,
+        "review_gate_count" => 1,
+        "analysis_gate_count" => 1,
+        "blocked_gate_count" => 1,
+        "gate_status_counts" => %{"review_required" => 1, "blocked" => 1},
+        "gate_classification_counts" => %{"review_only" => 1},
+        "ready_for_import_count" => 1,
+        "manifest_review_required_count" => 1,
+        "blocked_import_count" => 1,
+        "missing_import_count" => 1,
+        "invalid_cadence_import_count" => 1,
+        "freshness_status_counts" => %{"stale" => 1},
+        "schema_validation_status_counts" => %{"fail" => 1},
+        "import_status_counts" => %{"review_required_before_import" => 1},
+        "cadence_import_status_counts" => %{"missing" => 1},
+        "resource_availability_pressure_count" => 2,
+        "resource_availability_reason_counts" => %{
+          "ground_station_reserved" => 1,
+          "payload_unavailable" => 1
+        },
+        "resource_availability_reason_ids" => [
+          "ground_station_reserved",
+          "payload_unavailable"
+        ],
+        "station_availability_reason_counts" => %{"ground_station_reserved" => 1},
+        "station_availability_reason_ids" => ["ground_station_reserved"],
+        "unavailable_resource_reason_ids" => ["payload_unavailable"],
+        "resource_blocking_dimension_counts" => %{"communications" => 1},
+        "quality_gate_row_ids_by_status" => %{
+          "review_required" => ["quality_gate:review_row"]
+        },
+        "quality_gate_ids_by_status" => %{
+          "review_required" => ["quality_gate:review"]
+        },
+        "review_required_quality_gate_row_ids" => ["quality_gate:review_row"],
+        "blocked_quality_gate_row_ids" => ["quality_gate:blocked_row"],
+        "ready_quality_gate_row_ids" => ["quality_gate:ready_row"],
+        "analysis_only_quality_gate_row_ids" => ["quality_gate:analysis_row"],
+        "stale_or_unknown_freshness_quality_gate_row_ids" => ["quality_gate:freshness_row"],
+        "import_preparation_quality_gate_row_ids" => ["quality_gate:import_row"],
+        "blocked_import_quality_gate_row_ids" => ["quality_gate:blocked_import_row"],
+        "import_readiness_gate_ids" => ["quality_gate:import_gate"],
+        "source_readiness_report_count" => 1
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_quality_gate_summary)
+
+    quality_gate_source_report_properties =
+      get_in(candidate_refresh_schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "quality_gate_report",
+        "properties"
+      ])
+
+    assert get_in(quality_gate_source_report_properties, [
+             "gate_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(quality_gate_source_report_properties, [
+             "gate_status_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(quality_gate_source_report_properties, [
+             "quality_gate_row_ids_by_status",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+
+    invalid_quality_gate_count =
+      put_in(
+        artifact_with_quality_gate_summary,
+        ["provenance", "source_reports", "quality_gate_report", "gate_count"],
+        -1
+      )
+
+    assert {:error, invalid_quality_gate_count_report} =
+             Schema.validate_artifact(invalid_quality_gate_count)
+
+    assert Enum.any?(
+             invalid_quality_gate_count_report["errors"],
+             &(&1["path"] == "$.provenance.source_reports.quality_gate_report.gate_count")
+           )
+
+    invalid_quality_gate_status_count =
+      put_in(
+        artifact_with_quality_gate_summary,
+        [
+          "provenance",
+          "source_reports",
+          "quality_gate_report",
+          "gate_status_counts",
+          "blocked"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_quality_gate_status_count_report} =
+             Schema.validate_artifact(invalid_quality_gate_status_count)
+
+    assert Enum.any?(
+             invalid_quality_gate_status_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.quality_gate_report.gate_status_counts.blocked")
+           )
+
+    invalid_quality_gate_status_shape =
+      put_in(
+        artifact_with_quality_gate_summary,
+        ["provenance", "source_reports", "quality_gate_report", "gate_status_counts"],
+        "blocked"
+      )
+
+    assert {:error, invalid_quality_gate_status_shape_report} =
+             Schema.validate_artifact(invalid_quality_gate_status_shape)
+
+    assert Enum.any?(
+             invalid_quality_gate_status_shape_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.quality_gate_report.gate_status_counts")
+           )
+
+    invalid_quality_gate_row_id =
+      put_in(
+        artifact_with_quality_gate_summary,
+        [
+          "provenance",
+          "source_reports",
+          "quality_gate_report",
+          "quality_gate_row_ids_by_status",
+          "review_required"
+        ],
+        ["quality_gate:review_row", 42]
+      )
+
+    assert {:error, invalid_quality_gate_row_id_report} =
+             Schema.validate_artifact(invalid_quality_gate_row_id)
+
+    assert Enum.any?(
+             invalid_quality_gate_row_id_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.quality_gate_report.quality_gate_row_ids_by_status.review_required[1]")
+           )
+
     artifact_with_operational_timeline_summary =
       put_in(artifact, ["provenance", "source_reports", "operational_timeline_report"], %{
         "paths" => ["source_operational_timeline_report"],
