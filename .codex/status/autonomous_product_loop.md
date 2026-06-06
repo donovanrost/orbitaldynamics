@@ -9,7 +9,7 @@ Resource projection compact pressure maps for station-calendar directions and
 capacity fractions.
 
 Status:
-Implemented and full verification passed; commit/push pending.
+Implemented, verified, committed, and pushed.
 
 Files changed:
 - `lib/orbital_dynamics/resource_projection.ex`
@@ -58,6 +58,10 @@ Level 6 pillar advanced:
 Resource and communications allocation semantics: compact storage/downlink flow
 summaries now keep station-calendar direction and capacity-fraction provenance
 reviewable at the pressure-type level.
+
+Last commit:
+- `2d2f78990a990efa502d82de254aa7408f4e3117` pushed to `origin/main` for
+  resource projection compact pressure direction/capacity maps.
 
 Recently completed slice:
 - `c51b3dba913af916920294b374d4ea02a4fe28c9` pushed to `origin/main` for
