@@ -4,7 +4,7 @@ Current slice:
 Add setup/cooldown/telemetry-confirmation hints to baseline activity templates.
 
 Status:
-Implemented, verified, locally reviewed, ready to commit.
+Implemented, verified, locally reviewed, committed, and pushed.
 
 What changed:
 Baseline `activity_template.v1` artifacts now publish typed
@@ -58,8 +58,12 @@ it was reformatted with `jq` and schema lint reran clean. A sidecar read-only
 review was not started because the available multi-agent tool contract only
 permits spawning when the user explicitly requests delegation.
 
+Implementation commit:
+`f1ca0008aafbbda772f2edbe5dd8402d306fee2b` pushed to `origin/main`.
+
 Last pushed commit:
-`600b6abde039f2c7a3d1e56d73b50c2b3ac707c5` on `origin/main`.
+`f1ca0008aafbbda772f2edbe5dd8402d306fee2b` on `origin/main` before this
+ledger correction.
 
 Previous completed implementation commit:
 `cc5200fd7206e756ab4f64e42d8a03e269f9bb3f` pushed to `origin/main`.
