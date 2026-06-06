@@ -251,6 +251,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :contact_contention_resolution_summary,
         :link_capacity_report,
         :quality_gate_report,
+        :operational_quality_gate_summary,
         :operational_quality_gate_import_readiness_summary,
         :model_acceptance_report,
         :validation_safety_case_summary
@@ -602,6 +603,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :source_refresh_budget_report_input_provenance,
         :source_operational_readiness_report_input_provenance,
         :source_quality_gate_report_input_provenance,
+        :source_operational_quality_gate_summary_input_provenance,
         :source_operational_quality_gate_import_readiness_summary_input_provenance,
         :source_model_acceptance_report_input_provenance,
         :source_validation_safety_case_summary_input_provenance,
@@ -38424,6 +38426,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
        get_in(refresh, ["accepted_planning_state", "source_quality_gate_report"])},
       {"accepted_planning_state.quality_gate_report",
        get_in(refresh, ["accepted_planning_state", "quality_gate_report"])},
+      {"accepted_planning_state.source_operational_quality_gate_summary",
+       get_in(refresh, [
+         "accepted_planning_state",
+         "source_operational_quality_gate_summary"
+       ])},
+      {"accepted_planning_state.operational_quality_gate_summary",
+       get_in(refresh, [
+         "accepted_planning_state",
+         "operational_quality_gate_summary"
+       ])},
       {"accepted_planning_state.source_operational_quality_gate_import_readiness_summary",
        get_in(refresh, [
          "accepted_planning_state",
@@ -38438,6 +38450,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
        get_in(refresh, ["mission_state", "source_quality_gate_report"])},
       {"mission_state.quality_gate_report",
        get_in(refresh, ["mission_state", "quality_gate_report"])},
+      {"mission_state.source_operational_quality_gate_summary",
+       get_in(refresh, [
+         "mission_state",
+         "source_operational_quality_gate_summary"
+       ])},
+      {"mission_state.operational_quality_gate_summary",
+       get_in(refresh, ["mission_state", "operational_quality_gate_summary"])},
       {"mission_state.source_operational_quality_gate_import_readiness_summary",
        get_in(refresh, [
          "mission_state",
@@ -38447,6 +38466,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
        get_in(refresh, ["mission_state", "operational_quality_gate_import_readiness_summary"])},
       {"source_quality_gate_report", Map.get(refresh, "source_quality_gate_report")},
       {"quality_gate_report", Map.get(refresh, "quality_gate_report")},
+      {"source_operational_quality_gate_summary",
+       Map.get(refresh, "source_operational_quality_gate_summary")},
+      {"operational_quality_gate_summary", Map.get(refresh, "operational_quality_gate_summary")},
       {"source_operational_quality_gate_import_readiness_summary",
        Map.get(refresh, "source_operational_quality_gate_import_readiness_summary")},
       {"operational_quality_gate_import_readiness_summary",
@@ -39702,6 +39724,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
         {"#{path}", artifact},
         {"#{path}.source_quality_gate_report", Map.get(artifact, "source_quality_gate_report")},
         {"#{path}.quality_gate_report", Map.get(artifact, "quality_gate_report")},
+        {"#{path}.source_operational_quality_gate_summary",
+         Map.get(artifact, "source_operational_quality_gate_summary")},
+        {"#{path}.operational_quality_gate_summary",
+         Map.get(artifact, "operational_quality_gate_summary")},
         {"#{path}.source_operational_quality_gate_import_readiness_summary",
          Map.get(artifact, "source_operational_quality_gate_import_readiness_summary")},
         {"#{path}.operational_quality_gate_import_readiness_summary",
@@ -42530,6 +42556,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
       quality_gate_source_report?(value) ->
         [{path, value}]
 
+      quality_gate_summary_source?(value) ->
+        [{path, quality_gate_report_from_quality_gate_summary(value)}]
+
       quality_gate_import_readiness_summary_source?(value) ->
         [{path, quality_gate_report_from_import_readiness_summary(value)}]
 
@@ -42539,6 +42568,68 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp source_quality_gate_report_entries(_path, _value), do: []
+
+  defp quality_gate_report_from_quality_gate_summary(%{} = summary) do
+    summary = stringify_keys(summary)
+    row_ids_by_status = Map.get(summary, "quality_gate_row_ids_by_status", %{})
+    gate_ids_by_status = Map.get(summary, "gate_ids_by_status", %{})
+
+    %{
+      "schema_contract" => "quality_gate_report.v1",
+      "model" => "preserved_operational_quality_gate_summary",
+      "source" => summary["source"],
+      "source_summary_model" => summary["model"],
+      "source_summary_schema_contract" => summary["schema_contract"],
+      "source_artifact_type" => summary["source_artifact_type"],
+      "source_artifact_id" => summary["source_artifact_id"],
+      "source_quality_gate_report_id" => summary["source_quality_gate_report_id"],
+      "source_readiness_report_id" => summary["source_readiness_report_id"],
+      "readiness_level" => summary["readiness_level"],
+      "import_classification" => summary["import_classification"],
+      "status" => summary["status"],
+      "gate_count" => summary["gate_count"],
+      "passed_gate_count" => summary["passed_gate_count"],
+      "review_gate_count" => summary["review_gate_count"],
+      "analysis_gate_count" => summary["analysis_gate_count"],
+      "blocked_gate_count" => summary["blocked_gate_count"],
+      "gate_status_counts" => summary["gate_status_counts"],
+      "gate_classification_counts" => summary["gate_classification_counts"],
+      "quality_gate_row_ids_by_status" => row_ids_by_status,
+      "quality_gate_ids_by_status" => gate_ids_by_status,
+      "review_required_quality_gate_row_ids" =>
+        quality_gate_summary_list_map_values(row_ids_by_status, "review_required"),
+      "blocked_quality_gate_row_ids" =>
+        quality_gate_summary_list_map_values(row_ids_by_status, "blocked"),
+      "ready_quality_gate_row_ids" =>
+        quality_gate_summary_list_map_values(row_ids_by_status, "passed"),
+      "analysis_only_quality_gate_row_ids" =>
+        quality_gate_summary_list_map_values(row_ids_by_status, "analysis_only"),
+      "review_required_gate_ids" =>
+        quality_gate_summary_list_map_values(gate_ids_by_status, "review_required"),
+      "blocked_gate_ids" => quality_gate_summary_list_map_values(gate_ids_by_status, "blocked"),
+      "passed_gate_ids" => quality_gate_summary_list_map_values(gate_ids_by_status, "passed"),
+      "analysis_only_gate_ids" =>
+        quality_gate_summary_list_map_values(gate_ids_by_status, "analysis_only"),
+      "non_passed_quality_gate_row_ids" => summary["non_passed_quality_gate_row_ids"],
+      "non_passed_gate_ids" => summary["non_passed_gate_ids"],
+      "non_passed_gate_count" => summary["non_passed_gate_count"],
+      "non_passed_rows" => summary["non_passed_rows"],
+      "rows" => summary["rows"],
+      "trust_boundary" => summary["trust_boundary"],
+      "trust_boundaries" => summary["trust_boundaries"],
+      "assumptions" => summary["assumptions"]
+    }
+    |> maybe_put("provenance", summary["provenance"])
+    |> compact_map()
+  end
+
+  defp quality_gate_summary_list_map_values(%{} = values_by_key, key) do
+    values_by_key
+    |> Map.get(key)
+    |> list_value()
+  end
+
+  defp quality_gate_summary_list_map_values(_values_by_key, _key), do: []
 
   defp quality_gate_report_from_import_readiness_summary(%{} = summary) do
     summary = stringify_keys(summary)
@@ -47621,6 +47712,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp quality_gate_source_report?(_report), do: false
+
+  defp quality_gate_summary_source?(%{} = summary) do
+    schema_contract = Map.get(summary, "schema_contract") || Map.get(summary, :schema_contract)
+    model = Map.get(summary, "model") || Map.get(summary, :model)
+
+    schema_contract in [nil, "operational_quality_gate_summary.v1"] and
+      model == "artifact_only_quality_gate_summary"
+  end
+
+  defp quality_gate_summary_source?(_summary), do: false
 
   defp quality_gate_import_readiness_summary_source?(%{} = summary) do
     schema_contract = Map.get(summary, "schema_contract") || Map.get(summary, :schema_contract)

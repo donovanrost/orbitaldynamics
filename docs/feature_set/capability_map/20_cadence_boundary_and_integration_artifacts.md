@@ -77,6 +77,11 @@ Status: **implemented** (with a **partial** semantic-depth area, plus **near-ter
   import row IDs from the same `cadence_import` quality-gate rows. Standalone
   analysis-only cadence-import rows are routed through explicit
   `analysis_only_quality_gate_row_ids` without making them import-ready.
+- CandidateRefresh accepts compact `operational_quality_gate_summary.v1`
+  handoffs as quality-gate source-report provenance from direct, accepted-state,
+  mission-state, and wrapped result-artifact inputs, preserving status,
+  classification, gate-ID, quality-gate-row-ID, and no-authority evidence
+  without replaying refresh generation or granting import authority.
 - Quality-gate operator-training summaries publish the validated `operational_quality_gate_operator_training_summary.v1` contract and expose role, training,
   certification, and qualification routing from `operator_training`
   quality-gate rows, including status/classification row IDs and explicit
