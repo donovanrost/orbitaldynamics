@@ -17463,6 +17463,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "review_command_result" => 1,
                "review_command_window" => 1
              },
+             "source_report_command_window_branch_local_command_window_pressure" => true,
+             "source_report_command_window_branch_local_command_feedback_pressure" => true,
+             "source_report_command_window_branch_local_command_window_action_pressure" => true,
              "source_reports" => %{
                "command_window_report" => %{
                  "row_count" => 3,
@@ -17577,7 +17580,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "none" => 1,
                "review_command_result" => 1,
                "review_command_window" => 1
-             }
+             },
+             "source_report_command_window_branch_local_command_window_pressure" => true,
+             "source_report_command_window_branch_local_command_feedback_pressure" => true,
+             "source_report_command_window_branch_local_command_window_action_pressure" => true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.command_window_replay_summary(artifact) == replay_summary

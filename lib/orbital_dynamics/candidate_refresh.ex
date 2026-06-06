@@ -6890,6 +6890,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_resource_filter_replay_summary_fields(source_reports))
     |> Map.merge(source_report_resource_projection_replay_summary_fields(source_reports))
     |> Map.merge(source_report_station_reservation_replay_summary_fields(source_reports))
+    |> Map.merge(source_report_command_window_replay_summary_fields(source_reports))
     |> Map.merge(
       source_report_timeline_publication_context_fields(
         source_reports,
@@ -9722,6 +9723,25 @@ defmodule OrbitalDynamics.CandidateRefresh do
     }
   end
 
+  defp source_report_command_window_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("command_window_report", %{})
+      |> command_window_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.command_window_report",
+        "command_window_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_command_window_branch_local_command_window_pressure" =>
+        Map.get(summary, "branch_local_command_window_pressure"),
+      "source_report_command_window_branch_local_command_feedback_pressure" =>
+        Map.get(summary, "branch_local_command_feedback_pressure"),
+      "source_report_command_window_branch_local_command_window_action_pressure" =>
+        Map.get(summary, "branch_local_command_window_action_pressure")
+    }
+  end
+
   @doc """
   Builds a compact branch-local storage/downlink pressure replay summary.
 
@@ -11076,6 +11096,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    command_window_replay_summary_from_summary(command_summary, summary_source, replay_scope)
+  end
+
+  defp command_window_replay_summary_from_summary(command_summary, summary_source, replay_scope) do
     command_feedback_count = summary_integer(command_summary, "command_feedback_count")
     input_keys = Map.get(command_summary, "input_keys", [])
     direction_counts = Map.get(command_summary, "direction_counts", %{})
