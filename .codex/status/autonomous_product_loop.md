@@ -4,7 +4,7 @@ Current slice:
 Expose CandidateRefresh timeline-feedback source-report schema property.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 CandidateRefresh timeline-feedback source summaries already preserve input keys,
 feedback/status/match-strategy/activity count maps, Cadence import status count
 maps, and station-reservation evidence row counts. Replay helpers already
@@ -54,9 +54,10 @@ Tests run:
   and generated-schema `jq` spot-checks. Noted non-blocking representative
   validation coverage is acceptable because all timeline-feedback count maps use
   the same schema and validation helpers.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-Pending for this slice.
+`13910f9fcd85b04adfb5ac15b176ae07d0a2f7b1` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending for this slice.
