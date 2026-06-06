@@ -1,58 +1,58 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Advertise provider-calendar provider ID routing in resource-flow summaries.
+Advertise provider-ID routing in storage/downlink replay summaries.
 
 Status:
-Implemented, verified, read-only reviewed, committed, and pushed.
+Implemented, focused-verified, read-only reviewed, committed, and pushed; broader
+CandidateRefresh test failure noted separately.
 
 What changed:
-`ResourceProjection.capabilities/0` now advertises provider-calendar provider ID
-routing for compact resource-flow pressure summaries. The primary
-`resource_projection_flow_summary.v1` fixture now carries
-`station_calendar_provider_id`, asserts
-`resource_pressure_station_calendar_provider_ids_by_type`, and validates stale
-provider-ID maps against row-derived values. The capability-map docs now mention
-provider IDs alongside provider-entry IDs for provider adapter pressure queues.
+CandidateRefresh capability metadata now names storage/downlink replay provider
+routing maps. CandidateRefresh capability tests pin the semantic, and both the
+spacecraft/payload capability map and candidate-refresh field-family docs now
+describe provider ID routing alongside provider-entry routing for storage/downlink
+pressure replay summaries.
 
 Why this slice:
-`ResourceProjection.flow_summary/1` already emits
-`resource_pressure_station_calendar_provider_ids_by_type` when pressured
-downlink flow rows carry `station_calendar_provider_id`, and the schema validates
-that map. The main compact resource-flow test and docs only pin provider-entry
-routing, so adapter queues have a weaker contract for provider namespace routing
-than for provider entry routing.
+CandidateRefresh storage/downlink pressure replay already preserves
+resource-projection provider-ID routing maps and treats them as branch-local
+downlink pressure, with tests covering the runtime behavior. The high-level docs
+still describe only provider-entry routing in the storage/downlink replay
+surface, and capability metadata does not name provider routing for that replay
+summary.
 
 Likely files:
-- `lib/orbital_dynamics/resource_projection.ex`
-- `test/orbital_dynamics/resource_projection_test.exs`
+- `lib/orbital_dynamics/candidate_refresh.ex`
+- `test/orbital_dynamics/candidate_refresh_test.exs`
 - `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`
+- `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Verification:
-- `mix test test/orbital_dynamics/resource_projection_test.exs:6 test/orbital_dynamics/resource_projection_test.exs:4664`
-- `mix test test/orbital_dynamics/resource_projection_test.exs`
-- `mix orbital_dynamics.schema.lint --all`
-- `mix format lib/orbital_dynamics/resource_projection.ex test/orbital_dynamics/resource_projection_test.exs --check-formatted`
-- `git diff --check`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:6 test/orbital_dynamics/candidate_refresh_test.exs:12710 test/orbital_dynamics/candidate_refresh_test.exs:13005` -> 2 passed, 682 excluded.
+- `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs --check-formatted` -> pass.
+- `git diff --check` -> pass.
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs` -> 682/684 passed; two failures at `test/orbital_dynamics/candidate_refresh_test.exs:51916` and `test/orbital_dynamics/candidate_refresh_test.exs:51990` both fail schema validation because `contact_allocation_report.status_blocked_contact_ids` does not match row-derived values. This appears outside the provider-ID replay advertising slice.
 
 Read-only review:
-Sidecar `019e9cac-a574-78e1-af4f-8f9c55502c68` reported no findings. It
-confirmed the capability semantic, provider-ID fixture evidence, row-derived
-stale-map validation, and docs were consistent. It also ran the focused
-resource-projection selectors and scoped `git diff --check` successfully.
+Sidecar `019e9cb3-1116-7c11-988e-72410ad8e709` reported no findings. It
+confirmed the semantic name is accurate, docs mention provider IDs alongside
+provider-entry IDs, existing replay tests cover both maps and provider-ID-only
+pressure, and the ledger accurately records the unrelated broader
+CandidateRefresh failures.
 
 Implementation commit:
-`3d7231772c1a60c54a5412d29a4a76d95f7676d6` pushed to `origin/main`.
+`e3592be8ca29c033be05c299740dc55c2b7c2338` pushed to `origin/main`.
 
 Last completed implementation commit:
-`3d7231772c1a60c54a5412d29a4a76d95f7676d6` pushed to `origin/main`.
+`e3592be8ca29c033be05c299740dc55c2b7c2338` pushed to `origin/main`.
 
 Last ledger correction commit:
-`620fb374cf595faa919bdf57da61eeec915f6739` pushed to `origin/main`.
+`ab57244704979e88d407e7f91cdd459f3e1c294b` pushed to `origin/main`.
 
 Next candidate:
-Continue the resource/communications allocation queue after this provider
-adapter routing contract is pinned.
+Continue the resource/communications allocation queue after this replay contract
+is advertised.
 
 Blocked:
 No.
