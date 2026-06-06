@@ -46,6 +46,7 @@ Status: **implemented** (with a **partial** semantic-depth area, plus **near-ter
 
 - `OrbitalDynamics.operational_import_eligibility/2` publishes the validated `operational_import_eligibility_summary.v1` no-write/no-authority eligibility summary with row-derived gate counts and the same non-passed gate evidence, for adapters that do not need the full report.
 - `OrbitalDynamics.operational_readiness_gate_summary/2` publishes the validated `operational_readiness_gate_summary.v1` contract with deterministic gate counts and gate-ID maps by status/classification for queue routing without granting import authority.
+- CandidateRefresh accepts direct, accepted-state, mission-state, and result-artifact-wrapped `operational_readiness_gate_summary.v1` handoffs as operational-readiness provenance, preserving source-summary identity, gate counts, status/classification maps, passed/review/analysis/blocked/non-passed gate IDs, wrapper-qualified paths, trust boundaries, and artifact-only no-import/no-write/no-operator-authority assumptions without reopening full readiness reports.
 - `OrbitalDynamics.operational_execution_boundary_summary/2` publishes the validated `operational_execution_boundary_summary.v1` contract over the readiness report's execution boundary as a compact handoff-only summary that:
   - derives gate counts from rows
   - preserves analysis-mode evidence
