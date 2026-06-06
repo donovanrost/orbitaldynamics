@@ -5,55 +5,63 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Candidate-refresh contact-intent replay branch summary routing.
+Candidate-refresh station-reservation replay branch summary routing.
 
 Status:
 Implemented, verified, reviewed, committed, and ready to push.
 
 Product commit:
-- `8cc9e44620e0dbc3b130f7936fc6e10aa3fdcdea` for candidate-refresh
-  contact-intent replay branch summary routing.
+- `2df94130bfe05bc722c92dd65be7ece207059ee6` for candidate-refresh
+  station-reservation replay branch summary routing.
 
 Completed slice:
-Expose composed contact-intent replay branch flags on
+Expose composed station-reservation replay branch flags on
 `CandidateRefresh.source_report_summary/1`.
 
 Why this slice:
 The public capability catalog advertises
-`source_report_contact_intent_branch_replay_summary`. The dedicated
-`contact_intent_replay_summary/1` helper already derives station-feedback,
-capacity-pack, and direction-scoped contact-intent branch pressure, but the
-main `source_report_summary/1` surface only exposes the underlying
-contact-intent maps. Adapter and operator-review callers should be able to
-inspect the composed contact-intent branch flags from the same source-report
-summary surface.
+`source_report_station_reservation_branch_replay_summary`. The dedicated
+`station_reservation_replay_summary/1` helper already derives reservation
+review, owner, expiration, hold, provider-contention, and import-readiness
+branch pressure, but the main `source_report_summary/1` surface only exposes
+the underlying station-reservation maps. Adapter and operator-review callers
+should be able to inspect composed station-reservation branch flags from the
+same source-report summary surface.
 
 Level 6 pillar:
 Branch-local candidate refresh depth and resource/contact allocation replay
 semantics.
 
 What changed:
-- `CandidateRefresh.source_report_summary/1` now exposes contact-intent
-  branch-local replay flags for overall contact-intent pressure,
-  station-feedback pressure, and capacity-pack pressure.
-- `contact_intent_replay_summary/1` now uses a private summary builder, so the
-  public replay helper and source-report summary fields share the same branch
-  pressure logic.
-- Candidate-refresh regression coverage proves the artifact-backed
-  source-report summary carries the composed contact-intent branch flags.
+What changed:
+- `CandidateRefresh.source_report_summary/1` now exposes station-reservation
+  branch-local replay flags for reservation review, owner, expiration, hold,
+  provider-contention, import-readiness, and overall station-reservation
+  pressure.
+- `station_reservation_replay_summary/1` now uses a private summary builder, so
+  the public replay helper and source-report summary fields share the same
+  branch pressure logic.
+- Candidate-refresh regression coverage proves the source-report summary
+  carries the composed station-reservation branch flags for both reservation
+  evidence and hold/import-readiness summary inputs.
 
 Verification:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:3000` passed, 1
-  test.
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:31600 test/orbital_dynamics/candidate_refresh_test.exs:32600`
+  passed, 2 tests.
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs test/orbital_dynamics/schema_test.exs`
   passed, 823 tests.
 - `git diff --check` passed.
-- `slice_reviewer` found no code correctness, recursion, or compile-risk issue.
+- `slice_reviewer` reran the focused station-reservation tests and found no
+  code correctness, recursion, or compile-risk issue.
 - No schema export was needed; the emitted `candidate_refresh.v1` artifact
   contract did not change.
 
 Recently completed slices:
-- `8cc9e44620e0dbc3b130f7936fc6e10aa3fdcdea` committed locally for
+- `2df94130bfe05bc722c92dd65be7ece207059ee6` committed locally for
+  candidate-refresh station-reservation replay branch summary routing.
+- `dd17e14c2597bb0ea21c4ef17c2e9a2797d1750f` pushed to `origin/main` for the
+  autonomous loop handoff after contact-intent replay summary routing.
+- `8cc9e44620e0dbc3b130f7936fc6e10aa3fdcdea` pushed to `origin/main` for
   candidate-refresh contact-intent replay branch summary routing.
 - `b601fe2fb7d8e0e4f10e7aa859d43e91583ad1ad` pushed to `origin/main` for the
   autonomous loop handoff after storage/downlink replay summary routing.
