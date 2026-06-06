@@ -12183,7 +12183,28 @@ defmodule OrbitalDynamics.CadenceImportTest do
                "exclusivity_review_timeline_ids" => [
                  "timeline:command:dss_14:10.0",
                  "timeline:downlink:12.0"
-               ]
+               ],
+               "source_timeline_integrity" => %{
+                 "activity_template" => %{
+                   "schema_contract" => "activity_template.v1",
+                   "id" => "template:command:basic",
+                   "activity_type" => "command"
+                 },
+                 "activity_context" => %{
+                   "activity_template" => %{
+                     "id" => "template:command:basic",
+                     "activity_type" => "command"
+                   }
+                 }
+               },
+               "source_review_row" => %{
+                 "source_timeline_integrity" => %{
+                   "activity_template" => %{
+                     "id" => "template:command:basic",
+                     "activity_type" => "command"
+                   }
+                 }
+               }
              }
            ] = manifest["rows"]
 
@@ -12825,7 +12846,14 @@ defmodule OrbitalDynamics.CadenceImportTest do
             :"timeline:health_gate"
           ],
           exclusive_with: [:dl_conflict],
-          exclusive_with_timeline_ids: [:"timeline:downlink:12.0"]
+          exclusive_with_timeline_ids: [:"timeline:downlink:12.0"],
+          activity_template: %{
+            "schema_contract" => "activity_template.v1",
+            "id" => "template:command:basic",
+            "activity_type" => "command",
+            "template_version" => 1,
+            "validation_level" => "artifact_contract"
+          }
         }
       ],
       source: "selected_activities"

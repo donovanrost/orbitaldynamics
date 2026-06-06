@@ -255,6 +255,23 @@ defmodule OrbitalDynamics.CapabilitiesTest do
              "timeline_integrity_status" => "review_required",
              "missing_dependency_activity_ids" => ["health_gate"],
              "dependency_review_activity_ids" => ["obs_template_transition"],
+             "rows" => [
+               %{
+                 "activity_template" => %{
+                   "schema_contract" => "activity_template.v1",
+                   "id" => "template:observe:basic",
+                   "activity_type" => "observe",
+                   "template_version" => 1,
+                   "validation_level" => "artifact_contract"
+                 },
+                 "activity_context" => %{
+                   "activity_template" => %{
+                     "id" => "template:observe:basic",
+                     "activity_type" => "observe"
+                   }
+                 }
+               }
+             ],
              "assumptions" => %{
                "execution_boundary" => "artifact_only_no_schedule_mutation"
              }

@@ -1,53 +1,54 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Allow template-instantiated activities to carry dependency/exclusivity context.
+Preserve activity-template provenance through timeline integrity handoffs.
 
 Status:
 Implemented, verified, and read-only reviewed.
 
 What changed:
-- Extended `OrbitalDynamics.activity_from_template/2` override validation to
-  allow canonical timeline dependency/exclusivity context fields:
-  `dependency_activity_ids`, `dependency_timeline_ids`,
-  `exclusive_with_activity_ids`, and `exclusive_with_timeline_ids`.
-- Kept unrelated undeclared top-level override rejection intact.
-- Extended the public template-instantiation test to prove dependency and
-  exclusivity arrays survive normalization into the output row and nested
-  `activity_context`.
-- Added coverage that a helper-produced row with missing dependency evidence
-  feeds `OrbitalDynamics.timeline_integrity_report/1` as
-  `timeline_integrity_report.v1` review evidence under the no-mutation boundary.
+- Added guarded `activity_template.v1` provenance preservation in
+  `OrbitalDynamics.Timeline` rows and durable `activity_context`.
+- Kept scalar or otherwise invalid `activity_template` values out of timeline
+  integrity rows and nested context.
+- Extended public activity-template helper coverage to prove helper-produced
+  dependency review rows keep template provenance.
+- Extended timeline integrity, operator-review, and Cadence-import tests to
+  prove the preserved provenance survives source-row handoffs.
 
 Verification:
-- `mix test test/orbital_dynamics/capabilities_test.exs` -> 6 passed.
-- Reviewer also ran
-  `mix test test/orbital_dynamics/capabilities_test.exs test/orbital_dynamics/timeline_test.exs:1263`
-  -> 7 passed, 124 excluded; review noted the timeline selector is unrelated
-  to this slice, so the behavioral coverage is the focused capabilities test.
-- Reviewer ran a read-only probe confirming all four canonical
-  dependency/exclusivity fields survive top-level normalization and nested
-  `activity_context`.
+- `mix test test/orbital_dynamics/capabilities_test.exs
+  test/orbital_dynamics/timeline_test.exs:3047
+  test/orbital_dynamics/operator_review_test.exs:3194
+  test/orbital_dynamics/cadence_import_test.exs:12119` -> 9 passed, 366
+  excluded.
+- `mix orbital_dynamics.schema.lint --all` -> 126 artifacts, status pass,
+  errors 0, warnings 0.
+- Runtime probe confirmed valid template provenance survives integrity,
+  operator-review, and Cadence-import handoffs while scalar `activity_template`
+  input is dropped.
+- `mix format ... --check-formatted` -> pass.
 - `git diff --check` -> pass.
 
 Read-only review:
-Sidecar `019e9c8b-3ea6-7d20-9531-1a679532f152` reported one low handoff
-accuracy issue; corrected by removing the unrelated timeline selector from the
-slice's primary verification list.
+Sidecar `019e9c93-1dc9-7d93-b660-e57e25ef2277` reported one medium issue and
+one low issue. The medium issue was fixed by replacing the blind context
+allowlist entry with a guarded `activity_template.v1` provenance normalizer and
+adding the scalar rejection regression. The low ledger-staleness issue was fixed
+by this handoff update.
 
 Implementation commit:
-`3481bb7a626503700fa4961a55a1beb8983c1a0e` pushed to `origin/main`.
+Pending.
 
 Last completed implementation commit:
 `3481bb7a626503700fa4961a55a1beb8983c1a0e` pushed to `origin/main`.
 
 Last ledger correction commit:
-`1995615e922f3728be7ec1a443fd880542a5ee15` pushed to `origin/main`.
+`053a6325179d24cc2bbd8645491b83afa4930f66` pushed to `origin/main`.
 
 Next candidate:
-Promote one more dependency/exclusivity integrity handoff if template-produced
-rows need operator-review or import coverage beyond the existing timeline
-integrity path.
+After this slice, re-check the activity-template chain for the next smallest
+schema-visible or operator-handoff gap.
 
 Blocked:
 No.

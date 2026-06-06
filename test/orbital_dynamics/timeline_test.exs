@@ -3130,6 +3130,22 @@ defmodule OrbitalDynamics.TimelineTest do
     assert {:ok, %{"schema_contract" => "timeline_integrity_report.v1"}} =
              Schema.validate_artifact(integrity_report)
 
+    invalid_template_report =
+      Timeline.integrity_report([
+        %{
+          id: :cmd_invalid_template,
+          type: :command,
+          starts_at_s: 10.0,
+          ends_at_s: 20.0,
+          dependency_activity_ids: [:missing_gate],
+          activity_template: "not-a-map"
+        }
+      ])
+
+    invalid_template_row = hd(invalid_template_report["rows"])
+    refute Map.has_key?(invalid_template_row, "activity_template")
+    refute Map.has_key?(invalid_template_row["activity_context"], "activity_template")
+
     stale_review_count = Map.put(integrity_report, "timeline_integrity_review_count", 99)
 
     assert {:error, stale_review_count_validation} =

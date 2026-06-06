@@ -2819,6 +2819,7 @@ defmodule OrbitalDynamics.Timeline do
       "activity_type" => Map.get(activity, "type"),
       "status" => activity_status(activity),
       "approval_status" => activity_approval_status(activity),
+      "activity_template" => activity_template_provenance(activity),
       "locked" => activity_locked?(activity),
       "allow_overlap" => activity_allow_overlap(activity),
       "operational_kind" => operational_kind,
@@ -3086,8 +3087,38 @@ defmodule OrbitalDynamics.Timeline do
     |> Map.merge(activity_command_window_context(activity))
     |> Map.merge(station_calendar_context(activity))
     |> Map.merge(activity_dependency_context(activity))
+    |> Map.merge(activity_template_context(activity))
     |> Map.put("timeline_identity", valid_timeline_identity(activity))
   end
+
+  defp activity_template_context(activity) do
+    case activity_template_provenance(activity) do
+      nil -> %{}
+      provenance -> %{"activity_template" => provenance}
+    end
+  end
+
+  defp activity_template_provenance(%{"activity_template" => %{} = template}) do
+    template = stringify_keys(template)
+
+    if template["schema_contract"] == "activity_template.v1" and
+         is_binary(template["id"]) and
+         is_binary(template["activity_type"]) do
+      template
+      |> Map.take([
+        "schema_contract",
+        "id",
+        "activity_type",
+        "template_version",
+        "validation_level",
+        "known_limits",
+        "assumptions"
+      ])
+      |> compact_map()
+    end
+  end
+
+  defp activity_template_provenance(_activity), do: nil
 
   defp activity_lifecycle_context(activity) do
     %{}
