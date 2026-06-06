@@ -4,7 +4,7 @@ Current slice:
 Expose contact-contention conflict-group scope schemas.
 
 Status:
-Implemented, locally verified, and read-only reviewed clean; pending publish.
+Implemented, locally verified, read-only reviewed clean, committed, and pushed.
 
 Discovery:
 Broad fixture/schema visibility discovery now reports no missing top-level,
@@ -45,7 +45,7 @@ Definition of done:
 - [x] Focused schema tests, schema export tests, schema lint, generated-schema
   spot-checks, and whitespace checks pass.
 - [x] Read-only review finds no must-fix issues.
-- [ ] Slice-owned files only are committed and pushed.
+- [x] Slice-owned files only are committed and pushed.
 
 Tests run:
 - `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
@@ -65,10 +65,10 @@ Tests run:
   and a `jq -e` generated-schema spot-check, and reported no must-fix findings.
 
 Last completed implementation commit:
-`efc3bf3f31dbb7d77354aae57d41018ebee864b4` pushed to `origin/main`.
+`a254c0539f64a49ba06a25d6458d4bd35f95d3b8` pushed to `origin/main`.
 
 Last ledger correction commit:
-`29e3cf00966164bd24b3b0aa5b00ef7505bac218` pushed to `origin/main`.
+Pending this ledger-only correction.
 
 Next candidate:
 After this slice, inspect the larger `resource_projection_report.v1`
