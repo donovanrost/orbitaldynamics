@@ -8,7 +8,7 @@ Current slice:
 ResourceSummary roll-forward pressure direction/capacity map coverage.
 
 Status:
-Implemented and focused verification passed; commit/push pending.
+Implemented, verified, committed, and pushed.
 
 Files changed:
 - `lib/orbital_dynamics/resource_summary.ex`
@@ -38,6 +38,10 @@ Level 6 pillar advanced:
 Resource and communications allocation semantics: ResourceSummary facade users
 now have explicit capability metadata and regression coverage for the same
 provider/station pressure routing checks as direct ResourceProjection users.
+
+Last commit:
+- `9e27799442f082ce4d52cbc1da957a635d4f0934` pushed to `origin/main` for
+  ResourceSummary roll-forward pressure direction/capacity map coverage.
 
 Recently completed slices:
 - `b2e3e85062d95f0479f055289cfa97918685832e` pushed to `origin/main` for
