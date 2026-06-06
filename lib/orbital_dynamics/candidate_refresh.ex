@@ -6895,6 +6895,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_constraint_replay_summary_fields(source_reports))
     |> Map.merge(source_report_objective_gap_replay_summary_fields(source_reports))
     |> Map.merge(source_report_timeline_feedback_replay_summary_fields(source_reports))
+    |> Map.merge(source_report_operational_timeline_replay_summary_fields(source_reports))
     |> Map.merge(
       source_report_timeline_publication_context_fields(
         source_reports,
@@ -9837,6 +9838,29 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "source_report_timeline_feedback_branch_local_import_review_pressure" =>
         Map.get(summary, "branch_local_import_review_pressure"),
       "source_report_timeline_feedback_branch_local_station_reservation_pressure" =>
+        Map.get(summary, "branch_local_station_reservation_pressure")
+    }
+  end
+
+  defp source_report_operational_timeline_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("operational_timeline_report", %{})
+      |> operational_timeline_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.operational_timeline_report",
+        "operational_timeline_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_operational_timeline_branch_local_operational_timeline_pressure" =>
+        Map.get(summary, "branch_local_operational_timeline_pressure"),
+      "source_report_operational_timeline_branch_local_feedback_pressure" =>
+        Map.get(summary, "branch_local_feedback_pressure"),
+      "source_report_operational_timeline_branch_local_activity_routing_pressure" =>
+        Map.get(summary, "branch_local_activity_routing_pressure"),
+      "source_report_operational_timeline_branch_local_integrity_pressure" =>
+        Map.get(summary, "branch_local_integrity_pressure"),
+      "source_report_operational_timeline_branch_local_station_reservation_pressure" =>
         Map.get(summary, "branch_local_station_reservation_pressure")
     }
   end
@@ -13948,6 +13972,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    operational_timeline_replay_summary_from_summary(
+      timeline_summary,
+      summary_source,
+      replay_scope
+    )
+  end
+
+  defp operational_timeline_replay_summary_from_summary(
+         timeline_summary,
+         summary_source,
+         replay_scope
+       ) do
     contact_count = summary_integer(timeline_summary, "contact_feedback_count")
     command_count = summary_integer(timeline_summary, "command_feedback_count")
     maneuver_count = summary_integer(timeline_summary, "maneuver_feedback_count")

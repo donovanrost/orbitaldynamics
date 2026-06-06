@@ -34877,6 +34877,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_operational_timeline_cadence_import_status_counts" => %{
                "missing" => 1
              },
+             "source_report_operational_timeline_branch_local_operational_timeline_pressure" =>
+               true,
+             "source_report_operational_timeline_branch_local_feedback_pressure" => true,
+             "source_report_operational_timeline_branch_local_activity_routing_pressure" => true,
+             "source_report_operational_timeline_branch_local_integrity_pressure" => false,
+             "source_report_operational_timeline_branch_local_station_reservation_pressure" =>
+               true,
              "source_reports" => %{
                "operational_timeline_report" => %{
                  "row_count" => 1,
@@ -34986,7 +34993,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              },
              "source_report_operational_timeline_cadence_import_status_counts" => %{
                "missing" => 1
-             }
+             },
+             "source_report_operational_timeline_branch_local_operational_timeline_pressure" =>
+               true,
+             "source_report_operational_timeline_branch_local_feedback_pressure" => true,
+             "source_report_operational_timeline_branch_local_activity_routing_pressure" => true,
+             "source_report_operational_timeline_branch_local_integrity_pressure" => false,
+             "source_report_operational_timeline_branch_local_station_reservation_pressure" =>
+               true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.operational_timeline_replay_summary(artifact) == replay_summary
