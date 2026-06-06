@@ -2949,6 +2949,7 @@ defmodule OrbitalDynamics.OperatorReview do
     |> Enum.with_index(1)
     |> Enum.map(fn {row, index} ->
       contact_id = row["contact_id"]
+      required_operator_action = contact_allocation_required_operator_action(row)
       requirement = row["approval_requirements"] |> first_map() |> stringify_keys()
       rule_match = row["approval_rule_matches"] |> first_map() |> stringify_keys()
       policy_decision = stringify_keys(row["policy_decision"] || %{})
@@ -3113,8 +3114,8 @@ defmodule OrbitalDynamics.OperatorReview do
         "mode_match_status" => row["mode_match_status"],
         "incompatible_activity_types" => row["incompatible_activity_types"],
         "suppressed_activity_types" => row["suppressed_activity_types"],
-        "action" => "review_contact_allocation",
-        "required_operator_action" => "review_contact_allocation",
+        "action" => required_operator_action,
+        "required_operator_action" => required_operator_action,
         "approval_status" => row["approval_status"] || "operator_review_required",
         "reason" => contact_allocation_reason(row),
         "requirement_type" => requirement["requirement_type"],
@@ -3150,6 +3151,13 @@ defmodule OrbitalDynamics.OperatorReview do
       |> compact_map()
     end)
   end
+
+  defp contact_allocation_required_operator_action(%{
+         "provider_reservation_request_status" => "request_ready"
+       }),
+       do: "review_provider_reservation_request"
+
+  defp contact_allocation_required_operator_action(_row), do: "review_contact_allocation"
 
   defp contact_allocation_reason(%{
          "allocation_status" => status,

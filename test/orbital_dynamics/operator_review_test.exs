@@ -14839,7 +14839,10 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              "source_artifact_id" => "refresh:provider_reservation_handoff",
              "review_count" => 2,
              "contact_allocation_review_count" => 2,
-             "required_operator_action_counts" => %{"review_contact_allocation" => 2},
+             "required_operator_action_counts" => %{
+               "review_contact_allocation" => 1,
+               "review_provider_reservation_request" => 1
+             },
              "provider_reservation_candidate_contact_count" => 2,
              "provider_reservation_request_contact_count" => 1,
              "provider_reservation_review_contact_count" => 1,
@@ -14890,6 +14893,8 @@ defmodule OrbitalDynamics.OperatorReviewTest do
     review_row = Enum.find(package["rows"], &(&1["contact_id"] == "dl_review_overlap"))
 
     assert %{
+             "action" => "review_provider_reservation_request",
+             "required_operator_action" => "review_provider_reservation_request",
              "review_type" => "contact_allocation_review",
              "source" =>
                "candidate_refresh.source_contact_allocation_provider_reservation_request_summary.provider_reservation_request_rows",
@@ -14917,6 +14922,8 @@ defmodule OrbitalDynamics.OperatorReviewTest do
            } = request_row
 
     assert %{
+             "action" => "review_contact_allocation",
+             "required_operator_action" => "review_contact_allocation",
              "review_type" => "contact_allocation_review",
              "contact_id" => "dl_review_overlap",
              "station_reservation_id" => "reservation_review",

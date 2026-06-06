@@ -112,6 +112,12 @@ source and repaired allocation reports before review/import
 handoff. Allocation row validation now also checks provider-calendar direction
 lists, provenance object shape, and ambiguous-entry ID/count evidence directly
 instead of leaving those review-driving fields as untyped extensions.
+Provider-reservation request summaries route `request_ready` rows through
+`review_provider_reservation_request` operator-review and Cadence-import
+actions, while `review_required` overlap rows remain on the generic
+`review_contact_allocation` queue. The handoff stays review-only: the summary
+does not execute provider reservations, grant operator authority, or mutate the
+schedule.
 Allocation rows also preserve downlink-completion evidence from the contact row
 or nested `throughput_model` / `activity_context`: `required_downlink_mb`,
 `candidate_downlink_mb`, `downlink_completion_ratio`,

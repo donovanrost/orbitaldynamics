@@ -327,6 +327,7 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
     assert :contact_allocation_reservation_conflict_status_values in row_semantics
     assert :contact_allocation_provider_reservation_request_summary in row_semantics
     assert :contact_allocation_provider_reservation_request_status_values in row_semantics
+    assert :contact_allocation_provider_reservation_request_review_handoff in row_semantics
     assert :station_reservation_expiration_status_values in row_semantics
     assert :contact_allocation_summary_direct_station_availability_routing in row_semantics
     assert :contact_allocation_summary_required_capacity_source_routing in row_semantics
@@ -363,7 +364,8 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
 
     assert handoff_import_actions == [
              "review_contact_allocation",
-             "review_contact_allocation_capacity_pack"
+             "review_contact_allocation_capacity_pack",
+             "review_provider_reservation_request"
            ]
 
     assert OrbitalDynamics.capability_catalog().operations.contact_allocation.public_facades ==
@@ -2645,6 +2647,61 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
     assert ContactAllocation.provider_reservation_request_summary(contacts, ground_network,
              source: "unit_test.provider_reservation_request_summary"
            ) == summary
+
+    candidate_refresh = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "contact_allocation_provider_reservation_request_summary" => summary
+    }
+
+    review = OrbitalDynamics.operator_review_package(candidate_refresh)
+
+    assert %{
+             "action" => "review_provider_reservation_request",
+             "required_operator_action" => "review_provider_reservation_request",
+             "provider_reservation_request_status" => "request_ready",
+             "provider_reservation_request_execution_boundary" =>
+               "artifact_only_no_provider_reservation_or_schedule_mutation",
+             "provider_reservation_execution" => "not_performed_by_summary"
+           } =
+             Enum.find(
+               review["rows"],
+               &(&1["contact_id"] == "dl_reserved_owner" and
+                   &1["review_type"] == "contact_allocation_review")
+             )
+
+    assert %{
+             "action" => "review_contact_allocation",
+             "required_operator_action" => "review_contact_allocation",
+             "provider_reservation_request_status" => "review_required"
+           } =
+             Enum.find(
+               review["rows"],
+               &(&1["contact_id"] == "dl_review_overlap" and
+                   &1["review_type"] == "contact_allocation_review")
+             )
+
+    manifest = OrbitalDynamics.cadence_import_manifest(candidate_refresh)
+
+    assert %{
+             "import_action" => "review_provider_reservation_request",
+             "provider_reservation_request_status" => "request_ready",
+             "provider_reservation_execution" => "not_performed_by_summary"
+           } =
+             Enum.find(
+               manifest["rows"],
+               &(&1["contact_id"] == "dl_reserved_owner" and
+                   &1["source_review_type"] == "contact_allocation_review")
+             )
+
+    assert %{
+             "import_action" => "review_contact_allocation",
+             "provider_reservation_request_status" => "review_required"
+           } =
+             Enum.find(
+               manifest["rows"],
+               &(&1["contact_id"] == "dl_review_overlap" and
+                   &1["source_review_type"] == "contact_allocation_review")
+             )
 
     request_ready_summary =
       ContactAllocation.provider_reservation_request_summary(%{

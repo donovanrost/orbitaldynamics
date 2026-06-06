@@ -156,6 +156,7 @@ defmodule OrbitalDynamics.CadenceImport do
         "review_link_capacity",
         "review_contact_allocation",
         "review_contact_allocation_capacity_pack",
+        "review_provider_reservation_request",
         "review_contact_intent",
         "review_candidate_rejection",
         "review_provider_counteroffer",
@@ -3953,11 +3954,12 @@ defmodule OrbitalDynamics.CadenceImport do
   defp contact_allocation_manifest_row(row, rank) do
     approval_status = Map.get(row, "approval_status", "operator_review_required")
     import_status = Map.get(row, "cadence_import_status", "present")
+    import_action = contact_allocation_import_action(row)
 
     %{
       "id" => "cadence_import:contact_allocation:#{row["id"] || rank}",
       "rank" => rank,
-      "import_action" => "review_contact_allocation",
+      "import_action" => import_action,
       "import_status" => adapter_import_status(import_status, approval_status),
       "import_side" => "source",
       "source_review_row_id" => row["id"],
@@ -4154,6 +4156,13 @@ defmodule OrbitalDynamics.CadenceImport do
     }
     |> compact_map()
   end
+
+  defp contact_allocation_import_action(%{
+         "provider_reservation_request_status" => "request_ready"
+       }),
+       do: "review_provider_reservation_request"
+
+  defp contact_allocation_import_action(_row), do: "review_contact_allocation"
 
   defp contact_intent_manifest_row(row, rank) do
     approval_status = Map.get(row, "approval_status", "operator_review_required")

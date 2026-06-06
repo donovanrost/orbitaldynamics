@@ -293,7 +293,8 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
       ],
       handoff_import_actions: [
         "review_contact_allocation",
-        "review_contact_allocation_capacity_pack"
+        "review_contact_allocation_capacity_pack",
+        "review_provider_reservation_request"
       ],
       row_semantics: [
         :invalid_contact_input_review,
@@ -367,6 +368,7 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
         :contact_allocation_reservation_conflict_status_values,
         :contact_allocation_provider_reservation_request_summary,
         :contact_allocation_provider_reservation_request_status_values,
+        :contact_allocation_provider_reservation_request_review_handoff,
         :station_reservation_expiration_status_values,
         :contact_allocation_summary_direct_station_availability_routing,
         :contact_allocation_summary_required_capacity_source_routing,

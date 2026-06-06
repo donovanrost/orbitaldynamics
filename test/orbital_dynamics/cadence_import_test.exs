@@ -96,6 +96,7 @@ defmodule OrbitalDynamics.CadenceImportTest do
     assert "review_station_reservation" in import_actions
     assert "review_link_capacity" in import_actions
     assert "review_contact_allocation" in import_actions
+    assert "review_provider_reservation_request" in import_actions
     assert "review_contact_intent" in import_actions
     assert "review_candidate_rejection" in import_actions
     assert "review_provider_counteroffer" in import_actions
@@ -2087,7 +2088,10 @@ defmodule OrbitalDynamics.CadenceImportTest do
              "source_artifact_id" => "refresh:provider_reservation_handoff",
              "row_count" => 2,
              "review_required_count" => 2,
-             "import_action_counts" => %{"review_contact_allocation" => 2},
+             "import_action_counts" => %{
+               "review_contact_allocation" => 1,
+               "review_provider_reservation_request" => 1
+             },
              "provider_reservation_candidate_contact_count" => 2,
              "provider_reservation_request_contact_count" => 1,
              "provider_reservation_review_contact_count" => 1,
@@ -2138,8 +2142,9 @@ defmodule OrbitalDynamics.CadenceImportTest do
     review_row = Enum.find(manifest["rows"], &(&1["contact_id"] == "dl_review_overlap"))
 
     assert %{
-             "import_action" => "review_contact_allocation",
+             "import_action" => "review_provider_reservation_request",
              "source_review_type" => "contact_allocation_review",
+             "source_review_action" => "review_provider_reservation_request",
              "contact_id" => "dl_reserved_owner",
              "station_reservation_id" => "reservation_1",
              "station_reservation_match_status" => "matched",
