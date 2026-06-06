@@ -8,7 +8,11 @@ Current slice:
 Candidate-refresh contact-allocation replay branch summary routing.
 
 Status:
-Implemented, verified, reviewed, and ready to commit/push.
+Implemented, verified, reviewed, committed, and ready to push.
+
+Product commit:
+- `6f18750` for candidate-refresh contact-allocation replay branch summary
+  routing.
 
 Completed slice:
 Expose composed contact-allocation replay branch flags on
@@ -53,6 +57,8 @@ Verification:
   contract did not change.
 
 Recently completed slices:
+- `6f18750` committed locally for candidate-refresh contact-allocation replay
+  branch summary routing.
 - `e1c7132f4d628f2a39a78bb77ee0e2da4179390a` pushed to `origin/main` for the
   autonomous loop handoff after station-reservation replay summary routing.
 - `2df94130bfe05bc722c92dd65be7ece207059ee6` pushed to `origin/main` for
