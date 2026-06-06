@@ -6883,6 +6883,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       }
     }
     |> Map.merge(source_report_storage_downlink_pressure_summary_fields(source_reports))
+    |> Map.merge(source_report_contact_allocation_replay_summary_fields(source_reports))
     |> Map.merge(source_report_contact_intent_replay_summary_fields(source_reports))
     |> Map.merge(source_report_station_reservation_replay_summary_fields(source_reports))
     |> Map.merge(
@@ -7707,6 +7708,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    contact_allocation_replay_summary_from_summary(
+      allocation_summary,
+      summary_source,
+      replay_scope
+    )
+  end
+
+  defp contact_allocation_replay_summary_from_summary(
+         allocation_summary,
+         summary_source,
+         replay_scope
+       ) do
     blocked_row_count = summary_integer(allocation_summary, "blocked_row_count")
     deferred_row_count = summary_integer(allocation_summary, "deferred_row_count")
 
@@ -9526,6 +9539,35 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "branch_local_station_feedback_pressure"),
       "source_report_contact_intent_branch_local_capacity_pack_pressure" =>
         Map.get(summary, "branch_local_capacity_pack_pressure")
+    }
+  end
+
+  defp source_report_contact_allocation_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("contact_allocation_report", %{})
+      |> contact_allocation_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.contact_allocation_report",
+        "contact_allocation_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_contact_allocation_branch_local_contact_allocation_pressure" =>
+        Map.get(summary, "branch_local_contact_allocation_pressure"),
+      "source_report_contact_allocation_branch_local_blocked_allocation_pressure" =>
+        Map.get(summary, "branch_local_blocked_allocation_pressure"),
+      "source_report_contact_allocation_branch_local_deferred_allocation_pressure" =>
+        Map.get(summary, "branch_local_deferred_allocation_pressure"),
+      "source_report_contact_allocation_branch_local_station_pressure" =>
+        Map.get(summary, "branch_local_station_pressure"),
+      "source_report_contact_allocation_branch_local_capacity_pack_pressure" =>
+        Map.get(summary, "branch_local_capacity_pack_pressure"),
+      "source_report_contact_allocation_branch_local_reservation_conflict_pressure" =>
+        Map.get(summary, "branch_local_reservation_conflict_pressure"),
+      "source_report_contact_allocation_branch_local_station_reservation_pressure" =>
+        Map.get(summary, "branch_local_station_reservation_pressure"),
+      "source_report_contact_allocation_branch_local_provider_reservation_request_pressure" =>
+        Map.get(summary, "branch_local_provider_reservation_request_pressure")
     }
   end
 

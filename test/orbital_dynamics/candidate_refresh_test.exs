@@ -6746,7 +6746,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_contact_allocation_station_pressure_review_contact_count" => 1,
              "source_report_contact_allocation_station_pressure_review_contact_ids" => [
                "station_pressure_contact"
-             ]
+             ],
+             "source_report_contact_allocation_branch_local_contact_allocation_pressure" => true,
+             "source_report_contact_allocation_branch_local_blocked_allocation_pressure" => true,
+             "source_report_contact_allocation_branch_local_deferred_allocation_pressure" => true,
+             "source_report_contact_allocation_branch_local_station_pressure" => true,
+             "source_report_contact_allocation_branch_local_capacity_pack_pressure" => true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.contact_allocation_replay_summary(artifact) == replay_summary
@@ -6900,6 +6905,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                %{"matched" => ["reservation_1"]},
              "source_report_contact_allocation_provider_reservation_review_ids_by_match_status" =>
                %{"overlap" => ["reservation_review"]},
+             "source_report_contact_allocation_branch_local_contact_allocation_pressure" => true,
+             "source_report_contact_allocation_branch_local_station_pressure" => true,
+             "source_report_contact_allocation_branch_local_reservation_conflict_pressure" =>
+               true,
+             "source_report_contact_allocation_branch_local_provider_reservation_request_pressure" =>
+               true,
              "source_reports" => %{
                "contact_allocation_report" => %{
                  "paths" => [
@@ -7142,6 +7153,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "allocated" => 1,
                "deferred" => 1
              },
+             "source_report_contact_allocation_branch_local_contact_allocation_pressure" => true,
+             "source_report_contact_allocation_branch_local_deferred_allocation_pressure" => true,
              "source_reports" => %{
                "contact_allocation_report" => %{
                  "paths" => ["source_contact_allocation_summary"],
@@ -7447,6 +7460,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "matched" => 1,
                "overlap" => 1
              },
+             "source_report_contact_allocation_branch_local_reservation_conflict_pressure" =>
+               true,
+             "source_report_contact_allocation_branch_local_station_reservation_pressure" => true,
              "source_reports" => %{
                "contact_allocation_report" => %{
                  "paths" => ["source_contact_allocation_reservation_conflict_summary"],
