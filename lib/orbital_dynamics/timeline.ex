@@ -5303,6 +5303,22 @@ defmodule OrbitalDynamics.Timeline do
   """
   def preservation_report(activities, opts \\ [])
 
+  def preservation_report(
+        %{"schema_contract" => @preservation_report_schema_contract} = preservation_report,
+        _opts
+      ) do
+    preservation_report
+  end
+
+  def preservation_report(
+        %{schema_contract: @preservation_report_schema_contract} = preservation_report,
+        opts
+      ) do
+    preservation_report
+    |> stringify_keys()
+    |> preservation_report(opts)
+  end
+
   def preservation_report(activities, opts) when is_list(activities) do
     source = opts |> Keyword.get(:source, "timeline.activities") |> to_string()
 

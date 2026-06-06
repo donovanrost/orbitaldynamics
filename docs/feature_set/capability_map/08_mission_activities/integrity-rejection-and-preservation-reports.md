@@ -101,6 +101,9 @@ It does this without mutating schedules or executing commands. Unmatched planned
 - Preserve, review-change, mutable, preservation-sensitive, and protection-category-keyed activity/timeline ID sets derived from the report rows.
 
 `Timeline.capabilities/0` advertises the preservation status/count, protection count, and category ID-set row semantics.
+Existing `timeline_preservation_report.v1` artifacts are accepted as
+idempotent inputs by the preservation-report facade when downstream queues
+already hold the standalone preservation artifact.
 
 ## Transition application summary
 

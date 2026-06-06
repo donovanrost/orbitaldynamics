@@ -5,10 +5,10 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Accept existing timeline integrity reports idempotently.
+Accept existing timeline preservation reports idempotently.
 
 Status:
-Implemented, verified, committed, and pushed.
+Implemented and verified; commit/push pending.
 
 Completed slices:
 - Prompt/guide continuation semantics committed as
@@ -35,14 +35,14 @@ Files changed:
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/timeline_test.exs:3020`
+- `mix test test/orbital_dynamics/timeline_test.exs:5320`
   -> 1 passed, 124 excluded.
 - `mix test test/orbital_dynamics/timeline_test.exs` -> 125 passed.
 - `mix test` -> 3006 passed.
 
 Docs/artifacts changed:
-- Documented idempotent `timeline_integrity_report.v1` handoff input behavior
-  for downstream queues that already hold standalone integrity artifacts.
+- Documented idempotent `timeline_preservation_report.v1` handoff input behavior
+  for downstream queues that already hold standalone preservation artifacts.
 
 Level 6 pillar advanced:
 Approval-aware automation boundaries and durable artifact handoff behavior.
@@ -53,8 +53,8 @@ Remaining maturity gaps:
   the guide toward Level 6 maturity.
 
 Last commit:
-- `6f779edbc331ba24476663c3753471192df7ccef` pushed to `origin/main`
-  for timeline integrity report idempotent handoff behavior.
+- `c1f39a1bb5683617ce61ce6dc80b54017f05147e` pushed to `origin/main`
+  for the integrity-handoff ledger correction.
 
 Next candidate:
 Select the next live maturity gap from the guide/roadmap and current test
