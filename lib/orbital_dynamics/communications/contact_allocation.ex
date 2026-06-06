@@ -585,8 +585,8 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
         "invalid_contact_input_count" => length(invalid_contact_inputs),
         "invalid_contact_input_ids" =>
           Enum.map(invalid_contact_rows(invalid_contact_inputs), & &1["contact_id"]),
-        "status_blocked_contact_count" => length(status_blocked_contacts),
-        "status_blocked_contact_ids" => Enum.map(status_blocked_contacts, &contact_id/1),
+        "status_blocked_contact_count" => status_blocked_allocation_count(allocation_rows),
+        "status_blocked_contact_ids" => status_blocked_allocation_ids(allocation_rows),
         "resource_blocked_contact_count" => resource_blocked_contact_count(allocation_rows),
         "resource_blocked_contact_ids" => resource_blocked_contact_ids(allocation_rows),
         "resource_blocking_dimension_counts" =>

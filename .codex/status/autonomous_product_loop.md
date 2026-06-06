@@ -1,58 +1,62 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Advertise provider-ID routing in storage/downlink replay summaries.
+Repair CandidateRefresh status-blocked contact ID validation.
 
 Status:
-Implemented, focused-verified, read-only reviewed, committed, and pushed; broader
-CandidateRefresh test failure noted separately.
+Implemented, verified, read-only reviewed; ready to commit and push.
 
 What changed:
-CandidateRefresh capability metadata now names storage/downlink replay provider
-routing maps. CandidateRefresh capability tests pin the semantic, and both the
-spacecraft/payload capability map and candidate-refresh field-family docs now
-describe provider ID routing alongside provider-entry routing for storage/downlink
-pressure replay summaries.
+ContactAllocation now derives primary
+`contact_allocation_report.status_blocked_contact_count` and
+`status_blocked_contact_ids` from final allocation rows using the same
+status-blocked predicate used by artifact-only summaries and schema validation.
+This keeps aggregate status-blocked fields aligned when station availability
+precedence changes a pre-allocation policy/status-blocked contact into a
+station-unavailable allocation row. ContactAllocation tests now cover that
+station-availability precedence case, and an older aggregate assertion now uses
+the normalized row-derived ID order.
 
 Why this slice:
-CandidateRefresh storage/downlink pressure replay already preserves
-resource-projection provider-ID routing maps and treats them as branch-local
-downlink pressure, with tests covering the runtime behavior. The high-level docs
-still describe only provider-entry routing in the storage/downlink replay
-surface, and capability metadata does not name provider routing for that replay
-summary.
+The full CandidateRefresh test run exposed two deterministic schema-validation
+failures in station-unavailable and maintenance refresh cases. In both cases the
+generated `contact_allocation_report.status_blocked_contact_ids` disagreed with
+the row-derived status-blocked contact IDs, so CandidateRefresh artifacts could
+emit blocked rows that failed their embedded contact-allocation contract.
 
-Likely files:
-- `lib/orbital_dynamics/candidate_refresh.ex`
-- `test/orbital_dynamics/candidate_refresh_test.exs`
-- `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`
-- `docs/artifacts/field_families/candidate_refresh_artifact.md`
+Files changed:
+- `lib/orbital_dynamics/communications/contact_allocation.ex`
+- `test/orbital_dynamics/communications/contact_allocation_test.exs`
+- `.codex/status/autonomous_product_loop.md`
 
 Verification:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:6 test/orbital_dynamics/candidate_refresh_test.exs:12710 test/orbital_dynamics/candidate_refresh_test.exs:13005` -> 2 passed, 682 excluded.
-- `mix format lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs --check-formatted` -> pass.
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:51916 test/orbital_dynamics/candidate_refresh_test.exs:51990` -> 2 passed, 682 excluded.
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs` -> 684 passed.
+- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs:4225` -> 1 passed, 65 excluded.
+- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs` -> 66 passed.
+- `mix format lib/orbital_dynamics/communications/contact_allocation.ex test/orbital_dynamics/communications/contact_allocation_test.exs --check-formatted` -> pass.
 - `git diff --check` -> pass.
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs` -> 682/684 passed; two failures at `test/orbital_dynamics/candidate_refresh_test.exs:51916` and `test/orbital_dynamics/candidate_refresh_test.exs:51990` both fail schema validation because `contact_allocation_report.status_blocked_contact_ids` does not match row-derived values. This appears outside the provider-ID replay advertising slice.
+- `mix orbital_dynamics.schema.lint --all` -> pass.
 
 Read-only review:
-Sidecar `019e9cb3-1116-7c11-988e-72410ad8e709` reported no findings. It
-confirmed the semantic name is accurate, docs mention provider IDs alongside
-provider-entry IDs, existing replay tests cover both maps and provider-ID-only
-pressure, and the ledger accurately records the unrelated broader
-CandidateRefresh failures.
+Sidecar `019e9cba-7a1a-79a1-9796-07068b2358b0` reported no code/test findings.
+It confirmed the implementation derives the primary report's status-blocked
+count/IDs from the same final-row predicate used by summaries and schema
+validation, and that the added regression covers the station availability
+precedence case. Its only finding was to refresh this ledger after verification.
 
 Implementation commit:
-`e3592be8ca29c033be05c299740dc55c2b7c2338` pushed to `origin/main`.
+Pending.
 
 Last completed implementation commit:
 `e3592be8ca29c033be05c299740dc55c2b7c2338` pushed to `origin/main`.
 
 Last ledger correction commit:
-`d979c68e567c1f7fa5541a7eeeacda9a571bfb09` pushed to `origin/main`.
+`f13513ee17764cc85907bdae5b90c4639ce7d512` pushed to `origin/main`.
 
 Next candidate:
-Continue the resource/communications allocation queue after this replay contract
-is advertised.
+Continue the resource/communications allocation queue after this validation
+repair is committed and pushed.
 
 Blocked:
 No.

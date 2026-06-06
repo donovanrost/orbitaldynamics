@@ -4176,6 +4176,52 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
            )
   end
 
+  test "status-blocked aggregates follow final row reasons after station availability precedence" do
+    contacts = [
+      contact(:dl_policy_blocked_unavailable,
+        metadata: %{approval_status: :blocked_by_policy}
+      )
+    ]
+
+    ground_network = [
+      %{
+        ground_station_id: :equator_prime,
+        status: :unavailable,
+        starts_at_s: 90.0,
+        ends_at_s: 170.0
+      }
+    ]
+
+    {_allocated, report} =
+      ContactAllocation.allocate_contacts(contacts, ground_network,
+        source: "unit_test.status_aggregate_station_precedence",
+        approval_policy: %{policy_bundle_id: "ground_network_allocation_v1"}
+      )
+
+    assert %{
+             "blocked_contact_count" => 1,
+             "status_blocked_contact_count" => 0,
+             "status_blocked_contact_ids" => [],
+             "rows" => [
+               %{
+                 "contact_id" => "dl_policy_blocked_unavailable",
+                 "allocation_status" => "blocked",
+                 "allocation_reason" => "ground_station_unavailable",
+                 "station_availability" => "unavailable",
+                 "source_approval_status" => "blocked_by_policy"
+               }
+             ]
+           } = report
+
+    assert {:ok, %{"schema_contract" => "contact_allocation_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert %{
+             "status_blocked_contact_count" => 0,
+             "status_blocked_contact_ids" => []
+           } = ContactAllocation.summary(report)
+  end
+
   test "preserves completed fraction evidence on status-blocked partial contacts" do
     contacts = [
       contact(:dl_partial,
@@ -5021,11 +5067,11 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              "blocked_contact_count" => 5,
              "status_blocked_contact_count" => 5,
              "status_blocked_contact_ids" => [
-               "dl_completed",
-               "dl_rejected",
-               "dl_status_blocked",
                "dl_approval_blocked",
-               "dl_completed_rejected"
+               "dl_completed",
+               "dl_completed_rejected",
+               "dl_rejected",
+               "dl_status_blocked"
              ],
              "contact_filter_report" => %{"input_candidate_count" => 1},
              "contact_contention_report" => %{"input_contact_count" => 1}
