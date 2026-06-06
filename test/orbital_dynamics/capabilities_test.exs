@@ -214,6 +214,8 @@ defmodule OrbitalDynamics.CapabilitiesTest do
       target_id: :target_alpha,
       starts_at_s: 10.0,
       ends_at_s: 20.0,
+      dependency_activity_ids: [:health_gate],
+      exclusive_with_activity_ids: [:downlink_conflict],
       metadata: %{timeline_id: :"timeline:obs_template_transition"}
     }
 
@@ -227,6 +229,8 @@ defmodule OrbitalDynamics.CapabilitiesTest do
               "allow_overlap" => false,
               "timeline_id" => "timeline:obs_template_transition",
               "target_id" => "target_alpha",
+              "dependency_activity_ids" => ["health_gate"],
+              "exclusive_with_activity_ids" => ["downlink_conflict"],
               "activity_template" => %{
                 "schema_contract" => "activity_template.v1",
                 "id" => "template:observe:basic",
@@ -235,6 +239,8 @@ defmodule OrbitalDynamics.CapabilitiesTest do
                 "validation_level" => "artifact_contract"
               },
               "activity_context" => %{
+                "dependency_activity_ids" => ["health_gate"],
+                "exclusive_with_activity_ids" => ["downlink_conflict"],
                 "activity_template" => %{
                   "id" => "template:observe:basic",
                   "activity_type" => "observe"
@@ -244,12 +250,27 @@ defmodule OrbitalDynamics.CapabilitiesTest do
 
     assert OrbitalDynamics.activity_from_template(observe, fields) == {:ok, replacement}
 
+    assert %{
+             "schema_contract" => "timeline_integrity_report.v1",
+             "timeline_integrity_status" => "review_required",
+             "missing_dependency_activity_ids" => ["health_gate"],
+             "dependency_review_activity_ids" => ["obs_template_transition"],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_schedule_mutation"
+             }
+           } = integrity_report = OrbitalDynamics.timeline_integrity_report([replacement])
+
+    assert {:ok, %{"schema_contract" => "timeline_integrity_report.v1"}} =
+             Schema.validate_artifact(integrity_report)
+
     source = %{
       id: :obs_template_transition,
       type: :observe,
       target_id: :target_alpha,
       starts_at_s: 8.0,
       ends_at_s: 18.0,
+      dependency_activity_ids: [:health_gate],
+      exclusive_with_activity_ids: [:downlink_conflict],
       metadata: %{timeline_id: :"timeline:obs_template_transition"}
     }
 

@@ -73,7 +73,13 @@ defmodule OrbitalDynamics do
   @activity_template_assumptions %{
     "boundary" => "template_only_no_schedule_mutation"
   }
-  @activity_template_activity_metadata_fields ~w(metadata)
+  @activity_template_activity_context_fields ~w(
+    metadata
+    dependency_activity_ids
+    dependency_timeline_ids
+    exclusive_with_activity_ids
+    exclusive_with_timeline_ids
+  )
   @activity_template_lifecycle_defaults %{
     "status" => "planned",
     "approval_status" => "not_evaluated",
@@ -3157,7 +3163,7 @@ defmodule OrbitalDynamics do
     |> activity_template_declared_fields()
     |> Enum.concat(["id", "type"])
     |> Enum.concat(Map.keys(Map.get(template, "lifecycle_defaults", %{})))
-    |> Enum.concat(@activity_template_activity_metadata_fields)
+    |> Enum.concat(@activity_template_activity_context_fields)
     |> MapSet.new()
   end
 

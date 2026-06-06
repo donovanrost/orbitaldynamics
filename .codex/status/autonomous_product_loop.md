@@ -1,53 +1,53 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Advertise activity template helpers through the public capability catalog.
+Allow template-instantiated activities to carry dependency/exclusivity context.
 
 Status:
 Implemented, verified, and read-only reviewed.
 
 What changed:
-- Added `planning.activity_templates` to `OrbitalDynamics.capability_catalog/0`.
-- The entry advertises `activity_template.v1`, validation level, supported
-  activity types, template IDs/count, public facades
-  `activity_templates/0`, `activity_template/1`, and `activity_from_template/2`,
-  normalized timeline activity output, transition-application path, known
-  limits, and no-mutation assumptions.
-- Extended public capability tests to pin the discovery entry and let the
-  existing public-facade export test cover the newly advertised helpers.
-- Regenerated `study_results/capability_catalog_v1.json`.
-- Updated the curated capability-catalog validation reference expected
-  `planning_capability_count` from 4 to 5 and refreshed the matching checked-in
-  `study_results/validation_reference_fixtures.json` check.
+- Extended `OrbitalDynamics.activity_from_template/2` override validation to
+  allow canonical timeline dependency/exclusivity context fields:
+  `dependency_activity_ids`, `dependency_timeline_ids`,
+  `exclusive_with_activity_ids`, and `exclusive_with_timeline_ids`.
+- Kept unrelated undeclared top-level override rejection intact.
+- Extended the public template-instantiation test to prove dependency and
+  exclusivity arrays survive normalization into the output row and nested
+  `activity_context`.
+- Added coverage that a helper-produced row with missing dependency evidence
+  feeds `OrbitalDynamics.timeline_integrity_report/1` as
+  `timeline_integrity_report.v1` review evidence under the no-mutation boundary.
 
 Verification:
 - `mix test test/orbital_dynamics/capabilities_test.exs` -> 6 passed.
-- `mix test test/orbital_dynamics/capabilities_test.exs test/mix/tasks/orbital_dynamics.capabilities_test.exs`
-  -> 10 passed.
-- `mix test test/orbital_dynamics/schema_test.exs:189 test/orbital_dynamics/validation_test.exs:4042 test/orbital_dynamics/validation_test.exs:10693 test/orbital_dynamics/validation_test.exs:11684`
-  -> 3 passed, 253 excluded.
-- `mix test test/orbital_dynamics/schema_test.exs:11335` -> 1 passed, 120 excluded.
-- `mix orbital_dynamics.schema.lint --input study_results/capability_catalog_v1.json` -> pass.
-- `mix orbital_dynamics.schema.lint --input study_results/validation_reference_fixtures.json` -> pass.
-- Reviewer confirmed `study_results/capability_catalog_v1.json` matches
-  `OrbitalDynamics.capability_catalog_artifact/0`.
+- Reviewer also ran
+  `mix test test/orbital_dynamics/capabilities_test.exs test/orbital_dynamics/timeline_test.exs:1263`
+  -> 7 passed, 124 excluded; review noted the timeline selector is unrelated
+  to this slice, so the behavioral coverage is the focused capabilities test.
+- Reviewer ran a read-only probe confirming all four canonical
+  dependency/exclusivity fields survive top-level normalization and nested
+  `activity_context`.
 - `git diff --check` -> pass.
 
 Read-only review:
-Sidecar `019e9c86-dbd5-70b1-a12a-2830b870a563` reported no findings.
+Sidecar `019e9c8b-3ea6-7d20-9531-1a679532f152` reported one low handoff
+accuracy issue; corrected by removing the unrelated timeline selector from the
+slice's primary verification list.
 
 Implementation commit:
-`edbfa97c7b296717daec09000db945f3e4d6dbdd` pushed to `origin/main`.
+Pending.
 
 Last completed implementation commit:
 `edbfa97c7b296717daec09000db945f3e4d6dbdd` pushed to `origin/main`.
 
 Last ledger correction commit:
-`5724cdf6dd60507bd3231baadd5ffe17d3806d2a` pushed to `origin/main`.
+`1995615e922f3728be7ec1a443fd880542a5ee15` pushed to `origin/main`.
 
 Next candidate:
-Continue deeper into typed activity state/dependency validation after the
-template path is discoverable.
+Promote one more dependency/exclusivity integrity handoff if template-produced
+rows need operator-review or import coverage beyond the existing timeline
+integrity path.
 
 Blocked:
 No.
