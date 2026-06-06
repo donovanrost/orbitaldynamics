@@ -4,7 +4,7 @@ Current slice:
 Expose CandidateRefresh quality-gate source-report schema property.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 CandidateRefresh quality-gate source summaries already preserve
 readiness/import/status/gate counts, resource availability pressure, and
 quality-gate row ID routing. Replay helpers already consume
@@ -51,9 +51,10 @@ Tests run:
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
   test, focused CandidateRefresh runtime test, schema lint, whitespace check,
   and generated-schema `jq` spot-checks.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-Pending for this slice.
+`1138606a737972c1de31c0ffaf63917700075d10` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending for this slice.
