@@ -4,8 +4,8 @@ Current slice:
 Add link-capacity provider routing maps to compact summaries.
 
 Status:
-Implemented, verified, read-only reviewed, reviewer finding fixed, and committed;
-ready to push.
+Implemented, verified, read-only reviewed, reviewer finding fixed, committed,
+and pushed.
 
 What changed:
 `LinkCapacity.summary/1` now emits
@@ -53,13 +53,13 @@ adding a duplicate-station regression that validates the compact
 schema lint/diff hygiene pass after the fix.
 
 Implementation commit:
-`cc5200fd7206e756ab4f64e42d8a03e269f9bb3f` pending push to `origin/main`.
+`cc5200fd7206e756ab4f64e42d8a03e269f9bb3f` pushed to `origin/main`.
 
 Last completed implementation commit:
-`cc5200fd7206e756ab4f64e42d8a03e269f9bb3f` pending push to `origin/main`.
+`cc5200fd7206e756ab4f64e42d8a03e269f9bb3f` pushed to `origin/main`.
 
 Last ledger correction commit:
-`6a81ebda97a7e9ac96cafa6f035ea3e7b1da4f1f` pushed to `origin/main`.
+`50e6b0620cddc24527f40ef790885f83407678ed` pushed to `origin/main`.
 
 Next candidate:
 Continue the resource/communications allocation queue after this compact
