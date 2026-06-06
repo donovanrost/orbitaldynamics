@@ -36850,6 +36850,18 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  "replacement" => 1,
                  "source" => 1
                },
+             "source_report_timeline_transition_application_branch_local_timeline_transition_application_pressure" =>
+               true,
+             "source_report_timeline_transition_application_branch_local_selected_activity_pressure" =>
+               true,
+             "source_report_timeline_transition_application_branch_local_review_required_pressure" =>
+               true,
+             "source_report_timeline_transition_application_branch_local_preserved_transition_pressure" =>
+               false,
+             "source_report_timeline_transition_application_branch_local_duplicate_identity_pressure" =>
+               true,
+             "source_report_timeline_transition_application_branch_local_operator_review_pressure" =>
+               true,
              "source_reports" => %{
                "timeline_transition_application_report" => %{
                  "contract" => "timeline_transition_application_report.v1",
@@ -36963,7 +36975,19 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                %{
                  "replacement" => 1,
                  "source" => 1
-               }
+               },
+             "source_report_timeline_transition_application_branch_local_timeline_transition_application_pressure" =>
+               true,
+             "source_report_timeline_transition_application_branch_local_selected_activity_pressure" =>
+               true,
+             "source_report_timeline_transition_application_branch_local_review_required_pressure" =>
+               true,
+             "source_report_timeline_transition_application_branch_local_preserved_transition_pressure" =>
+               false,
+             "source_report_timeline_transition_application_branch_local_duplicate_identity_pressure" =>
+               true,
+             "source_report_timeline_transition_application_branch_local_operator_review_pressure" =>
+               true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.timeline_transition_application_replay_summary(artifact) ==
