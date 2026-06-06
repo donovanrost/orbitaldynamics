@@ -21204,6 +21204,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_timeline_feedback_source_report_summary_json_schema(),
             "timeline_diff_report" =>
               candidate_refresh_timeline_diff_source_report_summary_json_schema(),
+            "timeline_integrity_report" =>
+              candidate_refresh_timeline_integrity_source_report_summary_json_schema(),
             "timeline_publication_summary" =>
               candidate_refresh_timeline_publication_source_report_summary_json_schema(),
             "timeline_dependency_impact_summary" =>
@@ -21550,6 +21552,13 @@ defmodule OrbitalDynamics.Schema do
           &{&1, non_negative_integer_count_map_json_schema()}
         )
       )
+    end)
+  end
+
+  defp candidate_refresh_timeline_integrity_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      Map.merge(properties, candidate_refresh_timeline_integrity_context_json_schema_properties())
     end)
   end
 
@@ -22522,6 +22531,39 @@ defmodule OrbitalDynamics.Schema do
       "review_timeline_ids" => stable_id_array_schema(),
       "timeline_ids_by_changed_field" => stable_id_array_map_schema()
     }
+  end
+
+  defp candidate_refresh_timeline_integrity_context_json_schema_properties do
+    non_negative_integer_property_schemas([
+      "timeline_integrity_issue_count",
+      "timeline_integrity_review_count",
+      "dependency_issue_count",
+      "exclusivity_issue_count"
+    ])
+    |> Map.merge(
+      Map.new(
+        [
+          "timeline_integrity_status_counts",
+          "timeline_integrity_issue_type_counts",
+          "required_operator_action_counts",
+          "operator_action_reason_counts",
+          "review_activity_id_counts",
+          "review_timeline_id_counts",
+          "missing_dependency_activity_id_counts",
+          "missing_dependency_timeline_id_counts",
+          "self_dependency_activity_id_counts",
+          "self_dependency_timeline_id_counts",
+          "dependency_cycle_activity_id_counts",
+          "dependency_cycle_timeline_id_counts",
+          "dependency_order_violation_activity_id_counts",
+          "dependency_order_violation_timeline_id_counts",
+          "exclusivity_violation_activity_id_counts",
+          "exclusivity_violation_timeline_id_counts",
+          "exclusivity_violation_group_counts"
+        ],
+        &{&1, non_negative_integer_count_map_json_schema()}
+      )
+    )
   end
 
   defp candidate_refresh_timeline_dependency_impact_context_json_schema_properties do
@@ -26592,6 +26634,7 @@ defmodule OrbitalDynamics.Schema do
         |> validate_candidate_refresh_contact_filter_context(path, summary)
         |> validate_candidate_refresh_station_calendar_context(path, summary)
         |> validate_candidate_refresh_timeline_activity_context(path, summary)
+        |> validate_candidate_refresh_timeline_integrity_context(path, summary)
         |> validate_candidate_refresh_timeline_publication_context(path, summary)
         |> validate_candidate_refresh_timeline_dependency_impact_context(path, summary)
         |> validate_candidate_refresh_timeline_feedback_context(path, summary)
@@ -27523,6 +27566,50 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_candidate_refresh_timeline_publication_context(issues, path, summary) do
     validate_timeline_publication_context(issues, path, summary)
+  end
+
+  defp validate_candidate_refresh_timeline_integrity_context(issues, path, summary) do
+    issues =
+      Enum.reduce(
+        [
+          "timeline_integrity_issue_count",
+          "timeline_integrity_review_count",
+          "dependency_issue_count",
+          "exclusivity_issue_count"
+        ],
+        issues,
+        fn field, acc ->
+          expect_optional_non_negative_integer(acc, path, summary, field)
+        end
+      )
+
+    Enum.reduce(
+      [
+        "timeline_integrity_status_counts",
+        "timeline_integrity_issue_type_counts",
+        "required_operator_action_counts",
+        "operator_action_reason_counts",
+        "review_activity_id_counts",
+        "review_timeline_id_counts",
+        "missing_dependency_activity_id_counts",
+        "missing_dependency_timeline_id_counts",
+        "self_dependency_activity_id_counts",
+        "self_dependency_timeline_id_counts",
+        "dependency_cycle_activity_id_counts",
+        "dependency_cycle_timeline_id_counts",
+        "dependency_order_violation_activity_id_counts",
+        "dependency_order_violation_timeline_id_counts",
+        "exclusivity_violation_activity_id_counts",
+        "exclusivity_violation_timeline_id_counts",
+        "exclusivity_violation_group_counts"
+      ],
+      issues,
+      fn field, acc ->
+        acc
+        |> expect_optional_type(path, summary, field, :map)
+        |> validate_non_negative_integer_count_map(path <> ".#{field}", Map.get(summary, field))
+      end
+    )
   end
 
   defp validate_candidate_refresh_timeline_dependency_impact_context(issues, path, summary) do

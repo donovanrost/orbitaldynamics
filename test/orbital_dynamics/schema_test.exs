@@ -13789,6 +13789,132 @@ defmodule OrbitalDynamics.SchemaTest do
                  "$.provenance.source_reports.timeline_activity_lifecycle_state.invalid_activity_input_reasons[0]")
            )
 
+    artifact_with_timeline_integrity_summary =
+      put_in(artifact, ["provenance", "source_reports", "timeline_integrity_report"], %{
+        "paths" => ["source_timeline_integrity_report"],
+        "contract" => "timeline_integrity_report.v1",
+        "count" => 1,
+        "row_count" => 2,
+        "timeline_integrity_issue_count" => 2,
+        "timeline_integrity_review_count" => 1,
+        "dependency_issue_count" => 1,
+        "exclusivity_issue_count" => 1,
+        "timeline_integrity_status_counts" => %{"review_required" => 2},
+        "timeline_integrity_issue_type_counts" => %{"missing_dependency_activity" => 1},
+        "required_operator_action_counts" => %{"review_timeline_integrity" => 1},
+        "operator_action_reason_counts" => %{"timeline_integrity_issue" => 1},
+        "review_activity_id_counts" => %{"cmd_main" => 1},
+        "review_timeline_id_counts" => %{"timeline:cmd_main" => 1},
+        "missing_dependency_activity_id_counts" => %{"missing_gate" => 1},
+        "missing_dependency_timeline_id_counts" => %{"timeline:missing_gate" => 1},
+        "self_dependency_activity_id_counts" => %{"cmd_self" => 1},
+        "self_dependency_timeline_id_counts" => %{"timeline:cmd_self" => 1},
+        "dependency_cycle_activity_id_counts" => %{"cmd_cycle" => 1},
+        "dependency_cycle_timeline_id_counts" => %{"timeline:cmd_cycle" => 1},
+        "dependency_order_violation_activity_id_counts" => %{"cmd_order" => 1},
+        "dependency_order_violation_timeline_id_counts" => %{"timeline:cmd_order" => 1},
+        "exclusivity_violation_activity_id_counts" => %{"cmd_main" => 1},
+        "exclusivity_violation_timeline_id_counts" => %{"timeline:cmd_main" => 1},
+        "exclusivity_violation_group_counts" => %{"conflict_group" => 1}
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_timeline_integrity_summary)
+
+    assert {:ok, candidate_refresh_schema} = Schema.json_schema("candidate_refresh.v1")
+
+    timeline_integrity_source_report_properties =
+      get_in(candidate_refresh_schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "timeline_integrity_report",
+        "properties"
+      ])
+
+    assert get_in(timeline_integrity_source_report_properties, [
+             "timeline_integrity_issue_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(timeline_integrity_source_report_properties, [
+             "timeline_integrity_issue_type_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(timeline_integrity_source_report_properties, [
+             "review_activity_id_counts",
+             "additionalProperties",
+             "type"
+           ]) == "integer"
+
+    invalid_timeline_integrity_issue_count =
+      put_in(
+        artifact_with_timeline_integrity_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_integrity_report",
+          "timeline_integrity_issue_count"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_timeline_integrity_issue_count_report} =
+             Schema.validate_artifact(invalid_timeline_integrity_issue_count)
+
+    assert Enum.any?(
+             invalid_timeline_integrity_issue_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_integrity_report.timeline_integrity_issue_count")
+           )
+
+    invalid_timeline_integrity_issue_type_count =
+      put_in(
+        artifact_with_timeline_integrity_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_integrity_report",
+          "timeline_integrity_issue_type_counts",
+          "missing_dependency_activity"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_timeline_integrity_issue_type_count_report} =
+             Schema.validate_artifact(invalid_timeline_integrity_issue_type_count)
+
+    assert Enum.any?(
+             invalid_timeline_integrity_issue_type_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_integrity_report.timeline_integrity_issue_type_counts.missing_dependency_activity")
+           )
+
+    invalid_timeline_integrity_issue_type_shape =
+      put_in(
+        artifact_with_timeline_integrity_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_integrity_report",
+          "timeline_integrity_issue_type_counts"
+        ],
+        "missing_dependency_activity"
+      )
+
+    assert {:error, invalid_timeline_integrity_issue_type_shape_report} =
+             Schema.validate_artifact(invalid_timeline_integrity_issue_type_shape)
+
+    assert Enum.any?(
+             invalid_timeline_integrity_issue_type_shape_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_integrity_report.timeline_integrity_issue_type_counts")
+           )
+
     artifact_with_timeline_dependency_impact_summary =
       put_in(
         artifact,

@@ -6358,6 +6358,46 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       "properties"
     ]
 
+    timeline_integrity_source_report_summary_path = [
+      "properties",
+      "provenance",
+      "properties",
+      "source_reports",
+      "properties",
+      "timeline_integrity_report",
+      "properties"
+    ]
+
+    assert get_in(
+             schemas,
+             ["candidate_refresh.v1" | timeline_integrity_source_report_summary_path] ++
+               ["timeline_integrity_issue_count", "minimum"]
+           ) == 0
+
+    assert get_in(
+             schemas,
+             ["candidate_refresh.v1" | timeline_integrity_source_report_summary_path] ++
+               ["timeline_integrity_issue_type_counts", "additionalProperties", "minimum"]
+           ) == 0
+
+    assert get_in(
+             schemas,
+             ["candidate_refresh.v1" | timeline_integrity_source_report_summary_path] ++
+               ["required_operator_action_counts", "additionalProperties", "minimum"]
+           ) == 0
+
+    assert get_in(
+             schemas,
+             ["candidate_refresh.v1" | timeline_integrity_source_report_summary_path] ++
+               ["review_activity_id_counts", "additionalProperties", "type"]
+           ) == "integer"
+
+    assert get_in(
+             schemas,
+             ["candidate_refresh.v1" | timeline_integrity_source_report_summary_path] ++
+               ["exclusivity_violation_group_counts", "additionalProperties", "minimum"]
+           ) == 0
+
     assert get_in(
              schemas,
              ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
