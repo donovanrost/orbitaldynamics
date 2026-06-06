@@ -5,47 +5,45 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-V1 campaign readiness and quality-gate attachment.
+V1 campaign resource-projection flow summary attachment.
 
 Status:
 Implemented, verified, committed, and pushed.
 
 Product commit:
-- `375037e65ec3b1de1688cfc1f1273f5e49e4037b` pushed to `origin/main` for V1
-  campaign readiness and quality-gate attachment.
+- `402a3692444dbbb697391da8bf9d4bee214b9790` pushed to `origin/main` for V1
+  campaign resource-projection flow summary attachment.
 
 Completed slice:
-Attached artifact-only `operational_readiness_report.v1` and
-`quality_gate_report.v1` outputs to V1 `campaign_plan.v1` artifacts from the
-plan's own operator-review package and Cadence import manifest.
+Attach the compact artifact-only `resource_projection_flow_summary.v1` to V1
+`campaign_plan.v1` artifacts when a selected-activity
+`resource_projection_report.v1` is present.
 
-Why this mattered:
-V1 plans already emitted resource projection, contact allocation,
-operator-review, and Cadence-import artifacts, but did not carry compact
-readiness and quality-gate summaries that classify the campaign handoff as
-importable, review-only, analysis-only, or blocked.
+Why this slice:
+ResourceProjection already performs deterministic storage/downlink roll-forward
+over selected activities, but V1 campaign artifacts currently expose the full
+resource projection report without the compact flow summary that adapter and
+quality-gate queues can route by pressure, ignored activity, spacecraft, and
+flow evidence.
 
 Level 6 pillar:
-Approval-aware automation boundaries, import readiness, and Cadence-facing
-integration artifacts.
+Fleet-level resource/contact behavior and durable Cadence-facing integration
+artifacts.
 
 What changed:
-- `CampaignPlanner.build/2` now derives readiness from the assembled
-  campaign artifact after operator-review and Cadence-import handoffs are
-  attached, then attaches a quality-gate report derived from that readiness
-  report.
-- `campaign_plan.v1` schema metadata and runtime validation now declare and
-  validate nested `operational_readiness_report.v1` and
-  `quality_gate_report.v1` artifacts.
-- Campaign tests prove resource-projection and contact-allocation review/import
-  evidence contributes to review-only readiness and quality-gate classification.
-- Cadence boundary docs now describe the nested campaign readiness reports and
-  their no-write/no-execution/no-operator-authority boundary.
-- Checked-in schema exports were refreshed.
+- `CampaignPlanner.build/2` now attaches
+  `resource_projection_flow_summary.v1` from the selected plan's own
+  `resource_projection_report.v1`.
+- Campaign operator-review and Cadence-import rows now include the compact
+  flow-summary source alongside the full projected-resource source.
+- `campaign_plan.v1` schema metadata, runtime validation, and checked-in schema
+  exports declare and validate the nested summary artifact.
+- Campaign tests prove selected-activity storage/downlink flow evidence,
+  review/import routing, and readiness evidence counts carry the new summary.
+- Capability-map docs describe the artifact-only campaign handoff boundary.
 
 Verification:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:26 test/orbital_dynamics/campaign_planner_test.exs:889`
-  passed, 2 tests.
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:26` passed, 1 test.
 - `mix test test/orbital_dynamics/campaign_planner_test.exs test/orbital_dynamics/schema_test.exs`
   passed, 777 tests.
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
@@ -55,6 +53,8 @@ Verification:
 - `git diff --check` passed.
 
 Recently completed slices:
+- `402a3692444dbbb697391da8bf9d4bee214b9790` pushed to `origin/main` for V1
+  campaign resource-projection flow summary attachment.
 - `375037e65ec3b1de1688cfc1f1273f5e49e4037b` pushed to `origin/main` for V1
   campaign readiness and quality-gate attachment.
 - `625a2aac24b2ba5d0117efe649968357ea763cd9` pushed to `origin/main` for
