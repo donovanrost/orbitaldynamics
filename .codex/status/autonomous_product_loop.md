@@ -4,16 +4,16 @@ Current slice:
 Expose CandidateRefresh refresh-budget source-report schema property.
 
 Status:
-Implemented, locally verified, and reviewed clean. Runtime CandidateRefresh
-source-report provenance already emits `refresh_budget_report` summaries for
-artifact-only budget replay, including candidate input/kept/dropped counts,
-invalid limit-policy evidence, candidate id sets, and trust-boundary metadata.
-This slice makes that emitted family schema-visible under `candidate_refresh.v1`
-`provenance.source_reports.properties` instead of relying only on the generic
-`additionalProperties` summary schema, and adds executable validation for those
-named summary fields. Runtime behavior, candidate generation, budget selection
-policy, operator authority, import approval, and Cadence write behavior are
-intentionally out of scope.
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
+CandidateRefresh source-report provenance already emits `refresh_budget_report`
+summaries for artifact-only budget replay, including candidate
+input/kept/dropped counts, invalid limit-policy evidence, candidate id sets, and
+trust-boundary metadata. This slice makes that emitted family schema-visible
+under `candidate_refresh.v1` `provenance.source_reports.properties` instead of
+relying only on the generic `additionalProperties` summary schema, and adds
+executable validation for those named summary fields. Runtime behavior,
+candidate generation, budget selection policy, operator authority, import
+approval, and Cadence write behavior are intentionally out of scope.
 
 Files expected:
 - `.codex/status/autonomous_product_loop.md`
@@ -58,12 +58,13 @@ Tests run:
   helper reuses the passive replay context helper and therefore advertises some
   optional passive-context fields not emitted by refresh-budget summaries; this
   follows the existing optional-helper pattern and is not a blocker.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`a9c1f149b917681b63d51d9692a480744a695336` pushed to `origin/main`.
+`e0793228f1d3499e8074079e7bd98dbe89807c07` pushed to `origin/main`.
 
 Last ledger correction commit:
-`0365330` pushed to `origin/main`.
+Pending for this slice.
 
 Next candidate:
 After this slice, continue the CandidateRefresh source-report schema visibility
