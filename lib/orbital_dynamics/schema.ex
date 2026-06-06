@@ -21194,6 +21194,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_station_calendar_source_report_summary_json_schema(),
             "station_reservation_report" =>
               candidate_refresh_station_reservation_source_report_summary_json_schema(),
+            "validation_safety_case_summary" =>
+              candidate_refresh_validation_safety_case_source_report_summary_json_schema(),
             "timeline_feedback_report" =>
               candidate_refresh_timeline_feedback_source_report_summary_json_schema(),
             "timeline_activity_state" =>
@@ -21566,6 +21568,35 @@ defmodule OrbitalDynamics.Schema do
         )
       )
       |> Map.merge(candidate_refresh_model_acceptance_context_json_schema_properties())
+    end)
+  end
+
+  defp candidate_refresh_validation_safety_case_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      properties
+      |> Map.merge(
+        non_negative_integer_property_schemas([
+          "accepted_evidence_count",
+          "review_required_evidence_count",
+          "blocked_evidence_count"
+          | safety_case_count_fields()
+        ])
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "status_counts",
+            "evidence_status_counts",
+            "input_contract_counts"
+          ],
+          &{&1, non_negative_integer_count_map_json_schema()}
+        )
+      )
+      |> Map.merge(%{
+        "evidence_refs_by_status" => string_list_map_json_schema(),
+        "evidence_refs_by_contract" => string_list_map_json_schema()
+      })
     end)
   end
 
@@ -27179,19 +27210,24 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_non_negative_integer(path, summary, "accepted_evidence_count")
     |> expect_optional_non_negative_integer(path, summary, "review_required_evidence_count")
     |> expect_optional_non_negative_integer(path, summary, "blocked_evidence_count")
+    |> expect_optional_type(path, summary, "status_counts", :map)
     |> validate_non_negative_integer_count_map(
       path <> ".status_counts",
       Map.get(summary, "status_counts")
     )
+    |> expect_optional_type(path, summary, "evidence_status_counts", :map)
     |> validate_non_negative_integer_count_map(
       path <> ".evidence_status_counts",
       Map.get(summary, "evidence_status_counts")
     )
+    |> expect_optional_type(path, summary, "input_contract_counts", :map)
     |> validate_non_negative_integer_count_map(
       path <> ".input_contract_counts",
       Map.get(summary, "input_contract_counts")
     )
+    |> expect_optional_type(path, summary, "evidence_refs_by_status", :map)
     |> validate_string_list_map(path, summary, "evidence_refs_by_status")
+    |> expect_optional_type(path, summary, "evidence_refs_by_contract", :map)
     |> validate_string_list_map(path, summary, "evidence_refs_by_contract")
     |> validate_candidate_refresh_validation_safety_case_counts(path, summary)
   end

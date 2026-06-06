@@ -12422,6 +12422,147 @@ defmodule OrbitalDynamics.SchemaTest do
                  "$.provenance.source_reports.model_acceptance_report.model_ids_by_status")
            )
 
+    artifact_with_validation_safety_case_summary =
+      put_in(artifact, ["provenance", "source_reports", "validation_safety_case_summary"], %{
+        "paths" => ["source_validation_safety_case_summary"],
+        "contract" => "validation_safety_case_summary.v1",
+        "count" => 1,
+        "row_count" => 2,
+        "status_counts" => %{"blocked" => 1},
+        "evidence_status_counts" => %{"blocked" => 1, "review_required" => 1},
+        "input_contract_counts" => %{"model_acceptance_report.v1" => 1},
+        "evidence_refs_by_status" => %{
+          "blocked" => ["model_acceptance_report.v1:model.blocked"]
+        },
+        "evidence_refs_by_contract" => %{
+          "model_acceptance_report.v1" => ["model_acceptance_report.v1:model.blocked"]
+        },
+        "accepted_evidence_count" => 0,
+        "review_required_evidence_count" => 1,
+        "blocked_evidence_count" => 1,
+        "model_blocked_count" => 1,
+        "schema_warning_count" => 1,
+        "fixture_failed_count" => 1
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_validation_safety_case_summary)
+
+    validation_safety_case_source_report_properties =
+      get_in(candidate_refresh_schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "validation_safety_case_summary",
+        "properties"
+      ])
+
+    assert get_in(validation_safety_case_source_report_properties, [
+             "blocked_evidence_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(validation_safety_case_source_report_properties, [
+             "evidence_status_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(validation_safety_case_source_report_properties, [
+             "evidence_refs_by_status",
+             "additionalProperties",
+             "items",
+             "type"
+           ]) == "string"
+
+    invalid_validation_safety_case_count =
+      put_in(
+        artifact_with_validation_safety_case_summary,
+        [
+          "provenance",
+          "source_reports",
+          "validation_safety_case_summary",
+          "blocked_evidence_count"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_validation_safety_case_count_report} =
+             Schema.validate_artifact(invalid_validation_safety_case_count)
+
+    assert Enum.any?(
+             invalid_validation_safety_case_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.validation_safety_case_summary.blocked_evidence_count")
+           )
+
+    invalid_validation_safety_case_evidence_status_count =
+      put_in(
+        artifact_with_validation_safety_case_summary,
+        [
+          "provenance",
+          "source_reports",
+          "validation_safety_case_summary",
+          "evidence_status_counts",
+          "blocked"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_validation_safety_case_evidence_status_count_report} =
+             Schema.validate_artifact(invalid_validation_safety_case_evidence_status_count)
+
+    assert Enum.any?(
+             invalid_validation_safety_case_evidence_status_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.validation_safety_case_summary.evidence_status_counts.blocked")
+           )
+
+    invalid_validation_safety_case_evidence_status_shape =
+      put_in(
+        artifact_with_validation_safety_case_summary,
+        [
+          "provenance",
+          "source_reports",
+          "validation_safety_case_summary",
+          "evidence_status_counts"
+        ],
+        "blocked"
+      )
+
+    assert {:error, invalid_validation_safety_case_evidence_status_shape_report} =
+             Schema.validate_artifact(invalid_validation_safety_case_evidence_status_shape)
+
+    assert Enum.any?(
+             invalid_validation_safety_case_evidence_status_shape_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.validation_safety_case_summary.evidence_status_counts")
+           )
+
+    invalid_validation_safety_case_evidence_ref =
+      put_in(
+        artifact_with_validation_safety_case_summary,
+        [
+          "provenance",
+          "source_reports",
+          "validation_safety_case_summary",
+          "evidence_refs_by_status",
+          "blocked"
+        ],
+        ["model_acceptance_report.v1:model.blocked", 42]
+      )
+
+    assert {:error, invalid_validation_safety_case_evidence_ref_report} =
+             Schema.validate_artifact(invalid_validation_safety_case_evidence_ref)
+
+    assert Enum.any?(
+             invalid_validation_safety_case_evidence_ref_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.validation_safety_case_summary.evidence_refs_by_status.blocked")
+           )
+
     artifact_with_operational_timeline_summary =
       put_in(artifact, ["provenance", "source_reports", "operational_timeline_report"], %{
         "paths" => ["source_operational_timeline_report"],

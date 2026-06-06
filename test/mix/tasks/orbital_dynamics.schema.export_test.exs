@@ -1169,6 +1169,77 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       end
     )
 
+    candidate_refresh_validation_safety_case_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "validation_safety_case_summary",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        "accepted_evidence_count",
+        "review_required_evidence_count",
+        "blocked_evidence_count",
+        "model_blocked_count",
+        "schema_warning_count",
+        "schema_validation_failed_report_count",
+        "fixture_failed_count"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_validation_safety_case_source_report, [
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_validation_safety_case_source_report, [
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "status_counts",
+        "evidence_status_counts",
+        "input_contract_counts"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_validation_safety_case_source_report, [
+                 field,
+                 "additionalProperties",
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_validation_safety_case_source_report, [
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "evidence_refs_by_status",
+        "evidence_refs_by_contract"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_validation_safety_case_source_report, [
+                 field,
+                 "additionalProperties",
+                 "items",
+                 "type"
+               ]) == "string"
+      end
+    )
+
     candidate_refresh_operational_timeline_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",
