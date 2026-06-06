@@ -8,7 +8,7 @@ Current slice:
 CandidateRefresh provider counteroffer review-summary replay provenance.
 
 Status:
-Implemented, verified, committed, and ready to push.
+Implemented, verified, committed, and pushed.
 
 Files changed:
 - `lib/orbital_dynamics/candidate_refresh.ex`
@@ -52,11 +52,11 @@ without reopening full counteroffer reports, while preserving branch-local
 review/negotiation/deadline pressure for downstream audit and adapter routing.
 
 Last commit:
-- `ffc969485c4fad6ee0bd124a9f74fa140cc31790` committed locally for
+- `ffc969485c4fad6ee0bd124a9f74fa140cc31790` pushed to `origin/main` for
   CandidateRefresh provider counteroffer review-summary replay provenance.
 
 Recently completed slices:
-- `ffc969485c4fad6ee0bd124a9f74fa140cc31790` committed locally for
+- `ffc969485c4fad6ee0bd124a9f74fa140cc31790` pushed to `origin/main` for
   CandidateRefresh provider counteroffer review-summary replay provenance.
 - `a6883f8cf190b756d38cb9a222c8233e6a61ef77` pushed to `origin/main` for
   CandidateRefresh station reservation review-summary replay provenance.
