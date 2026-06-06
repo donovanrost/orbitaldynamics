@@ -384,6 +384,7 @@ defmodule OrbitalDynamics.TimelineTest do
     assert :cadence_import_status_counts in row_semantics
     assert :cadence_import_identity in row_semantics
     assert :normalized_activity in row_semantics
+    assert :activity_template_provenance in row_semantics
     assert :activity_precondition_status in row_semantics
     assert :activity_precondition_counts in row_semantics
     assert :activity_precondition_types in row_semantics

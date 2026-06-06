@@ -1114,6 +1114,7 @@ defmodule OrbitalDynamics.Timeline do
         :lifecycle_preservation_timeline_id_sets,
         :transition_selected_activities,
         :activity_context,
+        :activity_template_provenance,
         :activity_precondition_status,
         :activity_precondition_counts,
         :activity_precondition_types,

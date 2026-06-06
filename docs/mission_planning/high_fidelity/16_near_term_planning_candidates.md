@@ -47,8 +47,11 @@ systems.
 ## Lane 3: Activity Templates And State Transitions
 
 First useful slice:
-add typed activity templates for observe, downlink, command, health check, slew,
-payload warm-up/cooldown, and maneuver, then validate one transition path.
+baseline typed activity templates now cover observe, downlink, command, health
+check, slew, and impulsive-burn activities, instantiate into normalized timeline
+rows, and validate transition/integrity handoffs with guarded template
+provenance. The remaining follow-on is to expand the catalog for payload
+warm-up/cooldown and richer maneuver variants when those resource models land.
 
 Candidate artifacts:
 

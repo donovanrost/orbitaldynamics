@@ -339,6 +339,13 @@ Explicit activity-ID exclusivity overlaps carry the conflicting timeline ID when
 that row is present, and explicit timeline-ID overlaps carry the conflicting
 activity ID when present, so review/import queues can route both identity forms
 without mutating schedules.
+Baseline activity templates are emitted as `activity_template.v1` artifacts and
+instantiate through `OrbitalDynamics.activity_from_template/2` into normalized
+timeline activities. Template-produced rows carry guarded `activity_template.v1`
+provenance at the row level and inside reusable `activity_context`; scalar or
+otherwise invalid template markers are dropped. Timeline integrity review rows
+and contact-intent activity contexts preserve that provenance so adapters can
+route template-sourced work without embedding the full template definition.
 `Timeline.capabilities/0` publishes the normalization, identity/context,
 precondition-summary, integrity, transition, single-activity protection, and
 list-level lifecycle state/preservation helper names plus the candidate-rejection
@@ -350,8 +357,8 @@ selected-activity helpers without hard-coding module internals. Its row
 semantics also name the single-activity lifecycle-state transition decision and
 required-action fields plus lifecycle-state summary count maps,
 transition/category maps, review/record/preserve timeline ID sets, duplicate
-identity routing, and invalid-input routing that adapters can consume without
-scanning source rows.
+identity routing, activity-template provenance, and invalid-input routing that
+adapters can consume without scanning source rows.
 `Timeline.lifecycle_state_summary/3` and
 `OrbitalDynamics.timeline_lifecycle_state_summary/3` pair planned and realized
 activity sets by durable timeline identity, derive row-based record/review/
