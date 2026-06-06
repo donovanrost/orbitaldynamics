@@ -1,62 +1,68 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Repair CandidateRefresh status-blocked contact ID validation.
+Add link-capacity provider routing maps to compact summaries.
 
 Status:
-Implemented, verified, read-only reviewed, committed, and pushed.
+Implemented, verified, read-only reviewed, and reviewer finding fixed.
 
 What changed:
-ContactAllocation now derives primary
-`contact_allocation_report.status_blocked_contact_count` and
-`status_blocked_contact_ids` from final allocation rows using the same
-status-blocked predicate used by artifact-only summaries and schema validation.
-This keeps aggregate status-blocked fields aligned when station availability
-precedence changes a pre-allocation policy/status-blocked contact into a
-station-unavailable allocation row. ContactAllocation tests now cover that
-station-availability precedence case, and an older aggregate assertion now uses
-the normalized row-derived ID order.
+`LinkCapacity.summary/1` now emits
+`station_calendar_provider_ids_by_ground_station_id` and
+`station_calendar_provider_entry_ids_by_ground_station_id` from direct
+link-capacity summary rows plus nested source station-calendar evidence.
+`link_capacity_summary.v1` now requires those routing maps, exports them in
+JSON Schema, and validates the top-level provider/provider-entry ID lists
+against the map values. Duplicate compact rows for the same ground station now
+merge ID arrays instead of overwriting earlier row evidence, and
+`station_count` now follows the existing schema definition as the unique
+ground-station ID count. LinkCapacity capability metadata advertises the
+compact provider-routing semantic, and link-capacity docs now describe the
+routing-map handoff and validation boundary.
 
 Why this slice:
-The full CandidateRefresh test run exposed two deterministic schema-validation
-failures in station-unavailable and maintenance refresh cases. In both cases the
-generated `contact_allocation_report.status_blocked_contact_ids` disagreed with
-the row-derived status-blocked contact IDs, so CandidateRefresh artifacts could
-emit blocked rows that failed their embedded contact-allocation contract.
+`link_capacity_summary.v1` already derived top-level station-calendar provider
+IDs and provider-entry IDs from link-capacity rows, and downstream
+CandidateRefresh replay depends on compact link-capacity summaries preserving
+provider routing. The compact summary lacked provider/provider-entry ID maps by
+ground station, so schema validation could type-check those top-level lists but
+could not independently cross-check them against compact routing evidence.
 
 Files changed:
-- `lib/orbital_dynamics/communications/contact_allocation.ex`
-- `test/orbital_dynamics/communications/contact_allocation_test.exs`
+- `lib/orbital_dynamics/communications/link_capacity.ex`
+- `lib/orbital_dynamics/schema.ex`
+- `test/orbital_dynamics/communications/link_capacity_test.exs`
+- `docs/feature_set/capability_map/07_ground_network/02_link_capacity.md`
+- `docs/artifacts/field_families/v1_campaign_plan/link_capacity.md`
 - `.codex/status/autonomous_product_loop.md`
 
 Verification:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:51916 test/orbital_dynamics/candidate_refresh_test.exs:51990` -> 2 passed, 682 excluded.
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs` -> 684 passed.
-- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs:4225` -> 1 passed, 65 excluded.
-- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs` -> 66 passed.
-- `mix format lib/orbital_dynamics/communications/contact_allocation.ex test/orbital_dynamics/communications/contact_allocation_test.exs --check-formatted` -> pass.
-- `git diff --check` -> pass.
+- `mix test test/orbital_dynamics/communications/link_capacity_test.exs:9 test/orbital_dynamics/communications/link_capacity_test.exs:545 test/orbital_dynamics/communications/link_capacity_test.exs:2825 test/orbital_dynamics/communications/link_capacity_test.exs:3093` -> 4 passed, 39 excluded.
+- `mix test test/orbital_dynamics/communications/link_capacity_test.exs` -> 43 passed.
+- `mix format lib/orbital_dynamics/communications/link_capacity.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/communications/link_capacity_test.exs --check-formatted` -> pass.
 - `mix orbital_dynamics.schema.lint --all` -> pass.
+- `git diff --check` -> pass.
 
 Read-only review:
-Sidecar `019e9cba-7a1a-79a1-9796-07068b2358b0` reported no code/test findings.
-It confirmed the implementation derives the primary report's status-blocked
-count/IDs from the same final-row predicate used by summaries and schema
-validation, and that the added regression covers the station availability
-precedence case. Its only finding was to refresh this ledger after verification.
+Sidecar `019e9cc2-18dc-79e0-82ea-e105f7a96765` found a duplicate-station
+provider-routing merge bug in the first implementation. The parent fixed it by
+merging duplicate station ID arrays in the shared station-entry helper and
+adding a duplicate-station regression that validates the compact
+`link_capacity_summary.v1` artifact. Focused and full LinkCapacity tests plus
+schema lint/diff hygiene pass after the fix.
 
 Implementation commit:
-`366a3276d886fa8941ac4373944d0640f5add082` pushed to `origin/main`.
+Pending.
 
 Last completed implementation commit:
 `366a3276d886fa8941ac4373944d0640f5add082` pushed to `origin/main`.
 
 Last ledger correction commit:
-`f34f33bb0657548993866f01554e836f179fafe1` pushed to `origin/main`.
+`6a81ebda97a7e9ac96cafa6f035ea3e7b1da4f1f` pushed to `origin/main`.
 
 Next candidate:
-Continue the resource/communications allocation queue after this validation
-repair is committed and pushed.
+Continue the resource/communications allocation queue after this compact
+link-capacity routing contract is committed and pushed.
 
 Blocked:
 No.

@@ -122,8 +122,12 @@ metadata-supplied JSON-style booleans and numeric-string factors, and applied
 `station_calendar_directions` into the row, policy context, operator-review
 row, and Cadence-import row. Provider reservation IDs, owners, statuses, and
 match statuses are likewise aggregated into those link-capacity handoffs and
-row-derived top-level routing summaries as identity evidence without treating
-feedback, station-calendar capacity context, or reservation context as a
+row-derived top-level routing summaries as identity evidence. Compact
+`link_capacity_summary.v1` handoffs also preserve station-calendar provider and
+provider-entry ID maps by ground station, and schema validation cross-checks the
+top-level provider ID lists against those maps before downstream replay trusts
+the compact handoff. None of this treats feedback, station-calendar capacity
+context, or reservation context as a
 link-budget model, provider reservation write, or schedule mutation.
 Executable validation checks report-level `model_limits` against
 `OrbitalDynamics.Communications.LinkCapacity.capabilities/0`, keeping saved

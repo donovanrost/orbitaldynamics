@@ -4264,6 +4264,8 @@ defmodule OrbitalDynamics.Schema do
         "ground_station_ids_by_reservation_status",
         "ground_station_ids_by_reserved_by",
         "station_calendar_entry_ids_by_ground_station_id",
+        "station_calendar_provider_ids_by_ground_station_id",
+        "station_calendar_provider_entry_ids_by_ground_station_id",
         "station_reservation_ids_by_ground_station_id",
         "ignored_contact_ids_by_ground_station_id",
         "selected_contact_ids_by_ground_station_id",
@@ -13889,6 +13891,8 @@ defmodule OrbitalDynamics.Schema do
   defp json_schema_property(field, @link_capacity_summary, _contract)
        when field in [
               "station_calendar_entry_ids_by_ground_station_id",
+              "station_calendar_provider_ids_by_ground_station_id",
+              "station_calendar_provider_entry_ids_by_ground_station_id",
               "station_reservation_ids_by_ground_station_id",
               "ignored_contact_ids_by_ground_station_id",
               "selected_contact_ids_by_ground_station_id",
@@ -47115,6 +47119,8 @@ defmodule OrbitalDynamics.Schema do
       "ground_station_ids_by_reservation_status",
       "ground_station_ids_by_reserved_by",
       "station_calendar_entry_ids_by_ground_station_id",
+      "station_calendar_provider_ids_by_ground_station_id",
+      "station_calendar_provider_entry_ids_by_ground_station_id",
       "station_reservation_ids_by_ground_station_id",
       "ignored_contact_ids_by_ground_station_id",
       "selected_contact_ids_by_ground_station_id",
@@ -47320,6 +47326,24 @@ defmodule OrbitalDynamics.Schema do
         Map.get(summary, "station_calendar_entry_ids_by_ground_station_id")
       ),
       "must equal station_calendar_entry_ids_by_ground_station_id values"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "station_calendar_provider_ids",
+      sorted_stable_id_array_map_values(
+        Map.get(summary, "station_calendar_provider_ids_by_ground_station_id")
+      ),
+      "must equal station_calendar_provider_ids_by_ground_station_id values"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "station_calendar_provider_entry_ids",
+      sorted_stable_id_array_map_values(
+        Map.get(summary, "station_calendar_provider_entry_ids_by_ground_station_id")
+      ),
+      "must equal station_calendar_provider_entry_ids_by_ground_station_id values"
     )
     |> expect_field_equals(
       path,

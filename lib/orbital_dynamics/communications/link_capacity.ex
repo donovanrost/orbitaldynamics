@@ -209,6 +209,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
         :link_capacity_summary_station_reservation_context,
         :link_capacity_summary_station_reservation_owner_status_routing,
         :link_capacity_summary_capacity_adjusted_throughput_routing,
+        :link_capacity_summary_station_calendar_provider_routing,
         :station_calendar_reservation_expiration_context,
         :selected_contact_capacity_summary,
         :status_aware_contact_capacity_effects,
@@ -1245,7 +1246,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
       "source_artifact_type" => Map.get(report, "schema_contract", @schema_contract),
       "source" => report["source"],
       "model_limits" => model_limits(),
-      "station_count" => length(rows),
+      "station_count" => length(row_ground_station_ids(rows)),
       "contact_count" => row_scalar_count_sum(rows, "contact_count"),
       "effective_contact_count" => row_scalar_count_sum(rows, "effective_contact_count"),
       "ignored_contact_count" => row_scalar_count_sum(rows, "ignored_contact_count"),
@@ -1353,6 +1354,10 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
         row_station_ids_by_list_field(rows, "station_reserved_bys"),
       "station_calendar_entry_ids_by_ground_station_id" =>
         row_station_calendar_entry_ids_by_station(rows),
+      "station_calendar_provider_ids_by_ground_station_id" =>
+        row_station_calendar_provider_ids_by_station(rows),
+      "station_calendar_provider_entry_ids_by_ground_station_id" =>
+        row_station_calendar_provider_entry_ids_by_station(rows),
       "station_reservation_ids_by_ground_station_id" =>
         row_station_reservation_ids_by_station(rows),
       "ignored_contact_ids_by_ground_station_id" =>
@@ -1525,6 +1530,52 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
     |> row_ids_by_station_entries()
   end
 
+  defp row_station_calendar_provider_ids_by_station(rows) do
+    rows
+    |> Enum.map(fn row ->
+      row_ids =
+        [
+          Map.get(row, "station_calendar_provider_ids"),
+          source_station_calendar_values(row["source_station_calendar_entry"], [
+            "provider_id",
+            "station_calendar_provider_id"
+          ]),
+          source_station_calendar_values(row["source_station_calendar_overlaps"], [
+            "provider_id",
+            "station_calendar_provider_id"
+          ])
+        ]
+        |> List.flatten()
+        |> sorted_stable_ids()
+
+      {row["ground_station_id"], row_ids}
+    end)
+    |> row_ids_by_station_entries()
+  end
+
+  defp row_station_calendar_provider_entry_ids_by_station(rows) do
+    rows
+    |> Enum.map(fn row ->
+      row_ids =
+        [
+          Map.get(row, "station_calendar_provider_entry_ids"),
+          source_station_calendar_values(row["source_station_calendar_entry"], [
+            "provider_entry_id",
+            "station_calendar_provider_entry_id"
+          ]),
+          source_station_calendar_values(row["source_station_calendar_overlaps"], [
+            "provider_entry_id",
+            "station_calendar_provider_entry_id"
+          ])
+        ]
+        |> List.flatten()
+        |> sorted_stable_ids()
+
+      {row["ground_station_id"], row_ids}
+    end)
+    |> row_ids_by_station_entries()
+  end
+
   defp row_station_reservation_ids_by_station(rows) do
     rows
     |> Enum.map(fn row ->
@@ -1574,8 +1625,12 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
     |> Enum.reject(fn {ground_station_id, row_ids} ->
       is_nil(stable_id_or_nil(ground_station_id)) or row_ids == []
     end)
-    |> Map.new(fn {ground_station_id, row_ids} ->
-      {stable_id_or_nil(ground_station_id), row_ids}
+    |> Enum.reduce(%{}, fn {ground_station_id, row_ids}, ids_by_station ->
+      station_id = stable_id_or_nil(ground_station_id)
+
+      Map.update(ids_by_station, station_id, row_ids, fn existing_ids ->
+        sorted_stable_ids(existing_ids ++ row_ids)
+      end)
     end)
   end
 

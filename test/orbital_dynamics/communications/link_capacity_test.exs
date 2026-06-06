@@ -234,6 +234,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
     assert :link_capacity_summary_station_reservation_context in row_semantics
     assert :link_capacity_summary_station_reservation_owner_status_routing in row_semantics
     assert :link_capacity_summary_capacity_adjusted_throughput_routing in row_semantics
+    assert :link_capacity_summary_station_calendar_provider_routing in row_semantics
     assert :station_calendar_reservation_expiration_context in row_semantics
     assert :status_ignored_reason_counts in row_semantics
     assert :ignored_contact_reason_counts in row_semantics
@@ -2904,10 +2905,42 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
              "station_calendar_entry_ids_by_ground_station_id" => %{
                "equator_prime" => ["calendar_reserved_1"]
              },
+             "station_calendar_provider_ids_by_ground_station_id" => %{
+               "equator_prime" => ["ops_calendar"]
+             },
+             "station_calendar_provider_entry_ids_by_ground_station_id" => %{
+               "equator_prime" => ["provider_reserved_1"]
+             },
              "station_reservation_ids_by_ground_station_id" => %{
                "equator_prime" => ["calendar_reserved_1", "reservation_42"]
              }
-           } = LinkCapacity.summary(report)
+           } = summary = LinkCapacity.summary(report)
+
+    stale_provider_summary =
+      Map.put(summary, "station_calendar_provider_ids", ["stale_provider"])
+
+    assert {:error, stale_provider_summary_errors} =
+             Schema.validate_artifact(stale_provider_summary)
+
+    assert Enum.any?(
+             stale_provider_summary_errors["errors"],
+             &(&1["path"] == "$.station_calendar_provider_ids" and
+                 &1["message"] ==
+                   "must equal station_calendar_provider_ids_by_ground_station_id values")
+           )
+
+    stale_provider_entry_summary =
+      Map.put(summary, "station_calendar_provider_entry_ids", ["stale_provider_entry"])
+
+    assert {:error, stale_provider_entry_summary_errors} =
+             Schema.validate_artifact(stale_provider_entry_summary)
+
+    assert Enum.any?(
+             stale_provider_entry_summary_errors["errors"],
+             &(&1["path"] == "$.station_calendar_provider_entry_ids" and
+                 &1["message"] ==
+                   "must equal station_calendar_provider_entry_ids_by_ground_station_id values")
+           )
 
     stale_summary_report =
       Map.put(report, "station_reservation_match_status_counts", %{"overlap" => 9})
@@ -3080,9 +3113,16 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
     summary =
       LinkCapacity.summary(%{
         "schema_contract" => "link_capacity_report.v1",
+        "source" => "unit_test.source_station_calendar_provenance",
         "rows" => [
           %{
             "ground_station_id" => "equator_prime",
+            "contact_count" => 1,
+            "effective_contact_count" => 1,
+            "selected_contact_count" => 1,
+            "contact_ids" => ["equator_contact_1"],
+            "selected_contact_ids" => ["equator_contact_1"],
+            "capacity_adjusted_throughput_mb" => 0.0,
             "source_station_calendar_entry" => %{
               "id" => "calendar_reserved_1",
               "provider_id" => "ops_calendar",
@@ -3095,7 +3135,32 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
             }
           },
           %{
+            "ground_station_id" => "equator_prime",
+            "contact_count" => 1,
+            "effective_contact_count" => 1,
+            "selected_contact_count" => 1,
+            "contact_ids" => ["equator_contact_2"],
+            "selected_contact_ids" => ["equator_contact_2"],
+            "capacity_adjusted_throughput_mb" => 0.0,
+            "source_station_calendar_entry" => %{
+              "id" => "calendar_reserved_1b",
+              "provider_id" => "backup_calendar",
+              "provider_entry_id" => "provider_reserved_1b",
+              "availability" => "Reserved",
+              "reservation_id" => "reservation_1b",
+              "reserved_by" => "backup_partner",
+              "reservation_status" => "Tentative",
+              "reservation_match_status" => "Overlap"
+            }
+          },
+          %{
             "ground_station_id" => "polar_prime",
+            "contact_count" => 1,
+            "effective_contact_count" => 1,
+            "selected_contact_count" => 1,
+            "contact_ids" => ["polar_contact_1"],
+            "selected_contact_ids" => ["polar_contact_1"],
+            "capacity_adjusted_throughput_mb" => 0.0,
             "source_station_calendar_overlaps" => [
               %{
                 "id" => "maintenance_1",
@@ -3112,6 +3177,12 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
           },
           %{
             "ground_station_id" => "clear_prime",
+            "contact_count" => 1,
+            "effective_contact_count" => 1,
+            "selected_contact_count" => 1,
+            "contact_ids" => ["clear_contact_1"],
+            "selected_contact_ids" => ["clear_contact_1"],
+            "capacity_adjusted_throughput_mb" => 1.0,
             "source_station_calendar_entry" => %{
               "id" => "available_1",
               "availability" => "Available"
@@ -3123,18 +3194,30 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
     assert summary["station_calendar_entry_ids"] == [
              "available_1",
              "calendar_reserved_1",
+             "calendar_reserved_1b",
              "calendar_reserved_2",
              "maintenance_1"
            ]
 
-    assert summary["station_calendar_provider_ids"] == ["ops_calendar"]
-    assert summary["station_calendar_provider_entry_ids"] == ["provider_reserved_1"]
-    assert summary["station_reservation_ids"] == ["reservation_1", "reservation_2"]
-    assert summary["station_reserved_bys"] == ["network_partner"]
-    assert summary["station_reservation_statuses"] == ["confirmed", "held"]
+    assert summary["station_calendar_provider_ids"] == ["backup_calendar", "ops_calendar"]
+
+    assert summary["station_calendar_provider_entry_ids"] == [
+             "provider_reserved_1",
+             "provider_reserved_1b"
+           ]
+
+    assert summary["station_reservation_ids"] == [
+             "reservation_1",
+             "reservation_1b",
+             "reservation_2"
+           ]
+
+    assert summary["station_reserved_bys"] == ["backup_partner", "network_partner"]
+    assert summary["station_reservation_statuses"] == ["confirmed", "held", "tentative"]
 
     assert summary["station_reservation_match_status_counts"] == %{
              "owned" => 1,
+             "overlap" => 1,
              "unmatched" => 1
            }
 
@@ -3144,29 +3227,43 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
            }
 
     assert summary["ground_station_ids_by_reservation_match_status"] == %{
+             "overlap" => ["equator_prime"],
              "owned" => ["polar_prime"],
              "unmatched" => ["equator_prime"]
            }
 
     assert summary["ground_station_ids_by_reservation_status"] == %{
              "confirmed" => ["polar_prime"],
-             "held" => ["equator_prime"]
+             "held" => ["equator_prime"],
+             "tentative" => ["equator_prime"]
            }
 
     assert summary["ground_station_ids_by_reserved_by"] == %{
+             "backup_partner" => ["equator_prime"],
              "network_partner" => ["equator_prime"]
            }
 
     assert summary["station_calendar_entry_ids_by_ground_station_id"] == %{
              "clear_prime" => ["available_1"],
-             "equator_prime" => ["calendar_reserved_1"],
+             "equator_prime" => ["calendar_reserved_1", "calendar_reserved_1b"],
              "polar_prime" => ["calendar_reserved_2", "maintenance_1"]
            }
 
+    assert summary["station_calendar_provider_ids_by_ground_station_id"] == %{
+             "equator_prime" => ["backup_calendar", "ops_calendar"]
+           }
+
+    assert summary["station_calendar_provider_entry_ids_by_ground_station_id"] == %{
+             "equator_prime" => ["provider_reserved_1", "provider_reserved_1b"]
+           }
+
     assert summary["station_reservation_ids_by_ground_station_id"] == %{
-             "equator_prime" => ["reservation_1"],
+             "equator_prime" => ["reservation_1", "reservation_1b"],
              "polar_prime" => ["reservation_2"]
            }
+
+    assert {:ok, %{"schema_contract" => "link_capacity_summary.v1"}} =
+             Schema.validate_artifact(summary)
   end
 
   test "summary canonicalizes maintenance availability before reduced capacity" do

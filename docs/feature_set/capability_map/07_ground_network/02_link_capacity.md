@@ -27,6 +27,9 @@ declare a station capacity.
   storage/downlink pressure replay without reopening link-capacity rows.
   Capacity-adjusted throughput evidence contributes to the composed downlink
   pressure flags even when no explicit shortfall row is present.
+- Compact summary station-calendar provider and provider-entry ID routing maps
+  by ground station, with top-level provider ID lists validated against those
+  maps before CandidateRefresh or review queues trust compact handoffs.
 - Direction counts and contact-ID maps, preserved through candidate-refresh
   link-capacity replay so branch-local review queues can route downlink,
   command/uplink, and tracking capacity evidence without reopening source rows.
