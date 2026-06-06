@@ -21182,6 +21182,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_maneuver_review_source_report_summary_json_schema(),
             "model_acceptance_report" =>
               candidate_refresh_model_acceptance_source_report_summary_json_schema(),
+            "refresh_budget_report" =>
+              candidate_refresh_refresh_budget_source_report_summary_json_schema(),
             "operational_readiness_report" =>
               candidate_refresh_operational_readiness_source_report_summary_json_schema(),
             "operational_timeline_report" =>
@@ -21818,6 +21820,13 @@ defmodule OrbitalDynamics.Schema do
         )
       )
       |> Map.merge(candidate_refresh_model_acceptance_context_json_schema_properties())
+    end)
+  end
+
+  defp candidate_refresh_refresh_budget_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      Map.merge(properties, candidate_refresh_passive_replay_context_json_schema_properties())
     end)
   end
 
@@ -26847,6 +26856,7 @@ defmodule OrbitalDynamics.Schema do
         |> validate_candidate_refresh_quality_gate_context(path, summary)
         |> validate_candidate_refresh_schema_validation_context(path, summary)
         |> validate_candidate_refresh_model_acceptance_context(path, summary)
+        |> validate_candidate_refresh_refresh_budget_context(path, summary)
         |> validate_candidate_refresh_validation_safety_case_context(path, summary)
       else
         issues
@@ -27754,6 +27764,36 @@ defmodule OrbitalDynamics.Schema do
         |> expect_optional_type(path, summary, field, :map)
         |> validate_non_negative_integer_count_map(path <> ".#{field}", Map.get(summary, field))
       end
+    )
+  end
+
+  defp validate_candidate_refresh_refresh_budget_context(issues, path, summary) do
+    issues =
+      Enum.reduce(
+        [
+          "input_candidate_count",
+          "kept_candidate_count",
+          "dropped_candidate_count",
+          "invalid_candidate_limit_policy_count"
+        ],
+        issues,
+        fn field, acc ->
+          expect_optional_non_negative_integer(acc, path, summary, field)
+        end
+      )
+
+    issues
+    |> validate_non_negative_integer_count_map(
+      path <> ".invalid_candidate_limit_policy_reason_counts",
+      Map.get(summary, "invalid_candidate_limit_policy_reason_counts")
+    )
+    |> validate_stable_id_list(
+      path <> ".kept_candidate_ids",
+      Map.get(summary, "kept_candidate_ids")
+    )
+    |> validate_stable_id_list(
+      path <> ".dropped_candidate_ids",
+      Map.get(summary, "dropped_candidate_ids")
     )
   end
 

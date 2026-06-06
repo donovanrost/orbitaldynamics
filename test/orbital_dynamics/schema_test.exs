@@ -19647,6 +19647,38 @@ defmodule OrbitalDynamics.SchemaTest do
              "type"
            ]) == "string"
 
+    named_refresh_budget_schema =
+      get_in(schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "refresh_budget_report"
+      ])
+
+    assert named_refresh_budget_schema["type"] == "object"
+
+    assert get_in(named_refresh_budget_schema, [
+             "properties",
+             "input_candidate_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(named_refresh_budget_schema, [
+             "properties",
+             "invalid_candidate_limit_policy_reason_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(named_refresh_budget_schema, [
+             "properties",
+             "kept_candidate_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
     assert get_in(schema, [
              "properties",
              "provenance",
@@ -19656,6 +19688,79 @@ defmodule OrbitalDynamics.SchemaTest do
              "items",
              "type"
            ]) == "string"
+  end
+
+  test "validates named candidate refresh refresh-budget source-report provenance schema" do
+    artifact =
+      candidate_refresh_artifact()
+      |> put_in(
+        ["provenance", "source_reports"],
+        %{
+          "refresh_budget_report" => %{
+            "paths" => ["mission_state.source_refresh_budget_report"],
+            "contract" => "refresh_budget_report.v1",
+            "count" => 1,
+            "row_count" => 1,
+            "input_candidate_count" => 4,
+            "kept_candidate_count" => 2,
+            "dropped_candidate_count" => 2,
+            "invalid_candidate_limit_policy_count" => 1,
+            "invalid_candidate_limit_policy_reason_counts" => %{
+              "max_candidate_activities_must_be_integer" => 1
+            },
+            "kept_candidate_ids" => ["candidate_a", "candidate_b"],
+            "dropped_candidate_ids" => ["candidate_c", "candidate_d"],
+            "trust_boundary_status" => "declared",
+            "trust_boundaries" => ["ops_refresh_budget"]
+          }
+        }
+      )
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact)
+
+    invalid_reason_count =
+      put_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "refresh_budget_report",
+          "invalid_candidate_limit_policy_reason_counts",
+          "max_candidate_activities_must_be_integer"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_reason_count_report} =
+             Schema.validate_artifact(invalid_reason_count)
+
+    assert Enum.any?(
+             invalid_reason_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.refresh_budget_report.invalid_candidate_limit_policy_reason_counts.max_candidate_activities_must_be_integer")
+           )
+
+    invalid_candidate_id =
+      put_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "refresh_budget_report",
+          "kept_candidate_ids",
+          Access.at(0)
+        ],
+        "bad candidate id"
+      )
+
+    assert {:error, invalid_candidate_id_report} = Schema.validate_artifact(invalid_candidate_id)
+
+    assert Enum.any?(
+             invalid_candidate_id_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.refresh_budget_report.kept_candidate_ids[0]")
+           )
   end
 
   test "exports nested candidate refresh invalidated candidate schema" do

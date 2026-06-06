@@ -1,18 +1,19 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Expose CandidateRefresh operational-readiness source-report schema property.
+Expose CandidateRefresh refresh-budget source-report schema property.
 
 Status:
-Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
-CandidateRefresh source-report provenance already emits
-`operational_readiness_report` summaries, and existing validators already consume
-their resource-readiness, adapter-boundary, Cadence import, and trust-boundary
-fields. This slice makes that emitted family schema-visible under
-`candidate_refresh.v1` `provenance.source_reports.properties` instead of relying
-only on the generic `additionalProperties` summary schema. Runtime behavior,
-artifact generation, readiness evaluation, operator/resource authority, import
-approval, and Cadence write behavior are intentionally out of scope.
+Implemented, locally verified, and reviewed clean. Runtime CandidateRefresh
+source-report provenance already emits `refresh_budget_report` summaries for
+artifact-only budget replay, including candidate input/kept/dropped counts,
+invalid limit-policy evidence, candidate id sets, and trust-boundary metadata.
+This slice makes that emitted family schema-visible under `candidate_refresh.v1`
+`provenance.source_reports.properties` instead of relying only on the generic
+`additionalProperties` summary schema, and adds executable validation for those
+named summary fields. Runtime behavior, candidate generation, budget selection
+policy, operator authority, import approval, and Cadence write behavior are
+intentionally out of scope.
 
 Files expected:
 - `.codex/status/autonomous_product_loop.md`
@@ -23,12 +24,13 @@ Files expected:
 - `test/orbital_dynamics/schema_test.exs`
 
 Definition of done:
-- `candidate_refresh.v1` exposes a family-specific
-  `operational_readiness_report` source-report schema.
-- Its source-report object advertises operational-readiness scalar counts, count
-  maps, resource/station availability reason lists, and trust-boundary metadata.
-- Schema validation continues to reject obvious invalid readiness count-map and
-  reason-list shapes.
+- `candidate_refresh.v1` exposes a family-specific `refresh_budget_report`
+  source-report schema.
+- Its source-report object advertises refresh-budget candidate counts, invalid
+  limit-policy reason counts, kept/dropped candidate ids, and trust-boundary
+  metadata.
+- Schema validation rejects obvious invalid refresh-budget count-map and
+  candidate-id shapes at the named source-report path.
 - Checked-in `candidate_refresh.v1` schema and schema bundle are refreshed.
 - Schema export tests, schema tests, focused CandidateRefresh runtime tests,
   schema lint, generated-schema spot-checks, and whitespace checks pass.
@@ -37,58 +39,35 @@ Definition of done:
 
 Tests run:
 - `mix format lib/orbital_dynamics/schema.ex test/mix/tasks/orbital_dynamics.schema.export_test.exs test/orbital_dynamics/schema_test.exs`
-- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs` (initially
-  caught the missing family-specific helper; passed after helper was added)
-- `mix test test/orbital_dynamics/schema_test.exs` (initially failed only on
-  stale checked-in schema export; passed after export refresh)
+- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
+- `mix test test/orbital_dynamics/schema_test.exs:19554 test/orbital_dynamics/schema_test.exs:19640`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:25990`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
+- `mix test test/orbital_dynamics/schema_test.exs` (initially caught missing
+  executable validation for named refresh-budget source-report fields; passed
+  after adding the validator hook)
+- `mix test test/orbital_dynamics/schema_test.exs:19693`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:25990`
 - `mix test test/orbital_dynamics/schema_test.exs`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:11374`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:26915`
 - `mix orbital_dynamics.schema.lint --all`
-- `slice_reviewer`: must-fix finding that emitted `import_action_counts` was
-  still generic-only. Closed locally by adding it to the named helper and
-  export/schema assertions, refreshing schema exports, and rerunning focused
-  verification.
-- `mix format lib/orbital_dynamics/schema.ex test/mix/tasks/orbital_dynamics.schema.export_test.exs test/orbital_dynamics/schema_test.exs`
-- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `mix test test/orbital_dynamics/schema_test.exs`
-- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:26915`
-- `mix orbital_dynamics.schema.lint --all`
-- `jq` spot-checks for `operational_readiness_report.import_action_counts` in
+- `jq` spot-checks for `refresh_budget_report` source-report fields in
   `schemas/candidate_refresh.v1.schema.json` and the schema bundle.
 - `git diff --check -- . ':!.gitignore'`
-- `slice_reviewer`: no must-fix findings; confirmed `import_action_counts` is
-  no longer generic-only in generated schemas.
-- `jq` spot-checks for `operational_readiness_report` source-report fields in
-  `schemas/candidate_refresh.v1.schema.json` and the schema bundle.
-- `git diff --check -- . ':!.gitignore'`
-- `slice_reviewer`: no must-fix findings; identified a residual
-  gate/readiness-rollup schema-visibility gap. Closed locally by adding emitted
-  gate/readiness rollups to the named helper, expanding tests, refreshing schema
-  exports, and rerunning focused verification.
-- `mix format lib/orbital_dynamics/schema.ex test/mix/tasks/orbital_dynamics.schema.export_test.exs test/orbital_dynamics/schema_test.exs`
-- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:11374`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:26915`
-- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `mix test test/orbital_dynamics/schema_test.exs`
-- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:26915`
-- `mix orbital_dynamics.schema.lint --all`
-- `git_slice_publisher`: committed and pushed.
+- `slice_reviewer`: no must-fix findings. Residual risk noted that the named
+  helper reuses the passive replay context helper and therefore advertises some
+  optional passive-context fields not emitted by refresh-budget summaries; this
+  follows the existing optional-helper pattern and is not a blocker.
 
 Last completed implementation commit:
 `a9c1f149b917681b63d51d9692a480744a695336` pushed to `origin/main`.
 
 Last ledger correction commit:
-`5de8ccb` pushed to `origin/main`.
+`0365330` pushed to `origin/main`.
 
 Next candidate:
 After this slice, continue the CandidateRefresh source-report schema visibility
-burn-down.
+burn-down, likely with `freshness_report` or the objective/score report family.
 
 Blocked:
 No.
