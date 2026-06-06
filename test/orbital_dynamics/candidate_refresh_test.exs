@@ -18592,6 +18592,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "maneuver_replacement" => 1,
                "obs_selected" => 1
              },
+             "source_report_timeline_diff_branch_local_timeline_diff_pressure" => true,
+             "source_report_timeline_diff_branch_local_duplicate_identity_pressure" => true,
+             "source_report_timeline_diff_branch_local_removed_activity_pressure" => true,
+             "source_report_timeline_diff_branch_local_changed_activity_pressure" => true,
+             "source_report_timeline_diff_branch_local_activity_routing_pressure" => true,
+             "source_report_timeline_diff_branch_local_operator_review_pressure" => true,
              "source_reports" => %{
                "timeline_diff_report" => %{
                  "row_count" => 8,
@@ -18713,7 +18719,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "maneuver_source" => 1,
                "obs_removed" => 1,
                "obs_source" => 1
-             }
+             },
+             "source_report_timeline_diff_branch_local_timeline_diff_pressure" => true,
+             "source_report_timeline_diff_branch_local_duplicate_identity_pressure" => true,
+             "source_report_timeline_diff_branch_local_removed_activity_pressure" => true,
+             "source_report_timeline_diff_branch_local_changed_activity_pressure" => true,
+             "source_report_timeline_diff_branch_local_activity_routing_pressure" => true,
+             "source_report_timeline_diff_branch_local_operator_review_pressure" => true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.timeline_diff_replay_summary(artifact) == replay_summary
