@@ -70,7 +70,7 @@ Last completed implementation commit:
 `6ee75270b8d7cd673eb24ceee7ee0f9c9b2fb157` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending this ledger-only correction.
+`660a199` pushed to `origin/main`.
 
 Next candidate:
 After this slice, rerun contract-shaped fixture/schema visibility discovery.
