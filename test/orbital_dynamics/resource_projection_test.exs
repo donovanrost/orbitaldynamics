@@ -66,6 +66,7 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
     assert :battery_energy_consumed_aliases in row_semantics
     assert :battery_energy_generated_aliases in row_semantics
     assert :station_calendar_pressure_context in row_semantics
+    assert :station_calendar_pressure_direction_and_capacity_maps in row_semantics
     assert :payload_and_antenna_availability_pressure in row_semantics
     assert :provider_direction_aliases in row_semantics
     assert :station_calendar_direction_aliases in row_semantics
@@ -4051,6 +4052,12 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
     flow_summary = ResourceProjection.flow_summary(report)
 
     assert %{
+             "resource_pressure_station_calendar_directions_by_type" => %{
+               "downlink_shortfall" => ["command"]
+             },
+             "resource_pressure_capacity_fractions_by_type" => %{
+               "downlink_shortfall" => [0.75]
+             },
              "projected_resources" => [
                %{
                  "first_resource_pressure_source_window_id" => "resource_window_1",
@@ -4200,6 +4207,12 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
     flow_summary = ResourceProjection.flow_summary(report)
 
     assert %{
+             "resource_pressure_station_calendar_directions_by_type" => %{
+               "downlink_shortfall" => ["downlink"]
+             },
+             "resource_pressure_capacity_fractions_by_type" => %{
+               "downlink_shortfall" => [0.75]
+             },
              "projected_resources" => [
                %{
                  "first_resource_pressure_station_calendar_entry_id" => "provider_overlap_entry",
@@ -5092,6 +5105,44 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
                  "$.resource_pressure_station_calendar_provider_entry_ids_by_type" and
                  &1["message"] ==
                    "must equal row-derived resource_pressure_station_calendar_provider_entry_ids_by_type")
+           )
+
+    stale_pressure_station_calendar_directions =
+      put_in(
+        flow_report,
+        [
+          "resource_pressure_station_calendar_directions_by_type",
+          "downlink_shortfall"
+        ],
+        ["uplink"]
+      )
+
+    assert {:error, stale_pressure_station_calendar_directions_report} =
+             Schema.validate_artifact(stale_pressure_station_calendar_directions)
+
+    assert Enum.any?(
+             stale_pressure_station_calendar_directions_report["errors"],
+             &(&1["path"] ==
+                 "$.resource_pressure_station_calendar_directions_by_type" and
+                 &1["message"] ==
+                   "must equal row-derived resource_pressure_station_calendar_directions_by_type")
+           )
+
+    stale_pressure_capacity_fractions =
+      put_in(
+        flow_report,
+        ["resource_pressure_capacity_fractions_by_type", "downlink_shortfall"],
+        [0.5]
+      )
+
+    assert {:error, stale_pressure_capacity_fractions_report} =
+             Schema.validate_artifact(stale_pressure_capacity_fractions)
+
+    assert Enum.any?(
+             stale_pressure_capacity_fractions_report["errors"],
+             &(&1["path"] == "$.resource_pressure_capacity_fractions_by_type" and
+                 &1["message"] ==
+                   "must equal row-derived resource_pressure_capacity_fractions_by_type")
            )
 
     stale_remaining = Map.put(flow_report, "total_projected_storage_remaining_mb", 99.0)

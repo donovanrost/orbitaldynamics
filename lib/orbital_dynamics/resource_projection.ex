@@ -300,6 +300,7 @@ defmodule OrbitalDynamics.ResourceProjection do
         :station_calendar_pressure_context,
         :station_calendar_capacity_fraction_context,
         :station_calendar_capacity_percent_aliases,
+        :station_calendar_pressure_direction_and_capacity_maps,
         :provider_direction_aliases,
         :station_calendar_direction_aliases,
         :station_capacity_value_paths,
@@ -632,6 +633,10 @@ defmodule OrbitalDynamics.ResourceProjection do
         resource_pressure_station_calendar_provider_ids_by_type(flow_rows),
       "resource_pressure_station_calendar_provider_entry_ids_by_type" =>
         resource_pressure_station_calendar_provider_entry_ids_by_type(flow_rows),
+      "resource_pressure_station_calendar_directions_by_type" =>
+        resource_pressure_station_calendar_directions_by_type(flow_rows),
+      "resource_pressure_capacity_fractions_by_type" =>
+        resource_pressure_capacity_fractions_by_type(flow_rows),
       "total_storage_produced_mb" => sum_flow_field(flow_rows, "storage_produced_mb"),
       "total_planned_downlink_mb" => sum_flow_field(flow_rows, "planned_downlink_mb"),
       "total_storage_limited_downlinked_mb" => sum_flow_field(flow_rows, "downlinked_mb"),
@@ -940,6 +945,36 @@ defmodule OrbitalDynamics.ResourceProjection do
     |> stable_ids_by_key()
   end
 
+  defp resource_pressure_station_calendar_directions_by_type(flow_rows) do
+    flow_rows
+    |> Enum.flat_map(fn row ->
+      directions =
+        row
+        |> Map.get("station_calendar_directions", [])
+        |> List.wrap()
+
+      for pressure_type <- resource_pressure_kinds(row),
+          direction <- directions,
+          direction not in [nil, ""],
+          do: {pressure_type, direction}
+    end)
+    |> stable_ids_by_key()
+  end
+
+  defp resource_pressure_capacity_fractions_by_type(flow_rows) do
+    flow_rows
+    |> Enum.flat_map(fn row ->
+      case Map.get(row, "capacity_fraction") do
+        value when is_number(value) ->
+          Enum.map(resource_pressure_kinds(row), &{&1, value})
+
+        _value ->
+          []
+      end
+    end)
+    |> numeric_values_by_key()
+  end
+
   defp sum_flow_field(flow_rows, field) do
     Enum.reduce(flow_rows, 0.0, fn row, total ->
       case Map.get(row, field) do
@@ -1022,6 +1057,20 @@ defmodule OrbitalDynamics.ResourceProjection do
     |> Enum.reject(fn {key, value} -> key in [nil, ""] or value in [nil, ""] end)
     |> Enum.group_by(fn {key, _value} -> key end, fn {_key, value} -> value end)
     |> Map.new(fn {key, values} -> {key, sorted_stable_ids(values)} end)
+  end
+
+  defp numeric_values_by_key(pairs) do
+    pairs
+    |> Enum.reject(fn {key, value} -> key in [nil, ""] or not is_number(value) end)
+    |> Enum.group_by(fn {key, _value} -> key end, fn {_key, value} -> value end)
+    |> Map.new(fn {key, values} ->
+      values =
+        values
+        |> Enum.uniq()
+        |> Enum.sort()
+
+      {key, values}
+    end)
   end
 
   defp sorted_stable_ids(values) do

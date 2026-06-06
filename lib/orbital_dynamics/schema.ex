@@ -5911,6 +5911,8 @@ defmodule OrbitalDynamics.Schema do
         "resource_pressure_station_calendar_entry_ids_by_type",
         "resource_pressure_station_calendar_provider_ids_by_type",
         "resource_pressure_station_calendar_provider_entry_ids_by_type",
+        "resource_pressure_station_calendar_directions_by_type",
+        "resource_pressure_capacity_fractions_by_type",
         "max_planned_latency_s",
         "max_actual_latency_s"
       ],
@@ -15116,6 +15118,22 @@ defmodule OrbitalDynamics.Schema do
               "ignored_activity_ids_by_reason"
             ] do
     %{"type" => "object", "additionalProperties" => stable_id_array_schema()}
+  end
+
+  defp json_schema_property(
+         "resource_pressure_station_calendar_directions_by_type",
+         @resource_projection_flow_summary,
+         _contract
+       ) do
+    %{"type" => "object", "additionalProperties" => string_array_schema()}
+  end
+
+  defp json_schema_property(
+         "resource_pressure_capacity_fractions_by_type",
+         @resource_projection_flow_summary,
+         _contract
+       ) do
+    number_array_map_schema()
   end
 
   defp json_schema_property(field, @resource_projection_flow_summary, _contract)
@@ -37106,6 +37124,27 @@ defmodule OrbitalDynamics.Schema do
       summary,
       "resource_pressure_station_calendar_provider_entry_ids_by_type"
     )
+    |> expect_optional_type(
+      path,
+      summary,
+      "resource_pressure_station_calendar_directions_by_type",
+      :map
+    )
+    |> validate_string_list_map(
+      path,
+      summary,
+      "resource_pressure_station_calendar_directions_by_type"
+    )
+    |> expect_optional_type(
+      path,
+      summary,
+      "resource_pressure_capacity_fractions_by_type",
+      :map
+    )
+    |> validate_number_array_map(
+      path <> ".resource_pressure_capacity_fractions_by_type",
+      Map.get(summary, "resource_pressure_capacity_fractions_by_type")
+    )
     |> expect_number(path, summary, "total_storage_produced_mb")
     |> expect_number(path, summary, "total_planned_downlink_mb")
     |> expect_number(path, summary, "total_storage_limited_downlinked_mb")
@@ -51795,6 +51834,20 @@ defmodule OrbitalDynamics.Schema do
     |> expect_field_equals(
       path,
       summary,
+      "resource_pressure_station_calendar_directions_by_type",
+      resource_projection_pressure_station_calendar_directions_by_type(flow_rows),
+      "must equal row-derived resource_pressure_station_calendar_directions_by_type"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "resource_pressure_capacity_fractions_by_type",
+      resource_projection_pressure_capacity_fractions_by_type(flow_rows),
+      "must equal row-derived resource_pressure_capacity_fractions_by_type"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
       "total_storage_produced_mb",
       sum_resource_projection_flow_number(flow_rows, "storage_produced_mb"),
       "must equal activity_resource_flow storage_produced_mb sum"
@@ -52091,6 +52144,41 @@ defmodule OrbitalDynamics.Schema do
     |> stable_values_by_key()
   end
 
+  defp resource_projection_pressure_station_calendar_directions_by_type(flow_rows) do
+    flow_rows
+    |> Enum.flat_map(fn
+      %{} = row ->
+        directions = row |> Map.get("station_calendar_directions", []) |> List.wrap()
+
+        for pressure_type <- resource_projection_pressure_kinds(row),
+            direction <- directions,
+            direction not in [nil, ""],
+            do: {pressure_type, direction}
+
+      _row ->
+        []
+    end)
+    |> stable_values_by_key()
+  end
+
+  defp resource_projection_pressure_capacity_fractions_by_type(flow_rows) do
+    flow_rows
+    |> Enum.flat_map(fn
+      %{} = row ->
+        case Map.get(row, "capacity_fraction") do
+          value when is_number(value) ->
+            Enum.map(resource_projection_pressure_kinds(row), &{&1, value})
+
+          _value ->
+            []
+        end
+
+      _row ->
+        []
+    end)
+    |> number_values_by_key()
+  end
+
   defp resource_projection_flow_summary_latency_status(_evidence_count, review_count)
        when review_count > 0,
        do: "review_required"
@@ -52245,6 +52333,13 @@ defmodule OrbitalDynamics.Schema do
     |> Enum.reject(fn {key, value} -> key in [nil, ""] or value in [nil, ""] end)
     |> Enum.group_by(fn {key, _value} -> key end, fn {_key, value} -> value end)
     |> Map.new(fn {key, values} -> {key, sorted_stable_values(values)} end)
+  end
+
+  defp number_values_by_key(pairs) do
+    pairs
+    |> Enum.reject(fn {key, value} -> key in [nil, ""] or not is_number(value) end)
+    |> Enum.group_by(fn {key, _value} -> key end, fn {_key, value} -> value end)
+    |> Map.new(fn {key, values} -> {key, values |> Enum.uniq() |> Enum.sort()} end)
   end
 
   defp sorted_stable_values(values) do

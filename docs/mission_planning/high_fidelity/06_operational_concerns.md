@@ -393,4 +393,8 @@ with malformed or negative actual-volume evidence routed to operator review
 before activity-flow rows are produced, plus estimated/planned
 downlink-throughput aliases consumed before capacity-adjusted downlink
 roll-forward and declared battery-energy
-consumed/generated aliases used before battery state projection.
+consumed/generated aliases used before battery state projection. Compact
+resource-flow summaries also derive station-calendar direction and
+capacity-fraction maps by pressure type from activity-flow rows, keeping
+provider capacity provenance reviewable without unpacking each projected
+resource row.
