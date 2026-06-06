@@ -1,60 +1,46 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Add the first `activity_template.v1` executable schema contract.
+Expose a small public `activity_template.v1` catalog helper.
 
 Status:
-Implemented, review-adjusted, and verified.
+Completed and pushed.
 
 What changed:
-- Added `activity_template.v1` to the executable schema registry and capability
-  export.
-- Added field-specific JSON Schema export for template ID, activity type,
-  template version, validation level, required/optional/default field evidence,
-  lifecycle defaults, resource hints, precondition hints, assumptions, and known
-  limits.
-- Added executable validation for stable template IDs, supported activity type,
-  positive template version, `artifact_contract` validation level, string list
-  fields, stale field counts, undeclared default fields, lifecycle defaults,
-  resource hints, and precondition hints.
-- Added a checked-in `study_results/activity_template_v1.json` fixture and
-  exported `schemas/activity_template.v1.schema.json`.
-- Refreshed generated schema bundle and validation/capability reference
-  artifacts whose counts changed after adding the new contract.
-- Updated focused schema and validation reference tests.
+- Added `OrbitalDynamics.activity_templates/0`, returning deterministic
+  JSON-facing `activity_template.v1` artifacts for baseline supported activity
+  types: observe, downlink, command, health check, slew, and impulsive burn
+  as the maneuver template.
+- Added `OrbitalDynamics.activity_template/1` lookup by template id or
+  activity type, returning `{:ok, template}` or `:error`.
+- Kept the helper artifact-only: no schedule mutation, no planner execution
+  changes, no transition engine changes, and no generated capability-catalog
+  refresh.
+- Preserved the checked-in `study_results/activity_template_v1.json` observe
+  fixture by decoded map equality against the first helper-produced template.
+- Added focused public facade tests for deterministic IDs, supported activity
+  types, default-field declarations, executable schema validation, fixture
+  equality, and unknown/non-binary lookup paths.
 
 Verification:
-- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `mix test test/orbital_dynamics/schema_test.exs test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix test test/orbital_dynamics/golden_artifact_test.exs:482 test/orbital_dynamics/validation_test.exs:48 test/orbital_dynamics/validation_test.exs:4042 test/orbital_dynamics/validation_test.exs:10515 test/orbital_dynamics/validation_test.exs:10599 test/orbital_dynamics/validation_test.exs:10690 test/mix/tasks/orbital_dynamics.schema.lint_test.exs:302`
-- `mix orbital_dynamics.schema.lint --all`
-- `git diff --check`
+- `mix test test/orbital_dynamics/capabilities_test.exs` -> 5 passed.
+- `mix test test/orbital_dynamics/schema_test.exs:58` -> 1 passed.
+- `mix orbital_dynamics.schema.lint --input study_results/activity_template_v1.json` -> pass.
+- `git diff --check` -> pass.
 
 Read-only review:
-Found one must-fix validator/export alignment issue for optional
-`activity_template.v1` fields. Fixed by making optional-field validation
-presence-aware: omitted optional fields remain allowed, while present nulls and
-wrong-typed optional strings/maps/lists/counts/nested hints now fail like the
-exported JSON Schema. Added focused regression cases in
-`test/orbital_dynamics/schema_test.exs`.
+- Sidecar `019e9c63-ed9b-7bb3-9856-61f816723f81` reported no findings.
+- Reviewer also reran the focused facade test, single-artifact lint, and scoped
+  whitespace check.
 
-Full-suite note:
-`mix test` currently fails outside this slice: 2981/3001 passed, 20 failed.
-The residual failures are in the existing study manifest schema freshness check,
-CandidateRefresh/contact-contention/contact-allocation validation paths, and
-campaign-planner branch refresh validation paths. The known
-`:propagator_exit` scenario-runner log appeared during the run and remains
-expected noise when the suite result is otherwise interpreted.
-
-Last completed implementation commit:
-`15bad241161d53ff5112a01cdc4910d367fad389` pushed to `origin/main`.
+Implementation commit:
+`c58367c010f84e9c6e933bbbb0faeedc37904c50` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending post-commit ledger correction.
+Pending this ledger-only correction.
 
 Next candidate:
-Wire `activity_template.v1` into a small public helper or add a typed template
-example path that can later validate one transition path without mutating
+Validate one transition path that consumes a template without mutating
 schedules.
 
 Blocked:
