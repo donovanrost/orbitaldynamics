@@ -253,6 +253,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :quality_gate_report,
         :operational_quality_gate_summary,
         :operational_quality_gate_unavailable_resource_summary,
+        :operational_quality_gate_operator_training_summary,
         :operational_quality_gate_schema_validation_summary,
         :operational_quality_gate_import_readiness_summary,
         :model_acceptance_report,
@@ -607,6 +608,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :source_quality_gate_report_input_provenance,
         :source_operational_quality_gate_summary_input_provenance,
         :source_operational_quality_gate_unavailable_resource_summary_input_provenance,
+        :source_operational_quality_gate_operator_training_summary_input_provenance,
         :source_operational_quality_gate_schema_validation_summary_input_provenance,
         :source_operational_quality_gate_import_readiness_summary_input_provenance,
         :source_model_acceptance_report_input_provenance,
@@ -13854,6 +13856,22 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(quality_gate_summary, "failed_schema_validation_quality_gate_row_ids", []),
       "schema_validation_gate_ids" =>
         Map.get(quality_gate_summary, "schema_validation_gate_ids", []),
+      "operator_training_requirement_count" =>
+        summary_integer(quality_gate_summary, "operator_training_requirement_count"),
+      "operator_training_requirement_counts" =>
+        Map.get(quality_gate_summary, "operator_training_requirement_counts", %{}),
+      "operator_training_requirement_ids" =>
+        Map.get(quality_gate_summary, "operator_training_requirement_ids", []),
+      "required_operator_roles" => Map.get(quality_gate_summary, "required_operator_roles", []),
+      "required_training_ids" => Map.get(quality_gate_summary, "required_training_ids", []),
+      "required_certification_ids" =>
+        Map.get(quality_gate_summary, "required_certification_ids", []),
+      "required_qualification_ids" =>
+        Map.get(quality_gate_summary, "required_qualification_ids", []),
+      "review_only_quality_gate_row_ids" =>
+        Map.get(quality_gate_summary, "review_only_quality_gate_row_ids", []),
+      "operator_training_gate_ids" =>
+        Map.get(quality_gate_summary, "operator_training_gate_ids", []),
       "import_status_counts" => import_status_counts,
       "cadence_import_status_counts" => cadence_import_status_counts,
       "source_summary_model_counts" =>
@@ -21651,6 +21669,43 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "schema_validation_gate_ids" =>
         reports
         |> Enum.flat_map(&quality_gate_string_list(&1, "schema_validation_gate_ids"))
+        |> sorted_string_values(),
+      "operator_training_requirement_count" =>
+        sum_report_count(
+          reports,
+          &quality_gate_row_count(&1, "operator_training_requirement_count")
+        ),
+      "operator_training_requirement_counts" =>
+        reports
+        |> Enum.map(&quality_gate_row_count_map(&1, "operator_training_requirement_counts"))
+        |> merge_count_maps(),
+      "operator_training_requirement_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_string_list(&1, "operator_training_requirement_ids"))
+        |> sorted_string_values(),
+      "required_operator_roles" =>
+        reports
+        |> Enum.flat_map(&quality_gate_string_list(&1, "required_operator_roles"))
+        |> sorted_string_values(),
+      "required_training_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_string_list(&1, "required_training_ids"))
+        |> sorted_string_values(),
+      "required_certification_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_string_list(&1, "required_certification_ids"))
+        |> sorted_string_values(),
+      "required_qualification_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_string_list(&1, "required_qualification_ids"))
+        |> sorted_string_values(),
+      "review_only_quality_gate_row_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_string_list(&1, "review_only_quality_gate_row_ids"))
+        |> sorted_string_values(),
+      "operator_training_gate_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_string_list(&1, "operator_training_gate_ids"))
         |> sorted_string_values(),
       "import_status_counts" =>
         reports
@@ -38560,6 +38615,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
          "accepted_planning_state",
          "operational_quality_gate_unavailable_resource_summary"
        ])},
+      {"accepted_planning_state.source_operational_quality_gate_operator_training_summary",
+       get_in(refresh, [
+         "accepted_planning_state",
+         "source_operational_quality_gate_operator_training_summary"
+       ])},
+      {"accepted_planning_state.operational_quality_gate_operator_training_summary",
+       get_in(refresh, [
+         "accepted_planning_state",
+         "operational_quality_gate_operator_training_summary"
+       ])},
       {"accepted_planning_state.source_operational_quality_gate_schema_validation_summary",
        get_in(refresh, [
          "accepted_planning_state",
@@ -38601,6 +38666,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
          "mission_state",
          "operational_quality_gate_unavailable_resource_summary"
        ])},
+      {"mission_state.source_operational_quality_gate_operator_training_summary",
+       get_in(refresh, [
+         "mission_state",
+         "source_operational_quality_gate_operator_training_summary"
+       ])},
+      {"mission_state.operational_quality_gate_operator_training_summary",
+       get_in(refresh, [
+         "mission_state",
+         "operational_quality_gate_operator_training_summary"
+       ])},
       {"mission_state.source_operational_quality_gate_schema_validation_summary",
        get_in(refresh, [
          "mission_state",
@@ -38627,6 +38702,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
        Map.get(refresh, "source_operational_quality_gate_unavailable_resource_summary")},
       {"operational_quality_gate_unavailable_resource_summary",
        Map.get(refresh, "operational_quality_gate_unavailable_resource_summary")},
+      {"source_operational_quality_gate_operator_training_summary",
+       Map.get(refresh, "source_operational_quality_gate_operator_training_summary")},
+      {"operational_quality_gate_operator_training_summary",
+       Map.get(refresh, "operational_quality_gate_operator_training_summary")},
       {"source_operational_quality_gate_schema_validation_summary",
        Map.get(refresh, "source_operational_quality_gate_schema_validation_summary")},
       {"operational_quality_gate_schema_validation_summary",
@@ -39894,6 +39973,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
          Map.get(artifact, "source_operational_quality_gate_unavailable_resource_summary")},
         {"#{path}.operational_quality_gate_unavailable_resource_summary",
          Map.get(artifact, "operational_quality_gate_unavailable_resource_summary")},
+        {"#{path}.source_operational_quality_gate_operator_training_summary",
+         Map.get(artifact, "source_operational_quality_gate_operator_training_summary")},
+        {"#{path}.operational_quality_gate_operator_training_summary",
+         Map.get(artifact, "operational_quality_gate_operator_training_summary")},
         {"#{path}.source_operational_quality_gate_schema_validation_summary",
          Map.get(artifact, "source_operational_quality_gate_schema_validation_summary")},
         {"#{path}.operational_quality_gate_schema_validation_summary",
@@ -42732,6 +42815,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
       quality_gate_unavailable_resource_summary_source?(value) ->
         [{path, quality_gate_report_from_unavailable_resource_summary(value)}]
 
+      quality_gate_operator_training_summary_source?(value) ->
+        [{path, quality_gate_report_from_operator_training_summary(value)}]
+
       quality_gate_schema_validation_summary_source?(value) ->
         [{path, quality_gate_report_from_schema_validation_summary(value)}]
 
@@ -42871,6 +42957,62 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "blocked_quality_gate_row_ids" =>
         quality_gate_summary_list_map_values(row_ids_by_status, "blocked"),
       "resource_availability_gate_ids" => summary["resource_availability_gate_ids"],
+      "trust_boundary" => summary["trust_boundary"],
+      "trust_boundaries" => summary["trust_boundaries"],
+      "assumptions" => summary["assumptions"]
+    }
+    |> maybe_put("provenance", summary["provenance"])
+    |> compact_map()
+  end
+
+  defp quality_gate_report_from_operator_training_summary(%{} = summary) do
+    summary = stringify_keys(summary)
+    row_ids_by_status = Map.get(summary, "quality_gate_row_ids_by_status", %{})
+    gate_ids_by_status = Map.get(summary, "quality_gate_ids_by_status", %{})
+    status = quality_gate_status_from_row_ids(row_ids_by_status)
+    classification = quality_gate_import_readiness_classification(status)
+
+    %{
+      "schema_contract" => "quality_gate_report.v1",
+      "model" => "preserved_operational_quality_gate_operator_training_summary",
+      "source" => summary["source"],
+      "source_summary_model" => summary["model"],
+      "source_summary_schema_contract" => summary["schema_contract"],
+      "source_artifact_type" => summary["source_artifact_type"],
+      "source_artifact_id" => summary["source_artifact_id"],
+      "source_quality_gate_report_id" => summary["source_quality_gate_report_id"],
+      "source_readiness_report_id" => summary["source_readiness_report_id"],
+      "readiness_level" => quality_gate_import_readiness_level(classification),
+      "import_classification" => classification,
+      "status" => status,
+      "gate_count" => summary["operator_training_row_count"],
+      "passed_gate_count" =>
+        length(quality_gate_summary_list_map_values(row_ids_by_status, "passed")),
+      "review_gate_count" =>
+        length(quality_gate_summary_list_map_values(row_ids_by_status, "review_required")),
+      "analysis_gate_count" =>
+        length(quality_gate_summary_list_map_values(row_ids_by_status, "analysis_only")),
+      "blocked_gate_count" =>
+        length(quality_gate_summary_list_map_values(row_ids_by_status, "blocked")),
+      "gate_status_counts" => quality_gate_import_readiness_status_counts(row_ids_by_status),
+      "gate_classification_counts" =>
+        quality_gate_import_readiness_classification_counts(row_ids_by_status),
+      "operator_training_row_count" => summary["operator_training_row_count"],
+      "operator_training_requirement_count" => summary["operator_training_requirement_count"],
+      "operator_training_requirement_counts" => summary["operator_training_requirement_counts"],
+      "operator_training_requirement_ids" => summary["operator_training_requirement_ids"],
+      "required_operator_roles" => summary["required_operator_roles"],
+      "required_training_ids" => summary["required_training_ids"],
+      "required_certification_ids" => summary["required_certification_ids"],
+      "required_qualification_ids" => summary["required_qualification_ids"],
+      "quality_gate_row_ids_by_status" => row_ids_by_status,
+      "quality_gate_ids_by_status" => gate_ids_by_status,
+      "review_required_quality_gate_row_ids" =>
+        quality_gate_summary_list_map_values(row_ids_by_status, "review_required"),
+      "blocked_quality_gate_row_ids" =>
+        quality_gate_summary_list_map_values(row_ids_by_status, "blocked"),
+      "review_only_quality_gate_row_ids" => summary["review_only_quality_gate_row_ids"],
+      "operator_training_gate_ids" => summary["operator_training_gate_ids"],
       "trust_boundary" => summary["trust_boundary"],
       "trust_boundaries" => summary["trust_boundaries"],
       "assumptions" => summary["assumptions"]
@@ -48072,6 +48214,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp quality_gate_unavailable_resource_summary_source?(_summary), do: false
+
+  defp quality_gate_operator_training_summary_source?(%{} = summary) do
+    schema_contract = Map.get(summary, "schema_contract") || Map.get(summary, :schema_contract)
+    model = Map.get(summary, "model") || Map.get(summary, :model)
+
+    schema_contract in [nil, "operational_quality_gate_operator_training_summary.v1"] and
+      model == "artifact_only_quality_gate_operator_training_summary"
+  end
+
+  defp quality_gate_operator_training_summary_source?(_summary), do: false
 
   defp quality_gate_schema_validation_summary_source?(%{} = summary) do
     schema_contract = Map.get(summary, "schema_contract") || Map.get(summary, :schema_contract)
