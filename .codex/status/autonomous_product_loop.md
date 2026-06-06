@@ -1,20 +1,19 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Expose CandidateRefresh timeline-activity-lifecycle source-report schema
+Expose CandidateRefresh timeline-lifecycle-state-summary source-report schema
 property.
 
 Status:
-Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
-CandidateRefresh source-report provenance already emits
-`timeline_activity_lifecycle_state` summaries, and replay helpers already consume
-their lifecycle transition, operator-action, protection, activity/timeline ID,
-action-routing, invalid-input, and trust-boundary fields. This slice makes that
-emitted family schema-visible under `candidate_refresh.v1`
-`provenance.source_reports.properties` instead of relying only on the generic
-`additionalProperties` summary schema. Runtime behavior, artifact generation,
-operator authority, import approval, and Cadence write behavior are intentionally
-out of scope.
+Implemented, locally verified, and reviewed clean; mechanical commit/push
+pending. Runtime CandidateRefresh source-report provenance already emits
+`timeline_lifecycle_state_summary` summaries, and replay helpers already consume
+their lifecycle count, transition/action count-map, stable ID list, review
+routing, and trust-boundary fields. This slice makes that emitted family
+schema-visible under `candidate_refresh.v1` `provenance.source_reports.properties`
+instead of relying only on the generic `additionalProperties` summary schema.
+Runtime behavior, artifact generation, operator authority, import approval, and
+Cadence write behavior are intentionally out of scope.
 
 Files expected:
 - `.codex/status/autonomous_product_loop.md`
@@ -26,11 +25,11 @@ Files expected:
 
 Definition of done:
 - `candidate_refresh.v1` exposes a family-specific
-  `timeline_activity_lifecycle_state` source-report schema.
+  `timeline_lifecycle_state_summary` source-report schema.
 - Its source-report object advertises lifecycle scalar counts, count maps,
-  invalid-input lists, and action-routing maps.
+  stable ID arrays/maps, and review-routing maps.
 - Schema validation rejects obvious invalid lifecycle integer, count-map,
-  action-routing, and list shapes.
+  stable ID list/map, and review-routing shapes.
 - Checked-in `candidate_refresh.v1` schema and schema bundle are refreshed.
 - Schema export tests, schema tests, focused CandidateRefresh runtime tests,
   schema lint, generated-schema spot-checks, and whitespace checks pass.
@@ -40,27 +39,29 @@ Definition of done:
 Tests run:
 - `mix format lib/orbital_dynamics/schema.ex test/mix/tasks/orbital_dynamics.schema.export_test.exs test/orbital_dynamics/schema_test.exs`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs` (initially failed on stale
-  checked-in schema export after validation passed; passed after export refresh)
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:19986`
+- `mix test test/orbital_dynamics/schema_test.exs` (initially caught a
+  review-routing path-label issue and then failed only on stale checked-in schema
+  export; passed after export refresh; rerun passed after adding direct
+  stable-ID-map negative coverage)
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:19090`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - `mix test test/orbital_dynamics/schema_test.exs`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:19986`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:19090`
 - `mix orbital_dynamics.schema.lint --all`
-- `jq` spot-checks for `timeline_activity_lifecycle_state` source-report fields
+- `jq` spot-checks for `timeline_lifecycle_state_summary` source-report fields
   in `schemas/candidate_refresh.v1.schema.json` and the schema bundle.
 - `git diff --check -- . ':!.gitignore'`
 - `slice_reviewer`: no must-fix findings; reran focused schema test, export
   test, focused CandidateRefresh runtime test, schema lint, whitespace check,
-  and generated-schema `jq` spot-checks.
-- `git_slice_publisher`: committed and pushed.
+  and generated-schema `jq` spot-checks. Residual stable-ID-map test gap was
+  closed locally after review.
 
 Last completed implementation commit:
 `d6fd7894065aa185fbab9f665103cd310ae53c1f` pushed to `origin/main`.
 
 Last ledger correction commit:
-`1748097` pushed to `origin/main`.
+`6c1c5ee` pushed to `origin/main`.
 
 Next candidate:
 After this slice, run a bounded mapper pass to identify the next schema-visible

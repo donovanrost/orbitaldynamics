@@ -21208,6 +21208,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_timeline_integrity_source_report_summary_json_schema(),
             "timeline_activity_lifecycle_state" =>
               candidate_refresh_timeline_activity_lifecycle_source_report_summary_json_schema(),
+            "timeline_lifecycle_state_summary" =>
+              candidate_refresh_timeline_lifecycle_state_source_report_summary_json_schema(),
             "timeline_publication_summary" =>
               candidate_refresh_timeline_publication_source_report_summary_json_schema(),
             "timeline_dependency_impact_summary" =>
@@ -21570,6 +21572,16 @@ defmodule OrbitalDynamics.Schema do
       properties
       |> Map.merge(candidate_refresh_timeline_activity_context_json_schema_properties())
       |> Map.merge(candidate_refresh_timeline_activity_lifecycle_context_json_schema_properties())
+    end)
+  end
+
+  defp candidate_refresh_timeline_lifecycle_state_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      Map.merge(
+        properties,
+        candidate_refresh_timeline_lifecycle_state_context_json_schema_properties()
+      )
     end)
   end
 
@@ -22552,6 +22564,65 @@ defmodule OrbitalDynamics.Schema do
     )
     |> Map.merge(%{
       "action_routing" => timeline_activity_state_action_routing_json_schema()
+    })
+  end
+
+  defp candidate_refresh_timeline_lifecycle_state_context_json_schema_properties do
+    non_negative_integer_property_schemas([
+      "planned_activity_count",
+      "realized_activity_count",
+      "recordable_count",
+      "preserved_count",
+      "review_required_count",
+      "duplicate_timeline_identity_count",
+      "invalid_activity_input_count",
+      "transition_application_provenance_count"
+    ])
+    |> Map.merge(
+      Map.new(
+        [
+          "source_summary_model_counts",
+          "source_summary_schema_contract_counts",
+          "transition_decision_counts",
+          "required_operator_action_counts",
+          "import_action_counts",
+          "planned_status_category_counts",
+          "realized_status_category_counts",
+          "planned_approval_category_counts",
+          "realized_approval_category_counts",
+          "status_transition_category_counts",
+          "approval_transition_category_counts",
+          "transition_application_provenance_helper_counts",
+          "transition_application_provenance_category_counts",
+          "transition_application_provenance_operator_action_reason_counts"
+        ],
+        &{&1, non_negative_integer_count_map_json_schema()}
+      )
+    )
+    |> Map.merge(
+      Map.new(
+        [
+          "recordable_timeline_ids",
+          "preserved_timeline_ids",
+          "review_timeline_ids",
+          "review_activity_ids",
+          "invalid_activity_input_ids"
+        ],
+        &{&1, stable_id_array_schema()}
+      )
+    )
+    |> Map.merge(
+      Map.new(
+        [
+          "review_timeline_ids_by_required_operator_action",
+          "review_timeline_ids_by_status_transition_category",
+          "review_timeline_ids_by_approval_transition_category"
+        ],
+        &{&1, stable_id_array_map_schema()}
+      )
+    )
+    |> Map.merge(%{
+      "review_routing" => timeline_activity_state_action_routing_json_schema()
     })
   end
 
@@ -26685,6 +26756,7 @@ defmodule OrbitalDynamics.Schema do
         |> validate_candidate_refresh_station_calendar_context(path, summary)
         |> validate_candidate_refresh_timeline_activity_context(path, summary)
         |> validate_candidate_refresh_timeline_activity_lifecycle_context(path, summary)
+        |> validate_candidate_refresh_timeline_lifecycle_state_context(path, summary)
         |> validate_candidate_refresh_timeline_integrity_context(path, summary)
         |> validate_candidate_refresh_timeline_publication_context(path, summary)
         |> validate_candidate_refresh_timeline_dependency_impact_context(path, summary)
@@ -27666,24 +27738,117 @@ defmodule OrbitalDynamics.Schema do
 
     issues
     |> expect_optional_type(path, summary, "action_routing", :map)
-    |> validate_timeline_activity_state_action_routing(path, Map.get(summary, "action_routing"))
+    |> validate_timeline_activity_state_action_routing(
+      path,
+      "action_routing",
+      Map.get(summary, "action_routing")
+    )
   end
 
-  defp validate_timeline_activity_state_action_routing(issues, _path, value)
+  defp validate_candidate_refresh_timeline_lifecycle_state_context(issues, path, summary) do
+    issues =
+      Enum.reduce(
+        [
+          "planned_activity_count",
+          "realized_activity_count",
+          "recordable_count",
+          "preserved_count",
+          "review_required_count",
+          "duplicate_timeline_identity_count",
+          "invalid_activity_input_count",
+          "transition_application_provenance_count"
+        ],
+        issues,
+        fn field, acc ->
+          expect_optional_non_negative_integer(acc, path, summary, field)
+        end
+      )
+
+    issues =
+      Enum.reduce(
+        [
+          "source_summary_model_counts",
+          "source_summary_schema_contract_counts",
+          "transition_decision_counts",
+          "required_operator_action_counts",
+          "import_action_counts",
+          "planned_status_category_counts",
+          "realized_status_category_counts",
+          "planned_approval_category_counts",
+          "realized_approval_category_counts",
+          "status_transition_category_counts",
+          "approval_transition_category_counts",
+          "transition_application_provenance_helper_counts",
+          "transition_application_provenance_category_counts",
+          "transition_application_provenance_operator_action_reason_counts"
+        ],
+        issues,
+        fn field, acc ->
+          acc
+          |> expect_optional_type(path, summary, field, :map)
+          |> validate_non_negative_integer_count_map(
+            path <> ".#{field}",
+            Map.get(summary, field)
+          )
+        end
+      )
+
+    issues =
+      Enum.reduce(
+        [
+          "recordable_timeline_ids",
+          "preserved_timeline_ids",
+          "review_timeline_ids",
+          "review_activity_ids",
+          "invalid_activity_input_ids"
+        ],
+        issues,
+        fn field, acc ->
+          acc
+          |> expect_optional_type(path, summary, field, :list)
+          |> validate_optional_stable_id_list(path, summary, field)
+        end
+      )
+
+    issues =
+      Enum.reduce(
+        [
+          "review_timeline_ids_by_required_operator_action",
+          "review_timeline_ids_by_status_transition_category",
+          "review_timeline_ids_by_approval_transition_category"
+        ],
+        issues,
+        fn field, acc ->
+          acc
+          |> expect_optional_type(path, summary, field, :map)
+          |> validate_optional_stable_id_array_map(path, summary, field)
+        end
+      )
+
+    issues
+    |> expect_optional_type(path, summary, "review_routing", :map)
+    |> validate_timeline_activity_state_action_routing(
+      path,
+      "review_routing",
+      Map.get(summary, "review_routing")
+    )
+  end
+
+  defp validate_timeline_activity_state_action_routing(issues, _path, _field, value)
        when value in [nil, :null],
        do: issues
 
-  defp validate_timeline_activity_state_action_routing(issues, path, %{} = routes) do
+  defp validate_timeline_activity_state_action_routing(issues, path, field, %{} = routes) do
     Enum.reduce(routes, issues, fn {action, route}, acc ->
-      route_path = path <> ".action_routing.#{action}"
+      route_path = path <> ".#{field}.#{action}"
 
       acc
-      |> expect_type(path <> ".action_routing", routes, action, :map)
+      |> expect_type(path <> ".#{field}", routes, action, :map)
       |> validate_timeline_activity_state_action_route(route_path, route)
     end)
   end
 
-  defp validate_timeline_activity_state_action_routing(issues, _path, _value), do: issues
+  defp validate_timeline_activity_state_action_routing(issues, _path, _field, _value), do: issues
 
   defp validate_timeline_activity_state_action_route(issues, path, %{} = route) do
     issues

@@ -13935,6 +13935,224 @@ defmodule OrbitalDynamics.SchemaTest do
                  "$.provenance.source_reports.timeline_activity_lifecycle_state.action_routing.review_activity_approval.activity_ids[0]")
            )
 
+    artifact_with_timeline_lifecycle_state_summary =
+      put_in(artifact, ["provenance", "source_reports", "timeline_lifecycle_state_summary"], %{
+        "paths" => ["source_timeline_lifecycle_state_summary"],
+        "contract" => "timeline_lifecycle_state_summary.v1",
+        "count" => 1,
+        "row_count" => 2,
+        "planned_activity_count" => 2,
+        "realized_activity_count" => 1,
+        "recordable_count" => 1,
+        "preserved_count" => 1,
+        "review_required_count" => 1,
+        "duplicate_timeline_identity_count" => 1,
+        "invalid_activity_input_count" => 1,
+        "invalid_activity_input_ids" => ["timeline_row:5:bad_missing_type"],
+        "transition_decision_counts" => %{"record" => 1, "review" => 1},
+        "required_operator_action_counts" => %{"review_activity_approval" => 1},
+        "import_action_counts" => %{"review_timeline_diff" => 1},
+        "planned_status_category_counts" => %{"planned" => 1},
+        "realized_status_category_counts" => %{"executed" => 1},
+        "planned_approval_category_counts" => %{"review_required" => 1},
+        "realized_approval_category_counts" => %{"protected" => 1},
+        "status_transition_category_counts" => %{"execution_recorded" => 1},
+        "approval_transition_category_counts" => %{"approval_granted" => 1},
+        "transition_application_provenance_count" => 1,
+        "transition_application_provenance_helper_counts" => %{
+          "apply_lifecycle_event" => 1
+        },
+        "transition_application_provenance_category_counts" => %{
+          "execution_recorded" => 1
+        },
+        "transition_application_provenance_operator_action_reason_counts" => %{
+          "activity_execution_recorded" => 1
+        },
+        "recordable_timeline_ids" => ["timeline:cmd_recordable"],
+        "preserved_timeline_ids" => ["timeline:obs_done"],
+        "review_timeline_ids" => ["timeline:cmd_pending"],
+        "review_activity_ids" => ["cmd_pending"],
+        "review_timeline_ids_by_required_operator_action" => %{
+          "review_activity_approval" => ["timeline:cmd_pending"]
+        },
+        "review_timeline_ids_by_status_transition_category" => %{
+          "execution_recorded" => ["timeline:cmd_recordable"]
+        },
+        "review_timeline_ids_by_approval_transition_category" => %{
+          "approval_granted" => ["timeline:cmd_pending"]
+        },
+        "review_routing" => %{
+          "review_activity_approval" => %{
+            "review_count" => 1,
+            "activity_ids" => ["cmd_pending"],
+            "timeline_ids" => ["timeline:cmd_pending"],
+            "status_transition_categories" => ["execution_recorded"],
+            "approval_transition_categories" => ["approval_granted"]
+          }
+        }
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_timeline_lifecycle_state_summary)
+
+    assert {:ok, candidate_refresh_schema} = Schema.json_schema("candidate_refresh.v1")
+
+    timeline_lifecycle_state_source_report_properties =
+      get_in(candidate_refresh_schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "timeline_lifecycle_state_summary",
+        "properties"
+      ])
+
+    assert get_in(timeline_lifecycle_state_source_report_properties, [
+             "review_required_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(timeline_lifecycle_state_source_report_properties, [
+             "transition_decision_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(timeline_lifecycle_state_source_report_properties, [
+             "review_timeline_ids",
+             "items",
+             "pattern"
+           ])
+
+    assert get_in(timeline_lifecycle_state_source_report_properties, [
+             "review_timeline_ids_by_required_operator_action",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ])
+
+    assert get_in(timeline_lifecycle_state_source_report_properties, [
+             "review_routing",
+             "additionalProperties",
+             "properties",
+             "activity_ids",
+             "items",
+             "pattern"
+           ])
+
+    invalid_timeline_lifecycle_state_review_count =
+      put_in(
+        artifact_with_timeline_lifecycle_state_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_lifecycle_state_summary",
+          "review_required_count"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_timeline_lifecycle_state_review_count_report} =
+             Schema.validate_artifact(invalid_timeline_lifecycle_state_review_count)
+
+    assert Enum.any?(
+             invalid_timeline_lifecycle_state_review_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_lifecycle_state_summary.review_required_count")
+           )
+
+    invalid_timeline_lifecycle_state_transition_count =
+      put_in(
+        artifact_with_timeline_lifecycle_state_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_lifecycle_state_summary",
+          "transition_decision_counts",
+          "review"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_timeline_lifecycle_state_transition_count_report} =
+             Schema.validate_artifact(invalid_timeline_lifecycle_state_transition_count)
+
+    assert Enum.any?(
+             invalid_timeline_lifecycle_state_transition_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_lifecycle_state_summary.transition_decision_counts.review")
+           )
+
+    invalid_timeline_lifecycle_state_review_id =
+      put_in(
+        artifact_with_timeline_lifecycle_state_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_lifecycle_state_summary",
+          "review_timeline_ids",
+          Access.at(0)
+        ],
+        "bad id"
+      )
+
+    assert {:error, invalid_timeline_lifecycle_state_review_id_report} =
+             Schema.validate_artifact(invalid_timeline_lifecycle_state_review_id)
+
+    assert Enum.any?(
+             invalid_timeline_lifecycle_state_review_id_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_lifecycle_state_summary.review_timeline_ids[0]")
+           )
+
+    invalid_timeline_lifecycle_state_review_id_map =
+      put_in(
+        artifact_with_timeline_lifecycle_state_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_lifecycle_state_summary",
+          "review_timeline_ids_by_required_operator_action",
+          "review_activity_approval",
+          Access.at(0)
+        ],
+        "bad id"
+      )
+
+    assert {:error, invalid_timeline_lifecycle_state_review_id_map_report} =
+             Schema.validate_artifact(invalid_timeline_lifecycle_state_review_id_map)
+
+    assert Enum.any?(
+             invalid_timeline_lifecycle_state_review_id_map_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_lifecycle_state_summary.review_timeline_ids_by_required_operator_action.review_activity_approval[0]")
+           )
+
+    invalid_timeline_lifecycle_state_route_id =
+      put_in(
+        artifact_with_timeline_lifecycle_state_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_lifecycle_state_summary",
+          "review_routing",
+          "review_activity_approval",
+          "activity_ids",
+          Access.at(0)
+        ],
+        "bad id"
+      )
+
+    assert {:error, invalid_timeline_lifecycle_state_route_id_report} =
+             Schema.validate_artifact(invalid_timeline_lifecycle_state_route_id)
+
+    assert Enum.any?(
+             invalid_timeline_lifecycle_state_route_id_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_lifecycle_state_summary.review_routing.review_activity_approval.activity_ids[0]")
+           )
+
     artifact_with_timeline_integrity_summary =
       put_in(artifact, ["provenance", "source_reports", "timeline_integrity_report"], %{
         "paths" => ["source_timeline_integrity_report"],

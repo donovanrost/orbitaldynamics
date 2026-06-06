@@ -6378,6 +6378,58 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       "properties"
     ]
 
+    timeline_lifecycle_state_source_report_summary_path = [
+      "properties",
+      "provenance",
+      "properties",
+      "source_reports",
+      "properties",
+      "timeline_lifecycle_state_summary",
+      "properties"
+    ]
+
+    assert get_in(
+             schemas,
+             ["candidate_refresh.v1" | timeline_lifecycle_state_source_report_summary_path] ++
+               ["review_required_count", "minimum"]
+           ) == 0
+
+    assert get_in(
+             schemas,
+             ["candidate_refresh.v1" | timeline_lifecycle_state_source_report_summary_path] ++
+               ["transition_decision_counts", "additionalProperties", "minimum"]
+           ) == 0
+
+    assert get_in(
+             schemas,
+             ["candidate_refresh.v1" | timeline_lifecycle_state_source_report_summary_path] ++
+               ["review_timeline_ids", "items", "pattern"]
+           ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+
+    assert get_in(
+             schemas,
+             ["candidate_refresh.v1" | timeline_lifecycle_state_source_report_summary_path] ++
+               [
+                 "review_timeline_ids_by_required_operator_action",
+                 "additionalProperties",
+                 "items",
+                 "pattern"
+               ]
+           ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+
+    assert get_in(
+             schemas,
+             ["candidate_refresh.v1" | timeline_lifecycle_state_source_report_summary_path] ++
+               [
+                 "review_routing",
+                 "additionalProperties",
+                 "properties",
+                 "activity_ids",
+                 "items",
+                 "pattern"
+               ]
+           ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+
     assert get_in(
              schemas,
              ["candidate_refresh.v1" | timeline_activity_lifecycle_source_report_summary_path] ++
