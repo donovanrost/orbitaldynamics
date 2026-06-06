@@ -8,7 +8,7 @@ Current slice:
 Communications compact summary idempotent handoffs.
 
 Status:
-Implemented and verified; commit/push pending.
+Implemented, verified, committed, and pushed.
 
 Files changed:
 - `lib/orbital_dynamics/communications/link_capacity.ex`
@@ -45,9 +45,12 @@ resolution adapters can pass existing summary artifacts back through public
 facades without rerunning analysis or losing deterministic summary fields.
 
 Last commit:
-- Pending for communications compact summary idempotent handoffs.
+- `de31814211684f89b37687b22d757088b0eba161` pushed to `origin/main` for
+  communications compact summary idempotent handoffs.
 
 Recently completed slices:
+- `de31814211684f89b37687b22d757088b0eba161` pushed to `origin/main` for
+  communications compact summary idempotent handoffs.
 - `70eed6323222b6d04e6cf4234d5521992035dee9` pushed to `origin/main` for
   ContactAllocation compact summary idempotent handoffs.
 - `f36a2a994f99f8974484f79fcbe6172cc57aa5cf` pushed to `origin/main` for
