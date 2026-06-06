@@ -64,7 +64,7 @@ Last completed implementation commit:
 `e0793228f1d3499e8074079e7bd98dbe89807c07` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending for this slice.
+`d2b5baf` pushed to `origin/main`.
 
 Next candidate:
 After this slice, continue the CandidateRefresh source-report schema visibility
