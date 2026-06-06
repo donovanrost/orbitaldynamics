@@ -8,7 +8,7 @@ Current slice:
 StationCalendar compact summary idempotent handoffs.
 
 Status:
-Implemented and verified; commit/push pending.
+Implemented, verified, committed, and pushed.
 
 Files changed:
 - `lib/orbital_dynamics/communications/station_calendar.ex`
@@ -43,9 +43,12 @@ back through public facades without rerunning calendar/report derivation or
 losing deterministic routing fields.
 
 Last commit:
-- Pending for StationCalendar compact summary idempotent handoffs.
+- `13d2bbdf98208a695889e2dae46d719e745700f1` pushed to `origin/main` for
+  StationCalendar compact summary idempotent handoffs.
 
 Recently completed slices:
+- `13d2bbdf98208a695889e2dae46d719e745700f1` pushed to `origin/main` for
+  StationCalendar compact summary idempotent handoffs.
 - `5df667737a2e48a918851203a96f241829cf9bce` pushed to `origin/main` for
   ContactIntent compact summary idempotent handoff.
 - `de31814211684f89b37687b22d757088b0eba161` pushed to `origin/main` for
