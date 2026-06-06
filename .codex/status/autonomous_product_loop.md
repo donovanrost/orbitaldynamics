@@ -48,7 +48,7 @@ Last completed implementation commit:
 `3d7231772c1a60c54a5412d29a4a76d95f7676d6` pushed to `origin/main`.
 
 Last ledger correction commit:
-`d5be0456bea318cb2379a2c0ca19c10e748a6df6` pushed to `origin/main`.
+`620fb374cf595faa919bdf57da61eeec915f6739` pushed to `origin/main`.
 
 Next candidate:
 Continue the resource/communications allocation queue after this provider
