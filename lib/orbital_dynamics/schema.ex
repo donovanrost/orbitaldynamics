@@ -18585,8 +18585,11 @@ defmodule OrbitalDynamics.Schema do
       "properties" => %{
         "spacecraft_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
         "activity_count" => %{"type" => "integer", "minimum" => 0},
+        "effective_activity_count" => %{"type" => "integer", "minimum" => 0},
         "observation_count" => %{"type" => "integer", "minimum" => 0},
         "downlink_count" => %{"type" => "integer", "minimum" => 0},
+        "ignored_activity_count" => %{"type" => "integer", "minimum" => 0},
+        "ignored_activity_ids" => stable_id_array_schema(),
         "estimated_storage_produced_mb" => %{"type" => "number"},
         "estimated_downlink_mb" => %{"type" => "number"},
         "starting_storage_used_mb" => %{"type" => "number"},
@@ -36606,8 +36609,9 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_number(path, row, "power_margin")
     |> expect_optional_number(path, row, "thermal_margin_c")
     |> expect_optional_type(path, row, "warnings", :list)
-    |> expect_optional_number(path, row, "ignored_activity_count")
+    |> expect_optional_non_negative_integer(path, row, "ignored_activity_count")
     |> expect_optional_type(path, row, "ignored_activity_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "ignored_activity_ids")
     |> validate_stable_ids(path, row, [
       "first_resource_pressure_activity_id",
       "first_resource_pressure_ground_station_id",

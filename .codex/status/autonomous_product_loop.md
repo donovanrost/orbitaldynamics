@@ -1,25 +1,24 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Expose resource-projection row availability and pressure-status schemas.
+Expose resource-projection row effective and ignored activity schemas.
 
 Status:
-Implemented, locally verified, read-only reviewed clean, committed, and pushed.
+Implemented, locally verified, and read-only reviewed clean; pending publish.
 
 Discovery:
-Broad fixture/schema visibility discovery shows the larger remaining row gap is
-`resource_projection_report.v1` `projected_resources`. Split the first bounded
-subset to row-level metadata emitted by both projection fixtures:
-`payload_available`, `antenna_available`, `resource_trust_boundary_status`,
-`resource_pressure_status`, `resource_pressure_types`, and
-`resource_provenance`.
+After the resource-projection row metadata slice, live fixture/schema comparison
+still shows both `resource_projection_report.v1` projection fixtures emitting
+row-level `effective_activity_count`, `ignored_activity_count`, and
+`ignored_activity_ids` from `projected_resources` without those fields named in
+the projected-resource row schema.
 
 Why this matters:
-Projected-resource rows are the per-spacecraft review/import summary for
-storage/downlink/resource pressure. Availability flags, trust-boundary routing,
-pressure status/type classifications, and provenance are adapter-facing metadata
-that should be schema-visible before tackling the larger battery, ignored-flow,
-and policy-evidence row fields.
+These row fields explain which selected activities actually affected the thin
+resource roll-forward and which were preserved as ignored/no-effect evidence.
+They are already count-consistency checked by executable validation, but
+downstream review/import adapters need the exported row schema to expose their
+integer and stable-ID shapes.
 
 Likely files:
 - `.codex/status/autonomous_product_loop.md`
@@ -30,43 +29,44 @@ Likely files:
 
 Definition of done:
 - [x] `resource_projection_report.v1` projected-resource row schema exposes
-  availability flags, trust-boundary status, pressure status/type, and
-  provenance fields.
-- [x] Executable validation rejects malformed booleans, strings, lists, and
-  provenance objects for the newly exposed fields.
+  `effective_activity_count`, `ignored_activity_count`, and
+  `ignored_activity_ids`.
+- [x] Executable validation rejects malformed counts and malformed ignored activity
+  IDs for the newly exposed fields.
 - [x] Focused schema tests assert row schema shape and representative invalid
   values.
 - [x] Checked-in schemas and bundle are refreshed.
 - [x] Focused schema tests, schema export tests, schema lint, generated-schema
   spot-checks, and whitespace checks pass.
 - [x] Read-only review finds no must-fix issues.
-- [x] Slice-owned files only are committed and pushed.
+- [ ] Slice-owned files only are committed and pushed.
 
 Tests run:
 - `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
 - `mix test test/orbital_dynamics/schema_test.exs:19622 test/orbital_dynamics/schema_test.exs:24508`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `jq -e` spot-check for projected-resource metadata fields in
-  `schemas/resource_projection_report.v1.schema.json`
-- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix orbital_dynamics.schema.lint --all`
+- `jq -e` spot-check for projected-resource effective/ignored activity fields
+  in `schemas/resource_projection_report.v1.schema.json`
 - `git diff --check -- . ':!.gitignore'`
+- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix test test/orbital_dynamics/schema_test.exs`
+- `mix orbital_dynamics.schema.lint --all`
 - Read-only reviewer reran `git diff --check -- . ':!.gitignore'`,
   `mix test test/orbital_dynamics/schema_test.exs:19622 test/orbital_dynamics/schema_test.exs:24508`,
-  generated-schema `jq -e` checks, and fixture lint for both resource-projection
-  fixtures, and reported no must-fix findings.
+  fixture lint for `study_results/resource_projection_report_v1.json`,
+  generated-schema `jq -e` checks, and ad hoc malformed count/ID/count-mismatch
+  validation checks, and reported no must-fix findings.
 
 Last completed implementation commit:
 `0ec3eaa78d9a9f56ba1f2315d552a182468dae9b` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending this ledger-only correction.
+`622594e7db4c509d764059233e8abd3c81693e3f` pushed to `origin/main`.
 
 Next candidate:
 Continue splitting `resource_projection_report.v1` `projected_resources` gaps:
-battery quantities/state-of-charge, ignored-activity routing, policy approval
-evidence, and storage/downlink pressure quantities.
+battery quantities/state-of-charge, policy approval evidence, and
+storage/downlink pressure quantities.
 
 Blocked:
 No.

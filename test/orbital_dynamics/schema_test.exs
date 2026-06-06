@@ -19667,12 +19667,23 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(row_schema, ["properties", "spacecraft_id", "pattern"]) ==
              Schema.identity_policy()["stable_id_pattern"]
 
-    Enum.each(["activity_count", "observation_count", "downlink_count"], fn field ->
-      assert get_in(row_schema, ["properties", field]) == %{
-               "type" => "integer",
-               "minimum" => 0
-             }
-    end)
+    Enum.each(
+      ["activity_count", "effective_activity_count", "observation_count", "downlink_count"],
+      fn field ->
+        assert get_in(row_schema, ["properties", field]) == %{
+                 "type" => "integer",
+                 "minimum" => 0
+               }
+      end
+    )
+
+    assert get_in(row_schema, ["properties", "ignored_activity_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(row_schema, ["properties", "ignored_activity_ids", "items", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
 
     assert get_in(row_schema, ["properties", "projected_storage_margin", "type"]) == "number"
     assert get_in(row_schema, ["properties", "resource_source_quality", "type"]) == "string"
@@ -19796,6 +19807,40 @@ defmodule OrbitalDynamics.SchemaTest do
     assert Enum.any?(
              resource_provenance_report["errors"],
              &(&1["path"] == "$.projected_resources[0].resource_provenance")
+           )
+
+    invalid_ignored_activity_count =
+      put_in(
+        resource_projection_report,
+        ["projected_resources", Access.at(0), "ignored_activity_count"],
+        -1
+      )
+
+    assert {:error, ignored_activity_count_report} =
+             Schema.validate_artifact(invalid_ignored_activity_count,
+               schema_contract: "resource_projection_report.v1"
+             )
+
+    assert Enum.any?(
+             ignored_activity_count_report["errors"],
+             &(&1["path"] == "$.projected_resources[0].ignored_activity_count")
+           )
+
+    invalid_ignored_activity_ids =
+      put_in(
+        resource_projection_report,
+        ["projected_resources", Access.at(0), "ignored_activity_ids"],
+        ["bad id"]
+      )
+
+    assert {:error, ignored_activity_ids_report} =
+             Schema.validate_artifact(invalid_ignored_activity_ids,
+               schema_contract: "resource_projection_report.v1"
+             )
+
+    assert Enum.any?(
+             ignored_activity_ids_report["errors"],
+             &(&1["path"] == "$.projected_resources[0].ignored_activity_ids[0]")
            )
   end
 
