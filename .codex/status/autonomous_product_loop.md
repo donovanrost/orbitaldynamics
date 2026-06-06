@@ -8,7 +8,7 @@ Current slice:
 Resource projection compact invalid-input review rows.
 
 Status:
-Implemented and focused verification passed; commit/push pending.
+Implemented, verified, committed, and pushed.
 
 Files changed:
 - `lib/orbital_dynamics/resource_projection.ex`
@@ -40,6 +40,10 @@ Level 6 pillar advanced:
 Resource and communications allocation semantics: compact storage/downlink flow
 summaries now include invalid-input source evidence for review triage without
 turning invalid inputs into projected resource effects.
+
+Last commit:
+- `b2e3e85062d95f0479f055289cfa97918685832e` pushed to `origin/main` for
+  resource projection compact invalid-input review rows.
 
 Recently completed slices:
 - `7965b42ad1a95b643020410cbe00d96121ea47b7` pushed to `origin/main` for
