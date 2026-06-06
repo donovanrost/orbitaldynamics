@@ -6882,6 +6882,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         "replay_scope" => "input_provenance_summary_only"
       }
     }
+    |> Map.merge(source_report_storage_downlink_pressure_summary_fields(source_reports))
     |> Map.merge(
       source_report_timeline_publication_context_fields(
         source_reports,
@@ -9470,6 +9471,43 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> compact_map()
   end
 
+  defp source_report_storage_downlink_pressure_summary_fields(source_reports) do
+    summary = storage_downlink_pressure_replay_summary_from_source_reports(source_reports)
+
+    %{
+      "source_report_storage_downlink_pressure_branch_local_storage_downlink_pressure" =>
+        Map.get(summary, "branch_local_storage_downlink_pressure"),
+      "source_report_storage_downlink_pressure_branch_local_storage_pressure" =>
+        Map.get(summary, "branch_local_storage_pressure"),
+      "source_report_storage_downlink_pressure_branch_local_downlink_pressure" =>
+        Map.get(summary, "branch_local_downlink_pressure"),
+      "source_report_storage_downlink_pressure_branch_local_capacity_pack_pressure" =>
+        Map.get(summary, "branch_local_capacity_pack_pressure"),
+      "source_report_storage_downlink_pressure_branch_local_downlink_shortfall_pressure" =>
+        Map.get(summary, "branch_local_downlink_shortfall_pressure"),
+      "source_report_storage_downlink_pressure_branch_local_capacity_adjusted_throughput_pressure" =>
+        Map.get(summary, "branch_local_capacity_adjusted_throughput_pressure"),
+      "source_report_storage_downlink_pressure_branch_local_actual_throughput_pressure" =>
+        Map.get(summary, "branch_local_actual_throughput_pressure"),
+      "source_report_storage_downlink_pressure_branch_local_resource_activity_pressure" =>
+        Map.get(summary, "branch_local_resource_activity_pressure"),
+      "source_report_storage_downlink_pressure_capacity_adjusted_throughput_row_count" =>
+        Map.get(summary, "capacity_adjusted_throughput_row_count"),
+      "source_report_storage_downlink_pressure_capacity_adjusted_throughput_mb_by_ground_station" =>
+        Map.get(summary, "capacity_adjusted_throughput_mb_by_ground_station"),
+      "source_report_storage_downlink_pressure_capacity_adjusted_throughput_mb_by_direction" =>
+        Map.get(summary, "capacity_adjusted_throughput_mb_by_direction"),
+      "source_report_storage_downlink_pressure_selected_capacity_adjusted_throughput_mb_by_ground_station" =>
+        Map.get(summary, "selected_capacity_adjusted_throughput_mb_by_ground_station"),
+      "source_report_storage_downlink_pressure_unused_capacity_adjusted_throughput_mb_by_ground_station" =>
+        Map.get(summary, "unused_capacity_adjusted_throughput_mb_by_ground_station"),
+      "source_report_storage_downlink_pressure_resource_pressure_station_calendar_provider_ids_by_type" =>
+        Map.get(summary, "resource_pressure_station_calendar_provider_ids_by_type"),
+      "source_report_storage_downlink_pressure_resource_pressure_station_calendar_provider_entry_ids_by_type" =>
+        Map.get(summary, "resource_pressure_station_calendar_provider_entry_ids_by_type")
+    }
+  end
+
   @doc """
   Builds a compact branch-local storage/downlink pressure replay summary.
 
@@ -9482,6 +9520,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
     source_summary = source_report_summary(refresh_or_artifact)
     source_reports = Map.get(source_summary, "source_reports", %{})
 
+    storage_downlink_pressure_replay_summary_from_source_reports(source_reports)
+  end
+
+  defp storage_downlink_pressure_replay_summary_from_source_reports(source_reports) do
     pressure_reports =
       Map.take(source_reports, [
         "contact_allocation_report",

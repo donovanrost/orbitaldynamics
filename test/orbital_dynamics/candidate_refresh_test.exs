@@ -13141,6 +13141,36 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_resource_projection_resource_pressure_station_calendar_provider_entry_ids_by_type"
            ] == %{"downlink_shortfall" => ["provider_api_window_1"]}
 
+    assert summary[
+             "source_report_storage_downlink_pressure_branch_local_storage_downlink_pressure"
+           ]
+
+    assert summary["source_report_storage_downlink_pressure_branch_local_downlink_pressure"]
+
+    assert summary[
+             "source_report_storage_downlink_pressure_branch_local_capacity_adjusted_throughput_pressure"
+           ]
+
+    assert summary[
+             "source_report_storage_downlink_pressure_capacity_adjusted_throughput_row_count"
+           ] == 1
+
+    assert summary[
+             "source_report_storage_downlink_pressure_capacity_adjusted_throughput_mb_by_ground_station"
+           ] == %{"equator_prime" => 65.0}
+
+    assert summary[
+             "source_report_storage_downlink_pressure_capacity_adjusted_throughput_mb_by_direction"
+           ] == %{"downlink" => 65.0}
+
+    assert summary[
+             "source_report_storage_downlink_pressure_resource_pressure_station_calendar_provider_ids_by_type"
+           ] == %{"downlink_shortfall" => ["ops_calendar_api"]}
+
+    assert summary[
+             "source_report_storage_downlink_pressure_resource_pressure_station_calendar_provider_entry_ids_by_type"
+           ] == %{"downlink_shortfall" => ["provider_api_window_1"]}
+
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
       "provenance" => %{"source_reports" => summary["source_reports"]}
