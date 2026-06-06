@@ -12283,6 +12283,145 @@ defmodule OrbitalDynamics.SchemaTest do
                  "$.provenance.source_reports.provider_counteroffer_report.counteroffer_cost_delta_total")
            )
 
+    artifact_with_model_acceptance_summary =
+      put_in(artifact, ["provenance", "source_reports", "model_acceptance_report"], %{
+        "paths" => ["source_model_acceptance_report"],
+        "contract" => "model_acceptance_report.v1",
+        "count" => 1,
+        "row_count" => 4,
+        "record_count" => 3,
+        "intended_use_counts" => %{"operational_import" => 1},
+        "status_counts" => %{"blocked" => 1},
+        "model_count" => 4,
+        "accepted_count" => 1,
+        "review_required_count" => 1,
+        "blocked_count" => 2,
+        "unknown_model_count" => 1,
+        "validation_level_counts" => %{"analysis" => 1, "unknown" => 1},
+        "model_ids_by_status" => %{"blocked" => ["propagator.two_body"]},
+        "model_ids_by_validation_level" => %{"unknown" => ["missing.model"]},
+        "model_ids_by_intended_use" => %{
+          "operational_import" => ["propagator.two_body", "missing.model"]
+        }
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_model_acceptance_summary)
+
+    model_acceptance_source_report_properties =
+      get_in(candidate_refresh_schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "model_acceptance_report",
+        "properties"
+      ])
+
+    assert get_in(model_acceptance_source_report_properties, [
+             "record_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(model_acceptance_source_report_properties, [
+             "validation_level_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(model_acceptance_source_report_properties, [
+             "model_ids_by_status",
+             "additionalProperties",
+             "items",
+             "type"
+           ]) == "string"
+
+    invalid_model_acceptance_record_count =
+      put_in(
+        artifact_with_model_acceptance_summary,
+        [
+          "provenance",
+          "source_reports",
+          "model_acceptance_report",
+          "record_count"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_model_acceptance_record_count_report} =
+             Schema.validate_artifact(invalid_model_acceptance_record_count)
+
+    assert Enum.any?(
+             invalid_model_acceptance_record_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.model_acceptance_report.record_count")
+           )
+
+    invalid_model_acceptance_status_count =
+      put_in(
+        artifact_with_model_acceptance_summary,
+        [
+          "provenance",
+          "source_reports",
+          "model_acceptance_report",
+          "status_counts",
+          "blocked"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_model_acceptance_status_count_report} =
+             Schema.validate_artifact(invalid_model_acceptance_status_count)
+
+    assert Enum.any?(
+             invalid_model_acceptance_status_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.model_acceptance_report.status_counts.blocked")
+           )
+
+    invalid_model_acceptance_status_counts_shape =
+      put_in(
+        artifact_with_model_acceptance_summary,
+        [
+          "provenance",
+          "source_reports",
+          "model_acceptance_report",
+          "status_counts"
+        ],
+        "blocked"
+      )
+
+    assert {:error, invalid_model_acceptance_status_counts_shape_report} =
+             Schema.validate_artifact(invalid_model_acceptance_status_counts_shape)
+
+    assert Enum.any?(
+             invalid_model_acceptance_status_counts_shape_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.model_acceptance_report.status_counts")
+           )
+
+    invalid_model_acceptance_model_ids_shape =
+      put_in(
+        artifact_with_model_acceptance_summary,
+        [
+          "provenance",
+          "source_reports",
+          "model_acceptance_report",
+          "model_ids_by_status"
+        ],
+        "blocked"
+      )
+
+    assert {:error, invalid_model_acceptance_model_ids_shape_report} =
+             Schema.validate_artifact(invalid_model_acceptance_model_ids_shape)
+
+    assert Enum.any?(
+             invalid_model_acceptance_model_ids_shape_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.model_acceptance_report.model_ids_by_status")
+           )
+
     artifact_with_operational_timeline_summary =
       put_in(artifact, ["provenance", "source_reports", "operational_timeline_report"], %{
         "paths" => ["source_operational_timeline_report"],

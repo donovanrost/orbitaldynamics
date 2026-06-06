@@ -1098,6 +1098,77 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "minimum"
            ]) == 0
 
+    candidate_refresh_model_acceptance_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "model_acceptance_report",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        "record_count",
+        "model_count",
+        "accepted_count",
+        "review_required_count",
+        "blocked_count",
+        "unknown_model_count"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_model_acceptance_source_report, [
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_model_acceptance_source_report, [
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "intended_use_counts",
+        "status_counts",
+        "validation_level_counts"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_model_acceptance_source_report, [
+                 field,
+                 "additionalProperties",
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_model_acceptance_source_report, [
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "model_ids_by_status",
+        "model_ids_by_validation_level",
+        "model_ids_by_intended_use"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_model_acceptance_source_report, [
+                 field,
+                 "additionalProperties",
+                 "items",
+                 "type"
+               ]) == "string"
+      end
+    )
+
     candidate_refresh_operational_timeline_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",

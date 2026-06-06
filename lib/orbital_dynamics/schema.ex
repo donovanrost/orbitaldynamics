@@ -21180,6 +21180,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_link_capacity_source_report_summary_json_schema(),
             "maneuver_review_report" =>
               candidate_refresh_maneuver_review_source_report_summary_json_schema(),
+            "model_acceptance_report" =>
+              candidate_refresh_model_acceptance_source_report_summary_json_schema(),
             "operational_timeline_report" =>
               candidate_refresh_operational_timeline_source_report_summary_json_schema(),
             "provider_counteroffer_report" =>
@@ -21536,6 +21538,34 @@ defmodule OrbitalDynamics.Schema do
           &{&1, non_negative_integer_count_map_json_schema()}
         )
       )
+    end)
+  end
+
+  defp candidate_refresh_model_acceptance_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      properties
+      |> Map.merge(
+        non_negative_integer_property_schemas([
+          "record_count",
+          "model_count",
+          "accepted_count",
+          "review_required_count",
+          "blocked_count",
+          "unknown_model_count"
+        ])
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "intended_use_counts",
+            "status_counts",
+            "validation_level_counts"
+          ],
+          &{&1, non_negative_integer_count_map_json_schema()}
+        )
+      )
+      |> Map.merge(candidate_refresh_model_acceptance_context_json_schema_properties())
     end)
   end
 
@@ -27041,9 +27071,35 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_candidate_refresh_model_acceptance_context(issues, path, summary) do
     issues
+    |> expect_optional_non_negative_integer(path, summary, "record_count")
+    |> expect_optional_non_negative_integer(path, summary, "model_count")
+    |> expect_optional_non_negative_integer(path, summary, "accepted_count")
+    |> expect_optional_non_negative_integer(path, summary, "review_required_count")
+    |> expect_optional_non_negative_integer(path, summary, "blocked_count")
+    |> expect_optional_non_negative_integer(path, summary, "unknown_model_count")
+    |> validate_candidate_refresh_model_acceptance_count_maps(path, summary)
+    |> expect_optional_type(path, summary, "model_ids_by_status", :map)
     |> validate_string_list_map(path, summary, "model_ids_by_status")
+    |> expect_optional_type(path, summary, "model_ids_by_validation_level", :map)
     |> validate_string_list_map(path, summary, "model_ids_by_validation_level")
+    |> expect_optional_type(path, summary, "model_ids_by_intended_use", :map)
     |> validate_string_list_map(path, summary, "model_ids_by_intended_use")
+  end
+
+  defp validate_candidate_refresh_model_acceptance_count_maps(issues, path, summary) do
+    Enum.reduce(
+      [
+        "intended_use_counts",
+        "status_counts",
+        "validation_level_counts"
+      ],
+      issues,
+      fn field, acc ->
+        acc
+        |> expect_optional_type(path, summary, field, :map)
+        |> validate_non_negative_integer_count_map(path <> ".#{field}", Map.get(summary, field))
+      end
+    )
   end
 
   defp validate_candidate_refresh_timeline_activity_context(issues, path, summary) do
