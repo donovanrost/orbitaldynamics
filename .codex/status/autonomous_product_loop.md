@@ -8,7 +8,10 @@ Current slice:
 Candidate-refresh link-capacity replay branch summary routing.
 
 Status:
-Implemented, verified, reviewed, and ready to commit/push.
+Implemented, verified, reviewed, committed, and ready to push.
+
+Product commit:
+- `e765930` for candidate-refresh link-capacity replay branch summary routing.
 
 Completed slice:
 Expose composed link-capacity replay branch flags on
@@ -51,6 +54,8 @@ Verification:
   contract did not change.
 
 Recently completed slices:
+- `e765930` committed locally for candidate-refresh link-capacity replay branch
+  summary routing.
 - `4550570612960efad1389a433a5af60791d33d33` pushed to `origin/main` for the
   autonomous loop handoff after contact-allocation replay summary routing.
 - `6f18750` pushed to `origin/main` for candidate-refresh contact-allocation
