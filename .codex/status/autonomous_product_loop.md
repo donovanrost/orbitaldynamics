@@ -4,7 +4,7 @@ Current slice:
 Expose operator review resource-projection row evidence schemas.
 
 Status:
-Implemented, locally verified, and read-only reviewed clean; pending publish.
+Implemented, locally verified, read-only reviewed clean, committed, and pushed.
 Contract-shaped fixture discovery shows
 `study_results/operator_review_resource_projection_battery_handoff_v1.json`
 emits resource-projection review-row evidence that the
@@ -67,10 +67,10 @@ Tests run:
   and reported no must-fix findings.
 
 Last completed implementation commit:
-`77dc6f934a387d3d9c1956977e54b2e27b5eee01` pushed to `origin/main`.
+`6ee75270b8d7cd673eb24ceee7ee0f9c9b2fb157` pushed to `origin/main`.
 
 Last ledger correction commit:
-`4cbbbf3` pushed to `origin/main`.
+Pending this ledger-only correction.
 
 Next candidate:
 After this slice, rerun contract-shaped fixture/schema visibility discovery.
