@@ -22817,6 +22817,42 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(schema, ["properties", "maneuver_review_count", "type"]) == "integer"
     assert get_in(schema, ["properties", "tradeoff_count", "type"]) == "integer"
     assert get_in(schema, ["properties", "ranking_comparison_count", "type"]) == "integer"
+
+    summary_counter_fields = [
+      "candidate_diff_review_count",
+      "constraint_review_count",
+      "contact_allocation_capacity_pack_review_count",
+      "contact_allocation_review_count",
+      "contact_intent_review_count",
+      "execution_review_count",
+      "freshness_review_count",
+      "objective_satisfaction_review_count",
+      "objective_tradeoff_review_count",
+      "operational_timeline_count",
+      "pareto_frontier_count",
+      "provider_counteroffer_review_count",
+      "quality_gate_review_count",
+      "refresh_budget_review_count",
+      "schema_validation_review_count",
+      "score_term_review_count"
+    ]
+
+    Enum.each(summary_counter_fields, fn field ->
+      assert get_in(schema, ["properties", field]) == %{
+               "type" => "integer",
+               "minimum" => 0
+             }
+    end)
+
+    package = read_json!("study_results/operator_review_resource_pressure_v1.json")
+    invalid_package = Map.put(package, "candidate_diff_review_count", -1)
+
+    assert {:error, invalid_count_report} = Schema.validate_artifact(invalid_package)
+
+    assert Enum.any?(
+             invalid_count_report["errors"],
+             &(&1["path"] == "$.candidate_diff_review_count")
+           )
   end
 
   test "exports and validates timeline dependency-impact summary fields" do
@@ -24133,6 +24169,18 @@ defmodule OrbitalDynamics.SchemaTest do
     assert_fixture_fields_are_schema_visible(
       "operator_review_package.v1",
       "study_results/operator_review_package_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "operator_review_package.v1",
+      "study_results/operator_review_resource_pressure_v1.json",
+      ["properties"]
+    )
+
+    assert_fixture_fields_are_schema_visible(
+      "operator_review_package.v1",
+      "study_results/operator_review_resource_projection_battery_handoff_v1.json",
       ["properties"]
     )
 
