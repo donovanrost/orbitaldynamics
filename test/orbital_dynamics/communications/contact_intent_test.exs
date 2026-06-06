@@ -1323,6 +1323,15 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
                  &1["message"] == "must equal row-derived direction routing")
            )
 
+    assert ContactIntent.summary(summary) == summary
+    assert OrbitalDynamics.contact_intent_summary(summary) == summary
+
+    atom_keyed_summary =
+      Map.new(summary, fn {key, value} -> {String.to_atom(key), value} end)
+
+    assert ContactIntent.summary(atom_keyed_summary) == summary
+    assert OrbitalDynamics.contact_intent_summary(atom_keyed_summary) == summary
+
     assert Enum.all?(intents, fn intent ->
              {:ok, %{"schema_contract" => "contact_intent.v1"}} =
                Schema.validate_artifact(intent)

@@ -359,6 +359,12 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
   """
   def summary(contact_intents)
 
+  def summary(%{"schema_contract" => @summary_schema_contract} = summary), do: summary
+
+  def summary(%{schema_contract: @summary_schema_contract} = summary) do
+    stringify_keys(summary)
+  end
+
   def summary(contact_intents) when is_list(contact_intents) do
     contact_intents
     |> Enum.filter(&is_map/1)

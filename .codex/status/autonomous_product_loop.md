@@ -5,48 +5,41 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Communications compact summary idempotent handoffs.
+ContactIntent compact summary idempotent handoff.
 
 Status:
-Implemented, verified, committed, and pushed.
+Implemented and verified; commit/push pending.
 
 Files changed:
-- `lib/orbital_dynamics/communications/link_capacity.ex`
-- `lib/orbital_dynamics/communications/contact_contention.ex`
-- `test/orbital_dynamics/communications/link_capacity_test.exs`
-- `test/orbital_dynamics/communications/contact_contention_test.exs`
-- `docs/feature_set/capability_map/07_ground_network/02_link_capacity.md`
-- `docs/feature_set/capability_map/07_ground_network/01_overview_filter_and_contention.md`
+- `lib/orbital_dynamics/communications/contact_intent.ex`
+- `test/orbital_dynamics/communications/contact_intent_test.exs`
+- `docs/feature_set/capability_map/07_ground_network/05_contact_intent_refresh_and_allocation_policy.md`
 - `.codex/status/autonomous_product_loop.md`
 
 Behavior changed:
-- `LinkCapacity.summary/1` now accepts existing `link_capacity_summary.v1`
+- `ContactIntent.summary/1` now accepts existing `contact_intent_summary.v1`
   artifacts idempotently.
-- `ContactContention.resolution_summary/1` now accepts existing
-  `contact_contention_resolution_summary.v1` artifacts idempotently.
-- Atom-keyed compact summary handoffs are normalized to string keys, matching
-  existing report-artifact handoff behavior and public facades.
+- Atom-keyed compact contact-intent summary handoffs are normalized to string
+  keys, matching existing report-artifact handoff behavior and the public
+  `OrbitalDynamics.contact_intent_summary/1` facade.
 
 Tests run:
-- `mix test test/orbital_dynamics/communications/link_capacity_test.exs:658 test/orbital_dynamics/communications/contact_contention_test.exs:1359`
-  -> 2 passed, 81 excluded.
-- `mix test test/orbital_dynamics/communications/link_capacity_test.exs test/orbital_dynamics/communications/contact_contention_test.exs`
-  -> 83 passed.
+- `mix test test/orbital_dynamics/communications/contact_intent_test.exs:1044`
+  -> 1 passed, 25 excluded.
+- `mix test test/orbital_dynamics/communications/contact_intent_test.exs`
+  -> 26 passed.
 
 Docs/artifacts changed:
-- `docs/feature_set/capability_map/07_ground_network/02_link_capacity.md`
-  documents idempotent `link_capacity_summary.v1` handoffs.
-- `docs/feature_set/capability_map/07_ground_network/01_overview_filter_and_contention.md`
-  documents idempotent `contact_contention_resolution_summary.v1` handoffs.
+- `docs/feature_set/capability_map/07_ground_network/05_contact_intent_refresh_and_allocation_policy.md`
+  documents idempotent `contact_intent_summary.v1` compact handoffs.
 
 Level 6 pillar advanced:
-Communications pressure/review artifacts: compact link-capacity and contention
-resolution adapters can pass existing summary artifacts back through public
-facades without rerunning analysis or losing deterministic summary fields.
+Ground-network/contact-intent routing evidence: compact contact-intent replay
+adapters can pass existing summary artifacts back through public facades without
+rebuilding intents or losing deterministic capacity-routing fields.
 
 Last commit:
-- `de31814211684f89b37687b22d757088b0eba161` pushed to `origin/main` for
-  communications compact summary idempotent handoffs.
+- Pending for ContactIntent compact summary idempotent handoff.
 
 Recently completed slices:
 - `de31814211684f89b37687b22d757088b0eba161` pushed to `origin/main` for
@@ -65,9 +58,9 @@ Recently completed slices:
   resource projection compact pressure direction/capacity maps.
 
 Next candidate:
-After pushing this slice, reassess whether another compact communications
-artifact handoff gap remains; otherwise move to CandidateRefresh operational
-replay maturity.
+After pushing this slice, decide whether to take the larger StationCalendar
+summary-family handoff gap or move to CandidateRefresh operational replay
+maturity.
 
 Blocked:
 No.

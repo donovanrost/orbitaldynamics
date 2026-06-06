@@ -27,7 +27,9 @@ summary derives required-capacity totals, source counts, station and direction
 capacity maps, all-contact station/direction contact-ID routing, capacity-pack
 station/direction contact-ID maps, ground-station IDs, and direction sets from
 `contact_intent.v1` rows without provider reservation, schedule mutation, or
-allocation authority.
+allocation authority. Existing `contact_intent_summary.v1` artifacts are
+accepted as idempotent compact handoff inputs when adapters already hold the
+summary.
 Candidate-refresh contact-intent replay preserves the all-contact station map
 and those direction maps as compact branch-local routing evidence, grouping
 direction contact count, contact IDs, capacity-pack contact IDs, and
