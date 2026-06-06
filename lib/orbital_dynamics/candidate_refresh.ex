@@ -6883,6 +6883,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       }
     }
     |> Map.merge(source_report_storage_downlink_pressure_summary_fields(source_reports))
+    |> Map.merge(source_report_contact_intent_replay_summary_fields(source_reports))
     |> Map.merge(
       source_report_timeline_publication_context_fields(
         source_reports,
@@ -9508,6 +9509,25 @@ defmodule OrbitalDynamics.CandidateRefresh do
     }
   end
 
+  defp source_report_contact_intent_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("contact_intent", %{})
+      |> contact_intent_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.contact_intent",
+        "contact_intent_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_contact_intent_branch_local_contact_intent_pressure" =>
+        Map.get(summary, "branch_local_contact_intent_pressure"),
+      "source_report_contact_intent_branch_local_station_feedback_pressure" =>
+        Map.get(summary, "branch_local_station_feedback_pressure"),
+      "source_report_contact_intent_branch_local_capacity_pack_pressure" =>
+        Map.get(summary, "branch_local_capacity_pack_pressure")
+    }
+  end
+
   @doc """
   Builds a compact branch-local storage/downlink pressure replay summary.
 
@@ -11011,6 +11031,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    contact_intent_replay_summary_from_summary(intent_summary, summary_source, replay_scope)
+  end
+
+  defp contact_intent_replay_summary_from_summary(
+         intent_summary,
+         summary_source,
+         replay_scope
+       ) do
     station_feedback_count = summary_integer(intent_summary, "station_feedback_count")
 
     required_contact_count =

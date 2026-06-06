@@ -3287,7 +3287,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                    "dss_43" => ["intent_nested_capacity"]
                  }
                }
-             }
+             },
+             "source_report_contact_intent_branch_local_contact_intent_pressure" => true,
+             "source_report_contact_intent_branch_local_station_feedback_pressure" => true,
+             "source_report_contact_intent_branch_local_capacity_pack_pressure" => true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.contact_intent_replay_summary(artifact) == replay_summary
