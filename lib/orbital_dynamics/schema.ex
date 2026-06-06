@@ -4010,6 +4010,7 @@ defmodule OrbitalDynamics.Schema do
         "required_field_count",
         "optional_field_count",
         "lifecycle_defaults",
+        "operational_hints",
         "resource_hints",
         "precondition_hints",
         "assumptions"
@@ -9250,6 +9251,10 @@ defmodule OrbitalDynamics.Schema do
 
   defp json_schema_property("lifecycle_defaults", @activity_template, _contract) do
     activity_template_lifecycle_defaults_json_schema()
+  end
+
+  defp json_schema_property("operational_hints", @activity_template, _contract) do
+    activity_template_operational_hints_json_schema()
   end
 
   defp json_schema_property("resource_hints", @activity_template, _contract) do
@@ -19817,6 +19822,19 @@ defmodule OrbitalDynamics.Schema do
     }
   end
 
+  defp activity_template_operational_hints_json_schema do
+    %{
+      "type" => "object",
+      "properties" => %{
+        "setup_duration_s" => %{"type" => "number", "minimum" => 0.0},
+        "cooldown_duration_s" => %{"type" => "number", "minimum" => 0.0},
+        "telemetry_confirmation_required" => %{"type" => "boolean"},
+        "telemetry_confirmation_status" => %{"type" => "string"}
+      },
+      "additionalProperties" => true
+    }
+  end
+
   defp activity_template_resource_hints_json_schema do
     %{
       "type" => "object",
@@ -23647,6 +23665,10 @@ defmodule OrbitalDynamics.Schema do
         "starts_at_s" => %{"type" => "number"},
         "ends_at_s" => %{"type" => "number"},
         "duration_s" => %{"type" => "number"},
+        "setup_duration_s" => %{"type" => "number", "minimum" => 0.0},
+        "cooldown_duration_s" => %{"type" => "number", "minimum" => 0.0},
+        "telemetry_confirmation_required" => %{"type" => "boolean"},
+        "telemetry_confirmation_status" => %{"type" => "string"},
         "actual_starts_at_s" => %{"type" => "number"},
         "actual_ends_at_s" => %{"type" => "number"},
         "score" => %{"type" => "number"},
@@ -24147,6 +24169,10 @@ defmodule OrbitalDynamics.Schema do
         },
         "starts_at_s" => %{"type" => "number"},
         "ends_at_s" => %{"type" => "number"},
+        "setup_duration_s" => %{"type" => "number", "minimum" => 0.0},
+        "cooldown_duration_s" => %{"type" => "number", "minimum" => 0.0},
+        "telemetry_confirmation_required" => %{"type" => "boolean"},
+        "telemetry_confirmation_status" => %{"type" => "string"},
         "direction" => %{"type" => "string"},
         "command_window_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
         "command_window_type" => %{"type" => "string"},
@@ -29272,6 +29298,41 @@ defmodule OrbitalDynamics.Schema do
     end
   end
 
+  defp validate_activity_template_operational_hints(issues, path, artifact) do
+    case Map.fetch(artifact, "operational_hints") do
+      :error ->
+        issues
+
+      {:ok, hints} when is_map(hints) ->
+        issues
+        |> validate_activity_template_optional_non_negative_number(
+          "#{path}.operational_hints",
+          hints,
+          "setup_duration_s"
+        )
+        |> validate_activity_template_optional_non_negative_number(
+          "#{path}.operational_hints",
+          hints,
+          "cooldown_duration_s"
+        )
+        |> validate_activity_template_optional_type(
+          "#{path}.operational_hints",
+          hints,
+          "telemetry_confirmation_required",
+          :boolean
+        )
+        |> validate_activity_template_optional_type(
+          "#{path}.operational_hints",
+          hints,
+          "telemetry_confirmation_status",
+          :binary
+        )
+
+      {:ok, _value} ->
+        [error("#{path}.operational_hints", "must be a map") | issues]
+    end
+  end
+
   defp validate_activity_template_resource_hints(issues, path, artifact) do
     case Map.fetch(artifact, "resource_hints") do
       :error ->
@@ -29399,6 +29460,7 @@ defmodule OrbitalDynamics.Schema do
     |> validate_activity_template_field_lists("$", artifact)
     |> validate_activity_template_default_fields("$", artifact)
     |> validate_activity_template_lifecycle_defaults("$", artifact)
+    |> validate_activity_template_operational_hints("$", artifact)
     |> validate_activity_template_resource_hints("$", artifact)
     |> validate_activity_template_precondition_hints("$", artifact)
   end
@@ -39405,6 +39467,10 @@ defmodule OrbitalDynamics.Schema do
       "cadence_import_status",
       OrbitalDynamics.Timeline.capabilities().cadence_import_statuses
     )
+    |> expect_optional_non_negative_number(path, row, "setup_duration_s")
+    |> expect_optional_non_negative_number(path, row, "cooldown_duration_s")
+    |> expect_optional_type(path, row, "telemetry_confirmation_required", :boolean)
+    |> expect_optional_type(path, row, "telemetry_confirmation_status", :binary)
     |> expect_optional_type(path, row, "station_availability", :binary)
     |> expect_optional_type(path, row, "source_station_calendar_entry", :map)
     |> expect_optional_type(path, row, "source_station_calendar_overlaps", :list)
@@ -64854,6 +64920,10 @@ defmodule OrbitalDynamics.Schema do
     |> validate_string_list_items(path, context, "derivation_reasons")
     |> expect_optional_type(path, context, "allow_overlap", :boolean)
     |> expect_optional_number(path, context, "duration_s")
+    |> expect_optional_non_negative_number(path, context, "setup_duration_s")
+    |> expect_optional_non_negative_number(path, context, "cooldown_duration_s")
+    |> expect_optional_type(path, context, "telemetry_confirmation_required", :boolean)
+    |> expect_optional_type(path, context, "telemetry_confirmation_status", :binary)
     |> expect_optional_number(path, context, "score")
     |> expect_optional_type(path, context, "score_terms", :map)
     |> validate_numeric_map(path <> ".score_terms", Map.get(context, "score_terms"))

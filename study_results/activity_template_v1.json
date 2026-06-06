@@ -1,11 +1,51 @@
 {
-  "schema_contract": "activity_template.v1",
-  "id": "template:observe:basic",
   "activity_type": "observe",
-  "template_version": 1,
-  "validation_level": "artifact_contract",
-  "display_name": "Basic observe activity",
+  "assumptions": {
+    "boundary": "template_only_no_schedule_mutation"
+  },
+  "default_fields": {
+    "allow_overlap": false,
+    "type": "observe"
+  },
   "description": "Reusable evidence contract for a target observation activity template.",
+  "display_name": "Basic observe activity",
+  "field_count": 12,
+  "id": "template:observe:basic",
+  "known_limits": [
+    "template_only_no_schedule_mutation",
+    "no_resource_reservation"
+  ],
+  "lifecycle_defaults": {
+    "allow_overlap": false,
+    "approval_status": "not_evaluated",
+    "locked": false,
+    "status": "planned"
+  },
+  "operational_hints": {
+    "cooldown_duration_s": 60,
+    "setup_duration_s": 120,
+    "telemetry_confirmation_required": true,
+    "telemetry_confirmation_status": "required"
+  },
+  "optional_field_count": 7,
+  "optional_fields": [
+    "payload_id",
+    "instrument_id",
+    "allow_overlap",
+    "setup_duration_s",
+    "cooldown_duration_s",
+    "telemetry_confirmation_required",
+    "telemetry_confirmation_status"
+  ],
+  "precondition_hints": [
+    {
+      "blocking": true,
+      "precondition_type": "payload_unavailable",
+      "reason": "payload availability must be checked",
+      "status": "review_required"
+    }
+  ],
+  "required_field_count": 5,
   "required_fields": [
     "id",
     "type",
@@ -13,45 +53,15 @@
     "starts_at_s",
     "ends_at_s"
   ],
-  "optional_fields": [
-    "payload_id",
-    "instrument_id",
-    "allow_overlap"
-  ],
-  "field_count": 8,
-  "required_field_count": 5,
-  "optional_field_count": 3,
-  "default_fields": {
-    "type": "observe",
-    "allow_overlap": false
-  },
-  "lifecycle_defaults": {
-    "status": "planned",
-    "approval_status": "not_evaluated",
-    "locked": false,
-    "allow_overlap": false
-  },
   "resource_hints": {
+    "estimated_data_volume_mb": 48,
     "requires_payload": true,
-    "uses_storage": true,
     "suppressed_activity_types": [
       "downlink"
     ],
-    "estimated_data_volume_mb": 48.0
+    "uses_storage": true
   },
-  "precondition_hints": [
-    {
-      "precondition_type": "payload_unavailable",
-      "status": "review_required",
-      "reason": "payload availability must be checked",
-      "blocking": true
-    }
-  ],
-  "assumptions": {
-    "boundary": "template_only_no_schedule_mutation"
-  },
-  "known_limits": [
-    "template_only_no_schedule_mutation",
-    "no_resource_reservation"
-  ]
+  "schema_contract": "activity_template.v1",
+  "template_version": 1,
+  "validation_level": "artifact_contract"
 }

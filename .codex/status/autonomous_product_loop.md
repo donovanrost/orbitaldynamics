@@ -1,69 +1,79 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Add link-capacity provider routing maps to compact summaries.
+Add setup/cooldown/telemetry-confirmation hints to baseline activity templates.
 
 Status:
-Implemented, verified, read-only reviewed, reviewer finding fixed, committed,
-and pushed.
+Implemented, verified, locally reviewed, ready to commit.
 
 What changed:
-`LinkCapacity.summary/1` now emits
-`station_calendar_provider_ids_by_ground_station_id` and
-`station_calendar_provider_entry_ids_by_ground_station_id` from direct
-link-capacity summary rows plus nested source station-calendar evidence.
-`link_capacity_summary.v1` now requires those routing maps, exports them in
-JSON Schema, and validates the top-level provider/provider-entry ID lists
-against the map values. Duplicate compact rows for the same ground station now
-merge ID arrays instead of overwriting earlier row evidence, and
-`station_count` now follows the existing schema definition as the unique
-ground-station ID count. LinkCapacity capability metadata advertises the
-compact provider-routing semantic, and link-capacity docs now describe the
-routing-map handoff and validation boundary.
+Baseline `activity_template.v1` artifacts now publish typed
+`operational_hints` for `setup_duration_s`, `cooldown_duration_s`,
+`telemetry_confirmation_required`, and `telemetry_confirmation_status`.
+`OrbitalDynamics.activity_from_template/2` copies those advisory hints into
+template-produced normalized timeline rows and reusable `activity_context`.
+Timeline diff/application helpers now treat those row/context fields as
+reviewable operational-context changes when source and replacement activities
+disagree.
+
+Schema/runtime boundary:
+`activity_template.v1`, operational timeline rows, and activity-context nested
+schemas export the new optional fields. Executable validation checks
+non-negative setup/cooldown durations, boolean telemetry-required flags, and
+string telemetry status values. Checked-in schema exports and the
+`study_results/activity_template_v1.json` fixture were refreshed.
 
 Why this slice:
-`link_capacity_summary.v1` already derived top-level station-calendar provider
-IDs and provider-entry IDs from link-capacity rows, and downstream
-CandidateRefresh replay depends on compact link-capacity summaries preserving
-provider routing. The compact summary lacked provider/provider-entry ID maps by
-ground station, so schema validation could type-check those top-level lists but
-could not independently cross-check them against compact routing evidence.
+The priority timeline semantics docs call out setup duration, cooldown duration,
+and telemetry confirmation requirements as typed operational-activity semantics.
+The live checkout already had template artifacts and template instantiation, but
+those semantics were not first-class template hints or preserved in normalized
+timeline handoffs.
 
 Files changed:
-- `lib/orbital_dynamics/communications/link_capacity.ex`
+- `lib/orbital_dynamics.ex`
+- `lib/orbital_dynamics/timeline.ex`
 - `lib/orbital_dynamics/schema.ex`
-- `test/orbital_dynamics/communications/link_capacity_test.exs`
-- `docs/feature_set/capability_map/07_ground_network/02_link_capacity.md`
-- `docs/artifacts/field_families/v1_campaign_plan/link_capacity.md`
+- `test/orbital_dynamics/capabilities_test.exs`
+- `test/orbital_dynamics/schema_test.exs`
+- `docs/artifacts/field_families/mission_activities.md`
+- `docs/mission_planning/high_fidelity/02_state_activities_and_resources.md`
+- `study_results/activity_template_v1.json`
+- `schemas/*.schema.json`
+- `schemas/orbital_dynamics.schema_bundle.v1.json`
 - `.codex/status/autonomous_product_loop.md`
 
 Verification:
-- `mix test test/orbital_dynamics/communications/link_capacity_test.exs:9 test/orbital_dynamics/communications/link_capacity_test.exs:545 test/orbital_dynamics/communications/link_capacity_test.exs:2825 test/orbital_dynamics/communications/link_capacity_test.exs:3093` -> 4 passed, 39 excluded.
-- `mix test test/orbital_dynamics/communications/link_capacity_test.exs` -> 43 passed.
-- `mix format lib/orbital_dynamics/communications/link_capacity.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/communications/link_capacity_test.exs --check-formatted` -> pass.
+- `mix test test/orbital_dynamics/capabilities_test.exs test/orbital_dynamics/schema_test.exs` -> 127 passed.
+- `mix test test/orbital_dynamics/timeline_test.exs` -> 125 passed.
+- `mix test test/orbital_dynamics/capabilities_test.exs test/orbital_dynamics/schema_test.exs test/orbital_dynamics/timeline_test.exs` -> 252 passed.
+- `mix format lib/orbital_dynamics.ex lib/orbital_dynamics/timeline.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/capabilities_test.exs test/orbital_dynamics/schema_test.exs --check-formatted` -> pass.
+- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json` -> pass.
 - `mix orbital_dynamics.schema.lint --all` -> pass.
 - `git diff --check` -> pass.
 
-Read-only review:
-Sidecar `019e9cc2-18dc-79e0-82ea-e105f7a96765` found a duplicate-station
-provider-routing merge bug in the first implementation. The parent fixed it by
-merging duplicate station ID arrays in the shared station-entry helper and
-adding a duplicate-station regression that validates the compact
-`link_capacity_summary.v1` artifact. Focused and full LinkCapacity tests plus
-schema lint/diff hygiene pass after the fix.
+Review:
+Local diff review found the generated template fixture was initially minified;
+it was reformatted with `jq` and schema lint reran clean. A sidecar read-only
+review was not started because the available multi-agent tool contract only
+permits spawning when the user explicitly requests delegation.
 
-Implementation commit:
+Last pushed commit:
+`600b6abde039f2c7a3d1e56d73b50c2b3ac707c5` on `origin/main`.
+
+Previous completed implementation commit:
 `cc5200fd7206e756ab4f64e42d8a03e269f9bb3f` pushed to `origin/main`.
 
-Last completed implementation commit:
-`cc5200fd7206e756ab4f64e42d8a03e269f9bb3f` pushed to `origin/main`.
+Started:
+2026-06-06T11:57:00Z.
 
-Last ledger correction commit:
-`50e6b0620cddc24527f40ef790885f83407678ed` pushed to `origin/main`.
+Verified:
+2026-06-06T12:05:22Z.
 
 Next candidate:
-Continue the resource/communications allocation queue after this compact
-link-capacity routing contract is committed and pushed.
+Continue priority-1 typed activity/timeline semantics, likely a similarly
+bounded template/state-machine or timeline handoff slice after rechecking the
+live checkout.
 
 Blocked:
 No.

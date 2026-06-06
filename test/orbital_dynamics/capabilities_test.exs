@@ -187,6 +187,11 @@ defmodule OrbitalDynamics.CapabilitiesTest do
              |> Map.keys()
              |> Enum.all?(&MapSet.member?(declared_fields, &1))
 
+      assert template["operational_hints"]["setup_duration_s"] >= 0.0
+      assert template["operational_hints"]["cooldown_duration_s"] >= 0.0
+      assert is_boolean(template["operational_hints"]["telemetry_confirmation_required"])
+      assert is_binary(template["operational_hints"]["telemetry_confirmation_status"])
+
       assert {:ok, %{"schema_contract" => "activity_template.v1", "status" => "pass"}} =
                Schema.validate_artifact(template)
     end
@@ -227,6 +232,10 @@ defmodule OrbitalDynamics.CapabilitiesTest do
               "approval_status" => "not_evaluated",
               "locked" => false,
               "allow_overlap" => false,
+              "setup_duration_s" => 120.0,
+              "cooldown_duration_s" => 60.0,
+              "telemetry_confirmation_required" => true,
+              "telemetry_confirmation_status" => "required",
               "timeline_id" => "timeline:obs_template_transition",
               "target_id" => "target_alpha",
               "dependency_activity_ids" => ["health_gate"],
@@ -244,7 +253,11 @@ defmodule OrbitalDynamics.CapabilitiesTest do
                 "activity_template" => %{
                   "id" => "template:observe:basic",
                   "activity_type" => "observe"
-                }
+                },
+                "setup_duration_s" => 120.0,
+                "cooldown_duration_s" => 60.0,
+                "telemetry_confirmation_required" => true,
+                "telemetry_confirmation_status" => "required"
               }
             } = replacement} = OrbitalDynamics.activity_from_template("observe", fields)
 
@@ -296,8 +309,16 @@ defmodule OrbitalDynamics.CapabilitiesTest do
              "application_status" => "operator_review_required",
              "requires_operator_review" => true,
              "required_operator_action" => "review_timeline_change",
-             "changed_fields" => ["allow_overlap", "starts_at_s", "ends_at_s"]
+             "changed_fields" => changed_fields
            } = OrbitalDynamics.timeline_transition_application(source, replacement)
+
+    assert "allow_overlap" in changed_fields
+    assert "starts_at_s" in changed_fields
+    assert "ends_at_s" in changed_fields
+    assert "setup_duration_s" in changed_fields
+    assert "cooldown_duration_s" in changed_fields
+    assert "telemetry_confirmation_required" in changed_fields
+    assert "telemetry_confirmation_status" in changed_fields
 
     assert %{
              "schema_contract" => "timeline_transition_application_report.v1",

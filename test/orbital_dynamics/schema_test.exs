@@ -84,16 +84,30 @@ defmodule OrbitalDynamics.SchemaTest do
       "template_version" => 1,
       "validation_level" => "artifact_contract",
       "required_fields" => ["id", "type", "target_id", "starts_at_s", "ends_at_s"],
-      "optional_fields" => ["payload_id", "instrument_id", "allow_overlap"],
-      "field_count" => 8,
+      "optional_fields" => [
+        "payload_id",
+        "instrument_id",
+        "allow_overlap",
+        "setup_duration_s",
+        "cooldown_duration_s",
+        "telemetry_confirmation_required",
+        "telemetry_confirmation_status"
+      ],
+      "field_count" => 12,
       "required_field_count" => 5,
-      "optional_field_count" => 3,
+      "optional_field_count" => 7,
       "default_fields" => %{"type" => "observe", "allow_overlap" => false},
       "lifecycle_defaults" => %{
         "status" => "planned",
         "approval_status" => "not_evaluated",
         "locked" => false,
         "allow_overlap" => false
+      },
+      "operational_hints" => %{
+        "setup_duration_s" => 120.0,
+        "cooldown_duration_s" => 60.0,
+        "telemetry_confirmation_required" => true,
+        "telemetry_confirmation_status" => "required"
       },
       "resource_hints" => %{
         "requires_payload" => true,
@@ -159,6 +173,20 @@ defmodule OrbitalDynamics.SchemaTest do
     null_lifecycle_status = put_in(template, ["lifecycle_defaults", "status"], nil)
     assert {:error, report} = Schema.validate_artifact(null_lifecycle_status)
     assert Enum.any?(report["errors"], &(&1["path"] == "$.lifecycle_defaults.status"))
+
+    negative_setup_duration = put_in(template, ["operational_hints", "setup_duration_s"], -1.0)
+    assert {:error, report} = Schema.validate_artifact(negative_setup_duration)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.operational_hints.setup_duration_s"))
+
+    malformed_confirmation_required =
+      put_in(template, ["operational_hints", "telemetry_confirmation_required"], "yes")
+
+    assert {:error, report} = Schema.validate_artifact(malformed_confirmation_required)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.operational_hints.telemetry_confirmation_required")
+           )
 
     invalid_precondition = %{
       template

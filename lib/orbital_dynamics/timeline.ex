@@ -446,6 +446,10 @@ defmodule OrbitalDynamics.Timeline do
     station_calendar_trust_boundary_status
     station_calendar_provider_id
     station_calendar_provider_entry_id
+    setup_duration_s
+    cooldown_duration_s
+    telemetry_confirmation_required
+    telemetry_confirmation_status
     trust_boundary
     provenance
     source_station_calendar_entry
@@ -478,6 +482,7 @@ defmodule OrbitalDynamics.Timeline do
     contact_success
     contact_success_factor
     contact_success_factor_source
+    cooldown_duration_s
     dependencies
     direction
     ends_at_s
@@ -648,11 +653,14 @@ defmodule OrbitalDynamics.Timeline do
     score_terms
     source_station_calendar_entry
     source_station_calendar_overlaps
+    setup_duration_s
     source_window
     source_window_id
     source_window_type
     starts_at_s
     status
+    telemetry_confirmation_required
+    telemetry_confirmation_status
     station_availability
     station_capacity_fraction
     station_calendar_ambiguous_entry_count
@@ -2836,6 +2844,15 @@ defmodule OrbitalDynamics.Timeline do
       "cadence_import_status" => cadence_import_status,
       "starts_at_s" => activity_start(activity),
       "ends_at_s" => activity_end(activity),
+      "setup_duration_s" => first_number(activity, ["setup_duration_s"]),
+      "cooldown_duration_s" => first_number(activity, ["cooldown_duration_s"]),
+      "telemetry_confirmation_required" =>
+        first_boolean(activity, [
+          "telemetry_confirmation_required",
+          "telemetry_confirmation_required?"
+        ]),
+      "telemetry_confirmation_status" =>
+        first_scalar_string(activity, ["telemetry_confirmation_status"]),
       "direction" => Map.get(activity, "direction"),
       "spacecraft_id" => Map.get(activity, "spacecraft_id"),
       "ground_station_id" => Map.get(activity, "ground_station_id"),
@@ -3073,6 +3090,7 @@ defmodule OrbitalDynamics.Timeline do
     |> Map.merge(activity_lifecycle_context(activity))
     |> Map.merge(invalid_cadence_import_context(activity))
     |> Map.merge(activity_timing_context(activity))
+    |> Map.merge(activity_operational_hint_context(activity))
     |> Map.merge(activity_source_window_context(activity))
     |> Map.merge(activity_product_context(activity))
     |> Map.merge(activity_observation_quality_context(activity))
@@ -3113,6 +3131,7 @@ defmodule OrbitalDynamics.Timeline do
         "template_version",
         "validation_level",
         "known_limits",
+        "operational_hints",
         "assumptions"
       ])
       |> compact_map()
@@ -3169,6 +3188,21 @@ defmodule OrbitalDynamics.Timeline do
       "ends_at_s" => activity_end(activity),
       "duration_s" => activity_duration_s(activity),
       "target_id" => activity["target_id"]
+    }
+    |> compact_map()
+  end
+
+  defp activity_operational_hint_context(activity) do
+    %{
+      "setup_duration_s" => first_number(activity, ["setup_duration_s"]),
+      "cooldown_duration_s" => first_number(activity, ["cooldown_duration_s"]),
+      "telemetry_confirmation_required" =>
+        first_boolean(activity, [
+          "telemetry_confirmation_required",
+          "telemetry_confirmation_required?"
+        ]),
+      "telemetry_confirmation_status" =>
+        first_scalar_string(activity, ["telemetry_confirmation_status"])
     }
     |> compact_map()
   end

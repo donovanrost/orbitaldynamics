@@ -346,6 +346,11 @@ provenance at the row level and inside reusable `activity_context`; scalar or
 otherwise invalid template markers are dropped. Timeline integrity review rows
 and contact-intent activity contexts preserve that provenance so adapters can
 route template-sourced work without embedding the full template definition.
+Baseline templates also publish typed `operational_hints` for setup duration,
+cooldown duration, and telemetry-confirmation expectations. Template
+instantiation copies those advisory hints into normalized timeline rows and
+activity contexts without changing schedule bounds, granting authority, or
+executing commands.
 `Timeline.capabilities/0` publishes the normalization, identity/context,
 precondition-summary, integrity, transition, single-activity protection, and
 list-level lifecycle state/preservation helper names plus the candidate-rejection

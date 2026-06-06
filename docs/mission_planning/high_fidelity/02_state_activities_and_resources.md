@@ -58,6 +58,12 @@ Each template should declare:
 - validation level
 - provenance
 
+Current baseline `activity_template.v1` artifacts expose advisory
+`operational_hints` for setup duration, cooldown duration, and telemetry
+confirmation requirements. Instantiation preserves those hints in normalized
+timeline rows without reserving resources, mutating schedules, granting command
+authority, or executing commands.
+
 ## Resource Propagation
 
 A mature planner should roll resources through time.
@@ -107,4 +113,3 @@ Feature areas:
 - maneuver execution covariance
 
 Each model should declare its validation level and known limits.
-

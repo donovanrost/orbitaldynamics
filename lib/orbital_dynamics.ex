@@ -80,6 +80,12 @@ defmodule OrbitalDynamics do
     exclusive_with_activity_ids
     exclusive_with_timeline_ids
   )
+  @activity_template_operational_hint_fields ~w(
+    setup_duration_s
+    cooldown_duration_s
+    telemetry_confirmation_required
+    telemetry_confirmation_status
+  )
   @activity_template_lifecycle_defaults %{
     "status" => "planned",
     "approval_status" => "not_evaluated",
@@ -93,8 +99,16 @@ defmodule OrbitalDynamics do
       display_name: "Basic observe activity",
       description: "Reusable evidence contract for a target observation activity template.",
       required_fields: ["id", "type", "target_id", "starts_at_s", "ends_at_s"],
-      optional_fields: ["payload_id", "instrument_id", "allow_overlap"],
+      optional_fields:
+        ["payload_id", "instrument_id", "allow_overlap"] ++
+          @activity_template_operational_hint_fields,
       default_fields: %{"type" => "observe", "allow_overlap" => false},
+      operational_hints: %{
+        "setup_duration_s" => 120.0,
+        "cooldown_duration_s" => 60.0,
+        "telemetry_confirmation_required" => true,
+        "telemetry_confirmation_status" => "required"
+      },
       resource_hints: %{
         "requires_payload" => true,
         "uses_storage" => true,
@@ -116,8 +130,16 @@ defmodule OrbitalDynamics do
       display_name: "Basic downlink",
       description: "Template for a single ground-station downlink activity.",
       required_fields: ["id", "type", "ground_station_id", "starts_at_s", "ends_at_s"],
-      optional_fields: ["spacecraft_id", "data_volume_mb", "allow_overlap"],
+      optional_fields:
+        ["spacecraft_id", "data_volume_mb", "allow_overlap"] ++
+          @activity_template_operational_hint_fields,
       default_fields: %{"type" => "downlink", "allow_overlap" => false},
+      operational_hints: %{
+        "setup_duration_s" => 60.0,
+        "cooldown_duration_s" => 30.0,
+        "telemetry_confirmation_required" => true,
+        "telemetry_confirmation_status" => "required"
+      },
       resource_hints: %{
         "requires_antenna" => true,
         "requires_contact" => true,
@@ -139,8 +161,16 @@ defmodule OrbitalDynamics do
       display_name: "Basic command",
       description: "Template for a single command uplink activity.",
       required_fields: ["id", "type", "ground_station_id", "starts_at_s", "ends_at_s"],
-      optional_fields: ["spacecraft_id", "command_count", "allow_overlap"],
+      optional_fields:
+        ["spacecraft_id", "command_count", "allow_overlap"] ++
+          @activity_template_operational_hint_fields,
       default_fields: %{"type" => "command", "allow_overlap" => false},
+      operational_hints: %{
+        "setup_duration_s" => 90.0,
+        "cooldown_duration_s" => 30.0,
+        "telemetry_confirmation_required" => true,
+        "telemetry_confirmation_status" => "required"
+      },
       resource_hints: %{
         "requires_antenna" => true,
         "requires_contact" => true,
@@ -161,9 +191,16 @@ defmodule OrbitalDynamics do
       display_name: "Basic health check",
       description: "Template for a spacecraft health-check activity.",
       required_fields: ["id", "type", "starts_at_s", "ends_at_s"],
-      optional_fields: ["spacecraft_id", "allow_overlap"],
+      optional_fields:
+        ["spacecraft_id", "allow_overlap"] ++ @activity_template_operational_hint_fields,
       default_fields: %{"type" => "health_check", "allow_overlap" => true},
       lifecycle_defaults: %{"allow_overlap" => true},
+      operational_hints: %{
+        "setup_duration_s" => 30.0,
+        "cooldown_duration_s" => 15.0,
+        "telemetry_confirmation_required" => true,
+        "telemetry_confirmation_status" => "required"
+      },
       resource_hints: %{
         "uses_power" => true
       },
@@ -182,8 +219,15 @@ defmodule OrbitalDynamics do
       display_name: "Basic slew",
       description: "Template for an attitude slew activity.",
       required_fields: ["id", "type", "attitude_target_id", "starts_at_s", "ends_at_s"],
-      optional_fields: ["spacecraft_id", "allow_overlap"],
+      optional_fields:
+        ["spacecraft_id", "allow_overlap"] ++ @activity_template_operational_hint_fields,
       default_fields: %{"type" => "slew", "allow_overlap" => false},
+      operational_hints: %{
+        "setup_duration_s" => 45.0,
+        "cooldown_duration_s" => 15.0,
+        "telemetry_confirmation_required" => false,
+        "telemetry_confirmation_status" => "not_required"
+      },
       resource_hints: %{
         "uses_power" => true
       },
@@ -202,8 +246,15 @@ defmodule OrbitalDynamics do
       display_name: "Basic maneuver",
       description: "Template for a single impulsive maneuver activity.",
       required_fields: ["id", "type", "delta_v_m_s", "starts_at_s", "ends_at_s"],
-      optional_fields: ["spacecraft_id", "allow_overlap"],
+      optional_fields:
+        ["spacecraft_id", "allow_overlap"] ++ @activity_template_operational_hint_fields,
       default_fields: %{"type" => "impulsive_burn", "allow_overlap" => false},
+      operational_hints: %{
+        "setup_duration_s" => 300.0,
+        "cooldown_duration_s" => 300.0,
+        "telemetry_confirmation_required" => true,
+        "telemetry_confirmation_status" => "required"
+      },
       resource_hints: %{
         "uses_fuel" => true,
         "uses_power" => true
@@ -3054,6 +3105,7 @@ defmodule OrbitalDynamics do
       "required_field_count" => length(required_fields),
       "optional_field_count" => length(optional_fields),
       "lifecycle_defaults" => activity_template_lifecycle_defaults(spec),
+      "operational_hints" => Map.fetch!(spec, :operational_hints),
       "resource_hints" => Map.fetch!(spec, :resource_hints),
       "precondition_hints" => Map.fetch!(spec, :precondition_hints),
       "assumptions" => @activity_template_assumptions
@@ -3088,6 +3140,7 @@ defmodule OrbitalDynamics do
       public_facades: [:activity_templates, :activity_template, :activity_from_template],
       output_shape: :normalized_timeline_activity,
       transition_path: :timeline_transition_application,
+      operational_hint_fields: @activity_template_operational_hint_fields,
       known_limits: @activity_template_known_limits,
       assumptions: @activity_template_assumptions
     }
@@ -3179,6 +3232,7 @@ defmodule OrbitalDynamics do
     activity =
       template
       |> Map.get("lifecycle_defaults", %{})
+      |> Map.merge(Map.get(template, "operational_hints", %{}))
       |> Map.merge(Map.get(template, "default_fields", %{}))
       |> Map.merge(fields)
       |> Map.put("metadata", metadata)
@@ -3207,6 +3261,7 @@ defmodule OrbitalDynamics do
       "template_version" => Map.get(template, "template_version"),
       "validation_level" => Map.get(template, "validation_level"),
       "known_limits" => Map.get(template, "known_limits", []),
+      "operational_hints" => Map.get(template, "operational_hints", %{}),
       "assumptions" => Map.get(template, "assumptions", %{})
     }
   end
