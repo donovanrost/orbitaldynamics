@@ -4,11 +4,11 @@ Current slice:
 Expose CandidateRefresh freshness source-report schema property.
 
 Status:
-Implemented, locally verified, and reviewed clean. Runtime CandidateRefresh
-source-report provenance already emits `freshness_report` summaries for
-artifact-only freshness replay, including status counts, stale/unknown reason
-counts, reason id lists, and trust-boundary metadata. This slice makes that
-emitted family schema-visible under `candidate_refresh.v1`
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
+CandidateRefresh source-report provenance already emits `freshness_report`
+summaries for artifact-only freshness replay, including status counts,
+stale/unknown reason counts, reason id lists, and trust-boundary metadata. This
+slice makes that emitted family schema-visible under `candidate_refresh.v1`
 `provenance.source_reports.properties` instead of relying only on the generic
 `additionalProperties` summary schema, and adds executable validation for those
 named freshness summary fields. Runtime behavior, freshness evaluation policy,
@@ -53,12 +53,13 @@ Tests run:
   helper reuses the passive replay context helper and therefore advertises some
   optional passive-context fields not emitted by freshness summaries; this
   follows the existing optional-helper pattern and is not a blocker.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`e0793228f1d3499e8074079e7bd98dbe89807c07` pushed to `origin/main`.
+`089540ff7781b1cfe46245eeab42d3966db69da3` pushed to `origin/main`.
 
 Last ledger correction commit:
-`4880ad8` pushed to `origin/main`.
+Pending for this slice.
 
 Next candidate:
 After this slice, continue the CandidateRefresh source-report schema visibility
