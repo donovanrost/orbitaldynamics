@@ -710,15 +710,22 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
   @doc """
   Builds a compact artifact-only allocation triage summary.
 
-  This helper accepts either an existing `contact_allocation_report.v1` or the
-  source contacts and ground-network inputs used to build one. It exposes
-  allocation status counters, selected review rows, and queue identity lists
-  without reserving provider time, mutating schedules, or approving contacts.
+  This helper accepts either an existing `contact_allocation_report.v1`, an
+  existing `contact_allocation_summary.v1`, or the source contacts and
+  ground-network inputs used to build one. It exposes allocation status
+  counters, selected review rows, and queue identity lists without reserving
+  provider time, mutating schedules, or approving contacts.
   """
   def summary(contact_allocation_report)
 
+  def summary(%{"schema_contract" => @summary_schema_contract} = summary), do: summary
+
   def summary(%{"schema_contract" => @schema_contract} = report) do
     summary(report, [])
+  end
+
+  def summary(%{schema_contract: @summary_schema_contract} = summary) do
+    stringify_keys(summary)
   end
 
   def summary(%{schema_contract: @schema_contract} = report) do
@@ -732,8 +739,16 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
 
   def summary(contact_allocation_report, opts)
 
+  def summary(%{"schema_contract" => @summary_schema_contract} = summary, opts)
+      when is_list(opts),
+      do: summary
+
   def summary(%{"schema_contract" => @schema_contract} = report, opts) when is_list(opts) do
     allocation_summary(report, opts)
+  end
+
+  def summary(%{schema_contract: @summary_schema_contract} = summary, opts) when is_list(opts) do
+    stringify_keys(summary)
   end
 
   def summary(%{schema_contract: @schema_contract} = report, opts) when is_list(opts) do
@@ -764,8 +779,19 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
   """
   def station_pressure_summary(contact_allocation_report)
 
+  def station_pressure_summary(
+        %{"schema_contract" => @station_pressure_summary_schema_contract} = summary
+      ),
+      do: summary
+
   def station_pressure_summary(%{"schema_contract" => @schema_contract} = report) do
     station_pressure_summary(report, [])
+  end
+
+  def station_pressure_summary(
+        %{schema_contract: @station_pressure_summary_schema_contract} = summary
+      ) do
+    stringify_keys(summary)
   end
 
   def station_pressure_summary(%{schema_contract: @schema_contract} = report) do
@@ -779,9 +805,24 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
 
   def station_pressure_summary(contact_allocation_report, opts)
 
+  def station_pressure_summary(
+        %{"schema_contract" => @station_pressure_summary_schema_contract} = summary,
+        opts
+      )
+      when is_list(opts),
+      do: summary
+
   def station_pressure_summary(%{"schema_contract" => @schema_contract} = report, opts)
       when is_list(opts) do
     allocation_station_pressure_summary(report, opts)
+  end
+
+  def station_pressure_summary(
+        %{schema_contract: @station_pressure_summary_schema_contract} = summary,
+        opts
+      )
+      when is_list(opts) do
+    stringify_keys(summary)
   end
 
   def station_pressure_summary(%{schema_contract: @schema_contract} = report, opts)
@@ -813,8 +854,17 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
   """
   def capacity_pack_summary(contact_allocation_report)
 
+  def capacity_pack_summary(
+        %{"schema_contract" => @capacity_pack_summary_schema_contract} = summary
+      ),
+      do: summary
+
   def capacity_pack_summary(%{"schema_contract" => @schema_contract} = report) do
     capacity_pack_summary(report, [])
+  end
+
+  def capacity_pack_summary(%{schema_contract: @capacity_pack_summary_schema_contract} = summary) do
+    stringify_keys(summary)
   end
 
   def capacity_pack_summary(%{schema_contract: @schema_contract} = report) do
@@ -828,9 +878,24 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
 
   def capacity_pack_summary(contact_allocation_report, opts)
 
+  def capacity_pack_summary(
+        %{"schema_contract" => @capacity_pack_summary_schema_contract} = summary,
+        opts
+      )
+      when is_list(opts),
+      do: summary
+
   def capacity_pack_summary(%{"schema_contract" => @schema_contract} = report, opts)
       when is_list(opts) do
     allocation_capacity_pack_summary(report, opts)
+  end
+
+  def capacity_pack_summary(
+        %{schema_contract: @capacity_pack_summary_schema_contract} = summary,
+        opts
+      )
+      when is_list(opts) do
+    stringify_keys(summary)
   end
 
   def capacity_pack_summary(%{schema_contract: @schema_contract} = report, opts)
@@ -862,8 +927,19 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
   """
   def reservation_conflict_summary(contact_allocation_report)
 
+  def reservation_conflict_summary(
+        %{"schema_contract" => @reservation_conflict_summary_schema_contract} = summary
+      ),
+      do: summary
+
   def reservation_conflict_summary(%{"schema_contract" => @schema_contract} = report) do
     reservation_conflict_summary(report, [])
+  end
+
+  def reservation_conflict_summary(
+        %{schema_contract: @reservation_conflict_summary_schema_contract} = summary
+      ) do
+    stringify_keys(summary)
   end
 
   def reservation_conflict_summary(%{schema_contract: @schema_contract} = report) do
@@ -877,9 +953,24 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
 
   def reservation_conflict_summary(contact_allocation_report, opts)
 
+  def reservation_conflict_summary(
+        %{"schema_contract" => @reservation_conflict_summary_schema_contract} = summary,
+        opts
+      )
+      when is_list(opts),
+      do: summary
+
   def reservation_conflict_summary(%{"schema_contract" => @schema_contract} = report, opts)
       when is_list(opts) do
     allocation_reservation_conflict_summary(report, opts)
+  end
+
+  def reservation_conflict_summary(
+        %{schema_contract: @reservation_conflict_summary_schema_contract} = summary,
+        opts
+      )
+      when is_list(opts) do
+    stringify_keys(summary)
   end
 
   def reservation_conflict_summary(%{schema_contract: @schema_contract} = report, opts)
@@ -912,8 +1003,19 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
   """
   def provider_reservation_request_summary(contact_allocation_report)
 
+  def provider_reservation_request_summary(
+        %{"schema_contract" => @provider_reservation_request_summary_schema_contract} = summary
+      ),
+      do: summary
+
   def provider_reservation_request_summary(%{"schema_contract" => @schema_contract} = report) do
     provider_reservation_request_summary(report, [])
+  end
+
+  def provider_reservation_request_summary(
+        %{schema_contract: @provider_reservation_request_summary_schema_contract} = summary
+      ) do
+    stringify_keys(summary)
   end
 
   def provider_reservation_request_summary(%{schema_contract: @schema_contract} = report) do
@@ -928,11 +1030,26 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
   def provider_reservation_request_summary(contact_allocation_report, opts)
 
   def provider_reservation_request_summary(
+        %{"schema_contract" => @provider_reservation_request_summary_schema_contract} = summary,
+        opts
+      )
+      when is_list(opts),
+      do: summary
+
+  def provider_reservation_request_summary(
         %{"schema_contract" => @schema_contract} = report,
         opts
       )
       when is_list(opts) do
     allocation_provider_reservation_request_summary(report, opts)
+  end
+
+  def provider_reservation_request_summary(
+        %{schema_contract: @provider_reservation_request_summary_schema_contract} = summary,
+        opts
+      )
+      when is_list(opts) do
+    stringify_keys(summary)
   end
 
   def provider_reservation_request_summary(%{schema_contract: @schema_contract} = report, opts)

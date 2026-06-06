@@ -5,43 +5,46 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-ResourceFilter compact summary idempotent handoff.
+ContactAllocation compact summary idempotent handoffs.
 
 Status:
-Implemented, verified, committed, and pushed.
+Implemented and verified; commit/push pending.
 
 Files changed:
-- `lib/orbital_dynamics/resource_filter.ex`
-- `test/orbital_dynamics/resource_filter_test.exs`
-- `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`
+- `lib/orbital_dynamics/communications/contact_allocation.ex`
+- `test/orbital_dynamics/communications/contact_allocation_test.exs`
+- `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
 - `.codex/status/autonomous_product_loop.md`
 
 Behavior changed:
-- `ResourceFilter.summary/1` and `/2` now accept existing
-  `resource_filter_summary.v1` artifacts idempotently.
-- Atom-keyed `resource_filter_summary.v1` handoffs are normalized to string keys,
-  matching the existing report-artifact handoff behavior.
-- `OrbitalDynamics.resource_filter_summary/1` inherits the same summary-artifact
-  handoff behavior through the public facade.
+- `ContactAllocation.summary/1` and `/2` now accept existing
+  `contact_allocation_summary.v1` artifacts idempotently.
+- `ContactAllocation.station_pressure_summary/1` and `/2` now accept existing
+  `contact_allocation_station_pressure_summary.v1` artifacts idempotently.
+- `ContactAllocation.capacity_pack_summary/1` and `/2`,
+  `reservation_conflict_summary/1` and `/2`, and
+  `provider_reservation_request_summary/1` and `/2` now accept their compact
+  summary artifacts idempotently.
+- Atom-keyed compact allocation-summary handoffs are normalized to string keys,
+  matching the existing report-artifact handoff behavior and public facades.
 
 Tests run:
-- `mix test test/orbital_dynamics/resource_filter_test.exs:699`
-  -> 1 passed, 35 excluded.
-- `mix test test/orbital_dynamics/resource_filter_test.exs`
-  -> 36 passed.
+- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs:564 test/orbital_dynamics/communications/contact_allocation_test.exs:779 test/orbital_dynamics/communications/contact_allocation_test.exs:2257 test/orbital_dynamics/communications/contact_allocation_test.exs:2491 test/orbital_dynamics/communications/contact_allocation_test.exs:7408`
+  -> 4 passed, 62 excluded.
+- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs`
+  -> 66 passed.
 
 Docs/artifacts changed:
-- `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`
-  documents idempotent `resource_filter_summary.v1` compact-review handoffs.
+- `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
+  documents idempotent compact allocation-summary handoffs.
 
 Level 6 pillar advanced:
-Resource and communications allocation semantics: compact ResourceFilter review
-adapters can pass existing summary artifacts back through the facade without
-rerunning resource filtering or losing deterministic summary fields.
+Ground-network/contact allocation review surfaces: compact allocation review
+adapters can pass existing summary artifacts back through ContactAllocation
+facades without rerunning allocation or losing deterministic summary fields.
 
 Last commit:
-- `f36a2a994f99f8974484f79fcbe6172cc57aa5cf` pushed to `origin/main` for
-  ResourceFilter compact summary idempotent handoff.
+- Pending for ContactAllocation compact summary idempotent handoffs.
 
 Recently completed slices:
 - `f36a2a994f99f8974484f79fcbe6172cc57aa5cf` pushed to `origin/main` for
@@ -56,9 +59,9 @@ Recently completed slices:
   resource projection compact pressure direction/capacity maps.
 
 Next candidate:
-After pushing this slice, reassess whether another small ResourceFilter compact
-artifact handoff gap remains; otherwise move to contact-allocation or
-CandidateRefresh operational replay maturity.
+After pushing this slice, reassess whether another compact communications
+artifact handoff gap remains; otherwise move to CandidateRefresh operational
+replay maturity.
 
 Blocked:
 No.

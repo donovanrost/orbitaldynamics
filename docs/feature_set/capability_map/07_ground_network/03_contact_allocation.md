@@ -94,7 +94,13 @@ The contact-filter, contact-contention, contact-intent, and command-window repor
 The schema derives scalar counts, routing maps, review rows, capacity-pack
 groups, station-pressure fields, reservation-expiration fields, and
 resource-blocked fields from the included allocation rows without reserving
-provider time, mutating schedules, or granting operator authority.
+provider time, mutating schedules, or granting operator authority. Existing
+compact allocation summaries are also accepted as idempotent handoff inputs
+when adapters already hold `contact_allocation_summary.v1`,
+`contact_allocation_station_pressure_summary.v1`,
+`contact_allocation_reservation_conflict_summary.v1`,
+`contact_allocation_provider_reservation_request_summary.v1`, or
+`contact_allocation_capacity_pack_summary.v1` artifacts.
 
 `ContactAllocation.reservation_conflict_summary/1`/`2`/`3` and `OrbitalDynamics.contact_allocation_reservation_conflict_summary/1`/`2`/`3` expose the validated `contact_allocation_reservation_conflict_summary.v1` reservation-conflict routing contract from allocation report rows, including conflict/review contact IDs, reservation match-status conflict maps, reservation status/owner/ID maps, expiration status maps, conflict/review row subsets, and the same no-provider-reservation / no-schedule-mutation boundary. The schema derives counts, routing maps, reservation IDs, expiration classification, and row subsets from included `contact_allocation_report.v1` rows. Candidate-refresh contact-allocation replay preserves reservation-conflict contact IDs and reservation IDs by match status, plus general station-reservation match-status counts and contact/reservation ID maps by match status, status/owner counts, expiration status/deadline routing, review-time active/expired classification, and contact/reservation ID maps by status/owner/expiration status, for branch-local reservation queues.
 

@@ -737,6 +737,14 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
                  &1["message"] == "must equal row-derived review_rows")
            )
 
+    assert_summary_handoff(
+      summary,
+      &ContactAllocation.summary/1,
+      &ContactAllocation.summary(&1, now_s: 999.0),
+      &OrbitalDynamics.contact_allocation_summary/1,
+      &OrbitalDynamics.contact_allocation_summary(&1, now_s: 999.0)
+    )
+
     assert %{
              "schema_contract" => "contact_allocation_station_pressure_summary.v1",
              "model" => "artifact_only_contact_allocation_station_pressure_summary",
@@ -855,6 +863,14 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              &(&1["path"] == "$.review_rows" and
                  &1["message"] == "must equal row-derived review_rows")
            )
+
+    assert_summary_handoff(
+      station_pressure_summary,
+      &ContactAllocation.station_pressure_summary/1,
+      &ContactAllocation.station_pressure_summary(&1, now_s: 999.0),
+      &OrbitalDynamics.contact_allocation_station_pressure_summary/1,
+      &OrbitalDynamics.contact_allocation_station_pressure_summary(&1, now_s: 999.0)
+    )
 
     assert ContactAllocation.station_pressure_summary(contacts, ground_network,
              source: "unit_test.contacts",
@@ -2404,6 +2420,14 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
                  &1["message"] == "must equal row-derived reservation_conflict_rows")
            )
 
+    assert_summary_handoff(
+      summary,
+      &ContactAllocation.reservation_conflict_summary/1,
+      &ContactAllocation.reservation_conflict_summary(&1, now_s: 999.0),
+      &OrbitalDynamics.contact_allocation_reservation_conflict_summary/1,
+      &OrbitalDynamics.contact_allocation_reservation_conflict_summary(&1, now_s: 999.0)
+    )
+
     assert OrbitalDynamics.contact_allocation_reservation_conflict_summary(report,
              now_s: 400.0
            ) == summary
@@ -2640,6 +2664,16 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              &(&1["path"] == "$.provider_reservation_request_rows" and
                  &1["message"] == "must equal row-derived provider_reservation_request_rows")
            )
+
+    assert_summary_handoff(
+      summary,
+      &ContactAllocation.provider_reservation_request_summary/1,
+      &ContactAllocation.provider_reservation_request_summary(&1, now_s: 999.0),
+      &OrbitalDynamics.contact_allocation_provider_reservation_request_summary/1,
+      &OrbitalDynamics.contact_allocation_provider_reservation_request_summary(&1,
+        now_s: 999.0
+      )
+    )
 
     assert OrbitalDynamics.contact_allocation_provider_reservation_request_summary(report) ==
              summary
@@ -7460,6 +7494,14 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
                  &1["message"] == "must equal row-derived review_rows")
            )
 
+    assert_summary_handoff(
+      capacity_pack_summary,
+      &ContactAllocation.capacity_pack_summary/1,
+      &ContactAllocation.capacity_pack_summary(&1, now_s: 999.0),
+      &OrbitalDynamics.contact_allocation_capacity_pack_summary/1,
+      &OrbitalDynamics.contact_allocation_capacity_pack_summary(&1, now_s: 999.0)
+    )
+
     assert OrbitalDynamics.contact_allocation_capacity_pack_summary(report) ==
              capacity_pack_summary
 
@@ -7897,5 +7939,24 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
     }
 
     Map.merge(defaults, Map.new(attrs))
+  end
+
+  defp assert_summary_handoff(
+         summary,
+         module_summary,
+         module_summary_with_opts,
+         facade_summary,
+         facade_summary_with_opts
+       ) do
+    assert module_summary.(summary) == summary
+    assert module_summary_with_opts.(summary) == summary
+    assert facade_summary.(summary) == summary
+    assert facade_summary_with_opts.(summary) == summary
+
+    atom_keyed_summary =
+      Map.new(summary, fn {key, value} -> {String.to_atom(key), value} end)
+
+    assert module_summary.(atom_keyed_summary) == summary
+    assert facade_summary.(atom_keyed_summary) == summary
   end
 end
