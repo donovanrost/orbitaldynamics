@@ -5,10 +5,10 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Normalize numeric-string contact contention score evidence.
+Refresh checked-in study manifest schema export.
 
 Status:
-Implemented and verified; commit/push pending.
+Implemented and verified; committed locally and push pending.
 
 Completed slices:
 - Prompt/guide continuation semantics committed as
@@ -21,45 +21,40 @@ Completed slices:
   `91a3413f228d505ec2eae0f9240c89b32c1792b2` and pushed to `origin/main`.
 - Effective allocation status repair fixture committed as
   `fb99be2334f330f31bb30cb03531371df88dc74e` and pushed to `origin/main`.
+- Numeric-string contact contention score normalization committed as
+  `0e5ec49473b878321cd513b08597abaf7cefb819` and pushed to `origin/main`.
+- Study manifest schema export refresh is in the current handoff commit; push
+  pending.
 
 Files changed:
-- `lib/orbital_dynamics/communications/contact_contention.ex`
-- `test/orbital_dynamics/communications/contact_contention_test.exs`
+- `schemas/study_manifest.v1.schema.json`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/communications/contact_contention_test.exs:2229`
-  -> 1 passed, 39 excluded.
-- `mix test test/orbital_dynamics/communications/contact_contention_test.exs:3585`
-  -> 1 passed, 39 excluded.
-- `mix test test/orbital_dynamics/communications/contact_contention_test.exs`
-  -> 40 passed.
-- `mix test` -> 3005/3006 passed; remaining failure is checked-in
-  `schemas/study_manifest.v1.schema.json` drift versus `Manifest.json_schema/0`.
-- `mix format lib/orbital_dynamics/communications/contact_contention.ex
-  test/orbital_dynamics/communications/contact_contention_test.exs
-  --check-formatted` -> pass.
+- `mix orbital_dynamics.manifest.schema.export --output
+  schemas/study_manifest.v1.schema.json` -> wrote the checked-in manifest schema.
+- `mix test test/orbital_dynamics/study/manifest_test.exs:730`
+  -> 1 passed, 41 excluded.
+- `mix test` -> 3006 passed.
 
 Docs/artifacts changed:
-- No public docs/artifacts changed; this is runtime normalization plus focused
-  contact-contention coverage.
+- Refreshed generated `study_manifest.v1` JSON Schema export so the checked-in
+  schema matches `OrbitalDynamics.Study.Manifest.json_schema/0`.
 
 Level 6 pillar advanced:
-Deterministic contact-contention and contact-allocation artifacts.
+Schema/export reproducibility for public study manifests.
 
 Remaining maturity gaps:
-- Full suite has one live failure: checked-in `schemas/study_manifest.v1.schema.json`
-  no longer matches `OrbitalDynamics.Study.Manifest.json_schema/0`.
-- External reference baselines remain out of scope; continue product-level
-  challenge tests or the next live validation gap.
+- Full suite is green at 3006 tests.
+- Continue product-level challenge tests or the next live validation gap toward
+  Level 6 maturity.
 
 Last commit:
-- `fb99be2334f330f31bb30cb03531371df88dc74e` pushed to `origin/main`
-  for effective allocation status repair fixture.
+- Current handoff commit for study manifest schema export refresh; push pending.
 
 Next candidate:
-Refresh or reconcile the checked-in study manifest schema export, then rerun
-the manifest schema test and full suite as appropriate.
+Select the next live maturity gap from the guide/roadmap and current test
+evidence; external reference baselines remain out of scope unless selected.
 
 Blocked:
 No.
@@ -67,6 +62,5 @@ No.
 Notes:
 - `.gitignore` still has an unrelated pre-existing local scratch-ignore change
   and is not part of this slice.
-- Contact contention source-candidate snapshots now normalize numeric-string
-  `score` and priority fields before they are embedded in contention and
-  resolution reports.
+- The known `:propagator_exit` log appeared during full `mix test`; the suite
+  completed successfully.
