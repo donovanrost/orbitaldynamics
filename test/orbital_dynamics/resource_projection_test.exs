@@ -49,6 +49,7 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
     assert :resource_projection_row_count_list_consistency in row_semantics
     assert :resource_projection_flow_summary in row_semantics
     assert :resource_projection_flow_pressure_routing in row_semantics
+    assert :resource_projection_flow_provider_calendar_provider_routing in row_semantics
     assert :resource_projection_flow_invalid_input_routing in row_semantics
     assert :resource_projection_flow_ignored_activity_routing in row_semantics
     assert :status_aware_activity_resource_effects in row_semantics
@@ -4682,6 +4683,7 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
         scenario_id: :leo_1,
         ground_station_id: :equator_prime,
         station_calendar_entry_id: :provider_window_1,
+        station_calendar_provider_id: :ops_calendar,
         station_calendar_provider_entry_id: :provider_api_window_1,
         source_window: %{
           window_id: :downlink_window_1,
@@ -4759,6 +4761,9 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
              },
              "resource_pressure_station_calendar_entry_ids_by_type" => %{
                "downlink_shortfall" => ["provider_window_1"]
+             },
+             "resource_pressure_station_calendar_provider_ids_by_type" => %{
+               "downlink_shortfall" => ["ops_calendar"]
              },
              "resource_pressure_station_calendar_provider_entry_ids_by_type" => %{
                "downlink_shortfall" => ["provider_api_window_1"]
@@ -4978,6 +4983,27 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
              &(&1["path"] == "$.resource_pressure_station_calendar_entry_ids_by_type" and
                  &1["message"] ==
                    "must equal row-derived resource_pressure_station_calendar_entry_ids_by_type")
+           )
+
+    stale_pressure_station_calendar_provider_ids =
+      put_in(
+        flow_report,
+        [
+          "resource_pressure_station_calendar_provider_ids_by_type",
+          "downlink_shortfall"
+        ],
+        ["stale_provider"]
+      )
+
+    assert {:error, stale_pressure_station_calendar_provider_ids_report} =
+             Schema.validate_artifact(stale_pressure_station_calendar_provider_ids)
+
+    assert Enum.any?(
+             stale_pressure_station_calendar_provider_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.resource_pressure_station_calendar_provider_ids_by_type" and
+                 &1["message"] ==
+                   "must equal row-derived resource_pressure_station_calendar_provider_ids_by_type")
            )
 
     stale_pressure_station_calendar_provider_entry_ids =

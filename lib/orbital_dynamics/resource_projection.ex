@@ -279,6 +279,7 @@ defmodule OrbitalDynamics.ResourceProjection do
         :resource_projection_row_count_list_consistency,
         :resource_projection_flow_summary,
         :resource_projection_flow_pressure_routing,
+        :resource_projection_flow_provider_calendar_provider_routing,
         :resource_projection_flow_invalid_input_routing,
         :resource_projection_flow_ignored_activity_routing,
         :status_aware_activity_resource_effects,

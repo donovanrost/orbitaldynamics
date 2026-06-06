@@ -205,8 +205,8 @@ Status: **implemented**.
     pressure;
   - station-calendar entry ID routing by pressure type for provider-calendar
     pressure;
-  - station-calendar provider-entry ID routing by pressure type for provider
-    adapter pressure queues;
+  - station-calendar provider ID and provider-entry ID routing by pressure type
+    for provider adapter pressure queues;
   - ignored zero-effect activity counts, reason counts, IDs, and IDs by
     ignored-effect reason;
   - aggregate selected-flow storage/downlink/battery quantities;
