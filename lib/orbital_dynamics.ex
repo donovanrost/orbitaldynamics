@@ -63,6 +63,155 @@ defmodule OrbitalDynamics do
     TargetVisibility
   }
 
+  @activity_template_schema_contract "activity_template.v1"
+  @activity_template_validation_level "artifact_contract"
+  @activity_template_version 1
+  @activity_template_known_limits [
+    "template_only_no_schedule_mutation",
+    "no_resource_reservation"
+  ]
+  @activity_template_assumptions %{
+    "boundary" => "template_only_no_schedule_mutation"
+  }
+  @activity_template_lifecycle_defaults %{
+    "status" => "planned",
+    "approval_status" => "not_evaluated",
+    "locked" => false,
+    "allow_overlap" => false
+  }
+  @activity_template_specs [
+    %{
+      id: "template:observe:basic",
+      activity_type: "observe",
+      display_name: "Basic observe activity",
+      description: "Reusable evidence contract for a target observation activity template.",
+      required_fields: ["id", "type", "target_id", "starts_at_s", "ends_at_s"],
+      optional_fields: ["payload_id", "instrument_id", "allow_overlap"],
+      default_fields: %{"type" => "observe", "allow_overlap" => false},
+      resource_hints: %{
+        "requires_payload" => true,
+        "uses_storage" => true,
+        "suppressed_activity_types" => ["downlink"],
+        "estimated_data_volume_mb" => 48.0
+      },
+      precondition_hints: [
+        %{
+          "precondition_type" => "payload_unavailable",
+          "status" => "review_required",
+          "reason" => "payload availability must be checked",
+          "blocking" => true
+        }
+      ]
+    },
+    %{
+      id: "template:downlink:basic",
+      activity_type: "downlink",
+      display_name: "Basic downlink",
+      description: "Template for a single ground-station downlink activity.",
+      required_fields: ["id", "type", "ground_station_id", "starts_at_s", "ends_at_s"],
+      optional_fields: ["spacecraft_id", "data_volume_mb", "allow_overlap"],
+      default_fields: %{"type" => "downlink", "allow_overlap" => false},
+      resource_hints: %{
+        "requires_antenna" => true,
+        "requires_contact" => true,
+        "uses_power" => true,
+        "estimated_downlink_mb" => 48.0
+      },
+      precondition_hints: [
+        %{
+          "precondition_type" => "antenna_unavailable",
+          "status" => "review_required",
+          "reason" => "station_capacity_blocks_downlink",
+          "blocking" => true
+        }
+      ]
+    },
+    %{
+      id: "template:command:basic",
+      activity_type: "command",
+      display_name: "Basic command",
+      description: "Template for a single command uplink activity.",
+      required_fields: ["id", "type", "ground_station_id", "starts_at_s", "ends_at_s"],
+      optional_fields: ["spacecraft_id", "command_count", "allow_overlap"],
+      default_fields: %{"type" => "command", "allow_overlap" => false},
+      resource_hints: %{
+        "requires_antenna" => true,
+        "requires_contact" => true,
+        "uses_power" => true
+      },
+      precondition_hints: [
+        %{
+          "precondition_type" => "spacecraft_unavailable",
+          "status" => "review_required",
+          "reason" => "spacecraft_state_blocks_command",
+          "blocking" => true
+        }
+      ]
+    },
+    %{
+      id: "template:health_check:basic",
+      activity_type: "health_check",
+      display_name: "Basic health check",
+      description: "Template for a spacecraft health-check activity.",
+      required_fields: ["id", "type", "starts_at_s", "ends_at_s"],
+      optional_fields: ["spacecraft_id", "allow_overlap"],
+      default_fields: %{"type" => "health_check", "allow_overlap" => true},
+      lifecycle_defaults: %{"allow_overlap" => true},
+      resource_hints: %{
+        "uses_power" => true
+      },
+      precondition_hints: [
+        %{
+          "precondition_type" => "spacecraft_unavailable",
+          "status" => "review_required",
+          "reason" => "spacecraft_state_blocks_health_check",
+          "blocking" => true
+        }
+      ]
+    },
+    %{
+      id: "template:slew:basic",
+      activity_type: "slew",
+      display_name: "Basic slew",
+      description: "Template for an attitude slew activity.",
+      required_fields: ["id", "type", "attitude_target_id", "starts_at_s", "ends_at_s"],
+      optional_fields: ["spacecraft_id", "allow_overlap"],
+      default_fields: %{"type" => "slew", "allow_overlap" => false},
+      resource_hints: %{
+        "uses_power" => true
+      },
+      precondition_hints: [
+        %{
+          "precondition_type" => "spacecraft_unavailable",
+          "status" => "review_required",
+          "reason" => "spacecraft_state_blocks_slew",
+          "blocking" => true
+        }
+      ]
+    },
+    %{
+      id: "template:impulsive_burn:basic",
+      activity_type: "impulsive_burn",
+      display_name: "Basic maneuver",
+      description: "Template for a single impulsive maneuver activity.",
+      required_fields: ["id", "type", "delta_v_m_s", "starts_at_s", "ends_at_s"],
+      optional_fields: ["spacecraft_id", "allow_overlap"],
+      default_fields: %{"type" => "impulsive_burn", "allow_overlap" => false},
+      resource_hints: %{
+        "uses_fuel" => true,
+        "uses_power" => true
+      },
+      precondition_hints: [
+        %{
+          "precondition_type" => "fuel_margin_depleted",
+          "status" => "review_required",
+          "reason" => "maneuver_margin_blocks_burn",
+          "blocking" => true
+        }
+      ]
+    }
+  ]
+
   @doc """
   Propagates one scenario with the default two-body propagator.
   """
@@ -1410,6 +1559,27 @@ defmodule OrbitalDynamics do
   def normalize_timeline_activities(activities, opts \\ []) do
     Timeline.normalize_activities(activities, opts)
   end
+
+  @doc """
+  Returns deterministic activity template artifacts for baseline planning activity types.
+  """
+  def activity_templates do
+    Enum.map(@activity_template_specs, &activity_template_artifact/1)
+  end
+
+  @doc """
+  Looks up one baseline activity template by template id or activity type.
+  """
+  def activity_template(id_or_activity_type) when is_binary(id_or_activity_type) do
+    activity_templates()
+    |> Enum.find(&activity_template_match?(&1, id_or_activity_type))
+    |> case do
+      nil -> :error
+      template -> {:ok, template}
+    end
+  end
+
+  def activity_template(_id_or_activity_type), do: :error
 
   @doc """
   Builds an artifact-only timeline diff report for source and replacement activities.
@@ -2838,6 +3008,41 @@ defmodule OrbitalDynamics do
     do: Enum.map(values, &stringify_operator_review_keys/1)
 
   defp stringify_operator_review_keys(value), do: value
+
+  defp activity_template_artifact(spec) do
+    required_fields = Map.fetch!(spec, :required_fields)
+    optional_fields = Map.fetch!(spec, :optional_fields)
+
+    %{
+      "schema_contract" => @activity_template_schema_contract,
+      "id" => Map.fetch!(spec, :id),
+      "activity_type" => Map.fetch!(spec, :activity_type),
+      "template_version" => @activity_template_version,
+      "validation_level" => @activity_template_validation_level,
+      "known_limits" => @activity_template_known_limits,
+      "display_name" => Map.fetch!(spec, :display_name),
+      "description" => Map.fetch!(spec, :description),
+      "required_fields" => required_fields,
+      "optional_fields" => optional_fields,
+      "default_fields" => Map.fetch!(spec, :default_fields),
+      "field_count" => length(required_fields) + length(optional_fields),
+      "required_field_count" => length(required_fields),
+      "optional_field_count" => length(optional_fields),
+      "lifecycle_defaults" => activity_template_lifecycle_defaults(spec),
+      "resource_hints" => Map.fetch!(spec, :resource_hints),
+      "precondition_hints" => Map.fetch!(spec, :precondition_hints),
+      "assumptions" => @activity_template_assumptions
+    }
+  end
+
+  defp activity_template_lifecycle_defaults(spec) do
+    @activity_template_lifecycle_defaults
+    |> Map.merge(Map.get(spec, :lifecycle_defaults, %{}))
+  end
+
+  defp activity_template_match?(template, id_or_activity_type) do
+    id_or_activity_type in [template["id"], template["activity_type"]]
+  end
 
   defp json_safe_capability_value(%{} = map) do
     Map.new(map, fn {key, value} ->

@@ -133,6 +133,58 @@ defmodule OrbitalDynamics.CapabilitiesTest do
            )
   end
 
+  test "public activity template helper exposes deterministic schema-valid baseline templates" do
+    templates = OrbitalDynamics.activity_templates()
+
+    assert Enum.map(templates, & &1["id"]) == [
+             "template:observe:basic",
+             "template:downlink:basic",
+             "template:command:basic",
+             "template:health_check:basic",
+             "template:slew:basic",
+             "template:impulsive_burn:basic"
+           ]
+
+    supported_activity_types =
+      OrbitalDynamics.Timeline.capabilities().supported_activity_types
+      |> MapSet.new()
+
+    for template <- templates do
+      assert template["schema_contract"] == "activity_template.v1"
+      assert template["validation_level"] == "artifact_contract"
+      assert template["activity_type"] in supported_activity_types
+
+      assert template["field_count"] ==
+               template["required_field_count"] + template["optional_field_count"]
+
+      declared_fields =
+        template["required_fields"]
+        |> MapSet.new()
+        |> MapSet.union(MapSet.new(template["optional_fields"]))
+
+      assert template["default_fields"]
+             |> Map.keys()
+             |> Enum.all?(&MapSet.member?(declared_fields, &1))
+
+      assert {:ok, %{"schema_contract" => "activity_template.v1", "status" => "pass"}} =
+               Schema.validate_artifact(template)
+    end
+
+    observe_template = hd(templates)
+
+    assert OrbitalDynamics.activity_template("template:observe:basic") == {:ok, observe_template}
+    assert OrbitalDynamics.activity_template("observe") == {:ok, observe_template}
+    assert OrbitalDynamics.activity_template("payload_warmup") == :error
+    assert OrbitalDynamics.activity_template(:observe) == :error
+
+    observe_fixture =
+      "study_results/activity_template_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
+    assert observe_fixture == observe_template
+  end
+
   test "public capability facades resolve to exported top-level functions" do
     missing_facades =
       OrbitalDynamics.capability_catalog()
