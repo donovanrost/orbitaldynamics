@@ -1302,6 +1302,95 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              ]) == "string"
     end)
 
+    candidate_refresh_objective_satisfaction_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "objective_satisfaction_report",
+        "properties"
+      ])
+
+    candidate_refresh_objective_tradeoff_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "objective_tradeoff_report",
+        "properties"
+      ])
+
+    candidate_refresh_score_term_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "score_term_report",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        candidate_refresh_objective_satisfaction_source_report,
+        candidate_refresh_objective_tradeoff_source_report,
+        candidate_refresh_score_term_source_report
+      ],
+      fn source_report ->
+        Enum.each(
+          [
+            "downlink_gap_row_count",
+            "target_gap_row_count",
+            "collection_latency_gap_row_count"
+          ],
+          fn field ->
+            assert get_in(source_report, [field, "minimum"]) == 0
+          end
+        )
+
+        Enum.each(
+          [
+            "ground_station_counts",
+            "target_counts",
+            "collection_counts",
+            "source_activity_id_counts"
+          ],
+          fn field ->
+            assert get_in(source_report, [
+                     field,
+                     "additionalProperties",
+                     "minimum"
+                   ]) == 0
+          end
+        )
+      end
+    )
+
+    assert get_in(candidate_refresh_objective_satisfaction_source_report, [
+             "gap_row_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(candidate_refresh_objective_satisfaction_source_report, [
+             "objective_type_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(candidate_refresh_score_term_source_report, [
+             "term_key_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
     candidate_refresh_refresh_budget_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",

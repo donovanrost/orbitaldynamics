@@ -19679,6 +19679,74 @@ defmodule OrbitalDynamics.SchemaTest do
              "type"
            ]) == "string"
 
+    named_objective_satisfaction_schema =
+      get_in(schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "objective_satisfaction_report"
+      ])
+
+    named_objective_tradeoff_schema =
+      get_in(schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "objective_tradeoff_report"
+      ])
+
+    named_score_term_schema =
+      get_in(schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "score_term_report"
+      ])
+
+    Enum.each(
+      [
+        named_objective_satisfaction_schema,
+        named_objective_tradeoff_schema,
+        named_score_term_schema
+      ],
+      fn named_schema ->
+        assert named_schema["type"] == "object"
+
+        assert get_in(named_schema, [
+                 "properties",
+                 "downlink_gap_row_count",
+                 "minimum"
+               ]) == 0
+
+        assert get_in(named_schema, [
+                 "properties",
+                 "source_activity_id_counts",
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    assert get_in(named_objective_satisfaction_schema, [
+             "properties",
+             "objective_type_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(named_score_term_schema, [
+             "properties",
+             "term_key_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
     named_refresh_budget_schema =
       get_in(schema, [
         "properties",
@@ -19720,6 +19788,127 @@ defmodule OrbitalDynamics.SchemaTest do
              "items",
              "type"
            ]) == "string"
+  end
+
+  test "validates named candidate refresh objective-gap source-report provenance schemas" do
+    artifact =
+      candidate_refresh_artifact()
+      |> put_in(
+        ["provenance", "source_reports"],
+        %{
+          "objective_satisfaction_report" => %{
+            "paths" => ["source_objective_satisfaction_report"],
+            "contract" => "objective_satisfaction_report.v1",
+            "count" => 1,
+            "row_count" => 3,
+            "gap_row_count" => 3,
+            "downlink_gap_row_count" => 1,
+            "target_gap_row_count" => 1,
+            "collection_latency_gap_row_count" => 1,
+            "status_counts" => %{"partial" => 2, "unmet" => 1},
+            "objective_type_counts" => %{"downlink_completion" => 1},
+            "ground_station_counts" => %{"equator_prime" => 1},
+            "target_counts" => %{"target_alpha" => 1},
+            "collection_counts" => %{"collection_day_1" => 1},
+            "source_activity_id_counts" => %{"dl_gap_activity" => 1}
+          },
+          "objective_tradeoff_report" => %{
+            "paths" => ["source_objective_tradeoff_report"],
+            "contract" => "objective_tradeoff_report.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "downlink_gap_row_count" => 1,
+            "target_gap_row_count" => 1,
+            "collection_latency_gap_row_count" => 0,
+            "ground_station_counts" => %{"equator_prime" => 1},
+            "target_counts" => %{"target_alpha" => 1},
+            "collection_counts" => %{},
+            "source_activity_id_counts" => %{"tradeoff_gap_activity" => 1}
+          },
+          "score_term_report" => %{
+            "paths" => ["source_score_term_report"],
+            "contract" => "score_term_report.v1",
+            "count" => 1,
+            "row_count" => 3,
+            "downlink_gap_row_count" => 1,
+            "target_gap_row_count" => 1,
+            "collection_latency_gap_row_count" => 1,
+            "term_key_counts" => %{"downlink_shortfall_mb" => 1},
+            "ground_station_counts" => %{"equator_prime" => 1},
+            "target_counts" => %{"target_alpha" => 1},
+            "collection_counts" => %{"collection_day_1" => 1},
+            "source_activity_id_counts" => %{"score_gap_activity" => 1}
+          }
+        }
+      )
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact)
+
+    invalid_objective_gap_count =
+      put_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "objective_satisfaction_report",
+          "gap_row_count"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_objective_gap_count_report} =
+             Schema.validate_artifact(invalid_objective_gap_count)
+
+    assert Enum.any?(
+             invalid_objective_gap_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.objective_satisfaction_report.gap_row_count")
+           )
+
+    invalid_tradeoff_activity_count =
+      put_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "objective_tradeoff_report",
+          "source_activity_id_counts",
+          "tradeoff_gap_activity"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_tradeoff_activity_count_report} =
+             Schema.validate_artifact(invalid_tradeoff_activity_count)
+
+    assert Enum.any?(
+             invalid_tradeoff_activity_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.objective_tradeoff_report.source_activity_id_counts.tradeoff_gap_activity")
+           )
+
+    invalid_score_term_count =
+      put_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "score_term_report",
+          "term_key_counts",
+          "downlink_shortfall_mb"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_score_term_count_report} =
+             Schema.validate_artifact(invalid_score_term_count)
+
+    assert Enum.any?(
+             invalid_score_term_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.score_term_report.term_key_counts.downlink_shortfall_mb")
+           )
   end
 
   test "validates named candidate refresh freshness source-report provenance schema" do
