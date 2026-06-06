@@ -1,20 +1,21 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Expose CandidateRefresh schema-validation source-report schema property.
+Expose CandidateRefresh timeline-diff source-report schema property.
 
 Status:
-Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
-CandidateRefresh schema-validation source summaries already preserve validation
-status, validated contract, validation-mode, error, warning, remediation, and
-remediation detail counts. Replay helpers already consume
-`schema_validation_report` from source-report provenance. The
-`candidate_refresh.v1` source-report JSON Schema now names
-`schema_validation_report` as a family-specific source report instead of leaving
-it discoverable only through the generic `source_reports` `additionalProperties`
-shape. This is a contract discoverability slice only: no replay behavior,
-artifact generation logic, operator authority, import approval, or Cadence write
-behavior changed.
+Implemented, locally verified, and reviewed clean; awaiting publish. Runtime
+CandidateRefresh timeline-diff source summaries already preserve duplicate
+timeline identity counts, removed/changed activity counts, operator-action
+counts, source/replacement activity count maps, and trust-boundary fields.
+Replay helpers already consume `timeline_diff_report` from source-report
+provenance for branch-local duplicate identity, removed/changed activity,
+operator review, and routing-pressure context. The `candidate_refresh.v1`
+source-report JSON Schema now names `timeline_diff_report` as a family-specific
+source report instead of leaving it discoverable only through the generic
+`source_reports` `additionalProperties` shape. This is a contract
+discoverability slice only: no replay behavior, artifact generation logic,
+operator authority, import approval, or Cadence write behavior changed.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -25,12 +26,11 @@ Files changed:
 - `test/orbital_dynamics/schema_test.exs`
 
 Definition of done:
-- `candidate_refresh.v1` exposes a family-specific
-  `schema_validation_report`
+- `candidate_refresh.v1` exposes a family-specific `timeline_diff_report`
   source-report schema.
-- Its source-report object advertises schema-validation integer counts and
-  count maps.
-- Schema validation rejects obvious invalid schema-validation integer/count-map
+- Its source-report object advertises timeline-diff integer counts and count
+  maps.
+- Schema validation rejects obvious invalid timeline-diff integer/count-map
   shapes.
 - Checked-in `candidate_refresh.v1` schema and schema bundle are refreshed.
 - Schema export tests, schema tests, focused CandidateRefresh runtime tests,
@@ -44,15 +44,14 @@ Tests run:
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - `mix test test/orbital_dynamics/schema_test.exs`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:26406`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:18154`
 - `mix orbital_dynamics.schema.lint --all`
-- `jq` spot-checks for `schema_validation_report` source-report fields in
+- `jq` spot-checks for `timeline_diff_report` source-report fields in
   `schemas/candidate_refresh.v1.schema.json` and the schema bundle.
 - `git diff --check -- . ':!.gitignore'`
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
   test, focused CandidateRefresh runtime test, schema lint, whitespace check,
   and generated-schema `jq` spot-checks.
-- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
 `7ebb5cb8e3cc4a0cfdbd45accb8f4ed16b79ef97` pushed to `origin/main`.
@@ -61,8 +60,8 @@ Last ledger correction commit:
 `f1547bf` pushed to `origin/main`.
 
 Next candidate:
-After this slice, run a bounded mapper pass to identify the next
-schema-visible CandidateRefresh source-report gap.
+After this slice, run a bounded mapper pass to identify the next schema-visible
+CandidateRefresh source-report gap.
 
 Blocked:
 No.

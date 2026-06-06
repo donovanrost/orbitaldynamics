@@ -12949,6 +12949,115 @@ defmodule OrbitalDynamics.SchemaTest do
                  "$.provenance.source_reports.schema_validation_report.status_counts")
            )
 
+    artifact_with_timeline_diff_summary =
+      put_in(artifact, ["provenance", "source_reports", "timeline_diff_report"], %{
+        "paths" => ["source_timeline_diff_report"],
+        "contract" => "timeline_diff_report.v1",
+        "count" => 1,
+        "row_count" => 3,
+        "duplicate_timeline_identity_count" => 1,
+        "duplicate_source_timeline_identity_count" => 1,
+        "duplicate_replacement_timeline_identity_count" => 1,
+        "removed_downlink_count" => 1,
+        "removed_observation_count" => 1,
+        "changed_downlink_shortfall_count" => 1,
+        "changed_contact_feedback_count" => 1,
+        "changed_observation_count" => 1,
+        "changed_observation_quality_feedback_count" => 1,
+        "changed_command_feedback_count" => 1,
+        "changed_maneuver_feedback_count" => 1,
+        "diff_status_counts" => %{"changed" => 1},
+        "required_operator_action_counts" => %{"review_removed_downlink" => 1},
+        "duplicate_timeline_identity_scope_counts" => %{"source" => 1},
+        "source_activity_id_counts" => %{"source_downlink" => 1},
+        "replacement_activity_id_counts" => %{"replacement_downlink" => 1}
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_timeline_diff_summary)
+
+    timeline_diff_source_report_properties =
+      get_in(candidate_refresh_schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "timeline_diff_report",
+        "properties"
+      ])
+
+    assert get_in(timeline_diff_source_report_properties, [
+             "removed_downlink_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(timeline_diff_source_report_properties, [
+             "diff_status_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(timeline_diff_source_report_properties, [
+             "source_activity_id_counts",
+             "additionalProperties",
+             "type"
+           ]) == "integer"
+
+    invalid_timeline_diff_removed_count =
+      put_in(
+        artifact_with_timeline_diff_summary,
+        ["provenance", "source_reports", "timeline_diff_report", "removed_downlink_count"],
+        -1
+      )
+
+    assert {:error, invalid_timeline_diff_removed_count_report} =
+             Schema.validate_artifact(invalid_timeline_diff_removed_count)
+
+    assert Enum.any?(
+             invalid_timeline_diff_removed_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_diff_report.removed_downlink_count")
+           )
+
+    invalid_timeline_diff_status_count =
+      put_in(
+        artifact_with_timeline_diff_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_diff_report",
+          "diff_status_counts",
+          "changed"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_timeline_diff_status_count_report} =
+             Schema.validate_artifact(invalid_timeline_diff_status_count)
+
+    assert Enum.any?(
+             invalid_timeline_diff_status_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_diff_report.diff_status_counts.changed")
+           )
+
+    invalid_timeline_diff_status_shape =
+      put_in(
+        artifact_with_timeline_diff_summary,
+        ["provenance", "source_reports", "timeline_diff_report", "diff_status_counts"],
+        "changed"
+      )
+
+    assert {:error, invalid_timeline_diff_status_shape_report} =
+             Schema.validate_artifact(invalid_timeline_diff_status_shape)
+
+    assert Enum.any?(
+             invalid_timeline_diff_status_shape_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_diff_report.diff_status_counts")
+           )
+
     artifact_with_operational_timeline_summary =
       put_in(artifact, ["provenance", "source_reports", "operational_timeline_report"], %{
         "paths" => ["source_operational_timeline_report"],

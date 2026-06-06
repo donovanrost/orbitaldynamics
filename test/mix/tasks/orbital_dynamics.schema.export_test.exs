@@ -1533,6 +1533,68 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       end
     )
 
+    candidate_refresh_timeline_diff_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "timeline_diff_report",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        "duplicate_timeline_identity_count",
+        "duplicate_source_timeline_identity_count",
+        "duplicate_replacement_timeline_identity_count",
+        "removed_downlink_count",
+        "removed_observation_count",
+        "changed_downlink_shortfall_count",
+        "changed_contact_feedback_count",
+        "changed_observation_count",
+        "changed_observation_quality_feedback_count",
+        "changed_command_feedback_count",
+        "changed_maneuver_feedback_count"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_timeline_diff_source_report, [
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_timeline_diff_source_report, [
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "diff_status_counts",
+        "required_operator_action_counts",
+        "duplicate_timeline_identity_scope_counts",
+        "source_activity_id_counts",
+        "replacement_activity_id_counts"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_timeline_diff_source_report, [
+                 field,
+                 "additionalProperties",
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_timeline_diff_source_report, [
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
     candidate_refresh_timeline_feedback_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",

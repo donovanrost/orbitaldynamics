@@ -21202,6 +21202,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_validation_safety_case_source_report_summary_json_schema(),
             "timeline_feedback_report" =>
               candidate_refresh_timeline_feedback_source_report_summary_json_schema(),
+            "timeline_diff_report" =>
+              candidate_refresh_timeline_diff_source_report_summary_json_schema(),
             "timeline_transition_application_report" =>
               candidate_refresh_timeline_transition_application_source_report_summary_json_schema(),
             "timeline_activity_state" =>
@@ -21506,6 +21508,40 @@ defmodule OrbitalDynamics.Schema do
             "match_strategy_counts",
             "activity_id_counts",
             "cadence_import_status_counts"
+          ],
+          &{&1, non_negative_integer_count_map_json_schema()}
+        )
+      )
+    end)
+  end
+
+  defp candidate_refresh_timeline_diff_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      properties
+      |> Map.merge(
+        non_negative_integer_property_schemas([
+          "duplicate_timeline_identity_count",
+          "duplicate_source_timeline_identity_count",
+          "duplicate_replacement_timeline_identity_count",
+          "removed_downlink_count",
+          "removed_observation_count",
+          "changed_downlink_shortfall_count",
+          "changed_contact_feedback_count",
+          "changed_observation_count",
+          "changed_observation_quality_feedback_count",
+          "changed_command_feedback_count",
+          "changed_maneuver_feedback_count"
+        ])
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "diff_status_counts",
+            "required_operator_action_counts",
+            "duplicate_timeline_identity_scope_counts",
+            "source_activity_id_counts",
+            "replacement_activity_id_counts"
           ],
           &{&1, non_negative_integer_count_map_json_schema()}
         )
@@ -26504,6 +26540,7 @@ defmodule OrbitalDynamics.Schema do
         |> validate_candidate_refresh_timeline_activity_context(path, summary)
         |> validate_candidate_refresh_timeline_publication_context(path, summary)
         |> validate_candidate_refresh_timeline_feedback_context(path, summary)
+        |> validate_candidate_refresh_timeline_diff_context(path, summary)
         |> validate_candidate_refresh_timeline_transition_application_context(path, summary)
         |> validate_candidate_refresh_operational_timeline_context(path, summary)
         |> validate_candidate_refresh_quality_gate_context(path, summary)
@@ -26616,6 +26653,45 @@ defmodule OrbitalDynamics.Schema do
     |> validate_non_negative_integer_count_map(
       path <> ".cadence_import_status_counts",
       Map.get(summary, "cadence_import_status_counts")
+    )
+  end
+
+  defp validate_candidate_refresh_timeline_diff_context(issues, path, summary) do
+    issues =
+      Enum.reduce(
+        [
+          "duplicate_timeline_identity_count",
+          "duplicate_source_timeline_identity_count",
+          "duplicate_replacement_timeline_identity_count",
+          "removed_downlink_count",
+          "removed_observation_count",
+          "changed_downlink_shortfall_count",
+          "changed_contact_feedback_count",
+          "changed_observation_count",
+          "changed_observation_quality_feedback_count",
+          "changed_command_feedback_count",
+          "changed_maneuver_feedback_count"
+        ],
+        issues,
+        fn field, acc ->
+          expect_optional_non_negative_integer(acc, path, summary, field)
+        end
+      )
+
+    Enum.reduce(
+      [
+        "diff_status_counts",
+        "required_operator_action_counts",
+        "duplicate_timeline_identity_scope_counts",
+        "source_activity_id_counts",
+        "replacement_activity_id_counts"
+      ],
+      issues,
+      fn field, acc ->
+        acc
+        |> expect_optional_type(path, summary, field, :map)
+        |> validate_non_negative_integer_count_map(path <> ".#{field}", Map.get(summary, field))
+      end
     )
   end
 
