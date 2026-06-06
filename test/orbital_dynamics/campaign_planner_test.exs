@@ -2085,6 +2085,144 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert length(artifact["candidate_activities"]) == 2
   end
 
+  test "campaign does not apply uplink-only station outage to downlink contacts" do
+    result_set =
+      ResultSet.new!(%{
+        study_id: :campaign,
+        trajectory_results: [],
+        event_results: [
+          access_result(:leo_1, :equator_prime, 100.0, 200.0),
+          access_result(:leo_2, :deep_space_net, 100.0, 200.0)
+        ],
+        errors: [],
+        assumptions: %{},
+        metadata: %{}
+      })
+
+    artifact =
+      CampaignPlanner.build(result_set,
+        generated_at: ~U[2026-05-14 00:00:00Z],
+        campaign: %{
+          "ground_network" => [
+            %{
+              "id" => "equator_uplink_outage",
+              "ground_station_id" => "equator_prime",
+              "status" => "maintenance",
+              "directions" => ["uplink"],
+              "starts_at_s" => 90.0,
+              "ends_at_s" => 210.0,
+              "provenance" => %{"trust_boundary" => "ops_station_calendar"}
+            },
+            %{
+              "id" => "dsn_downlink_outage",
+              "ground_station_id" => "deep_space_net",
+              "status" => "maintenance",
+              "directions" => ["downlink"],
+              "starts_at_s" => 90.0,
+              "ends_at_s" => 210.0,
+              "provenance" => %{"trust_boundary" => "ops_station_calendar"}
+            }
+          ],
+          "constraints" => %{},
+          "scoring_policy" => %{"contact_value_weight" => 1.0},
+          "approval_policy" => %{"policy_bundle_id" => "ground_network_allocation_v1"}
+        }
+      )
+
+    assert {:ok, %{"status" => "pass"}} = Schema.validate_artifact(artifact)
+
+    assert %{
+             "schema_contract" => "station_calendar_report.v1",
+             "input_contact_count" => 2,
+             "calendar_entry_count" => 2,
+             "affected_contact_count" => 1,
+             "affected_contacts" => [
+               %{
+                 "contact_id" => "leo_2_downlink_deep_space_net_1",
+                 "ground_station_id" => "deep_space_net",
+                 "direction" => "downlink",
+                 "station_calendar_entry_id" => "dsn_downlink_outage",
+                 "station_calendar_directions" => ["downlink"],
+                 "station_availability" => "unavailable"
+               }
+             ]
+           } = artifact["station_calendar_report"]
+
+    assert [
+             %{
+               "id" => "leo_2_downlink_deep_space_net_1",
+               "station_calendar_entry_id" => "dsn_downlink_outage",
+               "station_availability" => "unavailable"
+             },
+             %{
+               "id" => "leo_1_downlink_equator_prime_1",
+               "type" => "downlink",
+               "direction" => "downlink",
+               "ground_station_id" => "equator_prime"
+             } = unaffected_candidate
+           ] = Enum.sort_by(artifact["candidate_activities"], & &1["ground_station_id"])
+
+    refute Map.has_key?(unaffected_candidate, "station_calendar_entry_id")
+    assert unaffected_candidate["station_availability"] == "available"
+
+    assert %{
+             "kept_candidate_count" => 1,
+             "suppressed_candidate_count" => 1,
+             "suppressed_candidates" => [
+               %{
+                 "id" => "leo_2_downlink_deep_space_net_1",
+                 "suppressed_reason" => "ground_station_unavailable",
+                 "station_calendar_entry_id" => "dsn_downlink_outage",
+                 "station_calendar_directions" => ["downlink"]
+               }
+             ]
+           } = artifact["contact_filter_report"]
+
+    assert %{
+             "contact_id" => "leo_1_downlink_equator_prime_1",
+             "allocation_status" => "allocated",
+             "allocation_reason" => "available"
+           } =
+             Enum.find(
+               artifact["contact_allocation_report"]["rows"],
+               &(&1["contact_id"] == "leo_1_downlink_equator_prime_1")
+             )
+
+    assert %{
+             "contact_id" => "leo_2_downlink_deep_space_net_1",
+             "allocation_reason" => "ground_station_unavailable",
+             "station_calendar_entry_id" => "dsn_downlink_outage"
+           } =
+             Enum.find(
+               artifact["contact_allocation_report"]["rows"],
+               &(&1["contact_id"] == "leo_2_downlink_deep_space_net_1")
+             )
+
+    assert [
+             %{
+               "review_type" => "station_calendar_review",
+               "contact_id" => "leo_2_downlink_deep_space_net_1",
+               "station_calendar_entry_id" => "dsn_downlink_outage"
+             }
+           ] =
+             Enum.filter(
+               artifact["operator_review_package"]["rows"],
+               &(&1["review_type"] == "station_calendar_review")
+             )
+
+    assert [
+             %{
+               "import_action" => "review_station_calendar",
+               "contact_id" => "leo_2_downlink_deep_space_net_1",
+               "station_calendar_entry_id" => "dsn_downlink_outage"
+             }
+           ] =
+             Enum.filter(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["import_action"] == "review_station_calendar")
+             )
+  end
+
   test "campaign marks ambiguous same-priority station calendar entries without choosing capacity" do
     result_set =
       ResultSet.new!(%{

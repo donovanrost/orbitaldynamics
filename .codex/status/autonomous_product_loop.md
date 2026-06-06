@@ -5,47 +5,53 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Align context-efficient autonomous-loop prompt continuation semantics.
+Add V1 direction-scoped station-calendar challenge coverage.
 
 Status:
-Implemented and locally verified; commit/push pending for the prompt-maintenance
-slice.
+Implemented, focused-test verified, locally reviewed, and commit/push pending.
 
 Completed slices:
+- Prompt/guide continuation semantics committed as
+  `c4b356e3f9c2520c525511d37876946d76dc8bd0` and pushed to `origin/main`.
 - Last completed product slice: activity-template operational hints committed as
   `f1ca0008aafbbda772f2edbe5dd8402d306fee2b` and pushed to `origin/main`.
 
 Files changed:
-- `.codex/prompts/context_efficient_autonomous_product_loop.md`
-- `.codex/prompts/long_running_context_efficient_product_loop.md`
-- `docs/autonomous_work_guide.md`
+- `test/orbital_dynamics/campaign_planner_test.exs`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `git diff --check -- .codex/prompts/context_efficient_autonomous_product_loop.md .codex/prompts/long_running_context_efficient_product_loop.md docs/autonomous_work_guide.md .codex/status/autonomous_product_loop.md`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:2088` -> 1 passed,
+  655 excluded.
+- `mix format test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
+  -> pass.
+- `git diff --check -- test/orbital_dynamics/campaign_planner_test.exs` -> pass.
+- `mix test test/orbital_dynamics/campaign_planner_test.exs` -> 643/656 passed;
+  13 existing strategy/candidate-refresh fixture failures remain outside this
+  slice.
 
 Docs/artifacts changed:
-- Added sustained-run continuation language to the context-efficient prompt.
-- Added Level 6 maturity targeting and completion guardrails to both autonomous
-  loop prompts.
-- Added guide language that context efficiency is a continuation tool, not a
-  stopping condition.
+- No public docs/artifacts changed; this is validation challenge coverage.
 
 Level 6 pillar advanced:
-Approval-aware automation boundaries, quality gates, and import readiness.
+Fleet-level resource/contact/station-calendar behavior and validation coverage.
 
 Remaining maturity gaps:
-- Resume priority-1 typed operational activity and timeline semantics.
-- Then continue resource/contact allocation behavior and quality/import
-  readiness slices from the guide.
+- Existing campaign-planner file failures point at branch-refresh
+  candidate_refresh validation drift for station-calendar provider contention,
+  contact-intent direction-routing summaries, and contact-allocation
+  effective-allocation status fixtures.
+- External reference baselines remain out of scope; continue product-level
+  challenge tests or fix the observed branch-refresh validation drift next.
 
 Last commit:
-- Last completed product slice: `f1ca0008aafbbda772f2edbe5dd8402d306fee2b`
-  pushed to `origin/main`.
+- `c4b356e3f9c2520c525511d37876946d76dc8bd0` pushed to `origin/main`
+  for prompt/guide continuation semantics.
 
 Next candidate:
-Continue priority-1 typed activity/timeline semantics after rechecking the live
-checkout and selecting the next bounded vertical slice.
+Fix branch-refresh candidate_refresh validation drift exposed by the full
+campaign-planner test file, starting with provider-calendar contention overlap
+timing fields or contact-intent direction-routing summaries.
 
 Blocked:
 No.
@@ -53,4 +59,9 @@ No.
 Notes:
 - `.gitignore` still has an unrelated pre-existing local scratch-ignore change
   and is not part of this slice.
-- Prompt-maintenance verification timestamp: 2026-06-06T16:43:15Z.
+- Slice-selection audit found the guide's headline timeline, contact-intent,
+  quality/readiness, model-acceptance, safety-case, and schema-migration first
+  slices already implemented in the live checkout.
+- Read-only review flagged that the first version lacked a positive control for
+  direction matching; the final test covers both an ignored uplink-only outage
+  and an applied downlink outage.
