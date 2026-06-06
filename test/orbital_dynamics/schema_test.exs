@@ -12283,6 +12283,149 @@ defmodule OrbitalDynamics.SchemaTest do
                  "$.provenance.source_reports.provider_counteroffer_report.counteroffer_cost_delta_total")
            )
 
+    artifact_with_operational_timeline_summary =
+      put_in(artifact, ["provenance", "source_reports", "operational_timeline_report"], %{
+        "paths" => ["source_operational_timeline_report"],
+        "contract" => "operational_timeline_report.v1",
+        "count" => 1,
+        "row_count" => 2,
+        "input_keys" => ["contact_success_rate"],
+        "contact_feedback_count" => 1,
+        "command_feedback_count" => 1,
+        "maneuver_feedback_count" => 1,
+        "observation_feedback_count" => 1,
+        "station_throughput_feedback_count" => 1,
+        "operational_kind_counts" => %{"contact" => 1},
+        "activity_id_counts" => %{"ops_contact_feedback" => 1},
+        "activity_status_counts" => %{"planned" => 1},
+        "approval_status_counts" => %{"not_evaluated" => 1},
+        "required_operator_action_counts" => %{"review_activity_approval" => 1},
+        "cadence_import_status_counts" => %{"missing" => 1},
+        "timeline_integrity_issue_count" => 1,
+        "dependency_integrity_issue_count" => 1,
+        "exclusivity_integrity_issue_count" => 1,
+        "timeline_integrity_issue_type_counts" => %{"dependency_gap" => 1},
+        "station_reservation_evidence_row_count" => 1,
+        "station_reservation_expiration_evidence_row_count" => 1
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_operational_timeline_summary)
+
+    operational_timeline_source_report_properties =
+      get_in(candidate_refresh_schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "operational_timeline_report",
+        "properties"
+      ])
+
+    assert get_in(operational_timeline_source_report_properties, [
+             "input_keys",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(operational_timeline_source_report_properties, [
+             "contact_feedback_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(operational_timeline_source_report_properties, [
+             "operational_kind_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    invalid_operational_timeline_input_key =
+      put_in(
+        artifact_with_operational_timeline_summary,
+        [
+          "provenance",
+          "source_reports",
+          "operational_timeline_report",
+          "input_keys",
+          Access.at(0)
+        ],
+        42
+      )
+
+    assert {:error, invalid_operational_timeline_input_key_report} =
+             Schema.validate_artifact(invalid_operational_timeline_input_key)
+
+    assert Enum.any?(
+             invalid_operational_timeline_input_key_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.operational_timeline_report.input_keys[0]")
+           )
+
+    invalid_operational_timeline_feedback_count =
+      put_in(
+        artifact_with_operational_timeline_summary,
+        [
+          "provenance",
+          "source_reports",
+          "operational_timeline_report",
+          "contact_feedback_count"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_operational_timeline_feedback_count_report} =
+             Schema.validate_artifact(invalid_operational_timeline_feedback_count)
+
+    assert Enum.any?(
+             invalid_operational_timeline_feedback_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.operational_timeline_report.contact_feedback_count")
+           )
+
+    invalid_operational_timeline_count =
+      put_in(
+        artifact_with_operational_timeline_summary,
+        [
+          "provenance",
+          "source_reports",
+          "operational_timeline_report",
+          "operational_kind_counts",
+          "contact"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_operational_timeline_count_report} =
+             Schema.validate_artifact(invalid_operational_timeline_count)
+
+    assert Enum.any?(
+             invalid_operational_timeline_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.operational_timeline_report.operational_kind_counts.contact")
+           )
+
+    invalid_operational_timeline_count_shape =
+      put_in(
+        artifact_with_operational_timeline_summary,
+        [
+          "provenance",
+          "source_reports",
+          "operational_timeline_report",
+          "activity_status_counts"
+        ],
+        "planned"
+      )
+
+    assert {:error, invalid_operational_timeline_count_shape_report} =
+             Schema.validate_artifact(invalid_operational_timeline_count_shape)
+
+    assert Enum.any?(
+             invalid_operational_timeline_count_shape_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.operational_timeline_report.activity_status_counts")
+           )
+
     artifact_with_timeline_feedback_summary =
       put_in(artifact, ["provenance", "source_reports", "timeline_feedback_report"], %{
         "paths" => ["source_timeline_feedback_report"],

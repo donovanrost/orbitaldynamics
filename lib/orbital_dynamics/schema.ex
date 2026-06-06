@@ -21180,6 +21180,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_link_capacity_source_report_summary_json_schema(),
             "maneuver_review_report" =>
               candidate_refresh_maneuver_review_source_report_summary_json_schema(),
+            "operational_timeline_report" =>
+              candidate_refresh_operational_timeline_source_report_summary_json_schema(),
             "provider_counteroffer_report" =>
               candidate_refresh_provider_counteroffer_source_report_summary_json_schema(),
             "resource_projection_report" =>
@@ -21494,6 +21496,42 @@ defmodule OrbitalDynamics.Schema do
             "match_strategy_counts",
             "activity_id_counts",
             "cadence_import_status_counts"
+          ],
+          &{&1, non_negative_integer_count_map_json_schema()}
+        )
+      )
+    end)
+  end
+
+  defp candidate_refresh_operational_timeline_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      properties
+      |> Map.merge(%{
+        "input_keys" => string_array_schema()
+      })
+      |> Map.merge(
+        non_negative_integer_property_schemas([
+          "contact_feedback_count",
+          "command_feedback_count",
+          "maneuver_feedback_count",
+          "observation_feedback_count",
+          "station_throughput_feedback_count",
+          "timeline_integrity_issue_count",
+          "dependency_integrity_issue_count",
+          "exclusivity_integrity_issue_count"
+        ])
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "operational_kind_counts",
+            "activity_id_counts",
+            "activity_status_counts",
+            "approval_status_counts",
+            "required_operator_action_counts",
+            "cadence_import_status_counts",
+            "timeline_integrity_issue_type_counts"
           ],
           &{&1, non_negative_integer_count_map_json_schema()}
         )
@@ -26295,6 +26333,7 @@ defmodule OrbitalDynamics.Schema do
         |> validate_candidate_refresh_timeline_activity_context(path, summary)
         |> validate_candidate_refresh_timeline_publication_context(path, summary)
         |> validate_candidate_refresh_timeline_feedback_context(path, summary)
+        |> validate_candidate_refresh_operational_timeline_context(path, summary)
         |> validate_candidate_refresh_model_acceptance_context(path, summary)
         |> validate_candidate_refresh_validation_safety_case_context(path, summary)
       else
@@ -26403,6 +26442,41 @@ defmodule OrbitalDynamics.Schema do
     |> validate_non_negative_integer_count_map(
       path <> ".cadence_import_status_counts",
       Map.get(summary, "cadence_import_status_counts")
+    )
+  end
+
+  defp validate_candidate_refresh_operational_timeline_context(issues, path, summary) do
+    issues
+    |> expect_optional_type(path, summary, "input_keys", :list)
+    |> validate_string_list_items(path, summary, "input_keys")
+    |> expect_optional_non_negative_integer(path, summary, "contact_feedback_count")
+    |> expect_optional_non_negative_integer(path, summary, "command_feedback_count")
+    |> expect_optional_non_negative_integer(path, summary, "maneuver_feedback_count")
+    |> expect_optional_non_negative_integer(path, summary, "observation_feedback_count")
+    |> expect_optional_non_negative_integer(path, summary, "station_throughput_feedback_count")
+    |> expect_optional_non_negative_integer(path, summary, "timeline_integrity_issue_count")
+    |> expect_optional_non_negative_integer(path, summary, "dependency_integrity_issue_count")
+    |> expect_optional_non_negative_integer(path, summary, "exclusivity_integrity_issue_count")
+    |> validate_candidate_refresh_operational_timeline_count_maps(path, summary)
+  end
+
+  defp validate_candidate_refresh_operational_timeline_count_maps(issues, path, summary) do
+    Enum.reduce(
+      [
+        "operational_kind_counts",
+        "activity_id_counts",
+        "activity_status_counts",
+        "approval_status_counts",
+        "required_operator_action_counts",
+        "cadence_import_status_counts",
+        "timeline_integrity_issue_type_counts"
+      ],
+      issues,
+      fn field, acc ->
+        acc
+        |> expect_optional_type(path, summary, field, :map)
+        |> validate_non_negative_integer_count_map(path <> ".#{field}", Map.get(summary, field))
+      end
     )
   end
 
