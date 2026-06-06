@@ -5,58 +5,59 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Candidate-refresh storage/downlink replay summary routing.
+Candidate-refresh contact-intent replay branch summary routing.
 
 Status:
-Implemented, verified, and committed locally.
+Implemented, verified, reviewed, committed, and ready to push.
 
 Product commit:
-- `e3a20370f9f905b4d0dc607f9f7c0f2f2d69347d` for candidate-refresh
-  storage/downlink replay summary routing.
+- `8cc9e44620e0dbc3b130f7936fc6e10aa3fdcdea` for candidate-refresh
+  contact-intent replay branch summary routing.
 
 Completed slice:
-Expose composed storage/downlink pressure replay routing on
+Expose composed contact-intent replay branch flags on
 `CandidateRefresh.source_report_summary/1`.
 
 Why this slice:
-The public capability catalog advertises source-report storage/downlink branch
-replay and provider-routing maps. The dedicated
-`storage_downlink_pressure_replay_summary/1` helper already composes
-contact-allocation, link-capacity, and resource-projection evidence, but
-`source_report_summary/1` only exposes the component family maps. Adapter and
-operator-review callers should be able to inspect the composed replay flags and
-provider routing from the same source-report summary surface without invoking a
-second helper.
+The public capability catalog advertises
+`source_report_contact_intent_branch_replay_summary`. The dedicated
+`contact_intent_replay_summary/1` helper already derives station-feedback,
+capacity-pack, and direction-scoped contact-intent branch pressure, but the
+main `source_report_summary/1` surface only exposes the underlying
+contact-intent maps. Adapter and operator-review callers should be able to
+inspect the composed contact-intent branch flags from the same source-report
+summary surface.
 
 Level 6 pillar:
 Branch-local candidate refresh depth and resource/contact allocation replay
 semantics.
 
 What changed:
-- `CandidateRefresh.source_report_summary/1` now exposes composed
-  `source_report_storage_downlink_pressure_*` branch-local replay flags.
-- The same summary surface now includes capacity-adjusted throughput station
-  and direction maps plus provider/provider-entry routing maps from the
-  storage/downlink replay helper.
-- `storage_downlink_pressure_replay_summary/1` now reuses a private
-  source-report-normalized helper so the composed source-summary fields and the
-  public helper cannot drift.
-- Candidate-refresh regression coverage proves the source-report summary
-  carries the composed replay and provider-routing evidence.
+- `CandidateRefresh.source_report_summary/1` now exposes contact-intent
+  branch-local replay flags for overall contact-intent pressure,
+  station-feedback pressure, and capacity-pack pressure.
+- `contact_intent_replay_summary/1` now uses a private summary builder, so the
+  public replay helper and source-report summary fields share the same branch
+  pressure logic.
+- Candidate-refresh regression coverage proves the artifact-backed
+  source-report summary carries the composed contact-intent branch flags.
 
 Verification:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:12880` passed, 1
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:3000` passed, 1
   test.
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs` passed, 702
-  tests.
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs test/orbital_dynamics/schema_test.exs`
   passed, 823 tests.
 - `git diff --check` passed.
+- `slice_reviewer` found no code correctness, recursion, or compile-risk issue.
 - No schema export was needed; the emitted `candidate_refresh.v1` artifact
   contract did not change.
 
 Recently completed slices:
-- `e3a20370f9f905b4d0dc607f9f7c0f2f2d69347d` committed locally for
+- `8cc9e44620e0dbc3b130f7936fc6e10aa3fdcdea` committed locally for
+  candidate-refresh contact-intent replay branch summary routing.
+- `b601fe2fb7d8e0e4f10e7aa859d43e91583ad1ad` pushed to `origin/main` for the
+  autonomous loop handoff after storage/downlink replay summary routing.
+- `e3a20370f9f905b4d0dc607f9f7c0f2f2d69347d` pushed to `origin/main` for
   candidate-refresh storage/downlink replay summary routing.
 - `a8ab88c0e2c2d9a70b81aa4002623c6f518412af` pushed to `origin/main` for V1
   campaign timeline-integrity report attachment.
