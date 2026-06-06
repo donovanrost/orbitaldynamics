@@ -4,7 +4,7 @@ Current slice:
 Expose resource-projection row policy evidence schemas.
 
 Status:
-Implemented, locally verified, and read-only reviewed clean; pending publish.
+Implemented, locally verified, read-only reviewed clean, committed, and pushed.
 
 Discovery:
 After the resource-projection battery row slice, live fixture/schema comparison
@@ -40,7 +40,7 @@ Definition of done:
 - [x] Focused schema tests, schema export tests, schema lint, generated-schema
   spot-checks, and whitespace checks pass.
 - [x] Read-only review finds no must-fix issues.
-- [ ] Slice-owned files only are committed and pushed.
+- [x] Slice-owned files only are committed and pushed.
 
 Tests run:
 - `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
@@ -62,10 +62,10 @@ Tests run:
   row-gap scan, and reported no must-fix findings.
 
 Last completed implementation commit:
-`af84b24bcefe4def1c871d7ca153b9a2a10f97a1` pushed to `origin/main`.
+`dccdf7b44b50c6bc8d04300b40c46c556cee622e` pushed to `origin/main`.
 
 Last ledger correction commit:
-`6a67024d5d01d5b0a40dfeaa73238b772d9fc5a5` pushed to `origin/main`.
+Pending this ledger-only correction.
 
 Next candidate:
 Run a fresh row-gap scan across `resource_projection_report.v1` fixtures and
