@@ -5,57 +5,53 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Resource projection compact invalid-input review rows.
+ResourceSummary roll-forward pressure direction/capacity map coverage.
 
 Status:
-Implemented, verified, committed, and pushed.
+Implemented and focused verification passed; commit/push pending.
 
 Files changed:
-- `lib/orbital_dynamics/resource_projection.ex`
-- `test/orbital_dynamics/resource_projection_test.exs`
-- `docs/mission_planning/high_fidelity/06_operational_concerns.md`
+- `lib/orbital_dynamics/resource_summary.ex`
+- `test/orbital_dynamics/resource_summary_test.exs`
+- `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`
 - `.codex/status/autonomous_product_loop.md`
 
 Behavior changed:
-- `ResourceProjection.flow_summary/1` now carries
-  `invalid_activity_inputs` and `invalid_resource_summary_inputs` alongside
-  the existing invalid counts and IDs.
-- Invalid activity/resource-summary rows remain review-only evidence and are
-  still excluded from storage/downlink/battery projection math.
-- This does not require schema export churn because the flow-summary top-level
-  contract permits additive properties and the focused test validates the
-  generated artifact.
+- `ResourceSummary.capabilities/0` now advertises
+  `:resource_summary_roll_forward_pressure_direction_and_capacity_maps`.
+- `ResourceSummary.roll_forward/3` facade tests now verify the compact
+  `resource_projection_flow_summary.v1` pressure direction and capacity-fraction
+  maps, including stale-map validation, through the ResourceSummary boundary.
+- No schema export refresh was needed; the existing flow-summary schema already
+  covers these fields from the earlier ResourceProjection slice.
 
 Tests run:
-- `mix test test/orbital_dynamics/resource_projection_test.exs:393`
-  -> 1 passed, 48 excluded.
-- `mix test test/orbital_dynamics/resource_projection_test.exs`
-  -> 49 passed.
+- `mix test test/orbital_dynamics/resource_summary_test.exs`
+  -> 24 passed.
 
 Docs/artifacts changed:
-- `docs/mission_planning/high_fidelity/06_operational_concerns.md` documents
-  compact invalid activity/resource-summary row retention.
+- `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`
+  documents ResourceSummary facade support for compact pressure direction and
+  capacity-fraction maps.
 
 Level 6 pillar advanced:
-Resource and communications allocation semantics: compact storage/downlink flow
-summaries now include invalid-input source evidence for review triage without
-turning invalid inputs into projected resource effects.
-
-Last commit:
-- `b2e3e85062d95f0479f055289cfa97918685832e` pushed to `origin/main` for
-  resource projection compact invalid-input review rows.
+Resource and communications allocation semantics: ResourceSummary facade users
+now have explicit capability metadata and regression coverage for the same
+provider/station pressure routing checks as direct ResourceProjection users.
 
 Recently completed slices:
+- `b2e3e85062d95f0479f055289cfa97918685832e` pushed to `origin/main` for
+  resource projection compact invalid-input review rows.
 - `7965b42ad1a95b643020410cbe00d96121ea47b7` pushed to `origin/main` for
   resource projection compact source-quality and trust-boundary provenance.
 - `2d2f78990a990efa502d82de254aa7408f4e3117` pushed to `origin/main` for
   resource projection compact pressure direction/capacity maps.
-- `c51b3dba913af916920294b374d4ea02a4fe28c9` pushed to `origin/main` for
-  resource projection actual data-volume validation.
 
 Next candidate:
-Move from ResourceProjection micro-slices to the next live ResourceSummary or
-contact-allocation maturity gap from the roadmap/status evidence.
+Continue the ResourceSummary/ResourceFilter boundary by checking whether
+resource-filter compact summaries need one more row-derived route for invalid or
+suppressed resource context, or move to contact-allocation if no small gap
+remains.
 
 Blocked:
 No.

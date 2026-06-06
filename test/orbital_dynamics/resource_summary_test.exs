@@ -76,6 +76,7 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
     assert :resource_summary_roll_forward_flow_status_values in row_semantics
     assert :resource_summary_roll_forward_pressure_status_values in row_semantics
     assert :resource_summary_roll_forward_pressure_type_values in row_semantics
+    assert :resource_summary_roll_forward_pressure_direction_and_capacity_maps in row_semantics
     assert :resource_summary_roll_forward_resource_effect_status_values in row_semantics
     assert :resource_summary_roll_forward_ignored_effect_reason_families in row_semantics
     assert :thin_selected_activity_roll_forward_contract in row_semantics
@@ -779,7 +780,9 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
         ground_station_id: :equator_prime,
         source_window_id: :window_alpha,
         station_calendar_entry_id: :station_entry_alpha,
-        station_calendar_provider_entry_id: :provider_entry_alpha
+        station_calendar_provider_entry_id: :provider_entry_alpha,
+        station_calendar_directions: [:downlink],
+        throughput_model: %{station_capacity_fraction: 0.5}
       }
     ]
 
@@ -801,6 +804,12 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
              },
              "resource_pressure_station_calendar_provider_entry_ids_by_type" => %{
                "downlink_shortfall" => ["provider_entry_alpha"]
+             },
+             "resource_pressure_station_calendar_directions_by_type" => %{
+               "downlink_shortfall" => ["downlink"]
+             },
+             "resource_pressure_capacity_fractions_by_type" => %{
+               "downlink_shortfall" => [0.5]
              }
            } = report
 
@@ -832,6 +841,16 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
         "resource_pressure_station_calendar_provider_entry_ids_by_type",
         %{"downlink_shortfall" => ["stale_provider_entry"]},
         "must equal row-derived resource_pressure_station_calendar_provider_entry_ids_by_type"
+      },
+      {
+        "resource_pressure_station_calendar_directions_by_type",
+        %{"downlink_shortfall" => ["uplink"]},
+        "must equal row-derived resource_pressure_station_calendar_directions_by_type"
+      },
+      {
+        "resource_pressure_capacity_fractions_by_type",
+        %{"downlink_shortfall" => [0.75]},
+        "must equal row-derived resource_pressure_capacity_fractions_by_type"
       }
     ]
     |> Enum.each(fn {field, stale_value, message} ->

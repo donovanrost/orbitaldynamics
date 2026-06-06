@@ -21,6 +21,11 @@ Status: **implemented**.
   - nested `spacecraft` / `satellite` identity aliases advertised through `ResourceSummary.capabilities/0` stable-identity metadata, with capability row semantics also naming provenance aliases and activity-type constraint lists, plus availability aliases/status tokens, degraded aliases, and margin aliases;
   - JSON-style availability booleans normalized into typed artifact fields.
 - `ResourceSummary.roll_forward/3` and `OrbitalDynamics.resource_summary_roll_forward/3` expose a ResourceSummary-centered convenience facade over the schema-validated `ResourceProjection.flow_report/3` model, returning compact selected-activity storage/downlink flow evidence without schedule mutation, subsystem simulation, realized-state reconciliation, or Cadence import authority. `ResourceSummary.capabilities/0` advertises this thin selected-activity projection boundary separately from unsupported continuous subsystem propagation.
+- ResourceSummary roll-forward capability metadata now also advertises the
+  row-derived pressure direction and capacity-fraction maps exposed by compact
+  flow summaries, so callers using the ResourceSummary facade can rely on the
+  same provider/station pressure routing checks as direct ResourceProjection
+  callers.
 - Resource-summary facade constructors normalize canonical and alias spacecraft identities into stable string IDs and reject unstable IDs before emitting `resource_summary.v1` rows.
 
 ### Ground-network contact filtering (`ContactFilter`)

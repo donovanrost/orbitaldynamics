@@ -202,6 +202,7 @@ defmodule OrbitalDynamics.ResourceSummary do
         :resource_summary_roll_forward_flow_status_values,
         :resource_summary_roll_forward_pressure_status_values,
         :resource_summary_roll_forward_pressure_type_values,
+        :resource_summary_roll_forward_pressure_direction_and_capacity_maps,
         :resource_summary_roll_forward_resource_effect_status_values,
         :resource_summary_roll_forward_ignored_effect_reason_families,
         :thin_selected_activity_roll_forward_contract
