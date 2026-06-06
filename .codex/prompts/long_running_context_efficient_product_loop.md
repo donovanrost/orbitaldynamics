@@ -6,10 +6,33 @@ substrate for a long autonomous work session. Optimize for low context usage,
 but do not stop after a single small slice.
 
 Primary objective:
-Work through multiple product-completion slices from
+Drive the repository toward Level 6 mature operational-planning platform status
+across the library, LEO campaign-planning, and Cadence-facing operational
+planning surfaces. Work through multiple product-completion slices from
 `docs/autonomous_work_guide.md`, implementing, testing, documenting, and
-recording progress. Continue for a workday-length autonomous run unless
-genuinely blocked.
+recording progress. Choose slices by closing the largest locally actionable
+maturity gap. Continue for a workday-length autonomous run unless genuinely
+blocked.
+
+Level 6 maturity compass:
+Level 6 means OrbitalDynamics can serve as a stable planning platform for
+Cadence-facing LEO operations. Treat this as the north star, not as permission
+for a broad rewrite. Each slice should improve at least one of these evidence
+pillars:
+
+- validated model tiers and explicit known limits
+- replaceable numerical backends with comparison artifacts
+- durable schema-versioned artifacts and compatibility checks
+- refreshed candidates from current mission state and realized feedback
+- fleet-level resource, contact, station-calendar, and allocation behavior
+- reproducible V1/V2/V3 branch trees with explainable score terms and deltas
+- approval-aware automation boundaries, quality gates, and import readiness
+- clear Cadence integration artifacts with no Cadence DB/API/execution coupling
+
+Do not claim the overall goal is complete unless all three feature-complete
+targets have current evidence: library feature completeness, LEO campaign
+planning feature completeness, and Cadence-facing operational planning feature
+completeness.
 
 Run-duration expectation:
 Assume this goal is intended to keep working for hours, not minutes. Do not
@@ -43,6 +66,15 @@ Do not read all of `docs/`. Do not read every file under `docs/feature_set/`,
 `docs/mission_planning/`, or `docs/artifacts/`. Use the guide to choose the
 current slice, then open only the docs linked for that slice.
 
+Level 6 calibration reads:
+When choosing a slice or reassessing after several completed slices, read only
+these maturity-target docs, then return to narrow slice work:
+
+- `docs/feature_set/completeness_levels/06_mature_operational_platform.md`
+- `docs/feature_set/definition_of_feature_complete.md`
+- `docs/feature_set/current_capability_snapshot.md`
+- `docs/feature_set/recommended_roadmap.md`
+
 Status ledger:
 Maintain a compact handoff file at:
 
@@ -59,12 +91,15 @@ Ledger shape:
 ```text
 # Autonomous Product Loop Status
 
+Overall maturity target:
 Current slice:
 Status:
 Completed slices:
 Files changed:
 Tests run:
 Docs/artifacts changed:
+Level 6 pillar advanced:
+Remaining maturity gaps:
 Last commit:
 Next candidate:
 Blocked:
@@ -76,6 +111,8 @@ Before editing each slice, write a short note:
 
 Selected slice:
 Why this slice:
+Level 6 pillar:
+Current evidence gap:
 Docs to read:
 Likely files:
 Likely tests:
@@ -87,23 +124,27 @@ Working loop:
 
 1. Read `docs/autonomous_work_guide.md`.
 2. Read `.codex/status/autonomous_product_loop.md` if it exists.
-3. Pick the highest-priority incomplete slice from the guide.
-4. Write the slice-selection note.
-5. Read only the slice docs, likely code, and likely tests. Optionally delegate
+3. If the ledger says the last slice completed, reassess the remaining Level 6
+   evidence gaps before choosing the next slice.
+4. Pick the highest-priority incomplete slice from the guide, biased toward the
+   weakest current maturity pillar.
+5. Write the slice-selection note.
+6. Read only the slice docs, likely code, and likely tests. Optionally delegate
    `slice_mapper` for bounded read-only mapping if the edit surface is not
    obvious.
-6. Implement one vertical behavior change.
-7. Add or update focused tests.
-8. Update docs/artifacts only if public behavior or artifact shape changed.
-9. Run targeted tests.
-10. Run broader tests only when schema/planner/artifact behavior changed enough
+7. Implement one vertical behavior change.
+8. Add or update focused tests.
+9. Update docs/artifacts only if public behavior or artifact shape changed.
+10. Run targeted tests.
+11. Run broader tests only when schema/planner/artifact behavior changed enough
     to justify it.
-11. Update the status ledger.
-12. Delegate `slice_reviewer` for read-only review of the completed slice.
-13. Fix must-fix review findings, rerun focused verification, and update the
+12. Update the status ledger with the maturity pillar advanced and the next
+    remaining gap.
+13. Delegate `slice_reviewer` for read-only review of the completed slice.
+14. Fix must-fix review findings, rerun focused verification, and update the
     ledger if needed.
-14. Delegate the post-slice commit/push handoff.
-15. Immediately select the next slice and repeat.
+15. Delegate the post-slice commit/push handoff.
+16. Immediately select the next slice and repeat.
 
 Multi-slice requirement:
 Aim to complete several small vertical slices or one substantial slice plus
@@ -196,6 +237,11 @@ Use `docs/autonomous_work_guide.md` as the source of truth. Current default:
 4. Branch-local candidate refresh depth.
 5. Validation, compatibility, and challenge fixtures.
 
+If test failures, dirty checkout state, or the status ledger show a current
+contract break, prioritize restoring the broken public contract before expanding
+features. For Level 6, a narrow green contract is more valuable than a broad
+artifact surface that cannot validate.
+
 Definition of done for each slice:
 
 - public behavior exists behind a module/facade or validated artifact contract
@@ -205,11 +251,25 @@ Definition of done for each slice:
 - docs/artifacts are updated only where behavior changed
 - assumptions, provenance, validation level, and known limits are explicit
 - existing V1/V2/V3 behavior remains compatible unless changed deliberately
+- the slice closes or measurably reduces a named Level 6 maturity gap
 - status ledger is updated
 - `slice_reviewer` found no must-fix publish blockers, or the parent fixed them
   and reran focused verification
 - slice changes are committed and pushed, or a local commit/push blocker is
   recorded in the ledger
+
+Definition of done for the overall maturity goal:
+
+- the full test suite passes, including schema export/lint gates
+- checked-in schemas and generated bundles match executable schema registries
+- Level 6 status is supported by current evidence, not stale docs or memory
+- library feature completeness evidence is current
+- LEO campaign-planning feature completeness evidence is current
+- Cadence-facing operational-planning feature completeness evidence is current
+- V1 plan, V2 repair, V3 strategy, candidate refresh, quality/readiness, and
+  Cadence import artifacts are covered by schema-validated examples
+- remaining gaps are explicitly out of scope or recorded as future work; do not
+  claim "complete" while a required Level 6 pillar is still partial
 
 Verification guidance:
 
@@ -217,7 +277,10 @@ Verification guidance:
   `mix test test/orbital_dynamics/timeline_test.exs`
 - Run schema export/lint tests when schema contracts change.
 - Run broader `mix test` after broad planner/schema changes or after several
-  related slices.
+  related slices, and before any claim that the goal or a maturity level is
+  complete.
+- For final maturity claims, also run schema export/lint and any checked-in
+  artifact validation tasks named by the slice docs or status ledger.
 - If Mix fails because of sandbox filesystem-lock issues, record the exact
   failure in the final answer and status ledger, then continue with static
   verification or another independent slice if possible.

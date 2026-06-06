@@ -37,6 +37,12 @@ focused test/debug loops, done/not-done calls, and ledger updates. Mapper and
 reviewer agents are read-only sidecars; they should not edit code, broaden the
 slice, or make product decisions.
 
+Context efficiency is a continuation tool, not a stopping condition. If context
+gets large, compress the current handoff into
+`.codex/status/autonomous_product_loop.md`, resume with narrow reads from this
+guide, and keep working unless the next step is genuinely blocked or requires
+user/product input.
+
 The commit/push subagent is a mechanical handoff, not a product agent. Use the
 project-scoped `git_slice_publisher` custom agent from
 `.codex/agents/git-slice-publisher.toml` when available. If that custom agent is
