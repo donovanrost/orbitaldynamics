@@ -231,6 +231,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :schema_validation_report,
         :schema_validation_batch_report,
         :operational_readiness_report,
+        :operational_import_eligibility_summary,
         :operational_readiness_gate_summary,
         :command_window_report,
         :maneuver_review_report,
@@ -607,6 +608,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :source_freshness_report_input_provenance,
         :source_refresh_budget_report_input_provenance,
         :source_operational_readiness_report_input_provenance,
+        :source_operational_import_eligibility_summary_input_provenance,
         :source_operational_readiness_gate_summary_input_provenance,
         :source_quality_gate_report_input_provenance,
         :source_operational_quality_gate_summary_input_provenance,
@@ -13645,6 +13647,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
     missing_import_count = summary_integer(readiness_summary, "missing_import_count")
     blocked_import_count = summary_integer(readiness_summary, "blocked_import_count")
     invalid_import_count = summary_integer(readiness_summary, "invalid_cadence_import_count")
+    import_eligible_count = summary_integer(readiness_summary, "import_eligible_count")
+    import_ineligible_count = summary_integer(readiness_summary, "import_ineligible_count")
+    non_passed_gate_count = summary_integer(readiness_summary, "non_passed_gate_count")
 
     resource_pressure_count =
       summary_integer(readiness_summary, "resource_availability_pressure_count")
@@ -13682,7 +13687,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
         map_size(review_type_counts) > 0 or map_size(source_review_type_counts) > 0
 
     import_pressure =
-      import_review_count + missing_import_count + blocked_import_count + invalid_import_count >
+      import_review_count + missing_import_count + blocked_import_count + invalid_import_count +
+        import_ineligible_count >
         0 or map_size(import_action_counts) > 0
 
     gate_status_counts = Map.get(readiness_summary, "gate_status_counts")
@@ -13710,12 +13716,15 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "import_classification_counts" =>
         Map.get(readiness_summary, "import_classification_counts", %{}),
       "status_counts" => Map.get(readiness_summary, "status_counts", %{}),
+      "import_eligible_count" => import_eligible_count,
+      "import_ineligible_count" => import_ineligible_count,
       "gate_count" => summary_integer(readiness_summary, "gate_count"),
       "passed_gate_count" => summary_integer(readiness_summary, "passed_gate_count"),
       "review_gate_count" => review_gate_count,
       "analysis_gate_count" => summary_integer(readiness_summary, "analysis_gate_count"),
       "analysis_mode_counts" => Map.get(readiness_summary, "analysis_mode_counts", %{}),
       "blocked_gate_count" => blocked_gate_count,
+      "non_passed_gate_count" => non_passed_gate_count,
       "gate_status_counts" => gate_status_counts,
       "gate_classification_counts" => gate_classification_counts,
       "gate_ids_by_status" => gate_ids_by_status,
@@ -13774,7 +13783,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
           map_size(empty_map_if_nil(gate_ids_by_status)) > 0 or
           map_size(empty_map_if_nil(gate_ids_by_classification)) > 0 or
           List.wrap(review_required_gate_ids) != [] or List.wrap(blocked_gate_ids) != [] or
-          List.wrap(non_passed_gate_ids) != [],
+          List.wrap(non_passed_gate_ids) != [] or non_passed_gate_count > 0,
       "branch_local_import_pressure" => import_pressure,
       "branch_local_resource_pressure" => resource_pressure,
       "assumptions" => %{
@@ -21477,6 +21486,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "import_classification_counts" =>
         count_report_field_values(reports, "import_classification"),
       "status_counts" => count_report_field_values(reports, "status"),
+      "import_eligible_count" =>
+        sum_report_count(reports, &operational_readiness_import_eligible_count/1),
+      "import_ineligible_count" =>
+        sum_report_count(reports, &operational_readiness_import_ineligible_count/1),
       "gate_count" => sum_report_count(reports, &operational_readiness_report_gate_count/1),
       "passed_gate_count" =>
         sum_report_count(reports, &numeric_report_count(&1, "passed_gate_count")),
@@ -21490,6 +21503,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
         |> merge_count_maps(),
       "blocked_gate_count" =>
         sum_report_count(reports, &numeric_report_count(&1, "blocked_gate_count")),
+      "non_passed_gate_count" =>
+        sum_report_count(reports, &numeric_report_count(&1, "non_passed_gate_count")),
       "gate_status_counts" =>
         reports
         |> Enum.map(&operational_readiness_count_map(&1, "gate_status_counts"))
@@ -21524,7 +21539,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         |> sorted_string_values(),
       "non_passed_gate_ids" =>
         reports
-        |> Enum.flat_map(&operational_readiness_string_list(&1, "non_passed_gate_ids"))
+        |> Enum.flat_map(&operational_readiness_non_passed_gate_ids/1)
         |> sorted_string_values(),
       "ready_for_import_count" =>
         sum_report_count(
@@ -25733,6 +25748,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
     end
   end
 
+  defp operational_readiness_import_eligible_count(%{"import_eligible" => true}), do: 1
+  defp operational_readiness_import_eligible_count(_report), do: 0
+
+  defp operational_readiness_import_ineligible_count(%{"import_eligible" => false}), do: 1
+  defp operational_readiness_import_ineligible_count(_report), do: 0
+
   defp operational_readiness_input_summary_contract(reports) do
     reports
     |> Enum.map(fn report ->
@@ -25764,6 +25785,20 @@ defmodule OrbitalDynamics.CandidateRefresh do
     case Map.get(report, field) do
       %{} = list_map -> list_map
       _value -> %{}
+    end
+  end
+
+  defp operational_readiness_non_passed_gate_ids(report) do
+    case operational_readiness_string_list(report, "non_passed_gate_ids") do
+      [] ->
+        report
+        |> Map.get("non_passed_gates", [])
+        |> List.wrap()
+        |> Enum.filter(&is_map/1)
+        |> Enum.map(&Map.get(&1, "id"))
+
+      ids ->
+        ids
     end
   end
 
@@ -38910,6 +38945,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
        get_in(refresh, ["accepted_planning_state", "source_operational_readiness_report"])},
       {"accepted_planning_state.operational_readiness_report",
        get_in(refresh, ["accepted_planning_state", "operational_readiness_report"])},
+      {"accepted_planning_state.source_operational_import_eligibility_summary",
+       get_in(refresh, [
+         "accepted_planning_state",
+         "source_operational_import_eligibility_summary"
+       ])},
+      {"accepted_planning_state.operational_import_eligibility_summary",
+       get_in(refresh, ["accepted_planning_state", "operational_import_eligibility_summary"])},
       {"accepted_planning_state.source_operational_readiness_gate_summary",
        get_in(refresh, ["accepted_planning_state", "source_operational_readiness_gate_summary"])},
       {"accepted_planning_state.operational_readiness_gate_summary",
@@ -38918,6 +38960,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
        get_in(refresh, ["mission_state", "source_operational_readiness_report"])},
       {"mission_state.operational_readiness_report",
        get_in(refresh, ["mission_state", "operational_readiness_report"])},
+      {"mission_state.source_operational_import_eligibility_summary",
+       get_in(refresh, ["mission_state", "source_operational_import_eligibility_summary"])},
+      {"mission_state.operational_import_eligibility_summary",
+       get_in(refresh, ["mission_state", "operational_import_eligibility_summary"])},
       {"mission_state.source_operational_readiness_gate_summary",
        get_in(refresh, ["mission_state", "source_operational_readiness_gate_summary"])},
       {"mission_state.operational_readiness_gate_summary",
@@ -38925,6 +38971,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
       {"source_operational_readiness_report",
        Map.get(refresh, "source_operational_readiness_report")},
       {"operational_readiness_report", Map.get(refresh, "operational_readiness_report")},
+      {"source_operational_import_eligibility_summary",
+       Map.get(refresh, "source_operational_import_eligibility_summary")},
+      {"operational_import_eligibility_summary",
+       Map.get(refresh, "operational_import_eligibility_summary")},
       {"source_operational_readiness_gate_summary",
        Map.get(refresh, "source_operational_readiness_gate_summary")},
       {"operational_readiness_gate_summary",
@@ -40256,6 +40306,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
          Map.get(artifact, "source_operational_readiness_report")},
         {"#{path}.operational_readiness_report",
          Map.get(artifact, "operational_readiness_report")},
+        {"#{path}.source_operational_import_eligibility_summary",
+         Map.get(artifact, "source_operational_import_eligibility_summary")},
+        {"#{path}.operational_import_eligibility_summary",
+         Map.get(artifact, "operational_import_eligibility_summary")},
         {"#{path}.source_operational_readiness_gate_summary",
          Map.get(artifact, "source_operational_readiness_gate_summary")},
         {"#{path}.operational_readiness_gate_summary",
@@ -43129,6 +43183,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
     value = stringify_keys(value)
 
     cond do
+      operational_import_eligibility_summary?(value) ->
+        [{path, operational_readiness_report_from_import_eligibility_summary(value)}]
+
       operational_readiness_gate_summary?(value) ->
         [{path, operational_readiness_report_from_gate_summary(value)}]
 
@@ -48554,10 +48611,34 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     (schema_contract in [nil, "operational_readiness_report.v1"] and
        (readiness_level not in [nil, ""] or import_classification not in [nil, ""])) or
-      source_summary_schema_contract == "operational_readiness_gate_summary.v1"
+      source_summary_schema_contract in [
+        "operational_import_eligibility_summary.v1",
+        "operational_readiness_gate_summary.v1"
+      ]
   end
 
   defp operational_readiness_source_report?(_report), do: false
+
+  defp operational_import_eligibility_summary?(%{} = summary) do
+    model = Map.get(summary, "model") || Map.get(summary, :model)
+    schema_contract = Map.get(summary, "schema_contract") || Map.get(summary, :schema_contract)
+    gate_count = Map.get(summary, "gate_count") || Map.get(summary, :gate_count)
+
+    (is_integer(gate_count) or is_float(gate_count)) and
+      (model == "artifact_only_import_eligibility_summary" or
+         schema_contract == "operational_import_eligibility_summary.v1")
+  end
+
+  defp operational_import_eligibility_summary?(_summary), do: false
+
+  defp operational_readiness_report_from_import_eligibility_summary(%{} = summary) do
+    summary = stringify_keys(summary)
+
+    summary
+    |> Map.put("source_summary_schema_contract", Map.get(summary, "schema_contract"))
+    |> Map.put("source_summary_model", Map.get(summary, "model"))
+    |> Map.put("source_artifact_type", Map.get(summary, "source_artifact_type"))
+  end
 
   defp operational_readiness_gate_summary?(%{} = summary) do
     model = Map.get(summary, "model") || Map.get(summary, :model)
