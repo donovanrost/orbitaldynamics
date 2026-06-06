@@ -1528,19 +1528,30 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
         entries |> Enum.map(& &1["reservation_expires_at_s"]) |> compact_sorted_numbers(),
       "trust_boundary_statuses" =>
         entries |> Enum.map(&station_calendar_trust_boundary_status/1) |> compact_sorted_values(),
-      "overlap_pairs" => [
-        %{
-          "left_entry_id" => left["id"],
-          "right_entry_id" => right["id"],
-          "overlap_starts_at_s" => overlap["starts_at_s"],
-          "overlap_ends_at_s" => overlap["ends_at_s"],
-          "overlap_duration_s" => overlap["duration_s"]
-        }
-      ],
+      "overlap_pairs" => provider_calendar_contention_overlap_pairs(left, right, overlap),
       "source_station_calendar_entries" => entries
     }
     |> compact_map()
   end
+
+  defp provider_calendar_contention_overlap_pairs(left, right, %{
+         "starts_at_s" => starts_at_s,
+         "ends_at_s" => ends_at_s,
+         "duration_s" => duration_s
+       })
+       when is_number(starts_at_s) and is_number(ends_at_s) and is_number(duration_s) do
+    [
+      %{
+        "left_entry_id" => left["id"],
+        "right_entry_id" => right["id"],
+        "overlap_starts_at_s" => starts_at_s,
+        "overlap_ends_at_s" => ends_at_s,
+        "overlap_duration_s" => duration_s
+      }
+    ]
+  end
+
+  defp provider_calendar_contention_overlap_pairs(_left, _right, _overlap), do: []
 
   defp compact_sorted_values(values) do
     values

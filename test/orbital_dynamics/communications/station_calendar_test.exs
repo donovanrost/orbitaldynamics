@@ -2508,6 +2508,46 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
            )
   end
 
+  test "omits provider calendar overlap pair timings when contention window is open ended" do
+    provider = %{
+      schema_contract: "station_calendar_provider.v1",
+      id: :ops_calendar,
+      provenance: %{trust_boundary: :operator_declared_station_calendar},
+      entries: [
+        %{
+          id: :equator_reserved_a,
+          station_id: :equator_prime,
+          direction: :downlink,
+          availability: :reserved,
+          reservation_id: :reservation_a
+        },
+        %{
+          id: :equator_reserved_b,
+          station_id: :equator_prime,
+          direction: :downlink,
+          availability: :reserved,
+          reservation_id: :reservation_b
+        }
+      ]
+    }
+
+    {_contacts, report} = StationCalendar.overlay_contacts([], provider)
+
+    assert %{
+             "provider_calendar_contention_group_count" => 1,
+             "provider_calendar_contention_groups" => [
+               %{
+                 "entry_count" => 2,
+                 "entry_ids" => ["equator_reserved_a", "equator_reserved_b"],
+                 "overlap_pairs" => []
+               }
+             ]
+           } = report
+
+    assert {:ok, %{"schema_contract" => "station_calendar_report.v1"}} =
+             Schema.validate_artifact(report)
+  end
+
   test "preserves reservation overlaps when an outage is the applied station event" do
     contacts = [
       %{
