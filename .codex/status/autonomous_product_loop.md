@@ -8,7 +8,7 @@ Current slice:
 ContactAllocation compact summary idempotent handoffs.
 
 Status:
-Implemented and verified; commit/push pending.
+Implemented, verified, committed, and pushed.
 
 Files changed:
 - `lib/orbital_dynamics/communications/contact_allocation.ex`
@@ -44,9 +44,12 @@ adapters can pass existing summary artifacts back through ContactAllocation
 facades without rerunning allocation or losing deterministic summary fields.
 
 Last commit:
-- Pending for ContactAllocation compact summary idempotent handoffs.
+- `70eed6323222b6d04e6cf4234d5521992035dee9` pushed to `origin/main` for
+  ContactAllocation compact summary idempotent handoffs.
 
 Recently completed slices:
+- `70eed6323222b6d04e6cf4234d5521992035dee9` pushed to `origin/main` for
+  ContactAllocation compact summary idempotent handoffs.
 - `f36a2a994f99f8974484f79fcbe6172cc57aa5cf` pushed to `origin/main` for
   ResourceFilter compact summary idempotent handoff.
 - `9e27799442f082ce4d52cbc1da957a635d4f0934` pushed to `origin/main` for
