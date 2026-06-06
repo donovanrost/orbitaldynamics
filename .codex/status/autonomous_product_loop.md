@@ -5,8 +5,8 @@ Expose CandidateRefresh timeline-lifecycle-state-summary source-report schema
 property.
 
 Status:
-Implemented, locally verified, and reviewed clean; mechanical commit/push
-pending. Runtime CandidateRefresh source-report provenance already emits
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
+CandidateRefresh source-report provenance already emits
 `timeline_lifecycle_state_summary` summaries, and replay helpers already consume
 their lifecycle count, transition/action count-map, stable ID list, review
 routing, and trust-boundary fields. This slice makes that emitted family
@@ -56,12 +56,13 @@ Tests run:
   test, focused CandidateRefresh runtime test, schema lint, whitespace check,
   and generated-schema `jq` spot-checks. Residual stable-ID-map test gap was
   closed locally after review.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`d6fd7894065aa185fbab9f665103cd310ae53c1f` pushed to `origin/main`.
+`26a416c44a48f5858f16dc58edcea09488df2628` pushed to `origin/main`.
 
 Last ledger correction commit:
-`6c1c5ee` pushed to `origin/main`.
+Pending for this ledger update. Previous ledger correction commit was `6c1c5ee`.
 
 Next candidate:
 After this slice, run a bounded mapper pass to identify the next schema-visible
