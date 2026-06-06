@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-CandidateRefresh operational readiness gate summary replay provenance.
+CandidateRefresh operational import eligibility summary replay provenance.
 
 Status:
 Implemented, verified, committed, and pushed.
@@ -18,24 +18,24 @@ Files changed:
 
 Behavior changed:
 - `CandidateRefresh.source_report_summary/1` now accepts compact
-  `operational_readiness_gate_summary.v1` inputs from accepted-state,
+  `operational_import_eligibility_summary.v1` inputs from accepted-state,
   mission-state, direct root, and result-artifact-wrapped handoff paths.
-- Gate summaries are normalized into the existing
+- Import-eligibility summaries are normalized into the existing
   `operational_readiness_report` source-report family while preserving
-  source-summary contract/model, source artifact type, readiness/import/status
-  routing, gate counts, gate status/classification maps, passed/review/analysis/
-  blocked/non-passed gate IDs, wrapper-qualified paths, and trust-boundary
-  evidence.
+  source-summary contract/model, source artifact type, import eligibility,
+  readiness/import/status routing, gate counts, non-passed gate evidence,
+  wrapper-qualified paths, and trust-boundary evidence.
 - `CandidateRefresh.operational_readiness_replay_summary/1` now exposes compact
-  gate-summary evidence as branch-local review pressure without granting import,
-  Cadence-write, candidate-generation, or operator authority.
+  import-eligibility evidence as branch-local import/review pressure without
+  granting import, Cadence-write, candidate-generation, or operator authority.
 - `CandidateRefresh.capabilities/0` now advertises
-  `:operational_readiness_gate_summary` input support and
-  `:source_operational_readiness_gate_summary_input_provenance` row semantics.
+  `:operational_import_eligibility_summary` input support and
+  `:source_operational_import_eligibility_summary_input_provenance` row
+  semantics.
 
 Tests run:
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
-  -> 698 passed.
+  -> 700 passed.
 - `mix orbital_dynamics.schema.lint --all`
   -> pass, 126 files, 126 artifacts, 0 errors, 0 warnings.
 - `git diff --check`
@@ -44,19 +44,21 @@ Tests run:
 Docs/artifacts changed:
 - `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`
   documents CandidateRefresh compact
-  `operational_readiness_gate_summary.v1` handoff replay.
+  `operational_import_eligibility_summary.v1` handoff replay.
 
 Level 6 pillar advanced:
 Cadence-facing operational-readiness replay maturity: CandidateRefresh can
-consume the compact readiness gate summary produced by OperationalReadiness
-without reopening full readiness reports, while preserving queue-routing,
-gate-ID, path, and trust-boundary evidence for audit.
+consume the compact import eligibility summary produced by OperationalReadiness
+without reopening full readiness reports, while preserving importability,
+non-passed gate, path, and trust-boundary evidence for audit.
 
 Last commit:
-- `e81eb33c7c214ea81831a7708856985c470966cf` pushed to `origin/main` for
-  CandidateRefresh operational readiness gate summary replay provenance.
+- `5be625eddfeee2302f949d0e010b22ff6f8369c7` pushed to `origin/main` for
+  CandidateRefresh operational import eligibility summary replay provenance.
 
 Recently completed slices:
+- `5be625eddfeee2302f949d0e010b22ff6f8369c7` pushed to `origin/main` for
+  CandidateRefresh operational import eligibility summary replay provenance.
 - `e81eb33c7c214ea81831a7708856985c470966cf` pushed to `origin/main` for
   CandidateRefresh operational readiness gate summary replay provenance.
 - `b71306fe369ad65e7c001b31a17823d9f4b2836b` pushed to `origin/main` for
@@ -70,14 +72,12 @@ Recently completed slices:
 - `01eb4c645f9478df262d2176a5b8085853f31e4d` pushed to `origin/main` for
   CandidateRefresh operational quality-gate schema-validation summary replay
   provenance.
-- `683359fe47f7731160bdbf82403bd6c186c1f94e` pushed to `origin/main` for
-  CandidateRefresh operational quality-gate summary replay provenance.
 
 Next candidate:
 Continue CandidateRefresh operational replay maturity by scanning remaining
-compact source-report families from operational surfaces, with likely next
-candidates in `operational_import_eligibility_summary.v1` or
-`operational_execution_boundary_summary.v1` if they remain unwired. Re-anchor on
+compact source-report families from operational surfaces. The most obvious
+remaining OperationalReadiness compact handoff is
+`operational_execution_boundary_summary.v1`; re-anchor on
 `docs/autonomous_work_guide.md` before editing the next slice.
 
 Blocked:
