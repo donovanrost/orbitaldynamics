@@ -9741,6 +9741,50 @@ defmodule OrbitalDynamics.ValidationTest do
     assert Enum.any?(stale_limits_report["errors"], &(&1["path"] == "$.model_limits"))
   end
 
+  test "verifies curated resource projection flow summary reference fixtures" do
+    fixture_id = "fixture.artifact.resource_projection_flow_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.resource_projection_flow_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    summary = resource_projection_flow_summary_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               resource_projection_flow_summary_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      resource_projection_flow_summary_fixture_observations()
+      |> Map.put("total_battery_energy_consumed_wh", 0.0)
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "total_battery_energy_consumed_wh" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "resource_projection_flow_summary.v1",
+             summary
+           ) == Validation.artifact_observations("resource_projection_flow_summary.v1", summary)
+
+    assert {:ok, %{"schema_contract" => "resource_projection_flow_summary.v1"}} =
+             Schema.validate_artifact(summary,
+               schema_contract: "resource_projection_flow_summary.v1"
+             )
+  end
+
   test "verifies resource projection battery handoff reference fixtures" do
     fixtures = [
       {
@@ -10858,6 +10902,8 @@ defmodule OrbitalDynamics.ValidationTest do
           resource_filter_stale_margin_fixture_observations(),
         "fixture.artifact.resource_projection_report.v1" =>
           resource_projection_report_fixture_observations(),
+        "fixture.artifact.resource_projection_flow_summary.v1" =>
+          resource_projection_flow_summary_fixture_observations(),
         "fixture.artifact.resource_projection_report.battery_handoff_v1" =>
           resource_projection_battery_handoff_fixture_observations(),
         "fixture.artifact.resource_projection_report.stale_resource_summary_margins" =>
@@ -10961,8 +11007,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 148,
-             "status_counts" => %{"pass" => 148},
+             "fixture_count" => 149,
+             "status_counts" => %{"pass" => 149},
              "reports" => reports
            } = report
 
@@ -11055,6 +11101,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.remaining_horizon.v1",
              "fixture.artifact.resource_filter_report.stale_resource_summary_margins",
              "fixture.artifact.resource_filter_report.v1",
+             "fixture.artifact.resource_projection_flow_summary.v1",
              "fixture.artifact.resource_projection_report.battery_handoff_v1",
              "fixture.artifact.resource_projection_report.stale_resource_summary_margins",
              "fixture.artifact.resource_projection_report.v1",
@@ -11127,7 +11174,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 148},
+             "status_counts" => %{"fail" => 149},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -12590,6 +12637,15 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp resource_projection_report_fixture do
     read_json!("study_results/resource_projection_report_v1.json")
+  end
+
+  defp resource_projection_flow_summary_fixture_observations do
+    "resource_projection_flow_summary.v1"
+    |> Validation.artifact_observations(resource_projection_flow_summary_fixture())
+  end
+
+  defp resource_projection_flow_summary_fixture do
+    read_json!("study_results/resource_projection_flow_summary_v1.json")
   end
 
   defp resource_projection_battery_handoff_fixture_observations do

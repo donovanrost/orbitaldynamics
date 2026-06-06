@@ -56,6 +56,7 @@ Curated fixtures that can be verified into `validation_reference_fixture_report.
 - Objective-satisfaction and objective-tradeoff reports.
 - Score-term and ranking-comparison reports.
 - Resource-projection report.
+- Resource-projection flow summary.
 - Resource-filter report.
 - Execution report.
 - Freshness report.
@@ -659,6 +660,22 @@ The validation-reference fixture set now includes a checked-in `resource_project
 - Source-quality/trust maps.
 - Warnings.
 - Model-limit boundaries.
+
+## Resource-projection flow-summary fixture
+
+Status: **implemented**.
+
+The validation-reference fixture set now includes a checked-in
+`resource_projection_flow_summary.v1` artifact-contract case, with observation
+support for:
+
+- Compact flow row counts.
+- Row-derived storage production, downlink relief, downlink shortfall, and
+  unused capacity totals.
+- Row-derived battery consumption, generation, net delta, and peak overuse.
+- Projected remaining storage/downlink capacity totals and minima.
+- Ignored activity and pressure routing counts.
+- The artifact-only no-schedule-mutation execution boundary.
 
 ## Resource-projection battery handoff challenge fixture
 
