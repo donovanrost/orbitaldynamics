@@ -8,7 +8,7 @@ Current slice:
 Resource projection compact source-quality and trust-boundary provenance.
 
 Status:
-Implemented and focused verification passed; commit/push pending.
+Implemented, verified, committed, and pushed.
 
 Files changed:
 - `lib/orbital_dynamics/resource_projection.ex`
@@ -42,6 +42,10 @@ Level 6 pillar advanced:
 Resource and communications allocation semantics: compact storage/downlink flow
 summaries now retain source-quality and trust-boundary evidence for review
 triage without requiring the full resource projection report.
+
+Last commit:
+- `7965b42ad1a95b643020410cbe00d96121ea47b7` pushed to `origin/main` for
+  resource projection compact source-quality and trust-boundary provenance.
 
 Recently completed slices:
 - `2d2f78990a990efa502d82de254aa7408f4e3117` pushed to `origin/main` for
