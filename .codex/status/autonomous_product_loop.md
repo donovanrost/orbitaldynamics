@@ -4,7 +4,7 @@ Current slice:
 Expose lifecycle-state summary row schema fields.
 
 Status:
-Implemented, locally verified, and reviewed clean; pending publish.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 Fixture/schema visibility discovery showed `timeline_lifecycle_state_summary.v1`
 rows emit full lifecycle-state rows and duplicate-identity review rows, but
 `timeline_lifecycle_state_row_json_schema/0` did not name every emitted row
@@ -60,12 +60,13 @@ Tests run:
 - `mix format test/orbital_dynamics/schema_test.exs`
 - `mix test test/orbital_dynamics/schema_test.exs:8062 test/orbital_dynamics/schema_test.exs:23978`
 - `git diff --check -- . ':!.gitignore'`
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`15d7ae21f37c344eb68f0d34a6ea2d0bd4d25587` pushed to `origin/main`.
+`c46ea4fce9df9e7d7371c9e2c8bbe9f7703026de` pushed to `origin/main`.
 
 Last ledger correction commit:
-`73371f2` pushed to `origin/main`.
+Pending.
 
 Next candidate:
 After this slice, rerun fixture/schema visibility discovery. Skip
