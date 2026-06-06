@@ -6886,6 +6886,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_contact_allocation_replay_summary_fields(source_reports))
     |> Map.merge(source_report_contact_intent_replay_summary_fields(source_reports))
     |> Map.merge(source_report_link_capacity_replay_summary_fields(source_reports))
+    |> Map.merge(source_report_contact_filter_replay_summary_fields(source_reports))
     |> Map.merge(source_report_station_reservation_replay_summary_fields(source_reports))
     |> Map.merge(
       source_report_timeline_publication_context_fields(
@@ -8938,6 +8939,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    contact_filter_replay_summary_from_summary(filter_summary, summary_source, replay_scope)
+  end
+
+  defp contact_filter_replay_summary_from_summary(
+         filter_summary,
+         summary_source,
+         replay_scope
+       ) do
     suppressed_candidate_count =
       summary_integer(filter_summary, "suppressed_candidate_count")
 
@@ -9598,6 +9607,27 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "branch_local_downlink_shortfall_pressure"),
       "source_report_link_capacity_branch_local_actual_throughput_pressure" =>
         Map.get(summary, "branch_local_actual_throughput_pressure")
+    }
+  end
+
+  defp source_report_contact_filter_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("contact_filter_report", %{})
+      |> contact_filter_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.contact_filter_report",
+        "contact_filter_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_contact_filter_branch_local_contact_filter_pressure" =>
+        Map.get(summary, "branch_local_contact_filter_pressure"),
+      "source_report_contact_filter_branch_local_candidate_suppression_pressure" =>
+        Map.get(summary, "branch_local_candidate_suppression_pressure"),
+      "source_report_contact_filter_branch_local_invalid_contact_input_pressure" =>
+        Map.get(summary, "branch_local_invalid_contact_input_pressure"),
+      "source_report_contact_filter_branch_local_station_suppression_pressure" =>
+        Map.get(summary, "branch_local_station_suppression_pressure")
     }
   end
 

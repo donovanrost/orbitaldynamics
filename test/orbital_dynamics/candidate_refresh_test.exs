@@ -14924,6 +14924,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                %{
                  "reserved" => ["reservation_dss_43"]
                },
+             "source_report_contact_filter_branch_local_contact_filter_pressure" => true,
+             "source_report_contact_filter_branch_local_candidate_suppression_pressure" => true,
+             "source_report_contact_filter_branch_local_invalid_contact_input_pressure" => true,
+             "source_report_contact_filter_branch_local_station_suppression_pressure" => true,
              "source_reports" => %{
                "contact_filter_report" => %{
                  "suppressed_candidate_count" => 4,
@@ -15280,7 +15284,11 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  "contact_count" => 1,
                  "contact_ids" => ["dl_station_capacity_zero"]
                }
-             }
+             },
+             "source_report_contact_filter_branch_local_contact_filter_pressure" => true,
+             "source_report_contact_filter_branch_local_candidate_suppression_pressure" => true,
+             "source_report_contact_filter_branch_local_invalid_contact_input_pressure" => true,
+             "source_report_contact_filter_branch_local_station_suppression_pressure" => true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.contact_filter_replay_summary(artifact) == replay_summary
