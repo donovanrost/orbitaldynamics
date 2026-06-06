@@ -4,7 +4,7 @@ Current slice:
 Expose contact/resource filter suppressed-candidate evidence schemas.
 
 Status:
-Implemented, locally verified, and read-only reviewed clean; pending publish.
+Implemented, locally verified, read-only reviewed clean, committed, and pushed.
 
 Discovery:
 Live fixture/schema comparison after the contact-contention slice reports the
@@ -41,7 +41,7 @@ Definition of done:
 - [x] Focused schema tests, schema export tests, schema lint, generated-schema
   spot-checks, and whitespace checks pass.
 - [x] Read-only review finds no must-fix issues.
-- [ ] Slice-owned files only are committed and pushed.
+- [x] Slice-owned files only are committed and pushed.
 
 Tests run:
 - `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
@@ -62,10 +62,10 @@ Tests run:
   `resource_filter_report_v1.json`, and reported no must-fix findings.
 
 Last completed implementation commit:
-`a79b6483a8bc18fc86262fd7ca1f4c97a4fa0bfd` pushed to `origin/main`.
+`efc3bf3f31dbb7d77354aae57d41018ebee864b4` pushed to `origin/main`.
 
 Last ledger correction commit:
-`49e4c3fcc00078fae8fad00c9ba8ffbd3db4546f` pushed to `origin/main`.
+Pending this ledger-only correction.
 
 Next candidate:
 After this slice, rerun broad nested row-container fixture/schema visibility
