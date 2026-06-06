@@ -6888,6 +6888,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_link_capacity_replay_summary_fields(source_reports))
     |> Map.merge(source_report_contact_filter_replay_summary_fields(source_reports))
     |> Map.merge(source_report_resource_filter_replay_summary_fields(source_reports))
+    |> Map.merge(source_report_resource_projection_replay_summary_fields(source_reports))
     |> Map.merge(source_report_station_reservation_replay_summary_fields(source_reports))
     |> Map.merge(
       source_report_timeline_publication_context_fields(
@@ -9317,6 +9318,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    resource_projection_replay_summary_from_summary(
+      projection_summary,
+      summary_source,
+      replay_scope
+    )
+  end
+
+  defp resource_projection_replay_summary_from_summary(
+         projection_summary,
+         summary_source,
+         replay_scope
+       ) do
     projected_resource_count =
       summary_integer(projection_summary, "projected_resource_count")
 
@@ -9658,6 +9671,27 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "branch_local_invalid_resource_summary_pressure"),
       "source_report_resource_filter_branch_local_resource_blocking_pressure" =>
         Map.get(summary, "branch_local_resource_blocking_pressure")
+    }
+  end
+
+  defp source_report_resource_projection_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("resource_projection_report", %{})
+      |> resource_projection_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.resource_projection_report",
+        "resource_projection_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_resource_projection_branch_local_resource_projection_pressure" =>
+        Map.get(summary, "branch_local_resource_projection_pressure"),
+      "source_report_resource_projection_branch_local_projected_resource_pressure" =>
+        Map.get(summary, "branch_local_projected_resource_pressure"),
+      "source_report_resource_projection_branch_local_invalid_resource_projection_pressure" =>
+        Map.get(summary, "branch_local_invalid_resource_projection_pressure"),
+      "source_report_resource_projection_branch_local_activity_pressure" =>
+        Map.get(summary, "branch_local_activity_pressure")
     }
   end
 

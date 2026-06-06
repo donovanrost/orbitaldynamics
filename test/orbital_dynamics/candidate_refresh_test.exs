@@ -11489,6 +11489,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              },
              "source_report_resource_projection_resource_pressure_direction_routing" =>
                ^expected_pressure_direction_routing,
+             "source_report_resource_projection_branch_local_resource_projection_pressure" =>
+               true,
+             "source_report_resource_projection_branch_local_projected_resource_pressure" => true,
+             "source_report_resource_projection_branch_local_invalid_resource_projection_pressure" =>
+               true,
+             "source_report_resource_projection_branch_local_activity_pressure" => true,
              "source_report_resource_projection_resource_pressure_ground_station_ids_by_type" =>
                %{
                  "downlink_shortfall" => ["equator_prime"],
@@ -11798,6 +11804,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              },
              "source_report_resource_projection_resource_pressure_direction_routing" =>
                ^expected_pressure_direction_routing,
+             "source_report_resource_projection_branch_local_resource_projection_pressure" =>
+               true,
+             "source_report_resource_projection_branch_local_projected_resource_pressure" => true,
+             "source_report_resource_projection_branch_local_invalid_resource_projection_pressure" =>
+               true,
+             "source_report_resource_projection_branch_local_activity_pressure" => true,
              "source_report_resource_projection_resource_pressure_ground_station_ids_by_type" =>
                %{
                  "downlink_shortfall" => ["equator_prime"],
@@ -11997,6 +12009,22 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert source_summary[
              "source_report_resource_projection_invalid_resource_summary_input_ids"
            ] == ["bad_resource_summary_map_only"]
+
+    assert source_summary[
+             "source_report_resource_projection_branch_local_resource_projection_pressure"
+           ]
+
+    assert source_summary[
+             "source_report_resource_projection_branch_local_invalid_resource_projection_pressure"
+           ]
+
+    refute source_summary[
+             "source_report_resource_projection_branch_local_projected_resource_pressure"
+           ]
+
+    refute source_summary[
+             "source_report_resource_projection_branch_local_activity_pressure"
+           ]
 
     replay_summary = CandidateRefresh.resource_projection_replay_summary(refresh)
 
