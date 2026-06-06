@@ -21182,6 +21182,7 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_maneuver_review_source_report_summary_json_schema(),
             "model_acceptance_report" =>
               candidate_refresh_model_acceptance_source_report_summary_json_schema(),
+            "freshness_report" => candidate_refresh_freshness_source_report_summary_json_schema(),
             "refresh_budget_report" =>
               candidate_refresh_refresh_budget_source_report_summary_json_schema(),
             "operational_readiness_report" =>
@@ -21820,6 +21821,13 @@ defmodule OrbitalDynamics.Schema do
         )
       )
       |> Map.merge(candidate_refresh_model_acceptance_context_json_schema_properties())
+    end)
+  end
+
+  defp candidate_refresh_freshness_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      Map.merge(properties, candidate_refresh_passive_replay_context_json_schema_properties())
     end)
   end
 
@@ -26856,6 +26864,7 @@ defmodule OrbitalDynamics.Schema do
         |> validate_candidate_refresh_quality_gate_context(path, summary)
         |> validate_candidate_refresh_schema_validation_context(path, summary)
         |> validate_candidate_refresh_model_acceptance_context(path, summary)
+        |> validate_candidate_refresh_freshness_context(path, summary)
         |> validate_candidate_refresh_refresh_budget_context(path, summary)
         |> validate_candidate_refresh_validation_safety_case_context(path, summary)
       else
@@ -27765,6 +27774,26 @@ defmodule OrbitalDynamics.Schema do
         |> validate_non_negative_integer_count_map(path <> ".#{field}", Map.get(summary, field))
       end
     )
+  end
+
+  defp validate_candidate_refresh_freshness_context(issues, path, summary) do
+    issues
+    |> expect_optional_non_negative_integer(path, summary, "stale_reason_count")
+    |> expect_optional_non_negative_integer(path, summary, "unknown_reason_count")
+    |> validate_non_negative_integer_count_map(
+      path <> ".status_counts",
+      Map.get(summary, "status_counts")
+    )
+    |> validate_non_negative_integer_count_map(
+      path <> ".stale_reason_counts",
+      Map.get(summary, "stale_reason_counts")
+    )
+    |> validate_non_negative_integer_count_map(
+      path <> ".unknown_reason_counts",
+      Map.get(summary, "unknown_reason_counts")
+    )
+    |> validate_string_list_items(path, summary, "stale_reasons")
+    |> validate_string_list_items(path, summary, "unknown_reasons")
   end
 
   defp validate_candidate_refresh_refresh_budget_context(issues, path, summary) do

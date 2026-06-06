@@ -1262,6 +1262,46 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "pattern"
            ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
 
+    candidate_refresh_freshness_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "freshness_report",
+        "properties"
+      ])
+
+    Enum.each(["stale_reason_count", "unknown_reason_count"], fn field ->
+      assert get_in(candidate_refresh_freshness_source_report, [
+               field,
+               "type"
+             ]) == "integer"
+
+      assert get_in(candidate_refresh_freshness_source_report, [
+               field,
+               "minimum"
+             ]) == 0
+    end)
+
+    Enum.each(["status_counts", "stale_reason_counts", "unknown_reason_counts"], fn field ->
+      assert get_in(candidate_refresh_freshness_source_report, [
+               field,
+               "additionalProperties",
+               "minimum"
+             ]) == 0
+    end)
+
+    Enum.each(["stale_reasons", "unknown_reasons"], fn field ->
+      assert get_in(candidate_refresh_freshness_source_report, [
+               field,
+               "items",
+               "type"
+             ]) == "string"
+    end)
+
     candidate_refresh_refresh_budget_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",

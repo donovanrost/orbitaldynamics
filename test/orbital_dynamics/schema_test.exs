@@ -19647,6 +19647,38 @@ defmodule OrbitalDynamics.SchemaTest do
              "type"
            ]) == "string"
 
+    named_freshness_schema =
+      get_in(schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "freshness_report"
+      ])
+
+    assert named_freshness_schema["type"] == "object"
+
+    assert get_in(named_freshness_schema, [
+             "properties",
+             "stale_reason_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(named_freshness_schema, [
+             "properties",
+             "status_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(named_freshness_schema, [
+             "properties",
+             "stale_reasons",
+             "items",
+             "type"
+           ]) == "string"
+
     named_refresh_budget_schema =
       get_in(schema, [
         "properties",
@@ -19688,6 +19720,97 @@ defmodule OrbitalDynamics.SchemaTest do
              "items",
              "type"
            ]) == "string"
+  end
+
+  test "validates named candidate refresh freshness source-report provenance schema" do
+    artifact =
+      candidate_refresh_artifact()
+      |> put_in(
+        ["provenance", "source_reports"],
+        %{
+          "freshness_report" => %{
+            "paths" => ["mission_state.source_freshness_report"],
+            "contract" => "freshness_report.v1",
+            "count" => 1,
+            "row_count" => 1,
+            "status_counts" => %{"stale" => 1},
+            "stale_reason_count" => 1,
+            "stale_reasons" => ["accepted_snapshot_older_than_policy"],
+            "stale_reason_counts" => %{"accepted_snapshot_older_than_policy" => 1},
+            "unknown_reason_count" => 1,
+            "unknown_reasons" => ["missing_generated_at"],
+            "unknown_reason_counts" => %{"missing_generated_at" => 1},
+            "trust_boundary_status" => "declared",
+            "trust_boundaries" => ["ops_freshness"]
+          }
+        }
+      )
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact)
+
+    invalid_status_count =
+      put_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "freshness_report",
+          "status_counts",
+          "stale"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_status_count_report} =
+             Schema.validate_artifact(invalid_status_count)
+
+    assert Enum.any?(
+             invalid_status_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.freshness_report.status_counts.stale")
+           )
+
+    invalid_reason_count =
+      put_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "freshness_report",
+          "stale_reason_count"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_reason_count_report} =
+             Schema.validate_artifact(invalid_reason_count)
+
+    assert Enum.any?(
+             invalid_reason_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.freshness_report.stale_reason_count")
+           )
+
+    invalid_reason =
+      put_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "freshness_report",
+          "stale_reasons",
+          Access.at(0)
+        ],
+        42
+      )
+
+    assert {:error, invalid_reason_report} = Schema.validate_artifact(invalid_reason)
+
+    assert Enum.any?(
+             invalid_reason_report["errors"],
+             &(&1["path"] == "$.provenance.source_reports.freshness_report.stale_reasons[0]")
+           )
   end
 
   test "validates named candidate refresh refresh-budget source-report provenance schema" do
