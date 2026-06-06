@@ -1101,6 +1101,30 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
                  "$.import_readiness_rows[0].station_reservation_hold_import_status" and
                  &1["message"] == "must equal \"review_required_before_import\"")
            )
+
+    assert_summary_handoff(
+      summary,
+      &StationCalendar.reservation_review_summary/1,
+      &StationCalendar.reservation_review_summary(&1, now_s: 999.0),
+      &OrbitalDynamics.station_reservation_review_summary/1,
+      &OrbitalDynamics.station_reservation_review_summary(&1, now_s: 999.0)
+    )
+
+    assert_summary_handoff(
+      hold_summary,
+      &StationCalendar.reservation_hold_summary/1,
+      &StationCalendar.reservation_hold_summary(&1, now_s: 999.0),
+      &OrbitalDynamics.station_reservation_hold_summary/1,
+      &OrbitalDynamics.station_reservation_hold_summary(&1, now_s: 999.0)
+    )
+
+    assert_summary_handoff(
+      hold_import_readiness_summary,
+      &StationCalendar.reservation_hold_import_readiness_summary/1,
+      &StationCalendar.reservation_hold_import_readiness_summary(&1, now_s: 999.0),
+      &OrbitalDynamics.station_reservation_hold_import_readiness_summary/1,
+      &OrbitalDynamics.station_reservation_hold_import_readiness_summary(&1, now_s: 999.0)
+    )
   end
 
   test "normalizes numeric string provider timing and capacity fields" do
@@ -2851,6 +2875,12 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
              &(&1["path"] == "$.reserved_overlap_contact_ids" and
                  &1["message"] == "must equal reserved overlap contact IDs")
            )
+
+    assert_summary_handoff(
+      precedence_summary,
+      &StationCalendar.precedence_summary/1,
+      &OrbitalDynamics.station_calendar_precedence_summary/1
+    )
   end
 
   test "disambiguates duplicate affected-contact row ids without dropping contacts" do
@@ -4619,6 +4649,30 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
              &(&1["path"] == "$.counteroffer_negotiation_state_counts")
            )
 
+    assert_summary_handoff(
+      review_summary,
+      &StationCalendar.provider_counteroffer_review_summary/1,
+      &StationCalendar.provider_counteroffer_review_summary(&1, now_s: 999.0),
+      &OrbitalDynamics.provider_counteroffer_review_summary/1,
+      &OrbitalDynamics.provider_counteroffer_review_summary(&1, now_s: 999.0)
+    )
+
+    assert_summary_handoff(
+      import_readiness_summary,
+      &StationCalendar.provider_counteroffer_import_readiness_summary/1,
+      &StationCalendar.provider_counteroffer_import_readiness_summary(&1, now_s: 999.0),
+      &OrbitalDynamics.provider_counteroffer_import_readiness_summary/1,
+      &OrbitalDynamics.provider_counteroffer_import_readiness_summary(&1, now_s: 999.0)
+    )
+
+    assert_summary_handoff(
+      impact_summary,
+      &StationCalendar.provider_counteroffer_plan_impact_summary/1,
+      &StationCalendar.provider_counteroffer_plan_impact_summary(&1, now_s: 999.0),
+      &OrbitalDynamics.provider_counteroffer_plan_impact_summary/1,
+      &OrbitalDynamics.provider_counteroffer_plan_impact_summary(&1, now_s: 999.0)
+    )
+
     counteroffer_review = OperatorReview.from_provider_counteroffer_report(counteroffer_report)
 
     assert %{
@@ -4839,4 +4893,34 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
 
   defp encode_key(key) when is_atom(key), do: Atom.to_string(key)
   defp encode_key(key), do: key
+
+  defp assert_summary_handoff(summary, module_summary, facade_summary) do
+    assert module_summary.(summary) == summary
+    assert facade_summary.(summary) == summary
+
+    atom_keyed_summary =
+      Map.new(summary, fn {key, value} -> {String.to_atom(key), value} end)
+
+    assert module_summary.(atom_keyed_summary) == summary
+    assert facade_summary.(atom_keyed_summary) == summary
+  end
+
+  defp assert_summary_handoff(
+         summary,
+         module_summary,
+         module_summary_with_opts,
+         facade_summary,
+         facade_summary_with_opts
+       ) do
+    assert module_summary.(summary) == summary
+    assert module_summary_with_opts.(summary) == summary
+    assert facade_summary.(summary) == summary
+    assert facade_summary_with_opts.(summary) == summary
+
+    atom_keyed_summary =
+      Map.new(summary, fn {key, value} -> {String.to_atom(key), value} end)
+
+    assert module_summary.(atom_keyed_summary) == summary
+    assert facade_summary.(atom_keyed_summary) == summary
+  end
 end

@@ -400,8 +400,15 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   """
   def precedence_summary(station_calendar_report)
 
+  def precedence_summary(%{"schema_contract" => @precedence_summary_schema_contract} = summary),
+    do: summary
+
   def precedence_summary(%{"schema_contract" => @schema_contract} = report) do
     precedence_summary_from_report(report)
+  end
+
+  def precedence_summary(%{schema_contract: @precedence_summary_schema_contract} = summary) do
+    stringify_keys(summary)
   end
 
   def precedence_summary(%{schema_contract: @schema_contract} = report) do
@@ -480,12 +487,27 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   def reservation_review_summary(source, opts \\ [])
 
   def reservation_review_summary(
+        %{"schema_contract" => @reservation_review_summary_schema_contract} = summary,
+        _opts
+      ),
+      do: summary
+
+  def reservation_review_summary(
         %{"schema_contract" => @reservation_schema_contract} = report,
         opts
       ) do
     report
     |> stringify_keys()
     |> reservation_review_summary_from_report(opts)
+  end
+
+  def reservation_review_summary(
+        %{schema_contract: @reservation_review_summary_schema_contract} = summary,
+        opts
+      ) do
+    summary
+    |> stringify_keys()
+    |> reservation_review_summary(opts)
   end
 
   def reservation_review_summary(
@@ -521,6 +543,21 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   """
   def reservation_hold_summary(source, opts \\ [])
 
+  def reservation_hold_summary(
+        %{"schema_contract" => @reservation_hold_summary_schema_contract} = summary,
+        _opts
+      ),
+      do: summary
+
+  def reservation_hold_summary(
+        %{schema_contract: @reservation_hold_summary_schema_contract} = summary,
+        opts
+      ) do
+    summary
+    |> stringify_keys()
+    |> reservation_hold_summary(opts)
+  end
+
   def reservation_hold_summary(source, opts) do
     source
     |> reservation_review_summary(opts)
@@ -544,6 +581,22 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   authority, writing Cadence, accepting holds, or mutating schedules.
   """
   def reservation_hold_import_readiness_summary(source, opts \\ [])
+
+  def reservation_hold_import_readiness_summary(
+        %{"schema_contract" => @reservation_hold_import_readiness_summary_schema_contract} =
+          summary,
+        _opts
+      ),
+      do: summary
+
+  def reservation_hold_import_readiness_summary(
+        %{schema_contract: @reservation_hold_import_readiness_summary_schema_contract} = summary,
+        opts
+      ) do
+    summary
+    |> stringify_keys()
+    |> reservation_hold_import_readiness_summary(opts)
+  end
 
   def reservation_hold_import_readiness_summary(source, opts) do
     source
@@ -639,7 +692,24 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   declared/missing evidence. This does not accept offers, reserve station time,
   call provider APIs, or mutate schedules.
   """
-  def provider_counteroffer_review_summary(source, opts \\ []) do
+  def provider_counteroffer_review_summary(source, opts \\ [])
+
+  def provider_counteroffer_review_summary(
+        %{"schema_contract" => @counteroffer_review_summary_schema_contract} = summary,
+        _opts
+      ),
+      do: summary
+
+  def provider_counteroffer_review_summary(
+        %{schema_contract: @counteroffer_review_summary_schema_contract} = summary,
+        opts
+      ) do
+    summary
+    |> stringify_keys()
+    |> provider_counteroffer_review_summary(opts)
+  end
+
+  def provider_counteroffer_review_summary(source, opts) do
     source
     |> provider_counteroffer_report(opts)
     |> provider_counteroffer_review_summary_from_report(opts)
@@ -653,7 +723,24 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   provider writes, Cadence writes, offer acceptance, and schedule mutation out
   of scope.
   """
-  def provider_counteroffer_import_readiness_summary(source, opts \\ []) do
+  def provider_counteroffer_import_readiness_summary(source, opts \\ [])
+
+  def provider_counteroffer_import_readiness_summary(
+        %{"schema_contract" => @counteroffer_import_readiness_summary_schema_contract} = summary,
+        _opts
+      ),
+      do: summary
+
+  def provider_counteroffer_import_readiness_summary(
+        %{schema_contract: @counteroffer_import_readiness_summary_schema_contract} = summary,
+        opts
+      ) do
+    summary
+    |> stringify_keys()
+    |> provider_counteroffer_import_readiness_summary(opts)
+  end
+
+  def provider_counteroffer_import_readiness_summary(source, opts) do
     source
     |> provider_counteroffer_report(opts)
     |> provider_counteroffer_import_readiness_summary_from_report(opts)
@@ -665,7 +752,24 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   The summary derives timing and cost deltas from provider counteroffer evidence
   without accepting offers, writing provider state, or mutating schedules.
   """
-  def provider_counteroffer_plan_impact_summary(source, opts \\ []) do
+  def provider_counteroffer_plan_impact_summary(source, opts \\ [])
+
+  def provider_counteroffer_plan_impact_summary(
+        %{"schema_contract" => @counteroffer_plan_impact_summary_schema_contract} = summary,
+        _opts
+      ),
+      do: summary
+
+  def provider_counteroffer_plan_impact_summary(
+        %{schema_contract: @counteroffer_plan_impact_summary_schema_contract} = summary,
+        opts
+      ) do
+    summary
+    |> stringify_keys()
+    |> provider_counteroffer_plan_impact_summary(opts)
+  end
+
+  def provider_counteroffer_plan_impact_summary(source, opts) do
     source
     |> provider_counteroffer_report(opts)
     |> provider_counteroffer_plan_impact_summary_from_report(opts)

@@ -5,42 +5,45 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-ContactIntent compact summary idempotent handoff.
+StationCalendar compact summary idempotent handoffs.
 
 Status:
-Implemented, verified, committed, and pushed.
+Implemented and verified; commit/push pending.
 
 Files changed:
-- `lib/orbital_dynamics/communications/contact_intent.ex`
-- `test/orbital_dynamics/communications/contact_intent_test.exs`
-- `docs/feature_set/capability_map/07_ground_network/05_contact_intent_refresh_and_allocation_policy.md`
+- `lib/orbital_dynamics/communications/station_calendar.ex`
+- `test/orbital_dynamics/communications/station_calendar_test.exs`
+- `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`
 - `.codex/status/autonomous_product_loop.md`
 
 Behavior changed:
-- `ContactIntent.summary/1` now accepts existing `contact_intent_summary.v1`
-  artifacts idempotently.
-- Atom-keyed compact contact-intent summary handoffs are normalized to string
-  keys, matching existing report-artifact handoff behavior and the public
-  `OrbitalDynamics.contact_intent_summary/1` facade.
+- `StationCalendar.precedence_summary/1` now accepts existing
+  `station_calendar_precedence_summary.v1` artifacts idempotently.
+- Reservation review, hold, and hold import-readiness summaries now accept
+  existing compact reservation summary artifacts idempotently.
+- Provider counteroffer review, import-readiness, and plan-impact summaries now
+  accept existing compact counteroffer summary artifacts idempotently.
+- Atom-keyed compact StationCalendar summary handoffs are normalized to string
+  keys, matching existing report-artifact handoff behavior and public facades.
 
 Tests run:
-- `mix test test/orbital_dynamics/communications/contact_intent_test.exs:1044`
-  -> 1 passed, 25 excluded.
-- `mix test test/orbital_dynamics/communications/contact_intent_test.exs`
-  -> 26 passed.
+- `mix test test/orbital_dynamics/communications/station_calendar_test.exs:696 test/orbital_dynamics/communications/station_calendar_test.exs:2734 test/orbital_dynamics/communications/station_calendar_test.exs:4276`
+  -> 3 passed, 39 excluded.
+- `mix test test/orbital_dynamics/communications/station_calendar_test.exs`
+  -> 42 passed.
 
 Docs/artifacts changed:
-- `docs/feature_set/capability_map/07_ground_network/05_contact_intent_refresh_and_allocation_policy.md`
-  documents idempotent `contact_intent_summary.v1` compact handoffs.
+- `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`
+  documents idempotent compact StationCalendar summary handoffs.
 
 Level 6 pillar advanced:
-Ground-network/contact-intent routing evidence: compact contact-intent replay
-adapters can pass existing summary artifacts back through public facades without
-rebuilding intents or losing deterministic capacity-routing fields.
+Fleet-level station-calendar, reservation, and provider-counteroffer review
+artifacts: compact station-calendar adapters can pass existing summary artifacts
+back through public facades without rerunning calendar/report derivation or
+losing deterministic routing fields.
 
 Last commit:
-- `5df667737a2e48a918851203a96f241829cf9bce` pushed to `origin/main` for
-  ContactIntent compact summary idempotent handoff.
+- Pending for StationCalendar compact summary idempotent handoffs.
 
 Recently completed slices:
 - `5df667737a2e48a918851203a96f241829cf9bce` pushed to `origin/main` for
@@ -61,9 +64,8 @@ Recently completed slices:
   resource projection compact pressure direction/capacity maps.
 
 Next candidate:
-After pushing this slice, decide whether to take the larger StationCalendar
-summary-family handoff gap or move to CandidateRefresh operational replay
-maturity.
+After pushing this slice, move to CandidateRefresh operational replay maturity
+unless another small communications handoff gap appears in a fresh scan.
 
 Blocked:
 No.
