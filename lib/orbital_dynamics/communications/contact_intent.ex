@@ -492,6 +492,7 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
             Map.get(capacity_pack_contact_ids_by_direction_and_station, direction, %{})
         }
         |> Enum.reject(fn
+          {"capacity_pack_contact_ids", []} -> false
           {_key, value} when value in [nil, %{}, []] -> true
           _entry -> false
         end)

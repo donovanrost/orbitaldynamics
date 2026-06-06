@@ -22755,14 +22755,19 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "required_capacity_fraction_contact_ids_by_source" =>
         capacity_pack_demand["required_capacity_fraction_contact_ids_by_source"],
       "capacity_pack_contact_ids_by_ground_station" =>
-        capacity_pack_demand["capacity_pack_contact_ids_by_ground_station_id"],
-      "contact_ids_by_ground_station" => capacity_pack_demand["contact_ids_by_ground_station_id"],
+        map_value_lists(capacity_pack_demand["capacity_pack_contact_ids_by_ground_station_id"]),
+      "contact_ids_by_ground_station" =>
+        map_value_lists(capacity_pack_demand["contact_ids_by_ground_station_id"]),
       "capacity_pack_contact_ids_by_direction" =>
-        capacity_pack_demand["capacity_pack_contact_ids_by_direction"],
+        map_value_lists(capacity_pack_demand["capacity_pack_contact_ids_by_direction"]),
       "capacity_pack_contact_ids_by_direction_and_ground_station" =>
-        capacity_pack_demand["capacity_pack_contact_ids_by_direction_and_ground_station_id"],
+        nested_map_value_lists(
+          capacity_pack_demand["capacity_pack_contact_ids_by_direction_and_ground_station_id"]
+        ),
       "contact_ids_by_direction_and_ground_station" =>
-        capacity_pack_demand["contact_ids_by_direction_and_ground_station_id"],
+        nested_map_value_lists(
+          capacity_pack_demand["contact_ids_by_direction_and_ground_station_id"]
+        ),
       "directions" => directions,
       "direction_counts" => direction_counts,
       "contact_ids_by_direction" => contact_ids_by_direction,

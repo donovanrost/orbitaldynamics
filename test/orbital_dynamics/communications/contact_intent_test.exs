@@ -1178,6 +1178,26 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
     assert {:ok, %{"schema_contract" => "contact_intent_summary.v1"}} =
              Schema.validate_artifact(summary)
 
+    non_capacity_summary =
+      ContactIntent.summary([
+        %{
+          "schema_contract" => "contact_intent.v1",
+          "id" => "command_without_capacity",
+          "activity_id" => "command_without_capacity",
+          "ground_station_id" => "dss_43",
+          "direction" => "command"
+        }
+      ])
+
+    assert get_in(non_capacity_summary, [
+             "direction_routing",
+             "command",
+             "capacity_pack_contact_ids"
+           ]) == []
+
+    assert {:ok, %{"schema_contract" => "contact_intent_summary.v1"}} =
+             Schema.validate_artifact(non_capacity_summary)
+
     empty_summary = ContactIntent.summary([])
 
     assert Map.take(empty_summary, [
