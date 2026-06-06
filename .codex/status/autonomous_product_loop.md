@@ -4,7 +4,7 @@ Current slice:
 Align `campaign_strategy.v3` branch JSON Schema with runtime branch identity.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 campaign strategy branches and executable validation use `branch_id` as the
 stable branch identity, and checked-in
 `leo_constellation_campaign_strategy_v3.json` branches carry `branch_id`,
@@ -51,12 +51,13 @@ Tests run:
   field types and that assumptions/provenance/candidate-source objects remain
   permissive via `additionalProperties: true`; both are accepted for current
   runtime fixtures and artifact-only schema style.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`ebcdc8fc0ecd60a72b91dd8fbb3d3efe2a2cd44e` pushed to `origin/main`.
+`507cdbb9fc37325fd7c50b81cc7314d54f3e6219` pushed to `origin/main`.
 
 Last ledger correction commit:
-`8178a4e` pushed to `origin/main`.
+Pending.
 
 Next candidate:
 Make `timeline_feedback_report.v1` `operational_feedback_provenance`
