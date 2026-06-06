@@ -34316,6 +34316,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "timeline:command:dss_14:10.0" => 4,
                "timeline:downlink:12.0" => 4
              },
+             "source_report_timeline_integrity_branch_local_timeline_integrity_pressure" => true,
+             "source_report_timeline_integrity_branch_local_timeline_integrity_review_pressure" =>
+               true,
+             "source_report_timeline_integrity_branch_local_dependency_integrity_pressure" =>
+               true,
+             "source_report_timeline_integrity_branch_local_exclusivity_integrity_pressure" =>
+               true,
              "source_reports" => %{
                "timeline_integrity_report" => %{
                  "contract" => "timeline_integrity_report.v1",
@@ -34390,6 +34397,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "schema_contract" => "candidate_refresh.v1",
       "provenance" => %{"source_reports" => summary["source_reports"]}
     }
+
+    assert %{
+             "source_report_timeline_integrity_branch_local_timeline_integrity_pressure" => true,
+             "source_report_timeline_integrity_branch_local_timeline_integrity_review_pressure" =>
+               true,
+             "source_report_timeline_integrity_branch_local_dependency_integrity_pressure" =>
+               true,
+             "source_report_timeline_integrity_branch_local_exclusivity_integrity_pressure" =>
+               true
+           } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.timeline_integrity_replay_summary(artifact) == replay_summary
   end

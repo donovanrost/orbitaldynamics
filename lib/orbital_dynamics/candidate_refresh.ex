@@ -6899,6 +6899,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_timeline_lifecycle_state_replay_summary_fields(source_reports))
     |> Map.merge(source_report_timeline_dependency_impact_replay_summary_fields(source_reports))
     |> Map.merge(source_report_timeline_diff_replay_summary_fields(source_reports))
+    |> Map.merge(source_report_timeline_integrity_replay_summary_fields(source_reports))
     |> Map.merge(
       source_report_timeline_publication_context_fields(
         source_reports,
@@ -9939,6 +9940,27 @@ defmodule OrbitalDynamics.CandidateRefresh do
     }
   end
 
+  defp source_report_timeline_integrity_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("timeline_integrity_report", %{})
+      |> timeline_integrity_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.timeline_integrity_report",
+        "timeline_integrity_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_timeline_integrity_branch_local_timeline_integrity_pressure" =>
+        Map.get(summary, "branch_local_timeline_integrity_pressure"),
+      "source_report_timeline_integrity_branch_local_timeline_integrity_review_pressure" =>
+        Map.get(summary, "branch_local_timeline_integrity_review_pressure"),
+      "source_report_timeline_integrity_branch_local_dependency_integrity_pressure" =>
+        Map.get(summary, "branch_local_dependency_integrity_pressure"),
+      "source_report_timeline_integrity_branch_local_exclusivity_integrity_pressure" =>
+        Map.get(summary, "branch_local_exclusivity_integrity_pressure")
+    }
+  end
+
   @doc """
   Builds a compact branch-local storage/downlink pressure replay summary.
 
@@ -12846,6 +12868,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    timeline_integrity_replay_summary_from_summary(
+      integrity_summary,
+      summary_source,
+      replay_scope
+    )
+  end
+
+  defp timeline_integrity_replay_summary_from_summary(
+         integrity_summary,
+         summary_source,
+         replay_scope
+       ) do
     issue_count = summary_integer(integrity_summary, "timeline_integrity_issue_count")
     review_count = summary_integer(integrity_summary, "timeline_integrity_review_count")
     dependency_issue_count = summary_integer(integrity_summary, "dependency_issue_count")
