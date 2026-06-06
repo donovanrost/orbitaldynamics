@@ -461,6 +461,30 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
     assert {:ok, %{"schema_contract" => "resource_projection_report.v1"}} =
              Schema.validate_artifact(report)
 
+    assert %{
+             "invalid_resource_summary_input_count" => 2,
+             "invalid_resource_summary_input_ids" => ["leo_2", "leo_3"],
+             "invalid_resource_summary_inputs" => [
+               %{
+                 "resource_summary_id" => "leo_2",
+                 "invalid_resource_summary_input_reason" => "stale_battery_state_of_charge",
+                 "source_resource_summary" => %{
+                   "battery_state_of_charge" => 0.7
+                 }
+               },
+               %{
+                 "resource_summary_id" => "leo_3",
+                 "invalid_resource_summary_input_reason" => "stale_storage_margin",
+                 "source_resource_summary" => %{
+                   "storage_margin" => 0.75
+                 }
+               }
+             ]
+           } = flow_summary = ResourceProjection.flow_summary(report)
+
+    assert {:ok, %{"schema_contract" => "resource_projection_flow_summary.v1"}} =
+             Schema.validate_artifact(flow_summary)
+
     review = OperatorReview.from_resource_projection_report(report)
 
     assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =

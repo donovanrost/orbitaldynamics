@@ -595,12 +595,14 @@ defmodule OrbitalDynamics.ResourceProjection do
       "valid_activity_count" => valid_activity_count,
       "invalid_activity_input_count" => invalid_activity_input_count,
       "invalid_activity_input_ids" => invalid_row_ids(invalid_activity_inputs, "activity_id"),
+      "invalid_activity_inputs" => invalid_activity_inputs,
       "input_resource_summary_count" =>
         length(projected_resources) + invalid_resource_summary_input_count,
       "valid_resource_summary_count" => length(projected_resources),
       "invalid_resource_summary_input_count" => invalid_resource_summary_input_count,
       "invalid_resource_summary_input_ids" =>
         invalid_row_ids(invalid_resource_summary_inputs, "resource_summary_id"),
+      "invalid_resource_summary_inputs" => invalid_resource_summary_inputs,
       "projected_resource_count" => length(projected_resources),
       "flow_row_count" => length(flow_rows),
       "ignored_activity_count" => length(ignored_flow_rows),

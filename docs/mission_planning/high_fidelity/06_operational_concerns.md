@@ -400,4 +400,6 @@ provider capacity provenance reviewable without unpacking each projected
 resource row. The same compact projected-resource rows preserve resource source
 quality, trust-boundary status, and declared provenance so source review queues
 do not need to fall back to the full projection report for basic provenance
-triage.
+triage. Invalid activity and resource-summary inputs remain embedded in compact
+flow summaries as review-only rows, preserving source evidence for triage while
+excluding those inputs from resource projection math.
