@@ -4,7 +4,7 @@ Current slice:
 Expose resource projection report source schema.
 
 Status:
-Implemented, locally verified, and reviewed clean; pending publish.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 Contract-shaped fixture discovery showed
 `study_results/resource_projection_battery_handoff_v1.json` emits top-level
 `source` on `resource_projection_report.v1`, but the exported
@@ -49,12 +49,13 @@ Tests run:
 - `slice_reviewer`: no must-fix findings. Residual risk noted that `source` is
   only validated as a string, not against a provenance namespace; accepted for
   this schema-visibility slice.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`c46ea4fce9df9e7d7371c9e2c8bbe9f7703026de` pushed to `origin/main`.
+`0a6d344e28844f85d604099aaf9cf6b376274744` pushed to `origin/main`.
 
 Last ledger correction commit:
-`45ecacf` pushed to `origin/main`.
+Pending.
 
 Next candidate:
 After this slice, rerun contract-shaped fixture/schema visibility discovery.
