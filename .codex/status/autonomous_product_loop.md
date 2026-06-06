@@ -5,62 +5,64 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-CandidateRefresh operational execution boundary summary replay provenance.
+Validation-reference fixture coverage for `resource_projection_flow_summary.v1`.
 
 Status:
 Implemented, verified, committed, and pushed.
 
 Files changed:
-- `lib/orbital_dynamics/candidate_refresh.ex`
-- `test/orbital_dynamics/candidate_refresh_test.exs`
-- `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`
+- `lib/orbital_dynamics/validation.ex`
+- `test/orbital_dynamics/validation_test.exs`
+- `docs/feature_set/capability_map/18_validation_and_verification.md`
+- `study_results/resource_projection_flow_summary_v1.json`
+- `study_results/validation_reference_fixtures.json`
 - `.codex/status/autonomous_product_loop.md`
 
 Behavior changed:
-- `CandidateRefresh.source_report_summary/1` now accepts compact
-  `operational_execution_boundary_summary.v1` inputs from accepted-state,
-  mission-state, direct root, and result-artifact-wrapped handoff paths.
-- Execution-boundary summaries are normalized into the existing
-  `operational_readiness_report` source-report family while preserving
-  source-summary contract/model, source artifact type, readiness/import/status
-  routing, import eligibility, execution boundary, handoff-only state,
-  execution/write/authority denial counts, analysis-mode routing, gate counts,
-  non-passed gate evidence, wrapper-qualified paths, and trust-boundary
-  evidence.
-- `CandidateRefresh.operational_readiness_replay_summary/1` now exposes compact
-  execution-boundary evidence as branch-local execution-boundary/import/review
-  pressure without granting import, Cadence-write, command execution,
-  candidate-generation, or operator authority.
-- `CandidateRefresh.capabilities/0` now advertises
-  `:operational_execution_boundary_summary` input support and
-  `:source_operational_execution_boundary_summary_input_provenance` row
-  semantics.
+- `Validation.reference_fixtures/0` now includes
+  `fixture.artifact.resource_projection_flow_summary.v1`.
+- `Validation.artifact_observations/2` now supports
+  `resource_projection_flow_summary.v1`, deriving compact-flow counts,
+  storage/downlink totals, battery totals, remaining-capacity summaries,
+  ignored-effect maps, pressure routing, model-limit count, and the
+  no-schedule-mutation execution boundary from the compact artifact.
+- The checked-in validation-reference fixture report now has 149 passing
+  fixtures, including the new compact flow-summary artifact.
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs`
-  -> 702 passed.
+- `mix test test/orbital_dynamics/validation_test.exs:9678`
+  -> 1 passed.
+- `mix test test/orbital_dynamics/validation_test.exs:10739`
+  -> 1 passed.
+- `mix test test/orbital_dynamics/schema_test.exs:11363`
+  -> 1 passed.
+- `mix test test/orbital_dynamics/validation_test.exs`
+  -> 136 passed.
 - `mix orbital_dynamics.schema.lint --all`
-  -> pass, 126 files, 126 artifacts, 0 errors, 0 warnings.
+  -> pass, 127 files, 127 artifacts, 0 errors, 0 warnings.
 - `git diff --check`
   -> clean.
 
 Docs/artifacts changed:
-- `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`
-  documents CandidateRefresh compact
-  `operational_execution_boundary_summary.v1` handoff replay.
+- `docs/feature_set/capability_map/18_validation_and_verification.md`
+  documents compact `resource_projection_flow_summary.v1` fixture coverage.
+- `study_results/resource_projection_flow_summary_v1.json` is the checked-in
+  compact selected-activity resource-flow fixture.
+- `study_results/validation_reference_fixtures.json` is refreshed to include
+  the new fixture report.
 
 Level 6 pillar advanced:
-Cadence-facing operational-readiness replay maturity: CandidateRefresh can
-consume the compact execution-boundary summary produced by OperationalReadiness
-without reopening full readiness reports, while preserving execution/write/
-authority boundaries, not-for-execution evidence, path provenance, and
-trust-boundary evidence for audit.
+Durable schema-versioned artifacts and compatibility checks: compact
+resource/downlink roll-forward handoffs now have validation-reference fixture
+coverage separate from the full `resource_projection_report.v1` artifact.
 
 Last commit:
-- `4401714138373c311044ac99cffc6e246a29e336` pushed to `origin/main` for
-  CandidateRefresh operational execution boundary summary replay provenance.
+- `676e536c74ffdb1a03ac276f16ef8874df121635` pushed to `origin/main` for
+  validation-reference fixture coverage for `resource_projection_flow_summary.v1`.
 
 Recently completed slices:
+- `676e536c74ffdb1a03ac276f16ef8874df121635` pushed to `origin/main` for
+  validation-reference fixture coverage for `resource_projection_flow_summary.v1`.
 - `4401714138373c311044ac99cffc6e246a29e336` pushed to `origin/main` for
   CandidateRefresh operational execution boundary summary replay provenance.
 - `5be625eddfeee2302f949d0e010b22ff6f8369c7` pushed to `origin/main` for
@@ -69,18 +71,12 @@ Recently completed slices:
   CandidateRefresh operational readiness gate summary replay provenance.
 - `b71306fe369ad65e7c001b31a17823d9f4b2836b` pushed to `origin/main` for
   CandidateRefresh relay data path summary replay provenance.
-- `d3ae3d868c7e24f267f3423b2495939b43b8a6a1` pushed to `origin/main` for
-  CandidateRefresh operational quality-gate operator-training summary replay
-  provenance.
-- `5d07f2fb1069c928660b233268c193d8bd3ddd8d` pushed to `origin/main` for
-  CandidateRefresh operational quality-gate unavailable-resource summary replay
-  provenance.
 
 Next candidate:
-Continue CandidateRefresh operational replay maturity by rescanning compact
-source-report families from operational surfaces. If no obvious compact replay
-gap remains, re-anchor on `docs/autonomous_work_guide.md` and pick the next
-highest-value Level 6 slice outside the compact source-summary cluster.
+Mapper-recommended typed-timeline slice: add artifact-only subsystem-state hints
+to `activity_template.v1` and template instantiation, preserving required and
+produced subsystem state declarations in template artifacts/provenance without
+adding subsystem simulation, command authority, or schedule mutation.
 
 Blocked:
 No.
