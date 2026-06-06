@@ -65359,11 +65359,13 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "allocated_contact_count" => 1,
       "deferred_contact_count" => 1,
       "blocked_contact_count" => 0,
+      "effective_allocation_status_counts" => %{"allocated" => 1, "deferred" => 1},
       "rows" => [
         %{
           "id" => "contact_allocation:dl_refreshed",
           "contact_id" => "dl_refreshed",
           "allocation_status" => "allocated",
+          "effective_allocation_status" => "allocated",
           "allocation_reason" => "selected_by_contention_resolution",
           "ground_station_id" => "equator_prime",
           "starts_at_s" => 500.0,
@@ -65376,6 +65378,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
           "id" => "contact_allocation:dl_deferred",
           "contact_id" => "dl_deferred",
           "allocation_status" => "deferred",
+          "effective_allocation_status" => "deferred",
           "allocation_reason" => "same_station_contention",
           "ground_station_id" => "equator_prime",
           "starts_at_s" => 520.0,
