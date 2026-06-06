@@ -4,7 +4,7 @@ Current slice:
 Expose Cadence import resource-projection row evidence schemas.
 
 Status:
-Implemented, locally verified, and read-only reviewed clean; pending publish.
+Implemented, locally verified, read-only reviewed clean, committed, and pushed.
 
 Discovery:
 Contract-shaped fixture/schema visibility comparison shows
@@ -69,10 +69,10 @@ Tests run:
   and reported no must-fix findings.
 
 Last completed implementation commit:
-`6ee75270b8d7cd673eb24ceee7ee0f9c9b2fb157` pushed to `origin/main`.
+`8a66dfe362a2deb8f769c1499b340da0bccb82be` pushed to `origin/main`.
 
 Last ledger correction commit:
-`eac5da90398823a5566a814c0a038986b61aef27` pushed to `origin/main`.
+Pending this ledger-only correction.
 
 Next candidate:
 After this slice, rerun contract-shaped fixture/schema visibility discovery.
