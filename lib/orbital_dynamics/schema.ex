@@ -7742,6 +7742,7 @@ defmodule OrbitalDynamics.Schema do
         "resource_projection_report",
         "resource_projection_flow_summary",
         "timeline_activity_precondition_summaries",
+        "timeline_integrity_report",
         "objective_satisfaction_report",
         "operational_timeline_report",
         "operator_review_package",
@@ -7759,6 +7760,7 @@ defmodule OrbitalDynamics.Schema do
         "resource_projection_report.v1",
         "resource_projection_flow_summary.v1",
         "timeline_activity_precondition_summary.v1",
+        "timeline_integrity_report.v1",
         "objective_satisfaction_report.v1",
         "operational_timeline_report.v1",
         "operator_review_package.v1",
@@ -30694,6 +30696,10 @@ defmodule OrbitalDynamics.Schema do
       "$.timeline_activity_precondition_summaries",
       Map.get(artifact, "timeline_activity_precondition_summaries")
     )
+    |> validate_optional_timeline_integrity_report(
+      "$.timeline_integrity_report",
+      Map.get(artifact, "timeline_integrity_report")
+    )
     |> validate_optional_resource_filter_report(
       "$.resource_filter_report",
       Map.get(artifact, "resource_filter_report")
@@ -41784,6 +41790,15 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_optional_timeline_activity_precondition_summaries(issues, path, _summaries),
     do: [error(path, "must be a list") | issues]
+
+  defp validate_optional_timeline_integrity_report(issues, _path, nil), do: issues
+
+  defp validate_optional_timeline_integrity_report(issues, path, %{} = report) do
+    validate_timeline_integrity_report(issues, path, report)
+  end
+
+  defp validate_optional_timeline_integrity_report(issues, path, _report),
+    do: [error(path, "must be an object") | issues]
 
   defp timeline_activity_precondition_summary_rows(summary) do
     case Map.get(summary, "preconditions", []) do

@@ -42,6 +42,12 @@ Existing `timeline_integrity_report.v1` artifacts are accepted as idempotent
 inputs by the integrity-report facade when downstream queues already hold the
 standalone integrity artifact.
 
+V1 `campaign_plan.v1` artifacts attach a selected-activity
+`timeline_integrity_report.v1` beside the operational timeline report, so
+campaign-level review/import queues can route dependency and exclusivity
+integrity evidence without rebuilding the report from activity rows or mutating
+the selected schedule.
+
 CandidateRefresh accepts direct, accepted-state, mission-state, and
 result-artifact-wrapped `source_timeline_integrity_report` /
 `timeline_integrity_report` inputs as source-report provenance. Its

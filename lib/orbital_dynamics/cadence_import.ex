@@ -930,6 +930,7 @@ defmodule OrbitalDynamics.CadenceImport do
             "contact_contention_recommendation",
             "contact_contention_review",
             "operational_timeline_review",
+            "timeline_integrity_review",
             "command_window_review",
             "station_calendar_review",
             "link_capacity_review",
@@ -962,7 +963,7 @@ defmodule OrbitalDynamics.CadenceImport do
         "source_artifact_type" => "campaign_plan.v1",
         "source_artifact_id" => source_artifact_id,
         "row_source" =>
-          "campaign_plan.proposed_contacts_contact_contention_groups_recommendations_operational_timeline_activity_precondition_command_window_station_calendar_link_capacity_resource_projection_objective_satisfaction_score_term_objective_tradeoff_and_contact_allocation_rows",
+          "campaign_plan.proposed_contacts_contact_contention_groups_recommendations_operational_timeline_integrity_activity_precondition_command_window_station_calendar_link_capacity_resource_projection_objective_satisfaction_score_term_objective_tradeoff_and_contact_allocation_rows",
         "deterministic_ordering" =>
           "proposed_contacts_starts_at_s_then_contact_id_then_operator_review_row_order"
       }

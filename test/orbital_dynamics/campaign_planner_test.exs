@@ -239,6 +239,26 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(activity_precondition_summary)
 
     assert %{
+             "schema_contract" => "timeline_integrity_report.v1",
+             "model" => "artifact_only_timeline_integrity_summary",
+             "source" => "campaign_plan.activities",
+             "activity_count" => 1,
+             "valid_activity_count" => 1,
+             "invalid_activity_input_count" => 0,
+             "timeline_integrity_status" => "clear",
+             "timeline_integrity_review_count" => 0,
+             "timeline_integrity_issue_count" => 0,
+             "rows" => [],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_schedule_mutation",
+               "missing_dependency_validation" => "disabled"
+             }
+           } = artifact["timeline_integrity_report"]
+
+    assert {:ok, %{"schema_contract" => "timeline_integrity_report.v1"}} =
+             Schema.validate_artifact(artifact["timeline_integrity_report"])
+
+    assert %{
              "resource_projection_review_count" => 2,
              "timeline_activity_precondition_review_count" => 1
            } = artifact["operator_review_package"]
@@ -342,6 +362,76 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                artifact["cadence_import_manifest"]["rows"],
                &(get_in(&1, ["source_review_row", "source"]) ==
                    "campaign_plan.timeline_activity_precondition_summaries[0].summary")
+             )
+
+    integrity_issue_report =
+      Timeline.integrity_report([
+        %{
+          id: :health_gate,
+          type: :health_check,
+          starts_at_s: 0.0,
+          ends_at_s: 15.0,
+          ground_station_id: :dss_14,
+          direction: :command
+        },
+        %{
+          id: :cmd_main,
+          type: :command,
+          starts_at_s: 10.0,
+          ends_at_s: 20.0,
+          ground_station_id: :dss_14,
+          direction: :command,
+          dependencies: [:health_gate, :missing_gate],
+          exclusive_with: [:dl_conflict]
+        },
+        %{
+          id: :dl_conflict,
+          type: :downlink,
+          starts_at_s: 12.0,
+          ends_at_s: 22.0,
+          ground_station_id: :dss_14,
+          direction: :downlink
+        }
+      ])
+
+    integrity_issue_artifact = %{
+      "plan_id" => "campaign:timeline_integrity_review",
+      "timeline_integrity_report" => integrity_issue_report
+    }
+
+    integrity_issue_review = OperatorReview.from_campaign_artifact(integrity_issue_artifact)
+
+    assert %{
+             "review_type" => "timeline_integrity_review",
+             "source" => "campaign_plan.timeline_integrity_report.rows",
+             "activity_id" => "cmd_main",
+             "timeline_integrity_status" => "review_required",
+             "required_operator_action" => "review_timeline_integrity",
+             "source_timeline_integrity" => %{
+               "activity_id" => "cmd_main",
+               "timeline_integrity_status" => "review_required"
+             }
+           } =
+             Enum.find(
+               integrity_issue_review["rows"],
+               &(&1["review_type"] == "timeline_integrity_review")
+             )
+
+    integrity_issue_import = CadenceImport.from_campaign_artifact(integrity_issue_artifact)
+
+    assert %{
+             "import_action" => "review_timeline_integrity",
+             "source_review_type" => "timeline_integrity_review",
+             "activity_id" => "cmd_main",
+             "timeline_integrity_status" => "review_required",
+             "source_timeline_integrity" => %{
+               "activity_id" => "cmd_main",
+               "timeline_integrity_status" => "review_required"
+             }
+           } =
+             Enum.find(
+               integrity_issue_import["rows"],
+               &(&1["source_review_type"] == "timeline_integrity_review")
              )
 
     blocked_precondition_summary =
