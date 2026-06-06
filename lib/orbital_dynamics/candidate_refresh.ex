@@ -252,6 +252,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :link_capacity_report,
         :quality_gate_report,
         :operational_quality_gate_summary,
+        :operational_quality_gate_schema_validation_summary,
         :operational_quality_gate_import_readiness_summary,
         :model_acceptance_report,
         :validation_safety_case_summary
@@ -604,6 +605,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :source_operational_readiness_report_input_provenance,
         :source_quality_gate_report_input_provenance,
         :source_operational_quality_gate_summary_input_provenance,
+        :source_operational_quality_gate_schema_validation_summary_input_provenance,
         :source_operational_quality_gate_import_readiness_summary_input_provenance,
         :source_model_acceptance_report_input_provenance,
         :source_validation_safety_case_summary_input_provenance,
@@ -4571,6 +4573,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
           source_reports,
           "quality_gate_report",
           "schema_validation_status_counts"
+        ),
+      "source_report_quality_gate_failed_schema_validation_quality_gate_row_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "quality_gate_report",
+          "failed_schema_validation_quality_gate_row_ids"
+        ),
+      "source_report_quality_gate_schema_validation_gate_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "quality_gate_report",
+          "schema_validation_gate_ids"
         ),
       "source_report_quality_gate_import_status_counts" =>
         source_report_summary_family_merge_count_maps(
@@ -13804,6 +13818,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "freshness_status_counts" => Map.get(quality_gate_summary, "freshness_status_counts", %{}),
       "schema_validation_status_counts" =>
         Map.get(quality_gate_summary, "schema_validation_status_counts", %{}),
+      "failed_schema_validation_quality_gate_row_ids" =>
+        Map.get(quality_gate_summary, "failed_schema_validation_quality_gate_row_ids", []),
+      "schema_validation_gate_ids" =>
+        Map.get(quality_gate_summary, "schema_validation_gate_ids", []),
       "import_status_counts" => import_status_counts,
       "cadence_import_status_counts" => cadence_import_status_counts,
       "source_summary_model_counts" =>
@@ -21589,6 +21607,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
         reports
         |> Enum.map(&quality_gate_row_count_map(&1, "schema_validation_status_counts"))
         |> merge_count_maps(),
+      "failed_schema_validation_quality_gate_row_ids" =>
+        reports
+        |> Enum.flat_map(
+          &quality_gate_string_list(&1, "failed_schema_validation_quality_gate_row_ids")
+        )
+        |> sorted_string_values(),
+      "schema_validation_gate_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_string_list(&1, "schema_validation_gate_ids"))
+        |> sorted_string_values(),
       "import_status_counts" =>
         reports
         |> Enum.map(&quality_gate_row_count_map(&1, "import_status_counts"))
@@ -38436,6 +38464,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
          "accepted_planning_state",
          "operational_quality_gate_summary"
        ])},
+      {"accepted_planning_state.source_operational_quality_gate_schema_validation_summary",
+       get_in(refresh, [
+         "accepted_planning_state",
+         "source_operational_quality_gate_schema_validation_summary"
+       ])},
+      {"accepted_planning_state.operational_quality_gate_schema_validation_summary",
+       get_in(refresh, [
+         "accepted_planning_state",
+         "operational_quality_gate_schema_validation_summary"
+       ])},
       {"accepted_planning_state.source_operational_quality_gate_import_readiness_summary",
        get_in(refresh, [
          "accepted_planning_state",
@@ -38457,6 +38495,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
        ])},
       {"mission_state.operational_quality_gate_summary",
        get_in(refresh, ["mission_state", "operational_quality_gate_summary"])},
+      {"mission_state.source_operational_quality_gate_schema_validation_summary",
+       get_in(refresh, [
+         "mission_state",
+         "source_operational_quality_gate_schema_validation_summary"
+       ])},
+      {"mission_state.operational_quality_gate_schema_validation_summary",
+       get_in(refresh, [
+         "mission_state",
+         "operational_quality_gate_schema_validation_summary"
+       ])},
       {"mission_state.source_operational_quality_gate_import_readiness_summary",
        get_in(refresh, [
          "mission_state",
@@ -38469,6 +38517,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
       {"source_operational_quality_gate_summary",
        Map.get(refresh, "source_operational_quality_gate_summary")},
       {"operational_quality_gate_summary", Map.get(refresh, "operational_quality_gate_summary")},
+      {"source_operational_quality_gate_schema_validation_summary",
+       Map.get(refresh, "source_operational_quality_gate_schema_validation_summary")},
+      {"operational_quality_gate_schema_validation_summary",
+       Map.get(refresh, "operational_quality_gate_schema_validation_summary")},
       {"source_operational_quality_gate_import_readiness_summary",
        Map.get(refresh, "source_operational_quality_gate_import_readiness_summary")},
       {"operational_quality_gate_import_readiness_summary",
@@ -39728,6 +39780,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
          Map.get(artifact, "source_operational_quality_gate_summary")},
         {"#{path}.operational_quality_gate_summary",
          Map.get(artifact, "operational_quality_gate_summary")},
+        {"#{path}.source_operational_quality_gate_schema_validation_summary",
+         Map.get(artifact, "source_operational_quality_gate_schema_validation_summary")},
+        {"#{path}.operational_quality_gate_schema_validation_summary",
+         Map.get(artifact, "operational_quality_gate_schema_validation_summary")},
         {"#{path}.source_operational_quality_gate_import_readiness_summary",
          Map.get(artifact, "source_operational_quality_gate_import_readiness_summary")},
         {"#{path}.operational_quality_gate_import_readiness_summary",
@@ -42559,6 +42615,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
       quality_gate_summary_source?(value) ->
         [{path, quality_gate_report_from_quality_gate_summary(value)}]
 
+      quality_gate_schema_validation_summary_source?(value) ->
+        [{path, quality_gate_report_from_schema_validation_summary(value)}]
+
       quality_gate_import_readiness_summary_source?(value) ->
         [{path, quality_gate_report_from_import_readiness_summary(value)}]
 
@@ -42630,6 +42689,62 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp quality_gate_summary_list_map_values(_values_by_key, _key), do: []
+
+  defp quality_gate_report_from_schema_validation_summary(%{} = summary) do
+    summary = stringify_keys(summary)
+    row_ids_by_status = Map.get(summary, "quality_gate_row_ids_by_status", %{})
+    gate_ids_by_status = Map.get(summary, "quality_gate_ids_by_status", %{})
+    status = quality_gate_schema_validation_status(summary)
+    classification = quality_gate_import_readiness_classification(status)
+
+    %{
+      "schema_contract" => "quality_gate_report.v1",
+      "model" => "preserved_operational_quality_gate_schema_validation_summary",
+      "source" => summary["source"],
+      "source_summary_model" => summary["model"],
+      "source_summary_schema_contract" => summary["schema_contract"],
+      "source_artifact_type" => summary["source_artifact_type"],
+      "source_artifact_id" => summary["source_artifact_id"],
+      "source_quality_gate_report_id" => summary["source_quality_gate_report_id"],
+      "source_readiness_report_id" => summary["source_readiness_report_id"],
+      "readiness_level" => quality_gate_import_readiness_level(classification),
+      "import_classification" => classification,
+      "status" => status,
+      "gate_count" => summary["schema_validation_row_count"],
+      "passed_gate_count" =>
+        length(quality_gate_summary_list_map_values(row_ids_by_status, "passed")),
+      "review_gate_count" =>
+        length(quality_gate_summary_list_map_values(row_ids_by_status, "review_required")),
+      "analysis_gate_count" =>
+        length(quality_gate_summary_list_map_values(row_ids_by_status, "analysis_only")),
+      "blocked_gate_count" =>
+        length(quality_gate_summary_list_map_values(row_ids_by_status, "blocked")),
+      "gate_status_counts" => quality_gate_import_readiness_status_counts(row_ids_by_status),
+      "gate_classification_counts" =>
+        quality_gate_import_readiness_classification_counts(row_ids_by_status),
+      "schema_validation_row_count" => summary["schema_validation_row_count"],
+      "schema_validation_pass_count" => summary["schema_validation_pass_count"],
+      "schema_validation_fail_count" => summary["schema_validation_fail_count"],
+      "schema_validation_error_count" => summary["schema_validation_error_count"],
+      "schema_validation_warning_count" => summary["schema_validation_warning_count"],
+      "schema_validation_remediation_count" => summary["schema_validation_remediation_count"],
+      "schema_validation_status_counts" => summary["schema_validation_status_counts"],
+      "quality_gate_row_ids_by_status" => row_ids_by_status,
+      "quality_gate_ids_by_status" => gate_ids_by_status,
+      "review_required_quality_gate_row_ids" =>
+        quality_gate_summary_list_map_values(row_ids_by_status, "review_required"),
+      "blocked_quality_gate_row_ids" =>
+        quality_gate_summary_list_map_values(row_ids_by_status, "blocked"),
+      "failed_schema_validation_quality_gate_row_ids" =>
+        summary["failed_schema_validation_quality_gate_row_ids"],
+      "schema_validation_gate_ids" => summary["schema_validation_gate_ids"],
+      "trust_boundary" => summary["trust_boundary"],
+      "trust_boundaries" => summary["trust_boundaries"],
+      "assumptions" => summary["assumptions"]
+    }
+    |> maybe_put("provenance", summary["provenance"])
+    |> compact_map()
+  end
 
   defp quality_gate_report_from_import_readiness_summary(%{} = summary) do
     summary = stringify_keys(summary)
@@ -42735,6 +42850,24 @@ defmodule OrbitalDynamics.CandidateRefresh do
         positive_summary_count?(summary, "manifest_review_required_count") or
         positive_summary_count?(summary, "stale_freshness_count") or
           positive_summary_count?(summary, "unknown_freshness_count") ->
+        "review_required"
+
+      true ->
+        "passed"
+    end
+  end
+
+  defp quality_gate_schema_validation_status(%{} = summary) do
+    cond do
+      list_value(summary["blocked_quality_gate_row_ids"]) != [] or
+        summary["schema_validation_import_blocked"] == true or
+        positive_summary_count?(summary, "schema_validation_fail_count") or
+          positive_summary_count?(summary, "schema_validation_error_count") ->
+        "blocked"
+
+      list_value(summary["review_required_quality_gate_row_ids"]) != [] or
+        positive_summary_count?(summary, "schema_validation_warning_count") or
+          positive_summary_count?(summary, "schema_validation_remediation_count") ->
         "review_required"
 
       true ->
@@ -47722,6 +47855,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp quality_gate_summary_source?(_summary), do: false
+
+  defp quality_gate_schema_validation_summary_source?(%{} = summary) do
+    schema_contract = Map.get(summary, "schema_contract") || Map.get(summary, :schema_contract)
+    model = Map.get(summary, "model") || Map.get(summary, :model)
+
+    schema_contract in [nil, "operational_quality_gate_schema_validation_summary.v1"] and
+      model == "artifact_only_quality_gate_schema_validation_summary"
+  end
+
+  defp quality_gate_schema_validation_summary_source?(_summary), do: false
 
   defp quality_gate_import_readiness_summary_source?(%{} = summary) do
     schema_contract = Map.get(summary, "schema_contract") || Map.get(summary, :schema_contract)

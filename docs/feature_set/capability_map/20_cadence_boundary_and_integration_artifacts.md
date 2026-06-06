@@ -70,6 +70,12 @@ Status: **implemented** (with a **partial** semantic-depth area, plus **near-ter
   pass/fail and issue counts, blocked/failed quality-gate row IDs,
   status-grouped gate IDs, and no-authority assumptions so adapter queues can
   route schema blockers without reopening the full readiness report.
+- CandidateRefresh accepts compact
+  `operational_quality_gate_schema_validation_summary.v1` handoffs as
+  quality-gate source-report provenance from direct, accepted-state,
+  mission-state, and wrapped result-artifact inputs, preserving schema status
+  maps, failed quality-gate row IDs, schema-validation gate IDs, and
+  no-authority evidence without replaying refresh generation.
 - Quality-gate import-readiness summaries publish the validated
   `operational_quality_gate_import_readiness_summary.v1` contract and expose
   freshness status maps, import-status maps, Cadence-import status maps,
