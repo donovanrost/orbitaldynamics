@@ -6885,6 +6885,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_storage_downlink_pressure_summary_fields(source_reports))
     |> Map.merge(source_report_contact_allocation_replay_summary_fields(source_reports))
     |> Map.merge(source_report_contact_intent_replay_summary_fields(source_reports))
+    |> Map.merge(source_report_link_capacity_replay_summary_fields(source_reports))
     |> Map.merge(source_report_station_reservation_replay_summary_fields(source_reports))
     |> Map.merge(
       source_report_timeline_publication_context_fields(
@@ -8576,6 +8577,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    link_capacity_replay_summary_from_summary(link_summary, summary_source, replay_scope)
+  end
+
+  defp link_capacity_replay_summary_from_summary(
+         link_summary,
+         summary_source,
+         replay_scope
+       ) do
     selected_shortfall_row_count = summary_integer(link_summary, "selected_shortfall_row_count")
     actual_shortfall_row_count = summary_integer(link_summary, "actual_shortfall_row_count")
     actual_throughput_row_count = summary_integer(link_summary, "actual_throughput_row_count")
@@ -9568,6 +9577,27 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "branch_local_station_reservation_pressure"),
       "source_report_contact_allocation_branch_local_provider_reservation_request_pressure" =>
         Map.get(summary, "branch_local_provider_reservation_request_pressure")
+    }
+  end
+
+  defp source_report_link_capacity_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("link_capacity_report", %{})
+      |> link_capacity_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.link_capacity_report",
+        "link_capacity_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_link_capacity_branch_local_link_capacity_pressure" =>
+        Map.get(summary, "branch_local_link_capacity_pressure"),
+      "source_report_link_capacity_branch_local_capacity_adjusted_throughput_pressure" =>
+        Map.get(summary, "branch_local_capacity_adjusted_throughput_pressure"),
+      "source_report_link_capacity_branch_local_downlink_shortfall_pressure" =>
+        Map.get(summary, "branch_local_downlink_shortfall_pressure"),
+      "source_report_link_capacity_branch_local_actual_throughput_pressure" =>
+        Map.get(summary, "branch_local_actual_throughput_pressure")
     }
   end
 

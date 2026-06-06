@@ -10100,7 +10100,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  "actual_shortfall" => ["provider_entry_gamma"],
                  "selected_met" => ["provider_entry_gamma"],
                  "selected_shortfall" => ["provider_entry_alpha", "provider_entry_beta"]
-               }
+               },
+             "source_report_link_capacity_branch_local_link_capacity_pressure" => true,
+             "source_report_link_capacity_branch_local_capacity_adjusted_throughput_pressure" =>
+               true,
+             "source_report_link_capacity_branch_local_downlink_shortfall_pressure" => true,
+             "source_report_link_capacity_branch_local_actual_throughput_pressure" => true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.link_capacity_replay_summary(artifact) == replay_summary
@@ -10844,6 +10849,11 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_link_capacity_actual_throughput_contact_id_counts" => %{
                "science_downlink" => 4
              },
+             "source_report_link_capacity_branch_local_link_capacity_pressure" => true,
+             "source_report_link_capacity_branch_local_capacity_adjusted_throughput_pressure" =>
+               true,
+             "source_report_link_capacity_branch_local_downlink_shortfall_pressure" => true,
+             "source_report_link_capacity_branch_local_actual_throughput_pressure" => true,
              "source_reports" => %{
                "link_capacity_report" => %{
                  "paths" => [
