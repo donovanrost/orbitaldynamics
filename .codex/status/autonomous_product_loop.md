@@ -8,7 +8,7 @@ Current slice:
 Accept existing timeline preservation reports idempotently.
 
 Status:
-Implemented and verified; commit/push pending.
+Implemented, verified, committed, and pushed.
 
 Completed slices:
 - Prompt/guide continuation semantics committed as
@@ -27,6 +27,8 @@ Completed slices:
   `5b52eb5106f3a0520533df79a589bc0fa689c591` and pushed to `origin/main`.
 - Timeline integrity report idempotent handoff behavior committed as
   `6f779edbc331ba24476663c3753471192df7ccef` and pushed to `origin/main`.
+- Timeline preservation report idempotent handoff behavior committed as
+  `e23cac76f666690f8c8a37b40149c16e6b0afd86` and pushed to `origin/main`.
 
 Files changed:
 - `lib/orbital_dynamics/timeline.ex`
@@ -53,8 +55,8 @@ Remaining maturity gaps:
   the guide toward Level 6 maturity.
 
 Last commit:
-- `c1f39a1bb5683617ce61ce6dc80b54017f05147e` pushed to `origin/main`
-  for the integrity-handoff ledger correction.
+- `e23cac76f666690f8c8a37b40149c16e6b0afd86` pushed to `origin/main`
+  for timeline preservation report idempotent handoff behavior.
 
 Next candidate:
 Select the next live maturity gap from the guide/roadmap and current test
