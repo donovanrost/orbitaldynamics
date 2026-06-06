@@ -38,13 +38,13 @@ adding the scalar rejection regression. The low ledger-staleness issue was fixed
 by this handoff update.
 
 Implementation commit:
-Pending.
+`3de21c0d40223c92b67861c8528f324daf6b6c7f` pushed to `origin/main`.
 
 Last completed implementation commit:
-`3481bb7a626503700fa4961a55a1beb8983c1a0e` pushed to `origin/main`.
+`3de21c0d40223c92b67861c8528f324daf6b6c7f` pushed to `origin/main`.
 
 Last ledger correction commit:
-`053a6325179d24cc2bbd8645491b83afa4930f66` pushed to `origin/main`.
+Pending for this post-commit handoff correction.
 
 Next candidate:
 After this slice, re-check the activity-template chain for the next smallest
