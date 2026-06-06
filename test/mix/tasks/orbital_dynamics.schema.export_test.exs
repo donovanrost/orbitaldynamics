@@ -1169,6 +1169,99 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       end
     )
 
+    candidate_refresh_operational_readiness_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "operational_readiness_report",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        "gate_count",
+        "passed_gate_count",
+        "review_gate_count",
+        "analysis_gate_count",
+        "blocked_gate_count",
+        "review_required_count",
+        "source_model_limit_count",
+        "resource_availability_pressure_count",
+        "adapter_context_count",
+        "adapter_trust_boundary_declared_count",
+        "ready_for_import_count",
+        "manifest_review_required_count",
+        "blocked_import_count"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_operational_readiness_source_report, [
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_operational_readiness_source_report, [
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "readiness_level_counts",
+        "import_classification_counts",
+        "status_counts",
+        "review_type_counts",
+        "import_action_counts",
+        "source_review_type_counts",
+        "resource_availability_reason_counts",
+        "station_availability_reason_counts",
+        "resource_blocking_dimension_counts",
+        "adapter_boundary_status_counts",
+        "import_status_counts",
+        "cadence_import_status_counts"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_operational_readiness_source_report, [
+                 field,
+                 "additionalProperties",
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_operational_readiness_source_report, [
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "resource_availability_reason_ids",
+        "station_availability_reason_ids",
+        "unavailable_resource_reason_ids"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_operational_readiness_source_report, [
+                 field,
+                 "items",
+                 "type"
+               ]) == "string"
+      end
+    )
+
+    assert get_in(candidate_refresh_operational_readiness_source_report, [
+             "resource_blocked_contact_ids_by_blocking_dimension",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+
     candidate_refresh_validation_safety_case_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",

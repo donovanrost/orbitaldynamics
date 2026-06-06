@@ -11413,6 +11413,60 @@ defmodule OrbitalDynamics.SchemaTest do
              "import_action_counts" => %{"review_resource_projection" => 1}
            } = operational_readiness_summary
 
+    assert {:ok, candidate_refresh_schema} = Schema.json_schema("candidate_refresh.v1")
+
+    operational_readiness_source_report_properties =
+      get_in(candidate_refresh_schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "operational_readiness_report",
+        "properties"
+      ])
+
+    assert get_in(operational_readiness_source_report_properties, [
+             "resource_availability_pressure_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(operational_readiness_source_report_properties, [
+             "gate_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(operational_readiness_source_report_properties, [
+             "readiness_level_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(operational_readiness_source_report_properties, [
+             "import_action_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(operational_readiness_source_report_properties, [
+             "resource_availability_reason_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(operational_readiness_source_report_properties, [
+             "resource_availability_reason_ids",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(operational_readiness_source_report_properties, [
+             "resource_blocked_contact_ids_by_blocking_dimension",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
     assert %{
              "paths" => ["mission_state.source_quality_gate_report"],
              "contract" => "quality_gate_report.v1",
@@ -11487,6 +11541,28 @@ defmodule OrbitalDynamics.SchemaTest do
              invalid_reason_count_report["errors"],
              &(&1["path"] ==
                  "$.provenance.source_reports.operational_readiness_report.resource_availability_reason_counts.payload_unavailable")
+           )
+
+    invalid_import_action_count =
+      put_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "operational_readiness_report",
+          "import_action_counts",
+          "review_resource_projection"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_import_action_count_report} =
+             Schema.validate_artifact(invalid_import_action_count)
+
+    assert Enum.any?(
+             invalid_import_action_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.operational_readiness_report.import_action_counts.review_resource_projection")
            )
 
     invalid_station_reason_count =

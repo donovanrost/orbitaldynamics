@@ -21182,6 +21182,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_maneuver_review_source_report_summary_json_schema(),
             "model_acceptance_report" =>
               candidate_refresh_model_acceptance_source_report_summary_json_schema(),
+            "operational_readiness_report" =>
+              candidate_refresh_operational_readiness_source_report_summary_json_schema(),
             "operational_timeline_report" =>
               candidate_refresh_operational_timeline_source_report_summary_json_schema(),
             "quality_gate_report" =>
@@ -21679,6 +21681,40 @@ defmodule OrbitalDynamics.Schema do
             "required_operator_action_counts",
             "cadence_import_status_counts",
             "timeline_integrity_issue_type_counts"
+          ],
+          &{&1, non_negative_integer_count_map_json_schema()}
+        )
+      )
+    end)
+  end
+
+  defp candidate_refresh_operational_readiness_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      properties
+      |> Map.merge(operational_readiness_resource_context_json_schema_properties())
+      |> Map.merge(operational_readiness_adapter_boundary_context_json_schema_properties())
+      |> Map.merge(operational_readiness_cadence_import_context_json_schema_properties())
+      |> Map.merge(
+        non_negative_integer_property_schemas([
+          "gate_count",
+          "passed_gate_count",
+          "review_gate_count",
+          "analysis_gate_count",
+          "blocked_gate_count",
+          "review_required_count",
+          "source_model_limit_count"
+        ])
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "readiness_level_counts",
+            "import_classification_counts",
+            "status_counts",
+            "review_type_counts",
+            "import_action_counts",
+            "source_review_type_counts"
           ],
           &{&1, non_negative_integer_count_map_json_schema()}
         )
