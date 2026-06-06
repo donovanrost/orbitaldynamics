@@ -6900,6 +6900,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_timeline_dependency_impact_replay_summary_fields(source_reports))
     |> Map.merge(source_report_timeline_diff_replay_summary_fields(source_reports))
     |> Map.merge(source_report_timeline_integrity_replay_summary_fields(source_reports))
+    |> Map.merge(source_report_timeline_publication_replay_summary_fields(source_reports))
     |> Map.merge(
       source_report_timeline_publication_context_fields(
         source_reports,
@@ -9958,6 +9959,29 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "branch_local_dependency_integrity_pressure"),
       "source_report_timeline_integrity_branch_local_exclusivity_integrity_pressure" =>
         Map.get(summary, "branch_local_exclusivity_integrity_pressure")
+    }
+  end
+
+  defp source_report_timeline_publication_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("timeline_publication_summary", %{})
+      |> timeline_publication_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.timeline_publication_summary",
+        "timeline_publication_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_timeline_publication_branch_local_timeline_publication_pressure" =>
+        Map.get(summary, "branch_local_timeline_publication_pressure"),
+      "source_report_timeline_publication_branch_local_dependency_pressure" =>
+        Map.get(summary, "branch_local_timeline_publication_dependency_pressure"),
+      "source_report_timeline_publication_branch_local_changed_field_pressure" =>
+        Map.get(summary, "branch_local_timeline_publication_changed_field_pressure"),
+      "source_report_timeline_publication_branch_local_invalidation_pressure" =>
+        Map.get(summary, "branch_local_timeline_publication_invalidation_pressure"),
+      "source_report_timeline_publication_branch_local_review_pressure" =>
+        Map.get(summary, "branch_local_timeline_publication_review_pressure")
     }
   end
 
@@ -13417,6 +13441,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    timeline_publication_replay_summary_from_summary(
+      publication_summary,
+      summary_source,
+      replay_scope
+    )
+  end
+
+  defp timeline_publication_replay_summary_from_summary(
+         publication_summary,
+         summary_source,
+         replay_scope
+       ) do
     row_count = summary_integer(publication_summary, "row_count")
 
     dependency_impact_row_count =

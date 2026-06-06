@@ -25195,6 +25195,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     refresh = %{"source_timeline_publication_summary" => publication_summary}
 
+    source_report_summary = CandidateRefresh.source_report_summary(refresh)
+
     assert %{
              "source_report_timeline_publication_contract" => "timeline_publication_summary.v1",
              "source_report_timeline_publication_count" => 1,
@@ -25224,13 +25226,19 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_timeline_publication_changed_field_counts" => %{
                "timeline_presence" => 2
              },
+             "source_report_timeline_publication_branch_local_timeline_publication_pressure" =>
+               true,
+             "source_report_timeline_publication_branch_local_dependency_pressure" => true,
+             "source_report_timeline_publication_branch_local_changed_field_pressure" => true,
+             "source_report_timeline_publication_branch_local_invalidation_pressure" => true,
+             "source_report_timeline_publication_branch_local_review_pressure" => true,
              "source_reports" => %{
                "timeline_publication_summary" => %{
                  "trust_boundary_status" => "declared",
                  "trust_boundaries" => ["publication_boundary"]
                }
              }
-           } = CandidateRefresh.source_report_summary(refresh)
+           } = source_report_summary
 
     assert %{
              "model" => "artifact_only_candidate_refresh_timeline_publication_replay_summary",
@@ -25286,6 +25294,22 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert OrbitalDynamics.candidate_refresh_timeline_publication_replay_summary(refresh) ==
              replay_summary
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{"source_reports" => source_report_summary["source_reports"]}
+    }
+
+    assert %{
+             "source_report_timeline_publication_branch_local_timeline_publication_pressure" =>
+               true,
+             "source_report_timeline_publication_branch_local_dependency_pressure" => true,
+             "source_report_timeline_publication_branch_local_changed_field_pressure" => true,
+             "source_report_timeline_publication_branch_local_invalidation_pressure" => true,
+             "source_report_timeline_publication_branch_local_review_pressure" => true
+           } = CandidateRefresh.source_report_summary(artifact)
+
+    assert CandidateRefresh.timeline_publication_replay_summary(artifact) == replay_summary
   end
 
   test "timeline publication replay summary omits contract when source report is absent" do
