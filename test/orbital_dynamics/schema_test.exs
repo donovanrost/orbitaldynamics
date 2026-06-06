@@ -21382,6 +21382,83 @@ defmodule OrbitalDynamics.SchemaTest do
              "type"
            ]) == "string"
 
+    provenance_schema = get_in(feedback_schema, ["properties", "operational_feedback_provenance"])
+    provenance_source_schema = get_in(provenance_schema, ["properties", "sources", "items"])
+
+    assert get_in(provenance_schema, ["properties", "model", "const"]) ==
+             "timeline_feedback_report_rows_to_operational_feedback"
+
+    assert get_in(provenance_schema, ["properties", "merge_order", "items", "type"]) == "string"
+    assert get_in(provenance_schema, ["properties", "input_keys", "items", "type"]) == "string"
+
+    assert get_in(provenance_schema, ["properties", "source_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(provenance_schema, ["properties", "explicit_request_override", "type"]) ==
+             "boolean"
+
+    assert get_in(provenance_source_schema, [
+             "properties",
+             "source_report_contract",
+             "const"
+           ]) == "timeline_feedback_report.v1"
+
+    assert get_in(provenance_source_schema, ["properties", "source", "type"]) == "string"
+
+    assert get_in(provenance_source_schema, ["properties", "input_keys", "items", "type"]) ==
+             "string"
+
+    assert get_in(provenance_source_schema, ["properties", "trust_boundary_status", "type"]) ==
+             "string"
+
+    assert get_in(provenance_source_schema, ["properties", "trust_boundaries", "items", "type"]) ==
+             "string"
+
+    assert get_in(provenance_source_schema, [
+             "properties",
+             "feedback_weight_sources",
+             "items",
+             "type"
+           ]) == "string"
+
+    for field <- [
+          "source_report_count",
+          "source_report_row_count",
+          "realized_activity_count",
+          "weighted_feedback_row_count",
+          "source_operational_feedback_excluded_count"
+        ] do
+      assert get_in(provenance_source_schema, ["properties", field]) == %{
+               "type" => "integer",
+               "minimum" => 0
+             }
+    end
+
+    for field <- [
+          "source_report_status_counts",
+          "source_feedback_kind_counts",
+          "source_match_strategy_counts",
+          "source_cadence_import_status_counts",
+          "source_planned_protection_decision_counts",
+          "source_realized_source_quality_counts"
+        ] do
+      assert get_in(provenance_source_schema, [
+               "properties",
+               field,
+               "additionalProperties"
+             ]) == %{"type" => "integer", "minimum" => 0}
+    end
+
+    assert get_in(provenance_source_schema, [
+             "properties",
+             "feedback_trust_boundaries",
+             "additionalProperties",
+             "items",
+             "type"
+           ]) == "string"
+
     assert row_schema["required"] == ["activity_id", "status"]
 
     assert get_in(row_schema, ["properties", "activity_id", "pattern"]) ==

@@ -10505,6 +10505,14 @@ defmodule OrbitalDynamics.Schema do
     operational_feedback_json_schema()
   end
 
+  defp json_schema_property(
+         "operational_feedback_provenance",
+         @timeline_feedback_report,
+         _contract
+       ) do
+    timeline_feedback_operational_feedback_provenance_json_schema()
+  end
+
   defp json_schema_property("provenance", @candidate_refresh, _contract) do
     candidate_refresh_provenance_json_schema()
   end
@@ -20094,6 +20102,59 @@ defmodule OrbitalDynamics.Schema do
           "type" => "array",
           "items" => realized_activity_json_schema()
         }
+      }
+    }
+  end
+
+  defp timeline_feedback_operational_feedback_provenance_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "properties" => %{
+        "model" => %{
+          "type" => "string",
+          "const" => "timeline_feedback_report_rows_to_operational_feedback"
+        },
+        "merge_order" => string_array_schema(),
+        "input_keys" => string_array_schema(),
+        "source_count" => %{"type" => "integer", "minimum" => 0},
+        "explicit_request_override" => %{"type" => "boolean"},
+        "sources" => %{
+          "type" => "array",
+          "items" => timeline_feedback_operational_feedback_provenance_source_json_schema()
+        }
+      }
+    }
+  end
+
+  defp timeline_feedback_operational_feedback_provenance_source_json_schema do
+    count_map_schema = non_negative_integer_count_map_json_schema()
+
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "properties" => %{
+        "source" => %{"type" => "string"},
+        "source_report_contract" => %{
+          "type" => "string",
+          "const" => @timeline_feedback_report
+        },
+        "source_report_count" => %{"type" => "integer", "minimum" => 0},
+        "source_report_row_count" => %{"type" => "integer", "minimum" => 0},
+        "realized_activity_count" => %{"type" => "integer", "minimum" => 0},
+        "weighted_feedback_row_count" => %{"type" => "integer", "minimum" => 0},
+        "source_operational_feedback_excluded_count" => %{"type" => "integer", "minimum" => 0},
+        "input_keys" => string_array_schema(),
+        "trust_boundary_status" => %{"type" => "string"},
+        "trust_boundaries" => string_array_schema(),
+        "feedback_weight_sources" => string_array_schema(),
+        "source_report_status_counts" => count_map_schema,
+        "source_feedback_kind_counts" => count_map_schema,
+        "source_match_strategy_counts" => count_map_schema,
+        "source_cadence_import_status_counts" => count_map_schema,
+        "source_planned_protection_decision_counts" => count_map_schema,
+        "source_realized_source_quality_counts" => count_map_schema,
+        "feedback_trust_boundaries" => string_list_map_json_schema()
       }
     }
   end

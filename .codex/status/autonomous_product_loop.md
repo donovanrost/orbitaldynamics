@@ -1,67 +1,68 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Align `campaign_strategy.v3` branch JSON Schema with runtime branch identity.
+Expose `timeline_feedback_report.v1` operational-feedback provenance schema.
 
 Status:
-Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
-campaign strategy branches and executable validation use `branch_id` as the
-stable branch identity, and checked-in
-`leo_constellation_campaign_strategy_v3.json` branches carry `branch_id`,
-candidate-source assumptions, and candidate-source provenance. This slice makes
-branch items schema-visible for the runtime artifact shape. Strategy generation,
-branch scoring, repair behavior, CandidateRefresh replay, Cadence import
-behavior, and `strategy_branch.v1` standalone semantics are intentionally out of
-scope.
+Implemented, locally verified, and reviewed clean; publish pending. Runtime
+`timeline_feedback_report.v1` artifacts emit a structured
+`operational_feedback_provenance` envelope with model, merge order, input keys,
+source count, explicit override status, and per-source report metadata. This
+slice makes the provenance envelope and source rows schema-visible while keeping
+the detailed source metadata permissive. Timeline feedback reconciliation,
+operational feedback derivation, campaign propagation, CandidateRefresh replay,
+and Cadence import behavior are intentionally out of scope.
 
 Files expected:
 - `.codex/status/autonomous_product_loop.md`
 - `lib/orbital_dynamics/schema.ex`
-- `schemas/campaign_strategy.v3.schema.json`
+- `schemas/timeline_activity_state.v1.schema.json`
+- `schemas/timeline_feedback_report.v1.schema.json`
 - `schemas/orbital_dynamics.schema_bundle.v1.json`
 - `test/orbital_dynamics/schema_test.exs`
 
 Definition of done:
-- `campaign_strategy.v3` branch item JSON Schema requires `branch_id` instead
-  of `id`.
-- Branch item schema names the runtime identity/core fields needed by exported
-  strategy branches, including candidate-source assumptions/provenance.
-- Schema tests assert the checked-in strategy fixture branch fields are visible
-  and that branch schema identity matches executable validation.
-- Checked-in `campaign_strategy.v3` schema and schema bundle are refreshed.
-- Focused schema/export tests, schema lint, generated-schema spot-checks, and
-  whitespace checks pass.
+- `timeline_feedback_report.v1` JSON Schema names the top-level
+  `operational_feedback_provenance` envelope fields.
+- Provenance `sources` items expose source report identity, row/count summaries,
+  input keys, trust-boundary fields, and typed count maps used by runtime
+  artifacts.
+- Schema tests assert the checked-in fixture top-level fields are visible and
+  that provenance schema matches the runtime shape.
+- Checked-in `timeline_feedback_report.v1` schema and schema bundle are
+  refreshed.
+- Focused schema/export tests, timeline-feedback runtime tests, schema lint,
+  generated-schema spot-checks, and whitespace checks pass.
 - Read-only review finds no must-fix issues.
 - Slice-owned files only are committed and pushed.
 
 Tests run:
 - `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:10786 test/orbital_dynamics/schema_test.exs:23810`
+- `mix test test/orbital_dynamics/schema_test.exs:21317 test/orbital_dynamics/schema_test.exs:23810`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `jq` spot-check for `campaign_strategy.v3` branch `required`, missing `id`
-  property, `branch_id`, and nested candidate-source fields in
-  `schemas/campaign_strategy.v3.schema.json`.
+- `jq` spot-check for `timeline_feedback_report.v1`
+  `operational_feedback_provenance` model/source fields in
+  `schemas/timeline_feedback_report.v1.schema.json`.
 - `mix test test/orbital_dynamics/schema_test.exs`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:64858`
+- `mix test test/orbital_dynamics/timeline_feedback_test.exs:4889`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check -- . ':!.gitignore'`
-- `slice_reviewer`: no must-fix findings. Residual risks noted that the JSON
-  Schema is slightly more specific than executable validation for some branch
-  field types and that assumptions/provenance/candidate-source objects remain
-  permissive via `additionalProperties: true`; both are accepted for current
-  runtime fixtures and artifact-only schema style.
-- `git_slice_publisher`: committed and pushed.
+- `slice_reviewer`: no must-fix findings. Residual risks noted that executable
+  validation still checks provenance only as a map and that the schema remains
+  permissive for source metadata; accepted for this schema-visibility slice.
+- `mix format test/orbital_dynamics/schema_test.exs`
+- `mix test test/orbital_dynamics/schema_test.exs:21317 test/orbital_dynamics/schema_test.exs:23810`
 
 Last completed implementation commit:
 `507cdbb9fc37325fd7c50b81cc7314d54f3e6219` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending.
+`b83c147` pushed to `origin/main`.
 
 Next candidate:
-Make `timeline_feedback_report.v1` `operational_feedback_provenance`
-schema-visible.
+Continue contract-fidelity discovery from fixture/schema visibility gaps outside
+CandidateRefresh `provenance.source_reports`.
 
 Blocked:
 No.
