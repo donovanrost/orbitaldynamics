@@ -18738,6 +18738,7 @@ defmodule OrbitalDynamics.Schema do
         },
         "starts_at_s" => %{"type" => "number"},
         "ends_at_s" => %{"type" => "number"},
+        "capacity_fraction" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
         "source_window_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
         "ground_station_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
         "station_calendar_entry_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
@@ -18756,6 +18757,9 @@ defmodule OrbitalDynamics.Schema do
         "station_reservation_expires_at_s" => %{"type" => "number"},
         "station_reserved_by" => %{"type" => "string"},
         "station_reservation_status" => %{"type" => "string"},
+        "station_reservation_match_status" => %{"type" => "string"},
+        "resource_blocking_dimension" => %{"type" => "string"},
+        "resource_trust_boundary_status" => %{"type" => "string"},
         "incompatible_activity_types" => string_array_schema(),
         "suppressed_activity_types" => string_array_schema(),
         "policy_decision" => policy_decision_json_schema()
@@ -44095,6 +44099,9 @@ defmodule OrbitalDynamics.Schema do
     ])
     |> expect_optional_number(path, candidate, "starts_at_s")
     |> expect_optional_number(path, candidate, "ends_at_s")
+    |> expect_optional_number(path, candidate, "capacity_fraction")
+    |> expect_field_at_least(path, candidate, "capacity_fraction", 0.0)
+    |> expect_field_at_most(path, candidate, "capacity_fraction", 1.0)
     |> expect_optional_type(path, candidate, "station_calendar_status", :binary)
     |> expect_optional_integer(path, candidate, "station_calendar_precedence_rank")
     |> expect_field_at_least(path, candidate, "station_calendar_precedence_rank", 0)
@@ -44103,6 +44110,9 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(path, candidate, "station_contention_status", :binary)
     |> expect_optional_type(path, candidate, "station_reserved_by", :binary)
     |> expect_optional_type(path, candidate, "station_reservation_status", :binary)
+    |> expect_optional_type(path, candidate, "station_reservation_match_status", :binary)
+    |> expect_optional_type(path, candidate, "resource_blocking_dimension", :binary)
+    |> expect_optional_type(path, candidate, "resource_trust_boundary_status", :binary)
     |> expect_optional_type(path, candidate, "incompatible_activity_types", :list)
     |> validate_string_list_items(path, candidate, "incompatible_activity_types")
     |> expect_optional_type(path, candidate, "suppressed_activity_types", :list)
@@ -57197,6 +57207,16 @@ defmodule OrbitalDynamics.Schema do
 
     if Map.has_key?(map, field) and is_number(value) and value < minimum do
       [error("#{path}.#{field}", "must be at least #{minimum}") | issues]
+    else
+      issues
+    end
+  end
+
+  defp expect_field_at_most(issues, path, map, field, maximum) do
+    value = Map.get(map, field)
+
+    if Map.has_key?(map, field) and is_number(value) and value > maximum do
+      [error("#{path}.#{field}", "must be at most #{maximum}") | issues]
     else
       issues
     end

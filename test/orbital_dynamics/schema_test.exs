@@ -24603,10 +24603,24 @@ defmodule OrbitalDynamics.SchemaTest do
       ["properties"]
     )
 
+    assert_fixture_row_fields_are_schema_visible(
+      "resource_filter_report.v1",
+      "study_results/resource_filter_report_v1.json",
+      ["properties", "suppressed_candidates", "items", "properties"],
+      fn artifact -> Map.get(artifact, "suppressed_candidates", []) end
+    )
+
     assert_fixture_fields_are_schema_visible(
       "contact_filter_report.v1",
       "study_results/contact_filter_report_v1.json",
       ["properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "contact_filter_report.v1",
+      "study_results/contact_filter_report_v1.json",
+      ["properties", "suppressed_candidates", "items", "properties"],
+      fn artifact -> Map.get(artifact, "suppressed_candidates", []) end
     )
 
     assert_fixture_fields_are_schema_visible(
@@ -24939,6 +24953,21 @@ defmodule OrbitalDynamics.SchemaTest do
              "pattern"
            ]) == Schema.identity_policy()["stable_id_pattern"]
 
+    contact_suppressed_schema =
+      get_in(contact_filter_schema, ["properties", "suppressed_candidates", "items"])
+
+    assert get_in(contact_suppressed_schema, ["properties", "capacity_fraction"]) == %{
+             "type" => "number",
+             "minimum" => 0.0,
+             "maximum" => 1.0
+           }
+
+    assert get_in(contact_suppressed_schema, [
+             "properties",
+             "station_reservation_match_status",
+             "type"
+           ]) == "string"
+
     assert get_in(contact_filter_schema, ["properties", "input_candidate_count"]) == %{
              "type" => "integer",
              "minimum" => 0
@@ -25014,10 +25043,97 @@ defmodule OrbitalDynamics.SchemaTest do
              &(&1["path"] == "$.duplicate_suppressed_candidate_row_count")
            )
 
+    invalid_contact_capacity_fraction =
+      put_in(
+        contact_filter_report,
+        ["suppressed_candidates", Access.at(0), "capacity_fraction"],
+        1.5
+      )
+
+    assert {:error, contact_capacity_fraction_report} =
+             Schema.validate_artifact(invalid_contact_capacity_fraction,
+               schema_contract: "contact_filter_report.v1"
+             )
+
+    assert Enum.any?(
+             contact_capacity_fraction_report["errors"],
+             &(&1["path"] == "$.suppressed_candidates[0].capacity_fraction")
+           )
+
+    invalid_contact_match_status =
+      put_in(
+        contact_filter_report,
+        ["suppressed_candidates", Access.at(1), "station_reservation_match_status"],
+        7
+      )
+
+    assert {:error, contact_match_status_report} =
+             Schema.validate_artifact(invalid_contact_match_status,
+               schema_contract: "contact_filter_report.v1"
+             )
+
+    assert Enum.any?(
+             contact_match_status_report["errors"],
+             &(&1["path"] == "$.suppressed_candidates[1].station_reservation_match_status")
+           )
+
+    resource_filter_report = read_json!("study_results/resource_filter_report_v1.json")
+
     assert {:ok, %{"schema_contract" => "resource_filter_report.v1"}} =
-             "study_results/resource_filter_report_v1.json"
-             |> read_json!()
-             |> Schema.validate_artifact(schema_contract: "resource_filter_report.v1")
+             Schema.validate_artifact(resource_filter_report,
+               schema_contract: "resource_filter_report.v1"
+             )
+
+    assert {:ok, resource_filter_schema} = Schema.json_schema("resource_filter_report.v1")
+
+    resource_suppressed_schema =
+      get_in(resource_filter_schema, ["properties", "suppressed_candidates", "items"])
+
+    assert get_in(resource_suppressed_schema, [
+             "properties",
+             "resource_blocking_dimension",
+             "type"
+           ]) == "string"
+
+    assert get_in(resource_suppressed_schema, [
+             "properties",
+             "resource_trust_boundary_status",
+             "type"
+           ]) == "string"
+
+    invalid_resource_blocking_dimension =
+      put_in(
+        resource_filter_report,
+        ["suppressed_candidates", Access.at(0), "resource_blocking_dimension"],
+        ["storage"]
+      )
+
+    assert {:error, resource_blocking_dimension_report} =
+             Schema.validate_artifact(invalid_resource_blocking_dimension,
+               schema_contract: "resource_filter_report.v1"
+             )
+
+    assert Enum.any?(
+             resource_blocking_dimension_report["errors"],
+             &(&1["path"] == "$.suppressed_candidates[0].resource_blocking_dimension")
+           )
+
+    invalid_resource_trust_boundary_status =
+      put_in(
+        resource_filter_report,
+        ["suppressed_candidates", Access.at(1), "resource_trust_boundary_status"],
+        7
+      )
+
+    assert {:error, resource_trust_boundary_status_report} =
+             Schema.validate_artifact(invalid_resource_trust_boundary_status,
+               schema_contract: "resource_filter_report.v1"
+             )
+
+    assert Enum.any?(
+             resource_trust_boundary_status_report["errors"],
+             &(&1["path"] == "$.suppressed_candidates[1].resource_trust_boundary_status")
+           )
   end
 
   test "validates candidate refresh contact and resource filter reports" do
