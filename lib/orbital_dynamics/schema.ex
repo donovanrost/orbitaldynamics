@@ -124,6 +124,7 @@ defmodule OrbitalDynamics.Schema do
   @model_acceptance_report "model_acceptance_report.v1"
   @validation_safety_case_summary "validation_safety_case_summary.v1"
   @planned_activity "planned_activity.v1"
+  @activity_template "activity_template.v1"
   @proposed_contact "proposed_contact.v1"
   @contact_intent "contact_intent.v1"
   @command_window_report "command_window_report.v1"
@@ -3984,6 +3985,34 @@ defmodule OrbitalDynamics.Schema do
         "maneuver_success_factor_source",
         "execution_uncertainty",
         "cadence_import"
+      ],
+      "nested_contracts" => []
+    },
+    @activity_template => %{
+      "schema_contract" => @activity_template,
+      "artifact_family" => "activity_template",
+      "schema_version" => 1,
+      "required_fields" => [
+        "schema_contract",
+        "id",
+        "activity_type",
+        "template_version",
+        "validation_level",
+        "known_limits"
+      ],
+      "optional_fields" => [
+        "display_name",
+        "description",
+        "required_fields",
+        "optional_fields",
+        "default_fields",
+        "field_count",
+        "required_field_count",
+        "optional_field_count",
+        "lifecycle_defaults",
+        "resource_hints",
+        "precondition_hints",
+        "assumptions"
       ],
       "nested_contracts" => []
     },
@@ -9173,6 +9202,64 @@ defmodule OrbitalDynamics.Schema do
       },
       "additionalProperties" => false
     }
+  end
+
+  defp json_schema_property("schema_contract", @activity_template, _contract) do
+    %{"type" => "string", "const" => @activity_template}
+  end
+
+  defp json_schema_property("id", @activity_template, _contract) do
+    %{"type" => "string", "pattern" => @stable_id_pattern}
+  end
+
+  defp json_schema_property("activity_type", @activity_template, _contract) do
+    %{"type" => "string", "enum" => activity_template_activity_types()}
+  end
+
+  defp json_schema_property("template_version", @activity_template, _contract) do
+    %{"type" => "integer", "minimum" => 1}
+  end
+
+  defp json_schema_property("validation_level", @activity_template, _contract) do
+    %{"type" => "string", "const" => "artifact_contract"}
+  end
+
+  defp json_schema_property("known_limits", @activity_template, _contract),
+    do: string_array_schema()
+
+  defp json_schema_property(field, @activity_template, _contract)
+       when field in ["display_name", "description"] do
+    %{"type" => "string"}
+  end
+
+  defp json_schema_property(field, @activity_template, _contract)
+       when field in ["required_fields", "optional_fields"] do
+    string_array_schema()
+  end
+
+  defp json_schema_property("default_fields", @activity_template, _contract) do
+    %{"type" => "object", "additionalProperties" => true}
+  end
+
+  defp json_schema_property(field, @activity_template, _contract)
+       when field in ["field_count", "required_field_count", "optional_field_count"] do
+    %{"type" => "integer", "minimum" => 0}
+  end
+
+  defp json_schema_property("lifecycle_defaults", @activity_template, _contract) do
+    activity_template_lifecycle_defaults_json_schema()
+  end
+
+  defp json_schema_property("resource_hints", @activity_template, _contract) do
+    activity_template_resource_hints_json_schema()
+  end
+
+  defp json_schema_property("precondition_hints", @activity_template, _contract) do
+    %{"type" => "array", "items" => activity_template_precondition_hint_json_schema()}
+  end
+
+  defp json_schema_property("assumptions", @activity_template, _contract) do
+    %{"type" => "object", "additionalProperties" => true}
   end
 
   defp json_schema_property("approval_policy", contract, _contract)
@@ -18985,6 +19072,10 @@ defmodule OrbitalDynamics.Schema do
     Map.new(fields, &{&1, %{"type" => "integer", "minimum" => 0}})
   end
 
+  defp non_negative_number_property_schemas(fields) do
+    Map.new(fields, &{&1, %{"type" => "number", "minimum" => 0.0}})
+  end
+
   defp boolean_property_schemas(fields) do
     Map.new(fields, &{&1, %{"type" => "boolean"}})
   end
@@ -19684,6 +19775,106 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Constraints.CampaignLocal.capabilities()
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
+  end
+
+  defp activity_template_activity_types do
+    OrbitalDynamics.Timeline.capabilities().supported_activity_types
+  end
+
+  defp activity_template_activity_statuses do
+    OrbitalDynamics.Timeline.capabilities().activity_statuses
+  end
+
+  defp activity_template_approval_statuses do
+    OrbitalDynamics.Timeline.capabilities().approval_statuses
+  end
+
+  defp activity_template_precondition_types do
+    OrbitalDynamics.Timeline.capabilities().activity_precondition_types
+  end
+
+  defp activity_template_precondition_statuses do
+    OrbitalDynamics.Timeline.capabilities().activity_precondition_statuses
+  end
+
+  defp activity_template_lifecycle_defaults_json_schema do
+    %{
+      "type" => "object",
+      "properties" => %{
+        "status" => %{"type" => "string", "enum" => activity_template_activity_statuses()},
+        "approval_status" => %{
+          "type" => "string",
+          "enum" => activity_template_approval_statuses()
+        },
+        "locked" => %{"type" => "boolean"},
+        "allow_overlap" => %{"type" => "boolean"}
+      },
+      "additionalProperties" => true
+    }
+  end
+
+  defp activity_template_resource_hints_json_schema do
+    %{
+      "type" => "object",
+      "properties" =>
+        %{}
+        |> Map.merge(
+          boolean_property_schemas([
+            "requires_payload",
+            "requires_antenna",
+            "requires_contact",
+            "uses_storage",
+            "uses_power",
+            "uses_fuel"
+          ])
+        )
+        |> Map.merge(
+          string_array_property_schemas([
+            "suppressed_activity_types",
+            "incompatible_activity_types"
+          ])
+        )
+        |> Map.merge(
+          non_negative_number_property_schemas([
+            "estimated_data_volume_mb",
+            "estimated_downlink_mb",
+            "battery_energy_used_wh",
+            "battery_energy_generated_wh"
+          ])
+        )
+        |> Map.merge(
+          number_property_schemas([
+            "fuel_margin",
+            "power_margin",
+            "storage_margin",
+            "downlink_margin",
+            "thermal_margin_c"
+          ])
+        ),
+      "additionalProperties" => true
+    }
+  end
+
+  defp activity_template_precondition_hint_json_schema do
+    %{
+      "type" => "object",
+      "required" => ["precondition_type"],
+      "properties" => %{
+        "precondition_type" => %{
+          "type" => "string",
+          "enum" => activity_template_precondition_types()
+        },
+        "status" => %{
+          "type" => "string",
+          "enum" => activity_template_precondition_statuses()
+        },
+        "reason" => %{"type" => "string"},
+        "field" => %{"type" => "string"},
+        "value" => true,
+        "blocking" => %{"type" => "boolean"}
+      },
+      "additionalProperties" => true
+    }
   end
 
   defp planned_activity_json_schema do
@@ -28878,6 +29069,334 @@ defmodule OrbitalDynamics.Schema do
     Enum.reduce(safety_case_count_fields(), issues, fn field, acc ->
       expect_optional_non_negative_integer(acc, path, summary, field)
     end)
+  end
+
+  defp validate_activity_template_version(issues, path, artifact) do
+    case Map.get(artifact, "template_version") do
+      value when is_integer(value) and value >= 1 ->
+        issues
+
+      _value ->
+        [
+          error("#{path}.template_version", "must be an integer greater than or equal to 1")
+          | issues
+        ]
+    end
+  end
+
+  defp validate_activity_template_metadata_fields(issues, path, artifact) do
+    issues
+    |> validate_activity_template_optional_type(path, artifact, "display_name", :binary)
+    |> validate_activity_template_optional_type(path, artifact, "description", :binary)
+    |> validate_activity_template_optional_type(path, artifact, "assumptions", :map)
+  end
+
+  defp validate_activity_template_optional_type(issues, path, map, field, type) do
+    if Map.has_key?(map, field) do
+      expect_type(issues, path, map, field, type)
+    else
+      issues
+    end
+  end
+
+  defp validate_activity_template_optional_one_of(issues, path, map, field, allowed) do
+    if Map.has_key?(map, field) do
+      expect_one_of(issues, path, map, field, allowed)
+    else
+      issues
+    end
+  end
+
+  defp validate_activity_template_optional_number(issues, path, map, field) do
+    case Map.fetch(map, field) do
+      :error -> issues
+      {:ok, value} when is_number(value) -> issues
+      {:ok, _value} -> [error("#{path}.#{field}", "must be a number") | issues]
+    end
+  end
+
+  defp validate_activity_template_optional_non_negative_integer(issues, path, map, field) do
+    case Map.fetch(map, field) do
+      :error ->
+        issues
+
+      {:ok, value} when is_integer(value) and value >= 0 ->
+        issues
+
+      {:ok, _value} ->
+        [error("#{path}.#{field}", "must be a non-negative integer") | issues]
+    end
+  end
+
+  defp validate_activity_template_optional_non_negative_number(issues, path, map, field) do
+    case Map.fetch(map, field) do
+      :error ->
+        issues
+
+      {:ok, value} when is_number(value) and value >= 0.0 ->
+        issues
+
+      {:ok, value} when is_number(value) ->
+        [error("#{path}.#{field}", "must be non-negative") | issues]
+
+      {:ok, _value} ->
+        [error("#{path}.#{field}", "must be a number") | issues]
+    end
+  end
+
+  defp validate_activity_template_field_lists(issues, path, artifact) do
+    issues
+    |> validate_activity_template_optional_type(path, artifact, "required_fields", :list)
+    |> validate_string_list_items(path, artifact, "required_fields")
+    |> validate_activity_template_optional_type(path, artifact, "optional_fields", :list)
+    |> validate_string_list_items(path, artifact, "optional_fields")
+    |> validate_activity_template_optional_non_negative_integer(path, artifact, "field_count")
+    |> validate_activity_template_optional_non_negative_integer(
+      path,
+      artifact,
+      "required_field_count"
+    )
+    |> validate_activity_template_optional_non_negative_integer(
+      path,
+      artifact,
+      "optional_field_count"
+    )
+    |> expect_field_equals(
+      path,
+      artifact,
+      "required_field_count",
+      list_count(artifact, "required_fields"),
+      "must equal required_fields count"
+    )
+    |> expect_field_equals(
+      path,
+      artifact,
+      "optional_field_count",
+      list_count(artifact, "optional_fields"),
+      "must equal optional_fields count"
+    )
+    |> expect_field_equals(
+      path,
+      artifact,
+      "field_count",
+      activity_template_declared_field_count(artifact),
+      "must equal required_fields plus optional_fields count"
+    )
+  end
+
+  defp activity_template_declared_field_count(artifact) do
+    required_count = list_count(artifact, "required_fields")
+    optional_count = list_count(artifact, "optional_fields")
+
+    if is_integer(required_count) and is_integer(optional_count) do
+      required_count + optional_count
+    end
+  end
+
+  defp validate_activity_template_default_fields(issues, path, artifact) do
+    case Map.fetch(artifact, "default_fields") do
+      :error ->
+        issues
+
+      {:ok, defaults} when is_map(defaults) ->
+        declared_fields = activity_template_declared_fields(artifact)
+
+        Enum.reduce(defaults, issues, fn {field, _value}, acc ->
+          if field in declared_fields do
+            acc
+          else
+            [
+              error(
+                "#{path}.default_fields.#{field}",
+                "must be declared in required_fields or optional_fields"
+              )
+              | acc
+            ]
+          end
+        end)
+
+      {:ok, _value} ->
+        [error("#{path}.default_fields", "must be a map") | issues]
+    end
+  end
+
+  defp activity_template_declared_fields(artifact) do
+    artifact
+    |> Map.take(["required_fields", "optional_fields"])
+    |> Map.values()
+    |> Enum.flat_map(fn
+      values when is_list(values) -> Enum.filter(values, &is_binary/1)
+      _value -> []
+    end)
+    |> MapSet.new()
+  end
+
+  defp validate_activity_template_lifecycle_defaults(issues, path, artifact) do
+    case Map.fetch(artifact, "lifecycle_defaults") do
+      :error ->
+        issues
+
+      {:ok, defaults} when is_map(defaults) ->
+        issues
+        |> validate_activity_template_optional_one_of(
+          "#{path}.lifecycle_defaults",
+          defaults,
+          "status",
+          activity_template_activity_statuses()
+        )
+        |> validate_activity_template_optional_one_of(
+          "#{path}.lifecycle_defaults",
+          defaults,
+          "approval_status",
+          activity_template_approval_statuses()
+        )
+        |> validate_activity_template_optional_type(
+          "#{path}.lifecycle_defaults",
+          defaults,
+          "locked",
+          :boolean
+        )
+        |> validate_activity_template_optional_type(
+          "#{path}.lifecycle_defaults",
+          defaults,
+          "allow_overlap",
+          :boolean
+        )
+
+      {:ok, _value} ->
+        [error("#{path}.lifecycle_defaults", "must be a map") | issues]
+    end
+  end
+
+  defp validate_activity_template_resource_hints(issues, path, artifact) do
+    case Map.fetch(artifact, "resource_hints") do
+      :error ->
+        issues
+
+      {:ok, hints} when is_map(hints) ->
+        boolean_fields = [
+          "requires_payload",
+          "requires_antenna",
+          "requires_contact",
+          "uses_storage",
+          "uses_power",
+          "uses_fuel"
+        ]
+
+        string_list_fields = ["suppressed_activity_types", "incompatible_activity_types"]
+
+        non_negative_number_fields = [
+          "estimated_data_volume_mb",
+          "estimated_downlink_mb",
+          "battery_energy_used_wh",
+          "battery_energy_generated_wh"
+        ]
+
+        number_fields = [
+          "fuel_margin",
+          "power_margin",
+          "storage_margin",
+          "downlink_margin",
+          "thermal_margin_c"
+        ]
+
+        issues =
+          Enum.reduce(boolean_fields, issues, fn field, acc ->
+            validate_activity_template_optional_type(
+              acc,
+              "#{path}.resource_hints",
+              hints,
+              field,
+              :boolean
+            )
+          end)
+
+        issues =
+          Enum.reduce(string_list_fields, issues, fn field, acc ->
+            acc
+            |> validate_activity_template_optional_type(
+              "#{path}.resource_hints",
+              hints,
+              field,
+              :list
+            )
+            |> validate_string_list_items("#{path}.resource_hints", hints, field)
+          end)
+
+        issues =
+          Enum.reduce(non_negative_number_fields, issues, fn field, acc ->
+            validate_activity_template_optional_non_negative_number(
+              acc,
+              "#{path}.resource_hints",
+              hints,
+              field
+            )
+          end)
+
+        Enum.reduce(number_fields, issues, fn field, acc ->
+          validate_activity_template_optional_number(acc, "#{path}.resource_hints", hints, field)
+        end)
+
+      {:ok, _value} ->
+        [error("#{path}.resource_hints", "must be a map") | issues]
+    end
+  end
+
+  defp validate_activity_template_precondition_hints(issues, path, artifact) do
+    case Map.fetch(artifact, "precondition_hints") do
+      :error ->
+        issues
+
+      {:ok, hints} when is_list(hints) ->
+        hints
+        |> Enum.with_index()
+        |> Enum.reduce(issues, fn
+          {%{} = hint, index}, acc ->
+            hint_path = "#{path}.precondition_hints[#{index}]"
+
+            acc
+            |> require_fields(hint_path, hint, ["precondition_type"])
+            |> expect_one_of(
+              hint_path,
+              hint,
+              "precondition_type",
+              activity_template_precondition_types()
+            )
+            |> validate_activity_template_optional_one_of(
+              hint_path,
+              hint,
+              "status",
+              activity_template_precondition_statuses()
+            )
+            |> validate_activity_template_optional_type(hint_path, hint, "reason", :binary)
+            |> validate_activity_template_optional_type(hint_path, hint, "field", :binary)
+            |> validate_activity_template_optional_type(hint_path, hint, "blocking", :boolean)
+
+          {_hint, index}, acc ->
+            [error("#{path}.precondition_hints[#{index}]", "must be a map") | acc]
+        end)
+
+      {:ok, _value} ->
+        [error("#{path}.precondition_hints", "must be a list") | issues]
+    end
+  end
+
+  defp validate_contract(@activity_template, contract, artifact) do
+    []
+    |> require_fields("$", artifact, contract["required_fields"])
+    |> expect_equal("$", artifact, "schema_contract", @activity_template)
+    |> validate_stable_id("$.id", Map.get(artifact, "id"))
+    |> expect_one_of("$", artifact, "activity_type", activity_template_activity_types())
+    |> validate_activity_template_version("$", artifact)
+    |> expect_equal("$", artifact, "validation_level", "artifact_contract")
+    |> expect_type("$", artifact, "known_limits", :list)
+    |> validate_string_list_items("$", artifact, "known_limits")
+    |> validate_activity_template_metadata_fields("$", artifact)
+    |> validate_activity_template_field_lists("$", artifact)
+    |> validate_activity_template_default_fields("$", artifact)
+    |> validate_activity_template_lifecycle_defaults("$", artifact)
+    |> validate_activity_template_resource_hints("$", artifact)
+    |> validate_activity_template_precondition_hints("$", artifact)
   end
 
   defp validate_contract(@planned_activity, contract, artifact) do

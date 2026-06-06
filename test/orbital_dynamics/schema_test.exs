@@ -55,6 +55,136 @@ defmodule OrbitalDynamics.SchemaTest do
     assert "top_level_json_schema_compatibility_export" in capabilities.known_limits
   end
 
+  test "validates activity template schema contract" do
+    assert {:ok, contract} = Schema.contract("activity_template.v1")
+    assert contract["artifact_family"] == "activity_template"
+    assert "activity_template.v1" in Schema.capabilities().artifact_contracts
+
+    assert {:ok, schema} = Schema.json_schema("activity_template.v1")
+    assert schema["properties"]["schema_contract"]["const"] == "activity_template.v1"
+    assert schema["properties"]["id"]["pattern"]
+
+    assert schema["properties"]["activity_type"]["enum"] ==
+             OrbitalDynamics.Timeline.capabilities().supported_activity_types
+
+    assert schema["properties"]["template_version"]["minimum"] == 1
+    assert schema["properties"]["validation_level"]["const"] == "artifact_contract"
+
+    assert schema["properties"]["precondition_hints"]["items"]["properties"][
+             "precondition_type"
+           ]["enum"] == OrbitalDynamics.Timeline.capabilities().activity_precondition_types
+
+    assert schema["properties"]["lifecycle_defaults"]["properties"]["status"]["enum"] ==
+             OrbitalDynamics.Timeline.capabilities().activity_statuses
+
+    template = %{
+      "schema_contract" => "activity_template.v1",
+      "id" => "template:observe:basic",
+      "activity_type" => "observe",
+      "template_version" => 1,
+      "validation_level" => "artifact_contract",
+      "required_fields" => ["id", "type", "target_id", "starts_at_s", "ends_at_s"],
+      "optional_fields" => ["payload_id", "instrument_id", "allow_overlap"],
+      "field_count" => 8,
+      "required_field_count" => 5,
+      "optional_field_count" => 3,
+      "default_fields" => %{"type" => "observe", "allow_overlap" => false},
+      "lifecycle_defaults" => %{
+        "status" => "planned",
+        "approval_status" => "not_evaluated",
+        "locked" => false,
+        "allow_overlap" => false
+      },
+      "resource_hints" => %{
+        "requires_payload" => true,
+        "uses_storage" => true,
+        "suppressed_activity_types" => ["downlink"],
+        "estimated_data_volume_mb" => 48.0
+      },
+      "precondition_hints" => [
+        %{
+          "precondition_type" => "payload_unavailable",
+          "status" => "review_required",
+          "reason" => "payload availability must be checked",
+          "blocking" => true
+        }
+      ],
+      "assumptions" => %{"boundary" => "template_only_no_schedule_mutation"},
+      "known_limits" => ["template_only_no_schedule_mutation", "no_resource_reservation"]
+    }
+
+    assert {:ok, %{"schema_contract" => "activity_template.v1", "status" => "pass"}} =
+             Schema.validate_artifact(template)
+
+    invalid_id = %{template | "id" => "bad id"}
+    assert {:error, report} = Schema.validate_artifact(invalid_id)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.id"))
+
+    unsupported_type = %{template | "activity_type" => "payload_warmup"}
+    assert {:error, report} = Schema.validate_artifact(unsupported_type)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.activity_type"))
+
+    stale_field_count = %{template | "field_count" => 7}
+    assert {:error, report} = Schema.validate_artifact(stale_field_count)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.field_count"))
+
+    malformed_fields = %{template | "required_fields" => ["id", 42]}
+    assert {:error, report} = Schema.validate_artifact(malformed_fields)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.required_fields[1]"))
+
+    undeclared_default = %{template | "default_fields" => %{"undeclared" => true}}
+    assert {:error, report} = Schema.validate_artifact(undeclared_default)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.default_fields.undeclared"))
+
+    invalid_display_name = Map.put(template, "display_name", 123)
+    assert {:error, report} = Schema.validate_artifact(invalid_display_name)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.display_name"))
+
+    invalid_assumptions = %{template | "assumptions" => "not-map"}
+    assert {:error, report} = Schema.validate_artifact(invalid_assumptions)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.assumptions"))
+
+    null_default_fields = %{template | "default_fields" => nil}
+    assert {:error, report} = Schema.validate_artifact(null_default_fields)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.default_fields"))
+
+    null_resource_hints = %{template | "resource_hints" => nil}
+    assert {:error, report} = Schema.validate_artifact(null_resource_hints)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.resource_hints"))
+
+    null_field_count = %{template | "field_count" => nil}
+    assert {:error, report} = Schema.validate_artifact(null_field_count)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.field_count"))
+
+    null_lifecycle_status = put_in(template, ["lifecycle_defaults", "status"], nil)
+    assert {:error, report} = Schema.validate_artifact(null_lifecycle_status)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.lifecycle_defaults.status"))
+
+    invalid_precondition = %{
+      template
+      | "precondition_hints" => [
+          %{"precondition_type" => "payload_ready", "status" => "review_required"}
+        ]
+    }
+
+    assert {:error, report} = Schema.validate_artifact(invalid_precondition)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.precondition_hints[0].precondition_type")
+           )
+
+    null_precondition_status =
+      put_in(template, ["precondition_hints", Access.at(0), "status"], nil)
+
+    assert {:error, report} = Schema.validate_artifact(null_precondition_status)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.precondition_hints[0].status")
+           )
+  end
+
   test "validates the capability catalog artifact contract" do
     artifact = OrbitalDynamics.capability_catalog_artifact()
 
@@ -24754,7 +24884,7 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert migration_report["status"] == "review_required"
     assert migration_report["deprecated_contract_count"] == 1
-    assert migration_report["status_counts"] == %{"current" => 118, "deprecated" => 1}
+    assert migration_report["status_counts"] == %{"current" => 119, "deprecated" => 1}
 
     stale_migration_model =
       Map.put(migration_report, "model", "stale_schema_migration_report_model")

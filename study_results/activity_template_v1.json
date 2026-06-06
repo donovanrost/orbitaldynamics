@@ -1,0 +1,57 @@
+{
+  "schema_contract": "activity_template.v1",
+  "id": "template:observe:basic",
+  "activity_type": "observe",
+  "template_version": 1,
+  "validation_level": "artifact_contract",
+  "display_name": "Basic observe activity",
+  "description": "Reusable evidence contract for a target observation activity template.",
+  "required_fields": [
+    "id",
+    "type",
+    "target_id",
+    "starts_at_s",
+    "ends_at_s"
+  ],
+  "optional_fields": [
+    "payload_id",
+    "instrument_id",
+    "allow_overlap"
+  ],
+  "field_count": 8,
+  "required_field_count": 5,
+  "optional_field_count": 3,
+  "default_fields": {
+    "type": "observe",
+    "allow_overlap": false
+  },
+  "lifecycle_defaults": {
+    "status": "planned",
+    "approval_status": "not_evaluated",
+    "locked": false,
+    "allow_overlap": false
+  },
+  "resource_hints": {
+    "requires_payload": true,
+    "uses_storage": true,
+    "suppressed_activity_types": [
+      "downlink"
+    ],
+    "estimated_data_volume_mb": 48.0
+  },
+  "precondition_hints": [
+    {
+      "precondition_type": "payload_unavailable",
+      "status": "review_required",
+      "reason": "payload availability must be checked",
+      "blocking": true
+    }
+  ],
+  "assumptions": {
+    "boundary": "template_only_no_schedule_mutation"
+  },
+  "known_limits": [
+    "template_only_no_schedule_mutation",
+    "no_resource_reservation"
+  ]
+}

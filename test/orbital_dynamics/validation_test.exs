@@ -86,9 +86,9 @@ defmodule OrbitalDynamics.ValidationTest do
              "status" => "review_required",
              "deprecated_contract_count" => 1,
              "future_contract_count" => 1,
-             "status_counts" => %{"current" => 118, "deprecated" => 1, "future" => 1},
+             "status_counts" => %{"current" => 119, "deprecated" => 1, "future" => 1},
              "migration_action_counts" => %{
-               "continue_current_contract" => 118,
+               "continue_current_contract" => 119,
                "plan_replacement" => 1,
                "prepare_future_contract" => 1
              }
@@ -4063,15 +4063,18 @@ defmodule OrbitalDynamics.ValidationTest do
     assert fixture_observations["station_calendar_reservation_contract"] ==
              "station_reservation_report.v1"
 
-    assert fixture_observations["candidate_refresh_input_count"] == 70
-    assert fixture_observations["candidate_refresh_source_report_input_count"] == 53
-    assert fixture_observations["candidate_refresh_source_report_helper_count"] == 39
+    assert fixture_observations["candidate_refresh_input_count"] == 71
+    assert fixture_observations["candidate_refresh_source_report_input_count"] == 54
+    assert fixture_observations["candidate_refresh_source_report_helper_count"] == 40
 
     assert fixture_observations["candidate_refresh_source_report_input_order"] =~
              "schema_validation_batch_report"
 
     assert fixture_observations["candidate_refresh_source_report_input_order"] =~
              "timeline_dependency_impact_summary"
+
+    assert fixture_observations["candidate_refresh_source_report_input_order"] =~
+             "timeline_publication_summary"
 
     assert fixture_observations["candidate_refresh_source_report_input_order"] =~
              "timeline_activity_precondition_summary"
@@ -10535,13 +10538,13 @@ defmodule OrbitalDynamics.ValidationTest do
              "deprecated_contract_count" => 1,
              "deprecated_contracts" => "campaign_plan.v1",
              "replacement_contracts" => "campaign_strategy.v3",
-             "status_counts" => %{"current" => 118, "deprecated" => 1},
-             "row_derived_status_counts" => %{"current" => 118, "deprecated" => 1}
+             "status_counts" => %{"current" => 119, "deprecated" => 1},
+             "row_derived_status_counts" => %{"current" => 119, "deprecated" => 1}
            } = schema_migration_report_fixture_observations()
 
     stale_status_counts =
       schema_migration_report_fixture_observations()
-      |> Map.put("row_derived_status_counts", %{"current" => 118})
+      |> Map.put("row_derived_status_counts", %{"current" => 119})
 
     assert {:ok, stale_status_counts_verification} =
              Validation.verify_reference_fixture(fixture_id, stale_status_counts)
@@ -10617,14 +10620,14 @@ defmodule OrbitalDynamics.ValidationTest do
              "status" => "review_required",
              "future_contract_count" => 1,
              "deprecated_contract_count" => 0,
-             "status_counts" => %{"current" => 119, "future" => 1},
-             "row_derived_status_counts" => %{"current" => 119, "future" => 1},
+             "status_counts" => %{"current" => 120, "future" => 1},
+             "row_derived_status_counts" => %{"current" => 120, "future" => 1},
              "migration_action_counts" => %{
-               "continue_current_contract" => 119,
+               "continue_current_contract" => 120,
                "prepare_future_contract" => 1
              },
              "row_derived_migration_action_counts" => %{
-               "continue_current_contract" => 119,
+               "continue_current_contract" => 120,
                "prepare_future_contract" => 1
              }
            } = observations
@@ -10639,7 +10642,7 @@ defmodule OrbitalDynamics.ValidationTest do
     stale_action_counts =
       observations
       |> Map.put("row_derived_migration_action_counts", %{
-        "continue_current_contract" => 119
+        "continue_current_contract" => 120
       })
 
     assert {:ok, stale_action_verification} =
