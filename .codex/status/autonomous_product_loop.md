@@ -4,7 +4,7 @@ Current slice:
 Expose candidate refresh top-level source report schemas.
 
 Status:
-Implemented, locally verified, and reviewed clean; pending publish.
+Committed and pushed.
 Contract-shaped fixture discovery shows
 `study_results/candidate_refresh_resource_provenance_v1.json` emits top-level
 source-report echoes that `candidate_refresh.v1` does not name:
@@ -64,10 +64,10 @@ Read-only review:
   `const`; the implementation and generated-schema spot-check cover it.
 
 Last completed implementation commit:
-`f83957de3577198f55f67be2718110c4713ca854` pushed to `origin/main`.
+`33e28bb388e4b2ce995c47967a3b7e110305c340` pushed to `origin/main`.
 
 Last ledger correction commit:
-`ce89ee4b8fad8ec8df4ab1aff7cbb8a8e962ba57` pushed to `origin/main`.
+Pending ledger correction for the candidate refresh source report schema slice.
 
 Next candidate:
 After this slice, rerun contract-shaped fixture/schema visibility discovery.
