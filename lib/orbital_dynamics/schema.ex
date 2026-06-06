@@ -21206,6 +21206,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_timeline_diff_source_report_summary_json_schema(),
             "timeline_integrity_report" =>
               candidate_refresh_timeline_integrity_source_report_summary_json_schema(),
+            "timeline_activity_lifecycle_state" =>
+              candidate_refresh_timeline_activity_lifecycle_source_report_summary_json_schema(),
             "timeline_publication_summary" =>
               candidate_refresh_timeline_publication_source_report_summary_json_schema(),
             "timeline_dependency_impact_summary" =>
@@ -21559,6 +21561,15 @@ defmodule OrbitalDynamics.Schema do
     candidate_refresh_source_report_summary_json_schema()
     |> update_in(["properties"], fn properties ->
       Map.merge(properties, candidate_refresh_timeline_integrity_context_json_schema_properties())
+    end)
+  end
+
+  defp candidate_refresh_timeline_activity_lifecycle_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      properties
+      |> Map.merge(candidate_refresh_timeline_activity_context_json_schema_properties())
+      |> Map.merge(candidate_refresh_timeline_activity_lifecycle_context_json_schema_properties())
     end)
   end
 
@@ -22181,7 +22192,8 @@ defmodule OrbitalDynamics.Schema do
           "activity_ids" => stable_id_array_schema(),
           "timeline_ids" => stable_id_array_schema(),
           "status_transition_categories" => string_array_schema(),
-          "approval_transition_categories" => string_array_schema()
+          "approval_transition_categories" => string_array_schema(),
+          "protection_categories" => string_array_schema()
         }
       }
     }
@@ -22503,6 +22515,44 @@ defmodule OrbitalDynamics.Schema do
       "invalid_activity_input_reason_counts" => non_negative_integer_count_map_json_schema(),
       "invalid_activity_input_reasons" => string_array_schema()
     }
+  end
+
+  defp candidate_refresh_timeline_activity_lifecycle_context_json_schema_properties do
+    non_negative_integer_property_schemas([
+      "review_required_count",
+      "transition_application_provenance_count"
+    ])
+    |> Map.merge(
+      Map.new(
+        [
+          "source_summary_model_counts",
+          "source_summary_schema_contract_counts",
+          "transition_decision_counts",
+          "status_transition_decision_counts",
+          "approval_transition_decision_counts",
+          "required_operator_action_counts",
+          "import_action_counts",
+          "planned_status_category_counts",
+          "realized_status_category_counts",
+          "planned_approval_category_counts",
+          "realized_approval_category_counts",
+          "status_transition_category_counts",
+          "approval_transition_category_counts",
+          "transition_application_provenance_helper_counts",
+          "transition_application_provenance_category_counts",
+          "transition_application_provenance_operator_action_reason_counts",
+          "protection_decision_counts",
+          "protection_category_counts",
+          "activity_id_counts",
+          "timeline_id_counts",
+          "review_activity_id_counts"
+        ],
+        &{&1, non_negative_integer_count_map_json_schema()}
+      )
+    )
+    |> Map.merge(%{
+      "action_routing" => timeline_activity_state_action_routing_json_schema()
+    })
   end
 
   defp candidate_refresh_timeline_publication_context_json_schema_properties do
@@ -26634,6 +26684,7 @@ defmodule OrbitalDynamics.Schema do
         |> validate_candidate_refresh_contact_filter_context(path, summary)
         |> validate_candidate_refresh_station_calendar_context(path, summary)
         |> validate_candidate_refresh_timeline_activity_context(path, summary)
+        |> validate_candidate_refresh_timeline_activity_lifecycle_context(path, summary)
         |> validate_candidate_refresh_timeline_integrity_context(path, summary)
         |> validate_candidate_refresh_timeline_publication_context(path, summary)
         |> validate_candidate_refresh_timeline_dependency_impact_context(path, summary)
@@ -27563,6 +27614,93 @@ defmodule OrbitalDynamics.Schema do
     )
     |> validate_string_list_items(path, summary, "invalid_activity_input_reasons")
   end
+
+  defp validate_candidate_refresh_timeline_activity_lifecycle_context(issues, path, summary) do
+    issues =
+      Enum.reduce(
+        [
+          "review_required_count",
+          "transition_application_provenance_count"
+        ],
+        issues,
+        fn field, acc ->
+          expect_optional_non_negative_integer(acc, path, summary, field)
+        end
+      )
+
+    issues =
+      Enum.reduce(
+        [
+          "source_summary_model_counts",
+          "source_summary_schema_contract_counts",
+          "transition_decision_counts",
+          "status_transition_decision_counts",
+          "approval_transition_decision_counts",
+          "required_operator_action_counts",
+          "import_action_counts",
+          "planned_status_category_counts",
+          "realized_status_category_counts",
+          "planned_approval_category_counts",
+          "realized_approval_category_counts",
+          "status_transition_category_counts",
+          "approval_transition_category_counts",
+          "transition_application_provenance_helper_counts",
+          "transition_application_provenance_category_counts",
+          "transition_application_provenance_operator_action_reason_counts",
+          "protection_decision_counts",
+          "protection_category_counts",
+          "activity_id_counts",
+          "timeline_id_counts",
+          "review_activity_id_counts"
+        ],
+        issues,
+        fn field, acc ->
+          acc
+          |> expect_optional_type(path, summary, field, :map)
+          |> validate_non_negative_integer_count_map(
+            path <> ".#{field}",
+            Map.get(summary, field)
+          )
+        end
+      )
+
+    issues
+    |> expect_optional_type(path, summary, "action_routing", :map)
+    |> validate_timeline_activity_state_action_routing(path, Map.get(summary, "action_routing"))
+  end
+
+  defp validate_timeline_activity_state_action_routing(issues, _path, value)
+       when value in [nil, :null],
+       do: issues
+
+  defp validate_timeline_activity_state_action_routing(issues, path, %{} = routes) do
+    Enum.reduce(routes, issues, fn {action, route}, acc ->
+      route_path = path <> ".action_routing.#{action}"
+
+      acc
+      |> expect_type(path <> ".action_routing", routes, action, :map)
+      |> validate_timeline_activity_state_action_route(route_path, route)
+    end)
+  end
+
+  defp validate_timeline_activity_state_action_routing(issues, _path, _value), do: issues
+
+  defp validate_timeline_activity_state_action_route(issues, path, %{} = route) do
+    issues
+    |> expect_optional_non_negative_integer(path, route, "review_count")
+    |> expect_optional_type(path, route, "activity_ids", :list)
+    |> expect_optional_type(path, route, "timeline_ids", :list)
+    |> expect_optional_type(path, route, "status_transition_categories", :list)
+    |> expect_optional_type(path, route, "approval_transition_categories", :list)
+    |> expect_optional_type(path, route, "protection_categories", :list)
+    |> validate_optional_stable_id_list(path, route, "activity_ids")
+    |> validate_optional_stable_id_list(path, route, "timeline_ids")
+    |> validate_optional_string_list(path, route, "status_transition_categories")
+    |> validate_optional_string_list(path, route, "approval_transition_categories")
+    |> validate_optional_string_list(path, route, "protection_categories")
+  end
+
+  defp validate_timeline_activity_state_action_route(issues, _path, _route), do: issues
 
   defp validate_candidate_refresh_timeline_publication_context(issues, path, summary) do
     validate_timeline_publication_context(issues, path, summary)
