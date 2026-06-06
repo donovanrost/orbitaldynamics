@@ -64,6 +64,13 @@ Status: **implemented** (with a **partial** semantic-depth area, plus **near-ter
 - Resource-availability quality-gate summaries publish the validated `operational_quality_gate_unavailable_resource_summary.v1` contract, and quality-gate/review/import rows also carry
   resource-blocked contact IDs by blocking dimension and spacecraft for
   unavailable-resource queue routing.
+- CandidateRefresh accepts compact
+  `operational_quality_gate_unavailable_resource_summary.v1` handoffs as
+  quality-gate source-report provenance from direct, accepted-state,
+  mission-state, and wrapped result-artifact inputs, preserving unavailable
+  resource reason counts, station reason IDs, blocked contact routing maps,
+  quality-gate row IDs, and no-authority evidence without replaying refresh
+  generation.
 - Cadence-import readiness gates lift import-status, freshness, and schema-validation count maps onto quality-gate, review, and import rows for adapter routing.
 - Quality-gate schema-validation summaries publish the validated
   `operational_quality_gate_schema_validation_summary.v1` contract and expose

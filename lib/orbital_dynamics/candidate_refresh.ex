@@ -252,6 +252,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :link_capacity_report,
         :quality_gate_report,
         :operational_quality_gate_summary,
+        :operational_quality_gate_unavailable_resource_summary,
         :operational_quality_gate_schema_validation_summary,
         :operational_quality_gate_import_readiness_summary,
         :model_acceptance_report,
@@ -605,6 +606,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :source_operational_readiness_report_input_provenance,
         :source_quality_gate_report_input_provenance,
         :source_operational_quality_gate_summary_input_provenance,
+        :source_operational_quality_gate_unavailable_resource_summary_input_provenance,
         :source_operational_quality_gate_schema_validation_summary_input_provenance,
         :source_operational_quality_gate_import_readiness_summary_input_provenance,
         :source_model_acceptance_report_input_provenance,
@@ -4723,6 +4725,24 @@ defmodule OrbitalDynamics.CandidateRefresh do
           source_reports,
           "quality_gate_report",
           "resource_blocking_dimension_counts"
+        ),
+      "source_report_quality_gate_blocked_contact_ids_by_blocking_dimension" =>
+        source_report_summary_family_merge_string_list_maps(
+          source_reports,
+          "quality_gate_report",
+          "blocked_contact_ids_by_blocking_dimension"
+        ),
+      "source_report_quality_gate_blocked_contact_ids_by_spacecraft_id" =>
+        source_report_summary_family_merge_string_list_maps(
+          source_reports,
+          "quality_gate_report",
+          "blocked_contact_ids_by_spacecraft_id"
+        ),
+      "source_report_quality_gate_blocked_contact_ids_by_status" =>
+        source_report_summary_family_merge_string_list_maps(
+          source_reports,
+          "quality_gate_report",
+          "blocked_contact_ids_by_status"
         ),
       "source_report_quality_gate_source_readiness_report_count" =>
         source_report_summary_family_count(
@@ -13731,6 +13751,15 @@ defmodule OrbitalDynamics.CandidateRefresh do
     resource_blocking_dimension_counts =
       Map.get(quality_gate_summary, "resource_blocking_dimension_counts", %{})
 
+    blocked_contact_ids_by_blocking_dimension =
+      Map.get(quality_gate_summary, "blocked_contact_ids_by_blocking_dimension", %{})
+
+    blocked_contact_ids_by_spacecraft_id =
+      Map.get(quality_gate_summary, "blocked_contact_ids_by_spacecraft_id", %{})
+
+    blocked_contact_ids_by_status =
+      Map.get(quality_gate_summary, "blocked_contact_ids_by_status", %{})
+
     readiness_level_counts = Map.get(quality_gate_summary, "readiness_level_counts", %{})
 
     import_classification_counts =
@@ -13776,7 +13805,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
       resource_pressure_count > 0 or map_size(resource_availability_reason_counts) > 0 or
         resource_availability_reason_ids != [] or station_availability_reason_ids != [] or
         map_size(station_availability_reason_counts) > 0 or
-        unavailable_resource_reason_ids != [] or map_size(resource_blocking_dimension_counts) > 0
+        unavailable_resource_reason_ids != [] or map_size(resource_blocking_dimension_counts) > 0 or
+        map_size(blocked_contact_ids_by_blocking_dimension) > 0 or
+        map_size(blocked_contact_ids_by_spacecraft_id) > 0 or
+        map_size(blocked_contact_ids_by_status) > 0
 
     review_pressure =
       review_gate_count > 0 or blocked_gate_count > 0 or map_size(readiness_level_counts) > 0 or
@@ -13848,6 +13880,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "station_availability_reason_counts" => station_availability_reason_counts,
       "unavailable_resource_reason_ids" => unavailable_resource_reason_ids,
       "resource_blocking_dimension_counts" => resource_blocking_dimension_counts,
+      "blocked_contact_ids_by_blocking_dimension" => blocked_contact_ids_by_blocking_dimension,
+      "blocked_contact_ids_by_spacecraft_id" => blocked_contact_ids_by_spacecraft_id,
+      "blocked_contact_ids_by_status" => blocked_contact_ids_by_status,
       "source_readiness_report_count" =>
         summary_integer(quality_gate_summary, "source_readiness_report_count"),
       "branch_local_review_pressure" => review_pressure,
@@ -21726,6 +21761,20 @@ defmodule OrbitalDynamics.CandidateRefresh do
         reports
         |> Enum.map(&quality_gate_resource_blocking_dimension_counts/1)
         |> merge_count_maps(),
+      "blocked_contact_ids_by_blocking_dimension" =>
+        reports
+        |> Enum.map(
+          &quality_gate_string_list_map(&1, "blocked_contact_ids_by_blocking_dimension")
+        )
+        |> merge_string_list_maps(),
+      "blocked_contact_ids_by_spacecraft_id" =>
+        reports
+        |> Enum.map(&quality_gate_string_list_map(&1, "blocked_contact_ids_by_spacecraft_id"))
+        |> merge_string_list_maps(),
+      "blocked_contact_ids_by_status" =>
+        reports
+        |> Enum.map(&quality_gate_string_list_map(&1, "blocked_contact_ids_by_status"))
+        |> merge_string_list_maps(),
       "source_readiness_report_count" =>
         reports
         |> Enum.map(&Map.get(&1, "source_readiness_report_id"))
@@ -26095,53 +26144,85 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp quality_gate_source_artifact_type(report), do: Map.get(report, "source_artifact_type")
 
   defp quality_gate_resource_availability_pressure_count(report) do
-    report
-    |> quality_gate_report_rows()
-    |> Enum.map(&numeric_report_count(&1, "resource_availability_pressure_count"))
-    |> Enum.sum()
+    case quality_gate_report_rows(report) do
+      [] ->
+        numeric_report_count(report, "resource_availability_pressure_count")
+
+      rows ->
+        rows
+        |> Enum.map(&numeric_report_count(&1, "resource_availability_pressure_count"))
+        |> Enum.sum()
+    end
   end
 
   defp quality_gate_resource_availability_reason_counts(report) do
-    report
-    |> quality_gate_report_rows()
-    |> Enum.map(&Map.get(&1, "resource_availability_reason_counts"))
-    |> merge_count_maps()
+    case quality_gate_report_rows(report) do
+      [] ->
+        Map.get(report, "resource_availability_reason_counts", %{})
+
+      rows ->
+        rows
+        |> Enum.map(&Map.get(&1, "resource_availability_reason_counts"))
+        |> merge_count_maps()
+    end
   end
 
   defp quality_gate_resource_availability_reason_ids(report) do
-    report
-    |> quality_gate_report_rows()
-    |> Enum.flat_map(fn row ->
-      list_value(Map.get(row, "resource_availability_reason_ids")) ++
-        Map.keys(Map.get(row, "resource_availability_reason_counts") || %{})
-    end)
+    case quality_gate_report_rows(report) do
+      [] ->
+        list_value(Map.get(report, "resource_availability_reason_ids")) ++
+          Map.keys(Map.get(report, "resource_availability_reason_counts") || %{})
+
+      rows ->
+        Enum.flat_map(rows, fn row ->
+          list_value(Map.get(row, "resource_availability_reason_ids")) ++
+            Map.keys(Map.get(row, "resource_availability_reason_counts") || %{})
+        end)
+    end
   end
 
   defp quality_gate_unavailable_resource_reason_ids(report) do
-    report
-    |> Map.get("rows", [])
-    |> Enum.flat_map(fn row ->
-      list_value(Map.get(row, "unavailable_resource_reason_ids")) ++
-        Map.keys(Map.get(row, "resource_availability_reason_counts") || %{})
-    end)
+    case quality_gate_report_rows(report) do
+      [] ->
+        list_value(Map.get(report, "unavailable_resource_reason_ids")) ++
+          Map.keys(Map.get(report, "unavailable_resource_reason_counts") || %{})
+
+      rows ->
+        Enum.flat_map(rows, fn row ->
+          list_value(Map.get(row, "unavailable_resource_reason_ids")) ++
+            Map.keys(Map.get(row, "resource_availability_reason_counts") || %{})
+        end)
+    end
     |> filter_resource_reason_ids(operational_readiness_unavailable_reasons())
   end
 
   defp quality_gate_station_reason_ids(report) do
-    report
-    |> Map.get("rows", [])
-    |> Enum.flat_map(fn row ->
-      list_value(Map.get(row, "station_availability_reason_ids")) ++
-        Map.keys(Map.get(row, "resource_availability_reason_counts") || %{})
-    end)
+    case quality_gate_report_rows(report) do
+      [] ->
+        list_value(Map.get(report, "station_availability_reason_ids")) ++
+          Map.keys(Map.get(report, "station_availability_reason_counts") || %{})
+
+      rows ->
+        Enum.flat_map(rows, fn row ->
+          list_value(Map.get(row, "station_availability_reason_ids")) ++
+            Map.keys(Map.get(row, "resource_availability_reason_counts") || %{})
+        end)
+    end
     |> filter_resource_reason_ids(operational_readiness_station_reasons())
   end
 
   defp quality_gate_station_reason_counts(report) do
-    report
-    |> Map.get("rows", [])
-    |> Enum.map(&station_availability_reason_counts_from_context/1)
-    |> merge_count_maps()
+    case quality_gate_report_rows(report) do
+      [] ->
+        report
+        |> Map.get("station_availability_reason_counts", %{})
+        |> station_availability_reason_count_map()
+
+      rows ->
+        rows
+        |> Enum.map(&station_availability_reason_counts_from_context/1)
+        |> merge_count_maps()
+    end
   end
 
   defp station_availability_reason_counts_from_context(%{} = context) do
@@ -26200,10 +26281,15 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp quality_gate_resource_blocking_dimension_counts(report) do
-    report
-    |> Map.get("rows", [])
-    |> Enum.map(&Map.get(&1, "resource_blocking_dimension_counts"))
-    |> merge_count_maps()
+    case quality_gate_report_rows(report) do
+      [] ->
+        Map.get(report, "resource_blocking_dimension_counts", %{})
+
+      rows ->
+        rows
+        |> Enum.map(&Map.get(&1, "resource_blocking_dimension_counts"))
+        |> merge_count_maps()
+    end
   end
 
   defp schema_validation_error_count(report) do
@@ -38464,6 +38550,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
          "accepted_planning_state",
          "operational_quality_gate_summary"
        ])},
+      {"accepted_planning_state.source_operational_quality_gate_unavailable_resource_summary",
+       get_in(refresh, [
+         "accepted_planning_state",
+         "source_operational_quality_gate_unavailable_resource_summary"
+       ])},
+      {"accepted_planning_state.operational_quality_gate_unavailable_resource_summary",
+       get_in(refresh, [
+         "accepted_planning_state",
+         "operational_quality_gate_unavailable_resource_summary"
+       ])},
       {"accepted_planning_state.source_operational_quality_gate_schema_validation_summary",
        get_in(refresh, [
          "accepted_planning_state",
@@ -38495,6 +38591,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
        ])},
       {"mission_state.operational_quality_gate_summary",
        get_in(refresh, ["mission_state", "operational_quality_gate_summary"])},
+      {"mission_state.source_operational_quality_gate_unavailable_resource_summary",
+       get_in(refresh, [
+         "mission_state",
+         "source_operational_quality_gate_unavailable_resource_summary"
+       ])},
+      {"mission_state.operational_quality_gate_unavailable_resource_summary",
+       get_in(refresh, [
+         "mission_state",
+         "operational_quality_gate_unavailable_resource_summary"
+       ])},
       {"mission_state.source_operational_quality_gate_schema_validation_summary",
        get_in(refresh, [
          "mission_state",
@@ -38517,6 +38623,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
       {"source_operational_quality_gate_summary",
        Map.get(refresh, "source_operational_quality_gate_summary")},
       {"operational_quality_gate_summary", Map.get(refresh, "operational_quality_gate_summary")},
+      {"source_operational_quality_gate_unavailable_resource_summary",
+       Map.get(refresh, "source_operational_quality_gate_unavailable_resource_summary")},
+      {"operational_quality_gate_unavailable_resource_summary",
+       Map.get(refresh, "operational_quality_gate_unavailable_resource_summary")},
       {"source_operational_quality_gate_schema_validation_summary",
        Map.get(refresh, "source_operational_quality_gate_schema_validation_summary")},
       {"operational_quality_gate_schema_validation_summary",
@@ -39780,6 +39890,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
          Map.get(artifact, "source_operational_quality_gate_summary")},
         {"#{path}.operational_quality_gate_summary",
          Map.get(artifact, "operational_quality_gate_summary")},
+        {"#{path}.source_operational_quality_gate_unavailable_resource_summary",
+         Map.get(artifact, "source_operational_quality_gate_unavailable_resource_summary")},
+        {"#{path}.operational_quality_gate_unavailable_resource_summary",
+         Map.get(artifact, "operational_quality_gate_unavailable_resource_summary")},
         {"#{path}.source_operational_quality_gate_schema_validation_summary",
          Map.get(artifact, "source_operational_quality_gate_schema_validation_summary")},
         {"#{path}.operational_quality_gate_schema_validation_summary",
@@ -42615,6 +42729,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
       quality_gate_summary_source?(value) ->
         [{path, quality_gate_report_from_quality_gate_summary(value)}]
 
+      quality_gate_unavailable_resource_summary_source?(value) ->
+        [{path, quality_gate_report_from_unavailable_resource_summary(value)}]
+
       quality_gate_schema_validation_summary_source?(value) ->
         [{path, quality_gate_report_from_schema_validation_summary(value)}]
 
@@ -42689,6 +42806,78 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp quality_gate_summary_list_map_values(_values_by_key, _key), do: []
+
+  defp quality_gate_report_from_unavailable_resource_summary(%{} = summary) do
+    summary = stringify_keys(summary)
+    row_ids_by_status = Map.get(summary, "quality_gate_row_ids_by_status", %{})
+    gate_ids_by_status = Map.get(summary, "quality_gate_ids_by_status", %{})
+
+    resource_availability_reason_counts =
+      [
+        summary["unavailable_resource_reason_counts"],
+        summary["station_availability_reason_counts"]
+      ]
+      |> merge_count_maps()
+
+    resource_availability_pressure_count =
+      resource_availability_reason_counts
+      |> Map.values()
+      |> Enum.filter(&is_integer/1)
+      |> Enum.sum()
+
+    status = quality_gate_status_from_row_ids(row_ids_by_status)
+    classification = quality_gate_import_readiness_classification(status)
+
+    %{
+      "schema_contract" => "quality_gate_report.v1",
+      "model" => "preserved_operational_quality_gate_unavailable_resource_summary",
+      "source" => summary["source"],
+      "source_summary_model" => summary["model"],
+      "source_summary_schema_contract" => summary["schema_contract"],
+      "source_artifact_type" => summary["source_artifact_type"],
+      "source_artifact_id" => summary["source_artifact_id"],
+      "source_quality_gate_report_id" => summary["source_quality_gate_report_id"],
+      "source_readiness_report_id" => summary["source_readiness_report_id"],
+      "readiness_level" => quality_gate_import_readiness_level(classification),
+      "import_classification" => classification,
+      "status" => status,
+      "gate_count" => summary["resource_availability_row_count"],
+      "passed_gate_count" =>
+        length(quality_gate_summary_list_map_values(row_ids_by_status, "passed")),
+      "review_gate_count" =>
+        length(quality_gate_summary_list_map_values(row_ids_by_status, "review_required")),
+      "analysis_gate_count" =>
+        length(quality_gate_summary_list_map_values(row_ids_by_status, "analysis_only")),
+      "blocked_gate_count" =>
+        length(quality_gate_summary_list_map_values(row_ids_by_status, "blocked")),
+      "gate_status_counts" => quality_gate_import_readiness_status_counts(row_ids_by_status),
+      "gate_classification_counts" =>
+        quality_gate_import_readiness_classification_counts(row_ids_by_status),
+      "resource_availability_pressure_count" => resource_availability_pressure_count,
+      "resource_availability_reason_counts" => resource_availability_reason_counts,
+      "resource_availability_reason_ids" => summary["unavailable_resource_reason_ids"],
+      "station_availability_reason_counts" => summary["station_availability_reason_counts"],
+      "station_availability_reason_ids" => summary["station_availability_reason_ids"],
+      "unavailable_resource_reason_ids" => summary["unavailable_resource_reason_ids"],
+      "resource_blocking_dimension_counts" => summary["resource_blocking_dimension_counts"],
+      "blocked_contact_ids_by_blocking_dimension" =>
+        summary["blocked_contact_ids_by_blocking_dimension"],
+      "blocked_contact_ids_by_spacecraft_id" => summary["blocked_contact_ids_by_spacecraft_id"],
+      "blocked_contact_ids_by_status" => summary["blocked_contact_ids_by_status"],
+      "quality_gate_row_ids_by_status" => row_ids_by_status,
+      "quality_gate_ids_by_status" => gate_ids_by_status,
+      "review_required_quality_gate_row_ids" =>
+        quality_gate_summary_list_map_values(row_ids_by_status, "review_required"),
+      "blocked_quality_gate_row_ids" =>
+        quality_gate_summary_list_map_values(row_ids_by_status, "blocked"),
+      "resource_availability_gate_ids" => summary["resource_availability_gate_ids"],
+      "trust_boundary" => summary["trust_boundary"],
+      "trust_boundaries" => summary["trust_boundaries"],
+      "assumptions" => summary["assumptions"]
+    }
+    |> maybe_put("provenance", summary["provenance"])
+    |> compact_map()
+  end
 
   defp quality_gate_report_from_schema_validation_summary(%{} = summary) do
     summary = stringify_keys(summary)
@@ -42874,6 +43063,24 @@ defmodule OrbitalDynamics.CandidateRefresh do
         "passed"
     end
   end
+
+  defp quality_gate_status_from_row_ids(%{} = row_ids_by_status) do
+    cond do
+      quality_gate_summary_list_map_values(row_ids_by_status, "blocked") != [] ->
+        "blocked"
+
+      quality_gate_summary_list_map_values(row_ids_by_status, "analysis_only") != [] ->
+        "analysis_only"
+
+      quality_gate_summary_list_map_values(row_ids_by_status, "review_required") != [] ->
+        "review_required"
+
+      true ->
+        "passed"
+    end
+  end
+
+  defp quality_gate_status_from_row_ids(_row_ids_by_status), do: "passed"
 
   defp quality_gate_import_readiness_classification("blocked"), do: "blocked"
   defp quality_gate_import_readiness_classification("analysis_only"), do: "analysis_only"
@@ -47855,6 +48062,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp quality_gate_summary_source?(_summary), do: false
+
+  defp quality_gate_unavailable_resource_summary_source?(%{} = summary) do
+    schema_contract = Map.get(summary, "schema_contract") || Map.get(summary, :schema_contract)
+    model = Map.get(summary, "model") || Map.get(summary, :model)
+
+    schema_contract in [nil, "operational_quality_gate_unavailable_resource_summary.v1"] and
+      model == "artifact_only_quality_gate_unavailable_resource_summary"
+  end
+
+  defp quality_gate_unavailable_resource_summary_source?(_summary), do: false
 
   defp quality_gate_schema_validation_summary_source?(%{} = summary) do
     schema_contract = Map.get(summary, "schema_contract") || Map.get(summary, :schema_contract)
