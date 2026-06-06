@@ -19676,6 +19676,18 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert get_in(row_schema, ["properties", "projected_storage_margin", "type"]) == "number"
     assert get_in(row_schema, ["properties", "resource_source_quality", "type"]) == "string"
+
+    assert get_in(row_schema, ["properties", "resource_trust_boundary_status", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, ["properties", "resource_pressure_status", "type"]) == "string"
+
+    assert get_in(row_schema, ["properties", "resource_pressure_types", "items", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, ["properties", "resource_provenance", "type"]) == "object"
+    assert get_in(row_schema, ["properties", "payload_available", "type"]) == "boolean"
+    assert get_in(row_schema, ["properties", "antenna_available", "type"]) == "boolean"
     assert get_in(row_schema, ["properties", "warnings", "items", "type"]) == "string"
 
     flow_row_schema = get_in(row_schema, ["properties", "activity_resource_flow", "items"])
@@ -19732,6 +19744,59 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(schema, ["properties", "model_limits", "const"]) ==
              OrbitalDynamics.ResourceProjection.capabilities().known_limits
              |> Enum.map(&Atom.to_string/1)
+
+    resource_projection_report = read_json!("study_results/resource_projection_report_v1.json")
+
+    invalid_payload_available =
+      put_in(
+        resource_projection_report,
+        ["projected_resources", Access.at(0), "payload_available"],
+        "yes"
+      )
+
+    assert {:error, payload_available_report} =
+             Schema.validate_artifact(invalid_payload_available,
+               schema_contract: "resource_projection_report.v1"
+             )
+
+    assert Enum.any?(
+             payload_available_report["errors"],
+             &(&1["path"] == "$.projected_resources[0].payload_available")
+           )
+
+    invalid_resource_pressure_types =
+      put_in(
+        resource_projection_report,
+        ["projected_resources", Access.at(0), "resource_pressure_types"],
+        ["storage_overflow", 42]
+      )
+
+    assert {:error, resource_pressure_types_report} =
+             Schema.validate_artifact(invalid_resource_pressure_types,
+               schema_contract: "resource_projection_report.v1"
+             )
+
+    assert Enum.any?(
+             resource_pressure_types_report["errors"],
+             &(&1["path"] == "$.projected_resources[0].resource_pressure_types[1]")
+           )
+
+    invalid_resource_provenance =
+      put_in(
+        resource_projection_report,
+        ["projected_resources", Access.at(0), "resource_provenance"],
+        ["operator"]
+      )
+
+    assert {:error, resource_provenance_report} =
+             Schema.validate_artifact(invalid_resource_provenance,
+               schema_contract: "resource_projection_report.v1"
+             )
+
+    assert Enum.any?(
+             resource_provenance_report["errors"],
+             &(&1["path"] == "$.projected_resources[0].resource_provenance")
+           )
   end
 
   test "exports nested resource filter report suppressed candidate schema" do

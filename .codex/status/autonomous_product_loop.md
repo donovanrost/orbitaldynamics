@@ -1,78 +1,72 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Expose contact-contention conflict-group scope schemas.
+Expose resource-projection row availability and pressure-status schemas.
 
 Status:
-Implemented, locally verified, read-only reviewed clean, committed, and pushed.
+Implemented, locally verified, and read-only reviewed clean; pending publish.
 
 Discovery:
-Broad fixture/schema visibility discovery now reports no missing top-level,
-suppressed-candidate, recommendation, or Cadence source-review fields for the
-recent schema-fidelity families. The next bounded communications row gap is
-`study_results/contact_contention_report_v1.json`: emitted
-`contact_contention_report.v1` conflict groups include `resource_scope`,
-`directions`, `ground_station_ids`, `spacecraft_id`, `spacecraft_ids`,
-`duplicate_contact_candidate_count`, `duplicate_contact_id_count`,
-`duplicate_contact_ids`, and `source_contact_candidates`, but the conflict-group
-item schema does not name those fields.
+Broad fixture/schema visibility discovery shows the larger remaining row gap is
+`resource_projection_report.v1` `projected_resources`. Split the first bounded
+subset to row-level metadata emitted by both projection fixtures:
+`payload_available`, `antenna_available`, `resource_trust_boundary_status`,
+`resource_pressure_status`, `resource_pressure_types`, and
+`resource_provenance`.
 
 Why this matters:
-Contact-contention conflict groups are the review/import-facing explanation for
-station- and spacecraft-scoped overlapping contacts. The missing fields preserve
-resource scope, station/spacecraft identity, direction aggregation,
-duplicate-contact ambiguity, and source candidate provenance that downstream
-adapters should validate directly instead of treating as opaque extras.
+Projected-resource rows are the per-spacecraft review/import summary for
+storage/downlink/resource pressure. Availability flags, trust-boundary routing,
+pressure status/type classifications, and provenance are adapter-facing metadata
+that should be schema-visible before tackling the larger battery, ignored-flow,
+and policy-evidence row fields.
 
 Likely files:
 - `.codex/status/autonomous_product_loop.md`
 - `lib/orbital_dynamics/schema.ex`
-- generated schemas embedding `contact_contention_group_json_schema/0`
+- generated schemas embedding `resource_projection_row_json_schema/0`
 - `schemas/orbital_dynamics.schema_bundle.v1.json`
 - `test/orbital_dynamics/schema_test.exs`
 
 Definition of done:
-- [x] `contact_contention_report.v1` conflict-group schema exposes the emitted
-  scope, direction, station/spacecraft ID, duplicate-contact, and source contact
-  candidate evidence fields.
-- [x] Stable ID patterns are used for emitted station/spacecraft ID lists and nested
-  source contact candidate identity fields.
-- [x] Executable validation rejects malformed newly exposed ID lists and nested
-  source contact candidate IDs.
-- [x] Focused schema tests assert conflict-group schema shape and fixture row
-  visibility.
+- [x] `resource_projection_report.v1` projected-resource row schema exposes
+  availability flags, trust-boundary status, pressure status/type, and
+  provenance fields.
+- [x] Executable validation rejects malformed booleans, strings, lists, and
+  provenance objects for the newly exposed fields.
+- [x] Focused schema tests assert row schema shape and representative invalid
+  values.
 - [x] Checked-in schemas and bundle are refreshed.
 - [x] Focused schema tests, schema export tests, schema lint, generated-schema
   spot-checks, and whitespace checks pass.
 - [x] Read-only review finds no must-fix issues.
-- [x] Slice-owned files only are committed and pushed.
+- [ ] Slice-owned files only are committed and pushed.
 
 Tests run:
 - `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:314 test/orbital_dynamics/schema_test.exs:24508 test/orbital_dynamics/schema_test.exs:24621`
+- `mix test test/orbital_dynamics/schema_test.exs:19622 test/orbital_dynamics/schema_test.exs:24508`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `jq -e` spot-check for conflict-group scope/source-candidate fields in
-  `schemas/contact_contention_report.v1.schema.json`
-- Runtime fixture/schema visibility spot-check for
-  `contact_contention_report.v1` conflict groups reported no missing fields.
+- `jq -e` spot-check for projected-resource metadata fields in
+  `schemas/resource_projection_report.v1.schema.json`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check -- . ':!.gitignore'`
+- `mix test test/orbital_dynamics/schema_test.exs`
 - Read-only reviewer reran `git diff --check -- . ':!.gitignore'`,
-  `mix test test/orbital_dynamics/schema_test.exs:314 test/orbital_dynamics/schema_test.exs:24508 test/orbital_dynamics/schema_test.exs:24621`,
-  `mix run -e 'IO.inspect(OrbitalDynamics.Schema.lint_file("study_results/contact_contention_report_v1.json"), limit: :infinity)'`,
-  and a `jq -e` generated-schema spot-check, and reported no must-fix findings.
+  `mix test test/orbital_dynamics/schema_test.exs:19622 test/orbital_dynamics/schema_test.exs:24508`,
+  generated-schema `jq -e` checks, and fixture lint for both resource-projection
+  fixtures, and reported no must-fix findings.
 
 Last completed implementation commit:
 `a254c0539f64a49ba06a25d6458d4bd35f95d3b8` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending this ledger-only correction.
+`72340adac552541d53c5a9e0978b62a2b2ae5528` pushed to `origin/main`.
 
 Next candidate:
-After this slice, inspect the larger `resource_projection_report.v1`
-`projected_resources` visibility gaps and choose a bounded row-family subset.
+Continue splitting `resource_projection_report.v1` `projected_resources` gaps:
+battery quantities/state-of-charge, ignored-activity routing, policy approval
+evidence, and storage/downlink pressure quantities.
 
 Blocked:
 No.

@@ -18600,6 +18600,12 @@ defmodule OrbitalDynamics.Schema do
         "projected_downlink_margin" => %{"type" => "number"},
         "projected_downlink_remaining_mb" => %{"type" => "number"},
         "resource_source_quality" => %{"type" => "string"},
+        "resource_trust_boundary_status" => %{"type" => "string"},
+        "resource_pressure_status" => %{"type" => "string"},
+        "resource_pressure_types" => string_array_schema(),
+        "resource_provenance" => %{"type" => "object", "additionalProperties" => true},
+        "payload_available" => %{"type" => "boolean"},
+        "antenna_available" => %{"type" => "boolean"},
         "mode" => %{"type" => "string"},
         "incompatible_activity_types" => string_array_schema(),
         "suppressed_activity_types" => string_array_schema(),
@@ -36584,6 +36590,13 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_number(path, row, "projected_downlink_margin")
     |> expect_optional_number(path, row, "projected_downlink_remaining_mb")
     |> expect_optional_type(path, row, "resource_source_quality", :binary)
+    |> expect_optional_type(path, row, "resource_trust_boundary_status", :binary)
+    |> expect_optional_type(path, row, "resource_pressure_status", :binary)
+    |> expect_optional_type(path, row, "resource_pressure_types", :list)
+    |> validate_string_list_items(path, row, "resource_pressure_types")
+    |> expect_optional_type(path, row, "resource_provenance", :map)
+    |> expect_optional_type(path, row, "payload_available", :boolean)
+    |> expect_optional_type(path, row, "antenna_available", :boolean)
     |> expect_optional_type(path, row, "mode", :binary)
     |> expect_optional_type(path, row, "incompatible_activity_types", :list)
     |> validate_string_list_items(path, row, "incompatible_activity_types")
