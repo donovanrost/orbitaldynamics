@@ -5172,6 +5172,22 @@ defmodule OrbitalDynamics.Timeline do
   application rows, and row-derived counters without mutating schedules,
   approving work, or executing commands.
   """
+  def transition_application_summary(
+        %{"schema_contract" => @transition_application_summary_schema_contract} =
+          transition_application_summary
+      ) do
+    transition_application_summary
+  end
+
+  def transition_application_summary(
+        %{schema_contract: @transition_application_summary_schema_contract} =
+          transition_application_summary
+      ) do
+    transition_application_summary
+    |> stringify_keys()
+    |> transition_application_summary()
+  end
+
   def transition_application_summary(%{} = transition_application_report) do
     report = stringify_keys(transition_application_report)
     applications = report |> Map.get("applications", []) |> Enum.filter(&is_map/1)

@@ -7941,6 +7941,15 @@ defmodule OrbitalDynamics.TimelineTest do
     assert {:ok, %{"schema_contract" => "timeline_transition_application_summary.v1"}} =
              Schema.validate_artifact(summary)
 
+    atom_keyed_summary =
+      summary
+      |> Map.delete("schema_contract")
+      |> Map.put(:schema_contract, "timeline_transition_application_summary.v1")
+
+    assert Timeline.transition_application_summary(summary) == summary
+    assert Timeline.transition_application_summary(atom_keyed_summary) == summary
+    assert OrbitalDynamics.timeline_transition_application_summary(summary) == summary
+
     stale_review_count = Map.put(summary, "review_required_count", 1)
 
     assert {:error, stale_review_count_report} = Schema.validate_artifact(stale_review_count)

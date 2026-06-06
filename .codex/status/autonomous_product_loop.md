@@ -5,10 +5,10 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Accept existing timeline diff summaries idempotently.
+Accept existing timeline transition application summaries idempotently.
 
 Status:
-Implemented, verified, committed, and pushed.
+Implemented and verified; commit/push pending.
 
 Completed slices:
 - Prompt/guide continuation semantics committed as
@@ -41,13 +41,14 @@ Files changed:
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/timeline_test.exs:8954`
+- `mix test test/orbital_dynamics/timeline_test.exs:7876`
   -> 1 passed, 124 excluded.
 - `mix test test/orbital_dynamics/timeline_test.exs` -> 125 passed.
 
 Docs/artifacts changed:
-- Documented idempotent `timeline_diff_summary.v1` handoff input behavior for
-  downstream queues that already hold compact diff summary artifacts.
+- Documented idempotent `timeline_transition_application_summary.v1` handoff
+  input behavior for downstream queues that already hold compact transition
+  application summary artifacts.
 
 Level 6 pillar advanced:
 Approval-aware automation boundaries and durable artifact handoff behavior.
@@ -58,8 +59,8 @@ Remaining maturity gaps:
   the guide toward Level 6 maturity.
 
 Last commit:
-- `a80bff8f991226b55f379759ecfe9303ac6cf02c` pushed to `origin/main`
-  for timeline diff summary idempotent handoff behavior.
+- `d55975eefaf008df64b5848cad2d20a344921604` pushed to `origin/main`
+  for the diff-summary ledger correction.
 
 Next candidate:
 Select the next live maturity gap from the guide/roadmap and current test
