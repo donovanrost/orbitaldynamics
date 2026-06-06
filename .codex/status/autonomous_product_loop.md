@@ -4,7 +4,7 @@ Current slice:
 Expose CandidateRefresh timeline-dependency-impact source-report schema property.
 
 Status:
-Implemented, locally verified, and reviewed clean; awaiting publish. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 CandidateRefresh timeline-dependency-impact source summaries already preserve
 changed source activity and timeline counts, dependent activity counts,
 dependency/exclusivity/dependent ID count maps, required operator action counts,
@@ -53,12 +53,13 @@ Tests run:
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
   test, focused CandidateRefresh runtime test, schema lint, whitespace check,
   and generated-schema `jq` spot-checks.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`7fc8c148ae45f46d557152e3cb008ee2ed6c904a` pushed to `origin/main`.
+`a1379ba5edf955e4940088481bec4f745b3c341d` pushed to `origin/main`.
 
 Last ledger correction commit:
-`c57328c` pushed to `origin/main`.
+Pending for this slice.
 
 Next candidate:
 After this slice, run a bounded mapper pass to identify the next schema-visible
