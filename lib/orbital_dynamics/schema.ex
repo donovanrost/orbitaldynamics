@@ -25474,6 +25474,73 @@ defmodule OrbitalDynamics.Schema do
     number_property_schemas(@resource_projection_battery_handoff_number_fields)
   end
 
+  defp cadence_import_resource_projection_evidence_json_schema_properties do
+    %{
+      "source" => %{"type" => "string"},
+      "rank" => %{"type" => "integer"},
+      "subject_id" => %{"type" => "string"},
+      "action" => %{"type" => "string"},
+      "required_operator_action" => %{"type" => "string"},
+      "reason" => %{"type" => "string"},
+      "approval_status" => %{"type" => "string"},
+      "review_queue" => %{"type" => "string"},
+      "review_queue_key" => %{"type" => "string"},
+      "spacecraft_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+      "activity_count" => %{"type" => "integer", "minimum" => 0},
+      "effective_activity_count" => %{"type" => "integer", "minimum" => 0},
+      "ignored_activity_count" => %{"type" => "integer", "minimum" => 0},
+      "ignored_activity_ids" => stable_id_array_schema(),
+      "observation_count" => %{"type" => "integer", "minimum" => 0},
+      "downlink_count" => %{"type" => "integer", "minimum" => 0},
+      "estimated_storage_produced_mb" => %{"type" => "number"},
+      "estimated_downlink_mb" => %{"type" => "number"},
+      "starting_storage_used_mb" => %{"type" => "number"},
+      "projected_storage_used_mb" => %{"type" => "number"},
+      "storage_capacity_mb" => %{"type" => "number"},
+      "starting_storage_margin" => %{"type" => "number"},
+      "projected_storage_margin" => %{"type" => "number"},
+      "downlink_capacity_mb" => %{"type" => "number"},
+      "starting_downlink_margin" => %{"type" => "number"},
+      "projected_downlink_margin" => %{"type" => "number"},
+      "resource_source_quality" => %{"type" => "string"},
+      "resource_flow_count" => %{"type" => "integer", "minimum" => 0},
+      "peak_storage_overflow_mb" => %{"type" => "number"},
+      "peak_downlink_shortfall_mb" => %{"type" => "number"},
+      "peak_unused_downlink_capacity_mb" => %{"type" => "number"},
+      "projected_storage_overflow_mb" => %{"type" => "number"},
+      "projected_downlink_shortfall_mb" => %{"type" => "number"},
+      "projected_battery_overuse_wh" => %{"type" => "number"},
+      "first_resource_pressure_activity_id" => %{
+        "type" => "string",
+        "pattern" => @stable_id_pattern
+      },
+      "first_resource_pressure_activity_type" => %{"type" => "string"},
+      "first_resource_pressure_kind" => %{"type" => "string"},
+      "first_resource_pressure_starts_at_s" => %{"type" => "number"},
+      "fuel_margin" => %{"type" => "number"},
+      "power_margin" => %{"type" => "number"},
+      "resource_trust_boundary_status" => %{"type" => "string"},
+      "storage_limited_downlinked_mb" => %{"type" => "number"},
+      "unused_downlink_capacity_mb" => %{"type" => "number"},
+      "warnings" => string_array_schema(),
+      "policy_bundle_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+      "rule_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+      "requirement_type" => %{"type" => "string"},
+      "approval_requirements" => %{
+        "type" => "array",
+        "items" => approval_requirement_json_schema()
+      },
+      "approval_rule_matches" => %{
+        "type" => "array",
+        "items" => policy_decision_rule_match_json_schema()
+      },
+      "escalation_level" => %{"type" => "string"},
+      "escalation_queue" => %{"type" => "string"},
+      "escalation_role" => %{"type" => "string"},
+      "sla_s" => %{"type" => "number"}
+    }
+  end
+
   defp operational_readiness_evidence_json_schema do
     %{
       "type" => "object",
@@ -25956,6 +26023,7 @@ defmodule OrbitalDynamics.Schema do
         |> Map.merge(operational_readiness_operator_training_context_json_schema_properties())
         |> Map.merge(operational_readiness_adapter_boundary_context_json_schema_properties())
         |> Map.merge(resource_projection_battery_handoff_json_schema_properties())
+        |> Map.merge(cadence_import_resource_projection_evidence_json_schema_properties())
         |> Map.merge(branch_scoped_downlink_context_json_schema_properties())
         |> Map.merge(scoped_downlink_context_json_schema_properties())
     }
@@ -26545,6 +26613,7 @@ defmodule OrbitalDynamics.Schema do
         |> Map.merge(operational_readiness_operator_training_context_json_schema_properties())
         |> Map.merge(operational_readiness_adapter_boundary_context_json_schema_properties())
         |> Map.merge(resource_projection_battery_handoff_json_schema_properties())
+        |> Map.merge(cadence_import_resource_projection_evidence_json_schema_properties())
         |> Map.merge(branch_scoped_downlink_context_json_schema_properties())
         |> Map.merge(scoped_downlink_context_json_schema_properties())
     }
@@ -56259,10 +56328,14 @@ defmodule OrbitalDynamics.Schema do
       "source_target_id",
       "source_review_row_id",
       "cadence_import_id",
+      "spacecraft_id",
+      "policy_bundle_id",
+      "rule_id",
       "ground_station_id",
       "station_calendar_entry_id",
       "station_calendar_provider_id",
       "station_calendar_provider_entry_id",
+      "first_resource_pressure_activity_id",
       "first_resource_pressure_station_calendar_provider_id",
       "first_resource_pressure_station_calendar_provider_entry_id",
       "first_resource_pressure_source_window_id",
@@ -56589,6 +56662,10 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_probability(path, row, "attitude_confidence")
     |> validate_selected_timeline_integrity_fields(path, row)
     |> validate_stable_ids(path, row, [
+      "spacecraft_id",
+      "policy_bundle_id",
+      "rule_id",
+      "first_resource_pressure_activity_id",
       "source_target_id",
       "source_window_id",
       "replacement_candidate_id",

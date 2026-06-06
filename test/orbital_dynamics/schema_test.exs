@@ -23688,6 +23688,149 @@ defmodule OrbitalDynamics.SchemaTest do
     end)
   end
 
+  test "exports Cadence import resource projection evidence row schemas" do
+    assert {:ok, schema} = Schema.json_schema("cadence_import_manifest.v1")
+
+    row_properties = get_in(schema, ["properties", "rows", "items", "properties"])
+
+    source_review_row_properties =
+      get_in(row_properties, ["source_review_row", "properties"])
+
+    for properties <- [row_properties, source_review_row_properties] do
+      assert get_in(properties, ["spacecraft_id", "pattern"]) ==
+               Schema.identity_policy()["stable_id_pattern"]
+
+      assert get_in(properties, ["first_resource_pressure_activity_id", "pattern"]) ==
+               Schema.identity_policy()["stable_id_pattern"]
+
+      assert get_in(properties, ["policy_bundle_id", "pattern"]) ==
+               Schema.identity_policy()["stable_id_pattern"]
+
+      assert get_in(properties, ["rule_id", "pattern"]) ==
+               Schema.identity_policy()["stable_id_pattern"]
+
+      assert get_in(properties, [
+               "approval_requirements",
+               "items",
+               "properties",
+               "schema_contract",
+               "const"
+             ]) ==
+               "approval_requirement.v1"
+
+      assert get_in(properties, [
+               "approval_rule_matches",
+               "items",
+               "properties",
+               "rule_id",
+               "pattern"
+             ]) ==
+               Schema.identity_policy()["stable_id_pattern"]
+
+      for field <- [
+            "activity_count",
+            "effective_activity_count",
+            "ignored_activity_count",
+            "observation_count",
+            "downlink_count",
+            "resource_flow_count"
+          ] do
+        assert get_in(properties, [field]) == %{"type" => "integer", "minimum" => 0}
+      end
+
+      assert get_in(properties, ["ignored_activity_ids", "items", "pattern"]) ==
+               Schema.identity_policy()["stable_id_pattern"]
+
+      for field <- [
+            "projected_storage_margin",
+            "projected_downlink_margin",
+            "projected_storage_overflow_mb",
+            "projected_downlink_shortfall_mb",
+            "projected_battery_overuse_wh",
+            "peak_storage_overflow_mb",
+            "peak_downlink_shortfall_mb",
+            "peak_unused_downlink_capacity_mb",
+            "storage_limited_downlinked_mb",
+            "unused_downlink_capacity_mb",
+            "first_resource_pressure_starts_at_s",
+            "fuel_margin",
+            "power_margin",
+            "sla_s"
+          ] do
+        assert get_in(properties, [field, "type"]) == "number"
+      end
+
+      for field <- [
+            "source",
+            "subject_id",
+            "action",
+            "required_operator_action",
+            "reason",
+            "approval_status",
+            "review_queue",
+            "review_queue_key",
+            "resource_source_quality",
+            "resource_trust_boundary_status",
+            "first_resource_pressure_activity_type",
+            "first_resource_pressure_kind",
+            "requirement_type",
+            "escalation_level",
+            "escalation_queue",
+            "escalation_role"
+          ] do
+        assert get_in(properties, [field, "type"]) == "string"
+      end
+
+      assert get_in(properties, ["warnings", "items", "type"]) == "string"
+    end
+
+    for field <- [
+          "estimated_storage_produced_mb",
+          "estimated_downlink_mb",
+          "starting_storage_used_mb",
+          "projected_storage_used_mb",
+          "storage_capacity_mb",
+          "starting_storage_margin",
+          "downlink_capacity_mb",
+          "starting_downlink_margin"
+        ] do
+      assert get_in(source_review_row_properties, [field, "type"]) == "number"
+    end
+
+    resource_projection_manifest =
+      read_json!("study_results/cadence_import_resource_projection_battery_handoff_v1.json")
+
+    invalid_row_pressure_activity =
+      put_in(
+        resource_projection_manifest,
+        ["rows", Access.at(0), "first_resource_pressure_activity_id"],
+        "bad id"
+      )
+
+    assert {:error, row_pressure_activity_report} =
+             Schema.validate_artifact(invalid_row_pressure_activity)
+
+    assert Enum.any?(
+             row_pressure_activity_report["errors"],
+             &(&1["path"] == "$.rows[0].first_resource_pressure_activity_id")
+           )
+
+    invalid_source_pressure_activity =
+      put_in(
+        resource_projection_manifest,
+        ["rows", Access.at(0), "source_review_row", "first_resource_pressure_activity_id"],
+        "bad id"
+      )
+
+    assert {:error, source_pressure_activity_report} =
+             Schema.validate_artifact(invalid_source_pressure_activity)
+
+    assert Enum.any?(
+             source_pressure_activity_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.first_resource_pressure_activity_id")
+           )
+  end
+
   test "declares and enforces stable artifact identity policy" do
     policy = Schema.identity_policy()
 
@@ -24554,6 +24697,23 @@ defmodule OrbitalDynamics.SchemaTest do
     assert_fixture_row_fields_are_schema_visible(
       "cadence_import_manifest.v1",
       "study_results/cadence_import_manifest_v1.json",
+      ["properties", "rows", "items", "properties", "source_review_row", "properties"],
+      fn artifact ->
+        artifact
+        |> Map.get("rows", [])
+        |> Enum.map(&Map.get(&1, "source_review_row"))
+      end
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "cadence_import_manifest.v1",
+      "study_results/cadence_import_resource_projection_battery_handoff_v1.json",
+      ["properties", "rows", "items", "properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "cadence_import_manifest.v1",
+      "study_results/cadence_import_resource_projection_battery_handoff_v1.json",
       ["properties", "rows", "items", "properties", "source_review_row", "properties"],
       fn artifact ->
         artifact
