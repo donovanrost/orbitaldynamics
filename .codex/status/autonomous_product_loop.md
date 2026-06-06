@@ -5,10 +5,10 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Accept existing timeline preservation reports idempotently.
+Accept existing timeline preservation statuses idempotently.
 
 Status:
-Implemented, verified, committed, and pushed.
+Implemented and verified; commit/push pending.
 
 Completed slices:
 - Prompt/guide continuation semantics committed as
@@ -37,14 +37,14 @@ Files changed:
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/timeline_test.exs:5320`
+- `mix test test/orbital_dynamics/timeline_test.exs:5490`
   -> 1 passed, 124 excluded.
 - `mix test test/orbital_dynamics/timeline_test.exs` -> 125 passed.
-- `mix test` -> 3006 passed.
 
 Docs/artifacts changed:
-- Documented idempotent `timeline_preservation_report.v1` handoff input behavior
-  for downstream queues that already hold standalone preservation artifacts.
+- Documented idempotent `timeline_preservation_status.v1` handoff input
+  behavior for downstream queues that already hold standalone preservation
+  status artifacts.
 
 Level 6 pillar advanced:
 Approval-aware automation boundaries and durable artifact handoff behavior.
@@ -55,8 +55,8 @@ Remaining maturity gaps:
   the guide toward Level 6 maturity.
 
 Last commit:
-- `e23cac76f666690f8c8a37b40149c16e6b0afd86` pushed to `origin/main`
-  for timeline preservation report idempotent handoff behavior.
+- `4b4e445e6d2d9b7e158b0ab3860537743e8a9e84` pushed to `origin/main`
+  for the preservation-handoff ledger correction.
 
 Next candidate:
 Select the next live maturity gap from the guide/roadmap and current test
@@ -68,5 +68,5 @@ No.
 Notes:
 - `.gitignore` still has an unrelated pre-existing local scratch-ignore change
   and is not part of this slice.
-- The known `:propagator_exit` log appeared during full `mix test`; the suite
-  completed successfully.
+- The previous full `mix test` run for the report-level preservation handoff
+  passed at 3006 tests; this micro-slice used focused timeline verification.

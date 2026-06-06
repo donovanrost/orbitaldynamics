@@ -104,6 +104,8 @@ It does this without mutating schedules or executing commands. Unmatched planned
 Existing `timeline_preservation_report.v1` artifacts are accepted as
 idempotent inputs by the preservation-report facade when downstream queues
 already hold the standalone preservation artifact.
+Existing `timeline_preservation_status.v1` artifacts are accepted the same way
+by the single-activity preservation-status facade.
 
 ## Transition application summary
 

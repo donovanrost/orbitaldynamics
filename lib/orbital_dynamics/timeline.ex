@@ -5392,7 +5392,25 @@ defmodule OrbitalDynamics.Timeline do
   `preservation_report/2`. It does not mutate schedules, approve work, or
   execute commands.
   """
-  def preservation_status(activity, opts \\ []) do
+  def preservation_status(activity, opts \\ [])
+
+  def preservation_status(
+        %{"schema_contract" => @preservation_status_schema_contract} = preservation_status,
+        _opts
+      ) do
+    preservation_status
+  end
+
+  def preservation_status(
+        %{schema_contract: @preservation_status_schema_contract} = preservation_status,
+        opts
+      ) do
+    preservation_status
+    |> stringify_keys()
+    |> preservation_status(opts)
+  end
+
+  def preservation_status(activity, opts) do
     decision = protection_decision(activity, opts)
 
     status =

@@ -5557,6 +5557,17 @@ defmodule OrbitalDynamics.TimelineTest do
     assert {:ok, %{"schema_contract" => "timeline_preservation_status.v1"}} =
              Schema.validate_artifact(preservation_status)
 
+    atom_key_preservation_status =
+      preservation_status
+      |> Map.delete("schema_contract")
+      |> Map.put(:schema_contract, "timeline_preservation_status.v1")
+
+    assert Timeline.preservation_status(preservation_status) == preservation_status
+    assert Timeline.preservation_status(atom_key_preservation_status) == preservation_status
+
+    assert OrbitalDynamics.timeline_preservation_status(preservation_status) ==
+             preservation_status
+
     stale_model_limits =
       Map.put(preservation_status, "model_limits", ["timeline_model_is_read_only"])
 
