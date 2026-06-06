@@ -4,7 +4,7 @@ Current slice:
 Expose CandidateRefresh operational-timeline source-report schema property.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 CandidateRefresh operational-timeline source summaries already preserve input
 keys, feedback counts, operational/activity status and approval count maps,
 required-operator-action count maps, Cadence import status count maps, integrity
@@ -54,9 +54,10 @@ Tests run:
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
   test, focused CandidateRefresh runtime test, schema lint, whitespace check,
   and generated-schema `jq` spot-checks.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-Pending for this slice.
+`50131e26dade166c354fa62404ae0b95873049b7` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending for this slice.
