@@ -4,7 +4,7 @@ Current slice:
 Expose resource-projection row effective and ignored activity schemas.
 
 Status:
-Implemented, locally verified, and read-only reviewed clean; pending publish.
+Implemented, locally verified, read-only reviewed clean, committed, and pushed.
 
 Discovery:
 After the resource-projection row metadata slice, live fixture/schema comparison
@@ -39,7 +39,7 @@ Definition of done:
 - [x] Focused schema tests, schema export tests, schema lint, generated-schema
   spot-checks, and whitespace checks pass.
 - [x] Read-only review finds no must-fix issues.
-- [ ] Slice-owned files only are committed and pushed.
+- [x] Slice-owned files only are committed and pushed.
 
 Tests run:
 - `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
@@ -58,10 +58,10 @@ Tests run:
   validation checks, and reported no must-fix findings.
 
 Last completed implementation commit:
-`0ec3eaa78d9a9f56ba1f2315d552a182468dae9b` pushed to `origin/main`.
+`731a22e4ec678d5d111b21cf09c0acca4297e16d` pushed to `origin/main`.
 
 Last ledger correction commit:
-`622594e7db4c509d764059233e8abd3c81693e3f` pushed to `origin/main`.
+Pending this ledger-only correction.
 
 Next candidate:
 Continue splitting `resource_projection_report.v1` `projected_resources` gaps:
