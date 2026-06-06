@@ -4,7 +4,7 @@ Current slice:
 Expose resource-projection row availability and pressure-status schemas.
 
 Status:
-Implemented, locally verified, and read-only reviewed clean; pending publish.
+Implemented, locally verified, read-only reviewed clean, committed, and pushed.
 
 Discovery:
 Broad fixture/schema visibility discovery shows the larger remaining row gap is
@@ -40,7 +40,7 @@ Definition of done:
 - [x] Focused schema tests, schema export tests, schema lint, generated-schema
   spot-checks, and whitespace checks pass.
 - [x] Read-only review finds no must-fix issues.
-- [ ] Slice-owned files only are committed and pushed.
+- [x] Slice-owned files only are committed and pushed.
 
 Tests run:
 - `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
@@ -58,10 +58,10 @@ Tests run:
   fixtures, and reported no must-fix findings.
 
 Last completed implementation commit:
-`a254c0539f64a49ba06a25d6458d4bd35f95d3b8` pushed to `origin/main`.
+`0ec3eaa78d9a9f56ba1f2315d552a182468dae9b` pushed to `origin/main`.
 
 Last ledger correction commit:
-`72340adac552541d53c5a9e0978b62a2b2ae5528` pushed to `origin/main`.
+Pending this ledger-only correction.
 
 Next candidate:
 Continue splitting `resource_projection_report.v1` `projected_resources` gaps:
