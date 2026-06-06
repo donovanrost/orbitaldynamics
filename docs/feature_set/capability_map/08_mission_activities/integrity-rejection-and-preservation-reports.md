@@ -38,6 +38,9 @@ Executable validation checks the review-row-derived status, review counts,
 issue counts/type maps, review activity/timeline ID maps, flattened dependency
 and exclusivity evidence IDs, assumptions, and model limits against the emitted
 integrity rows.
+Existing `timeline_integrity_report.v1` artifacts are accepted as idempotent
+inputs by the integrity-report facade when downstream queues already hold the
+standalone integrity artifact.
 
 CandidateRefresh accepts direct, accepted-state, mission-state, and
 result-artifact-wrapped `source_timeline_integrity_report` /

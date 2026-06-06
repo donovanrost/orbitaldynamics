@@ -3131,6 +3131,15 @@ defmodule OrbitalDynamics.TimelineTest do
     assert {:ok, %{"schema_contract" => "timeline_integrity_report.v1"}} =
              Schema.validate_artifact(integrity_report)
 
+    atom_key_integrity_report =
+      integrity_report
+      |> Map.delete("schema_contract")
+      |> Map.put(:schema_contract, "timeline_integrity_report.v1")
+
+    assert Timeline.integrity_report(integrity_report) == integrity_report
+    assert Timeline.integrity_report(atom_key_integrity_report) == integrity_report
+    assert OrbitalDynamics.timeline_integrity_report(integrity_report) == integrity_report
+
     invalid_template_report =
       Timeline.integrity_report([
         %{

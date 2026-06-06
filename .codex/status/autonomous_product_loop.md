@@ -5,10 +5,10 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Refresh checked-in study manifest schema export.
+Accept existing timeline integrity reports idempotently.
 
 Status:
-Implemented, verified, committed, and pushed.
+Implemented and verified; commit/push pending.
 
 Completed slices:
 - Prompt/guide continuation semantics committed as
@@ -27,31 +27,32 @@ Completed slices:
   `5b52eb5106f3a0520533df79a589bc0fa689c591` and pushed to `origin/main`.
 
 Files changed:
-- `schemas/study_manifest.v1.schema.json`
+- `lib/orbital_dynamics/timeline.ex`
+- `test/orbital_dynamics/timeline_test.exs`
+- `docs/feature_set/capability_map/08_mission_activities/integrity-rejection-and-preservation-reports.md`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix orbital_dynamics.manifest.schema.export --output
-  schemas/study_manifest.v1.schema.json` -> wrote the checked-in manifest schema.
-- `mix test test/orbital_dynamics/study/manifest_test.exs:730`
-  -> 1 passed, 41 excluded.
+- `mix test test/orbital_dynamics/timeline_test.exs:3020`
+  -> 1 passed, 124 excluded.
+- `mix test test/orbital_dynamics/timeline_test.exs` -> 125 passed.
 - `mix test` -> 3006 passed.
 
 Docs/artifacts changed:
-- Refreshed generated `study_manifest.v1` JSON Schema export so the checked-in
-  schema matches `OrbitalDynamics.Study.Manifest.json_schema/0`.
+- Documented idempotent `timeline_integrity_report.v1` handoff input behavior
+  for downstream queues that already hold standalone integrity artifacts.
 
 Level 6 pillar advanced:
-Schema/export reproducibility for public study manifests.
+Approval-aware automation boundaries and durable artifact handoff behavior.
 
 Remaining maturity gaps:
 - Full suite is green at 3006 tests.
-- Continue product-level challenge tests or the next live validation gap toward
-  Level 6 maturity.
+- Continue product-level challenge tests or the next live validation gap from
+  the guide toward Level 6 maturity.
 
 Last commit:
-- `5b52eb5106f3a0520533df79a589bc0fa689c591` pushed to `origin/main`
-  for study manifest schema export refresh.
+- `5bf5c749a24473a598e9fef15fe2c3dc05d5dba9` pushed to `origin/main`
+  for the schema-refresh ledger correction.
 
 Next candidate:
 Select the next live maturity gap from the guide/roadmap and current test

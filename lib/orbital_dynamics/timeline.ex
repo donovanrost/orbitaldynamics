@@ -1278,6 +1278,22 @@ defmodule OrbitalDynamics.Timeline do
   """
   def integrity_report(activities, opts \\ [])
 
+  def integrity_report(
+        %{"schema_contract" => @integrity_report_schema_contract} = integrity_report,
+        _opts
+      ) do
+    integrity_report
+  end
+
+  def integrity_report(
+        %{schema_contract: @integrity_report_schema_contract} = integrity_report,
+        opts
+      ) do
+    integrity_report
+    |> stringify_keys()
+    |> integrity_report(opts)
+  end
+
   def integrity_report(activities, opts) when is_list(activities) do
     source = opts |> Keyword.get(:source, "timeline.activities") |> to_string()
     validate_missing_dependencies? = Keyword.get(opts, :validate_missing_dependencies?, true)
