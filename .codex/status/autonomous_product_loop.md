@@ -1,64 +1,58 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Route provider-reservation request-ready allocation rows explicitly.
+Advertise provider-calendar provider ID routing in resource-flow summaries.
 
 Status:
 Implemented, verified, read-only reviewed, committed, and pushed.
 
 What changed:
-Provider-reservation request-ready contact-allocation rows now route through
-the explicit `review_provider_reservation_request` operator-review action and
-Cadence import action. Provider-reservation overlap rows with
-`review_required` status stay on the generic `review_contact_allocation` queue.
-Contact-allocation and Cadence-import capabilities advertise the action, and
-the V1 campaign contact-allocation field-family doc states the review-only,
-no-provider-reservation-execution boundary.
+`ResourceProjection.capabilities/0` now advertises provider-calendar provider ID
+routing for compact resource-flow pressure summaries. The primary
+`resource_projection_flow_summary.v1` fixture now carries
+`station_calendar_provider_id`, asserts
+`resource_pressure_station_calendar_provider_ids_by_type`, and validates stale
+provider-ID maps against row-derived values. The capability-map docs now mention
+provider IDs alongside provider-entry IDs for provider adapter pressure queues.
 
 Why this slice:
-`contact_allocation_provider_reservation_request_summary.v1` already separates
-`request_ready` rows from `review_required` reservation overlaps, but live review
-and Cadence-import probes route both through generic `review_contact_allocation`.
-Request-ready rows should be distinguishable as provider-reservation request
-review without actually reserving provider time.
+`ResourceProjection.flow_summary/1` already emits
+`resource_pressure_station_calendar_provider_ids_by_type` when pressured
+downlink flow rows carry `station_calendar_provider_id`, and the schema validates
+that map. The main compact resource-flow test and docs only pin provider-entry
+routing, so adapter queues have a weaker contract for provider namespace routing
+than for provider entry routing.
 
 Likely files:
-- `lib/orbital_dynamics/operator_review.ex`
-- `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/communications/contact_allocation.ex`
-- `test/orbital_dynamics/communications/contact_allocation_test.exs`
-- `test/orbital_dynamics/cadence_import_test.exs`
-- `test/orbital_dynamics/operator_review_test.exs`
-- `docs/artifacts/field_families/v1_campaign_plan/contact_allocation.md`
+- `lib/orbital_dynamics/resource_projection.ex`
+- `test/orbital_dynamics/resource_projection_test.exs`
+- `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`
 
 Verification:
-- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs`
-- `mix test test/orbital_dynamics/cadence_import_test.exs`
-- `mix test test/orbital_dynamics/operator_review_test.exs:14830`
-- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs test/orbital_dynamics/cadence_import_test.exs test/orbital_dynamics/capabilities_test.exs test/orbital_dynamics/operator_review_test.exs:14830`
+- `mix test test/orbital_dynamics/resource_projection_test.exs:6 test/orbital_dynamics/resource_projection_test.exs:4664`
+- `mix test test/orbital_dynamics/resource_projection_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
-- `mix format lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex lib/orbital_dynamics/communications/contact_allocation.ex test/orbital_dynamics/communications/contact_allocation_test.exs test/orbital_dynamics/cadence_import_test.exs test/orbital_dynamics/operator_review_test.exs --check-formatted`
+- `mix format lib/orbital_dynamics/resource_projection.ex test/orbital_dynamics/resource_projection_test.exs --check-formatted`
 - `git diff --check`
 
 Read-only review:
-Sidecar `019e9ca7-649b-77a1-8827-5a1c9769861f` reported no findings. It
-confirmed request-ready rows route through `review_provider_reservation_request`,
-review-required overlap rows stay generic, capability metadata is consistent,
-and the docs/tests preserve the no-provider-reservation-execution boundary. It
-also ran focused behavior selectors and `git diff --check` successfully.
+Sidecar `019e9cac-a574-78e1-af4f-8f9c55502c68` reported no findings. It
+confirmed the capability semantic, provider-ID fixture evidence, row-derived
+stale-map validation, and docs were consistent. It also ran the focused
+resource-projection selectors and scoped `git diff --check` successfully.
 
 Implementation commit:
-`be130f9f8df6d02287f373706e744e85c391ec6c` pushed to `origin/main`.
+`3d7231772c1a60c54a5412d29a4a76d95f7676d6` pushed to `origin/main`.
 
 Last completed implementation commit:
-`be130f9f8df6d02287f373706e744e85c391ec6c` pushed to `origin/main`.
+`3d7231772c1a60c54a5412d29a4a76d95f7676d6` pushed to `origin/main`.
 
 Last ledger correction commit:
-`70959a7aa678e60de0934dd83a5cc6f7fcbaf0c0` pushed to `origin/main`.
+`d5be0456bea318cb2379a2c0ca19c10e748a6df6` pushed to `origin/main`.
 
 Next candidate:
-Continue the resource/communications allocation queue, likely storage/downlink
-roll-forward or another provider-reservation handoff gap.
+Continue the resource/communications allocation queue after this provider
+adapter routing contract is pinned.
 
 Blocked:
 No.
