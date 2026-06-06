@@ -8,7 +8,7 @@ Current slice:
 ContactIntent compact summary idempotent handoff.
 
 Status:
-Implemented and verified; commit/push pending.
+Implemented, verified, committed, and pushed.
 
 Files changed:
 - `lib/orbital_dynamics/communications/contact_intent.ex`
@@ -39,9 +39,12 @@ adapters can pass existing summary artifacts back through public facades without
 rebuilding intents or losing deterministic capacity-routing fields.
 
 Last commit:
-- Pending for ContactIntent compact summary idempotent handoff.
+- `5df667737a2e48a918851203a96f241829cf9bce` pushed to `origin/main` for
+  ContactIntent compact summary idempotent handoff.
 
 Recently completed slices:
+- `5df667737a2e48a918851203a96f241829cf9bce` pushed to `origin/main` for
+  ContactIntent compact summary idempotent handoff.
 - `de31814211684f89b37687b22d757088b0eba161` pushed to `origin/main` for
   communications compact summary idempotent handoffs.
 - `70eed6323222b6d04e6cf4234d5521992035dee9` pushed to `origin/main` for
