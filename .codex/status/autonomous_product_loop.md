@@ -8,7 +8,11 @@ Current slice:
 Candidate-refresh resource-filter replay branch summary routing.
 
 Status:
-Implemented, verified, reviewed, and ready to commit/push.
+Implemented, verified, reviewed, committed, and ready to push.
+
+Product commit:
+- `bc9bb57` for candidate-refresh resource-filter replay branch summary
+  routing.
 
 Completed slice:
 Expose composed resource-filter replay branch flags on
@@ -51,6 +55,8 @@ Verification:
   contract did not change.
 
 Recently completed slices:
+- `bc9bb57` committed locally for candidate-refresh resource-filter replay
+  branch summary routing.
 - `8b6381b624a9057ca6f3f9547dec9503cbb5143e` pushed to `origin/main` for the
   autonomous loop handoff after contact-filter replay summary routing.
 - `bb55b60` pushed to `origin/main` for candidate-refresh contact-filter replay
