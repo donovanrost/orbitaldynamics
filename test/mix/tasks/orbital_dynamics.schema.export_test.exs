@@ -1098,6 +1098,65 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "minimum"
            ]) == 0
 
+    candidate_refresh_timeline_feedback_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "timeline_feedback_report",
+        "properties"
+      ])
+
+    assert get_in(candidate_refresh_timeline_feedback_source_report, [
+             "input_keys",
+             "items",
+             "type"
+           ]) == "string"
+
+    Enum.each(
+      [
+        "station_reservation_evidence_row_count",
+        "station_reservation_expiration_evidence_row_count"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_timeline_feedback_source_report, [
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_timeline_feedback_source_report, [
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "status_counts",
+        "feedback_kind_counts",
+        "match_strategy_counts",
+        "activity_id_counts",
+        "cadence_import_status_counts"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_timeline_feedback_source_report, [
+                 field,
+                 "additionalProperties",
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_timeline_feedback_source_report, [
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
     candidate_refresh_constraint_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",

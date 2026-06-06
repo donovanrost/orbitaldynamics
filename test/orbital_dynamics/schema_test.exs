@@ -12283,6 +12283,139 @@ defmodule OrbitalDynamics.SchemaTest do
                  "$.provenance.source_reports.provider_counteroffer_report.counteroffer_cost_delta_total")
            )
 
+    artifact_with_timeline_feedback_summary =
+      put_in(artifact, ["provenance", "source_reports", "timeline_feedback_report"], %{
+        "paths" => ["source_timeline_feedback_report"],
+        "contract" => "timeline_feedback_report.v1",
+        "count" => 1,
+        "row_count" => 2,
+        "input_keys" => ["source_timeline_feedback_report"],
+        "status_counts" => %{"accepted" => 1},
+        "feedback_kind_counts" => %{"activity_feedback" => 1},
+        "match_strategy_counts" => %{"activity_id" => 1},
+        "activity_id_counts" => %{"act_downlink" => 1},
+        "cadence_import_status_counts" => %{"ready" => 1},
+        "station_reservation_evidence_row_count" => 1,
+        "station_reservation_expiration_evidence_row_count" => 1
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_timeline_feedback_summary)
+
+    timeline_feedback_source_report_properties =
+      get_in(candidate_refresh_schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "timeline_feedback_report",
+        "properties"
+      ])
+
+    assert get_in(timeline_feedback_source_report_properties, [
+             "input_keys",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(timeline_feedback_source_report_properties, [
+             "feedback_kind_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(timeline_feedback_source_report_properties, [
+             "station_reservation_evidence_row_count",
+             "minimum"
+           ]) == 0
+
+    invalid_timeline_feedback_input_key =
+      put_in(
+        artifact_with_timeline_feedback_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_feedback_report",
+          "input_keys",
+          Access.at(0)
+        ],
+        42
+      )
+
+    assert {:error, invalid_timeline_feedback_input_key_report} =
+             Schema.validate_artifact(invalid_timeline_feedback_input_key)
+
+    assert Enum.any?(
+             invalid_timeline_feedback_input_key_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_feedback_report.input_keys[0]")
+           )
+
+    invalid_timeline_feedback_count =
+      put_in(
+        artifact_with_timeline_feedback_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_feedback_report",
+          "feedback_kind_counts",
+          "activity_feedback"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_timeline_feedback_count_report} =
+             Schema.validate_artifact(invalid_timeline_feedback_count)
+
+    assert Enum.any?(
+             invalid_timeline_feedback_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_feedback_report.feedback_kind_counts.activity_feedback")
+           )
+
+    invalid_timeline_feedback_count_shape =
+      put_in(
+        artifact_with_timeline_feedback_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_feedback_report",
+          "match_strategy_counts"
+        ],
+        "activity_id"
+      )
+
+    assert {:error, invalid_timeline_feedback_count_shape_report} =
+             Schema.validate_artifact(invalid_timeline_feedback_count_shape)
+
+    assert Enum.any?(
+             invalid_timeline_feedback_count_shape_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_feedback_report.match_strategy_counts")
+           )
+
+    invalid_timeline_feedback_station_reservation_count =
+      put_in(
+        artifact_with_timeline_feedback_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_feedback_report",
+          "station_reservation_evidence_row_count"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_timeline_feedback_station_reservation_count_report} =
+             Schema.validate_artifact(invalid_timeline_feedback_station_reservation_count)
+
+    assert Enum.any?(
+             invalid_timeline_feedback_station_reservation_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_feedback_report.station_reservation_evidence_row_count")
+           )
+
     artifact_with_link_capacity_summary =
       put_in(artifact, ["provenance", "source_reports", "link_capacity_report"], %{
         "paths" => ["source_link_capacity_report"],

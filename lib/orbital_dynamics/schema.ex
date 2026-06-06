@@ -21190,6 +21190,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_station_calendar_source_report_summary_json_schema(),
             "station_reservation_report" =>
               candidate_refresh_station_reservation_source_report_summary_json_schema(),
+            "timeline_feedback_report" =>
+              candidate_refresh_timeline_feedback_source_report_summary_json_schema(),
             "timeline_activity_state" =>
               candidate_refresh_timeline_activity_state_source_report_summary_json_schema()
           }
@@ -21474,6 +21476,28 @@ defmodule OrbitalDynamics.Schema do
         "invalid_activity_input_reasons" => string_array_schema(),
         "action_routing" => timeline_activity_state_action_routing_json_schema()
       })
+    end)
+  end
+
+  defp candidate_refresh_timeline_feedback_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      properties
+      |> Map.merge(%{
+        "input_keys" => string_array_schema()
+      })
+      |> Map.merge(
+        Map.new(
+          [
+            "status_counts",
+            "feedback_kind_counts",
+            "match_strategy_counts",
+            "activity_id_counts",
+            "cadence_import_status_counts"
+          ],
+          &{&1, non_negative_integer_count_map_json_schema()}
+        )
+      )
     end)
   end
 
@@ -26270,6 +26294,7 @@ defmodule OrbitalDynamics.Schema do
         |> validate_candidate_refresh_station_calendar_context(path, summary)
         |> validate_candidate_refresh_timeline_activity_context(path, summary)
         |> validate_candidate_refresh_timeline_publication_context(path, summary)
+        |> validate_candidate_refresh_timeline_feedback_context(path, summary)
         |> validate_candidate_refresh_model_acceptance_context(path, summary)
         |> validate_candidate_refresh_validation_safety_case_context(path, summary)
       else
@@ -26348,6 +26373,37 @@ defmodule OrbitalDynamics.Schema do
     |> validate_string_list_items(path, summary, "impact_counteroffer_ids")
     |> validate_string_list_items(path, summary, "timing_shift_counteroffer_ids")
     |> validate_string_list_items(path, summary, "cost_delta_counteroffer_ids")
+  end
+
+  defp validate_candidate_refresh_timeline_feedback_context(issues, path, summary) do
+    issues
+    |> expect_optional_type(path, summary, "input_keys", :list)
+    |> validate_string_list_items(path, summary, "input_keys")
+    |> expect_optional_type(path, summary, "status_counts", :map)
+    |> validate_non_negative_integer_count_map(
+      path <> ".status_counts",
+      Map.get(summary, "status_counts")
+    )
+    |> expect_optional_type(path, summary, "feedback_kind_counts", :map)
+    |> validate_non_negative_integer_count_map(
+      path <> ".feedback_kind_counts",
+      Map.get(summary, "feedback_kind_counts")
+    )
+    |> expect_optional_type(path, summary, "match_strategy_counts", :map)
+    |> validate_non_negative_integer_count_map(
+      path <> ".match_strategy_counts",
+      Map.get(summary, "match_strategy_counts")
+    )
+    |> expect_optional_type(path, summary, "activity_id_counts", :map)
+    |> validate_non_negative_integer_count_map(
+      path <> ".activity_id_counts",
+      Map.get(summary, "activity_id_counts")
+    )
+    |> expect_optional_type(path, summary, "cadence_import_status_counts", :map)
+    |> validate_non_negative_integer_count_map(
+      path <> ".cadence_import_status_counts",
+      Map.get(summary, "cadence_import_status_counts")
+    )
   end
 
   defp validate_candidate_refresh_maneuver_review_context(issues, path, summary) do
