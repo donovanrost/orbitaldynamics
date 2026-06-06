@@ -5,7 +5,7 @@ Expose CandidateRefresh timeline-transition-application source-report schema
 property.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 CandidateRefresh timeline-transition-application source summaries already
 preserve application, selected/review activity, operator-review,
 preserved/replacement, duplicate timeline identity, and transition decision
@@ -55,9 +55,10 @@ Tests run:
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
   test, focused CandidateRefresh runtime tests, schema lint, whitespace check,
   and generated-schema `jq` spot-checks.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-Pending for this slice.
+`93b8d0a80f3d56a585cd37d1d9ac71ef7ff784c7` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending for this slice.
