@@ -5,48 +5,56 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-StationCalendar compact summary idempotent handoffs.
+CandidateRefresh station reservation review-summary replay provenance.
 
 Status:
-Implemented, verified, committed, and pushed.
+Implemented, verified, committed, and ready to push.
 
 Files changed:
-- `lib/orbital_dynamics/communications/station_calendar.ex`
-- `test/orbital_dynamics/communications/station_calendar_test.exs`
+- `lib/orbital_dynamics/candidate_refresh.ex`
+- `test/orbital_dynamics/candidate_refresh_test.exs`
 - `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`
 - `.codex/status/autonomous_product_loop.md`
 
 Behavior changed:
-- `StationCalendar.precedence_summary/1` now accepts existing
-  `station_calendar_precedence_summary.v1` artifacts idempotently.
-- Reservation review, hold, and hold import-readiness summaries now accept
-  existing compact reservation summary artifacts idempotently.
-- Provider counteroffer review, import-readiness, and plan-impact summaries now
-  accept existing compact counteroffer summary artifacts idempotently.
-- Atom-keyed compact StationCalendar summary handoffs are normalized to string
-  keys, matching existing report-artifact handoff behavior and public facades.
+- `CandidateRefresh.source_report_summary/1` now accepts direct,
+  accepted-state, mission-state, and result-artifact-wrapped
+  `station_reservation_review_summary.v1` inputs.
+- Compact station-reservation review summaries are projected into the existing
+  `station_reservation_report` source-report family, preserving review rows,
+  source summary model/contract counts, source paths, reservation counts,
+  owner/status maps, expiration evidence, and branch-local replay pressure.
+- `CandidateRefresh.capabilities/0` now advertises
+  `:station_reservation_review_summary` input support and
+  `:source_station_reservation_review_summary_input_provenance` row semantics.
 
 Tests run:
-- `mix test test/orbital_dynamics/communications/station_calendar_test.exs:696 test/orbital_dynamics/communications/station_calendar_test.exs:2734 test/orbital_dynamics/communications/station_calendar_test.exs:4276`
-  -> 3 passed, 39 excluded.
-- `mix test test/orbital_dynamics/communications/station_calendar_test.exs`
-  -> 42 passed.
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:27 test/orbital_dynamics/candidate_refresh_test.exs:30365 test/orbital_dynamics/candidate_refresh_test.exs:30594 test/orbital_dynamics/candidate_refresh_test.exs:30861 test/orbital_dynamics/candidate_refresh_test.exs:30974 test/orbital_dynamics/candidate_refresh_test.exs:31226`
+  -> 6 passed, 679 excluded.
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs`
+  -> 685 passed.
+- `git diff --check`
+  -> clean.
 
 Docs/artifacts changed:
 - `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`
-  documents idempotent compact StationCalendar summary handoffs.
+  documents CandidateRefresh compact `station_reservation_review_summary.v1`
+  handoff replay.
 
 Level 6 pillar advanced:
-Fleet-level station-calendar, reservation, and provider-counteroffer review
-artifacts: compact station-calendar adapters can pass existing summary artifacts
-back through public facades without rerunning calendar/report derivation or
-losing deterministic routing fields.
+Fleet-level station-calendar/reservation operational replay: CandidateRefresh
+can consume the compact reservation review summary produced by StationCalendar
+without reopening the full station reservation report, while preserving
+branch-local review/owner/expiration pressure for downstream audit and adapter
+routing.
 
 Last commit:
-- `13d2bbdf98208a695889e2dae46d719e745700f1` pushed to `origin/main` for
-  StationCalendar compact summary idempotent handoffs.
+- `a6883f8cf190b756d38cb9a222c8233e6a61ef77` committed locally for
+  CandidateRefresh station reservation review-summary replay provenance.
 
 Recently completed slices:
+- `a6883f8cf190b756d38cb9a222c8233e6a61ef77` committed locally for
+  CandidateRefresh station reservation review-summary replay provenance.
 - `13d2bbdf98208a695889e2dae46d719e745700f1` pushed to `origin/main` for
   StationCalendar compact summary idempotent handoffs.
 - `5df667737a2e48a918851203a96f241829cf9bce` pushed to `origin/main` for
@@ -61,14 +69,11 @@ Recently completed slices:
   ResourceSummary roll-forward pressure direction/capacity map coverage.
 - `b2e3e85062d95f0479f055289cfa97918685832e` pushed to `origin/main` for
   resource projection compact invalid-input review rows.
-- `7965b42ad1a95b643020410cbe00d96121ea47b7` pushed to `origin/main` for
-  resource projection compact source-quality and trust-boundary provenance.
-- `2d2f78990a990efa502d82de254aa7408f4e3117` pushed to `origin/main` for
-  resource projection compact pressure direction/capacity maps.
 
 Next candidate:
-After pushing this slice, move to CandidateRefresh operational replay maturity
-unless another small communications handoff gap appears in a fresh scan.
+After pushing this slice, continue CandidateRefresh operational replay maturity
+by scanning for one remaining compact source-report family that is generated by
+an operational surface but not yet preserved as CandidateRefresh provenance.
 
 Blocked:
 No.
