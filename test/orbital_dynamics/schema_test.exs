@@ -8079,6 +8079,39 @@ defmodule OrbitalDynamics.SchemaTest do
              "import_action"
            ]
 
+    row_properties = get_in(schema, ["properties", "rows", "items", "properties"])
+
+    assert get_in(row_properties, ["schema_contract", "const"]) ==
+             "timeline_activity_lifecycle_state.v1"
+
+    assert get_in(row_properties, ["model", "const"]) ==
+             "artifact_only_timeline_activity_lifecycle_state"
+
+    assert get_in(row_properties, ["validation_level", "const"]) == "artifact_contract"
+
+    assert get_in(row_properties, ["planned_timeline_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_properties, ["realized_timeline_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_properties, ["planned_status_category", "type"]) == "string"
+    assert get_in(row_properties, ["realized_status_category", "type"]) == "string"
+    assert get_in(row_properties, ["planned_approval_category", "type"]) == "string"
+    assert get_in(row_properties, ["realized_approval_category", "type"]) == "string"
+
+    assert get_in(row_properties, ["planned_duplicate_activity_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(row_properties, ["realized_duplicate_activity_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(row_properties, ["assumptions", "type"]) == "object"
+
     assert get_in(schema, [
              "properties",
              "review_timeline_ids_by_required_operator_action",
@@ -24227,6 +24260,19 @@ defmodule OrbitalDynamics.SchemaTest do
       "timeline_feedback_report.v1",
       "study_results/timeline_feedback_report_v1.json",
       ["properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "timeline_lifecycle_state_summary.v1",
+      "study_results/timeline_lifecycle_state_summary_v1.json",
+      ["properties", "rows", "items", "properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "timeline_lifecycle_state_summary.v1",
+      "study_results/timeline_lifecycle_state_summary_v1.json",
+      ["properties", "review_rows", "items", "properties"],
+      fn artifact -> Map.get(artifact, "review_rows", []) end
     )
 
     assert_fixture_fields_are_schema_visible(

@@ -24201,11 +24201,22 @@ defmodule OrbitalDynamics.Schema do
         "import_action"
       ],
       "properties" => %{
+        "schema_contract" => %{
+          "type" => "string",
+          "const" => "timeline_activity_lifecycle_state.v1"
+        },
+        "model" => %{
+          "type" => "string",
+          "const" => "artifact_only_timeline_activity_lifecycle_state"
+        },
+        "validation_level" => %{"type" => "string", "const" => "artifact_contract"},
         "rank" => %{"type" => "integer", "minimum" => 1},
         "timeline_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
         "activity_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
         "planned_activity_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
         "realized_activity_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "planned_timeline_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "realized_timeline_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
         "planned_activity_ids" => stable_id_array_schema(),
         "realized_activity_ids" => stable_id_array_schema(),
         "transition_decision" => %{
@@ -24229,20 +24240,27 @@ defmodule OrbitalDynamics.Schema do
         "approval_transition" => lifecycle_transition_json_schema(),
         "planned_status" => %{"type" => "string"},
         "realized_status" => %{"type" => "string"},
+        "planned_status_category" => %{"type" => "string"},
+        "realized_status_category" => %{"type" => "string"},
         "planned_approval_status" => %{"type" => "string"},
         "realized_approval_status" => %{"type" => "string"},
+        "planned_approval_category" => %{"type" => "string"},
+        "realized_approval_category" => %{"type" => "string"},
         "planned_locked" => %{"type" => "boolean"},
         "realized_locked" => %{"type" => "boolean"},
         "planned_executed" => %{"type" => "boolean"},
         "realized_executed" => %{"type" => "boolean"},
         "timeline_identity_collision" => %{"type" => "boolean"},
+        "planned_duplicate_activity_count" => %{"type" => "integer", "minimum" => 0},
+        "realized_duplicate_activity_count" => %{"type" => "integer", "minimum" => 0},
         "invalid_activity_input" => %{"type" => "boolean"},
         "invalid_activity_input_count" => %{"type" => "integer", "minimum" => 0},
         "invalid_activity_input_reasons" => string_array_schema(),
         "planned_activity_context" => activity_context_json_schema(),
         "realized_activity_context" => activity_context_json_schema(),
         "planned_protection_decision" => protection_decision_json_schema(),
-        "realized_protection_decision" => protection_decision_json_schema()
+        "realized_protection_decision" => protection_decision_json_schema(),
+        "assumptions" => %{"type" => "object", "additionalProperties" => true}
       }
     }
   end
