@@ -1373,8 +1373,8 @@ selected/actual downlink shortfall, all/selected/unused capacity-adjusted
 throughput row counts plus station and direction maps, link-capacity direction
 routing maps,
 selected contact count maps, actual-throughput row counts/pressure,
-station, spacecraft, contact, activity, source-window, station-calendar entry, and
-provider-entry routing, resource-pressure direction counts and activity-ID maps
+station, spacecraft, contact, activity, source-window, station-calendar entry,
+provider ID, and provider-entry routing, resource-pressure direction counts and activity-ID maps
 by direction, plus storage/downlink
 pressure maps without mutating allocation or projection state, selecting
 candidates, approving imports, writing to Cadence, or regenerating candidates.

@@ -422,6 +422,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert :source_report_storage_downlink_pressure_branch_replay_summary in source_report_summary_semantics
 
+    assert :source_report_storage_downlink_pressure_provider_routing_maps in source_report_summary_semantics
+
     assert :source_report_station_calendar_branch_replay_summary in source_report_summary_semantics
 
     assert :source_report_station_reservation_branch_replay_summary in source_report_summary_semantics

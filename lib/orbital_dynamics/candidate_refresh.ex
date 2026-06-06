@@ -466,6 +466,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :source_report_resource_filter_branch_replay_summary,
         :source_report_resource_projection_branch_replay_summary,
         :source_report_storage_downlink_pressure_branch_replay_summary,
+        :source_report_storage_downlink_pressure_provider_routing_maps,
         :source_report_station_calendar_branch_replay_summary,
         :source_report_station_reservation_branch_replay_summary,
         :source_report_command_window_branch_replay_summary,
