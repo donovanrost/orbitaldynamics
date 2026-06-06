@@ -36168,7 +36168,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "tradeoff_downlink_activity" => 1,
                "tradeoff_latency_activity" => 1,
                "tradeoff_target_activity" => 1
-             }
+             },
+             "source_report_objective_gap_branch_local_objective_gap_pressure" => true,
+             "source_report_objective_gap_branch_local_downlink_gap_pressure" => true,
+             "source_report_objective_gap_branch_local_target_gap_pressure" => true,
+             "source_report_objective_gap_branch_local_collection_latency_gap_pressure" => true,
+             "source_report_objective_gap_branch_local_objective_status_pressure" => true,
+             "source_report_objective_gap_branch_local_score_term_pressure" => true,
+             "source_report_objective_gap_branch_local_routing_pressure" => true
            } = summary = CandidateRefresh.source_report_summary(refresh)
 
     replay_summary = %{
@@ -36289,7 +36296,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "tradeoff_downlink_activity" => 1,
                "tradeoff_latency_activity" => 1,
                "tradeoff_target_activity" => 1
-             }
+             },
+             "source_report_objective_gap_branch_local_objective_gap_pressure" => true,
+             "source_report_objective_gap_branch_local_downlink_gap_pressure" => true,
+             "source_report_objective_gap_branch_local_target_gap_pressure" => true,
+             "source_report_objective_gap_branch_local_collection_latency_gap_pressure" => true,
+             "source_report_objective_gap_branch_local_objective_status_pressure" => true,
+             "source_report_objective_gap_branch_local_score_term_pressure" => true,
+             "source_report_objective_gap_branch_local_routing_pressure" => true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.objective_gap_replay_summary(artifact) == replay_summary
