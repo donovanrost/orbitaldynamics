@@ -5,7 +5,7 @@ Expose resource summary activity-type arrays and precondition row values in JSON
 Schema.
 
 Status:
-Implemented, locally verified, and reviewed clean; pending publish.
+Implemented, locally verified, reviewed clean, committed, and pushed.
 Fixture/runtime visibility discovery showed `resource_summary.v1` artifacts
 already validate `suppressed_activity_types` and `incompatible_activity_types`
 as string arrays, but the standalone exported JSON Schema did not expose those
@@ -58,12 +58,13 @@ Tests run:
 - `slice_reviewer`: no must-fix findings. Residual risk noted that `value`
   intentionally excludes `null`, arrays, and objects; accepted for current
   scalar precondition producers.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`5430efdd22b0a5e5d621c65eda1145657decabb0` pushed to `origin/main`.
+`15d7ae21f37c344eb68f0d34a6ea2d0bd4d25587` pushed to `origin/main`.
 
 Last ledger correction commit:
-`a2a4bc1` pushed to `origin/main`.
+Pending.
 
 Next candidate:
 After this slice, continue fixture/schema visibility discovery. Known remaining
