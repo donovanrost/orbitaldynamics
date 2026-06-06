@@ -4,7 +4,7 @@ Current slice:
 Expose timeline diff summary review-row evidence fields.
 
 Status:
-Implemented, locally verified, and reviewed clean; pending publish.
+Committed and pushed.
 Contract-shaped fixture discovery showed
 `study_results/timeline_diff_summary_v1.json` emits review-row evidence fields
 that `timeline_diff_row_json_schema/0` did not name:
@@ -63,10 +63,10 @@ Read-only review:
   generated schemas embedding the shared diff-row schema.
 
 Last completed implementation commit:
-`0a6d344e28844f85d604099aaf9cf6b376274744` pushed to `origin/main`.
+`f83957de3577198f55f67be2718110c4713ca854` pushed to `origin/main`.
 
 Last ledger correction commit:
-`b7bc5d3` pushed to `origin/main`.
+Pending ledger correction for the timeline diff evidence schema slice.
 
 Next candidate:
 After this slice, rerun contract-shaped fixture/schema visibility discovery.
