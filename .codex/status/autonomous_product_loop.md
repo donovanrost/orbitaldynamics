@@ -9,7 +9,7 @@ Resource projection actual data-volume validation before storage/downlink flow
 rows.
 
 Status:
-Implemented and focused verification passed; commit/push pending.
+Implemented, verified, committed, and pushed.
 
 Files changed:
 - `lib/orbital_dynamics/resource_projection.ex`
@@ -39,6 +39,10 @@ Level 6 pillar advanced:
 Resource and communications allocation semantics: deterministic storage/downlink
 flow evidence now review-gates malformed realized data-volume inputs instead of
 silently dropping them from audit rows.
+
+Last commit:
+- `c51b3dba913af916920294b374d4ea02a4fe28c9` pushed to `origin/main` for
+  resource projection actual data-volume validation.
 
 Next candidate:
 Continue ResourceProjection hardening by checking whether provider/station
