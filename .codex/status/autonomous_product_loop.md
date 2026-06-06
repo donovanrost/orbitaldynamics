@@ -4,7 +4,7 @@ Current slice:
 Expose Cadence import resource-pressure readiness evidence schemas.
 
 Status:
-Implemented, locally verified, and read-only reviewed clean; pending publish.
+Implemented, locally verified, read-only reviewed clean, committed, and pushed.
 
 Discovery:
 Contract-shaped fixture/schema visibility comparison shows
@@ -62,10 +62,10 @@ Tests run:
   `git diff --check -- . ':!.gitignore'`, and reported no must-fix findings.
 
 Last completed implementation commit:
-`8a66dfe362a2deb8f769c1499b340da0bccb82be` pushed to `origin/main`.
+`0c96df16553ae11689418b0fd202fbe474a8e876` pushed to `origin/main`.
 
 Last ledger correction commit:
-`f733e09c2cdd328ea280388e0dcff95d86962d51` pushed to `origin/main`.
+Pending this ledger-only correction.
 
 Next candidate:
 After this slice, rerun contract-shaped fixture/schema visibility discovery.
