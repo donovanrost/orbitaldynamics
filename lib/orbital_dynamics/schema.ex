@@ -18661,6 +18661,18 @@ defmodule OrbitalDynamics.Schema do
         "source_window" => candidate_activity_source_window_json_schema(),
         "fuel_margin" => %{"type" => "number"},
         "power_margin" => %{"type" => "number"},
+        "projected_power_margin" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
+        "battery_capacity_wh" => %{"type" => "number", "minimum" => 0.0},
+        "battery_energy_used_wh" => %{"type" => "number", "minimum" => 0.0},
+        "starting_battery_energy_used_wh" => %{"type" => "number", "minimum" => 0.0},
+        "projected_battery_energy_used_wh" => %{"type" => "number", "minimum" => 0.0},
+        "projected_battery_overuse_wh" => %{"type" => "number", "minimum" => 0.0},
+        "battery_state_of_charge" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
+        "projected_battery_state_of_charge" => %{
+          "type" => "number",
+          "minimum" => 0.0,
+          "maximum" => 1.0
+        },
         "thermal_margin_c" => %{"type" => "number"},
         "warnings" => string_array_schema(),
         "policy_decision" => policy_decision_json_schema()
@@ -36615,6 +36627,14 @@ defmodule OrbitalDynamics.Schema do
     |> validate_string_list_items(path, row, "suppressed_activity_types")
     |> expect_optional_number(path, row, "fuel_margin")
     |> expect_optional_number(path, row, "power_margin")
+    |> expect_optional_probability(path, row, "projected_power_margin")
+    |> expect_optional_non_negative_number(path, row, "battery_capacity_wh")
+    |> expect_optional_non_negative_number(path, row, "battery_energy_used_wh")
+    |> expect_optional_non_negative_number(path, row, "starting_battery_energy_used_wh")
+    |> expect_optional_non_negative_number(path, row, "projected_battery_energy_used_wh")
+    |> expect_optional_non_negative_number(path, row, "projected_battery_overuse_wh")
+    |> expect_optional_probability(path, row, "battery_state_of_charge")
+    |> expect_optional_probability(path, row, "projected_battery_state_of_charge")
     |> expect_optional_number(path, row, "thermal_margin_c")
     |> expect_optional_type(path, row, "warnings", :list)
     |> expect_optional_non_negative_integer(path, row, "ignored_activity_count")

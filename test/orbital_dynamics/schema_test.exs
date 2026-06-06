@@ -19715,6 +19715,34 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(row_schema, ["properties", "resource_provenance", "type"]) == "object"
     assert get_in(row_schema, ["properties", "payload_available", "type"]) == "boolean"
     assert get_in(row_schema, ["properties", "antenna_available", "type"]) == "boolean"
+
+    Enum.each(
+      [
+        "battery_capacity_wh",
+        "battery_energy_used_wh",
+        "starting_battery_energy_used_wh",
+        "projected_battery_energy_used_wh",
+        "projected_battery_overuse_wh"
+      ],
+      fn field ->
+        assert get_in(row_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0
+               }
+      end
+    )
+
+    Enum.each(
+      ["battery_state_of_charge", "projected_battery_state_of_charge", "projected_power_margin"],
+      fn field ->
+        assert get_in(row_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0,
+                 "maximum" => 1.0
+               }
+      end
+    )
+
     assert get_in(row_schema, ["properties", "warnings", "items", "type"]) == "string"
 
     flow_row_schema = get_in(row_schema, ["properties", "activity_resource_flow", "items"])
@@ -19891,6 +19919,57 @@ defmodule OrbitalDynamics.SchemaTest do
     assert Enum.any?(
              unused_downlink_capacity_report["errors"],
              &(&1["path"] == "$.projected_resources[0].unused_downlink_capacity_mb")
+           )
+
+    invalid_battery_capacity =
+      put_in(
+        resource_projection_report,
+        ["projected_resources", Access.at(0), "battery_capacity_wh"],
+        -1.0
+      )
+
+    assert {:error, battery_capacity_report} =
+             Schema.validate_artifact(invalid_battery_capacity,
+               schema_contract: "resource_projection_report.v1"
+             )
+
+    assert Enum.any?(
+             battery_capacity_report["errors"],
+             &(&1["path"] == "$.projected_resources[0].battery_capacity_wh")
+           )
+
+    invalid_projected_battery_state_of_charge =
+      put_in(
+        resource_projection_report,
+        ["projected_resources", Access.at(0), "projected_battery_state_of_charge"],
+        1.2
+      )
+
+    assert {:error, projected_battery_state_of_charge_report} =
+             Schema.validate_artifact(invalid_projected_battery_state_of_charge,
+               schema_contract: "resource_projection_report.v1"
+             )
+
+    assert Enum.any?(
+             projected_battery_state_of_charge_report["errors"],
+             &(&1["path"] == "$.projected_resources[0].projected_battery_state_of_charge")
+           )
+
+    invalid_projected_power_margin =
+      put_in(
+        resource_projection_report,
+        ["projected_resources", Access.at(0), "projected_power_margin"],
+        "0.64"
+      )
+
+    assert {:error, projected_power_margin_report} =
+             Schema.validate_artifact(invalid_projected_power_margin,
+               schema_contract: "resource_projection_report.v1"
+             )
+
+    assert Enum.any?(
+             projected_power_margin_report["errors"],
+             &(&1["path"] == "$.projected_resources[0].projected_power_margin")
            )
   end
 
