@@ -4,7 +4,7 @@ Current slice:
 Expose CandidateRefresh schema-validation source-report schema property.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 CandidateRefresh schema-validation source summaries already preserve validation
 status, validated contract, validation-mode, error, warning, remediation, and
 remediation detail counts. Replay helpers already consume
@@ -52,9 +52,10 @@ Tests run:
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
   test, focused CandidateRefresh runtime test, schema lint, whitespace check,
   and generated-schema `jq` spot-checks.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-Pending for this slice.
+`7ebb5cb8e3cc4a0cfdbd45accb8f4ed16b79ef97` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending for this slice.
