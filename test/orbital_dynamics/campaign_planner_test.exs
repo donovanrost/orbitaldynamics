@@ -215,8 +215,32 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert {:ok, %{"schema_contract" => "resource_projection_flow_summary.v1"}} =
              Schema.validate_artifact(artifact["resource_projection_flow_summary"])
 
+    assert [
+             %{
+               "schema_contract" => "timeline_activity_precondition_summary.v1",
+               "model" => "artifact_only_timeline_activity_precondition_summary",
+               "source" => "campaign_plan.activities",
+               "validation_level" => "artifact_contract",
+               "activity_id" => ^selected_id,
+               "activity_type" => "observe",
+               "precondition_status" => "clear",
+               "blocked_precondition_count" => 0,
+               "review_precondition_count" => 0,
+               "preconditions" => [],
+               "assumptions" => %{
+                 "execution_boundary" => "artifact_only_no_schedule_mutation",
+                 "operator_authority" => "not_granted_by_precondition_summary",
+                 "resource_authority" => "not_reserved_by_precondition_summary"
+               }
+             } = activity_precondition_summary
+           ] = artifact["timeline_activity_precondition_summaries"]
+
+    assert {:ok, %{"schema_contract" => "timeline_activity_precondition_summary.v1"}} =
+             Schema.validate_artifact(activity_precondition_summary)
+
     assert %{
-             "resource_projection_review_count" => 2
+             "resource_projection_review_count" => 2,
+             "timeline_activity_precondition_review_count" => 1
            } = artifact["operator_review_package"]
 
     assert %{
@@ -255,6 +279,24 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              )
 
     assert %{
+             "review_type" => "timeline_activity_precondition_review",
+             "source" => "campaign_plan.timeline_activity_precondition_summaries[0].summary",
+             "activity_id" => ^selected_id,
+             "precondition_status" => "clear",
+             "required_operator_action" => "record_activity_precondition",
+             "approval_status" => "not_required",
+             "source_timeline_activity_precondition_summary" => %{
+               "schema_contract" => "timeline_activity_precondition_summary.v1",
+               "source" => "campaign_plan.activities"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_plan.timeline_activity_precondition_summaries[0].summary")
+             )
+
+    assert %{
              "import_action" => "review_resource_projection",
              "source_review_type" => "resource_projection_review",
              "spacecraft_id" => "sunlit",
@@ -287,6 +329,71 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              )
 
     assert %{
+             "import_action" => "review_timeline_precondition",
+             "source_review_type" => "timeline_activity_precondition_review",
+             "activity_id" => ^selected_id,
+             "precondition_status" => "clear",
+             "source_timeline_activity_precondition_summary" => %{
+               "schema_contract" => "timeline_activity_precondition_summary.v1",
+               "source" => "campaign_plan.activities"
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_plan.timeline_activity_precondition_summaries[0].summary")
+             )
+
+    blocked_precondition_summary =
+      Timeline.activity_precondition_summary(%{
+        id: :blocked_payload_observe,
+        type: :observe,
+        payload_available: false
+      })
+
+    blocked_precondition_artifact = %{
+      "plan_id" => "campaign:blocked_preconditions",
+      "timeline_activity_precondition_summaries" => [blocked_precondition_summary]
+    }
+
+    blocked_precondition_review =
+      OperatorReview.from_campaign_artifact(blocked_precondition_artifact)
+
+    assert %{
+             "review_type" => "timeline_activity_precondition_review",
+             "source" => "campaign_plan.timeline_activity_precondition_summaries[0].summary",
+             "activity_id" => "blocked_payload_observe",
+             "precondition_status" => "blocked",
+             "required_operator_action" => "review_blocked_activity_precondition",
+             "source_timeline_activity_precondition_summary" => %{
+               "schema_contract" => "timeline_activity_precondition_summary.v1",
+               "precondition_status" => "blocked"
+             }
+           } =
+             Enum.find(
+               blocked_precondition_review["rows"],
+               &(&1["review_type"] == "timeline_activity_precondition_review")
+             )
+
+    blocked_precondition_import =
+      CadenceImport.from_campaign_artifact(blocked_precondition_artifact)
+
+    assert %{
+             "import_action" => "review_timeline_precondition",
+             "source_review_type" => "timeline_activity_precondition_review",
+             "activity_id" => "blocked_payload_observe",
+             "precondition_status" => "blocked",
+             "source_timeline_activity_precondition_summary" => %{
+               "schema_contract" => "timeline_activity_precondition_summary.v1",
+               "precondition_status" => "blocked"
+             }
+           } =
+             Enum.find(
+               blocked_precondition_import["rows"],
+               &(&1["source_review_type"] == "timeline_activity_precondition_review")
+             )
+
+    assert %{
              "schema_contract" => "operational_readiness_report.v1",
              "source_artifact_type" => "campaign_plan.v1",
              "source_artifact_id" => source_artifact_id,
@@ -298,7 +405,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert source_artifact_id == artifact["plan_id"]
     assert readiness_evidence["review_type_counts"]["resource_projection_review"] == 2
+    assert readiness_evidence["review_type_counts"]["timeline_activity_precondition_review"] == 1
     assert readiness_evidence["import_action_counts"]["review_resource_projection"] == 2
+    assert readiness_evidence["import_action_counts"]["review_timeline_precondition"] == 1
 
     assert {:ok, %{"schema_contract" => "operational_readiness_report.v1"}} =
              Schema.validate_artifact(artifact["operational_readiness_report"])
@@ -1061,9 +1170,10 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "score_term_review_count" => 21,
              "objective_tradeoff_review_count" => 3,
              "operational_timeline_count" => 1,
+             "timeline_activity_precondition_review_count" => 1,
              "realized_feedback_count" => 0,
              "warning_count" => 1,
-             "review_count" => 33,
+             "review_count" => 34,
              "rows" => review_rows
            } = artifact["operator_review_package"]
 
@@ -1096,6 +1206,19 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "approval_status" => "operator_review_required",
              "source_approval_status" => "not_evaluated"
            } = Enum.find(review_rows, &(&1["review_type"] == "operational_timeline_review"))
+
+    assert %{
+             "review_type" => "timeline_activity_precondition_review",
+             "source" => "campaign_plan.timeline_activity_precondition_summaries[0].summary",
+             "activity_id" => "leo_1_downlink_equator_prime_1",
+             "precondition_status" => "clear",
+             "required_operator_action" => "record_activity_precondition",
+             "approval_status" => "not_required"
+           } =
+             Enum.find(
+               review_rows,
+               &(&1["review_type"] == "timeline_activity_precondition_review")
+             )
 
     assert %{
              "review_type" => "contact_allocation_review",
@@ -1155,8 +1278,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "schema_contract" => "cadence_import_manifest.v1",
              "source_artifact_type" => "campaign_plan.v1",
              "source_artifact_id" => plan_id,
-             "row_count" => 35,
-             "ready_count" => 3,
+             "row_count" => 36,
+             "ready_count" => 4,
              "review_required_count" => 32,
              "blocked_count" => 0,
              "missing_import_count" => 0,
@@ -1190,7 +1313,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              150.0
            ]
 
-    assert Enum.count(import_starts, &is_nil/1) == 26
+    assert Enum.count(import_starts, &is_nil/1) == 27
 
     assert %{
              "import_action" => "review_contact_contention_resolution",
@@ -1228,6 +1351,18 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "cadence_import_status" => "present"
            } =
              Enum.find(import_rows, &(&1["source_review_type"] == "operational_timeline_review"))
+
+    assert %{
+             "import_action" => "review_timeline_precondition",
+             "import_status" => "ready_for_import",
+             "source_review_type" => "timeline_activity_precondition_review",
+             "activity_id" => "leo_1_downlink_equator_prime_1",
+             "precondition_status" => "clear"
+           } =
+             Enum.find(
+               import_rows,
+               &(&1["source_review_type"] == "timeline_activity_precondition_review")
+             )
 
     assert %{
              "import_action" => "review_contact_allocation",

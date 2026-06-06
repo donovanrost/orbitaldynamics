@@ -420,6 +420,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     resource_projection_flow_summary =
       resource_projection_flow_summary(resource_projection_report)
 
+    timeline_activity_precondition_summaries =
+      timeline_activity_precondition_summaries(selected_activities)
+
     optimizer_contract =
       Optimizer.greedy_timeline_contract(candidates, timelines,
         plan_id: plan_id,
@@ -447,6 +450,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "link_capacity_report" => link_capacity_report,
       "resource_projection_report" => resource_projection_report,
       "resource_projection_flow_summary" => resource_projection_flow_summary,
+      "timeline_activity_precondition_summaries" => timeline_activity_precondition_summaries,
       "target_commitments" => target_commitments(campaign, candidates, selected_activities),
       "objective_satisfaction_report" =>
         objective_satisfaction_report(campaign, candidates, selected_activities),
@@ -43460,6 +43464,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
       source: "campaign_plan.activities",
       source_assumption: "selected campaign_plan.activities"
     )
+  end
+
+  defp timeline_activity_precondition_summaries(selected_activities) do
+    selected_activities
+    |> Enum.map(&Timeline.activity_precondition_summary/1)
+    |> Enum.map(&Map.put(&1, "source", "campaign_plan.activities"))
   end
 
   defp repair_timeline_transition_application_report(planned_activities, repaired_activities) do

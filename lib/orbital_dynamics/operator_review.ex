@@ -1302,6 +1302,10 @@ defmodule OrbitalDynamics.OperatorReview do
           "campaign_plan.contact_contention_report.conflict_groups"
         ) ++
         operational_timeline_rows(get_in(artifact, ["operational_timeline_report", "rows"]) || []) ++
+        source_timeline_activity_precondition_summary_rows(
+          Map.get(artifact, "timeline_activity_precondition_summaries"),
+          "campaign_plan.timeline_activity_precondition_summaries"
+        ) ++
         command_window_rows(get_in(artifact, ["command_window_report", "rows"]) || []) ++
         contact_allocation_rows(
           get_in(artifact, ["contact_allocation_report", "rows"]) || [],

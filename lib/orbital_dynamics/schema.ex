@@ -7741,6 +7741,7 @@ defmodule OrbitalDynamics.Schema do
         "resource_filter_report",
         "resource_projection_report",
         "resource_projection_flow_summary",
+        "timeline_activity_precondition_summaries",
         "objective_satisfaction_report",
         "operational_timeline_report",
         "operator_review_package",
@@ -7757,6 +7758,7 @@ defmodule OrbitalDynamics.Schema do
         "resource_filter_report.v1",
         "resource_projection_report.v1",
         "resource_projection_flow_summary.v1",
+        "timeline_activity_precondition_summary.v1",
         "objective_satisfaction_report.v1",
         "operational_timeline_report.v1",
         "operator_review_package.v1",
@@ -30688,6 +30690,10 @@ defmodule OrbitalDynamics.Schema do
       "$.resource_projection_flow_summary",
       Map.get(artifact, "resource_projection_flow_summary")
     )
+    |> validate_optional_timeline_activity_precondition_summaries(
+      "$.timeline_activity_precondition_summaries",
+      Map.get(artifact, "timeline_activity_precondition_summaries")
+    )
     |> validate_optional_resource_filter_report(
       "$.resource_filter_report",
       Map.get(artifact, "resource_filter_report")
@@ -41759,6 +41765,25 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_optional_timeline_activity_precondition_summary_source(issues, path, _summary),
     do: [error(path, "must be an object") | issues]
+
+  defp validate_optional_timeline_activity_precondition_summaries(issues, _path, nil),
+    do: issues
+
+  defp validate_optional_timeline_activity_precondition_summaries(issues, path, summaries)
+       when is_list(summaries) do
+    summaries
+    |> Enum.with_index()
+    |> Enum.reduce(issues, fn
+      {%{} = summary, index}, acc ->
+        validate_timeline_activity_precondition_summary(acc, "#{path}[#{index}]", summary)
+
+      {_summary, index}, acc ->
+        [error("#{path}[#{index}]", "must be an object") | acc]
+    end)
+  end
+
+  defp validate_optional_timeline_activity_precondition_summaries(issues, path, _summaries),
+    do: [error(path, "must be a list") | issues]
 
   defp timeline_activity_precondition_summary_rows(summary) do
     case Map.get(summary, "preconditions", []) do

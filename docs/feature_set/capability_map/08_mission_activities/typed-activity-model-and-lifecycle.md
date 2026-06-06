@@ -176,6 +176,11 @@ Provider alias normalization:
   `timeline_activity_precondition_summary.v1` contract for timeline-map
   preflights, including no-authority assumptions and review-required invalid
   input evidence.
+- V1 `campaign_plan.v1` artifacts attach selected-activity
+  `timeline_activity_precondition_summary.v1` rows beside the operational
+  timeline report, so campaign-level review/import queues can route clear,
+  blocked, or review-required activity preconditions without reopening the full
+  timeline rows or granting execution authority.
 - `MissionPlan.Activity.capabilities/0` publishes the precondition status
   vocabulary, row semantics, and emitted precondition types, so adapters do not
   infer them from helper output.
