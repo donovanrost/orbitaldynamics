@@ -2832,6 +2832,7 @@ defmodule OrbitalDynamics.Communications.ContactContention do
     |> normalize_station_id()
     |> normalize_contact_time("starts_at_s", "start_s")
     |> normalize_contact_time("ends_at_s", "end_s")
+    |> normalize_contact_numeric_fields()
     |> normalize_station_calendar_status_fields()
     |> normalize_activity_type_alias()
     |> normalize_contact_direction()
@@ -2961,6 +2962,25 @@ defmodule OrbitalDynamics.Communications.ContactContention do
     case first_number([Map.get(contact, canonical_key), Map.get(contact, alternate_key)]) do
       nil -> contact
       value -> Map.put(contact, canonical_key, value)
+    end
+  end
+
+  defp normalize_contact_numeric_fields(contact) do
+    ["score" | @default_resolution_priority_fields]
+    |> Enum.uniq()
+    |> Enum.reduce(contact, &normalize_contact_numeric_field(&2, &1))
+  end
+
+  defp normalize_contact_numeric_field(contact, field) do
+    case Map.fetch(contact, field) do
+      {:ok, value} ->
+        case numeric_or_nil(value) do
+          number when is_number(number) -> Map.put(contact, field, number)
+          _value -> contact
+        end
+
+      :error ->
+        contact
     end
   end
 

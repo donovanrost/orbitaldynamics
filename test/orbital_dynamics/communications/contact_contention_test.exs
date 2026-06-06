@@ -2267,6 +2267,7 @@ defmodule OrbitalDynamics.Communications.ContactContentionTest do
                  "selected_priority" => 7.5,
                  "selected_priority_source" => "priority",
                  "deferred_contact_ids" => ["low_priority_high_score"],
+                 "source_contact_candidates" => source_candidates,
                  "deferred_contact_priorities" => [
                    %{
                      "contact_id" => "low_priority_high_score",
@@ -2277,6 +2278,9 @@ defmodule OrbitalDynamics.Communications.ContactContentionTest do
                }
              ]
            } = resolution
+
+    assert Enum.map(source_candidates, & &1["score"]) == [1.0, 99.0]
+    assert Enum.map(source_candidates, & &1["priority"]) == [7.5, 5.0]
 
     assert {:ok, %{"schema_contract" => "contact_contention_resolution_report.v1"}} =
              Schema.validate_artifact(resolution)
@@ -3616,9 +3620,12 @@ defmodule OrbitalDynamics.Communications.ContactContentionTest do
                "id" => "station:equator_prime:contention:1",
                "starts_at_s" => 100.0,
                "ends_at_s" => 180.0,
-               "contact_ids" => ["provider_string_a", "provider_string_b"]
+               "contact_ids" => ["provider_string_a", "provider_string_b"],
+               "source_contact_candidates" => source_candidates
              }
            ] = report["conflict_groups"]
+
+    assert Enum.map(source_candidates, & &1["score"]) == [2.0, 9.0]
 
     resolution = ContactContention.resolution_report(contacts, report)
 
