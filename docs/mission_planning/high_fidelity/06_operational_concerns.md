@@ -397,4 +397,7 @@ consumed/generated aliases used before battery state projection. Compact
 resource-flow summaries also derive station-calendar direction and
 capacity-fraction maps by pressure type from activity-flow rows, keeping
 provider capacity provenance reviewable without unpacking each projected
-resource row.
+resource row. The same compact projected-resource rows preserve resource source
+quality, trust-boundary status, and declared provenance so source review queues
+do not need to fall back to the full projection report for basic provenance
+triage.

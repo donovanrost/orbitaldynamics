@@ -1435,6 +1435,21 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
     assert {:ok, %{"schema_contract" => "resource_projection_report.v1"}} =
              Schema.validate_artifact(report)
 
+    assert %{
+             "projected_resources" => [
+               %{
+                 "spacecraft_id" => "leo_1",
+                 "resource_source_quality" => "operator_supplied",
+                 "resource_trust_boundary" => "operator_declared_resource_summary",
+                 "resource_trust_boundary_status" => "declared",
+                 "resource_provenance" => %{
+                   "source" => "operator_summary",
+                   "trust_boundary" => "operator_declared_resource_summary"
+                 }
+               }
+             ]
+           } = ResourceProjection.flow_summary(report)
+
     invalid_summary_count = Map.put(report, "input_resource_summary_count", 2)
 
     assert {:error, summary_count_validation} = Schema.validate_artifact(invalid_summary_count)
@@ -1795,6 +1810,21 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
     assert {:ok, %{"schema_contract" => "resource_projection_report.v1"}} =
              Schema.validate_artifact(report)
 
+    assert %{
+             "projected_resources" => [
+               %{
+                 "spacecraft_id" => "leo_1",
+                 "resource_source_quality" => "operator_supplied",
+                 "resource_trust_boundary_status" => "missing"
+               }
+             ]
+           } = flow_summary = ResourceProjection.flow_summary(report)
+
+    refute Map.has_key?(hd(flow_summary["projected_resources"]), "resource_trust_boundary")
+
+    assert {:ok, %{"schema_contract" => "resource_projection_flow_summary.v1"}} =
+             Schema.validate_artifact(flow_summary)
+
     stale_trust_boundary_ids =
       put_in(report, ["resource_spacecraft_ids_by_trust_boundary_status", "missing"], [
         "leo_2"
@@ -1857,6 +1887,24 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
 
     assert {:ok, %{"schema_contract" => "resource_projection_report.v1"}} =
              Schema.validate_artifact(report)
+
+    assert %{
+             "projected_resources" => [
+               %{
+                 "spacecraft_id" => "leo_1",
+                 "resource_source_quality" => "projection_model",
+                 "resource_trust_boundary" => "resource_projection",
+                 "resource_trust_boundary_status" => "declared",
+                 "resource_provenance" => %{
+                   "resource_source_quality" => "projection_model",
+                   "resource_trust_boundary" => "resource_projection"
+                 }
+               }
+             ]
+           } = flow_summary = ResourceProjection.flow_summary(report)
+
+    assert {:ok, %{"schema_contract" => "resource_projection_flow_summary.v1"}} =
+             Schema.validate_artifact(flow_summary)
   end
 
   test "audits terminal or rejected activities without projecting resource effects" do
