@@ -438,11 +438,20 @@ defmodule OrbitalDynamics.Communications.ContactContention do
   The summary preserves recommendation counts, policy/action counts, and the
   selected/deferred/review contact identities needed by review and import queues
   without suppressing candidates, reserving provider time, or mutating schedules.
+  Existing `contact_contention_resolution_summary.v1` artifacts are accepted as
+  idempotent handoff inputs.
   """
   def resolution_summary(contact_contention_resolution_report)
 
+  def resolution_summary(%{"schema_contract" => @resolution_summary_contract} = summary),
+    do: summary
+
   def resolution_summary(%{"schema_contract" => @resolution_contract} = report) do
     contention_resolution_summary(report)
+  end
+
+  def resolution_summary(%{schema_contract: @resolution_summary_contract} = summary) do
+    stringify_keys(summary)
   end
 
   def resolution_summary(%{schema_contract: @resolution_contract} = report) do

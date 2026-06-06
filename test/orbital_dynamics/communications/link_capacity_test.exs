@@ -776,6 +776,15 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
              "invalid_policy_required_downlink_station_count" => 0
            } = LinkCapacity.summary(stale_count_report)
 
+    assert LinkCapacity.summary(summary) == summary
+    assert OrbitalDynamics.link_capacity_summary(summary) == summary
+
+    atom_keyed_summary =
+      Map.new(summary, fn {key, value} -> {String.to_atom(key), value} end)
+
+    assert LinkCapacity.summary(atom_keyed_summary) == summary
+    assert OrbitalDynamics.link_capacity_summary(atom_keyed_summary) == summary
+
     assert OrbitalDynamics.link_capacity_summary(
              [
                %{

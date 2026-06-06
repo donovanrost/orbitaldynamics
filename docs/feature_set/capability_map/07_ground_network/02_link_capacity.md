@@ -456,6 +456,8 @@ summaries preserve the stronger blocking evidence.
 The summary contract validates row-derived counts, throughput/shortfall totals,
 station-keyed ID maps, unresolved actual-throughput/completion evidence, station
 calendar/reservation ID sets, and the artifact-only assumptions boundary.
+Existing `link_capacity_summary.v1` artifacts are accepted as idempotent compact
+handoff inputs when adapters already hold the summary.
 CandidateRefresh accepts direct, accepted-state, mission-state, and
 result-artifact-wrapped `link_capacity_summary.v1` handoffs as compact
 link-capacity source provenance, preserving the summary contract, source

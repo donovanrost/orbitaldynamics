@@ -185,8 +185,10 @@ The summary contract validates its routing/count maps, capacity-pack totals, and
 source-count/contact-ID maps from the compact summary fields so review/import
 handoffs do not trust stale top-level aggregates. Generated summaries also carry
 the exact `ContactContention.capabilities/0` `model_limits`, pinned by
-executable validation and JSON Schema export. This is done **without candidate
-suppression, provider reservation, or schedule mutation**.
+executable validation and JSON Schema export. Existing
+`contact_contention_resolution_summary.v1` artifacts are accepted as idempotent
+compact handoff inputs when adapters already hold the summary. This is done
+**without candidate suppression, provider reservation, or schedule mutation**.
 
 Executable resolution validation checks each recommendation's `candidate_count` against `source_contact_candidates` and selected plus deferred contact IDs before review/import handoff.
 

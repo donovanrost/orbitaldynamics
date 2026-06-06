@@ -1532,6 +1532,15 @@ defmodule OrbitalDynamics.Communications.ContactContentionTest do
              "required_capacity_fraction_contact_ids_by_source" => %{}
            } = ContactContention.resolution_summary(stale_summary_resolution)
 
+    assert ContactContention.resolution_summary(summary) == summary
+    assert OrbitalDynamics.contact_contention_resolution_summary(summary) == summary
+
+    atom_keyed_summary =
+      Map.new(summary, fn {key, value} -> {String.to_atom(key), value} end)
+
+    assert ContactContention.resolution_summary(atom_keyed_summary) == summary
+    assert OrbitalDynamics.contact_contention_resolution_summary(atom_keyed_summary) == summary
+
     assert {:ok, %{"schema_contract" => "contact_contention_resolution_report.v1"}} =
              Schema.validate_artifact(resolution)
   end

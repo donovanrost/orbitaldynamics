@@ -5,47 +5,47 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-ContactAllocation compact summary idempotent handoffs.
+Communications compact summary idempotent handoffs.
 
 Status:
-Implemented, verified, committed, and pushed.
+Implemented and verified; commit/push pending.
 
 Files changed:
-- `lib/orbital_dynamics/communications/contact_allocation.ex`
-- `test/orbital_dynamics/communications/contact_allocation_test.exs`
-- `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
+- `lib/orbital_dynamics/communications/link_capacity.ex`
+- `lib/orbital_dynamics/communications/contact_contention.ex`
+- `test/orbital_dynamics/communications/link_capacity_test.exs`
+- `test/orbital_dynamics/communications/contact_contention_test.exs`
+- `docs/feature_set/capability_map/07_ground_network/02_link_capacity.md`
+- `docs/feature_set/capability_map/07_ground_network/01_overview_filter_and_contention.md`
 - `.codex/status/autonomous_product_loop.md`
 
 Behavior changed:
-- `ContactAllocation.summary/1` and `/2` now accept existing
-  `contact_allocation_summary.v1` artifacts idempotently.
-- `ContactAllocation.station_pressure_summary/1` and `/2` now accept existing
-  `contact_allocation_station_pressure_summary.v1` artifacts idempotently.
-- `ContactAllocation.capacity_pack_summary/1` and `/2`,
-  `reservation_conflict_summary/1` and `/2`, and
-  `provider_reservation_request_summary/1` and `/2` now accept their compact
-  summary artifacts idempotently.
-- Atom-keyed compact allocation-summary handoffs are normalized to string keys,
-  matching the existing report-artifact handoff behavior and public facades.
+- `LinkCapacity.summary/1` now accepts existing `link_capacity_summary.v1`
+  artifacts idempotently.
+- `ContactContention.resolution_summary/1` now accepts existing
+  `contact_contention_resolution_summary.v1` artifacts idempotently.
+- Atom-keyed compact summary handoffs are normalized to string keys, matching
+  existing report-artifact handoff behavior and public facades.
 
 Tests run:
-- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs:564 test/orbital_dynamics/communications/contact_allocation_test.exs:779 test/orbital_dynamics/communications/contact_allocation_test.exs:2257 test/orbital_dynamics/communications/contact_allocation_test.exs:2491 test/orbital_dynamics/communications/contact_allocation_test.exs:7408`
-  -> 4 passed, 62 excluded.
-- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs`
-  -> 66 passed.
+- `mix test test/orbital_dynamics/communications/link_capacity_test.exs:658 test/orbital_dynamics/communications/contact_contention_test.exs:1359`
+  -> 2 passed, 81 excluded.
+- `mix test test/orbital_dynamics/communications/link_capacity_test.exs test/orbital_dynamics/communications/contact_contention_test.exs`
+  -> 83 passed.
 
 Docs/artifacts changed:
-- `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
-  documents idempotent compact allocation-summary handoffs.
+- `docs/feature_set/capability_map/07_ground_network/02_link_capacity.md`
+  documents idempotent `link_capacity_summary.v1` handoffs.
+- `docs/feature_set/capability_map/07_ground_network/01_overview_filter_and_contention.md`
+  documents idempotent `contact_contention_resolution_summary.v1` handoffs.
 
 Level 6 pillar advanced:
-Ground-network/contact allocation review surfaces: compact allocation review
-adapters can pass existing summary artifacts back through ContactAllocation
-facades without rerunning allocation or losing deterministic summary fields.
+Communications pressure/review artifacts: compact link-capacity and contention
+resolution adapters can pass existing summary artifacts back through public
+facades without rerunning analysis or losing deterministic summary fields.
 
 Last commit:
-- `70eed6323222b6d04e6cf4234d5521992035dee9` pushed to `origin/main` for
-  ContactAllocation compact summary idempotent handoffs.
+- Pending for communications compact summary idempotent handoffs.
 
 Recently completed slices:
 - `70eed6323222b6d04e6cf4234d5521992035dee9` pushed to `origin/main` for

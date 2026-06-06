@@ -796,15 +796,22 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
   @doc """
   Builds a compact artifact-only link-capacity triage summary.
 
-  The summary accepts either an existing `link_capacity_report.v1` or the
-  candidate/selected contact inputs used to build one. It exposes row-derived
-  station and contact ID sets without rerunning link analysis, reserving
-  provider time, mutating schedules, or approving contacts.
+  The summary accepts either an existing `link_capacity_report.v1`, an existing
+  `link_capacity_summary.v1`, or the candidate/selected contact inputs used to
+  build one. It exposes row-derived station and contact ID sets without
+  rerunning link analysis, reserving provider time, mutating schedules, or
+  approving contacts.
   """
   def summary(link_capacity_report)
 
+  def summary(%{"schema_contract" => @summary_schema_contract} = summary), do: summary
+
   def summary(%{"schema_contract" => @schema_contract} = report) do
     link_capacity_summary(report)
+  end
+
+  def summary(%{schema_contract: @summary_schema_contract} = summary) do
+    stringify_keys(summary)
   end
 
   def summary(%{schema_contract: @schema_contract} = report) do
