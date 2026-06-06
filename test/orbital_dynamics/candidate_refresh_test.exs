@@ -24561,6 +24561,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_timeline_dependency_impact_dependent_activity_id_counts" => %{
                "cmd_combo" => 6
              },
+             "source_report_timeline_dependency_impact_branch_local_timeline_dependency_impact_pressure" =>
+               true,
+             "source_report_timeline_dependency_impact_branch_local_changed_source_pressure" =>
+               true,
+             "source_report_timeline_dependency_impact_branch_local_dependency_pressure" => true,
+             "source_report_timeline_dependency_impact_branch_local_exclusivity_pressure" => true,
+             "source_report_timeline_dependency_impact_branch_local_dependent_activity_pressure" =>
+               true,
+             "source_report_timeline_dependency_impact_branch_local_operator_review_pressure" =>
+               true,
              "source_reports" => %{
                "timeline_dependency_impact_summary" => %{
                  "contract" => "timeline_dependency_impact_summary.v1",
@@ -24630,6 +24640,19 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "schema_contract" => "candidate_refresh.v1",
       "provenance" => %{"source_reports" => summary["source_reports"]}
     }
+
+    assert %{
+             "source_report_timeline_dependency_impact_branch_local_timeline_dependency_impact_pressure" =>
+               true,
+             "source_report_timeline_dependency_impact_branch_local_changed_source_pressure" =>
+               true,
+             "source_report_timeline_dependency_impact_branch_local_dependency_pressure" => true,
+             "source_report_timeline_dependency_impact_branch_local_exclusivity_pressure" => true,
+             "source_report_timeline_dependency_impact_branch_local_dependent_activity_pressure" =>
+               true,
+             "source_report_timeline_dependency_impact_branch_local_operator_review_pressure" =>
+               true
+           } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.timeline_dependency_impact_replay_summary(artifact) ==
              replay_summary

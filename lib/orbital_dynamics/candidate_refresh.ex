@@ -6897,6 +6897,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_timeline_feedback_replay_summary_fields(source_reports))
     |> Map.merge(source_report_operational_timeline_replay_summary_fields(source_reports))
     |> Map.merge(source_report_timeline_lifecycle_state_replay_summary_fields(source_reports))
+    |> Map.merge(source_report_timeline_dependency_impact_replay_summary_fields(source_reports))
     |> Map.merge(
       source_report_timeline_publication_context_fields(
         source_reports,
@@ -9884,6 +9885,31 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "branch_local_lifecycle_recordable_pressure"),
       "source_report_timeline_lifecycle_state_branch_local_lifecycle_preservation_pressure" =>
         Map.get(summary, "branch_local_lifecycle_preservation_pressure")
+    }
+  end
+
+  defp source_report_timeline_dependency_impact_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("timeline_dependency_impact_summary", %{})
+      |> timeline_dependency_impact_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.timeline_dependency_impact_summary",
+        "timeline_dependency_impact_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_timeline_dependency_impact_branch_local_timeline_dependency_impact_pressure" =>
+        Map.get(summary, "branch_local_timeline_dependency_impact_pressure"),
+      "source_report_timeline_dependency_impact_branch_local_changed_source_pressure" =>
+        Map.get(summary, "branch_local_changed_source_pressure"),
+      "source_report_timeline_dependency_impact_branch_local_dependency_pressure" =>
+        Map.get(summary, "branch_local_dependency_pressure"),
+      "source_report_timeline_dependency_impact_branch_local_exclusivity_pressure" =>
+        Map.get(summary, "branch_local_exclusivity_pressure"),
+      "source_report_timeline_dependency_impact_branch_local_dependent_activity_pressure" =>
+        Map.get(summary, "branch_local_dependent_activity_pressure"),
+      "source_report_timeline_dependency_impact_branch_local_operator_review_pressure" =>
+        Map.get(summary, "branch_local_operator_review_pressure")
     }
   end
 
@@ -13161,6 +13187,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    timeline_dependency_impact_replay_summary_from_summary(
+      impact_summary,
+      summary_source,
+      replay_scope
+    )
+  end
+
+  defp timeline_dependency_impact_replay_summary_from_summary(
+         impact_summary,
+         summary_source,
+         replay_scope
+       ) do
     row_count = summary_integer(impact_summary, "row_count")
     source_activity_count = summary_integer(impact_summary, "source_activity_count")
     replacement_activity_count = summary_integer(impact_summary, "replacement_activity_count")
