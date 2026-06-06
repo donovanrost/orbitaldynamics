@@ -4,7 +4,7 @@ Current slice:
 Expose resource-projection row storage/downlink pressure quantity schemas.
 
 Status:
-Implemented, locally verified, and read-only reviewed clean; pending publish.
+Implemented, locally verified, read-only reviewed clean, committed, and pushed.
 
 Discovery:
 After the resource-projection ignored-activity slice, live fixture/schema
@@ -41,7 +41,7 @@ Definition of done:
 - [x] Focused schema tests, schema export tests, schema lint, generated-schema
   spot-checks, and whitespace checks pass.
 - [x] Read-only review finds no must-fix issues.
-- [ ] Slice-owned files only are committed and pushed.
+- [x] Slice-owned files only are committed and pushed.
 
 Tests run:
 - `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
@@ -61,10 +61,10 @@ Tests run:
   validation path, and reported no must-fix findings.
 
 Last completed implementation commit:
-`731a22e4ec678d5d111b21cf09c0acca4297e16d` pushed to `origin/main`.
+`00013f22a373ef2a598fa893a7008e89da27a950` pushed to `origin/main`.
 
 Last ledger correction commit:
-`975a887e396d82dda2165f025c907c9a66c6e836` pushed to `origin/main`.
+Pending this ledger-only correction.
 
 Next candidate:
 Continue splitting `resource_projection_report.v1` `projected_resources` gaps:
