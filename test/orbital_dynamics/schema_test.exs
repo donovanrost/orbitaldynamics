@@ -10825,6 +10825,54 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(strategy_schema, ["properties", "ranking_comparison_report", "type"]) ==
              "object"
 
+    branch_schema = get_in(strategy_schema, ["properties", "branches", "items"])
+
+    assert branch_schema["required"] == [
+             "branch_id",
+             "probability",
+             "events",
+             "candidate_plan",
+             "repair_result",
+             "score",
+             "score_terms",
+             "warnings",
+             "risk_indicators",
+             "approval_status",
+             "approval_requirements",
+             "policy_decision"
+           ]
+
+    refute Map.has_key?(branch_schema["properties"], "id")
+
+    assert get_in(branch_schema, ["properties", "branch_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(branch_schema, ["properties", "probability", "maximum"]) == 1.0
+
+    assert get_in(branch_schema, ["properties", "score_terms", "additionalProperties", "type"]) ==
+             "number"
+
+    assert get_in(branch_schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "candidate_source",
+             "properties",
+             "refresh_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(branch_schema, [
+             "properties",
+             "provenance",
+             "properties",
+             "candidate_source",
+             "properties",
+             "source_report_input_paths",
+             "items",
+             "type"
+           ]) == "string"
+
     invalid_repair =
       Map.put(repair, "source_station_calendar_report", %{
         "schema_contract" => "station_calendar_report.v1"
@@ -24050,6 +24098,13 @@ defmodule OrbitalDynamics.SchemaTest do
       "study_results/strategy_branch_v1.json",
       ["properties", "tradeoffs", "items", "properties"],
       fn artifact -> Map.get(artifact, "tradeoffs", []) end
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "campaign_strategy.v3",
+      "study_results/leo_constellation_campaign_strategy_v3.json",
+      ["properties", "branches", "items", "properties"],
+      fn artifact -> Map.get(artifact, "branches", []) end
     )
 
     assert_fixture_row_fields_are_schema_visible(

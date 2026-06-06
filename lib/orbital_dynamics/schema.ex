@@ -20752,19 +20752,113 @@ defmodule OrbitalDynamics.Schema do
     %{
       "type" => "object",
       "additionalProperties" => true,
-      "required" => ["id"],
+      "required" => [
+        "branch_id",
+        "probability",
+        "events",
+        "candidate_plan",
+        "repair_result",
+        "score",
+        "score_terms",
+        "warnings",
+        "risk_indicators",
+        "approval_status",
+        "approval_requirements",
+        "policy_decision"
+      ],
       "properties" => %{
-        "id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "branch_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
         "label" => %{"type" => "string"},
         "rank" => %{"type" => "integer"},
         "selected" => %{"type" => "boolean"},
+        "probability" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
         "score" => %{"type" => "number"},
+        "score_terms" => numeric_map_json_schema(),
+        "warnings" => string_array_schema(),
         "events" => %{"type" => "array", "items" => strategy_branch_event_json_schema()},
+        "candidate_plan" => %{"type" => "object", "additionalProperties" => true},
+        "repair_result" => %{"type" => "object", "additionalProperties" => true},
+        "resource_impacts" => %{"type" => "object", "additionalProperties" => true},
+        "resource_projection_report" => %{"type" => "object", "additionalProperties" => true},
+        "risk_indicators" => %{"type" => "array", "items" => strategy_risk_json_schema()},
+        "approval_requirements" => %{
+          "type" => "array",
+          "items" => approval_requirement_json_schema()
+        },
+        "approval_rule_matches" => %{
+          "type" => "array",
+          "items" => policy_decision_rule_match_json_schema()
+        },
+        "tradeoffs" => %{"type" => "array", "items" => strategy_tradeoff_json_schema()},
         "approval_status" => %{
           "type" => "string",
           "enum" => ["auto_approvable", "operator_review_required", "blocked_by_policy"]
         },
-        "policy_decision" => policy_decision_json_schema()
+        "policy_decision" => policy_decision_json_schema(),
+        "derived_source" => %{"type" => "string"},
+        "feasibility_summary" => %{"type" => "object", "additionalProperties" => true},
+        "feedback_adjustments" => %{"type" => "object", "additionalProperties" => true},
+        "objective_satisfaction" => %{"type" => "object", "additionalProperties" => true},
+        "assumptions" => strategy_branch_assumptions_json_schema(),
+        "provenance" => strategy_branch_provenance_json_schema()
+      }
+    }
+  end
+
+  defp strategy_branch_assumptions_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "properties" => %{
+        "branch_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "candidate_source" => strategy_branch_candidate_source_json_schema(),
+        "what_if_events" => %{"type" => "array", "items" => strategy_branch_event_json_schema()},
+        "model_limits" => string_array_schema(),
+        "repair_policy" => %{"type" => "object", "additionalProperties" => true},
+        "repair_scoring_policy" => %{"type" => "object", "additionalProperties" => true},
+        "strategy_policy" => %{"type" => "object", "additionalProperties" => true}
+      }
+    }
+  end
+
+  defp strategy_branch_provenance_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "properties" => %{
+        "source_plan_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "branch_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "branch_metadata" => %{"type" => "object", "additionalProperties" => true},
+        "candidate_source" => strategy_branch_candidate_source_json_schema()
+      }
+    }
+  end
+
+  defp strategy_branch_candidate_source_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "properties" => %{
+        "type" => %{"type" => "string"},
+        "scope" => %{"type" => "string"},
+        "refresh_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "snapshot_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "generated_at" => %{"type" => "string", "format" => "date-time"},
+        "candidate_count" => %{"type" => "integer", "minimum" => 0},
+        "invalidated_candidate_count" => %{"type" => "integer", "minimum" => 0},
+        "maneuver_execution_delta_count" => %{"type" => "integer", "minimum" => 0},
+        "operational_feedback_input_keys" => string_array_schema(),
+        "operational_feedback_trust_boundary_status" => %{"type" => "string"},
+        "source_report_input_paths" => string_array_schema(),
+        "source_operational_feedback_provenance" => %{
+          "type" => "object",
+          "additionalProperties" => true,
+          "properties" => %{
+            "source_path" => %{"type" => "string"},
+            "input_keys" => string_array_schema(),
+            "trust_boundary_status" => %{"type" => "string"}
+          }
+        }
       }
     }
   end
