@@ -297,6 +297,7 @@ defmodule OrbitalDynamics do
       },
       planning: %{
         mission_plan_activity: MissionPlan.Activity.capabilities(),
+        activity_templates: activity_template_capabilities(),
         candidate_refresh: CandidateRefresh.capabilities(),
         optimizer: Optimizer.capabilities(),
         search: %{
@@ -3060,6 +3061,30 @@ defmodule OrbitalDynamics do
 
   defp activity_template_match?(template, id_or_activity_type) do
     id_or_activity_type in [template["id"], template["activity_type"]]
+  end
+
+  defp activity_template_capabilities do
+    templates = activity_templates()
+
+    %{
+      model: :activity_template_catalog,
+      artifact_contract: @activity_template_schema_contract,
+      validation_level: :artifact_contract,
+      supported_activity_types:
+        templates
+        |> Enum.map(& &1["activity_type"])
+        |> Enum.sort(),
+      template_ids:
+        templates
+        |> Enum.map(& &1["id"])
+        |> Enum.sort(),
+      template_count: length(templates),
+      public_facades: [:activity_templates, :activity_template, :activity_from_template],
+      output_shape: :normalized_timeline_activity,
+      transition_path: :timeline_transition_application,
+      known_limits: @activity_template_known_limits,
+      assumptions: @activity_template_assumptions
+    }
   end
 
   defp resolve_activity_template(id_or_activity_type) when is_binary(id_or_activity_type) do

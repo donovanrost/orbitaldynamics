@@ -1428,7 +1428,7 @@ defmodule OrbitalDynamics.Validation do
         "schema_version" => 1,
         "model" => "public_capability_catalog",
         "top_level_family_count" => 7,
-        "planning_capability_count" => 4,
+        "planning_capability_count" => 5,
         "operations_capability_count" => 17,
         "validation_family_count" => 2,
         "artifact_contract_count" => 120,

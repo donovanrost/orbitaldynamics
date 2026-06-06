@@ -1,56 +1,53 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Instantiate `activity_template.v1` artifacts into transition-ready timeline
-activity rows.
+Advertise activity template helpers through the public capability catalog.
 
 Status:
 Implemented, verified, and read-only reviewed.
 
 What changed:
-- Added `OrbitalDynamics.activity_from_template/2`.
-- The helper resolves a template by catalog id, activity type, or direct
-  `activity_template.v1` map.
-- It validates direct template maps with `Schema.validate_artifact/1`, merges
-  template `lifecycle_defaults`, template `default_fields`, and caller
-  overrides, enforces declared required fields plus intrinsic `id`/`type`, and
-  rejects undeclared top-level override fields except `metadata`.
-- It normalizes the result through `Timeline.normalize_activity/1` and returns
-  `{:ok, normalized_activity}` or a structured `{:error, reason}` map.
-- It preserves template provenance on the normalized activity and nested
-  `activity_context`.
-- Added a focused public facade test that instantiates observe and downlink
-  templates, verifies direct template-map input, covers unknown/missing/
-  undeclared/type-mismatch/invalid-template errors, feeds a helper-produced
-  replacement into `timeline_transition_application/2`, and validates a
-  `timeline_transition_application_report.v1` no-mutation handoff.
+- Added `planning.activity_templates` to `OrbitalDynamics.capability_catalog/0`.
+- The entry advertises `activity_template.v1`, validation level, supported
+  activity types, template IDs/count, public facades
+  `activity_templates/0`, `activity_template/1`, and `activity_from_template/2`,
+  normalized timeline activity output, transition-application path, known
+  limits, and no-mutation assumptions.
+- Extended public capability tests to pin the discovery entry and let the
+  existing public-facade export test cover the newly advertised helpers.
+- Regenerated `study_results/capability_catalog_v1.json`.
+- Updated the curated capability-catalog validation reference expected
+  `planning_capability_count` from 4 to 5 and refreshed the matching checked-in
+  `study_results/validation_reference_fixtures.json` check.
 
 Verification:
 - `mix test test/orbital_dynamics/capabilities_test.exs` -> 6 passed.
-- `mix test test/orbital_dynamics/timeline_test.exs:7359` -> 1 passed.
-- Reviewer also ran
-  `mix test test/orbital_dynamics/capabilities_test.exs test/orbital_dynamics/timeline_test.exs:7359`
-  -> 7 passed, 124 excluded.
-- Reviewer ran `mix orbital_dynamics.schema.lint --input study_results/activity_template_v1.json`
-  -> pass.
+- `mix test test/orbital_dynamics/capabilities_test.exs test/mix/tasks/orbital_dynamics.capabilities_test.exs`
+  -> 10 passed.
+- `mix test test/orbital_dynamics/schema_test.exs:189 test/orbital_dynamics/validation_test.exs:4042 test/orbital_dynamics/validation_test.exs:10693 test/orbital_dynamics/validation_test.exs:11684`
+  -> 3 passed, 253 excluded.
+- `mix test test/orbital_dynamics/schema_test.exs:11335` -> 1 passed, 120 excluded.
+- `mix orbital_dynamics.schema.lint --input study_results/capability_catalog_v1.json` -> pass.
+- `mix orbital_dynamics.schema.lint --input study_results/validation_reference_fixtures.json` -> pass.
+- Reviewer confirmed `study_results/capability_catalog_v1.json` matches
+  `OrbitalDynamics.capability_catalog_artifact/0`.
 - `git diff --check` -> pass.
 
 Read-only review:
-Sidecar `019e9c7e-e3c9-77b0-9f9d-abe44dcf49af` reported no findings.
+Sidecar `019e9c86-dbd5-70b1-a12a-2830b870a563` reported no findings.
 
 Implementation commit:
-`05bacae292736e5b779f049a6289910dcb687e96` pushed to `origin/main`.
+Pending.
 
 Last completed implementation commit:
 `05bacae292736e5b779f049a6289910dcb687e96` pushed to `origin/main`.
 
 Last ledger correction commit:
-`c225b36595e00e919ff31ee4e47761ac559d4058` pushed to `origin/main`.
+`5724cdf6dd60507bd3231baadd5ffe17d3806d2a` pushed to `origin/main`.
 
 Next candidate:
-Add a schema-backed or checked-in transition application example if the helper
-surface warrants a durable fixture; otherwise continue deeper into typed
-activity state/dependency validation.
+Continue deeper into typed activity state/dependency validation after the
+template path is discoverable.
 
 Blocked:
 No.

@@ -27,6 +27,27 @@ defmodule OrbitalDynamics.CapabilitiesTest do
     assert catalog.analysis.propagators.j2_exla_cpu == J2ExlaCpu.capabilities()
     assert catalog.analysis.access_windows == AccessWindows.capabilities()
     assert catalog.analysis.orbit_data == OrbitalDynamics.OrbitData.capabilities()
+    assert catalog.planning.activity_templates.artifact_contract == "activity_template.v1"
+    assert catalog.planning.activity_templates.template_count == 6
+    assert catalog.planning.activity_templates.output_shape == :normalized_timeline_activity
+    assert catalog.planning.activity_templates.transition_path == :timeline_transition_application
+
+    assert catalog.planning.activity_templates.public_facades == [
+             :activity_templates,
+             :activity_template,
+             :activity_from_template
+           ]
+
+    assert catalog.planning.activity_templates.supported_activity_types == [
+             "command",
+             "downlink",
+             "health_check",
+             "impulsive_burn",
+             "observe",
+             "slew"
+           ]
+
+    assert "template:observe:basic" in catalog.planning.activity_templates.template_ids
     assert catalog.planning.candidate_refresh == OrbitalDynamics.CandidateRefresh.capabilities()
     assert catalog.planning.search.grid == OrbitalDynamics.Search.Grid.capabilities()
     assert catalog.planning.search.monte_carlo == OrbitalDynamics.Search.MonteCarlo.capabilities()
