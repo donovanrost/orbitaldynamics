@@ -8,7 +8,7 @@ Current slice:
 Accept existing timeline integrity reports idempotently.
 
 Status:
-Implemented and verified; commit/push pending.
+Implemented, verified, committed, and pushed.
 
 Completed slices:
 - Prompt/guide continuation semantics committed as
@@ -25,6 +25,8 @@ Completed slices:
   `0e5ec49473b878321cd513b08597abaf7cefb819` and pushed to `origin/main`.
 - Study manifest schema export refresh committed as
   `5b52eb5106f3a0520533df79a589bc0fa689c591` and pushed to `origin/main`.
+- Timeline integrity report idempotent handoff behavior committed as
+  `6f779edbc331ba24476663c3753471192df7ccef` and pushed to `origin/main`.
 
 Files changed:
 - `lib/orbital_dynamics/timeline.ex`
@@ -51,8 +53,8 @@ Remaining maturity gaps:
   the guide toward Level 6 maturity.
 
 Last commit:
-- `5bf5c749a24473a598e9fef15fe2c3dc05d5dba9` pushed to `origin/main`
-  for the schema-refresh ledger correction.
+- `6f779edbc331ba24476663c3753471192df7ccef` pushed to `origin/main`
+  for timeline integrity report idempotent handoff behavior.
 
 Next candidate:
 Select the next live maturity gap from the guide/roadmap and current test
