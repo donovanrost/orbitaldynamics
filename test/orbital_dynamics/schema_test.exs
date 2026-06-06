@@ -9374,7 +9374,7 @@ defmodule OrbitalDynamics.SchemaTest do
              "properties",
              "value",
              "type"
-           ]) == ["string", "number", "boolean"]
+           ]) == ["string", "number", "boolean", "object"]
 
     assert get_in(schema, [
              "properties",
@@ -9410,9 +9410,9 @@ defmodule OrbitalDynamics.SchemaTest do
       "activity_type" => "command",
       "precondition_status" => "blocked",
       "blocked_precondition_count" => 1,
-      "review_precondition_count" => 1,
+      "review_precondition_count" => 2,
       "blocked_precondition_types" => ["payload_unavailable"],
-      "review_precondition_types" => ["degraded_mode"],
+      "review_precondition_types" => ["degraded_mode", "subsystem_state_required"],
       "dependency_activity_ids" => ["health_check_1", "obs_1"],
       "dependency_timeline_ids" => ["timeline:health_check_1"],
       "exclusive_with_activity_ids" => ["dl_conflict"],
@@ -9430,6 +9430,13 @@ defmodule OrbitalDynamics.SchemaTest do
           "status" => "review_required",
           "field" => "degraded",
           "reason" => "activity is explicitly marked degraded"
+        },
+        %{
+          "type" => "subsystem_state_required",
+          "status" => "review_required",
+          "field" => "activity_template.subsystem_state_hints.required_states[0]",
+          "reason" => "activity template declares required subsystem state",
+          "value" => %{"subsystem" => "commanding", "state" => "armed"}
         }
       ],
       "assumptions" => %{
@@ -24154,7 +24161,7 @@ defmodule OrbitalDynamics.SchemaTest do
                "properties",
                "value",
                "type"
-             ]) == ["string", "number", "boolean"]
+             ]) == ["string", "number", "boolean", "object"]
     end
 
     for contract <- ["operator_review_package.v1", "cadence_import_manifest.v1"] do

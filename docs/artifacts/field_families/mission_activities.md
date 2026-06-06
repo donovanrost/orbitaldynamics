@@ -70,10 +70,13 @@ preserving timeline identity and activity context.
 For callers that need a compact preflight over declared activity conditions,
 `precondition_summary/1` reports clear, review-required, or blocked state from
 explicit resource availability, degraded mode, resource-blocking dimensions,
-depleted unit-interval margins, and current-type suppression/incompatibility
-fields. The matching `mission_plan_activity_precondition_summary/1` facade keeps
-that summary artifact-only: it does not mutate schedules, reserve resources,
-execute commands, or grant operator authority.
+depleted unit-interval margins, current-type suppression/incompatibility fields,
+and `activity_template.v1` required subsystem-state hints. Required subsystem
+states become review-required precondition rows with subsystem/state evidence;
+produced subsystem states remain template provenance only. The matching
+`mission_plan_activity_precondition_summary/1` facade keeps that summary
+artifact-only: it does not mutate schedules, reserve resources, execute
+commands, simulate subsystem state machines, or grant operator authority.
 Timeline-map adapters can use `Timeline.activity_precondition_summary/1` and
 `OrbitalDynamics.timeline_activity_precondition_summary/1` for the same
 clear/review-required/blocked `timeline_activity_precondition_summary.v1`
@@ -354,7 +357,9 @@ executing commands.
 They also publish typed `subsystem_state_hints` with required and produced
 subsystem-state declarations. Template instantiation preserves those
 declarations in `activity_template.v1` provenance at the row level and inside
-`activity_context`, keeping the handoff auditable without simulating subsystem
+`activity_context`; required states also feed review-required precondition rows
+for mission-plan and timeline activity summaries, while produced states remain
+provenance only. This keeps the handoff auditable without simulating subsystem
 state machines or mutating schedules.
 `Timeline.capabilities/0` publishes the normalization, identity/context,
 precondition-summary, integrity, transition, single-activity protection, and

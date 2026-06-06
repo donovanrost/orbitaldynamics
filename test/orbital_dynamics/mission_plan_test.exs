@@ -19,6 +19,7 @@ defmodule OrbitalDynamics.MissionPlanTest do
     assert "resource_block_declared" in precondition_types
     assert "activity_type_incompatible" in precondition_types
     assert "degraded_mode" in precondition_types
+    assert "subsystem_state_required" in precondition_types
     assert :precondition_rows in precondition_row_semantics
     assert :blocked_precondition_types in precondition_row_semantics
     assert :mission_plan_activity_precondition_summary in public_facades
@@ -36,7 +37,28 @@ defmodule OrbitalDynamics.MissionPlanTest do
         "degraded" => "true",
         "fuel_margin" => "0.0",
         "resource_blocking_dimension" => "payload_power",
-        "incompatible_activity_types" => "command"
+        "incompatible_activity_types" => "command",
+        "metadata" => %{
+          "activity_template" => %{
+            "schema_contract" => "activity_template.v1",
+            "id" => "command_template",
+            "activity_type" => "command",
+            "subsystem_state_hints" => %{
+              "required_states" => [
+                %{"subsystem" => "thermal"},
+                %{
+                  "subsystem" => "commanding",
+                  "state" => "armed",
+                  "reason" => "template requires armed commanding state",
+                  "blocking" => true
+                }
+              ],
+              "produced_states" => [
+                %{"subsystem" => "commanding", "state" => "executed"}
+              ]
+            }
+          }
+        }
       })
 
     assert %{
@@ -45,7 +67,7 @@ defmodule OrbitalDynamics.MissionPlanTest do
              "activity_type" => "command",
              "precondition_status" => "blocked",
              "blocked_precondition_types" => blocked_types,
-             "review_precondition_types" => ["degraded_mode"],
+             "review_precondition_types" => ["degraded_mode", "subsystem_state_required"],
              "preconditions" => preconditions
            } = summary
 
@@ -58,6 +80,20 @@ defmodule OrbitalDynamics.MissionPlanTest do
 
     assert Enum.all?(preconditions, &(&1["status"] in precondition_statuses))
     assert Enum.all?(preconditions, &(&1["type"] in precondition_types))
+
+    assert %{
+             "type" => "subsystem_state_required",
+             "status" => "review_required",
+             "field" => "activity_template.subsystem_state_hints.required_states[1]",
+             "reason" => "template requires armed commanding state",
+             "value" => %{
+               "subsystem" => "commanding",
+               "state" => "armed",
+               "blocking" => true
+             }
+           } in preconditions
+
+    refute Enum.any?(preconditions, &(&1["type"] == "subsystem_state_produced"))
   end
 
   test "compiles timeline burns into scenario maneuvers and preserves activity metadata" do

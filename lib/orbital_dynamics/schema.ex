@@ -24504,7 +24504,7 @@ defmodule OrbitalDynamics.Schema do
         },
         "field" => %{"type" => "string"},
         "reason" => %{"type" => "string"},
-        "value" => %{"type" => ["string", "number", "boolean"]}
+        "value" => %{"type" => ["string", "number", "boolean", "object"]}
       }
     }
   end

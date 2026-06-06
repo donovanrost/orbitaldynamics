@@ -3700,7 +3700,70 @@ defmodule OrbitalDynamics.Timeline do
       "suppressed_activity_types",
       "activity type appears in suppressed activity types"
     )
+    |> add_activity_template_required_state_preconditions(activity)
   end
+
+  defp add_activity_template_required_state_preconditions(preconditions, activity) do
+    activity
+    |> activity_template_required_states()
+    |> Enum.reduce(preconditions, fn {index, %{"subsystem" => subsystem, "state" => state} = hint},
+                                     rows ->
+      maybe_add_activity_precondition(
+        rows,
+        true,
+        "subsystem_state_required",
+        "review_required",
+        "activity_template.subsystem_state_hints.required_states[#{index}]",
+        Map.get(hint, "reason") || "activity template declares required subsystem state",
+        %{
+          "subsystem" => subsystem,
+          "state" => state,
+          "blocking" => Map.get(hint, "blocking")
+        }
+        |> compact_map()
+      )
+    end)
+  end
+
+  defp activity_template_required_states(activity) do
+    activity
+    |> activity_template_required_state_sources()
+    |> Enum.find_value([], fn template ->
+      template
+      |> get_in(["subsystem_state_hints", "required_states"])
+      |> valid_required_state_hints()
+      |> case do
+        [] -> nil
+        hints -> hints
+      end
+    end)
+  end
+
+  defp activity_template_required_state_sources(activity) do
+    [
+      activity_template_provenance(activity),
+      activity_template_provenance(%{
+        "activity_template" => get_in(activity, ["activity_context", "activity_template"])
+      })
+    ]
+    |> Enum.filter(&is_map/1)
+    |> Enum.map(&stringify_keys/1)
+  end
+
+  defp valid_required_state_hints(hints) when is_list(hints) do
+    hints
+    |> Enum.with_index()
+    |> Enum.flat_map(fn
+      {%{"subsystem" => subsystem, "state" => state} = hint, index}
+      when is_binary(subsystem) and is_binary(state) ->
+        [{index, hint}]
+
+      _hint ->
+        []
+    end)
+  end
+
+  defp valid_required_state_hints(_hints), do: []
 
   defp maybe_add_depleted_margin_preconditions(preconditions, activity) do
     Enum.reduce(@unit_interval_activity_field_aliases, preconditions, fn {field, aliases}, rows ->

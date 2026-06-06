@@ -191,6 +191,7 @@ defmodule OrbitalDynamics.TimelineTest do
     assert activity_precondition_statuses == ["blocked", "clear", "review_required"]
     assert "payload_unavailable" in activity_precondition_types
     assert "fuel_margin_depleted" in activity_precondition_types
+    assert "subsystem_state_required" in activity_precondition_types
     assert :precondition_rows in activity_precondition_row_semantics
     assert diff_helpers == [:diff_report, :diff_summary]
     assert :integrity_report in timeline_integrity_helpers
@@ -5628,6 +5629,25 @@ defmodule OrbitalDynamics.TimelineTest do
       spacecraft_available: "true",
       payload_available: "false",
       degraded: "true",
+      activity_template: %{
+        schema_contract: :"activity_template.v1",
+        id: :command_template,
+        activity_type: :command,
+        subsystem_state_hints: %{
+          required_states: [
+            %{subsystem: :thermal},
+            %{
+              subsystem: :commanding,
+              state: :armed,
+              reason: "template requires armed commanding state",
+              blocking: true
+            }
+          ],
+          produced_states: [
+            %{subsystem: :commanding, state: :executed}
+          ]
+        }
+      },
       mode: :degraded_payload,
       incompatible_activity_types: [:observe],
       suppressed_activity_types: [:downlink],
@@ -5744,12 +5764,12 @@ defmodule OrbitalDynamics.TimelineTest do
     assert %{
              "precondition_status" => "blocked",
              "blocked_precondition_count" => 2,
-             "review_precondition_count" => 1,
+             "review_precondition_count" => 2,
              "blocked_precondition_types" => [
                "payload_unavailable",
                "resource_block_declared"
              ],
-             "review_precondition_types" => ["degraded_mode"],
+             "review_precondition_types" => ["degraded_mode", "subsystem_state_required"],
              "preconditions" => preconditions
            } = List.first(report["rows"])
 
@@ -5762,6 +5782,20 @@ defmodule OrbitalDynamics.TimelineTest do
            } in preconditions
 
     assert %{
+             "type" => "subsystem_state_required",
+             "status" => "review_required",
+             "field" => "activity_template.subsystem_state_hints.required_states[1]",
+             "reason" => "template requires armed commanding state",
+             "value" => %{
+               "subsystem" => "commanding",
+               "state" => "armed",
+               "blocking" => true
+             }
+           } in preconditions
+
+    refute Enum.any?(preconditions, &(&1["type"] == "subsystem_state_produced"))
+
+    assert %{
              "model" => "artifact_only_timeline_activity_precondition_summary",
              "schema_contract" => "timeline_activity_precondition_summary.v1",
              "validation_level" => "artifact_contract",
@@ -5770,12 +5804,12 @@ defmodule OrbitalDynamics.TimelineTest do
              "activity_type" => "command",
              "precondition_status" => "blocked",
              "blocked_precondition_count" => 2,
-             "review_precondition_count" => 1,
+             "review_precondition_count" => 2,
              "blocked_precondition_types" => [
                "payload_unavailable",
                "resource_block_declared"
              ],
-             "review_precondition_types" => ["degraded_mode"],
+             "review_precondition_types" => ["degraded_mode", "subsystem_state_required"],
              "preconditions" => ^preconditions,
              "dependency_activity_ids" => ["health_check_1", "obs_1"],
              "dependency_timeline_ids" => ["timeline:health_check_1"],
@@ -5834,22 +5868,22 @@ defmodule OrbitalDynamics.TimelineTest do
     assert %{
              "precondition_status" => "blocked",
              "blocked_precondition_count" => 2,
-             "review_precondition_count" => 1,
+             "review_precondition_count" => 2,
              "blocked_precondition_types" => [
                "payload_unavailable",
                "resource_block_declared"
              ],
-             "review_precondition_types" => ["degraded_mode"],
+             "review_precondition_types" => ["degraded_mode", "subsystem_state_required"],
              "preconditions" => ^preconditions,
              "source_operational_timeline" => %{
                "precondition_status" => "blocked",
                "blocked_precondition_count" => 2,
-               "review_precondition_count" => 1,
+               "review_precondition_count" => 2,
                "blocked_precondition_types" => [
                  "payload_unavailable",
                  "resource_block_declared"
                ],
-               "review_precondition_types" => ["degraded_mode"],
+               "review_precondition_types" => ["degraded_mode", "subsystem_state_required"],
                "preconditions" => ^preconditions
              }
            } = List.first(review["rows"])
@@ -5857,33 +5891,33 @@ defmodule OrbitalDynamics.TimelineTest do
     assert %{
              "precondition_status" => "blocked",
              "blocked_precondition_count" => 2,
-             "review_precondition_count" => 1,
+             "review_precondition_count" => 2,
              "blocked_precondition_types" => [
                "payload_unavailable",
                "resource_block_declared"
              ],
-             "review_precondition_types" => ["degraded_mode"],
+             "review_precondition_types" => ["degraded_mode", "subsystem_state_required"],
              "preconditions" => ^preconditions,
              "source_review_row" => %{
                "precondition_status" => "blocked",
                "blocked_precondition_count" => 2,
-               "review_precondition_count" => 1,
+               "review_precondition_count" => 2,
                "blocked_precondition_types" => [
                  "payload_unavailable",
                  "resource_block_declared"
                ],
-               "review_precondition_types" => ["degraded_mode"],
+               "review_precondition_types" => ["degraded_mode", "subsystem_state_required"],
                "preconditions" => ^preconditions
              },
              "source_operational_timeline" => %{
                "precondition_status" => "blocked",
                "blocked_precondition_count" => 2,
-               "review_precondition_count" => 1,
+               "review_precondition_count" => 2,
                "blocked_precondition_types" => [
                  "payload_unavailable",
                  "resource_block_declared"
                ],
-               "review_precondition_types" => ["degraded_mode"],
+               "review_precondition_types" => ["degraded_mode", "subsystem_state_required"],
                "preconditions" => ^preconditions
              }
            } = List.first(import["rows"])

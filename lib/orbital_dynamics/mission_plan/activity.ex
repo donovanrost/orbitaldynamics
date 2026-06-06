@@ -201,7 +201,8 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
                           "degraded_mode",
                           "payload_unavailable",
                           "resource_block_declared",
-                          "spacecraft_unavailable"
+                          "spacecraft_unavailable",
+                          "subsystem_state_required"
                         ] ++ Enum.map(@unit_interval_fields, &"#{&1}_depleted")
                       )
   @precondition_row_semantics [
@@ -1253,7 +1254,67 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       "suppressed_activity_types",
       "activity type appears in suppressed activity types"
     )
+    |> add_activity_template_required_state_preconditions(activity)
   end
+
+  defp add_activity_template_required_state_preconditions(preconditions, %__MODULE__{} = activity) do
+    activity
+    |> activity_template_required_states()
+    |> Enum.reduce(preconditions, fn {index, %{"subsystem" => subsystem, "state" => state} = hint},
+                                     rows ->
+      maybe_add_precondition(
+        rows,
+        true,
+        "subsystem_state_required",
+        "review_required",
+        "activity_template.subsystem_state_hints.required_states[#{index}]",
+        Map.get(hint, "reason") || "activity template declares required subsystem state",
+        %{
+          "subsystem" => subsystem,
+          "state" => state,
+          "blocking" => Map.get(hint, "blocking")
+        }
+        |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+        |> Map.new()
+      )
+    end)
+  end
+
+  defp activity_template_required_states(%__MODULE__{metadata: metadata}) when is_map(metadata) do
+    metadata
+    |> artifact_value()
+    |> Map.get("activity_template")
+    |> valid_activity_template_provenance()
+    |> get_in(["subsystem_state_hints", "required_states"])
+    |> valid_required_state_hints()
+  end
+
+  defp activity_template_required_states(_activity), do: []
+
+  defp valid_activity_template_provenance(%{} = template) do
+    if template["schema_contract"] == "activity_template.v1" and
+         is_binary(template["id"]) and
+         is_binary(template["activity_type"]) do
+      template
+    end
+  end
+
+  defp valid_activity_template_provenance(_template), do: nil
+
+  defp valid_required_state_hints(hints) when is_list(hints) do
+    hints
+    |> Enum.with_index()
+    |> Enum.flat_map(fn
+      {%{"subsystem" => subsystem, "state" => state} = hint, index}
+      when is_binary(subsystem) and is_binary(state) ->
+        [{index, hint}]
+
+      _hint ->
+        []
+    end)
+  end
+
+  defp valid_required_state_hints(_hints), do: []
 
   defp maybe_add_margin_preconditions(preconditions, %__MODULE__{} = activity) do
     @unit_interval_fields
