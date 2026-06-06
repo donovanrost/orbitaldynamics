@@ -5,8 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-CandidateRefresh operational quality-gate operator-training summary replay
-provenance.
+CandidateRefresh relay data path summary replay provenance.
 
 Status:
 Implemented, verified, committed, and pushed.
@@ -14,51 +13,55 @@ Implemented, verified, committed, and pushed.
 Files changed:
 - `lib/orbital_dynamics/candidate_refresh.ex`
 - `test/orbital_dynamics/candidate_refresh_test.exs`
-- `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`
+- `docs/feature_set/capability_map/07_ground_network/02_link_capacity.md`
+- `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 - `.codex/status/autonomous_product_loop.md`
 
 Behavior changed:
 - `CandidateRefresh.source_report_summary/1` now accepts compact
-  `operational_quality_gate_operator_training_summary.v1` inputs from direct,
-  accepted-state, mission-state, and result-artifact-wrapped handoff paths.
-- Operator-training summaries are projected into the existing
-  `quality_gate_report` source-report family, preserving required operator
-  roles, training IDs, certification IDs, qualification IDs,
-  operator-training gate IDs, review-only row IDs, source-summary identity,
-  trust boundary, and no-authority evidence.
-- `CandidateRefresh.quality_gate_replay_summary/1` now exposes compact
-  operator-training quality-gate provenance through branch-local review
-  pressure and operator-training requirement fields without granting Cadence
-  import authority or replaying refresh generation.
+  `relay_data_path_summary.v1` inputs from accepted-state, mission-state,
+  direct root, and result-artifact-wrapped handoff paths.
+- Relay summaries are normalized into the existing `link_capacity_report`
+  source-report family while preserving source-summary contract/model,
+  route counts, relay/direct route IDs, source spacecraft IDs, relay spacecraft
+  IDs, ground downlink contact IDs, custody/latency/risk maps,
+  wrapper-qualified paths, and trust-boundary evidence.
+- `CandidateRefresh.link_capacity_replay_summary/1` now exposes relay-route
+  provenance as branch-local link-capacity pressure without granting scheduling,
+  allocation, candidate-selection, import, Cadence-write, or operator authority.
 - `CandidateRefresh.capabilities/0` now advertises
-  `:operational_quality_gate_operator_training_summary` input support and
-  `:source_operational_quality_gate_operator_training_summary_input_provenance`
-  row semantics.
+  `:relay_data_path_summary` input support and
+  `:source_relay_data_path_summary_input_provenance` row semantics.
 
 Tests run:
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
-  -> 694 passed.
+  -> 696 passed.
+- `mix orbital_dynamics.schema.lint --all`
+  -> pass, 126 files, 126 artifacts, 0 errors, 0 warnings.
 - `git diff --check`
   -> clean.
 
 Docs/artifacts changed:
-- `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`
-  documents CandidateRefresh compact
-  `operational_quality_gate_operator_training_summary.v1` handoff replay.
+- `docs/feature_set/capability_map/07_ground_network/02_link_capacity.md`
+  documents CandidateRefresh compact `relay_data_path_summary.v1` handoff
+  replay.
+- `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
+  documents relay data path summary provenance in the CandidateRefresh
+  link-capacity family.
 
 Level 6 pillar advanced:
-Cadence-facing quality-gate replay maturity: CandidateRefresh can consume the
-compact operator-training quality-gate summary produced by operational
-readiness surfaces without reopening the full report, while preserving
-branch-local review pressure and required-credential routing provenance for
-audit.
+Cadence-facing link-capacity replay maturity: CandidateRefresh can consume the
+compact relay data path summary produced by LinkCapacity without rerunning relay
+analysis, while preserving route-level custody, latency, risk, spacecraft,
+contact, and trust-boundary evidence for audit.
 
 Last commit:
-- `d3ae3d868c7e24f267f3423b2495939b43b8a6a1` pushed to `origin/main` for
-  CandidateRefresh operational quality-gate operator-training summary replay
-  provenance.
+- `b71306fe369ad65e7c001b31a17823d9f4b2836b` pushed to `origin/main` for
+  CandidateRefresh relay data path summary replay provenance.
 
 Recently completed slices:
+- `b71306fe369ad65e7c001b31a17823d9f4b2836b` pushed to `origin/main` for
+  CandidateRefresh relay data path summary replay provenance.
 - `d3ae3d868c7e24f267f3423b2495939b43b8a6a1` pushed to `origin/main` for
   CandidateRefresh operational quality-gate operator-training summary replay
   provenance.
@@ -72,15 +75,13 @@ Recently completed slices:
   CandidateRefresh operational quality-gate summary replay provenance.
 - `ffc969485c4fad6ee0bd124a9f74fa140cc31790` pushed to `origin/main` for
   CandidateRefresh provider counteroffer review-summary replay provenance.
-- `a6883f8cf190b756d38cb9a222c8233e6a61ef77` pushed to `origin/main` for
-  CandidateRefresh station reservation review-summary replay provenance.
 
 Next candidate:
 Continue CandidateRefresh operational replay maturity by scanning for the next
 compact source-report family generated by operational surfaces but not yet
 preserved as CandidateRefresh provenance. If no obvious compact replay gap
 remains, re-anchor on `docs/autonomous_work_guide.md` and pick the next
-highest-value Level 6 slice outside the quality-gate summary cluster.
+highest-value Level 6 slice outside the compact source-summary cluster.
 
 Blocked:
 No.
