@@ -8235,6 +8235,35 @@ defmodule OrbitalDynamics.SchemaTest do
              "timeline_identity"
            ]
 
+    row_properties = get_in(schema, ["properties", "rows", "items", "properties"])
+
+    assert get_in(row_properties, ["command_window_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_properties, ["command_window_type", "type"]) == "string"
+
+    assert get_in(row_properties, [
+             "timeline_integrity_issues",
+             "items",
+             "required"
+           ]) == ["type"]
+
+    assert get_in(row_properties, [
+             "timeline_integrity_issues",
+             "items",
+             "properties",
+             "type",
+             "enum"
+           ]) == OrbitalDynamics.Timeline.capabilities().timeline_integrity_issue_types
+
+    assert get_in(row_properties, [
+             "timeline_integrity_issues",
+             "items",
+             "properties",
+             "dependency_order_violation_activity_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
     activities = [
       %{
         id: :health_gate,
@@ -23924,6 +23953,12 @@ defmodule OrbitalDynamics.SchemaTest do
       "timeline_diff_report.v1",
       "study_results/timeline_diff_report_v1.json",
       ["properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "timeline_integrity_report.v1",
+      "study_results/timeline_integrity_report_v1.json",
+      ["properties", "rows", "items", "properties"]
     )
 
     assert_fixture_fields_are_schema_visible(

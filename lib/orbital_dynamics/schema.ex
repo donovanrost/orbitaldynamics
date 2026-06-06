@@ -23626,6 +23626,8 @@ defmodule OrbitalDynamics.Schema do
         "starts_at_s" => %{"type" => "number"},
         "ends_at_s" => %{"type" => "number"},
         "direction" => %{"type" => "string"},
+        "command_window_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "command_window_type" => %{"type" => "string"},
         "command_authority_status" => %{"type" => "string"},
         "required_authority" => %{"type" => "string"},
         "command_safety_status" => %{"type" => "string"},
@@ -23707,12 +23709,7 @@ defmodule OrbitalDynamics.Schema do
         },
         "timeline_integrity_issues" => %{
           "type" => "array",
-          "items" => %{
-            "type" => "object",
-            "additionalProperties" => true,
-            "required" => ["issue_type"],
-            "properties" => %{"issue_type" => %{"type" => "string"}}
-          }
+          "items" => timeline_integrity_issue_json_schema()
         },
         "has_source_window" => %{"type" => "boolean"},
         "has_cadence_import" => %{"type" => "boolean"},
@@ -23906,6 +23903,41 @@ defmodule OrbitalDynamics.Schema do
         "field" => %{"type" => "string"},
         "reason" => %{"type" => "string"}
       }
+    }
+  end
+
+  defp timeline_integrity_issue_json_schema do
+    issue_evidence_properties =
+      [
+        "missing_dependency_activity_id",
+        "missing_dependency_timeline_id",
+        "self_dependency_activity_id",
+        "self_dependency_timeline_id",
+        "duplicate_dependency_activity_id",
+        "duplicate_dependency_timeline_id",
+        "duplicate_exclusivity_activity_id",
+        "duplicate_exclusivity_timeline_id",
+        "dependency_activity_id",
+        "dependency_timeline_id",
+        "dependency_order_violation_activity_id",
+        "dependency_order_violation_timeline_id",
+        "exclusivity_violation_activity_id",
+        "exclusivity_violation_timeline_id"
+      ]
+      |> Map.new(&{&1, %{"type" => "string", "pattern" => @stable_id_pattern}})
+
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => ["type"],
+      "properties" =>
+        Map.merge(issue_evidence_properties, %{
+          "type" => %{
+            "type" => "string",
+            "enum" => OrbitalDynamics.Timeline.capabilities().timeline_integrity_issue_types
+          },
+          "exclusivity_violation_group" => %{"type" => "string"}
+        })
     }
   end
 
