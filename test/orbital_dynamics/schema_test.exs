@@ -13799,6 +13799,9 @@ defmodule OrbitalDynamics.SchemaTest do
         "dependency_impact_status_counts" => %{"review_required" => 1},
         "publication_authority_counts" => %{"mission_operations" => 1},
         "source_artifact_type_counts" => %{"operational_timeline_report.v1" => 1},
+        "timeline_publication_source_artifact_type_counts" => %{
+          "operational_timeline_report.v1" => 1
+        },
         "publication_ids" => ["timeline_publication:branch"],
         "source_artifact_ids" => ["timeline:branch_plan"],
         "supersedes_artifact_ids" => ["timeline:previous_plan"],
@@ -13831,7 +13834,8 @@ defmodule OrbitalDynamics.SchemaTest do
         "provenance",
         "properties",
         "source_reports",
-        "additionalProperties",
+        "properties",
+        "timeline_publication_summary",
         "properties"
       ])
 
@@ -13840,6 +13844,17 @@ defmodule OrbitalDynamics.SchemaTest do
              "items",
              "pattern"
            ])
+
+    assert get_in(timeline_publication_source_report_properties, [
+             "dependency_impact_row_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(timeline_publication_source_report_properties, [
+             "changed_field_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
 
     assert get_in(timeline_publication_source_report_properties, [
              "timeline_ids_by_changed_field",
@@ -13889,6 +13904,28 @@ defmodule OrbitalDynamics.SchemaTest do
              invalid_timeline_publication_changed_field_count_report["errors"],
              &(&1["path"] ==
                  "$.provenance.source_reports.timeline_publication_summary.changed_field_counts.starts_at_s")
+           )
+
+    invalid_timeline_publication_source_artifact_type_count =
+      put_in(
+        artifact_with_timeline_publication_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_publication_summary",
+          "timeline_publication_source_artifact_type_counts",
+          "operational_timeline_report.v1"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_timeline_publication_source_artifact_type_count_report} =
+             Schema.validate_artifact(invalid_timeline_publication_source_artifact_type_count)
+
+    assert Enum.any?(
+             invalid_timeline_publication_source_artifact_type_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_publication_summary.timeline_publication_source_artifact_type_counts.operational_timeline_report.v1")
            )
 
     invalid_timeline_publication_id =

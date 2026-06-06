@@ -21204,6 +21204,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_timeline_feedback_source_report_summary_json_schema(),
             "timeline_diff_report" =>
               candidate_refresh_timeline_diff_source_report_summary_json_schema(),
+            "timeline_publication_summary" =>
+              candidate_refresh_timeline_publication_source_report_summary_json_schema(),
             "timeline_transition_application_report" =>
               candidate_refresh_timeline_transition_application_source_report_summary_json_schema(),
             "timeline_activity_state" =>
@@ -21545,6 +21547,16 @@ defmodule OrbitalDynamics.Schema do
           ],
           &{&1, non_negative_integer_count_map_json_schema()}
         )
+      )
+    end)
+  end
+
+  defp candidate_refresh_timeline_publication_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      Map.merge(
+        properties,
+        candidate_refresh_timeline_publication_context_json_schema_properties()
       )
     end)
   end
@@ -27478,6 +27490,7 @@ defmodule OrbitalDynamics.Schema do
           "dependency_impact_status_counts",
           "publication_authority_counts",
           "source_artifact_type_counts",
+          "timeline_publication_source_artifact_type_counts",
           "changed_field_counts"
         ],
         issues,

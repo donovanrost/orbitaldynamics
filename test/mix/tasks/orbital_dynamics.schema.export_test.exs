@@ -1654,6 +1654,92 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       end
     )
 
+    candidate_refresh_timeline_publication_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "timeline_publication_summary",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        "dependency_impact_row_count",
+        "timeline_diff_row_count",
+        "timeline_diff_changed_count",
+        "timeline_diff_review_required_count"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_timeline_publication_source_report, [
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_timeline_publication_source_report, [
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "publication_status_counts",
+        "dependency_impact_status_counts",
+        "publication_authority_counts",
+        "source_artifact_type_counts",
+        "timeline_publication_source_artifact_type_counts",
+        "changed_field_counts"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_timeline_publication_source_report, [
+                 field,
+                 "additionalProperties",
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_timeline_publication_source_report, [
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "publication_ids",
+        "source_artifact_ids",
+        "supersedes_artifact_ids",
+        "downstream_product_ids",
+        "invalidated_downstream_product_ids",
+        "impacted_dependency_activity_ids",
+        "impacted_dependency_timeline_ids",
+        "impacted_exclusive_with_activity_ids",
+        "impacted_exclusive_with_timeline_ids",
+        "changed_timeline_ids",
+        "review_timeline_ids"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_timeline_publication_source_report, [
+                 field,
+                 "items",
+                 "pattern"
+               ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+      end
+    )
+
+    assert get_in(candidate_refresh_timeline_publication_source_report, [
+             "timeline_ids_by_changed_field",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+
     candidate_refresh_constraint_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",
