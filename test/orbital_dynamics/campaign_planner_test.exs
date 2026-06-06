@@ -216,6 +216,45 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              )
 
     assert %{
+             "schema_contract" => "operational_readiness_report.v1",
+             "source_artifact_type" => "campaign_plan.v1",
+             "source_artifact_id" => source_artifact_id,
+             "readiness_level" => "operator_review",
+             "import_classification" => "review_only",
+             "status" => "review_required",
+             "evidence" => readiness_evidence
+           } = artifact["operational_readiness_report"]
+
+    assert source_artifact_id == artifact["plan_id"]
+    assert readiness_evidence["review_type_counts"]["resource_projection_review"] == 1
+    assert readiness_evidence["import_action_counts"]["review_resource_projection"] == 1
+
+    assert {:ok, %{"schema_contract" => "operational_readiness_report.v1"}} =
+             Schema.validate_artifact(artifact["operational_readiness_report"])
+
+    assert %{
+             "schema_contract" => "quality_gate_report.v1",
+             "source_artifact_type" => "campaign_plan.v1",
+             "source_artifact_id" => ^source_artifact_id,
+             "source_readiness_report_id" => source_readiness_report_id,
+             "readiness_level" => "operator_review",
+             "import_classification" => "review_only",
+             "status" => "review_required",
+             "handoff_only" => true,
+             "execution_allowed" => false,
+             "cadence_write_allowed" => false,
+             "operator_authority_granted" => false,
+             "review_required_gate_ids" => review_required_gate_ids
+           } = artifact["quality_gate_report"]
+
+    assert source_readiness_report_id == artifact["operational_readiness_report"]["report_id"]
+    assert "operator_review" in review_required_gate_ids
+    assert "cadence_import" in review_required_gate_ids
+
+    assert {:ok, %{"schema_contract" => "quality_gate_report.v1"}} =
+             Schema.validate_artifact(artifact["quality_gate_report"])
+
+    assert %{
              "schema_contract" => "operational_timeline_report.v1",
              "model" => "selected_activity_operational_context_summary",
              "activity_count" => 1,
@@ -406,6 +445,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              )
 
     assert import_score_delta == 0.0
+
+    assert {:ok, %{"schema_contract" => "campaign_plan.v1", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
   end
 
   test "campaign normalizes string false for eclipse filtering" do
@@ -1173,6 +1215,45 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact["cadence_import_manifest"])
 
     assert %{
+             "schema_contract" => "operational_readiness_report.v1",
+             "source_artifact_type" => "campaign_plan.v1",
+             "source_artifact_id" => source_artifact_id,
+             "readiness_level" => "operator_review",
+             "import_classification" => "review_only",
+             "status" => "review_required",
+             "evidence" => readiness_evidence
+           } = artifact["operational_readiness_report"]
+
+    assert source_artifact_id == artifact["plan_id"]
+    assert readiness_evidence["review_type_counts"]["contact_allocation_review"] == 3
+    assert readiness_evidence["import_action_counts"]["review_contact_allocation"] == 3
+
+    assert {:ok, %{"schema_contract" => "operational_readiness_report.v1"}} =
+             Schema.validate_artifact(artifact["operational_readiness_report"])
+
+    assert %{
+             "schema_contract" => "quality_gate_report.v1",
+             "source_artifact_type" => "campaign_plan.v1",
+             "source_artifact_id" => ^source_artifact_id,
+             "source_readiness_report_id" => source_readiness_report_id,
+             "readiness_level" => "operator_review",
+             "import_classification" => "review_only",
+             "status" => "review_required",
+             "handoff_only" => true,
+             "execution_allowed" => false,
+             "cadence_write_allowed" => false,
+             "operator_authority_granted" => false,
+             "review_required_gate_ids" => review_required_gate_ids
+           } = artifact["quality_gate_report"]
+
+    assert source_readiness_report_id == artifact["operational_readiness_report"]["report_id"]
+    assert "operator_review" in review_required_gate_ids
+    assert "cadence_import" in review_required_gate_ids
+
+    assert {:ok, %{"schema_contract" => "quality_gate_report.v1"}} =
+             Schema.validate_artifact(artifact["quality_gate_report"])
+
+    assert %{
              "schema_contract" => "link_capacity_report.v1",
              "model" => "fixed_rate_downlink_capacity_summary",
              "contact_count" => 3,
@@ -1214,6 +1295,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     refute artifact["candidate_activities"]
            |> Enum.find(&(&1["ground_station_id"] == "deep_space_net"))
            |> Map.has_key?("contention_group_ids")
+
+    assert {:ok, %{"schema_contract" => "campaign_plan.v1", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
   end
 
   test "campaign preserves mission-specific contact priority overrides in contention policy" do

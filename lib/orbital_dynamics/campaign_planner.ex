@@ -36,6 +36,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     CadenceImport,
     Optimizer,
     OperatorReview,
+    OperationalReadiness,
     Policy,
     ResultSet,
     ResourceFilter,
@@ -484,6 +485,15 @@ defmodule OrbitalDynamics.CampaignPlanner do
         CadenceImport.from_campaign_artifact(artifact)
       )
     end)
+    |> attach_operational_readiness_reports()
+  end
+
+  defp attach_operational_readiness_reports(%{} = artifact) do
+    readiness_report = OperationalReadiness.report(artifact)
+
+    artifact
+    |> Map.put("operational_readiness_report", readiness_report)
+    |> Map.put("quality_gate_report", OperationalReadiness.quality_gate_report(readiness_report))
   end
 
   @doc """

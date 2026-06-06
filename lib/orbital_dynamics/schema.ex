@@ -7742,7 +7742,9 @@ defmodule OrbitalDynamics.Schema do
         "resource_projection_report",
         "objective_satisfaction_report",
         "operational_timeline_report",
-        "operator_review_package"
+        "operator_review_package",
+        "operational_readiness_report",
+        "quality_gate_report"
       ],
       "nested_contracts" => [
         "planned_activity.v1",
@@ -7755,7 +7757,9 @@ defmodule OrbitalDynamics.Schema do
         "resource_projection_report.v1",
         "objective_satisfaction_report.v1",
         "operational_timeline_report.v1",
-        "operator_review_package.v1"
+        "operator_review_package.v1",
+        "operational_readiness_report.v1",
+        "quality_gate_report.v1"
       ]
     },
     @campaign_repair => %{
@@ -30664,6 +30668,14 @@ defmodule OrbitalDynamics.Schema do
       Map.get(artifact, "timeline_transition_application_report")
     )
     |> validate_optional_operator_review_package(Map.get(artifact, "operator_review_package"))
+    |> validate_optional_operational_readiness_report(
+      "$.operational_readiness_report",
+      Map.get(artifact, "operational_readiness_report")
+    )
+    |> validate_optional_quality_gate_report(
+      "$.quality_gate_report",
+      Map.get(artifact, "quality_gate_report")
+    )
     |> validate_optional_optimizer_contract(Map.get(artifact, "optimizer_contract"))
     |> validate_optional_link_capacity_report(Map.get(artifact, "link_capacity_report"))
     |> validate_optional_resource_projection_report(
@@ -37005,6 +37017,24 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp validate_optional_resource_projection_report(issues, path, _report),
+    do: [error(path, "must be an object") | issues]
+
+  defp validate_optional_operational_readiness_report(issues, _path, nil), do: issues
+
+  defp validate_optional_operational_readiness_report(issues, path, %{} = report) do
+    validate_operational_readiness_report(issues, path, report)
+  end
+
+  defp validate_optional_operational_readiness_report(issues, path, _report),
+    do: [error(path, "must be an object") | issues]
+
+  defp validate_optional_quality_gate_report(issues, _path, nil), do: issues
+
+  defp validate_optional_quality_gate_report(issues, path, %{} = report) do
+    validate_quality_gate_report(issues, path, report)
+  end
+
+  defp validate_optional_quality_gate_report(issues, path, _report),
     do: [error(path, "must be an object") | issues]
 
   defp validate_resource_projection_report(issues, path, report) do
