@@ -4,7 +4,7 @@ Current slice:
 Expose CandidateRefresh validation-safety-case source-report schema property.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 CandidateRefresh validation-safety-case source summaries already preserve
 status/count maps, input contract count maps, evidence reference maps, and
 safety-case evidence/model/readiness/schema/fixture counts. Replay helpers
@@ -52,9 +52,10 @@ Tests run:
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
   test, focused CandidateRefresh runtime test, schema lint, whitespace check,
   and generated-schema `jq` spot-checks.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-Pending for this slice.
+`8a25c7a37c11d89bf113aa2e5702e9fff71d12aa` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending for this slice.
