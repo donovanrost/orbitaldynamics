@@ -26846,12 +26846,24 @@ defmodule OrbitalDynamics.Schema do
           "resource_flow_count" => %{"type" => "integer", "minimum" => 0},
           "peak_storage_overflow_mb" => %{"type" => "number"},
           "peak_downlink_shortfall_mb" => %{"type" => "number"},
+          "peak_unused_downlink_capacity_mb" => %{"type" => "number"},
           "projected_storage_overflow_mb" => %{"type" => "number"},
           "projected_downlink_shortfall_mb" => %{"type" => "number"},
+          "projected_battery_overuse_wh" => %{"type" => "number"},
+          "first_resource_pressure_activity_id" => %{
+            "type" => "string",
+            "pattern" => @stable_id_pattern
+          },
+          "first_resource_pressure_activity_type" => %{"type" => "string"},
+          "first_resource_pressure_kind" => %{"type" => "string"},
+          "first_resource_pressure_starts_at_s" => %{"type" => "number"},
           "fuel_margin" => %{"type" => "number"},
           "power_margin" => %{"type" => "number"},
           "payload_available" => %{"type" => "boolean"},
           "antenna_available" => %{"type" => "boolean"},
+          "resource_trust_boundary_status" => %{"type" => "string"},
+          "storage_limited_downlinked_mb" => %{"type" => "number"},
+          "unused_downlink_capacity_mb" => %{"type" => "number"},
           "warnings" => string_array_schema(),
           "station_contention_status" => %{"type" => "string"},
           "station_reservation_id" => %{"type" => "string"},
@@ -26868,6 +26880,14 @@ defmodule OrbitalDynamics.Schema do
           "action" => %{"type" => "string"},
           "required_operator_action" => %{"type" => "string"},
           "approval_status" => %{"type" => "string"},
+          "approval_requirements" => %{
+            "type" => "array",
+            "items" => approval_requirement_json_schema()
+          },
+          "approval_rule_matches" => %{
+            "type" => "array",
+            "items" => policy_decision_rule_match_json_schema()
+          },
           "planned_operator_action" => %{"type" => "string"},
           "planned_operator_action_reason" => %{"type" => "string"},
           "planned_protection_category" => %{"type" => "string"},
@@ -61128,6 +61148,7 @@ defmodule OrbitalDynamics.Schema do
       "station_calendar_provider_id",
       "station_calendar_provider_entry_id",
       "provider_counteroffer_id",
+      "first_resource_pressure_activity_id",
       "first_resource_pressure_source_window_id",
       "source_timeline_id",
       "replacement_activity_id",
@@ -61263,6 +61284,9 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(path, row, "source_window_type", :binary)
     |> validate_optional_source_window(path, row, "source_window")
     |> expect_optional_type(path, row, "first_resource_pressure_source_window_id", :binary)
+    |> expect_optional_type(path, row, "first_resource_pressure_activity_type", :binary)
+    |> expect_optional_type(path, row, "first_resource_pressure_kind", :binary)
+    |> expect_optional_number(path, row, "first_resource_pressure_starts_at_s")
     |> expect_optional_type(path, row, "first_resource_pressure_source_window_type", :binary)
     |> validate_optional_source_window(path, row, "first_resource_pressure_source_window")
     |> validate_nested_id_match(
@@ -61364,8 +61388,13 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_number(path, row, "peak_downlink_shortfall_mb")
     |> expect_optional_number(path, row, "projected_storage_overflow_mb")
     |> expect_optional_number(path, row, "projected_downlink_shortfall_mb")
+    |> expect_optional_number(path, row, "peak_unused_downlink_capacity_mb")
+    |> expect_optional_number(path, row, "projected_battery_overuse_wh")
     |> expect_optional_number(path, row, "fuel_margin")
     |> expect_optional_number(path, row, "power_margin")
+    |> expect_optional_type(path, row, "resource_trust_boundary_status", :binary)
+    |> expect_optional_number(path, row, "storage_limited_downlinked_mb")
+    |> expect_optional_number(path, row, "unused_downlink_capacity_mb")
     |> validate_resource_availability_variance_fields(path, row)
     |> expect_optional_type(path, row, "warnings", :list)
     |> expect_optional_type(path, row, "station_contention_status", :binary)

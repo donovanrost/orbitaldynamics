@@ -22689,6 +22689,81 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(row_schema, ["properties", "peak_storage_overflow_mb", "type"]) == "number"
     assert get_in(row_schema, ["properties", "review_queue_key", "type"]) == "string"
 
+    assert get_in(row_schema, [
+             "properties",
+             "approval_requirements",
+             "items",
+             "properties",
+             "schema_contract",
+             "const"
+           ]) ==
+             "approval_requirement.v1"
+
+    assert get_in(row_schema, [
+             "properties",
+             "approval_rule_matches",
+             "items",
+             "properties",
+             "rule_id",
+             "pattern"
+           ]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "first_resource_pressure_activity_id", "pattern"]) ==
+             Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "first_resource_pressure_activity_type", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, ["properties", "first_resource_pressure_kind", "type"]) == "string"
+
+    assert get_in(row_schema, ["properties", "first_resource_pressure_starts_at_s", "type"]) ==
+             "number"
+
+    assert get_in(row_schema, ["properties", "peak_unused_downlink_capacity_mb", "type"]) ==
+             "number"
+
+    assert get_in(row_schema, ["properties", "projected_battery_overuse_wh", "type"]) == "number"
+
+    assert get_in(row_schema, ["properties", "resource_trust_boundary_status", "type"]) ==
+             "string"
+
+    assert get_in(row_schema, ["properties", "storage_limited_downlinked_mb", "type"]) == "number"
+    assert get_in(row_schema, ["properties", "unused_downlink_capacity_mb", "type"]) == "number"
+
+    resource_projection_package =
+      read_json!("study_results/operator_review_resource_projection_battery_handoff_v1.json")
+
+    invalid_first_pressure_activity =
+      put_in(
+        resource_projection_package,
+        ["rows", Access.at(0), "first_resource_pressure_activity_id"],
+        "bad id"
+      )
+
+    assert {:error, first_pressure_activity_report} =
+             Schema.validate_artifact(invalid_first_pressure_activity)
+
+    assert Enum.any?(
+             first_pressure_activity_report["errors"],
+             &(&1["path"] == "$.rows[0].first_resource_pressure_activity_id")
+           )
+
+    invalid_storage_limited_downlink =
+      put_in(
+        resource_projection_package,
+        ["rows", Access.at(0), "storage_limited_downlinked_mb"],
+        "0.0"
+      )
+
+    assert {:error, storage_limited_downlink_report} =
+             Schema.validate_artifact(invalid_storage_limited_downlink)
+
+    assert Enum.any?(
+             storage_limited_downlink_report["errors"],
+             &(&1["path"] == "$.rows[0].storage_limited_downlinked_mb")
+           )
+
     assert get_in(row_schema, ["properties", "branch_event_count"]) == %{
              "type" => "integer",
              "minimum" => 0
@@ -24182,6 +24257,12 @@ defmodule OrbitalDynamics.SchemaTest do
       "operator_review_package.v1",
       "study_results/operator_review_resource_projection_battery_handoff_v1.json",
       ["properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "operator_review_package.v1",
+      "study_results/operator_review_resource_projection_battery_handoff_v1.json",
+      ["properties", "rows", "items", "properties"]
     )
 
     assert_fixture_row_fields_are_schema_visible(

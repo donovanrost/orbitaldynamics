@@ -1,29 +1,28 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Expose operator review package summary counter schemas.
+Expose operator review resource-projection row evidence schemas.
 
 Status:
-Committed and pushed.
+Implemented, locally verified, and read-only reviewed clean; pending publish.
 Contract-shaped fixture discovery shows
-`study_results/operator_review_resource_pressure_v1.json` and
 `study_results/operator_review_resource_projection_battery_handoff_v1.json`
-emit top-level operator-review summary counters that
-`operator_review_package.v1` does not name:
-`candidate_diff_review_count`, `constraint_review_count`,
-`contact_allocation_capacity_pack_review_count`,
-`contact_allocation_review_count`, `contact_intent_review_count`,
-`execution_review_count`, `freshness_review_count`,
-`objective_satisfaction_review_count`, `objective_tradeoff_review_count`,
-`operational_timeline_count`, `pareto_frontier_count`,
-`provider_counteroffer_review_count`, `refresh_budget_review_count`,
-`schema_validation_review_count`, and `score_term_review_count`.
+emits resource-projection review-row evidence that the
+`operator_review_package.v1` row schema does not name:
+`approval_requirements`, `approval_rule_matches`,
+`first_resource_pressure_activity_id`,
+`first_resource_pressure_activity_type`, `first_resource_pressure_kind`,
+`first_resource_pressure_starts_at_s`, `peak_unused_downlink_capacity_mb`,
+`projected_battery_overuse_wh`, `resource_trust_boundary_status`,
+`storage_limited_downlinked_mb`, and `unused_downlink_capacity_mb`.
 
 Why this matters:
-Operator review packages summarize which review families are present before
-operators or Cadence adapters inspect individual rows. The emitted counters are
-already computed by `OperatorReview` and should be schema-visible and
-non-negative validated through the existing scalar-count path.
+Operator-review rows are the operator-facing explanation of why a resource
+projection requires review. The emitted evidence identifies the first pressure
+activity, policy approval context, unused downlink capacity, storage-limited
+downlink, battery overuse, and trust-boundary state. Those fields are already
+runtime-validated enough to pass schema lint, so the generated row schema should
+make them visible to downstream reviewers and adapters.
 
 Likely files:
 - `.codex/status/autonomous_product_loop.md`
@@ -34,51 +33,49 @@ Likely files:
 - `test/orbital_dynamics/schema_test.exs`
 
 Definition of done:
-- `operator_review_package.v1` optional fields include the emitted top-level
-  summary counters from both resource-pressure fixtures.
-- JSON Schema properties expose those counters as non-negative integers.
-- Executable validation rejects negative values for the newly exposed counters.
-- Focused schema tests assert the counter fields and fixture top-level
-  visibility.
+- `operator_review_package.v1` row schema exposes every row key present in
+  `study_results/operator_review_resource_projection_battery_handoff_v1.json`.
+- First pressure activity ID uses the stable ID pattern; first pressure activity
+  type/kind and resource trust-boundary status are strings.
+- Resource projection numeric handoff fields are numbers.
+- Approval requirements and rule matches are arrays with the existing approval
+  requirement/rule-match shapes where available.
+- Focused schema tests assert row schema shape and fixture row visibility.
+- Executable validation rejects malformed first pressure activity IDs and
+  non-numeric resource-projection downlink fields.
 - Checked-in schemas and bundle are refreshed.
 - Focused schema tests, operator-review runtime tests, schema export tests,
   schema lint, generated-schema spot-checks, and whitespace checks pass.
-- Read-only review finds no must-fix issues.
+- Read-only review found no must-fix issues.
 - Slice-owned files only are committed and pushed.
 
 Tests run:
 - `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
 - `mix test test/orbital_dynamics/schema_test.exs:22209 test/orbital_dynamics/schema_test.exs:24155`
-- `mix test test/orbital_dynamics/operator_review_test.exs:820 test/orbital_dynamics/operator_review_test.exs:939`
+- `mix test test/orbital_dynamics/operator_review_test.exs:10580 test/orbital_dynamics/operator_review_test.exs:10690`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `jq` spot-checks for `operator_review_package.v1` summary counter properties.
-- `mix run` fixture/schema top-level visibility spot-checks for the two
-  resource-pressure operator review fixtures.
+- `jq` spot-checks for `operator_review_package.v1` resource-projection row
+  evidence properties.
+- `mix run` fixture/schema row visibility spot-check for
+  `study_results/operator_review_resource_projection_battery_handoff_v1.json`.
 - `mix test test/orbital_dynamics/schema_test.exs`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check -- . ':!.gitignore'`
-
-Read-only review:
-- `slice_reviewer` found no must-fix issues for the requested counters. It
-  confirmed the new counters are present in both the scalar-count list and
-  contract metadata, use the shared non-negative integer JSON Schema path, are
-  validated by the shared optional scalar-count validator, and are covered by
-  schema/fixture tests. It also noticed pre-existing drift for
-  `quality_gate_review_count`; this slice folded in that metadata alignment fix
-  and reran focused tests, full schema tests, export tests, lint, spot-checks,
-  and whitespace checks.
+- Read-only reviewer reran
+  `mix test test/orbital_dynamics/schema_test.exs:22691 test/orbital_dynamics/schema_test.exs:24231`
+  and reported no must-fix findings.
 
 Last completed implementation commit:
 `77dc6f934a387d3d9c1956977e54b2e27b5eee01` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending ledger correction for the operator review summary counter schema slice.
+`4cbbbf3` pushed to `origin/main`.
 
 Next candidate:
 After this slice, rerun contract-shaped fixture/schema visibility discovery.
 Known remaining candidates include Cadence import/resource-pressure row
-summaries and operator-review resource-projection row fields.
+summaries and source-review row fields.
 
 Blocked:
 No.
