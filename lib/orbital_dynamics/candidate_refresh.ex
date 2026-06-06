@@ -6884,6 +6884,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     }
     |> Map.merge(source_report_storage_downlink_pressure_summary_fields(source_reports))
     |> Map.merge(source_report_contact_intent_replay_summary_fields(source_reports))
+    |> Map.merge(source_report_station_reservation_replay_summary_fields(source_reports))
     |> Map.merge(
       source_report_timeline_publication_context_fields(
         source_reports,
@@ -9528,6 +9529,33 @@ defmodule OrbitalDynamics.CandidateRefresh do
     }
   end
 
+  defp source_report_station_reservation_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("station_reservation_report", %{})
+      |> station_reservation_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.station_reservation_report",
+        "station_reservation_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_station_reservation_branch_local_station_reservation_pressure" =>
+        Map.get(summary, "branch_local_station_reservation_pressure"),
+      "source_report_station_reservation_branch_local_reservation_review_pressure" =>
+        Map.get(summary, "branch_local_reservation_review_pressure"),
+      "source_report_station_reservation_branch_local_reservation_owner_pressure" =>
+        Map.get(summary, "branch_local_reservation_owner_pressure"),
+      "source_report_station_reservation_branch_local_reservation_expiration_pressure" =>
+        Map.get(summary, "branch_local_reservation_expiration_pressure"),
+      "source_report_station_reservation_branch_local_reservation_hold_pressure" =>
+        Map.get(summary, "branch_local_reservation_hold_pressure"),
+      "source_report_station_reservation_branch_local_provider_contention_pressure" =>
+        Map.get(summary, "branch_local_provider_contention_pressure"),
+      "source_report_station_reservation_branch_local_reservation_hold_import_readiness_pressure" =>
+        Map.get(summary, "branch_local_reservation_hold_import_readiness_pressure")
+    }
+  end
+
   @doc """
   Builds a compact branch-local storage/downlink pressure replay summary.
 
@@ -10474,6 +10502,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    station_reservation_replay_summary_from_summary(
+      reservation_summary,
+      summary_source,
+      replay_scope
+    )
+  end
+
+  defp station_reservation_replay_summary_from_summary(
+         reservation_summary,
+         summary_source,
+         replay_scope
+       ) do
     affected_contact_count = summary_integer(reservation_summary, "affected_contact_count")
 
     provider_contention_group_count =

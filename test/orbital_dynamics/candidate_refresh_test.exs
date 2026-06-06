@@ -31701,6 +31701,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "ops" => ["reservation_ops"],
                "partner_ops" => ["reservation_partner"]
              },
+             "source_report_station_reservation_branch_local_station_reservation_pressure" =>
+               true,
+             "source_report_station_reservation_branch_local_reservation_review_pressure" => true,
+             "source_report_station_reservation_branch_local_reservation_owner_pressure" => true,
+             "source_report_station_reservation_branch_local_reservation_expiration_pressure" =>
+               true,
+             "source_report_station_reservation_branch_local_provider_contention_pressure" =>
+               true,
              "source_reports" => %{
                "station_reservation_report" => %{
                  "paths" => ["source_station_reservation_report"],
@@ -32685,6 +32693,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "downlink" => ["dl_source_reserved"]
              },
              "source_report_station_reservation_direction_routing" => ^expected_direction_routing,
+             "source_report_station_reservation_branch_local_station_reservation_pressure" =>
+               true,
+             "source_report_station_reservation_branch_local_reservation_hold_pressure" => true,
+             "source_report_station_reservation_branch_local_provider_contention_pressure" =>
+               true,
+             "source_report_station_reservation_branch_local_reservation_hold_import_readiness_pressure" =>
+               true,
              "source_reports" => %{
                "station_reservation_report" => %{
                  "paths" => ["source_station_reservation_hold_import_readiness_summary"],
