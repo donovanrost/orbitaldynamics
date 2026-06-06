@@ -17985,6 +17985,11 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "review_maneuver_execution" => 1,
                "review_maneuver_uncertainty" => 1
              },
+             "source_report_maneuver_review_branch_local_maneuver_review_pressure" => true,
+             "source_report_maneuver_review_branch_local_maneuver_feedback_pressure" => true,
+             "source_report_maneuver_review_branch_local_maneuver_routing_pressure" => true,
+             "source_report_maneuver_review_branch_local_maneuver_action_pressure" => true,
+             "source_report_maneuver_review_branch_local_execution_uncertainty_pressure" => true,
              "source_reports" => %{
                "maneuver_review_report" => %{
                  "contract" => "maneuver_review_report.v1",
@@ -18082,7 +18087,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_maneuver_review_required_operator_action_counts" => %{
                "review_maneuver_execution" => 1,
                "review_maneuver_uncertainty" => 1
-             }
+             },
+             "source_report_maneuver_review_branch_local_maneuver_review_pressure" => true,
+             "source_report_maneuver_review_branch_local_maneuver_feedback_pressure" => true,
+             "source_report_maneuver_review_branch_local_maneuver_routing_pressure" => true,
+             "source_report_maneuver_review_branch_local_maneuver_action_pressure" => true,
+             "source_report_maneuver_review_branch_local_execution_uncertainty_pressure" => true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.maneuver_review_replay_summary(artifact) == replay_summary

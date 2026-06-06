@@ -6891,6 +6891,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_resource_projection_replay_summary_fields(source_reports))
     |> Map.merge(source_report_station_reservation_replay_summary_fields(source_reports))
     |> Map.merge(source_report_command_window_replay_summary_fields(source_reports))
+    |> Map.merge(source_report_maneuver_review_replay_summary_fields(source_reports))
     |> Map.merge(
       source_report_timeline_publication_context_fields(
         source_reports,
@@ -9742,6 +9743,29 @@ defmodule OrbitalDynamics.CandidateRefresh do
     }
   end
 
+  defp source_report_maneuver_review_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("maneuver_review_report", %{})
+      |> maneuver_review_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.maneuver_review_report",
+        "maneuver_review_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_maneuver_review_branch_local_maneuver_review_pressure" =>
+        Map.get(summary, "branch_local_maneuver_review_pressure"),
+      "source_report_maneuver_review_branch_local_maneuver_feedback_pressure" =>
+        Map.get(summary, "branch_local_maneuver_feedback_pressure"),
+      "source_report_maneuver_review_branch_local_maneuver_routing_pressure" =>
+        Map.get(summary, "branch_local_maneuver_routing_pressure"),
+      "source_report_maneuver_review_branch_local_maneuver_action_pressure" =>
+        Map.get(summary, "branch_local_maneuver_action_pressure"),
+      "source_report_maneuver_review_branch_local_execution_uncertainty_pressure" =>
+        Map.get(summary, "branch_local_execution_uncertainty_pressure")
+    }
+  end
+
   @doc """
   Builds a compact branch-local storage/downlink pressure replay summary.
 
@@ -11176,6 +11200,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    maneuver_review_replay_summary_from_summary(maneuver_summary, summary_source, replay_scope)
+  end
+
+  defp maneuver_review_replay_summary_from_summary(maneuver_summary, summary_source, replay_scope) do
     success_feedback_count =
       summary_integer(maneuver_summary, "maneuver_success_feedback_count")
 
