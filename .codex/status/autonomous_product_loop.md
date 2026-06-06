@@ -4,7 +4,7 @@ Current slice:
 Expose contact contention resolution recommendation scope schemas.
 
 Status:
-Implemented, locally verified, and read-only reviewed clean; pending publish.
+Implemented, locally verified, read-only reviewed clean, committed, and pushed.
 
 Discovery:
 Broad fixture/schema visibility discovery now reports no missing top-level,
@@ -43,7 +43,7 @@ Definition of done:
 - [x] Focused schema tests, schema export tests, schema lint, generated-schema
   spot-checks, and whitespace checks pass.
 - [x] Read-only review finds no must-fix issues.
-- [ ] Slice-owned files only are committed and pushed.
+- [x] Slice-owned files only are committed and pushed.
 
 Tests run:
 - `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
@@ -65,10 +65,10 @@ Tests run:
   and reported no must-fix findings.
 
 Last completed implementation commit:
-`0c96df16553ae11689418b0fd202fbe474a8e876` pushed to `origin/main`.
+`a79b6483a8bc18fc86262fd7ca1f4c97a4fa0bfd` pushed to `origin/main`.
 
 Last ledger correction commit:
-`35788c891810bcde7cc6eed670891a0bc99dbac3` pushed to `origin/main`.
+Pending this ledger-only correction.
 
 Next candidate:
 After this slice, rerun broad nested row-container fixture/schema visibility
