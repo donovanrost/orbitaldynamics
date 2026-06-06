@@ -35,7 +35,7 @@ Last completed implementation commit:
 `9f40254c9adaf99fb1ccff3321f42b79e8329bf1` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending for this post-commit handoff correction.
+`8687d1fc912e17c014ea89fa67941becf6150b1b` pushed to `origin/main`.
 
 Next candidate:
 After this slice, move to the resource/communications allocation queue unless a
