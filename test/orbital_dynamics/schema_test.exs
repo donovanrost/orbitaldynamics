@@ -23831,6 +23831,97 @@ defmodule OrbitalDynamics.SchemaTest do
            )
   end
 
+  test "exports Cadence import resource pressure readiness row schemas" do
+    capabilities = OrbitalDynamics.OperationalReadiness.capabilities()
+    assert {:ok, schema} = Schema.json_schema("cadence_import_manifest.v1")
+
+    row_properties = get_in(schema, ["properties", "rows", "items", "properties"])
+
+    source_review_row_properties =
+      get_in(row_properties, ["source_review_row", "properties"])
+
+    for field <- [
+          "ready_for_import_count",
+          "manifest_review_required_count",
+          "blocked_import_count",
+          "missing_import_count",
+          "invalid_cadence_import_count",
+          "current_freshness_count",
+          "stale_freshness_count",
+          "unknown_freshness_count",
+          "schema_validation_pass_count",
+          "schema_validation_fail_count",
+          "schema_validation_error_count",
+          "schema_validation_warning_count",
+          "schema_validation_remediation_count"
+        ] do
+      assert get_in(row_properties, [field]) == %{"type" => "integer", "minimum" => 0}
+    end
+
+    for field <- [
+          "freshness_status_counts",
+          "schema_validation_status_counts",
+          "import_status_counts",
+          "cadence_import_status_counts"
+        ] do
+      assert get_in(row_properties, [field, "additionalProperties", "type"]) == "integer"
+      assert get_in(row_properties, [field, "additionalProperties", "minimum"]) == 0
+    end
+
+    for properties <- [row_properties, source_review_row_properties] do
+      assert get_in(properties, ["readiness_level", "enum"]) == capabilities.readiness_levels
+
+      assert get_in(properties, ["import_classification", "enum"]) ==
+               capabilities.import_classifications
+
+      assert get_in(properties, ["operational_readiness_status", "enum"]) ==
+               capabilities.gate_statuses
+
+      assert get_in(properties, ["cadence_import_status", "enum"]) ==
+               OrbitalDynamics.CadenceImport.capability().cadence_import_statuses
+
+      for field <- [
+            "gate_count",
+            "passed_gate_count",
+            "review_gate_count",
+            "analysis_gate_count",
+            "blocked_gate_count"
+          ] do
+        assert get_in(properties, [field]) == %{"type" => "integer", "minimum" => 0}
+      end
+
+      assert get_in(properties, ["gates", "items", "properties", "id", "enum"]) ==
+               capabilities.gates
+
+      assert get_in(properties, ["evidence", "properties", "ready_for_import_count"]) == %{
+               "type" => "integer",
+               "minimum" => 0
+             }
+
+      assert get_in(properties, [
+               "source_operational_readiness_gate",
+               "properties",
+               "classification",
+               "enum"
+             ]) ==
+               capabilities.import_classifications
+    end
+
+    resource_pressure_manifest =
+      read_json!("study_results/cadence_import_resource_pressure_v1.json")
+
+    invalid_blocked_import_count =
+      put_in(resource_pressure_manifest, ["rows", Access.at(0), "blocked_import_count"], "1")
+
+    assert {:error, blocked_import_count_report} =
+             Schema.validate_artifact(invalid_blocked_import_count)
+
+    assert Enum.any?(
+             blocked_import_count_report["errors"],
+             &(&1["path"] == "$.rows[0].blocked_import_count")
+           )
+  end
+
   test "declares and enforces stable artifact identity policy" do
     policy = Schema.identity_policy()
 
@@ -24714,6 +24805,23 @@ defmodule OrbitalDynamics.SchemaTest do
     assert_fixture_row_fields_are_schema_visible(
       "cadence_import_manifest.v1",
       "study_results/cadence_import_resource_projection_battery_handoff_v1.json",
+      ["properties", "rows", "items", "properties", "source_review_row", "properties"],
+      fn artifact ->
+        artifact
+        |> Map.get("rows", [])
+        |> Enum.map(&Map.get(&1, "source_review_row"))
+      end
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "cadence_import_manifest.v1",
+      "study_results/cadence_import_resource_pressure_v1.json",
+      ["properties", "rows", "items", "properties"]
+    )
+
+    assert_fixture_row_fields_are_schema_visible(
+      "cadence_import_manifest.v1",
+      "study_results/cadence_import_resource_pressure_v1.json",
       ["properties", "rows", "items", "properties", "source_review_row", "properties"],
       fn artifact ->
         artifact

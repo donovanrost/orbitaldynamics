@@ -25470,6 +25470,47 @@ defmodule OrbitalDynamics.Schema do
     }
   end
 
+  defp cadence_import_operational_readiness_evidence_json_schema_properties do
+    capability = OrbitalDynamics.OperationalReadiness.capabilities()
+
+    %{
+      "cadence_import_status" => cadence_import_status_json_schema(),
+      "readiness_level" => %{
+        "type" => "string",
+        "enum" => capability.readiness_levels
+      },
+      "import_classification" => %{
+        "type" => "string",
+        "enum" => capability.import_classifications
+      },
+      "operational_readiness_status" => %{
+        "type" => "string",
+        "enum" => capability.gate_statuses
+      },
+      "readiness_gate_id" => %{"type" => "string"},
+      "readiness_gate_status" => %{
+        "type" => "string",
+        "enum" => capability.gate_statuses
+      },
+      "readiness_gate_classification" => %{
+        "type" => "string",
+        "enum" => capability.import_classifications
+      },
+      "readiness_gate_reason" => %{"type" => "string"},
+      "gate_count" => %{"type" => "integer", "minimum" => 0},
+      "passed_gate_count" => %{"type" => "integer", "minimum" => 0},
+      "review_gate_count" => %{"type" => "integer", "minimum" => 0},
+      "analysis_gate_count" => %{"type" => "integer", "minimum" => 0},
+      "blocked_gate_count" => %{"type" => "integer", "minimum" => 0},
+      "gates" => %{
+        "type" => "array",
+        "items" => operational_readiness_gate_json_schema()
+      },
+      "evidence" => operational_readiness_evidence_json_schema(),
+      "source_operational_readiness_gate" => operational_readiness_gate_json_schema()
+    }
+  end
+
   defp resource_projection_battery_handoff_json_schema_properties do
     number_property_schemas(@resource_projection_battery_handoff_number_fields)
   end
@@ -26022,6 +26063,8 @@ defmodule OrbitalDynamics.Schema do
         |> Map.merge(operational_readiness_resource_context_json_schema_properties())
         |> Map.merge(operational_readiness_operator_training_context_json_schema_properties())
         |> Map.merge(operational_readiness_adapter_boundary_context_json_schema_properties())
+        |> Map.merge(operational_readiness_cadence_import_context_json_schema_properties())
+        |> Map.merge(cadence_import_operational_readiness_evidence_json_schema_properties())
         |> Map.merge(resource_projection_battery_handoff_json_schema_properties())
         |> Map.merge(cadence_import_resource_projection_evidence_json_schema_properties())
         |> Map.merge(branch_scoped_downlink_context_json_schema_properties())
@@ -26612,6 +26655,7 @@ defmodule OrbitalDynamics.Schema do
         |> Map.merge(operational_readiness_resource_context_json_schema_properties())
         |> Map.merge(operational_readiness_operator_training_context_json_schema_properties())
         |> Map.merge(operational_readiness_adapter_boundary_context_json_schema_properties())
+        |> Map.merge(cadence_import_operational_readiness_evidence_json_schema_properties())
         |> Map.merge(resource_projection_battery_handoff_json_schema_properties())
         |> Map.merge(cadence_import_resource_projection_evidence_json_schema_properties())
         |> Map.merge(branch_scoped_downlink_context_json_schema_properties())
@@ -56500,6 +56544,7 @@ defmodule OrbitalDynamics.Schema do
       Map.get(row, "source_review_row")
     )
     |> validate_operational_readiness_resource_context(path, row)
+    |> validate_operational_readiness_cadence_import_context(path, row)
     |> validate_source_operational_readiness_gate_handoff_matches(path, row)
     |> validate_source_quality_gate_row_handoff_matches(path, row)
     |> validate_source_operational_readiness_report_handoff_matches(path, row)

@@ -1,28 +1,26 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Expose Cadence import resource-projection row evidence schemas.
+Expose Cadence import resource-pressure readiness evidence schemas.
 
 Status:
-Implemented, locally verified, read-only reviewed clean, committed, and pushed.
+Implemented, locally verified, and read-only reviewed clean; pending publish.
 
 Discovery:
 Contract-shaped fixture/schema visibility comparison shows
-`study_results/cadence_import_resource_projection_battery_handoff_v1.json`
-emits resource-projection handoff evidence on both Cadence import manifest rows
-and nested `source_review_row` objects that
-`cadence_import_manifest.v1` does not currently name. The missing visible fields
-include resource pressure identity/context fields, resource-projection numeric
-handoff fields, ignored activity summaries, approval requirement/rule-match
-arrays, escalation metadata, and queue/action fields already validated by the
-runtime schema path.
+`study_results/cadence_import_resource_pressure_v1.json` now has the remaining
+Cadence import manifest visibility gap. Top-level Cadence import rows emit
+operational-readiness import status counters that `cadence_import_manifest.v1`
+does not name. Nested `source_review_row` objects emit readiness gate context,
+gate counts, gate evidence, Cadence import status, and readiness classification
+fields that the nested source-review schema does not name.
 
 Why this matters:
-Cadence import manifests are the adapter-facing explanation of whether an
-Orbital Dynamics artifact can become a Cadence import. The battery handoff
-fixture already validates and carries resource pressure evidence, but the
-generated schema hides much of that evidence from downstream adapters and
-review tooling.
+Cadence import manifests explain why an adapter-facing import is ready,
+review-only, analysis-only, or blocked. The resource-pressure fixture already
+validates as a Cadence import manifest, but the generated row schemas hide the
+readiness evidence that downstream import tooling needs for diagnostics and
+operator review.
 
 Likely files:
 - `.codex/status/autonomous_product_loop.md`
@@ -33,18 +31,14 @@ Likely files:
 - `test/orbital_dynamics/schema_test.exs`
 
 Definition of done:
-- `cadence_import_manifest.v1` row schema exposes the emitted
-  `study_results/cadence_import_resource_projection_battery_handoff_v1.json`
-  resource-projection row evidence fields for this slice.
-- Nested `source_review_row` schema exposes the corresponding emitted handoff
-  fields where they are part of source-review context.
-- Approval requirements and approval rule matches use existing requirement and
-  rule-match item schemas.
-- Stable identity fields such as `spacecraft_id` and
-  `first_resource_pressure_activity_id` carry the stable ID pattern where
-  applicable.
+- `cadence_import_manifest.v1` row schema exposes emitted import/readiness
+  status counters from `study_results/cadence_import_resource_pressure_v1.json`.
+- Nested `source_review_row` schema exposes emitted readiness level,
+  classification, gate count, gate evidence, and source readiness report fields.
+- Existing operational-readiness helper schemas are reused where they already
+  define the correct readiness/cadence import field shapes.
 - Focused schema tests assert row/source-review schema shape and fixture row
-  visibility for the Cadence resource-projection fixture.
+  visibility for the Cadence resource-pressure fixture.
 - Checked-in schemas and bundle are refreshed.
 - Focused schema tests, schema export tests, schema lint, generated-schema
   spot-checks, and whitespace checks pass.
@@ -53,31 +47,28 @@ Definition of done:
 
 Tests run:
 - `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:23691 test/orbital_dynamics/schema_test.exs:24374`
-- Runtime `mix run` fixture/schema visibility spot-check for
-  `study_results/cadence_import_resource_projection_battery_handoff_v1.json`
-  reported no missing row or source-review fields.
+- `mix test test/orbital_dynamics/schema_test.exs:23834 test/orbital_dynamics/schema_test.exs:24452 test/orbital_dynamics/schema_test.exs:24465`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
+- Runtime `mix run` fixture/schema visibility spot-check for
+  `study_results/cadence_import_resource_pressure_v1.json` reported no missing
+  row or source-review fields.
 - `jq` spot-checks for checked-in `cadence_import_manifest.v1` row and
-  `source_review_row` resource-projection evidence properties.
+  `source_review_row` readiness evidence properties.
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix test test/orbital_dynamics/schema_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check -- . ':!.gitignore'`
-- Read-only reviewer reran
-  `mix test test/orbital_dynamics/schema_test.exs:23691 test/orbital_dynamics/schema_test.exs:24708`
-  and reported no must-fix findings.
+- Read-only reviewer reran the focused schema tests, schema lint, and
+  `git diff --check -- . ':!.gitignore'`, and reported no must-fix findings.
 
 Last completed implementation commit:
 `8a66dfe362a2deb8f769c1499b340da0bccb82be` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending this ledger-only correction.
+`f733e09c2cdd328ea280388e0dcff95d86962d51` pushed to `origin/main`.
 
 Next candidate:
 After this slice, rerun contract-shaped fixture/schema visibility discovery.
-Known remaining candidates include Cadence import resource-pressure readiness
-row/source-review fields.
 
 Blocked:
 No.
