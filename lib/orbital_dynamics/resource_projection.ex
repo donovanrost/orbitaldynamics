@@ -293,6 +293,7 @@ defmodule OrbitalDynamics.ResourceProjection do
         :planned_data_volume_storage_production_aliases,
         :realized_data_volume_evidence,
         :actual_data_volume_audit_only_aliases,
+        :actual_data_volume_input_validation,
         :estimated_downlink_throughput_aliases,
         :battery_energy_consumed_aliases,
         :battery_energy_generated_aliases,
@@ -1812,9 +1813,33 @@ defmodule OrbitalDynamics.ResourceProjection do
 
     metadata = nested_activity_resource_quantity_values(activity, "metadata")
     throughput_model = nested_activity_resource_quantity_values(activity, "throughput_model")
+    actual_data_volume = activity_actual_data_volume_values(activity)
 
-    top_level ++ metadata ++ throughput_model
+    top_level ++ metadata ++ throughput_model ++ actual_data_volume
   end
+
+  defp activity_actual_data_volume_values(activity) do
+    @actual_data_volume_paths
+    |> Enum.flat_map(fn path ->
+      case present_path_value(activity, path) do
+        {:ok, value} -> [{List.last(path), value}]
+        :error -> []
+      end
+    end)
+  end
+
+  defp present_path_value(%{} = source, [field]) do
+    if Map.has_key?(source, field), do: {:ok, Map.get(source, field)}, else: :error
+  end
+
+  defp present_path_value(%{} = source, [field | rest]) do
+    case Map.get(source, field) do
+      %{} = nested -> present_path_value(nested, rest)
+      _value -> :error
+    end
+  end
+
+  defp present_path_value(_source, _path), do: :error
 
   defp nested_activity_resource_quantity_values(activity, key) do
     case Map.get(activity, key) do

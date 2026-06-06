@@ -61,6 +61,7 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
     assert :planned_data_volume_storage_production_aliases in row_semantics
     assert :realized_data_volume_evidence in row_semantics
     assert :actual_data_volume_audit_only_aliases in row_semantics
+    assert :actual_data_volume_input_validation in row_semantics
     assert :estimated_downlink_throughput_aliases in row_semantics
     assert :battery_energy_consumed_aliases in row_semantics
     assert :battery_energy_generated_aliases in row_semantics
@@ -2625,6 +2626,72 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
                row["invalid_activity_input_reason"] == "invalid_completion_fraction" and
                get_in(row, ["source_activity", "metadata", "completion_fraction"]) == -0.25
            end)
+  end
+
+  test "review-gates malformed realized data volume evidence before flow rows" do
+    activities = [
+      %{
+        id: :obs_negative_actual,
+        type: :observe,
+        scenario_id: :leo_1,
+        starts_at_s: 10.0,
+        estimated_storage_mb: 10.0,
+        delivered_data_mb: -1.0
+      },
+      %{
+        id: :obs_bad_received,
+        type: :observe,
+        scenario_id: :leo_1,
+        starts_at_s: 20.0,
+        estimated_storage_mb: 10.0,
+        metadata: %{received_data_mb: "unknown"}
+      }
+    ]
+
+    summaries = [
+      %{
+        spacecraft_id: :leo_1,
+        storage_capacity_mb: 100.0,
+        storage_used_mb: 20.0
+      }
+    ]
+
+    assert %{
+             "activity_count" => 2,
+             "valid_activity_count" => 0,
+             "invalid_activity_input_count" => 2,
+             "invalid_activity_input_ids" => ["obs_negative_actual", "obs_bad_received"],
+             "invalid_activity_inputs" => invalid_inputs,
+             "projected_resources" => [
+               %{
+                 "activity_count" => 0,
+                 "activity_resource_flow" => []
+               }
+             ]
+           } = report = ResourceProjection.report(activities, summaries)
+
+    assert %{
+             "activity_id" => "obs_negative_actual",
+             "invalid_activity_input_reason" => "negative_delivered_data_mb",
+             "source_activity" => %{"delivered_data_mb" => -1.0}
+           } = Enum.find(invalid_inputs, &(&1["activity_id"] == "obs_negative_actual"))
+
+    assert %{
+             "activity_id" => "obs_bad_received",
+             "invalid_activity_input_reason" => "invalid_received_data_mb",
+             "source_activity" => %{"metadata" => %{"received_data_mb" => "unknown"}}
+           } = Enum.find(invalid_inputs, &(&1["activity_id"] == "obs_bad_received"))
+
+    assert {:ok, %{"schema_contract" => "resource_projection_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert %{
+             "resource_flow_status" => "review_required",
+             "invalid_activity_input_count" => 2,
+             "invalid_activity_input_ids" => ["obs_negative_actual", "obs_bad_received"],
+             "flow_row_count" => 0,
+             "activity_resource_flow" => []
+           } = ResourceProjection.flow_report(activities, summaries)
   end
 
   test "schema validation rejects inconsistent resource effect counts" do

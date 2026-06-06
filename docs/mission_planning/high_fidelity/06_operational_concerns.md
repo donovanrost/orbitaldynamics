@@ -389,6 +389,8 @@ boundary, so station, access-window, and provider queues can remain branch-local
 and review-only. It also advertises the planned data-volume
 aliases used for storage-production roll-forward and the
 actual/delivered/received data-volume aliases retained as audit-only evidence,
-plus estimated/planned downlink-throughput aliases consumed before
-capacity-adjusted downlink roll-forward and declared battery-energy
+with malformed or negative actual-volume evidence routed to operator review
+before activity-flow rows are produced, plus estimated/planned
+downlink-throughput aliases consumed before capacity-adjusted downlink
+roll-forward and declared battery-energy
 consumed/generated aliases used before battery state projection.
