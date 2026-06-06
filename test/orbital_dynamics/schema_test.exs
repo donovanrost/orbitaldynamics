@@ -12563,6 +12563,128 @@ defmodule OrbitalDynamics.SchemaTest do
                  "$.provenance.source_reports.validation_safety_case_summary.evidence_refs_by_status.blocked")
            )
 
+    artifact_with_timeline_transition_application_summary =
+      put_in(
+        artifact,
+        ["provenance", "source_reports", "timeline_transition_application_report"],
+        %{
+          "paths" => ["source_timeline_transition_application_report"],
+          "contract" => "timeline_transition_application_report.v1",
+          "count" => 1,
+          "row_count" => 3,
+          "application_count" => 3,
+          "selected_activity_count" => 1,
+          "selected_activity_id_counts" => %{"activity.transition.selected" => 1},
+          "review_activity_id_counts" => %{"activity.transition.review" => 2},
+          "review_required_count" => 2,
+          "preserved_source_count" => 1,
+          "recorded_replacement_count" => 1,
+          "withheld_review_count" => 1,
+          "duplicate_timeline_identity_count" => 1,
+          "duplicate_source_timeline_identity_count" => 1,
+          "duplicate_replacement_timeline_identity_count" => 0,
+          "application_status_counts" => %{"review_required" => 2, "applied" => 1},
+          "transition_decision_counts" => %{"preserve_source" => 1},
+          "required_operator_action_counts" => %{"review_timeline_transition" => 2},
+          "duplicate_timeline_identity_scope_counts" => %{"source" => 1}
+        }
+      )
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_timeline_transition_application_summary)
+
+    timeline_transition_application_source_report_properties =
+      get_in(candidate_refresh_schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "timeline_transition_application_report",
+        "properties"
+      ])
+
+    assert get_in(timeline_transition_application_source_report_properties, [
+             "application_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(timeline_transition_application_source_report_properties, [
+             "application_status_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(timeline_transition_application_source_report_properties, [
+             "duplicate_timeline_identity_scope_counts",
+             "additionalProperties",
+             "type"
+           ]) == "integer"
+
+    invalid_timeline_transition_application_count =
+      put_in(
+        artifact_with_timeline_transition_application_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_transition_application_report",
+          "application_count"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_timeline_transition_application_count_report} =
+             Schema.validate_artifact(invalid_timeline_transition_application_count)
+
+    assert Enum.any?(
+             invalid_timeline_transition_application_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_transition_application_report.application_count")
+           )
+
+    invalid_timeline_transition_application_status_count =
+      put_in(
+        artifact_with_timeline_transition_application_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_transition_application_report",
+          "application_status_counts",
+          "review_required"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_timeline_transition_application_status_count_report} =
+             Schema.validate_artifact(invalid_timeline_transition_application_status_count)
+
+    assert Enum.any?(
+             invalid_timeline_transition_application_status_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_transition_application_report.application_status_counts.review_required")
+           )
+
+    invalid_timeline_transition_application_status_shape =
+      put_in(
+        artifact_with_timeline_transition_application_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_transition_application_report",
+          "application_status_counts"
+        ],
+        "review_required"
+      )
+
+    assert {:error, invalid_timeline_transition_application_status_shape_report} =
+             Schema.validate_artifact(invalid_timeline_transition_application_status_shape)
+
+    assert Enum.any?(
+             invalid_timeline_transition_application_status_shape_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_transition_application_report.application_status_counts")
+           )
+
     artifact_with_operational_timeline_summary =
       put_in(artifact, ["provenance", "source_reports", "operational_timeline_report"], %{
         "paths" => ["source_operational_timeline_report"],

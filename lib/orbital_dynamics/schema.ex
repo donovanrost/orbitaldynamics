@@ -21198,6 +21198,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_validation_safety_case_source_report_summary_json_schema(),
             "timeline_feedback_report" =>
               candidate_refresh_timeline_feedback_source_report_summary_json_schema(),
+            "timeline_transition_application_report" =>
+              candidate_refresh_timeline_transition_application_source_report_summary_json_schema(),
             "timeline_activity_state" =>
               candidate_refresh_timeline_activity_state_source_report_summary_json_schema()
           }
@@ -21500,6 +21502,39 @@ defmodule OrbitalDynamics.Schema do
             "match_strategy_counts",
             "activity_id_counts",
             "cadence_import_status_counts"
+          ],
+          &{&1, non_negative_integer_count_map_json_schema()}
+        )
+      )
+    end)
+  end
+
+  defp candidate_refresh_timeline_transition_application_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      properties
+      |> Map.merge(
+        non_negative_integer_property_schemas([
+          "application_count",
+          "selected_activity_count",
+          "review_required_count",
+          "preserved_source_count",
+          "recorded_replacement_count",
+          "withheld_review_count",
+          "duplicate_timeline_identity_count",
+          "duplicate_source_timeline_identity_count",
+          "duplicate_replacement_timeline_identity_count"
+        ])
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "selected_activity_id_counts",
+            "review_activity_id_counts",
+            "application_status_counts",
+            "transition_decision_counts",
+            "required_operator_action_counts",
+            "duplicate_timeline_identity_scope_counts"
           ],
           &{&1, non_negative_integer_count_map_json_schema()}
         )
@@ -26394,6 +26429,7 @@ defmodule OrbitalDynamics.Schema do
         |> validate_candidate_refresh_timeline_activity_context(path, summary)
         |> validate_candidate_refresh_timeline_publication_context(path, summary)
         |> validate_candidate_refresh_timeline_feedback_context(path, summary)
+        |> validate_candidate_refresh_timeline_transition_application_context(path, summary)
         |> validate_candidate_refresh_operational_timeline_context(path, summary)
         |> validate_candidate_refresh_model_acceptance_context(path, summary)
         |> validate_candidate_refresh_validation_safety_case_context(path, summary)
@@ -26519,6 +26555,44 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_non_negative_integer(path, summary, "dependency_integrity_issue_count")
     |> expect_optional_non_negative_integer(path, summary, "exclusivity_integrity_issue_count")
     |> validate_candidate_refresh_operational_timeline_count_maps(path, summary)
+  end
+
+  defp validate_candidate_refresh_timeline_transition_application_context(issues, path, summary) do
+    issues =
+      Enum.reduce(
+        [
+          "application_count",
+          "selected_activity_count",
+          "review_required_count",
+          "preserved_source_count",
+          "recorded_replacement_count",
+          "withheld_review_count",
+          "duplicate_timeline_identity_count",
+          "duplicate_source_timeline_identity_count",
+          "duplicate_replacement_timeline_identity_count"
+        ],
+        issues,
+        fn field, acc ->
+          expect_optional_non_negative_integer(acc, path, summary, field)
+        end
+      )
+
+    Enum.reduce(
+      [
+        "selected_activity_id_counts",
+        "review_activity_id_counts",
+        "application_status_counts",
+        "transition_decision_counts",
+        "required_operator_action_counts",
+        "duplicate_timeline_identity_scope_counts"
+      ],
+      issues,
+      fn field, acc ->
+        acc
+        |> expect_optional_type(path, summary, field, :map)
+        |> validate_non_negative_integer_count_map(path <> ".#{field}", Map.get(summary, field))
+      end
+    )
   end
 
   defp validate_candidate_refresh_operational_timeline_count_maps(issues, path, summary) do

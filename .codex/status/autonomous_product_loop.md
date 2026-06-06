@@ -1,19 +1,21 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Expose CandidateRefresh validation-safety-case source-report schema property.
+Expose CandidateRefresh timeline-transition-application source-report schema
+property.
 
 Status:
-Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
-CandidateRefresh validation-safety-case source summaries already preserve
-status/count maps, input contract count maps, evidence reference maps, and
-safety-case evidence/model/readiness/schema/fixture counts. Replay helpers
-already consume `validation_safety_case_summary` from source-report provenance.
-The `candidate_refresh.v1` source-report JSON Schema now names
-`validation_safety_case_summary` as a family-specific source report instead of
-leaving it discoverable only through the generic `source_reports`
+Implemented, locally verified, and reviewed clean; publish pending. Runtime
+CandidateRefresh timeline-transition-application source summaries already
+preserve application, selected/review activity, operator-review,
+preserved/replacement, duplicate timeline identity, and transition decision
+counts. Replay helpers already consume `timeline_transition_application_report`
+from source-report provenance and branch-local candidate-source summaries. The
+`candidate_refresh.v1` source-report JSON Schema now names
+`timeline_transition_application_report` as a family-specific source report
+instead of leaving it discoverable only through the generic `source_reports`
 `additionalProperties` shape. This is a contract discoverability slice only: no
-replay behavior, artifact generation logic, or operator/Cadence authority
+replay behavior, artifact generation logic, timeline mutation, or Cadence write
 behavior changed.
 
 Files changed:
@@ -26,12 +28,12 @@ Files changed:
 
 Definition of done:
 - `candidate_refresh.v1` exposes a family-specific
-  `validation_safety_case_summary`
+  `timeline_transition_application_report`
   source-report schema.
-- Its source-report object advertises safety-case integer counts, count maps,
-  input contract counts, and evidence reference string-list maps.
-- Schema validation rejects obvious invalid safety-case integer/count-map and
-  evidence-reference-map shapes.
+- Its source-report object advertises transition-application integer counts and
+  count maps.
+- Schema validation rejects obvious invalid transition-application integer and
+  count-map shapes.
 - Checked-in `candidate_refresh.v1` schema and schema bundle are refreshed.
 - Schema export tests, schema tests, focused CandidateRefresh runtime tests,
   schema lint, generated-schema spot-checks, and whitespace checks pass.
@@ -44,21 +46,21 @@ Tests run:
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - `mix test test/orbital_dynamics/schema_test.exs`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs --only line:35817`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:35246`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:44426`
 - `mix orbital_dynamics.schema.lint --all`
-- `jq` spot-checks for `validation_safety_case_summary` source-report fields in
-  `schemas/candidate_refresh.v1.schema.json` and the schema bundle.
+- `jq` spot-checks for `timeline_transition_application_report` source-report
+  fields in `schemas/candidate_refresh.v1.schema.json` and the schema bundle.
 - `git diff --check -- . ':!.gitignore'`
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
-  test, focused CandidateRefresh runtime test, schema lint, whitespace check,
+  test, focused CandidateRefresh runtime tests, schema lint, whitespace check,
   and generated-schema `jq` spot-checks.
-- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`8a25c7a37c11d89bf113aa2e5702e9fff71d12aa` pushed to `origin/main`.
+Pending for this slice.
 
 Last ledger correction commit:
-`be5e58a` pushed to `origin/main`.
+Pending for this slice.
 
 Next candidate:
 After this slice, run a bounded mapper pass to identify the next
