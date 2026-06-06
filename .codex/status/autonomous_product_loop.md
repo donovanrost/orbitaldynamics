@@ -4,7 +4,7 @@ Current slice:
 Expose CandidateRefresh model-acceptance source-report schema property.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 CandidateRefresh model-acceptance source summaries already preserve
 record/model/accepted/review/blocked/unknown counts,
 intended-use/status/validation-level count maps, and model ID maps by status,
@@ -52,9 +52,10 @@ Tests run:
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
   test, focused CandidateRefresh runtime test, schema lint, whitespace check,
   and generated-schema `jq` spot-checks.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-Pending for this slice.
+`902d8e8d1d80a02846d5fff31c2316aa713e43ee` pushed to `origin/main`.
 
 Last ledger correction commit:
 Pending for this slice.
