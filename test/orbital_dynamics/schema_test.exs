@@ -19686,6 +19686,22 @@ defmodule OrbitalDynamics.SchemaTest do
              Schema.identity_policy()["stable_id_pattern"]
 
     assert get_in(row_schema, ["properties", "projected_storage_margin", "type"]) == "number"
+
+    Enum.each(
+      [
+        "projected_storage_overflow_mb",
+        "projected_downlink_shortfall_mb",
+        "storage_limited_downlinked_mb",
+        "unused_downlink_capacity_mb"
+      ],
+      fn field ->
+        assert get_in(row_schema, ["properties", field]) == %{
+                 "type" => "number",
+                 "minimum" => 0.0
+               }
+      end
+    )
+
     assert get_in(row_schema, ["properties", "resource_source_quality", "type"]) == "string"
 
     assert get_in(row_schema, ["properties", "resource_trust_boundary_status", "type"]) ==
@@ -19841,6 +19857,40 @@ defmodule OrbitalDynamics.SchemaTest do
     assert Enum.any?(
              ignored_activity_ids_report["errors"],
              &(&1["path"] == "$.projected_resources[0].ignored_activity_ids[0]")
+           )
+
+    invalid_projected_storage_overflow =
+      put_in(
+        resource_projection_report,
+        ["projected_resources", Access.at(0), "projected_storage_overflow_mb"],
+        -0.1
+      )
+
+    assert {:error, projected_storage_overflow_report} =
+             Schema.validate_artifact(invalid_projected_storage_overflow,
+               schema_contract: "resource_projection_report.v1"
+             )
+
+    assert Enum.any?(
+             projected_storage_overflow_report["errors"],
+             &(&1["path"] == "$.projected_resources[0].projected_storage_overflow_mb")
+           )
+
+    invalid_unused_downlink_capacity =
+      put_in(
+        resource_projection_report,
+        ["projected_resources", Access.at(0), "unused_downlink_capacity_mb"],
+        "5.0"
+      )
+
+    assert {:error, unused_downlink_capacity_report} =
+             Schema.validate_artifact(invalid_unused_downlink_capacity,
+               schema_contract: "resource_projection_report.v1"
+             )
+
+    assert Enum.any?(
+             unused_downlink_capacity_report["errors"],
+             &(&1["path"] == "$.projected_resources[0].unused_downlink_capacity_mb")
            )
   end
 

@@ -18598,10 +18598,14 @@ defmodule OrbitalDynamics.Schema do
         "starting_storage_margin" => %{"type" => "number"},
         "projected_storage_margin" => %{"type" => "number"},
         "projected_storage_remaining_mb" => %{"type" => "number"},
+        "projected_storage_overflow_mb" => %{"type" => "number", "minimum" => 0.0},
         "downlink_capacity_mb" => %{"type" => "number"},
         "starting_downlink_margin" => %{"type" => "number"},
         "projected_downlink_margin" => %{"type" => "number"},
         "projected_downlink_remaining_mb" => %{"type" => "number"},
+        "projected_downlink_shortfall_mb" => %{"type" => "number", "minimum" => 0.0},
+        "storage_limited_downlinked_mb" => %{"type" => "number", "minimum" => 0.0},
+        "unused_downlink_capacity_mb" => %{"type" => "number", "minimum" => 0.0},
         "resource_source_quality" => %{"type" => "string"},
         "resource_trust_boundary_status" => %{"type" => "string"},
         "resource_pressure_status" => %{"type" => "string"},
@@ -36588,10 +36592,14 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_number(path, row, "starting_storage_margin")
     |> expect_optional_number(path, row, "projected_storage_margin")
     |> expect_optional_number(path, row, "projected_storage_remaining_mb")
+    |> expect_optional_non_negative_number(path, row, "projected_storage_overflow_mb")
     |> expect_optional_number(path, row, "downlink_capacity_mb")
     |> expect_optional_number(path, row, "starting_downlink_margin")
     |> expect_optional_number(path, row, "projected_downlink_margin")
     |> expect_optional_number(path, row, "projected_downlink_remaining_mb")
+    |> expect_optional_non_negative_number(path, row, "projected_downlink_shortfall_mb")
+    |> expect_optional_non_negative_number(path, row, "storage_limited_downlinked_mb")
+    |> expect_optional_non_negative_number(path, row, "unused_downlink_capacity_mb")
     |> expect_optional_type(path, row, "resource_source_quality", :binary)
     |> expect_optional_type(path, row, "resource_trust_boundary_status", :binary)
     |> expect_optional_type(path, row, "resource_pressure_status", :binary)
