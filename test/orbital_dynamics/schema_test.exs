@@ -13789,6 +13789,133 @@ defmodule OrbitalDynamics.SchemaTest do
                  "$.provenance.source_reports.timeline_activity_lifecycle_state.invalid_activity_input_reasons[0]")
            )
 
+    artifact_with_timeline_dependency_impact_summary =
+      put_in(
+        artifact,
+        ["provenance", "source_reports", "timeline_dependency_impact_summary"],
+        %{
+          "paths" => ["source_timeline_dependency_impact_summary"],
+          "contract" => "timeline_dependency_impact_summary.v1",
+          "count" => 1,
+          "row_count" => 2,
+          "source_activity_count" => 2,
+          "replacement_activity_count" => 2,
+          "changed_source_activity_count" => 1,
+          "changed_source_timeline_count" => 1,
+          "dependent_activity_count" => 2,
+          "source_dependent_activity_count" => 1,
+          "replacement_dependent_activity_count" => 1,
+          "dependency_impact_status_counts" => %{"review_required" => 2},
+          "dependency_impact_scope_counts" => %{"source" => 1},
+          "required_operator_action_counts" => %{"review_timeline_integrity" => 2},
+          "impacted_source_activity_id_counts" => %{"health_gate" => 1},
+          "impacted_source_timeline_id_counts" => %{"timeline:health_gate" => 1},
+          "impacted_dependency_activity_id_counts" => %{"dependency_gate" => 1},
+          "impacted_dependency_timeline_id_counts" => %{"timeline:dependency_gate" => 1},
+          "impacted_exclusive_activity_id_counts" => %{"exclusive_gate" => 1},
+          "impacted_exclusive_timeline_id_counts" => %{"timeline:exclusive_gate" => 1},
+          "dependent_activity_id_counts" => %{"cmd_combo" => 2},
+          "dependent_timeline_id_counts" => %{"timeline:cmd_combo" => 2}
+        }
+      )
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_timeline_dependency_impact_summary)
+
+    assert {:ok, candidate_refresh_schema} = Schema.json_schema("candidate_refresh.v1")
+
+    timeline_dependency_impact_source_report_properties =
+      get_in(candidate_refresh_schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "timeline_dependency_impact_summary",
+        "properties"
+      ])
+
+    assert get_in(timeline_dependency_impact_source_report_properties, [
+             "changed_source_activity_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(timeline_dependency_impact_source_report_properties, [
+             "dependency_impact_status_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(timeline_dependency_impact_source_report_properties, [
+             "dependent_activity_id_counts",
+             "additionalProperties",
+             "type"
+           ]) == "integer"
+
+    invalid_timeline_dependency_impact_changed_count =
+      put_in(
+        artifact_with_timeline_dependency_impact_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_dependency_impact_summary",
+          "changed_source_activity_count"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_timeline_dependency_impact_changed_count_report} =
+             Schema.validate_artifact(invalid_timeline_dependency_impact_changed_count)
+
+    assert Enum.any?(
+             invalid_timeline_dependency_impact_changed_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_dependency_impact_summary.changed_source_activity_count")
+           )
+
+    invalid_timeline_dependency_impact_status_count =
+      put_in(
+        artifact_with_timeline_dependency_impact_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_dependency_impact_summary",
+          "dependency_impact_status_counts",
+          "review_required"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_timeline_dependency_impact_status_count_report} =
+             Schema.validate_artifact(invalid_timeline_dependency_impact_status_count)
+
+    assert Enum.any?(
+             invalid_timeline_dependency_impact_status_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_dependency_impact_summary.dependency_impact_status_counts.review_required")
+           )
+
+    invalid_timeline_dependency_impact_status_shape =
+      put_in(
+        artifact_with_timeline_dependency_impact_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_dependency_impact_summary",
+          "dependency_impact_status_counts"
+        ],
+        "review_required"
+      )
+
+    assert {:error, invalid_timeline_dependency_impact_status_shape_report} =
+             Schema.validate_artifact(invalid_timeline_dependency_impact_status_shape)
+
+    assert Enum.any?(
+             invalid_timeline_dependency_impact_status_shape_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_dependency_impact_summary.dependency_impact_status_counts")
+           )
+
     artifact_with_timeline_publication_summary =
       put_in(artifact, ["provenance", "source_reports", "timeline_publication_summary"], %{
         "paths" => ["source_timeline_publication_summary"],

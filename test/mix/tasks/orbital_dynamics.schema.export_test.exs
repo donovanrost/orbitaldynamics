@@ -1740,6 +1740,70 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "pattern"
            ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
 
+    candidate_refresh_timeline_dependency_impact_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "timeline_dependency_impact_summary",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        "source_activity_count",
+        "replacement_activity_count",
+        "changed_source_activity_count",
+        "changed_source_timeline_count",
+        "dependent_activity_count",
+        "source_dependent_activity_count",
+        "replacement_dependent_activity_count"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_timeline_dependency_impact_source_report, [
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_timeline_dependency_impact_source_report, [
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "dependency_impact_status_counts",
+        "dependency_impact_scope_counts",
+        "required_operator_action_counts",
+        "impacted_source_activity_id_counts",
+        "impacted_source_timeline_id_counts",
+        "impacted_dependency_activity_id_counts",
+        "impacted_dependency_timeline_id_counts",
+        "impacted_exclusive_activity_id_counts",
+        "impacted_exclusive_timeline_id_counts",
+        "dependent_activity_id_counts",
+        "dependent_timeline_id_counts"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_timeline_dependency_impact_source_report, [
+                 field,
+                 "additionalProperties",
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_timeline_dependency_impact_source_report, [
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
     candidate_refresh_constraint_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",

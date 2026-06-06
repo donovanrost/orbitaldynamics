@@ -21206,6 +21206,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_timeline_diff_source_report_summary_json_schema(),
             "timeline_publication_summary" =>
               candidate_refresh_timeline_publication_source_report_summary_json_schema(),
+            "timeline_dependency_impact_summary" =>
+              candidate_refresh_timeline_dependency_impact_source_report_summary_json_schema(),
             "timeline_transition_application_report" =>
               candidate_refresh_timeline_transition_application_source_report_summary_json_schema(),
             "timeline_activity_state" =>
@@ -21557,6 +21559,16 @@ defmodule OrbitalDynamics.Schema do
       Map.merge(
         properties,
         candidate_refresh_timeline_publication_context_json_schema_properties()
+      )
+    end)
+  end
+
+  defp candidate_refresh_timeline_dependency_impact_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      Map.merge(
+        properties,
+        candidate_refresh_timeline_dependency_impact_context_json_schema_properties()
       )
     end)
   end
@@ -22510,6 +22522,36 @@ defmodule OrbitalDynamics.Schema do
       "review_timeline_ids" => stable_id_array_schema(),
       "timeline_ids_by_changed_field" => stable_id_array_map_schema()
     }
+  end
+
+  defp candidate_refresh_timeline_dependency_impact_context_json_schema_properties do
+    non_negative_integer_property_schemas([
+      "source_activity_count",
+      "replacement_activity_count",
+      "changed_source_activity_count",
+      "changed_source_timeline_count",
+      "dependent_activity_count",
+      "source_dependent_activity_count",
+      "replacement_dependent_activity_count"
+    ])
+    |> Map.merge(
+      Map.new(
+        [
+          "dependency_impact_status_counts",
+          "dependency_impact_scope_counts",
+          "required_operator_action_counts",
+          "impacted_source_activity_id_counts",
+          "impacted_source_timeline_id_counts",
+          "impacted_dependency_activity_id_counts",
+          "impacted_dependency_timeline_id_counts",
+          "impacted_exclusive_activity_id_counts",
+          "impacted_exclusive_timeline_id_counts",
+          "dependent_activity_id_counts",
+          "dependent_timeline_id_counts"
+        ],
+        &{&1, non_negative_integer_count_map_json_schema()}
+      )
+    )
   end
 
   defp actual_data_rate_throughput_derivation_json_schema do
@@ -26551,6 +26593,7 @@ defmodule OrbitalDynamics.Schema do
         |> validate_candidate_refresh_station_calendar_context(path, summary)
         |> validate_candidate_refresh_timeline_activity_context(path, summary)
         |> validate_candidate_refresh_timeline_publication_context(path, summary)
+        |> validate_candidate_refresh_timeline_dependency_impact_context(path, summary)
         |> validate_candidate_refresh_timeline_feedback_context(path, summary)
         |> validate_candidate_refresh_timeline_diff_context(path, summary)
         |> validate_candidate_refresh_timeline_transition_application_context(path, summary)
@@ -27480,6 +27523,47 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_candidate_refresh_timeline_publication_context(issues, path, summary) do
     validate_timeline_publication_context(issues, path, summary)
+  end
+
+  defp validate_candidate_refresh_timeline_dependency_impact_context(issues, path, summary) do
+    issues =
+      Enum.reduce(
+        [
+          "source_activity_count",
+          "replacement_activity_count",
+          "changed_source_activity_count",
+          "changed_source_timeline_count",
+          "dependent_activity_count",
+          "source_dependent_activity_count",
+          "replacement_dependent_activity_count"
+        ],
+        issues,
+        fn field, acc ->
+          expect_optional_non_negative_integer(acc, path, summary, field)
+        end
+      )
+
+    Enum.reduce(
+      [
+        "dependency_impact_status_counts",
+        "dependency_impact_scope_counts",
+        "required_operator_action_counts",
+        "impacted_source_activity_id_counts",
+        "impacted_source_timeline_id_counts",
+        "impacted_dependency_activity_id_counts",
+        "impacted_dependency_timeline_id_counts",
+        "impacted_exclusive_activity_id_counts",
+        "impacted_exclusive_timeline_id_counts",
+        "dependent_activity_id_counts",
+        "dependent_timeline_id_counts"
+      ],
+      issues,
+      fn field, acc ->
+        acc
+        |> expect_optional_type(path, summary, field, :map)
+        |> validate_non_negative_integer_count_map(path <> ".#{field}", Map.get(summary, field))
+      end
+    )
   end
 
   defp validate_timeline_publication_context(issues, path, summary) do
