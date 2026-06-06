@@ -889,6 +889,13 @@ capacity-adjusted throughput totals, selected/actual shortfall evidence,
 selected/actual contact routing, trust-boundary evidence, and artifact-only
 no-allocation/no-selection assumptions in generated candidate-source
 provenance.
+They also carry direct, accepted-state, mission-state, and wrapped
+`source_relay_data_path_summary` / `relay_data_path_summary` inputs as
+link-capacity-family provenance, preserving relay/direct route counts, route
+IDs, source and relay spacecraft IDs, ground downlink contact IDs,
+custody/latency/risk status maps, wrapper-qualified paths, trust boundaries,
+and artifact-only no-scheduling/no-allocation assumptions without selecting
+candidates or mutating schedules.
 
 ### Contact-filter reports
 

@@ -465,6 +465,12 @@ identity, station count, selected/actual shortfall evidence,
 capacity-adjusted throughput totals and station maps, selected/actual contact
 IDs, paths, and trust boundaries without rerunning link analysis or mutating
 contact allocation.
+CandidateRefresh also accepts direct, accepted-state, mission-state, and
+result-artifact-wrapped `relay_data_path_summary.v1` handoffs in the same
+link-capacity provenance family, preserving route counts, relay/direct route
+IDs, source and relay spacecraft IDs, ground downlink contact IDs,
+custody/latency/risk status maps, path-qualified provenance, and artifact-only
+no-scheduling/no-allocation boundaries without rerunning relay analysis.
 
 `LinkCapacity.capabilities/0` advertises the triage summary's station/contact,
 selected/ignored, required-downlink, actual-throughput/completion, invalid-input,

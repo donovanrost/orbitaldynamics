@@ -201,6 +201,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :resource_filter_summary,
         :contact_filter_report,
         :link_capacity_summary,
+        :relay_data_path_summary,
         :operational_feedback,
         :timeline_feedback_report,
         :operational_timeline_report,
@@ -630,6 +631,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :source_contact_filter_report_input_provenance,
         :source_link_capacity_report_input_provenance,
         :source_link_capacity_summary_input_provenance,
+        :source_relay_data_path_summary_input_provenance,
         :source_contact_allocation_report_input_provenance,
         :source_contact_allocation_summary_input_provenance,
         :source_contact_allocation_station_pressure_summary_input_provenance,
@@ -8653,6 +8655,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
     downlink_requirement_status_counts =
       Map.get(link_summary, "downlink_requirement_status_counts", %{})
 
+    relay_route_count = non_zero_count(summary_integer(link_summary, "relay_route_count"))
+
+    direct_downlink_route_count =
+      non_zero_count(summary_integer(link_summary, "direct_downlink_route_count"))
+
+    relay_route_ids = Map.get(link_summary, "relay_route_ids")
+    source_spacecraft_ids = Map.get(link_summary, "source_spacecraft_ids")
+    relay_spacecraft_ids = Map.get(link_summary, "relay_spacecraft_ids")
+    ground_downlink_contact_ids = Map.get(link_summary, "ground_downlink_contact_ids")
+    relay_custody_status_counts = Map.get(link_summary, "relay_custody_status_counts")
+    relay_latency_status_counts = Map.get(link_summary, "relay_latency_status_counts")
+    relay_risk_status_counts = Map.get(link_summary, "relay_risk_status_counts")
+
+    relay_route_ids_by_custody_status =
+      Map.get(link_summary, "relay_route_ids_by_custody_status")
+
+    relay_route_ids_by_latency_status =
+      Map.get(link_summary, "relay_route_ids_by_latency_status")
+
+    relay_route_ids_by_risk_status = Map.get(link_summary, "relay_route_ids_by_risk_status")
+
+    relay_route_ids_by_ground_station =
+      Map.get(link_summary, "relay_route_ids_by_ground_station")
+
     contact_ids_by_requirement_status =
       Map.get(link_summary, "contact_ids_by_requirement_status", %{})
 
@@ -8752,6 +8778,19 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "actual_throughput_station_calendar_provider_entry_ids" =>
         actual_throughput_station_calendar_provider_entry_ids,
       "downlink_requirement_status_counts" => downlink_requirement_status_counts,
+      "relay_route_count" => relay_route_count,
+      "direct_downlink_route_count" => direct_downlink_route_count,
+      "relay_route_ids" => relay_route_ids,
+      "source_spacecraft_ids" => source_spacecraft_ids,
+      "relay_spacecraft_ids" => relay_spacecraft_ids,
+      "ground_downlink_contact_ids" => ground_downlink_contact_ids,
+      "relay_custody_status_counts" => relay_custody_status_counts,
+      "relay_latency_status_counts" => relay_latency_status_counts,
+      "relay_risk_status_counts" => relay_risk_status_counts,
+      "relay_route_ids_by_custody_status" => relay_route_ids_by_custody_status,
+      "relay_route_ids_by_latency_status" => relay_route_ids_by_latency_status,
+      "relay_route_ids_by_risk_status" => relay_route_ids_by_risk_status,
+      "relay_route_ids_by_ground_station" => relay_route_ids_by_ground_station,
       "contact_ids_by_requirement_status" => contact_ids_by_requirement_status,
       "source_window_ids_by_requirement_status" => source_window_ids_by_requirement_status,
       "station_calendar_entry_ids_by_requirement_status" =>
@@ -8792,6 +8831,17 @@ defmodule OrbitalDynamics.CandidateRefresh do
           actual_throughput_contact_ids != [] or actual_throughput_source_window_ids != [] or
           actual_throughput_station_calendar_entry_ids != [] or
           actual_throughput_station_calendar_provider_entry_ids != [] or
+          (relay_route_count || 0) > 0 or (direct_downlink_route_count || 0) > 0 or
+          List.wrap(relay_route_ids) != [] or List.wrap(source_spacecraft_ids) != [] or
+          List.wrap(relay_spacecraft_ids) != [] or
+          List.wrap(ground_downlink_contact_ids) != [] or
+          map_size(empty_map_if_nil(relay_custody_status_counts)) > 0 or
+          map_size(empty_map_if_nil(relay_latency_status_counts)) > 0 or
+          map_size(empty_map_if_nil(relay_risk_status_counts)) > 0 or
+          map_size(empty_map_if_nil(relay_route_ids_by_custody_status)) > 0 or
+          map_size(empty_map_if_nil(relay_route_ids_by_latency_status)) > 0 or
+          map_size(empty_map_if_nil(relay_route_ids_by_risk_status)) > 0 or
+          map_size(empty_map_if_nil(relay_route_ids_by_ground_station)) > 0 or
           capacity_adjusted_throughput_pressure,
       "branch_local_capacity_adjusted_throughput_pressure" =>
         capacity_adjusted_throughput_pressure,
@@ -23854,6 +23904,58 @@ defmodule OrbitalDynamics.CandidateRefresh do
         reports
         |> Enum.map(&link_capacity_report_requirement_status_counts/1)
         |> merge_count_maps(),
+      "relay_route_count" =>
+        reports
+        |> sum_report_count(&link_capacity_report_relay_route_count/1)
+        |> non_zero_count(),
+      "direct_downlink_route_count" =>
+        reports
+        |> sum_report_count(&link_capacity_report_direct_downlink_route_count/1)
+        |> non_zero_count(),
+      "relay_route_ids" =>
+        reports
+        |> Enum.flat_map(&(link_capacity_report_relay_route_ids(&1) || []))
+        |> sorted_non_empty_values(),
+      "source_spacecraft_ids" =>
+        reports
+        |> Enum.flat_map(&(link_capacity_report_source_spacecraft_ids(&1) || []))
+        |> sorted_non_empty_values(),
+      "relay_spacecraft_ids" =>
+        reports
+        |> Enum.flat_map(&(link_capacity_report_relay_spacecraft_ids(&1) || []))
+        |> sorted_non_empty_values(),
+      "ground_downlink_contact_ids" =>
+        reports
+        |> Enum.flat_map(&(link_capacity_report_ground_downlink_contact_ids(&1) || []))
+        |> sorted_non_empty_values(),
+      "relay_custody_status_counts" =>
+        reports
+        |> Enum.map(&link_capacity_report_relay_custody_status_counts/1)
+        |> merge_count_maps(),
+      "relay_latency_status_counts" =>
+        reports
+        |> Enum.map(&link_capacity_report_relay_latency_status_counts/1)
+        |> merge_count_maps(),
+      "relay_risk_status_counts" =>
+        reports
+        |> Enum.map(&link_capacity_report_relay_risk_status_counts/1)
+        |> merge_count_maps(),
+      "relay_route_ids_by_custody_status" =>
+        reports
+        |> Enum.map(&link_capacity_report_relay_route_ids_by_custody_status/1)
+        |> merge_string_list_maps(),
+      "relay_route_ids_by_latency_status" =>
+        reports
+        |> Enum.map(&link_capacity_report_relay_route_ids_by_latency_status/1)
+        |> merge_string_list_maps(),
+      "relay_route_ids_by_risk_status" =>
+        reports
+        |> Enum.map(&link_capacity_report_relay_route_ids_by_risk_status/1)
+        |> merge_string_list_maps(),
+      "relay_route_ids_by_ground_station" =>
+        reports
+        |> Enum.map(&link_capacity_report_relay_route_ids_by_ground_station/1)
+        |> merge_string_list_maps(),
       "contact_ids_by_requirement_status" =>
         reports
         |> Enum.map(&link_capacity_report_contact_ids_by_requirement_status/1)
@@ -31361,6 +31463,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
       link_capacity_summary_source?(report) ->
         summary_integer(report, "station_count")
 
+      relay_data_path_summary_source?(report) ->
+        summary_integer(report, "route_count")
+
       is_list(Map.get(report, "rows")) ->
         length(Map.get(report, "rows"))
 
@@ -31375,6 +31480,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp link_capacity_summary_source?(_report), do: false
+
+  defp relay_data_path_summary_source?(%{} = report) do
+    Map.get(report, "source_summary_schema_contract") == "relay_data_path_summary.v1" or
+      Map.get(report, "schema_contract") == "relay_data_path_summary.v1"
+  end
+
+  defp relay_data_path_summary_source?(_report), do: false
 
   defp link_capacity_report_count_or_row_count(report, summary_field, row_counter) do
     if link_capacity_summary_source?(report) do
@@ -32545,6 +32657,122 @@ defmodule OrbitalDynamics.CandidateRefresh do
       count_link_capacity_rows(rows, "actual_downlink_requirement_status")
     ]
     |> merge_count_maps()
+  end
+
+  defp link_capacity_report_relay_route_count(report) do
+    if relay_data_path_summary_source?(report) do
+      summary_integer(report, "relay_route_count")
+    else
+      report
+      |> link_capacity_report_rows_for_summary()
+      |> Enum.count(fn row ->
+        case numeric_value(Map.get(row, "relay_hop_count")) do
+          hop_count when is_number(hop_count) -> hop_count > 0
+          _hop_count -> false
+        end
+      end)
+    end
+  end
+
+  defp link_capacity_report_direct_downlink_route_count(report) do
+    if relay_data_path_summary_source?(report) do
+      summary_integer(report, "direct_downlink_route_count")
+    else
+      report
+      |> link_capacity_report_rows_for_summary()
+      |> Enum.count(fn row ->
+        case numeric_value(Map.get(row, "relay_hop_count")) do
+          hop_count when is_number(hop_count) -> hop_count == 0
+          _hop_count -> false
+        end
+      end)
+    end
+  end
+
+  defp link_capacity_report_relay_route_ids(report) do
+    link_capacity_report_explicit_string_list(report, "route_ids") ||
+      link_capacity_report_row_ids(report, ["route_id"])
+  end
+
+  defp link_capacity_report_source_spacecraft_ids(report) do
+    link_capacity_report_explicit_string_list(report, "source_spacecraft_ids") ||
+      link_capacity_report_row_ids(report, ["source_spacecraft_id"])
+  end
+
+  defp link_capacity_report_relay_spacecraft_ids(report) do
+    link_capacity_report_explicit_string_list(report, "relay_spacecraft_ids") ||
+      link_capacity_report_row_ids(report, ["relay_chain_spacecraft_ids", "relay_spacecraft_id"])
+  end
+
+  defp link_capacity_report_ground_downlink_contact_ids(report) do
+    link_capacity_report_explicit_string_list(report, "ground_downlink_contact_ids") ||
+      link_capacity_report_row_ids(report, ["ground_downlink_contact_id"])
+  end
+
+  defp link_capacity_report_relay_custody_status_counts(report) do
+    link_capacity_report_explicit_count_map(report, "custody_status_counts") ||
+      report
+      |> link_capacity_report_rows_for_summary()
+      |> count_link_capacity_rows("custody_status")
+  end
+
+  defp link_capacity_report_relay_latency_status_counts(report) do
+    link_capacity_report_explicit_count_map(report, "latency_status_counts") ||
+      report
+      |> link_capacity_report_rows_for_summary()
+      |> count_link_capacity_rows("latency_status")
+  end
+
+  defp link_capacity_report_relay_risk_status_counts(report) do
+    link_capacity_report_explicit_count_map(report, "risk_status_counts") ||
+      report
+      |> link_capacity_report_rows_for_summary()
+      |> count_link_capacity_rows("risk_status")
+  end
+
+  defp link_capacity_report_relay_route_ids_by_custody_status(report) do
+    link_capacity_report_explicit_string_list_map(report, "route_ids_by_custody_status") ||
+      link_capacity_report_route_ids_by_field(report, "custody_status")
+  end
+
+  defp link_capacity_report_relay_route_ids_by_latency_status(report) do
+    link_capacity_report_explicit_string_list_map(report, "route_ids_by_latency_status") ||
+      link_capacity_report_route_ids_by_field(report, "latency_status")
+  end
+
+  defp link_capacity_report_relay_route_ids_by_risk_status(report) do
+    link_capacity_report_explicit_string_list_map(report, "route_ids_by_risk_status") ||
+      link_capacity_report_route_ids_by_field(report, "risk_status")
+  end
+
+  defp link_capacity_report_relay_route_ids_by_ground_station(report) do
+    link_capacity_report_explicit_string_list_map(report, "route_ids_by_ground_station_id") ||
+      link_capacity_report_route_ids_by_field(report, "ground_station_id")
+  end
+
+  defp link_capacity_report_row_ids(report, fields) do
+    report
+    |> link_capacity_report_rows_for_summary()
+    |> Enum.flat_map(fn row ->
+      fields
+      |> Enum.flat_map(fn field -> row |> Map.get(field) |> List.wrap() end)
+      |> List.flatten()
+    end)
+    |> sorted_non_empty_values()
+  end
+
+  defp link_capacity_report_route_ids_by_field(report, field) do
+    report
+    |> link_capacity_report_rows_for_summary()
+    |> Enum.flat_map(fn row ->
+      status = normalized_timeline_diff_token(Map.get(row, field))
+
+      row
+      |> Map.get("route_id")
+      |> List.wrap()
+      |> Enum.map(&{status, &1})
+    end)
+    |> grouped_source_report_ids()
   end
 
   defp link_capacity_report_explicit_string_list_map(report, field) do
@@ -38147,6 +38375,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
          get_in(refresh, ["accepted_planning_state", "source_link_capacity_summary"])},
         {"accepted_planning_state.link_capacity_summary",
          get_in(refresh, ["accepted_planning_state", "link_capacity_summary"])},
+        {"accepted_planning_state.source_relay_data_path_summary",
+         get_in(refresh, ["accepted_planning_state", "source_relay_data_path_summary"])},
+        {"accepted_planning_state.relay_data_path_summary",
+         get_in(refresh, ["accepted_planning_state", "relay_data_path_summary"])},
         {"mission_state.source_link_capacity_report",
          get_in(refresh, ["mission_state", "source_link_capacity_report"])},
         {"mission_state.link_capacity_report",
@@ -38155,10 +38387,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
          get_in(refresh, ["mission_state", "source_link_capacity_summary"])},
         {"mission_state.link_capacity_summary",
          get_in(refresh, ["mission_state", "link_capacity_summary"])},
+        {"mission_state.source_relay_data_path_summary",
+         get_in(refresh, ["mission_state", "source_relay_data_path_summary"])},
+        {"mission_state.relay_data_path_summary",
+         get_in(refresh, ["mission_state", "relay_data_path_summary"])},
         {"source_link_capacity_report", Map.get(refresh, "source_link_capacity_report")},
         {"link_capacity_report", Map.get(refresh, "link_capacity_report")},
         {"source_link_capacity_summary", Map.get(refresh, "source_link_capacity_summary")},
-        {"link_capacity_summary", Map.get(refresh, "link_capacity_summary")}
+        {"link_capacity_summary", Map.get(refresh, "link_capacity_summary")},
+        {"source_relay_data_path_summary", Map.get(refresh, "source_relay_data_path_summary")},
+        {"relay_data_path_summary", Map.get(refresh, "relay_data_path_summary")}
       ]
       |> Enum.flat_map(fn {path, report_or_summary} ->
         source_link_capacity_report_entries(path, report_or_summary)
@@ -39627,6 +39865,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
         {"#{path}.source_link_capacity_summary",
          Map.get(artifact, "source_link_capacity_summary")},
         {"#{path}.link_capacity_summary", Map.get(artifact, "link_capacity_summary")},
+        {"#{path}.source_relay_data_path_summary",
+         Map.get(artifact, "source_relay_data_path_summary")},
+        {"#{path}.relay_data_path_summary", Map.get(artifact, "relay_data_path_summary")},
         {"#{path}.source_link_capacity_report", Map.get(artifact, "source_link_capacity_report")},
         {"#{path}.link_capacity_report", Map.get(artifact, "link_capacity_report")}
       ]
@@ -42315,6 +42556,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
     cond do
       link_capacity_summary?(value) ->
         [{path, link_capacity_report_from_summary(value)}]
+
+      relay_data_path_summary?(value) ->
+        [{path, link_capacity_report_from_relay_data_path_summary(value)}]
 
       link_capacity_report?(value) ->
         [{path, value}]
@@ -47871,7 +48115,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(report, :source_summary_schema_contract)
 
     (is_list(rows) and schema_contract in [nil, "link_capacity_report.v1"]) or
-      source_summary_schema_contract == "link_capacity_summary.v1"
+      source_summary_schema_contract in ["link_capacity_summary.v1", "relay_data_path_summary.v1"]
   end
 
   defp link_capacity_report?(_report), do: false
@@ -47889,7 +48133,28 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
   defp link_capacity_summary?(_summary), do: false
 
+  defp relay_data_path_summary?(%{} = summary) do
+    model = Map.get(summary, "model") || Map.get(summary, :model)
+    schema_contract = Map.get(summary, "schema_contract") || Map.get(summary, :schema_contract)
+    route_count = Map.get(summary, "route_count") || Map.get(summary, :route_count)
+
+    (is_integer(route_count) or is_float(route_count)) and
+      (model == "artifact_only_relay_data_path_summary" or
+         schema_contract == "relay_data_path_summary.v1")
+  end
+
+  defp relay_data_path_summary?(_summary), do: false
+
   defp link_capacity_report_from_summary(%{} = summary) do
+    summary = stringify_keys(summary)
+
+    summary
+    |> Map.put("source_summary_schema_contract", Map.get(summary, "schema_contract"))
+    |> Map.put("source_summary_model", Map.get(summary, "model"))
+    |> Map.put("source_artifact_type", Map.get(summary, "source_artifact_type"))
+  end
+
+  defp link_capacity_report_from_relay_data_path_summary(%{} = summary) do
     summary = stringify_keys(summary)
 
     summary
@@ -51506,6 +51771,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp link_capacity_spacecraft_id(row) do
     [
       row["spacecraft_id"],
+      row["source_spacecraft_id"],
       row["scenario_id"],
       link_capacity_source_contact_values(row)
       |> Enum.filter(&is_map/1)
