@@ -33562,6 +33562,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_timeline_feedback_activity_id_counts" => %{
                "dl_feedback_activity" => 1
              },
+             "source_report_timeline_feedback_branch_local_timeline_feedback_pressure" => true,
+             "source_report_timeline_feedback_branch_local_feedback_input_pressure" => true,
+             "source_report_timeline_feedback_branch_local_activity_routing_pressure" => true,
+             "source_report_timeline_feedback_branch_local_match_review_pressure" => true,
+             "source_report_timeline_feedback_branch_local_import_review_pressure" => true,
+             "source_report_timeline_feedback_branch_local_station_reservation_pressure" => true,
              "source_reports" => %{
                "timeline_feedback_report" => %{
                  "row_count" => 1,
@@ -33635,7 +33641,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              },
              "source_report_timeline_feedback_activity_id_counts" => %{
                "dl_feedback_activity" => 1
-             }
+             },
+             "source_report_timeline_feedback_branch_local_timeline_feedback_pressure" => true,
+             "source_report_timeline_feedback_branch_local_feedback_input_pressure" => true,
+             "source_report_timeline_feedback_branch_local_activity_routing_pressure" => true,
+             "source_report_timeline_feedback_branch_local_match_review_pressure" => true,
+             "source_report_timeline_feedback_branch_local_import_review_pressure" => true,
+             "source_report_timeline_feedback_branch_local_station_reservation_pressure" => true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.timeline_feedback_replay_summary(artifact) == replay_summary
