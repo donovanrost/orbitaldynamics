@@ -299,14 +299,21 @@ defmodule OrbitalDynamics.ResourceFilter do
   @doc """
   Builds a compact artifact-only resource suppression summary.
 
-  This helper accepts either an existing `resource_filter_report.v1` or the
-  candidate and resource-summary inputs used to build one. It exposes
-  suppressed-resource routing counts, ID maps, invalid-input evidence, and
-  review rows without mutating schedules or propagating resource state.
+  This helper accepts either an existing `resource_filter_report.v1`, an
+  existing `resource_filter_summary.v1`, or the candidate and resource-summary
+  inputs used to build one. It exposes suppressed-resource routing counts, ID
+  maps, invalid-input evidence, and review rows without mutating schedules or
+  propagating resource state.
   """
   def summary(resource_filter_report)
 
+  def summary(%{"schema_contract" => @summary_schema_contract} = summary), do: summary
+
   def summary(%{"schema_contract" => @schema_contract} = report), do: summary(report, [])
+
+  def summary(%{schema_contract: @summary_schema_contract} = summary) do
+    stringify_keys(summary)
+  end
 
   def summary(%{schema_contract: @schema_contract} = report) do
     report
@@ -319,8 +326,16 @@ defmodule OrbitalDynamics.ResourceFilter do
 
   def summary(resource_filter_report, opts)
 
+  def summary(%{"schema_contract" => @summary_schema_contract} = summary, opts)
+      when is_list(opts),
+      do: summary
+
   def summary(%{"schema_contract" => @schema_contract} = report, opts) when is_list(opts) do
     resource_filter_summary(report)
+  end
+
+  def summary(%{schema_contract: @summary_schema_contract} = summary, opts) when is_list(opts) do
+    stringify_keys(summary)
   end
 
   def summary(%{schema_contract: @schema_contract} = report, opts) when is_list(opts) do

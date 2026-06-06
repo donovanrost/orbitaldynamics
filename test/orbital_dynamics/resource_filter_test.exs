@@ -697,6 +697,18 @@ defmodule OrbitalDynamics.ResourceFilterTest do
            } = summary = ResourceFilter.summary(report)
 
     assert OrbitalDynamics.resource_filter_summary(report) == summary
+    assert ResourceFilter.summary(summary) == summary
+
+    assert ResourceFilter.summary(summary, approval_policy: %{policy_bundle_id: "ignored"}) ==
+             summary
+
+    assert OrbitalDynamics.resource_filter_summary(summary) == summary
+
+    atom_keyed_summary =
+      Map.new(summary, fn {key, value} -> {String.to_atom(key), value} end)
+
+    assert ResourceFilter.summary(atom_keyed_summary) == summary
+    assert OrbitalDynamics.resource_filter_summary(atom_keyed_summary) == summary
 
     assert {:ok, %{"schema_contract" => "resource_filter_summary.v1"}} =
              Schema.validate_artifact(summary)
