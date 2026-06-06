@@ -13935,6 +13935,139 @@ defmodule OrbitalDynamics.SchemaTest do
                  "$.provenance.source_reports.timeline_activity_lifecycle_state.action_routing.review_activity_approval.activity_ids[0]")
            )
 
+    artifact_with_timeline_activity_precondition_summary =
+      put_in(
+        artifact,
+        ["provenance", "source_reports", "timeline_activity_precondition_summary"],
+        %{
+          "paths" => ["source_timeline_activity_precondition_summary"],
+          "contract" => "timeline_activity_precondition_summary.v1",
+          "count" => 2,
+          "row_count" => 3,
+          "blocked_precondition_count" => 2,
+          "review_precondition_count" => 1,
+          "invalid_activity_input_count" => 1,
+          "source_summary_model_counts" => %{
+            "artifact_only_timeline_activity_precondition_summary" => 2
+          },
+          "source_summary_schema_contract_counts" => %{
+            "timeline_activity_precondition_summary.v1" => 2
+          },
+          "precondition_status_counts" => %{"blocked" => 2, "review_required" => 1},
+          "blocked_precondition_type_counts" => %{"payload_unavailable" => 1},
+          "review_precondition_type_counts" => %{"degraded_mode" => 1},
+          "invalid_activity_input_reason_counts" => %{"missing_activity_type" => 1},
+          "invalid_activity_input_reasons" => ["missing_activity_type"],
+          "activity_id_counts" => %{"cmd_preflight" => 2},
+          "timeline_id_counts" => %{"timeline:cmd_preflight" => 2},
+          "dependency_activity_id_counts" => %{"health_check_1" => 2},
+          "dependency_timeline_id_counts" => %{"timeline:health_check_1" => 2},
+          "exclusive_with_activity_id_counts" => %{"dl_conflict" => 1},
+          "exclusive_with_timeline_id_counts" => %{"timeline:dl_conflict" => 1},
+          "allow_overlap_counts" => %{"true" => 1},
+          "trust_boundary_status" => "declared",
+          "trust_boundaries" => ["ops_activity_precondition"]
+        }
+      )
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_timeline_activity_precondition_summary)
+
+    assert {:ok, candidate_refresh_schema} = Schema.json_schema("candidate_refresh.v1")
+
+    timeline_activity_precondition_source_report_properties =
+      get_in(candidate_refresh_schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "timeline_activity_precondition_summary",
+        "properties"
+      ])
+
+    assert get_in(timeline_activity_precondition_source_report_properties, [
+             "blocked_precondition_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(timeline_activity_precondition_source_report_properties, [
+             "precondition_status_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(timeline_activity_precondition_source_report_properties, [
+             "invalid_activity_input_reasons",
+             "items",
+             "type"
+           ]) == "string"
+
+    invalid_timeline_activity_precondition_blocked_count =
+      put_in(
+        artifact_with_timeline_activity_precondition_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_activity_precondition_summary",
+          "blocked_precondition_count"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_timeline_activity_precondition_blocked_count_report} =
+             Schema.validate_artifact(invalid_timeline_activity_precondition_blocked_count)
+
+    assert Enum.any?(
+             invalid_timeline_activity_precondition_blocked_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_activity_precondition_summary.blocked_precondition_count")
+           )
+
+    invalid_timeline_activity_precondition_status_count =
+      put_in(
+        artifact_with_timeline_activity_precondition_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_activity_precondition_summary",
+          "precondition_status_counts",
+          "blocked"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_timeline_activity_precondition_status_count_report} =
+             Schema.validate_artifact(invalid_timeline_activity_precondition_status_count)
+
+    assert Enum.any?(
+             invalid_timeline_activity_precondition_status_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_activity_precondition_summary.precondition_status_counts.blocked")
+           )
+
+    invalid_timeline_activity_precondition_reason =
+      put_in(
+        artifact_with_timeline_activity_precondition_summary,
+        [
+          "provenance",
+          "source_reports",
+          "timeline_activity_precondition_summary",
+          "invalid_activity_input_reasons",
+          Access.at(0)
+        ],
+        42
+      )
+
+    assert {:error, invalid_timeline_activity_precondition_reason_report} =
+             Schema.validate_artifact(invalid_timeline_activity_precondition_reason)
+
+    assert Enum.any?(
+             invalid_timeline_activity_precondition_reason_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.timeline_activity_precondition_summary.invalid_activity_input_reasons[0]")
+           )
+
     artifact_with_timeline_lifecycle_state_summary =
       put_in(artifact, ["provenance", "source_reports", "timeline_lifecycle_state_summary"], %{
         "paths" => ["source_timeline_lifecycle_state_summary"],

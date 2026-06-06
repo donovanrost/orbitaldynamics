@@ -1967,6 +1967,74 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       end
     )
 
+    candidate_refresh_timeline_activity_precondition_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "timeline_activity_precondition_summary",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        "blocked_precondition_count",
+        "review_precondition_count",
+        "invalid_activity_input_count"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_timeline_activity_precondition_source_report, [
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_timeline_activity_precondition_source_report, [
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "source_summary_model_counts",
+        "source_summary_schema_contract_counts",
+        "precondition_status_counts",
+        "blocked_precondition_type_counts",
+        "review_precondition_type_counts",
+        "invalid_activity_input_reason_counts",
+        "activity_id_counts",
+        "timeline_id_counts",
+        "dependency_activity_id_counts",
+        "dependency_timeline_id_counts",
+        "exclusive_with_activity_id_counts",
+        "exclusive_with_timeline_id_counts",
+        "allow_overlap_counts"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_timeline_activity_precondition_source_report, [
+                 field,
+                 "additionalProperties",
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_timeline_activity_precondition_source_report, [
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    assert get_in(candidate_refresh_timeline_activity_precondition_source_report, [
+             "invalid_activity_input_reasons",
+             "items",
+             "type"
+           ]) == "string"
+
     candidate_refresh_timeline_activity_state_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",
