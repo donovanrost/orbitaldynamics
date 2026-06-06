@@ -5,62 +5,81 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Validation-reference fixture coverage for `resource_projection_flow_summary.v1`.
+Artifact-only subsystem-state hints for `activity_template.v1`.
 
 Status:
 Implemented, verified, committed, and pushed.
 
 Files changed:
-- `lib/orbital_dynamics/validation.ex`
-- `test/orbital_dynamics/validation_test.exs`
-- `docs/feature_set/capability_map/18_validation_and_verification.md`
-- `study_results/resource_projection_flow_summary_v1.json`
-- `study_results/validation_reference_fixtures.json`
+- `lib/orbital_dynamics.ex`
+- `lib/orbital_dynamics/schema.ex`
+- `lib/orbital_dynamics/timeline.ex`
+- `test/orbital_dynamics/capabilities_test.exs`
+- `test/orbital_dynamics/schema_test.exs`
+- `study_results/activity_template_v1.json`
+- `schemas/activity_template.v1.schema.json`
+- `schemas/orbital_dynamics.schema_bundle.v1.json`
+- `docs/artifacts/field_families/mission_activities.md`
+- `docs/mission_planning/high_fidelity/02_state_activities_and_resources.md`
 - `.codex/status/autonomous_product_loop.md`
 
 Behavior changed:
-- `Validation.reference_fixtures/0` now includes
-  `fixture.artifact.resource_projection_flow_summary.v1`.
-- `Validation.artifact_observations/2` now supports
-  `resource_projection_flow_summary.v1`, deriving compact-flow counts,
-  storage/downlink totals, battery totals, remaining-capacity summaries,
-  ignored-effect maps, pressure routing, model-limit count, and the
-  no-schedule-mutation execution boundary from the compact artifact.
-- The checked-in validation-reference fixture report now has 149 passing
-  fixtures, including the new compact flow-summary artifact.
+- Baseline `activity_template.v1` artifacts now expose typed
+  `subsystem_state_hints` with `required_states` and `produced_states`
+  declarations for each built-in template.
+- `activity_template.v1` executable validation and exported JSON Schema now
+  validate subsystem-state hint shape, including required `subsystem` and
+  `state` fields plus optional `reason` and `blocking`.
+- Template instantiation preserves subsystem-state hints in `activity_template`
+  provenance at row level and inside reusable `activity_context`.
+- `Timeline.activity_context/1` preserves those hints when downstream
+  reports/adapters re-sanitize activity-template provenance.
 
 Tests run:
-- `mix test test/orbital_dynamics/validation_test.exs:9678`
+- `mix test test/orbital_dynamics/capabilities_test.exs:30`
   -> 1 passed.
-- `mix test test/orbital_dynamics/validation_test.exs:10739`
+- `mix test test/orbital_dynamics/capabilities_test.exs:158`
   -> 1 passed.
-- `mix test test/orbital_dynamics/schema_test.exs:11363`
+- `mix test test/orbital_dynamics/capabilities_test.exs:215`
   -> 1 passed.
-- `mix test test/orbital_dynamics/validation_test.exs`
-  -> 136 passed.
+- `mix test test/orbital_dynamics/schema_test.exs:59`
+  -> 1 passed.
+- `mix test test/orbital_dynamics/capabilities_test.exs`
+  -> 6 passed.
+- `mix test test/orbital_dynamics/schema_test.exs`
+  -> 121 passed.
+- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
+  -> completed.
 - `mix orbital_dynamics.schema.lint --all`
   -> pass, 127 files, 127 artifacts, 0 errors, 0 warnings.
 - `git diff --check`
   -> clean.
 
+Review:
+- Read-only reviewer sidecar found no schema/runtime drift, fixture/export
+  mismatch, provenance-preservation gap, or focused test/doc coverage gap.
+
 Docs/artifacts changed:
-- `docs/feature_set/capability_map/18_validation_and_verification.md`
-  documents compact `resource_projection_flow_summary.v1` fixture coverage.
-- `study_results/resource_projection_flow_summary_v1.json` is the checked-in
-  compact selected-activity resource-flow fixture.
-- `study_results/validation_reference_fixtures.json` is refreshed to include
-  the new fixture report.
+- `study_results/activity_template_v1.json` now includes observe-template
+  subsystem-state hints.
+- `schemas/activity_template.v1.schema.json` and
+  `schemas/orbital_dynamics.schema_bundle.v1.json` are refreshed from the
+  executable schema.
+- Mission-planning and artifact field-family docs describe the artifact-only
+  subsystem-state hint boundary.
 
 Level 6 pillar advanced:
-Durable schema-versioned artifacts and compatibility checks: compact
-resource/downlink roll-forward handoffs now have validation-reference fixture
-coverage separate from the full `resource_projection_report.v1` artifact.
+Typed operational activity semantics: reusable activity templates can now carry
+auditable subsystem-state declarations without pretending to execute a full
+state-machine planner.
 
 Last commit:
-- `676e536c74ffdb1a03ac276f16ef8874df121635` pushed to `origin/main` for
-  validation-reference fixture coverage for `resource_projection_flow_summary.v1`.
+- `61315e1a0e0a2b2ca43c70d420f852ea2bf60c36` pushed to `origin/main` for
+  artifact-only subsystem-state hints on `activity_template.v1`.
 
 Recently completed slices:
+- `61315e1a0e0a2b2ca43c70d420f852ea2bf60c36` pushed to `origin/main` for
+  artifact-only subsystem-state hints on `activity_template.v1`.
 - `676e536c74ffdb1a03ac276f16ef8874df121635` pushed to `origin/main` for
   validation-reference fixture coverage for `resource_projection_flow_summary.v1`.
 - `4401714138373c311044ac99cffc6e246a29e336` pushed to `origin/main` for
@@ -73,10 +92,9 @@ Recently completed slices:
   CandidateRefresh relay data path summary replay provenance.
 
 Next candidate:
-Mapper-recommended typed-timeline slice: add artifact-only subsystem-state hints
-to `activity_template.v1` and template instantiation, preserving required and
-produced subsystem state declarations in template artifacts/provenance without
-adding subsystem simulation, command authority, or schedule mutation.
+Run a fresh live checkout scan before selecting the next slice. Likely next
+area remains typed mission-planning semantics outside the recently completed
+CandidateRefresh compact-source-report cluster.
 
 Blocked:
 No.
