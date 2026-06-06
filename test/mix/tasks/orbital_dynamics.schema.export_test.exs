@@ -1478,6 +1478,61 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       end
     )
 
+    candidate_refresh_schema_validation_source_report =
+      get_in(schemas, [
+        "candidate_refresh.v1",
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "schema_validation_report",
+        "properties"
+      ])
+
+    Enum.each(
+      [
+        "error_count",
+        "warning_count",
+        "remediation_count"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_schema_validation_source_report, [
+                 field,
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_schema_validation_source_report, [
+                 field,
+                 "minimum"
+               ]) == 0
+      end
+    )
+
+    Enum.each(
+      [
+        "status_counts",
+        "validated_contract_counts",
+        "validation_mode_counts",
+        "remediation_action_counts",
+        "remediation_category_counts",
+        "remediation_path_counts"
+      ],
+      fn field ->
+        assert get_in(candidate_refresh_schema_validation_source_report, [
+                 field,
+                 "additionalProperties",
+                 "type"
+               ]) == "integer"
+
+        assert get_in(candidate_refresh_schema_validation_source_report, [
+                 field,
+                 "additionalProperties",
+                 "minimum"
+               ]) == 0
+      end
+    )
+
     candidate_refresh_timeline_feedback_source_report =
       get_in(schemas, [
         "candidate_refresh.v1",

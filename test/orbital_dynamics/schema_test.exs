@@ -12847,6 +12847,108 @@ defmodule OrbitalDynamics.SchemaTest do
                  "$.provenance.source_reports.quality_gate_report.quality_gate_row_ids_by_status.review_required[1]")
            )
 
+    artifact_with_schema_validation_summary =
+      put_in(artifact, ["provenance", "source_reports", "schema_validation_report"], %{
+        "paths" => ["source_schema_validation_report"],
+        "contract" => "schema_validation_report.v1",
+        "count" => 2,
+        "row_count" => 2,
+        "status_counts" => %{"fail" => 1, "pass" => 1},
+        "validated_contract_counts" => %{"candidate_refresh.v1" => 1},
+        "validation_mode_counts" => %{"artifact" => 1},
+        "error_count" => 2,
+        "warning_count" => 1,
+        "remediation_count" => 2,
+        "remediation_action_counts" => %{"populate_id" => 1},
+        "remediation_category_counts" => %{"missing_required_field" => 1},
+        "remediation_path_counts" => %{"$.candidate_activities[0].id" => 1}
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_schema_validation_summary)
+
+    schema_validation_source_report_properties =
+      get_in(candidate_refresh_schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "schema_validation_report",
+        "properties"
+      ])
+
+    assert get_in(schema_validation_source_report_properties, [
+             "error_count",
+             "minimum"
+           ]) == 0
+
+    assert get_in(schema_validation_source_report_properties, [
+             "validated_contract_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(schema_validation_source_report_properties, [
+             "remediation_path_counts",
+             "additionalProperties",
+             "type"
+           ]) == "integer"
+
+    invalid_schema_validation_error_count =
+      put_in(
+        artifact_with_schema_validation_summary,
+        ["provenance", "source_reports", "schema_validation_report", "error_count"],
+        -1
+      )
+
+    assert {:error, invalid_schema_validation_error_count_report} =
+             Schema.validate_artifact(invalid_schema_validation_error_count)
+
+    assert Enum.any?(
+             invalid_schema_validation_error_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.schema_validation_report.error_count")
+           )
+
+    invalid_schema_validation_status_count =
+      put_in(
+        artifact_with_schema_validation_summary,
+        [
+          "provenance",
+          "source_reports",
+          "schema_validation_report",
+          "status_counts",
+          "fail"
+        ],
+        -1
+      )
+
+    assert {:error, invalid_schema_validation_status_count_report} =
+             Schema.validate_artifact(invalid_schema_validation_status_count)
+
+    assert Enum.any?(
+             invalid_schema_validation_status_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.schema_validation_report.status_counts.fail")
+           )
+
+    invalid_schema_validation_status_shape =
+      put_in(
+        artifact_with_schema_validation_summary,
+        ["provenance", "source_reports", "schema_validation_report", "status_counts"],
+        "fail"
+      )
+
+    assert {:error, invalid_schema_validation_status_shape_report} =
+             Schema.validate_artifact(invalid_schema_validation_status_shape)
+
+    assert Enum.any?(
+             invalid_schema_validation_status_shape_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.schema_validation_report.status_counts")
+           )
+
     artifact_with_operational_timeline_summary =
       put_in(artifact, ["provenance", "source_reports", "operational_timeline_report"], %{
         "paths" => ["source_operational_timeline_report"],

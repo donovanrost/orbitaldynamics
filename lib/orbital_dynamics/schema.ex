@@ -21192,6 +21192,8 @@ defmodule OrbitalDynamics.Schema do
               candidate_refresh_resource_projection_source_report_summary_json_schema(),
             "resource_filter_report" =>
               candidate_refresh_resource_filter_source_report_summary_json_schema(),
+            "schema_validation_report" =>
+              candidate_refresh_schema_validation_source_report_summary_json_schema(),
             "station_calendar_report" =>
               candidate_refresh_station_calendar_source_report_summary_json_schema(),
             "station_reservation_report" =>
@@ -21621,6 +21623,33 @@ defmodule OrbitalDynamics.Schema do
         "blocked_import_quality_gate_row_ids" => stable_id_array_schema(),
         "import_readiness_gate_ids" => stable_id_array_schema()
       })
+    end)
+  end
+
+  defp candidate_refresh_schema_validation_source_report_summary_json_schema do
+    candidate_refresh_source_report_summary_json_schema()
+    |> update_in(["properties"], fn properties ->
+      properties
+      |> Map.merge(
+        non_negative_integer_property_schemas([
+          "error_count",
+          "warning_count",
+          "remediation_count"
+        ])
+      )
+      |> Map.merge(
+        Map.new(
+          [
+            "status_counts",
+            "validated_contract_counts",
+            "validation_mode_counts",
+            "remediation_action_counts",
+            "remediation_category_counts",
+            "remediation_path_counts"
+          ],
+          &{&1, non_negative_integer_count_map_json_schema()}
+        )
+      )
     end)
   end
 
@@ -26478,6 +26507,7 @@ defmodule OrbitalDynamics.Schema do
         |> validate_candidate_refresh_timeline_transition_application_context(path, summary)
         |> validate_candidate_refresh_operational_timeline_context(path, summary)
         |> validate_candidate_refresh_quality_gate_context(path, summary)
+        |> validate_candidate_refresh_schema_validation_context(path, summary)
         |> validate_candidate_refresh_model_acceptance_context(path, summary)
         |> validate_candidate_refresh_validation_safety_case_context(path, summary)
       else
@@ -26702,6 +26732,38 @@ defmodule OrbitalDynamics.Schema do
       issues,
       fn field, acc ->
         validate_stable_id_list(acc, path <> ".#{field}", Map.get(summary, field))
+      end
+    )
+  end
+
+  defp validate_candidate_refresh_schema_validation_context(issues, path, summary) do
+    issues =
+      Enum.reduce(
+        [
+          "error_count",
+          "warning_count",
+          "remediation_count"
+        ],
+        issues,
+        fn field, acc ->
+          expect_optional_non_negative_integer(acc, path, summary, field)
+        end
+      )
+
+    Enum.reduce(
+      [
+        "status_counts",
+        "validated_contract_counts",
+        "validation_mode_counts",
+        "remediation_action_counts",
+        "remediation_category_counts",
+        "remediation_path_counts"
+      ],
+      issues,
+      fn field, acc ->
+        acc
+        |> expect_optional_type(path, summary, field, :map)
+        |> validate_non_negative_integer_count_map(path <> ".#{field}", Map.get(summary, field))
       end
     )
   end

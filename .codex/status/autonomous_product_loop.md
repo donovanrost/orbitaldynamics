@@ -1,19 +1,20 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Expose CandidateRefresh quality-gate source-report schema property.
+Expose CandidateRefresh schema-validation source-report schema property.
 
 Status:
-Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
-CandidateRefresh quality-gate source summaries already preserve
-readiness/import/status/gate counts, resource availability pressure, and
-quality-gate row ID routing. Replay helpers already consume
-`quality_gate_report` from source-report provenance. The `candidate_refresh.v1`
-source-report JSON Schema now names `quality_gate_report` as a family-specific
-source report instead of leaving it discoverable only through the generic
-`source_reports` `additionalProperties` shape. This is a contract
-discoverability slice only: no replay behavior, artifact generation logic,
-operator authority, import approval, or Cadence write behavior changed.
+Implemented, locally verified, and reviewed clean; publish pending. Runtime
+CandidateRefresh schema-validation source summaries already preserve validation
+status, validated contract, validation-mode, error, warning, remediation, and
+remediation detail counts. Replay helpers already consume
+`schema_validation_report` from source-report provenance. The
+`candidate_refresh.v1` source-report JSON Schema now names
+`schema_validation_report` as a family-specific source report instead of leaving
+it discoverable only through the generic `source_reports` `additionalProperties`
+shape. This is a contract discoverability slice only: no replay behavior,
+artifact generation logic, operator authority, import approval, or Cadence write
+behavior changed.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -25,12 +26,12 @@ Files changed:
 
 Definition of done:
 - `candidate_refresh.v1` exposes a family-specific
-  `quality_gate_report`
+  `schema_validation_report`
   source-report schema.
-- Its source-report object advertises quality-gate integer counts, count maps,
-  and replay-visible ID lists/maps.
-- Schema validation rejects obvious invalid quality-gate integer/count-map and
-  ID-list/map shapes.
+- Its source-report object advertises schema-validation integer counts and
+  count maps.
+- Schema validation rejects obvious invalid schema-validation integer/count-map
+  shapes.
 - Checked-in `candidate_refresh.v1` schema and schema bundle are refreshed.
 - Schema export tests, schema tests, focused CandidateRefresh runtime tests,
   schema lint, generated-schema spot-checks, and whitespace checks pass.
@@ -43,21 +44,20 @@ Tests run:
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - `mix test test/orbital_dynamics/schema_test.exs`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:27845`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:26406`
 - `mix orbital_dynamics.schema.lint --all`
-- `jq` spot-checks for `quality_gate_report` source-report fields in
+- `jq` spot-checks for `schema_validation_report` source-report fields in
   `schemas/candidate_refresh.v1.schema.json` and the schema bundle.
 - `git diff --check -- . ':!.gitignore'`
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
   test, focused CandidateRefresh runtime test, schema lint, whitespace check,
   and generated-schema `jq` spot-checks.
-- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`1138606a737972c1de31c0ffaf63917700075d10` pushed to `origin/main`.
+Pending for this slice.
 
 Last ledger correction commit:
-`6bdccc4` pushed to `origin/main`.
+Pending for this slice.
 
 Next candidate:
 After this slice, run a bounded mapper pass to identify the next
