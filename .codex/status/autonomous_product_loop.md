@@ -1,27 +1,25 @@
 # Autonomous Product Loop Status
 
 Current slice:
-Expose resource-projection row battery quantity and state schemas.
+Expose resource-projection row policy evidence schemas.
 
 Status:
-Implemented, locally verified, read-only reviewed clean, committed, and pushed.
+Implemented, locally verified, and read-only reviewed clean; pending publish.
 
 Discovery:
-After the resource-projection storage/downlink pressure quantity slice, live
-fixture/schema comparison for `resource_projection_report.v1`
-`projected_resources` still shows battery roll-forward fields emitted by the
-projection fixture without named projected-resource row schema fields:
-`battery_capacity_wh`, `battery_energy_used_wh`, `battery_state_of_charge`,
-`starting_battery_energy_used_wh`, `projected_battery_energy_used_wh`,
-`projected_battery_state_of_charge`, `projected_power_margin`, and
-`projected_battery_overuse_wh`.
+After the resource-projection battery row slice, live fixture/schema comparison
+for `resource_projection_report.v1` `projected_resources` shows only two
+remaining row fields emitted by the battery-handoff projection fixture without
+named projected-resource row schema fields: `approval_requirements` and
+`approval_rule_matches`.
 
 Why this matters:
-These fields describe the battery baseline and projected post-activity state
-behind resource-pressure review. They are the remaining shared projected-resource
-row scalar evidence after storage/downlink quantities, and they should reuse the
-existing resource-summary contract shape: non-negative watt-hour quantities and
-probability-style state/margin fields.
+These arrays carry the policy evidence that explains why a projected resource
+row requires operator review or is blocked by policy. The nested approval
+requirement and policy rule-match schemas already exist elsewhere in the schema
+module, so exposing them at projected-resource row scope should make the
+battery-handoff policy evidence schema-visible without changing the policy
+model.
 
 Likely files:
 - `.codex/status/autonomous_product_loop.md`
@@ -31,45 +29,47 @@ Likely files:
 - `test/orbital_dynamics/schema_test.exs`
 
 Definition of done:
-- [x] `resource_projection_report.v1` projected-resource row schema exposes the
-  eight battery quantity/state fields with non-negative quantity and
-  probability-style state/margin shapes.
-- [x] Executable validation rejects malformed or out-of-range values for the
-  newly exposed battery fields.
+- [x] `resource_projection_report.v1` projected-resource row schema exposes
+  `approval_requirements` and `approval_rule_matches` as typed arrays using the
+  existing nested policy schemas.
+- [x] Executable validation rejects malformed nested approval requirement and
+  policy rule-match values.
 - [x] Focused schema tests assert row schema shape and representative invalid
-  values.
+  nested values.
 - [x] Checked-in schemas and bundle are refreshed.
 - [x] Focused schema tests, schema export tests, schema lint, generated-schema
   spot-checks, and whitespace checks pass.
 - [x] Read-only review finds no must-fix issues.
-- [x] Slice-owned files only are committed and pushed.
+- [ ] Slice-owned files only are committed and pushed.
 
 Tests run:
 - `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
 - `mix test test/orbital_dynamics/schema_test.exs:19622`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `jq -e` spot-checks for projected-resource battery quantity/state fields in
+- `jq -e` spot-checks for projected-resource policy evidence arrays in
   `schemas/resource_projection_report.v1.schema.json`,
   `schemas/campaign_plan.v1.schema.json`,
   `schemas/resource_projection_flow_summary.v1.schema.json`, and
   `schemas/orbital_dynamics.schema_bundle.v1.json`
+- row-gap scan for `resource_projection_report.v1` `projected_resources`
+  fixtures returned no missing emitted row keys
 - `git diff --check -- . ':!.gitignore'`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix test test/orbital_dynamics/schema_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
-- Read-only reviewer reran changed-file/whitespace checks, direct/embedded/bundle
-  `jq -e` shape checks, and canonical generated-schema blast-radius comparisons,
-  and reported no must-fix findings.
+- Read-only reviewer reran focused schema test, whitespace check, direct and
+  embedded generated-schema `jq -e` shape checks, and the projected-resource
+  row-gap scan, and reported no must-fix findings.
 
 Last completed implementation commit:
 `af84b24bcefe4def1c871d7ca153b9a2a10f97a1` pushed to `origin/main`.
 
 Last ledger correction commit:
-Pending this ledger-only correction.
+`6a67024d5d01d5b0a40dfeaa73238b772d9fc5a5` pushed to `origin/main`.
 
 Next candidate:
-Expose remaining battery-handoff-only policy evidence arrays:
-`approval_requirements` and `approval_rule_matches`.
+Run a fresh row-gap scan across `resource_projection_report.v1` fixtures and
+pick the next schema-visible gap, if any remain.
 
 Blocked:
 No.

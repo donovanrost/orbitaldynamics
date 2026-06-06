@@ -18675,6 +18675,14 @@ defmodule OrbitalDynamics.Schema do
         },
         "thermal_margin_c" => %{"type" => "number"},
         "warnings" => string_array_schema(),
+        "approval_requirements" => %{
+          "type" => "array",
+          "items" => approval_requirement_json_schema()
+        },
+        "approval_rule_matches" => %{
+          "type" => "array",
+          "items" => policy_decision_rule_match_json_schema()
+        },
         "policy_decision" => policy_decision_json_schema()
       }
     }
@@ -36637,6 +36645,18 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_probability(path, row, "projected_battery_state_of_charge")
     |> expect_optional_number(path, row, "thermal_margin_c")
     |> expect_optional_type(path, row, "warnings", :list)
+    |> expect_optional_type(path, row, "approval_requirements", :list)
+    |> validate_optional_rows(
+      path <> ".approval_requirements",
+      Map.get(row, "approval_requirements"),
+      &validate_approval_requirement/3
+    )
+    |> expect_optional_type(path, row, "approval_rule_matches", :list)
+    |> validate_optional_rows(
+      path <> ".approval_rule_matches",
+      Map.get(row, "approval_rule_matches"),
+      &validate_policy_rule_match/3
+    )
     |> expect_optional_non_negative_integer(path, row, "ignored_activity_count")
     |> expect_optional_type(path, row, "ignored_activity_ids", :list)
     |> validate_optional_stable_id_list(path, row, "ignored_activity_ids")

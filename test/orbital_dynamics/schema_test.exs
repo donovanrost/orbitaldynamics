@@ -19745,6 +19745,24 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert get_in(row_schema, ["properties", "warnings", "items", "type"]) == "string"
 
+    assert get_in(row_schema, [
+             "properties",
+             "approval_requirements",
+             "items",
+             "properties",
+             "schema_contract",
+             "const"
+           ]) == "approval_requirement.v1"
+
+    assert get_in(row_schema, [
+             "properties",
+             "approval_rule_matches",
+             "items",
+             "properties",
+             "rule_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
     flow_row_schema = get_in(row_schema, ["properties", "activity_resource_flow", "items"])
 
     assert get_in(flow_row_schema, ["properties", "planned_latency_s"]) == %{
@@ -19970,6 +19988,50 @@ defmodule OrbitalDynamics.SchemaTest do
     assert Enum.any?(
              projected_power_margin_report["errors"],
              &(&1["path"] == "$.projected_resources[0].projected_power_margin")
+           )
+
+    battery_handoff_report =
+      read_json!("study_results/resource_projection_battery_handoff_v1.json")
+
+    invalid_approval_requirement =
+      put_in(
+        battery_handoff_report,
+        [
+          "projected_resources",
+          Access.at(0),
+          "approval_requirements",
+          Access.at(0),
+          "activity_id"
+        ],
+        "bad id"
+      )
+
+    assert {:error, approval_requirement_report} =
+             Schema.validate_artifact(invalid_approval_requirement,
+               schema_contract: "resource_projection_report.v1"
+             )
+
+    assert Enum.any?(
+             approval_requirement_report["errors"],
+             &(&1["path"] ==
+                 "$.projected_resources[0].approval_requirements[0].activity_id")
+           )
+
+    invalid_approval_rule_match =
+      put_in(
+        battery_handoff_report,
+        ["projected_resources", Access.at(0), "approval_rule_matches", Access.at(0), "rule_id"],
+        "bad id"
+      )
+
+    assert {:error, approval_rule_match_report} =
+             Schema.validate_artifact(invalid_approval_rule_match,
+               schema_contract: "resource_projection_report.v1"
+             )
+
+    assert Enum.any?(
+             approval_rule_match_report["errors"],
+             &(&1["path"] == "$.projected_resources[0].approval_rule_matches[0].rule_id")
            )
   end
 
