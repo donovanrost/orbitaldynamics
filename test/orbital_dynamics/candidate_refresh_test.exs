@@ -101,6 +101,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert :command_window_report in inputs
     assert :maneuver_review_report in inputs
     assert :provider_counteroffer_report in inputs
+    assert :provider_counteroffer_review_summary in inputs
     assert :provider_counteroffer_import_readiness_summary in inputs
     assert :provider_counteroffer_plan_impact_summary in inputs
     assert :contact_allocation_report in inputs
@@ -376,6 +377,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert :source_report_maneuver_review_required_action_routing_maps in source_report_summary_semantics
 
     assert :source_report_provider_counteroffer_routing_maps in source_report_summary_semantics
+
+    assert :source_report_provider_counteroffer_review_summary_maps in source_report_summary_semantics
 
     assert :source_report_provider_counteroffer_import_readiness_maps in source_report_summary_semantics
 
@@ -653,6 +656,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert :source_candidate_diff_report_input_provenance in row_semantics
     assert :source_candidate_rejection_report_input_provenance in row_semantics
     assert :source_provider_counteroffer_report_input_provenance in row_semantics
+    assert :source_provider_counteroffer_review_summary_input_provenance in row_semantics
     assert :source_provider_counteroffer_plan_impact_summary_input_provenance in row_semantics
     assert :source_freshness_report_input_provenance in row_semantics
     assert :source_refresh_budget_report_input_provenance in row_semantics
@@ -25173,6 +25177,150 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              Schema.validate_artifact(import)
   end
 
+  test "source report summary accepts provider counteroffer review summaries" do
+    review_summary = %{
+      "model" => "artifact_only_provider_counteroffer_review_summary",
+      "schema_contract" => "provider_counteroffer_review_summary.v1",
+      "source_artifact_type" => "provider_counteroffer_report.v1",
+      "source_counteroffer_artifact_type" => "station_calendar_report.v1",
+      "source_artifact_id" => "provider_counteroffer_artifact_1",
+      "counteroffer_count" => 1,
+      "reviewable_count" => 1,
+      "counteroffer_review_status" => "review_required",
+      "counteroffer_status_counts" => %{"proposed" => 1},
+      "counteroffer_negotiation_state_counts" => %{"proposed" => 1},
+      "counteroffer_lock_deadline_count" => 1,
+      "earliest_counteroffer_lock_deadline_s" => 150.0,
+      "counteroffer_lock_deadline_status_counts" => %{"expired" => 1},
+      "counteroffer_ids_by_lock_deadline_status" => %{
+        "expired" => ["provider_offer_1"]
+      },
+      "review_counteroffer_ids" => ["provider_offer_1"],
+      "review_rows" => [
+        %{
+          "provider_counteroffer_id" => "provider_offer_1",
+          "provider_counteroffer_status" => "proposed",
+          "provider_counteroffer_negotiation_state" => "proposed",
+          "provider_counteroffer_lock_deadline_s" => 150.0,
+          "provider_counteroffer_lock_deadline_status" => "expired",
+          "reviewable" => true,
+          "required_operator_action" => "review_provider_counteroffer"
+        }
+      ],
+      "assumptions" => %{
+        "execution_boundary" => "artifact_only_no_provider_writes",
+        "source" => "provider_counteroffer_report.v1",
+        "operator_authority" => "not_granted_by_summary"
+      }
+    }
+
+    refresh = %{"source_provider_counteroffer_review_summary" => review_summary}
+
+    assert %{
+             "source_report_family_count" => 1,
+             "source_report_provider_counteroffer_contract" =>
+               "provider_counteroffer_review_summary.v1",
+             "source_report_provider_counteroffer_count" => 1,
+             "source_report_provider_counteroffer_row_count" => 1,
+             "source_report_provider_counteroffer_paths" => [
+               "source_provider_counteroffer_review_summary"
+             ],
+             "source_report_provider_counteroffer_reviewable_count" => 1,
+             "source_report_provider_counteroffer_lock_deadline_count" => 1,
+             "source_report_provider_counteroffer_earliest_lock_deadline_s" => 150.0,
+             "source_report_provider_counteroffer_status_counts" => %{"proposed" => 1},
+             "source_report_provider_counteroffer_required_operator_action_counts" => %{
+               "review_provider_counteroffer" => 1
+             },
+             "source_report_provider_counteroffer_review_summary_count" => 1,
+             "source_report_provider_counteroffer_review_status_counts" => %{
+               "review_required" => 1
+             },
+             "source_report_provider_counteroffer_negotiation_state_counts" => %{
+               "proposed" => 1
+             },
+             "source_report_provider_counteroffer_lock_deadline_status_counts" => %{
+               "expired" => 1
+             },
+             "source_report_provider_counteroffer_counteroffer_ids_by_lock_deadline_status" => %{
+               "expired" => ["provider_offer_1"]
+             },
+             "source_report_provider_counteroffer_review_counteroffer_ids" => [
+               "provider_offer_1"
+             ],
+             "source_reports" => %{
+               "provider_counteroffer_report" => %{
+                 "paths" => ["source_provider_counteroffer_review_summary"],
+                 "contract" => "provider_counteroffer_review_summary.v1",
+                 "count" => 1,
+                 "row_count" => 1,
+                 "reviewable_count" => 1,
+                 "review_summary_count" => 1,
+                 "counteroffer_review_status_counts" => %{"review_required" => 1},
+                 "counteroffer_negotiation_state_counts" => %{"proposed" => 1},
+                 "counteroffer_lock_deadline_status_counts" => %{"expired" => 1},
+                 "counteroffer_ids_by_lock_deadline_status" => %{
+                   "expired" => ["provider_offer_1"]
+                 },
+                 "review_counteroffer_ids" => ["provider_offer_1"]
+               }
+             }
+           } = source_summary = CandidateRefresh.source_report_summary(refresh)
+
+    assert %{
+             "contract" => "provider_counteroffer_review_summary.v1",
+             "source_report_count" => 1,
+             "source_report_row_count" => 1,
+             "source_report_paths" => ["source_provider_counteroffer_review_summary"],
+             "reviewable_count" => 1,
+             "counteroffer_lock_deadline_count" => 1,
+             "earliest_counteroffer_lock_deadline_s" => 150.0,
+             "counteroffer_status_counts" => %{"proposed" => 1},
+             "required_operator_action_counts" => %{
+               "review_provider_counteroffer" => 1
+             },
+             "review_summary_count" => 1,
+             "counteroffer_review_status_counts" => %{"review_required" => 1},
+             "counteroffer_negotiation_state_counts" => %{"proposed" => 1},
+             "counteroffer_lock_deadline_status_counts" => %{"expired" => 1},
+             "counteroffer_ids_by_lock_deadline_status" => %{
+               "expired" => ["provider_offer_1"]
+             },
+             "review_counteroffer_ids" => ["provider_offer_1"],
+             "branch_local_counteroffer_pressure" => true,
+             "branch_local_counteroffer_review_pressure" => true,
+             "branch_local_counteroffer_lock_pressure" => true,
+             "branch_local_counteroffer_import_readiness_pressure" => false,
+             "branch_local_plan_impact_pressure" => false,
+             "assumptions" => %{
+               "provider_write" => "not_performed_by_summary",
+               "cadence_write" => "not_performed_by_summary"
+             }
+           } = replay_summary = CandidateRefresh.provider_counteroffer_replay_summary(refresh)
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{"source_reports" => source_summary["source_reports"]}
+    }
+
+    assert CandidateRefresh.provider_counteroffer_replay_summary(artifact) == replay_summary
+
+    wrapped_summary =
+      CandidateRefresh.source_report_summary(%{
+        "source_result_artifact" => [
+          %{"source_provider_counteroffer_review_summary" => review_summary}
+        ]
+      })
+
+    assert get_in(wrapped_summary, [
+             "source_reports",
+             "provider_counteroffer_report",
+             "paths"
+           ]) == [
+             "source_result_artifact[0].source_provider_counteroffer_review_summary"
+           ]
+  end
+
   test "source report summary derives provider counteroffer routing maps from rows" do
     refresh = %{
       "source_provider_counteroffer_report" => %{
@@ -25294,6 +25442,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "earliest_counteroffer_lock_deadline_s" => 120.0,
       "counteroffer_status_counts" => %{"proposed" => 2},
       "required_operator_action_counts" => %{"review_provider_counteroffer" => 2},
+      "review_summary_count" => 0,
+      "counteroffer_review_status_counts" => %{},
+      "counteroffer_negotiation_state_counts" => %{},
       "plan_impact_summary_count" => 1,
       "plan_impact_status_counts" => %{"review_required" => 1},
       "import_readiness_summary_count" => 0,

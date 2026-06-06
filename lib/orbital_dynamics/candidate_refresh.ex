@@ -233,6 +233,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :command_window_report,
         :maneuver_review_report,
         :provider_counteroffer_report,
+        :provider_counteroffer_review_summary,
         :provider_counteroffer_import_readiness_summary,
         :provider_counteroffer_plan_impact_summary,
         :contact_allocation_report,
@@ -443,6 +444,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :source_report_maneuver_review_maneuver_routing_maps,
         :source_report_maneuver_review_required_action_routing_maps,
         :source_report_provider_counteroffer_routing_maps,
+        :source_report_provider_counteroffer_review_summary_maps,
         :source_report_provider_counteroffer_import_readiness_maps,
         :source_report_freshness_status_count_maps,
         :source_report_refresh_budget_count_maps,
@@ -593,6 +595,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :source_candidate_diff_report_input_provenance,
         :source_candidate_rejection_report_input_provenance,
         :source_provider_counteroffer_report_input_provenance,
+        :source_provider_counteroffer_review_summary_input_provenance,
         :source_provider_counteroffer_import_readiness_summary_input_provenance,
         :source_provider_counteroffer_plan_impact_summary_input_provenance,
         :source_freshness_report_input_provenance,
@@ -3838,6 +3841,24 @@ defmodule OrbitalDynamics.CandidateRefresh do
           source_reports,
           "provider_counteroffer_report",
           "required_operator_action_counts"
+        ),
+      "source_report_provider_counteroffer_review_summary_count" =>
+        source_report_summary_family_count(
+          source_reports,
+          "provider_counteroffer_report",
+          "review_summary_count"
+        ),
+      "source_report_provider_counteroffer_review_status_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "provider_counteroffer_report",
+          "counteroffer_review_status_counts"
+        ),
+      "source_report_provider_counteroffer_negotiation_state_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "provider_counteroffer_report",
+          "counteroffer_negotiation_state_counts"
         ),
       "source_report_provider_counteroffer_import_readiness_summary_count" =>
         source_report_summary_family_count(
@@ -7098,6 +7119,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
     status_counts = Map.get(counteroffer_summary, "counteroffer_status_counts", %{})
     required_action_counts = Map.get(counteroffer_summary, "required_operator_action_counts", %{})
 
+    review_summary_count = summary_integer(counteroffer_summary, "review_summary_count")
+
+    review_status_counts =
+      Map.get(counteroffer_summary, "counteroffer_review_status_counts", %{})
+
+    negotiation_state_counts =
+      Map.get(counteroffer_summary, "counteroffer_negotiation_state_counts", %{})
+
     import_readiness_summary_count =
       summary_integer(counteroffer_summary, "import_readiness_summary_count")
 
@@ -7140,7 +7169,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     cost_delta_counteroffer_ids = Map.get(counteroffer_summary, "cost_delta_counteroffer_ids", [])
 
-    review_pressure = reviewable_count > 0 or map_size(required_action_counts) > 0
+    review_pressure =
+      review_summary_count > 0 or reviewable_count > 0 or map_size(required_action_counts) > 0 or
+        map_size(review_status_counts) > 0 or map_size(negotiation_state_counts) > 0
 
     cost_pressure = cost_delta_count > 0 or length(cost_delta_counteroffer_ids) > 0
 
@@ -7153,9 +7184,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
     import_readiness_pressure =
       import_readiness_summary_count > 0 or map_size(import_readiness_status_counts) > 0 or
         map_size(import_classification_counts) > 0 or map_size(import_status_counts) > 0 or
-        map_size(lock_deadline_status_counts) > 0 or map_size(ids_by_import_status) > 0 or
-        map_size(ids_by_required_import_action) > 0 or map_size(ids_by_lock_deadline_status) > 0 or
-        length(review_counteroffer_ids) > 0 or length(no_import_required_counteroffer_ids) > 0
+        map_size(ids_by_import_status) > 0 or map_size(ids_by_required_import_action) > 0 or
+        length(no_import_required_counteroffer_ids) > 0
 
     plan_impact_pressure =
       plan_impact_summary_count > 0 or map_size(plan_impact_status_counts) > 0 or
@@ -7181,6 +7211,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "earliest_counteroffer_lock_deadline_s" => earliest_lock_deadline_s,
       "counteroffer_status_counts" => status_counts,
       "required_operator_action_counts" => required_action_counts,
+      "review_summary_count" => review_summary_count,
+      "counteroffer_review_status_counts" => review_status_counts,
+      "counteroffer_negotiation_state_counts" => negotiation_state_counts,
       "import_readiness_summary_count" => import_readiness_summary_count,
       "import_readiness_status_counts" => import_readiness_status_counts,
       "import_classification_counts" => import_classification_counts,
@@ -19532,12 +19565,38 @@ defmodule OrbitalDynamics.CandidateRefresh do
         reports
         |> Enum.map(&provider_counteroffer_report_required_action_counts/1)
         |> merge_count_maps(),
+      "counteroffer_lock_deadline_status_counts" =>
+        reports
+        |> Enum.map(fn report ->
+          Map.get(report, "counteroffer_lock_deadline_status_counts") ||
+            provider_counteroffer_report_row_counts(
+              report,
+              "counteroffer_lock_deadline_status_counts",
+              "provider_counteroffer_lock_deadline_status"
+            )
+        end)
+        |> merge_count_maps(),
+      "counteroffer_ids_by_lock_deadline_status" =>
+        reports
+        |> Enum.map(fn report ->
+          Map.get(report, "counteroffer_ids_by_lock_deadline_status") ||
+            provider_counteroffer_report_ids_by_row_field(
+              report,
+              "provider_counteroffer_lock_deadline_status"
+            )
+        end)
+        |> merge_string_list_maps(),
+      "review_counteroffer_ids" =>
+        reports
+        |> Enum.flat_map(&Map.get(&1, "review_counteroffer_ids", []))
+        |> sorted_string_values(),
       "trust_boundary_status" =>
         source_provider_counteroffer_report_trust_boundary_status(reports),
       "trust_boundaries" => source_provider_counteroffer_report_trust_boundaries(reports)
     }
     |> Map.merge(source_provider_counteroffer_import_readiness_summary_fields(reports))
     |> Map.merge(source_provider_counteroffer_plan_impact_summary_fields(reports))
+    |> Map.merge(source_provider_counteroffer_review_summary_fields(reports))
     |> compact_map()
   end
 
@@ -25000,10 +25059,79 @@ defmodule OrbitalDynamics.CandidateRefresh do
     end
   end
 
+  defp provider_counteroffer_report_ids_by_row_field(report, row_field) do
+    report
+    |> provider_counteroffer_report_rows()
+    |> Enum.flat_map(fn row ->
+      status = normalized_timeline_diff_token(Map.get(row, row_field))
+      counteroffer_id = stable_id_or_nil(Map.get(row, "provider_counteroffer_id"))
+
+      if status in [nil, ""] or counteroffer_id in [nil, ""] do
+        []
+      else
+        [{status, counteroffer_id}]
+      end
+    end)
+    |> grouped_source_report_ids()
+  end
+
   defp provider_counteroffer_report_rows(report) do
     report
     |> Map.get("rows", [])
     |> Enum.map(&stringify_keys/1)
+  end
+
+  defp source_provider_counteroffer_review_summary_fields(reports) do
+    summaries =
+      Enum.filter(reports, fn report ->
+        Map.get(report, "source_summary_model") ==
+          "artifact_only_provider_counteroffer_review_summary"
+      end)
+
+    %{
+      "review_summary_count" => length(summaries),
+      "counteroffer_review_status_counts" =>
+        summaries
+        |> Enum.map(&Map.get(&1, "counteroffer_review_status"))
+        |> count_values(),
+      "counteroffer_negotiation_state_counts" =>
+        summaries
+        |> Enum.map(&Map.get(&1, "counteroffer_negotiation_state_counts", %{}))
+        |> merge_count_maps(),
+      "counteroffer_lock_deadline_status_counts" =>
+        summaries
+        |> Enum.map(fn report ->
+          Map.get(report, "counteroffer_lock_deadline_status_counts") ||
+            provider_counteroffer_report_row_counts(
+              report,
+              "counteroffer_lock_deadline_status_counts",
+              "provider_counteroffer_lock_deadline_status"
+            )
+        end)
+        |> merge_count_maps(),
+      "counteroffer_ids_by_lock_deadline_status" =>
+        summaries
+        |> Enum.map(fn report ->
+          Map.get(report, "counteroffer_ids_by_lock_deadline_status") ||
+            provider_counteroffer_report_ids_by_row_field(
+              report,
+              "provider_counteroffer_lock_deadline_status"
+            )
+        end)
+        |> merge_string_list_maps(),
+      "review_counteroffer_ids" =>
+        summaries
+        |> Enum.flat_map(&Map.get(&1, "review_counteroffer_ids", []))
+        |> sorted_string_values()
+    }
+    |> Enum.reject(fn
+      {_key, nil} -> true
+      {_key, 0} -> true
+      {_key, []} -> true
+      {_key, map} when map == %{} -> true
+      _entry -> false
+    end)
+    |> Map.new()
   end
 
   defp source_provider_counteroffer_plan_impact_summary_fields(reports) do
@@ -25041,6 +25169,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         |> sorted_string_values()
     }
     |> Enum.reject(fn
+      {_key, nil} -> true
       {_key, 0} -> true
       {_key, []} -> true
       {_key, map} when map == %{} -> true
@@ -25072,7 +25201,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
         |> merge_count_maps(),
       "counteroffer_lock_deadline_status_counts" =>
         summaries
-        |> Enum.map(&Map.get(&1, "counteroffer_lock_deadline_status_counts", %{}))
+        |> Enum.map(fn report ->
+          Map.get(report, "counteroffer_lock_deadline_status_counts") ||
+            provider_counteroffer_report_row_counts(
+              report,
+              "counteroffer_lock_deadline_status_counts",
+              "provider_counteroffer_lock_deadline_status"
+            )
+        end)
         |> merge_count_maps(),
       "counteroffer_ids_by_import_status" =>
         summaries
@@ -25084,7 +25220,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
         |> merge_string_list_maps(),
       "counteroffer_ids_by_lock_deadline_status" =>
         summaries
-        |> Enum.map(&Map.get(&1, "counteroffer_ids_by_lock_deadline_status", %{}))
+        |> Enum.map(fn report ->
+          Map.get(report, "counteroffer_ids_by_lock_deadline_status") ||
+            provider_counteroffer_report_ids_by_row_field(
+              report,
+              "provider_counteroffer_lock_deadline_status"
+            )
+        end)
         |> merge_string_list_maps(),
       "review_counteroffer_ids" =>
         summaries
@@ -25096,6 +25238,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         |> sorted_string_values()
     }
     |> Enum.reject(fn
+      {_key, nil} -> true
       {_key, 0} -> true
       {_key, []} -> true
       {_key, map} when map == %{} -> true
@@ -38141,6 +38284,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
        get_in(refresh, ["accepted_planning_state", "source_provider_counteroffer_report"])},
       {"accepted_planning_state.provider_counteroffer_report",
        get_in(refresh, ["accepted_planning_state", "provider_counteroffer_report"])},
+      {"accepted_planning_state.source_provider_counteroffer_review_summary",
+       get_in(refresh, [
+         "accepted_planning_state",
+         "source_provider_counteroffer_review_summary"
+       ])},
+      {"accepted_planning_state.provider_counteroffer_review_summary",
+       get_in(refresh, ["accepted_planning_state", "provider_counteroffer_review_summary"])},
       {"accepted_planning_state.source_provider_counteroffer_import_readiness_summary",
        get_in(refresh, [
          "accepted_planning_state",
@@ -38162,6 +38312,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
        get_in(refresh, ["mission_state", "source_provider_counteroffer_report"])},
       {"mission_state.provider_counteroffer_report",
        get_in(refresh, ["mission_state", "provider_counteroffer_report"])},
+      {"mission_state.source_provider_counteroffer_review_summary",
+       get_in(refresh, ["mission_state", "source_provider_counteroffer_review_summary"])},
+      {"mission_state.provider_counteroffer_review_summary",
+       get_in(refresh, ["mission_state", "provider_counteroffer_review_summary"])},
       {"mission_state.source_provider_counteroffer_import_readiness_summary",
        get_in(refresh, [
          "mission_state",
@@ -38176,6 +38330,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
       {"source_provider_counteroffer_report",
        Map.get(refresh, "source_provider_counteroffer_report")},
       {"provider_counteroffer_report", Map.get(refresh, "provider_counteroffer_report")},
+      {"source_provider_counteroffer_review_summary",
+       Map.get(refresh, "source_provider_counteroffer_review_summary")},
+      {"provider_counteroffer_review_summary",
+       Map.get(refresh, "provider_counteroffer_review_summary")},
       {"source_provider_counteroffer_import_readiness_summary",
        Map.get(refresh, "source_provider_counteroffer_import_readiness_summary")},
       {"provider_counteroffer_import_readiness_summary",
@@ -39406,6 +39564,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
          Map.get(artifact, "source_provider_counteroffer_report")},
         {"#{path}.provider_counteroffer_report",
          Map.get(artifact, "provider_counteroffer_report")},
+        {"#{path}.source_provider_counteroffer_review_summary",
+         Map.get(artifact, "source_provider_counteroffer_review_summary")},
+        {"#{path}.provider_counteroffer_review_summary",
+         Map.get(artifact, "provider_counteroffer_review_summary")},
         {"#{path}.source_provider_counteroffer_import_readiness_summary",
          Map.get(artifact, "source_provider_counteroffer_import_readiness_summary")},
         {"#{path}.provider_counteroffer_import_readiness_summary",
@@ -42170,6 +42332,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
       provider_counteroffer_source_report?(value) ->
         [{path, value}]
 
+      provider_counteroffer_review_summary_source?(value) ->
+        [{path, provider_counteroffer_report_from_review_summary(value)}]
+
       provider_counteroffer_import_readiness_summary_source?(value) ->
         [{path, provider_counteroffer_report_from_import_readiness_summary(value)}]
 
@@ -42200,6 +42365,77 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp source_provider_counteroffer_report_entries(_path, _value, _builder), do: []
+
+  defp provider_counteroffer_report_from_review_summary(%{} = summary) do
+    rows =
+      summary
+      |> Map.get("review_rows", [])
+      |> Enum.filter(&is_map/1)
+      |> Enum.map(&stringify_keys/1)
+
+    %{
+      "schema_contract" => "provider_counteroffer_report.v1",
+      "model" => "preserved_provider_counteroffer_review_summary",
+      "source" => Map.get(summary, "source"),
+      "source_summary_model" => Map.get(summary, "model"),
+      "source_summary_schema_contract" => Map.get(summary, "schema_contract"),
+      "source_artifact_type" => Map.get(summary, "source_artifact_type"),
+      "source_counteroffer_artifact_type" =>
+        Map.get(summary, "source_counteroffer_artifact_type"),
+      "source_artifact_id" => Map.get(summary, "source_artifact_id"),
+      "trust_boundary" => Map.get(summary, "trust_boundary"),
+      "rows" => rows,
+      "counteroffer_count" =>
+        provider_counteroffer_summary_count(summary, "counteroffer_count", rows),
+      "reviewable_count" =>
+        provider_counteroffer_summary_count(
+          summary,
+          "reviewable_count",
+          Enum.count(rows, &(&1["reviewable"] == true))
+        ),
+      "counteroffer_cost_delta_count" =>
+        provider_counteroffer_summary_count(
+          summary,
+          "counteroffer_cost_delta_count",
+          provider_counteroffer_numeric_value_count(rows, "provider_counteroffer_cost_delta")
+        ),
+      "counteroffer_cost_delta_total" =>
+        numeric_value(Map.get(summary, "counteroffer_cost_delta_total")) ||
+          provider_counteroffer_numeric_value_sum(rows, "provider_counteroffer_cost_delta"),
+      "timing_shift_counteroffer_count" =>
+        provider_counteroffer_summary_count(
+          summary,
+          "timing_shift_counteroffer_count",
+          provider_counteroffer_timing_shift_rows(rows)
+        ),
+      "counteroffer_lock_deadline_count" =>
+        provider_counteroffer_numeric_value_count(rows, "provider_counteroffer_lock_deadline_s"),
+      "earliest_counteroffer_lock_deadline_s" =>
+        provider_counteroffer_numeric_value_min(rows, "provider_counteroffer_lock_deadline_s"),
+      "counteroffer_status_counts" =>
+        Map.get(summary, "counteroffer_status_counts") ||
+          count_provider_counteroffer_rows(rows, "provider_counteroffer_status"),
+      "counteroffer_review_status" => Map.get(summary, "counteroffer_review_status"),
+      "counteroffer_review_status_counts" =>
+        count_values([Map.get(summary, "counteroffer_review_status")]),
+      "counteroffer_negotiation_state_counts" =>
+        Map.get(summary, "counteroffer_negotiation_state_counts") ||
+          count_provider_counteroffer_rows(rows, "provider_counteroffer_negotiation_state"),
+      "required_operator_action_counts" =>
+        count_provider_counteroffer_rows(rows, "required_operator_action"),
+      "review_summary_count" => 1,
+      "counteroffer_lock_deadline_status_counts" =>
+        Map.get(summary, "counteroffer_lock_deadline_status_counts") ||
+          count_provider_counteroffer_rows(rows, "provider_counteroffer_lock_deadline_status"),
+      "counteroffer_ids_by_lock_deadline_status" =>
+        summary_string_list_map(summary, "counteroffer_ids_by_lock_deadline_status"),
+      "review_counteroffer_ids" =>
+        sorted_string_values(Map.get(summary, "review_counteroffer_ids", [])),
+      "assumptions" => Map.get(summary, "assumptions")
+    }
+    |> maybe_put("provenance", Map.get(summary, "provenance"))
+    |> compact_map()
+  end
 
   defp source_freshness_report_entries(path, values) when is_list(values) do
     values
@@ -47281,6 +47517,17 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp provider_counteroffer_source_report?(_report), do: false
+
+  defp provider_counteroffer_review_summary_source?(%{} = summary) do
+    schema_contract = Map.get(summary, "schema_contract") || Map.get(summary, :schema_contract)
+    model = Map.get(summary, "model") || Map.get(summary, :model)
+    rows = Map.get(summary, "review_rows") || Map.get(summary, :review_rows)
+
+    schema_contract in [nil, "provider_counteroffer_review_summary.v1"] and
+      model == "artifact_only_provider_counteroffer_review_summary" and is_list(rows)
+  end
+
+  defp provider_counteroffer_review_summary_source?(_summary), do: false
 
   defp provider_counteroffer_import_readiness_summary_source?(%{} = summary) do
     schema_contract = Map.get(summary, "schema_contract") || Map.get(summary, :schema_contract)
