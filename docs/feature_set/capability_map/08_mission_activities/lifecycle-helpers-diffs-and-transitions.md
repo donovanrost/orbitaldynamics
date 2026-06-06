@@ -115,6 +115,9 @@ emit `timeline_diff_summary.v1`, a compact artifact-only triage surface over
 - Runtime validation and JSON Schema export pin the same timeline model-limit
   list as the full diff report, so schema-only summaries cannot accept stale
   model-limit lists.
+- Existing `timeline_diff_summary.v1` artifacts are accepted as idempotent
+  inputs by the diff-summary facade when downstream queues already hold the
+  compact summary artifact.
 - CandidateRefresh replays direct, accepted-state, mission-state, and
   result-artifact-wrapped summaries through timeline-diff source provenance,
   preserving the compact contract, source paths, aggregate maps, and trust

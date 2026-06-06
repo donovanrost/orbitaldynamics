@@ -5,10 +5,10 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Accept existing timeline preservation statuses idempotently.
+Accept existing timeline diff summaries idempotently.
 
 Status:
-Implemented, verified, committed, and pushed.
+Implemented and verified; commit/push pending.
 
 Completed slices:
 - Prompt/guide continuation semantics committed as
@@ -35,18 +35,17 @@ Completed slices:
 Files changed:
 - `lib/orbital_dynamics/timeline.ex`
 - `test/orbital_dynamics/timeline_test.exs`
-- `docs/feature_set/capability_map/08_mission_activities/integrity-rejection-and-preservation-reports.md`
+- `docs/feature_set/capability_map/08_mission_activities/lifecycle-helpers-diffs-and-transitions.md`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/timeline_test.exs:5490`
+- `mix test test/orbital_dynamics/timeline_test.exs:8954`
   -> 1 passed, 124 excluded.
 - `mix test test/orbital_dynamics/timeline_test.exs` -> 125 passed.
 
 Docs/artifacts changed:
-- Documented idempotent `timeline_preservation_status.v1` handoff input
-  behavior for downstream queues that already hold standalone preservation
-  status artifacts.
+- Documented idempotent `timeline_diff_summary.v1` handoff input behavior for
+  downstream queues that already hold compact diff summary artifacts.
 
 Level 6 pillar advanced:
 Approval-aware automation boundaries and durable artifact handoff behavior.
@@ -57,8 +56,8 @@ Remaining maturity gaps:
   the guide toward Level 6 maturity.
 
 Last commit:
-- `c43829f0c5c0786f78f60db41f336c5bfb16ad2f` pushed to `origin/main`
-  for timeline preservation status idempotent handoff behavior.
+- `57f488854a5f4eebddc7f219fa3dbfcbb54e6e6e` pushed to `origin/main`
+  for the preservation-status ledger correction.
 
 Next candidate:
 Select the next live maturity gap from the guide/roadmap and current test
@@ -70,5 +69,5 @@ No.
 Notes:
 - `.gitignore` still has an unrelated pre-existing local scratch-ignore change
   and is not part of this slice.
-- The previous full `mix test` run for the report-level preservation handoff
-  passed at 3006 tests; this micro-slice used focused timeline verification.
+- Recent full `mix test` runs passed at 3006 tests; this micro-slice used
+  focused timeline verification.

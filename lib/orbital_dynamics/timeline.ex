@@ -1596,6 +1596,16 @@ defmodule OrbitalDynamics.Timeline do
   review-required diff rows without mutating schedules, approving work, or
   executing commands.
   """
+  def diff_summary(%{"schema_contract" => @diff_summary_schema_contract} = timeline_diff_summary) do
+    timeline_diff_summary
+  end
+
+  def diff_summary(%{schema_contract: @diff_summary_schema_contract} = timeline_diff_summary) do
+    timeline_diff_summary
+    |> stringify_keys()
+    |> diff_summary()
+  end
+
   def diff_summary(%{} = timeline_diff_report) do
     report = stringify_keys(timeline_diff_report)
     rows = report |> Map.get("rows", []) |> Enum.filter(&is_map/1)
