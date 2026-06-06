@@ -4,7 +4,7 @@ Current slice:
 Expose CandidateRefresh timeline-publication source-report schema property.
 
 Status:
-Implemented, locally verified, and reviewed clean; awaiting publish. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 CandidateRefresh timeline-publication source summaries already preserve
 publication status counts, dependency-impact status counts, publication/source
 artifact identifiers, downstream invalidation identifiers, timeline-diff audit
@@ -72,12 +72,13 @@ Tests run:
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix test test/orbital_dynamics/schema_test.exs`
 - `git diff --check -- . ':!.gitignore'`
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`8677392f280c339e5bfcc05f831a709af15be83e` pushed to `origin/main`.
+`7fc8c148ae45f46d557152e3cb008ee2ed6c904a` pushed to `origin/main`.
 
 Last ledger correction commit:
-`953e06a` pushed to `origin/main`.
+Pending for this slice.
 
 Next candidate:
 After this slice, run a bounded mapper pass to identify the next schema-visible
