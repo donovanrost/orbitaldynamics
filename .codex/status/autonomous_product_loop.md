@@ -4,8 +4,8 @@ Current slice:
 Expose CandidateRefresh objective-gap source-report schema properties.
 
 Status:
-Implemented, locally verified, and reviewed clean. Runtime CandidateRefresh
-source-report provenance already emits objective-gap summaries for
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
+CandidateRefresh source-report provenance already emits objective-gap summaries for
 `objective_satisfaction_report`, `objective_tradeoff_report`, and
 `score_term_report`, and the replay surface treats them as one objective-gap
 provenance family. This slice makes those three emitted families schema-visible
@@ -57,12 +57,13 @@ Tests run:
   CandidateRefresh source-report summaries, and that the named helpers inherit
   the broad common source-report base with `additionalProperties: true`; both
   follow existing source-report schema patterns and are not blockers.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`089540ff7781b1cfe46245eeab42d3966db69da3` pushed to `origin/main`.
+`6f01530db14365ac3834ab0d4ec125584526b8a8` pushed to `origin/main`.
 
 Last ledger correction commit:
-`67d1dd0` pushed to `origin/main`.
+Pending for this slice.
 
 Next candidate:
 After this slice, continue the CandidateRefresh source-report schema visibility
