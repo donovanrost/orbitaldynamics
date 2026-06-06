@@ -4,7 +4,7 @@ Current slice:
 Repair CandidateRefresh status-blocked contact ID validation.
 
 Status:
-Implemented, verified, read-only reviewed, and committed; ready to push.
+Implemented, verified, read-only reviewed, committed, and pushed.
 
 What changed:
 ContactAllocation now derives primary
@@ -46,13 +46,13 @@ validation, and that the added regression covers the station availability
 precedence case. Its only finding was to refresh this ledger after verification.
 
 Implementation commit:
-`366a3276d886fa8941ac4373944d0640f5add082` pending push to `origin/main`.
+`366a3276d886fa8941ac4373944d0640f5add082` pushed to `origin/main`.
 
 Last completed implementation commit:
-`366a3276d886fa8941ac4373944d0640f5add082` pending push to `origin/main`.
+`366a3276d886fa8941ac4373944d0640f5add082` pushed to `origin/main`.
 
 Last ledger correction commit:
-`f13513ee17764cc85907bdae5b90c4639ce7d512` pushed to `origin/main`.
+`f34f33bb0657548993866f01554e836f179fafe1` pushed to `origin/main`.
 
 Next candidate:
 Continue the resource/communications allocation queue after this validation
