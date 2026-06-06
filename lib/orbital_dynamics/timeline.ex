@@ -3158,6 +3158,7 @@ defmodule OrbitalDynamics.Timeline do
         "validation_level",
         "known_limits",
         "operational_hints",
+        "subsystem_state_hints",
         "assumptions"
       ])
       |> compact_map()

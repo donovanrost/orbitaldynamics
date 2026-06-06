@@ -60,9 +60,11 @@ Each template should declare:
 
 Current baseline `activity_template.v1` artifacts expose advisory
 `operational_hints` for setup duration, cooldown duration, and telemetry
-confirmation requirements. Instantiation preserves those hints in normalized
-timeline rows without reserving resources, mutating schedules, granting command
-authority, or executing commands.
+confirmation requirements plus `subsystem_state_hints` for required and
+produced subsystem-state declarations. Instantiation preserves those hints in
+normalized timeline-row provenance without reserving resources, simulating
+state transitions, mutating schedules, granting command authority, or executing
+commands.
 
 ## Resource Propagation
 

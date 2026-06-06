@@ -62,6 +62,29 @@
     "uses_storage": true
   },
   "schema_contract": "activity_template.v1",
+  "subsystem_state_hints": {
+    "produced_states": [
+      {
+        "reason": "observation activity produces collection evidence",
+        "state": "observation_collected",
+        "subsystem": "payload"
+      }
+    ],
+    "required_states": [
+      {
+        "blocking": true,
+        "reason": "spacecraft must be outside safe mode",
+        "state": "standby",
+        "subsystem": "spacecraft"
+      },
+      {
+        "blocking": true,
+        "reason": "payload must be ready before observation",
+        "state": "ready",
+        "subsystem": "payload"
+      }
+    ]
+  },
   "template_version": 1,
   "validation_level": "artifact_contract"
 }

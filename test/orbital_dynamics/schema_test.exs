@@ -74,6 +74,10 @@ defmodule OrbitalDynamics.SchemaTest do
              "precondition_type"
            ]["enum"] == OrbitalDynamics.Timeline.capabilities().activity_precondition_types
 
+    assert schema["properties"]["subsystem_state_hints"]["properties"]["required_states"][
+             "items"
+           ]["required"] == ["subsystem", "state"]
+
     assert schema["properties"]["lifecycle_defaults"]["properties"]["status"]["enum"] ==
              OrbitalDynamics.Timeline.capabilities().activity_statuses
 
@@ -108,6 +112,23 @@ defmodule OrbitalDynamics.SchemaTest do
         "cooldown_duration_s" => 60.0,
         "telemetry_confirmation_required" => true,
         "telemetry_confirmation_status" => "required"
+      },
+      "subsystem_state_hints" => %{
+        "required_states" => [
+          %{
+            "subsystem" => "payload",
+            "state" => "ready",
+            "reason" => "payload must be ready before observation",
+            "blocking" => true
+          }
+        ],
+        "produced_states" => [
+          %{
+            "subsystem" => "payload",
+            "state" => "observation_collected",
+            "reason" => "observation activity produces collection evidence"
+          }
+        ]
       },
       "resource_hints" => %{
         "requires_payload" => true,
@@ -186,6 +207,46 @@ defmodule OrbitalDynamics.SchemaTest do
     assert Enum.any?(
              report["errors"],
              &(&1["path"] == "$.operational_hints.telemetry_confirmation_required")
+           )
+
+    invalid_subsystem_state_hints = put_in(template, ["subsystem_state_hints"], "not-map")
+    assert {:error, report} = Schema.validate_artifact(invalid_subsystem_state_hints)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.subsystem_state_hints"))
+
+    invalid_required_states =
+      put_in(template, ["subsystem_state_hints", "required_states"], "not-list")
+
+    assert {:error, report} = Schema.validate_artifact(invalid_required_states)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.subsystem_state_hints.required_states")
+           )
+
+    invalid_state_hint =
+      put_in(template, ["subsystem_state_hints", "required_states", Access.at(0)], %{
+        "subsystem" => "payload"
+      })
+
+    assert {:error, report} = Schema.validate_artifact(invalid_state_hint)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.subsystem_state_hints.required_states[0].state")
+           )
+
+    invalid_blocking =
+      put_in(
+        template,
+        ["subsystem_state_hints", "required_states", Access.at(0), "blocking"],
+        "yes"
+      )
+
+    assert {:error, report} = Schema.validate_artifact(invalid_blocking)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.subsystem_state_hints.required_states[0].blocking")
            )
 
     invalid_precondition = %{

@@ -32,6 +32,11 @@ defmodule OrbitalDynamics.CapabilitiesTest do
     assert catalog.planning.activity_templates.output_shape == :normalized_timeline_activity
     assert catalog.planning.activity_templates.transition_path == :timeline_transition_application
 
+    assert catalog.planning.activity_templates.subsystem_state_hint_fields == [
+             "required_states",
+             "produced_states"
+           ]
+
     assert catalog.planning.activity_templates.public_facades == [
              :activity_templates,
              :activity_template,
@@ -192,6 +197,17 @@ defmodule OrbitalDynamics.CapabilitiesTest do
       assert is_boolean(template["operational_hints"]["telemetry_confirmation_required"])
       assert is_binary(template["operational_hints"]["telemetry_confirmation_status"])
 
+      assert is_map(template["subsystem_state_hints"])
+      assert is_list(template["subsystem_state_hints"]["required_states"])
+      assert is_list(template["subsystem_state_hints"]["produced_states"])
+
+      for state_hint <-
+            template["subsystem_state_hints"]["required_states"] ++
+              template["subsystem_state_hints"]["produced_states"] do
+        assert is_binary(state_hint["subsystem"])
+        assert is_binary(state_hint["state"])
+      end
+
       assert {:ok, %{"schema_contract" => "activity_template.v1", "status" => "pass"}} =
                Schema.validate_artifact(template)
     end
@@ -263,6 +279,12 @@ defmodule OrbitalDynamics.CapabilitiesTest do
 
     assert OrbitalDynamics.activity_from_template(observe, fields) == {:ok, replacement}
 
+    assert replacement["activity_template"]["subsystem_state_hints"] ==
+             observe["subsystem_state_hints"]
+
+    assert get_in(replacement, ["activity_context", "activity_template", "subsystem_state_hints"]) ==
+             observe["subsystem_state_hints"]
+
     assert %{
              "schema_contract" => "timeline_integrity_report.v1",
              "timeline_integrity_status" => "review_required",
@@ -292,6 +314,14 @@ defmodule OrbitalDynamics.CapabilitiesTest do
 
     assert {:ok, %{"schema_contract" => "timeline_integrity_report.v1"}} =
              Schema.validate_artifact(integrity_report)
+
+    assert get_in(integrity_report, [
+             "rows",
+             Access.at(0),
+             "activity_context",
+             "activity_template",
+             "subsystem_state_hints"
+           ]) == observe["subsystem_state_hints"]
 
     source = %{
       id: :obs_template_transition,

@@ -4011,6 +4011,7 @@ defmodule OrbitalDynamics.Schema do
         "optional_field_count",
         "lifecycle_defaults",
         "operational_hints",
+        "subsystem_state_hints",
         "resource_hints",
         "precondition_hints",
         "assumptions"
@@ -9257,6 +9258,10 @@ defmodule OrbitalDynamics.Schema do
 
   defp json_schema_property("operational_hints", @activity_template, _contract) do
     activity_template_operational_hints_json_schema()
+  end
+
+  defp json_schema_property("subsystem_state_hints", @activity_template, _contract) do
+    activity_template_subsystem_state_hints_json_schema()
   end
 
   defp json_schema_property("resource_hints", @activity_template, _contract) do
@@ -19853,6 +19858,37 @@ defmodule OrbitalDynamics.Schema do
     }
   end
 
+  defp activity_template_subsystem_state_hints_json_schema do
+    %{
+      "type" => "object",
+      "properties" => %{
+        "required_states" => %{
+          "type" => "array",
+          "items" => activity_template_subsystem_state_hint_json_schema()
+        },
+        "produced_states" => %{
+          "type" => "array",
+          "items" => activity_template_subsystem_state_hint_json_schema()
+        }
+      },
+      "additionalProperties" => true
+    }
+  end
+
+  defp activity_template_subsystem_state_hint_json_schema do
+    %{
+      "type" => "object",
+      "required" => ["subsystem", "state"],
+      "properties" => %{
+        "subsystem" => %{"type" => "string"},
+        "state" => %{"type" => "string"},
+        "reason" => %{"type" => "string"},
+        "blocking" => %{"type" => "boolean"}
+      },
+      "additionalProperties" => true
+    }
+  end
+
   defp activity_template_resource_hints_json_schema do
     %{
       "type" => "object",
@@ -29425,6 +29461,68 @@ defmodule OrbitalDynamics.Schema do
     end
   end
 
+  defp validate_activity_template_subsystem_state_hints(issues, path, artifact) do
+    case Map.fetch(artifact, "subsystem_state_hints") do
+      :error ->
+        issues
+
+      {:ok, hints} when is_map(hints) ->
+        ["required_states", "produced_states"]
+        |> Enum.reduce(issues, fn field, acc ->
+          acc
+          |> validate_activity_template_optional_type(
+            "#{path}.subsystem_state_hints",
+            hints,
+            field,
+            :list
+          )
+          |> validate_activity_template_subsystem_state_hint_entries(
+            "#{path}.subsystem_state_hints",
+            hints,
+            field
+          )
+        end)
+
+      {:ok, _value} ->
+        [error("#{path}.subsystem_state_hints", "must be a map") | issues]
+    end
+  end
+
+  defp validate_activity_template_subsystem_state_hint_entries(issues, path, hints, field) do
+    case Map.get(hints, field) do
+      values when is_list(values) ->
+        values
+        |> Enum.with_index()
+        |> Enum.reduce(issues, fn
+          {%{} = state_hint, index}, acc ->
+            hint_path = "#{path}.#{field}[#{index}]"
+
+            acc
+            |> require_fields(hint_path, state_hint, ["subsystem", "state"])
+            |> validate_activity_template_optional_type(
+              hint_path,
+              state_hint,
+              "subsystem",
+              :binary
+            )
+            |> validate_activity_template_optional_type(hint_path, state_hint, "state", :binary)
+            |> validate_activity_template_optional_type(hint_path, state_hint, "reason", :binary)
+            |> validate_activity_template_optional_type(
+              hint_path,
+              state_hint,
+              "blocking",
+              :boolean
+            )
+
+          {_state_hint, index}, acc ->
+            [error("#{path}.#{field}[#{index}]", "must be a map") | acc]
+        end)
+
+      _value ->
+        issues
+    end
+  end
+
   defp validate_activity_template_precondition_hints(issues, path, artifact) do
     case Map.fetch(artifact, "precondition_hints") do
       :error ->
@@ -29479,6 +29577,7 @@ defmodule OrbitalDynamics.Schema do
     |> validate_activity_template_default_fields("$", artifact)
     |> validate_activity_template_lifecycle_defaults("$", artifact)
     |> validate_activity_template_operational_hints("$", artifact)
+    |> validate_activity_template_subsystem_state_hints("$", artifact)
     |> validate_activity_template_resource_hints("$", artifact)
     |> validate_activity_template_precondition_hints("$", artifact)
   end

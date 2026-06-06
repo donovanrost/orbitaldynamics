@@ -351,6 +351,11 @@ cooldown duration, and telemetry-confirmation expectations. Template
 instantiation copies those advisory hints into normalized timeline rows and
 activity contexts without changing schedule bounds, granting authority, or
 executing commands.
+They also publish typed `subsystem_state_hints` with required and produced
+subsystem-state declarations. Template instantiation preserves those
+declarations in `activity_template.v1` provenance at the row level and inside
+`activity_context`, keeping the handoff auditable without simulating subsystem
+state machines or mutating schedules.
 `Timeline.capabilities/0` publishes the normalization, identity/context,
 precondition-summary, integrity, transition, single-activity protection, and
 list-level lifecycle state/preservation helper names plus the candidate-rejection

@@ -86,6 +86,10 @@ defmodule OrbitalDynamics do
     telemetry_confirmation_required
     telemetry_confirmation_status
   )
+  @activity_template_subsystem_state_hint_fields ~w(
+    required_states
+    produced_states
+  )
   @activity_template_lifecycle_defaults %{
     "status" => "planned",
     "approval_status" => "not_evaluated",
@@ -108,6 +112,29 @@ defmodule OrbitalDynamics do
         "cooldown_duration_s" => 60.0,
         "telemetry_confirmation_required" => true,
         "telemetry_confirmation_status" => "required"
+      },
+      subsystem_state_hints: %{
+        "required_states" => [
+          %{
+            "subsystem" => "spacecraft",
+            "state" => "standby",
+            "reason" => "spacecraft must be outside safe mode",
+            "blocking" => true
+          },
+          %{
+            "subsystem" => "payload",
+            "state" => "ready",
+            "reason" => "payload must be ready before observation",
+            "blocking" => true
+          }
+        ],
+        "produced_states" => [
+          %{
+            "subsystem" => "payload",
+            "state" => "observation_collected",
+            "reason" => "observation activity produces collection evidence"
+          }
+        ]
       },
       resource_hints: %{
         "requires_payload" => true,
@@ -140,6 +167,29 @@ defmodule OrbitalDynamics do
         "telemetry_confirmation_required" => true,
         "telemetry_confirmation_status" => "required"
       },
+      subsystem_state_hints: %{
+        "required_states" => [
+          %{
+            "subsystem" => "antenna",
+            "state" => "available",
+            "reason" => "antenna must be available for downlink",
+            "blocking" => true
+          },
+          %{
+            "subsystem" => "recorder",
+            "state" => "data_available",
+            "reason" => "recorder must contain downlinkable data",
+            "blocking" => true
+          }
+        ],
+        "produced_states" => [
+          %{
+            "subsystem" => "recorder",
+            "state" => "data_transmitted",
+            "reason" => "downlink activity produces recorder-transfer evidence"
+          }
+        ]
+      },
       resource_hints: %{
         "requires_antenna" => true,
         "requires_contact" => true,
@@ -171,6 +221,29 @@ defmodule OrbitalDynamics do
         "telemetry_confirmation_required" => true,
         "telemetry_confirmation_status" => "required"
       },
+      subsystem_state_hints: %{
+        "required_states" => [
+          %{
+            "subsystem" => "spacecraft",
+            "state" => "commandable",
+            "reason" => "spacecraft must accept uplinked commands",
+            "blocking" => true
+          },
+          %{
+            "subsystem" => "command_receiver",
+            "state" => "available",
+            "reason" => "command receiver must be available",
+            "blocking" => true
+          }
+        ],
+        "produced_states" => [
+          %{
+            "subsystem" => "command_receiver",
+            "state" => "awaiting_confirmation",
+            "reason" => "command activity requires telemetry confirmation"
+          }
+        ]
+      },
       resource_hints: %{
         "requires_antenna" => true,
         "requires_contact" => true,
@@ -201,6 +274,23 @@ defmodule OrbitalDynamics do
         "telemetry_confirmation_required" => true,
         "telemetry_confirmation_status" => "required"
       },
+      subsystem_state_hints: %{
+        "required_states" => [
+          %{
+            "subsystem" => "spacecraft",
+            "state" => "telemetry_available",
+            "reason" => "health check needs current telemetry",
+            "blocking" => true
+          }
+        ],
+        "produced_states" => [
+          %{
+            "subsystem" => "spacecraft",
+            "state" => "health_reported",
+            "reason" => "health-check activity produces health evidence"
+          }
+        ]
+      },
       resource_hints: %{
         "uses_power" => true
       },
@@ -228,6 +318,23 @@ defmodule OrbitalDynamics do
         "telemetry_confirmation_required" => false,
         "telemetry_confirmation_status" => "not_required"
       },
+      subsystem_state_hints: %{
+        "required_states" => [
+          %{
+            "subsystem" => "attitude_control",
+            "state" => "available",
+            "reason" => "attitude control must be available before slew",
+            "blocking" => true
+          }
+        ],
+        "produced_states" => [
+          %{
+            "subsystem" => "attitude_control",
+            "state" => "on_target",
+            "reason" => "slew produces target-pointing state evidence"
+          }
+        ]
+      },
       resource_hints: %{
         "uses_power" => true
       },
@@ -254,6 +361,29 @@ defmodule OrbitalDynamics do
         "cooldown_duration_s" => 300.0,
         "telemetry_confirmation_required" => true,
         "telemetry_confirmation_status" => "required"
+      },
+      subsystem_state_hints: %{
+        "required_states" => [
+          %{
+            "subsystem" => "propulsion",
+            "state" => "ready",
+            "reason" => "propulsion subsystem must be ready for maneuver",
+            "blocking" => true
+          },
+          %{
+            "subsystem" => "attitude_control",
+            "state" => "burn_attitude",
+            "reason" => "spacecraft must hold burn attitude",
+            "blocking" => true
+          }
+        ],
+        "produced_states" => [
+          %{
+            "subsystem" => "propulsion",
+            "state" => "post_burn_review",
+            "reason" => "maneuver requires post-burn review evidence"
+          }
+        ]
       },
       resource_hints: %{
         "uses_fuel" => true,
@@ -3106,6 +3236,7 @@ defmodule OrbitalDynamics do
       "optional_field_count" => length(optional_fields),
       "lifecycle_defaults" => activity_template_lifecycle_defaults(spec),
       "operational_hints" => Map.fetch!(spec, :operational_hints),
+      "subsystem_state_hints" => Map.fetch!(spec, :subsystem_state_hints),
       "resource_hints" => Map.fetch!(spec, :resource_hints),
       "precondition_hints" => Map.fetch!(spec, :precondition_hints),
       "assumptions" => @activity_template_assumptions
@@ -3141,6 +3272,7 @@ defmodule OrbitalDynamics do
       output_shape: :normalized_timeline_activity,
       transition_path: :timeline_transition_application,
       operational_hint_fields: @activity_template_operational_hint_fields,
+      subsystem_state_hint_fields: @activity_template_subsystem_state_hint_fields,
       known_limits: @activity_template_known_limits,
       assumptions: @activity_template_assumptions
     }
@@ -3262,6 +3394,7 @@ defmodule OrbitalDynamics do
       "validation_level" => Map.get(template, "validation_level"),
       "known_limits" => Map.get(template, "known_limits", []),
       "operational_hints" => Map.get(template, "operational_hints", %{}),
+      "subsystem_state_hints" => Map.get(template, "subsystem_state_hints", %{}),
       "assumptions" => Map.get(template, "assumptions", %{})
     }
   end
