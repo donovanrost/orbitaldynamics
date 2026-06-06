@@ -4,7 +4,7 @@ Current slice:
 Expose timeline-integrity command-window and issue row schemas.
 
 Status:
-Implemented, locally verified, and reviewed clean; publish pending. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 `timeline_integrity_report.v1` rows emit command-window identity fields
 (`command_window_id`, `command_window_type`) and nested
 `timeline_integrity_issues` with a `type` discriminator, and the checked-in
@@ -63,17 +63,21 @@ Tests run:
   executable evidence validation is not fully symmetric with every newly named
   JSON Schema evidence field; both follow existing permissive row-schema and
   evidence-validation patterns and are not blockers.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`6f01530db14365ac3834ab0d4ec125584526b8a8` pushed to `origin/main`.
+`ebcdc8fc0ecd60a72b91dd8fbb3d3efe2a2cd44e` pushed to `origin/main`.
 
 Last ledger correction commit:
-`4adb4d8` pushed to `origin/main`.
+Pending.
 
 Next candidate:
-After this slice, continue looking for contract-fidelity gaps outside
-CandidateRefresh `provenance.source_reports`; possible areas include
-fixture/schema visibility checks for wider standalone timeline summaries.
+Mapper found a strong next candidate outside CandidateRefresh
+`provenance.source_reports`: `campaign_strategy.v3` branch JSON Schema still
+describes input-ish branch rows requiring `id`, while runtime/exported strategy
+branches and executable validation use `branch_id` plus candidate-source
+assumptions/provenance. Secondary candidate: make
+`timeline_feedback_report.v1` `operational_feedback_provenance` schema-visible.
 
 Blocked:
 No.
