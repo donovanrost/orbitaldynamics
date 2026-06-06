@@ -4,7 +4,7 @@ Current slice:
 Expose CandidateRefresh timeline-diff source-report schema property.
 
 Status:
-Implemented, locally verified, and reviewed clean; awaiting publish. Runtime
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
 CandidateRefresh timeline-diff source summaries already preserve duplicate
 timeline identity counts, removed/changed activity counts, operator-action
 counts, source/replacement activity count maps, and trust-boundary fields.
@@ -52,12 +52,13 @@ Tests run:
 - `slice_reviewer`: no must-fix findings; reran focused export test, schema
   test, focused CandidateRefresh runtime test, schema lint, whitespace check,
   and generated-schema `jq` spot-checks.
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`7ebb5cb8e3cc4a0cfdbd45accb8f4ed16b79ef97` pushed to `origin/main`.
+`8677392f280c339e5bfcc05f831a709af15be83e` pushed to `origin/main`.
 
 Last ledger correction commit:
-`f1547bf` pushed to `origin/main`.
+Pending for this slice.
 
 Next candidate:
 After this slice, run a bounded mapper pass to identify the next schema-visible
