@@ -4,8 +4,8 @@ Current slice:
 Expose CandidateRefresh operational-readiness source-report schema property.
 
 Status:
-Implemented, locally verified, and reviewed clean; mechanical commit/push
-pending. Runtime CandidateRefresh source-report provenance already emits
+Implemented, locally verified, reviewed clean, committed, and pushed. Runtime
+CandidateRefresh source-report provenance already emits
 `operational_readiness_report` summaries, and existing validators already consume
 their resource-readiness, adapter-boundary, Cadence import, and trust-boundary
 fields. This slice makes that emitted family schema-visible under
@@ -78,12 +78,13 @@ Tests run:
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs:26915`
 - `mix orbital_dynamics.schema.lint --all`
+- `git_slice_publisher`: committed and pushed.
 
 Last completed implementation commit:
-`6acccc92ace84b66628d1ba6fe96049e7fe6f98c` pushed to `origin/main`.
+`a9c1f149b917681b63d51d9692a480744a695336` pushed to `origin/main`.
 
 Last ledger correction commit:
-`fb2087f` pushed to `origin/main`.
+Pending for this ledger update. Previous ledger correction commit was `fb2087f`.
 
 Next candidate:
 After this slice, continue the CandidateRefresh source-report schema visibility
