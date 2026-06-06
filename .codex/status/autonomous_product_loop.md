@@ -4,7 +4,7 @@ Current slice:
 Expose operator review package summary counter schemas.
 
 Status:
-Implemented, locally verified, and reviewed clean; pending publish.
+Committed and pushed.
 Contract-shaped fixture discovery shows
 `study_results/operator_review_resource_pressure_v1.json` and
 `study_results/operator_review_resource_projection_battery_handoff_v1.json`
@@ -70,10 +70,10 @@ Read-only review:
   and whitespace checks.
 
 Last completed implementation commit:
-`33e28bb388e4b2ce995c47967a3b7e110305c340` pushed to `origin/main`.
+`77dc6f934a387d3d9c1956977e54b2e27b5eee01` pushed to `origin/main`.
 
 Last ledger correction commit:
-`6192a74` pushed to `origin/main`.
+Pending ledger correction for the operator review summary counter schema slice.
 
 Next candidate:
 After this slice, rerun contract-shaped fixture/schema visibility discovery.
