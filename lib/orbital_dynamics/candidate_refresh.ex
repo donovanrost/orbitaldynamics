@@ -6896,6 +6896,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_objective_gap_replay_summary_fields(source_reports))
     |> Map.merge(source_report_timeline_feedback_replay_summary_fields(source_reports))
     |> Map.merge(source_report_operational_timeline_replay_summary_fields(source_reports))
+    |> Map.merge(source_report_timeline_lifecycle_state_replay_summary_fields(source_reports))
     |> Map.merge(
       source_report_timeline_publication_context_fields(
         source_reports,
@@ -9862,6 +9863,27 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "branch_local_integrity_pressure"),
       "source_report_operational_timeline_branch_local_station_reservation_pressure" =>
         Map.get(summary, "branch_local_station_reservation_pressure")
+    }
+  end
+
+  defp source_report_timeline_lifecycle_state_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("timeline_lifecycle_state_summary", %{})
+      |> timeline_lifecycle_state_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.timeline_lifecycle_state_summary",
+        "timeline_lifecycle_state_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_timeline_lifecycle_state_branch_local_timeline_lifecycle_state_pressure" =>
+        Map.get(summary, "branch_local_timeline_lifecycle_state_pressure"),
+      "source_report_timeline_lifecycle_state_branch_local_lifecycle_review_pressure" =>
+        Map.get(summary, "branch_local_lifecycle_review_pressure"),
+      "source_report_timeline_lifecycle_state_branch_local_lifecycle_recordable_pressure" =>
+        Map.get(summary, "branch_local_lifecycle_recordable_pressure"),
+      "source_report_timeline_lifecycle_state_branch_local_lifecycle_preservation_pressure" =>
+        Map.get(summary, "branch_local_lifecycle_preservation_pressure")
     }
   end
 
@@ -12923,6 +12945,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    timeline_lifecycle_state_replay_summary_from_summary(
+      lifecycle_summary,
+      summary_source,
+      replay_scope
+    )
+  end
+
+  defp timeline_lifecycle_state_replay_summary_from_summary(
+         lifecycle_summary,
+         summary_source,
+         replay_scope
+       ) do
     row_count = summary_integer(lifecycle_summary, "row_count")
     planned_activity_count = summary_integer(lifecycle_summary, "planned_activity_count")
     realized_activity_count = summary_integer(lifecycle_summary, "realized_activity_count")

@@ -19525,6 +19525,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                },
              "source_report_timeline_lifecycle_state_review_routing" =>
                ^expected_lifecycle_review_routing,
+             "source_report_timeline_lifecycle_state_branch_local_timeline_lifecycle_state_pressure" =>
+               true,
+             "source_report_timeline_lifecycle_state_branch_local_lifecycle_review_pressure" =>
+               true,
+             "source_report_timeline_lifecycle_state_branch_local_lifecycle_recordable_pressure" =>
+               false,
+             "source_report_timeline_lifecycle_state_branch_local_lifecycle_preservation_pressure" =>
+               true,
              "source_reports" => %{
                "timeline_lifecycle_state_summary" => %{
                  "contract" => "timeline_lifecycle_state_summary.v1",
@@ -19647,6 +19655,17 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "schema_contract" => "candidate_refresh.v1",
       "provenance" => %{"source_reports" => source_summary["source_reports"]}
     }
+
+    assert %{
+             "source_report_timeline_lifecycle_state_branch_local_timeline_lifecycle_state_pressure" =>
+               true,
+             "source_report_timeline_lifecycle_state_branch_local_lifecycle_review_pressure" =>
+               true,
+             "source_report_timeline_lifecycle_state_branch_local_lifecycle_recordable_pressure" =>
+               false,
+             "source_report_timeline_lifecycle_state_branch_local_lifecycle_preservation_pressure" =>
+               true
+           } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.timeline_lifecycle_state_replay_summary(artifact) == replay
 

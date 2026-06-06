@@ -5,42 +5,43 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Candidate-refresh operational-timeline replay branch summary routing.
+Candidate-refresh timeline lifecycle-state replay branch summary routing.
 
 Status:
 Implemented, verified, reviewed, and ready for mechanical commit/push.
 
 Completed slice:
-Expose composed operational-timeline replay branch flags on
+Expose composed timeline lifecycle-state replay branch flags on
 `CandidateRefresh.source_report_summary/1`.
 
 Why this slice:
 The public capability catalog advertises
-`source_report_operational_timeline_branch_replay_summary`. The dedicated
-`operational_timeline_replay_summary/1` helper already derives branch-local
-operational-timeline, feedback, activity-routing, integrity, and
-station-reservation pressure, but the main `source_report_summary/1` surface
-only exposed the underlying operational-timeline rollups. Adapter and
-operator-review callers can now inspect the composed operational-timeline
+`source_report_timeline_lifecycle_state_branch_replay_summary`. The dedicated
+`timeline_lifecycle_state_replay_summary/1` helper already derives branch-local
+timeline-lifecycle-state, lifecycle-review, lifecycle-recordable, and
+lifecycle-preservation pressure, but the main `source_report_summary/1` surface
+only exposed the underlying lifecycle-state rollups. Adapter and
+operator-review callers can now inspect the composed timeline lifecycle-state
 branch flags from the same source-report summary surface.
 
 Level 6 pillar:
-Branch-local candidate refresh depth and approval-aware operational timeline
-replay semantics.
+Branch-local candidate refresh depth and approval-aware lifecycle replay
+semantics.
 
 What changed:
-- `CandidateRefresh.source_report_summary/1` now exposes operational-timeline
-  branch-local replay flags for operational-timeline, feedback,
-  activity-routing, integrity, and station-reservation pressure.
-- `operational_timeline_replay_summary/1` now uses a private summary builder,
-  so the public replay helper and source-report summary fields share the same
-  branch-pressure logic without recursing through `source_report_summary/1`.
+- `CandidateRefresh.source_report_summary/1` now exposes timeline
+  lifecycle-state branch-local replay flags for timeline-lifecycle-state,
+  lifecycle-review, lifecycle-recordable, and lifecycle-preservation pressure.
+- `timeline_lifecycle_state_replay_summary/1` now uses a private summary
+  builder, so the public replay helper and source-report summary fields share
+  the same branch-pressure logic without recursing through
+  `source_report_summary/1`.
 - Candidate-refresh regression coverage proves the source-report summary
-  carries the composed operational-timeline branch flags for raw provenance and
-  compact `operational_timeline_report` provenance.
+  carries the composed timeline lifecycle-state branch flags for raw provenance
+  and compact `timeline_lifecycle_state_summary` provenance.
 
 Verification:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:34812` passed, 1
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:19298` passed, 1
   test.
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs test/orbital_dynamics/schema_test.exs`
   passed, 823 tests.
@@ -51,6 +52,8 @@ Verification:
   contract did not change.
 
 Recently completed slices:
+- `b5fdaa91dad915e3281c3bc58526c6b174955836` pushed to `origin/main` for
+  candidate-refresh operational-timeline replay branch summary routing.
 - `cda28ac62285d0af32591ceb9f6b36201754e942` pushed to `origin/main` for
   candidate-refresh timeline-feedback replay branch summary routing.
 - `012b82dbc090740620d9654a9610b43864d375f9` pushed to `origin/main` for
@@ -59,18 +62,16 @@ Recently completed slices:
   candidate-refresh constraint replay branch summary routing.
 - `43da1baf158e2432b8338a8830f7aee417bf4190` pushed to `origin/main` for
   candidate-refresh maneuver-review replay branch summary routing.
-- `eb1e0b00dff490fa63865ae06157188edbc0f14f` pushed to `origin/main` for
-  candidate-refresh command-window replay branch summary routing.
 
 Last commit:
 Pending mechanical commit/push handoff for this slice.
 
 Next candidate:
-Candidate-refresh timeline lifecycle-state replay branch summary routing. The
+Candidate-refresh timeline dependency-impact replay branch summary routing. The
 public capability catalog advertises
-`source_report_timeline_lifecycle_state_branch_replay_summary`, and
-`timeline_lifecycle_state_replay_summary/1` already derives branch-local
-lifecycle pressure flags that are not yet projected through
+`source_report_timeline_dependency_impact_branch_replay_summary`, and
+`timeline_dependency_impact_replay_summary/1` already derives branch-local
+dependency-impact pressure flags that are not yet projected through
 `CandidateRefresh.source_report_summary/1`.
 
 Blocked:
