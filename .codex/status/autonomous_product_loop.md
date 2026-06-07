@@ -8,7 +8,7 @@ Current slice:
 Contact intent summary capacity alias assumptions.
 
 Status:
-Implemented, verified, reviewed, committed locally, and awaiting push.
+Implemented, verified, reviewed, committed, and pushed.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -78,8 +78,8 @@ Remaining maturity gaps:
 - Contact allocation/reservation conflict decisions remain separate artifacts.
 
 Last commit:
-`454c25315bfc9fbe4d685c55ba11f81765a6e1f9` committed locally for Contact
-intent summary capacity alias assumptions.
+`8ece8a82e1950b6642d901a26bab38848f3ba075` pushed to `origin/main` for the
+Contact intent summary capacity alias assumptions handoff.
 
 Next candidate:
 After this slice, continue from the live guide/status and prefer another narrow
