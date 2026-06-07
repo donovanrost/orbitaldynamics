@@ -38,9 +38,9 @@ Run-duration expectation:
 Assume this goal is intended to keep working for hours, not minutes. Do not
 stop merely because one slice is complete, tests passed, context feels
 moderate, or the next slice requires normal code exploration. After each
-completed slice, update the ledger, pick the next highest-value slice, and keep
-going. Between slices, delegate the mechanical commit/push handoff to a weaker
-subagent when one is available.
+completed slice, update the ledger, complete the mechanical commit/push
+handoff, pick the next highest-value slice, and keep going. Between slices,
+delegate that handoff to a weaker subagent when one is available.
 
 Stop only when:
 - the same blocker prevents progress on three consecutive attempted slices,
@@ -143,7 +143,8 @@ Working loop:
 14. Fix must-fix review findings, rerun focused verification, and update the
     ledger if needed.
 15. Delegate the post-slice commit/push handoff.
-16. Immediately select the next slice and repeat.
+16. After the commit/push handoff reports success or a recorded blocker,
+    immediately select the next slice and repeat.
 
 Multi-slice requirement:
 Aim to complete several small vertical slices or one substantial slice plus

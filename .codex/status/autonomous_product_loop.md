@@ -5,72 +5,55 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Timeline activity-state fixture exact regeneration through the public facade.
+Long-running context-efficient prompt handoff alignment.
 
 Status:
 Implemented, verified, and reviewed; ready for commit/push.
 
-Files expected:
+Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `docs/artifacts/compatibility_checks.md`
-- `study_results/timeline_activity_state_v1.json`
-- `test/orbital_dynamics/schema_test.exs`
+- `.codex/prompts/long_running_context_efficient_product_loop.md`
 
 Slice-selection note:
-Selected after single-activity status/approval/lifecycle state fixture coverage
-was pushed at `9728c1ac6364fbad12ae3f390e51664cacfb3640` and live
-reassessment stayed in the guide's highest-priority typed timeline semantics
-queue. The checked-in `timeline_activity_state.v1` fixture validates, but
-current `OrbitalDynamics.timeline_activity_state/3` emits additional
-lifecycle-derived category, lock, executed, protection, and trust-boundary
-evidence that the fixture does not yet pin. This is a narrow public-facade
-fixture coverage slice; it does not mutate schedules, grant operator authority,
-execute commands, import artifacts, or write Cadence.
+Selected because the active objective points at
+`.codex/prompts/long_running_context_efficient_product_loop.md`, and the live
+handoff ledger still described the previous timeline fixture slice as ready for
+commit even though `0417647f9cea7241bf162a8b326eb1a9f595b9c0` is already
+pushed to `origin/main`. This is prompt/ledger maintenance only; it does not
+change product behavior, schemas, artifacts, schedule authority, command
+execution, imports, or Cadence integration.
 
 Definition of done:
-- Refresh `study_results/timeline_activity_state_v1.json` mechanically through
-  `OrbitalDynamics.timeline_activity_state/3` from deterministic planned and
-  realized activity inputs.
-- Add focused schema coverage that exact-compares the checked-in fixture against
-  public-facade output before schema validation and pins the current
-  lifecycle-derived state fields, reconciliation rows, review routing,
-  assumptions, and model limits.
-- Update compatibility docs to name the exact regeneration check and
-  artifact-only no-schedule-mutation/no-authority/no-command/no-Cadence-write
-  boundary.
-- Run focused schema tests, schema lint for the refreshed fixture, read-only
-  review, and commit/push only this slice's files.
+- Tighten the long-running prompt so post-slice sequencing explicitly completes
+  commit/push handoff before next-slice selection.
+- Keep the hours-long continuation rule, compact-ledger rule, and narrow
+  sidecar boundaries aligned with `docs/autonomous_work_guide.md` and
+  `.codex/prompts/context_efficient_autonomous_product_loop.md`.
+- Replace stale ledger content with this compact current handoff.
+- Run `git diff --check` and commit/push only this prompt-maintenance slice.
 
 Implementation notes:
-- Refreshed `study_results/timeline_activity_state_v1.json` mechanically from
-  `OrbitalDynamics.timeline_activity_state/3` using deterministic unmatched
-  planned and realized command activities.
-- Added focused schema coverage exact-comparing the checked-in activity-state
-  fixture against public-facade output before schema validation, pinning
-  lifecycle-derived status categories, lock/executed booleans, protection
-  evidence, trust-boundary status, reconciliation rows, review routing, and
-  exact model limits.
-- Updated compatibility docs with the exact regeneration check and
-  artifact-only no-schedule-mutation/no-authority/no-command boundary.
+- Tightened `Run-duration expectation` and working-loop step 16 in the
+  long-running prompt to remove ambiguity about commit/push sequencing.
+- Preserved the source-of-truth role of `docs/autonomous_work_guide.md`, the
+  stronger "hours, not minutes" continuation rule, and sidecar constraints.
 
 Verification:
-- `mix format test/orbital_dynamics/schema_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:10073`
-- `mix test test/orbital_dynamics/schema_test.exs:10135`
-- `mix orbital_dynamics.schema.lint --input study_results/timeline_activity_state_v1.json --contract timeline_activity_state.v1`
-- `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 
 Review:
-- Local read-only review found no issues.
-- Reviewed fixture regeneration, exact test coverage, docs, and the compact
-  ledger for scope. Changes remain artifact-only and ignore the unrelated dirty
-  `.gitignore`.
-- Residual risk is low.
+- Read-only subagent review found no issues.
+- Reviewed continuation semantics, commit/push sequencing, sidecar boundaries,
+  ledger freshness, scope, and whitespace. Residual risk is low.
 
 Last commit:
-`9728c1ac6364fbad12ae3f390e51664cacfb3640` pushed to `origin/main` for
-single-activity timeline state fixture coverage.
+`0417647f9cea7241bf162a8b326eb1a9f595b9c0` pushed to `origin/main` for
+timeline activity-state fixture coverage.
+
+Next candidate:
+Resume from `docs/autonomous_work_guide.md`; the default next product area is
+the highest-priority incomplete typed operational activity/timeline semantics
+slice unless live tests or ledger state show a broken contract.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
