@@ -939,6 +939,134 @@ defmodule OrbitalDynamics.SchemaTest do
            } = Validation.artifact_observations("contact_contention_report.v1", report)
   end
 
+  test "validates checked-in station reservation hold summary fixtures" do
+    hold_summary = read_json!("study_results/station_reservation_hold_summary_v1.json")
+
+    hold_import_readiness_summary =
+      read_json!("study_results/station_reservation_hold_import_readiness_summary_v1.json")
+
+    reservation_report =
+      OrbitalDynamics.station_reservation_report(%{
+        "schema_contract" => "station_calendar_report.v1",
+        "source" => "ops_calendar",
+        "affected_contacts" => [
+          %{
+            "contact_id" => "dl_source_reserved",
+            "ground_station_id" => "equator_prime",
+            "source_station_calendar_entry" => %{
+              "id" => "calendar_reserved_1",
+              "provider_id" => "ops_calendar",
+              "provider_entry_id" => "provider_reserved_1",
+              "availability" => "reserved",
+              "reservation_id" => "reservation_expired",
+              "reservation_status" => "held",
+              "reserved_by" => "ops_calendar",
+              "reservation_expires_at_s" => 240.0
+            }
+          }
+        ],
+        "provider_calendar_contention_groups" => [
+          %{
+            "provider_calendar_contention_status" => "provider_calendar_overlap",
+            "ground_station_id" => "equator_prime",
+            "reservation_ids" => ["reservation_active"],
+            "reservation_statuses" => ["confirmed"],
+            "reservation_expires_at_s" => [420.0],
+            "required_operator_action" => "review_station_provider_contention"
+          },
+          %{
+            "provider_calendar_contention_status" => "provider_calendar_overlap",
+            "ground_station_id" => "polar_prime",
+            "reservation_ids" => ["reservation_missing"],
+            "reservation_statuses" => ["held"],
+            "reserved_by" => ["partner_calendar"],
+            "required_operator_action" => "review_station_provider_contention"
+          }
+        ]
+      })
+
+    generated_hold_summary =
+      OrbitalDynamics.station_reservation_hold_summary(reservation_report, now_s: 300.0)
+
+    generated_hold_import_readiness_summary =
+      OrbitalDynamics.station_reservation_hold_import_readiness_summary(
+        reservation_report,
+        now_s: 300.0
+      )
+
+    assert generated_hold_summary == hold_summary
+    assert generated_hold_import_readiness_summary == hold_import_readiness_summary
+
+    assert {:ok, %{"schema_contract" => "station_reservation_hold_summary.v1"}} =
+             Schema.validate_artifact(hold_summary)
+
+    assert {:ok,
+            %{
+              "schema_contract" => "station_reservation_hold_import_readiness_summary.v1"
+            }} = Schema.validate_artifact(hold_import_readiness_summary)
+
+    assert %{
+             "source_artifact_type" => "station_reservation_report.v1",
+             "source" => "station_calendar_report.reservation_evidence",
+             "reservation_hold_count" => 2,
+             "affected_contact_reservation_hold_count" => 1,
+             "provider_calendar_contention_hold_count" => 1,
+             "reservation_hold_review_status" => "review_required",
+             "reservation_hold_expiration_status_counts" => %{
+               "expired" => 1,
+               "missing" => 1
+             },
+             "reservation_hold_ids" => ["reservation_expired", "reservation_missing"],
+             "reservation_hold_ids_by_reserved_by" => %{
+               "ops_calendar" => ["reservation_expired"],
+               "partner_calendar" => ["reservation_missing"]
+             },
+             "reservation_hold_ids_by_row_type" => %{
+               "affected_contact" => ["reservation_expired"],
+               "provider_calendar_contention_group" => ["reservation_missing"]
+             },
+             "reservation_hold_contact_ids_by_expiration_status" => %{
+               "expired" => ["dl_source_reserved"]
+             },
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_provider_reservation",
+               "operator_authority" => "not_granted_by_summary",
+               "deadline_evaluation" => "relative_to_now_s",
+               "now_s" => 300.0
+             }
+           } = hold_summary
+
+    assert %{
+             "source_artifact_type" => "station_reservation_report.v1",
+             "source" => "station_calendar_report.reservation_evidence",
+             "reservation_hold_count" => 2,
+             "import_readiness_status" => "review_required",
+             "import_classification" => "review_only",
+             "review_required_before_import_count" => 2,
+             "reservation_hold_import_status_counts" => %{
+               "review_required_before_import" => 2
+             },
+             "required_import_action_counts" => %{
+               "review_station_provider_contention" => 1,
+               "review_station_reservation_overlap" => 1
+             },
+             "reservation_hold_ids_by_required_import_action" => %{
+               "review_station_provider_contention" => ["reservation_missing"],
+               "review_station_reservation_overlap" => ["reservation_expired"]
+             },
+             "reservation_hold_contact_ids_by_import_status" => %{
+               "review_required_before_import" => ["dl_source_reserved"]
+             },
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_provider_or_cadence_writes",
+               "provider_write" => "not_performed_by_summary",
+               "cadence_write" => "not_performed_by_summary",
+               "reservation_acceptance" => "not_performed_by_summary",
+               "operator_authority" => "not_granted_by_import_readiness_summary"
+             }
+           } = hold_import_readiness_summary
+  end
+
   test "validates checked-in optimizer and objective explanation examples" do
     optimizer_contract = read_json!("study_results/optimizer_contract_v1.json")
     ranking_comparison_report = read_json!("study_results/ranking_comparison_report_v1.json")

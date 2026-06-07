@@ -1073,7 +1073,11 @@ hide stale route evidence behind top-level summaries.
 Station-reservation review, hold, and hold import-readiness summary validation
 rejects stale generated `model_limits`, and schema export pins the artifact-only
 summary models plus exact StationCalendar `model_limits` used by generated
-handoffs.
+handoffs. The checked-in
+`study_results/station_reservation_hold_summary_v1.json` and
+`study_results/station_reservation_hold_import_readiness_summary_v1.json`
+fixtures cover expired and missing hold evidence, owner/status/action routing,
+and no-provider-write/no-Cadence-write boundaries.
 Candidate-refresh station-reservation replay also derives hold
 import-readiness status/action/direction routing from compact
 `import_readiness_rows` when present, so stale top-level hold import maps cannot
