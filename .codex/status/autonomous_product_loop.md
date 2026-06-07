@@ -5,32 +5,32 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Single-activity state no-authority assumption schema pinning.
+Full timeline activity-state no-authority assumption schema pinning.
 
 Status:
 Implemented, reviewed, and product commit created; ledger publish pending.
 
 Slice-selection note:
 Selected slice:
-Pin the fixed no-authority `assumptions` maps for
-`timeline_activity_status_state.v1`, `timeline_activity_approval_state.v1`, and
-`timeline_activity_lifecycle_state.v1` in JSON Schema export.
+Pin the fixed no-authority `assumptions` map for
+`timeline_activity_state.v1` in JSON Schema export.
 
 Why this slice:
-The single-activity state helpers already emit and runtime-validate
-artifact-only/no-schedule-mutation/no-operator-authority/no-command-execution
-assumptions, with lifecycle state also declaring no Cadence import. The checked
-schemas still expose those assumptions as a loose object, so schema-only
-handoffs cannot detect stale boundary metadata.
+The full activity-state facade from `TimelineFeedback.activity_state/3` already
+emits and runtime-validates artifact-only, no-schedule-mutation, and
+no-command-execution assumptions. Its exported schema still exposes
+`assumptions` as a loose object, leaving schema-only handoffs unable to detect
+stale boundary metadata.
 
 Level 6 pillar:
 Durable schema-versioned timeline artifacts and Cadence-facing adapter safety.
 
 Current evidence gap:
-Runtime validation rejects stale no-authority assumption fields, but exported
-schemas do not advertise the same exact constants for these three handoffs.
+Runtime validation rejects stale activity-state no-authority assumption fields,
+but the exported `timeline_activity_state.v1` schema does not advertise exact
+constants for those fields.
 
-Docs read:
+Docs to read:
 - `docs/artifacts/field_families/mission_activities.md`
 - `docs/mission_planning/high_fidelity/04_plan_structure_and_lifecycle.md`
 
@@ -38,43 +38,39 @@ Likely files:
 - `lib/orbital_dynamics/schema.ex`
 - `test/orbital_dynamics/timeline_feedback_test.exs`
 - `test/orbital_dynamics/schema_test.exs`
-- `schemas/timeline_activity_status_state.v1.schema.json`
-- `schemas/timeline_activity_approval_state.v1.schema.json`
-- `schemas/timeline_activity_lifecycle_state.v1.schema.json`
-- `schemas/timeline_lifecycle_state_summary.v1.schema.json`
+- `schemas/timeline_activity_state.v1.schema.json`
 - `schemas/orbital_dynamics.schema_bundle.v1.json`
 - `docs/artifacts/field_families/mission_activities.md`
 
 Likely tests:
-- `mix test test/orbital_dynamics/timeline_feedback_test.exs:<single activity state tests>`
-- `mix test test/orbital_dynamics/schema_test.exs:<activity state fixture/schema tests>`
+- `mix test test/orbital_dynamics/timeline_feedback_test.exs:<activity state test>`
+- `mix test test/orbital_dynamics/schema_test.exs:<activity state schema test>`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 
 Definition of done:
-- The three single-activity state schemas export exact assumption constants.
-- Tests prove schema export matches the runtime no-authority assumptions.
-- Existing runtime validation of stale assumptions remains covered.
+- `timeline_activity_state.v1` exports exact assumption constants for the
+  runtime-enforced no-authority fields.
+- Tests prove schema export matches the runtime assumptions and stale runtime
+  assumptions are rejected.
 - Checked-in schema exports are refreshed.
 - Focused tests, schema lint, and whitespace checks pass.
 
 Current implementation:
-- `timeline_activity_status_state.v1` and
-  `timeline_activity_approval_state.v1` schemas now require and pin
-  `artifact_only`, `no_schedule_mutation`, `no_operator_authority_grant`, and
-  `no_command_execution` assumptions to `true`.
-- `timeline_activity_lifecycle_state.v1` additionally requires and pins
-  `no_cadence_import` to `true`.
-- Schema tests assert the exported assumption schema and runtime stale
-  assumption rejection for status, approval, and lifecycle states.
-- Checked-in schema exports and the schema bundle were refreshed.
-- Mission-activities docs mention the schema-pinned no-authority boundary.
+- `timeline_activity_state.v1` schema now requires and pins `artifact_only`,
+  `no_schedule_mutation`, and `no_command_execution` assumptions to `true`.
+- The activity-state schema test asserts the exported assumption schema using
+  the same helper as the single-activity state handoffs.
+- Checked-in `timeline_activity_state.v1` and bundle schema exports were
+  refreshed.
+- Mission-activities docs now describe the schema-pinned no-mutation/no-command
+  assumptions for the full activity-state facade.
 
 Verification:
 - `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:10461 test/orbital_dynamics/schema_test.exs:10594 test/orbital_dynamics/schema_test.exs:10742 test/orbital_dynamics/schema_test.exs:10953`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
+- `mix test test/orbital_dynamics/schema_test.exs:10065 test/orbital_dynamics/schema_test.exs:10196 test/orbital_dynamics/schema_test.exs:10283`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
@@ -85,12 +81,12 @@ Review:
   checks and schema lint passed.
 
 Product commit:
-- `64faa50` (`Pin activity state assumption schemas`)
+- `f67c5ec` (`Pin activity state handoff assumptions`)
 
 Previous pushed slice:
-Contact-contention report capability assumptions landed in product commit
-`2fc4e99` and final pushed ledger commit `9f97c16`, with local and
-`origin/main` verified at `9f97c16bc380f6209e52bd68cce7500fbbbd418c`.
+Single-activity state no-authority assumption schema pinning landed in product
+commit `64faa50` and final pushed ledger commit `47bdbe1`, with local and
+`origin/main` verified at `47bdbe1e0900f6d4a314123b2c2de46c14b12789`.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
