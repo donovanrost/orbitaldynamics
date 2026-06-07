@@ -1070,7 +1070,13 @@ instead of suppressing candidates. Executable validation also rejects stale
 kept/suppressed counts, suppressed trust maps, and resource-filter model-limit
 drift, rejects stale resource-filter model strings, and exports the same model
 constant plus exact `model_limits` used by generated resource-filter reports and
-compact summaries.
+compact summaries. Focused schema-reference coverage also exact-regenerates the
+checked-in full report through `OrbitalDynamics.resource_filter_report/3` from
+deterministic candidates, a declared wildcard resource summary, and explicit
+policy thresholds before schema validation, pinning source-quality routing,
+trust-boundary routing, suppression routing, and exact `model_limits`. The full
+report and derived compact summary fixtures remain artifact-only no-resource-
+propagation/no-schedule-mutation/no-Cadence-write handoffs.
 `study_results/resource_filter_summary_v1.json` now feeds a curated
 `resource_filter_summary.v1` validation-reference fixture. The observations
 check input/kept/suppressed/invalid counts, suppression review status,

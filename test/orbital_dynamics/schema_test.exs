@@ -1440,8 +1440,13 @@ defmodule OrbitalDynamics.SchemaTest do
              "suppressed_candidate_ids_by_scenario_id" => %{
                "leo_1" => ["leo_1_downlink_equator_prime_1", "leo_1_observe_target_a_1"]
              },
-             "suppressed_resource_source_quality_counts" => %{},
-             "suppressed_candidate_ids_by_resource_source_quality" => %{},
+             "suppressed_resource_source_quality_counts" => %{"operator_supplied" => 2},
+             "suppressed_candidate_ids_by_resource_source_quality" => %{
+               "operator_supplied" => [
+                 "leo_1_downlink_equator_prime_1",
+                 "leo_1_observe_target_a_1"
+               ]
+             },
              "suppressed_resource_trust_boundary_status_counts" => %{"missing" => 2},
              "suppressed_candidate_ids_by_resource_trust_boundary_status" => %{
                "missing" => ["leo_1_downlink_equator_prime_1", "leo_1_observe_target_a_1"]
@@ -1466,6 +1471,143 @@ defmodule OrbitalDynamics.SchemaTest do
            ]
 
     assert summary["model_limits"] == report["model_limits"]
+  end
+
+  test "validates checked-in resource filter report fixture regenerates through public facade" do
+    report = read_json!("study_results/resource_filter_report_v1.json")
+
+    candidates = [
+      %{
+        id: :leo_1_observe_target_a_1,
+        type: :observe,
+        scenario_id: :leo_1,
+        source_window_id: :"window:leo_1:target_visibility:target_a:1",
+        starts_at_s: 60.0,
+        ends_at_s: 180.0
+      },
+      %{
+        id: :leo_1_downlink_equator_prime_1,
+        type: :downlink,
+        scenario_id: :leo_1,
+        source_window_id: :"window:leo_1:ground_station_access:equator_prime:1",
+        ground_station_id: :equator_prime,
+        station_availability: :available,
+        starts_at_s: 200.0,
+        ends_at_s: 320.0
+      },
+      %{
+        id: :leo_1_command_equator_prime_1,
+        type: :command,
+        scenario_id: :leo_1,
+        source_window_id: :"window:leo_1:ground_station_access:equator_prime:command:1",
+        ground_station_id: :equator_prime,
+        starts_at_s: 400.0,
+        ends_at_s: 430.0
+      }
+    ]
+
+    resource_summaries = [
+      %{
+        source_quality: :operator_supplied,
+        downlink_margin: 0.1,
+        storage_margin: 0.1,
+        power_margin: 0.8,
+        fuel_margin: 0.8
+      }
+    ]
+
+    generated_report =
+      OrbitalDynamics.resource_filter_report(candidates, resource_summaries,
+        policy: %{
+          min_activity_fuel_margin: 0.1,
+          min_observe_storage_margin: 0.2,
+          min_downlink_margin: 0.2
+        }
+      )
+
+    assert generated_report == report
+
+    assert {:ok, %{"schema_contract" => "resource_filter_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert report["model"] == "resource_summary_availability_and_margin_filter"
+
+    assert report["model_limits"] == [
+             "artifact_level_only",
+             "externally_supplied_resource_summary",
+             "no_subsystem_simulation",
+             "no_resource_time_propagation",
+             "no_schedule_mutation"
+           ]
+
+    assert report["policy"] == %{
+             "min_activity_fuel_margin" => 0.1,
+             "min_downlink_margin" => 0.2,
+             "min_observe_storage_margin" => 0.2
+           }
+
+    assert %{
+             "input_candidate_count" => 3,
+             "kept_candidate_count" => 1,
+             "suppressed_candidate_count" => 2,
+             "input_resource_summary_count" => 1,
+             "valid_resource_summary_count" => 1,
+             "invalid_resource_summary_input_count" => 0,
+             "invalid_resource_summary_input_ids" => [],
+             "invalid_resource_summary_inputs" => [],
+             "invalid_candidate_input_count" => 0,
+             "invalid_candidate_input_ids" => [],
+             "duplicate_suppressed_candidate_id_count" => 0,
+             "duplicate_suppressed_candidate_row_count" => 0,
+             "resource_source_quality_counts" => %{"operator_supplied" => 1},
+             "resource_trust_boundary_status_counts" => %{"missing" => 1},
+             "suppressed_resource_source_quality_counts" => %{"operator_supplied" => 2},
+             "suppressed_resource_trust_boundary_status_counts" => %{"missing" => 2}
+           } = report
+
+    assert report["suppressed_candidate_ids_by_resource_source_quality"] == %{
+             "operator_supplied" => [
+               "leo_1_downlink_equator_prime_1",
+               "leo_1_observe_target_a_1"
+             ]
+           }
+
+    assert report["suppressed_candidate_ids_by_resource_trust_boundary_status"] == %{
+             "missing" => ["leo_1_downlink_equator_prime_1", "leo_1_observe_target_a_1"]
+           }
+
+    rows_by_id = Map.new(report["suppressed_candidates"], &{&1["id"], &1})
+
+    assert %{
+             "type" => "observe",
+             "scenario_id" => "leo_1",
+             "suppressed_reason" => "storage_margin_below_observe_policy",
+             "resource_blocking_dimension" => "storage",
+             "resource_source_quality" => "operator_supplied",
+             "resource_trust_boundary_status" => "missing",
+             "storage_margin" => 0.1,
+             "downlink_margin" => 0.1,
+             "power_margin" => 0.8,
+             "fuel_margin" => 0.8,
+             "source_resource_summary" => %{"source_quality" => "operator_supplied"}
+           } = rows_by_id["leo_1_observe_target_a_1"]
+
+    assert %{
+             "type" => "downlink",
+             "direction" => "downlink",
+             "scenario_id" => "leo_1",
+             "ground_station_id" => "equator_prime",
+             "station_availability" => "available",
+             "suppressed_reason" => "downlink_margin_below_policy",
+             "resource_blocking_dimension" => "downlink",
+             "resource_source_quality" => "operator_supplied",
+             "resource_trust_boundary_status" => "missing",
+             "storage_margin" => 0.1,
+             "downlink_margin" => 0.1,
+             "power_margin" => 0.8,
+             "fuel_margin" => 0.8,
+             "source_resource_summary" => %{"source_quality" => "operator_supplied"}
+           } = rows_by_id["leo_1_downlink_equator_prime_1"]
   end
 
   test "validates checked-in resource projection flow summary fixture" do

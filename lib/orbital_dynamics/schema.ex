@@ -4196,9 +4196,19 @@ defmodule OrbitalDynamics.Schema do
         "ambiguous_actual_completion_contact_ids",
         "actual_downlink_completion_ratio",
         "actual_data_rate_throughput_derivations",
+        "downlink_completion_sources",
+        "invalid_contact_input_count",
+        "invalid_contact_input_ids",
+        "invalid_contact_inputs",
+        "invalid_selected_contact_input_count",
+        "invalid_selected_contact_input_ids",
+        "invalid_selected_contact_inputs",
         "station_reservation_ids",
+        "station_reservation_expires_at_s",
         "station_reserved_bys",
         "station_reservation_statuses",
+        "invalid_policy_required_downlink_station_count",
+        "invalid_policy_required_downlink_station_ids",
         "station_reservation_match_status_counts"
       ],
       "nested_contracts" => []
@@ -13740,7 +13750,10 @@ defmodule OrbitalDynamics.Schema do
               "unmatched_actual_throughput_contact_count",
               "ambiguous_actual_throughput_contact_count",
               "unmatched_actual_completion_contact_count",
-              "ambiguous_actual_completion_contact_count"
+              "ambiguous_actual_completion_contact_count",
+              "invalid_contact_input_count",
+              "invalid_selected_contact_input_count",
+              "invalid_policy_required_downlink_station_count"
             ] do
     %{"type" => "integer", "minimum" => 0}
   end
@@ -13751,12 +13764,22 @@ defmodule OrbitalDynamics.Schema do
               "unmatched_actual_throughput_contact_ids",
               "ambiguous_actual_throughput_contact_ids",
               "unmatched_actual_completion_contact_ids",
-              "ambiguous_actual_completion_contact_ids"
+              "ambiguous_actual_completion_contact_ids",
+              "invalid_contact_input_ids",
+              "invalid_selected_contact_input_ids"
             ] do
     stable_id_array_schema()
   end
 
   defp json_schema_property("required_downlink_contact_ids", @link_capacity_report, _contract) do
+    string_array_schema()
+  end
+
+  defp json_schema_property(
+         "invalid_policy_required_downlink_station_ids",
+         @link_capacity_report,
+         _contract
+       ) do
     string_array_schema()
   end
 
@@ -13773,8 +13796,22 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @link_capacity_report, _contract)
-       when field in ["station_reserved_bys", "station_reservation_statuses"] do
+       when field in [
+              "downlink_completion_sources",
+              "station_reserved_bys",
+              "station_reservation_statuses"
+            ] do
     string_array_schema()
+  end
+
+  defp json_schema_property(field, @link_capacity_report, _contract)
+       when field in ["station_reservation_expires_at_s"] do
+    number_array_schema()
+  end
+
+  defp json_schema_property(field, @link_capacity_report, _contract)
+       when field in ["invalid_contact_inputs", "invalid_selected_contact_inputs"] do
+    %{"type" => "array", "items" => %{"type" => "object", "additionalProperties" => true}}
   end
 
   defp json_schema_property(
@@ -18926,6 +18963,7 @@ defmodule OrbitalDynamics.Schema do
         "id" => %{"type" => "string", "pattern" => @stable_id_pattern},
         "type" => %{"type" => "string"},
         "scenario_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "spacecraft_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
         "suppressed_reason" => %{
           "type" => "string",
           "enum" =>
@@ -18948,16 +18986,36 @@ defmodule OrbitalDynamics.Schema do
         "station_calendar_status" => %{"type" => "string"},
         "station_calendar_precedence_rank" => %{"type" => "integer", "minimum" => 0},
         "station_calendar_precedence_availability" => %{"type" => "string"},
+        "station_calendar_trust_boundary_status" => %{"type" => "string"},
         "station_availability" => %{"type" => "string"},
         "station_contention_status" => %{"type" => "string"},
         "station_calendar_directions" => string_array_schema(),
+        "station_calendar_reservation_ids" => stable_id_array_schema(),
+        "station_calendar_reservation_overlap_count" => %{"type" => "integer", "minimum" => 0},
+        "station_calendar_reservation_statuses" => string_array_schema(),
+        "station_calendar_reserved_by" => string_array_schema(),
         "station_reservation_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
         "station_reservation_expires_at_s" => %{"type" => "number"},
         "station_reserved_by" => %{"type" => "string"},
         "station_reservation_status" => %{"type" => "string"},
         "station_reservation_match_status" => %{"type" => "string"},
+        "direction" => %{"type" => "string"},
         "resource_blocking_dimension" => %{"type" => "string"},
+        "resource_source_quality" => %{"type" => "string"},
         "resource_trust_boundary_status" => %{"type" => "string"},
+        "source_resource_summary" => %{"type" => "object", "additionalProperties" => true},
+        "fuel_margin" => %{"type" => "number"},
+        "power_margin" => %{"type" => "number"},
+        "storage_margin" => %{"type" => "number"},
+        "downlink_margin" => %{"type" => "number"},
+        "source_station_calendar_entry" => %{
+          "type" => "object",
+          "additionalProperties" => true
+        },
+        "source_station_calendar_overlaps" => %{
+          "type" => "array",
+          "items" => %{"type" => "object", "additionalProperties" => true}
+        },
         "incompatible_activity_types" => string_array_schema(),
         "suppressed_activity_types" => string_array_schema(),
         "policy_decision" => policy_decision_json_schema()
