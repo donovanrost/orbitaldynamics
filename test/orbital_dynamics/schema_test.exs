@@ -12869,6 +12869,194 @@ defmodule OrbitalDynamics.SchemaTest do
            )
   end
 
+  test "validates checked-in timeline transition application report fixture" do
+    report = read_json!("study_results/timeline_transition_application_report_v1.json")
+
+    protected_source = %{
+      id: :cmd_lock,
+      type: :command,
+      status: :planned,
+      approval_status: :approved,
+      locked: true,
+      starts_at_s: 10.0,
+      ends_at_s: 20.0,
+      metadata: %{timeline_id: :"timeline:cmd_lock"}
+    }
+
+    protected_replacement = %{
+      id: :cmd_lock,
+      type: :command,
+      status: :planned,
+      approval_status: :approved,
+      locked: true,
+      starts_at_s: 15.0,
+      ends_at_s: 25.0,
+      metadata: %{timeline_id: :"timeline:cmd_lock"}
+    }
+
+    unchanged = %{
+      id: :obs_keep,
+      type: :observe,
+      target_id: :target_a,
+      starts_at_s: 30.0,
+      ends_at_s: 40.0,
+      metadata: %{timeline_id: :"timeline:obs_keep"}
+    }
+
+    removed = %{
+      id: :old_contact,
+      type: :planned_contact,
+      ground_station_id: :dss_14,
+      starts_at_s: 50.0,
+      ends_at_s: 60.0,
+      metadata: %{timeline_id: :"timeline:old_contact"}
+    }
+
+    added = %{
+      id: :new_cmd,
+      type: :command,
+      starts_at_s: 70.0,
+      ends_at_s: 80.0,
+      metadata: %{timeline_id: :"timeline:new_cmd"}
+    }
+
+    generated_report =
+      OrbitalDynamics.timeline_transition_application_report(
+        [protected_source, unchanged, removed],
+        [protected_replacement, unchanged, added],
+        source: "fixture.timeline.transition_application"
+      )
+
+    assert generated_report == report
+
+    assert {:ok, %{"schema_contract" => "timeline_transition_application_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert %{
+             "schema_contract" => "timeline_transition_application_report.v1",
+             "model" => "artifact_only_timeline_transition_application",
+             "source" => "fixture.timeline.transition_application",
+             "source_activity_count" => 3,
+             "replacement_activity_count" => 3,
+             "application_count" => 4,
+             "selected_activity_count" => 2,
+             "review_required_count" => 3,
+             "preserved_source_count" => 1,
+             "recorded_replacement_count" => 0,
+             "withheld_review_count" => 2,
+             "selected_timeline_integrity_issue_count" => 0,
+             "selected_timeline_integrity_review_count" => 0,
+             "selected_timeline_integrity_issue_types" => [],
+             "application_status_counts" => %{
+               "operator_review_required" => 2,
+               "source_preserved_pending_review" => 1,
+               "source_unchanged" => 1
+             },
+             "transition_decision_counts" => %{
+               "none" => 1,
+               "preserve_source" => 1,
+               "review" => 2
+             },
+             "required_operator_action_counts" => %{
+               "none" => 1,
+               "review_added_activity" => 1,
+               "review_changed_protected_activity" => 1,
+               "review_removed_activity" => 1
+             },
+             "status_transition_counts" => %{"added" => 1, "removed" => 1},
+             "approval_transition_counts" => %{"added" => 1, "removed" => 1},
+             "status_transition_category_counts" => %{
+               "status_added" => 1,
+               "status_removed" => 1
+             },
+             "approval_transition_category_counts" => %{
+               "approval_removed" => 1,
+               "approval_review_required" => 1
+             },
+             "model_limits" => [
+               "artifact_level_only",
+               "no_schedule_mutation",
+               "no_command_execution",
+               "derived_identity_when_no_persistent_timeline_id"
+             ],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_schedule_mutation",
+               "review_gate" =>
+                 "review-required transitions withhold replacement selection until an operator decision",
+               "selected_missing_dependency_validation" => "enabled",
+               "selected_timeline_integrity" =>
+                 "selected activities are rechecked as their own artifact-only timeline subset because withheld review rows can remove dependencies",
+               "selection" =>
+                 "only unchanged, recordable, or preserved protected activities are selected automatically"
+             }
+           } = report
+
+    assert Enum.map(report["applications"], &{&1["timeline_id"], &1["application_status"]}) == [
+             {"timeline:cmd_lock", "source_preserved_pending_review"},
+             {"timeline:new_cmd", "operator_review_required"},
+             {"timeline:obs_keep", "source_unchanged"},
+             {"timeline:old_contact", "operator_review_required"}
+           ]
+
+    assert %{
+             "timeline_id" => "timeline:cmd_lock",
+             "transition_decision" => "preserve_source",
+             "required_operator_action" => "review_changed_protected_activity",
+             "selected_activity_source" => "source",
+             "selected_activity" => %{
+               "activity_id" => "cmd_lock",
+               "precondition_status" => "clear",
+               "blocked_precondition_count" => 0,
+               "blocked_precondition_types" => [],
+               "review_precondition_count" => 0,
+               "review_precondition_types" => [],
+               "protection_decision" => "preserve"
+             },
+             "source_timeline_diff" => %{
+               "diff_status" => "changed",
+               "changed_fields" => ["starts_at_s", "ends_at_s"],
+               "requires_operator_review" => true
+             }
+           } = Enum.find(report["applications"], &(&1["timeline_id"] == "timeline:cmd_lock"))
+
+    assert %{
+             "timeline_id" => "timeline:new_cmd",
+             "transition_decision" => "review",
+             "required_operator_action" => "review_added_activity",
+             "source_timeline_diff" => %{
+               "diff_status" => "added",
+               "status_transition" => %{"transition_category" => "status_added"},
+               "approval_transition" => %{"transition_category" => "approval_review_required"}
+             }
+           } = Enum.find(report["applications"], &(&1["timeline_id"] == "timeline:new_cmd"))
+
+    assert %{
+             "timeline_id" => "timeline:old_contact",
+             "transition_decision" => "review",
+             "required_operator_action" => "review_removed_activity",
+             "source_timeline_diff" => %{
+               "diff_status" => "removed",
+               "status_transition" => %{"transition_category" => "status_removed"},
+               "approval_transition" => %{"transition_category" => "approval_removed"}
+             }
+           } = Enum.find(report["applications"], &(&1["timeline_id"] == "timeline:old_contact"))
+
+    assert [
+             %{
+               "activity_id" => "cmd_lock",
+               "precondition_status" => "clear",
+               "blocked_precondition_count" => 0,
+               "review_precondition_count" => 0
+             },
+             %{
+               "activity_id" => "obs_keep",
+               "precondition_status" => "clear",
+               "blocked_precondition_count" => 0,
+               "review_precondition_count" => 0
+             }
+           ] = report["selected_activities"]
+  end
+
   test "validates nested timeline transition applications in review and import handoffs" do
     source_diff = %{
       "id" => "timeline_diff:timeline:obs_1",

@@ -1,1 +1,836 @@
-{"application_count":4,"application_status_counts":{"operator_review_required":2,"source_preserved_pending_review":1,"source_unchanged":1},"applications":[{"application_status":"source_preserved_pending_review","changed_fields":["starts_at_s","ends_at_s"],"diff_status":"changed","id":"timeline_diff:timeline:cmd_lock","rank":1,"reason":"replacement timeline changes locked activity cmd_lock: starts_at_s,ends_at_s","replacement_activity_id":"cmd_lock","replacement_activity_type":"command","replacement_protection_decision":{"activity_id":"cmd_lock","approval_status":"approved","approved":true,"locked":true,"protection_category":"locked_or_approved","protection_decision":"preserve","reason":"activity_locked_or_approved","status":"planned","timeline_id":"timeline:cmd_lock","timeline_identity":{"activity_id":"cmd_lock","activity_type":"command","timeline_id":"timeline:cmd_lock"}},"required_operator_action":"review_changed_protected_activity","requires_operator_review":true,"selected_activity":{"activity_context":{"approval_status":"approved","command_window_id":"command_window:cmd_lock","command_window_type":"command_window","duration_s":10.0,"ends_at_s":20.0,"locked":true,"metadata":{"timeline_id":"timeline:cmd_lock"},"starts_at_s":10.0,"status":"planned","timeline_identity":{"activity_id":"cmd_lock","activity_type":"command","timeline_id":"timeline:cmd_lock"}},"activity_id":"cmd_lock","activity_type":"command","approval_status":"approved","approved":true,"cadence_import_status":"missing","command_window_id":"command_window:cmd_lock","command_window_type":"command_window","ends_at_s":20.0,"execution_boundary":"planned_not_commanded","has_cadence_import":false,"has_source_window":false,"locked":true,"operational_kind":"command","operator_action_reason":"cadence_import_missing","protection_category":"locked_or_approved","protection_decision":"preserve","protection_reason":"activity_locked_or_approved","required_operator_action":"prepare_cadence_import","starts_at_s":10.0,"status":"planned","timeline_id":"timeline:cmd_lock","timeline_identity":{"activity_id":"cmd_lock","activity_type":"command","timeline_id":"timeline:cmd_lock"}},"selected_activity_source":"source","source_activity_id":"cmd_lock","source_activity_type":"command","source_protection_decision":{"activity_id":"cmd_lock","approval_status":"approved","approved":true,"locked":true,"protection_category":"locked_or_approved","protection_decision":"preserve","reason":"activity_locked_or_approved","status":"planned","timeline_id":"timeline:cmd_lock","timeline_identity":{"activity_id":"cmd_lock","activity_type":"command","timeline_id":"timeline:cmd_lock"}},"source_timeline_diff":{"transition_decision":"preserve_source","replacement_starts_at_s":15.0,"source_activity_type":"command","end_delta_s":5.0,"changed_fields":["starts_at_s","ends_at_s"],"reason":"replacement timeline changes locked activity cmd_lock: starts_at_s,ends_at_s","replacement_locked":true,"required_operator_action":"review_changed_protected_activity","start_delta_s":5.0,"source_locked":true,"diff_status":"changed","replacement_protection_category":"locked_or_approved","rank":1,"source_starts_at_s":10.0,"source_protection_reason":"activity_locked_or_approved","replacement_activity_id":"cmd_lock","source_approval_status":"approved","replacement_timeline_identity":{"activity_id":"cmd_lock","activity_type":"command","timeline_id":"timeline:cmd_lock"},"transition_decision_reason":"activity_locked_or_approved","requires_operator_review":true,"id":"timeline_diff:timeline:cmd_lock","source_timeline_identity":{"activity_id":"cmd_lock","activity_type":"command","timeline_id":"timeline:cmd_lock"},"source_protection_decision":{"activity_id":"cmd_lock","approval_status":"approved","approved":true,"locked":true,"protection_category":"locked_or_approved","protection_decision":"preserve","reason":"activity_locked_or_approved","status":"planned","timeline_id":"timeline:cmd_lock","timeline_identity":{"activity_id":"cmd_lock","activity_type":"command","timeline_id":"timeline:cmd_lock"}},"source_ends_at_s":20.0,"replacement_approval_status":"approved","replacement_ends_at_s":25.0,"replacement_protection_decision":{"activity_id":"cmd_lock","approval_status":"approved","approved":true,"locked":true,"protection_category":"locked_or_approved","protection_decision":"preserve","reason":"activity_locked_or_approved","status":"planned","timeline_id":"timeline:cmd_lock","timeline_identity":{"activity_id":"cmd_lock","activity_type":"command","timeline_id":"timeline:cmd_lock"}},"source_status":"planned","replacement_status":"planned","replacement_activity_type":"command","source_protection_category":"locked_or_approved","replacement_activity_context":{"approval_status":"approved","command_window_id":"command_window:cmd_lock","command_window_type":"command_window","duration_s":10.0,"ends_at_s":25.0,"locked":true,"metadata":{"timeline_id":"timeline:cmd_lock"},"starts_at_s":15.0,"status":"planned","timeline_identity":{"activity_id":"cmd_lock","activity_type":"command","timeline_id":"timeline:cmd_lock"}},"source_activity_id":"cmd_lock","timeline_id":"timeline:cmd_lock","source_activity_context":{"approval_status":"approved","command_window_id":"command_window:cmd_lock","command_window_type":"command_window","duration_s":10.0,"ends_at_s":20.0,"locked":true,"metadata":{"timeline_id":"timeline:cmd_lock"},"starts_at_s":10.0,"status":"planned","timeline_identity":{"activity_id":"cmd_lock","activity_type":"command","timeline_id":"timeline:cmd_lock"}},"replacement_protection_reason":"activity_locked_or_approved"},"timeline_id":"timeline:cmd_lock","transition_decision":"preserve_source","transition_decision_reason":"activity_locked_or_approved"},{"application_status":"operator_review_required","approval_transition":{"field":"approval_status","operator_action_reason":"approval_requires_review","requires_operator_review":true,"to":"not_evaluated","to_category":"review_required","transition_category":"approval_review_required","transition_type":"added"},"changed_fields":["timeline_presence"],"diff_status":"added","id":"timeline_diff:timeline:new_cmd","rank":2,"reason":"replacement timeline adds activity new_cmd","replacement_activity_id":"new_cmd","replacement_activity_type":"command","replacement_protection_decision":{"activity_id":"new_cmd","approval_status":"not_evaluated","approved":false,"locked":false,"protection_category":"none","protection_decision":"mutable","reason":"no_timeline_protection","status":"planned","timeline_id":"timeline:new_cmd","timeline_identity":{"activity_id":"new_cmd","activity_type":"command","timeline_id":"timeline:new_cmd"}},"required_operator_action":"review_added_activity","requires_operator_review":true,"source_timeline_diff":{"approval_transition":{"field":"approval_status","operator_action_reason":"approval_requires_review","requires_operator_review":true,"to":"not_evaluated","to_category":"review_required","transition_category":"approval_review_required","transition_type":"added"},"changed_fields":["timeline_presence"],"diff_status":"added","id":"timeline_diff:timeline:new_cmd","rank":2,"reason":"replacement timeline adds activity new_cmd","replacement_activity_context":{"command_window_id":"command_window:new_cmd","command_window_type":"command_window","duration_s":10.0,"ends_at_s":80.0,"metadata":{"timeline_id":"timeline:new_cmd"},"starts_at_s":70.0,"timeline_identity":{"activity_id":"new_cmd","activity_type":"command","timeline_id":"timeline:new_cmd"}},"replacement_activity_id":"new_cmd","replacement_activity_type":"command","replacement_approval_status":"not_evaluated","replacement_ends_at_s":80.0,"replacement_locked":false,"replacement_protection_category":"none","replacement_protection_decision":{"activity_id":"new_cmd","approval_status":"not_evaluated","approved":false,"locked":false,"protection_category":"none","protection_decision":"mutable","reason":"no_timeline_protection","status":"planned","timeline_id":"timeline:new_cmd","timeline_identity":{"activity_id":"new_cmd","activity_type":"command","timeline_id":"timeline:new_cmd"}},"replacement_protection_reason":"no_timeline_protection","replacement_starts_at_s":70.0,"replacement_status":"planned","replacement_timeline_identity":{"activity_id":"new_cmd","activity_type":"command","timeline_id":"timeline:new_cmd"},"required_operator_action":"review_added_activity","requires_operator_review":true,"status_transition":{"field":"status","operator_action_reason":"added_activity_status","requires_operator_review":false,"to":"planned","to_category":"planned","transition_category":"status_added","transition_type":"added"},"timeline_id":"timeline:new_cmd","transition_decision":"review","transition_decision_reason":"replacement timeline adds activity new_cmd"},"status_transition":{"field":"status","operator_action_reason":"added_activity_status","requires_operator_review":false,"to":"planned","to_category":"planned","transition_category":"status_added","transition_type":"added"},"timeline_id":"timeline:new_cmd","transition_decision":"review","transition_decision_reason":"replacement timeline adds activity new_cmd"},{"application_status":"source_unchanged","changed_fields":[],"diff_status":"unchanged","id":"timeline_diff:timeline:obs_keep","rank":3,"reason":"timeline activity obs_keep is unchanged","replacement_activity_id":"obs_keep","replacement_activity_type":"observe","replacement_protection_decision":{"activity_id":"obs_keep","approval_status":"not_evaluated","approved":false,"locked":false,"protection_category":"none","protection_decision":"mutable","reason":"no_timeline_protection","status":"planned","timeline_id":"timeline:obs_keep","timeline_identity":{"activity_id":"obs_keep","activity_type":"observe","subject_id":"target_a","timeline_id":"timeline:obs_keep"}},"required_operator_action":"none","requires_operator_review":false,"selected_activity":{"activity_context":{"duration_s":10.0,"ends_at_s":40.0,"metadata":{"timeline_id":"timeline:obs_keep"},"starts_at_s":30.0,"target_id":"target_a","timeline_identity":{"activity_id":"obs_keep","activity_type":"observe","subject_id":"target_a","timeline_id":"timeline:obs_keep"}},"activity_id":"obs_keep","activity_type":"observe","approval_status":"not_evaluated","approved":false,"cadence_import_status":"not_applicable","ends_at_s":40.0,"execution_boundary":"planned_not_commanded","has_cadence_import":false,"has_source_window":false,"locked":false,"operational_kind":"observation","operator_action_reason":"approval_status_not_evaluated","protection_category":"none","protection_decision":"mutable","protection_reason":"no_timeline_protection","required_operator_action":"review_activity_approval","starts_at_s":30.0,"status":"planned","target_id":"target_a","timeline_id":"timeline:obs_keep","timeline_identity":{"activity_id":"obs_keep","activity_type":"observe","subject_id":"target_a","timeline_id":"timeline:obs_keep"}},"selected_activity_source":"source","source_activity_id":"obs_keep","source_activity_type":"observe","source_protection_decision":{"activity_id":"obs_keep","approval_status":"not_evaluated","approved":false,"locked":false,"protection_category":"none","protection_decision":"mutable","reason":"no_timeline_protection","status":"planned","timeline_id":"timeline:obs_keep","timeline_identity":{"activity_id":"obs_keep","activity_type":"observe","subject_id":"target_a","timeline_id":"timeline:obs_keep"}},"source_timeline_diff":{"transition_decision":"none","replacement_starts_at_s":30.0,"source_activity_type":"observe","end_delta_s":0.0,"changed_fields":[],"reason":"timeline activity obs_keep is unchanged","replacement_locked":false,"required_operator_action":"none","start_delta_s":0.0,"source_locked":false,"source_target_id":"target_a","diff_status":"unchanged","replacement_protection_category":"none","rank":3,"source_starts_at_s":30.0,"source_protection_reason":"no_timeline_protection","replacement_activity_id":"obs_keep","source_approval_status":"not_evaluated","replacement_timeline_identity":{"activity_id":"obs_keep","activity_type":"observe","subject_id":"target_a","timeline_id":"timeline:obs_keep"},"transition_decision_reason":"timeline_unchanged","requires_operator_review":false,"id":"timeline_diff:timeline:obs_keep","source_timeline_identity":{"activity_id":"obs_keep","activity_type":"observe","subject_id":"target_a","timeline_id":"timeline:obs_keep"},"source_protection_decision":{"activity_id":"obs_keep","approval_status":"not_evaluated","approved":false,"locked":false,"protection_category":"none","protection_decision":"mutable","reason":"no_timeline_protection","status":"planned","timeline_id":"timeline:obs_keep","timeline_identity":{"activity_id":"obs_keep","activity_type":"observe","subject_id":"target_a","timeline_id":"timeline:obs_keep"}},"source_ends_at_s":40.0,"replacement_approval_status":"not_evaluated","replacement_ends_at_s":40.0,"replacement_protection_decision":{"activity_id":"obs_keep","approval_status":"not_evaluated","approved":false,"locked":false,"protection_category":"none","protection_decision":"mutable","reason":"no_timeline_protection","status":"planned","timeline_id":"timeline:obs_keep","timeline_identity":{"activity_id":"obs_keep","activity_type":"observe","subject_id":"target_a","timeline_id":"timeline:obs_keep"}},"source_status":"planned","replacement_status":"planned","replacement_activity_type":"observe","source_protection_category":"none","replacement_activity_context":{"duration_s":10.0,"ends_at_s":40.0,"metadata":{"timeline_id":"timeline:obs_keep"},"starts_at_s":30.0,"target_id":"target_a","timeline_identity":{"activity_id":"obs_keep","activity_type":"observe","subject_id":"target_a","timeline_id":"timeline:obs_keep"}},"replacement_target_id":"target_a","source_activity_id":"obs_keep","timeline_id":"timeline:obs_keep","source_activity_context":{"duration_s":10.0,"ends_at_s":40.0,"metadata":{"timeline_id":"timeline:obs_keep"},"starts_at_s":30.0,"target_id":"target_a","timeline_identity":{"activity_id":"obs_keep","activity_type":"observe","subject_id":"target_a","timeline_id":"timeline:obs_keep"}},"replacement_protection_reason":"no_timeline_protection"},"timeline_id":"timeline:obs_keep","transition_decision":"none","transition_decision_reason":"timeline_unchanged"},{"application_status":"operator_review_required","approval_transition":{"field":"approval_status","from":"not_evaluated","from_category":"review_required","operator_action_reason":"approval_status_removed","requires_operator_review":false,"transition_category":"approval_removed","transition_type":"removed"},"changed_fields":["timeline_presence"],"diff_status":"removed","id":"timeline_diff:timeline:old_contact","rank":4,"reason":"replacement timeline removes activity old_contact","required_operator_action":"review_removed_activity","requires_operator_review":true,"source_activity_id":"old_contact","source_activity_type":"planned_contact","source_protection_decision":{"activity_id":"old_contact","approval_status":"not_evaluated","approved":false,"locked":false,"protection_category":"none","protection_decision":"mutable","reason":"no_timeline_protection","status":"planned","timeline_id":"timeline:old_contact","timeline_identity":{"activity_id":"old_contact","activity_type":"planned_contact","subject_id":"dss_14","timeline_id":"timeline:old_contact"}},"source_timeline_diff":{"approval_transition":{"field":"approval_status","from":"not_evaluated","from_category":"review_required","operator_action_reason":"approval_status_removed","requires_operator_review":false,"transition_category":"approval_removed","transition_type":"removed"},"changed_fields":["timeline_presence"],"diff_status":"removed","id":"timeline_diff:timeline:old_contact","rank":4,"reason":"replacement timeline removes activity old_contact","required_operator_action":"review_removed_activity","requires_operator_review":true,"source_activity_context":{"direction":"downlink","duration_s":10.0,"ends_at_s":60.0,"ground_station_id":"dss_14","metadata":{"timeline_id":"timeline:old_contact"},"starts_at_s":50.0,"timeline_identity":{"activity_id":"old_contact","activity_type":"planned_contact","subject_id":"dss_14","timeline_id":"timeline:old_contact"}},"source_activity_id":"old_contact","source_activity_type":"planned_contact","source_approval_status":"not_evaluated","source_ends_at_s":60.0,"source_ground_station_id":"dss_14","source_locked":false,"source_protection_category":"none","source_protection_decision":{"activity_id":"old_contact","approval_status":"not_evaluated","approved":false,"locked":false,"protection_category":"none","protection_decision":"mutable","reason":"no_timeline_protection","status":"planned","timeline_id":"timeline:old_contact","timeline_identity":{"activity_id":"old_contact","activity_type":"planned_contact","subject_id":"dss_14","timeline_id":"timeline:old_contact"}},"source_protection_reason":"no_timeline_protection","source_starts_at_s":50.0,"source_status":"planned","source_timeline_identity":{"activity_id":"old_contact","activity_type":"planned_contact","subject_id":"dss_14","timeline_id":"timeline:old_contact"},"status_transition":{"field":"status","from":"planned","from_category":"planned","operator_action_reason":"removed_activity_status","requires_operator_review":false,"transition_category":"status_removed","transition_type":"removed"},"timeline_id":"timeline:old_contact","transition_decision":"review","transition_decision_reason":"replacement timeline removes activity old_contact"},"status_transition":{"field":"status","from":"planned","from_category":"planned","operator_action_reason":"removed_activity_status","requires_operator_review":false,"transition_category":"status_removed","transition_type":"removed"},"timeline_id":"timeline:old_contact","transition_decision":"review","transition_decision_reason":"replacement timeline removes activity old_contact"}],"approval_transition_category_counts":{"approval_removed":1,"approval_review_required":1},"approval_transition_counts":{"added":1,"removed":1},"assumptions":{"execution_boundary":"artifact_only_no_schedule_mutation","review_gate":"review-required transitions withhold replacement selection until an operator decision","selected_missing_dependency_validation":"enabled","selected_timeline_integrity":"selected activities are rechecked as their own artifact-only timeline subset because withheld review rows can remove dependencies","selection":"only unchanged, recordable, or preserved protected activities are selected automatically"},"model":"artifact_only_timeline_transition_application","model_limits":["artifact_level_only","no_schedule_mutation","no_command_execution","derived_identity_when_no_persistent_timeline_id"],"preserved_source_count":1,"recorded_replacement_count":0,"replacement_activity_count":3,"required_operator_action_counts":{"none":1,"review_added_activity":1,"review_changed_protected_activity":1,"review_removed_activity":1},"review_required_count":3,"schema_contract":"timeline_transition_application_report.v1","selected_activities":[{"activity_context":{"approval_status":"approved","command_window_id":"command_window:cmd_lock","command_window_type":"command_window","duration_s":10.0,"ends_at_s":20.0,"locked":true,"metadata":{"timeline_id":"timeline:cmd_lock"},"starts_at_s":10.0,"status":"planned","timeline_identity":{"activity_id":"cmd_lock","activity_type":"command","timeline_id":"timeline:cmd_lock"}},"activity_id":"cmd_lock","activity_type":"command","approval_status":"approved","approved":true,"cadence_import_status":"missing","command_window_id":"command_window:cmd_lock","command_window_type":"command_window","ends_at_s":20.0,"execution_boundary":"planned_not_commanded","has_cadence_import":false,"has_source_window":false,"locked":true,"operational_kind":"command","operator_action_reason":"cadence_import_missing","protection_category":"locked_or_approved","protection_decision":"preserve","protection_reason":"activity_locked_or_approved","required_operator_action":"prepare_cadence_import","starts_at_s":10.0,"status":"planned","timeline_id":"timeline:cmd_lock","timeline_identity":{"activity_id":"cmd_lock","activity_type":"command","timeline_id":"timeline:cmd_lock"}},{"activity_context":{"duration_s":10.0,"ends_at_s":40.0,"metadata":{"timeline_id":"timeline:obs_keep"},"starts_at_s":30.0,"target_id":"target_a","timeline_identity":{"activity_id":"obs_keep","activity_type":"observe","subject_id":"target_a","timeline_id":"timeline:obs_keep"}},"activity_id":"obs_keep","activity_type":"observe","approval_status":"not_evaluated","approved":false,"cadence_import_status":"not_applicable","ends_at_s":40.0,"execution_boundary":"planned_not_commanded","has_cadence_import":false,"has_source_window":false,"locked":false,"operational_kind":"observation","operator_action_reason":"approval_status_not_evaluated","protection_category":"none","protection_decision":"mutable","protection_reason":"no_timeline_protection","required_operator_action":"review_activity_approval","starts_at_s":30.0,"status":"planned","target_id":"target_a","timeline_id":"timeline:obs_keep","timeline_identity":{"activity_id":"obs_keep","activity_type":"observe","subject_id":"target_a","timeline_id":"timeline:obs_keep"}}],"selected_activity_count":2,"selected_timeline_integrity_issue_count":0,"selected_timeline_integrity_issue_types":[],"selected_timeline_integrity_review_count":0,"source":"fixture.timeline.transition_application","source_activity_count":3,"status_transition_category_counts":{"status_added":1,"status_removed":1},"status_transition_counts":{"added":1,"removed":1},"transition_decision_counts":{"none":1,"preserve_source":1,"review":2},"withheld_review_count":2}
+{
+  "application_count": 4,
+  "application_status_counts": {
+    "operator_review_required": 2,
+    "source_preserved_pending_review": 1,
+    "source_unchanged": 1
+  },
+  "applications": [
+    {
+      "application_status": "source_preserved_pending_review",
+      "changed_fields": [
+        "starts_at_s",
+        "ends_at_s"
+      ],
+      "diff_status": "changed",
+      "id": "timeline_diff:timeline:cmd_lock",
+      "rank": 1,
+      "reason": "replacement timeline changes locked activity cmd_lock: starts_at_s,ends_at_s",
+      "replacement_activity_id": "cmd_lock",
+      "replacement_activity_type": "command",
+      "replacement_protection_decision": {
+        "activity_id": "cmd_lock",
+        "approval_status": "approved",
+        "approved": true,
+        "locked": true,
+        "protection_category": "locked_or_approved",
+        "protection_decision": "preserve",
+        "reason": "activity_locked_or_approved",
+        "status": "planned",
+        "timeline_id": "timeline:cmd_lock",
+        "timeline_identity": {
+          "activity_id": "cmd_lock",
+          "activity_type": "command",
+          "timeline_id": "timeline:cmd_lock"
+        }
+      },
+      "required_operator_action": "review_changed_protected_activity",
+      "requires_operator_review": true,
+      "selected_activity": {
+        "activity_context": {
+          "approval_status": "approved",
+          "command_window_id": "command_window:cmd_lock",
+          "command_window_type": "command_window",
+          "duration_s": 10.0,
+          "ends_at_s": 20.0,
+          "locked": true,
+          "metadata": { "timeline_id": "timeline:cmd_lock" },
+          "starts_at_s": 10.0,
+          "status": "planned",
+          "timeline_identity": {
+            "activity_id": "cmd_lock",
+            "activity_type": "command",
+            "timeline_id": "timeline:cmd_lock"
+          }
+        },
+        "activity_id": "cmd_lock",
+        "activity_type": "command",
+        "approval_status": "approved",
+        "approved": true,
+        "blocked_precondition_count": 0,
+        "blocked_precondition_types": [],
+        "cadence_import_status": "missing",
+        "command_window_id": "command_window:cmd_lock",
+        "command_window_type": "command_window",
+        "ends_at_s": 20.0,
+        "execution_boundary": "planned_not_commanded",
+        "has_cadence_import": false,
+        "has_source_window": false,
+        "locked": true,
+        "operational_kind": "command",
+        "operator_action_reason": "cadence_import_missing",
+        "precondition_status": "clear",
+        "preconditions": [],
+        "protection_category": "locked_or_approved",
+        "protection_decision": "preserve",
+        "protection_reason": "activity_locked_or_approved",
+        "required_operator_action": "prepare_cadence_import",
+        "review_precondition_count": 0,
+        "review_precondition_types": [],
+        "starts_at_s": 10.0,
+        "status": "planned",
+        "timeline_id": "timeline:cmd_lock",
+        "timeline_identity": {
+          "activity_id": "cmd_lock",
+          "activity_type": "command",
+          "timeline_id": "timeline:cmd_lock"
+        }
+      },
+      "selected_activity_source": "source",
+      "source_activity_id": "cmd_lock",
+      "source_activity_type": "command",
+      "source_protection_decision": {
+        "activity_id": "cmd_lock",
+        "approval_status": "approved",
+        "approved": true,
+        "locked": true,
+        "protection_category": "locked_or_approved",
+        "protection_decision": "preserve",
+        "reason": "activity_locked_or_approved",
+        "status": "planned",
+        "timeline_id": "timeline:cmd_lock",
+        "timeline_identity": {
+          "activity_id": "cmd_lock",
+          "activity_type": "command",
+          "timeline_id": "timeline:cmd_lock"
+        }
+      },
+      "source_timeline_diff": {
+        "changed_fields": [
+          "starts_at_s",
+          "ends_at_s"
+        ],
+        "diff_status": "changed",
+        "end_delta_s": 5.0,
+        "id": "timeline_diff:timeline:cmd_lock",
+        "rank": 1,
+        "reason": "replacement timeline changes locked activity cmd_lock: starts_at_s,ends_at_s",
+        "replacement_activity_context": {
+          "approval_status": "approved",
+          "command_window_id": "command_window:cmd_lock",
+          "command_window_type": "command_window",
+          "duration_s": 10.0,
+          "ends_at_s": 25.0,
+          "locked": true,
+          "metadata": { "timeline_id": "timeline:cmd_lock" },
+          "starts_at_s": 15.0,
+          "status": "planned",
+          "timeline_identity": {
+            "activity_id": "cmd_lock",
+            "activity_type": "command",
+            "timeline_id": "timeline:cmd_lock"
+          }
+        },
+        "replacement_activity_id": "cmd_lock",
+        "replacement_activity_type": "command",
+        "replacement_approval_status": "approved",
+        "replacement_ends_at_s": 25.0,
+        "replacement_locked": true,
+        "replacement_protection_category": "locked_or_approved",
+        "replacement_protection_decision": {
+          "activity_id": "cmd_lock",
+          "approval_status": "approved",
+          "approved": true,
+          "locked": true,
+          "protection_category": "locked_or_approved",
+          "protection_decision": "preserve",
+          "reason": "activity_locked_or_approved",
+          "status": "planned",
+          "timeline_id": "timeline:cmd_lock",
+          "timeline_identity": {
+            "activity_id": "cmd_lock",
+            "activity_type": "command",
+            "timeline_id": "timeline:cmd_lock"
+          }
+        },
+        "replacement_protection_reason": "activity_locked_or_approved",
+        "replacement_starts_at_s": 15.0,
+        "replacement_status": "planned",
+        "replacement_timeline_identity": {
+          "activity_id": "cmd_lock",
+          "activity_type": "command",
+          "timeline_id": "timeline:cmd_lock"
+        },
+        "required_operator_action": "review_changed_protected_activity",
+        "requires_operator_review": true,
+        "source_activity_context": {
+          "approval_status": "approved",
+          "command_window_id": "command_window:cmd_lock",
+          "command_window_type": "command_window",
+          "duration_s": 10.0,
+          "ends_at_s": 20.0,
+          "locked": true,
+          "metadata": { "timeline_id": "timeline:cmd_lock" },
+          "starts_at_s": 10.0,
+          "status": "planned",
+          "timeline_identity": {
+            "activity_id": "cmd_lock",
+            "activity_type": "command",
+            "timeline_id": "timeline:cmd_lock"
+          }
+        },
+        "source_activity_id": "cmd_lock",
+        "source_activity_type": "command",
+        "source_approval_status": "approved",
+        "source_ends_at_s": 20.0,
+        "source_locked": true,
+        "source_protection_category": "locked_or_approved",
+        "source_protection_decision": {
+          "activity_id": "cmd_lock",
+          "approval_status": "approved",
+          "approved": true,
+          "locked": true,
+          "protection_category": "locked_or_approved",
+          "protection_decision": "preserve",
+          "reason": "activity_locked_or_approved",
+          "status": "planned",
+          "timeline_id": "timeline:cmd_lock",
+          "timeline_identity": {
+            "activity_id": "cmd_lock",
+            "activity_type": "command",
+            "timeline_id": "timeline:cmd_lock"
+          }
+        },
+        "source_protection_reason": "activity_locked_or_approved",
+        "source_starts_at_s": 10.0,
+        "source_status": "planned",
+        "source_timeline_identity": {
+          "activity_id": "cmd_lock",
+          "activity_type": "command",
+          "timeline_id": "timeline:cmd_lock"
+        },
+        "start_delta_s": 5.0,
+        "timeline_id": "timeline:cmd_lock",
+        "transition_decision": "preserve_source",
+        "transition_decision_reason": "activity_locked_or_approved"
+      },
+      "timeline_id": "timeline:cmd_lock",
+      "transition_decision": "preserve_source",
+      "transition_decision_reason": "activity_locked_or_approved"
+    },
+    {
+      "application_status": "operator_review_required",
+      "approval_transition": {
+        "field": "approval_status",
+        "operator_action_reason": "approval_requires_review",
+        "requires_operator_review": true,
+        "to": "not_evaluated",
+        "to_category": "review_required",
+        "transition_category": "approval_review_required",
+        "transition_type": "added"
+      },
+      "changed_fields": [
+        "timeline_presence"
+      ],
+      "diff_status": "added",
+      "id": "timeline_diff:timeline:new_cmd",
+      "rank": 2,
+      "reason": "replacement timeline adds activity new_cmd",
+      "replacement_activity_id": "new_cmd",
+      "replacement_activity_type": "command",
+      "replacement_protection_decision": {
+        "activity_id": "new_cmd",
+        "approval_status": "not_evaluated",
+        "approved": false,
+        "locked": false,
+        "protection_category": "none",
+        "protection_decision": "mutable",
+        "reason": "no_timeline_protection",
+        "status": "planned",
+        "timeline_id": "timeline:new_cmd",
+        "timeline_identity": {
+          "activity_id": "new_cmd",
+          "activity_type": "command",
+          "timeline_id": "timeline:new_cmd"
+        }
+      },
+      "required_operator_action": "review_added_activity",
+      "requires_operator_review": true,
+      "source_timeline_diff": {
+        "approval_transition": {
+          "field": "approval_status",
+          "operator_action_reason": "approval_requires_review",
+          "requires_operator_review": true,
+          "to": "not_evaluated",
+          "to_category": "review_required",
+          "transition_category": "approval_review_required",
+          "transition_type": "added"
+        },
+        "changed_fields": [
+          "timeline_presence"
+        ],
+        "diff_status": "added",
+        "id": "timeline_diff:timeline:new_cmd",
+        "rank": 2,
+        "reason": "replacement timeline adds activity new_cmd",
+        "replacement_activity_context": {
+          "command_window_id": "command_window:new_cmd",
+          "command_window_type": "command_window",
+          "duration_s": 10.0,
+          "ends_at_s": 80.0,
+          "metadata": { "timeline_id": "timeline:new_cmd" },
+          "starts_at_s": 70.0,
+          "timeline_identity": {
+            "activity_id": "new_cmd",
+            "activity_type": "command",
+            "timeline_id": "timeline:new_cmd"
+          }
+        },
+        "replacement_activity_id": "new_cmd",
+        "replacement_activity_type": "command",
+        "replacement_approval_status": "not_evaluated",
+        "replacement_ends_at_s": 80.0,
+        "replacement_locked": false,
+        "replacement_protection_category": "none",
+        "replacement_protection_decision": {
+          "activity_id": "new_cmd",
+          "approval_status": "not_evaluated",
+          "approved": false,
+          "locked": false,
+          "protection_category": "none",
+          "protection_decision": "mutable",
+          "reason": "no_timeline_protection",
+          "status": "planned",
+          "timeline_id": "timeline:new_cmd",
+          "timeline_identity": {
+            "activity_id": "new_cmd",
+            "activity_type": "command",
+            "timeline_id": "timeline:new_cmd"
+          }
+        },
+        "replacement_protection_reason": "no_timeline_protection",
+        "replacement_starts_at_s": 70.0,
+        "replacement_status": "planned",
+        "replacement_timeline_identity": {
+          "activity_id": "new_cmd",
+          "activity_type": "command",
+          "timeline_id": "timeline:new_cmd"
+        },
+        "required_operator_action": "review_added_activity",
+        "requires_operator_review": true,
+        "status_transition": {
+          "field": "status",
+          "operator_action_reason": "added_activity_status",
+          "requires_operator_review": false,
+          "to": "planned",
+          "to_category": "planned",
+          "transition_category": "status_added",
+          "transition_type": "added"
+        },
+        "timeline_id": "timeline:new_cmd",
+        "transition_decision": "review",
+        "transition_decision_reason": "replacement timeline adds activity new_cmd"
+      },
+      "status_transition": {
+        "field": "status",
+        "operator_action_reason": "added_activity_status",
+        "requires_operator_review": false,
+        "to": "planned",
+        "to_category": "planned",
+        "transition_category": "status_added",
+        "transition_type": "added"
+      },
+      "timeline_id": "timeline:new_cmd",
+      "transition_decision": "review",
+      "transition_decision_reason": "replacement timeline adds activity new_cmd"
+    },
+    {
+      "application_status": "source_unchanged",
+      "changed_fields": [],
+      "diff_status": "unchanged",
+      "id": "timeline_diff:timeline:obs_keep",
+      "rank": 3,
+      "reason": "timeline activity obs_keep is unchanged",
+      "replacement_activity_id": "obs_keep",
+      "replacement_activity_type": "observe",
+      "replacement_protection_decision": {
+        "activity_id": "obs_keep",
+        "approval_status": "not_evaluated",
+        "approved": false,
+        "locked": false,
+        "protection_category": "none",
+        "protection_decision": "mutable",
+        "reason": "no_timeline_protection",
+        "status": "planned",
+        "timeline_id": "timeline:obs_keep",
+        "timeline_identity": {
+          "activity_id": "obs_keep",
+          "activity_type": "observe",
+          "subject_id": "target_a",
+          "timeline_id": "timeline:obs_keep"
+        }
+      },
+      "required_operator_action": "none",
+      "requires_operator_review": false,
+      "selected_activity": {
+        "activity_context": {
+          "duration_s": 10.0,
+          "ends_at_s": 40.0,
+          "metadata": { "timeline_id": "timeline:obs_keep" },
+          "starts_at_s": 30.0,
+          "target_id": "target_a",
+          "timeline_identity": {
+            "activity_id": "obs_keep",
+            "activity_type": "observe",
+            "subject_id": "target_a",
+            "timeline_id": "timeline:obs_keep"
+          }
+        },
+        "activity_id": "obs_keep",
+        "activity_type": "observe",
+        "approval_status": "not_evaluated",
+        "approved": false,
+        "blocked_precondition_count": 0,
+        "blocked_precondition_types": [],
+        "cadence_import_status": "not_applicable",
+        "ends_at_s": 40.0,
+        "execution_boundary": "planned_not_commanded",
+        "has_cadence_import": false,
+        "has_source_window": false,
+        "locked": false,
+        "operational_kind": "observation",
+        "operator_action_reason": "approval_status_not_evaluated",
+        "precondition_status": "clear",
+        "preconditions": [],
+        "protection_category": "none",
+        "protection_decision": "mutable",
+        "protection_reason": "no_timeline_protection",
+        "required_operator_action": "review_activity_approval",
+        "review_precondition_count": 0,
+        "review_precondition_types": [],
+        "starts_at_s": 30.0,
+        "status": "planned",
+        "target_id": "target_a",
+        "timeline_id": "timeline:obs_keep",
+        "timeline_identity": {
+          "activity_id": "obs_keep",
+          "activity_type": "observe",
+          "subject_id": "target_a",
+          "timeline_id": "timeline:obs_keep"
+        }
+      },
+      "selected_activity_source": "source",
+      "source_activity_id": "obs_keep",
+      "source_activity_type": "observe",
+      "source_protection_decision": {
+        "activity_id": "obs_keep",
+        "approval_status": "not_evaluated",
+        "approved": false,
+        "locked": false,
+        "protection_category": "none",
+        "protection_decision": "mutable",
+        "reason": "no_timeline_protection",
+        "status": "planned",
+        "timeline_id": "timeline:obs_keep",
+        "timeline_identity": {
+          "activity_id": "obs_keep",
+          "activity_type": "observe",
+          "subject_id": "target_a",
+          "timeline_id": "timeline:obs_keep"
+        }
+      },
+      "source_timeline_diff": {
+        "changed_fields": [],
+        "diff_status": "unchanged",
+        "end_delta_s": 0.0,
+        "id": "timeline_diff:timeline:obs_keep",
+        "rank": 3,
+        "reason": "timeline activity obs_keep is unchanged",
+        "replacement_activity_context": {
+          "duration_s": 10.0,
+          "ends_at_s": 40.0,
+          "metadata": { "timeline_id": "timeline:obs_keep" },
+          "starts_at_s": 30.0,
+          "target_id": "target_a",
+          "timeline_identity": {
+            "activity_id": "obs_keep",
+            "activity_type": "observe",
+            "subject_id": "target_a",
+            "timeline_id": "timeline:obs_keep"
+          }
+        },
+        "replacement_activity_id": "obs_keep",
+        "replacement_activity_type": "observe",
+        "replacement_approval_status": "not_evaluated",
+        "replacement_ends_at_s": 40.0,
+        "replacement_locked": false,
+        "replacement_protection_category": "none",
+        "replacement_protection_decision": {
+          "activity_id": "obs_keep",
+          "approval_status": "not_evaluated",
+          "approved": false,
+          "locked": false,
+          "protection_category": "none",
+          "protection_decision": "mutable",
+          "reason": "no_timeline_protection",
+          "status": "planned",
+          "timeline_id": "timeline:obs_keep",
+          "timeline_identity": {
+            "activity_id": "obs_keep",
+            "activity_type": "observe",
+            "subject_id": "target_a",
+            "timeline_id": "timeline:obs_keep"
+          }
+        },
+        "replacement_protection_reason": "no_timeline_protection",
+        "replacement_starts_at_s": 30.0,
+        "replacement_status": "planned",
+        "replacement_target_id": "target_a",
+        "replacement_timeline_identity": {
+          "activity_id": "obs_keep",
+          "activity_type": "observe",
+          "subject_id": "target_a",
+          "timeline_id": "timeline:obs_keep"
+        },
+        "required_operator_action": "none",
+        "requires_operator_review": false,
+        "source_activity_context": {
+          "duration_s": 10.0,
+          "ends_at_s": 40.0,
+          "metadata": { "timeline_id": "timeline:obs_keep" },
+          "starts_at_s": 30.0,
+          "target_id": "target_a",
+          "timeline_identity": {
+            "activity_id": "obs_keep",
+            "activity_type": "observe",
+            "subject_id": "target_a",
+            "timeline_id": "timeline:obs_keep"
+          }
+        },
+        "source_activity_id": "obs_keep",
+        "source_activity_type": "observe",
+        "source_approval_status": "not_evaluated",
+        "source_ends_at_s": 40.0,
+        "source_locked": false,
+        "source_protection_category": "none",
+        "source_protection_decision": {
+          "activity_id": "obs_keep",
+          "approval_status": "not_evaluated",
+          "approved": false,
+          "locked": false,
+          "protection_category": "none",
+          "protection_decision": "mutable",
+          "reason": "no_timeline_protection",
+          "status": "planned",
+          "timeline_id": "timeline:obs_keep",
+          "timeline_identity": {
+            "activity_id": "obs_keep",
+            "activity_type": "observe",
+            "subject_id": "target_a",
+            "timeline_id": "timeline:obs_keep"
+          }
+        },
+        "source_protection_reason": "no_timeline_protection",
+        "source_starts_at_s": 30.0,
+        "source_status": "planned",
+        "source_target_id": "target_a",
+        "source_timeline_identity": {
+          "activity_id": "obs_keep",
+          "activity_type": "observe",
+          "subject_id": "target_a",
+          "timeline_id": "timeline:obs_keep"
+        },
+        "start_delta_s": 0.0,
+        "timeline_id": "timeline:obs_keep",
+        "transition_decision": "none",
+        "transition_decision_reason": "timeline_unchanged"
+      },
+      "timeline_id": "timeline:obs_keep",
+      "transition_decision": "none",
+      "transition_decision_reason": "timeline_unchanged"
+    },
+    {
+      "application_status": "operator_review_required",
+      "approval_transition": {
+        "field": "approval_status",
+        "from": "not_evaluated",
+        "from_category": "review_required",
+        "operator_action_reason": "approval_status_removed",
+        "requires_operator_review": false,
+        "transition_category": "approval_removed",
+        "transition_type": "removed"
+      },
+      "changed_fields": [
+        "timeline_presence"
+      ],
+      "diff_status": "removed",
+      "id": "timeline_diff:timeline:old_contact",
+      "rank": 4,
+      "reason": "replacement timeline removes activity old_contact",
+      "required_operator_action": "review_removed_activity",
+      "requires_operator_review": true,
+      "source_activity_id": "old_contact",
+      "source_activity_type": "planned_contact",
+      "source_protection_decision": {
+        "activity_id": "old_contact",
+        "approval_status": "not_evaluated",
+        "approved": false,
+        "locked": false,
+        "protection_category": "none",
+        "protection_decision": "mutable",
+        "reason": "no_timeline_protection",
+        "status": "planned",
+        "timeline_id": "timeline:old_contact",
+        "timeline_identity": {
+          "activity_id": "old_contact",
+          "activity_type": "planned_contact",
+          "subject_id": "dss_14",
+          "timeline_id": "timeline:old_contact"
+        }
+      },
+      "source_timeline_diff": {
+        "approval_transition": {
+          "field": "approval_status",
+          "from": "not_evaluated",
+          "from_category": "review_required",
+          "operator_action_reason": "approval_status_removed",
+          "requires_operator_review": false,
+          "transition_category": "approval_removed",
+          "transition_type": "removed"
+        },
+        "changed_fields": [
+          "timeline_presence"
+        ],
+        "diff_status": "removed",
+        "id": "timeline_diff:timeline:old_contact",
+        "rank": 4,
+        "reason": "replacement timeline removes activity old_contact",
+        "required_operator_action": "review_removed_activity",
+        "requires_operator_review": true,
+        "source_activity_context": {
+          "direction": "downlink",
+          "duration_s": 10.0,
+          "ends_at_s": 60.0,
+          "ground_station_id": "dss_14",
+          "metadata": { "timeline_id": "timeline:old_contact" },
+          "starts_at_s": 50.0,
+          "timeline_identity": {
+            "activity_id": "old_contact",
+            "activity_type": "planned_contact",
+            "subject_id": "dss_14",
+            "timeline_id": "timeline:old_contact"
+          }
+        },
+        "source_activity_id": "old_contact",
+        "source_activity_type": "planned_contact",
+        "source_approval_status": "not_evaluated",
+        "source_ends_at_s": 60.0,
+        "source_ground_station_id": "dss_14",
+        "source_locked": false,
+        "source_protection_category": "none",
+        "source_protection_decision": {
+          "activity_id": "old_contact",
+          "approval_status": "not_evaluated",
+          "approved": false,
+          "locked": false,
+          "protection_category": "none",
+          "protection_decision": "mutable",
+          "reason": "no_timeline_protection",
+          "status": "planned",
+          "timeline_id": "timeline:old_contact",
+          "timeline_identity": {
+            "activity_id": "old_contact",
+            "activity_type": "planned_contact",
+            "subject_id": "dss_14",
+            "timeline_id": "timeline:old_contact"
+          }
+        },
+        "source_protection_reason": "no_timeline_protection",
+        "source_starts_at_s": 50.0,
+        "source_status": "planned",
+        "source_timeline_identity": {
+          "activity_id": "old_contact",
+          "activity_type": "planned_contact",
+          "subject_id": "dss_14",
+          "timeline_id": "timeline:old_contact"
+        },
+        "status_transition": {
+          "field": "status",
+          "from": "planned",
+          "from_category": "planned",
+          "operator_action_reason": "removed_activity_status",
+          "requires_operator_review": false,
+          "transition_category": "status_removed",
+          "transition_type": "removed"
+        },
+        "timeline_id": "timeline:old_contact",
+        "transition_decision": "review",
+        "transition_decision_reason": "replacement timeline removes activity old_contact"
+      },
+      "status_transition": {
+        "field": "status",
+        "from": "planned",
+        "from_category": "planned",
+        "operator_action_reason": "removed_activity_status",
+        "requires_operator_review": false,
+        "transition_category": "status_removed",
+        "transition_type": "removed"
+      },
+      "timeline_id": "timeline:old_contact",
+      "transition_decision": "review",
+      "transition_decision_reason": "replacement timeline removes activity old_contact"
+    }
+  ],
+  "approval_transition_category_counts": {
+    "approval_removed": 1,
+    "approval_review_required": 1
+  },
+  "approval_transition_counts": {
+    "added": 1,
+    "removed": 1
+  },
+  "assumptions": {
+    "execution_boundary": "artifact_only_no_schedule_mutation",
+    "review_gate": "review-required transitions withhold replacement selection until an operator decision",
+    "selected_missing_dependency_validation": "enabled",
+    "selected_timeline_integrity": "selected activities are rechecked as their own artifact-only timeline subset because withheld review rows can remove dependencies",
+    "selection": "only unchanged, recordable, or preserved protected activities are selected automatically"
+  },
+  "model": "artifact_only_timeline_transition_application",
+  "model_limits": [
+    "artifact_level_only",
+    "no_schedule_mutation",
+    "no_command_execution",
+    "derived_identity_when_no_persistent_timeline_id"
+  ],
+  "preserved_source_count": 1,
+  "recorded_replacement_count": 0,
+  "replacement_activity_count": 3,
+  "required_operator_action_counts": {
+    "none": 1,
+    "review_added_activity": 1,
+    "review_changed_protected_activity": 1,
+    "review_removed_activity": 1
+  },
+  "review_required_count": 3,
+  "schema_contract": "timeline_transition_application_report.v1",
+  "selected_activities": [
+    {
+      "activity_context": {
+        "approval_status": "approved",
+        "command_window_id": "command_window:cmd_lock",
+        "command_window_type": "command_window",
+        "duration_s": 10.0,
+        "ends_at_s": 20.0,
+        "locked": true,
+        "metadata": { "timeline_id": "timeline:cmd_lock" },
+        "starts_at_s": 10.0,
+        "status": "planned",
+        "timeline_identity": {
+          "activity_id": "cmd_lock",
+          "activity_type": "command",
+          "timeline_id": "timeline:cmd_lock"
+        }
+      },
+      "activity_id": "cmd_lock",
+      "activity_type": "command",
+      "approval_status": "approved",
+      "approved": true,
+      "blocked_precondition_count": 0,
+      "blocked_precondition_types": [],
+      "cadence_import_status": "missing",
+      "command_window_id": "command_window:cmd_lock",
+      "command_window_type": "command_window",
+      "ends_at_s": 20.0,
+      "execution_boundary": "planned_not_commanded",
+      "has_cadence_import": false,
+      "has_source_window": false,
+      "locked": true,
+      "operational_kind": "command",
+      "operator_action_reason": "cadence_import_missing",
+      "precondition_status": "clear",
+      "preconditions": [],
+      "protection_category": "locked_or_approved",
+      "protection_decision": "preserve",
+      "protection_reason": "activity_locked_or_approved",
+      "required_operator_action": "prepare_cadence_import",
+      "review_precondition_count": 0,
+      "review_precondition_types": [],
+      "starts_at_s": 10.0,
+      "status": "planned",
+      "timeline_id": "timeline:cmd_lock",
+      "timeline_identity": {
+        "activity_id": "cmd_lock",
+        "activity_type": "command",
+        "timeline_id": "timeline:cmd_lock"
+      }
+    },
+    {
+      "activity_context": {
+        "duration_s": 10.0,
+        "ends_at_s": 40.0,
+        "metadata": { "timeline_id": "timeline:obs_keep" },
+        "starts_at_s": 30.0,
+        "target_id": "target_a",
+        "timeline_identity": {
+          "activity_id": "obs_keep",
+          "activity_type": "observe",
+          "subject_id": "target_a",
+          "timeline_id": "timeline:obs_keep"
+        }
+      },
+      "activity_id": "obs_keep",
+      "activity_type": "observe",
+      "approval_status": "not_evaluated",
+      "approved": false,
+      "blocked_precondition_count": 0,
+      "blocked_precondition_types": [],
+      "cadence_import_status": "not_applicable",
+      "ends_at_s": 40.0,
+      "execution_boundary": "planned_not_commanded",
+      "has_cadence_import": false,
+      "has_source_window": false,
+      "locked": false,
+      "operational_kind": "observation",
+      "operator_action_reason": "approval_status_not_evaluated",
+      "precondition_status": "clear",
+      "preconditions": [],
+      "protection_category": "none",
+      "protection_decision": "mutable",
+      "protection_reason": "no_timeline_protection",
+      "required_operator_action": "review_activity_approval",
+      "review_precondition_count": 0,
+      "review_precondition_types": [],
+      "starts_at_s": 30.0,
+      "status": "planned",
+      "target_id": "target_a",
+      "timeline_id": "timeline:obs_keep",
+      "timeline_identity": {
+        "activity_id": "obs_keep",
+        "activity_type": "observe",
+        "subject_id": "target_a",
+        "timeline_id": "timeline:obs_keep"
+      }
+    }
+  ],
+  "selected_activity_count": 2,
+  "selected_timeline_integrity_issue_count": 0,
+  "selected_timeline_integrity_issue_types": [],
+  "selected_timeline_integrity_review_count": 0,
+  "source": "fixture.timeline.transition_application",
+  "source_activity_count": 3,
+  "status_transition_category_counts": {
+    "status_added": 1,
+    "status_removed": 1
+  },
+  "status_transition_counts": {
+    "added": 1,
+    "removed": 1
+  },
+  "transition_decision_counts": {
+    "none": 1,
+    "preserve_source": 1,
+    "review": 2
+  },
+  "withheld_review_count": 2
+}

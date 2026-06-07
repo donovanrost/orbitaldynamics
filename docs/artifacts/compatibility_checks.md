@@ -803,7 +803,13 @@ status/transition/action/changed-field maps, row-derived diff/action row
 routing, row-derived transition application status/decision/action maps,
 status/approval transition maps, application ID routing,
 selected/preserved/withheld counts, review-gate assumptions, and
-no-schedule-mutation boundaries. Executable validation rejects stale
+no-schedule-mutation boundaries. Focused schema-reference coverage also
+refreshes and exact-regenerates
+`study_results/timeline_transition_application_report_v1.json` through
+`OrbitalDynamics.timeline_transition_application_report/3` from deterministic
+protected-change, added, unchanged, and removed activity inputs before schema
+validation, pinning selected-activity precondition status/count fields as part
+of the public report surface. Executable validation rejects stale
 timeline-diff row/status/review counts, changed-field and action maps,
 transition-application counts, row-derived decision/action maps, and timeline
 model-limit drift, rejects stale transition-application report model strings,
