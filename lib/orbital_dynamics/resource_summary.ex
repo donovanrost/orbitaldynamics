@@ -124,6 +124,8 @@ defmodule OrbitalDynamics.ResourceSummary do
   Declares the planning-grade resource model and known limits.
   """
   def capabilities do
+    projection_capabilities = OrbitalDynamics.ResourceProjection.capabilities()
+
     %{
       product: :resource_summary,
       model: :externally_supplied_planning_resource_summary,
@@ -169,6 +171,10 @@ defmodule OrbitalDynamics.ResourceSummary do
       resource_availability_true_tokens: @availability_true_tokens,
       resource_availability_false_tokens: @availability_false_tokens,
       resource_activity_type_aliases: @resource_activity_type_aliases,
+      roll_forward_battery_energy_consumed_paths:
+        projection_capabilities.battery_energy_consumed_paths,
+      roll_forward_battery_energy_generated_paths:
+        projection_capabilities.battery_energy_generated_paths,
       roll_forward_flow_statuses: @roll_forward_flow_statuses,
       roll_forward_pressure_statuses: @roll_forward_pressure_statuses,
       roll_forward_pressure_types: @roll_forward_pressure_types,

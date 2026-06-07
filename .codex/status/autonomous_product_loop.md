@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-ResourceSummary selected-activity roll-forward battery evidence alignment.
+ResourceSummary roll-forward battery energy alias metadata.
 
 Status:
 Implemented, verified, reviewed, and ready for commit/push.
@@ -18,31 +18,28 @@ Files changed:
 
 Slice-selection note:
 Selected slice:
-Align `ResourceSummary.roll_forward/3` capability/test/docs expectations with
-the existing battery-aware `ResourceProjection.flow_report/3` selected-activity
-projection evidence.
+Expose the selected-activity battery consumed/generated alias paths used by
+`ResourceSummary.roll_forward/3` through facade capability metadata.
 
 Why this slice:
-The active queue's early activity/timeline, allocation, readiness, and
-validation examples are mostly implemented in the live checkout. The remaining
-Level 6 gap called out by the capability snapshot is resource simulation depth.
-`ResourceProjection` already emits battery-aware selected-flow evidence, but
-the `ResourceSummary` facade still advertised/asserted a thin storage/downlink
-handoff.
+The previous slice proved the `ResourceSummary` facade carries battery
+consumed/generated/delta/SOC/depletion evidence through
+`ResourceProjection.flow_report/3`, but callers inspecting
+`ResourceSummary.capabilities/0` still could not see the activity input paths
+that feed that battery roll-forward.
 
 Level 6 pillar advanced:
 Fleet-level resource allocation behavior with explicit known limits.
 
 Implementation notes:
-- Kept `:no_resource_time_propagation` in `ResourceSummary.capabilities/0` for
-  compatibility, while adding more precise selected-activity battery projection
-  boundary metadata.
-- Added `:resource_summary_roll_forward_battery_flow_evidence` row semantics.
-- Extended the public `ResourceSummary.roll_forward/3` facade test to assert
-  battery consumed/generated/delta, projected SOC, peak overuse, and pressure
-  routing through the compact flow summary and top-level facade.
-- Updated the spacecraft/payload capability doc to describe facade-level
-  storage/downlink/battery evidence and the declared-energy-only boundary.
+- `ResourceSummary.capabilities/0` now exposes
+  `roll_forward_battery_energy_consumed_paths` and
+  `roll_forward_battery_energy_generated_paths`.
+- The metadata delegates to `ResourceProjection.capabilities/0` so the facade
+  stays aligned with the underlying selected-activity projection model.
+- Focused tests verify representative direct and nested metadata aliases.
+- The spacecraft/payload capability doc now says the ResourceSummary facade
+  advertises those declared-energy paths.
 
 Tests run:
 - `mix test test/orbital_dynamics/resource_summary_test.exs`
@@ -52,10 +49,10 @@ Docs/artifacts changed:
 - `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`
 
 Review:
-- Read-only subagent review found one must-fix ledger mismatch and one
-  compatibility risk.
-- Fixed both by updating this ledger and preserving the old
-  `:no_resource_time_propagation` capability atom.
+- Read-only subagent review found one must-fix ledger mismatch.
+- Fixed by updating this ledger with all changed files and verification.
+- No code/doc blocker found. Residual risk is low: the test checks
+  representative paths, while implementation delegates to `ResourceProjection`.
 
 Remaining maturity gaps:
 - Resource projection remains selected-activity, artifact-only evidence, not a
@@ -63,7 +60,8 @@ Remaining maturity gaps:
 - Broader resource/contact allocation hardening remains available in the guide.
 
 Last commit:
-`a52c6e4` pushed to `origin/main` for long-running loop handoff alignment.
+`d40ac0debbda1e8305ad1f5415a979c97835ccfb` pushed to `origin/main` for
+ResourceSummary selected-activity roll-forward battery evidence alignment.
 
 Next candidate:
 Continue from `docs/autonomous_work_guide.md`; likely next candidate is another

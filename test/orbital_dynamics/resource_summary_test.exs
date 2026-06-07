@@ -22,6 +22,10 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
              resource_availability_true_tokens: resource_availability_true_tokens,
              resource_availability_false_tokens: resource_availability_false_tokens,
              resource_activity_type_aliases: resource_activity_type_aliases,
+             roll_forward_battery_energy_consumed_paths:
+               roll_forward_battery_energy_consumed_paths,
+             roll_forward_battery_energy_generated_paths:
+               roll_forward_battery_energy_generated_paths,
              roll_forward_flow_statuses: roll_forward_flow_statuses,
              roll_forward_pressure_statuses: roll_forward_pressure_statuses,
              roll_forward_pressure_types: roll_forward_pressure_types,
@@ -162,6 +166,12 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
     assert resource_activity_type_aliases["sband_command"] == "command"
     assert resource_activity_type_aliases["downlinking"] == "downlink"
     assert resource_activity_type_aliases["tracking_pass"] == "tracking"
+
+    assert ["estimated_energy_used_wh"] in roll_forward_battery_energy_consumed_paths
+    assert ["metadata", "battery_energy_used_wh"] in roll_forward_battery_energy_consumed_paths
+    assert ["estimated_energy_generated_wh"] in roll_forward_battery_energy_generated_paths
+
+    assert ["metadata", "battery_energy_generated_wh"] in roll_forward_battery_energy_generated_paths
   end
 
   test "normalizes planning resource summaries and derives storage margin" do

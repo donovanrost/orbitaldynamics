@@ -25,7 +25,9 @@ Status: **implemented**.
   row-derived pressure direction and capacity-fraction maps exposed by compact
   flow summaries, so callers using the ResourceSummary facade can rely on the
   same provider/station pressure routing checks as direct ResourceProjection
-  callers.
+  callers. The facade capability metadata also exposes the direct and nested
+  `metadata` selected-activity battery consumed/generated energy paths used by
+  the underlying projection before battery state roll-forward.
 - Resource-summary facade constructors normalize canonical and alias spacecraft identities into stable string IDs and reject unstable IDs before emitting `resource_summary.v1` rows.
 
 ### Ground-network contact filtering (`ContactFilter`)
