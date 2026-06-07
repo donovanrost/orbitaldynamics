@@ -31076,6 +31076,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "dss_43" => 1,
                "equator_prime" => 1
              },
+             "source_report_candidate_rejection_branch_local_rejection_pressure" => true,
+             "source_report_candidate_rejection_branch_local_review_pressure" => true,
+             "source_report_candidate_rejection_branch_local_invalid_input_pressure" => true,
              "source_reports" => %{
                "candidate_rejection_report" => %{
                  "row_count" => 2,
@@ -31173,7 +31176,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_candidate_rejection_ground_station_counts" => %{
                "dss_43" => 1,
                "equator_prime" => 1
-             }
+             },
+             "source_report_candidate_rejection_branch_local_rejection_pressure" => true,
+             "source_report_candidate_rejection_branch_local_review_pressure" => true,
+             "source_report_candidate_rejection_branch_local_invalid_input_pressure" => true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.candidate_rejection_replay_summary(artifact) == replay_summary

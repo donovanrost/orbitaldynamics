@@ -6883,6 +6883,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       }
     }
     |> Map.merge(source_report_storage_downlink_pressure_summary_fields(source_reports))
+    |> Map.merge(source_report_candidate_rejection_replay_summary_fields(source_reports))
     |> Map.merge(source_report_contact_allocation_replay_summary_fields(source_reports))
     |> Map.merge(source_report_contact_intent_replay_summary_fields(source_reports))
     |> Map.merge(source_report_link_capacity_replay_summary_fields(source_reports))
@@ -7095,6 +7096,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    candidate_rejection_replay_summary_from_summary(
+      rejection_summary,
+      summary_source,
+      replay_scope
+    )
+  end
+
+  defp candidate_rejection_replay_summary_from_summary(
+         rejection_summary,
+         summary_source,
+         replay_scope
+       ) do
     rejected_count = summary_integer(rejection_summary, "rejected_count")
     reviewable_count = summary_integer(rejection_summary, "reviewable_count")
 
@@ -9594,6 +9607,25 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "resource_pressure_station_calendar_provider_ids_by_type"),
       "source_report_storage_downlink_pressure_resource_pressure_station_calendar_provider_entry_ids_by_type" =>
         Map.get(summary, "resource_pressure_station_calendar_provider_entry_ids_by_type")
+    }
+  end
+
+  defp source_report_candidate_rejection_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("candidate_rejection_report", %{})
+      |> candidate_rejection_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.candidate_rejection_report",
+        "candidate_rejection_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_candidate_rejection_branch_local_rejection_pressure" =>
+        Map.get(summary, "branch_local_rejection_pressure"),
+      "source_report_candidate_rejection_branch_local_review_pressure" =>
+        Map.get(summary, "branch_local_review_pressure"),
+      "source_report_candidate_rejection_branch_local_invalid_input_pressure" =>
+        Map.get(summary, "branch_local_invalid_input_pressure")
     }
   end
 
