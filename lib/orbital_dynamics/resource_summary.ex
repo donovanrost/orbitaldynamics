@@ -141,6 +141,8 @@ defmodule OrbitalDynamics.ResourceSummary do
       known_limits: [
         :no_subsystem_simulation,
         :no_resource_time_propagation,
+        :no_continuous_resource_time_propagation,
+        :selected_activity_battery_projection_uses_declared_energy_only,
         :battery_state_of_charge_is_externally_supplied_or_derived_summary,
         :no_link_budget_model,
         :source_quality_is_declared_or_inferred_from_provenance
@@ -203,6 +205,7 @@ defmodule OrbitalDynamics.ResourceSummary do
         :resource_summary_roll_forward_pressure_status_values,
         :resource_summary_roll_forward_pressure_type_values,
         :resource_summary_roll_forward_pressure_direction_and_capacity_maps,
+        :resource_summary_roll_forward_battery_flow_evidence,
         :resource_summary_roll_forward_resource_effect_status_values,
         :resource_summary_roll_forward_ignored_effect_reason_families,
         :thin_selected_activity_roll_forward_contract
@@ -419,9 +422,9 @@ defmodule OrbitalDynamics.ResourceSummary do
 
   This is a convenience boundary over the schema-validated
   `ResourceProjection.flow_report/3` roll-forward model. It normalizes the
-  summary through `resource_summary.v1`, then returns compact storage/downlink
-  flow evidence without mutating schedules, reconciling realized state, or
-  claiming Cadence import authority.
+  summary through `resource_summary.v1`, then returns compact
+  storage/downlink/battery flow evidence without mutating schedules,
+  reconciling realized state, or claiming Cadence import authority.
   """
   def roll_forward(summary, selected_activities, opts \\ [])
 

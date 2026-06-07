@@ -5,55 +5,70 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Long-running context-efficient prompt handoff alignment.
+ResourceSummary selected-activity roll-forward battery evidence alignment.
 
 Status:
-Implemented, verified, and reviewed; ready for commit/push.
+Implemented, verified, reviewed, and ready for commit/push.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `.codex/prompts/long_running_context_efficient_product_loop.md`
+- `lib/orbital_dynamics/resource_summary.ex`
+- `test/orbital_dynamics/resource_summary_test.exs`
+- `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`
 
 Slice-selection note:
-Selected because the active objective points at
-`.codex/prompts/long_running_context_efficient_product_loop.md`, and the live
-handoff ledger still described the previous timeline fixture slice as ready for
-commit even though `0417647f9cea7241bf162a8b326eb1a9f595b9c0` is already
-pushed to `origin/main`. This is prompt/ledger maintenance only; it does not
-change product behavior, schemas, artifacts, schedule authority, command
-execution, imports, or Cadence integration.
+Selected slice:
+Align `ResourceSummary.roll_forward/3` capability/test/docs expectations with
+the existing battery-aware `ResourceProjection.flow_report/3` selected-activity
+projection evidence.
 
-Definition of done:
-- Tighten the long-running prompt so post-slice sequencing explicitly completes
-  commit/push handoff before next-slice selection.
-- Keep the hours-long continuation rule, compact-ledger rule, and narrow
-  sidecar boundaries aligned with `docs/autonomous_work_guide.md` and
-  `.codex/prompts/context_efficient_autonomous_product_loop.md`.
-- Replace stale ledger content with this compact current handoff.
-- Run `git diff --check` and commit/push only this prompt-maintenance slice.
+Why this slice:
+The active queue's early activity/timeline, allocation, readiness, and
+validation examples are mostly implemented in the live checkout. The remaining
+Level 6 gap called out by the capability snapshot is resource simulation depth.
+`ResourceProjection` already emits battery-aware selected-flow evidence, but
+the `ResourceSummary` facade still advertised/asserted a thin storage/downlink
+handoff.
+
+Level 6 pillar advanced:
+Fleet-level resource allocation behavior with explicit known limits.
 
 Implementation notes:
-- Tightened `Run-duration expectation` and working-loop step 16 in the
-  long-running prompt to remove ambiguity about commit/push sequencing.
-- Preserved the source-of-truth role of `docs/autonomous_work_guide.md`, the
-  stronger "hours, not minutes" continuation rule, and sidecar constraints.
+- Kept `:no_resource_time_propagation` in `ResourceSummary.capabilities/0` for
+  compatibility, while adding more precise selected-activity battery projection
+  boundary metadata.
+- Added `:resource_summary_roll_forward_battery_flow_evidence` row semantics.
+- Extended the public `ResourceSummary.roll_forward/3` facade test to assert
+  battery consumed/generated/delta, projected SOC, peak overuse, and pressure
+  routing through the compact flow summary and top-level facade.
+- Updated the spacecraft/payload capability doc to describe facade-level
+  storage/downlink/battery evidence and the declared-energy-only boundary.
 
-Verification:
+Tests run:
+- `mix test test/orbital_dynamics/resource_summary_test.exs`
 - `git diff --check`
 
+Docs/artifacts changed:
+- `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`
+
 Review:
-- Read-only subagent review found no issues.
-- Reviewed continuation semantics, commit/push sequencing, sidecar boundaries,
-  ledger freshness, scope, and whitespace. Residual risk is low.
+- Read-only subagent review found one must-fix ledger mismatch and one
+  compatibility risk.
+- Fixed both by updating this ledger and preserving the old
+  `:no_resource_time_propagation` capability atom.
+
+Remaining maturity gaps:
+- Resource projection remains selected-activity, artifact-only evidence, not a
+  calibrated continuous subsystem simulation.
+- Broader resource/contact allocation hardening remains available in the guide.
 
 Last commit:
-`0417647f9cea7241bf162a8b326eb1a9f595b9c0` pushed to `origin/main` for
-timeline activity-state fixture coverage.
+`a52c6e4` pushed to `origin/main` for long-running loop handoff alignment.
 
 Next candidate:
-Resume from `docs/autonomous_work_guide.md`; the default next product area is
-the highest-priority incomplete typed operational activity/timeline semantics
-slice unless live tests or ledger state show a broken contract.
+Continue from `docs/autonomous_work_guide.md`; likely next candidate is another
+resource/contact allocation hardening gap unless live verification shows a
+broken contract.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is

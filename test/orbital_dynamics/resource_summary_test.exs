@@ -36,6 +36,9 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
            } = ResourceSummary.capabilities()
 
     assert :no_subsystem_simulation in known_limits
+    assert :no_resource_time_propagation in known_limits
+    assert :no_continuous_resource_time_propagation in known_limits
+    assert :selected_activity_battery_projection_uses_declared_energy_only in known_limits
     assert :battery_state_of_charge_is_externally_supplied_or_derived_summary in known_limits
     assert :source_quality_is_declared_or_inferred_from_provenance in known_limits
     assert "resource_source_quality" in ResourceSummary.capabilities().source_quality_aliases
@@ -77,6 +80,7 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
     assert :resource_summary_roll_forward_pressure_status_values in row_semantics
     assert :resource_summary_roll_forward_pressure_type_values in row_semantics
     assert :resource_summary_roll_forward_pressure_direction_and_capacity_maps in row_semantics
+    assert :resource_summary_roll_forward_battery_flow_evidence in row_semantics
     assert :resource_summary_roll_forward_resource_effect_status_values in row_semantics
     assert :resource_summary_roll_forward_ignored_effect_reason_families in row_semantics
     assert :thin_selected_activity_roll_forward_contract in row_semantics
@@ -655,6 +659,8 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
   test "rolls one resource summary forward across selected activities" do
     summary = %{
       spacecraft_id: :leo_1,
+      battery_capacity_wh: 100.0,
+      battery_energy_used_wh: 80.0,
       storage_capacity_mb: 100.0,
       storage_used_mb: 40.0,
       downlink_capacity_mb: 25.0,
@@ -668,14 +674,17 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
         type: :observe,
         spacecraft_id: :leo_1,
         starts_at_s: 10.0,
-        estimated_storage_mb: 50.0
+        estimated_storage_mb: 50.0,
+        estimated_energy_used_wh: 30.0,
+        estimated_energy_generated_wh: 5.0
       },
       %{
         id: :dl_contact,
         type: :downlink,
         spacecraft_id: :leo_1,
         starts_at_s: 20.0,
-        estimated_throughput_mb: 30.0
+        estimated_throughput_mb: 30.0,
+        estimated_energy_generated_wh: 20.0
       }
     ]
 
@@ -688,22 +697,31 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
              "input_resource_summary_count" => 1,
              "valid_resource_summary_count" => 1,
              "resource_flow_status" => "review_required",
-             "resource_pressure_types" => ["downlink_shortfall"],
+             "resource_pressure_types" => ["battery_depletion", "downlink_shortfall"],
              "resource_pressure_spacecraft_ids_by_type" => %{
+               "battery_depletion" => ["leo_1"],
                "downlink_shortfall" => ["leo_1"]
              },
              "resource_pressure_activity_ids_by_type" => %{
+               "battery_depletion" => ["obs_collect"],
                "downlink_shortfall" => ["dl_contact"]
              },
              "total_storage_produced_mb" => 50.0,
              "total_planned_downlink_mb" => 30.0,
              "total_storage_limited_downlinked_mb" => 30.0,
              "total_downlink_shortfall_mb" => 5.0,
+             "total_battery_energy_consumed_wh" => 30.0,
+             "total_battery_energy_generated_wh" => 25.0,
+             "net_battery_energy_delta_wh" => 5.0,
+             "peak_battery_overuse_wh" => 5.0,
              "total_projected_storage_remaining_mb" => 40.0,
              "total_projected_downlink_remaining_mb" => +0.0,
              "projected_resources" => [
                %{
                  "spacecraft_id" => "leo_1",
+                 "projected_battery_energy_used_wh" => 85.0,
+                 "projected_battery_state_of_charge" => 0.15,
+                 "projected_battery_overuse_wh" => +0.0,
                  "starting_storage_used_mb" => 40.0,
                  "projected_storage_used_mb" => 60.0,
                  "projected_storage_remaining_mb" => 40.0,
@@ -713,11 +731,25 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
              "activity_resource_flow" => [
                %{
                  "activity_id" => "obs_collect",
+                 "battery_energy_used_before_wh" => 80.0,
+                 "battery_energy_consumed_wh" => 30.0,
+                 "battery_energy_generated_wh" => 5.0,
+                 "battery_energy_delta_wh" => 25.0,
+                 "battery_energy_used_after_wh" => 105.0,
+                 "battery_state_of_charge_after" => +0.0,
+                 "battery_overuse_wh" => 5.0,
                  "storage_used_before_mb" => 40.0,
                  "storage_used_after_mb" => 90.0
                },
                %{
                  "activity_id" => "dl_contact",
+                 "battery_energy_used_before_wh" => 105.0,
+                 "battery_energy_consumed_wh" => +0.0,
+                 "battery_energy_generated_wh" => 20.0,
+                 "battery_energy_delta_wh" => -20.0,
+                 "battery_energy_used_after_wh" => 85.0,
+                 "battery_state_of_charge_after" => 0.15,
+                 "battery_overuse_wh" => +0.0,
                  "storage_used_before_mb" => 90.0,
                  "storage_used_after_mb" => 60.0,
                  "downlink_shortfall_mb" => 5.0
