@@ -421,6 +421,10 @@ maps, blocked/failed row routing, gate routing, and the no-Cadence-write/
 no-authority assumptions, and executable verification rejects stale fail counts
 plus stale blocked-row evidence before adapter queues can trust the compact
 summary.
+Focused checked-in fixture coverage exact-compares the public
+`OrbitalDynamics.operational_quality_gate_schema_validation_summary/1` facade
+output from the deterministic planned-activity ready-import source with failed
+schema-validation evidence before schema validation.
 CandidateRefresh replay also derives reconstructed quality-gate row counts from
 `quality_gate_row_ids_by_status` when present, preventing stale compact
 schema-validation row counts from inflating branch-local quality-gate pressure.

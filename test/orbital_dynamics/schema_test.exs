@@ -1744,6 +1744,116 @@ defmodule OrbitalDynamics.SchemaTest do
              summary["model_limits"]
   end
 
+  test "validates checked-in operational quality gate schema validation summary fixture" do
+    source = %{
+      "schema_contract" => "cadence_import_manifest.v1",
+      "model" => "cadence_import_manifest_fixture",
+      "manifest_id" => "manifest_1",
+      "source_artifact_type" => "planned_activity.v1",
+      "source_artifact_id" => "activity_1",
+      "model_limits" => ["adapter_handoff_only"],
+      "rows" => [
+        %{
+          "id" => "import_1",
+          "rank" => 1,
+          "import_action" => "import_replacement_activity",
+          "import_status" => "ready_for_import",
+          "cadence_import_status" => "present",
+          "source_schema_validation_report" => %{
+            "schema_contract" => "schema_validation_report.v1",
+            "model" => "artifact_contract_validation",
+            "validation_mode" => "artifact_file",
+            "validated_contract" => "campaign_plan.v1",
+            "validated_artifact_family" => "campaign_plan",
+            "status" => "fail",
+            "error_count" => 1,
+            "warning_count" => 0,
+            "remediation_count" => 1,
+            "errors" => [
+              %{
+                "path" => "$.plan_id",
+                "message" => "is required",
+                "severity" => "error"
+              }
+            ],
+            "warnings" => [],
+            "remediation" => [
+              %{
+                "path" => "$.plan_id",
+                "category" => "missing_required_field",
+                "action" => "Populate this required field"
+              }
+            ],
+            "artifact_path" => "study_results/bad_campaign.json",
+            "assumptions" => %{"validation_scope" => "artifact_contract"}
+          }
+        }
+      ]
+    }
+
+    summary =
+      read_json!("study_results/operational_quality_gate_schema_validation_summary_v1.json")
+
+    generated_summary = OrbitalDynamics.operational_quality_gate_schema_validation_summary(source)
+
+    assert generated_summary == summary
+
+    assert {:ok,
+            %{
+              "schema_contract" => "operational_quality_gate_schema_validation_summary.v1"
+            }} = Schema.validate_artifact(summary)
+
+    assert %{
+             "schema_contract" => "operational_quality_gate_schema_validation_summary.v1",
+             "model" => "artifact_only_quality_gate_schema_validation_summary",
+             "source" => "quality_gate_report.v1",
+             "source_artifact_type" => "planned_activity.v1",
+             "source_artifact_id" => "activity_1",
+             "source_quality_gate_report_id" => "quality_gate:planned_activity.v1:activity_1",
+             "source_readiness_report_id" =>
+               "operational_readiness:planned_activity.v1:activity_1",
+             "schema_validation_row_count" => 1,
+             "schema_validation_pass_count" => 0,
+             "schema_validation_fail_count" => 1,
+             "schema_validation_error_count" => 1,
+             "schema_validation_warning_count" => 0,
+             "schema_validation_remediation_count" => 1,
+             "schema_validation_status_counts" => %{"fail" => 1},
+             "schema_validation_status_ids" => ["fail"],
+             "schema_validation_import_blocked" => true,
+             "quality_gate_row_ids_by_status" => %{
+               "blocked" => ["quality_gate:planned_activity.v1:activity_1:cadence_import:5"]
+             },
+             "quality_gate_ids_by_status" => %{"blocked" => ["cadence_import"]},
+             "blocked_quality_gate_row_ids" => [
+               "quality_gate:planned_activity.v1:activity_1:cadence_import:5"
+             ],
+             "review_required_quality_gate_row_ids" => [],
+             "failed_schema_validation_quality_gate_row_ids" => [
+               "quality_gate:planned_activity.v1:activity_1:cadence_import:5"
+             ],
+             "schema_validation_gate_ids" => ["cadence_import"],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_cadence_write",
+               "operator_authority" => "not_granted_by_schema_validation_summary",
+               "cadence_write" => "not_performed_by_summary",
+               "command_execution" => "not_performed_by_summary",
+               "source" => "quality_gate_report.v1"
+             }
+           } = summary
+
+    assert summary["model_limits"] == [
+             "quality_gate_schema_validation_summary_routes_only",
+             "quality_gate_schema_validation_summary_does_not_approve_or_import"
+           ]
+
+    assert {:ok, schema_validation_schema} =
+             Schema.json_schema("operational_quality_gate_schema_validation_summary.v1")
+
+    assert get_in(schema_validation_schema, ["properties", "model_limits", "const"]) ==
+             summary["model_limits"]
+  end
+
   test "validates checked-in station reservation review summary fixture" do
     review_summary = read_json!("study_results/station_reservation_review_summary_v1.json")
 
