@@ -822,6 +822,13 @@ maintenance/reserved availability counts, zero-capacity and reservation
 metadata, provenance, trust boundary, and no-provider-reservation assumptions.
 Executable validation rejects duplicate provider entry IDs before provider
 calendars are consumed by calendar reports.
+`study_results/provider_counteroffer_review_summary_v1.json`,
+`study_results/provider_counteroffer_import_readiness_summary_v1.json`, and
+`study_results/provider_counteroffer_plan_impact_summary_v1.json` now feed
+curated provider-counteroffer summary fixtures. The observations check
+review/import/impact counts, deadline-status routing, required-action maps,
+timing/cost impact IDs, affected station/provider entry IDs, and
+no-provider-write, no-Cadence-write, and no-offer-acceptance assumptions.
 `study_results/cadence_import_manifest_v1.json` now feeds a curated
 `cadence_import_manifest.v1` validation-reference fixture. The observations
 check import readiness/blocking counts, Cadence import status maps, source

@@ -1036,6 +1036,119 @@ defmodule OrbitalDynamics.SchemaTest do
            } = precedence_summary
   end
 
+  test "validates checked-in provider counteroffer summary fixtures" do
+    review_summary = read_json!("study_results/provider_counteroffer_review_summary_v1.json")
+
+    import_readiness_summary =
+      read_json!("study_results/provider_counteroffer_import_readiness_summary_v1.json")
+
+    impact_summary = read_json!("study_results/provider_counteroffer_plan_impact_summary_v1.json")
+
+    counteroffer_report = provider_counteroffer_summary_fixture_report()
+
+    generated_review_summary =
+      OrbitalDynamics.provider_counteroffer_review_summary(counteroffer_report, now_s: 160.0)
+
+    generated_import_readiness_summary =
+      OrbitalDynamics.provider_counteroffer_import_readiness_summary(
+        counteroffer_report,
+        now_s: 160.0
+      )
+
+    generated_impact_summary =
+      OrbitalDynamics.provider_counteroffer_plan_impact_summary(
+        counteroffer_report,
+        now_s: 120.0
+      )
+
+    assert generated_review_summary == review_summary
+    assert generated_import_readiness_summary == import_readiness_summary
+    assert generated_impact_summary == impact_summary
+
+    assert {:ok, %{"schema_contract" => "provider_counteroffer_review_summary.v1"}} =
+             Schema.validate_artifact(review_summary)
+
+    assert {:ok, %{"schema_contract" => "provider_counteroffer_import_readiness_summary.v1"}} =
+             Schema.validate_artifact(import_readiness_summary)
+
+    assert {:ok, %{"schema_contract" => "provider_counteroffer_plan_impact_summary.v1"}} =
+             Schema.validate_artifact(impact_summary)
+
+    assert %{
+             "source_artifact_type" => "provider_counteroffer_report.v1",
+             "source_counteroffer_artifact_type" => "station_calendar_report.v1",
+             "counteroffer_count" => 1,
+             "reviewable_count" => 1,
+             "counteroffer_review_status" => "review_required",
+             "counteroffer_status_counts" => %{"proposed" => 1},
+             "counteroffer_negotiation_state_counts" => %{"proposed" => 1},
+             "counteroffer_lock_deadline_status_counts" => %{"expired" => 1},
+             "counteroffer_ids_by_lock_deadline_status" => %{
+               "expired" => ["provider_offer_1"]
+             },
+             "review_counteroffer_ids" => ["provider_offer_1"],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_provider_writes",
+               "operator_authority" => "not_granted_by_summary",
+               "deadline_evaluation" => "relative_to_now_s",
+               "now_s" => 160.0
+             }
+           } = review_summary
+
+    assert %{
+             "source_artifact_type" => "provider_counteroffer_report.v1",
+             "source_counteroffer_artifact_type" => "station_calendar_report.v1",
+             "counteroffer_count" => 1,
+             "reviewable_count" => 1,
+             "import_readiness_status" => "review_required",
+             "import_classification" => "review_only",
+             "review_required_before_import_count" => 1,
+             "provider_counteroffer_import_status_counts" => %{
+               "review_required_before_import" => 1
+             },
+             "required_import_action_counts" => %{"review_provider_counteroffer" => 1},
+             "counteroffer_ids_by_import_status" => %{
+               "review_required_before_import" => ["provider_offer_1"]
+             },
+             "counteroffer_ids_by_required_import_action" => %{
+               "review_provider_counteroffer" => ["provider_offer_1"]
+             },
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_provider_or_cadence_writes",
+               "operator_authority" => "not_granted_by_import_readiness_summary",
+               "provider_write" => "not_performed_by_summary",
+               "cadence_write" => "not_performed_by_summary",
+               "offer_acceptance" => "not_performed_by_summary"
+             }
+           } = import_readiness_summary
+
+    assert %{
+             "source_artifact_type" => "provider_counteroffer_report.v1",
+             "source_counteroffer_artifact_type" => "station_calendar_report.v1",
+             "counteroffer_count" => 1,
+             "reviewable_count" => 1,
+             "plan_impact_status" => "review_required",
+             "timing_shift_counteroffer_count" => 1,
+             "counteroffer_cost_delta_count" => 1,
+             "counteroffer_cost_delta_total" => 125.5,
+             "counteroffer_lock_deadline_status_counts" => %{"active" => 1},
+             "affected_station_calendar_entry_ids" => ["provider_counteroffer_window"],
+             "affected_provider_entry_ids" => ["provider_counteroffer_window"],
+             "impact_counteroffer_ids" => ["provider_offer_1"],
+             "timing_shift_counteroffer_ids" => ["provider_offer_1"],
+             "cost_delta_counteroffer_ids" => ["provider_offer_1"],
+             "counteroffer_ids_by_lock_deadline_status" => %{
+               "active" => ["provider_offer_1"]
+             },
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_provider_writes",
+               "operator_authority" => "not_granted_by_summary",
+               "deadline_evaluation" => "relative_to_now_s",
+               "now_s" => 120.0
+             }
+           } = impact_summary
+  end
+
   test "validates checked-in station reservation hold summary fixtures" do
     hold_summary = read_json!("study_results/station_reservation_hold_summary_v1.json")
 
@@ -26840,6 +26953,46 @@ defmodule OrbitalDynamics.SchemaTest do
     }
 
     OrbitalDynamics.station_calendar_report(contacts, provider, source: "ops_calendar")
+  end
+
+  defp provider_counteroffer_summary_fixture_report do
+    contacts = [
+      %{
+        id: :dl_counteroffer,
+        type: :downlink,
+        scenario_id: :leo_1,
+        ground_station_id: :equator_prime,
+        starts_at_s: 100.0,
+        ends_at_s: 140.0
+      }
+    ]
+
+    provider = %{
+      schema_contract: "station_calendar_provider.v1",
+      id: :ops_calendar,
+      trust_boundary: :declared_station_calendar,
+      entries: [
+        %{
+          id: :provider_counteroffer_window,
+          station_id: :equator_prime,
+          availability: :available,
+          directions: [:downlink],
+          start_s: 130.0,
+          end_s: 170.0,
+          counteroffer_id: :provider_offer_1,
+          counteroffer_status: :proposed,
+          counteroffer_reason_code: :provider_shifted_window,
+          counteroffer_cost_delta: 125.5,
+          schedule_lock_deadline_s: 150.0,
+          counteroffer_start_s: 130.0,
+          counteroffer_end_s: 170.0
+        }
+      ]
+    }
+
+    contacts
+    |> OrbitalDynamics.station_calendar_report(provider, source: "provider_counteroffers")
+    |> OrbitalDynamics.provider_counteroffer_report()
   end
 
   defp station_reservation_summary_fixture_report do
