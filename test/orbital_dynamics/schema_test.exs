@@ -1371,6 +1371,91 @@ defmodule OrbitalDynamics.SchemaTest do
              summary["model_limits"]
   end
 
+  test "validates checked-in operational readiness gate summary fixture" do
+    report = read_json!("study_results/operational_readiness_report_v1.json")
+    summary = read_json!("study_results/operational_readiness_gate_summary_v1.json")
+
+    generated_summary = OrbitalDynamics.operational_readiness_gate_summary(report)
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "operational_readiness_gate_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "schema_contract" => "operational_readiness_gate_summary.v1",
+             "model" => "artifact_only_operational_readiness_gate_summary",
+             "source" => "operational_readiness_report.v1",
+             "source_artifact_type" => "planned_activity.v1",
+             "source_artifact_id" => "activity_1",
+             "readiness_level" => "import_eligible",
+             "import_classification" => "importable",
+             "status" => "passed",
+             "gate_count" => 5,
+             "passed_gate_count" => 5,
+             "review_gate_count" => 0,
+             "analysis_gate_count" => 0,
+             "blocked_gate_count" => 0,
+             "non_passed_gate_count" => 0,
+             "gate_status_counts" => %{"passed" => 5},
+             "gate_classification_counts" => %{"importable" => 5},
+             "gate_ids_by_status" => %{
+               "passed" => [
+                 "adapter_boundary",
+                 "cadence_import",
+                 "operational_mode",
+                 "operator_review",
+                 "source_contract"
+               ]
+             },
+             "gate_ids_by_classification" => %{
+               "importable" => [
+                 "adapter_boundary",
+                 "cadence_import",
+                 "operational_mode",
+                 "operator_review",
+                 "source_contract"
+               ]
+             },
+             "passed_gate_ids" => [
+               "source_contract",
+               "operational_mode",
+               "adapter_boundary",
+               "operator_review",
+               "cadence_import"
+             ],
+             "review_required_gate_ids" => [],
+             "analysis_only_gate_ids" => [],
+             "blocked_gate_ids" => [],
+             "non_passed_gate_ids" => [],
+             "non_passed_gates" => [],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_cadence_write",
+               "operator_authority" => "not_granted_by_summary",
+               "source" => "operational_readiness_report.v1"
+             }
+           } = summary
+
+    assert Enum.map(summary["gates"], & &1["id"]) == [
+             "source_contract",
+             "operational_mode",
+             "adapter_boundary",
+             "operator_review",
+             "cadence_import"
+           ]
+
+    assert summary["model_limits"] == [
+             "operational_readiness_gate_summary_routes_only",
+             "operational_readiness_gate_summary_does_not_approve_or_import"
+           ]
+
+    assert {:ok, gate_summary_schema} =
+             Schema.json_schema("operational_readiness_gate_summary.v1")
+
+    assert get_in(gate_summary_schema, ["properties", "model_limits", "const"]) ==
+             summary["model_limits"]
+  end
+
   test "validates checked-in station reservation review summary fixture" do
     review_summary = read_json!("study_results/station_reservation_review_summary_v1.json")
 

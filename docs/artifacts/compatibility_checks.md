@@ -307,6 +307,14 @@ artifact-only operational-readiness classifier model and capability
 The compact readiness gate summary schema export likewise pins the
 artifact-only operational-readiness gate-summary model and `model_limits` used
 by generated summaries.
+`study_results/operational_readiness_gate_summary_v1.json` now checks in that
+compact gate summary generated from the readiness fixture. Its
+validation-reference coverage exact-compares the public facade output before
+schema validation and observes source identity, readiness/import/status
+classification, row-derived gate counts, gate status/classification routing
+maps, non-passed gates, model limits, and no-Cadence-write/no-approval/no-import
+assumptions without writing Cadence, importing activities, executing commands,
+granting operator authority, or mutating schedules.
 The compact import-eligibility summary schema export pins the
 artifact-only import-eligibility model and `model_limits` used by generated
 summaries, keeping adapter-facing import decisions tied to the executable
