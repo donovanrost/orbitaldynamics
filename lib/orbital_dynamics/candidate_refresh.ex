@@ -4636,27 +4636,27 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "quality_gate_ids_by_status"
         ),
       "source_report_quality_gate_review_required_quality_gate_row_ids" =>
-        source_report_summary_family_merge_string_lists(
+        source_report_summary_quality_gate_status_row_ids(
           source_reports,
-          "quality_gate_report",
+          "review_required",
           "review_required_quality_gate_row_ids"
         ),
       "source_report_quality_gate_blocked_quality_gate_row_ids" =>
-        source_report_summary_family_merge_string_lists(
+        source_report_summary_quality_gate_status_row_ids(
           source_reports,
-          "quality_gate_report",
+          "blocked",
           "blocked_quality_gate_row_ids"
         ),
       "source_report_quality_gate_ready_quality_gate_row_ids" =>
-        source_report_summary_family_merge_string_lists(
+        source_report_summary_quality_gate_status_row_ids(
           source_reports,
-          "quality_gate_report",
+          "passed",
           "ready_quality_gate_row_ids"
         ),
       "source_report_quality_gate_analysis_only_quality_gate_row_ids" =>
-        source_report_summary_family_merge_string_lists(
+        source_report_summary_quality_gate_status_row_ids(
           source_reports,
-          "quality_gate_report",
+          "analysis_only",
           "analysis_only_quality_gate_row_ids"
         ),
       "source_report_quality_gate_stale_or_unknown_freshness_quality_gate_row_ids" =>
@@ -15548,15 +15548,32 @@ defmodule OrbitalDynamics.CandidateRefresh do
     quality_gate_ids_by_status = Map.get(quality_gate_summary, "quality_gate_ids_by_status", %{})
 
     review_required_quality_gate_row_ids =
-      Map.get(quality_gate_summary, "review_required_quality_gate_row_ids", [])
+      quality_gate_status_row_ids(
+        quality_gate_summary,
+        "review_required",
+        "review_required_quality_gate_row_ids"
+      )
 
     blocked_quality_gate_row_ids =
-      Map.get(quality_gate_summary, "blocked_quality_gate_row_ids", [])
+      quality_gate_status_row_ids(
+        quality_gate_summary,
+        "blocked",
+        "blocked_quality_gate_row_ids"
+      )
 
-    ready_quality_gate_row_ids = Map.get(quality_gate_summary, "ready_quality_gate_row_ids", [])
+    ready_quality_gate_row_ids =
+      quality_gate_status_row_ids(
+        quality_gate_summary,
+        "passed",
+        "ready_quality_gate_row_ids"
+      )
 
     analysis_only_quality_gate_row_ids =
-      Map.get(quality_gate_summary, "analysis_only_quality_gate_row_ids", [])
+      quality_gate_status_row_ids(
+        quality_gate_summary,
+        "analysis_only",
+        "analysis_only_quality_gate_row_ids"
+      )
 
     stale_or_unknown_freshness_quality_gate_row_ids =
       Map.get(quality_gate_summary, "stale_or_unknown_freshness_quality_gate_row_ids", [])
@@ -20742,6 +20759,20 @@ defmodule OrbitalDynamics.CandidateRefresh do
     end
   end
 
+  defp source_report_summary_quality_gate_status_row_ids(
+         source_reports,
+         status,
+         fallback_field
+       ) do
+    if Map.has_key?(source_reports, "quality_gate_report") do
+      source_reports
+      |> Map.take(["quality_gate_report"])
+      |> Map.values()
+      |> Enum.flat_map(&quality_gate_status_row_ids(&1, status, fallback_field))
+      |> sorted_string_values()
+    end
+  end
+
   defp source_report_summary_family_identity_count(source_reports, family, field) do
     if source_report_summary_family_has_identity_counts?(source_reports, family) do
       source_report_summary_family_count(source_reports, family, field)
@@ -23867,19 +23898,29 @@ defmodule OrbitalDynamics.CandidateRefresh do
         |> merge_string_list_maps(),
       "review_required_quality_gate_row_ids" =>
         reports
-        |> Enum.flat_map(&quality_gate_string_list(&1, "review_required_quality_gate_row_ids"))
+        |> Enum.flat_map(
+          &quality_gate_status_row_ids(
+            &1,
+            "review_required",
+            "review_required_quality_gate_row_ids"
+          )
+        )
         |> sorted_string_values(),
       "blocked_quality_gate_row_ids" =>
         reports
-        |> Enum.flat_map(&quality_gate_string_list(&1, "blocked_quality_gate_row_ids"))
+        |> Enum.flat_map(
+          &quality_gate_status_row_ids(&1, "blocked", "blocked_quality_gate_row_ids")
+        )
         |> sorted_string_values(),
       "ready_quality_gate_row_ids" =>
         reports
-        |> Enum.flat_map(&quality_gate_string_list(&1, "ready_quality_gate_row_ids"))
+        |> Enum.flat_map(&quality_gate_status_row_ids(&1, "passed", "ready_quality_gate_row_ids"))
         |> sorted_string_values(),
       "analysis_only_quality_gate_row_ids" =>
         reports
-        |> Enum.flat_map(&quality_gate_string_list(&1, "analysis_only_quality_gate_row_ids"))
+        |> Enum.flat_map(
+          &quality_gate_status_row_ids(&1, "analysis_only", "analysis_only_quality_gate_row_ids")
+        )
         |> sorted_string_values(),
       "stale_or_unknown_freshness_quality_gate_row_ids" =>
         reports
@@ -28747,6 +28788,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
     report
     |> Map.get(field)
     |> list_value()
+  end
+
+  defp quality_gate_status_row_ids(report, status, fallback_field) do
+    case Map.get(report, "quality_gate_row_ids_by_status") do
+      %{} = row_ids_by_status ->
+        quality_gate_summary_list_map_values(row_ids_by_status, status)
+
+      _row_ids_by_status ->
+        quality_gate_string_list(report, fallback_field)
+    end
   end
 
   defp quality_gate_string_list_map(report, field) do

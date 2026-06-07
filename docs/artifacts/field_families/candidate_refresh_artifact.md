@@ -2257,6 +2257,9 @@ fields require complete source-report identity (`count` and `row_count`
 present), so partial placeholders preserve only the declared contract while
 non-identity review/import/resource rollups, explicit zero counts, and explicit
 empty paths remain replayable evidence.
+When raw quality-gate provenance carries `quality_gate_row_ids_by_status`, that
+status map drives flattened and replayed review-required, blocked, ready, and
+analysis-only row-ID arrays before any duplicated top-level routing arrays.
 
 `CandidateRefresh.model_acceptance_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_model_acceptance_replay_summary/1` expose the

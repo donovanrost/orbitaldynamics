@@ -5,8 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-CandidateRefresh contact-allocation compact reservation-conflict contact-map
-replay counts.
+CandidateRefresh quality-gate compact row-ID status routing replay.
 
 Status:
 Implemented, verified, and reviewed; ready for commit/push.
@@ -18,74 +17,73 @@ Files changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:6058 test/orbital_dynamics/candidate_refresh_test.exs:7834 test/orbital_dynamics/candidate_refresh_test.exs:7890 test/orbital_dynamics/candidate_refresh_test.exs:8887 test/orbital_dynamics/candidate_refresh_test.exs:9245`
-  passed, 5 tests, before read-only review.
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:6058 test/orbital_dynamics/candidate_refresh_test.exs:7834 test/orbital_dynamics/candidate_refresh_test.exs:7890 test/orbital_dynamics/candidate_refresh_test.exs:7942 test/orbital_dynamics/candidate_refresh_test.exs:8965 test/orbital_dynamics/candidate_refresh_test.exs:9323`
-  passed, 6 tests, after fixing direct no-row and alias review findings.
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:6058 test/orbital_dynamics/candidate_refresh_test.exs:7834 test/orbital_dynamics/candidate_refresh_test.exs:7890 test/orbital_dynamics/candidate_refresh_test.exs:7942 test/orbital_dynamics/candidate_refresh_test.exs:8017 test/orbital_dynamics/candidate_refresh_test.exs:9000 test/orbital_dynamics/candidate_refresh_test.exs:9358`
-  passed, 7 tests, after fixing raw-provenance `_ground_station_id`
-  replay-map preservation.
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:31689 test/orbital_dynamics/candidate_refresh_test.exs:31875 test/orbital_dynamics/candidate_refresh_test.exs:31928 test/orbital_dynamics/candidate_refresh_test.exs:31984 test/orbital_dynamics/candidate_refresh_test.exs:32037`
+  passed, 5 tests.
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:30480 test/orbital_dynamics/candidate_refresh_test.exs:31703 test/orbital_dynamics/candidate_refresh_test.exs:31889 test/orbital_dynamics/candidate_refresh_test.exs:31942 test/orbital_dynamics/candidate_refresh_test.exs:31998 test/orbital_dynamics/candidate_refresh_test.exs:32048 test/orbital_dynamics/candidate_refresh_test.exs:32101 test/orbital_dynamics/candidate_refresh_test.exs:32141`
+  passed, 7 tests after review fixes; `:32101` had shifted, so the direct
+  compact empty-status regression was rerun at `:32102` and passed.
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
-  passed, 732 tests.
+  passed, 736 tests.
 - `mix orbital_dynamics.schema.lint --input study_results/candidate_refresh_v1.json --contract candidate_refresh.v1`
   passed with 0 errors and 0 warnings.
 - `git diff --check`
   passed.
 
 Docs/artifacts changed:
-- CandidateRefresh artifact field-family docs now state compact no-row
-  reservation-conflict count precedence from conflict contact-ID evidence
-  before duplicated scalar counters.
+- CandidateRefresh artifact docs now state raw quality-gate provenance
+  `quality_gate_row_ids_by_status` drives flattened and replayed status
+  row-ID arrays before duplicated top-level arrays.
 
 Level 6 pillar advanced:
-Fleet-level contact allocation/resource evidence.
+Approval-aware automation boundaries, quality gates, and import readiness.
 
 Remaining maturity gaps:
-Continue looking for compact review/import replay surfaces that trust top-level
-summaries despite richer nested maps or rows. This slice targets compact
-contact-allocation reservation-conflict counters that still trust duplicated
-scalar counts despite preserved conflict contact-ID maps.
+Continue hardening compact readiness/import replay surfaces so row-ID routing
+maps are the source of truth when raw rows are absent. This slice targets raw
+quality-gate source-report provenance that preserves
+`quality_gate_row_ids_by_status` but still lets stale or missing top-level
+review/blocked/ready/analysis routing arrays shape replay and flattened
+source-report fields.
 
 Last commit:
-`57e7b3e3393b70f05d15a6c47986788b90862974` pushed to `origin/main` for
-contact-allocation compact station-pressure contact-map replay counts.
+`5f076219db5adea17536b18c2133ac0e469896d9` pushed to `origin/main` for
+contact-allocation compact reservation-conflict contact-map replay counts.
 
 Next candidate:
-After this slice, reassess readiness or import-eligibility replay families for
-another narrow stale-top-level or compact no-row aggregation gap.
+After this slice, reassess remaining readiness/import-eligibility compact
+summary surfaces or return to typed timeline activity semantics.
 
 Blocked:
 No.
 
 Notes:
-- Implemented helper coverage for reservation-conflict contact-ID lists,
-  match-status maps, direction maps, and direction/station maps, including
-  existing-provenance `_ground_station_id` aliases and explicit empty evidence
-  blocking stale scalar counts. Replay now normalizes integer and float zero
-  counts as omitted optional values.
-- Read-only review found two medium issues: direct compact no-row
-  `contact_allocation_report.v1` aggregation still trusted stale nonzero
-  scalar counts, and direct/adapter nested ground-station aliases could drop
-  disjoint contacts. Both were fixed by routing direct no-row counts through
-  the shared reservation-conflict evidence helper and merging nested alias
-  maps instead of taking the first present map.
-- Follow-up review found raw `provenance.source_reports` replay could count
-  `_ground_station_id` nested conflict maps without publishing the replayed
-  nested map. Replay now merges the same nested alias fields before emitting
-  reservation-conflict direction/station contact routing.
-- Final follow-up review reported no remaining must-fix findings.
+- Implemented shared quality-gate status-row-ID helpers for flattened
+  source-report summaries and replay summaries. Present
+  `quality_gate_row_ids_by_status` maps now derive review-required, blocked,
+  ready, and analysis-only row-ID arrays; explicit empty maps block stale
+  top-level arrays.
+- Read-only review found direct compact quality-gate summary aggregation still
+  published stale nested provenance arrays and noted branch-summary test
+  coverage was thin. The direct nested aggregation now uses the shared helper,
+  and tests cover direct compact summaries plus branch candidate-source
+  summaries with stale top-level arrays.
+- Follow-up review reported no remaining must-fix findings.
 - Slice-selection note: selected after live inspection showed compact
-  reservation-conflict contact-ID maps are preserved without rows, but replay
-  and flattened existing provenance still read a nonzero
-  `reservation_conflict_contact_count` scalar before considering richer
-  conflict contact-ID maps. Level 6 pillar is fleet-level station/contact
-  allocation evidence. Docs to read are the ground-network capability map and
-  CandidateRefresh artifact family doc. Likely files are
+  quality-gate summaries already derive row counts and generic status counts
+  from `quality_gate_row_ids_by_status`, but raw
+  `provenance.source_reports.quality_gate_report` and branch source-report
+  summaries still read top-level `review_required_quality_gate_row_ids`,
+  `blocked_quality_gate_row_ids`, `ready_quality_gate_row_ids`, and
+  `analysis_only_quality_gate_row_ids` directly. Level 6 pillar is
+  approval-aware quality gates/import readiness. Docs read were the Cadence
+  boundary capability map, operational readiness doc snippets, compatibility
+  checks, and CandidateRefresh artifact family doc. Likely files are
   `lib/orbital_dynamics/candidate_refresh.ex`,
   `test/orbital_dynamics/candidate_refresh_test.exs`, and
   `docs/artifacts/field_families/candidate_refresh_artifact.md`. Definition
-  of done is map-derived reservation-conflict contact counts, explicit-empty
-  and stale-scalar regressions, docs updated, focused and broader
-  verification, read-only review, and a commit excluding unrelated local dirt.
+  of done is row-ID-status-map-derived flattened and replay routing arrays,
+  stale-top-level and explicit-empty regressions, docs updated, focused and
+  broader verification, read-only review, and a commit excluding unrelated
+  local dirt.
 - `.gitignore` still has an unrelated pre-existing local scratch-ignore change
   and is not part of this slice.
