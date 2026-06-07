@@ -30781,7 +30781,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
   end
 
   test "quality gate replay accepts operational schema-validation summaries" do
-    schema_summary = quality_gate_schema_validation_summary_fixture()
+    schema_summary =
+      quality_gate_schema_validation_summary_fixture()
+      |> Map.put("schema_validation_row_count", 99)
 
     refresh = %{
       "accepted_planning_state" => %{
@@ -30873,6 +30875,63 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     }
 
     assert CandidateRefresh.quality_gate_replay_summary(artifact) == replay_summary
+  end
+
+  test "quality gate replay treats explicit empty schema-validation status maps as zero rows" do
+    schema_summary =
+      quality_gate_schema_validation_summary_fixture()
+      |> Map.merge(%{
+        "schema_validation_row_count" => 99,
+        "quality_gate_row_ids_by_status" => %{},
+        "quality_gate_ids_by_status" => %{}
+      })
+
+    refresh = %{
+      "source_operational_quality_gate_schema_validation_summary" => schema_summary
+    }
+
+    source_report_summary = CandidateRefresh.source_report_summary(refresh)
+
+    assert %{
+             "source_report_count" => 1,
+             "source_report_row_count" => 0,
+             "source_report_quality_gate_count" => 1,
+             "source_report_quality_gate_row_count" => 0,
+             "source_report_quality_gate_gate_count" => 0,
+             "source_report_quality_gate_blocked_gate_count" => 0,
+             "source_reports" => %{
+               "quality_gate_report" => %{
+                 "row_count" => 0,
+                 "gate_count" => 0,
+                 "blocked_gate_count" => 0
+               }
+             }
+           } = source_report_summary
+
+    assert Map.get(
+             source_report_summary,
+             "source_report_quality_gate_quality_gate_row_ids_by_status",
+             %{}
+           ) ==
+             %{}
+
+    assert get_in(source_report_summary, [
+             "source_reports",
+             "quality_gate_report",
+             "quality_gate_row_ids_by_status"
+           ]) in [nil, %{}]
+
+    replay_summary = CandidateRefresh.quality_gate_replay_summary(refresh)
+
+    assert %{
+             "source_report_count" => 1,
+             "source_report_row_count" => 0,
+             "gate_count" => 0,
+             "blocked_gate_count" => 0
+           } = replay_summary
+
+    assert Map.get(replay_summary, "quality_gate_row_ids_by_status", %{}) == %{}
+    assert Map.get(replay_summary, "blocked_quality_gate_row_ids", []) == []
   end
 
   test "quality gate replay accepts wrapped operational schema-validation summaries" do

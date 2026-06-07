@@ -86,7 +86,10 @@ Status: **implemented** (with a **partial** semantic-depth area, plus **near-ter
   quality-gate source-report provenance from direct, accepted-state,
   mission-state, and wrapped result-artifact inputs, preserving schema status
   maps, failed quality-gate row IDs, schema-validation gate IDs, and
-  no-authority evidence without replaying refresh generation.
+  no-authority evidence without replaying refresh generation. Reconstructed
+  generic quality-gate row counts come from `quality_gate_row_ids_by_status`
+  when present, so stale compact schema-validation row counts cannot inflate
+  branch-local quality-gate pressure.
 - Quality-gate import-readiness summaries publish the validated
   `operational_quality_gate_import_readiness_summary.v1` contract and expose
   freshness status maps, import-status maps, Cadence-import status maps,

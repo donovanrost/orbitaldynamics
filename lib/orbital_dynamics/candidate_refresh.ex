@@ -45617,8 +45617,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
   defp quality_gate_report_from_schema_validation_summary(%{} = summary) do
     summary = stringify_keys(summary)
-    row_ids_by_status = Map.get(summary, "quality_gate_row_ids_by_status", %{})
+    row_ids_by_status = Map.get(summary, "quality_gate_row_ids_by_status")
     gate_ids_by_status = Map.get(summary, "quality_gate_ids_by_status", %{})
+
+    schema_validation_row_count =
+      quality_gate_summary_row_count(row_ids_by_status, summary["schema_validation_row_count"])
+
     status = quality_gate_schema_validation_status(summary)
     classification = quality_gate_import_readiness_classification(status)
 
@@ -45635,7 +45639,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "readiness_level" => quality_gate_import_readiness_level(classification),
       "import_classification" => classification,
       "status" => status,
-      "gate_count" => summary["schema_validation_row_count"],
+      "gate_count" => schema_validation_row_count,
       "passed_gate_count" =>
         length(quality_gate_summary_list_map_values(row_ids_by_status, "passed")),
       "review_gate_count" =>
@@ -45647,14 +45651,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "gate_status_counts" => quality_gate_import_readiness_status_counts(row_ids_by_status),
       "gate_classification_counts" =>
         quality_gate_import_readiness_classification_counts(row_ids_by_status),
-      "schema_validation_row_count" => summary["schema_validation_row_count"],
+      "schema_validation_row_count" => schema_validation_row_count,
       "schema_validation_pass_count" => summary["schema_validation_pass_count"],
       "schema_validation_fail_count" => summary["schema_validation_fail_count"],
       "schema_validation_error_count" => summary["schema_validation_error_count"],
       "schema_validation_warning_count" => summary["schema_validation_warning_count"],
       "schema_validation_remediation_count" => summary["schema_validation_remediation_count"],
       "schema_validation_status_counts" => summary["schema_validation_status_counts"],
-      "quality_gate_row_ids_by_status" => row_ids_by_status,
+      "quality_gate_row_ids_by_status" => row_ids_by_status || %{},
       "quality_gate_ids_by_status" => gate_ids_by_status,
       "review_required_quality_gate_row_ids" =>
         quality_gate_summary_list_map_values(row_ids_by_status, "review_required"),
@@ -45673,7 +45677,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
   defp quality_gate_report_from_import_readiness_summary(%{} = summary) do
     summary = stringify_keys(summary)
-    row_ids_by_status = Map.get(summary, "quality_gate_row_ids_by_status", %{})
+    row_ids_by_status = Map.get(summary, "quality_gate_row_ids_by_status")
     ready_row_ids = quality_gate_import_readiness_row_ids(row_ids_by_status, summary, "passed")
 
     review_row_ids =
@@ -45685,7 +45689,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     blocked_row_ids = quality_gate_import_readiness_row_ids(row_ids_by_status, summary, "blocked")
 
     import_readiness_row_count =
-      quality_gate_import_readiness_gate_count(row_ids_by_status, summary)
+      quality_gate_summary_row_count(row_ids_by_status, summary["import_readiness_row_count"])
 
     status = quality_gate_import_readiness_status(summary)
     classification = quality_gate_import_readiness_classification(status)
@@ -45732,7 +45736,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "schema_validation_status_counts" => summary["schema_validation_status_counts"],
       "import_status_counts" => summary["import_status_counts"],
       "cadence_import_status_counts" => summary["cadence_import_status_counts"],
-      "quality_gate_row_ids_by_status" => summary["quality_gate_row_ids_by_status"],
+      "quality_gate_row_ids_by_status" => row_ids_by_status || %{},
       "quality_gate_ids_by_status" => summary["quality_gate_ids_by_status"],
       "publication_status_counts" => summary["publication_status_counts"],
       "dependency_impact_status_counts" => summary["dependency_impact_status_counts"],
@@ -45805,15 +45809,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
     end
   end
 
-  defp quality_gate_import_readiness_status_from_row_ids(%{} = row_ids_by_status)
-       when map_size(row_ids_by_status) > 0 do
+  defp quality_gate_import_readiness_status_from_row_ids(%{} = row_ids_by_status) do
     quality_gate_status_from_row_ids(row_ids_by_status)
   end
 
   defp quality_gate_import_readiness_status_from_row_ids(_row_ids_by_status), do: nil
 
-  defp quality_gate_import_readiness_row_ids(%{} = row_ids_by_status, _summary, status)
-       when map_size(row_ids_by_status) > 0 do
+  defp quality_gate_import_readiness_row_ids(%{} = row_ids_by_status, _summary, status) do
     quality_gate_summary_list_map_values(row_ids_by_status, status)
   end
 
@@ -45837,17 +45839,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
     list_value(summary["blocked_quality_gate_row_ids"])
   end
 
-  defp quality_gate_import_readiness_gate_count(%{} = row_ids_by_status, _summary)
-       when map_size(row_ids_by_status) > 0 do
+  defp quality_gate_summary_row_count(%{} = row_ids_by_status, _fallback_count) do
     row_ids_by_status
     |> Map.values()
     |> Enum.flat_map(&list_value/1)
     |> length()
   end
 
-  defp quality_gate_import_readiness_gate_count(_row_ids_by_status, summary) do
-    summary["import_readiness_row_count"]
-  end
+  defp quality_gate_summary_row_count(_row_ids_by_status, fallback_count), do: fallback_count
 
   defp quality_gate_schema_validation_status(%{} = summary) do
     cond do

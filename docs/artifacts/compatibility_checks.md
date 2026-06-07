@@ -369,6 +369,9 @@ maps, blocked/failed row routing, gate routing, and the no-Cadence-write/
 no-authority assumptions, and executable verification rejects stale fail counts
 plus stale blocked-row evidence before adapter queues can trust the compact
 summary.
+CandidateRefresh replay also derives reconstructed quality-gate row counts from
+`quality_gate_row_ids_by_status` when present, preventing stale compact
+schema-validation row counts from inflating branch-local quality-gate pressure.
 The public quality-gate operator-training summary publishes
 `operational_quality_gate_operator_training_summary.v1`, preserving role,
 training, certification, and qualification routing from operator-training
