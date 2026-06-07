@@ -10475,6 +10475,11 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(schema, ["properties", "model_limits", "items", "enum"]) ==
              OrbitalDynamics.Timeline.model_limits()
 
+    assert_timeline_activity_state_assumptions_schema(
+      schema,
+      timeline_activity_status_state_assumption_fields()
+    )
+
     assert get_in(schema, ["properties", "transition_decision", "enum"]) ==
              OrbitalDynamics.Timeline.capabilities().transition_decisions
 
@@ -10523,6 +10528,16 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert {:ok, %{"schema_contract" => "timeline_activity_status_state.v1"}} =
              Schema.validate_artifact(state)
+
+    invalid_assumption = put_in(state, ["assumptions", "no_command_execution"], false)
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_assumption)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.assumptions.no_command_execution" and
+                 &1["message"] == "must equal true")
+           )
 
     invalid_model = Map.put(state, "model", "custom")
 
@@ -10593,6 +10608,11 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(schema, ["properties", "model_limits", "items", "enum"]) ==
              OrbitalDynamics.Timeline.model_limits()
 
+    assert_timeline_activity_state_assumptions_schema(
+      schema,
+      timeline_activity_status_state_assumption_fields()
+    )
+
     assert get_in(schema, ["properties", "transition_decision", "enum"]) ==
              OrbitalDynamics.Timeline.capabilities().transition_decisions
 
@@ -10645,6 +10665,16 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert {:ok, %{"schema_contract" => "timeline_activity_approval_state.v1"}} =
              Schema.validate_artifact(state)
+
+    invalid_assumption = put_in(state, ["assumptions", "no_operator_authority_grant"], false)
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_assumption)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.assumptions.no_operator_authority_grant" and
+                 &1["message"] == "must equal true")
+           )
 
     invalid_model = Map.put(state, "model", "custom")
 
@@ -10719,6 +10749,11 @@ defmodule OrbitalDynamics.SchemaTest do
              "artifact_only_timeline_activity_lifecycle_state"
 
     assert get_in(schema, ["properties", "validation_level", "const"]) == "artifact_contract"
+
+    assert_timeline_activity_state_assumptions_schema(
+      schema,
+      timeline_activity_lifecycle_state_assumption_fields()
+    )
 
     assert get_in(schema, ["properties", "transition_decision", "enum"]) ==
              OrbitalDynamics.Timeline.capabilities().transition_decisions
@@ -32486,6 +32521,40 @@ defmodule OrbitalDynamics.SchemaTest do
         capabilities.station_reservation_expiration_statuses,
       "provider_direction_aliases" => capabilities.provider_direction_aliases
     }
+  end
+
+  defp timeline_activity_status_state_assumption_fields do
+    [
+      "artifact_only",
+      "no_schedule_mutation",
+      "no_operator_authority_grant",
+      "no_command_execution"
+    ]
+  end
+
+  defp timeline_activity_lifecycle_state_assumption_fields do
+    [
+      "artifact_only",
+      "no_schedule_mutation",
+      "no_operator_authority_grant",
+      "no_cadence_import",
+      "no_command_execution"
+    ]
+  end
+
+  defp assert_timeline_activity_state_assumptions_schema(schema, fields) do
+    assumptions_schema = get_in(schema, ["properties", "assumptions"])
+
+    assert assumptions_schema["type"] == "object"
+    assert assumptions_schema["additionalProperties"] == true
+    assert assumptions_schema["required"] == fields
+
+    for field <- fields do
+      assert get_in(assumptions_schema, ["properties", field]) == %{
+               "type" => "boolean",
+               "const" => true
+             }
+    end
   end
 
   defp opaque_identity_property_paths(schema) do

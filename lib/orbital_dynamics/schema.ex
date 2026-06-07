@@ -12788,10 +12788,24 @@ defmodule OrbitalDynamics.Schema do
   defp json_schema_property("assumptions", contract_name, _contract)
        when contract_name in [
               @timeline_activity_status_state,
-              @timeline_activity_approval_state,
-              @timeline_activity_lifecycle_state
+              @timeline_activity_approval_state
             ] do
-    %{"type" => "object", "additionalProperties" => true}
+    timeline_activity_state_assumptions_json_schema([
+      "artifact_only",
+      "no_schedule_mutation",
+      "no_operator_authority_grant",
+      "no_command_execution"
+    ])
+  end
+
+  defp json_schema_property("assumptions", @timeline_activity_lifecycle_state, _contract) do
+    timeline_activity_state_assumptions_json_schema([
+      "artifact_only",
+      "no_schedule_mutation",
+      "no_operator_authority_grant",
+      "no_cadence_import",
+      "no_command_execution"
+    ])
   end
 
   defp json_schema_property("schema_contract", contract_name, _contract)
@@ -20772,6 +20786,18 @@ defmodule OrbitalDynamics.Schema do
           "items" => %{"type" => "string", "enum" => resource_filter_row_review_statuses()}
         }
       }
+    }
+  end
+
+  defp timeline_activity_state_assumptions_json_schema(fields) do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => fields,
+      "properties" =>
+        Map.new(fields, fn field ->
+          {field, %{"type" => "boolean", "const" => true}}
+        end)
     }
   end
 

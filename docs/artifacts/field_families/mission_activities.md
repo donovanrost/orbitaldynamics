@@ -440,6 +440,9 @@ validated `timeline_activity_lifecycle_state.v1` artifact-only lifecycle state
 for adapters that need a single review/import preflight without mutating
 schedules, granting operator authority, importing to Cadence, or executing
 commands.
+The exported schemas for the single-activity status, approval, and lifecycle
+state handoffs pin the same no-authority assumption flags that runtime
+validation enforces, including the lifecycle state's no-Cadence-import boundary.
 The single-activity status, approval, and lifecycle-state artifacts also route
 through `OrbitalDynamics.operator_review_package/1` and
 `OrbitalDynamics.cadence_import_manifest/1`, preserving their activity/timeline
