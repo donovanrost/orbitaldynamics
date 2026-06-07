@@ -9719,6 +9719,7 @@ defmodule OrbitalDynamics.Validation do
         :validation_safety_case_model_count_rollups,
         :validation_safety_case_model_acceptance_row_status_floor,
         :validation_safety_case_readiness_count_rollups,
+        :validation_safety_case_readiness_gate_status_floor,
         :validation_safety_case_quality_gate_count_rollups,
         :validation_safety_case_quality_gate_row_status_floor,
         :validation_safety_case_schema_validation_count_rollups,
@@ -10540,19 +10541,32 @@ defmodule OrbitalDynamics.Validation do
          %{"schema_contract" => "operational_readiness_report.v1"} = report
        ) do
     evidence = Map.get(report, "evidence", %{})
+    gates = map_rows(report, "gates")
 
     %{
       "schema_contract" => "operational_readiness_report.v1",
-      "status" => safety_case_readiness_status(report),
+      "status" => safety_case_readiness_status(report, gates),
       "report_id" => Map.get(report, "report_id"),
       "readiness_level" => Map.get(report, "readiness_level"),
       "import_classification" => Map.get(report, "import_classification"),
       "readiness_review_required_count" =>
-        numeric_count(evidence, "review_required_count") +
-          numeric_count(report, "review_gate_count"),
+        readiness_gate_count_or_report_count(
+          gates,
+          report,
+          evidence,
+          ["review_required", "analysis_only"],
+          ["review_required_count", "review_gate_count", "analysis_gate_count"]
+        ),
       "readiness_blocked_count" =>
-        numeric_count(evidence, "blocked_count") + numeric_count(report, "blocked_gate_count"),
-      "ready_for_import_count" => numeric_count(evidence, "ready_for_import_count")
+        readiness_gate_count_or_report_count(
+          gates,
+          report,
+          evidence,
+          ["blocked"],
+          ["blocked_count", "blocked_gate_count"]
+        ),
+      "ready_for_import_count" =>
+        readiness_gate_sum_or_evidence_count(gates, evidence, "ready_for_import_count")
     }
     |> compact_validation_map()
   end
@@ -10762,14 +10776,49 @@ defmodule OrbitalDynamics.Validation do
     Map.get(report, field)
   end
 
-  defp safety_case_readiness_status(%{"status" => status}) when status in ["blocked", "fail"],
-    do: "blocked"
+  defp safety_case_readiness_status(_report, gates) when is_list(gates) and gates != [] do
+    cond do
+      count_rows_matching(gates, "status", "blocked") > 0 ->
+        "blocked"
 
-  defp safety_case_readiness_status(%{"status" => status})
+      count_rows_matching(gates, "status", "review_required") > 0 or
+          count_rows_matching(gates, "status", "analysis_only") > 0 ->
+        "review_required"
+
+      true ->
+        "accepted_for_use"
+    end
+  end
+
+  defp safety_case_readiness_status(%{"status" => status}, _gates)
+       when status in ["blocked", "fail"],
+       do: "blocked"
+
+  defp safety_case_readiness_status(%{"status" => status}, _gates)
        when status in ["review_required", "not_ready", "analysis_only"],
        do: "review_required"
 
-  defp safety_case_readiness_status(_report), do: "accepted_for_use"
+  defp safety_case_readiness_status(_report, _gates), do: "accepted_for_use"
+
+  defp readiness_gate_count_or_report_count(gates, _report, _evidence, statuses, _fields)
+       when is_list(gates) and gates != [] do
+    Enum.sum(Enum.map(statuses, &count_rows_matching(gates, "status", &1)))
+  end
+
+  defp readiness_gate_count_or_report_count(_gates, report, evidence, _statuses, fields) do
+    fields
+    |> Enum.map(&(numeric_count(evidence, &1) + numeric_count(report, &1)))
+    |> Enum.sum()
+  end
+
+  defp readiness_gate_sum_or_evidence_count(gates, _evidence, field)
+       when is_list(gates) and gates != [] do
+    sum_rows_numeric(gates, field)
+  end
+
+  defp readiness_gate_sum_or_evidence_count(_gates, evidence, field) do
+    numeric_count(evidence, field)
+  end
 
   defp safety_case_quality_gate_status(_report, rows) when is_list(rows) and rows != [] do
     cond do

@@ -213,6 +213,9 @@ trusting stale top-level accepted/review/blocked aggregates.
 Quality-gate evidence derives review and blocked counts from gate rows when
 they are present, so stale top-level passed gate counts cannot make blocked
 gate evidence appear accepted in a safety-case handoff.
+Operational-readiness evidence derives review and blocked status/counts from
+readiness gate rows when they are present, so stale top-level import-eligible
+status cannot hide blocked readiness gates in the safety-case handoff.
 Candidate-refresh validation-safety-case replay summaries use those evidence
 rows to derive source-report evidence status maps when rows are present, so
 stale top-level `evidence_status_counts` fields cannot steer review/blocking

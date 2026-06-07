@@ -719,6 +719,8 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert :validation_safety_case_readiness_count_rollups in capabilities.safety_case_evidence_semantics
 
+    assert :validation_safety_case_readiness_gate_status_floor in capabilities.safety_case_evidence_semantics
+
     assert :validation_safety_case_quality_gate_count_rollups in capabilities.safety_case_evidence_semantics
 
     assert :validation_safety_case_quality_gate_row_status_floor in capabilities.safety_case_evidence_semantics
@@ -794,6 +796,52 @@ defmodule OrbitalDynamics.ValidationTest do
            } =
              safety_case_summary =
              Validation.safety_case_summary(stale_top_level_model_acceptance)
+
+    assert {:ok, %{"schema_contract" => "validation_safety_case_summary.v1"}} =
+             Schema.validate_artifact(safety_case_summary,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+  end
+
+  test "derives safety-case readiness evidence from gates when top-level counts are stale" do
+    stale_top_level_readiness = %{
+      "schema_contract" => "operational_readiness_report.v1",
+      "report_id" => "operational_readiness:stale_top_level",
+      "readiness_level" => "import_eligible",
+      "import_classification" => "importable",
+      "status" => "ready",
+      "review_gate_count" => 0,
+      "analysis_gate_count" => 0,
+      "blocked_gate_count" => 0,
+      "evidence" => %{"ready_for_import_count" => 9},
+      "gates" => [
+        %{"id" => "operator_review", "status" => "review_required"},
+        %{"id" => "cadence_import", "status" => "blocked", "ready_for_import_count" => 1}
+      ]
+    }
+
+    assert %{
+             "status" => "blocked",
+             "readiness_review_required_count" => 1,
+             "readiness_blocked_count" => 1,
+             "ready_for_import_count" => 1,
+             "evidence_status_counts" => %{"blocked" => 1},
+             "evidence_refs_by_status" => %{
+               "blocked" => [
+                 "operational_readiness_report.v1:operational_readiness:stale_top_level"
+               ]
+             },
+             "evidence" => [
+               %{
+                 "schema_contract" => "operational_readiness_report.v1",
+                 "status" => "blocked",
+                 "readiness_review_required_count" => 1,
+                 "readiness_blocked_count" => 1,
+                 "ready_for_import_count" => 1
+               }
+             ]
+           } =
+             safety_case_summary = Validation.safety_case_summary(stale_top_level_readiness)
 
     assert {:ok, %{"schema_contract" => "validation_safety_case_summary.v1"}} =
              Schema.validate_artifact(safety_case_summary,
