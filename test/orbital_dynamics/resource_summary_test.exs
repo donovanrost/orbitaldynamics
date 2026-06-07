@@ -22,6 +22,9 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
              resource_availability_true_tokens: resource_availability_true_tokens,
              resource_availability_false_tokens: resource_availability_false_tokens,
              resource_activity_type_aliases: resource_activity_type_aliases,
+             roll_forward_planned_data_volume_paths: roll_forward_planned_data_volume_paths,
+             roll_forward_actual_data_volume_paths: roll_forward_actual_data_volume_paths,
+             roll_forward_downlink_throughput_paths: roll_forward_downlink_throughput_paths,
              roll_forward_battery_energy_consumed_paths:
                roll_forward_battery_energy_consumed_paths,
              roll_forward_battery_energy_generated_paths:
@@ -166,6 +169,13 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
     assert resource_activity_type_aliases["sband_command"] == "command"
     assert resource_activity_type_aliases["downlinking"] == "downlink"
     assert resource_activity_type_aliases["tracking_pass"] == "tracking"
+
+    assert ["planned_data_volume_mb"] in roll_forward_planned_data_volume_paths
+    assert ["metadata", "estimated_data_volume_mb"] in roll_forward_planned_data_volume_paths
+    assert ["actual_data_volume_mb"] in roll_forward_actual_data_volume_paths
+    assert ["metadata", "received_data_mb"] in roll_forward_actual_data_volume_paths
+    assert ["estimated_throughput_mb"] in roll_forward_downlink_throughput_paths
+    assert ["throughput_model", "planned_throughput_mb"] in roll_forward_downlink_throughput_paths
 
     assert ["estimated_energy_used_wh"] in roll_forward_battery_energy_consumed_paths
     assert ["metadata", "battery_energy_used_wh"] in roll_forward_battery_energy_consumed_paths
