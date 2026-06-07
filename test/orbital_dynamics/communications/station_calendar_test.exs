@@ -4619,6 +4619,171 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
                now_s: 120.0
              )
 
+    direct_counteroffer_report =
+      Map.merge(counteroffer_report, %{
+        "counteroffer_count" => 1,
+        "reviewable_count" => 1,
+        "rows" => [
+          %{
+            "counteroffer_id" => "provider_offer_string",
+            "offer_status" => "proposal",
+            "price_delta" => "125.5",
+            "schedule_lock_deadline_s" => "150.0",
+            "offered_start_s" => "130.0",
+            "offered_end_s" => "170.0",
+            "starts_at_s" => "100.0",
+            "ends_at_s" => "140.0",
+            "ground_station_id" => "equator_prime",
+            "station_calendar_provider_entry_id" => "provider_counteroffer_window"
+          }
+        ]
+      })
+
+    assert %{
+             "counteroffer_count" => 1,
+             "reviewable_count" => 1,
+             "counteroffer_lock_deadline_count" => 1,
+             "earliest_counteroffer_lock_deadline_s" => 150.0,
+             "counteroffer_lock_deadline_status_counts" => %{"expired" => 1},
+             "review_counteroffer_ids" => ["provider_offer_string"],
+             "rows" => [
+               %{
+                 "id" => "provider_counteroffer:1:provider_offer_string",
+                 "provider_counteroffer_id" => "provider_offer_string",
+                 "provider_counteroffer_status" => "proposal",
+                 "provider_counteroffer_negotiation_state" => "proposed",
+                 "provider_counteroffer_cost_delta" => 125.5,
+                 "provider_counteroffer_lock_deadline_s" => 150.0,
+                 "provider_counteroffer_starts_at_s" => 130.0,
+                 "provider_counteroffer_ends_at_s" => 170.0,
+                 "reviewable" => true,
+                 "required_operator_action" => "review_provider_counteroffer",
+                 "source_station_calendar_entry" => %{}
+               }
+             ]
+           } =
+             direct_review_summary =
+             StationCalendar.provider_counteroffer_review_summary(direct_counteroffer_report,
+               now_s: 160.0
+             )
+
+    assert {:ok, %{"schema_contract" => "provider_counteroffer_review_summary.v1"}} =
+             Schema.validate_artifact(direct_review_summary)
+
+    assert %{
+             "review_required_before_import_count" => 1,
+             "counteroffer_ids_by_import_status" => %{
+               "review_required_before_import" => ["provider_offer_string"]
+             },
+             "import_readiness_rows" => [
+               %{
+                 "provider_counteroffer_id" => "provider_offer_string",
+                 "provider_counteroffer_import_status" => "review_required_before_import",
+                 "provider_counteroffer_lock_deadline_s" => 150.0
+               }
+             ]
+           } =
+             direct_import_summary =
+             StationCalendar.provider_counteroffer_import_readiness_summary(
+               direct_counteroffer_report,
+               now_s: 160.0
+             )
+
+    assert {:ok, %{"schema_contract" => "provider_counteroffer_import_readiness_summary.v1"}} =
+             Schema.validate_artifact(direct_import_summary)
+
+    assert %{
+             "timing_shift_counteroffer_count" => 1,
+             "counteroffer_cost_delta_count" => 1,
+             "counteroffer_cost_delta_total" => 125.5,
+             "timing_shift_counteroffer_ids" => ["provider_offer_string"],
+             "cost_delta_counteroffer_ids" => ["provider_offer_string"],
+             "rows" => [
+               direct_impact_row = %{
+                 "provider_counteroffer_id" => "provider_offer_string",
+                 "provider_counteroffer_start_delta_s" => 30.0,
+                 "provider_counteroffer_end_delta_s" => 30.0
+               }
+             ]
+           } =
+             direct_impact_summary =
+             StationCalendar.provider_counteroffer_plan_impact_summary(
+               direct_counteroffer_report,
+               now_s: 120.0
+             )
+
+    assert direct_impact_row["provider_counteroffer_duration_delta_s"] == 0.0
+
+    assert {:ok, %{"schema_contract" => "provider_counteroffer_plan_impact_summary.v1"}} =
+             Schema.validate_artifact(direct_impact_summary)
+
+    malformed_direct_counteroffer_report =
+      Map.put(direct_counteroffer_report, "rows", [
+        %{
+          "provider_counteroffer_id" => "provider_offer_malformed",
+          "provider_counteroffer_status" => "proposed",
+          "provider_counteroffer_cost_delta" => "not-a-number",
+          "provider_counteroffer_lock_deadline_s" => "soon",
+          "provider_counteroffer_starts_at_s" => "later",
+          "provider_counteroffer_ends_at_s" => "never",
+          "reviewable" => "false"
+        }
+      ])
+
+    assert %{
+             "reviewable_count" => 0,
+             "counteroffer_lock_deadline_count" => 0,
+             "counteroffer_lock_deadline_status_counts" => %{"missing" => 1},
+             "review_counteroffer_ids" => [],
+             "rows" => [malformed_review_row]
+           } =
+             malformed_review_summary =
+             StationCalendar.provider_counteroffer_review_summary(
+               malformed_direct_counteroffer_report,
+               now_s: 160.0
+             )
+
+    refute Map.has_key?(malformed_review_row, "provider_counteroffer_cost_delta")
+    refute Map.has_key?(malformed_review_row, "provider_counteroffer_lock_deadline_s")
+    refute Map.has_key?(malformed_review_row, "provider_counteroffer_starts_at_s")
+    refute Map.has_key?(malformed_review_row, "provider_counteroffer_ends_at_s")
+    assert malformed_review_row["reviewable"] == false
+    assert malformed_review_row["required_operator_action"] == "none"
+
+    assert {:ok, %{"schema_contract" => "provider_counteroffer_review_summary.v1"}} =
+             Schema.validate_artifact(malformed_review_summary)
+
+    assert %{
+             "review_required_before_import_count" => 0,
+             "no_import_required_count" => 1,
+             "no_import_required_counteroffer_ids" => ["provider_offer_malformed"],
+             "provider_counteroffer_import_status_counts" => %{"not_applicable" => 1}
+           } =
+             malformed_import_summary =
+             StationCalendar.provider_counteroffer_import_readiness_summary(
+               malformed_direct_counteroffer_report,
+               now_s: 160.0
+             )
+
+    assert {:ok, %{"schema_contract" => "provider_counteroffer_import_readiness_summary.v1"}} =
+             Schema.validate_artifact(malformed_import_summary)
+
+    assert %{
+             "timing_shift_counteroffer_count" => 0,
+             "counteroffer_cost_delta_count" => 0,
+             "counteroffer_cost_delta_total" => 0,
+             "timing_shift_counteroffer_ids" => [],
+             "cost_delta_counteroffer_ids" => []
+           } =
+             malformed_impact_summary =
+             StationCalendar.provider_counteroffer_plan_impact_summary(
+               malformed_direct_counteroffer_report,
+               now_s: 120.0
+             )
+
+    assert {:ok, %{"schema_contract" => "provider_counteroffer_plan_impact_summary.v1"}} =
+             Schema.validate_artifact(malformed_impact_summary)
+
     invalid_counteroffer_count = Map.put(counteroffer_report, "counteroffer_count", 2)
 
     assert {:error, invalid_counteroffer_count_report} =

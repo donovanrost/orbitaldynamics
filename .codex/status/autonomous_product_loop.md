@@ -5,79 +5,84 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Typed timeline activity template operational-hint derivation.
+Provider counteroffer direct-summary row normalization.
 
 Status:
 Implemented, verified, and reviewed; ready for commit/push.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/timeline.ex`
-- `test/orbital_dynamics/timeline_test.exs`
-- `docs/artifacts/field_families/mission_activities.md`
+- `lib/orbital_dynamics/communications/station_calendar.ex`
+- `test/orbital_dynamics/communications/station_calendar_test.exs`
+- `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`
 
 Slice-selection note:
-Selected after live inspection of the guide's top queue item, typed
-operational activity and timeline semantics. The existing public surface already
-has status/approval transition helpers, dependency/exclusivity validation,
-precondition summaries, and lifecycle preservation helpers. A narrower live gap
-remains in raw timeline-map ingress: activities that carry valid
-`activity_template.v1.operational_hints` preserve the nested template
-provenance, but timeline rows and reusable `activity_context` do not derive
-advisory `setup_duration_s`, `cooldown_duration_s`,
-`telemetry_confirmation_required`, or `telemetry_confirmation_status` from the
-template when those fields are absent at the top level. Template instantiation
-already copies those hints, so this slice aligns direct timeline-map adapters
-with that typed template behavior without mutating schedule bounds, granting
-operator authority, or executing commands.
+Selected after live reassessment of the guide queue. The typed
+activity/timeline examples are now largely implemented, including the
+just-pushed template operational-hint ingress slice at
+`5e040ac8b54e403734e4433acdc2b6e8a53a68b8`. The next queue item is resource
+and communications allocation semantics. Station-calendar precedence and
+reservation-hold surfaces are already present, but direct provider-counteroffer
+summary helpers still trust existing `provider_counteroffer_report.v1` row
+payloads. A runtime probe showed
+`provider_counteroffer_plan_impact_summary/2` can emit schema-invalid summary
+rows when a direct report row carries numeric strings for cost/deadline/timing
+or omits generated row fields such as `id`, `provider_counteroffer_negotiation_state`,
+and `source_station_calendar_entry`. Provider overlay ingress already
+normalizes those fields, so this slice aligns direct report summary inputs with
+the same artifact-only normalization boundary without accepting offers,
+reserving provider time, writing provider state, or mutating schedules.
 
 Definition of done:
-- Operational timeline row and activity-context hint fields derive from
-  `activity_template.operational_hints` when top-level activity values are
-  absent.
-- Explicit top-level activity hint values remain authoritative over template
-  hints.
-- Malformed or scalar template/hint values do not leak invalid row/context
-  fields.
-- Focused tests cover direct raw timeline-map ingress and validation.
-- Mission activity docs note the direct timeline-map behavior.
-- Run focused verification, broader timeline tests if practical, schema lint for
-  touched artifacts if needed, read-only review, and commit/push only this
-  slice's files.
+- Review, import-readiness, and plan-impact summaries normalize direct
+  `provider_counteroffer_report.v1` rows before deriving counts, deadline
+  status, timing deltas, ID maps, and row copies.
+- Numeric string counteroffer cost/deadline/start/end values become numbers;
+  malformed numeric values are omitted from schema-visible numeric fields.
+- Missing generated row fields are filled consistently where possible:
+  deterministic row `id`, inferred negotiation state, required action/reviewable
+  defaults, and a map `source_station_calendar_entry`.
+- Existing valid generated counteroffer reports remain behavior-compatible.
+- Focused tests cover direct report numeric-string rows, malformed numerics,
+  schema validation for all three summaries, and stale aggregate resistance.
+- Run focused station-calendar tests, schema lint for provider-counteroffer
+  artifacts, read-only review, and commit/push only this slice's files.
 
 Implementation notes:
-- Operational timeline rows and reusable `activity_context` now derive
-  advisory setup/cooldown/telemetry hint fields from valid
-  `activity_template.v1.operational_hints` when explicit top-level activity
-  values are absent.
-- Explicit top-level activity hint values remain authoritative; malformed
-  explicit values do not fall back to template values.
-- Template operational-hint provenance normalizes known schema fields and drops
-  malformed known values or scalar `operational_hints`, preserving schema-valid
-  row/template provenance.
+- Provider-counteroffer review, import-readiness, and plan-impact summary
+  helpers now normalize direct `provider_counteroffer_report.v1` rows through
+  the same alias-aware row builder before deriving row copies, counts, deadline
+  status, timing deltas, and ID maps.
+- Direct row aliases such as `counteroffer_id`, `offer_status`, `price_delta`,
+  `schedule_lock_deadline_s`, `offered_start_s`, and `offered_end_s` now produce
+  schema-visible canonical fields in summaries.
+- Numeric-string cost/deadline/offered-time fields become numbers; malformed
+  numeric fields are omitted, deadline status becomes `missing`, and reviewable
+  string false values route to no-import/no-review summary rows.
+- Missing row `id`, negotiation state, required action, reviewable default, and
+  `source_station_calendar_entry` map are regenerated for summary row copies.
 
 Tests run:
-- `mix test test/orbital_dynamics/timeline_test.exs:3018`
+- `mix test test/orbital_dynamics/communications/station_calendar_test.exs:4090`
   passed, 1 test.
-- `mix test test/orbital_dynamics/timeline_test.exs`
-  passed, 126 tests.
-- `mix orbital_dynamics.schema.lint --input study_results/operational_timeline_report_v1.json --contract operational_timeline_report.v1`
+- `mix test test/orbital_dynamics/communications/station_calendar_test.exs`
+  passed, 42 tests.
+- `mix orbital_dynamics.schema.lint --input study_results/station_calendar_report_v1.json --contract station_calendar_report.v1`
   passed with 0 errors and 0 warnings.
-- `mix orbital_dynamics.schema.lint --input study_results/timeline_integrity_report_v1.json --contract timeline_integrity_report.v1`
-  passed with 0 errors and 0 warnings.
-- `mix orbital_dynamics.schema.lint --input study_results/activity_template_v1.json --contract activity_template.v1`
+- `mix orbital_dynamics.schema.lint --input study_results/station_calendar_provider_v1.json --contract station_calendar_provider.v1`
   passed with 0 errors and 0 warnings.
 - `git diff --check`
   passed.
 
 Review:
-- Read-only review sidecar `019ea12f-0fac-7eb2-a75e-aa8c83723df9`
-  reported no must-fix findings. It independently ran a scoped
-  `git diff --check`, the focused timeline test, and the full timeline test.
+- Read-only review sidecar `019ea137-e3c0-7891-963a-8243f66c51e9`
+  reported no must-fix findings. It independently ran the focused
+  provider-counteroffer test, the full station-calendar test file, and
+  station-calendar provider schema lint.
 
 Last commit:
-`83461b1084fd97cf81f71f6cd1bfcd6cedb6746e` pushed to `origin/main` for
-CandidateRefresh quality-gate compact row-ID status routing replay.
+`5e040ac8b54e403734e4433acdc2b6e8a53a68b8` pushed to `origin/main` for typed
+timeline activity template operational-hint derivation.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
