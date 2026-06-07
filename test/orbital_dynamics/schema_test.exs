@@ -11183,6 +11183,76 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(schema, ["properties", "allow_overlap", "type"]) == "boolean"
   end
 
+  test "validates checked-in timeline activity precondition summary fixture" do
+    summary = read_json!("study_results/timeline_activity_precondition_summary_v1.json")
+
+    source_activity = %{
+      "id" => "cmd_source",
+      "type" => "command",
+      "scenario_id" => "leo_1",
+      "metadata" => %{"timeline_id" => "timeline:cmd_source"},
+      "payload_available" => false,
+      "resource_blocking_dimension" => "power",
+      "degraded" => true
+    }
+
+    generated_summary = OrbitalDynamics.timeline_activity_precondition_summary(source_activity)
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "timeline_activity_precondition_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "schema_contract" => "timeline_activity_precondition_summary.v1",
+             "model" => "artifact_only_timeline_activity_precondition_summary",
+             "validation_level" => "artifact_contract",
+             "activity_id" => "cmd_source",
+             "activity_type" => "command",
+             "timeline_id" => "timeline:cmd_source",
+             "timeline_identity" => %{
+               "activity_id" => "cmd_source",
+               "activity_type" => "command",
+               "scenario_id" => "leo_1",
+               "timeline_id" => "timeline:cmd_source"
+             },
+             "precondition_status" => "blocked",
+             "blocked_precondition_count" => 2,
+             "review_precondition_count" => 1,
+             "blocked_precondition_types" => [
+               "payload_unavailable",
+               "resource_block_declared"
+             ],
+             "review_precondition_types" => ["degraded_mode"],
+             "preconditions" => [
+               %{
+                 "type" => "payload_unavailable",
+                 "status" => "blocked",
+                 "field" => "payload_available",
+                 "reason" => "payload availability is explicitly false"
+               },
+               %{
+                 "type" => "resource_block_declared",
+                 "status" => "blocked",
+                 "field" => "resource_blocking_dimension",
+                 "reason" => "resource blocking dimension is explicitly declared",
+                 "value" => "power"
+               },
+               %{
+                 "type" => "degraded_mode",
+                 "status" => "review_required",
+                 "field" => "degraded",
+                 "reason" => "activity is explicitly marked degraded"
+               }
+             ],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_schedule_mutation",
+               "operator_authority" => "not_granted_by_precondition_summary",
+               "resource_authority" => "not_reserved_by_precondition_summary"
+             }
+           } = summary
+  end
+
   test "validates timeline activity precondition summary artifact fields" do
     valid_summary = %{
       "schema_contract" => "timeline_activity_precondition_summary.v1",
