@@ -10096,6 +10096,11 @@ defmodule OrbitalDynamics.SchemaTest do
                &Atom.to_string/1
              )
 
+    assert_timeline_activity_state_assumptions_schema(
+      schema,
+      timeline_activity_state_assumption_fields()
+    )
+
     assert get_in(schema, ["x-orbital-dynamics", "nested_contracts"]) == [
              "timeline_feedback_report.v1"
            ]
@@ -32528,6 +32533,14 @@ defmodule OrbitalDynamics.SchemaTest do
       "artifact_only",
       "no_schedule_mutation",
       "no_operator_authority_grant",
+      "no_command_execution"
+    ]
+  end
+
+  defp timeline_activity_state_assumption_fields do
+    [
+      "artifact_only",
+      "no_schedule_mutation",
       "no_command_execution"
     ]
   end

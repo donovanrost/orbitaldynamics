@@ -10653,7 +10653,11 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property("assumptions", @timeline_activity_state, _contract) do
-    %{"type" => "object", "additionalProperties" => true}
+    timeline_activity_state_assumptions_json_schema([
+      "artifact_only",
+      "no_schedule_mutation",
+      "no_command_execution"
+    ])
   end
 
   defp json_schema_property("model_limits", @timeline_activity_state, _contract) do

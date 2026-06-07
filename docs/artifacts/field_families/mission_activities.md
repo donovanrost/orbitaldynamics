@@ -408,7 +408,7 @@ source-quality counts, realized trust-boundary status/boundaries, model limits, 
 row-level evidence without mutating schedules or executing commands. The facade
 publishes the validated
 `timeline_activity_state.v1` schema contract so stale row counts, stale
-count maps, realized provenance summaries, review IDs, and explicit
+count maps, realized provenance summaries, review IDs, and schema-pinned
 no-mutation/no-command assumptions remain
 adapter-safe. Runtime validation and schema export also pin its timeline
 model-limit boundary, so schema-only handoffs cannot accept stale model-limit
