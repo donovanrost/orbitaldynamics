@@ -5,51 +5,55 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Typed lifecycle helper selected-integrity gating.
+Checked-in study manifest/schema-lint artifact freshness.
 
 Status:
 Implemented, verified, reviewed, and ready for mechanical commit/push.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `docs/artifacts/field_families/mission_activities.md`
-- `lib/orbital_dynamics/timeline.ex`
-- `lib/orbital_dynamics.ex`
-- `test/orbital_dynamics/timeline_test.exs`
+- `lib/orbital_dynamics/validation.ex`
+- `schemas/study_manifest.v1.schema.json`
+- `study_results/schema_validation_batch_report_v1.json`
+- `study_results/validation_reference_fixtures.json`
 
 Tests run:
-- `mix test test/orbital_dynamics/timeline_test.exs:6425 test/orbital_dynamics/timeline_test.exs:6613 test/orbital_dynamics/timeline_test.exs:7392 test/orbital_dynamics/timeline_test.exs:8198`
-  passed, 4 tests.
-- `mix test test/orbital_dynamics/timeline_test.exs test/orbital_dynamics/schema_test.exs`
-  passed, 247 tests.
+- `mix orbital_dynamics.manifest.schema.export --output schemas/study_manifest.v1.schema.json`
+  regenerated the checked-in study manifest schema.
+- `mix orbital_dynamics.schema.lint --all --input-dir study_results --output study_results/schema_validation_batch_report_v1.json`
+  regenerated the checked-in study-results batch report; 127/127 artifacts pass.
+- `mix test test/orbital_dynamics/study/manifest_test.exs:730 test/mix/tasks/orbital_dynamics.schema.lint_test.exs:302`
+  passed, 2 tests.
+- `mix test test/orbital_dynamics/validation_test.exs:10472 test/orbital_dynamics/validation_test.exs:10737 test/orbital_dynamics/schema_test.exs:11431`
+  passed, 3 tests.
+- `mix test test/orbital_dynamics/study/manifest_test.exs test/mix/tasks/orbital_dynamics.schema.lint_test.exs test/orbital_dynamics/validation_test.exs test/orbital_dynamics/schema_test.exs`
+  passed, 311 tests.
+- `mix test` passed, 3035 tests. The known `:propagator_exit`
+  scenario-runner log appeared as expected noise.
 - `git diff --check` passed.
-- `mix test` failed outside this slice, 3033/3035 passed. Failures were checked-in
-  study manifest JSON Schema exporter freshness and checked-in
-  `study_results/schema_validation_batch_report_v1.json` freshness; the known
-  `:propagator_exit` scenario-runner log appeared as expected noise.
-- `slice_reviewer` found no must-fix findings. Optional exclusivity coverage was
-  added after review.
+- `slice_reviewer` found no must-fix findings. The reviewer confirmed the
+  manifest schema export, 127/127 batch report, validation fixture counts, and
+  whitespace check.
 
 Docs/artifacts changed:
-- `docs/artifacts/field_families/mission_activities.md` now states direct
-  status, approval, and lifecycle-event helpers can opt into the same
-  selected-activity dependency/exclusivity review gate as transition
-  applications.
+- `schemas/study_manifest.v1.schema.json` now matches
+  `OrbitalDynamics.Study.Manifest.json_schema/0`.
+- `study_results/schema_validation_batch_report_v1.json` now includes the full
+  127-artifact checked-in `study_results` pass set.
+- `study_results/validation_reference_fixtures.json` and the matching
+  `Validation` curated fixture expectation now use the same 127-report
+  schema-validation batch counts.
 
 Level 6 pillar advanced:
-Approval-aware automation boundaries and durable typed timeline activity
-semantics.
+Durable schema-versioned artifacts and compatibility checks.
 
 Remaining maturity gaps:
-Direct lifecycle helper outputs now preserve existing default behavior and can
-opt into selected-activity dependency/exclusivity review gating through
-`validate_selected_integrity?: true`, with the public `OrbitalDynamics` facades
-passing the same option through. Focused coverage exercises missing-dependency
-and duplicate-exclusivity integrity gates.
+The repository-wide test gate is green again after refreshing stale checked-in
+schema/validation artifacts exposed by `mix test`.
 
 Last commit:
-`a53e15076f07dcae0085e6be47d81b6e0ca09133` pushed to `origin/main` for
-candidate-refresh validation-safety-case replay branch summary routing.
+`1011aa41763daea8e6d1dd1e4be4641a883a888b` pushed to `origin/main` for typed
+lifecycle helper selected-integrity gating.
 
 Next candidate:
 After this slice, continue with typed operational activity and timeline
