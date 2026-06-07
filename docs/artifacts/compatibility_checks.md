@@ -88,6 +88,11 @@ Timeline preservation exports now constrain
 fields to their executable artifact-only model constants, and the preservation
 report `source` field plus generated report/status `model_limits` lists export
 to match runtime validation.
+`study_results/timeline_preservation_status_v1.json` now feeds a curated
+`timeline_preservation_status.v1` validation-reference fixture. The observations
+check locked/protected activity preservation status, timeline identity,
+protection decision/category/reason, preservation/review booleans, model limits,
+and no-schedule-mutation assumptions.
 Timeline activity status-state, approval-state, and lifecycle-state exports
 likewise pin generated `model_limits` to the executable timeline model-limit
 list, so stale activity preflight handoffs cannot widen their artifact-only

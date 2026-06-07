@@ -9479,6 +9479,50 @@ defmodule OrbitalDynamics.SchemaTest do
            )
   end
 
+  test "validates checked-in timeline preservation status fixture" do
+    preservation_status = read_json!("study_results/timeline_preservation_status_v1.json")
+
+    generated_preservation_status =
+      OrbitalDynamics.timeline_preservation_status(%{
+        id: :dl_locked,
+        type: :downlink,
+        timeline_id: :"timeline:dl_locked",
+        locked: true,
+        approval_status: :pending
+      })
+
+    assert generated_preservation_status == preservation_status
+
+    assert {:ok, %{"schema_contract" => "timeline_preservation_status.v1"}} =
+             Schema.validate_artifact(preservation_status)
+
+    assert %{
+             "timeline_preservation_status" => "preservation_required",
+             "requires_preservation" => true,
+             "requires_operator_review" => false,
+             "activity_id" => "dl_locked",
+             "timeline_id" => "timeline:dl_locked",
+             "status" => "planned",
+             "approval_status" => "pending",
+             "locked" => true,
+             "approved" => false,
+             "protection_decision" => "preserve",
+             "protection_category" => "locked_or_approved",
+             "protection_reason" => "activity_locked_or_approved",
+             "timeline_identity" => %{
+               "activity_id" => "dl_locked",
+               "activity_type" => "downlink",
+               "timeline_id" => "timeline:dl_locked"
+             },
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_schedule_mutation",
+               "scope" => "single_activity_lifecycle_preservation_preflight"
+             }
+           } = preservation_status
+
+    assert preservation_status["model_limits"] == OrbitalDynamics.Timeline.model_limits()
+  end
+
   test "exports and validates timeline transition-application summary fields" do
     assert {:ok, schema} = Schema.json_schema("timeline_transition_application_summary.v1")
 
