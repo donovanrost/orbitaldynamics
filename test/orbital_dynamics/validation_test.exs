@@ -4063,8 +4063,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert fixture_observations["station_calendar_reservation_contract"] ==
              "station_reservation_report.v1"
 
-    assert fixture_observations["candidate_refresh_input_count"] == 71
-    assert fixture_observations["candidate_refresh_source_report_input_count"] == 54
+    assert fixture_observations["candidate_refresh_input_count"] == 81
+    assert fixture_observations["candidate_refresh_source_report_input_count"] == 64
     assert fixture_observations["candidate_refresh_source_report_helper_count"] == 40
 
     assert fixture_observations["candidate_refresh_source_report_input_order"] =~
@@ -4081,6 +4081,18 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert fixture_observations["candidate_refresh_source_report_input_order"] =~
              "contact_contention_report"
+
+    assert fixture_observations["candidate_refresh_source_report_input_order"] =~
+             "relay_data_path_summary"
+
+    assert fixture_observations["candidate_refresh_source_report_input_order"] =~
+             "operational_import_eligibility_summary"
+
+    assert fixture_observations["candidate_refresh_source_report_input_order"] =~
+             "station_reservation_review_summary"
+
+    assert fixture_observations["candidate_refresh_source_report_input_order"] =~
+             "operational_quality_gate_schema_validation_summary"
 
     stale_observations =
       fixture_observations

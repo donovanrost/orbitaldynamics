@@ -5,52 +5,61 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Long-running prompt ledger-shape alignment.
+Capability-catalog CandidateRefresh input fixture refresh.
 
 Status:
 Implemented and verified; ready for commit/push.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `.codex/prompts/long_running_context_efficient_product_loop.md`
+- `docs/artifacts/compatibility_checks.md`
+- `lib/orbital_dynamics/validation.ex`
+- `study_results/capability_catalog_v1.json`
+- `test/orbital_dynamics/validation_test.exs`
 
 Tests run:
-- `rg -n "Completed slices|160 lines|120 lines|Required ledger shape|Current slice:" .codex/prompts/long_running_context_efficient_product_loop.md .codex/prompts/context_efficient_autonomous_product_loop.md docs/autonomous_work_guide.md`
-  confirmed the long-running prompt now uses the canonical compact ledger shape.
+- `mix test test/orbital_dynamics/validation_test.exs:4055`
+  passed, covering the curated capability-catalog reference fixture.
+- `mix orbital_dynamics.schema.lint --input study_results/capability_catalog_v1.json --contract capability_catalog.v1`
+  passed with zero errors and zero warnings.
+- `mix run -e 'artifact = "study_results/capability_catalog_v1.json" |> File.read!() |> :json.decode(); obs = OrbitalDynamics.Validation.artifact_observations("capability_catalog.v1", artifact); IO.inspect(Map.take(obs, ["candidate_refresh_input_count", "candidate_refresh_source_report_input_count", "candidate_refresh_source_report_helper_count", "candidate_refresh_source_report_input_order"])); {:ok, fixture} = OrbitalDynamics.Validation.reference_fixture("fixture.artifact.capability_catalog.v1"); IO.inspect(Map.take(fixture["expected"], ["candidate_refresh_input_count", "candidate_refresh_source_report_input_count", "candidate_refresh_source_report_helper_count", "candidate_refresh_source_report_input_order"]))'`
+  confirmed regenerated artifact observations match fixture expectations at 81
+  CandidateRefresh inputs, 64 source-report/summary inputs, and 40 helpers.
 - `git diff --check`
   passed.
 
 Docs/artifacts changed:
-- `.codex/prompts/long_running_context_efficient_product_loop.md` now matches
-  the guide and sibling prompt by keeping the status ledger under roughly 120
-  lines and omitting the cumulative `Completed slices` field.
+- Regenerated `study_results/capability_catalog_v1.json` from
+  `mix orbital_dynamics.capabilities --output study_results/capability_catalog_v1.json`.
+- Updated compatibility docs to name the expanded CandidateRefresh summary
+  families now pinned by the fixture.
 
 Level 6 pillar advanced:
-Autonomous-loop continuity and handoff accuracy.
+Validation/compatibility fixture coverage for branch-local refresh discovery.
 
 Remaining maturity gaps:
-The prompt surfaces are aligned on the compact current-slice ledger shape. The
-next product slice should resume from the guide's decision queue rather than
-from stale cumulative ledger history.
+The capability-catalog fixture now tracks the live CandidateRefresh input
+surface. Continue the guide decision queue with branch-local refresh depth or
+validation fixtures, using live code/tests to avoid stale roadmap assumptions.
 
 Last commit:
-`30244e8c6338b2620c893c2e4a96534d559706e3` pushed to `origin/main` for
-contact-intent public facade discovery.
+`f73a2b83326c968130bb2a6b59741ba3817db800` pushed to `origin/main` for
+long-running prompt ledger-shape alignment.
 
 Next candidate:
-Resume the autonomous product loop from `docs/autonomous_work_guide.md`; narrow
-checks found no obvious missing readiness/quality-gate facade metadata, so the
-next likely area is branch-local candidate refresh depth or validation fixtures
-unless the live checkout shows a higher-priority contract break.
+Continue branch-local candidate refresh depth with a behavior slice that
+preserves one additional source-report family through V2/V3 provenance, or move
+to validation challenge fixtures if live CandidateRefresh replay remains
+saturated.
 
 Blocked:
 No.
 
 Notes:
-- Slice-selection note: this is a prompt-maintenance slice for the active
-  objective file. It matters because the long-running prompt had drifted from
-  the canonical compact handoff shape used by the guide and sibling prompt.
-  Definition of done is prompt alignment, focused static verification, a clean
-  whitespace check, and a commit that excludes unrelated local dirt.
+- Slice-selection note: selected after live checks showed old contact-intent
+  replay concerns were stale but the checked-in capability-catalog fixture still
+  pinned obsolete CandidateRefresh input counts. Definition of done was
+  regenerated artifact, updated fixture constants/tests/docs, focused fixture
+  verification, schema lint, and whitespace check.
 - `.gitignore` still has an unrelated pre-existing local scratch-ignore change
   and is not part of this slice.

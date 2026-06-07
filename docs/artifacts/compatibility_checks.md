@@ -595,7 +595,10 @@ consistency, and strategy recommendation ranking, tradeoff, and
 operator-review routing consistency. Capability catalog observations also pin
 CandidateRefresh accepted source-report input order, accepted-input counts, and
 source-report helper counts so replay-family metadata changes are caught by the
-fixture compatibility surface.
+fixture compatibility surface. The pinned catalog now observes the expanded
+CandidateRefresh input surface, including relay data path, operational-readiness
+sub-summary, provider-counteroffer review, station-reservation review, and
+operational quality-gate summary families.
 Executable validation rejects stale capability-catalog model strings, and
 schema export pins the public catalog model used by generated discovery
 artifacts.
