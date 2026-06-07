@@ -22457,6 +22457,265 @@ defmodule OrbitalDynamics.SchemaTest do
     assert rows_by_contact_id["dl_resource_blocked"]["antenna_available"] == false
   end
 
+  test "validates checked-in contact allocation capacity-pack report fixture regenerates through public facade" do
+    report = read_json!("study_results/contact_allocation_capacity_pack_report_v1.json")
+
+    contacts = [
+      %{
+        id: :dl_capacity_primary,
+        type: :downlink,
+        scenario_id: :leo_1,
+        ground_station_id: :equator_prime,
+        spacecraft_id: :sat_ready,
+        starts_at_s: 100.0,
+        ends_at_s: 160.0,
+        score: 10.0,
+        required_capacity_fraction: 0.25
+      },
+      %{
+        id: :dl_capacity_secondary,
+        type: :downlink,
+        scenario_id: :leo_1,
+        ground_station_id: :equator_prime,
+        spacecraft_id: :sat_ready,
+        starts_at_s: 110.0,
+        ends_at_s: 150.0,
+        score: 8.0,
+        required_capacity_fraction: 0.25
+      },
+      %{
+        id: :dl_capacity_overflow,
+        type: :downlink,
+        scenario_id: :leo_1,
+        ground_station_id: :equator_prime,
+        spacecraft_id: :sat_ready,
+        starts_at_s: 120.0,
+        ends_at_s: 155.0,
+        score: 6.0,
+        required_capacity_fraction: 0.25
+      }
+    ]
+
+    ground_network = [
+      %{
+        id: :equator_capacity,
+        ground_station_id: :equator_prime,
+        status: :available,
+        availability: :reduced_capacity,
+        starts_at_s: 90.0,
+        ends_at_s: 170.0,
+        capacity_fraction: 0.5,
+        provenance: %{
+          source: :station_calendar_provider,
+          provider_id: :ops_calendar,
+          trust_boundary: :operator_declared_station_calendar
+        }
+      }
+    ]
+
+    generated_report =
+      OrbitalDynamics.contact_allocation_report(
+        contacts,
+        ground_network,
+        source: "fixture.contact_allocation.capacity_pack",
+        approval_policy: %{policy_bundle_id: "ground_network_allocation_v1"}
+      )
+
+    assert generated_report == report
+
+    assert {:ok, %{"schema_contract" => "contact_allocation_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert report["model"] == "deterministic_station_contact_allocation"
+    assert report["source"] == "fixture.contact_allocation.capacity_pack"
+
+    assert report["model_limits"] == [
+             "artifact_level_only",
+             "declared_ground_network_only",
+             "optional_externally_supplied_resource_summary",
+             "no_full_realized_contact_reconciliation",
+             "no_provider_reservation",
+             "no_schedule_mutation",
+             "no_approval_workflow",
+             "no_link_budget_model"
+           ]
+
+    assert report["assumptions"]["execution_boundary"] ==
+             "artifact_only_no_provider_reservation_or_schedule_mutation"
+
+    assert %{
+             "input_contact_count" => 3,
+             "allocated_contact_count" => 2,
+             "blocked_contact_count" => 0,
+             "deferred_contact_count" => 1,
+             "returned_allocated_contact_count" => 2,
+             "policy_blocked_allocated_contact_count" => 0,
+             "invalid_contact_input_count" => 0,
+             "duplicate_contact_candidate_count" => 0,
+             "duplicate_contact_id_count" => 0,
+             "resource_blocked_contact_count" => 0,
+             "status_blocked_contact_count" => 0,
+             "reduced_capacity_pack_group_count" => 1
+           } = report
+
+    assert report["allocation_status_counts"] == %{
+             "allocated" => 2,
+             "deferred" => 1
+           }
+
+    assert report["effective_allocation_status_counts"] == %{
+             "allocated" => 2,
+             "deferred" => 1
+           }
+
+    assert report["allocation_reason_counts"] == %{
+             "same_station_contention" => 1,
+             "selected_by_contention_resolution" => 1,
+             "selected_by_reduced_station_capacity_pack" => 1
+           }
+
+    assert report["capacity_pack_status_counts"] == %{
+             "deferred_by_reduced_station_capacity_pack" => 1,
+             "selected_by_contention_resolution" => 1,
+             "selected_by_reduced_station_capacity_pack" => 1
+           }
+
+    assert report["capacity_pack_contact_ids_by_status"] == %{
+             "deferred_by_reduced_station_capacity_pack" => ["dl_capacity_overflow"],
+             "selected_by_contention_resolution" => ["dl_capacity_primary"],
+             "selected_by_reduced_station_capacity_pack" => ["dl_capacity_secondary"]
+           }
+
+    assert report["capacity_pack_required_capacity_fraction"] == 0.75
+    assert report["capacity_pack_selected_required_capacity_fraction"] == 0.5
+    assert report["capacity_pack_deferred_required_capacity_fraction"] == 0.25
+
+    assert report["capacity_pack_required_capacity_fraction_by_status"] == %{
+             "deferred_by_reduced_station_capacity_pack" => 0.25,
+             "selected_by_contention_resolution" => 0.25,
+             "selected_by_reduced_station_capacity_pack" => 0.25
+           }
+
+    assert report["capacity_pack_required_capacity_fraction_by_ground_station_id"] == %{
+             "equator_prime" => 0.75
+           }
+
+    assert report["capacity_pack_selected_required_capacity_fraction_by_ground_station_id"] == %{
+             "equator_prime" => 0.5
+           }
+
+    assert report["capacity_pack_deferred_required_capacity_fraction_by_ground_station_id"] == %{
+             "equator_prime" => 0.25
+           }
+
+    assert report["required_capacity_fraction_source_counts"] == %{
+             "contact_required_capacity_fraction" => 3
+           }
+
+    assert report["required_capacity_fraction_contact_ids_by_source"] == %{
+             "contact_required_capacity_fraction" => [
+               "dl_capacity_overflow",
+               "dl_capacity_primary",
+               "dl_capacity_secondary"
+             ]
+           }
+
+    assert report["reduced_capacity_pack_status_counts"] == %{"capacity_limited" => 1}
+    assert report["reduced_capacity_packed_contact_ids"] == ["dl_capacity_secondary"]
+    assert report["reduced_capacity_deferred_contact_ids"] == ["dl_capacity_overflow"]
+    assert report["station_calendar_trust_boundary_status_counts"] == %{"declared" => 3}
+
+    assert [
+             %{
+               "contention_group_id" => pack_group_id,
+               "ground_station_id" => "equator_prime",
+               "capacity_fraction" => 0.5,
+               "used_capacity_fraction" => 0.5,
+               "unused_capacity_fraction" => unused_capacity_fraction,
+               "pack_status" => "capacity_limited",
+               "selected_contact_ids" => ["dl_capacity_primary"],
+               "capacity_packed_contact_ids" => ["dl_capacity_secondary"],
+               "deferred_contact_ids" => ["dl_capacity_overflow"],
+               "capacity_requirement_rows" => capacity_requirement_rows
+             }
+           ] = report["reduced_capacity_pack_groups"]
+
+    assert_in_delta unused_capacity_fraction, 0.0, 1.0e-12
+    assert pack_group_id == "station:equator_prime:contention:1"
+
+    assert capacity_requirement_rows == [
+             %{
+               "contact_id" => "dl_capacity_primary",
+               "allocation_status" => "allocated",
+               "allocation_reason" => "selected_by_contention_resolution",
+               "capacity_pack_status" => "selected_by_contention_resolution",
+               "required_capacity_fraction" => 0.25,
+               "required_capacity_fraction_source" => "contact_required_capacity_fraction"
+             },
+             %{
+               "contact_id" => "dl_capacity_secondary",
+               "allocation_status" => "allocated",
+               "allocation_reason" => "selected_by_reduced_station_capacity_pack",
+               "capacity_pack_status" => "selected_by_reduced_station_capacity_pack",
+               "required_capacity_fraction" => 0.25,
+               "required_capacity_fraction_source" => "contact_required_capacity_fraction"
+             },
+             %{
+               "contact_id" => "dl_capacity_overflow",
+               "allocation_status" => "deferred",
+               "allocation_reason" => "same_station_contention",
+               "capacity_pack_status" => "deferred_by_reduced_station_capacity_pack",
+               "required_capacity_fraction" => 0.25,
+               "required_capacity_fraction_source" => "contact_required_capacity_fraction"
+             }
+           ]
+
+    rows_by_contact_id = Map.new(report["rows"], &{&1["contact_id"], &1})
+
+    assert rows_by_contact_id["dl_capacity_primary"]["allocation_status"] == "allocated"
+
+    assert rows_by_contact_id["dl_capacity_primary"]["allocation_reason"] ==
+             "selected_by_contention_resolution"
+
+    assert rows_by_contact_id["dl_capacity_primary"]["capacity_pack_status"] ==
+             "selected_by_contention_resolution"
+
+    assert rows_by_contact_id["dl_capacity_primary"]["capacity_pack_group_id"] == pack_group_id
+
+    assert rows_by_contact_id["dl_capacity_secondary"]["allocation_status"] == "allocated"
+
+    assert rows_by_contact_id["dl_capacity_secondary"]["allocation_reason"] ==
+             "selected_by_reduced_station_capacity_pack"
+
+    assert rows_by_contact_id["dl_capacity_secondary"]["capacity_pack_status"] ==
+             "selected_by_reduced_station_capacity_pack"
+
+    assert rows_by_contact_id["dl_capacity_secondary"]["selected_contact_id"] ==
+             "dl_capacity_secondary"
+
+    assert rows_by_contact_id["dl_capacity_overflow"]["allocation_status"] == "deferred"
+
+    assert rows_by_contact_id["dl_capacity_overflow"]["allocation_reason"] ==
+             "same_station_contention"
+
+    assert rows_by_contact_id["dl_capacity_overflow"]["capacity_pack_status"] ==
+             "deferred_by_reduced_station_capacity_pack"
+
+    assert rows_by_contact_id["dl_capacity_overflow"]["selected_contact_id"] ==
+             "dl_capacity_primary"
+
+    Enum.each(rows_by_contact_id, fn {_contact_id, row} ->
+      assert row["station_availability"] == "reduced_capacity"
+      assert row["station_calendar_entry_id"] == "equator_capacity"
+      assert row["station_calendar_trust_boundary_status"] == "declared"
+      assert row["required_capacity_fraction"] == 0.25
+      assert row["required_capacity_fraction_source"] == "contact_required_capacity_fraction"
+      assert row["capacity_pack_capacity_fraction"] == 0.5
+      assert row["capacity_pack_used_fraction"] == 0.5
+      assert row["capacity_pack_group_id"] == pack_group_id
+    end)
+  end
+
   test "validates contact allocation top-level count maps against rows" do
     report = read_json!("study_results/contact_allocation_report_v1.json")
 

@@ -1150,11 +1150,17 @@ observed as a `contact_allocation_report.v1` reduced-capacity pack fixture. It
 checks capacity-pack group counts, capacity fraction totals, selected/packed
 and deferred contact routing, allocation reason maps, schema-visible
 reported capacity-pack status count maps, reported capacity-pack contact IDs
-by status, and declared station-calendar trust boundaries. Executable
-validation rejects stale pack status maps, contact pack-status maps, and
-contact-ID routing maps that no longer match the pack groups and allocation
-rows, and schema export pins the artifact-only capacity-pack summary model
-constant plus `model_limits` used by generated compact summaries.
+by status, required-capacity source maps, packed/deferred ID sets, and declared
+station-calendar trust boundaries. Focused schema-reference coverage
+exact-regenerates the full report fixture through
+`OrbitalDynamics.contact_allocation_report/3` from deterministic
+reduced-capacity contacts and a declared station-calendar row. Executable
+validation rejects stale pack status maps, contact pack-status maps,
+contact-ID routing maps, capacity-demand maps, and packed/deferred ID sets that
+no longer match the pack groups and allocation rows, and schema export pins the
+artifact-only capacity-pack summary model constant plus `model_limits` used by
+generated compact summaries. The fixture remains an artifact-only
+no-provider-reservation/no-schedule-mutation/no-Cadence-write handoff.
 Station-pressure summary schema export likewise pins the artifact-only model
 constant and exact `model_limits` used by generated compact pressure summaries.
 Candidate-refresh contact-allocation replay summaries also derive capacity-pack
