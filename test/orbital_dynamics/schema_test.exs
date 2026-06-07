@@ -1324,6 +1324,53 @@ defmodule OrbitalDynamics.SchemaTest do
     assert summary["model_limits"] == report["model_limits"]
   end
 
+  test "validates checked-in operational import eligibility summary fixture" do
+    report = read_json!("study_results/operational_readiness_report_v1.json")
+    summary = read_json!("study_results/operational_import_eligibility_summary_v1.json")
+
+    generated_summary = OrbitalDynamics.operational_import_eligibility(report)
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "operational_import_eligibility_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "schema_contract" => "operational_import_eligibility_summary.v1",
+             "model" => "artifact_only_import_eligibility_summary",
+             "source" => "operational_readiness_report.v1",
+             "source_artifact_type" => "planned_activity.v1",
+             "source_artifact_id" => "activity_1",
+             "readiness_level" => "import_eligible",
+             "import_classification" => "importable",
+             "status" => "passed",
+             "import_eligible" => true,
+             "gate_count" => 5,
+             "passed_gate_count" => 5,
+             "review_gate_count" => 0,
+             "analysis_gate_count" => 0,
+             "blocked_gate_count" => 0,
+             "non_passed_gate_count" => 0,
+             "non_passed_gates" => [],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_cadence_write",
+               "operator_authority" => "not_granted_by_summary",
+               "source" => "operational_readiness_report.v1"
+             }
+           } = summary
+
+    assert summary["model_limits"] == [
+             "operational_import_eligibility_summary_routes_only",
+             "operational_import_eligibility_summary_does_not_approve_or_import"
+           ]
+
+    assert {:ok, import_eligibility_schema} =
+             Schema.json_schema("operational_import_eligibility_summary.v1")
+
+    assert get_in(import_eligibility_schema, ["properties", "model_limits", "const"]) ==
+             summary["model_limits"]
+  end
+
   test "validates checked-in station reservation review summary fixture" do
     review_summary = read_json!("study_results/station_reservation_review_summary_v1.json")
 

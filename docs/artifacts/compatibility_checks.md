@@ -311,6 +311,14 @@ The compact import-eligibility summary schema export pins the
 artifact-only import-eligibility model and `model_limits` used by generated
 summaries, keeping adapter-facing import decisions tied to the executable
 artifact-only boundary.
+`study_results/operational_import_eligibility_summary_v1.json` now checks in
+that compact import-eligibility view generated from the readiness fixture. Its
+validation-reference coverage exact-compares the public facade output before
+schema validation and observes source identity, readiness/import/status
+classification, import eligibility, gate counts, non-passed gates, model
+limits, and no-Cadence-write/no-approval/no-import assumptions without writing
+Cadence, importing activities, executing commands, granting operator authority,
+or mutating schedules.
 Operator-review packages and Cadence-import manifests derived directly from the
 readiness report now also expose the compact readiness report ID,
 readiness/import/status classification, and gate counts at top level for
