@@ -6780,6 +6780,12 @@ defmodule OrbitalDynamics.Schema do
         "approval_transition_counts",
         "status_transition_category_counts",
         "approval_transition_category_counts",
+        "valid_source_activity_count",
+        "valid_replacement_activity_count",
+        "invalid_source_activity_input_count",
+        "invalid_replacement_activity_input_count",
+        "invalid_source_activity_input_ids",
+        "invalid_replacement_activity_input_ids",
         "duplicate_timeline_identity_count",
         "duplicate_source_timeline_identity_count",
         "duplicate_replacement_timeline_identity_count"
@@ -12308,6 +12314,10 @@ defmodule OrbitalDynamics.Schema do
        when field in [
               "source_activity_count",
               "replacement_activity_count",
+              "valid_source_activity_count",
+              "valid_replacement_activity_count",
+              "invalid_source_activity_input_count",
+              "invalid_replacement_activity_input_count",
               "row_count",
               "added_count",
               "removed_count",
@@ -12319,6 +12329,14 @@ defmodule OrbitalDynamics.Schema do
               "duplicate_replacement_timeline_identity_count"
             ] do
     %{"type" => "integer", "minimum" => 0}
+  end
+
+  defp json_schema_property(field, @timeline_diff_report, _contract)
+       when field in [
+              "invalid_source_activity_input_ids",
+              "invalid_replacement_activity_input_ids"
+            ] do
+    %{"type" => "array", "items" => %{"type" => "string", "pattern" => @stable_id_pattern}}
   end
 
   defp json_schema_property(field, @timeline_diff_report, _contract)
@@ -24667,6 +24685,11 @@ defmodule OrbitalDynamics.Schema do
         "model" => %{
           "type" => "string",
           "const" => "artifact_only_timeline_activity_lifecycle_state"
+        },
+        "model_limits" => %{
+          "type" => "array",
+          "const" => timeline_report_model_limits(),
+          "items" => %{"type" => "string", "enum" => timeline_report_model_limits()}
         },
         "validation_level" => %{"type" => "string", "const" => "artifact_contract"},
         "rank" => %{"type" => "integer", "minimum" => 1},

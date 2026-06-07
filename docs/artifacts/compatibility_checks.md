@@ -923,16 +923,18 @@ the same row-derived required-action maps when rows are present, so stale
 top-level required-action aggregates cannot steer branch-local feedback
 pressure.
 `study_results/timeline_feedback_report_v1.json` now feeds a curated
-validation-reference fixture. The observations check planned/realized
-reconciliation counts, feedback kind and match strategy maps,
-execution-uncertainty counts, nested operator-review and Cadence import handoff
-counts, operational-feedback key counts, row-derived status, kind, match,
-import, transition, and activity-routing maps, and no-schedule-mutation
-boundaries. Executable validation rejects stale row counts, row-derived maps,
-execution-uncertainty counts, and timeline-feedback model-limit drift. The
-candidate-refresh timeline-feedback source summary also derives replay status,
-feedback-kind, and match-strategy maps from rows so stale top-level aggregate
-maps cannot steer branch-local replay pressure.
+validation-reference fixture and focused schema-reference coverage
+exact-regenerates it through `OrbitalDynamics.reconcile_timeline_feedback/3`
+from deterministic planned/realized activity inputs before schema validation. The
+observations check planned/realized reconciliation counts, feedback kind and
+match strategy maps, execution-uncertainty counts, nested operator-review and
+Cadence import handoff counts, operational-feedback key counts and provenance,
+row-derived status, kind, match, import, transition, and activity-routing maps,
+and no-schedule-mutation boundaries. Executable validation rejects stale row
+counts, row-derived maps, execution-uncertainty counts, and timeline-feedback
+model-limit drift. The candidate-refresh timeline-feedback source summary also
+derives replay status, feedback-kind, and match-strategy maps from rows so stale
+top-level aggregate maps cannot steer branch-local replay pressure.
 Operational-feedback provenance for source timeline-feedback reports also
 derives status, feedback-kind, match-strategy, and Cadence-import status maps
 from rows when rows are present, preventing stale top-level aggregates from

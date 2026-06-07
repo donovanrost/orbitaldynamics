@@ -26264,6 +26264,187 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(provider_schema, ["properties", "known_limits", "items", "type"]) == "string"
   end
 
+  test "validates checked-in timeline feedback report fixture" do
+    report = read_json!("study_results/timeline_feedback_report_v1.json")
+
+    planned_activities =
+      report["rows"]
+      |> Enum.map(& &1["planned_activity"])
+      |> Enum.reject(&is_nil/1)
+
+    realized_activities =
+      report["rows"]
+      |> Enum.map(& &1["realized_activity"])
+      |> Enum.reject(&is_nil/1)
+
+    generated_report =
+      OrbitalDynamics.reconcile_timeline_feedback(planned_activities, realized_activities)
+
+    assert generated_report == report
+
+    assert {:ok, %{"schema_contract" => "timeline_feedback_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert %{
+             "schema_contract" => "timeline_feedback_report.v1",
+             "model" => "planned_vs_realized_activity_reconciliation",
+             "planned_count" => 4,
+             "realized_count" => 4,
+             "row_count" => 4,
+             "duplicate_realized_match_count" => 0,
+             "duplicate_realized_feedback_count" => 0,
+             "ambiguous_timeline_match_count" => 0,
+             "ambiguous_timeline_feedback_count" => 0,
+             "status_counts" => %{"matched" => 4},
+             "feedback_kind_counts" => %{
+               "command" => 1,
+               "contact" => 1,
+               "maneuver" => 1,
+               "observation" => 1
+             },
+             "match_strategy_counts" => %{"planned_activity_id" => 4},
+             "cadence_import_status_counts" => %{
+               "missing" => 1,
+               "not_applicable" => 2,
+               "present" => 1
+             },
+             "planned_protection_decision_counts" => %{"preserve" => 4},
+             "execution_uncertainty_declared_count" => 0,
+             "execution_uncertainty_missing_count" => 1,
+             "operational_feedback_excluded_count" => 1,
+             "model_limits" => [
+               "artifact_level_only",
+               "no_schedule_mutation",
+               "no_command_execution",
+               "no_operator_authority_decision",
+               "timing_deltas_require_declared_actual_times"
+             ],
+             "assumptions" => %{
+               "boundary" => "report_only_no_schedule_mutation",
+               "dependency_model" =>
+                 "planned dependencies and exclusivity are checked inside the artifact when referenced rows are present; missing dependency checks are opt-in and schedules are not mutated",
+               "identity_match" =>
+                 "planned.id matches realized.planned_activity_id, realized.timeline_id, or realized.id; duplicate planned timeline identities are review-gated as ambiguous",
+               "missing_dependency_validation" => "disabled",
+               "timing_delta" => "actual time minus planned time when both are declared"
+             }
+           } = report
+
+    assert %{
+             "command_success_rate" => %{"cmd_repoint" => 0.88},
+             "downlink_demand_mb" => %{"default" => 64.0},
+             "maneuver_execution_uncertainty" => %{
+               "burn_cleanup" => %{"execution_uncertainty_status" => "missing"}
+             },
+             "observation_success_rate" => %{"target_a" => 0.55}
+           } = report["operational_feedback"]
+
+    assert report["operational_feedback"]["maneuver_success_rate"]["burn_cleanup"] == 0.0
+
+    assert %{
+             "source_count" => 1,
+             "input_keys" => [
+               "command_success_rate",
+               "downlink_demand_mb",
+               "downlink_demand_sources",
+               "maneuver_execution_uncertainty",
+               "maneuver_success_rate",
+               "observation_success_rate"
+             ],
+             "merge_order" => ["timeline_feedback_report.rows"],
+             "sources" => [
+               %{
+                 "source" => "timeline_feedback_report.rows",
+                 "source_report_contract" => "timeline_feedback_report.v1",
+                 "source_report_count" => 1,
+                 "source_report_row_count" => 4,
+                 "realized_activity_count" => 4,
+                 "source_report_status_counts" => %{"matched" => 4},
+                 "source_feedback_kind_counts" => %{
+                   "command" => 1,
+                   "contact" => 1,
+                   "maneuver" => 1,
+                   "observation" => 1
+                 },
+                 "source_match_strategy_counts" => %{"planned_activity_id" => 4},
+                 "source_cadence_import_status_counts" => %{
+                   "missing" => 1,
+                   "not_applicable" => 2,
+                   "present" => 1
+                 },
+                 "source_planned_protection_decision_counts" => %{"preserve" => 4},
+                 "source_execution_uncertainty_declared_count" => 0,
+                 "source_execution_uncertainty_missing_count" => 1,
+                 "source_operational_feedback_excluded_count" => 1,
+                 "trust_boundary_status" => "declared",
+                 "trust_boundaries" => ["operator_supplied"]
+               }
+             ]
+           } = report["operational_feedback_provenance"]
+
+    assert %{
+             "realized_feedback|prepare_cadence_import|operator_review_required" => 1,
+             "realized_feedback|record_realized_completion|not_required" => 1,
+             "realized_feedback|review_contact_variance|operator_review_required" => 1,
+             "realized_feedback|review_maneuver_exception|operator_review_required" => 1
+           } = report["operator_review_package"]["review_queue_counts"]
+
+    assert %{
+             "cadence_import_status_counts" => %{
+               "missing" => 1,
+               "not_applicable" => 2,
+               "present" => 1
+             },
+             "row_count" => 4
+           } = report["cadence_import_manifest"]
+
+    rows_by_activity_id = Map.new(report["rows"], &{&1["activity_id"], &1})
+
+    assert %{
+             "status" => "matched",
+             "feedback_kind" => "maneuver",
+             "match_strategy" => "planned_activity_id",
+             "cadence_import_status" => "not_applicable",
+             "planned_protection_decision" => "preserve",
+             "planned_operator_action" => "review_activity_approval",
+             "execution_uncertainty_status" => "missing",
+             "maneuver_success" => false,
+             "realized_activity_id" => "provider_burn_feedback_1"
+           } = rows_by_activity_id["burn_cleanup"]
+
+    assert %{
+             "status" => "matched",
+             "feedback_kind" => "command",
+             "match_strategy" => "planned_activity_id",
+             "cadence_import_status" => "missing",
+             "planned_operator_action" => "prepare_cadence_import",
+             "command_success" => true
+           } = rows_by_activity_id["cmd_repoint"]
+
+    assert rows_by_activity_id["cmd_repoint"]["start_delta_s"] == 1.0
+    assert rows_by_activity_id["cmd_repoint"]["end_delta_s"] == -1.0
+
+    assert %{
+             "status" => "matched",
+             "feedback_kind" => "contact",
+             "match_strategy" => "planned_activity_id",
+             "cadence_import_status" => "present",
+             "contact_success" => false
+           } = rows_by_activity_id["downlink_equator"]
+
+    assert rows_by_activity_id["downlink_equator"]["start_delta_s"] == 2.0
+    assert rows_by_activity_id["downlink_equator"]["end_delta_s"] == -10.0
+
+    assert %{
+             "status" => "matched",
+             "feedback_kind" => "observation",
+             "match_strategy" => "planned_activity_id",
+             "cadence_import_status" => "not_applicable",
+             "observation_success" => true,
+             "realized_activity_id" => "provider_observation_feedback_1"
+           } = rows_by_activity_id["obs_feedback"]
+  end
+
   test "exports nested strategy recommendation schemas" do
     assert {:ok, schema} = Schema.json_schema("strategy_recommendation.v1")
 
