@@ -8,7 +8,7 @@ Current slice:
 Contact filter report capability assumptions.
 
 Status:
-Implemented, verified, reviewed, and committed; push pending.
+Implemented, verified, reviewed, committed, and pushed.
 
 Slice completed:
 `contact_filter_report.v1` now carries optional capability-derived assumptions
@@ -48,6 +48,13 @@ compatibility, refreshed docs/fixtures/exports, and no authority expansion.
 
 Product commit:
 `dc2ce3c` (`Add contact filter capability assumptions`).
+
+Handoff commit:
+`39540cd` (`Update autonomous loop handoff`).
+
+Pushed:
+Local and `origin/main` both verified at
+`39540cd7947c014cb4ded50d1e26b9488b09f3c9`.
 
 Remaining maturity gaps:
 Adjacent communications summaries should continue to be checked for runtime
