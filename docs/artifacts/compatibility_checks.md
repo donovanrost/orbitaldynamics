@@ -361,8 +361,10 @@ Its exported schema pins the artifact-only model
 artifact-only `model_limits`, matching runtime validation so adapter queues
 cannot accept stale model identifiers or trust-boundary declarations for this
 summary family.
-The validation-reference registry now includes a generated
-`operational_quality_gate_unavailable_resource_summary.v1` fixture for that
+The validation-reference registry and checked-in
+`study_results/operational_quality_gate_unavailable_resource_summary_v1.json`
+fixture now include a generated
+`operational_quality_gate_unavailable_resource_summary.v1` case for that
 summary family. The fixture observes unavailable-resource reason maps,
 blocking-dimension counts, blocked-contact routing, quality-gate row/status
 routing maps, and no-Cadence-write/no-authority assumptions, and executable

@@ -11835,6 +11835,10 @@ defmodule OrbitalDynamics.SchemaTest do
   test "validates checked-in readiness resource pressure handoff fixtures" do
     readiness_report = read_json!("study_results/operational_readiness_resource_pressure_v1.json")
     quality_gate_report = read_json!("study_results/quality_gate_resource_pressure_v1.json")
+
+    unavailable_resource_summary =
+      read_json!("study_results/operational_quality_gate_unavailable_resource_summary_v1.json")
+
     operator_review = read_json!("study_results/operator_review_resource_pressure_v1.json")
     cadence_manifest = read_json!("study_results/cadence_import_resource_pressure_v1.json")
 
@@ -11843,6 +11847,10 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert {:ok, %{"schema_contract" => "quality_gate_report.v1"}} =
              Schema.validate_artifact(quality_gate_report)
+
+    assert {:ok,
+            %{"schema_contract" => "operational_quality_gate_unavailable_resource_summary.v1"}} =
+             Schema.validate_artifact(unavailable_resource_summary)
 
     assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
              Schema.validate_artifact(operator_review)
@@ -11881,6 +11889,44 @@ defmodule OrbitalDynamics.SchemaTest do
                quality_gate_report["rows"],
                &(&1["gate_id"] == "resource_availability")
              )
+
+    assert OrbitalDynamics.operational_quality_gate_unavailable_resource_summary(
+             quality_gate_report
+           ) == unavailable_resource_summary
+
+    assert %{
+             "source_artifact_type" => "resource_projection_report.v1",
+             "source_artifact_id" => "resource_summaries",
+             "source_quality_gate_report_id" =>
+               "quality_gate:resource_projection_report.v1:resource_summaries",
+             "source_readiness_report_id" =>
+               "operational_readiness:resource_projection_report.v1:resource_summaries",
+             "resource_availability_row_count" => 1,
+             "unavailable_resource_row_count" => 1,
+             "unavailable_resource_pressure_count" => 2,
+             "unavailable_resource_reason_counts" => ^expected_reason_counts,
+             "unavailable_resource_reason_ids" => ^expected_reason_ids,
+             "station_availability_reason_counts" => %{},
+             "station_availability_reason_ids" => [],
+             "blocked_contact_ids_by_blocking_dimension" => %{},
+             "blocked_contact_ids_by_spacecraft_id" => %{},
+             "blocked_contact_ids_by_status" => %{},
+             "quality_gate_row_ids_by_status" => %{
+               "review_required" => [
+                 "quality_gate:resource_projection_report.v1:resource_summaries:resource_availability:4"
+               ]
+             },
+             "quality_gate_ids_by_status" => %{"review_required" => ["resource_availability"]},
+             "review_required_quality_gate_row_ids" => [
+               "quality_gate:resource_projection_report.v1:resource_summaries:resource_availability:4"
+             ],
+             "resource_availability_gate_ids" => ["resource_availability"],
+             "assumptions" => %{
+               "operator_authority" => "not_granted_by_unavailable_resource_summary",
+               "cadence_write" => "not_performed_by_summary",
+               "command_execution" => "not_performed_by_summary"
+             }
+           } = unavailable_resource_summary
 
     assert %{
              "readiness_gate_id" => "resource_availability",
