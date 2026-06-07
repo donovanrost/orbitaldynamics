@@ -26366,6 +26366,117 @@ defmodule OrbitalDynamics.SchemaTest do
            )
   end
 
+  test "validates checked-in timeline dependency impact summary fixture" do
+    summary = read_json!("study_results/timeline_dependency_impact_summary_v1.json")
+
+    source = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 0.0, ends_at_s: 10.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      },
+      %{
+        id: :dl_followup,
+        type: :downlink,
+        starts_at_s: 40.0,
+        ends_at_s: 55.0,
+        dependencies: [:cmd_main]
+      },
+      %{
+        id: :obs_parallel,
+        type: :observe,
+        starts_at_s: 60.0,
+        ends_at_s: 70.0,
+        exclusive_with: [:dl_followup],
+        exclusive_with_timeline_ids: [:"timeline:dl_followup"]
+      }
+    ]
+
+    replacement = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 5.0, ends_at_s: 15.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      },
+      %{
+        id: :obs_parallel,
+        type: :observe,
+        starts_at_s: 60.0,
+        ends_at_s: 70.0,
+        exclusive_with: [:dl_followup],
+        exclusive_with_timeline_ids: [:"timeline:dl_followup"]
+      }
+    ]
+
+    generated_summary = OrbitalDynamics.timeline_dependency_impact_summary(source, replacement)
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "timeline_dependency_impact_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "schema_contract" => "timeline_dependency_impact_summary.v1",
+             "model" => "artifact_only_timeline_dependency_impact_summary",
+             "validation_level" => "artifact_contract",
+             "source" => "timeline_diff_report.v1",
+             "source_activity_count" => 4,
+             "replacement_activity_count" => 3,
+             "changed_source_activity_count" => 2,
+             "changed_source_timeline_count" => 2,
+             "dependency_impact_status" => "review_required",
+             "dependent_activity_count" => 4,
+             "source_dependent_activity_count" => 2,
+             "replacement_dependent_activity_count" => 2,
+             "impacted_source_activity_ids" => ["dl_followup", "health_gate"],
+             "impacted_source_timeline_ids" => [
+               "timeline:downlink:40.0",
+               "timeline:health_check:0.0"
+             ],
+             "dependent_activity_ids" => ["cmd_main", "obs_parallel"],
+             "dependent_timeline_ids" => [
+               "timeline:command:20.0",
+               "timeline:observe:60.0"
+             ],
+             "source_dependent_activity_ids" => ["cmd_main", "obs_parallel"],
+             "source_dependent_timeline_ids" => [
+               "timeline:command:20.0",
+               "timeline:observe:60.0"
+             ],
+             "replacement_dependent_activity_ids" => ["cmd_main", "obs_parallel"],
+             "replacement_dependent_timeline_ids" => [
+               "timeline:command:20.0",
+               "timeline:observe:60.0"
+             ],
+             "impacted_dependency_activity_ids" => ["health_gate"],
+             "impacted_dependency_timeline_ids" => [],
+             "impacted_exclusive_with_activity_ids" => ["dl_followup"],
+             "impacted_exclusive_with_timeline_ids" => [],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_schedule_mutation",
+               "operator_authority" => "not_granted_by_summary"
+             }
+           } = summary
+
+    assert Enum.map(summary["dependency_impact_rows"], &{&1["scope"], &1["activity_id"]}) == [
+             {"source", "cmd_main"},
+             {"source", "obs_parallel"},
+             {"replacement", "cmd_main"},
+             {"replacement", "obs_parallel"}
+           ]
+
+    assert Enum.map(summary["dependency_impact_rows"], & &1["required_operator_action"])
+           |> Enum.uniq() == ["review_timeline_integrity"]
+
+    assert summary["model_limits"] == OrbitalDynamics.Timeline.model_limits()
+  end
+
   test "exports and validates timeline publication summary fields" do
     assert {:ok, schema} = Schema.json_schema("timeline_publication_summary.v1")
     stable_id_pattern = Schema.identity_policy()["stable_id_pattern"]

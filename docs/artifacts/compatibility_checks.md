@@ -829,6 +829,12 @@ maps, row IDs by required action, and no-schedule-mutation/no-authority
 assumptions. Executable validation rejects stale dependent-activity counts and
 stale row-derived operator-action reason maps before dependency-impact summaries
 can steer review/import routing.
+Focused schema-reference coverage also regenerates the checked-in fixture
+exactly through `OrbitalDynamics.timeline_dependency_impact_summary/3` from
+deterministic source/replacement activities before schema validation, pinning
+changed-source counts, dependent activity and timeline routing,
+dependency/exclusivity impact maps, model limits, and the
+no-schedule-mutation/no-authority boundary.
 `study_results/timeline_diff_summary_v1.json` now feeds a curated
 `timeline_diff_summary.v1` validation-reference fixture. The observations check
 compact diff counts, changed-field counts, transition-decision and
