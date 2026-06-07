@@ -16,6 +16,10 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
              handoff_artifacts: ["operator_review_package.v1", "cadence_import_manifest.v1"],
              handoff_review_type: "resource_projection_review",
              handoff_import_action: "review_resource_projection",
+             subsystem_model_capability_contract: "subsystem_model_capability.v1",
+             subsystem_model_capability_ids: subsystem_model_capability_ids,
+             subsystem_model_capability_ids_by_resource:
+               subsystem_model_capability_ids_by_resource,
              resource_availability_aliases: resource_availability_aliases,
              resource_degraded_aliases: resource_degraded_aliases,
              resource_margin_aliases: resource_margin_aliases,
@@ -55,6 +59,7 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
     assert :status_aware_activity_resource_effects in row_semantics
     assert :contact_allocation_status_resource_effects in row_semantics
     assert :declared_activity_battery_energy_projection in row_semantics
+    assert :subsystem_model_capability_refs in row_semantics
     assert :storage_limited_downlink_utilization in row_semantics
     assert :resource_projection_flow_quantity_totals in row_semantics
     assert :collection_latency_flow_evidence in row_semantics
@@ -97,6 +102,17 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
     assert :mixed_wildcard_resource_summary_scope_review in row_semantics
     assert :no_subsystem_simulation in known_limits
     assert :thin_time_ordered_resource_roll_forward in known_limits
+
+    assert subsystem_model_capability_ids == [
+             "subsystem.power.battery.energy_storage.planning_grade",
+             "subsystem.data_recorder.storage_buffer.planning_grade"
+           ]
+
+    assert subsystem_model_capability_ids_by_resource == %{
+             battery: "subsystem.power.battery.energy_storage.planning_grade",
+             storage: "subsystem.data_recorder.storage_buffer.planning_grade"
+           }
+
     assert :battery_projection_uses_declared_activity_energy_only in known_limits
     assert :realized_data_volume_is_evidence_not_state_reconciliation in known_limits
     assert :no_realized_state_resource_reconciliation in known_limits

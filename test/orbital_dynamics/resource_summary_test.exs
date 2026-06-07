@@ -29,6 +29,12 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
                roll_forward_battery_energy_consumed_paths,
              roll_forward_battery_energy_generated_paths:
                roll_forward_battery_energy_generated_paths,
+             roll_forward_subsystem_model_capability_contract:
+               roll_forward_subsystem_model_capability_contract,
+             roll_forward_subsystem_model_capability_ids:
+               roll_forward_subsystem_model_capability_ids,
+             roll_forward_subsystem_model_capability_ids_by_resource:
+               roll_forward_subsystem_model_capability_ids_by_resource,
              roll_forward_flow_statuses: roll_forward_flow_statuses,
              roll_forward_pressure_statuses: roll_forward_pressure_statuses,
              roll_forward_pressure_types: roll_forward_pressure_types,
@@ -86,6 +92,7 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
     assert :resource_summary_roll_forward_selected_activity_storage_aliases in row_semantics
     assert :resource_summary_roll_forward_selected_activity_downlink_aliases in row_semantics
     assert :resource_summary_roll_forward_selected_activity_battery_aliases in row_semantics
+    assert :resource_summary_roll_forward_subsystem_model_capability_refs in row_semantics
     assert :resource_summary_roll_forward_flow_status_values in row_semantics
     assert :resource_summary_roll_forward_pressure_status_values in row_semantics
     assert :resource_summary_roll_forward_pressure_type_values in row_semantics
@@ -95,6 +102,18 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
     assert :resource_summary_roll_forward_ignored_effect_reason_families in row_semantics
     assert :thin_selected_activity_roll_forward_contract in row_semantics
     assert roll_forward_helpers == [:roll_forward]
+
+    assert roll_forward_subsystem_model_capability_contract == "subsystem_model_capability.v1"
+
+    assert roll_forward_subsystem_model_capability_ids == [
+             "subsystem.power.battery.energy_storage.planning_grade",
+             "subsystem.data_recorder.storage_buffer.planning_grade"
+           ]
+
+    assert roll_forward_subsystem_model_capability_ids_by_resource == %{
+             battery: "subsystem.power.battery.energy_storage.planning_grade",
+             storage: "subsystem.data_recorder.storage_buffer.planning_grade"
+           }
 
     assert roll_forward_flow_statuses == ["clear", "review_required"]
     assert roll_forward_pressure_statuses == ["clear", "review_required"]

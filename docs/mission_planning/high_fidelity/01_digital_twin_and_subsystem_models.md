@@ -124,9 +124,13 @@ routing counts, plus planned and actual data-volume alias paths used by the
 storage-production and audit-only evidence boundary. It also names the
 estimated/planned downlink-throughput paths consumed before station capacity
 adjustment and the declared battery-energy consumed/generated alias paths used
-before battery state projection. `resource_projection_report.v1` validation and
-schema export now pin the known thin projection model variants so stale model
-identifiers fail before the artifact-only resource-state evidence is trusted.
+before battery state projection. ResourceProjection and ResourceSummary
+roll-forward capability metadata now also name the exact
+`subsystem_model_capability.v1` battery and storage records behind those thin
+flow assumptions, without claiming continuous subsystem-state propagation.
+`resource_projection_report.v1` validation and schema export now pin the known
+thin projection model variants so stale model identifiers fail before the
+artifact-only resource-state evidence is trusted.
 
 ### Communications, Antenna, and Link
 

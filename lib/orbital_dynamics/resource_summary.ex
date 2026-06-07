@@ -179,6 +179,12 @@ defmodule OrbitalDynamics.ResourceSummary do
         projection_capabilities.battery_energy_consumed_paths,
       roll_forward_battery_energy_generated_paths:
         projection_capabilities.battery_energy_generated_paths,
+      roll_forward_subsystem_model_capability_contract:
+        projection_capabilities.subsystem_model_capability_contract,
+      roll_forward_subsystem_model_capability_ids:
+        projection_capabilities.subsystem_model_capability_ids,
+      roll_forward_subsystem_model_capability_ids_by_resource:
+        projection_capabilities.subsystem_model_capability_ids_by_resource,
       roll_forward_flow_statuses: @roll_forward_flow_statuses,
       roll_forward_pressure_statuses: @roll_forward_pressure_statuses,
       roll_forward_pressure_types: @roll_forward_pressure_types,
@@ -214,6 +220,7 @@ defmodule OrbitalDynamics.ResourceSummary do
         :resource_summary_roll_forward_selected_activity_storage_aliases,
         :resource_summary_roll_forward_selected_activity_downlink_aliases,
         :resource_summary_roll_forward_selected_activity_battery_aliases,
+        :resource_summary_roll_forward_subsystem_model_capability_refs,
         :resource_summary_roll_forward_flow_status_values,
         :resource_summary_roll_forward_pressure_status_values,
         :resource_summary_roll_forward_pressure_type_values,

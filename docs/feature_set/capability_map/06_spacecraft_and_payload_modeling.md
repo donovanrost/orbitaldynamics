@@ -237,6 +237,11 @@ Status: **implemented**.
     status-aware ignored-effect model for terminal or approval-rejected
     activities **without introducing a new propagated state model**;
   - schema-validated `model_limits` copied from `ResourceProjection.capabilities/0`.
+- `ResourceProjection.capabilities/0` and the ResourceSummary roll-forward
+  capability metadata advertise the exact `subsystem_model_capability.v1`
+  battery and storage record IDs behind the selected-activity flow assumptions,
+  so discovery clients can link flow evidence to declarative model contracts
+  without treating the roll-forward as propagated subsystem state.
 - V1 `campaign_plan.v1` artifacts attach that compact flow summary whenever
   selected-activity resource projection is available, letting campaign-level
   review/import queues route storage, downlink, ignored-activity, and pressure

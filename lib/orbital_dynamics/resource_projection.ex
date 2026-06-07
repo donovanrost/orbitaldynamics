@@ -251,6 +251,9 @@ defmodule OrbitalDynamics.ResourceProjection do
       ],
       handoff_review_type: "resource_projection_review",
       handoff_import_action: "review_resource_projection",
+      subsystem_model_capability_contract: "subsystem_model_capability.v1",
+      subsystem_model_capability_ids: subsystem_model_capability_ids(),
+      subsystem_model_capability_ids_by_resource: subsystem_model_capability_ids_by_resource(),
       resource_availability_aliases: @resource_availability_aliases,
       resource_degraded_aliases: @resource_degraded_aliases,
       resource_margin_aliases: @resource_margin_aliases,
@@ -287,6 +290,7 @@ defmodule OrbitalDynamics.ResourceProjection do
         :storage_projection,
         :downlink_capacity_projection,
         :declared_activity_battery_energy_projection,
+        :subsystem_model_capability_refs,
         :storage_limited_downlink_utilization,
         :resource_projection_flow_quantity_totals,
         :collection_latency_flow_evidence,
@@ -352,6 +356,20 @@ defmodule OrbitalDynamics.ResourceProjection do
 
   defp capacity_value_path_metadata(paths) do
     Enum.map(paths, fn {unit, path} -> %{unit: unit, path: path} end)
+  end
+
+  defp subsystem_model_capability_ids do
+    [
+      subsystem_model_capability_ids_by_resource().battery,
+      subsystem_model_capability_ids_by_resource().storage
+    ]
+  end
+
+  defp subsystem_model_capability_ids_by_resource do
+    %{
+      battery: OrbitalDynamics.SubsystemModel.battery_energy_storage()["id"],
+      storage: OrbitalDynamics.SubsystemModel.data_storage_buffer()["id"]
+    }
   end
 
   @doc """
