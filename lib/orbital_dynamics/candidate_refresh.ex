@@ -6904,6 +6904,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
       )
     )
     |> Map.merge(
+      source_report_timeline_activity_approval_state_replay_summary_fields(
+        refresh_or_artifact,
+        source_reports
+      )
+    )
+    |> Map.merge(
       source_report_timeline_activity_lifecycle_state_replay_summary_fields(source_reports)
     )
     |> Map.merge(source_report_timeline_lifecycle_state_replay_summary_fields(source_reports))
@@ -9959,6 +9965,40 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "branch_local_timeline_activity_status_state_action_pressure"),
       "source_report_timeline_activity_status_state_branch_local_routing_pressure" =>
         Map.get(summary, "branch_local_timeline_activity_status_state_routing_pressure")
+    }
+  end
+
+  defp source_report_timeline_activity_approval_state_replay_summary_fields(
+         refresh_or_artifact,
+         source_reports
+       ) do
+    state_summary =
+      source_report_timeline_activity_single_state_summary(
+        refresh_or_artifact,
+        source_reports,
+        "timeline_activity_approval_state.v1",
+        "artifact_only_timeline_activity_approval_state"
+      )
+
+    summary =
+      (state_summary || %{})
+      |> timeline_activity_single_state_replay_summary_from_summary(
+        "timeline_activity_approval_state",
+        "candidate_refresh.source_report_provenance.timeline_activity_approval_state",
+        "timeline_activity_approval_state_source_report_provenance_only",
+        "activity_approval_state_application",
+        "not_granted_by_timeline_activity_approval_state_replay_summary"
+      )
+
+    %{
+      "source_report_timeline_activity_approval_state_branch_local_timeline_activity_approval_state_pressure" =>
+        Map.get(summary, "branch_local_timeline_activity_approval_state_pressure"),
+      "source_report_timeline_activity_approval_state_branch_local_review_pressure" =>
+        Map.get(summary, "branch_local_timeline_activity_approval_state_review_pressure"),
+      "source_report_timeline_activity_approval_state_branch_local_action_pressure" =>
+        Map.get(summary, "branch_local_timeline_activity_approval_state_action_pressure"),
+      "source_report_timeline_activity_approval_state_branch_local_routing_pressure" =>
+        Map.get(summary, "branch_local_timeline_activity_approval_state_routing_pressure")
     }
   end
 
