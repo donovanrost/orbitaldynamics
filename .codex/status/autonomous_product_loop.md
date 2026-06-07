@@ -42,8 +42,8 @@ or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Ledger will be committed after this handoff update; product commit
-`3f94c8189f8a6e377b1392b8dd96cfd168dd8968`.
+Ledger commit `0280834b1c92a39a5199eb5ad61a1f68c94c8987`;
+product commit `3f94c8189f8a6e377b1392b8dd96cfd168dd8968`.
 
 Next candidate:
 Continue with another narrow CandidateRefresh or operator-review replay fixture
