@@ -5,36 +5,31 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-CandidateRefresh timeline-transition selected-integrity replay.
+CandidateRefresh timeline-transition validation-reference fixture.
 
 Status:
-Completed locally; product commit created and handoff updated.
+Completed and product commit created.
 
 Files changed:
-- `lib/orbital_dynamics/candidate_refresh.ex`
-- `lib/orbital_dynamics/schema.ex`
-- `test/orbital_dynamics/candidate_refresh_test.exs`
-- `schemas/candidate_refresh.v1.schema.json`
-- `schemas/orbital_dynamics.schema_bundle.v1.json`
-- `docs/artifacts/field_families/candidate_refresh_artifact.md`
-- `docs/feature_set/capability_map/08_mission_activities/lifecycle-helpers-diffs-and-transitions.md`
-- `.codex/status/autonomous_product_loop.md`
+- `lib/orbital_dynamics/validation.ex`
+- `test/orbital_dynamics/validation_test.exs`
+- `study_results/validation_reference_fixtures.json`
+- `study_results/contact_contention_cross_station_spacecraft_v1.json`
+- `docs/artifacts/compatibility_checks.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:39007 test/orbital_dynamics/candidate_refresh_test.exs:39257`
-- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
+- `mix test test/orbital_dynamics/validation_test.exs:3864 test/orbital_dynamics/validation_test.exs:11095`
+- `mix orbital_dynamics.schema.lint --input study_results/validation_reference_fixtures.json --contract validation_reference_fixture_report.v1`
+- `mix test test/orbital_dynamics/schema_test.exs:15348 test/orbital_dynamics/schema_test.exs:15445`
+- `mix test test/orbital_dynamics/validation_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 
 Docs/artifacts changed:
-CandidateRefresh timeline-transition-application source-report provenance now
-preserves selected-subset timeline-integrity review/issue counts and
-selected-integrity issue-type counts. Replay summaries expose those fields and a
-selected-integrity pressure boolean without applying transitions, mutating
-timelines, selecting candidates, approving imports, writing to Cadence, or
-regenerating candidates. Schema export exposes the new nested CandidateRefresh
-source-report fields.
+Validation-reference fixture report refreshed to 150 passing fixtures; generated
+cross-station contact-contention fixture refreshed to the current public report
+shape; compatibility docs now name the CandidateRefresh
+timeline-transition-application replay fixture.
 
 Level 6 pillar advanced:
 Approval-aware automation boundaries, durable schema-versioned artifacts, and
@@ -46,12 +41,12 @@ or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Product commit `7c5ed31867607492e77e02d152c74248a0984477`.
+Product commit `7a7539481c458e79dbf3327c3606c82e1c3d49cd`.
 
 Next candidate:
-After committing/pushing this slice, reassess from
-`docs/autonomous_work_guide.md`; prefer the next narrow activity/timeline replay
-or validation fixture gap over broad roadmap exploration.
+Continue with another narrow source-report replay fixture gap, preferably one
+where compact review/import handoff evidence is visible in a public artifact
+but not yet pinned through CandidateRefresh or V2/V3 replay.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
