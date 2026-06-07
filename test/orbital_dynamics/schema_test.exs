@@ -1324,6 +1324,99 @@ defmodule OrbitalDynamics.SchemaTest do
     assert summary["model_limits"] == report["model_limits"]
   end
 
+  test "validates checked-in resource projection flow summary fixture" do
+    report = read_json!("study_results/resource_projection_report_v1.json")
+    summary = read_json!("study_results/resource_projection_flow_summary_v1.json")
+
+    generated_summary = OrbitalDynamics.resource_projection_flow_summary(report)
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "resource_projection_flow_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "schema_contract" => "resource_projection_flow_summary.v1",
+             "schema_version" => 1,
+             "model" => "artifact_only_selected_activity_resource_flow_summary",
+             "source" => "campaign.resource_summaries",
+             "input_resource_summary_count" => 1,
+             "activity_count" => 1,
+             "valid_activity_count" => 1,
+             "flow_row_count" => 1,
+             "projected_resource_count" => 1,
+             "valid_resource_summary_count" => 1,
+             "resource_flow_status" => "clear",
+             "resource_pressure_status" => "clear",
+             "resource_pressure_count" => 0,
+             "ignored_activity_count" => 0,
+             "ignored_activity_reason_counts" => %{},
+             "ignored_activity_ids" => [],
+             "ignored_activity_ids_by_reason" => %{},
+             "invalid_activity_input_count" => 0,
+             "invalid_activity_input_ids" => [],
+             "invalid_activity_inputs" => [],
+             "invalid_resource_summary_input_count" => 0,
+             "invalid_resource_summary_input_ids" => [],
+             "invalid_resource_summary_inputs" => [],
+             "total_battery_energy_consumed_wh" => 120,
+             "total_battery_energy_generated_wh" => 0,
+             "net_battery_energy_delta_wh" => 120,
+             "peak_battery_overuse_wh" => 0,
+             "total_storage_produced_mb" => 0,
+             "total_storage_overflow_mb" => 0,
+             "total_storage_limited_downlinked_mb" => 0,
+             "total_downlink_shortfall_mb" => 0,
+             "total_unused_downlink_capacity_mb" => 0,
+             "total_planned_downlink_mb" => 0,
+             "total_projected_storage_remaining_mb" => 750,
+             "total_projected_downlink_remaining_mb" => 600,
+             "minimum_projected_storage_remaining_mb" => 750,
+             "minimum_projected_downlink_remaining_mb" => 600,
+             "resource_pressure_types" => [],
+             "resource_pressure_activity_ids_by_type" => %{},
+             "resource_pressure_spacecraft_ids_by_type" => %{},
+             "resource_pressure_source_window_ids_by_type" => %{},
+             "resource_pressure_ground_station_ids_by_type" => %{},
+             "resource_pressure_capacity_fractions_by_type" => %{},
+             "resource_pressure_station_calendar_directions_by_type" => %{},
+             "resource_pressure_station_calendar_entry_ids_by_type" => %{},
+             "resource_pressure_station_calendar_provider_entry_ids_by_type" => %{},
+             "resource_pressure_station_calendar_provider_ids_by_type" => %{},
+             "resource_pressure_spacecraft_ids" => [],
+             "assumptions" => %{
+               "activity_status_model" =>
+                 "terminal_or_approval_rejected_activities_are_audited_with_zero_projected_resource_effect",
+               "execution_boundary" => "artifact_only_no_schedule_mutation",
+               "latency_model" => "declared_activity_timestamps_only",
+               "projection_model" => "thin_time_ordered_resource_roll_forward",
+               "realized_state_reconciliation" => "not_performed",
+               "scope" => "selected_activity_resource_flow_and_pressure_evidence",
+               "source" => "campaign.resource_summaries",
+               "subsystem_simulation" => "not_performed"
+             }
+           } = summary
+
+    assert [%{"spacecraft_id" => "leo_1", "resource_pressure_status" => "nominal"}] =
+             summary["projected_resources"]
+
+    assert [
+             %{
+               "activity_id" => "leo_1_observe_target_a_1",
+               "activity_status" => "planned",
+               "resource_effect_status" => "projected",
+               "resource_effect_reason" => "active_planning_activity",
+               "battery_energy_consumed_wh" => 120,
+               "battery_energy_generated_wh" => 0,
+               "battery_energy_delta_wh" => 120,
+               "storage_used_after_mb" => 250,
+               "downlink_used_after_mb" => 0
+             }
+           ] = summary["activity_resource_flow"]
+
+    assert summary["model_limits"] == report["model_limits"]
+  end
+
   test "validates checked-in operational import eligibility summary fixture" do
     report = read_json!("study_results/operational_readiness_report_v1.json")
     summary = read_json!("study_results/operational_import_eligibility_summary_v1.json")

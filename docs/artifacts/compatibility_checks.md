@@ -943,6 +943,13 @@ validation rejects those fields when they drift from projected resource and flow
 rows. Resource projection also review-gates stale explicit storage or battery
 state-of-charge margins in source `resource_summary.v1` inputs before they can
 influence roll-forward math.
+Focused checked-in fixture coverage exact-compares the public
+`OrbitalDynamics.resource_projection_flow_summary/1` facade output from
+`study_results/resource_projection_report_v1.json` before schema validation,
+pinning the compact flow summary's activity/resource counts, pressure routing,
+energy/storage/downlink totals, model limits, and artifact-only boundaries for
+no resource-state reconciliation, no subsystem simulation, no Cadence writes, no
+activity imports, no command execution, and no schedule mutation.
 `study_results/resource_projection_battery_handoff_v1.json`,
 `study_results/operator_review_resource_projection_battery_handoff_v1.json`,
 and `study_results/cadence_import_resource_projection_battery_handoff_v1.json`
