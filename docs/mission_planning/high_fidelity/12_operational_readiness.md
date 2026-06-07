@@ -129,10 +129,10 @@ Current implementation:
   `operational_quality_gate_summary.v1` row-derived triage summary over that
   standalone quality-gate artifact, preserving status/classification counts,
   status-grouped and classification-grouped gate IDs and quality-gate row IDs,
-  and non-passed rows without Cadence writes, command execution, or operator
-  authority. Runtime validation and JSON Schema export pin the summary's
-  artifact-only model-limit list so handoff queues cannot accept stale
-  quality-gate triage declarations.
+  non-passed gate IDs, non-passed quality-gate row IDs, and non-passed rows
+  without Cadence writes, command execution, or operator authority. Runtime
+  validation and JSON Schema export pin the summary's artifact-only model-limit
+  list so handoff queues cannot accept stale quality-gate triage declarations.
 - `OperationalReadiness.quality_gate_unavailable_resource_summary/2` and
   `OrbitalDynamics.operational_quality_gate_unavailable_resource_summary/2`
   publish the validated

@@ -2209,7 +2209,8 @@ quality-gate slice of that provenance as a branch-local replay summary. It
 preserves top-level source-report contract/count/path rollups, source
 quality-gate paths, readiness/import/status maps, gate status/classification
 maps, status-grouped and classification-grouped gate and quality-gate row ID
-maps, analysis-mode counts,
+maps, per-status and non-passed gate ID lists, non-passed quality-gate row ID
+lists, analysis-mode counts,
 import/freshness/schema-validation count maps, resource-availability reason
 maps including station-specific availability reason counts, resource-blocking
 dimension maps, source-readiness report counts, and timeline-publication context

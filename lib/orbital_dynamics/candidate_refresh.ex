@@ -15680,6 +15680,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "blocked_gate_count" => blocked_gate_count,
       "gate_status_counts" => gate_status_counts,
       "gate_classification_counts" => gate_classification_counts,
+      "non_passed_gate_count" => summary_integer(quality_gate_summary, "non_passed_gate_count"),
       "ready_for_import_count" => summary_integer(quality_gate_summary, "ready_for_import_count"),
       "manifest_review_required_count" => import_review_count,
       "blocked_import_count" => blocked_import_count,
@@ -15728,6 +15729,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(quality_gate_summary, "quality_gate_row_ids_by_classification", %{}),
       "quality_gate_ids_by_classification" =>
         Map.get(quality_gate_summary, "quality_gate_ids_by_classification", %{}),
+      "passed_gate_ids" => Map.get(quality_gate_summary, "passed_gate_ids", []),
+      "review_required_gate_ids" => Map.get(quality_gate_summary, "review_required_gate_ids", []),
+      "analysis_only_gate_ids" => Map.get(quality_gate_summary, "analysis_only_gate_ids", []),
+      "blocked_gate_ids" => Map.get(quality_gate_summary, "blocked_gate_ids", []),
+      "non_passed_gate_ids" => Map.get(quality_gate_summary, "non_passed_gate_ids", []),
+      "non_passed_quality_gate_row_ids" =>
+        Map.get(quality_gate_summary, "non_passed_quality_gate_row_ids", []),
       "review_required_quality_gate_row_ids" => review_required_quality_gate_row_ids,
       "blocked_quality_gate_row_ids" => blocked_quality_gate_row_ids,
       "ready_quality_gate_row_ids" => ready_quality_gate_row_ids,
@@ -23864,6 +23872,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         reports
         |> Enum.map(&quality_gate_report_count_map(&1, "gate_classification_counts"))
         |> merge_count_maps(),
+      "non_passed_gate_count" => sum_report_count(reports, &quality_gate_non_passed_gate_count/1),
       "quality_gate_row_ids_by_classification" =>
         reports
         |> Enum.map(&quality_gate_string_list_map(&1, "quality_gate_row_ids_by_classification"))
@@ -23872,6 +23881,34 @@ defmodule OrbitalDynamics.CandidateRefresh do
         reports
         |> Enum.map(&quality_gate_ids_by_classification_map/1)
         |> merge_string_list_maps(),
+      "passed_gate_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_gate_ids_by_status(&1, "passed", "passed_gate_ids"))
+        |> sorted_string_values(),
+      "review_required_gate_ids" =>
+        reports
+        |> Enum.flat_map(
+          &quality_gate_gate_ids_by_status(&1, "review_required", "review_required_gate_ids")
+        )
+        |> sorted_string_values(),
+      "analysis_only_gate_ids" =>
+        reports
+        |> Enum.flat_map(
+          &quality_gate_gate_ids_by_status(&1, "analysis_only", "analysis_only_gate_ids")
+        )
+        |> sorted_string_values(),
+      "blocked_gate_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_gate_ids_by_status(&1, "blocked", "blocked_gate_ids"))
+        |> sorted_string_values(),
+      "non_passed_gate_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_non_passed_gate_ids/1)
+        |> sorted_string_values(),
+      "non_passed_quality_gate_row_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_non_passed_row_ids/1)
+        |> sorted_string_values(),
       "ready_for_import_count" =>
         sum_report_count(reports, &quality_gate_row_count(&1, "ready_for_import_count")),
       "manifest_review_required_count" =>
@@ -28919,6 +28956,80 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
       _row_ids_by_status ->
         quality_gate_string_list(report, fallback_field)
+    end
+  end
+
+  defp quality_gate_gate_ids_by_status(report, status, fallback_field) do
+    case quality_gate_ids_by_status_map(report) do
+      %{} = ids_by_status ->
+        quality_gate_summary_list_map_values(ids_by_status, status)
+
+      _ids_by_status ->
+        quality_gate_string_list(report, fallback_field)
+    end
+  end
+
+  defp quality_gate_non_passed_gate_count(report) do
+    case numeric_report_count(report, "non_passed_gate_count") do
+      0 -> length(quality_gate_non_passed_gate_ids(report))
+      count -> count
+    end
+  end
+
+  defp quality_gate_non_passed_gate_ids(report) do
+    case quality_gate_ids_by_status_map(report) do
+      %{} = ids_by_status ->
+        non_passed_ids_by_status(ids_by_status)
+
+      _ids_by_status ->
+        case quality_gate_string_list(report, "non_passed_gate_ids") do
+          [] ->
+            ["review_required", "analysis_only", "blocked"]
+            |> Enum.flat_map(&quality_gate_string_list(report, "#{&1}_gate_ids"))
+            |> sorted_string_values()
+
+          ids ->
+            ids
+        end
+    end
+  end
+
+  defp quality_gate_non_passed_row_ids(report) do
+    case Map.get(report, "quality_gate_row_ids_by_status") do
+      %{} = row_ids_by_status ->
+        non_passed_ids_by_status(row_ids_by_status)
+
+      _row_ids_by_status ->
+        case quality_gate_string_list(report, "non_passed_quality_gate_row_ids") do
+          [] ->
+            ["review_required", "analysis_only", "blocked"]
+            |> Enum.flat_map(
+              &quality_gate_status_row_ids(report, &1, "#{&1}_quality_gate_row_ids")
+            )
+            |> sorted_string_values()
+
+          ids ->
+            ids
+        end
+    end
+  end
+
+  defp non_passed_ids_by_status(%{} = ids_by_status) do
+    ["review_required", "analysis_only", "blocked"]
+    |> Enum.flat_map(&quality_gate_summary_list_map_values(ids_by_status, &1))
+    |> sorted_string_values()
+  end
+
+  defp quality_gate_ids_by_status_map(report) do
+    cond do
+      is_map(Map.get(report, "quality_gate_ids_by_status")) ->
+        Map.get(report, "quality_gate_ids_by_status")
+
+      is_map(Map.get(report, "gate_ids_by_status")) ->
+        Map.get(report, "gate_ids_by_status")
+
+      true ->
+        nil
     end
   end
 

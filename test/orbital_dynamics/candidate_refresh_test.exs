@@ -30942,7 +30942,17 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  "quality_gate_ids_by_classification" => %{
                    "blocked" => ["cadence_import"],
                    "review_only" => ["mission_policy"]
-                 }
+                 },
+                 "non_passed_gate_count" => 6,
+                 "passed_gate_ids" => [],
+                 "review_required_gate_ids" => ["mission_policy"],
+                 "analysis_only_gate_ids" => [],
+                 "blocked_gate_ids" => ["cadence_import"],
+                 "non_passed_gate_ids" => ["cadence_import", "mission_policy"],
+                 "non_passed_quality_gate_row_ids" => [
+                   "quality_gate:activity_1:cadence_import",
+                   "quality_gate:activity_1:mission_policy"
+                 ]
                }
              }
            } = source_report_summary = CandidateRefresh.source_report_summary(refresh)
@@ -30981,6 +30991,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "blocked" => ["cadence_import"],
                "review_only" => ["mission_policy"]
              },
+             "non_passed_gate_count" => 6,
+             "passed_gate_ids" => [],
+             "review_required_gate_ids" => ["mission_policy"],
+             "analysis_only_gate_ids" => [],
+             "blocked_gate_ids" => ["cadence_import"],
+             "non_passed_gate_ids" => ["cadence_import", "mission_policy"],
+             "non_passed_quality_gate_row_ids" => [
+               "quality_gate:activity_1:cadence_import",
+               "quality_gate:activity_1:mission_policy"
+             ],
              "review_required_quality_gate_row_ids" => [
                "quality_gate:activity_1:mission_policy"
              ],
@@ -31018,6 +31038,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         "quality_gate_row_ids_by_classification" => %{
           "blocked" => ["quality_gate:stale"]
         },
+        "passed_gate_ids" => ["stale_passed_gate"],
+        "review_required_gate_ids" => ["stale_review_gate"],
+        "blocked_gate_ids" => ["stale_blocked_gate"],
         "non_passed_quality_gate_row_ids" => [],
         "non_passed_gate_ids" => [],
         "non_passed_gate_count" => 0
@@ -31076,6 +31099,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert Map.get(replay_summary, "quality_gate_ids_by_classification", %{}) == %{}
     assert Map.get(replay_summary, "review_required_quality_gate_row_ids", []) == []
     assert Map.get(replay_summary, "blocked_quality_gate_row_ids", []) == []
+    assert Map.get(replay_summary, "non_passed_gate_count", 0) == 0
+    assert Map.get(replay_summary, "passed_gate_ids", []) == []
+    assert Map.get(replay_summary, "review_required_gate_ids", []) == []
+    assert Map.get(replay_summary, "blocked_gate_ids", []) == []
+    assert Map.get(replay_summary, "non_passed_gate_ids", []) == []
+    assert Map.get(replay_summary, "non_passed_quality_gate_row_ids", []) == []
   end
 
   test "quality gate replay accepts wrapped operational quality gate summaries" do
@@ -31116,6 +31145,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "blocked" => ["cadence_import"],
                "review_only" => ["mission_policy"]
              },
+             "non_passed_gate_count" => 2,
+             "review_required_gate_ids" => ["mission_policy"],
+             "blocked_gate_ids" => ["cadence_import"],
+             "non_passed_gate_ids" => ["cadence_import", "mission_policy"],
+             "non_passed_quality_gate_row_ids" => [
+               "quality_gate:activity_1:cadence_import",
+               "quality_gate:activity_1:mission_policy"
+             ],
              "trust_boundary_status" => "declared",
              "trust_boundaries" => ["quality_gate_adapter", "quality_gate_summary_fixture"]
            } = get_in(artifact, ["provenance", "source_reports", "quality_gate_report"])
@@ -31135,6 +31172,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "blocked" => ["cadence_import"],
                "review_only" => ["mission_policy"]
              },
+             "non_passed_gate_count" => 2,
+             "review_required_gate_ids" => ["mission_policy"],
+             "blocked_gate_ids" => ["cadence_import"],
+             "non_passed_gate_ids" => ["cadence_import", "mission_policy"],
+             "non_passed_quality_gate_row_ids" => [
+               "quality_gate:activity_1:cadence_import",
+               "quality_gate:activity_1:mission_policy"
+             ],
              "branch_local_review_pressure" => true
            } = CandidateRefresh.quality_gate_replay_summary(artifact)
 

@@ -23787,6 +23787,7 @@ defmodule OrbitalDynamics.Schema do
           "review_gate_count",
           "analysis_gate_count",
           "blocked_gate_count",
+          "non_passed_gate_count",
           "source_readiness_report_count"
         ])
       )
@@ -23807,6 +23808,12 @@ defmodule OrbitalDynamics.Schema do
         "quality_gate_ids_by_status" => stable_id_array_map_schema(),
         "quality_gate_row_ids_by_classification" => stable_id_array_map_schema(),
         "quality_gate_ids_by_classification" => stable_id_array_map_schema(),
+        "passed_gate_ids" => stable_id_array_schema(),
+        "review_required_gate_ids" => stable_id_array_schema(),
+        "analysis_only_gate_ids" => stable_id_array_schema(),
+        "blocked_gate_ids" => stable_id_array_schema(),
+        "non_passed_gate_ids" => stable_id_array_schema(),
+        "non_passed_quality_gate_row_ids" => stable_id_array_schema(),
         "review_required_quality_gate_row_ids" => stable_id_array_schema(),
         "blocked_quality_gate_row_ids" => stable_id_array_schema(),
         "ready_quality_gate_row_ids" => stable_id_array_schema(),
@@ -29465,6 +29472,7 @@ defmodule OrbitalDynamics.Schema do
           "review_gate_count",
           "analysis_gate_count",
           "blocked_gate_count",
+          "non_passed_gate_count",
           "source_readiness_report_count"
         ],
         issues,
@@ -29510,6 +29518,12 @@ defmodule OrbitalDynamics.Schema do
         "blocked_quality_gate_row_ids",
         "ready_quality_gate_row_ids",
         "analysis_only_quality_gate_row_ids",
+        "passed_gate_ids",
+        "review_required_gate_ids",
+        "analysis_only_gate_ids",
+        "blocked_gate_ids",
+        "non_passed_gate_ids",
+        "non_passed_quality_gate_row_ids",
         "stale_or_unknown_freshness_quality_gate_row_ids",
         "import_preparation_quality_gate_row_ids",
         "blocked_import_quality_gate_row_ids",
