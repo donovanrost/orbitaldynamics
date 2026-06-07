@@ -114,6 +114,11 @@ Status: **implemented** (with a **partial** semantic-depth area, plus **near-ter
   certification, and qualification routing from `operator_training`
   quality-gate rows, including status/classification row IDs and explicit
   no-authority/no-write assumptions.
+- CandidateRefresh reconstructs generic quality-gate row counts for compact
+  `operational_quality_gate_operator_training_summary.v1` handoffs from
+  `quality_gate_row_ids_by_status` when present, while preserving
+  operator-training requirement and role/training/certification/qualification
+  evidence from the compact summary.
 - CandidateRefresh accepts compact
   `operational_quality_gate_operator_training_summary.v1` handoffs as
   quality-gate source-report provenance from direct, accepted-state,

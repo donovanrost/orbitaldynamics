@@ -45567,8 +45567,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
   defp quality_gate_report_from_operator_training_summary(%{} = summary) do
     summary = stringify_keys(summary)
-    row_ids_by_status = Map.get(summary, "quality_gate_row_ids_by_status", %{})
+    row_ids_by_status = Map.get(summary, "quality_gate_row_ids_by_status")
     gate_ids_by_status = Map.get(summary, "quality_gate_ids_by_status", %{})
+
+    operator_training_row_count =
+      quality_gate_summary_row_count(row_ids_by_status, summary["operator_training_row_count"])
+
     status = quality_gate_status_from_row_ids(row_ids_by_status)
     classification = quality_gate_import_readiness_classification(status)
 
@@ -45585,7 +45589,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "readiness_level" => quality_gate_import_readiness_level(classification),
       "import_classification" => classification,
       "status" => status,
-      "gate_count" => summary["operator_training_row_count"],
+      "gate_count" => operator_training_row_count,
       "passed_gate_count" =>
         length(quality_gate_summary_list_map_values(row_ids_by_status, "passed")),
       "review_gate_count" =>
@@ -45597,7 +45601,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "gate_status_counts" => quality_gate_import_readiness_status_counts(row_ids_by_status),
       "gate_classification_counts" =>
         quality_gate_import_readiness_classification_counts(row_ids_by_status),
-      "operator_training_row_count" => summary["operator_training_row_count"],
+      "operator_training_row_count" => operator_training_row_count,
       "operator_training_requirement_count" => summary["operator_training_requirement_count"],
       "operator_training_requirement_counts" => summary["operator_training_requirement_counts"],
       "operator_training_requirement_ids" => summary["operator_training_requirement_ids"],
@@ -45605,7 +45609,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "required_training_ids" => summary["required_training_ids"],
       "required_certification_ids" => summary["required_certification_ids"],
       "required_qualification_ids" => summary["required_qualification_ids"],
-      "quality_gate_row_ids_by_status" => row_ids_by_status,
+      "quality_gate_row_ids_by_status" => row_ids_by_status || %{},
       "quality_gate_ids_by_status" => gate_ids_by_status,
       "review_required_quality_gate_row_ids" =>
         quality_gate_summary_list_map_values(row_ids_by_status, "review_required"),

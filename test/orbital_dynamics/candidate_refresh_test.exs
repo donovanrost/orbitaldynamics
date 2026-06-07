@@ -30687,7 +30687,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
   end
 
   test "quality gate replay accepts operational operator-training summaries" do
-    operator_training_summary = quality_gate_operator_training_summary_fixture()
+    operator_training_summary =
+      quality_gate_operator_training_summary_fixture()
+      |> Map.put("operator_training_row_count", 99)
 
     refresh = %{
       "accepted_planning_state" => %{
@@ -30787,6 +30789,60 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     }
 
     assert CandidateRefresh.quality_gate_replay_summary(artifact) == replay_summary
+  end
+
+  test "quality gate replay treats explicit empty operator-training status maps as zero rows" do
+    operator_training_summary =
+      quality_gate_operator_training_summary_fixture()
+      |> Map.merge(%{
+        "operator_training_row_count" => 99,
+        "quality_gate_row_ids_by_status" => %{},
+        "quality_gate_ids_by_status" => %{}
+      })
+
+    refresh = %{
+      "source_operational_quality_gate_operator_training_summary" => operator_training_summary
+    }
+
+    source_report_summary = CandidateRefresh.source_report_summary(refresh)
+
+    assert %{
+             "source_report_count" => 1,
+             "source_report_row_count" => 0,
+             "source_report_quality_gate_count" => 1,
+             "source_report_quality_gate_row_count" => 0,
+             "source_report_quality_gate_gate_count" => 0,
+             "source_report_quality_gate_review_gate_count" => 0,
+             "source_reports" => %{
+               "quality_gate_report" => %{
+                 "row_count" => 0,
+                 "gate_count" => 0,
+                 "review_gate_count" => 0,
+                 "operator_training_requirement_count" => 5
+               }
+             }
+           } = source_report_summary
+
+    assert Map.get(
+             source_report_summary,
+             "source_report_quality_gate_quality_gate_row_ids_by_status",
+             %{}
+           ) ==
+             %{}
+
+    replay_summary = CandidateRefresh.quality_gate_replay_summary(refresh)
+
+    assert %{
+             "source_report_count" => 1,
+             "source_report_row_count" => 0,
+             "gate_count" => 0,
+             "review_gate_count" => 0,
+             "operator_training_requirement_count" => 5,
+             "branch_local_review_pressure" => true
+           } = replay_summary
+
+    assert Map.get(replay_summary, "quality_gate_row_ids_by_status", %{}) == %{}
+    assert Map.get(replay_summary, "review_required_quality_gate_row_ids", []) == []
   end
 
   test "quality gate replay accepts wrapped operational operator-training summaries" do

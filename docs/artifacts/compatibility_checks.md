@@ -389,6 +389,10 @@ certification/qualification routing, review-required/review-only row routing,
 and the no-Cadence-write/no-authority assumptions, and executable verification
 rejects stale requirement counts plus stale review-row evidence before adapter
 queues can trust the compact summary.
+CandidateRefresh replay also derives reconstructed generic quality-gate row
+counts from `quality_gate_row_ids_by_status` when present, while preserving
+operator-training requirement counts and role/training/certification/
+qualification routing from the compact summary.
 The public quality-gate import-readiness summary publishes
 `operational_quality_gate_import_readiness_summary.v1`, preserving freshness,
 import-status, and Cadence-import status routing from those same rows, including
