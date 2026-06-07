@@ -998,6 +998,9 @@ availability/rank maps, direction maps, direction/ground-station maps, and
 station-pressure count/contact-ID maps even when replay uses compact summary
 maps rather than reopening raw rows. This remains an artifact-only
 no-allocation/no candidate-selection boundary.
+Compact no-row station-pressure handoffs derive station-pressure contact and
+review-contact counts from present station, direction, nested direction/station,
+and review contact-ID maps before falling back to duplicated scalar counters.
 Direct or result-artifact-wrapped
 `source_contact_allocation_reservation_conflict_summary` /
 `contact_allocation_reservation_conflict_summary` inputs replay through the same

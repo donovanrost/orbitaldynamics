@@ -2148,11 +2148,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "review_contact_ids"
         ),
       "source_report_contact_allocation_station_pressure_contact_count" =>
-        source_report_summary_family_count(
-          source_reports,
-          "contact_allocation_report",
-          "station_pressure_contact_count"
-        ),
+        source_report_summary_contact_allocation_station_pressure_contact_count(source_reports),
       "source_report_contact_allocation_station_pressure_ground_station_counts" =>
         source_report_summary_family_merge_count_maps(
           source_reports,
@@ -2160,10 +2156,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "station_pressure_ground_station_counts"
         ),
       "source_report_contact_allocation_station_pressure_contact_ids_by_ground_station" =>
-        source_report_summary_family_merge_string_list_maps(
+        source_report_summary_family_merge_string_list_map_fields(
           source_reports,
           "contact_allocation_report",
-          "station_pressure_contact_ids_by_ground_station"
+          [
+            "station_pressure_contact_ids_by_ground_station_id",
+            "station_pressure_contact_ids_by_ground_station"
+          ]
         ),
       "source_report_contact_allocation_station_pressure_availability_counts" =>
         source_report_summary_family_merge_count_maps(
@@ -2202,10 +2201,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "station_pressure_contact_ids_by_precedence_rank"
         ),
       "source_report_contact_allocation_station_pressure_review_contact_count" =>
-        source_report_summary_family_count(
-          source_reports,
-          "contact_allocation_report",
-          "station_pressure_review_contact_count"
+        source_report_summary_contact_allocation_station_pressure_review_contact_count(
+          source_reports
         ),
       "source_report_contact_allocation_station_pressure_review_contact_ids" =>
         source_report_summary_family_merge_string_lists(
@@ -7849,10 +7846,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
     deferred_row_count = summary_integer(allocation_summary, "deferred_row_count")
 
     station_pressure_contact_count =
-      summary_integer(allocation_summary, "station_pressure_contact_count")
+      contact_allocation_station_pressure_contact_count(allocation_summary)
 
     station_pressure_review_contact_count =
-      summary_integer(allocation_summary, "station_pressure_review_contact_count")
+      contact_allocation_station_pressure_review_contact_count(allocation_summary)
 
     station_pressure_review_contact_ids =
       Map.get(allocation_summary, "station_pressure_review_contact_ids", [])
@@ -20709,6 +20706,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
     end
   end
 
+  defp source_report_summary_contact_allocation_station_pressure_contact_count(source_reports) do
+    if Map.has_key?(source_reports, "contact_allocation_report") do
+      source_reports
+      |> Map.take(["contact_allocation_report"])
+      |> Map.values()
+      |> Enum.map(&contact_allocation_station_pressure_contact_count/1)
+      |> Enum.sum()
+      |> report_count()
+    end
+  end
+
+  defp source_report_summary_contact_allocation_station_pressure_review_contact_count(
+         source_reports
+       ) do
+    if Map.has_key?(source_reports, "contact_allocation_report") do
+      source_reports
+      |> Map.take(["contact_allocation_report"])
+      |> Map.values()
+      |> Enum.map(&contact_allocation_station_pressure_review_contact_count/1)
+      |> Enum.sum()
+      |> report_count()
+    end
+  end
+
   defp source_report_summary_family_identity_count(source_reports, family, field) do
     if source_report_summary_family_has_identity_counts?(source_reports, family) do
       source_report_summary_family_count(source_reports, family, field)
@@ -20887,6 +20908,20 @@ defmodule OrbitalDynamics.CandidateRefresh do
     source_reports
     |> Map.take([family])
     |> source_report_summary_merge_string_list_maps(field)
+  end
+
+  defp source_report_summary_family_merge_string_list_map_fields(
+         source_reports,
+         family,
+         fields
+       ) do
+    source_reports
+    |> Map.take([family])
+    |> Map.values()
+    |> Enum.flat_map(fn summary ->
+      Enum.map(fields, &Map.get(summary, &1))
+    end)
+    |> merge_string_list_maps()
   end
 
   defp source_report_summary_merge_nested_string_list_maps(source_reports, field) do
@@ -25483,7 +25518,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Enum.flat_map(fn {_group, contact_ids} -> list_value(contact_ids) end)
   end
 
-  defp contact_intent_nested_string_list_map_contact_ids(contact_ids_by_outer_group) do
+  defp contact_intent_nested_string_list_map_contact_ids(%{} = contact_ids_by_outer_group) do
     contact_ids_by_outer_group
     |> Enum.flat_map(fn
       {_outer_group, %{} = contact_ids_by_inner_group} ->
@@ -25493,6 +25528,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
         []
     end)
   end
+
+  defp contact_intent_nested_string_list_map_contact_ids(_contact_ids_by_outer_group), do: []
 
   defp contact_intent_count_unique_contact_ids(contact_ids) do
     contact_ids
@@ -25534,6 +25571,36 @@ defmodule OrbitalDynamics.CandidateRefresh do
     )
   end
 
+  defp contact_allocation_station_pressure_contact_count(summary) do
+    summary
+    |> contact_allocation_string_and_nested_list_maps_unique_contact_count(
+      [
+        "station_pressure_contact_ids_by_ground_station_id",
+        "station_pressure_contact_ids_by_ground_station",
+        "station_pressure_contact_ids_by_availability",
+        "station_pressure_contact_ids_by_precedence_availability",
+        "station_pressure_contact_ids_by_precedence_rank",
+        "station_pressure_contact_ids_by_direction"
+      ],
+      [
+        "station_pressure_contact_ids_by_direction_and_ground_station_id",
+        "station_pressure_contact_ids_by_direction_and_ground_station"
+      ],
+      "station_pressure_contact_count"
+    )
+  end
+
+  defp contact_allocation_station_pressure_review_contact_count(summary) do
+    if Map.has_key?(summary, "station_pressure_review_contact_ids") do
+      summary
+      |> Map.get("station_pressure_review_contact_ids")
+      |> list_value()
+      |> contact_intent_count_unique_contact_ids()
+    else
+      numeric_report_count(summary, "station_pressure_review_contact_count")
+    end
+  end
+
   defp contact_allocation_string_list_maps_unique_contact_count(summary, fields, fallback_field) do
     contact_id_maps =
       fields
@@ -25548,6 +25615,41 @@ defmodule OrbitalDynamics.CandidateRefresh do
         maps
         |> Enum.flat_map(&contact_intent_string_list_map_contact_ids/1)
         |> contact_intent_count_unique_contact_ids()
+    end
+  end
+
+  defp contact_allocation_string_and_nested_list_maps_unique_contact_count(
+         summary,
+         flat_fields,
+         nested_fields,
+         fallback_field
+       ) do
+    flat_contact_id_maps =
+      flat_fields
+      |> Enum.map(&Map.get(summary, &1))
+      |> Enum.filter(&is_map/1)
+
+    nested_contact_id_maps =
+      nested_fields
+      |> Enum.map(&Map.get(summary, &1))
+      |> Enum.filter(&is_map/1)
+
+    cond do
+      flat_contact_id_maps != [] or nested_contact_id_maps != [] ->
+        flat_contact_ids =
+          flat_contact_id_maps
+          |> Enum.flat_map(&contact_intent_string_list_map_contact_ids/1)
+
+        nested_contact_ids =
+          nested_contact_id_maps
+          |> Enum.flat_map(&contact_intent_nested_string_list_map_contact_ids/1)
+
+        flat_contact_ids
+        |> Kernel.++(nested_contact_ids)
+        |> contact_intent_count_unique_contact_ids()
+
+      true ->
+        numeric_report_count(summary, fallback_field)
     end
   end
 
@@ -36463,20 +36565,35 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp contact_allocation_numeric_map(_numeric_map), do: nil
 
   defp contact_allocation_report_station_pressure_contact_count(report) do
-    report
-    |> contact_allocation_report_station_pressure_contact_ids()
-    |> case do
-      nil -> 0
-      contact_ids -> length(contact_ids)
+    case contact_allocation_report_station_pressure_rows(report) do
+      [] ->
+        contact_allocation_station_pressure_contact_count(report)
+
+      rows ->
+        rows
+        |> Enum.map(&contact_allocation_summary_contact_id/1)
+        |> sorted_non_empty_values()
+        |> case do
+          nil -> 0
+          contact_ids -> length(contact_ids)
+        end
     end
   end
 
   defp contact_allocation_report_station_pressure_review_contact_count(report) do
-    report
-    |> contact_allocation_report_station_pressure_review_contact_ids()
-    |> case do
-      nil -> 0
-      contact_ids -> length(contact_ids)
+    case contact_allocation_report_station_pressure_rows(report) do
+      [] ->
+        contact_allocation_station_pressure_review_contact_count(report)
+
+      rows ->
+        rows
+        |> Enum.filter(&contact_allocation_summary_review_row?/1)
+        |> Enum.map(&contact_allocation_summary_contact_id/1)
+        |> sorted_non_empty_values()
+        |> case do
+          nil -> 0
+          contact_ids -> length(contact_ids)
+        end
     end
   end
 
@@ -36601,34 +36718,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
     end
   end
 
-  defp contact_allocation_report_station_pressure_contact_ids(report) do
-    case contact_allocation_report_station_pressure_rows(report) do
-      [] ->
-        [
-          "station_pressure_contact_ids_by_ground_station_id",
-          "station_pressure_contact_ids_by_availability",
-          "station_pressure_contact_ids_by_precedence_availability",
-          "station_pressure_contact_ids_by_precedence_rank"
-        ]
-        |> Enum.flat_map(fn field ->
-          report
-          |> Map.get(field)
-          |> contact_allocation_id_map_contact_ids()
-        end)
-        |> sorted_non_empty_values()
-
-      rows ->
-        rows
-        |> Enum.map(&contact_allocation_summary_contact_id/1)
-        |> sorted_non_empty_values()
-    end
-  end
-
   defp contact_allocation_report_station_pressure_ground_station_counts(report) do
     case contact_allocation_report_station_pressure_rows(report) do
       [] ->
-        report
-        |> Map.get("station_pressure_contact_ids_by_ground_station_id")
+        [
+          Map.get(report, "station_pressure_contact_ids_by_ground_station_id"),
+          Map.get(report, "station_pressure_contact_ids_by_ground_station")
+        ]
+        |> merge_string_list_maps()
         |> contact_allocation_id_map_counts()
 
       rows ->
@@ -36639,9 +36736,11 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp contact_allocation_report_station_pressure_contact_ids_by_ground_station(report) do
     case contact_allocation_report_station_pressure_rows(report) do
       [] ->
-        report
-        |> Map.get("station_pressure_contact_ids_by_ground_station_id")
-        |> map_value_lists()
+        [
+          Map.get(report, "station_pressure_contact_ids_by_ground_station_id"),
+          Map.get(report, "station_pressure_contact_ids_by_ground_station")
+        ]
+        |> merge_string_list_maps()
 
       rows ->
         rows
@@ -37763,14 +37862,6 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp contact_allocation_id_map_counts(_contact_ids_by_key), do: nil
-
-  defp contact_allocation_id_map_contact_ids(%{} = contact_ids_by_key) do
-    contact_ids_by_key
-    |> Map.values()
-    |> Enum.flat_map(&List.wrap/1)
-  end
-
-  defp contact_allocation_id_map_contact_ids(_contact_ids_by_key), do: []
 
   defp contact_allocation_grouped_contact_counts(pairs) do
     pairs
@@ -49858,9 +49949,17 @@ defmodule OrbitalDynamics.CandidateRefresh do
         summary_string_list_map(summary, "policy_blocked_contact_ids_by_ground_station_id"),
       "review_contact_ids" => sorted_string_values(Map.get(summary, "review_contact_ids", [])),
       "station_pressure_review_contact_ids" =>
-        sorted_string_values(Map.get(summary, "station_pressure_review_contact_ids", [])),
+        if Map.has_key?(summary, "station_pressure_review_contact_ids") do
+          sorted_string_values(Map.get(summary, "station_pressure_review_contact_ids", []))
+        end,
+      "station_pressure_contact_count" =>
+        numeric_report_count(summary, "station_pressure_contact_count"),
+      "station_pressure_review_contact_count" =>
+        numeric_report_count(summary, "station_pressure_review_contact_count"),
       "station_pressure_contact_ids_by_ground_station_id" =>
         summary_string_list_map(summary, "station_pressure_contact_ids_by_ground_station_id"),
+      "station_pressure_contact_ids_by_ground_station" =>
+        summary_string_list_map(summary, "station_pressure_contact_ids_by_ground_station"),
       "station_pressure_contact_ids_by_availability" =>
         summary_string_list_map(summary, "station_pressure_contact_ids_by_availability"),
       "station_pressure_contact_ids_by_precedence_availability" =>

@@ -7517,6 +7517,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       contact_allocation_station_pressure_summary_fixture()
       |> Map.put("rows", [])
       |> Map.put("review_rows", [])
+      |> Map.put("station_pressure_contact_count", 99)
+      |> Map.put("station_pressure_review_contact_count", 99)
       |> Map.put("station_pressure_contact_ids_by_direction", %{
         "downlink" => ["dl_station_pressure"]
       })
@@ -7586,6 +7588,137 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert CandidateRefresh.contact_allocation_replay_summary(artifact) ==
              CandidateRefresh.contact_allocation_replay_summary(refresh)
+  end
+
+  test "contact allocation source summary rederives stale station-pressure provenance counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 1,
+            "row_count" => 0,
+            "station_pressure_contact_count" => 99,
+            "station_pressure_review_contact_count" => 99,
+            "station_pressure_contact_ids_by_direction_and_ground_station" => %{
+              "downlink" => %{
+                "equator_prime" => ["station_pressure_a", "station_pressure_b"]
+              }
+            },
+            "station_pressure_review_contact_ids" => ["station_pressure_a"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
+
+    assert source_summary["source_report_contact_allocation_station_pressure_contact_count"] == 2
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_review_contact_count"
+           ] == 1
+
+    assert replay_summary["station_pressure_contact_count"] == 2
+    assert replay_summary["station_pressure_review_contact_count"] == 1
+  end
+
+  test "contact allocation replay treats explicit empty station-pressure maps as zero counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 1,
+            "row_count" => 0,
+            "station_pressure_contact_count" => 99,
+            "station_pressure_review_contact_count" => 99,
+            "station_pressure_contact_ids_by_ground_station" => %{},
+            "station_pressure_contact_ids_by_direction" => %{},
+            "station_pressure_contact_ids_by_direction_and_ground_station" => %{},
+            "station_pressure_review_contact_ids" => []
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
+
+    assert source_summary["source_report_contact_allocation_station_pressure_contact_count"] == 0
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_review_contact_count"
+           ] == 0
+
+    assert replay_summary["station_pressure_contact_count"] == 0
+    assert replay_summary["station_pressure_review_contact_count"] == 0
+    refute replay_summary["branch_local_station_pressure"]
+  end
+
+  test "contact allocation station-pressure summary counts non-id ground-station maps" do
+    summary =
+      contact_allocation_station_pressure_summary_fixture()
+      |> Map.put("rows", [])
+      |> Map.put("review_rows", [])
+      |> Map.put("station_pressure_contact_count", 99)
+      |> Map.put("station_pressure_contact_ids_by_ground_station_id", %{})
+      |> Map.delete("station_pressure_contact_ids_by_availability")
+      |> Map.delete("station_pressure_contact_ids_by_precedence_availability")
+      |> Map.delete("station_pressure_contact_ids_by_precedence_rank")
+      |> Map.delete("station_pressure_contact_ids_by_direction")
+      |> Map.delete("station_pressure_contact_ids_by_direction_and_ground_station_id")
+      |> Map.put("station_pressure_contact_ids_by_ground_station", %{
+        "equator_prime" => ["station_pressure_a"]
+      })
+
+    refresh = %{"source_contact_allocation_station_pressure_summary" => summary}
+    source_summary = CandidateRefresh.source_report_summary(refresh)
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(refresh)
+
+    assert source_summary["source_report_contact_allocation_station_pressure_contact_count"] == 1
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_contact_ids_by_ground_station"
+           ] == %{"equator_prime" => ["station_pressure_a"]}
+
+    assert replay_summary["station_pressure_contact_count"] == 1
+
+    assert replay_summary["station_pressure_contact_ids_by_ground_station"] == %{
+             "equator_prime" => ["station_pressure_a"]
+           }
+  end
+
+  test "contact allocation station-pressure summary falls back to scalar counts" do
+    summary =
+      contact_allocation_station_pressure_summary_fixture()
+      |> Map.put("rows", [])
+      |> Map.put("review_rows", [])
+      |> Map.put("station_pressure_contact_count", 2)
+      |> Map.put("station_pressure_review_contact_count", 1)
+      |> Map.delete("station_pressure_review_contact_ids")
+      |> Map.delete("station_pressure_contact_ids_by_ground_station_id")
+      |> Map.delete("station_pressure_contact_ids_by_availability")
+      |> Map.delete("station_pressure_contact_ids_by_precedence_availability")
+      |> Map.delete("station_pressure_contact_ids_by_precedence_rank")
+      |> Map.delete("station_pressure_contact_ids_by_direction")
+      |> Map.delete("station_pressure_contact_ids_by_direction_and_ground_station_id")
+
+    refresh = %{"source_contact_allocation_station_pressure_summary" => summary}
+    source_summary = CandidateRefresh.source_report_summary(refresh)
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(refresh)
+
+    assert source_summary["source_report_contact_allocation_station_pressure_contact_count"] == 2
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_review_contact_count"
+           ] == 1
+
+    assert replay_summary["station_pressure_contact_count"] == 2
+    assert replay_summary["station_pressure_review_contact_count"] == 1
   end
 
   test "source report summary replays contact allocation station-pressure summaries from result artifact wrappers" do
@@ -8750,7 +8883,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert summary["blocked_row_count"] == 0
     assert summary["deferred_row_count"] == 0
-    assert summary["station_pressure_contact_count"] == 0
+    assert summary["station_pressure_contact_count"] == 1
+    assert summary["station_pressure_review_contact_count"] == 1
     assert summary["reservation_conflict_contact_count"] == nil
     assert summary["invalid_contact_input_count"] == nil
 
