@@ -6886,6 +6886,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_candidate_diff_replay_summary_fields(source_reports))
     |> Map.merge(source_report_candidate_rejection_replay_summary_fields(source_reports))
     |> Map.merge(source_report_provider_counteroffer_replay_summary_fields(source_reports))
+    |> Map.merge(
+      source_report_contact_contention_replay_summary_fields(refresh_or_artifact, source_reports)
+    )
     |> Map.merge(source_report_contact_allocation_replay_summary_fields(source_reports))
     |> Map.merge(source_report_contact_intent_replay_summary_fields(source_reports))
     |> Map.merge(source_report_link_capacity_replay_summary_fields(source_reports))
@@ -7407,6 +7410,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    contact_contention_replay_summary_from_summary(
+      contention_summary,
+      summary_source,
+      replay_scope
+    )
+  end
+
+  defp contact_contention_replay_summary_from_summary(
+         contention_summary,
+         summary_source,
+         replay_scope
+       ) do
     conflict_group_count = summary_integer(contention_summary, "conflict_group_count")
 
     invalid_contact_input_count =
@@ -9692,6 +9707,45 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "branch_local_counteroffer_import_readiness_pressure"),
       "source_report_provider_counteroffer_branch_local_plan_impact_pressure" =>
         Map.get(summary, "branch_local_plan_impact_pressure")
+    }
+  end
+
+  defp source_report_contact_contention_replay_summary_fields(refresh_or_artifact, source_reports) do
+    branch_contention_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "contact_contention_report")
+
+    contention_summary =
+      branch_contention_summary || Map.get(source_reports, "contact_contention_report", %{})
+
+    {summary_source, replay_scope} =
+      if branch_contention_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.contact_contention_report",
+          "contact_contention_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.contact_contention_report",
+          "contact_contention_source_report_provenance_only"
+        }
+      end
+
+    summary =
+      contact_contention_replay_summary_from_summary(
+        contention_summary,
+        summary_source,
+        replay_scope
+      )
+
+    %{
+      "source_report_contact_contention_branch_local_contact_contention_pressure" =>
+        Map.get(summary, "branch_local_contact_contention_pressure"),
+      "source_report_contact_contention_branch_local_conflict_pressure" =>
+        Map.get(summary, "branch_local_contact_contention_conflict_pressure"),
+      "source_report_contact_contention_branch_local_invalid_contact_input_pressure" =>
+        Map.get(summary, "branch_local_invalid_contact_input_pressure"),
+      "source_report_contact_contention_branch_local_review_pressure" =>
+        Map.get(summary, "branch_local_contact_contention_review_pressure")
     }
   end
 

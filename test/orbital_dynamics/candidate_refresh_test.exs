@@ -953,6 +953,11 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_contact_contention_invalid_contact_input_ids" => [
                "missing_station"
              ],
+             "source_report_contact_contention_branch_local_contact_contention_pressure" => true,
+             "source_report_contact_contention_branch_local_conflict_pressure" => true,
+             "source_report_contact_contention_branch_local_invalid_contact_input_pressure" =>
+               true,
+             "source_report_contact_contention_branch_local_review_pressure" => true,
              "source_report_count" => 6,
              "source_report_row_count" => 14,
              "source_report_counts_by_family" => %{
@@ -1312,6 +1317,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert OrbitalDynamics.candidate_refresh_source_report_summary(artifact) ==
              CandidateRefresh.source_report_summary(artifact)
 
+    assert %{
+             "source_report_contact_contention_branch_local_contact_contention_pressure" => true,
+             "source_report_contact_contention_branch_local_conflict_pressure" => true,
+             "source_report_contact_contention_branch_local_invalid_contact_input_pressure" =>
+               true,
+             "source_report_contact_contention_branch_local_review_pressure" => true
+           } = CandidateRefresh.source_report_summary(artifact)
+
     assert CandidateRefresh.contact_contention_replay_summary(artifact) ==
              contact_contention_replay_summary
 
@@ -1418,6 +1431,11 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "command" => 1,
                "downlink" => 1
              },
+             "source_report_contact_contention_branch_local_contact_contention_pressure" => true,
+             "source_report_contact_contention_branch_local_conflict_pressure" => true,
+             "source_report_contact_contention_branch_local_invalid_contact_input_pressure" =>
+               true,
+             "source_report_contact_contention_branch_local_review_pressure" => true,
              "source_report_contact_contention_contact_ids_by_direction" => %{
                "command" => ["contention_contact_b"],
                "downlink" => ["contention_contact_a"]
@@ -1461,6 +1479,11 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "review_contact_contention" => 1,
                "review_invalid_contact_contention_input" => 1
              },
+             "source_report_contact_contention_branch_local_contact_contention_pressure" => true,
+             "source_report_contact_contention_branch_local_conflict_pressure" => true,
+             "source_report_contact_contention_branch_local_invalid_contact_input_pressure" =>
+               true,
+             "source_report_contact_contention_branch_local_review_pressure" => true,
              "source_report_contact_contention_direction_routing" => ^expected_direction_routing
            } = CandidateRefresh.source_report_summary(artifact)
 
@@ -1765,13 +1788,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         "source_reports" => %{
           "contact_contention_report" => %{
             "contract" => "contact_contention_report.v1",
-            "count" => 9,
-            "row_count" => 9,
+            "count" => 0,
+            "row_count" => 0,
             "paths" => ["source_contact_contention_report"],
-            "conflict_group_count" => 99,
-            "contact_contention_contact_id_counts" => %{
-              "provenance_contact" => 9
-            }
+            "conflict_group_count" => 0,
+            "invalid_contact_input_count" => 0,
+            "contact_contention_contact_id_counts" => %{},
+            "required_operator_action_counts" => %{}
           }
         }
       }
@@ -1832,6 +1855,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert summary["assumptions"]["replay_scope"] ==
              "contact_contention_candidate_source_report_summary_only"
+
+    assert %{
+             "source_report_contact_contention_branch_local_contact_contention_pressure" => true,
+             "source_report_contact_contention_branch_local_conflict_pressure" => true,
+             "source_report_contact_contention_branch_local_invalid_contact_input_pressure" =>
+               true,
+             "source_report_contact_contention_branch_local_review_pressure" => true
+           } = CandidateRefresh.source_report_summary(artifact)
 
     assert OrbitalDynamics.candidate_refresh_contact_contention_replay_summary(artifact) ==
              summary
