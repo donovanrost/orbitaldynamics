@@ -363,6 +363,10 @@ triage summaries.
 validation-reference fixture for the base summary family. The fixture observes
 row-derived review and non-passed gate counts, status/classification routing,
 non-passed gate and row IDs, and the no-Cadence-write/no-authority assumptions.
+Focused checked-in fixture coverage exact-compares the public
+`OrbitalDynamics.operational_quality_gate_summary/1` facade output from
+`study_results/quality_gate_resource_pressure_v1.json` before schema
+validation.
 Executable validation rejects stale row-derived quality-gate classification,
 readiness level, status, gate counts/maps, gate ID routing groups, nested
 readiness/quality source-gate handoff drift, copied source-report summary

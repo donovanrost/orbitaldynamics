@@ -1517,6 +1517,129 @@ defmodule OrbitalDynamics.SchemaTest do
              summary["model_limits"]
   end
 
+  test "validates checked-in operational quality gate summary fixture" do
+    report = read_json!("study_results/quality_gate_resource_pressure_v1.json")
+    summary = read_json!("study_results/operational_quality_gate_summary_v1.json")
+
+    generated_summary = OrbitalDynamics.operational_quality_gate_summary(report)
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "operational_quality_gate_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "schema_contract" => "operational_quality_gate_summary.v1",
+             "model" => "artifact_only_quality_gate_summary",
+             "source" => "quality_gate_report.v1",
+             "source_artifact_type" => "resource_projection_report.v1",
+             "source_artifact_id" => "resource_summaries",
+             "source_quality_gate_report_id" =>
+               "quality_gate:resource_projection_report.v1:resource_summaries",
+             "source_readiness_report_id" =>
+               "operational_readiness:resource_projection_report.v1:resource_summaries",
+             "readiness_level" => "operator_review",
+             "import_classification" => "review_only",
+             "status" => "review_required",
+             "handoff_only" => true,
+             "execution_allowed" => false,
+             "cadence_write_allowed" => false,
+             "operator_authority_granted" => false,
+             "execution_boundary" => "operator_review_required_before_import",
+             "gate_count" => 6,
+             "passed_gate_count" => 3,
+             "review_gate_count" => 3,
+             "analysis_gate_count" => 0,
+             "blocked_gate_count" => 0,
+             "non_passed_gate_count" => 3,
+             "gate_status_counts" => %{"passed" => 3, "review_required" => 3},
+             "gate_classification_counts" => %{"importable" => 3, "review_only" => 3},
+             "gate_ids_by_status" => %{
+               "passed" => ["adapter_boundary", "operational_mode", "source_contract"],
+               "review_required" => [
+                 "cadence_import",
+                 "operator_review",
+                 "resource_availability"
+               ]
+             },
+             "gate_ids_by_classification" => %{
+               "importable" => ["adapter_boundary", "operational_mode", "source_contract"],
+               "review_only" => ["cadence_import", "operator_review", "resource_availability"]
+             },
+             "passed_gate_ids" => ["adapter_boundary", "operational_mode", "source_contract"],
+             "review_required_gate_ids" => [
+               "cadence_import",
+               "operator_review",
+               "resource_availability"
+             ],
+             "analysis_only_gate_ids" => [],
+             "blocked_gate_ids" => [],
+             "non_passed_gate_ids" => [
+               "cadence_import",
+               "operator_review",
+               "resource_availability"
+             ],
+             "non_passed_quality_gate_row_ids" => [
+               "quality_gate:resource_projection_report.v1:resource_summaries:cadence_import:6",
+               "quality_gate:resource_projection_report.v1:resource_summaries:operator_review:5",
+               "quality_gate:resource_projection_report.v1:resource_summaries:resource_availability:4"
+             ],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_cadence_write",
+               "operator_authority" => "not_granted_by_quality_gate_summary",
+               "cadence_write" => "not_performed_by_summary",
+               "command_execution" => "not_performed_by_summary",
+               "source" => "quality_gate_report.v1"
+             }
+           } = summary
+
+    assert Enum.map(summary["rows"], & &1["id"]) == [
+             "quality_gate:resource_projection_report.v1:resource_summaries:source_contract:1",
+             "quality_gate:resource_projection_report.v1:resource_summaries:operational_mode:2",
+             "quality_gate:resource_projection_report.v1:resource_summaries:adapter_boundary:3",
+             "quality_gate:resource_projection_report.v1:resource_summaries:resource_availability:4",
+             "quality_gate:resource_projection_report.v1:resource_summaries:operator_review:5",
+             "quality_gate:resource_projection_report.v1:resource_summaries:cadence_import:6"
+           ]
+
+    assert summary["quality_gate_row_ids_by_status"] == %{
+             "passed" => [
+               "quality_gate:resource_projection_report.v1:resource_summaries:adapter_boundary:3",
+               "quality_gate:resource_projection_report.v1:resource_summaries:operational_mode:2",
+               "quality_gate:resource_projection_report.v1:resource_summaries:source_contract:1"
+             ],
+             "review_required" => [
+               "quality_gate:resource_projection_report.v1:resource_summaries:cadence_import:6",
+               "quality_gate:resource_projection_report.v1:resource_summaries:operator_review:5",
+               "quality_gate:resource_projection_report.v1:resource_summaries:resource_availability:4"
+             ]
+           }
+
+    assert summary["quality_gate_row_ids_by_classification"] == %{
+             "importable" => [
+               "quality_gate:resource_projection_report.v1:resource_summaries:adapter_boundary:3",
+               "quality_gate:resource_projection_report.v1:resource_summaries:operational_mode:2",
+               "quality_gate:resource_projection_report.v1:resource_summaries:source_contract:1"
+             ],
+             "review_only" => [
+               "quality_gate:resource_projection_report.v1:resource_summaries:cadence_import:6",
+               "quality_gate:resource_projection_report.v1:resource_summaries:operator_review:5",
+               "quality_gate:resource_projection_report.v1:resource_summaries:resource_availability:4"
+             ]
+           }
+
+    assert summary["model_limits"] == [
+             "quality_gate_summary_derives_classification_from_gate_rows",
+             "quality_gate_summary_does_not_approve_or_import"
+           ]
+
+    assert {:ok, quality_gate_summary_schema} =
+             Schema.json_schema("operational_quality_gate_summary.v1")
+
+    assert get_in(quality_gate_summary_schema, ["properties", "model_limits", "const"]) ==
+             summary["model_limits"]
+  end
+
   test "validates checked-in station reservation review summary fixture" do
     review_summary = read_json!("study_results/station_reservation_review_summary_v1.json")
 

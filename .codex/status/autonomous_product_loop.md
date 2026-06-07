@@ -5,83 +5,76 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Operational execution boundary summary fixture.
+Operational quality gate summary fixture coverage.
 
 Status:
 Implemented, verified, and reviewed; ready for commit/push.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `study_results/operational_execution_boundary_summary_v1.json`
 - `test/orbital_dynamics/schema_test.exs`
 - `docs/artifacts/compatibility_checks.md`
 
 Slice-selection note:
-Selected after the operational readiness gate summary fixture was pushed at
-`177876a88708abd70a1d56fe1f25e153e3c6e745` and live reassessment of direct
-operational-readiness compact summaries.
-`operational_execution_boundary_summary.v1` is implemented behind public
-summary facades and has runtime/schema coverage for handoff-only execution
-boundaries, import eligibility separation, no-Cadence-write/no-command
-execution flags, model limits, and operational-mode gate context, and
-`study_results/` already has the source
-`operational_readiness_report.v1` fixture, but lacks a checked-in compact
-execution-boundary summary fixture. This slice is fixture/reference hardening
-only: add a compact summary generated from the existing readiness report without
+Selected after the operational execution boundary summary fixture was pushed at
+`ed4ac144479165a97a9764399f06024632af8924` and live reassessment of nearby
+operational quality-gate summary fixtures.
+`operational_quality_gate_summary.v1` already has a checked-in fixture and
+runtime/schema coverage for row-derived quality-gate counts, routing maps,
+classification, model limits, and no-authority boundaries, but the fixture does
+not yet have the same focused checked-in regeneration test pattern added for
+the direct readiness summaries. This slice is fixture/reference hardening only:
+prove the existing compact quality-gate summary fixture regenerates exactly
+through the public facade from the existing quality-gate report fixture without
 granting operator authority, writing Cadence, importing, executing commands, or
 mutating schedules.
 
 Definition of done:
-- Add checked-in `operational_execution_boundary_summary.v1` generated through
-  the public operational execution-boundary summary facade.
 - Add focused schema/reference coverage proving the fixture validates and
-  regenerates from public facades, preserving source identity,
-  readiness/import/status classification, import eligibility, handoff-only and
-  execution/Cadence/operator authority flags, execution boundary,
-  operational-mode gate context, gate counts, non-passed gates, model limits,
-  and artifact-only no-Cadence-write/no-command-execution/no-import
-  assumptions.
-- Update compatibility docs to name the checked-in fixture path.
-- Run focused schema/reference tests, schema lint for the new fixture, read-only
-  review, and commit/push only this slice's files.
+  regenerates from public facades, preserving source identity, readiness/
+  import/status classification, execution boundary, row-derived gate and
+  quality-gate row counts, status/classification routing maps, non-passed gate
+  and quality-gate row IDs, model limits, and artifact-only no-Cadence-write/
+  no-authority/no-command-execution assumptions.
+- Update compatibility docs to name the exact public-facade regeneration check.
+- Run focused schema/reference tests, schema lint for the existing fixture,
+  read-only review, and commit/push only this slice's files.
 
 Implementation notes:
-- Added checked-in `operational_execution_boundary_summary.v1` under
-  `study_results/`, generated through the public operational execution-boundary
-  summary facade from the existing checked-in `operational_readiness_report.v1`
-  fixture.
-- Added focused schema-test coverage proving the fixture regenerates exactly
-  from the public facade and preserves source identity, readiness/import/status
-  classification, import eligibility, handoff-only and execution/Cadence/
-  operator-authority flags, execution boundary, operational-mode gate context,
-  gate counts, non-passed gates, model limits, and no-Cadence-write/
-  no-command-execution/no-import assumptions.
-- Updated compatibility docs to name the checked-in fixture path and observed
-  compatibility surface.
+- Added focused schema-test coverage proving the existing checked-in
+  `operational_quality_gate_summary.v1` fixture regenerates exactly from public
+  `OrbitalDynamics.operational_quality_gate_summary/1` using the checked-in
+  `quality_gate_resource_pressure_v1.json` source fixture.
+- The test preserves source identity, readiness/import/status classification,
+  execution boundary, row-derived gate and quality-gate row counts,
+  status/classification routing maps, non-passed gate and quality-gate row IDs,
+  model limits, and no-Cadence-write/no-authority/no-command-execution
+  assumptions.
+- Updated compatibility docs to name the exact public-facade regeneration check
+  before schema validation.
 
 Verification:
 - `mix format test/orbital_dynamics/schema_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:1459`
-- `mix orbital_dynamics.schema.lint --input study_results/operational_execution_boundary_summary_v1.json --contract operational_execution_boundary_summary.v1`
+- `mix test test/orbital_dynamics/schema_test.exs:1520`
+- `mix orbital_dynamics.schema.lint --input study_results/operational_quality_gate_summary_v1.json --contract operational_quality_gate_summary.v1`
 - `git diff --check`
 
 Review:
-- Read-only review sidecar `019ea1a9-2a5f-75c0-b45f-f71e1a9d6348`
-  reported no must-fix findings. It confirmed the fixture regenerates exactly
-  through public `OrbitalDynamics.operational_execution_boundary_summary/1` from
-  the existing checked-in `operational_readiness_report.v1` fixture,
-  exact-compares before schema validation, covers source identity,
-  readiness/import/status classification, import eligibility, handoff-only and
-  execution/Cadence/operator-authority flags, execution boundary,
-  operational-mode gate context, gate counts, non-passed gates, assumptions,
-  and model limits, and stays within no-Cadence-write/no-activity-import/
-  no-command-execution/no-operator-authority-grant/no-schedule-mutation
-  boundaries. It also confirmed `.gitignore` is unrelated and should not be
-  staged.
+- Read-only review sidecar `019ea1ad-6b8f-7792-97f8-0eaa82e55726`
+  reported no must-fix findings. It confirmed the focused test regenerates the
+  checked-in `operational_quality_gate_summary.v1` fixture through public
+  `OrbitalDynamics.operational_quality_gate_summary/1` from
+  `quality_gate_resource_pressure_v1.json`, exact-compares before schema
+  validation, covers source identity, readiness/import/status classification,
+  execution boundary, gate counts, routing maps, non-passed gate IDs,
+  non-passed quality-gate row IDs, assumptions, and model limits, and stays
+  within no-Cadence-write/no-activity-import/no-command-execution/
+  no-operator-authority-grant/no-schedule-mutation boundaries. It also
+  confirmed `.gitignore` is unrelated and should not be staged.
 
 Last commit:
-`177876a88708abd70a1d56fe1f25e153e3c6e745` pushed to `origin/main` for
-operational readiness gate summary fixture coverage.
+`ed4ac144479165a97a9764399f06024632af8924` pushed to `origin/main` for
+operational execution boundary summary fixture coverage.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
