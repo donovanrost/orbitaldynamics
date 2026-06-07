@@ -1,1 +1,548 @@
-{"added_count":1,"approval_transition_counts":{"added":1,"changed":1,"removed":1},"assumptions":{"comparison":"activity identity, timing, status, approval, lock, contact, execution uncertainty, lineage, and typed status transitions","duplicate_timeline_identity":"duplicate timeline identities are preserved as operator-review collision rows","execution_boundary":"artifact_only_no_schedule_mutation","identity_match":"timeline_id derived from persistent metadata or activity context"},"changed_count":2,"changed_field_counts":{"activity_id":1,"approval_status":1,"ends_at_s":1,"execution_uncertainty":1,"starts_at_s":1,"status":1,"timeline_presence":2},"diff_status_counts":{"added":1,"changed":2,"removed":1},"duplicate_replacement_timeline_identity_count":0,"duplicate_source_timeline_identity_count":0,"duplicate_timeline_identity_count":0,"model":"timeline_identity_activity_diff","model_limits":["artifact_level_only","no_schedule_mutation","no_command_execution","derived_identity_when_no_persistent_timeline_id"],"removed_count":1,"replacement_activity_count":3,"required_operator_action_counts":{"review_added_activity":1,"review_changed_protected_activity":1,"review_removed_activity":1,"review_timeline_change":1},"review_required_count":4,"row_count":4,"rows":[{"approval_transition":{"field":"approval_status","to":"not_evaluated","transition_type":"added"},"changed_fields":["timeline_presence"],"diff_status":"added","id":"timeline_diff:timeline:cmd_added","rank":1,"reason":"replacement timeline adds activity cmd_added","replacement_activity_context":{"duration_s":5.0,"ends_at_s":55.0,"ground_station_id":"equator_prime","metadata":{"timeline_id":"timeline:cmd_added"},"starts_at_s":50.0,"timeline_identity":{"activity_id":"cmd_added","activity_type":"command","scenario_id":"leo_1","subject_id":"equator_prime","timeline_id":"timeline:cmd_added"}},"replacement_activity_id":"cmd_added","replacement_activity_type":"command","replacement_approval_status":"not_evaluated","replacement_ends_at_s":55.0,"replacement_locked":false,"replacement_protection_category":"none","replacement_protection_decision":{"activity_id":"cmd_added","approval_status":"not_evaluated","approved":false,"locked":false,"protection_category":"none","protection_decision":"mutable","reason":"no_timeline_protection","status":"planned","timeline_id":"timeline:cmd_added","timeline_identity":{"activity_id":"cmd_added","scenario_id":"leo_1","subject_id":"equator_prime","timeline_id":"timeline:cmd_added"}},"replacement_protection_reason":"no_timeline_protection","replacement_starts_at_s":50.0,"replacement_status":"planned","replacement_timeline_identity":{"activity_id":"cmd_added","activity_type":"command","scenario_id":"leo_1","subject_id":"equator_prime","timeline_id":"timeline:cmd_added"},"required_operator_action":"review_added_activity","requires_operator_review":true,"scenario_id":"leo_1","status_transition":{"field":"status","to":"planned","transition_type":"added"},"timeline_id":"timeline:cmd_added"},{"approval_transition":{"field":"approval_status","from":"not_evaluated","transition_type":"removed"},"changed_fields":["timeline_presence"],"diff_status":"removed","id":"timeline_diff:timeline:dl_removed","rank":2,"reason":"replacement timeline removes activity dl_removed","required_operator_action":"review_removed_activity","requires_operator_review":true,"scenario_id":"leo_1","source_activity_context":{"duration_s":10.0,"ends_at_s":40.0,"ground_station_id":"equator_prime","metadata":{"timeline_id":"timeline:dl_removed"},"starts_at_s":30.0,"timeline_identity":{"activity_id":"dl_removed","activity_type":"downlink","scenario_id":"leo_1","subject_id":"equator_prime","timeline_id":"timeline:dl_removed"}},"source_activity_id":"dl_removed","source_activity_type":"downlink","source_approval_status":"not_evaluated","source_ends_at_s":40.0,"source_locked":false,"source_protection_category":"none","source_protection_decision":{"activity_id":"dl_removed","approval_status":"not_evaluated","approved":false,"locked":false,"protection_category":"none","protection_decision":"mutable","reason":"no_timeline_protection","status":"planned","timeline_id":"timeline:dl_removed","timeline_identity":{"activity_id":"dl_removed","scenario_id":"leo_1","subject_id":"equator_prime","timeline_id":"timeline:dl_removed"}},"source_protection_reason":"no_timeline_protection","source_starts_at_s":30.0,"source_status":"planned","source_timeline_identity":{"activity_id":"dl_removed","activity_type":"downlink","scenario_id":"leo_1","subject_id":"equator_prime","timeline_id":"timeline:dl_removed"},"status_transition":{"field":"status","from":"planned","transition_type":"removed"},"timeline_id":"timeline:dl_removed"},{"replacement_starts_at_s":12.0,"source_activity_type":"observe","end_delta_s":2.0,"changed_fields":["activity_id","status","approval_status","starts_at_s","ends_at_s"],"reason":"replacement timeline changes approved activity obs_1: activity_id,status,approval_status,starts_at_s,ends_at_s","replacement_locked":false,"required_operator_action":"review_changed_protected_activity","start_delta_s":2.0,"source_locked":false,"diff_status":"changed","replacement_protection_category":"none","rank":3,"source_starts_at_s":10.0,"source_protection_reason":"activity_locked_or_approved","replacement_activity_id":"obs_1b","source_approval_status":"approved","replacement_timeline_identity":{"activity_id":"obs_1b","activity_type":"observe","scenario_id":"leo_1","subject_id":"target_a","timeline_id":"timeline:obs_1"},"approval_transition":{"field":"approval_status","from":"approved","to":"pending","transition_type":"changed"},"requires_operator_review":true,"id":"timeline_diff:timeline:obs_1","source_timeline_identity":{"activity_id":"obs_1","activity_type":"observe","scenario_id":"leo_1","subject_id":"target_a","timeline_id":"timeline:obs_1"},"source_protection_decision":{"activity_id":"obs_1","approval_status":"approved","approved":true,"locked":false,"protection_category":"locked_or_approved","protection_decision":"preserve","reason":"activity_locked_or_approved","status":"approved","timeline_id":"timeline:obs_1","timeline_identity":{"activity_id":"obs_1","scenario_id":"leo_1","subject_id":"target_a","timeline_id":"timeline:obs_1"}},"source_ends_at_s":20.0,"replacement_approval_status":"pending","replacement_ends_at_s":22.0,"replacement_protection_decision":{"activity_id":"obs_1b","approval_status":"pending","approved":false,"locked":false,"protection_category":"none","protection_decision":"mutable","reason":"no_timeline_protection","status":"planned","timeline_id":"timeline:obs_1","timeline_identity":{"activity_id":"obs_1b","scenario_id":"leo_1","subject_id":"target_a","timeline_id":"timeline:obs_1"}},"source_status":"approved","replacement_status":"planned","replacement_activity_type":"observe","source_protection_category":"locked_or_approved","replacement_activity_context":{"approval_status":"pending","duration_s":10.0,"ends_at_s":22.0,"metadata":{"timeline_id":"timeline:obs_1"},"starts_at_s":12.0,"status":"planned","target_id":"target_a","timeline_identity":{"activity_id":"obs_1b","activity_type":"observe","scenario_id":"leo_1","subject_id":"target_a","timeline_id":"timeline:obs_1"}},"status_transition":{"field":"status","from":"approved","to":"planned","transition_type":"changed"},"source_activity_id":"obs_1","timeline_id":"timeline:obs_1","source_activity_context":{"approval_status":"approved","duration_s":10.0,"ends_at_s":20.0,"metadata":{"timeline_id":"timeline:obs_1"},"starts_at_s":10.0,"status":"approved","target_id":"target_a","timeline_identity":{"activity_id":"obs_1","activity_type":"observe","scenario_id":"leo_1","subject_id":"target_a","timeline_id":"timeline:obs_1"}},"replacement_protection_reason":"no_timeline_protection","scenario_id":"leo_1"},{"replacement_starts_at_s":60.0,"source_activity_type":"impulsive_burn","end_delta_s":0.0,"changed_fields":["execution_uncertainty"],"reason":"timeline activity raise_apogee changes to raise_apogee: execution_uncertainty","replacement_locked":false,"required_operator_action":"review_timeline_change","start_delta_s":0.0,"source_locked":false,"diff_status":"changed","replacement_protection_category":"none","rank":4,"source_starts_at_s":60.0,"source_protection_reason":"no_timeline_protection","replacement_activity_id":"raise_apogee","source_approval_status":"not_evaluated","replacement_timeline_identity":{"activity_id":"raise_apogee","activity_type":"impulsive_burn","scenario_id":"leo_1","timeline_id":"timeline:raise_apogee"},"requires_operator_review":true,"id":"timeline_diff:timeline:raise_apogee","source_timeline_identity":{"activity_id":"raise_apogee","activity_type":"impulsive_burn","scenario_id":"leo_1","timeline_id":"timeline:raise_apogee"},"source_protection_decision":{"activity_id":"raise_apogee","approval_status":"not_evaluated","approved":false,"locked":false,"protection_category":"none","protection_decision":"mutable","reason":"no_timeline_protection","status":"planned","timeline_id":"timeline:raise_apogee","timeline_identity":{"activity_id":"raise_apogee","scenario_id":"leo_1","timeline_id":"timeline:raise_apogee"}},"source_ends_at_s":60.0,"replacement_approval_status":"not_evaluated","replacement_ends_at_s":60.0,"replacement_protection_decision":{"activity_id":"raise_apogee","approval_status":"not_evaluated","approved":false,"locked":false,"protection_category":"none","protection_decision":"mutable","reason":"no_timeline_protection","status":"planned","timeline_id":"timeline:raise_apogee","timeline_identity":{"activity_id":"raise_apogee","scenario_id":"leo_1","timeline_id":"timeline:raise_apogee"}},"source_status":"planned","replacement_status":"planned","replacement_activity_type":"impulsive_burn","source_protection_category":"none","replacement_activity_context":{"delta_v_3sigma_km_s":[0.0,0.0003,0.0],"delta_v_3sigma_magnitude_km_s":0.0003,"duration_s":0.0,"ends_at_s":60.0,"execution_uncertainty":{"delta_v_3sigma_km_s":[0.0,0.0003,0.0],"source":"navigation_update","timing_3sigma_s":3.0},"execution_uncertainty_source":"navigation_update","execution_uncertainty_status":"declared","metadata":{"timeline_id":"timeline:raise_apogee"},"starts_at_s":60.0,"timeline_identity":{"activity_id":"raise_apogee","activity_type":"impulsive_burn","scenario_id":"leo_1","timeline_id":"timeline:raise_apogee"},"timing_3sigma_s":3.0},"source_activity_id":"raise_apogee","timeline_id":"timeline:raise_apogee","source_activity_context":{"delta_v_3sigma_km_s":[0.0,0.0001,0.0],"delta_v_3sigma_magnitude_km_s":0.0001,"duration_s":0.0,"ends_at_s":60.0,"execution_uncertainty":{"delta_v_3sigma_km_s":[0.0,0.0001,0.0],"source":"operator_estimate","timing_3sigma_s":1.0},"execution_uncertainty_source":"operator_estimate","execution_uncertainty_status":"declared","metadata":{"timeline_id":"timeline:raise_apogee"},"starts_at_s":60.0,"timeline_identity":{"activity_id":"raise_apogee","activity_type":"impulsive_burn","scenario_id":"leo_1","timeline_id":"timeline:raise_apogee"},"timing_3sigma_s":1.0},"replacement_protection_reason":"no_timeline_protection","scenario_id":"leo_1"}],"schema_contract":"timeline_diff_report.v1","source":"repair.activities","source_activity_count":3,"status_transition_counts":{"added":1,"changed":1,"removed":1},"unchanged_count":0}
+{
+  "added_count": 1,
+  "approval_transition_category_counts": {
+    "approval_regressed": 1,
+    "approval_removed": 1,
+    "approval_review_required": 1
+  },
+  "approval_transition_counts": {
+    "added": 1,
+    "changed": 1,
+    "removed": 1
+  },
+  "assumptions": {
+    "comparison": "activity identity, timing, status, approval, lock, contact, execution uncertainty, lineage, and typed status transitions",
+    "duplicate_timeline_identity": "duplicate timeline identities are preserved as operator-review collision rows",
+    "execution_boundary": "artifact_only_no_schedule_mutation",
+    "identity_match": "timeline_id derived from persistent metadata or activity context",
+    "invalid_activity_input": "source and replacement inputs missing stable identity or activity type are preserved as reviewable diff rows",
+    "missing_dependency_validation": "disabled",
+    "timeline_integrity": "source and replacement dependency/exclusivity integrity issues are preserved as reviewable diff rows"
+  },
+  "changed_count": 2,
+  "changed_field_counts": {
+    "activity_id": 1,
+    "approval_status": 1,
+    "ends_at_s": 1,
+    "execution_uncertainty": 1,
+    "starts_at_s": 1,
+    "status": 1,
+    "timeline_presence": 2
+  },
+  "diff_status_counts": {
+    "added": 1,
+    "changed": 2,
+    "removed": 1
+  },
+  "duplicate_replacement_timeline_identity_count": 0,
+  "duplicate_source_timeline_identity_count": 0,
+  "duplicate_timeline_identity_count": 0,
+  "invalid_replacement_activity_input_count": 0,
+  "invalid_replacement_activity_input_ids": [],
+  "invalid_source_activity_input_count": 0,
+  "invalid_source_activity_input_ids": [],
+  "model": "timeline_identity_activity_diff",
+  "model_limits": [
+    "artifact_level_only",
+    "no_schedule_mutation",
+    "no_command_execution",
+    "derived_identity_when_no_persistent_timeline_id"
+  ],
+  "removed_count": 1,
+  "replacement_activity_count": 3,
+  "required_operator_action_counts": {
+    "review_added_activity": 1,
+    "review_changed_protected_activity": 1,
+    "review_removed_activity": 1,
+    "review_timeline_change": 1
+  },
+  "review_required_count": 4,
+  "row_count": 4,
+  "rows": [
+    {
+      "approval_transition": {
+        "field": "approval_status",
+        "operator_action_reason": "approval_requires_review",
+        "requires_operator_review": true,
+        "to": "not_evaluated",
+        "to_category": "review_required",
+        "transition_category": "approval_review_required",
+        "transition_type": "added"
+      },
+      "changed_fields": [
+        "timeline_presence"
+      ],
+      "diff_status": "added",
+      "id": "timeline_diff:timeline:cmd_added",
+      "rank": 1,
+      "reason": "replacement timeline adds activity cmd_added",
+      "replacement_activity_context": {
+        "command_window_id": "command_window:cmd_added",
+        "command_window_type": "command_window",
+        "duration_s": 5.0,
+        "ends_at_s": 55.0,
+        "ground_station_id": "dss_14",
+        "metadata": { "timeline_id": "timeline:cmd_added" },
+        "source_window_id": "dss_14_pass_added",
+        "spacecraft_id": "leo_1",
+        "starts_at_s": 50.0,
+        "timeline_identity": {
+          "activity_id": "cmd_added",
+          "activity_type": "command",
+          "scenario_id": "leo_1",
+          "source_window_id": "dss_14_pass_added",
+          "subject_id": "dss_14",
+          "timeline_id": "timeline:cmd_added"
+        }
+      },
+      "replacement_activity_id": "cmd_added",
+      "replacement_activity_type": "command",
+      "replacement_approval_status": "not_evaluated",
+      "replacement_ends_at_s": 55.0,
+      "replacement_ground_station_id": "dss_14",
+      "replacement_locked": false,
+      "replacement_protection_category": "none",
+      "replacement_protection_decision": {
+        "activity_id": "cmd_added",
+        "approval_status": "not_evaluated",
+        "approved": false,
+        "locked": false,
+        "protection_category": "none",
+        "protection_decision": "mutable",
+        "reason": "no_timeline_protection",
+        "status": "planned",
+        "timeline_id": "timeline:cmd_added",
+        "timeline_identity": {
+          "activity_id": "cmd_added",
+          "activity_type": "command",
+          "scenario_id": "leo_1",
+          "source_window_id": "dss_14_pass_added",
+          "subject_id": "dss_14",
+          "timeline_id": "timeline:cmd_added"
+        }
+      },
+      "replacement_protection_reason": "no_timeline_protection",
+      "replacement_source_window_id": "dss_14_pass_added",
+      "replacement_spacecraft_id": "leo_1",
+      "replacement_starts_at_s": 50.0,
+      "replacement_status": "planned",
+      "replacement_timeline_identity": {
+        "activity_id": "cmd_added",
+        "activity_type": "command",
+        "scenario_id": "leo_1",
+        "source_window_id": "dss_14_pass_added",
+        "subject_id": "dss_14",
+        "timeline_id": "timeline:cmd_added"
+      },
+      "required_operator_action": "review_added_activity",
+      "requires_operator_review": true,
+      "scenario_id": "leo_1",
+      "status_transition": {
+        "field": "status",
+        "operator_action_reason": "added_activity_status",
+        "requires_operator_review": false,
+        "to": "planned",
+        "to_category": "planned",
+        "transition_category": "status_added",
+        "transition_type": "added"
+      },
+      "timeline_id": "timeline:cmd_added",
+      "transition_decision": "review",
+      "transition_decision_reason": "replacement timeline adds activity cmd_added"
+    },
+    {
+      "approval_transition": {
+        "field": "approval_status",
+        "from": "not_evaluated",
+        "from_category": "review_required",
+        "operator_action_reason": "approval_status_removed",
+        "requires_operator_review": false,
+        "transition_category": "approval_removed",
+        "transition_type": "removed"
+      },
+      "changed_fields": [
+        "timeline_presence"
+      ],
+      "diff_status": "removed",
+      "id": "timeline_diff:timeline:dl_removed",
+      "rank": 2,
+      "reason": "replacement timeline removes activity dl_removed",
+      "required_operator_action": "review_removed_activity",
+      "requires_operator_review": true,
+      "scenario_id": "leo_1",
+      "source_activity_context": {
+        "duration_s": 10.0,
+        "ends_at_s": 40.0,
+        "ground_station_id": "dss_14",
+        "metadata": { "timeline_id": "timeline:dl_removed" },
+        "source_window_id": "dss_14_pass_removed",
+        "spacecraft_id": "leo_1",
+        "starts_at_s": 30.0,
+        "timeline_identity": {
+          "activity_id": "dl_removed",
+          "activity_type": "downlink",
+          "scenario_id": "leo_1",
+          "source_window_id": "dss_14_pass_removed",
+          "subject_id": "dss_14",
+          "timeline_id": "timeline:dl_removed"
+        }
+      },
+      "source_activity_id": "dl_removed",
+      "source_activity_type": "downlink",
+      "source_approval_status": "not_evaluated",
+      "source_ends_at_s": 40.0,
+      "source_ground_station_id": "dss_14",
+      "source_locked": false,
+      "source_protection_category": "none",
+      "source_protection_decision": {
+        "activity_id": "dl_removed",
+        "approval_status": "not_evaluated",
+        "approved": false,
+        "locked": false,
+        "protection_category": "none",
+        "protection_decision": "mutable",
+        "reason": "no_timeline_protection",
+        "status": "planned",
+        "timeline_id": "timeline:dl_removed",
+        "timeline_identity": {
+          "activity_id": "dl_removed",
+          "activity_type": "downlink",
+          "scenario_id": "leo_1",
+          "source_window_id": "dss_14_pass_removed",
+          "subject_id": "dss_14",
+          "timeline_id": "timeline:dl_removed"
+        }
+      },
+      "source_protection_reason": "no_timeline_protection",
+      "source_source_window_id": "dss_14_pass_removed",
+      "source_spacecraft_id": "leo_1",
+      "source_starts_at_s": 30.0,
+      "source_status": "planned",
+      "source_timeline_identity": {
+        "activity_id": "dl_removed",
+        "activity_type": "downlink",
+        "scenario_id": "leo_1",
+        "source_window_id": "dss_14_pass_removed",
+        "subject_id": "dss_14",
+        "timeline_id": "timeline:dl_removed"
+      },
+      "status_transition": {
+        "field": "status",
+        "from": "planned",
+        "from_category": "planned",
+        "operator_action_reason": "removed_activity_status",
+        "requires_operator_review": false,
+        "transition_category": "status_removed",
+        "transition_type": "removed"
+      },
+      "timeline_id": "timeline:dl_removed",
+      "transition_decision": "review",
+      "transition_decision_reason": "replacement timeline removes activity dl_removed"
+    },
+    {
+      "approval_transition": {
+        "field": "approval_status",
+        "from": "approved",
+        "from_category": "protected",
+        "operator_action_reason": "protected_approval_regressed",
+        "requires_operator_review": true,
+        "to": "pending",
+        "to_category": "review_required",
+        "transition_category": "approval_regressed",
+        "transition_type": "changed"
+      },
+      "changed_fields": [
+        "activity_id",
+        "status",
+        "approval_status",
+        "starts_at_s",
+        "ends_at_s"
+      ],
+      "diff_status": "changed",
+      "end_delta_s": 2.0,
+      "id": "timeline_diff:timeline:obs_1",
+      "operator_action_reason": "protected_approval_regressed",
+      "rank": 3,
+      "reason": "replacement timeline changes approved activity obs_1: activity_id,status,approval_status,starts_at_s,ends_at_s",
+      "replacement_activity_context": {
+        "approval_status": "pending",
+        "duration_s": 10.0,
+        "ends_at_s": 22.0,
+        "metadata": { "timeline_id": "timeline:obs_1" },
+        "source_window_id": "target_a_window_1",
+        "spacecraft_id": "leo_1",
+        "starts_at_s": 12.0,
+        "status": "planned",
+        "target_id": "target_a",
+        "timeline_identity": {
+          "activity_id": "obs_1b",
+          "activity_type": "observe",
+          "scenario_id": "leo_1",
+          "source_window_id": "target_a_window_1",
+          "subject_id": "target_a",
+          "timeline_id": "timeline:obs_1"
+        }
+      },
+      "replacement_activity_id": "obs_1b",
+      "replacement_activity_type": "observe",
+      "replacement_approval_status": "pending",
+      "replacement_ends_at_s": 22.0,
+      "replacement_locked": false,
+      "replacement_protection_category": "none",
+      "replacement_protection_decision": {
+        "activity_id": "obs_1b",
+        "approval_status": "pending",
+        "approved": false,
+        "locked": false,
+        "protection_category": "none",
+        "protection_decision": "mutable",
+        "reason": "no_timeline_protection",
+        "status": "planned",
+        "timeline_id": "timeline:obs_1",
+        "timeline_identity": {
+          "activity_id": "obs_1b",
+          "activity_type": "observe",
+          "scenario_id": "leo_1",
+          "source_window_id": "target_a_window_1",
+          "subject_id": "target_a",
+          "timeline_id": "timeline:obs_1"
+        }
+      },
+      "replacement_protection_reason": "no_timeline_protection",
+      "replacement_source_window_id": "target_a_window_1",
+      "replacement_spacecraft_id": "leo_1",
+      "replacement_starts_at_s": 12.0,
+      "replacement_status": "planned",
+      "replacement_target_id": "target_a",
+      "replacement_timeline_identity": {
+        "activity_id": "obs_1b",
+        "activity_type": "observe",
+        "scenario_id": "leo_1",
+        "source_window_id": "target_a_window_1",
+        "subject_id": "target_a",
+        "timeline_id": "timeline:obs_1"
+      },
+      "required_operator_action": "review_changed_protected_activity",
+      "requires_operator_review": true,
+      "scenario_id": "leo_1",
+      "source_activity_context": {
+        "approval_status": "approved",
+        "duration_s": 10.0,
+        "ends_at_s": 20.0,
+        "metadata": { "timeline_id": "timeline:obs_1" },
+        "source_window_id": "target_a_window_1",
+        "spacecraft_id": "leo_1",
+        "starts_at_s": 10.0,
+        "status": "approved",
+        "target_id": "target_a",
+        "timeline_identity": {
+          "activity_id": "obs_1",
+          "activity_type": "observe",
+          "scenario_id": "leo_1",
+          "source_window_id": "target_a_window_1",
+          "subject_id": "target_a",
+          "timeline_id": "timeline:obs_1"
+        }
+      },
+      "source_activity_id": "obs_1",
+      "source_activity_type": "observe",
+      "source_approval_status": "approved",
+      "source_ends_at_s": 20.0,
+      "source_locked": false,
+      "source_protection_category": "locked_or_approved",
+      "source_protection_decision": {
+        "activity_id": "obs_1",
+        "approval_status": "approved",
+        "approved": true,
+        "locked": false,
+        "protection_category": "locked_or_approved",
+        "protection_decision": "preserve",
+        "reason": "activity_locked_or_approved",
+        "status": "approved",
+        "timeline_id": "timeline:obs_1",
+        "timeline_identity": {
+          "activity_id": "obs_1",
+          "activity_type": "observe",
+          "scenario_id": "leo_1",
+          "source_window_id": "target_a_window_1",
+          "subject_id": "target_a",
+          "timeline_id": "timeline:obs_1"
+        }
+      },
+      "source_protection_reason": "activity_locked_or_approved",
+      "source_source_window_id": "target_a_window_1",
+      "source_spacecraft_id": "leo_1",
+      "source_starts_at_s": 10.0,
+      "source_status": "approved",
+      "source_target_id": "target_a",
+      "source_timeline_identity": {
+        "activity_id": "obs_1",
+        "activity_type": "observe",
+        "scenario_id": "leo_1",
+        "source_window_id": "target_a_window_1",
+        "subject_id": "target_a",
+        "timeline_id": "timeline:obs_1"
+      },
+      "start_delta_s": 2.0,
+      "status_transition": {
+        "field": "status",
+        "from": "approved",
+        "from_category": "planned",
+        "operator_action_reason": "status_changed",
+        "requires_operator_review": false,
+        "to": "planned",
+        "to_category": "planned",
+        "transition_category": "status_changed",
+        "transition_type": "changed"
+      },
+      "timeline_id": "timeline:obs_1",
+      "transition_decision": "preserve_source",
+      "transition_decision_reason": "activity_locked_or_approved"
+    },
+    {
+      "changed_fields": [
+        "execution_uncertainty"
+      ],
+      "diff_status": "changed",
+      "end_delta_s": 0.0,
+      "id": "timeline_diff:timeline:raise_apogee",
+      "rank": 4,
+      "reason": "timeline activity raise_apogee changes to raise_apogee: execution_uncertainty",
+      "replacement_activity_context": {
+        "delta_v_3sigma_km_s": [0,0.0003,0],
+        "delta_v_3sigma_magnitude_km_s": 0.0003,
+        "duration_s": 0.0,
+        "ends_at_s": 60.0,
+        "execution_uncertainty": {
+          "delta_v_3sigma_km_s": [0,0.0003,0],
+          "source": "navigation_update",
+          "timing_3sigma_s": 3
+        },
+        "execution_uncertainty_source": "navigation_update",
+        "execution_uncertainty_status": "declared",
+        "metadata": { "timeline_id": "timeline:raise_apogee" },
+        "starts_at_s": 60.0,
+        "timeline_identity": {
+          "activity_id": "raise_apogee",
+          "activity_type": "impulsive_burn",
+          "scenario_id": "leo_1",
+          "timeline_id": "timeline:raise_apogee"
+        },
+        "timing_3sigma_s": 3
+      },
+      "replacement_activity_id": "raise_apogee",
+      "replacement_activity_type": "impulsive_burn",
+      "replacement_approval_status": "not_evaluated",
+      "replacement_ends_at_s": 60.0,
+      "replacement_locked": false,
+      "replacement_protection_category": "none",
+      "replacement_protection_decision": {
+        "activity_id": "raise_apogee",
+        "approval_status": "not_evaluated",
+        "approved": false,
+        "locked": false,
+        "protection_category": "none",
+        "protection_decision": "mutable",
+        "reason": "no_timeline_protection",
+        "status": "planned",
+        "timeline_id": "timeline:raise_apogee",
+        "timeline_identity": {
+          "activity_id": "raise_apogee",
+          "activity_type": "impulsive_burn",
+          "scenario_id": "leo_1",
+          "timeline_id": "timeline:raise_apogee"
+        }
+      },
+      "replacement_protection_reason": "no_timeline_protection",
+      "replacement_starts_at_s": 60.0,
+      "replacement_status": "planned",
+      "replacement_timeline_identity": {
+        "activity_id": "raise_apogee",
+        "activity_type": "impulsive_burn",
+        "scenario_id": "leo_1",
+        "timeline_id": "timeline:raise_apogee"
+      },
+      "required_operator_action": "review_timeline_change",
+      "requires_operator_review": true,
+      "scenario_id": "leo_1",
+      "source_activity_context": {
+        "delta_v_3sigma_km_s": [0,0.0001,0],
+        "delta_v_3sigma_magnitude_km_s": 0.0001,
+        "duration_s": 0.0,
+        "ends_at_s": 60.0,
+        "execution_uncertainty": {
+          "delta_v_3sigma_km_s": [0,0.0001,0],
+          "source": "operator_estimate",
+          "timing_3sigma_s": 1
+        },
+        "execution_uncertainty_source": "operator_estimate",
+        "execution_uncertainty_status": "declared",
+        "metadata": { "timeline_id": "timeline:raise_apogee" },
+        "starts_at_s": 60.0,
+        "timeline_identity": {
+          "activity_id": "raise_apogee",
+          "activity_type": "impulsive_burn",
+          "scenario_id": "leo_1",
+          "timeline_id": "timeline:raise_apogee"
+        },
+        "timing_3sigma_s": 1
+      },
+      "source_activity_id": "raise_apogee",
+      "source_activity_type": "impulsive_burn",
+      "source_approval_status": "not_evaluated",
+      "source_ends_at_s": 60.0,
+      "source_locked": false,
+      "source_protection_category": "none",
+      "source_protection_decision": {
+        "activity_id": "raise_apogee",
+        "approval_status": "not_evaluated",
+        "approved": false,
+        "locked": false,
+        "protection_category": "none",
+        "protection_decision": "mutable",
+        "reason": "no_timeline_protection",
+        "status": "planned",
+        "timeline_id": "timeline:raise_apogee",
+        "timeline_identity": {
+          "activity_id": "raise_apogee",
+          "activity_type": "impulsive_burn",
+          "scenario_id": "leo_1",
+          "timeline_id": "timeline:raise_apogee"
+        }
+      },
+      "source_protection_reason": "no_timeline_protection",
+      "source_starts_at_s": 60.0,
+      "source_status": "planned",
+      "source_timeline_identity": {
+        "activity_id": "raise_apogee",
+        "activity_type": "impulsive_burn",
+        "scenario_id": "leo_1",
+        "timeline_id": "timeline:raise_apogee"
+      },
+      "start_delta_s": 0.0,
+      "timeline_id": "timeline:raise_apogee",
+      "transition_decision": "review",
+      "transition_decision_reason": "timeline activity raise_apogee changes to raise_apogee: execution_uncertainty"
+    }
+  ],
+  "schema_contract": "timeline_diff_report.v1",
+  "source": "repair.activities",
+  "source_activity_count": 3,
+  "status_transition_category_counts": {
+    "status_added": 1,
+    "status_changed": 1,
+    "status_removed": 1
+  },
+  "status_transition_counts": {
+    "added": 1,
+    "changed": 1,
+    "removed": 1
+  },
+  "transition_decision_counts": {
+    "preserve_source": 1,
+    "review": 3
+  },
+  "unchanged_count": 0,
+  "valid_replacement_activity_count": 3,
+  "valid_source_activity_count": 3
+}

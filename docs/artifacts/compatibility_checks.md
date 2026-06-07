@@ -804,7 +804,13 @@ routing, row-derived transition application status/decision/action maps,
 status/approval transition maps, application ID routing,
 selected/preserved/withheld counts, review-gate assumptions, and
 no-schedule-mutation boundaries. Focused schema-reference coverage also
-refreshes and exact-regenerates
+refreshes and exact-regenerates the checked-in
+`study_results/timeline_diff_report_v1.json` fixture through
+`OrbitalDynamics.timeline_diff_report/3` from deterministic added, removed,
+protected changed, and execution-uncertainty changed activity inputs before
+schema validation, pinning valid/invalid input counts, transition decision
+counts, status/approval transition category maps, and execution-uncertainty row
+evidence. It also refreshes and exact-regenerates
 `study_results/timeline_transition_application_report_v1.json` through
 `OrbitalDynamics.timeline_transition_application_report/3` from deterministic
 protected-change, added, unchanged, and removed activity inputs before schema

@@ -12493,6 +12493,222 @@ defmodule OrbitalDynamics.SchemaTest do
            )
   end
 
+  test "validates checked-in timeline diff report fixture" do
+    report = read_json!("study_results/timeline_diff_report_v1.json")
+
+    source = [
+      %{
+        id: :obs_1,
+        type: :observe,
+        scenario_id: :leo_1,
+        spacecraft_id: :leo_1,
+        target_id: :target_a,
+        source_window_id: :target_a_window_1,
+        starts_at_s: 10.0,
+        ends_at_s: 20.0,
+        status: :approved,
+        approval_status: :approved,
+        metadata: %{timeline_id: :"timeline:obs_1"}
+      },
+      %{
+        id: :dl_removed,
+        type: :downlink,
+        scenario_id: :leo_1,
+        spacecraft_id: :leo_1,
+        ground_station_id: :dss_14,
+        source_window_id: :dss_14_pass_removed,
+        starts_at_s: 30.0,
+        ends_at_s: 40.0,
+        metadata: %{timeline_id: :"timeline:dl_removed"}
+      },
+      %{
+        id: :raise_apogee,
+        type: :impulsive_burn,
+        scenario_id: :leo_1,
+        starts_at_s: 60.0,
+        ends_at_s: 60.0,
+        execution_uncertainty: %{
+          timing_3sigma_s: 1,
+          delta_v_3sigma_km_s: [0, 0.0001, 0],
+          source: :operator_estimate
+        },
+        metadata: %{timeline_id: :"timeline:raise_apogee"}
+      }
+    ]
+
+    replacement = [
+      %{
+        id: :obs_1b,
+        type: :observe,
+        scenario_id: :leo_1,
+        spacecraft_id: :leo_1,
+        target_id: :target_a,
+        source_window_id: :target_a_window_1,
+        starts_at_s: 12.0,
+        ends_at_s: 22.0,
+        status: :planned,
+        approval_status: :pending,
+        metadata: %{timeline_id: :"timeline:obs_1"}
+      },
+      %{
+        id: :cmd_added,
+        type: :command,
+        scenario_id: :leo_1,
+        spacecraft_id: :leo_1,
+        ground_station_id: :dss_14,
+        source_window_id: :dss_14_pass_added,
+        starts_at_s: 50.0,
+        ends_at_s: 55.0,
+        metadata: %{timeline_id: :"timeline:cmd_added"}
+      },
+      %{
+        id: :raise_apogee,
+        type: :impulsive_burn,
+        scenario_id: :leo_1,
+        starts_at_s: 60.0,
+        ends_at_s: 60.0,
+        execution_uncertainty: %{
+          timing_3sigma_s: 3,
+          delta_v_3sigma_km_s: [0, 0.0003, 0],
+          source: :navigation_update
+        },
+        metadata: %{timeline_id: :"timeline:raise_apogee"}
+      }
+    ]
+
+    generated_report =
+      OrbitalDynamics.timeline_diff_report(source, replacement, source: "repair.activities")
+
+    assert generated_report == report
+
+    assert {:ok, %{"schema_contract" => "timeline_diff_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert %{
+             "schema_contract" => "timeline_diff_report.v1",
+             "model" => "timeline_identity_activity_diff",
+             "source" => "repair.activities",
+             "source_activity_count" => 3,
+             "replacement_activity_count" => 3,
+             "valid_source_activity_count" => 3,
+             "valid_replacement_activity_count" => 3,
+             "invalid_source_activity_input_count" => 0,
+             "invalid_replacement_activity_input_count" => 0,
+             "invalid_source_activity_input_ids" => [],
+             "invalid_replacement_activity_input_ids" => [],
+             "row_count" => 4,
+             "added_count" => 1,
+             "removed_count" => 1,
+             "changed_count" => 2,
+             "unchanged_count" => 0,
+             "review_required_count" => 4,
+             "duplicate_timeline_identity_count" => 0,
+             "duplicate_source_timeline_identity_count" => 0,
+             "duplicate_replacement_timeline_identity_count" => 0,
+             "diff_status_counts" => %{"added" => 1, "changed" => 2, "removed" => 1},
+             "transition_decision_counts" => %{"preserve_source" => 1, "review" => 3},
+             "required_operator_action_counts" => %{
+               "review_added_activity" => 1,
+               "review_changed_protected_activity" => 1,
+               "review_removed_activity" => 1,
+               "review_timeline_change" => 1
+             },
+             "changed_field_counts" => %{
+               "activity_id" => 1,
+               "approval_status" => 1,
+               "ends_at_s" => 1,
+               "execution_uncertainty" => 1,
+               "starts_at_s" => 1,
+               "status" => 1,
+               "timeline_presence" => 2
+             },
+             "status_transition_counts" => %{"added" => 1, "changed" => 1, "removed" => 1},
+             "approval_transition_counts" => %{"added" => 1, "changed" => 1, "removed" => 1},
+             "status_transition_category_counts" => %{
+               "status_added" => 1,
+               "status_changed" => 1,
+               "status_removed" => 1
+             },
+             "approval_transition_category_counts" => %{
+               "approval_regressed" => 1,
+               "approval_removed" => 1,
+               "approval_review_required" => 1
+             },
+             "model_limits" => [
+               "artifact_level_only",
+               "no_schedule_mutation",
+               "no_command_execution",
+               "derived_identity_when_no_persistent_timeline_id"
+             ],
+             "assumptions" => %{
+               "comparison" =>
+                 "activity identity, timing, status, approval, lock, contact, execution uncertainty, lineage, and typed status transitions",
+               "duplicate_timeline_identity" =>
+                 "duplicate timeline identities are preserved as operator-review collision rows",
+               "execution_boundary" => "artifact_only_no_schedule_mutation",
+               "identity_match" =>
+                 "timeline_id derived from persistent metadata or activity context",
+               "invalid_activity_input" =>
+                 "source and replacement inputs missing stable identity or activity type are preserved as reviewable diff rows",
+               "missing_dependency_validation" => "disabled",
+               "timeline_integrity" =>
+                 "source and replacement dependency/exclusivity integrity issues are preserved as reviewable diff rows"
+             }
+           } = report
+
+    rows_by_timeline_id = Map.new(report["rows"], &{&1["timeline_id"], &1})
+
+    assert %{
+             "diff_status" => "added",
+             "changed_fields" => ["timeline_presence"],
+             "required_operator_action" => "review_added_activity",
+             "transition_decision" => "review",
+             "status_transition" => %{"transition_category" => "status_added"},
+             "approval_transition" => %{"transition_category" => "approval_review_required"}
+           } = rows_by_timeline_id["timeline:cmd_added"]
+
+    assert %{
+             "diff_status" => "removed",
+             "changed_fields" => ["timeline_presence"],
+             "required_operator_action" => "review_removed_activity",
+             "transition_decision" => "review",
+             "status_transition" => %{"transition_category" => "status_removed"},
+             "approval_transition" => %{"transition_category" => "approval_removed"}
+           } = rows_by_timeline_id["timeline:dl_removed"]
+
+    assert %{
+             "diff_status" => "changed",
+             "changed_fields" => [
+               "activity_id",
+               "status",
+               "approval_status",
+               "starts_at_s",
+               "ends_at_s"
+             ],
+             "required_operator_action" => "review_changed_protected_activity",
+             "transition_decision" => "preserve_source",
+             "status_transition" => %{"transition_category" => "status_changed"},
+             "approval_transition" => %{"transition_category" => "approval_regressed"}
+           } = rows_by_timeline_id["timeline:obs_1"]
+
+    assert %{
+             "diff_status" => "changed",
+             "changed_fields" => ["execution_uncertainty"],
+             "required_operator_action" => "review_timeline_change",
+             "transition_decision" => "review",
+             "source_activity_context" => %{
+               "execution_uncertainty_status" => "declared",
+               "timing_3sigma_s" => 1,
+               "execution_uncertainty_source" => "operator_estimate"
+             },
+             "replacement_activity_context" => %{
+               "execution_uncertainty_status" => "declared",
+               "timing_3sigma_s" => 3,
+               "execution_uncertainty_source" => "navigation_update"
+             }
+           } = rows_by_timeline_id["timeline:raise_apogee"]
+  end
+
   test "exports timeline diff top-level count-map contract fields" do
     assert {:ok, schema} = Schema.json_schema("timeline_diff_report.v1")
 
