@@ -216,6 +216,9 @@ gate evidence appear accepted in a safety-case handoff.
 Operational-readiness evidence derives review and blocked status/counts from
 readiness gate rows when they are present, so stale top-level import-eligible
 status cannot hide blocked readiness gates in the safety-case handoff.
+Single schema-validation evidence derives status and counts from `errors` and
+`warnings` issue lists when they are present, so stale top-level pass/zero-count
+fields cannot hide schema issues in a safety-case handoff.
 Candidate-refresh validation-safety-case replay summaries use those evidence
 rows to derive source-report evidence status maps when rows are present, so
 stale top-level `evidence_status_counts` fields cannot steer review/blocking

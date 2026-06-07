@@ -9723,6 +9723,7 @@ defmodule OrbitalDynamics.Validation do
         :validation_safety_case_quality_gate_count_rollups,
         :validation_safety_case_quality_gate_row_status_floor,
         :validation_safety_case_schema_validation_count_rollups,
+        :validation_safety_case_schema_validation_issue_list_floor,
         :validation_safety_case_schema_validation_batch_nested_status_floor,
         :validation_safety_case_fixture_count_rollups,
         :validation_safety_case_fixture_nested_status_floor,
@@ -10601,13 +10602,18 @@ defmodule OrbitalDynamics.Validation do
   end
 
   defp safety_case_evidence_row(%{"schema_contract" => "schema_validation_report.v1"} = report) do
+    errors = schema_validation_issue_rows(report, "errors")
+    warnings = schema_validation_issue_rows(report, "warnings")
+
     %{
       "schema_contract" => "schema_validation_report.v1",
-      "status" => safety_case_schema_validation_status(report),
+      "status" => safety_case_schema_validation_status(report, errors, warnings),
       "artifact_path" => Map.get(report, "artifact_path"),
       "validated_contract" => Map.get(report, "validated_contract"),
-      "schema_error_count" => numeric_count(report, "error_count"),
-      "schema_warning_count" => numeric_count(report, "warning_count")
+      "schema_error_count" =>
+        schema_validation_issue_count_or_report_count(errors, report, "error_count"),
+      "schema_warning_count" =>
+        schema_validation_issue_count_or_report_count(warnings, report, "warning_count")
     }
     |> compact_validation_map()
   end
@@ -10852,6 +10858,22 @@ defmodule OrbitalDynamics.Validation do
     numeric_count(report, field)
   end
 
+  defp safety_case_schema_validation_status(report, errors, warnings) do
+    cond do
+      is_list(errors) and errors != [] ->
+        "blocked"
+
+      is_list(warnings) and warnings != [] ->
+        "review_required"
+
+      is_list(errors) and is_list(warnings) ->
+        "accepted_for_use"
+
+      true ->
+        safety_case_schema_validation_status(report)
+    end
+  end
+
   defp safety_case_schema_validation_status(report) do
     cond do
       numeric_count(report, "error_count") > 0 or Map.get(report, "status") in ["fail", "error"] ->
@@ -10863,6 +10885,20 @@ defmodule OrbitalDynamics.Validation do
       true ->
         "accepted_for_use"
     end
+  end
+
+  defp schema_validation_issue_rows(report, field) do
+    if Map.has_key?(report, field) and is_list(Map.get(report, field)) do
+      Map.get(report, field)
+    end
+  end
+
+  defp schema_validation_issue_count_or_report_count(rows, _report, _field) when is_list(rows) do
+    length(rows)
+  end
+
+  defp schema_validation_issue_count_or_report_count(_rows, report, field) do
+    numeric_count(report, field)
   end
 
   defp safety_case_schema_validation_batch_status(report, reports) do

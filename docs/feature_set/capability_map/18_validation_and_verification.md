@@ -266,6 +266,9 @@ Status: **implemented**.
 - Safety-case quality-gate evidence now derives review/blocked status and
   counts from gate rows when they are present, even when stale top-level gate
   counts claim the report passed.
+- Safety-case schema-validation report evidence now derives blocked/review
+  status and counts from `errors`/`warnings` issue lists when they are present,
+  even when stale top-level schema-validation status/count fields claim pass.
 - Safety-case schema-validation batch evidence now treats failed/error nested reports as blocking, even when stale top-level batch status/count fields claim pass.
 - Safety-case validation-fixture evidence now treats failed nested fixture
   reports as blocking, even when stale top-level fixture-rollup status/count

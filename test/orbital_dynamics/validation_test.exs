@@ -727,6 +727,8 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert :validation_safety_case_schema_validation_count_rollups in capabilities.safety_case_evidence_semantics
 
+    assert :validation_safety_case_schema_validation_issue_list_floor in capabilities.safety_case_evidence_semantics
+
     assert :validation_safety_case_schema_validation_batch_nested_status_floor in capabilities.safety_case_evidence_semantics
 
     assert :validation_safety_case_fixture_count_rollups in capabilities.safety_case_evidence_semantics
@@ -884,6 +886,48 @@ defmodule OrbitalDynamics.ValidationTest do
              ]
            } =
              safety_case_summary = Validation.safety_case_summary(stale_top_level_quality_gate)
+
+    assert {:ok, %{"schema_contract" => "validation_safety_case_summary.v1"}} =
+             Schema.validate_artifact(safety_case_summary,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+  end
+
+  test "derives safety-case schema-validation evidence from issue lists when top-level counts are stale" do
+    stale_top_level_schema_validation = %{
+      "schema_contract" => "schema_validation_report.v1",
+      "status" => "pass",
+      "artifact_path" => "study_results/stale_schema.json",
+      "validated_contract" => "candidate_refresh.v1",
+      "error_count" => 0,
+      "warning_count" => 0,
+      "errors" => [
+        %{"severity" => "error", "path" => "$.schema_contract", "message" => "forced error"}
+      ],
+      "warnings" => [
+        %{"severity" => "warning", "path" => "$.model_limits", "message" => "forced warning"}
+      ]
+    }
+
+    assert %{
+             "status" => "blocked",
+             "schema_error_count" => 1,
+             "schema_warning_count" => 1,
+             "evidence_status_counts" => %{"blocked" => 1},
+             "evidence_refs_by_status" => %{
+               "blocked" => ["schema_validation_report.v1:study_results_stale_schema.json"]
+             },
+             "evidence" => [
+               %{
+                 "schema_contract" => "schema_validation_report.v1",
+                 "status" => "blocked",
+                 "schema_error_count" => 1,
+                 "schema_warning_count" => 1
+               }
+             ]
+           } =
+             safety_case_summary =
+             Validation.safety_case_summary(stale_top_level_schema_validation)
 
     assert {:ok, %{"schema_contract" => "validation_safety_case_summary.v1"}} =
              Schema.validate_artifact(safety_case_summary,
