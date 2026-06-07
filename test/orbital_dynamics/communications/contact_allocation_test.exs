@@ -564,6 +564,9 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
                  &1["message"] == "must match contact allocation model limits")
            )
 
+    expected_summary_capability_assumptions =
+      contact_allocation_summary_capability_assumptions()
+
     summary = ContactAllocation.summary(report)
 
     assert %{
@@ -664,6 +667,11 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              ContactAllocation.capabilities().known_limits
              |> Enum.map(&Atom.to_string/1)
 
+    assert Map.take(
+             summary["assumptions"],
+             Map.keys(expected_summary_capability_assumptions)
+           ) == expected_summary_capability_assumptions
+
     assert length(summary_rows) == 3
     assert Enum.map(review_rows, & &1["contact_id"]) == ["dl_1", "dl_2", "dl_3"]
 
@@ -685,6 +693,13 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              "items",
              "enum"
            ]) == summary_model_limits
+
+    summary_assumptions_schema =
+      get_in(contact_allocation_summary_schema, ["properties", "assumptions", "properties"])
+
+    for {field, expected_value} <- expected_summary_capability_assumptions do
+      assert get_in(summary_assumptions_schema, [field, "const"]) == expected_value
+    end
 
     stale_summary_model = Map.put(summary, "model", "stale_contact_allocation_summary")
 
@@ -739,6 +754,51 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              &(&1["path"] == "$.review_rows" and
                  &1["message"] == "must equal row-derived review_rows")
            )
+
+    for {field, stale_value, expected_message} <- [
+          {"row_statuses", ["allocated"], "must match ContactAllocation row statuses"},
+          {"effective_row_statuses", ["allocated"],
+           "must match ContactAllocation effective row statuses"},
+          {"station_unavailable_aliases", ["offline"],
+           "must match ContactAllocation station unavailable aliases"},
+          {"station_blocking_availability", ["reserved"],
+           "must match ContactAllocation station blocking availability"},
+          {"station_availability_precedence", %{"available" => 99},
+           "must match ContactAllocation station availability precedence"},
+          {"capacity_pack_statuses", ["none"],
+           "must match ContactAllocation capacity pack statuses"},
+          {"reduced_capacity_pack_statuses", ["none"],
+           "must match ContactAllocation reduced capacity pack statuses"},
+          {"station_reservation_match_statuses", ["none"],
+           "must match ContactAllocation station reservation match statuses"},
+          {"station_reservation_expiration_statuses", ["none"],
+           "must match ContactAllocation station reservation expiration statuses"},
+          {"required_capacity_fraction_source_values", ["none"],
+           "must match ContactAllocation required capacity fraction source values"},
+          {"required_capacity_value_paths", [],
+           "must match ContactAllocation required capacity value paths"},
+          {"default_required_capacity_value_paths", [],
+           "must match ContactAllocation default required capacity value paths"},
+          {"provider_direction_aliases", %{"dl" => "command"},
+           "must match ContactAllocation provider direction aliases"}
+        ] do
+      stale_summary_assumption = put_in(summary, ["assumptions", field], stale_value)
+
+      assert {:error, stale_summary_assumption_errors} =
+               Schema.validate_artifact(stale_summary_assumption)
+
+      assert Enum.any?(
+               stale_summary_assumption_errors["errors"],
+               &(&1["path"] == "$.assumptions.#{field}" and
+                   &1["message"] == expected_message)
+             )
+    end
+
+    omitted_summary_capability_assumptions =
+      drop_contact_allocation_summary_capability_assumptions(summary)
+
+    assert {:ok, %{"schema_contract" => "contact_allocation_summary.v1"}} =
+             Schema.validate_artifact(omitted_summary_capability_assumptions)
 
     assert_summary_handoff(
       summary,
@@ -8306,6 +8366,50 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
       Map.drop(assumptions, [
         "provider_reservation_request_statuses",
         "station_reservation_match_statuses",
+        "provider_direction_aliases"
+      ])
+    end)
+  end
+
+  defp contact_allocation_summary_capability_assumptions do
+    capabilities = ContactAllocation.capabilities()
+
+    %{
+      "row_statuses" => capabilities.row_statuses,
+      "effective_row_statuses" => capabilities.effective_row_statuses,
+      "station_unavailable_aliases" => capabilities.station_unavailable_aliases,
+      "station_blocking_availability" => capabilities.station_blocking_availability,
+      "station_availability_precedence" => capabilities.station_availability_precedence,
+      "capacity_pack_statuses" => capabilities.capacity_pack_statuses,
+      "reduced_capacity_pack_statuses" => capabilities.reduced_capacity_pack_statuses,
+      "station_reservation_match_statuses" => capabilities.station_reservation_match_statuses,
+      "station_reservation_expiration_statuses" =>
+        capabilities.station_reservation_expiration_statuses,
+      "required_capacity_fraction_source_values" =>
+        capabilities.required_capacity_fraction_source_values,
+      "required_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.required_capacity_value_paths),
+      "default_required_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.default_required_capacity_value_paths),
+      "provider_direction_aliases" => capabilities.provider_direction_aliases
+    }
+  end
+
+  defp drop_contact_allocation_summary_capability_assumptions(artifact) do
+    update_in(artifact, ["assumptions"], fn assumptions ->
+      Map.drop(assumptions, [
+        "row_statuses",
+        "effective_row_statuses",
+        "station_unavailable_aliases",
+        "station_blocking_availability",
+        "station_availability_precedence",
+        "capacity_pack_statuses",
+        "reduced_capacity_pack_statuses",
+        "station_reservation_match_statuses",
+        "station_reservation_expiration_statuses",
+        "required_capacity_fraction_source_values",
+        "required_capacity_value_paths",
+        "default_required_capacity_value_paths",
         "provider_direction_aliases"
       ])
     end)

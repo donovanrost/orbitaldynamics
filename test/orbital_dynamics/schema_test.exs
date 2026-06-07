@@ -20430,6 +20430,9 @@ defmodule OrbitalDynamics.SchemaTest do
     assert {:ok, %{"schema_contract" => "contact_allocation_summary.v1"}} =
              Schema.validate_artifact(summary)
 
+    expected_capability_assumptions =
+      contact_allocation_summary_capability_assumptions()
+
     assert %{
              "source_artifact_type" => "contact_allocation_report.v1",
              "source" => "validation.contact_allocation_summary",
@@ -20478,6 +20481,17 @@ defmodule OrbitalDynamics.SchemaTest do
     assert summary["model_limits"] ==
              ContactAllocation.capabilities().known_limits
              |> Enum.map(&Atom.to_string/1)
+
+    assert Map.take(summary["assumptions"], Map.keys(expected_capability_assumptions)) ==
+             expected_capability_assumptions
+
+    assert {:ok, schema} = Schema.json_schema("contact_allocation_summary.v1")
+
+    assumptions_schema = get_in(schema, ["properties", "assumptions", "properties"])
+
+    for {field, expected_value} <- expected_capability_assumptions do
+      assert get_in(assumptions_schema, [field, "const"]) == expected_value
+    end
   end
 
   test "validates checked-in contact allocation station pressure summary fixture" do
@@ -32302,6 +32316,30 @@ defmodule OrbitalDynamics.SchemaTest do
       "provider_reservation_request_statuses" =>
         capabilities.provider_reservation_request_statuses,
       "station_reservation_match_statuses" => capabilities.station_reservation_match_statuses,
+      "provider_direction_aliases" => capabilities.provider_direction_aliases
+    }
+  end
+
+  defp contact_allocation_summary_capability_assumptions do
+    capabilities = ContactAllocation.capabilities()
+
+    %{
+      "row_statuses" => capabilities.row_statuses,
+      "effective_row_statuses" => capabilities.effective_row_statuses,
+      "station_unavailable_aliases" => capabilities.station_unavailable_aliases,
+      "station_blocking_availability" => capabilities.station_blocking_availability,
+      "station_availability_precedence" => capabilities.station_availability_precedence,
+      "capacity_pack_statuses" => capabilities.capacity_pack_statuses,
+      "reduced_capacity_pack_statuses" => capabilities.reduced_capacity_pack_statuses,
+      "station_reservation_match_statuses" => capabilities.station_reservation_match_statuses,
+      "station_reservation_expiration_statuses" =>
+        capabilities.station_reservation_expiration_statuses,
+      "required_capacity_fraction_source_values" =>
+        capabilities.required_capacity_fraction_source_values,
+      "required_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.required_capacity_value_paths),
+      "default_required_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.default_required_capacity_value_paths),
       "provider_direction_aliases" => capabilities.provider_direction_aliases
     }
   end

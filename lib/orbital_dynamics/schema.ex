@@ -14399,6 +14399,10 @@ defmodule OrbitalDynamics.Schema do
     %{"type" => "string"}
   end
 
+  defp json_schema_property("assumptions", @contact_allocation_summary, _contract) do
+    contact_allocation_summary_assumptions_json_schema()
+  end
+
   defp json_schema_property("model_limits", @contact_allocation_summary, _contract) do
     %{
       "type" => "array",
@@ -19991,6 +19995,16 @@ defmodule OrbitalDynamics.Schema do
     |> Map.fetch!(:provider_reservation_request_statuses)
   end
 
+  defp contact_allocation_row_statuses do
+    OrbitalDynamics.Communications.ContactAllocation.capabilities()
+    |> Map.fetch!(:row_statuses)
+  end
+
+  defp contact_allocation_effective_row_statuses do
+    OrbitalDynamics.Communications.ContactAllocation.capabilities()
+    |> Map.fetch!(:effective_row_statuses)
+  end
+
   defp contact_allocation_station_unavailable_aliases do
     OrbitalDynamics.Communications.ContactAllocation.capabilities()
     |> Map.fetch!(:station_unavailable_aliases)
@@ -20094,6 +20108,111 @@ defmodule OrbitalDynamics.Schema do
           "type" => "array",
           "const" => contact_allocation_default_required_capacity_value_path_assumptions(),
           "items" => contact_allocation_capacity_value_path_json_schema()
+        }
+      }
+    }
+  end
+
+  defp contact_allocation_summary_assumptions_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => ["execution_boundary", "source", "operator_authority"],
+      "properties" => %{
+        "execution_boundary" => %{
+          "type" => "string",
+          "const" => "artifact_only_no_provider_reservation_or_schedule_mutation"
+        },
+        "source" => %{"type" => "string", "const" => "contact_allocation_report.v1"},
+        "operator_authority" => %{"type" => "string", "const" => "not_granted_by_summary"},
+        "row_statuses" => %{
+          "type" => "array",
+          "const" => contact_allocation_row_statuses(),
+          "items" => %{"type" => "string", "enum" => contact_allocation_row_statuses()}
+        },
+        "effective_row_statuses" => %{
+          "type" => "array",
+          "const" => contact_allocation_effective_row_statuses(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_allocation_effective_row_statuses()
+          }
+        },
+        "station_unavailable_aliases" => %{
+          "type" => "array",
+          "const" => contact_allocation_station_unavailable_aliases(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_allocation_station_unavailable_aliases()
+          }
+        },
+        "station_blocking_availability" => %{
+          "type" => "array",
+          "const" => contact_allocation_station_blocking_availability(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_allocation_station_blocking_availability()
+          }
+        },
+        "station_availability_precedence" => %{
+          "type" => "object",
+          "const" => contact_allocation_station_availability_precedence(),
+          "additionalProperties" => %{"type" => "integer", "minimum" => 0}
+        },
+        "capacity_pack_statuses" => %{
+          "type" => "array",
+          "const" => contact_allocation_capacity_pack_statuses(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_allocation_capacity_pack_statuses()
+          }
+        },
+        "reduced_capacity_pack_statuses" => %{
+          "type" => "array",
+          "const" => contact_allocation_reduced_capacity_pack_statuses(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_allocation_reduced_capacity_pack_statuses()
+          }
+        },
+        "station_reservation_match_statuses" => %{
+          "type" => "array",
+          "const" => contact_allocation_station_reservation_match_statuses(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_allocation_station_reservation_match_statuses()
+          }
+        },
+        "station_reservation_expiration_statuses" => %{
+          "type" => "array",
+          "const" => contact_allocation_station_reservation_expiration_statuses(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_allocation_station_reservation_expiration_statuses()
+          }
+        },
+        "required_capacity_fraction_source_values" => %{
+          "type" => "array",
+          "const" => contact_allocation_required_capacity_fraction_source_values(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_allocation_required_capacity_fraction_source_values()
+          }
+        },
+        "required_capacity_value_paths" => %{
+          "type" => "array",
+          "const" => contact_allocation_required_capacity_value_path_assumptions(),
+          "items" => contact_allocation_capacity_value_path_json_schema()
+        },
+        "default_required_capacity_value_paths" => %{
+          "type" => "array",
+          "const" => contact_allocation_default_required_capacity_value_path_assumptions(),
+          "items" => contact_allocation_capacity_value_path_json_schema()
+        },
+        "provider_direction_aliases" => %{
+          "type" => "object",
+          "const" => contact_allocation_provider_direction_aliases(),
+          "additionalProperties" => %{"type" => "string"}
         }
       }
     }
@@ -49519,6 +49638,97 @@ defmodule OrbitalDynamics.Schema do
           assumptions,
           "operator_authority",
           "not_granted_by_summary"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "row_statuses",
+          contact_allocation_row_statuses(),
+          "must match ContactAllocation row statuses"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "effective_row_statuses",
+          contact_allocation_effective_row_statuses(),
+          "must match ContactAllocation effective row statuses"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_unavailable_aliases",
+          contact_allocation_station_unavailable_aliases(),
+          "must match ContactAllocation station unavailable aliases"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_blocking_availability",
+          contact_allocation_station_blocking_availability(),
+          "must match ContactAllocation station blocking availability"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_availability_precedence",
+          contact_allocation_station_availability_precedence(),
+          "must match ContactAllocation station availability precedence"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "capacity_pack_statuses",
+          contact_allocation_capacity_pack_statuses(),
+          "must match ContactAllocation capacity pack statuses"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "reduced_capacity_pack_statuses",
+          contact_allocation_reduced_capacity_pack_statuses(),
+          "must match ContactAllocation reduced capacity pack statuses"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_reservation_match_statuses",
+          contact_allocation_station_reservation_match_statuses(),
+          "must match ContactAllocation station reservation match statuses"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_reservation_expiration_statuses",
+          contact_allocation_station_reservation_expiration_statuses(),
+          "must match ContactAllocation station reservation expiration statuses"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "required_capacity_fraction_source_values",
+          contact_allocation_required_capacity_fraction_source_values(),
+          "must match ContactAllocation required capacity fraction source values"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "required_capacity_value_paths",
+          contact_allocation_required_capacity_value_path_assumptions(),
+          "must match ContactAllocation required capacity value paths"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "default_required_capacity_value_paths",
+          contact_allocation_default_required_capacity_value_path_assumptions(),
+          "must match ContactAllocation default required capacity value paths"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "provider_direction_aliases",
+          contact_allocation_provider_direction_aliases(),
+          "must match ContactAllocation provider direction aliases"
         )
 
       _assumptions ->

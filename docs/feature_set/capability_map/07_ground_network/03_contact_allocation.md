@@ -94,7 +94,12 @@ The contact-filter, contact-contention, contact-intent, and command-window repor
 The schema derives scalar counts, routing maps, review rows, capacity-pack
 groups, station-pressure fields, reservation-expiration fields, and
 resource-blocked fields from the included allocation rows without reserving
-provider time, mutating schedules, or granting operator authority. Existing
+provider time, mutating schedules, or granting operator authority. Its
+assumptions carry the capability-declared allocation statuses, effective
+statuses, station availability aliases/precedence, capacity-pack statuses,
+reservation match/expiration statuses, required-capacity source/path metadata,
+and provider direction aliases, with schema validation rejecting stale present
+values while preserving older artifacts that omit the optional metadata. Existing
 compact allocation summaries are also accepted as idempotent handoff inputs
 when adapters already hold `contact_allocation_summary.v1`,
 `contact_allocation_station_pressure_summary.v1`,

@@ -412,6 +412,26 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     }
   end
 
+  defp allocation_summary_capability_assumptions do
+    %{
+      "row_statuses" => @row_statuses,
+      "effective_row_statuses" => @effective_row_statuses,
+      "station_unavailable_aliases" => @unavailable_aliases,
+      "station_blocking_availability" => @station_blocking_availability,
+      "station_availability_precedence" => @station_availability_severity,
+      "capacity_pack_statuses" => @capacity_pack_statuses,
+      "reduced_capacity_pack_statuses" => @reduced_capacity_pack_statuses,
+      "station_reservation_match_statuses" => @station_reservation_match_statuses,
+      "station_reservation_expiration_statuses" => @station_reservation_expiration_statuses,
+      "required_capacity_fraction_source_values" => @required_capacity_fraction_source_values,
+      "required_capacity_value_paths" =>
+        capacity_value_path_assumptions(@required_capacity_value_paths),
+      "default_required_capacity_value_paths" =>
+        capacity_value_path_assumptions(@default_required_capacity_value_paths),
+      "provider_direction_aliases" => @provider_direction_aliases
+    }
+  end
+
   defp provider_reservation_request_capability_assumptions do
     %{
       "provider_reservation_request_statuses" => @provider_reservation_request_statuses,
@@ -1315,11 +1335,15 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
       "review_rows" => review_rows,
       "reduced_capacity_pack_groups" => report["reduced_capacity_pack_groups"] || [],
       "model_limits" => model_limits(),
-      "assumptions" => %{
-        "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
-        "source" => "contact_allocation_report.v1",
-        "operator_authority" => "not_granted_by_summary"
-      }
+      "assumptions" =>
+        Map.merge(
+          %{
+            "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
+            "source" => "contact_allocation_report.v1",
+            "operator_authority" => "not_granted_by_summary"
+          },
+          allocation_summary_capability_assumptions()
+        )
     }
     |> compact_map()
   end

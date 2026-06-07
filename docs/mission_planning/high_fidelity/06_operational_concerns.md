@@ -186,7 +186,12 @@ Declared allocation-status,
 effective-status, allocation-reason, capacity-pack, reservation-match count
 maps, and scalar allocation/contact counters are derived from normalized rows
 or pack groups so stale top-level report summaries do not leak into the routing
-aid. `ContactAllocation.capabilities/0` advertises the capacity-pack row
+aid. Allocation triage summaries carry the capability-declared allocation
+statuses, effective statuses, station availability aliases/precedence,
+capacity-pack statuses, reservation match/expiration statuses,
+required-capacity source/path metadata, and provider direction aliases in
+optional assumptions so stale present metadata is schema-checkable without
+rejecting older summaries that omit it. `ContactAllocation.capabilities/0` advertises the capacity-pack row
 statuses, reduced-capacity pack-group statuses, required-capacity source values,
 and required/default required-capacity value paths used by those summaries; the
 capacity-pack summary carries those values in optional assumptions so adapter
