@@ -578,6 +578,11 @@ fixture. It checks gate counts, readiness/import/status/classification maps,
 ready-for-import evidence, Cadence-import status routing, and trust-boundary
 status without granting operator authority, candidate selection, import
 approval, or Cadence writes.
+The registry also includes a generated CandidateRefresh operational-readiness
+replay fixture. It checks readiness/import/status maps, gate counts, and
+trust-boundary status from imported operational-readiness evidence without
+granting execution authority, operator authority, candidate selection, import
+approval, or Cadence writes.
 The registry also includes a generated CandidateRefresh timeline-transition
 application replay fixture. It checks selected-integrity review and issue
 counts, missing-dependency issue-type routing, application status maps,

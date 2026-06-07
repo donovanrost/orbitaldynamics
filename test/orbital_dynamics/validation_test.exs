@@ -3993,6 +3993,62 @@ defmodule OrbitalDynamics.ValidationTest do
              Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
   end
 
+  test "verifies candidate refresh operational readiness replay fixtures" do
+    fixture_id = "fixture.artifact.candidate_refresh.operational_readiness_replay"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = candidate_refresh_operational_readiness_fixture()
+    observations = candidate_refresh_operational_readiness_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "source_report_family_count" => 1,
+             "source_report_row_count" => 1,
+             "source_operational_readiness_report_count" => 1,
+             "source_operational_readiness_row_count" => 1,
+             "source_operational_readiness_gate_count" => 5,
+             "source_operational_readiness_passed_gate_count" => 5,
+             "source_operational_readiness_review_gate_count" => 0,
+             "source_operational_readiness_analysis_gate_count" => 0,
+             "source_operational_readiness_blocked_gate_count" => 0,
+             "source_operational_readiness_readiness_level_counts" => %{
+               "import_eligible" => 1
+             },
+             "source_operational_readiness_import_classification_counts" => %{
+               "importable" => 1
+             },
+             "source_operational_readiness_status_counts" => %{"passed" => 1},
+             "source_operational_readiness_trust_boundary_status" => "declared"
+           } = observations
+
+    stale_status_observations =
+      observations
+      |> Map.put("source_operational_readiness_status_counts", %{"stale_status" => 1})
+
+    assert {:ok, stale_status_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_status_observations)
+
+    assert stale_status_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_status_verification["checks"],
+             &(&1["field"] == "source_operational_readiness_status_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _validated_artifact} =
+             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
+  end
+
   test "verifies candidate refresh timeline transition application replay fixtures" do
     fixture_id = "fixture.artifact.candidate_refresh.timeline_transition_application_replay"
 
@@ -11266,6 +11322,8 @@ defmodule OrbitalDynamics.ValidationTest do
           candidate_refresh_contact_contention_challenge_fixture_observations(),
         "fixture.artifact.candidate_refresh.contact_intent_direction_replay" =>
           candidate_refresh_contact_intent_direction_fixture_observations(),
+        "fixture.artifact.candidate_refresh.operational_readiness_replay" =>
+          candidate_refresh_operational_readiness_fixture_observations(),
         "fixture.artifact.candidate_refresh.resource_projection_replay" =>
           candidate_refresh_resource_projection_fixture_observations(),
         "fixture.artifact.candidate_refresh.timeline_transition_application_replay" =>
@@ -11503,8 +11561,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 152,
-             "status_counts" => %{"pass" => 152},
+             "fixture_count" => 153,
+             "status_counts" => %{"pass" => 153},
              "reports" => reports
            } = report
 
@@ -11527,6 +11585,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay",
              "fixture.artifact.candidate_refresh.contact_intent_direction_replay",
              "fixture.artifact.candidate_refresh.objective_gap_replay",
+             "fixture.artifact.candidate_refresh.operational_readiness_replay",
              "fixture.artifact.candidate_refresh.quality_gate_replay",
              "fixture.artifact.candidate_refresh.resource_projection_replay",
              "fixture.artifact.candidate_refresh.resource_provenance_v1",
@@ -11673,7 +11732,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 152},
+             "status_counts" => %{"fail" => 153},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -12186,6 +12245,50 @@ defmodule OrbitalDynamics.ValidationTest do
   defp candidate_refresh_quality_gate_report do
     quality_gate_report_fixture()
     |> Map.put("provenance", %{"trust_boundary" => "generated_quality_gate_fixture"})
+  end
+
+  defp candidate_refresh_operational_readiness_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(candidate_refresh_operational_readiness_fixture())
+  end
+
+  defp candidate_refresh_operational_readiness_fixture do
+    result_set(%{})
+    |> CandidateRefresh.build(
+      candidate_refresh: candidate_refresh_operational_readiness_request(),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  defp candidate_refresh_operational_readiness_request do
+    %{
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-operational-readiness-challenge",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [],
+        "source" => %{"system" => "validation_challenge"},
+        "quality" => %{"level" => "accepted"},
+        "provenance" => %{"created_by" => "validation_fixture"}
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "targets" => [],
+      "constraints" => %{},
+      "scoring_policy" => %{},
+      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
+      "source_operational_readiness_report" => candidate_refresh_operational_readiness_report()
+    }
+  end
+
+  defp candidate_refresh_operational_readiness_report do
+    operational_readiness_report_fixture()
+    |> Map.put("provenance", %{
+      "trust_boundary" => "generated_operational_readiness_fixture"
+    })
   end
 
   defp candidate_refresh_timeline_transition_application_fixture_observations do
