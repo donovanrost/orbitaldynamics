@@ -6890,12 +6890,20 @@ defmodule OrbitalDynamics.Validation do
         "row_derived_provider_reservation_request_contact_ids_by_direction" => %{
           "downlink" => ["dl_reserved_owner"]
         },
+        "row_derived_provider_reservation_request_contact_ids_by_direction_and_ground_station_id" =>
+          %{
+            "downlink" => %{"equator_prime" => ["dl_reserved_owner"]}
+          },
         "provider_reservation_review_contact_ids_by_direction" => %{
           "command" => ["dl_review_overlap"]
         },
         "row_derived_provider_reservation_review_contact_ids_by_direction" => %{
           "command" => ["dl_review_overlap"]
         },
+        "row_derived_provider_reservation_review_contact_ids_by_direction_and_ground_station_id" =>
+          %{
+            "command" => %{"equator_prime" => ["dl_review_overlap"]}
+          },
         "provider_reservation_request_contact_ids_by_ground_station_id" => %{
           "equator_prime" => ["dl_reserved_owner"]
         },
@@ -14682,12 +14690,16 @@ defmodule OrbitalDynamics.Validation do
         request_rows
         |> group_row_ids_by_value("direction", "contact_id")
         |> sort_grouped_values(),
+      "row_derived_provider_reservation_request_contact_ids_by_direction_and_ground_station_id" =>
+        contact_ids_by_direction_and_ground_station_id(request_rows),
       "provider_reservation_review_contact_ids_by_direction" =>
         Map.get(artifact, "provider_reservation_review_contact_ids_by_direction"),
       "row_derived_provider_reservation_review_contact_ids_by_direction" =>
         review_rows
         |> group_row_ids_by_value("direction", "contact_id")
         |> sort_grouped_values(),
+      "row_derived_provider_reservation_review_contact_ids_by_direction_and_ground_station_id" =>
+        contact_ids_by_direction_and_ground_station_id(review_rows),
       "provider_reservation_request_contact_ids_by_ground_station_id" =>
         Map.get(artifact, "provider_reservation_request_contact_ids_by_ground_station_id"),
       "provider_reservation_review_contact_ids_by_ground_station_id" =>

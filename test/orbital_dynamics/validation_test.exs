@@ -9394,6 +9394,58 @@ defmodule OrbitalDynamics.ValidationTest do
                  &1["status"] == "fail")
            )
 
+    stale_request_direction_station_observations =
+      observations
+      |> put_in(
+        [
+          "row_derived_provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
+          "downlink",
+          "equator_prime"
+        ],
+        ["stale_contact"]
+      )
+
+    assert {:ok, stale_request_direction_station_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_request_direction_station_observations
+             )
+
+    assert stale_request_direction_station_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_request_direction_station_verification["checks"],
+             &(&1["field"] ==
+                 "row_derived_provider_reservation_request_contact_ids_by_direction_and_ground_station_id" and
+                 &1["status"] == "fail")
+           )
+
+    stale_review_direction_station_observations =
+      observations
+      |> put_in(
+        [
+          "row_derived_provider_reservation_review_contact_ids_by_direction_and_ground_station_id",
+          "command",
+          "equator_prime"
+        ],
+        ["stale_contact"]
+      )
+
+    assert {:ok, stale_review_direction_station_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_review_direction_station_observations
+             )
+
+    assert stale_review_direction_station_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_review_direction_station_verification["checks"],
+             &(&1["field"] ==
+                 "row_derived_provider_reservation_review_contact_ids_by_direction_and_ground_station_id" and
+                 &1["status"] == "fail")
+           )
+
     stale_no_request_direction_observations =
       observations
       |> put_in(
