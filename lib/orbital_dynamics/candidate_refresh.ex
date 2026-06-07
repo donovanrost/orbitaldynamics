@@ -6902,6 +6902,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
       source_report_quality_gate_replay_summary_fields(refresh_or_artifact, source_reports)
     )
     |> Map.merge(
+      source_report_model_acceptance_replay_summary_fields(refresh_or_artifact, source_reports)
+    )
+    |> Map.merge(
       source_report_contact_contention_replay_summary_fields(refresh_or_artifact, source_reports)
     )
     |> Map.merge(
@@ -9744,6 +9747,25 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(timeline_fields, "branch_local_timeline_publication_invalidation_pressure"),
       "source_report_quality_gate_branch_local_timeline_publication_review_pressure" =>
         Map.get(timeline_fields, "branch_local_timeline_publication_review_pressure")
+    }
+  end
+
+  defp source_report_model_acceptance_replay_summary_fields(refresh_or_artifact, source_reports) do
+    branch_model_acceptance_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "model_acceptance_report")
+
+    model_acceptance_summary =
+      branch_model_acceptance_summary || Map.get(source_reports, "model_acceptance_report", %{})
+
+    pressure_fields = model_acceptance_replay_pressure_fields(model_acceptance_summary)
+
+    %{
+      "source_report_model_acceptance_branch_local_review_pressure" =>
+        Map.get(pressure_fields, "branch_local_review_pressure"),
+      "source_report_model_acceptance_branch_local_blocking_pressure" =>
+        Map.get(pressure_fields, "branch_local_blocking_pressure"),
+      "source_report_model_acceptance_branch_local_unknown_model_pressure" =>
+        Map.get(pressure_fields, "branch_local_unknown_model_pressure")
     }
   end
 
@@ -15618,18 +15640,70 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> compact_map()
   end
 
+  defp model_acceptance_replay_pressure_fields(model_acceptance_summary) do
+    review_required_count =
+      summary_integer(model_acceptance_summary, "review_required_count")
+
+    blocked_count = summary_integer(model_acceptance_summary, "blocked_count")
+    unknown_model_count = summary_integer(model_acceptance_summary, "unknown_model_count")
+
+    status_counts = Map.get(model_acceptance_summary, "status_counts", %{})
+    validation_level_counts = Map.get(model_acceptance_summary, "validation_level_counts", %{})
+    model_ids_by_status = Map.get(model_acceptance_summary, "model_ids_by_status", %{})
+
+    model_ids_by_validation_level =
+      Map.get(model_acceptance_summary, "model_ids_by_validation_level", %{})
+
+    blocking_pressure =
+      blocked_count > 0 or summary_integer(status_counts, "blocked") > 0 or
+        Map.get(model_ids_by_status, "blocked", []) != []
+
+    unknown_model_pressure =
+      unknown_model_count > 0 or summary_integer(validation_level_counts, "unknown") > 0 or
+        Map.get(model_ids_by_validation_level, "unknown", []) != []
+
+    review_pressure =
+      review_required_count > 0 or blocking_pressure or unknown_model_pressure or
+        summary_integer(status_counts, "review_required") > 0 or
+        Map.get(model_ids_by_status, "review_required", []) != []
+
+    %{
+      "branch_local_review_pressure" => review_pressure,
+      "branch_local_blocking_pressure" => blocking_pressure,
+      "branch_local_unknown_model_pressure" => unknown_model_pressure
+    }
+  end
+
   @doc """
   Builds a compact branch-local model-acceptance replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, mutate candidates, certify models, approve
-  imports, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, mutate
+  candidates, certify models, approve imports, or write to Cadence.
   """
   def model_acceptance_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
+    branch_model_acceptance_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "model_acceptance_report")
+
     model_acceptance_summary =
-      get_in(source_summary, ["source_reports", "model_acceptance_report"]) || %{}
+      branch_model_acceptance_summary ||
+        get_in(source_summary, ["source_reports", "model_acceptance_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_model_acceptance_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.model_acceptance_report",
+          "model_acceptance_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.model_acceptance_report",
+          "model_acceptance_source_report_provenance_only"
+        }
+      end
 
     review_required_count =
       summary_integer(model_acceptance_summary, "review_required_count")
@@ -15647,22 +15721,11 @@ defmodule OrbitalDynamics.CandidateRefresh do
     model_ids_by_intended_use =
       Map.get(model_acceptance_summary, "model_ids_by_intended_use", %{})
 
-    blocking_pressure =
-      blocked_count > 0 or summary_integer(status_counts, "blocked") > 0 or
-        Map.get(model_ids_by_status, "blocked", []) != []
-
-    unknown_model_pressure =
-      unknown_model_count > 0 or summary_integer(validation_level_counts, "unknown") > 0 or
-        Map.get(model_ids_by_validation_level, "unknown", []) != []
-
-    review_pressure =
-      review_required_count > 0 or blocking_pressure or unknown_model_pressure or
-        summary_integer(status_counts, "review_required") > 0 or
-        Map.get(model_ids_by_status, "review_required", []) != []
+    pressure_fields = model_acceptance_replay_pressure_fields(model_acceptance_summary)
 
     %{
       "model" => "artifact_only_candidate_refresh_model_acceptance_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.model_acceptance_report",
+      "source" => summary_source,
       "contract" =>
         source_report_summary_contract(model_acceptance_summary, "model_acceptance_report.v1"),
       "source_report_count" => summary_integer(model_acceptance_summary, "count"),
@@ -15682,12 +15745,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "model_ids_by_intended_use" => model_ids_by_intended_use,
       "trust_boundary_status" => Map.get(model_acceptance_summary, "trust_boundary_status"),
       "trust_boundaries" => Map.get(model_acceptance_summary, "trust_boundaries", []),
-      "branch_local_review_pressure" => review_pressure,
-      "branch_local_blocking_pressure" => blocking_pressure,
-      "branch_local_unknown_model_pressure" => unknown_model_pressure,
+      "branch_local_review_pressure" => Map.get(pressure_fields, "branch_local_review_pressure"),
+      "branch_local_blocking_pressure" =>
+        Map.get(pressure_fields, "branch_local_blocking_pressure"),
+      "branch_local_unknown_model_pressure" =>
+        Map.get(pressure_fields, "branch_local_unknown_model_pressure"),
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "model_acceptance_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_model_acceptance_replay_summary",
         "model_certification" => "not_performed_by_summary",
         "import_approval" => "not_granted_by_model_acceptance_replay_summary",
