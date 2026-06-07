@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-CandidateRefresh generic quality-gate classification-ID replay.
+CandidateRefresh generic quality-gate non-passed gate-ID replay.
 
 Status:
 Completed locally; product commit created and handoff updated.
@@ -22,17 +22,17 @@ Files changed:
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:30853 test/orbital_dynamics/candidate_refresh_test.exs:31009 test/orbital_dynamics/candidate_refresh_test.exs:31089`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:30853 test/orbital_dynamics/candidate_refresh_test.exs:31021 test/orbital_dynamics/candidate_refresh_test.exs:31110`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 
 Docs/artifacts changed:
-CandidateRefresh source-report and compact replay docs now name
-classification-grouped gate and quality-gate row ID maps as artifact-only
-routing evidence. CandidateRefresh schema export now exposes those fields under
-quality-gate source-report provenance.
+CandidateRefresh source-report and compact replay docs now name generic
+passed/review/analysis/blocked/non-passed gate ID lists and non-passed
+quality-gate row IDs as artifact-only routing evidence. CandidateRefresh schema
+export now exposes those fields under quality-gate source-report provenance.
 
 Level 6 pillar advanced:
 Approval-aware automation boundaries, durable schema-versioned artifacts, and
@@ -44,7 +44,7 @@ or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Product commit `0403462f02fef63466234d569e84a399bfd2fc01`.
+Product commit `1ab10c5944088ab76110335a99ec73c1c1c67689`.
 
 Next candidate:
 Reassess from `docs/autonomous_work_guide.md`; prefer one narrow
