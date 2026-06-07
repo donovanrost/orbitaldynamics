@@ -15724,6 +15724,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(quality_gate_summary, "source_artifact_type_counts", %{}),
       "quality_gate_row_ids_by_status" => quality_gate_row_ids_by_status,
       "quality_gate_ids_by_status" => quality_gate_ids_by_status,
+      "quality_gate_row_ids_by_classification" =>
+        Map.get(quality_gate_summary, "quality_gate_row_ids_by_classification", %{}),
+      "quality_gate_ids_by_classification" =>
+        Map.get(quality_gate_summary, "quality_gate_ids_by_classification", %{}),
       "review_required_quality_gate_row_ids" => review_required_quality_gate_row_ids,
       "blocked_quality_gate_row_ids" => blocked_quality_gate_row_ids,
       "ready_quality_gate_row_ids" => ready_quality_gate_row_ids,
@@ -23860,6 +23864,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
         reports
         |> Enum.map(&quality_gate_report_count_map(&1, "gate_classification_counts"))
         |> merge_count_maps(),
+      "quality_gate_row_ids_by_classification" =>
+        reports
+        |> Enum.map(&quality_gate_string_list_map(&1, "quality_gate_row_ids_by_classification"))
+        |> merge_string_list_maps(),
+      "quality_gate_ids_by_classification" =>
+        reports
+        |> Enum.map(&quality_gate_ids_by_classification_map/1)
+        |> merge_string_list_maps(),
       "ready_for_import_count" =>
         sum_report_count(reports, &quality_gate_row_count(&1, "ready_for_import_count")),
       "manifest_review_required_count" =>
@@ -28914,6 +28926,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
     case Map.get(report, field) do
       %{} = list_map -> list_map
       _value -> %{}
+    end
+  end
+
+  defp quality_gate_ids_by_classification_map(report) do
+    case quality_gate_string_list_map(report, "quality_gate_ids_by_classification") do
+      map when map_size(map) > 0 -> map
+      _map -> quality_gate_string_list_map(report, "gate_ids_by_classification")
     end
   end
 
@@ -46304,6 +46323,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
         summary["gate_classification_counts"]
       )
 
+    quality_gate_row_ids_by_classification =
+      quality_gate_summary_ids_by_classification(
+        row_ids_by_status,
+        summary["quality_gate_row_ids_by_classification"]
+      )
+
+    quality_gate_ids_by_classification =
+      quality_gate_summary_ids_by_classification(
+        gate_ids_by_status,
+        summary["gate_ids_by_classification"]
+      )
+
     status = quality_gate_summary_status(row_ids_by_status, summary)
     classification = quality_gate_summary_import_classification(row_ids_by_status, summary)
     readiness_level = quality_gate_summary_readiness_level(row_ids_by_status, summary)
@@ -46334,6 +46365,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "gate_classification_counts" => gate_classification_counts,
       "quality_gate_row_ids_by_status" => row_ids_by_status || %{},
       "quality_gate_ids_by_status" => gate_ids_by_status,
+      "quality_gate_row_ids_by_classification" => quality_gate_row_ids_by_classification,
+      "quality_gate_ids_by_classification" => quality_gate_ids_by_classification,
       "review_required_quality_gate_row_ids" =>
         quality_gate_summary_list_map_values(row_ids_by_status, "review_required"),
       "blocked_quality_gate_row_ids" =>
@@ -46368,6 +46401,29 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp quality_gate_summary_list_map_values(_values_by_key, _key), do: []
+
+  defp quality_gate_summary_ids_by_classification(%{} = ids_by_status, _fallback) do
+    Enum.reduce(ids_by_status, %{}, fn {status, ids}, acc ->
+      classification =
+        status
+        |> to_string()
+        |> quality_gate_import_readiness_classification()
+
+      normalized_ids = sorted_string_values(list_value(ids))
+
+      if normalized_ids == [] do
+        acc
+      else
+        Map.update(acc, classification, normalized_ids, fn existing ->
+          sorted_string_values(existing ++ normalized_ids)
+        end)
+      end
+    end)
+  end
+
+  defp quality_gate_summary_ids_by_classification(_ids_by_status, %{} = fallback), do: fallback
+
+  defp quality_gate_summary_ids_by_classification(_ids_by_status, _fallback), do: %{}
 
   defp quality_gate_report_from_unavailable_resource_summary(%{} = summary) do
     summary = stringify_keys(summary)

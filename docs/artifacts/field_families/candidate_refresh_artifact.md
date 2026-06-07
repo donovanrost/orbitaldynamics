@@ -2208,6 +2208,7 @@ contract field rather than defaulting to `operational_timeline_report.v1`.
 quality-gate slice of that provenance as a branch-local replay summary. It
 preserves top-level source-report contract/count/path rollups, source
 quality-gate paths, readiness/import/status maps, gate status/classification
+maps, status-grouped and classification-grouped gate and quality-gate row ID
 maps, analysis-mode counts,
 import/freshness/schema-validation count maps, resource-availability reason
 maps including station-specific availability reason counts, resource-blocking

@@ -30934,6 +30934,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  "row_count" => 6,
                  "source_summary_schema_contract_counts" => %{
                    "operational_quality_gate_summary.v1" => 3
+                 },
+                 "quality_gate_row_ids_by_classification" => %{
+                   "blocked" => ["quality_gate:activity_1:cadence_import"],
+                   "review_only" => ["quality_gate:activity_1:mission_policy"]
+                 },
+                 "quality_gate_ids_by_classification" => %{
+                   "blocked" => ["cadence_import"],
+                   "review_only" => ["mission_policy"]
                  }
                }
              }
@@ -30964,6 +30972,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "quality_gate_row_ids_by_status" => %{
                "blocked" => ["quality_gate:activity_1:cadence_import"],
                "review_required" => ["quality_gate:activity_1:mission_policy"]
+             },
+             "quality_gate_row_ids_by_classification" => %{
+               "blocked" => ["quality_gate:activity_1:cadence_import"],
+               "review_only" => ["quality_gate:activity_1:mission_policy"]
+             },
+             "quality_gate_ids_by_classification" => %{
+               "blocked" => ["cadence_import"],
+               "review_only" => ["mission_policy"]
              },
              "review_required_quality_gate_row_ids" => [
                "quality_gate:activity_1:mission_policy"
@@ -30998,6 +31014,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         "quality_gate_row_ids_by_status" => %{},
         "gate_ids_by_status" => %{},
         "quality_gate_ids_by_status" => %{},
+        "gate_ids_by_classification" => %{"blocked" => ["stale_gate"]},
+        "quality_gate_row_ids_by_classification" => %{
+          "blocked" => ["quality_gate:stale"]
+        },
         "non_passed_quality_gate_row_ids" => [],
         "non_passed_gate_ids" => [],
         "non_passed_gate_count" => 0
@@ -31052,6 +31072,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
            } = replay_summary
 
     assert Map.get(replay_summary, "quality_gate_row_ids_by_status", %{}) == %{}
+    assert Map.get(replay_summary, "quality_gate_row_ids_by_classification", %{}) == %{}
+    assert Map.get(replay_summary, "quality_gate_ids_by_classification", %{}) == %{}
     assert Map.get(replay_summary, "review_required_quality_gate_row_ids", []) == []
     assert Map.get(replay_summary, "blocked_quality_gate_row_ids", []) == []
   end
@@ -31086,6 +31108,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "blocked" => ["quality_gate:activity_1:cadence_import"],
                "review_required" => ["quality_gate:activity_1:mission_policy"]
              },
+             "quality_gate_row_ids_by_classification" => %{
+               "blocked" => ["quality_gate:activity_1:cadence_import"],
+               "review_only" => ["quality_gate:activity_1:mission_policy"]
+             },
+             "quality_gate_ids_by_classification" => %{
+               "blocked" => ["cadence_import"],
+               "review_only" => ["mission_policy"]
+             },
              "trust_boundary_status" => "declared",
              "trust_boundaries" => ["quality_gate_adapter", "quality_gate_summary_fixture"]
            } = get_in(artifact, ["provenance", "source_reports", "quality_gate_report"])
@@ -31096,6 +31126,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              ],
              "source_summary_schema_contract_counts" => %{
                "operational_quality_gate_summary.v1" => 1
+             },
+             "quality_gate_row_ids_by_classification" => %{
+               "blocked" => ["quality_gate:activity_1:cadence_import"],
+               "review_only" => ["quality_gate:activity_1:mission_policy"]
+             },
+             "quality_gate_ids_by_classification" => %{
+               "blocked" => ["cadence_import"],
+               "review_only" => ["mission_policy"]
              },
              "branch_local_review_pressure" => true
            } = CandidateRefresh.quality_gate_replay_summary(artifact)

@@ -23805,6 +23805,8 @@ defmodule OrbitalDynamics.Schema do
       |> Map.merge(%{
         "quality_gate_row_ids_by_status" => stable_id_array_map_schema(),
         "quality_gate_ids_by_status" => stable_id_array_map_schema(),
+        "quality_gate_row_ids_by_classification" => stable_id_array_map_schema(),
+        "quality_gate_ids_by_classification" => stable_id_array_map_schema(),
         "review_required_quality_gate_row_ids" => stable_id_array_schema(),
         "blocked_quality_gate_row_ids" => stable_id_array_schema(),
         "ready_quality_gate_row_ids" => stable_id_array_schema(),
@@ -29492,7 +29494,9 @@ defmodule OrbitalDynamics.Schema do
       Enum.reduce(
         [
           "quality_gate_row_ids_by_status",
-          "quality_gate_ids_by_status"
+          "quality_gate_ids_by_status",
+          "quality_gate_row_ids_by_classification",
+          "quality_gate_ids_by_classification"
         ],
         issues,
         fn field, acc ->

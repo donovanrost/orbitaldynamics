@@ -112,11 +112,12 @@ Status: **implemented** (with a **partial** semantic-depth area, plus **near-ter
 - CandidateRefresh accepts compact `operational_quality_gate_summary.v1`
   handoffs as quality-gate source-report provenance from direct, accepted-state,
   mission-state, and wrapped result-artifact inputs, preserving status,
-  classification, gate-ID, quality-gate-row-ID, and no-authority evidence
-  without replaying refresh generation or granting import authority. For
-  compact no-row handoffs, reconstructed readiness/status/classification and
-  generic gate counts come from `quality_gate_row_ids_by_status` when present
-  instead of stale top-level summary fields.
+  classification, status-grouped and classification-grouped gate-ID and
+  quality-gate-row-ID maps, and no-authority evidence without replaying refresh
+  generation or granting import authority. For compact no-row handoffs,
+  reconstructed readiness/status/classification, generic gate counts, and
+  classification routing come from `quality_gate_row_ids_by_status` /
+  `gate_ids_by_status` when present instead of stale top-level summary fields.
 - Quality-gate operator-training summaries publish the validated `operational_quality_gate_operator_training_summary.v1` contract and expose role, training,
   certification, and qualification routing from `operator_training`
   quality-gate rows, including status/classification row IDs and explicit
