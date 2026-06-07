@@ -6890,6 +6890,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
       source_report_freshness_replay_summary_fields(refresh_or_artifact, source_reports)
     )
     |> Map.merge(
+      source_report_refresh_budget_replay_summary_fields(refresh_or_artifact, source_reports)
+    )
+    |> Map.merge(
       source_report_contact_contention_replay_summary_fields(refresh_or_artifact, source_reports)
     )
     |> Map.merge(
@@ -9764,6 +9767,41 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "branch_local_unknown_pressure"),
       "source_report_freshness_branch_local_freshness_pressure" =>
         Map.get(summary, "branch_local_freshness_pressure")
+    }
+  end
+
+  defp source_report_refresh_budget_replay_summary_fields(refresh_or_artifact, source_reports) do
+    branch_budget_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "refresh_budget_report")
+
+    budget_summary =
+      branch_budget_summary || Map.get(source_reports, "refresh_budget_report", %{})
+
+    {summary_source, replay_scope} =
+      if branch_budget_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.refresh_budget_report",
+          "refresh_budget_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.refresh_budget_report",
+          "refresh_budget_source_report_provenance_only"
+        }
+      end
+
+    summary =
+      refresh_budget_replay_summary_from_summary(budget_summary, summary_source, replay_scope)
+
+    %{
+      "source_report_refresh_budget_branch_local_budget_pressure" =>
+        Map.get(summary, "branch_local_budget_pressure"),
+      "source_report_refresh_budget_branch_local_dropped_candidate_pressure" =>
+        Map.get(summary, "branch_local_dropped_candidate_pressure"),
+      "source_report_refresh_budget_branch_local_invalid_limit_pressure" =>
+        Map.get(summary, "branch_local_invalid_limit_pressure"),
+      "source_report_refresh_budget_branch_local_candidate_limit_applied" =>
+        Map.get(summary, "branch_local_candidate_limit_applied")
     }
   end
 
@@ -15638,16 +15676,38 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local refresh-budget replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, mutate candidates, approve imports, or
-  write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, mutate
+  candidates, approve imports, or write to Cadence.
   """
   def refresh_budget_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
-    budget_summary =
-      get_in(source_summary, ["source_reports", "refresh_budget_report"]) || %{}
+    branch_budget_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "refresh_budget_report")
 
+    budget_summary =
+      branch_budget_summary ||
+        get_in(source_summary, ["source_reports", "refresh_budget_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_budget_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.refresh_budget_report",
+          "refresh_budget_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.refresh_budget_report",
+          "refresh_budget_source_report_provenance_only"
+        }
+      end
+
+    refresh_budget_replay_summary_from_summary(budget_summary, summary_source, replay_scope)
+  end
+
+  defp refresh_budget_replay_summary_from_summary(budget_summary, summary_source, replay_scope) do
     input_candidate_count = summary_integer(budget_summary, "input_candidate_count")
     kept_candidate_count = summary_integer(budget_summary, "kept_candidate_count")
     dropped_candidate_count = summary_integer(budget_summary, "dropped_candidate_count")
@@ -15676,7 +15736,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_refresh_budget_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.refresh_budget_report",
+      "source" => summary_source,
       "contract" => source_report_summary_contract(budget_summary, "refresh_budget_report.v1"),
       "source_report_count" => summary_integer(budget_summary, "count"),
       "source_report_row_count" => summary_integer(budget_summary, "row_count"),
@@ -15697,7 +15757,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "branch_local_candidate_limit_applied" => candidate_limit_applied,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "refresh_budget_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_refresh_budget_replay_summary",
         "import_approval" => "not_granted_by_refresh_budget_replay_summary",
         "cadence_write" => "not_performed_by_summary",
