@@ -15440,6 +15440,10 @@ defmodule OrbitalDynamics.Schema do
     }
   end
 
+  defp json_schema_property("assumptions", @contact_contention_report, _contract) do
+    contact_contention_report_assumptions_json_schema()
+  end
+
   defp json_schema_property(field, @contact_contention_resolution_report, _contract)
        when field in ["conflict_group_count", "recommendation_count"] do
     %{"type" => "integer", "minimum" => 0}
@@ -20787,6 +20791,256 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Communications.ContactContention.capabilities()
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
+  end
+
+  defp contact_contention_contact_types do
+    OrbitalDynamics.Communications.ContactContention.capabilities()
+    |> Map.fetch!(:contact_types)
+  end
+
+  defp contact_contention_contact_directions do
+    OrbitalDynamics.Communications.ContactContention.capabilities()
+    |> Map.fetch!(:contact_directions)
+  end
+
+  defp contact_contention_row_review_statuses do
+    OrbitalDynamics.Communications.ContactContention.capabilities()
+    |> Map.fetch!(:row_review_statuses)
+  end
+
+  defp contact_contention_station_unavailable_aliases do
+    OrbitalDynamics.Communications.ContactContention.capabilities()
+    |> Map.fetch!(:station_unavailable_aliases)
+  end
+
+  defp contact_contention_station_availability_precedence do
+    OrbitalDynamics.Communications.ContactContention.capabilities()
+    |> Map.fetch!(:station_availability_precedence)
+  end
+
+  defp contact_contention_station_capacity_value_path_assumptions do
+    OrbitalDynamics.Communications.ContactContention.capabilities()
+    |> Map.fetch!(:station_capacity_value_paths)
+    |> contact_contention_capacity_value_path_assumptions()
+  end
+
+  defp contact_contention_source_station_capacity_value_path_assumptions do
+    OrbitalDynamics.Communications.ContactContention.capabilities()
+    |> Map.fetch!(:source_station_capacity_value_paths)
+    |> contact_contention_capacity_value_path_assumptions()
+  end
+
+  defp contact_contention_required_capacity_value_path_assumptions do
+    OrbitalDynamics.Communications.ContactContention.capabilities()
+    |> Map.fetch!(:required_capacity_value_paths)
+    |> contact_contention_capacity_value_path_assumptions()
+  end
+
+  defp contact_contention_capacity_value_path_assumptions(paths) do
+    Enum.map(paths, fn %{unit: unit, path: path} ->
+      %{"unit" => Atom.to_string(unit), "path" => path}
+    end)
+  end
+
+  defp contact_contention_required_capacity_fraction_source_values do
+    OrbitalDynamics.Communications.ContactContention.capabilities()
+    |> Map.fetch!(:required_capacity_fraction_source_values)
+  end
+
+  defp contact_contention_station_reservation_priority_match_statuses do
+    OrbitalDynamics.Communications.ContactContention.capabilities()
+    |> Map.fetch!(:station_reservation_priority_match_statuses)
+  end
+
+  defp contact_contention_station_reservation_priority_statuses do
+    OrbitalDynamics.Communications.ContactContention.capabilities()
+    |> Map.fetch!(:station_reservation_priority_statuses)
+  end
+
+  defp contact_contention_resolution_selection_rules do
+    OrbitalDynamics.Communications.ContactContention.capabilities()
+    |> Map.fetch!(:resolution_selection_rules)
+  end
+
+  defp contact_contention_resolution_tie_breakers do
+    OrbitalDynamics.Communications.ContactContention.capabilities()
+    |> Map.fetch!(:resolution_tie_breakers)
+  end
+
+  defp contact_contention_default_resolution_priority_fields do
+    OrbitalDynamics.Communications.ContactContention.capabilities()
+    |> Map.fetch!(:default_resolution_priority_fields)
+  end
+
+  defp contact_contention_resolution_priority_override_aliases do
+    OrbitalDynamics.Communications.ContactContention.capabilities()
+    |> Map.fetch!(:resolution_priority_override_aliases)
+  end
+
+  defp contact_contention_provider_direction_aliases do
+    OrbitalDynamics.Communications.ContactContention.capabilities()
+    |> Map.fetch!(:provider_direction_aliases)
+  end
+
+  defp contact_contention_provider_result_map_value_keys do
+    OrbitalDynamics.Communications.ContactContention.capabilities()
+    |> Map.fetch!(:provider_result_map_value_keys)
+  end
+
+  defp contact_contention_contact_stable_identity_fields do
+    OrbitalDynamics.Communications.ContactContention.capabilities()
+    |> Map.fetch!(:contact_stable_identity_fields)
+  end
+
+  defp contact_contention_command_contact_directions do
+    OrbitalDynamics.Communications.ContactContention.capabilities()
+    |> Map.fetch!(:command_contact_directions)
+  end
+
+  defp contact_contention_report_assumptions_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "properties" => %{
+        "contact_types" => %{
+          "type" => "array",
+          "const" => contact_contention_contact_types(),
+          "items" => %{"type" => "string", "enum" => contact_contention_contact_types()}
+        },
+        "contact_directions" => %{
+          "type" => "array",
+          "const" => contact_contention_contact_directions(),
+          "items" => %{"type" => "string", "enum" => contact_contention_contact_directions()}
+        },
+        "row_review_statuses" => %{
+          "type" => "array",
+          "const" => contact_contention_row_review_statuses(),
+          "items" => %{"type" => "string", "enum" => contact_contention_row_review_statuses()}
+        },
+        "station_unavailable_aliases" => %{
+          "type" => "array",
+          "const" => contact_contention_station_unavailable_aliases(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_contention_station_unavailable_aliases()
+          }
+        },
+        "station_availability_precedence" => %{
+          "type" => "object",
+          "const" => contact_contention_station_availability_precedence(),
+          "additionalProperties" => %{"type" => "integer", "minimum" => 0}
+        },
+        "station_capacity_value_paths" => %{
+          "type" => "array",
+          "const" => contact_contention_station_capacity_value_path_assumptions(),
+          "items" => contact_contention_capacity_value_path_json_schema()
+        },
+        "source_station_capacity_value_paths" => %{
+          "type" => "array",
+          "const" => contact_contention_source_station_capacity_value_path_assumptions(),
+          "items" => contact_contention_capacity_value_path_json_schema()
+        },
+        "required_capacity_value_paths" => %{
+          "type" => "array",
+          "const" => contact_contention_required_capacity_value_path_assumptions(),
+          "items" => contact_contention_capacity_value_path_json_schema()
+        },
+        "required_capacity_fraction_source_values" => %{
+          "type" => "array",
+          "const" => contact_contention_required_capacity_fraction_source_values(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_contention_required_capacity_fraction_source_values()
+          }
+        },
+        "station_reservation_priority_match_statuses" => %{
+          "type" => "array",
+          "const" => contact_contention_station_reservation_priority_match_statuses(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_contention_station_reservation_priority_match_statuses()
+          }
+        },
+        "station_reservation_priority_statuses" => %{
+          "type" => "array",
+          "const" => contact_contention_station_reservation_priority_statuses(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_contention_station_reservation_priority_statuses()
+          }
+        },
+        "resolution_selection_rules" => %{
+          "type" => "array",
+          "const" => contact_contention_resolution_selection_rules(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_contention_resolution_selection_rules()
+          }
+        },
+        "resolution_tie_breakers" => %{
+          "type" => "array",
+          "const" => contact_contention_resolution_tie_breakers(),
+          "items" => %{"type" => "string", "enum" => contact_contention_resolution_tie_breakers()}
+        },
+        "default_resolution_priority_fields" => %{
+          "type" => "array",
+          "const" => contact_contention_default_resolution_priority_fields(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_contention_default_resolution_priority_fields()
+          }
+        },
+        "resolution_priority_override_aliases" => %{
+          "type" => "array",
+          "const" => contact_contention_resolution_priority_override_aliases(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_contention_resolution_priority_override_aliases()
+          }
+        },
+        "provider_direction_aliases" => %{
+          "type" => "object",
+          "const" => contact_contention_provider_direction_aliases(),
+          "additionalProperties" => %{"type" => "string"}
+        },
+        "provider_result_map_value_keys" => %{
+          "type" => "array",
+          "const" => contact_contention_provider_result_map_value_keys(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_contention_provider_result_map_value_keys()
+          }
+        },
+        "contact_stable_identity_fields" => %{
+          "type" => "array",
+          "const" => contact_contention_contact_stable_identity_fields(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_contention_contact_stable_identity_fields()
+          }
+        },
+        "command_contact_directions" => %{
+          "type" => "array",
+          "const" => contact_contention_command_contact_directions(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_contention_command_contact_directions()
+          }
+        }
+      }
+    }
+  end
+
+  defp contact_contention_capacity_value_path_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => false,
+      "required" => ["unit", "path"],
+      "properties" => %{
+        "unit" => %{"type" => "string", "enum" => ["fraction", "percent"]},
+        "path" => string_array_schema()
+      }
+    }
   end
 
   defp command_window_report_model_limits do
@@ -34212,6 +34466,7 @@ defmodule OrbitalDynamics.Schema do
     |> validate_optional_stable_id_list(path, report, "invalid_contact_input_ids")
     |> validate_string_list_items(path, report, "model_limits")
     |> validate_contact_contention_report_model_limits(path, report)
+    |> validate_contact_contention_report_assumptions(path, report)
     |> validate_optional_rows(
       path <> ".invalid_contact_inputs",
       Map.get(report, "invalid_contact_inputs"),
@@ -34244,6 +34499,155 @@ defmodule OrbitalDynamics.Schema do
         end
 
       _value ->
+        issues
+    end
+  end
+
+  defp validate_contact_contention_report_assumptions(issues, path, report) do
+    case Map.get(report, "assumptions") do
+      nil ->
+        issues
+
+      :null ->
+        issues
+
+      assumptions when is_map(assumptions) ->
+        issues
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "contact_types",
+          contact_contention_contact_types(),
+          "must match ContactContention contact types"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "contact_directions",
+          contact_contention_contact_directions(),
+          "must match ContactContention contact directions"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "row_review_statuses",
+          contact_contention_row_review_statuses(),
+          "must match ContactContention row review statuses"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_unavailable_aliases",
+          contact_contention_station_unavailable_aliases(),
+          "must match ContactContention station unavailable aliases"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_availability_precedence",
+          contact_contention_station_availability_precedence(),
+          "must match ContactContention station availability precedence"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_capacity_value_paths",
+          contact_contention_station_capacity_value_path_assumptions(),
+          "must match ContactContention station capacity value paths"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "source_station_capacity_value_paths",
+          contact_contention_source_station_capacity_value_path_assumptions(),
+          "must match ContactContention source station capacity value paths"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "required_capacity_value_paths",
+          contact_contention_required_capacity_value_path_assumptions(),
+          "must match ContactContention required capacity value paths"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "required_capacity_fraction_source_values",
+          contact_contention_required_capacity_fraction_source_values(),
+          "must match ContactContention required capacity fraction source values"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_reservation_priority_match_statuses",
+          contact_contention_station_reservation_priority_match_statuses(),
+          "must match ContactContention station reservation priority match statuses"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_reservation_priority_statuses",
+          contact_contention_station_reservation_priority_statuses(),
+          "must match ContactContention station reservation priority statuses"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "resolution_selection_rules",
+          contact_contention_resolution_selection_rules(),
+          "must match ContactContention resolution selection rules"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "resolution_tie_breakers",
+          contact_contention_resolution_tie_breakers(),
+          "must match ContactContention resolution tie breakers"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "default_resolution_priority_fields",
+          contact_contention_default_resolution_priority_fields(),
+          "must match ContactContention default resolution priority fields"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "resolution_priority_override_aliases",
+          contact_contention_resolution_priority_override_aliases(),
+          "must match ContactContention resolution priority override aliases"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "provider_direction_aliases",
+          contact_contention_provider_direction_aliases(),
+          "must match ContactContention provider direction aliases"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "provider_result_map_value_keys",
+          contact_contention_provider_result_map_value_keys(),
+          "must match ContactContention provider result map value keys"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "contact_stable_identity_fields",
+          contact_contention_contact_stable_identity_fields(),
+          "must match ContactContention contact stable identity fields"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "command_contact_directions",
+          contact_contention_command_contact_directions(),
+          "must match ContactContention command contact directions"
+        )
+
+      _assumptions ->
         issues
     end
   end

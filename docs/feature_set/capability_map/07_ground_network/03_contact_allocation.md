@@ -169,6 +169,13 @@ summaries before allocation consumes those recommendations. Its resolution
 summary also routes required-capacity demand by selected/deferred status plus
 source counts and contact IDs by source, matching the allocation summary
 boundary for review queues.
+`contact_contention_report.v1` now carries optional capability-derived
+assumptions for contact type/direction vocabularies, station availability
+aliases and precedence, station/source/required capacity value paths,
+reservation-priority vocabularies, resolution priority metadata, provider
+aliases/result keys, contact identity fields, and command-contact directions;
+present stale values are rejected while older reports can omit the additive
+fields.
 
 ## Reduced-capacity blocking and packing
 

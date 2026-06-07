@@ -1264,7 +1264,12 @@ contact counts, the recommendation-only no-reservation boundary, and
 model-limit boundaries. Executable validation rejects stale contention group,
 conflicted-contact, and recommendation counts that no longer match the
 contention rows, rejects stale contact-contention model strings, and exports
-the same model constant used by generated contention reports. It also rejects
+the same model constant used by generated contention reports. Full contention
+reports also pin capability-derived type/direction vocabularies, station
+availability metadata, capacity paths, reservation-priority vocabularies,
+resolution priority metadata, provider aliases/result keys, identity fields,
+and command-contact directions as optional assumptions; stale present metadata
+is rejected while omitted capability fields remain compatible. It also rejects
 stale contact-contention resolution report model strings and exports the same
 recommendation model constant used by generated resolution reports. Resolution
 summary validation rejects stale summary model strings plus stale generated

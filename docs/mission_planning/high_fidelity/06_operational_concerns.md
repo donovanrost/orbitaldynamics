@@ -233,6 +233,11 @@ required-capacity fraction/percent paths used by capacity-pack demand totals,
 and contention resolution summaries route required-capacity demand by
 selected/deferred status plus source counts and contact IDs by source for
 review/import triage.
+Full contention reports also carry capability-derived contact type/direction,
+station availability, capacity-path, reservation-priority, provider alias/result
+key, identity-field, and command-contact direction assumptions, so stale
+metadata is rejected when present without changing the report-only
+no-suppression/no-reservation boundary.
 Contact-intent summaries now carry station-capacity and required-capacity alias
 path assumptions directly in the artifact, with runtime validation pinning stale
 values when present, while preserving the no-provider-reservation and

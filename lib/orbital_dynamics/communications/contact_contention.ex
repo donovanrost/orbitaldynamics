@@ -289,6 +289,44 @@ defmodule OrbitalDynamics.Communications.ContactContention do
     Enum.map(paths, fn {unit, path} -> %{unit: unit, path: path} end)
   end
 
+  defp capacity_value_path_assumptions(paths) do
+    Enum.map(paths, fn %{unit: unit, path: path} ->
+      %{"unit" => Atom.to_string(unit), "path" => path}
+    end)
+  end
+
+  defp capability_assumptions do
+    capabilities = capabilities()
+
+    %{
+      "contact_types" => capabilities.contact_types,
+      "contact_directions" => capabilities.contact_directions,
+      "row_review_statuses" => capabilities.row_review_statuses,
+      "station_unavailable_aliases" => capabilities.station_unavailable_aliases,
+      "station_availability_precedence" => capabilities.station_availability_precedence,
+      "station_capacity_value_paths" =>
+        capacity_value_path_assumptions(capabilities.station_capacity_value_paths),
+      "source_station_capacity_value_paths" =>
+        capacity_value_path_assumptions(capabilities.source_station_capacity_value_paths),
+      "required_capacity_value_paths" =>
+        capacity_value_path_assumptions(capabilities.required_capacity_value_paths),
+      "required_capacity_fraction_source_values" =>
+        capabilities.required_capacity_fraction_source_values,
+      "station_reservation_priority_match_statuses" =>
+        capabilities.station_reservation_priority_match_statuses,
+      "station_reservation_priority_statuses" =>
+        capabilities.station_reservation_priority_statuses,
+      "resolution_selection_rules" => capabilities.resolution_selection_rules,
+      "resolution_tie_breakers" => capabilities.resolution_tie_breakers,
+      "default_resolution_priority_fields" => capabilities.default_resolution_priority_fields,
+      "resolution_priority_override_aliases" => capabilities.resolution_priority_override_aliases,
+      "provider_direction_aliases" => capabilities.provider_direction_aliases,
+      "provider_result_map_value_keys" => capabilities.provider_result_map_value_keys,
+      "contact_stable_identity_fields" => capabilities.contact_stable_identity_fields,
+      "command_contact_directions" => capabilities.command_contact_directions
+    }
+  end
+
   @doc """
   Annotates contact candidates and returns `{annotated_contacts, report}`.
   """
@@ -758,16 +796,20 @@ defmodule OrbitalDynamics.Communications.ContactContention do
       "conflict_groups" => groups,
       "model_limits" => model_limits(),
       "provenance" => %{"source" => source},
-      "assumptions" => %{
-        "resource_scope" => "ground_station_id_or_spacecraft_id",
-        "contention_rule" =>
-          "contacts_overlap_when_time_intervals_overlap_at_same_station_or_same_spacecraft_across_multiple_stations",
-        "duplicate_contact_identity" =>
-          "duplicate contact IDs are reported as ambiguous and do not receive deterministic resolution selections",
-        "invalid_contact_input" =>
-          "contact-like inputs missing required contention identity, station, or timing fields are blocked for operator review instead of being silently dropped",
-        "resolution" => "report_only_no_candidate_suppression"
-      }
+      "assumptions" =>
+        Map.merge(
+          %{
+            "resource_scope" => "ground_station_id_or_spacecraft_id",
+            "contention_rule" =>
+              "contacts_overlap_when_time_intervals_overlap_at_same_station_or_same_spacecraft_across_multiple_stations",
+            "duplicate_contact_identity" =>
+              "duplicate contact IDs are reported as ambiguous and do not receive deterministic resolution selections",
+            "invalid_contact_input" =>
+              "contact-like inputs missing required contention identity, station, or timing fields are blocked for operator review instead of being silently dropped",
+            "resolution" => "report_only_no_candidate_suppression"
+          },
+          capability_assumptions()
+        )
     }
   end
 

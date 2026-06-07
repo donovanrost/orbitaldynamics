@@ -5,6 +5,7 @@ defmodule OrbitalDynamics.SchemaTest do
     CadenceImport,
     CampaignPlanner,
     Communications.ContactAllocation,
+    Communications.ContactContention,
     Communications.ContactFilter,
     Communications.LinkCapacity,
     Communications.StationCalendar,
@@ -666,7 +667,24 @@ defmodule OrbitalDynamics.SchemaTest do
     assert {:ok, %{"schema_contract" => "contact_contention_report.v1"}} =
              Schema.validate_artifact(contention_report)
 
+    expected_contention_assumptions = contact_contention_report_capability_assumptions()
+
+    assert Map.take(
+             contention_report["assumptions"],
+             Map.keys(expected_contention_assumptions)
+           ) == expected_contention_assumptions
+
     assert {:ok, contention_schema} = Schema.json_schema("contact_contention_report.v1")
+
+    for {field, value} <- expected_contention_assumptions do
+      assert get_in(contention_schema, [
+               "properties",
+               "assumptions",
+               "properties",
+               field,
+               "const"
+             ]) == value
+    end
 
     assert get_in(contention_schema, ["properties", "model_limits", "items", "enum"]) == [
              "artifact_level_only",
@@ -32350,6 +32368,38 @@ defmodule OrbitalDynamics.SchemaTest do
       "contact_capacity_value_paths" =>
         json_capacity_value_paths(capabilities.contact_capacity_value_paths),
       "provider_direction_aliases" => capabilities.provider_direction_aliases
+    }
+  end
+
+  defp contact_contention_report_capability_assumptions do
+    capabilities = ContactContention.capabilities()
+
+    %{
+      "contact_types" => capabilities.contact_types,
+      "contact_directions" => capabilities.contact_directions,
+      "row_review_statuses" => capabilities.row_review_statuses,
+      "station_unavailable_aliases" => capabilities.station_unavailable_aliases,
+      "station_availability_precedence" => capabilities.station_availability_precedence,
+      "station_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.station_capacity_value_paths),
+      "source_station_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.source_station_capacity_value_paths),
+      "required_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.required_capacity_value_paths),
+      "required_capacity_fraction_source_values" =>
+        capabilities.required_capacity_fraction_source_values,
+      "station_reservation_priority_match_statuses" =>
+        capabilities.station_reservation_priority_match_statuses,
+      "station_reservation_priority_statuses" =>
+        capabilities.station_reservation_priority_statuses,
+      "resolution_selection_rules" => capabilities.resolution_selection_rules,
+      "resolution_tie_breakers" => capabilities.resolution_tie_breakers,
+      "default_resolution_priority_fields" => capabilities.default_resolution_priority_fields,
+      "resolution_priority_override_aliases" => capabilities.resolution_priority_override_aliases,
+      "provider_direction_aliases" => capabilities.provider_direction_aliases,
+      "provider_result_map_value_keys" => capabilities.provider_result_map_value_keys,
+      "contact_stable_identity_fields" => capabilities.contact_stable_identity_fields,
+      "command_contact_directions" => capabilities.command_contact_directions
     }
   end
 

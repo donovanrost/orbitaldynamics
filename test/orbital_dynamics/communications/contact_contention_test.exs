@@ -557,8 +557,66 @@ defmodule OrbitalDynamics.Communications.ContactContentionTest do
 
     assert model_limits == expected_model_limits
 
+    expected_assumptions = contact_contention_report_capability_assumptions()
+
+    assert Map.take(report["assumptions"], Map.keys(expected_assumptions)) == expected_assumptions
+
     assert {:ok, %{"schema_contract" => "contact_contention_report.v1"}} =
              Schema.validate_artifact(report)
+
+    stale_assumptions = [
+      {"contact_types", ["downlink"], "must match ContactContention contact types"},
+      {"contact_directions", ["downlink"], "must match ContactContention contact directions"},
+      {"row_review_statuses", [], "must match ContactContention row review statuses"},
+      {"station_unavailable_aliases", ["offline"],
+       "must match ContactContention station unavailable aliases"},
+      {"station_availability_precedence", %{"available" => 99},
+       "must match ContactContention station availability precedence"},
+      {"station_capacity_value_paths", [],
+       "must match ContactContention station capacity value paths"},
+      {"source_station_capacity_value_paths", [],
+       "must match ContactContention source station capacity value paths"},
+      {"required_capacity_value_paths", [],
+       "must match ContactContention required capacity value paths"},
+      {"required_capacity_fraction_source_values", ["contact_required_capacity_fraction"],
+       "must match ContactContention required capacity fraction source values"},
+      {"station_reservation_priority_match_statuses", ["matched"],
+       "must match ContactContention station reservation priority match statuses"},
+      {"station_reservation_priority_statuses", ["reserved"],
+       "must match ContactContention station reservation priority statuses"},
+      {"resolution_selection_rules", ["highest_score_earliest_start"],
+       "must match ContactContention resolution selection rules"},
+      {"resolution_tie_breakers", ["ends_at_s"],
+       "must match ContactContention resolution tie breakers"},
+      {"default_resolution_priority_fields", ["priority"],
+       "must match ContactContention default resolution priority fields"},
+      {"resolution_priority_override_aliases", ["priority_overrides"],
+       "must match ContactContention resolution priority override aliases"},
+      {"provider_direction_aliases", %{"dl" => "command"},
+       "must match ContactContention provider direction aliases"},
+      {"provider_result_map_value_keys", ["result"],
+       "must match ContactContention provider result map value keys"},
+      {"contact_stable_identity_fields", ["scenario_id"],
+       "must match ContactContention contact stable identity fields"},
+      {"command_contact_directions", ["command"],
+       "must match ContactContention command contact directions"}
+    ]
+
+    for {field, value, message} <- stale_assumptions do
+      stale_report = put_in(report, ["assumptions", field], value)
+
+      assert {:error, stale_validation_report} = Schema.validate_artifact(stale_report)
+
+      assert Enum.any?(
+               stale_validation_report["errors"],
+               &(&1["path"] == "$.assumptions.#{field}" and &1["message"] == message)
+             )
+    end
+
+    compatible_report = drop_contact_contention_report_capability_assumptions(report)
+
+    assert {:ok, %{"schema_contract" => "contact_contention_report.v1"}} =
+             Schema.validate_artifact(compatible_report)
 
     assert {:ok, contact_contention_report_schema} =
              Schema.json_schema("contact_contention_report.v1")
@@ -4169,6 +4227,52 @@ defmodule OrbitalDynamics.Communications.ContactContentionTest do
                }
              ]
            } = report
+  end
+
+  defp contact_contention_report_capability_assumptions do
+    capabilities = ContactContention.capabilities()
+
+    %{
+      "contact_types" => capabilities.contact_types,
+      "contact_directions" => capabilities.contact_directions,
+      "row_review_statuses" => capabilities.row_review_statuses,
+      "station_unavailable_aliases" => capabilities.station_unavailable_aliases,
+      "station_availability_precedence" => capabilities.station_availability_precedence,
+      "station_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.station_capacity_value_paths),
+      "source_station_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.source_station_capacity_value_paths),
+      "required_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.required_capacity_value_paths),
+      "required_capacity_fraction_source_values" =>
+        capabilities.required_capacity_fraction_source_values,
+      "station_reservation_priority_match_statuses" =>
+        capabilities.station_reservation_priority_match_statuses,
+      "station_reservation_priority_statuses" =>
+        capabilities.station_reservation_priority_statuses,
+      "resolution_selection_rules" => capabilities.resolution_selection_rules,
+      "resolution_tie_breakers" => capabilities.resolution_tie_breakers,
+      "default_resolution_priority_fields" => capabilities.default_resolution_priority_fields,
+      "resolution_priority_override_aliases" => capabilities.resolution_priority_override_aliases,
+      "provider_direction_aliases" => capabilities.provider_direction_aliases,
+      "provider_result_map_value_keys" => capabilities.provider_result_map_value_keys,
+      "contact_stable_identity_fields" => capabilities.contact_stable_identity_fields,
+      "command_contact_directions" => capabilities.command_contact_directions
+    }
+  end
+
+  defp json_capacity_value_paths(paths) do
+    Enum.map(paths, fn %{unit: unit, path: path} ->
+      %{"unit" => Atom.to_string(unit), "path" => path}
+    end)
+  end
+
+  defp drop_contact_contention_report_capability_assumptions(report) do
+    update_in(
+      report,
+      ["assumptions"],
+      &Map.drop(&1, Map.keys(contact_contention_report_capability_assumptions()))
+    )
   end
 
   defp contact_contention_identity_projection(contacts) do
