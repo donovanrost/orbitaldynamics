@@ -2493,6 +2493,18 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
 
     summary = ContactAllocation.provider_reservation_request_summary(report)
 
+    expected_capability_assumptions =
+      contact_allocation_provider_reservation_request_capability_assumptions()
+
+    expected_provider_reservation_request_statuses =
+      expected_capability_assumptions["provider_reservation_request_statuses"]
+
+    expected_station_reservation_match_statuses =
+      expected_capability_assumptions["station_reservation_match_statuses"]
+
+    expected_provider_direction_aliases =
+      expected_capability_assumptions["provider_direction_aliases"]
+
     assert %{
              "schema_contract" => "contact_allocation_provider_reservation_request_summary.v1",
              "model" => "artifact_only_contact_allocation_provider_reservation_request_summary",
@@ -2547,7 +2559,12 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
                  "artifact_only_no_provider_reservation_or_schedule_mutation",
                "source" => "contact_allocation_report.v1",
                "provider_reservation_execution" => "not_performed_by_summary",
-               "operator_authority" => "not_granted_by_provider_reservation_request_summary"
+               "operator_authority" => "not_granted_by_provider_reservation_request_summary",
+               "provider_reservation_request_statuses" =>
+                 ^expected_provider_reservation_request_statuses,
+               "station_reservation_match_statuses" =>
+                 ^expected_station_reservation_match_statuses,
+               "provider_direction_aliases" => ^expected_provider_direction_aliases
              }
            } = summary
 
@@ -2585,6 +2602,57 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              "items",
              "enum"
            ]) == provider_reservation_request_model_limits
+
+    assert get_in(provider_reservation_request_schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "provider_reservation_request_statuses",
+             "const"
+           ]) == expected_capability_assumptions["provider_reservation_request_statuses"]
+
+    assert get_in(provider_reservation_request_schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "station_reservation_match_statuses",
+             "const"
+           ]) == expected_capability_assumptions["station_reservation_match_statuses"]
+
+    assert get_in(provider_reservation_request_schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "provider_direction_aliases",
+             "const"
+           ]) == expected_capability_assumptions["provider_direction_aliases"]
+
+    for {field, stale_value, message} <- [
+          {"provider_reservation_request_statuses", ["stale_request_status"],
+           "must match ContactAllocation provider reservation request statuses"},
+          {"station_reservation_match_statuses", ["stale_match_status"],
+           "must match ContactAllocation station reservation match statuses"},
+          {"provider_direction_aliases", %{"dl" => "command"},
+           "must match ContactAllocation provider direction aliases"}
+        ] do
+      stale_provider_request_assumption =
+        put_in(summary, ["assumptions", field], stale_value)
+
+      assert {:error, stale_provider_request_assumption_errors} =
+               Schema.validate_artifact(stale_provider_request_assumption)
+
+      assert Enum.any?(
+               stale_provider_request_assumption_errors["errors"],
+               &(&1["path"] == "$.assumptions.#{field}" and &1["message"] == message)
+             )
+    end
+
+    summary_without_optional_capability_assumptions =
+      drop_contact_allocation_provider_reservation_request_capability_assumptions(summary)
+
+    assert {:ok,
+            %{"schema_contract" => "contact_allocation_provider_reservation_request_summary.v1"}} =
+             Schema.validate_artifact(summary_without_optional_capability_assumptions)
 
     stale_request_model =
       Map.put(
@@ -8065,6 +8133,27 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
         "required_capacity_fraction_source_values",
         "required_capacity_value_paths",
         "default_required_capacity_value_paths"
+      ])
+    end)
+  end
+
+  defp contact_allocation_provider_reservation_request_capability_assumptions do
+    capabilities = ContactAllocation.capabilities()
+
+    %{
+      "provider_reservation_request_statuses" =>
+        capabilities.provider_reservation_request_statuses,
+      "station_reservation_match_statuses" => capabilities.station_reservation_match_statuses,
+      "provider_direction_aliases" => capabilities.provider_direction_aliases
+    }
+  end
+
+  defp drop_contact_allocation_provider_reservation_request_capability_assumptions(artifact) do
+    update_in(artifact, ["assumptions"], fn assumptions ->
+      Map.drop(assumptions, [
+        "provider_reservation_request_statuses",
+        "station_reservation_match_statuses",
+        "provider_direction_aliases"
       ])
     end)
   end

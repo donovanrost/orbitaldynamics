@@ -195,6 +195,10 @@ that omit it.
 It also advertises the reservation match, reservation-conflict, and
 reservation-expiration status vocabularies used by reservation-conflict
 summaries, keeping that routing artifact-only rather than provider authority.
+Provider-reservation request summaries carry the capability-declared
+request-status vocabulary, station-reservation match statuses, and provider
+direction aliases in optional assumptions so adapter handoffs can validate
+stale present metadata without rejecting older summaries that omit it.
 Summaries do not reserve provider time, mutate schedules, or approve contacts.
 Station-reservation summaries now publish validated
 `station_reservation_report.v1` artifacts for affected reservation overlaps and

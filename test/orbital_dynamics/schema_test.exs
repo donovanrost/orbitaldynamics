@@ -20823,6 +20823,18 @@ defmodule OrbitalDynamics.SchemaTest do
         source: "validation.provider_reservation_request_summary"
       )
 
+    expected_capability_assumptions =
+      contact_allocation_provider_reservation_request_capability_assumptions()
+
+    expected_provider_reservation_request_statuses =
+      expected_capability_assumptions["provider_reservation_request_statuses"]
+
+    expected_station_reservation_match_statuses =
+      expected_capability_assumptions["station_reservation_match_statuses"]
+
+    expected_provider_direction_aliases =
+      expected_capability_assumptions["provider_direction_aliases"]
+
     assert generated_summary == summary
 
     assert {:ok,
@@ -20863,10 +20875,43 @@ defmodule OrbitalDynamics.SchemaTest do
              "assumptions" => %{
                "execution_boundary" =>
                  "artifact_only_no_provider_reservation_or_schedule_mutation",
+               "source" => "contact_allocation_report.v1",
                "provider_reservation_execution" => "not_performed_by_summary",
-               "operator_authority" => "not_granted_by_provider_reservation_request_summary"
+               "operator_authority" => "not_granted_by_provider_reservation_request_summary",
+               "provider_reservation_request_statuses" =>
+                 ^expected_provider_reservation_request_statuses,
+               "station_reservation_match_statuses" =>
+                 ^expected_station_reservation_match_statuses,
+               "provider_direction_aliases" => ^expected_provider_direction_aliases
              }
            } = summary
+
+    assert {:ok, schema} =
+             Schema.json_schema("contact_allocation_provider_reservation_request_summary.v1")
+
+    assert get_in(schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "provider_reservation_request_statuses",
+             "const"
+           ]) == expected_capability_assumptions["provider_reservation_request_statuses"]
+
+    assert get_in(schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "station_reservation_match_statuses",
+             "const"
+           ]) == expected_capability_assumptions["station_reservation_match_statuses"]
+
+    assert get_in(schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "provider_direction_aliases",
+             "const"
+           ]) == expected_capability_assumptions["provider_direction_aliases"]
   end
 
   test "exports stable-id hints for standalone artifact identity fields" do
@@ -32138,6 +32183,17 @@ defmodule OrbitalDynamics.SchemaTest do
     Enum.map(paths, fn %{unit: unit, path: path} ->
       %{"unit" => Atom.to_string(unit), "path" => path}
     end)
+  end
+
+  defp contact_allocation_provider_reservation_request_capability_assumptions do
+    capabilities = ContactAllocation.capabilities()
+
+    %{
+      "provider_reservation_request_statuses" =>
+        capabilities.provider_reservation_request_statuses,
+      "station_reservation_match_statuses" => capabilities.station_reservation_match_statuses,
+      "provider_direction_aliases" => capabilities.provider_direction_aliases
+    }
   end
 
   defp opaque_identity_property_paths(schema) do

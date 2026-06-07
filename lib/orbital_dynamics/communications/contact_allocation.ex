@@ -412,6 +412,14 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     }
   end
 
+  defp provider_reservation_request_capability_assumptions do
+    %{
+      "provider_reservation_request_statuses" => @provider_reservation_request_statuses,
+      "station_reservation_match_statuses" => @station_reservation_match_statuses,
+      "provider_direction_aliases" => @provider_direction_aliases
+    }
+  end
+
   @doc """
   Allocates contact candidates into deterministic planning rows.
 
@@ -1588,12 +1596,16 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
       "rows" => rows,
       "provider_reservation_request_rows" => request_rows,
       "provider_reservation_review_rows" => review_rows,
-      "assumptions" => %{
-        "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
-        "source" => "contact_allocation_report.v1",
-        "provider_reservation_execution" => "not_performed_by_summary",
-        "operator_authority" => "not_granted_by_provider_reservation_request_summary"
-      }
+      "assumptions" =>
+        Map.merge(
+          %{
+            "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
+            "source" => "contact_allocation_report.v1",
+            "provider_reservation_execution" => "not_performed_by_summary",
+            "operator_authority" => "not_granted_by_provider_reservation_request_summary"
+          },
+          provider_reservation_request_capability_assumptions()
+        )
     }
     |> compact_map()
   end

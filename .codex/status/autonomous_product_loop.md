@@ -5,10 +5,10 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Contact allocation capacity-pack summary capability assumptions.
+Contact allocation provider-reservation request capability assumptions.
 
 Status:
-Implemented, verified, reviewed, committed, and pushed.
+Implemented, verified, reviewed, ready to commit and push.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -16,75 +16,75 @@ Files changed:
 - `lib/orbital_dynamics/schema.ex`
 - `test/orbital_dynamics/communications/contact_allocation_test.exs`
 - `test/orbital_dynamics/schema_test.exs`
-- `schemas/contact_allocation_capacity_pack_summary.v1.schema.json`
+- `schemas/contact_allocation_provider_reservation_request_summary.v1.schema.json`
 - `schemas/orbital_dynamics.schema_bundle.v1.json`
-- `study_results/contact_allocation_capacity_pack_summary_v1.json`
+- `study_results/contact_allocation_provider_reservation_request_summary_v1.json`
 - `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
 - `docs/mission_planning/high_fidelity/06_operational_concerns.md`
 
 Slice-selection note:
 Selected slice:
-Emit and validate `ContactAllocation.capabilities/0` capacity-pack vocabulary
-metadata inside `contact_allocation_capacity_pack_summary.v1` assumptions.
+Emit and validate `ContactAllocation.capabilities/0` provider-reservation
+request vocabulary metadata inside
+`contact_allocation_provider_reservation_request_summary.v1` assumptions.
 
 Why this slice:
-The capacity-pack summary is the public artifact handoff for reduced station
-capacity routing, but its assumptions only carried generic execution/source/
-operator bounds. The capability metadata already advertises the row status
-vocabularies and capacity requirement source vocabulary used to derive those
-routes. Carrying those values in the artifact gives Cadence adapters and
-fixture validators a machine-checkable contract without a separate capability
-lookup.
+The provider-reservation request summary exposes request-ready/review/no-request
+routing, match-status routing, and direction routing for downstream adapter
+handoffs. `ContactAllocation.capabilities/0` already advertises the provider
+reservation request status vocabulary, station-reservation match statuses, and
+provider direction aliases used by that routing, but the summary assumptions did
+not carry the exact machine-checkable contract.
 
 Level 6 pillar advanced:
 Durable schema-versioned communications artifacts and Cadence-facing allocation
 handoff fidelity.
 
 Implementation notes:
-- `ContactAllocation.capacity_pack_summary/1` now emits capability-derived
-  `capacity_pack_statuses`, `reduced_capacity_pack_statuses`,
-  `required_capacity_fraction_source_values`, `required_capacity_value_paths`,
-  and `default_required_capacity_value_paths` inside `assumptions`.
+- `ContactAllocation.provider_reservation_request_summary/1` now emits
+  capability-derived `provider_reservation_request_statuses`,
+  `station_reservation_match_statuses`, and `provider_direction_aliases` inside
+  `assumptions`.
 - `Schema.json_schema/1` exports optional exact `const` values for those
-  assumption fields on `contact_allocation_capacity_pack_summary.v1`.
+  assumption fields on
+  `contact_allocation_provider_reservation_request_summary.v1`.
 - `Schema.validate_artifact/1` rejects stale present values while preserving
   older artifacts that omit the optional metadata.
-- The checked-in capacity-pack summary fixture and exported schema bundle were
-  refreshed.
+- The checked-in provider-reservation request summary fixture and schema bundle
+  were refreshed.
 
 Tests run:
 - `mix format lib/orbital_dynamics/communications/contact_allocation.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/communications/contact_allocation_test.exs test/orbital_dynamics/schema_test.exs`
 - `mix test test/orbital_dynamics/communications/contact_allocation_test.exs`
-- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs:7339 test/orbital_dynamics/schema_test.exs:20541 test/mix/tasks/orbital_dynamics.schema.export_test.exs:2644`
+- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs:2448 test/orbital_dynamics/schema_test.exs:20747 test/mix/tasks/orbital_dynamics.schema.export_test.exs:2644`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 
 Review:
-- Read-only reviewer Dalton found no blockers.
-- Dalton confirmed the assumptions are additive, schema consts derive from
+- Read-only reviewer Sagan found no blockers.
+- Sagan confirmed the assumptions are additive, schema consts derive from
   `ContactAllocation.capabilities/0`, stale present values are rejected, omitted
   optional fields remain valid, and provider/schedule authority is unchanged.
-- Reviewer-noted optional-field stale coverage was expanded to all new
-  capability assumption fields.
+- Reviewer-noted schema-const coverage was expanded for
+  `station_reservation_match_statuses`.
 
 Docs/artifacts changed:
-- Refreshed `contact_allocation_capacity_pack_summary.v1` schema and the schema
-  bundle.
-- Refreshed `study_results/contact_allocation_capacity_pack_summary_v1.json`.
+- Refreshed `contact_allocation_provider_reservation_request_summary.v1` schema
+  and the schema bundle.
+- Refreshed
+  `study_results/contact_allocation_provider_reservation_request_summary_v1.json`.
 - Updated contact-allocation and operational-concerns docs to describe
-  artifact-carried capacity-pack vocabulary assumptions.
+  artifact-carried provider-request vocabulary assumptions.
 
 Remaining maturity gaps:
 - Contact allocation remains artifact-only and does not reserve provider time,
   mutate schedules, approve contacts, or add a link-budget model.
-- Reservation-conflict and provider-reservation request summaries have adjacent
-  vocabularies that may merit artifact-carried assumptions in later slices.
+- Reservation-conflict summary vocabularies remain a candidate for a later
+  artifact-carried assumption slice.
 
 Last commit:
-`f5d02e6a7f00da80f4149fcf7331b3eef4fed78d` pushed to `origin/main` for
-Contact allocation capacity-pack summary capability assumptions. Handoff commit
-`a46ea8327aa2999d399e1b24c49e02eaad954dab` is also pushed.
+Pending.
 
 Next candidate:
 After review/publish, continue from the live guide/status and prefer another
