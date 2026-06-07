@@ -8,7 +8,7 @@ Current slice:
 Subsystem model capability contract foothold.
 
 Status:
-Implemented, verified, and reviewed; ready to commit and push.
+Implemented, verified, reviewed, committed, and pushed.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -99,8 +99,8 @@ Remaining maturity gaps:
   future work.
 
 Last commit:
-`041941434729f42b529427ab80d50f796d709134` pushed to `origin/main` for the
-previous Timeline publication generated-ID identity-policy scope.
+`0dedd1f44b348522078486ca24f9a07475ff770f` pushed to `origin/main` for
+Subsystem model capability contract foothold.
 
 Next candidate:
 After this slice, continue from the live guide/status and prefer another narrow
