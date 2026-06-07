@@ -5,6 +5,7 @@ defmodule OrbitalDynamics.SchemaTest do
     CadenceImport,
     CampaignPlanner,
     Communications.ContactAllocation,
+    Communications.LinkCapacity,
     Communications.StationCalendar,
     Epoch,
     OperatorReview,
@@ -1153,6 +1154,109 @@ defmodule OrbitalDynamics.SchemaTest do
              "no_schedule_mutation",
              "station_availability_is_declared_or_not_evaluated"
            ]
+  end
+
+  test "validates checked-in link capacity summary fixture" do
+    summary = read_json!("study_results/link_capacity_summary_v1.json")
+
+    contacts = [
+      %{
+        id: :science_downlink,
+        type: :downlink,
+        scenario_id: :leo_1,
+        ground_station_id: :equator_prime,
+        planned_data_volume_mb: 120.0
+      }
+    ]
+
+    selected_contacts = [
+      %{
+        id: :science_downlink,
+        type: :downlink,
+        ground_station_id: :equator_prime,
+        actual_data_volume_mb: 90.0
+      }
+    ]
+
+    generated_summary =
+      OrbitalDynamics.link_capacity_summary(
+        contacts,
+        selected_contacts,
+        policy: %{required_downlink_mb_by_ground_station: %{equator_prime: 100.0}},
+        source: "validation.link_capacity_summary"
+      )
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "link_capacity_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "source_artifact_type" => "link_capacity_report.v1",
+             "source" => "validation.link_capacity_summary",
+             "station_count" => 1,
+             "contact_count" => 1,
+             "effective_contact_count" => 1,
+             "ignored_contact_count" => 0,
+             "selected_contact_count" => 1,
+             "ignored_selected_contact_count" => 0,
+             "required_downlink_contact_count" => 0,
+             "actual_throughput_contact_count" => 1,
+             "actual_completion_contact_count" => 0,
+             "invalid_contact_input_count" => 0,
+             "invalid_selected_contact_input_count" => 0,
+             "invalid_policy_required_downlink_station_count" => 0,
+             "downlink_requirement_status" => "satisfied",
+             "actual_downlink_requirement_status" => "shortfall",
+             "selected_downlink_shortfall_mb" => +0.0,
+             "actual_downlink_shortfall_mb" => 10.0,
+             "capacity_adjusted_throughput_mb" => 120.0,
+             "selected_capacity_adjusted_throughput_mb" => 120.0,
+             "unused_capacity_adjusted_throughput_mb" => +0.0,
+             "contact_ids" => ["science_downlink"],
+             "selected_contact_ids" => ["science_downlink"],
+             "ignored_contact_ids" => [],
+             "ignored_selected_contact_ids" => [],
+             "required_downlink_contact_ids" => [],
+             "actual_throughput_contact_ids" => ["science_downlink"],
+             "actual_completion_contact_ids" => [],
+             "ground_station_ids" => ["equator_prime"],
+             "shortfall_ground_station_ids" => [],
+             "actual_shortfall_ground_station_ids" => ["equator_prime"],
+             "selected_downlink_shortfall_mb_by_ground_station_id" => %{
+               "equator_prime" => +0.0
+             },
+             "actual_downlink_shortfall_mb_by_ground_station_id" => %{
+               "equator_prime" => 10.0
+             },
+             "selected_contact_ids_by_ground_station_id" => %{
+               "equator_prime" => ["science_downlink"]
+             },
+             "capacity_adjusted_throughput_mb_by_ground_station_id" => %{
+               "equator_prime" => 120.0
+             },
+             "selected_capacity_adjusted_throughput_mb_by_ground_station_id" => %{
+               "equator_prime" => 120.0
+             },
+             "unused_capacity_adjusted_throughput_mb_by_ground_station_id" => %{
+               "equator_prime" => +0.0
+             },
+             "actual_throughput_contact_ids_by_ground_station_id" => %{
+               "equator_prime" => ["science_downlink"]
+             },
+             "actual_completion_contact_ids_by_ground_station_id" => %{},
+             "assumptions" => %{
+               "execution_boundary" =>
+                 "artifact_only_no_provider_reservation_or_schedule_mutation",
+               "operator_authority" => "not_granted_by_summary",
+               "source" => "link_capacity_report.v1"
+             }
+           } = summary
+
+    assert summary["model_limits"] ==
+             LinkCapacity.capabilities()
+             |> Map.fetch!(:known_limits)
+             |> Enum.map(&to_string/1)
   end
 
   test "validates checked-in station reservation review summary fixture" do

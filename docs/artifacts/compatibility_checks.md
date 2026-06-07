@@ -1116,6 +1116,12 @@ constant, string source boundary, and exact `model_limits` as generated
 reports. Link-capacity summary validation rejects stale summary model strings
 and stale generated `model_limits`, and schema export pins the artifact-only
 summary model plus exact `model_limits` used by generated handoffs.
+`study_results/link_capacity_summary_v1.json` now feeds a curated
+`link_capacity_summary.v1` validation-reference fixture. The observations check
+station/contact/effective/selected/actual-throughput counts, selected and
+actual shortfall status, throughput totals, station/contact routing maps, model
+limits, and artifact-only no-provider-reservation/no-schedule-mutation
+assumptions.
 `study_results/relay_data_path_summary_v1.json` is observed for relay/direct
 route counts, custody/latency/risk status maps, route IDs, source/relay/station
 ID sets, status-routed route ID maps, latency maxima, model-limit boundaries,
