@@ -207,6 +207,9 @@ checks.
 Validation fixture report evidence is classified from nested fixture report
 statuses when they are present, so a stale top-level fixture-rollup `pass`
 cannot make failed fixture evidence appear accepted in a safety-case handoff.
+Model-acceptance evidence is also classified from model rows when they are
+present, deriving status counts and model-ID routing maps from the rows before
+trusting stale top-level accepted/review/blocked aggregates.
 Candidate-refresh validation-safety-case replay summaries use those evidence
 rows to derive source-report evidence status maps when rows are present, so
 stale top-level `evidence_status_counts` fields cannot steer review/blocking

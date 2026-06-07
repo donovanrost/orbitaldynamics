@@ -715,6 +715,8 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert :validation_safety_case_model_count_rollups in capabilities.safety_case_evidence_semantics
 
+    assert :validation_safety_case_model_acceptance_row_status_floor in capabilities.safety_case_evidence_semantics
+
     assert :validation_safety_case_readiness_count_rollups in capabilities.safety_case_evidence_semantics
 
     assert :validation_safety_case_quality_gate_count_rollups in capabilities.safety_case_evidence_semantics
@@ -728,6 +730,73 @@ defmodule OrbitalDynamics.ValidationTest do
     assert :validation_safety_case_fixture_nested_status_floor in capabilities.safety_case_evidence_semantics
 
     assert :validation_safety_case_review_import_handoff_evidence in capabilities.safety_case_evidence_semantics
+  end
+
+  test "derives safety-case model-acceptance evidence from rows when top-level counts are stale" do
+    stale_top_level_model_acceptance = %{
+      "schema_contract" => "model_acceptance_report.v1",
+      "report_id" => "model_acceptance:operational_import:stale_top_level",
+      "intended_use" => "operational_import",
+      "status" => "accepted_for_use",
+      "accepted_count" => 3,
+      "review_required_count" => 0,
+      "blocked_count" => 0,
+      "unknown_model_count" => 0,
+      "status_counts" => %{"accepted" => 3},
+      "model_ids_by_status" => %{
+        "accepted" => ["model.accepted", "model.review", "model.blocked"]
+      },
+      "model_ids_by_validation_level" => %{"artifact_contract" => ["model.accepted"]},
+      "model_ids_by_intended_use" => %{
+        "operational_import" => ["model.accepted", "model.review", "model.blocked"]
+      },
+      "rows" => [
+        %{
+          "model_id" => "model.review",
+          "status" => "review_required",
+          "validation_level" => "analysis"
+        },
+        %{
+          "model_id" => "model.blocked",
+          "status" => "blocked",
+          "validation_level" => "unknown"
+        }
+      ]
+    }
+
+    assert %{
+             "status" => "blocked",
+             "model_accepted_count" => 0,
+             "model_review_required_count" => 1,
+             "model_blocked_count" => 1,
+             "unknown_model_count" => 1,
+             "evidence_status_counts" => %{"blocked" => 1},
+             "evidence" => [
+               %{
+                 "schema_contract" => "model_acceptance_report.v1",
+                 "status" => "blocked",
+                 "status_counts" => %{"blocked" => 1, "review_required" => 1},
+                 "model_ids_by_status" => %{
+                   "blocked" => ["model.blocked"],
+                   "review_required" => ["model.review"]
+                 },
+                 "model_ids_by_validation_level" => %{
+                   "analysis" => ["model.review"],
+                   "unknown" => ["model.blocked"]
+                 },
+                 "model_ids_by_intended_use" => %{
+                   "operational_import" => ["model.review", "model.blocked"]
+                 }
+               }
+             ]
+           } =
+             safety_case_summary =
+             Validation.safety_case_summary(stale_top_level_model_acceptance)
+
+    assert {:ok, %{"schema_contract" => "validation_safety_case_summary.v1"}} =
+             Schema.validate_artifact(safety_case_summary,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
   end
 
   test "discovers nested schema-validation batch evidence in safety-case inputs" do

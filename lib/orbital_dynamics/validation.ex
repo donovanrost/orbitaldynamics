@@ -9717,6 +9717,7 @@ defmodule OrbitalDynamics.Validation do
       ],
       safety_case_evidence_semantics: [
         :validation_safety_case_model_count_rollups,
+        :validation_safety_case_model_acceptance_row_status_floor,
         :validation_safety_case_readiness_count_rollups,
         :validation_safety_case_quality_gate_count_rollups,
         :validation_safety_case_schema_validation_count_rollups,
@@ -10503,19 +10504,33 @@ defmodule OrbitalDynamics.Validation do
   defp safety_case_handoff_row_inputs(_row), do: []
 
   defp safety_case_evidence_row(%{"schema_contract" => "model_acceptance_report.v1"} = report) do
+    rows = map_rows(report, "rows")
+    intended_use = Map.get(report, "intended_use")
+
     %{
       "schema_contract" => "model_acceptance_report.v1",
-      "status" => safety_case_model_acceptance_status(report),
+      "status" => safety_case_model_acceptance_status(report, rows),
       "report_id" => Map.get(report, "report_id"),
-      "intended_use" => Map.get(report, "intended_use"),
-      "model_accepted_count" => numeric_count(report, "accepted_count"),
-      "model_review_required_count" => numeric_count(report, "review_required_count"),
-      "model_blocked_count" => numeric_count(report, "blocked_count"),
-      "unknown_model_count" => numeric_count(report, "unknown_model_count"),
-      "status_counts" => Map.get(report, "status_counts"),
-      "model_ids_by_status" => Map.get(report, "model_ids_by_status"),
-      "model_ids_by_validation_level" => Map.get(report, "model_ids_by_validation_level"),
-      "model_ids_by_intended_use" => Map.get(report, "model_ids_by_intended_use")
+      "intended_use" => intended_use,
+      "model_accepted_count" =>
+        model_acceptance_row_count_or_report_count(rows, report, "accepted", "accepted_count"),
+      "model_review_required_count" =>
+        model_acceptance_row_count_or_report_count(
+          rows,
+          report,
+          "review_required",
+          "review_required_count"
+        ),
+      "model_blocked_count" =>
+        model_acceptance_row_count_or_report_count(rows, report, "blocked", "blocked_count"),
+      "unknown_model_count" => model_acceptance_unknown_count_or_report_count(rows, report),
+      "status_counts" => model_acceptance_rows_or_report_value(rows, report, "status_counts"),
+      "model_ids_by_status" =>
+        model_acceptance_rows_or_report_value(rows, report, "model_ids_by_status"),
+      "model_ids_by_validation_level" =>
+        model_acceptance_rows_or_report_value(rows, report, "model_ids_by_validation_level"),
+      "model_ids_by_intended_use" =>
+        model_acceptance_rows_or_report_value(rows, report, "model_ids_by_intended_use")
     }
     |> compact_validation_map()
   end
@@ -10669,12 +10684,67 @@ defmodule OrbitalDynamics.Validation do
     "validation_safety_case:#{normalize_safety_case_evidence_ref_part(identity)}"
   end
 
-  defp safety_case_model_acceptance_status(%{"status" => "blocked"}), do: "blocked"
+  defp safety_case_model_acceptance_status(_report, rows) when is_list(rows) and rows != [] do
+    cond do
+      model_acceptance_status_count(rows, "blocked") > 0 -> "blocked"
+      model_acceptance_status_count(rows, "review_required") > 0 -> "review_required"
+      true -> "accepted_for_use"
+    end
+  end
 
-  defp safety_case_model_acceptance_status(%{"status" => "review_required"}),
+  defp safety_case_model_acceptance_status(%{"status" => "blocked"}, _rows), do: "blocked"
+
+  defp safety_case_model_acceptance_status(%{"status" => "review_required"}, _rows),
     do: "review_required"
 
-  defp safety_case_model_acceptance_status(_report), do: "accepted_for_use"
+  defp safety_case_model_acceptance_status(_report, _rows), do: "accepted_for_use"
+
+  defp model_acceptance_row_count_or_report_count(rows, _report, status, _field)
+       when is_list(rows) and rows != [] do
+    model_acceptance_status_count(rows, status)
+  end
+
+  defp model_acceptance_row_count_or_report_count(_rows, report, _status, field) do
+    numeric_count(report, field)
+  end
+
+  defp model_acceptance_unknown_count_or_report_count(rows, _report)
+       when is_list(rows) and rows != [] do
+    Enum.count(rows, &(Map.get(&1, "validation_level") == "unknown"))
+  end
+
+  defp model_acceptance_unknown_count_or_report_count(_rows, report) do
+    numeric_count(report, "unknown_model_count")
+  end
+
+  defp model_acceptance_rows_or_report_value(rows, _report, "status_counts")
+       when is_list(rows) and rows != [] do
+    model_acceptance_status_counts(rows)
+  end
+
+  defp model_acceptance_rows_or_report_value(rows, _report, "model_ids_by_status")
+       when is_list(rows) and rows != [] do
+    model_acceptance_model_ids_by(rows, "status")
+  end
+
+  defp model_acceptance_rows_or_report_value(rows, _report, "model_ids_by_validation_level")
+       when is_list(rows) and rows != [] do
+    model_acceptance_model_ids_by(rows, "validation_level")
+  end
+
+  defp model_acceptance_rows_or_report_value(rows, report, "model_ids_by_intended_use")
+       when is_list(rows) and rows != [] do
+    intended_use = Map.get(report, "intended_use") || "unknown"
+
+    %{
+      to_string(intended_use) =>
+        rows |> Enum.map(&Map.get(&1, "model_id")) |> Enum.reject(&is_nil/1)
+    }
+  end
+
+  defp model_acceptance_rows_or_report_value(_rows, report, field) do
+    Map.get(report, field)
+  end
 
   defp safety_case_readiness_status(%{"status" => status}) when status in ["blocked", "fail"],
     do: "blocked"

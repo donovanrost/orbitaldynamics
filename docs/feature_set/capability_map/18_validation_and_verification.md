@@ -257,6 +257,9 @@ Status: **implemented**.
 
 **Blocking and discovery behavior.**
 
+- Safety-case model-acceptance evidence now derives status, status-count, and
+  model-ID routing maps from model rows when they are present, even when stale
+  top-level model-acceptance fields claim accepted use.
 - Safety-case schema-validation batch evidence now treats failed/error nested reports as blocking, even when stale top-level batch status/count fields claim pass.
 - Safety-case validation-fixture evidence now treats failed nested fixture
   reports as blocking, even when stale top-level fixture-rollup status/count
