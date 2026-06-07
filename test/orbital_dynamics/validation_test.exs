@@ -4127,6 +4127,89 @@ defmodule OrbitalDynamics.ValidationTest do
              Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
   end
 
+  test "verifies candidate refresh timeline lifecycle state replay fixtures" do
+    fixture_id = "fixture.artifact.candidate_refresh.timeline_lifecycle_state_replay"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = candidate_refresh_timeline_lifecycle_state_fixture()
+    observations = candidate_refresh_timeline_lifecycle_state_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "source_report_family_count" => 1,
+             "source_report_row_count" => 4,
+             "source_timeline_lifecycle_state_report_count" => 1,
+             "source_timeline_lifecycle_state_row_count" => 4,
+             "source_timeline_lifecycle_state_planned_activity_count" => 5,
+             "source_timeline_lifecycle_state_realized_activity_count" => 3,
+             "source_timeline_lifecycle_state_recordable_count" => 1,
+             "source_timeline_lifecycle_state_preserved_count" => 1,
+             "source_timeline_lifecycle_state_review_required_count" => 2,
+             "source_timeline_lifecycle_state_duplicate_timeline_identity_count" => 1,
+             "source_timeline_lifecycle_state_invalid_activity_input_count" => 0,
+             "source_timeline_lifecycle_state_transition_decision_counts" => %{
+               "none" => 1,
+               "record" => 1,
+               "review" => 2
+             },
+             "source_timeline_lifecycle_state_required_operator_action_counts" => %{
+               "none" => 1,
+               "record_timeline_change" => 1,
+               "review_activity_approval" => 1,
+               "review_duplicate_timeline_identity" => 1
+             },
+             "source_timeline_lifecycle_state_import_action_counts" => %{
+               "import_replacement_activity" => 1,
+               "record_preserved_activity" => 1,
+               "review_timeline_diff" => 2
+             },
+             "source_timeline_lifecycle_state_preserved_timeline_keys" => "timeline:done_keep",
+             "source_timeline_lifecycle_state_review_timeline_keys" =>
+               "timeline:cmd_provider|timeline:dup",
+             "source_timeline_lifecycle_state_review_activity_keys" => "cmd_provider|dup_a|dup_b",
+             "source_timeline_lifecycle_state_review_timeline_ids_by_required_operator_action" =>
+               %{
+                 "review_activity_approval" => ["timeline:cmd_provider"],
+                 "review_duplicate_timeline_identity" => ["timeline:dup"]
+               },
+             "source_timeline_lifecycle_state_trust_boundary_status" => "declared"
+           } = observations
+
+    stale_review_observations =
+      observations
+      |> put_in(
+        [
+          "source_timeline_lifecycle_state_review_timeline_ids_by_required_operator_action",
+          "review_activity_approval"
+        ],
+        ["timeline:stale_review"]
+      )
+
+    assert {:ok, stale_review_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_review_observations)
+
+    assert stale_review_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_review_verification["checks"],
+             &(&1["field"] ==
+                 "source_timeline_lifecycle_state_review_timeline_ids_by_required_operator_action" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _validated_artifact} =
+             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
+  end
+
   test "verifies candidate refresh timeline transition application replay fixtures" do
     fixture_id = "fixture.artifact.candidate_refresh.timeline_transition_application_replay"
 
@@ -11404,6 +11487,8 @@ defmodule OrbitalDynamics.ValidationTest do
           candidate_refresh_operational_readiness_fixture_observations(),
         "fixture.artifact.candidate_refresh.timeline_activity_precondition_replay" =>
           candidate_refresh_timeline_activity_precondition_fixture_observations(),
+        "fixture.artifact.candidate_refresh.timeline_lifecycle_state_replay" =>
+          candidate_refresh_timeline_lifecycle_state_fixture_observations(),
         "fixture.artifact.candidate_refresh.resource_projection_replay" =>
           candidate_refresh_resource_projection_fixture_observations(),
         "fixture.artifact.candidate_refresh.timeline_transition_application_replay" =>
@@ -11641,8 +11726,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 154,
-             "status_counts" => %{"pass" => 154},
+             "fixture_count" => 155,
+             "status_counts" => %{"pass" => 155},
              "reports" => reports
            } = report
 
@@ -11670,6 +11755,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.candidate_refresh.resource_projection_replay",
              "fixture.artifact.candidate_refresh.resource_provenance_v1",
              "fixture.artifact.candidate_refresh.timeline_activity_precondition_replay",
+             "fixture.artifact.candidate_refresh.timeline_lifecycle_state_replay",
              "fixture.artifact.candidate_refresh.timeline_transition_application_replay",
              "fixture.artifact.candidate_refresh.v1",
              "fixture.artifact.candidate_rejection_report.v1",
@@ -11813,7 +11899,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 154},
+             "status_counts" => %{"fail" => 155},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -12436,6 +12522,51 @@ defmodule OrbitalDynamics.ValidationTest do
         "trust_boundary" => "generated_timeline_precondition_fixture"
       })
     )
+  end
+
+  defp candidate_refresh_timeline_lifecycle_state_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(candidate_refresh_timeline_lifecycle_state_fixture())
+  end
+
+  defp candidate_refresh_timeline_lifecycle_state_fixture do
+    result_set(%{})
+    |> CandidateRefresh.build(
+      candidate_refresh: candidate_refresh_timeline_lifecycle_state_request(),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  defp candidate_refresh_timeline_lifecycle_state_request do
+    %{
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-timeline-lifecycle-challenge",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [],
+        "source" => %{"system" => "validation_challenge"},
+        "quality" => %{"level" => "accepted"},
+        "provenance" => %{"created_by" => "validation_fixture"}
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "targets" => [],
+      "constraints" => %{},
+      "scoring_policy" => %{},
+      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
+      "source_timeline_lifecycle_state_summary" =>
+        candidate_refresh_timeline_lifecycle_state_summary()
+    }
+  end
+
+  defp candidate_refresh_timeline_lifecycle_state_summary do
+    timeline_lifecycle_state_summary_fixture()
+    |> Map.put("provenance", %{
+      "trust_boundary" => "generated_timeline_lifecycle_fixture"
+    })
   end
 
   defp candidate_refresh_timeline_transition_application_fixture_observations do

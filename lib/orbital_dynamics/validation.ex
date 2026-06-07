@@ -1997,6 +1997,91 @@ defmodule OrbitalDynamics.Validation do
         "checks candidate-refresh replay of timeline-activity precondition provenance without mutating schedules, granting operator authority, selecting candidates, approving imports, or writing to Cadence"
       ]
     },
+    "fixture.artifact.candidate_refresh.timeline_lifecycle_state_replay" => %{
+      "id" => "fixture.artifact.candidate_refresh.timeline_lifecycle_state_replay",
+      "model_id" => "artifact.candidate_refresh.v1",
+      "reference_case" =>
+        "generated candidate refresh replay of timeline lifecycle state evidence",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "source" => "generated_candidate_refresh_timeline_lifecycle_state_fixture",
+        "contract" => "candidate_refresh.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "candidate_refresh.v1",
+        "schema_version" => 1,
+        "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 1,
+        "source_report_row_count" => 4,
+        "source_timeline_lifecycle_state_report_count" => 1,
+        "source_timeline_lifecycle_state_row_count" => 4,
+        "source_timeline_lifecycle_state_planned_activity_count" => 5,
+        "source_timeline_lifecycle_state_realized_activity_count" => 3,
+        "source_timeline_lifecycle_state_recordable_count" => 1,
+        "source_timeline_lifecycle_state_preserved_count" => 1,
+        "source_timeline_lifecycle_state_review_required_count" => 2,
+        "source_timeline_lifecycle_state_duplicate_timeline_identity_count" => 1,
+        "source_timeline_lifecycle_state_invalid_activity_input_count" => 0,
+        "source_timeline_lifecycle_state_transition_decision_counts" => %{
+          "none" => 1,
+          "record" => 1,
+          "review" => 2
+        },
+        "source_timeline_lifecycle_state_required_operator_action_counts" => %{
+          "none" => 1,
+          "record_timeline_change" => 1,
+          "review_activity_approval" => 1,
+          "review_duplicate_timeline_identity" => 1
+        },
+        "source_timeline_lifecycle_state_import_action_counts" => %{
+          "import_replacement_activity" => 1,
+          "record_preserved_activity" => 1,
+          "review_timeline_diff" => 2
+        },
+        "source_timeline_lifecycle_state_preserved_timeline_keys" => "timeline:done_keep",
+        "source_timeline_lifecycle_state_review_timeline_keys" =>
+          "timeline:cmd_provider|timeline:dup",
+        "source_timeline_lifecycle_state_review_activity_keys" => "cmd_provider|dup_a|dup_b",
+        "source_timeline_lifecycle_state_review_timeline_ids_by_required_operator_action" => %{
+          "review_activity_approval" => ["timeline:cmd_provider"],
+          "review_duplicate_timeline_identity" => ["timeline:dup"]
+        },
+        "source_timeline_lifecycle_state_trust_boundary_status" => "declared"
+      },
+      "tolerances" => %{
+        "schema_version" => 0,
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 0,
+        "source_report_row_count" => 0,
+        "source_timeline_lifecycle_state_report_count" => 0,
+        "source_timeline_lifecycle_state_row_count" => 0,
+        "source_timeline_lifecycle_state_planned_activity_count" => 0,
+        "source_timeline_lifecycle_state_realized_activity_count" => 0,
+        "source_timeline_lifecycle_state_recordable_count" => 0,
+        "source_timeline_lifecycle_state_preserved_count" => 0,
+        "source_timeline_lifecycle_state_review_required_count" => 0,
+        "source_timeline_lifecycle_state_duplicate_timeline_identity_count" => 0,
+        "source_timeline_lifecycle_state_invalid_activity_input_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal generated artifact regression, not external timeline validation",
+        "checks candidate-refresh replay of timeline lifecycle-state provenance without mutating schedules, granting operator authority, selecting candidates, approving imports, or writing to Cadence"
+      ]
+    },
     "fixture.artifact.candidate_refresh.timeline_transition_application_replay" => %{
       "id" => "fixture.artifact.candidate_refresh.timeline_transition_application_replay",
       "model_id" => "artifact.candidate_refresh.v1",
@@ -11627,6 +11712,9 @@ defmodule OrbitalDynamics.Validation do
     timeline_activity_precondition_summary =
       Map.get(source_reports, "timeline_activity_precondition_summary") || %{}
 
+    timeline_lifecycle_state_summary =
+      Map.get(source_reports, "timeline_lifecycle_state_summary") || %{}
+
     timeline_transition_summary =
       Map.get(source_reports, "timeline_transition_application_report") || %{}
 
@@ -11809,6 +11897,58 @@ defmodule OrbitalDynamics.Validation do
         Map.get(timeline_activity_precondition_summary, "allow_overlap_counts") || %{},
       "source_timeline_activity_precondition_trust_boundary_status" =>
         Map.get(timeline_activity_precondition_summary, "trust_boundary_status"),
+      "source_timeline_lifecycle_state_report_count" =>
+        Map.get(timeline_lifecycle_state_summary, "count"),
+      "source_timeline_lifecycle_state_row_count" =>
+        Map.get(timeline_lifecycle_state_summary, "row_count"),
+      "source_timeline_lifecycle_state_planned_activity_count" =>
+        Map.get(timeline_lifecycle_state_summary, "planned_activity_count"),
+      "source_timeline_lifecycle_state_realized_activity_count" =>
+        Map.get(timeline_lifecycle_state_summary, "realized_activity_count"),
+      "source_timeline_lifecycle_state_recordable_count" =>
+        Map.get(timeline_lifecycle_state_summary, "recordable_count"),
+      "source_timeline_lifecycle_state_preserved_count" =>
+        Map.get(timeline_lifecycle_state_summary, "preserved_count"),
+      "source_timeline_lifecycle_state_review_required_count" =>
+        Map.get(timeline_lifecycle_state_summary, "review_required_count"),
+      "source_timeline_lifecycle_state_duplicate_timeline_identity_count" =>
+        Map.get(timeline_lifecycle_state_summary, "duplicate_timeline_identity_count"),
+      "source_timeline_lifecycle_state_invalid_activity_input_count" =>
+        Map.get(timeline_lifecycle_state_summary, "invalid_activity_input_count"),
+      "source_timeline_lifecycle_state_transition_decision_counts" =>
+        Map.get(timeline_lifecycle_state_summary, "transition_decision_counts") || %{},
+      "source_timeline_lifecycle_state_required_operator_action_counts" =>
+        Map.get(timeline_lifecycle_state_summary, "required_operator_action_counts") || %{},
+      "source_timeline_lifecycle_state_import_action_counts" =>
+        Map.get(timeline_lifecycle_state_summary, "import_action_counts") || %{},
+      "source_timeline_lifecycle_state_preserved_timeline_ids" =>
+        Map.get(timeline_lifecycle_state_summary, "preserved_timeline_ids") || [],
+      "source_timeline_lifecycle_state_preserved_timeline_keys" =>
+        timeline_lifecycle_state_summary
+        |> list_values("preserved_timeline_ids")
+        |> Enum.join("|")
+        |> normalize_optional_string(),
+      "source_timeline_lifecycle_state_review_timeline_ids" =>
+        Map.get(timeline_lifecycle_state_summary, "review_timeline_ids") || [],
+      "source_timeline_lifecycle_state_review_timeline_keys" =>
+        timeline_lifecycle_state_summary
+        |> list_values("review_timeline_ids")
+        |> Enum.join("|")
+        |> normalize_optional_string(),
+      "source_timeline_lifecycle_state_review_activity_ids" =>
+        Map.get(timeline_lifecycle_state_summary, "review_activity_ids") || [],
+      "source_timeline_lifecycle_state_review_activity_keys" =>
+        timeline_lifecycle_state_summary
+        |> list_values("review_activity_ids")
+        |> Enum.join("|")
+        |> normalize_optional_string(),
+      "source_timeline_lifecycle_state_review_timeline_ids_by_required_operator_action" =>
+        Map.get(
+          timeline_lifecycle_state_summary,
+          "review_timeline_ids_by_required_operator_action"
+        ) || %{},
+      "source_timeline_lifecycle_state_trust_boundary_status" =>
+        Map.get(timeline_lifecycle_state_summary, "trust_boundary_status"),
       "source_objective_satisfaction_report_count" =>
         Map.get(objective_satisfaction_summary, "count"),
       "source_objective_satisfaction_gap_row_count" =>

@@ -589,6 +589,12 @@ dependency and exclusivity routing, invalid-activity input evidence, overlap
 allowance, and trust-boundary status without mutating schedules, granting
 operator authority, selecting candidates, approving imports, or writing to
 Cadence.
+The registry also includes a generated CandidateRefresh timeline-lifecycle
+state replay fixture. It checks planned/realized lifecycle counts,
+record/preserve/review routing, duplicate timeline-identity review evidence,
+operator-action maps, and trust-boundary status without mutating schedules,
+granting operator authority, selecting candidates, approving imports, or
+writing to Cadence.
 The registry also includes a generated CandidateRefresh timeline-transition
 application replay fixture. It checks selected-integrity review and issue
 counts, missing-dependency issue-type routing, application status maps,
