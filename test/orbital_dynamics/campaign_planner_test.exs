@@ -5238,6 +5238,28 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     refresh_request =
       branch_candidate_refresh_request()
       |> put_in(["candidate_refresh", "mission_state"], canonical_mission_state_reports)
+      |> put_in(["candidate_refresh", "source_relay_data_path_summary"], %{
+        "schema_contract" => "relay_data_path_summary.v1",
+        "source" => "relay.fixture"
+      })
+      |> put_in(
+        ["candidate_refresh", "mission_state", "operational_import_eligibility_summary"],
+        %{
+          "schema_contract" => "operational_import_eligibility_summary.v1",
+          "source" => "readiness.fixture"
+        }
+      )
+      |> put_in(
+        [
+          "candidate_refresh",
+          "mission_state",
+          "source_operational_quality_gate_schema_validation_summary"
+        ],
+        %{
+          "schema_contract" => "operational_quality_gate_schema_validation_summary.v1",
+          "source" => "quality_gate.fixture"
+        }
+      )
       |> put_in(
         ["candidate_refresh", "accepted_planning_state", "constraint_report"],
         source_reports["source_constraint_report"]
@@ -5274,7 +5296,10 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
           "mission_state.station_reservation_report",
           "mission_state.contact_allocation_report",
           "mission_state.timeline_diff_report",
-          "mission_state.objective_tradeoff_report"
+          "mission_state.objective_tradeoff_report",
+          "source_relay_data_path_summary",
+          "mission_state.operational_import_eligibility_summary",
+          "mission_state.source_operational_quality_gate_schema_validation_summary"
         ] do
       assert source_path in source_report_input_paths
     end
@@ -30825,8 +30850,23 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       end)
       |> Enum.reject(&(&1 == ""))
 
+    registry_canonical_keys =
+      registry_keys
+      |> Enum.chunk_every(2)
+      |> Enum.map(&List.last/1)
+      |> MapSet.new()
+
+    accepted_report_summary_inputs =
+      CandidateRefresh.capabilities().inputs
+      |> Enum.map(&Atom.to_string/1)
+      |> Enum.filter(&String.ends_with?(&1, ["_report", "_summary"]))
+      |> MapSet.new()
+
     assert duplicate_keys.(builder_keys) == []
     assert duplicate_keys.(registry_keys) == []
+
+    assert MapSet.difference(accepted_report_summary_inputs, registry_canonical_keys) ==
+             MapSet.new()
 
     top_level_request_keys =
       MapSet.new([
@@ -30853,6 +30893,51 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert Enum.sort(MapSet.to_list(MapSet.difference(registry_key_set, top_level_request_keys))) ==
              Enum.sort(MapSet.to_list(MapSet.difference(builder_key_set, synthetic_builder_keys)))
+  end
+
+  test "strategy preserves wrapped expanded candidate-refresh source summary input paths" do
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.merge(%{
+        "source_result_artifact" => %{
+          "schema_contract" => "result_artifact.v1",
+          "source_station_reservation_review_summary" => %{
+            "schema_contract" => "station_reservation_review_summary.v1",
+            "source" => "station_reservation.fixture"
+          },
+          "provider_counteroffer_review_summary" => %{
+            "schema_contract" => "provider_counteroffer_review_summary.v1",
+            "source" => "counteroffer.fixture"
+          },
+          "timeline_publication_summary" => %{
+            "schema_contract" => "timeline_publication_summary.v1",
+            "source" => "timeline_publication.fixture"
+          }
+        }
+      })
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        branches: [%{id: "baseline"}, %{id: "expanded_summary_review"}],
+        current_epoch_s: 0.0
+      )
+
+    candidate_source =
+      artifact
+      |> branch("expanded_summary_review")
+      |> get_in(["assumptions", "candidate_source"])
+
+    source_report_input_paths = candidate_source["source_report_input_paths"]
+
+    assert "mission_state.source_result_artifact.source_station_reservation_review_summary" in source_report_input_paths
+
+    assert "mission_state.source_result_artifact.provider_counteroffer_review_summary" in source_report_input_paths
+
+    assert "mission_state.source_result_artifact.timeline_publication_summary" in source_report_input_paths
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
   end
 
   test "strategy records summary feedback source paths on explicit branch events" do

@@ -34212,6 +34212,19 @@ defmodule OrbitalDynamics.CampaignPlanner do
         |> mission_state_source_reports_or_reports(
           &mission_state_canonical_provider_counteroffer_reports/1
         ),
+      "source_provider_counteroffer_review_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(
+            &1,
+            "source_provider_counteroffer_review_summary"
+          )
+        ),
+      "provider_counteroffer_review_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(&1, "provider_counteroffer_review_summary")
+        ),
       "source_provider_counteroffer_import_readiness_summary" =>
         mission_state
         |> mission_state_source_reports_or_reports(
@@ -34256,6 +34269,45 @@ defmodule OrbitalDynamics.CampaignPlanner do
         |> mission_state_source_reports_or_reports(
           &mission_state_canonical_operational_readiness_reports/1
         ),
+      "source_operational_import_eligibility_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(
+            &1,
+            "source_operational_import_eligibility_summary"
+          )
+        ),
+      "operational_import_eligibility_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(&1, "operational_import_eligibility_summary")
+        ),
+      "source_operational_readiness_gate_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(
+            &1,
+            "source_operational_readiness_gate_summary"
+          )
+        ),
+      "operational_readiness_gate_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(&1, "operational_readiness_gate_summary")
+        ),
+      "source_operational_execution_boundary_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(
+            &1,
+            "source_operational_execution_boundary_summary"
+          )
+        ),
+      "operational_execution_boundary_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(&1, "operational_execution_boundary_summary")
+        ),
       "source_quality_gate_report" =>
         mission_state
         |> mission_state_source_reports_or_reports(&mission_state_source_quality_gate_reports/1),
@@ -34263,6 +34315,80 @@ defmodule OrbitalDynamics.CampaignPlanner do
         mission_state
         |> mission_state_source_reports_or_reports(
           &mission_state_canonical_quality_gate_reports/1
+        ),
+      "source_operational_quality_gate_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(&1, "source_operational_quality_gate_summary")
+        ),
+      "operational_quality_gate_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(&1, "operational_quality_gate_summary")
+        ),
+      "source_operational_quality_gate_unavailable_resource_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(
+            &1,
+            "source_operational_quality_gate_unavailable_resource_summary"
+          )
+        ),
+      "operational_quality_gate_unavailable_resource_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(
+            &1,
+            "operational_quality_gate_unavailable_resource_summary"
+          )
+        ),
+      "source_operational_quality_gate_operator_training_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(
+            &1,
+            "source_operational_quality_gate_operator_training_summary"
+          )
+        ),
+      "operational_quality_gate_operator_training_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(
+            &1,
+            "operational_quality_gate_operator_training_summary"
+          )
+        ),
+      "source_operational_quality_gate_schema_validation_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(
+            &1,
+            "source_operational_quality_gate_schema_validation_summary"
+          )
+        ),
+      "operational_quality_gate_schema_validation_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(
+            &1,
+            "operational_quality_gate_schema_validation_summary"
+          )
+        ),
+      "source_operational_quality_gate_import_readiness_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(
+            &1,
+            "source_operational_quality_gate_import_readiness_summary"
+          )
+        ),
+      "operational_quality_gate_import_readiness_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(
+            &1,
+            "operational_quality_gate_import_readiness_summary"
+          )
         ),
       "source_model_acceptance_report" =>
         mission_state
@@ -34371,6 +34497,39 @@ defmodule OrbitalDynamics.CampaignPlanner do
         mission_state
         |> mission_state_source_reports_or_reports(
           &mission_state_canonical_timeline_dependency_impact_summaries/1
+        ),
+      "source_timeline_activity_precondition_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(
+            &1,
+            "source_timeline_activity_precondition_summary"
+          )
+        ),
+      "timeline_activity_precondition_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(&1, "timeline_activity_precondition_summary")
+        ),
+      "source_timeline_preservation_report" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(&1, "source_timeline_preservation_report")
+        ),
+      "timeline_preservation_report" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(&1, "timeline_preservation_report")
+        ),
+      "source_timeline_publication_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(&1, "source_timeline_publication_summary")
+        ),
+      "timeline_publication_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(&1, "timeline_publication_summary")
         ),
       "source_timeline_transition_application_summary" =>
         mission_state
@@ -34497,6 +34656,19 @@ defmodule OrbitalDynamics.CampaignPlanner do
         mission_state
         |> mission_state_source_reports_or_reports(
           &mission_state_canonical_station_reservation_reports/1
+        ),
+      "source_station_reservation_review_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(
+            &1,
+            "source_station_reservation_review_summary"
+          )
+        ),
+      "station_reservation_review_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(&1, "station_reservation_review_summary")
         ),
       "source_station_reservation_hold_summary" =>
         mission_state
@@ -34663,6 +34835,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
         mission_state
         |> mission_state_source_reports_or_reports(
           &mission_state_canonical_link_capacity_summaries/1
+        ),
+      "source_relay_data_path_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(&1, "source_relay_data_path_summary")
+        ),
+      "relay_data_path_summary" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(&1, "relay_data_path_summary")
         )
     }
     |> put_missing_candidate_refresh_result_artifact_source_aliases(mission_state)
@@ -34674,6 +34856,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
     mission_state
     |> report_fun.()
     |> mission_state_report_or_reports()
+  end
+
+  defp mission_state_source_report_key_entries(mission_state, key) do
+    mission_state = stringify_keys(mission_state || %{})
+
+    mission_state
+    |> Map.get(key)
+    |> mission_state_source_report_entries("mission_state.#{key}")
   end
 
   defp mission_state_source_candidate_diff_reports_for_refresh(mission_state) do
@@ -45416,6 +45606,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       {"source_candidate_diff_report", "candidate_diff_report"},
       {"source_candidate_rejection_report", "candidate_rejection_report"},
       {"source_provider_counteroffer_report", "provider_counteroffer_report"},
+      {"source_provider_counteroffer_review_summary", "provider_counteroffer_review_summary"},
       {"source_provider_counteroffer_import_readiness_summary",
        "provider_counteroffer_import_readiness_summary"},
       {"source_provider_counteroffer_plan_impact_summary",
@@ -45423,7 +45614,19 @@ defmodule OrbitalDynamics.CampaignPlanner do
       {"source_schema_validation_report", "schema_validation_report"},
       {"source_schema_validation_batch_report", "schema_validation_batch_report"},
       {"source_operational_readiness_report", "operational_readiness_report"},
+      {"source_operational_import_eligibility_summary", "operational_import_eligibility_summary"},
+      {"source_operational_readiness_gate_summary", "operational_readiness_gate_summary"},
+      {"source_operational_execution_boundary_summary", "operational_execution_boundary_summary"},
       {"source_quality_gate_report", "quality_gate_report"},
+      {"source_operational_quality_gate_summary", "operational_quality_gate_summary"},
+      {"source_operational_quality_gate_unavailable_resource_summary",
+       "operational_quality_gate_unavailable_resource_summary"},
+      {"source_operational_quality_gate_operator_training_summary",
+       "operational_quality_gate_operator_training_summary"},
+      {"source_operational_quality_gate_schema_validation_summary",
+       "operational_quality_gate_schema_validation_summary"},
+      {"source_operational_quality_gate_import_readiness_summary",
+       "operational_quality_gate_import_readiness_summary"},
       {"source_model_acceptance_report", "model_acceptance_report"},
       {"source_validation_safety_case_summary", "validation_safety_case_summary"},
       {"source_freshness_report", "freshness_report"},
@@ -45465,6 +45668,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
       {"source_timeline_diff_summary", "timeline_diff_summary"},
       {"source_timeline_integrity_report", "timeline_integrity_report"},
       {"source_timeline_dependency_impact_summary", "timeline_dependency_impact_summary"},
+      {"source_timeline_activity_precondition_summary", "timeline_activity_precondition_summary"},
+      {"source_timeline_preservation_report", "timeline_preservation_report"},
+      {"source_timeline_publication_summary", "timeline_publication_summary"},
       {"source_timeline_transition_application_summary",
        "timeline_transition_application_summary"},
       {"source_timeline_activity_state", "timeline_activity_state"},
@@ -45476,7 +45682,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
       {"source_constraint_report", "constraint_report"},
       {"source_objective_satisfaction_report", "objective_satisfaction_report"},
       {"source_objective_tradeoff_report", "objective_tradeoff_report"},
-      {"source_score_term_report", "score_term_report"}
+      {"source_score_term_report", "score_term_report"},
+      {"source_station_reservation_review_summary", "station_reservation_review_summary"},
+      {"source_relay_data_path_summary", "relay_data_path_summary"}
     ]
   end
 

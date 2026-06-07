@@ -717,7 +717,12 @@ artifact-only no-mutation assumptions for CandidateRefresh replay.
 
 Generated candidate sources expose typed `source_report_input_paths`, so
 objective-style source reports remain auditable even when they do not
-contribute operational feedback provenance.
+contribute operational feedback provenance. The same audit path now covers the
+expanded CandidateRefresh source-summary surface, including relay data path,
+operational-readiness sub-summary, provider-counteroffer review,
+station-reservation review, operational quality-gate summary,
+timeline-precondition, timeline-preservation, and timeline-publication
+families across direct, mission-state, and result-artifact-wrapped inputs.
 
 ### Constraint, objective, tradeoff, and score-term replay
 
