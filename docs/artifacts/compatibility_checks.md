@@ -981,6 +981,13 @@ incompatibility lists, source quality, trust boundary, and provenance
 assumptions. Executable validation also rejects stale explicit storage or
 battery state-of-charge margins that disagree with supplied capacity/used
 evidence.
+Focused schema-reference coverage also round-trips the checked-in fixture
+exactly through `OrbitalDynamics.resource_summary_from_map!/1` and
+`OrbitalDynamics.resource_summary_to_map/1` before schema validation, pinning
+spacecraft identity, mode, resource-margin evidence, availability/degraded
+flags, source quality, trust boundary, activity suppression/incompatibility
+lists, assumptions, and provenance without adding propagation or schedule
+mutation behavior.
 `study_results/resource_filter_report_v1.json` is observed for kept/suppressed
 candidate counts, invalid and duplicate candidate counts, source-quality/trust
 maps, suppressed-reason and resource-blocking routing maps, and model-limit

@@ -1356,6 +1356,53 @@ defmodule OrbitalDynamics.SchemaTest do
     assert summary["model_limits"] == LinkCapacity.capabilities().relay_data_path_model_limits
   end
 
+  test "validates checked-in resource summary fixture" do
+    summary = read_json!("study_results/resource_summary_v1.json")
+
+    generated_summary =
+      summary
+      |> OrbitalDynamics.resource_summary_from_map!()
+      |> OrbitalDynamics.resource_summary_to_map()
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "resource_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "schema_contract" => "resource_summary.v1",
+             "spacecraft_id" => "leo_1",
+             "mode" => "degraded",
+             "fuel_margin" => 0.82,
+             "power_margin" => 0.74,
+             "battery_capacity_wh" => 1200.0,
+             "battery_energy_used_wh" => 312.0,
+             "battery_state_of_charge" => 0.74,
+             "thermal_margin_c" => -2.5,
+             "storage_capacity_mb" => 1000.0,
+             "storage_used_mb" => 250.0,
+             "storage_margin" => 0.75,
+             "downlink_capacity_mb" => 600.0,
+             "downlink_margin" => 0.65,
+             "spacecraft_available" => false,
+             "source_quality" => "operator_supplied",
+             "trust_boundary" => "operator_declared_resource_summary",
+             "suppressed_activity_types" => ["observe", "command"],
+             "incompatible_activity_types" => ["command", "health_check"],
+             "payload_available" => false,
+             "antenna_available" => true,
+             "degraded" => true,
+             "assumptions" => %{
+               "model" => "operator_summary",
+               "source" => "campaign_manifest_demo"
+             },
+             "provenance" => %{
+               "source" => "ops",
+               "trust_boundary" => "operator_declared_resource_summary"
+             }
+           } = summary
+  end
+
   test "validates checked-in resource filter summary fixture" do
     report = read_json!("study_results/resource_filter_report_v1.json")
     summary = read_json!("study_results/resource_filter_summary_v1.json")
