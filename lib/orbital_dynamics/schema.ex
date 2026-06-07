@@ -13791,6 +13791,10 @@ defmodule OrbitalDynamics.Schema do
     }
   end
 
+  defp json_schema_property("assumptions", @link_capacity_report, _contract) do
+    link_capacity_assumptions_json_schema([])
+  end
+
   defp json_schema_property("actual_throughput_contact_ids", @link_capacity_report, _contract) do
     stable_id_array_schema()
   end
@@ -13939,6 +13943,10 @@ defmodule OrbitalDynamics.Schema do
 
   defp json_schema_property("source", @link_capacity_summary, _contract) do
     %{"type" => "string"}
+  end
+
+  defp json_schema_property("assumptions", @link_capacity_summary, _contract) do
+    link_capacity_assumptions_json_schema(["execution_boundary", "source", "operator_authority"])
   end
 
   defp json_schema_property(field, @link_capacity_summary, _contract)
@@ -19929,6 +19937,99 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Communications.LinkCapacity.capabilities()
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
+  end
+
+  defp link_capacity_station_unavailable_aliases do
+    OrbitalDynamics.Communications.LinkCapacity.capabilities()
+    |> Map.fetch!(:station_unavailable_aliases)
+  end
+
+  defp link_capacity_station_availability_precedence do
+    OrbitalDynamics.Communications.LinkCapacity.capabilities()
+    |> Map.fetch!(:station_availability_precedence)
+  end
+
+  defp link_capacity_provider_direction_aliases do
+    OrbitalDynamics.Communications.LinkCapacity.capabilities()
+    |> Map.fetch!(:provider_direction_aliases)
+  end
+
+  defp link_capacity_station_capacity_value_path_assumptions do
+    OrbitalDynamics.Communications.LinkCapacity.capabilities()
+    |> Map.fetch!(:station_capacity_value_paths)
+    |> link_capacity_capacity_value_path_assumptions()
+  end
+
+  defp link_capacity_source_station_capacity_value_path_assumptions do
+    OrbitalDynamics.Communications.LinkCapacity.capabilities()
+    |> Map.fetch!(:source_station_capacity_value_paths)
+    |> link_capacity_capacity_value_path_assumptions()
+  end
+
+  defp link_capacity_capacity_value_path_assumptions(paths) do
+    Enum.map(paths, fn %{unit: unit, path: path} ->
+      %{"unit" => Atom.to_string(unit), "path" => path}
+    end)
+  end
+
+  defp link_capacity_assumptions_json_schema(required_properties) do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => required_properties,
+      "properties" => %{
+        "downlink_rate_mb_s" => %{"type" => "number"},
+        "execution_boundary" => %{
+          "type" => "string",
+          "const" => "artifact_only_no_provider_reservation_or_schedule_mutation"
+        },
+        "source" => %{"type" => "string", "const" => "link_capacity_report.v1"},
+        "operator_authority" => %{"type" => "string", "const" => "not_granted_by_summary"},
+        "station_unavailable_aliases" => %{
+          "type" => "array",
+          "const" => link_capacity_station_unavailable_aliases(),
+          "items" => %{
+            "type" => "string",
+            "enum" => link_capacity_station_unavailable_aliases()
+          }
+        },
+        "station_availability_precedence" => %{
+          "type" => "object",
+          "const" => link_capacity_station_availability_precedence(),
+          "additionalProperties" => %{"type" => "integer", "minimum" => 0}
+        },
+        "station_capacity_value_paths" => %{
+          "type" => "array",
+          "const" => link_capacity_station_capacity_value_path_assumptions(),
+          "items" => link_capacity_capacity_value_path_json_schema()
+        },
+        "source_station_capacity_value_paths" => %{
+          "type" => "array",
+          "const" => link_capacity_source_station_capacity_value_path_assumptions(),
+          "items" => link_capacity_capacity_value_path_json_schema()
+        },
+        "provider_direction_aliases" => %{
+          "type" => "object",
+          "const" => link_capacity_provider_direction_aliases(),
+          "additionalProperties" => %{
+            "type" => "string",
+            "enum" => ["command", "uplink", "downlink", "tracking", "health_check"]
+          }
+        }
+      }
+    }
+  end
+
+  defp link_capacity_capacity_value_path_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => false,
+      "required" => ["unit", "path"],
+      "properties" => %{
+        "unit" => %{"type" => "string", "enum" => ["fraction", "percent"]},
+        "path" => string_array_schema()
+      }
+    }
   end
 
   defp relay_data_path_model_limits do
@@ -33537,6 +33638,7 @@ defmodule OrbitalDynamics.Schema do
     )
     |> expect_type(path, report, "rows", :list)
     |> expect_type(path, report, "assumptions", :map)
+    |> validate_link_capacity_assumptions(path, report)
     |> validate_rows(
       path <> ".rows",
       Map.get(report, "rows", []),
@@ -47516,8 +47618,54 @@ defmodule OrbitalDynamics.Schema do
     )
     |> validate_link_capacity_summary_field_types(path, summary)
     |> expect_type(path, summary, "assumptions", :map)
+    |> validate_link_capacity_assumptions(path, summary)
     |> validate_link_capacity_summary_assumptions(path, summary)
     |> validate_link_capacity_summary_counts(path, summary)
+  end
+
+  defp validate_link_capacity_assumptions(issues, path, artifact) do
+    case Map.get(artifact, "assumptions") do
+      %{} = assumptions ->
+        issues
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_unavailable_aliases",
+          link_capacity_station_unavailable_aliases(),
+          "must match LinkCapacity station unavailable aliases"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_availability_precedence",
+          link_capacity_station_availability_precedence(),
+          "must match LinkCapacity station availability precedence"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_capacity_value_paths",
+          link_capacity_station_capacity_value_path_assumptions(),
+          "must match LinkCapacity station capacity value paths"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "source_station_capacity_value_paths",
+          link_capacity_source_station_capacity_value_path_assumptions(),
+          "must match LinkCapacity source station capacity value paths"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "provider_direction_aliases",
+          link_capacity_provider_direction_aliases(),
+          "must match LinkCapacity provider direction aliases"
+        )
+
+      _assumptions ->
+        issues
+    end
   end
 
   defp validate_link_capacity_summary_field_types(issues, path, summary) do

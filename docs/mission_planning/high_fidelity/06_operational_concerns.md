@@ -221,7 +221,11 @@ Link-capacity summaries likewise derive contact counters, ignored-contact
 reason counts, selected/required/actual evidence counters, invalid-input
 counters, and station-reservation match counts from station rows or evidence
 rows, while report and summary schema export pins exact link-capacity
-`model_limits` against executable validation. Candidate-refresh
+`model_limits` against executable validation. They also carry exact
+link-capacity station-capacity value paths, station unavailable aliases,
+availability precedence, and provider-direction aliases in optional artifact
+assumptions, with runtime validation rejecting stale values when present while
+preserving older handoffs that omit them. Candidate-refresh
 contact-allocation replay preserves general
 station-reservation match-status counts and contact/reservation ID maps
 separately from reservation-conflict match-status counts and ID maps.

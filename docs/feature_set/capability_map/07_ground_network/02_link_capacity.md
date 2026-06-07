@@ -19,6 +19,12 @@ declare a station capacity.
 - The accepted station capacity fraction and capacity-percent paths used for
   capacity-adjusted throughput, plus typed fraction/percent capacity-value path
   metadata for direct contact rows and nested source station-calendar rows.
+- `link_capacity_report.v1` and `link_capacity_summary.v1` now carry those
+  station-capacity value paths, station unavailable aliases, station
+  availability precedence, and provider direction aliases directly in
+  `assumptions` as optional machine-checkable metadata. Runtime validation and
+  JSON Schema export pin exact capability-derived values when present, while
+  older artifacts without those optional assumption fields remain valid.
 - Exact report and compact-summary `model_limits`, copied from the same
   capability metadata and pinned by executable validation plus JSON Schema export.
 - Compact summary evidence for selected/actual downlink shortfall magnitudes

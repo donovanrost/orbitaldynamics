@@ -1,56 +1,44 @@
 {
-  "actual_completion_contact_count": 0,
-  "actual_completion_contact_ids": [],
-  "actual_throughput_contact_count": 0,
-  "actual_throughput_contact_ids": [],
-  "ambiguous_actual_completion_contact_count": 0,
-  "ambiguous_actual_completion_contact_ids": [],
-  "ambiguous_actual_throughput_contact_count": 0,
-  "ambiguous_actual_throughput_contact_ids": [],
-  "ambiguous_selected_contact_id_count": 0,
-  "ambiguous_selected_contact_ids": [],
-  "assumptions": {
-    "actual_completion_fraction_model": "completed_fraction or completion aliases from selected realized downlink contacts are averaged only when the selected contact ID matches exactly one effective candidate row",
-    "actual_downlink_completion_ratio_model": "matched selected realized throughput is divided by the declared downlink requirement to expose realized completion against the same requirement used for actual shortfall review",
-    "actual_throughput_model": "actual_throughput_mb, actual_data_volume_mb, actual data-rate duration products, or actual-downlink/delivered/received aliases from selected realized downlink contacts are summed only when the selected contact ID matches exactly one effective candidate row",
-    "capacity_adjusted_throughput_model": "estimated_throughput_mb_times_declared_station_capacity_fraction",
-    "capacity_fraction_source": "station_calendar_or_default_one",
-    "contact_status_model": "terminal_or_approval_rejected_downlinks_are_audited_with_zero_available_or_selected_capacity_and_reason_counts",
-    "data_rate_throughput_model": "when explicit MB throughput is absent, data_rate_mb_s or data_rate_mbps aliases multiplied by contact duration produce fixed-rate estimated throughput without link-budget modeling",
-    "downlink_completion_source_model": "explicit policy requirement sources or per-contact downlink completion source lineage are preserved for review",
-    "downlink_rate_mb_s": 1.0,
-    "downlink_requirement_model": "explicit policy downlink requirement, station requirement, or per-contact required_downlink_mb compared to selected capacity-adjusted throughput",
-    "invalid_contact_input": "downlink-like candidate or selected inputs missing identity or station fields are preserved for operator review instead of being silently dropped or raising during capacity grouping",
-    "link_budget_model": "none",
-    "per_contact_downlink_requirement_model": "effective downlink contacts with required_downlink_mb contribute declared demand when no explicit policy requirement overrides them",
-    "reservation_model": "provider_reservation_identity_context_only",
-    "selected_contact_identity": "selected contact IDs must match exactly one candidate row to count selected capacity",
-    "throughput_model": "fixed_rate_from_campaign_policy",
-    "unresolved_actual_completion_fraction_model": "selected realized downlink contacts with completion-fraction evidence are preserved as unmatched or ambiguous evidence when they cannot be reconciled to exactly one effective candidate row",
-    "unresolved_actual_throughput_model": "selected realized downlink contacts with actual throughput evidence are preserved as unmatched or ambiguous evidence when they cannot be reconciled to exactly one effective candidate row"
-  },
   "capacity_adjusted_throughput_mb": 172.71212086982393,
-  "contact_count": 1,
-  "downlink_completion_sources": [],
-  "duplicate_contact_candidate_count": 0,
-  "duplicate_contact_id_count": 0,
-  "effective_contact_count": 1,
-  "estimated_throughput_mb": 345.42424173964787,
-  "ignored_contact_count": 0,
-  "ignored_contact_ids": [],
-  "ignored_contact_reason_counts": {},
-  "ignored_selected_contact_count": 0,
-  "ignored_selected_contact_ids": [],
-  "ignored_selected_contact_reason_counts": {},
-  "invalid_contact_input_count": 0,
-  "invalid_contact_input_ids": [],
-  "invalid_contact_inputs": [],
+  "unmatched_actual_completion_contact_ids": [],
+  "unmatched_selected_contact_ids": [],
+  "selected_contact_count": 0,
   "invalid_policy_required_downlink_station_count": 0,
-  "invalid_policy_required_downlink_station_ids": [],
-  "invalid_selected_contact_input_count": 0,
   "invalid_selected_contact_input_ids": [],
-  "invalid_selected_contact_inputs": [],
+  "unmatched_actual_throughput_contact_count": 0,
+  "ambiguous_selected_contact_id_count": 0,
+  "effective_contact_count": 1,
+  "actual_throughput_contact_count": 0,
+  "invalid_selected_contact_input_count": 0,
+  "ignored_contact_count": 0,
+  "station_reservation_statuses": [],
+  "ignored_contact_ids": [],
+  "unused_capacity_adjusted_throughput_mb": 172.71212086982393,
+  "schema_contract": "link_capacity_report.v1",
+  "actual_completion_contact_ids": [],
+  "required_downlink_contact_count": 0,
   "model": "fixed_rate_downlink_capacity_summary",
+  "actual_throughput_contact_ids": [],
+  "station_reservation_ids": [],
+  "duplicate_contact_candidate_count": 0,
+  "ambiguous_actual_completion_contact_count": 0,
+  "contact_count": 1,
+  "invalid_contact_inputs": [],
+  "required_downlink_contact_ids": [],
+  "selected_capacity_utilization_fraction": 0,
+  "invalid_contact_input_ids": [],
+  "ignored_selected_contact_ids": [],
+  "unmatched_actual_throughput_contact_ids": [],
+  "actual_completion_contact_count": 0,
+  "ambiguous_selected_contact_ids": [],
+  "ambiguous_actual_throughput_contact_count": 0,
+  "ambiguous_actual_completion_contact_ids": [],
+  "estimated_throughput_mb": 345.42424173964787,
+  "ignored_contact_reason_counts": {},
+  "source": "campaign_plan.candidate_activities",
+  "station_reserved_bys": [],
+  "invalid_selected_contact_inputs": [],
+  "ignored_selected_contact_reason_counts": {},
   "model_limits": [
     "artifact_level_only",
     "fixed_rate_summary",
@@ -62,8 +50,9 @@
     "no_provider_reservation",
     "no_schedule_mutation"
   ],
-  "required_downlink_contact_count": 0,
-  "required_downlink_contact_ids": [],
+  "unmatched_selected_contact_count": 0,
+  "duplicate_contact_id_count": 0,
+  "ignored_selected_contact_count": 0,
   "rows": [
     {
       "actual_completion_contact_count": 0,
@@ -93,7 +82,7 @@
       "required_downlink_contact_count": 0,
       "required_downlink_contact_ids": [],
       "selected_capacity_adjusted_throughput_mb": 0,
-      "selected_capacity_utilization_fraction": 0.0,
+      "selected_capacity_utilization_fraction": 0,
       "selected_contact_count": 0,
       "selected_contact_ids": [],
       "selected_estimated_throughput_mb": 0,
@@ -102,22 +91,350 @@
       "unused_capacity_adjusted_throughput_mb": 172.71212086982393
     }
   ],
-  "schema_contract": "link_capacity_report.v1",
   "selected_capacity_adjusted_throughput_mb": 0,
-  "selected_capacity_utilization_fraction": 0.0,
-  "selected_contact_count": 0,
-  "selected_estimated_throughput_mb": 0,
   "selection_utilization_status": "unselected_capacity",
-  "source": "campaign_plan.candidate_activities",
+  "ambiguous_actual_throughput_contact_ids": [],
+  "assumptions": {
+    "actual_completion_fraction_model": "completed_fraction or completion aliases from selected realized downlink contacts are averaged only when the selected contact ID matches exactly one effective candidate row",
+    "actual_downlink_completion_ratio_model": "matched selected realized throughput is divided by the declared downlink requirement to expose realized completion against the same requirement used for actual shortfall review",
+    "actual_throughput_model": "actual_throughput_mb, actual_data_volume_mb, actual data-rate duration products, or actual-downlink/delivered/received aliases from selected realized downlink contacts are summed only when the selected contact ID matches exactly one effective candidate row",
+    "capacity_adjusted_throughput_model": "estimated_throughput_mb_times_declared_station_capacity_fraction",
+    "capacity_fraction_source": "station_calendar_or_default_one",
+    "contact_status_model": "terminal_or_approval_rejected_downlinks_are_audited_with_zero_available_or_selected_capacity_and_reason_counts",
+    "data_rate_throughput_model": "when explicit MB throughput is absent, data_rate_mb_s or data_rate_mbps aliases multiplied by contact duration produce fixed-rate estimated throughput without link-budget modeling",
+    "downlink_completion_source_model": "explicit policy requirement sources or per-contact downlink completion source lineage are preserved for review",
+    "downlink_rate_mb_s": 1,
+    "downlink_requirement_model": "explicit policy downlink requirement, station requirement, or per-contact required_downlink_mb compared to selected capacity-adjusted throughput",
+    "invalid_contact_input": "downlink-like candidate or selected inputs missing identity or station fields are preserved for operator review instead of being silently dropped or raising during capacity grouping",
+    "link_budget_model": "none",
+    "per_contact_downlink_requirement_model": "effective downlink contacts with required_downlink_mb contribute declared demand when no explicit policy requirement overrides them",
+    "provider_direction_aliases": {
+      "cmd": "command",
+      "commanding": "command",
+      "commands": "command",
+      "dl": "downlink",
+      "down": "downlink",
+      "down_link": "downlink",
+      "downlinking": "downlink",
+      "health": "health_check",
+      "health_check_window": "health_check",
+      "healthcheck": "health_check",
+      "s_band_command": "command",
+      "sband_command": "command",
+      "track": "tracking",
+      "track_ing": "tracking",
+      "tracking_pass": "tracking",
+      "up": "uplink",
+      "up_link": "uplink"
+    },
+    "reservation_model": "provider_reservation_identity_context_only",
+    "selected_contact_identity": "selected contact IDs must match exactly one candidate row to count selected capacity",
+    "source_station_capacity_value_paths": [
+      {
+        "path": [
+          "availability"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "capacity_pack_capacity_fraction"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "throughput_model",
+          "availability"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "throughput_model",
+          "station_capacity_fraction"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "throughput_model",
+          "capacity_fraction"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "throughput_model",
+          "station_capacity_percent"
+        ],
+        "unit": "percent"
+      },
+      {
+        "path": [
+          "throughput_model",
+          "capacity_percent"
+        ],
+        "unit": "percent"
+      },
+      {
+        "path": [
+          "capacity_model",
+          "availability"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "capacity_model",
+          "station_capacity_fraction"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "capacity_model",
+          "capacity_fraction"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "capacity_model",
+          "station_capacity_percent"
+        ],
+        "unit": "percent"
+      },
+      {
+        "path": [
+          "capacity_model",
+          "capacity_percent"
+        ],
+        "unit": "percent"
+      },
+      {
+        "path": [
+          "activity_context",
+          "availability"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "activity_context",
+          "station_capacity_fraction"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "activity_context",
+          "capacity_fraction"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "activity_context",
+          "station_capacity_percent"
+        ],
+        "unit": "percent"
+      },
+      {
+        "path": [
+          "activity_context",
+          "capacity_percent"
+        ],
+        "unit": "percent"
+      },
+      {
+        "path": [
+          "station_capacity_fraction"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "capacity_fraction"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "station_capacity_percent"
+        ],
+        "unit": "percent"
+      },
+      {
+        "path": [
+          "capacity_percent"
+        ],
+        "unit": "percent"
+      }
+    ],
+    "station_availability_precedence": {
+      "available": 1,
+      "maintenance": 5,
+      "reduced_capacity": 3,
+      "reserved": 4,
+      "unavailable": 5
+    },
+    "station_capacity_value_paths": [
+      {
+        "path": [
+          "availability"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "capacity_pack_capacity_fraction"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "throughput_model",
+          "availability"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "throughput_model",
+          "station_capacity_fraction"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "throughput_model",
+          "capacity_fraction"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "throughput_model",
+          "station_capacity_percent"
+        ],
+        "unit": "percent"
+      },
+      {
+        "path": [
+          "throughput_model",
+          "capacity_percent"
+        ],
+        "unit": "percent"
+      },
+      {
+        "path": [
+          "capacity_model",
+          "availability"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "capacity_model",
+          "station_capacity_fraction"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "capacity_model",
+          "capacity_fraction"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "capacity_model",
+          "station_capacity_percent"
+        ],
+        "unit": "percent"
+      },
+      {
+        "path": [
+          "capacity_model",
+          "capacity_percent"
+        ],
+        "unit": "percent"
+      },
+      {
+        "path": [
+          "activity_context",
+          "availability"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "activity_context",
+          "station_capacity_fraction"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "activity_context",
+          "capacity_fraction"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "activity_context",
+          "station_capacity_percent"
+        ],
+        "unit": "percent"
+      },
+      {
+        "path": [
+          "activity_context",
+          "capacity_percent"
+        ],
+        "unit": "percent"
+      },
+      {
+        "path": [
+          "station_capacity_fraction"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "capacity_fraction"
+        ],
+        "unit": "fraction"
+      },
+      {
+        "path": [
+          "station_capacity_percent"
+        ],
+        "unit": "percent"
+      },
+      {
+        "path": [
+          "capacity_percent"
+        ],
+        "unit": "percent"
+      }
+    ],
+    "station_unavailable_aliases": [
+      "outage",
+      "down",
+      "offline"
+    ],
+    "throughput_model": "fixed_rate_from_campaign_policy",
+    "unresolved_actual_completion_fraction_model": "selected realized downlink contacts with completion-fraction evidence are preserved as unmatched or ambiguous evidence when they cannot be reconciled to exactly one effective candidate row",
+    "unresolved_actual_throughput_model": "selected realized downlink contacts with actual throughput evidence are preserved as unmatched or ambiguous evidence when they cannot be reconciled to exactly one effective candidate row"
+  },
+  "selected_estimated_throughput_mb": 0,
   "station_reservation_expires_at_s": [],
-  "station_reservation_ids": [],
-  "station_reservation_statuses": [],
-  "station_reserved_bys": [],
+  "invalid_policy_required_downlink_station_ids": [],
   "unmatched_actual_completion_contact_count": 0,
-  "unmatched_actual_completion_contact_ids": [],
-  "unmatched_actual_throughput_contact_count": 0,
-  "unmatched_actual_throughput_contact_ids": [],
-  "unmatched_selected_contact_count": 0,
-  "unmatched_selected_contact_ids": [],
-  "unused_capacity_adjusted_throughput_mb": 172.71212086982393
+  "downlink_completion_sources": [],
+  "invalid_contact_input_count": 0
 }

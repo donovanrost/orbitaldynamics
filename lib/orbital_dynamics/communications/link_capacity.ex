@@ -299,6 +299,14 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
     Enum.map(paths, fn {unit, path} -> %{unit: unit, path: path} end)
   end
 
+  defp capacity_value_path_assumptions do
+    @station_capacity_value_paths
+    |> capacity_value_path_metadata()
+    |> Enum.map(fn %{unit: unit, path: path} ->
+      %{"unit" => Atom.to_string(unit), "path" => path}
+    end)
+  end
+
   @doc """
   Builds a `link_capacity_report.v1` from contact candidates and selected contacts.
   """
@@ -759,6 +767,11 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
         "throughput_model" => "fixed_rate_from_campaign_policy",
         "capacity_adjusted_throughput_model" =>
           "estimated_throughput_mb_times_declared_station_capacity_fraction",
+        "station_unavailable_aliases" => @unavailable_aliases,
+        "station_availability_precedence" => @station_availability_severity,
+        "station_capacity_value_paths" => capacity_value_path_assumptions(),
+        "source_station_capacity_value_paths" => capacity_value_path_assumptions(),
+        "provider_direction_aliases" => @provider_direction_aliases,
         "capacity_fraction_source" => "station_calendar_or_default_one",
         "downlink_requirement_model" =>
           "explicit policy downlink requirement, station requirement, or per-contact required_downlink_mb compared to selected capacity-adjusted throughput",
@@ -1395,7 +1408,12 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
         "source" => "link_capacity_report.v1",
-        "operator_authority" => "not_granted_by_summary"
+        "operator_authority" => "not_granted_by_summary",
+        "station_unavailable_aliases" => @unavailable_aliases,
+        "station_availability_precedence" => @station_availability_severity,
+        "station_capacity_value_paths" => capacity_value_path_assumptions(),
+        "source_station_capacity_value_paths" => capacity_value_path_assumptions(),
+        "provider_direction_aliases" => @provider_direction_aliases
       }
     }
     |> compact_map()

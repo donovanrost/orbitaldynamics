@@ -592,6 +592,23 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
     assert {:ok, %{"schema_contract" => "link_capacity_report.v1"}} =
              Schema.validate_artifact(report)
 
+    expected_capability_assumptions = link_capacity_capability_assumptions()
+
+    expected_station_unavailable_aliases =
+      expected_capability_assumptions["station_unavailable_aliases"]
+
+    expected_station_availability_precedence =
+      expected_capability_assumptions["station_availability_precedence"]
+
+    expected_station_capacity_value_paths =
+      expected_capability_assumptions["station_capacity_value_paths"]
+
+    expected_source_station_capacity_value_paths =
+      expected_capability_assumptions["source_station_capacity_value_paths"]
+
+    expected_provider_direction_aliases =
+      expected_capability_assumptions["provider_direction_aliases"]
+
     assert %{
              "schema_contract" => "link_capacity_summary.v1",
              "model" => "artifact_only_link_capacity_summary",
@@ -653,7 +670,13 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
                "execution_boundary" =>
                  "artifact_only_no_provider_reservation_or_schedule_mutation",
                "source" => "link_capacity_report.v1",
-               "operator_authority" => "not_granted_by_summary"
+               "operator_authority" => "not_granted_by_summary",
+               "station_unavailable_aliases" => ^expected_station_unavailable_aliases,
+               "station_availability_precedence" => ^expected_station_availability_precedence,
+               "station_capacity_value_paths" => ^expected_station_capacity_value_paths,
+               "source_station_capacity_value_paths" =>
+                 ^expected_source_station_capacity_value_paths,
+               "provider_direction_aliases" => ^expected_provider_direction_aliases
              }
            } = summary = LinkCapacity.summary(report)
 
@@ -683,6 +706,40 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
              "items",
              "enum"
            ]) == expected_model_limits
+
+    assert get_in(link_capacity_summary_schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "station_capacity_value_paths",
+             "const"
+           ]) == expected_capability_assumptions["station_capacity_value_paths"]
+
+    assert get_in(link_capacity_summary_schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "provider_direction_aliases",
+             "const"
+           ]) == expected_capability_assumptions["provider_direction_aliases"]
+
+    stale_summary_provider_direction_aliases =
+      put_in(summary, ["assumptions", "provider_direction_aliases"], %{"dl" => "command"})
+
+    assert {:error, stale_summary_provider_direction_aliases_report} =
+             Schema.validate_artifact(stale_summary_provider_direction_aliases)
+
+    assert Enum.any?(
+             stale_summary_provider_direction_aliases_report["errors"],
+             &(&1["path"] == "$.assumptions.provider_direction_aliases" and
+                 &1["message"] == "must match LinkCapacity provider direction aliases")
+           )
+
+    summary_without_optional_capability_assumptions =
+      drop_link_capacity_capability_assumptions(summary)
+
+    assert {:ok, %{"schema_contract" => "link_capacity_summary.v1"}} =
+             Schema.validate_artifact(summary_without_optional_capability_assumptions)
 
     stale_summary_model_limits = Map.put(summary, "model_limits", ["artifact_level_only"])
 
@@ -2066,6 +2123,23 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
         policy: %{downlink_rate_mb_s: 2.0}
       )
 
+    expected_capability_assumptions = link_capacity_capability_assumptions()
+
+    expected_station_unavailable_aliases =
+      expected_capability_assumptions["station_unavailable_aliases"]
+
+    expected_station_availability_precedence =
+      expected_capability_assumptions["station_availability_precedence"]
+
+    expected_station_capacity_value_paths =
+      expected_capability_assumptions["station_capacity_value_paths"]
+
+    expected_source_station_capacity_value_paths =
+      expected_capability_assumptions["source_station_capacity_value_paths"]
+
+    expected_provider_direction_aliases =
+      expected_capability_assumptions["provider_direction_aliases"]
+
     assert %{
              "schema_contract" => "link_capacity_report.v1",
              "model" => "fixed_rate_downlink_capacity_summary",
@@ -2101,7 +2175,13 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
              "assumptions" => %{
                "downlink_rate_mb_s" => 2.0,
                "link_budget_model" => "none",
-               "reservation_model" => "provider_reservation_identity_context_only"
+               "reservation_model" => "provider_reservation_identity_context_only",
+               "station_unavailable_aliases" => ^expected_station_unavailable_aliases,
+               "station_availability_precedence" => ^expected_station_availability_precedence,
+               "station_capacity_value_paths" => ^expected_station_capacity_value_paths,
+               "source_station_capacity_value_paths" =>
+                 ^expected_source_station_capacity_value_paths,
+               "provider_direction_aliases" => ^expected_provider_direction_aliases
              }
            } = report
 
@@ -2129,6 +2209,42 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
              "items",
              "enum"
            ]) == expected_model_limits
+
+    assert get_in(link_capacity_report_schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "station_availability_precedence",
+             "const"
+           ]) == expected_capability_assumptions["station_availability_precedence"]
+
+    assert get_in(link_capacity_report_schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "source_station_capacity_value_paths",
+             "const"
+           ]) == expected_capability_assumptions["source_station_capacity_value_paths"]
+
+    stale_report_station_capacity_paths =
+      put_in(report, ["assumptions", "station_capacity_value_paths"], [
+        %{"unit" => "fraction", "path" => ["stale_capacity"]}
+      ])
+
+    assert {:error, stale_report_station_capacity_paths_report} =
+             Schema.validate_artifact(stale_report_station_capacity_paths)
+
+    assert Enum.any?(
+             stale_report_station_capacity_paths_report["errors"],
+             &(&1["path"] == "$.assumptions.station_capacity_value_paths" and
+                 &1["message"] == "must match LinkCapacity station capacity value paths")
+           )
+
+    report_without_optional_capability_assumptions =
+      drop_link_capacity_capability_assumptions(report)
+
+    assert {:ok, %{"schema_contract" => "link_capacity_report.v1"}} =
+             Schema.validate_artifact(report_without_optional_capability_assumptions)
 
     stale_report_model_limits = Map.put(report, "model_limits", ["artifact_level_only"])
 
@@ -4547,5 +4663,37 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
 
     assert {:ok, %{"schema_contract" => "link_capacity_report.v1"}} =
              Schema.validate_artifact(report)
+  end
+
+  defp link_capacity_capability_assumptions do
+    capabilities = LinkCapacity.capabilities()
+
+    %{
+      "station_unavailable_aliases" => capabilities.station_unavailable_aliases,
+      "station_availability_precedence" => capabilities.station_availability_precedence,
+      "station_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.station_capacity_value_paths),
+      "source_station_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.source_station_capacity_value_paths),
+      "provider_direction_aliases" => capabilities.provider_direction_aliases
+    }
+  end
+
+  defp json_capacity_value_paths(paths) do
+    Enum.map(paths, fn %{unit: unit, path: path} ->
+      %{"unit" => Atom.to_string(unit), "path" => path}
+    end)
+  end
+
+  defp drop_link_capacity_capability_assumptions(artifact) do
+    update_in(artifact, ["assumptions"], fn assumptions ->
+      Map.drop(assumptions, [
+        "station_unavailable_aliases",
+        "station_availability_precedence",
+        "station_capacity_value_paths",
+        "source_station_capacity_value_paths",
+        "provider_direction_aliases"
+      ])
+    end)
   end
 end
