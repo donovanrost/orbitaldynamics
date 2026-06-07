@@ -23983,6 +23983,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  "timeline:dl_conflict" => 3
                },
              "source_report_timeline_activity_precondition_allow_overlap_counts" => %{"true" => 3},
+             "source_report_timeline_activity_precondition_branch_local_timeline_activity_precondition_pressure" =>
+               true,
+             "source_report_timeline_activity_precondition_branch_local_review_pressure" => true,
+             "source_report_timeline_activity_precondition_branch_local_dependency_pressure" =>
+               true,
+             "source_report_timeline_activity_precondition_branch_local_exclusivity_pressure" =>
+               true,
+             "source_report_timeline_activity_precondition_branch_local_invalid_input_pressure" =>
+               true,
+             "source_report_timeline_activity_precondition_branch_local_routing_pressure" => true,
              "source_reports" => %{
                "timeline_activity_precondition_summary" => %{
                  "contract" => "timeline_activity_precondition_summary.v1",
@@ -24094,6 +24104,19 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "schema_contract" => "candidate_refresh.v1",
       "provenance" => %{"source_reports" => source_summary["source_reports"]}
     }
+
+    assert %{
+             "source_report_timeline_activity_precondition_branch_local_timeline_activity_precondition_pressure" =>
+               true,
+             "source_report_timeline_activity_precondition_branch_local_review_pressure" => true,
+             "source_report_timeline_activity_precondition_branch_local_dependency_pressure" =>
+               true,
+             "source_report_timeline_activity_precondition_branch_local_exclusivity_pressure" =>
+               true,
+             "source_report_timeline_activity_precondition_branch_local_invalid_input_pressure" =>
+               true,
+             "source_report_timeline_activity_precondition_branch_local_routing_pressure" => true
+           } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.timeline_activity_precondition_replay_summary(artifact) ==
              replay_summary

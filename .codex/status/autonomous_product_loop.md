@@ -5,42 +5,41 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Candidate-refresh timeline-transition-application replay branch summary routing.
+Candidate-refresh timeline-activity-precondition replay branch summary routing.
 
 Status:
 Implemented, verified, reviewed, and ready for mechanical commit/push.
 
 Completed slice:
-Expose composed timeline-transition-application replay branch flags on
+Expose composed timeline-activity-precondition replay branch flags on
 `CandidateRefresh.source_report_summary/1`.
 
 Why this slice:
 The public capability catalog advertises
-`source_report_timeline_transition_application_branch_replay_summary`. The
-dedicated `timeline_transition_application_replay_summary/1` helper already
-derives branch-local transition-application, selected-activity,
-review-required, preserved-transition, duplicate-identity, and operator-review
-pressure, but the main `source_report_summary/1` surface only exposes the
-underlying transition-application rollups.
+`source_report_timeline_activity_precondition_branch_replay_summary`. The
+dedicated `timeline_activity_precondition_replay_summary/1` helper already
+derives branch-local activity-precondition, review, dependency, exclusivity,
+invalid-input, and routing pressure, but the main `source_report_summary/1`
+surface only exposes the underlying activity-precondition rollups.
 
 Level 6 pillar:
-Branch-local candidate refresh depth and timeline-transition replay semantics.
+Branch-local candidate refresh depth and activity-precondition replay semantics.
 
 What changed:
 - `CandidateRefresh.source_report_summary/1` now exposes
-  timeline-transition-application branch-local replay flags for transition
-  application, selected activity, review required, preserved transition,
-  duplicate identity, and operator review pressure.
-- `timeline_transition_application_replay_summary/1` now uses a private summary
+  timeline-activity-precondition branch-local replay flags for activity
+  precondition, review, dependency, exclusivity, invalid-input, and routing
+  pressure.
+- `timeline_activity_precondition_replay_summary/1` now uses a private summary
   builder, so the public replay helper and source-report summary fields share
   the same branch-pressure logic without recursing through
   `source_report_summary/1`.
 - Candidate-refresh regression coverage proves the source-report summary
-  carries the composed transition-application branch flags for raw provenance
-  and compact `timeline_transition_application_report` provenance.
+  carries the composed activity-precondition branch flags for raw provenance
+  and compact `timeline_activity_precondition_summary` provenance.
 
 Verification:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:36763` passed, 1
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:23882` passed, 1
   test.
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs test/orbital_dynamics/schema_test.exs`
   passed, 823 tests.
@@ -50,6 +49,9 @@ Verification:
   contract did not change.
 
 Recently completed slices:
+- `33e027c328919126db93e20d7a449f9ff84f0eff` pushed to `origin/main` for
+  candidate-refresh timeline-transition-application replay branch summary
+  routing.
 - `79e45b24be48960447f5ad8fe4c8e428a2c8199c` pushed to `origin/main` for
   candidate-refresh timeline-publication replay branch summary routing.
 - `04f8baf402150ff49d37ad1207a48b895f41f434` pushed to `origin/main` for
@@ -66,12 +68,10 @@ Recently completed slices:
   candidate-refresh timeline-feedback replay branch summary routing.
 
 Next candidate:
-Candidate-refresh timeline-activity-precondition replay branch summary routing.
-The public capability catalog advertises
-`source_report_timeline_activity_precondition_branch_replay_summary`, and
-`timeline_activity_precondition_replay_summary/1` already derives branch-local
-activity-precondition pressure flags that are not yet projected through
-`CandidateRefresh.source_report_summary/1`.
+Reassess after commit/push from the live guide and source-report capability
+catalog. Timeline-preservation remains advertised as branch replay, but it
+derives from preservation review rows rather than only nested `source_reports`,
+so verify the projection surface before selecting it.
 
 Blocked:
 No.

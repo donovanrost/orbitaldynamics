@@ -6897,6 +6897,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_timeline_feedback_replay_summary_fields(source_reports))
     |> Map.merge(source_report_operational_timeline_replay_summary_fields(source_reports))
     |> Map.merge(source_report_timeline_lifecycle_state_replay_summary_fields(source_reports))
+    |> Map.merge(
+      source_report_timeline_activity_precondition_replay_summary_fields(source_reports)
+    )
     |> Map.merge(source_report_timeline_dependency_impact_replay_summary_fields(source_reports))
     |> Map.merge(source_report_timeline_diff_replay_summary_fields(source_reports))
     |> Map.merge(source_report_timeline_integrity_replay_summary_fields(source_reports))
@@ -9894,6 +9897,31 @@ defmodule OrbitalDynamics.CandidateRefresh do
     }
   end
 
+  defp source_report_timeline_activity_precondition_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("timeline_activity_precondition_summary", %{})
+      |> timeline_activity_precondition_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.timeline_activity_precondition_summary",
+        "timeline_activity_precondition_summary_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_timeline_activity_precondition_branch_local_timeline_activity_precondition_pressure" =>
+        Map.get(summary, "branch_local_timeline_activity_precondition_pressure"),
+      "source_report_timeline_activity_precondition_branch_local_review_pressure" =>
+        Map.get(summary, "branch_local_activity_precondition_review_pressure"),
+      "source_report_timeline_activity_precondition_branch_local_dependency_pressure" =>
+        Map.get(summary, "branch_local_activity_precondition_dependency_pressure"),
+      "source_report_timeline_activity_precondition_branch_local_exclusivity_pressure" =>
+        Map.get(summary, "branch_local_activity_precondition_exclusivity_pressure"),
+      "source_report_timeline_activity_precondition_branch_local_invalid_input_pressure" =>
+        Map.get(summary, "branch_local_activity_precondition_invalid_input_pressure"),
+      "source_report_timeline_activity_precondition_branch_local_routing_pressure" =>
+        Map.get(summary, "branch_local_activity_precondition_routing_pressure")
+    }
+  end
+
   defp source_report_timeline_dependency_impact_replay_summary_fields(source_reports) do
     summary =
       source_reports
@@ -12317,6 +12345,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    timeline_activity_precondition_replay_summary_from_summary(
+      precondition_summary,
+      summary_source,
+      replay_scope
+    )
+  end
+
+  defp timeline_activity_precondition_replay_summary_from_summary(
+         precondition_summary,
+         summary_source,
+         replay_scope
+       ) do
     row_count = summary_integer(precondition_summary, "row_count")
 
     blocked_precondition_count =
