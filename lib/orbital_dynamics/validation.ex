@@ -6999,6 +6999,85 @@ defmodule OrbitalDynamics.Validation do
         "checks station pressure counts, routing maps, and model-limit boundary only"
       ]
     },
+    "fixture.artifact.contact_allocation_capacity_pack_summary.v1" => %{
+      "id" => "fixture.artifact.contact_allocation_capacity_pack_summary.v1",
+      "model_id" => "artifact.contact_allocation_capacity_pack_summary.v1",
+      "reference_case" => "checked-in contact allocation capacity pack summary",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/contact_allocation_capacity_pack_summary_v1.json",
+        "contract" => "contact_allocation_capacity_pack_summary.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "contact_allocation_capacity_pack_summary.v1",
+        "model" => "artifact_only_contact_allocation_capacity_pack_summary",
+        "source_artifact_type" => "contact_allocation_report.v1",
+        "source" => "validation.contact_allocation_capacity_pack_summary",
+        "input_contact_count" => 3,
+        "row_derived_input_contact_count" => 3,
+        "capacity_pack_contact_count" => 3,
+        "row_derived_capacity_pack_contact_count" => 3,
+        "reduced_capacity_pack_group_count" => 1,
+        "row_derived_reduced_capacity_pack_group_count" => 1,
+        "capacity_pack_status_counts" => %{
+          "deferred_by_reduced_station_capacity_pack" => 1,
+          "selected_by_contention_resolution" => 1,
+          "selected_by_reduced_station_capacity_pack" => 1
+        },
+        "row_derived_capacity_pack_status_counts" => %{
+          "deferred_by_reduced_station_capacity_pack" => 1,
+          "selected_by_contention_resolution" => 1,
+          "selected_by_reduced_station_capacity_pack" => 1
+        },
+        "reduced_capacity_pack_status_counts" => %{"capacity_limited" => 1},
+        "row_derived_reduced_capacity_pack_status_counts" => %{"capacity_limited" => 1},
+        "capacity_pack_contact_ids_by_status" => %{
+          "deferred_by_reduced_station_capacity_pack" => ["dl_capacity_overflow"],
+          "selected_by_contention_resolution" => ["dl_capacity_primary"],
+          "selected_by_reduced_station_capacity_pack" => ["dl_capacity_secondary"]
+        },
+        "row_derived_capacity_pack_contact_ids_by_status" => %{
+          "deferred_by_reduced_station_capacity_pack" => ["dl_capacity_overflow"],
+          "selected_by_contention_resolution" => ["dl_capacity_primary"],
+          "selected_by_reduced_station_capacity_pack" => ["dl_capacity_secondary"]
+        },
+        "reduced_capacity_packed_contact_keys" => "dl_capacity_secondary",
+        "row_derived_reduced_capacity_packed_contact_keys" => "dl_capacity_secondary",
+        "reduced_capacity_deferred_contact_keys" => "dl_capacity_overflow",
+        "row_derived_reduced_capacity_deferred_contact_keys" => "dl_capacity_overflow",
+        "row_derived_reduced_capacity_pack_group_ids_by_status" => %{
+          "capacity_limited" => ["capacity_pack:equator_prime:downlink:100_160"]
+        },
+        "row_derived_capacity_pack_contact_ids_by_direction_and_ground_station_id" => %{
+          "downlink" => %{
+            "equator_prime" => [
+              "dl_capacity_overflow",
+              "dl_capacity_primary",
+              "dl_capacity_secondary"
+            ]
+          }
+        },
+        "model_limit_count" => 8
+      },
+      "tolerances" => %{
+        "input_contact_count" => 0,
+        "row_derived_input_contact_count" => 0,
+        "capacity_pack_contact_count" => 0,
+        "row_derived_capacity_pack_contact_count" => 0,
+        "reduced_capacity_pack_group_count" => 0,
+        "row_derived_reduced_capacity_pack_group_count" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not external capacity validation",
+        "checks capacity-pack counts, routing maps, and model-limit boundary only"
+      ]
+    },
     "fixture.artifact.contact_allocation_provider_reservation_request_summary.v1" => %{
       "id" => "fixture.artifact.contact_allocation_provider_reservation_request_summary.v1",
       "model_id" => "artifact.contact_allocation_provider_reservation_request_summary.v1",
@@ -14949,6 +15028,82 @@ defmodule OrbitalDynamics.Validation do
     }
   end
 
+  def artifact_observations("contact_allocation_capacity_pack_summary.v1", artifact)
+      when is_map(artifact) do
+    artifact = stringify_keys(artifact)
+    rows = map_rows(artifact, "rows")
+    capacity_rows = capacity_pack_rows(rows)
+    reduced_groups = map_rows(artifact, "reduced_capacity_pack_groups")
+
+    %{
+      "schema_contract" => Map.get(artifact, "schema_contract"),
+      "model" => Map.get(artifact, "model"),
+      "source_artifact_type" => Map.get(artifact, "source_artifact_type"),
+      "source" => Map.get(artifact, "source"),
+      "input_contact_count" => Map.get(artifact, "input_contact_count"),
+      "row_derived_input_contact_count" => length(rows),
+      "capacity_pack_contact_count" => Map.get(artifact, "capacity_pack_contact_count"),
+      "row_derived_capacity_pack_contact_count" => length(capacity_rows),
+      "reduced_capacity_pack_group_count" =>
+        Map.get(artifact, "reduced_capacity_pack_group_count"),
+      "row_derived_reduced_capacity_pack_group_count" => length(reduced_groups),
+      "capacity_pack_status_counts" => Map.get(artifact, "capacity_pack_status_counts"),
+      "row_derived_capacity_pack_status_counts" =>
+        row_value_counts(capacity_rows, "capacity_pack_status"),
+      "reduced_capacity_pack_status_counts" =>
+        Map.get(artifact, "reduced_capacity_pack_status_counts"),
+      "row_derived_reduced_capacity_pack_status_counts" =>
+        row_value_counts(reduced_groups, "pack_status"),
+      "capacity_pack_contact_ids_by_status" =>
+        Map.get(artifact, "capacity_pack_contact_ids_by_status"),
+      "row_derived_capacity_pack_contact_ids_by_status" =>
+        capacity_rows
+        |> group_row_ids_by_value("capacity_pack_status", "contact_id")
+        |> sort_grouped_values(),
+      "reduced_capacity_packed_contact_ids" =>
+        Map.get(artifact, "reduced_capacity_packed_contact_ids"),
+      "reduced_capacity_packed_contact_keys" =>
+        artifact
+        |> list_values("reduced_capacity_packed_contact_ids")
+        |> Enum.join("|"),
+      "row_derived_reduced_capacity_packed_contact_ids" =>
+        reduced_groups
+        |> Enum.flat_map(&list_values(&1, "capacity_packed_contact_ids"))
+        |> Enum.uniq()
+        |> Enum.sort(),
+      "row_derived_reduced_capacity_packed_contact_keys" =>
+        reduced_groups
+        |> Enum.flat_map(&list_values(&1, "capacity_packed_contact_ids"))
+        |> Enum.uniq()
+        |> Enum.sort()
+        |> Enum.join("|"),
+      "reduced_capacity_deferred_contact_ids" =>
+        Map.get(artifact, "reduced_capacity_deferred_contact_ids"),
+      "reduced_capacity_deferred_contact_keys" =>
+        artifact
+        |> list_values("reduced_capacity_deferred_contact_ids")
+        |> Enum.join("|"),
+      "row_derived_reduced_capacity_deferred_contact_ids" =>
+        reduced_groups
+        |> Enum.flat_map(&list_values(&1, "deferred_contact_ids"))
+        |> Enum.uniq()
+        |> Enum.sort(),
+      "row_derived_reduced_capacity_deferred_contact_keys" =>
+        reduced_groups
+        |> Enum.flat_map(&list_values(&1, "deferred_contact_ids"))
+        |> Enum.uniq()
+        |> Enum.sort()
+        |> Enum.join("|"),
+      "row_derived_reduced_capacity_pack_group_ids_by_status" =>
+        reduced_groups
+        |> group_row_ids_by_value("pack_status", "contention_group_id")
+        |> sort_grouped_values(),
+      "row_derived_capacity_pack_contact_ids_by_direction_and_ground_station_id" =>
+        contact_ids_by_direction_and_ground_station_id(capacity_rows),
+      "model_limit_count" => count(artifact, "model_limits")
+    }
+  end
+
   def artifact_observations(
         "contact_allocation_provider_reservation_request_summary.v1",
         artifact
@@ -16888,6 +17043,14 @@ defmodule OrbitalDynamics.Validation do
       Map.get(row, "station_availability") != nil or
         Map.get(row, "station_calendar_precedence_availability") != nil or
         Map.get(row, "station_calendar_precedence_rank") != nil
+    end)
+  end
+
+  defp capacity_pack_rows(rows) do
+    Enum.filter(rows, fn row ->
+      Map.get(row, "capacity_pack_status") != nil or
+        Map.get(row, "capacity_pack_group_id") != nil or
+        Map.get(row, "capacity_pack_capacity_fraction") != nil
     end)
   end
 
