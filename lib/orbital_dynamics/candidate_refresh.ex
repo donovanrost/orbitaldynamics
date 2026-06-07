@@ -6915,6 +6915,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_maneuver_review_replay_summary_fields(source_reports))
     |> Map.merge(source_report_constraint_replay_summary_fields(source_reports))
     |> Map.merge(source_report_objective_gap_replay_summary_fields(source_reports))
+    |> Map.merge(
+      source_report_schema_validation_replay_summary_fields(refresh_or_artifact, source_reports)
+    )
     |> Map.merge(source_report_timeline_feedback_replay_summary_fields(source_reports))
     |> Map.merge(source_report_operational_timeline_replay_summary_fields(source_reports))
     |> Map.merge(source_report_timeline_activity_state_replay_summary_fields(source_reports))
@@ -9802,6 +9805,45 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "branch_local_invalid_limit_pressure"),
       "source_report_refresh_budget_branch_local_candidate_limit_applied" =>
         Map.get(summary, "branch_local_candidate_limit_applied")
+    }
+  end
+
+  defp source_report_schema_validation_replay_summary_fields(refresh_or_artifact, source_reports) do
+    branch_validation_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "schema_validation_report")
+
+    validation_summary =
+      branch_validation_summary || Map.get(source_reports, "schema_validation_report", %{})
+
+    {summary_source, replay_scope} =
+      if branch_validation_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.schema_validation_report",
+          "schema_validation_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.schema_validation_report",
+          "schema_validation_source_report_provenance_only"
+        }
+      end
+
+    summary =
+      schema_validation_replay_summary_from_summary(
+        validation_summary,
+        summary_source,
+        replay_scope
+      )
+
+    %{
+      "source_report_schema_validation_branch_local_validation_pressure" =>
+        Map.get(summary, "branch_local_validation_pressure"),
+      "source_report_schema_validation_branch_local_schema_error_pressure" =>
+        Map.get(summary, "branch_local_schema_error_pressure"),
+      "source_report_schema_validation_branch_local_schema_warning_pressure" =>
+        Map.get(summary, "branch_local_schema_warning_pressure"),
+      "source_report_schema_validation_branch_local_remediation_pressure" =>
+        Map.get(summary, "branch_local_remediation_pressure")
     }
   end
 
@@ -15770,16 +15812,46 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local schema-validation replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, mutate candidates, approve imports, or
-  write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, mutate
+  candidates, approve imports, or write to Cadence.
   """
   def schema_validation_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
-    validation_summary =
-      get_in(source_summary, ["source_reports", "schema_validation_report"]) || %{}
+    branch_validation_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "schema_validation_report")
 
+    validation_summary =
+      branch_validation_summary ||
+        get_in(source_summary, ["source_reports", "schema_validation_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_validation_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.schema_validation_report",
+          "schema_validation_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.schema_validation_report",
+          "schema_validation_source_report_provenance_only"
+        }
+      end
+
+    schema_validation_replay_summary_from_summary(
+      validation_summary,
+      summary_source,
+      replay_scope
+    )
+  end
+
+  defp schema_validation_replay_summary_from_summary(
+         validation_summary,
+         summary_source,
+         replay_scope
+       ) do
     status_counts = Map.get(validation_summary, "status_counts", %{})
     validated_contract_counts = Map.get(validation_summary, "validated_contract_counts", %{})
     validation_mode_counts = Map.get(validation_summary, "validation_mode_counts", %{})
@@ -15811,7 +15883,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_schema_validation_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.schema_validation_report",
+      "source" => summary_source,
       "contract" =>
         source_report_summary_contract(validation_summary, "schema_validation_report.v1"),
       "source_report_count" => summary_integer(validation_summary, "count"),
@@ -15834,7 +15906,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "branch_local_remediation_pressure" => remediation_pressure,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "schema_validation_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_schema_validation_replay_summary",
         "import_approval" => "not_granted_by_schema_validation_replay_summary",
         "cadence_write" => "not_performed_by_summary",

@@ -27492,6 +27492,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "$.candidate_activities[0].id" => 1,
                "$.candidate_activities[0].type" => 1
              },
+             "source_report_schema_validation_branch_local_validation_pressure" => true,
+             "source_report_schema_validation_branch_local_schema_error_pressure" => true,
+             "source_report_schema_validation_branch_local_schema_warning_pressure" => true,
+             "source_report_schema_validation_branch_local_remediation_pressure" => true,
              "source_reports" => %{
                "schema_validation_report" => %{
                  "count" => 2,
@@ -27590,7 +27594,11 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_schema_validation_remediation_path_counts" => %{
                "$.candidate_activities[0].id" => 1,
                "$.candidate_activities[0].type" => 1
-             }
+             },
+             "source_report_schema_validation_branch_local_validation_pressure" => true,
+             "source_report_schema_validation_branch_local_schema_error_pressure" => true,
+             "source_report_schema_validation_branch_local_schema_warning_pressure" => true,
+             "source_report_schema_validation_branch_local_remediation_pressure" => true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.schema_validation_replay_summary(artifact) == replay_summary
@@ -27879,6 +27887,96 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["branch_local_schema_error_pressure"]
     assert summary["branch_local_schema_warning_pressure"]
     assert summary["branch_local_remediation_pressure"]
+  end
+
+  test "schema validation replay reads strategy branch candidate-source summary metadata" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "candidate_source" => %{
+        "candidate_refresh_request_source_report_summary" => %{
+          "source_reports" => %{
+            "schema_validation_report" => %{
+              "contract" => "schema_validation_report.v1",
+              "count" => 1,
+              "row_count" => 1,
+              "paths" => [
+                "candidate_source.candidate_refresh_request.source_schema_validation_report"
+              ],
+              "status_counts" => %{"fail" => 1, "warning" => 1},
+              "validated_contract_counts" => %{"candidate_refresh.v1" => 1},
+              "validation_mode_counts" => %{"artifact_file" => 1},
+              "error_count" => 0,
+              "warning_count" => 0,
+              "remediation_count" => 0,
+              "remediation_action_counts" => %{"populate_id" => 1},
+              "remediation_category_counts" => %{"missing_required_field" => 1},
+              "remediation_path_counts" => %{"$.candidate_activities[0].id" => 1},
+              "trust_boundary_status" => "declared",
+              "trust_boundaries" => ["branch_schema_validation"]
+            }
+          }
+        }
+      },
+      "provenance" => %{
+        "source_reports" => %{
+          "schema_validation_report" => %{
+            "contract" => "schema_validation_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["source_schema_validation_report"],
+            "status_counts" => %{},
+            "validated_contract_counts" => %{},
+            "validation_mode_counts" => %{},
+            "error_count" => 0,
+            "warning_count" => 0,
+            "remediation_count" => 0,
+            "remediation_action_counts" => %{},
+            "remediation_category_counts" => %{},
+            "remediation_path_counts" => %{}
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.schema_validation_replay_summary(artifact)
+
+    assert summary["source"] ==
+             "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.schema_validation_report"
+
+    assert summary["source_report_count"] == 1
+    assert summary["source_report_row_count"] == 1
+
+    assert summary["source_report_paths"] == [
+             "candidate_source.candidate_refresh_request.source_schema_validation_report"
+           ]
+
+    assert summary["status_counts"] == %{"fail" => 1, "warning" => 1}
+    assert summary["validated_contract_counts"] == %{"candidate_refresh.v1" => 1}
+    assert summary["validation_mode_counts"] == %{"artifact_file" => 1}
+    assert summary["error_count"] == 0
+    assert summary["warning_count"] == 0
+    assert summary["remediation_count"] == 0
+    assert summary["remediation_action_counts"] == %{"populate_id" => 1}
+    assert summary["remediation_category_counts"] == %{"missing_required_field" => 1}
+    assert summary["remediation_path_counts"] == %{"$.candidate_activities[0].id" => 1}
+    assert summary["trust_boundaries"] == ["branch_schema_validation"]
+    assert summary["branch_local_validation_pressure"]
+    assert summary["branch_local_schema_error_pressure"]
+    assert summary["branch_local_schema_warning_pressure"]
+    assert summary["branch_local_remediation_pressure"]
+
+    assert summary["assumptions"]["replay_scope"] ==
+             "schema_validation_candidate_source_report_summary_only"
+
+    assert %{
+             "source_report_schema_validation_branch_local_validation_pressure" => true,
+             "source_report_schema_validation_branch_local_schema_error_pressure" => true,
+             "source_report_schema_validation_branch_local_schema_warning_pressure" => true,
+             "source_report_schema_validation_branch_local_remediation_pressure" => true
+           } = CandidateRefresh.source_report_summary(artifact)
+
+    assert OrbitalDynamics.candidate_refresh_schema_validation_replay_summary(artifact) ==
+             summary
   end
 
   test "schema validation replay treats status and remediation maps as pressure" do
