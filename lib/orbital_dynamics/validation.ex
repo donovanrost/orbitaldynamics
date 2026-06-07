@@ -1710,6 +1710,85 @@ defmodule OrbitalDynamics.Validation do
         "checks candidate-refresh replay of contact-intent direction and capacity-pack provenance without contact generation, contact allocation, candidate selection, import approval, or Cadence writes"
       ]
     },
+    "fixture.artifact.candidate_refresh.resource_projection_replay" => %{
+      "id" => "fixture.artifact.candidate_refresh.resource_projection_replay",
+      "model_id" => "artifact.candidate_refresh.v1",
+      "reference_case" =>
+        "generated candidate refresh replay of resource-projection pressure evidence",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "source" => "generated_candidate_refresh_resource_projection_fixture",
+        "contract" => "candidate_refresh.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "candidate_refresh.v1",
+        "schema_version" => 1,
+        "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 1,
+        "source_report_row_count" => 4,
+        "source_resource_projection_report_count" => 1,
+        "source_resource_projection_row_count" => 4,
+        "source_resource_projection_projected_resource_count" => 2,
+        "source_resource_projection_invalid_activity_input_count" => 1,
+        "source_resource_projection_invalid_resource_summary_input_count" => 1,
+        "source_resource_projection_resource_pressure_status_counts" => %{
+          "downlink_shortfall" => 1,
+          "storage_shortfall" => 1
+        },
+        "source_resource_projection_resource_pressure_type_counts" => %{
+          "downlink_shortfall" => 1,
+          "storage_pressure" => 1,
+          "storage_shortfall" => 1
+        },
+        "source_resource_projection_resource_pressure_direction_counts" => %{
+          "downlink" => 1,
+          "tracking" => 1
+        },
+        "source_resource_projection_resource_pressure_activity_ids_by_status" => %{
+          "downlink_shortfall" => ["dl_pressure_1"],
+          "storage_shortfall" => ["imaging_1", "imaging_2"]
+        },
+        "source_resource_projection_resource_pressure_activity_ids_by_type" => %{
+          "downlink_shortfall" => ["dl_pressure_1"],
+          "storage_pressure" => ["dl_pressure_1"],
+          "storage_shortfall" => ["imaging_1", "imaging_2"]
+        },
+        "source_resource_projection_resource_pressure_activity_ids_by_direction" => %{
+          "downlink" => ["dl_pressure_1"],
+          "tracking" => ["imaging_1", "imaging_2"]
+        },
+        "source_resource_projection_trust_boundary_status" => "declared"
+      },
+      "tolerances" => %{
+        "schema_version" => 0,
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 0,
+        "source_report_row_count" => 0,
+        "source_resource_projection_report_count" => 0,
+        "source_resource_projection_row_count" => 0,
+        "source_resource_projection_projected_resource_count" => 0,
+        "source_resource_projection_invalid_activity_input_count" => 0,
+        "source_resource_projection_invalid_resource_summary_input_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal generated artifact regression, not resource execution validation",
+        "checks candidate-refresh replay of resource-projection pressure provenance without resource mutation, candidate selection, import approval, or Cadence writes"
+      ]
+    },
     "fixture.artifact.candidate_refresh.timeline_transition_application_replay" => %{
       "id" => "fixture.artifact.candidate_refresh.timeline_transition_application_replay",
       "model_id" => "artifact.candidate_refresh.v1",
@@ -11331,6 +11410,7 @@ defmodule OrbitalDynamics.Validation do
 
     objective_tradeoff_summary = Map.get(source_reports, "objective_tradeoff_report") || %{}
     score_term_summary = Map.get(source_reports, "score_term_report") || %{}
+    resource_projection_summary = Map.get(source_reports, "resource_projection_report") || %{}
 
     timeline_transition_summary =
       Map.get(source_reports, "timeline_transition_application_report") || %{}
@@ -11405,6 +11485,29 @@ defmodule OrbitalDynamics.Validation do
         Map.get(contact_intent_summary, "direction_routing") || %{},
       "source_contact_intent_trust_boundary_status" =>
         Map.get(contact_intent_summary, "trust_boundary_status"),
+      "source_resource_projection_report_count" => Map.get(resource_projection_summary, "count"),
+      "source_resource_projection_row_count" => Map.get(resource_projection_summary, "row_count"),
+      "source_resource_projection_projected_resource_count" =>
+        Map.get(resource_projection_summary, "projected_resource_count"),
+      "source_resource_projection_invalid_activity_input_count" =>
+        Map.get(resource_projection_summary, "invalid_activity_input_count"),
+      "source_resource_projection_invalid_resource_summary_input_count" =>
+        Map.get(resource_projection_summary, "invalid_resource_summary_input_count"),
+      "source_resource_projection_resource_pressure_status_counts" =>
+        Map.get(resource_projection_summary, "resource_pressure_status_counts") || %{},
+      "source_resource_projection_resource_pressure_type_counts" =>
+        Map.get(resource_projection_summary, "resource_pressure_type_counts") || %{},
+      "source_resource_projection_resource_pressure_direction_counts" =>
+        Map.get(resource_projection_summary, "resource_pressure_direction_counts") || %{},
+      "source_resource_projection_resource_pressure_activity_ids_by_status" =>
+        Map.get(resource_projection_summary, "resource_pressure_activity_ids_by_status") || %{},
+      "source_resource_projection_resource_pressure_activity_ids_by_type" =>
+        Map.get(resource_projection_summary, "resource_pressure_activity_ids_by_type") || %{},
+      "source_resource_projection_resource_pressure_activity_ids_by_direction" =>
+        Map.get(resource_projection_summary, "resource_pressure_activity_ids_by_direction") ||
+          %{},
+      "source_resource_projection_trust_boundary_status" =>
+        Map.get(resource_projection_summary, "trust_boundary_status"),
       "source_objective_satisfaction_report_count" =>
         Map.get(objective_satisfaction_summary, "count"),
       "source_objective_satisfaction_gap_row_count" =>

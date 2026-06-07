@@ -568,6 +568,11 @@ fixture. It checks objective-satisfaction, objective-tradeoff, and score-term
 source-report provenance counts, row-derived gap/status/term maps, source
 activity routing, and trust-boundary status without objective generation, score
 recalculation, candidate selection, import approval, or Cadence writes.
+The registry also includes a generated CandidateRefresh resource-projection
+replay fixture. It checks projected-resource and invalid-input counts, resource
+pressure status/type/direction maps, activity routing, and trust-boundary
+status without resource mutation, candidate selection, import approval, or
+Cadence writes.
 The registry also includes a generated CandidateRefresh timeline-transition
 application replay fixture. It checks selected-integrity review and issue
 counts, missing-dependency issue-type routing, application status maps,

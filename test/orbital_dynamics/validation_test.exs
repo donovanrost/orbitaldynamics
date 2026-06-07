@@ -3861,6 +3861,81 @@ defmodule OrbitalDynamics.ValidationTest do
              Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
   end
 
+  test "verifies candidate refresh resource projection replay fixtures" do
+    fixture_id = "fixture.artifact.candidate_refresh.resource_projection_replay"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = candidate_refresh_resource_projection_fixture()
+    observations = candidate_refresh_resource_projection_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "source_report_family_count" => 1,
+             "source_report_row_count" => 4,
+             "source_resource_projection_report_count" => 1,
+             "source_resource_projection_row_count" => 4,
+             "source_resource_projection_projected_resource_count" => 2,
+             "source_resource_projection_invalid_activity_input_count" => 1,
+             "source_resource_projection_invalid_resource_summary_input_count" => 1,
+             "source_resource_projection_resource_pressure_status_counts" => %{
+               "downlink_shortfall" => 1,
+               "storage_shortfall" => 1
+             },
+             "source_resource_projection_resource_pressure_type_counts" => %{
+               "downlink_shortfall" => 1,
+               "storage_pressure" => 1,
+               "storage_shortfall" => 1
+             },
+             "source_resource_projection_resource_pressure_direction_counts" => %{
+               "downlink" => 1,
+               "tracking" => 1
+             },
+             "source_resource_projection_resource_pressure_activity_ids_by_status" => %{
+               "downlink_shortfall" => ["dl_pressure_1"],
+               "storage_shortfall" => ["imaging_1", "imaging_2"]
+             },
+             "source_resource_projection_resource_pressure_activity_ids_by_type" => %{
+               "downlink_shortfall" => ["dl_pressure_1"],
+               "storage_pressure" => ["dl_pressure_1"],
+               "storage_shortfall" => ["imaging_1", "imaging_2"]
+             },
+             "source_resource_projection_resource_pressure_activity_ids_by_direction" => %{
+               "downlink" => ["dl_pressure_1"],
+               "tracking" => ["imaging_1", "imaging_2"]
+             },
+             "source_resource_projection_trust_boundary_status" => "declared"
+           } = observations
+
+    stale_status_observations =
+      observations
+      |> Map.put("source_resource_projection_resource_pressure_status_counts", %{
+        "stale_status" => 2
+      })
+
+    assert {:ok, stale_status_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_status_observations)
+
+    assert stale_status_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_status_verification["checks"],
+             &(&1["field"] == "source_resource_projection_resource_pressure_status_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _validated_artifact} =
+             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
+  end
+
   test "verifies candidate refresh timeline transition application replay fixtures" do
     fixture_id = "fixture.artifact.candidate_refresh.timeline_transition_application_replay"
 
@@ -11134,6 +11209,8 @@ defmodule OrbitalDynamics.ValidationTest do
           candidate_refresh_contact_contention_challenge_fixture_observations(),
         "fixture.artifact.candidate_refresh.contact_intent_direction_replay" =>
           candidate_refresh_contact_intent_direction_fixture_observations(),
+        "fixture.artifact.candidate_refresh.resource_projection_replay" =>
+          candidate_refresh_resource_projection_fixture_observations(),
         "fixture.artifact.candidate_refresh.timeline_transition_application_replay" =>
           candidate_refresh_timeline_transition_application_fixture_observations(),
         "fixture.artifact.candidate_refresh.objective_gap_replay" =>
@@ -11367,8 +11444,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 150,
-             "status_counts" => %{"pass" => 150},
+             "fixture_count" => 151,
+             "status_counts" => %{"pass" => 151},
              "reports" => reports
            } = report
 
@@ -11391,6 +11468,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay",
              "fixture.artifact.candidate_refresh.contact_intent_direction_replay",
              "fixture.artifact.candidate_refresh.objective_gap_replay",
+             "fixture.artifact.candidate_refresh.resource_projection_replay",
              "fixture.artifact.candidate_refresh.resource_provenance_v1",
              "fixture.artifact.candidate_refresh.timeline_transition_application_replay",
              "fixture.artifact.candidate_refresh.v1",
@@ -11535,7 +11613,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 150},
+             "status_counts" => %{"fail" => 151},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -11927,6 +12005,84 @@ defmodule OrbitalDynamics.ValidationTest do
           }
         }
       ]
+    }
+  end
+
+  defp candidate_refresh_resource_projection_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(candidate_refresh_resource_projection_fixture())
+  end
+
+  defp candidate_refresh_resource_projection_fixture do
+    result_set(%{})
+    |> CandidateRefresh.build(
+      candidate_refresh: candidate_refresh_resource_projection_request(),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  defp candidate_refresh_resource_projection_request do
+    %{
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-resource-projection-challenge",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [],
+        "source" => %{"system" => "validation_challenge"},
+        "quality" => %{"level" => "accepted"},
+        "provenance" => %{"created_by" => "validation_fixture"}
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "targets" => [],
+      "constraints" => %{},
+      "scoring_policy" => %{},
+      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
+      "source_resource_projection_report" => [
+        candidate_refresh_resource_projection_report()
+      ]
+    }
+  end
+
+  defp candidate_refresh_resource_projection_report do
+    %{
+      "schema_contract" => "resource_projection_report.v1",
+      "projected_resources" => [
+        %{
+          "spacecraft_id" => "leo_1",
+          "resource_pressure_status" => "downlink_shortfall",
+          "resource_pressure_types" => ["downlink_shortfall", "storage_pressure"],
+          "first_resource_pressure_activity_id" => "dl_pressure_1",
+          "first_resource_pressure_direction" => "Down Link",
+          "first_resource_pressure_ground_station_id" => "equator_prime",
+          "source_window_id" => "flow_access_window_1",
+          "station_calendar_entry_id" => "station_flow_window_1",
+          "station_calendar_provider_id" => "ops_calendar_flow",
+          "station_calendar_provider_entry_id" => "provider_flow_window_1"
+        },
+        %{
+          "spacecraft_id" => "leo_2",
+          "resource_pressure_status" => "storage_shortfall",
+          "resource_pressure_types" => ["storage_shortfall"],
+          "source_activity_ids" => ["imaging_1", "imaging_2"],
+          "direction" => "tracking_pass",
+          "ground_station_id" => "dss_43",
+          "source_window" => %{"id" => "tracking_window_1"},
+          "source_station_calendar_entry" => %{
+            "station_calendar_entry_id" => "station_tracking_window_1",
+            "station_calendar_provider_id" => "ops_calendar_tracking",
+            "station_calendar_provider_entry_id" => "provider_tracking_window_1"
+          }
+        }
+      ],
+      "invalid_activity_inputs" => [%{"activity_id" => "bad_activity"}],
+      "invalid_resource_summary_inputs" => [%{"spacecraft_id" => "bad_resource_summary"}],
+      "resource_pressure_status_counts" => %{"stale_status" => 99},
+      "resource_pressure_activity_ids_by_status" => %{"stale_status" => ["stale_activity"]},
+      "provenance" => %{"trust_boundary" => "generated_resource_projection_fixture"}
     }
   end
 
