@@ -24548,6 +24548,95 @@ defmodule OrbitalDynamics.SchemaTest do
            )
   end
 
+  test "validates checked-in timeline publication summary fixture" do
+    publication_summary = read_json!("study_results/timeline_publication_summary_v1.json")
+
+    source = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 0.0, ends_at_s: 10.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    replacement = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 5.0, ends_at_s: 15.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    dependency_impact = OrbitalDynamics.timeline_dependency_impact_summary(source, replacement)
+    diff_summary = OrbitalDynamics.timeline_diff_summary(source, replacement)
+
+    generated_publication_summary =
+      OrbitalDynamics.timeline_publication_summary(
+        %{
+          "schema_contract" => "operational_timeline_report.v1",
+          "id" => "timeline:published_plan:v2"
+        },
+        publication_sequence: 7,
+        publication_authority: :mission_operations,
+        supersedes_artifact_ids: ["timeline:published_plan:v1"],
+        downstream_product_ids: ["operator_review:plan:v1", "cadence_import:plan:v1"],
+        dependency_impact_summary: dependency_impact,
+        timeline_diff_summary: diff_summary
+      )
+
+    assert generated_publication_summary == publication_summary
+
+    assert {:ok, %{"schema_contract" => "timeline_publication_summary.v1"}} =
+             Schema.validate_artifact(publication_summary)
+
+    assert %{
+             "source_artifact_type" => "operational_timeline_report.v1",
+             "publication_id" =>
+               "timeline_publication:7:timeline:published_plan:v2:timeline:published_plan:v1",
+             "publication_sequence" => 7,
+             "publication_status" => "published_with_downstream_invalidations",
+             "publication_authority" => "mission_operations",
+             "supersedes_artifact_ids" => ["timeline:published_plan:v1"],
+             "downstream_product_ids" => ["cadence_import:plan:v1", "operator_review:plan:v1"],
+             "invalidated_downstream_product_ids" => [
+               "cadence_import:plan:v1",
+               "operator_review:plan:v1"
+             ],
+             "dependency_impact_status" => "review_required",
+             "dependency_impact_row_count" => 2,
+             "impacted_dependency_activity_ids" => ["health_gate"],
+             "timeline_diff_row_count" => 3,
+             "timeline_diff_changed_count" => 0,
+             "timeline_diff_review_required_count" => 2,
+             "changed_field_counts" => %{"timeline_presence" => 2},
+             "changed_timeline_ids" => [],
+             "review_timeline_ids" => [
+               "timeline:health_check:0.0",
+               "timeline:health_check:5.0"
+             ],
+             "timeline_ids_by_changed_field" => %{
+               "timeline_presence" => [
+                 "timeline:health_check:0.0",
+                 "timeline:health_check:5.0"
+               ]
+             },
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_schedule_mutation",
+               "notification_delivery" => "host_system_owned",
+               "publication_authority" => "mission_operations",
+               "operator_authority" => "not_granted_by_summary"
+             }
+           } = publication_summary
+
+    assert publication_summary["source_timeline_diff_summary"] == diff_summary
+  end
+
   test "exports dependency-impact handoff fields on review and import row schemas" do
     stable_id_pattern = Schema.identity_policy()["stable_id_pattern"]
 
