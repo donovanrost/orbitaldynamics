@@ -263,6 +263,11 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
       station_calendar_reservation_expiration_fields:
         @station_calendar_reservation_expiration_fields,
       summary_routing_fields: @summary_routing_fields,
+      public_facades: [
+        :contact_intents_from_activities,
+        :contact_intent_from_activity!,
+        :contact_intent_summary
+      ],
       policy_gate_statuses: ["auto_approvable", "operator_review_required", "blocked_by_policy"],
       summary_row_semantics: [
         :contact_intent_summary_row_derived_counts,

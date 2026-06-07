@@ -60,6 +60,9 @@ defmodule OrbitalDynamics.CapabilitiesTest do
     assert :timeline_diff_report in catalog.operations.timeline.public_facades
     assert :timeline_link in catalog.operations.timeline.public_facades
     assert catalog.operations.contact_allocation == ContactAllocation.capabilities()
+    assert :contact_intents_from_activities in catalog.operations.contact_intent.public_facades
+    assert :contact_intent_from_activity! in catalog.operations.contact_intent.public_facades
+    assert :contact_intent_summary in catalog.operations.contact_intent.public_facades
     assert :resource_filter_policy in catalog.operations.resource_filter.public_facades
     assert catalog.operations.policy == OrbitalDynamics.Policy.capabilities()
     assert catalog.operations.cadence_import == OrbitalDynamics.CadenceImport.capabilities()

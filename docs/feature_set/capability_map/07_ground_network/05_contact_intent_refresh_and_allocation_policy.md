@@ -8,6 +8,7 @@
 - Source activity types, including provider `contact` rows and typed health-check rows.
 - An optional `policy_decision.v1` approval boundary.
 - Artifact-only limits.
+- Public generation and summary facades for adapter discovery.
 
 Executable validation checks standalone `contact_intent.v1` `model_limits` against those capabilities.
 
