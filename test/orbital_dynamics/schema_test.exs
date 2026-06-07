@@ -12054,6 +12054,11 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(report_schema, ["properties", "model_limits", "items", "enum"]) ==
              OrbitalDynamics.Timeline.model_limits()
 
+    assert_timeline_string_assumptions_schema(
+      report_schema,
+      timeline_preservation_report_assumptions()
+    )
+
     assert get_in(status_schema, ["properties", "schema_contract", "const"]) ==
              "timeline_preservation_status.v1"
 
@@ -12066,6 +12071,11 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(status_schema, ["properties", "model_limits", "items", "enum"]) ==
              OrbitalDynamics.Timeline.model_limits()
 
+    assert_timeline_string_assumptions_schema(
+      status_schema,
+      timeline_preservation_status_assumptions()
+    )
+
     preservation_report =
       OrbitalDynamics.Timeline.preservation_report(
         [
@@ -12077,6 +12087,18 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert {:ok, %{"schema_contract" => "timeline_preservation_report.v1"}} =
              Schema.validate_artifact(preservation_report)
+
+    invalid_report_scope =
+      put_in(preservation_report, ["assumptions", "scope"], "single_activity_preflight")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_report_scope)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.assumptions.scope" and
+                 &1["message"] ==
+                   "must equal \"lifecycle_lock_approval_and_executed_preservation_review\"")
+           )
 
     invalid_report_model = Map.put(preservation_report, "model", "custom")
 
@@ -12107,6 +12129,18 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert {:ok, %{"schema_contract" => "timeline_preservation_status.v1"}} =
              Schema.validate_artifact(preservation_status)
+
+    invalid_status_scope =
+      put_in(preservation_status, ["assumptions", "scope"], "preservation_report")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_status_scope)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.assumptions.scope" and
+                 &1["message"] ==
+                   "must equal \"single_activity_lifecycle_preservation_preflight\"")
+           )
 
     invalid_status_model = Map.put(preservation_status, "model", "custom")
 
@@ -32566,6 +32600,35 @@ defmodule OrbitalDynamics.SchemaTest do
       assert get_in(assumptions_schema, ["properties", field]) == %{
                "type" => "boolean",
                "const" => true
+             }
+    end
+  end
+
+  defp timeline_preservation_report_assumptions do
+    %{
+      "execution_boundary" => "artifact_only_no_schedule_mutation",
+      "scope" => "lifecycle_lock_approval_and_executed_preservation_review"
+    }
+  end
+
+  defp timeline_preservation_status_assumptions do
+    %{
+      "execution_boundary" => "artifact_only_no_schedule_mutation",
+      "scope" => "single_activity_lifecycle_preservation_preflight"
+    }
+  end
+
+  defp assert_timeline_string_assumptions_schema(schema, values) do
+    assumptions_schema = get_in(schema, ["properties", "assumptions"])
+
+    assert assumptions_schema["type"] == "object"
+    assert assumptions_schema["additionalProperties"] == true
+    assert assumptions_schema["required"] == Map.keys(values)
+
+    for {field, value} <- values do
+      assert get_in(assumptions_schema, ["properties", field]) == %{
+               "type" => "string",
+               "const" => value
              }
     end
   end

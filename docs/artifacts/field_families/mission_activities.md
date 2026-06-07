@@ -493,6 +493,8 @@ Both batch preservation reports and single-activity
 `OrbitalDynamics.cadence_import_manifest/1` as `timeline_preservation_review`
 adapter rows, keeping preservation-required evidence ready to record while
 leaving invalid or review-change evidence review-required before import.
+Their exported schemas pin the same execution-boundary and scope assumptions
+that runtime validation enforces for report and status handoffs.
 CandidateRefresh also exposes those preservation handoffs through
 `CandidateRefresh.timeline_preservation_replay_summary/1` and the matching
 `OrbitalDynamics` facade. The replay summary preserves source paths,

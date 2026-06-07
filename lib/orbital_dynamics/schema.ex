@@ -12925,9 +12925,18 @@ defmodule OrbitalDynamics.Schema do
     timeline_identity_json_schema()
   end
 
-  defp json_schema_property("assumptions", contract_name, _contract)
-       when contract_name in [@timeline_preservation_report, @timeline_preservation_status] do
-    %{"type" => "object", "additionalProperties" => true}
+  defp json_schema_property("assumptions", @timeline_preservation_report, _contract) do
+    timeline_string_assumptions_json_schema(%{
+      "execution_boundary" => "artifact_only_no_schedule_mutation",
+      "scope" => "lifecycle_lock_approval_and_executed_preservation_review"
+    })
+  end
+
+  defp json_schema_property("assumptions", @timeline_preservation_status, _contract) do
+    timeline_string_assumptions_json_schema(%{
+      "execution_boundary" => "artifact_only_no_schedule_mutation",
+      "scope" => "single_activity_lifecycle_preservation_preflight"
+    })
   end
 
   defp json_schema_property("rows", @timeline_lifecycle_state_summary, _contract) do
@@ -20801,6 +20810,20 @@ defmodule OrbitalDynamics.Schema do
       "properties" =>
         Map.new(fields, fn field ->
           {field, %{"type" => "boolean", "const" => true}}
+        end)
+    }
+  end
+
+  defp timeline_string_assumptions_json_schema(values) do
+    fields = Map.keys(values)
+
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => fields,
+      "properties" =>
+        Map.new(values, fn {field, value} ->
+          {field, %{"type" => "string", "const" => value}}
         end)
     }
   end
