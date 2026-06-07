@@ -8,7 +8,7 @@ Current slice:
 Resource filter report capability assumptions.
 
 Status:
-Implemented, verified, reviewed, and committed; push pending.
+Implemented, verified, reviewed, committed, and pushed.
 
 Slice completed:
 `resource_filter_report.v1` now carries optional capability-derived assumptions
@@ -51,6 +51,13 @@ authority expansion or propagation behavior change.
 
 Product commit:
 `36bc41d` (`Add resource filter capability assumptions`).
+
+Handoff commit:
+`aa8942c` (`Update autonomous loop handoff`).
+
+Pushed:
+Local and `origin/main` both verified at
+`aa8942c774390d0c9e447ab5273d5a2c34a7e496`.
 
 Remaining maturity gaps:
 Adjacent schema-visible artifacts should continue to be checked for runtime
