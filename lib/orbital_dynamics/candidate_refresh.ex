@@ -6898,6 +6898,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_operational_timeline_replay_summary_fields(source_reports))
     |> Map.merge(source_report_timeline_activity_state_replay_summary_fields(source_reports))
     |> Map.merge(
+      source_report_timeline_activity_status_state_replay_summary_fields(
+        refresh_or_artifact,
+        source_reports
+      )
+    )
+    |> Map.merge(
       source_report_timeline_activity_lifecycle_state_replay_summary_fields(source_reports)
     )
     |> Map.merge(source_report_timeline_lifecycle_state_replay_summary_fields(source_reports))
@@ -9922,6 +9928,40 @@ defmodule OrbitalDynamics.CandidateRefresh do
     }
   end
 
+  defp source_report_timeline_activity_status_state_replay_summary_fields(
+         refresh_or_artifact,
+         source_reports
+       ) do
+    state_summary =
+      source_report_timeline_activity_single_state_summary(
+        refresh_or_artifact,
+        source_reports,
+        "timeline_activity_status_state.v1",
+        "artifact_only_timeline_activity_status_state"
+      )
+
+    summary =
+      (state_summary || %{})
+      |> timeline_activity_single_state_replay_summary_from_summary(
+        "timeline_activity_status_state",
+        "candidate_refresh.source_report_provenance.timeline_activity_status_state",
+        "timeline_activity_status_state_source_report_provenance_only",
+        "activity_status_state_application",
+        "not_granted_by_timeline_activity_status_state_replay_summary"
+      )
+
+    %{
+      "source_report_timeline_activity_status_state_branch_local_timeline_activity_status_state_pressure" =>
+        Map.get(summary, "branch_local_timeline_activity_status_state_pressure"),
+      "source_report_timeline_activity_status_state_branch_local_review_pressure" =>
+        Map.get(summary, "branch_local_timeline_activity_status_state_review_pressure"),
+      "source_report_timeline_activity_status_state_branch_local_action_pressure" =>
+        Map.get(summary, "branch_local_timeline_activity_status_state_action_pressure"),
+      "source_report_timeline_activity_status_state_branch_local_routing_pressure" =>
+        Map.get(summary, "branch_local_timeline_activity_status_state_routing_pressure")
+    }
+  end
+
   defp source_report_timeline_lifecycle_state_replay_summary_fields(source_reports) do
     summary =
       source_reports
@@ -11955,6 +11995,24 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    timeline_activity_single_state_replay_summary_from_summary(
+      state_summary,
+      family,
+      summary_source,
+      replay_scope,
+      application_boundary,
+      authority_boundary
+    )
+  end
+
+  defp timeline_activity_single_state_replay_summary_from_summary(
+         state_summary,
+         family,
+         summary_source,
+         replay_scope,
+         application_boundary,
+         authority_boundary
+       ) do
     row_count = summary_integer(state_summary, "row_count")
     review_required_count = summary_integer(state_summary, "review_required_count")
     invalid_activity_input_count = summary_integer(state_summary, "invalid_activity_input_count")
@@ -12100,6 +12158,29 @@ defmodule OrbitalDynamics.CandidateRefresh do
     end
   end
 
+  defp source_report_timeline_activity_single_state_summary(
+         refresh_or_artifact,
+         source_reports,
+         contract,
+         source_model
+       ) do
+    refresh_or_artifact
+    |> source_timeline_activity_states()
+    |> Enum.filter(fn {_path, state} ->
+      Map.get(state, "schema_contract") == contract or Map.get(state, "model") == source_model
+    end)
+    |> source_timeline_activity_state_input_summary()
+    |> case do
+      nil ->
+        source_reports
+        |> Map.get("timeline_activity_state")
+        |> timeline_activity_single_state_summary_matching_contract(contract)
+
+      summary ->
+        summary
+    end
+  end
+
   defp source_report_timeline_activity_single_state_fields(
          refresh_or_artifact,
          source_reports,
@@ -12108,21 +12189,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
          source_model
        ) do
     summary =
-      refresh_or_artifact
-      |> source_timeline_activity_states()
-      |> Enum.filter(fn {_path, state} ->
-        Map.get(state, "schema_contract") == contract or Map.get(state, "model") == source_model
-      end)
-      |> source_timeline_activity_state_input_summary()
-      |> case do
-        nil ->
-          source_reports
-          |> Map.get("timeline_activity_state")
-          |> timeline_activity_single_state_summary_matching_contract(contract)
-
-        summary ->
-          summary
-      end
+      source_report_timeline_activity_single_state_summary(
+        refresh_or_artifact,
+        source_reports,
+        contract,
+        source_model
+      )
 
     source_report_timeline_activity_single_state_fields(family, summary || %{})
   end

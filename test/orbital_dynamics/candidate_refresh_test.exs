@@ -21226,7 +21226,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "import_replacement_activity" => 3
              },
              "source_report_timeline_activity_status_state_status_transition_category_counts" =>
-               %{"execution_recorded" => 3}
+               %{"execution_recorded" => 3},
+             "source_report_timeline_activity_status_state_branch_local_timeline_activity_status_state_pressure" =>
+               true,
+             "source_report_timeline_activity_status_state_branch_local_review_pressure" => false,
+             "source_report_timeline_activity_status_state_branch_local_action_pressure" => true,
+             "source_report_timeline_activity_status_state_branch_local_routing_pressure" => true
            } = source_summary
 
     assert source_summary["source_report_timeline_activity_status_state_action_routing"] ==
