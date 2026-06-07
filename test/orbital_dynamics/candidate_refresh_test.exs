@@ -4739,6 +4739,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_contact_contention_resolution_required_operator_action_counts" => %{
                "review_contact_contention_resolution" => 1
              },
+             "source_report_contact_contention_resolution_branch_local_contact_contention_resolution_pressure" =>
+               true,
+             "source_report_contact_contention_resolution_branch_local_deferred_contact_pressure" =>
+               true,
+             "source_report_contact_contention_resolution_branch_local_capacity_pack_pressure" =>
+               true,
+             "source_report_contact_contention_resolution_branch_local_action_pressure" => true,
              "source_reports" => %{
                "contact_contention_resolution_report" => %{
                  "recommendation_count" => 1,
@@ -4878,7 +4885,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                ^expected_direction_routing,
              "source_report_contact_contention_resolution_required_operator_action_counts" => %{
                "review_contact_contention_resolution" => 1
-             }
+             },
+             "source_report_contact_contention_resolution_branch_local_contact_contention_resolution_pressure" =>
+               true,
+             "source_report_contact_contention_resolution_branch_local_deferred_contact_pressure" =>
+               true,
+             "source_report_contact_contention_resolution_branch_local_capacity_pack_pressure" =>
+               true,
+             "source_report_contact_contention_resolution_branch_local_action_pressure" => true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.contact_contention_resolution_replay_summary(artifact) ==
@@ -5528,11 +5542,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         "source_reports" => %{
           "contact_contention_resolution_report" => %{
             "contract" => "contact_contention_resolution_report.v1",
-            "count" => 9,
-            "row_count" => 9,
+            "count" => 0,
+            "row_count" => 0,
             "paths" => ["source_contact_contention_resolution_report"],
-            "recommendation_count" => 99,
-            "selected_contact_ids" => ["provenance_selected"]
+            "recommendation_count" => 0,
+            "deferred_contact_count" => 0,
+            "selected_contact_ids" => [],
+            "deferred_contact_ids" => [],
+            "resolution_status_counts" => %{},
+            "selection_reason_counts" => %{},
+            "required_operator_action_counts" => %{}
           }
         }
       }
@@ -5684,6 +5703,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert summary["assumptions"]["replay_scope"] ==
              "contact_contention_resolution_candidate_source_report_summary_only"
+
+    assert %{
+             "source_report_contact_contention_resolution_branch_local_contact_contention_resolution_pressure" =>
+               true,
+             "source_report_contact_contention_resolution_branch_local_deferred_contact_pressure" =>
+               true,
+             "source_report_contact_contention_resolution_branch_local_capacity_pack_pressure" =>
+               true,
+             "source_report_contact_contention_resolution_branch_local_action_pressure" => true
+           } = CandidateRefresh.source_report_summary(artifact)
 
     assert OrbitalDynamics.candidate_refresh_contact_contention_resolution_replay_summary(
              artifact

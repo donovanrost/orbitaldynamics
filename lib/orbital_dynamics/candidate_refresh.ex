@@ -6889,6 +6889,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(
       source_report_contact_contention_replay_summary_fields(refresh_or_artifact, source_reports)
     )
+    |> Map.merge(
+      source_report_contact_contention_resolution_replay_summary_fields(
+        refresh_or_artifact,
+        source_reports
+      )
+    )
     |> Map.merge(source_report_contact_allocation_replay_summary_fields(source_reports))
     |> Map.merge(source_report_contact_intent_replay_summary_fields(source_reports))
     |> Map.merge(source_report_link_capacity_replay_summary_fields(source_reports))
@@ -7520,6 +7526,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    contact_contention_resolution_replay_summary_from_summary(
+      resolution_summary,
+      summary_source,
+      replay_scope
+    )
+  end
+
+  defp contact_contention_resolution_replay_summary_from_summary(
+         resolution_summary,
+         summary_source,
+         replay_scope
+       ) do
     recommendation_count = summary_integer(resolution_summary, "recommendation_count")
     deferred_contact_count = summary_integer(resolution_summary, "deferred_contact_count")
     resolution_status_counts = Map.get(resolution_summary, "resolution_status_counts", %{})
@@ -9746,6 +9764,52 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "branch_local_invalid_contact_input_pressure"),
       "source_report_contact_contention_branch_local_review_pressure" =>
         Map.get(summary, "branch_local_contact_contention_review_pressure")
+    }
+  end
+
+  defp source_report_contact_contention_resolution_replay_summary_fields(
+         refresh_or_artifact,
+         source_reports
+       ) do
+    branch_resolution_summary =
+      source_report_summary_branch_family(
+        refresh_or_artifact,
+        "contact_contention_resolution_report"
+      )
+
+    resolution_summary =
+      branch_resolution_summary ||
+        Map.get(source_reports, "contact_contention_resolution_report", %{})
+
+    {summary_source, replay_scope} =
+      if branch_resolution_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.contact_contention_resolution_report",
+          "contact_contention_resolution_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.contact_contention_resolution_report",
+          "contact_contention_resolution_source_report_provenance_only"
+        }
+      end
+
+    summary =
+      contact_contention_resolution_replay_summary_from_summary(
+        resolution_summary,
+        summary_source,
+        replay_scope
+      )
+
+    %{
+      "source_report_contact_contention_resolution_branch_local_contact_contention_resolution_pressure" =>
+        Map.get(summary, "branch_local_contact_contention_resolution_pressure"),
+      "source_report_contact_contention_resolution_branch_local_deferred_contact_pressure" =>
+        Map.get(summary, "branch_local_deferred_contact_pressure"),
+      "source_report_contact_contention_resolution_branch_local_capacity_pack_pressure" =>
+        Map.get(summary, "branch_local_capacity_pack_pressure"),
+      "source_report_contact_contention_resolution_branch_local_action_pressure" =>
+        Map.get(summary, "branch_local_contact_contention_resolution_action_pressure")
     }
   end
 
