@@ -1026,6 +1026,135 @@ defmodule OrbitalDynamics.SchemaTest do
            } = Validation.artifact_observations("contact_contention_report.v1", report)
   end
 
+  test "validates checked-in contact intent summary fixture" do
+    summary = read_json!("study_results/contact_intent_summary_v1.json")
+
+    activities = [
+      %{
+        id: :direct_capacity_contact,
+        type: :planned_contact,
+        direction: :downlink,
+        scenario_id: :leo_1,
+        ground_station_id: :equator_prime,
+        starts_at_s: 10.0,
+        ends_at_s: 70.0,
+        required_capacity_fraction: "0.25"
+      },
+      %{
+        id: :throughput_capacity_contact,
+        type: :planned_contact,
+        direction: :command,
+        scenario_id: :leo_1,
+        ground_station_id: :dss_43,
+        starts_at_s: 80.0,
+        ends_at_s: 120.0,
+        throughput_model: %{required_station_capacity_percent: "50"}
+      },
+      %{
+        id: :capacity_model_contact,
+        type: :planned_contact,
+        direction: :tracking,
+        scenario_id: :leo_1,
+        ground_station_id: :equator_prime,
+        starts_at_s: 130.0,
+        ends_at_s: 170.0,
+        capacity_model: %{station_capacity_requirement: 0.2}
+      }
+    ]
+
+    generated_summary =
+      OrbitalDynamics.contact_intent_summary(
+        activities,
+        approval_policy: %{policy_bundle_id: "ground_network_allocation_v1"}
+      )
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "contact_intent_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "source_artifact_type" => "contact_intent.v1",
+             "contact_intent_count" => 3,
+             "capacity_pack_required_contact_count" => 3,
+             "capacity_pack_required_capacity_fraction" => 0.95,
+             "capacity_pack_required_capacity_fraction_by_ground_station_id" => %{
+               "dss_43" => 0.5,
+               "equator_prime" => 0.45
+             },
+             "capacity_pack_required_capacity_fraction_by_direction" => %{
+               "command" => 0.5,
+               "downlink" => 0.25,
+               "tracking" => 0.2
+             },
+             "capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id" => %{
+               "command" => %{"dss_43" => 0.5},
+               "downlink" => %{"equator_prime" => 0.25},
+               "tracking" => %{"equator_prime" => 0.2}
+             },
+             "required_capacity_fraction_source_counts" => %{
+               "capacity_model" => 1,
+               "contact_required_capacity_fraction" => 1,
+               "throughput_model" => 1
+             },
+             "required_capacity_fraction_contact_ids_by_source" => %{
+               "capacity_model" => ["capacity_model_contact"],
+               "contact_required_capacity_fraction" => ["direct_capacity_contact"],
+               "throughput_model" => ["throughput_capacity_contact"]
+             },
+             "contact_ids_by_ground_station_id" => %{
+               "dss_43" => ["throughput_capacity_contact"],
+               "equator_prime" => ["capacity_model_contact", "direct_capacity_contact"]
+             },
+             "contact_ids_by_direction" => %{
+               "command" => ["throughput_capacity_contact"],
+               "downlink" => ["direct_capacity_contact"],
+               "tracking" => ["capacity_model_contact"]
+             },
+             "contact_ids_by_direction_and_ground_station_id" => %{
+               "command" => %{"dss_43" => ["throughput_capacity_contact"]},
+               "downlink" => %{"equator_prime" => ["direct_capacity_contact"]},
+               "tracking" => %{"equator_prime" => ["capacity_model_contact"]}
+             },
+             "capacity_pack_contact_ids_by_ground_station_id" => %{
+               "dss_43" => ["throughput_capacity_contact"],
+               "equator_prime" => ["capacity_model_contact", "direct_capacity_contact"]
+             },
+             "capacity_pack_contact_ids_by_direction" => %{
+               "command" => ["throughput_capacity_contact"],
+               "downlink" => ["direct_capacity_contact"],
+               "tracking" => ["capacity_model_contact"]
+             },
+             "capacity_pack_contact_ids_by_direction_and_ground_station_id" => %{
+               "command" => %{"dss_43" => ["throughput_capacity_contact"]},
+               "downlink" => %{"equator_prime" => ["direct_capacity_contact"]},
+               "tracking" => %{"equator_prime" => ["capacity_model_contact"]}
+             },
+             "ground_station_ids" => ["dss_43", "equator_prime"],
+             "directions" => ["command", "downlink", "tracking"],
+             "direction_counts" => %{"command" => 1, "downlink" => 1, "tracking" => 1},
+             "assumptions" => %{
+               "execution_boundary" =>
+                 "artifact_only_no_provider_reservation_or_schedule_mutation",
+               "source_artifact_type" => "contact_intent.v1"
+             }
+           } = summary
+
+    assert get_in(summary, [
+             "direction_routing",
+             "downlink",
+             "capacity_pack_required_capacity_fraction"
+           ]) == 0.25
+
+    assert summary["model_limits"] == [
+             "no_command_execution",
+             "no_link_budget_model",
+             "no_provider_reservation",
+             "no_schedule_mutation",
+             "station_availability_is_declared_or_not_evaluated"
+           ]
+  end
+
   test "validates checked-in station reservation review summary fixture" do
     review_summary = read_json!("study_results/station_reservation_review_summary_v1.json")
 

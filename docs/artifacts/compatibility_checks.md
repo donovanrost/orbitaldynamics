@@ -473,6 +473,12 @@ publish those same constants for replay tooling that consumes compact
 contact-intent summaries. It also emits row-derived direction counts and
 direction-routing maps and rejects stale direction counts or route maps that no
 longer match the compact direction/contact/capacity aggregates.
+`study_results/contact_intent_summary_v1.json` now feeds a curated
+`contact_intent_summary.v1` validation-reference fixture. The observations
+check contact and capacity-pack counts, direction/station/direction-and-station
+routing maps, required-capacity source routing, capacity fractions, model
+limits, and artifact-only no-provider-reservation/no-schedule-mutation
+assumptions.
 
 `study_results/candidate_refresh_v1.json` now feeds a curated
 `candidate_refresh.v1` validation-reference fixture. The observations check the
