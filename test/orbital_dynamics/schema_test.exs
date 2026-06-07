@@ -11262,6 +11262,126 @@ defmodule OrbitalDynamics.SchemaTest do
            )
   end
 
+  test "validates checked-in timeline transition application summary fixture" do
+    summary = read_json!("study_results/timeline_transition_application_summary_v1.json")
+
+    protected_source = %{
+      id: :cmd_lock,
+      type: :command,
+      status: :planned,
+      approval_status: :approved,
+      locked: true,
+      starts_at_s: 10.0,
+      ends_at_s: 20.0,
+      metadata: %{timeline_id: :"timeline:cmd_lock"}
+    }
+
+    protected_replacement = %{
+      id: :cmd_lock,
+      type: :command,
+      status: :planned,
+      approval_status: :approved,
+      locked: true,
+      starts_at_s: 12.0,
+      ends_at_s: 22.0,
+      metadata: %{timeline_id: :"timeline:cmd_lock"}
+    }
+
+    unchanged = %{
+      id: :obs_keep,
+      type: :observe,
+      target_id: :target_a,
+      starts_at_s: 30.0,
+      ends_at_s: 40.0,
+      metadata: %{timeline_id: :"timeline:obs_keep"}
+    }
+
+    added = %{
+      id: :new_cmd,
+      type: :command,
+      starts_at_s: 70.0,
+      ends_at_s: 80.0,
+      metadata: %{timeline_id: :"timeline:new_cmd"}
+    }
+
+    generated_summary =
+      OrbitalDynamics.timeline_transition_application_summary(
+        [protected_source, unchanged],
+        [protected_replacement, unchanged, added]
+      )
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "timeline_transition_application_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "schema_contract" => "timeline_transition_application_summary.v1",
+             "model" => "artifact_only_timeline_transition_application_summary",
+             "validation_level" => "artifact_contract",
+             "source_artifact_type" => "timeline_transition_application_report.v1",
+             "source" => "timeline.activities",
+             "source_activity_count" => 2,
+             "replacement_activity_count" => 3,
+             "application_count" => 3,
+             "selected_activity_count" => 2,
+             "review_required_count" => 2,
+             "preserved_source_count" => 1,
+             "recorded_replacement_count" => 0,
+             "withheld_review_count" => 1,
+             "application_status_counts" => %{
+               "operator_review_required" => 1,
+               "source_preserved_pending_review" => 1,
+               "source_unchanged" => 1
+             },
+             "transition_decision_counts" => %{
+               "none" => 1,
+               "preserve_source" => 1,
+               "review" => 1
+             },
+             "status_transition_category_counts" => %{"status_added" => 1},
+             "approval_transition_category_counts" => %{
+               "approval_review_required" => 1
+             },
+             "required_operator_action_counts" => %{
+               "none" => 1,
+               "review_added_activity" => 1,
+               "review_changed_protected_activity" => 1
+             },
+             "selected_activity_ids" => ["cmd_lock", "obs_keep"],
+             "selected_timeline_ids" => ["timeline:cmd_lock", "timeline:obs_keep"],
+             "review_timeline_ids" => ["timeline:cmd_lock", "timeline:new_cmd"],
+             "review_activity_ids" => ["cmd_lock", "new_cmd"],
+             "review_timeline_ids_by_required_operator_action" => %{
+               "review_added_activity" => ["timeline:new_cmd"],
+               "review_changed_protected_activity" => ["timeline:cmd_lock"]
+             },
+             "review_timeline_ids_by_status_transition_category" => %{
+               "status_added" => ["timeline:new_cmd"]
+             },
+             "review_timeline_ids_by_approval_transition_category" => %{
+               "approval_review_required" => ["timeline:new_cmd"]
+             },
+             "preserved_source_timeline_ids" => ["timeline:cmd_lock"],
+             "recorded_replacement_timeline_ids" => [],
+             "withheld_review_timeline_ids" => ["timeline:new_cmd"],
+             "selected_timeline_integrity_issue_count" => 0,
+             "selected_timeline_integrity_review_count" => 0,
+             "selected_timeline_integrity_issue_types" => [],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_schedule_mutation",
+               "operator_authority" => "not_granted_by_summary"
+             }
+           } = summary
+
+    assert Enum.map(summary["review_applications"], & &1["timeline_id"]) == [
+             "timeline:cmd_lock",
+             "timeline:new_cmd"
+           ]
+
+    assert summary["model_limits"] == OrbitalDynamics.Timeline.model_limits()
+  end
+
   test "exports timeline activity precondition summary schema fields" do
     assert {:ok, schema} = Schema.json_schema("timeline_activity_precondition_summary.v1")
 
