@@ -5,25 +5,26 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Provider-reservation no-request nested routing guard.
+Provider-reservation nested no-request observation parity.
 
 Status:
-Completed locally; `contact_allocation_provider_reservation_request_summary.v1`
-focused tests now pin stale no-request direction/ground-station routing
-rejection alongside request nested-routing rejection.
+Completed locally; provider-reservation validation-reference observations now
+include row-derived no-request direction/ground-station routing, so fixture
+verification catches stale nested no-request maps.
 
 Files changed:
-- `test/orbital_dynamics/communications/contact_allocation_test.exs`
-- `docs/artifacts/compatibility_checks.md`
+- `lib/orbital_dynamics/validation.ex`
+- `test/orbital_dynamics/validation_test.exs`
 
 Tests run:
+- `mix run -e '<provider reservation nested observation smoke check>'`
 - `mix orbital_dynamics.schema.lint --input study_results/contact_allocation_provider_reservation_request_summary_v1.json --contract contact_allocation_provider_reservation_request_summary.v1`
 - `git diff --check`
-- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs:2661`
+- `mix test test/orbital_dynamics/validation_test.exs:9356 test/orbital_dynamics/communications/contact_allocation_test.exs:2661`
 
 Docs/artifacts changed:
-- Provider-reservation compatibility docs now call out row-derived no-request
-  direction and ground-station maps.
+- No artifact shape changes; compatibility docs already name the nested
+  no-request direction/ground-station fixture verification.
 
 Level 6 pillar advanced:
 Fleet-level resource/contact allocation behavior and durable schema-versioned
@@ -36,7 +37,7 @@ or operator-review replay does not yet preserve.
 
 Last commit:
 Pending commit; previous pushed commit
-`8e991fe46d1210607b26368d0cea59902be4e75d`.
+`1f5023386e7b4210ae4dd4ce8bf82f9bdf018c4f`.
 
 Next candidate:
 Reassess the guide queue against the live worktree after committing this slice.
