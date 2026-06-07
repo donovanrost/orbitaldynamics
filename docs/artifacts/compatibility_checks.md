@@ -1127,7 +1127,14 @@ allocation counts, review-row counts, reported and row-derived
 allocation/effective status and allocation-reason maps, row-derived scalar
 allocation/contact counters, station-reservation and station-calendar trust
 routing maps, row-derived reservation ID/owner/status evidence, executable
-stale top-level reservation-list checks, and model-limit boundaries.
+stale top-level reservation-list checks, station-reservation expiration
+evidence, station-pressure precedence and direction/station maps, capacity-pack
+zero/default fields, and model-limit boundaries. Focused schema-reference
+coverage also exact-regenerates the fixture through
+`OrbitalDynamics.contact_allocation_report/3` from deterministic contact,
+declared ground-network, and resource-summary inputs, preserving the
+artifact-only no-provider-reservation/no-schedule-mutation/no-Cadence-write
+boundary.
 Executable validation rejects stale allocation status/reason maps, stale
 reservation match-status maps, and stale reservation ID lists that no longer
 match the allocation rows. Schema export pins the deterministic allocation
