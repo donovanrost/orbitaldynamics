@@ -1752,16 +1752,22 @@ defmodule OrbitalDynamics.SchemaTest do
              "invalid_resource_summary_input_count" => 0,
              "invalid_resource_summary_input_ids" => [],
              "invalid_resource_summary_inputs" => [],
-             "total_battery_energy_consumed_wh" => 120,
-             "total_battery_energy_generated_wh" => 0,
-             "net_battery_energy_delta_wh" => 120,
-             "peak_battery_overuse_wh" => 0,
-             "total_storage_produced_mb" => 0,
-             "total_storage_overflow_mb" => 0,
-             "total_storage_limited_downlinked_mb" => 0,
-             "total_downlink_shortfall_mb" => 0,
-             "total_unused_downlink_capacity_mb" => 0,
-             "total_planned_downlink_mb" => 0,
+             "total_battery_energy_consumed_wh" => 120.0,
+             "total_battery_energy_generated_wh" => +0.0,
+             "net_battery_energy_delta_wh" => 120.0,
+             "peak_battery_overuse_wh" => +0.0,
+             "total_storage_produced_mb" => +0.0,
+             "total_storage_overflow_mb" => +0.0,
+             "total_storage_limited_downlinked_mb" => +0.0,
+             "total_downlink_shortfall_mb" => +0.0,
+             "total_unused_downlink_capacity_mb" => +0.0,
+             "total_planned_downlink_mb" => +0.0,
+             "actual_data_volume_evidence_count" => 0,
+             "total_actual_data_volume_mb" => +0.0,
+             "total_data_volume_delta_mb" => +0.0,
+             "actual_data_volume_under_delivered_activity_ids" => [],
+             "actual_data_volume_over_delivered_activity_ids" => [],
+             "actual_data_volume_exact_activity_ids" => [],
              "total_projected_storage_remaining_mb" => 750,
              "total_projected_downlink_remaining_mb" => 600,
              "minimum_projected_storage_remaining_mb" => 750,
@@ -25270,6 +25276,27 @@ defmodule OrbitalDynamics.SchemaTest do
                "enum" => ["clear", "review_required"]
              }
     end)
+
+    assert get_in(flow_summary_schema, [
+             "properties",
+             "actual_data_volume_evidence_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    Enum.each(["total_actual_data_volume_mb", "total_data_volume_delta_mb"], fn field ->
+      assert get_in(flow_summary_schema, ["properties", field]) == %{"type" => "number"}
+    end)
+
+    Enum.each(
+      [
+        "actual_data_volume_under_delivered_activity_ids",
+        "actual_data_volume_over_delivered_activity_ids",
+        "actual_data_volume_exact_activity_ids"
+      ],
+      fn field ->
+        assert get_in(flow_summary_schema, ["properties", field, "items", "pattern"]) ==
+                 Schema.identity_policy()["stable_id_pattern"]
+      end
+    )
 
     assert get_in(schema, [
              "properties",

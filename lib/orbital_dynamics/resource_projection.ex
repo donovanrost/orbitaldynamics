@@ -677,6 +677,15 @@ defmodule OrbitalDynamics.ResourceProjection do
         sum_flow_field(flow_rows, "unused_downlink_capacity_mb"),
       "total_storage_overflow_mb" => sum_flow_field(flow_rows, "storage_overflow_mb"),
       "total_downlink_shortfall_mb" => sum_flow_field(flow_rows, "downlink_shortfall_mb"),
+      "actual_data_volume_evidence_count" => actual_data_volume_evidence_count(flow_rows),
+      "total_actual_data_volume_mb" => sum_flow_field(flow_rows, "actual_data_volume_mb"),
+      "total_data_volume_delta_mb" => sum_flow_field(flow_rows, "data_volume_delta_mb"),
+      "actual_data_volume_under_delivered_activity_ids" =>
+        actual_data_volume_variance_activity_ids(flow_rows, :under_delivered),
+      "actual_data_volume_over_delivered_activity_ids" =>
+        actual_data_volume_variance_activity_ids(flow_rows, :over_delivered),
+      "actual_data_volume_exact_activity_ids" =>
+        actual_data_volume_variance_activity_ids(flow_rows, :exact),
       "total_projected_storage_remaining_mb" =>
         sum_projected_remaining(
           projected_resources,
@@ -1044,6 +1053,26 @@ defmodule OrbitalDynamics.ResourceProjection do
     |> case do
       [] -> nil
       values -> Enum.max(values)
+    end
+  end
+
+  defp actual_data_volume_evidence_count(flow_rows) do
+    Enum.count(flow_rows, &is_number(Map.get(&1, "actual_data_volume_mb")))
+  end
+
+  defp actual_data_volume_variance_activity_ids(flow_rows, variance) do
+    flow_rows
+    |> Enum.filter(&actual_data_volume_variance?(&1, variance))
+    |> Enum.map(& &1["activity_id"])
+    |> sorted_stable_ids()
+  end
+
+  defp actual_data_volume_variance?(row, variance) do
+    case Map.get(row, "data_volume_delta_mb") do
+      delta when is_number(delta) and variance == :under_delivered -> delta < 0.0
+      delta when is_number(delta) and variance == :over_delivered -> delta > 0.0
+      delta when is_number(delta) and variance == :exact -> delta == 0.0
+      _delta -> false
     end
   end
 

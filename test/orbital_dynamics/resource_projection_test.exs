@@ -4916,6 +4916,8 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
         collection_ends_at_s: 15.0,
         planned_delivery_at_s: 45.0,
         max_latency_s: 20.0,
+        data_volume_mb: 25.0,
+        actual_data_volume_mb: 12.0,
         estimated_storage_mb: 30.0,
         estimated_energy_used_wh: 20.0
       }
@@ -4985,6 +4987,12 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
              "total_unused_downlink_capacity_mb" => +0.0,
              "total_storage_overflow_mb" => 10.0,
              "total_downlink_shortfall_mb" => 5.0,
+             "actual_data_volume_evidence_count" => 1,
+             "total_actual_data_volume_mb" => 12.0,
+             "total_data_volume_delta_mb" => -13.0,
+             "actual_data_volume_under_delivered_activity_ids" => ["obs_early"],
+             "actual_data_volume_over_delivered_activity_ids" => [],
+             "actual_data_volume_exact_activity_ids" => [],
              "total_projected_storage_remaining_mb" => +0.0,
              "minimum_projected_storage_remaining_mb" => +0.0,
              "total_projected_downlink_remaining_mb" => +0.0,
@@ -5173,6 +5181,30 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
              stale_total_report["errors"],
              &(&1["path"] == "$.total_downlink_shortfall_mb" and
                  &1["message"] == "must equal activity_resource_flow downlink_shortfall_mb sum")
+           )
+
+    stale_actual_volume_total = Map.put(flow_report, "total_actual_data_volume_mb", 99.0)
+
+    assert {:error, stale_actual_volume_total_report} =
+             Schema.validate_artifact(stale_actual_volume_total)
+
+    assert Enum.any?(
+             stale_actual_volume_total_report["errors"],
+             &(&1["path"] == "$.total_actual_data_volume_mb" and
+                 &1["message"] == "must equal activity_resource_flow actual_data_volume_mb sum")
+           )
+
+    stale_actual_variance_ids =
+      Map.put(flow_report, "actual_data_volume_under_delivered_activity_ids", ["dl_late"])
+
+    assert {:error, stale_actual_variance_ids_report} =
+             Schema.validate_artifact(stale_actual_variance_ids)
+
+    assert Enum.any?(
+             stale_actual_variance_ids_report["errors"],
+             &(&1["path"] == "$.actual_data_volume_under_delivered_activity_ids" and
+                 &1["message"] ==
+                   "must equal activity_resource_flow under-delivered actual data-volume activity IDs")
            )
 
     stale_pressure_station_ids =
@@ -5467,7 +5499,13 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
                  "storage_produced_mb" => 15.0,
                  "storage_used_after_mb" => 50.0
                }
-             ]
+             ],
+             "actual_data_volume_evidence_count" => 1,
+             "total_actual_data_volume_mb" => 12.0,
+             "total_data_volume_delta_mb" => -13.0,
+             "actual_data_volume_under_delivered_activity_ids" => ["obs_planned_volume"],
+             "actual_data_volume_over_delivered_activity_ids" => [],
+             "actual_data_volume_exact_activity_ids" => []
            } = ResourceProjection.flow_report(activities, summaries)
 
     invalid_report =

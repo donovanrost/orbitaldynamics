@@ -1076,9 +1076,10 @@ Focused checked-in fixture coverage exact-compares the public
 `OrbitalDynamics.resource_projection_flow_summary/1` facade output from
 `study_results/resource_projection_report_v1.json` before schema validation,
 pinning the compact flow summary's activity/resource counts, pressure routing,
-energy/storage/downlink totals, model limits, and artifact-only boundaries for
-no resource-state reconciliation, no subsystem simulation, no Cadence writes, no
-activity imports, no command execution, and no schedule mutation.
+energy/storage/downlink totals, actual data-volume evidence counts and
+under/over/exact variance routing, model limits, and artifact-only boundaries
+for no resource-state reconciliation, no subsystem simulation, no Cadence
+writes, no activity imports, no command execution, and no schedule mutation.
 `study_results/resource_projection_battery_handoff_v1.json`,
 `study_results/operator_review_resource_projection_battery_handoff_v1.json`,
 and `study_results/cadence_import_resource_projection_battery_handoff_v1.json`

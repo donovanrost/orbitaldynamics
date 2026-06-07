@@ -5986,6 +5986,12 @@ defmodule OrbitalDynamics.Schema do
         "total_unused_downlink_capacity_mb",
         "total_storage_overflow_mb",
         "total_downlink_shortfall_mb",
+        "actual_data_volume_evidence_count",
+        "total_actual_data_volume_mb",
+        "total_data_volume_delta_mb",
+        "actual_data_volume_under_delivered_activity_ids",
+        "actual_data_volume_over_delivered_activity_ids",
+        "actual_data_volume_exact_activity_ids",
         "total_battery_energy_consumed_wh",
         "total_battery_energy_generated_wh",
         "net_battery_energy_delta_wh",
@@ -15380,6 +15386,7 @@ defmodule OrbitalDynamics.Schema do
               "projected_resource_count",
               "flow_row_count",
               "resource_pressure_count",
+              "actual_data_volume_evidence_count",
               "latency_evidence_count",
               "latency_review_count",
               "ignored_activity_count"
@@ -15398,6 +15405,9 @@ defmodule OrbitalDynamics.Schema do
               "invalid_resource_summary_input_ids",
               "resource_pressure_types",
               "resource_pressure_spacecraft_ids",
+              "actual_data_volume_under_delivered_activity_ids",
+              "actual_data_volume_over_delivered_activity_ids",
+              "actual_data_volume_exact_activity_ids",
               "latency_review_activity_ids",
               "ignored_activity_ids"
             ] do
@@ -15442,6 +15452,8 @@ defmodule OrbitalDynamics.Schema do
               "total_unused_downlink_capacity_mb",
               "total_storage_overflow_mb",
               "total_downlink_shortfall_mb",
+              "total_actual_data_volume_mb",
+              "total_data_volume_delta_mb",
               "total_projected_storage_remaining_mb",
               "minimum_projected_storage_remaining_mb",
               "total_projected_downlink_remaining_mb",
@@ -38988,6 +39000,12 @@ defmodule OrbitalDynamics.Schema do
       "total_unused_downlink_capacity_mb",
       "total_storage_overflow_mb",
       "total_downlink_shortfall_mb",
+      "actual_data_volume_evidence_count",
+      "total_actual_data_volume_mb",
+      "total_data_volume_delta_mb",
+      "actual_data_volume_under_delivered_activity_ids",
+      "actual_data_volume_over_delivered_activity_ids",
+      "actual_data_volume_exact_activity_ids",
       "total_battery_energy_consumed_wh",
       "total_battery_energy_generated_wh",
       "net_battery_energy_delta_wh",
@@ -39117,6 +39135,23 @@ defmodule OrbitalDynamics.Schema do
     |> expect_number(path, summary, "total_unused_downlink_capacity_mb")
     |> expect_number(path, summary, "total_storage_overflow_mb")
     |> expect_number(path, summary, "total_downlink_shortfall_mb")
+    |> expect_non_negative_integer(path, summary, "actual_data_volume_evidence_count")
+    |> expect_number(path, summary, "total_actual_data_volume_mb")
+    |> expect_number(path, summary, "total_data_volume_delta_mb")
+    |> expect_type(path, summary, "actual_data_volume_under_delivered_activity_ids", :list)
+    |> validate_optional_stable_id_list(
+      path,
+      summary,
+      "actual_data_volume_under_delivered_activity_ids"
+    )
+    |> expect_type(path, summary, "actual_data_volume_over_delivered_activity_ids", :list)
+    |> validate_optional_stable_id_list(
+      path,
+      summary,
+      "actual_data_volume_over_delivered_activity_ids"
+    )
+    |> expect_type(path, summary, "actual_data_volume_exact_activity_ids", :list)
+    |> validate_optional_stable_id_list(path, summary, "actual_data_volume_exact_activity_ids")
     |> expect_optional_one_of(path, summary, "latency_status", ["clear", "review_required"])
     |> expect_optional_non_negative_integer(path, summary, "latency_evidence_count")
     |> expect_optional_non_negative_integer(path, summary, "latency_review_count")
@@ -54359,6 +54394,48 @@ defmodule OrbitalDynamics.Schema do
     |> expect_field_equals(
       path,
       summary,
+      "actual_data_volume_evidence_count",
+      resource_projection_flow_actual_data_volume_evidence_count(flow_rows),
+      "must equal activity_resource_flow actual_data_volume_mb evidence count"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "total_actual_data_volume_mb",
+      sum_resource_projection_flow_number(flow_rows, "actual_data_volume_mb"),
+      "must equal activity_resource_flow actual_data_volume_mb sum"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "total_data_volume_delta_mb",
+      sum_resource_projection_flow_number(flow_rows, "data_volume_delta_mb"),
+      "must equal activity_resource_flow data_volume_delta_mb sum"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "actual_data_volume_under_delivered_activity_ids",
+      resource_projection_flow_data_volume_variance_activity_ids(flow_rows, :under_delivered),
+      "must equal activity_resource_flow under-delivered actual data-volume activity IDs"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "actual_data_volume_over_delivered_activity_ids",
+      resource_projection_flow_data_volume_variance_activity_ids(flow_rows, :over_delivered),
+      "must equal activity_resource_flow over-delivered actual data-volume activity IDs"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "actual_data_volume_exact_activity_ids",
+      resource_projection_flow_data_volume_variance_activity_ids(flow_rows, :exact),
+      "must equal activity_resource_flow exact actual data-volume activity IDs"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
       "total_projected_storage_remaining_mb",
       sum_resource_projection_remaining(
         projected_rows,
@@ -54521,6 +54598,26 @@ defmodule OrbitalDynamics.Schema do
     rows
     |> Enum.map(&{Map.get(&1, "resource_effect_reason"), Map.get(&1, "activity_id")})
     |> stable_values_by_key()
+  end
+
+  defp resource_projection_flow_actual_data_volume_evidence_count(flow_rows) do
+    Enum.count(flow_rows, &is_number(Map.get(&1, "actual_data_volume_mb")))
+  end
+
+  defp resource_projection_flow_data_volume_variance_activity_ids(flow_rows, variance) do
+    flow_rows
+    |> Enum.filter(&resource_projection_flow_data_volume_variance?(&1, variance))
+    |> Enum.map(&Map.get(&1, "activity_id"))
+    |> sorted_stable_values()
+  end
+
+  defp resource_projection_flow_data_volume_variance?(row, variance) do
+    case Map.get(row, "data_volume_delta_mb") do
+      delta when is_number(delta) and variance == :under_delivered -> delta < 0.0
+      delta when is_number(delta) and variance == :over_delivered -> delta > 0.0
+      delta when is_number(delta) and variance == :exact -> delta == 0.0
+      _delta -> false
+    end
   end
 
   defp resource_projection_flow_summary_spacecraft_ids_by_type(projected_rows, flow_rows) do
