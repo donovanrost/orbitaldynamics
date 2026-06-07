@@ -842,6 +842,92 @@ defmodule OrbitalDynamics.SchemaTest do
            } = resolution_report
   end
 
+  test "validates checked-in contact contention resolution summary fixture" do
+    resolution_report =
+      read_json!("study_results/contact_contention_resolution_report_v1.json")
+
+    summary = read_json!("study_results/contact_contention_resolution_summary_v1.json")
+
+    generated_summary =
+      OrbitalDynamics.contact_contention_resolution_summary(resolution_report)
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "contact_contention_resolution_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "source_artifact_type" => "contact_contention_resolution_report.v1",
+             "conflict_group_count" => 2,
+             "recommendation_count" => 2,
+             "recommendation_group_ids" => [
+               "spacecraft:sat_1:contention:1",
+               "station:equator_prime:contention:1"
+             ],
+             "review_group_ids" => [
+               "spacecraft:sat_1:contention:1",
+               "station:equator_prime:contention:1"
+             ],
+             "selected_contact_ids" => ["dl_1", "dl_3"],
+             "selected_contact_ids_by_group_id" => %{
+               "spacecraft:sat_1:contention:1" => ["dl_3"],
+               "station:equator_prime:contention:1" => ["dl_1"]
+             },
+             "deferred_contact_ids" => ["dl_2", "dl_4"],
+             "deferred_contact_ids_by_group_id" => %{
+               "spacecraft:sat_1:contention:1" => ["dl_4"],
+               "station:equator_prime:contention:1" => ["dl_2"]
+             },
+             "review_contact_ids" => ["dl_1", "dl_2", "dl_3", "dl_4"],
+             "review_contact_ids_by_group_id" => %{
+               "spacecraft:sat_1:contention:1" => ["dl_3", "dl_4"],
+               "station:equator_prime:contention:1" => ["dl_1", "dl_2"]
+             },
+             "review_recommendation_count" => 2,
+             "resource_scope_counts" => %{"ground_station" => 1, "spacecraft" => 1},
+             "selected_contact_ids_by_resource_scope" => %{
+               "ground_station" => ["dl_1"],
+               "spacecraft" => ["dl_3"]
+             },
+             "deferred_contact_ids_by_resource_scope" => %{
+               "ground_station" => ["dl_2"],
+               "spacecraft" => ["dl_4"]
+             },
+             "review_contact_ids_by_resource_scope" => %{
+               "ground_station" => ["dl_1", "dl_2"],
+               "spacecraft" => ["dl_3", "dl_4"]
+             },
+             "selection_reason_counts" => %{"highest_score_earliest_start" => 2},
+             "selected_contact_ids_by_selection_reason" => %{
+               "highest_score_earliest_start" => ["dl_1", "dl_3"]
+             },
+             "action_counts" => %{"recommend_preferred_contact_for_operator_review" => 2},
+             "review_contact_ids_by_action" => %{
+               "recommend_preferred_contact_for_operator_review" => [
+                 "dl_1",
+                 "dl_2",
+                 "dl_3",
+                 "dl_4"
+               ]
+             },
+             "assumptions" => %{
+               "candidate_mutation" => "none",
+               "execution_boundary" =>
+                 "artifact_only_no_provider_reservation_or_schedule_mutation",
+               "operator_authority" => "not_granted_by_summary",
+               "source" => "contact_contention_resolution_report.v1"
+             }
+           } = summary
+
+    assert summary["model_limits"] == [
+             "artifact_level_only",
+             "no_provider_reservation",
+             "no_candidate_suppression",
+             "no_schedule_mutation",
+             "no_link_budget_model"
+           ]
+  end
+
   test "validates checked-in cross-station contact contention challenge fixture" do
     report = read_json!("study_results/contact_contention_cross_station_spacecraft_v1.json")
 

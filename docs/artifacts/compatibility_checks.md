@@ -1085,8 +1085,12 @@ stale contact-contention resolution report model strings and exports the same
 recommendation model constant used by generated resolution reports. Resolution
 summary validation rejects stale summary model strings plus stale generated
 `model_limits`, and exports the artifact-only summary model constant plus exact
-`model_limits` used by generated handoffs. The validation-reference registry
-and checked-in
+`model_limits` used by generated handoffs.
+`study_results/contact_contention_resolution_summary_v1.json` fixture now
+covers compact conflict/recommendation/review counts, selected/deferred/review
+contact routing by group and resource scope, selection-reason/action maps,
+model limits, and recommendation-only no-candidate-mutation/no-operator-
+authority assumptions. The validation-reference registry and checked-in
 `study_results/contact_contention_cross_station_spacecraft_v1.json` fixture
 also include a generated cross-station same-spacecraft contention challenge, so
 spacecraft-scope contention routing and row-derived resource-scope maps are
