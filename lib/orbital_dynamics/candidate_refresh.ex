@@ -1932,10 +1932,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "reservation_conflict_contact_ids_by_direction"
         ),
       "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction_and_ground_station" =>
-        source_report_summary_family_merge_nested_string_list_maps(
+        source_report_summary_family_merge_nested_string_list_map_fields(
           source_reports,
           "contact_allocation_report",
-          "reservation_conflict_contact_ids_by_direction_and_ground_station"
+          [
+            "reservation_conflict_contact_ids_by_direction_and_ground_station",
+            "reservation_conflict_contact_ids_by_direction_and_ground_station_id"
+          ]
         ),
       "source_report_contact_allocation_reduced_capacity_pack_group_count" =>
         source_report_summary_family_count(
@@ -2211,10 +2214,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "station_pressure_review_contact_ids"
         ),
       "source_report_contact_allocation_reservation_conflict_contact_count" =>
-        source_report_summary_family_count(
-          source_reports,
-          "contact_allocation_report",
-          "reservation_conflict_contact_count"
+        source_report_summary_contact_allocation_reservation_conflict_contact_count(
+          source_reports
         ),
       "source_report_contact_allocation_reservation_conflict_contact_ids" =>
         source_report_summary_family_merge_string_lists(
@@ -8137,8 +8138,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
       )
 
     reservation_conflict_contact_count =
-      case summary_integer(allocation_summary, "reservation_conflict_contact_count") do
-        0 -> nil
+      case contact_allocation_reservation_conflict_contact_count(allocation_summary) do
+        count when is_number(count) and count <= 0 -> nil
         count -> count
       end
 
@@ -8161,10 +8162,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
       Map.get(allocation_summary, "reservation_conflict_contact_ids_by_direction")
 
     reservation_conflict_contact_ids_by_direction_and_station =
-      Map.get(
-        allocation_summary,
-        "reservation_conflict_contact_ids_by_direction_and_ground_station"
-      )
+      summary_nested_string_list_map_fields(allocation_summary, [
+        "reservation_conflict_contact_ids_by_direction_and_ground_station",
+        "reservation_conflict_contact_ids_by_direction_and_ground_station_id"
+      ])
 
     station_reservation_match_status_counts =
       Map.get(allocation_summary, "station_reservation_match_status_counts")
@@ -20730,6 +20731,17 @@ defmodule OrbitalDynamics.CandidateRefresh do
     end
   end
 
+  defp source_report_summary_contact_allocation_reservation_conflict_contact_count(source_reports) do
+    if Map.has_key?(source_reports, "contact_allocation_report") do
+      source_reports
+      |> Map.take(["contact_allocation_report"])
+      |> Map.values()
+      |> Enum.map(&contact_allocation_reservation_conflict_contact_count/1)
+      |> Enum.sum()
+      |> report_count()
+    end
+  end
+
   defp source_report_summary_family_identity_count(source_reports, family, field) do
     if source_report_summary_family_has_identity_counts?(source_reports, family) do
       source_report_summary_family_count(source_reports, family, field)
@@ -20935,6 +20947,20 @@ defmodule OrbitalDynamics.CandidateRefresh do
     source_reports
     |> Map.take([family])
     |> source_report_summary_merge_nested_string_list_maps(field)
+  end
+
+  defp source_report_summary_family_merge_nested_string_list_map_fields(
+         source_reports,
+         family,
+         fields
+       ) do
+    source_reports
+    |> Map.take([family])
+    |> Map.values()
+    |> Enum.flat_map(fn summary ->
+      Enum.map(fields, &Map.get(summary, &1))
+    end)
+    |> merge_nested_string_list_maps()
   end
 
   defp source_report_summary_merge_string_lists(source_reports, field) do
@@ -25513,10 +25539,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
     end
   end
 
-  defp contact_intent_string_list_map_contact_ids(contact_ids_by_group) do
+  defp contact_intent_string_list_map_contact_ids(%{} = contact_ids_by_group) do
     contact_ids_by_group
     |> Enum.flat_map(fn {_group, contact_ids} -> list_value(contact_ids) end)
   end
+
+  defp contact_intent_string_list_map_contact_ids(_contact_ids_by_group), do: []
 
   defp contact_intent_nested_string_list_map_contact_ids(%{} = contact_ids_by_outer_group) do
     contact_ids_by_outer_group
@@ -25601,6 +25629,22 @@ defmodule OrbitalDynamics.CandidateRefresh do
     end
   end
 
+  defp contact_allocation_reservation_conflict_contact_count(summary) do
+    summary
+    |> contact_allocation_lists_and_string_and_nested_list_maps_unique_contact_count(
+      ["reservation_conflict_contact_ids"],
+      [
+        "reservation_conflict_contact_ids_by_match_status",
+        "reservation_conflict_contact_ids_by_direction"
+      ],
+      [
+        "reservation_conflict_contact_ids_by_direction_and_ground_station_id",
+        "reservation_conflict_contact_ids_by_direction_and_ground_station"
+      ],
+      "reservation_conflict_contact_count"
+    )
+  end
+
   defp contact_allocation_string_list_maps_unique_contact_count(summary, fields, fallback_field) do
     contact_id_maps =
       fields
@@ -25645,6 +25689,52 @@ defmodule OrbitalDynamics.CandidateRefresh do
           |> Enum.flat_map(&contact_intent_nested_string_list_map_contact_ids/1)
 
         flat_contact_ids
+        |> Kernel.++(nested_contact_ids)
+        |> contact_intent_count_unique_contact_ids()
+
+      true ->
+        numeric_report_count(summary, fallback_field)
+    end
+  end
+
+  defp contact_allocation_lists_and_string_and_nested_list_maps_unique_contact_count(
+         summary,
+         list_fields,
+         flat_fields,
+         nested_fields,
+         fallback_field
+       ) do
+    contact_id_lists =
+      list_fields
+      |> Enum.filter(&Map.has_key?(summary, &1))
+      |> Enum.map(&Map.get(summary, &1))
+
+    flat_contact_id_maps =
+      flat_fields
+      |> Enum.filter(&Map.has_key?(summary, &1))
+      |> Enum.map(&Map.get(summary, &1))
+
+    nested_contact_id_maps =
+      nested_fields
+      |> Enum.filter(&Map.has_key?(summary, &1))
+      |> Enum.map(&Map.get(summary, &1))
+
+    cond do
+      contact_id_lists != [] or flat_contact_id_maps != [] or nested_contact_id_maps != [] ->
+        list_contact_ids =
+          contact_id_lists
+          |> Enum.flat_map(&list_value/1)
+
+        flat_contact_ids =
+          flat_contact_id_maps
+          |> Enum.flat_map(&contact_intent_string_list_map_contact_ids/1)
+
+        nested_contact_ids =
+          nested_contact_id_maps
+          |> Enum.flat_map(&contact_intent_nested_string_list_map_contact_ids/1)
+
+        list_contact_ids
+        |> Kernel.++(flat_contact_ids)
         |> Kernel.++(nested_contact_ids)
         |> contact_intent_count_unique_contact_ids()
 
@@ -36908,20 +36998,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp contact_allocation_report_reservation_conflict_contact_count(report) do
     case contact_allocation_report_reservation_conflict_rows(report) do
       [] ->
-        case numeric_report_count(report, "reservation_conflict_contact_count") do
-          0 ->
-            report
-            |> Map.get("reservation_conflict_contact_ids", [])
-            |> List.wrap()
-            |> sorted_non_empty_values()
-            |> case do
-              nil -> 0
-              contact_ids -> length(contact_ids)
-            end
-
-          count ->
-            count
-        end
+        contact_allocation_reservation_conflict_contact_count(report)
 
       rows ->
         length(rows)
@@ -37026,11 +37103,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "reservation_conflict_contact_ids_by_direction_and_ground_station",
           "reservation_conflict_contact_ids_by_direction_and_ground_station_id"
         ]
-        |> Enum.find_value(fn field ->
-          report
-          |> Map.get(field)
-          |> nested_map_value_lists()
-        end)
+        |> Enum.map(&Map.get(report, &1))
+        |> merge_nested_string_list_maps()
 
       rows ->
         contact_allocation_contact_ids_by_direction_and_station(rows)
@@ -49341,6 +49415,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> nested_map_value_lists()
   end
 
+  defp summary_nested_string_list_map_fields(summary, fields) do
+    fields
+    |> Enum.map(&Map.get(summary, &1))
+    |> merge_nested_string_list_maps()
+  end
+
   defp provider_counteroffer_timing_shift_rows(rows) do
     Enum.filter(rows, fn row ->
       Enum.any?(
@@ -49981,7 +50061,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
             "station_pressure_contact_ids_by_direction_and_ground_station_id"
           ),
       "reservation_conflict_contact_count" =>
-        numeric_report_count(summary, "reservation_conflict_contact_count"),
+        contact_allocation_reservation_conflict_contact_count(summary),
       "reservation_conflict_contact_ids" =>
         sorted_string_values(Map.get(summary, "reservation_conflict_contact_ids", [])),
       "reservation_conflict_match_status_counts" =>
@@ -49993,14 +50073,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "reservation_conflict_contact_ids_by_direction" =>
         summary_string_list_map(summary, "reservation_conflict_contact_ids_by_direction"),
       "reservation_conflict_contact_ids_by_direction_and_ground_station" =>
-        summary_nested_string_list_map(
-          summary,
-          "reservation_conflict_contact_ids_by_direction_and_ground_station"
-        ) ||
-          summary_nested_string_list_map(
-            summary,
-            "reservation_conflict_contact_ids_by_direction_and_ground_station_id"
-          ),
+        summary_nested_string_list_map_fields(summary, [
+          "reservation_conflict_contact_ids_by_direction_and_ground_station",
+          "reservation_conflict_contact_ids_by_direction_and_ground_station_id"
+        ]),
       "station_reservation_match_status_counts" =>
         Map.get(summary, "station_reservation_match_status_counts"),
       "station_reservation_status_counts" =>

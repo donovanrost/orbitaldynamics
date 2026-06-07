@@ -1010,6 +1010,10 @@ trust boundary, row counts, conflict/contact/reservation routing maps,
 direction-scoped and direction/ground-station conflict contact routing from
 compact summary maps, expiration evidence, and the artifact-only
 no-allocation/no candidate-selection boundary.
+Compact no-row reservation-conflict handoffs derive conflict contact counts
+from present conflict contact-ID lists, match-status maps, direction maps, and
+nested direction/station maps before falling back to duplicated scalar
+counters.
 These rows are routed as `station_reservation_review` /
 `review_station_reservation` handoffs so unresolved reserved-station overlaps
 remain review-only work rather than provider-reservation request candidates.

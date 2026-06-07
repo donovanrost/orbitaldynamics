@@ -7837,10 +7837,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       |> Map.put("rows", [])
       |> Map.put("reservation_conflict_rows", [])
       |> Map.put("reservation_review_rows", [])
+      |> Map.put("reservation_conflict_contact_count", 99)
 
     refresh = %{"source_contact_allocation_reservation_conflict_summary" => summary}
 
     assert %{
+             "source_report_contact_allocation_reservation_conflict_contact_count" => 1,
              "source_report_contact_allocation_reservation_conflict_direction_counts" => %{
                "downlink" => 1
              },
@@ -7865,6 +7867,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
            } = source_summary = CandidateRefresh.source_report_summary(refresh)
 
     assert %{
+             "reservation_conflict_contact_count" => 1,
              "reservation_conflict_direction_counts" => %{"downlink" => 1},
              "reservation_conflict_contact_ids_by_direction" => %{
                "downlink" => ["dl_reserved_intruder"]
@@ -7882,6 +7885,168 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert CandidateRefresh.contact_allocation_replay_summary(artifact) ==
              CandidateRefresh.contact_allocation_replay_summary(refresh)
+  end
+
+  test "source report summary zeros empty reservation-conflict maps before stale scalar counts" do
+    summary =
+      contact_allocation_reservation_conflict_summary_fixture()
+      |> Map.put("rows", [])
+      |> Map.put("reservation_conflict_rows", [])
+      |> Map.put("reservation_review_rows", [])
+      |> Map.put("reservation_conflict_contact_count", 99)
+      |> Map.put("reservation_conflict_contact_ids", [])
+      |> Map.put("reservation_conflict_match_status_counts", %{})
+      |> Map.put("reservation_conflict_contact_ids_by_match_status", %{})
+      |> Map.put("reservation_conflict_reservation_ids_by_match_status", %{})
+      |> Map.put("reservation_conflict_direction_counts", %{})
+      |> Map.put("reservation_conflict_contact_ids_by_direction", %{})
+      |> Map.put("reservation_conflict_contact_ids_by_direction_and_ground_station", %{})
+      |> Map.delete("reservation_conflict_contact_ids_by_direction_and_ground_station_id")
+
+    refresh = %{"source_contact_allocation_reservation_conflict_summary" => summary}
+    source_summary = CandidateRefresh.source_report_summary(refresh)
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(refresh)
+
+    assert source_summary[
+             "source_report_contact_allocation_reservation_conflict_contact_count"
+           ] == 0
+
+    assert source_summary[
+             "source_report_contact_allocation_reservation_conflict_contact_ids"
+           ] == nil
+
+    assert source_summary[
+             "source_report_contact_allocation_reservation_conflict_contact_ids_by_match_status"
+           ] == nil
+
+    assert source_summary[
+             "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction"
+           ] == nil
+
+    assert source_summary[
+             "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction_and_ground_station"
+           ] == nil
+
+    assert replay_summary["reservation_conflict_contact_count"] == nil
+    assert replay_summary["reservation_conflict_contact_ids"] == nil
+    assert replay_summary["reservation_conflict_contact_ids_by_match_status"] == nil
+    assert replay_summary["reservation_conflict_contact_ids_by_direction"] == nil
+
+    assert replay_summary[
+             "reservation_conflict_contact_ids_by_direction_and_ground_station"
+           ] == nil
+
+    refute replay_summary["branch_local_reservation_conflict_pressure"]
+  end
+
+  test "source report summary rederives direct no-row reservation-conflict counts from maps" do
+    refresh = %{
+      "source_contact_allocation_report" => %{
+        "schema_contract" => "contact_allocation_report.v1",
+        "rows" => [],
+        "reservation_conflict_contact_count" => 99,
+        "reservation_conflict_contact_ids" => [],
+        "reservation_conflict_contact_ids_by_match_status" => %{
+          "overlap" => ["match_status_conflict"]
+        },
+        "reservation_conflict_contact_ids_by_direction" => %{
+          "downlink" => ["direction_conflict"]
+        },
+        "reservation_conflict_contact_ids_by_direction_and_ground_station" => %{
+          "downlink" => %{"equator_prime" => ["nested_conflict"]}
+        },
+        "reservation_conflict_contact_ids_by_direction_and_ground_station_id" => %{
+          "downlink" => %{"polar_prime" => ["nested_id_conflict"]}
+        },
+        "provenance" => %{"trust_boundary" => "ops_contact_allocation"}
+      }
+    }
+
+    assert %{
+             "source_report_contact_allocation_reservation_conflict_contact_count" => 4,
+             "source_report_contact_allocation_reservation_conflict_contact_ids_by_match_status" =>
+               %{"overlap" => ["match_status_conflict"]},
+             "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction" =>
+               %{"downlink" => ["direction_conflict"]},
+             "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction_and_ground_station" =>
+               %{
+                 "downlink" => %{
+                   "equator_prime" => ["nested_conflict"],
+                   "polar_prime" => ["nested_id_conflict"]
+                 }
+               },
+             "source_reports" => %{
+               "contact_allocation_report" => %{
+                 "reservation_conflict_contact_count" => 4,
+                 "reservation_conflict_contact_ids_by_direction_and_ground_station" => %{
+                   "downlink" => %{
+                     "equator_prime" => ["nested_conflict"],
+                     "polar_prime" => ["nested_id_conflict"]
+                   }
+                 }
+               }
+             }
+           } = source_summary = CandidateRefresh.source_report_summary(refresh)
+
+    assert %{
+             "reservation_conflict_contact_count" => 4,
+             "reservation_conflict_contact_ids_by_match_status" => %{
+               "overlap" => ["match_status_conflict"]
+             },
+             "reservation_conflict_contact_ids_by_direction" => %{
+               "downlink" => ["direction_conflict"]
+             },
+             "reservation_conflict_contact_ids_by_direction_and_ground_station" => %{
+               "downlink" => %{
+                 "equator_prime" => ["nested_conflict"],
+                 "polar_prime" => ["nested_id_conflict"]
+               }
+             },
+             "branch_local_reservation_conflict_pressure" => true
+           } = CandidateRefresh.contact_allocation_replay_summary(refresh)
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{"source_reports" => source_summary["source_reports"]}
+    }
+
+    assert CandidateRefresh.contact_allocation_replay_summary(artifact) ==
+             CandidateRefresh.contact_allocation_replay_summary(refresh)
+  end
+
+  test "contact allocation replay preserves raw provenance reservation-conflict station-id aliases" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 1,
+            "row_count" => 0,
+            "reservation_conflict_contact_count" => 0,
+            "reservation_conflict_contact_ids_by_direction_and_ground_station_id" => %{
+              "downlink" => %{"polar_prime" => ["raw_alias_conflict"]}
+            }
+          }
+        }
+      }
+    }
+
+    assert %{
+             "source_report_contact_allocation_reservation_conflict_contact_count" => 1,
+             "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction_and_ground_station" =>
+               %{
+                 "downlink" => %{"polar_prime" => ["raw_alias_conflict"]}
+               }
+           } = CandidateRefresh.source_report_summary(artifact)
+
+    assert %{
+             "reservation_conflict_contact_count" => 1,
+             "reservation_conflict_contact_ids_by_direction_and_ground_station" => %{
+               "downlink" => %{"polar_prime" => ["raw_alias_conflict"]}
+             },
+             "branch_local_reservation_conflict_pressure" => true
+           } = CandidateRefresh.contact_allocation_replay_summary(artifact)
   end
 
   test "source report summary replays contact allocation reservation-conflict summaries from result artifact wrappers" do
@@ -8885,7 +9050,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["deferred_row_count"] == 0
     assert summary["station_pressure_contact_count"] == 1
     assert summary["station_pressure_review_contact_count"] == 1
-    assert summary["reservation_conflict_contact_count"] == nil
+    assert summary["reservation_conflict_contact_count"] == 1
     assert summary["invalid_contact_input_count"] == nil
 
     assert summary["capacity_pack_selected_contact_ids_by_ground_station"] == %{
