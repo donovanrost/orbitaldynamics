@@ -5,65 +5,52 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Contact-intent public facade discovery.
+Long-running prompt ledger-shape alignment.
 
 Status:
-Implemented, verified, reviewed, and ready for mechanical commit/push.
+Implemented and verified; ready for commit/push.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `docs/feature_set/capability_map/07_ground_network/05_contact_intent_refresh_and_allocation_policy.md`
-- `lib/orbital_dynamics/communications/contact_intent.ex`
-- `test/orbital_dynamics/capabilities_test.exs`
-- `test/orbital_dynamics/communications/contact_intent_test.exs`
+- `.codex/prompts/long_running_context_efficient_product_loop.md`
 
 Tests run:
-- `mix format lib/orbital_dynamics/communications/contact_intent.ex test/orbital_dynamics/communications/contact_intent_test.exs test/orbital_dynamics/capabilities_test.exs`
-  completed.
-- `mix test test/orbital_dynamics/communications/contact_intent_test.exs test/orbital_dynamics/capabilities_test.exs`
-  passed, 32 tests.
+- `rg -n "Completed slices|160 lines|120 lines|Required ledger shape|Current slice:" .codex/prompts/long_running_context_efficient_product_loop.md .codex/prompts/context_efficient_autonomous_product_loop.md docs/autonomous_work_guide.md`
+  confirmed the long-running prompt now uses the canonical compact ledger shape.
 - `git diff --check`
   passed.
-- Read-only sidecar review found no must-fix findings; it noted only that the
-  unrelated `.gitignore` change must stay out of the slice commit.
 
 Docs/artifacts changed:
-- `ContactIntent.capabilities/0` now advertises the existing
-  `contact_intents_from_activities`, `contact_intent_from_activity!`, and
-  `contact_intent_summary` top-level facades.
-- Contact-intent docs state that generation and summary facades are catalog
-  visible for adapter discovery.
-- Module and capability-catalog tests assert the facade metadata.
+- `.codex/prompts/long_running_context_efficient_product_loop.md` now matches
+  the guide and sibling prompt by keeping the status ledger under roughly 120
+  lines and omitting the cumulative `Completed slices` field.
 
 Level 6 pillar advanced:
-Fleet-level contact and station-calendar allocation behavior.
+Autonomous-loop continuity and handoff accuracy.
 
 Remaining maturity gaps:
-Contact-intent public facades are discoverable. Broader resource/communications
-maturity still depends on continuing to audit live allocation/readiness handoff
-mismatches as they appear.
+The prompt surfaces are aligned on the compact current-slice ledger shape. The
+next product slice should resume from the guide's decision queue rather than
+from stale cumulative ledger history.
 
 Last commit:
-`6c35604ade919bb03decdfcde37ab51dfcb2103c` pushed to `origin/main` for
-operational timeline report public facade metadata.
+`30244e8c6338b2620c893c2e4a96534d559706e3` pushed to `origin/main` for
+contact-intent public facade discovery.
 
 Next candidate:
-After this slice, continue resource/communications allocation semantics only if
-another live mismatch is visible; otherwise move to quality gates and import
-readiness.
+Resume the autonomous product loop from `docs/autonomous_work_guide.md`; narrow
+checks found no obvious missing readiness/quality-gate facade metadata, so the
+next likely area is branch-local candidate refresh depth or validation fixtures
+unless the live checkout shows a higher-priority contract break.
 
 Blocked:
 No.
 
 Notes:
-- Slice-selection note: this closes a contact-intent discoverability gap. It
-  matters because contact-intent generation and summary artifacts feed
-  Cadence-facing contact review/import queues. Likely files/tests are
-  `lib/orbital_dynamics/communications/contact_intent.ex`,
-  `test/orbital_dynamics/communications/contact_intent_test.exs`,
-  `test/orbital_dynamics/capabilities_test.exs`, and contact-intent docs.
-  Definition of done is catalog visibility for existing facades, docs that name
-  the discovery contract without implying authority, focused tests passing,
-  `git diff --check` passing, and sidecar review/publish if clean.
+- Slice-selection note: this is a prompt-maintenance slice for the active
+  objective file. It matters because the long-running prompt had drifted from
+  the canonical compact handoff shape used by the guide and sibling prompt.
+  Definition of done is prompt alignment, focused static verification, a clean
+  whitespace check, and a commit that excludes unrelated local dirt.
 - `.gitignore` still has an unrelated pre-existing local scratch-ignore change
   and is not part of this slice.

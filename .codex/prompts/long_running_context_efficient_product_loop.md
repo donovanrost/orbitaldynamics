@@ -84,7 +84,7 @@ Create it if missing. Update it after every completed slice and before any
 pause.
 
 Keep the ledger concise. Replace stale details instead of appending endlessly.
-It should stay under roughly 160 lines.
+It should stay under roughly 120 lines.
 
 Ledger shape:
 
@@ -94,7 +94,6 @@ Ledger shape:
 Overall maturity target:
 Current slice:
 Status:
-Completed slices:
 Files changed:
 Tests run:
 Docs/artifacts changed:
