@@ -38843,7 +38843,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     wrapped_summary = %{
       "schema_contract" => "validation_safety_case_summary.v1",
       "status" => "review_required",
-      "evidence" => [%{"status" => "review_required"}],
+      "evidence" => [%{"status" => "review_required", "schema_warning_count" => 2}],
       "evidence_status_counts" => %{"stale_evidence_status" => 99},
       "accepted_evidence_count" => 0,
       "review_required_evidence_count" => 1,
@@ -39152,6 +39152,142 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert OrbitalDynamics.candidate_refresh_validation_safety_case_replay_summary(artifact) ==
              summary
+  end
+
+  test "validation safety case source summary derives pressure counts from evidence rows" do
+    stale_safety_case_summary = %{
+      "schema_contract" => "validation_safety_case_summary.v1",
+      "schema_version" => 1,
+      "status" => "accepted_for_use",
+      "evidence_count" => 99,
+      "input_contracts" => [],
+      "evidence_status_counts" => %{"accepted_for_use" => 99},
+      "evidence_refs_by_status" => %{"accepted_for_use" => ["stale.accepted"]},
+      "evidence_refs_by_contract" => %{"stale_contract.v1" => ["stale.accepted"]},
+      "accepted_evidence_count" => 99,
+      "review_required_evidence_count" => 0,
+      "blocked_evidence_count" => 0,
+      "model_review_required_count" => 0,
+      "model_blocked_count" => 0,
+      "readiness_review_required_count" => 0,
+      "readiness_blocked_count" => 0,
+      "quality_gate_review_count" => 0,
+      "quality_gate_blocked_count" => 0,
+      "schema_error_count" => 0,
+      "schema_warning_count" => 0,
+      "schema_validation_report_count" => 0,
+      "schema_validation_failed_report_count" => 0,
+      "fixture_passed_count" => 99,
+      "fixture_failed_count" => 0,
+      "evidence" => [
+        %{
+          "schema_contract" => "schema_validation_batch_report.v1",
+          "status" => "blocked",
+          "evidence_ref" => "schema_validation_batch_report.v1:batch.blocked",
+          "schema_error_count" => 2,
+          "schema_warning_count" => 1,
+          "schema_validation_report_count" => 3,
+          "schema_validation_failed_report_count" => 2
+        },
+        %{
+          "schema_contract" => "validation_reference_fixture_report.v1",
+          "status" => "blocked",
+          "evidence_ref" => "validation_reference_fixture_report.v1:fixtures.failed",
+          "fixture_passed_count" => 1,
+          "fixture_failed_count" => 2
+        },
+        %{
+          "schema_contract" => "model_acceptance_report.v1",
+          "status" => "review_required",
+          "evidence_ref" => "model_acceptance_report.v1:model.review",
+          "model_review_required_count" => 1,
+          "model_blocked_count" => 1
+        },
+        %{
+          "schema_contract" => "operational_readiness_report.v1",
+          "status" => "review_required",
+          "evidence_ref" => "operational_readiness_report.v1:readiness.review",
+          "readiness_review_required_count" => 1,
+          "readiness_blocked_count" => 1
+        },
+        %{
+          "schema_contract" => "quality_gate_report.v1",
+          "status" => "accepted_for_use",
+          "evidence_ref" => "quality_gate_report.v1:gate.accepted",
+          "quality_gate_review_count" => 1,
+          "quality_gate_blocked_count" => 1
+        }
+      ],
+      "provenance" => %{"trust_boundary" => "stale_safety_case_rows"}
+    }
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "source_validation_safety_case_summary" => stale_safety_case_summary
+    }
+
+    assert %{
+             "source_report_validation_safety_case_evidence_count" => 5,
+             "source_report_validation_safety_case_evidence_status_counts" => %{
+               "accepted_for_use" => 1,
+               "blocked" => 2,
+               "review_required" => 2
+             },
+             "source_report_validation_safety_case_input_contract_counts" => %{
+               "model_acceptance_report.v1" => 1,
+               "operational_readiness_report.v1" => 1,
+               "quality_gate_report.v1" => 1,
+               "schema_validation_batch_report.v1" => 1,
+               "validation_reference_fixture_report.v1" => 1
+             },
+             "source_report_validation_safety_case_evidence_refs_by_status" => %{
+               "accepted_for_use" => ["quality_gate_report.v1:gate.accepted"],
+               "blocked" => [
+                 "schema_validation_batch_report.v1:batch.blocked",
+                 "validation_reference_fixture_report.v1:fixtures.failed"
+               ],
+               "review_required" => [
+                 "model_acceptance_report.v1:model.review",
+                 "operational_readiness_report.v1:readiness.review"
+               ]
+             },
+             "source_report_validation_safety_case_accepted_evidence_count" => 1,
+             "source_report_validation_safety_case_review_required_evidence_count" => 2,
+             "source_report_validation_safety_case_blocked_evidence_count" => 2,
+             "source_report_validation_safety_case_model_review_required_count" => 1,
+             "source_report_validation_safety_case_model_blocked_count" => 1,
+             "source_report_validation_safety_case_readiness_review_required_count" => 1,
+             "source_report_validation_safety_case_readiness_blocked_count" => 1,
+             "source_report_validation_safety_case_quality_gate_review_count" => 1,
+             "source_report_validation_safety_case_quality_gate_blocked_count" => 1,
+             "source_report_validation_safety_case_schema_error_count" => 2,
+             "source_report_validation_safety_case_schema_warning_count" => 1,
+             "source_report_validation_safety_case_schema_validation_report_count" => 3,
+             "source_report_validation_safety_case_schema_validation_failed_report_count" => 2,
+             "source_report_validation_safety_case_fixture_passed_count" => 1,
+             "source_report_validation_safety_case_fixture_failed_count" => 2,
+             "source_report_validation_safety_case_branch_local_review_pressure" => true,
+             "source_report_validation_safety_case_branch_local_blocking_pressure" => true,
+             "source_report_validation_safety_case_branch_local_schema_pressure" => true,
+             "source_report_validation_safety_case_branch_local_fixture_pressure" => true
+           } = CandidateRefresh.source_report_summary(artifact)
+
+    summary = CandidateRefresh.validation_safety_case_replay_summary(artifact)
+
+    assert summary["source_report_row_count"] == 5
+    assert summary["accepted_evidence_count"] == 1
+    assert summary["review_required_evidence_count"] == 2
+    assert summary["blocked_evidence_count"] == 2
+    assert summary["schema_error_count"] == 2
+    assert summary["schema_warning_count"] == 1
+    assert summary["schema_validation_report_count"] == 3
+    assert summary["schema_validation_failed_report_count"] == 2
+    assert summary["fixture_passed_count"] == 1
+    assert summary["fixture_failed_count"] == 2
+    assert summary["branch_local_review_pressure"]
+    assert summary["branch_local_blocking_pressure"]
+    assert summary["branch_local_schema_pressure"]
+    assert summary["branch_local_fixture_pressure"]
   end
 
   test "validation safety case replay summary omits contract when source report is absent" do

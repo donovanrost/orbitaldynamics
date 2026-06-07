@@ -220,9 +220,9 @@ Single schema-validation evidence derives status and counts from `errors` and
 `warnings` issue lists when they are present, so stale top-level pass/zero-count
 fields cannot hide schema issues in a safety-case handoff.
 Candidate-refresh validation-safety-case replay summaries use those evidence
-rows to derive source-report evidence status maps when rows are present, so
-stale top-level `evidence_status_counts` fields cannot steer review/blocking
-pressure.
+rows to derive source-report evidence counts, pressure counts, input-contract
+maps, and evidence-reference maps when rows are present, so stale top-level
+safety-case aggregates cannot steer review/blocking/schema/fixture pressure.
 The summary includes deterministic evidence references grouped by summary status
 and input contract, so handoff consumers can route blocked and review-required
 evidence without re-scanning the evidence rows.

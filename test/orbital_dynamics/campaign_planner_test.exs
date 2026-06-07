@@ -40139,6 +40139,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
             "ref" => "model_acceptance_report.v1:model.blocked",
             "input_contract" => "model_acceptance_report.v1",
             "status" => "blocked",
+            "model_blocked_count" => 1,
+            "schema_error_count" => 1,
+            "schema_warning_count" => 2,
             "reason" => "model acceptance blocks operational import"
           },
           %{
@@ -40146,6 +40149,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
             "ref" => "quality_gate_report.v1:gate.review",
             "input_contract" => "quality_gate_report.v1",
             "status" => "review_required",
+            "quality_gate_review_count" => 1,
+            "quality_gate_blocked_count" => 1,
             "reason" => "quality gate requires operator review"
           }
         ],
@@ -40327,7 +40332,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
             "id" => "direct.blocked",
             "ref" => "model_acceptance_report.v1:direct.blocked",
             "input_contract" => "model_acceptance_report.v1",
-            "status" => "blocked"
+            "status" => "blocked",
+            "model_blocked_count" => 1,
+            "schema_error_count" => 1
           }
         ],
         "assumptions" => %{"source" => "test.validation_safety_case_summary"},
@@ -40364,7 +40371,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
             "id" => "canonical.review",
             "ref" => "quality_gate_report.v1:canonical.review",
             "input_contract" => "quality_gate_report.v1",
-            "status" => "review_required"
+            "status" => "review_required",
+            "quality_gate_review_count" => 1
           }
         ],
         "assumptions" => %{"source" => "test.canonical_validation_safety_case_summary"},
@@ -40401,7 +40409,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
             "id" => "wrapped.review",
             "ref" => "quality_gate_report.v1:wrapped.review",
             "input_contract" => "quality_gate_report.v1",
-            "status" => "review_required"
+            "status" => "review_required",
+            "quality_gate_review_count" => 1
           }
         ],
         "assumptions" => %{"source" => "test.wrapped_validation_safety_case_summary"},

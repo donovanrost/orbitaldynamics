@@ -463,6 +463,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         :source_report_quality_gate_branch_replay_summary,
         :source_report_model_acceptance_branch_replay_summary,
         :source_report_validation_safety_case_branch_replay_summary,
+        :source_report_validation_safety_case_row_derived_counts,
         :source_report_freshness_branch_replay_summary,
         :source_report_refresh_budget_branch_replay_summary,
         :source_report_schema_validation_branch_replay_summary,
@@ -23916,55 +23917,114 @@ defmodule OrbitalDynamics.CandidateRefresh do
         |> merge_count_maps(),
       "input_contract_counts" =>
         reports
-        |> Enum.flat_map(&list_value(Map.get(&1, "input_contracts")))
-        |> count_source_report_values(),
+        |> Enum.map(&validation_safety_case_input_contract_counts/1)
+        |> merge_count_maps(),
       "evidence_refs_by_status" =>
         reports
-        |> Enum.map(&Map.get(&1, "evidence_refs_by_status"))
+        |> Enum.map(&validation_safety_case_evidence_refs_by(&1, "status"))
         |> merge_string_list_maps(),
       "evidence_refs_by_contract" =>
         reports
-        |> Enum.map(&Map.get(&1, "evidence_refs_by_contract"))
+        |> Enum.map(&validation_safety_case_evidence_refs_by(&1, "schema_contract"))
         |> merge_string_list_maps(),
       "accepted_evidence_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "accepted_evidence_count")),
+        sum_report_count(
+          reports,
+          &validation_safety_case_evidence_status_count(
+            &1,
+            "accepted_for_use",
+            "accepted_evidence_count"
+          )
+        ),
       "review_required_evidence_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "review_required_evidence_count")),
+        sum_report_count(
+          reports,
+          &validation_safety_case_evidence_status_count(
+            &1,
+            "review_required",
+            "review_required_evidence_count"
+          )
+        ),
       "blocked_evidence_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "blocked_evidence_count")),
+        sum_report_count(
+          reports,
+          &validation_safety_case_evidence_status_count(&1, "blocked", "blocked_evidence_count")
+        ),
       "model_accepted_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "model_accepted_count")),
+        sum_report_count(
+          reports,
+          &validation_safety_case_evidence_field_sum(&1, "model_accepted_count")
+        ),
       "model_review_required_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "model_review_required_count")),
+        sum_report_count(
+          reports,
+          &validation_safety_case_evidence_field_sum(&1, "model_review_required_count")
+        ),
       "model_blocked_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "model_blocked_count")),
+        sum_report_count(
+          reports,
+          &validation_safety_case_evidence_field_sum(&1, "model_blocked_count")
+        ),
       "unknown_model_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "unknown_model_count")),
+        sum_report_count(
+          reports,
+          &validation_safety_case_evidence_field_sum(&1, "unknown_model_count")
+        ),
       "readiness_review_required_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "readiness_review_required_count")),
+        sum_report_count(
+          reports,
+          &validation_safety_case_evidence_field_sum(&1, "readiness_review_required_count")
+        ),
       "readiness_blocked_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "readiness_blocked_count")),
+        sum_report_count(
+          reports,
+          &validation_safety_case_evidence_field_sum(&1, "readiness_blocked_count")
+        ),
       "ready_for_import_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "ready_for_import_count")),
+        sum_report_count(
+          reports,
+          &validation_safety_case_evidence_field_sum(&1, "ready_for_import_count")
+        ),
       "quality_gate_review_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "quality_gate_review_count")),
+        sum_report_count(
+          reports,
+          &validation_safety_case_evidence_field_sum(&1, "quality_gate_review_count")
+        ),
       "quality_gate_blocked_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "quality_gate_blocked_count")),
+        sum_report_count(
+          reports,
+          &validation_safety_case_evidence_field_sum(&1, "quality_gate_blocked_count")
+        ),
       "schema_error_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "schema_error_count")),
+        sum_report_count(
+          reports,
+          &validation_safety_case_evidence_field_sum(&1, "schema_error_count")
+        ),
       "schema_warning_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "schema_warning_count")),
+        sum_report_count(
+          reports,
+          &validation_safety_case_evidence_field_sum(&1, "schema_warning_count")
+        ),
       "schema_validation_report_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "schema_validation_report_count")),
+        sum_report_count(
+          reports,
+          &validation_safety_case_evidence_field_sum(&1, "schema_validation_report_count")
+        ),
       "schema_validation_failed_report_count" =>
         sum_report_count(
           reports,
-          &numeric_report_count(&1, "schema_validation_failed_report_count")
+          &validation_safety_case_evidence_field_sum(&1, "schema_validation_failed_report_count")
         ),
       "fixture_passed_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "fixture_passed_count")),
+        sum_report_count(
+          reports,
+          &validation_safety_case_evidence_field_sum(&1, "fixture_passed_count")
+        ),
       "fixture_failed_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "fixture_failed_count")),
+        sum_report_count(
+          reports,
+          &validation_safety_case_evidence_field_sum(&1, "fixture_failed_count")
+        ),
       "trust_boundary_status" => source_report_trust_boundary_status(reports),
       "trust_boundaries" => source_report_trust_boundaries(reports)
     }
@@ -27596,9 +27656,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp validation_safety_case_evidence_count(report) do
-    case numeric_report_count(report, "evidence_count") do
-      0 -> length(Map.get(report, "evidence", []))
-      count -> count
+    case validation_safety_case_evidence_rows(report) do
+      [] ->
+        numeric_report_count(report, "evidence_count")
+
+      rows ->
+        length(rows)
     end
   end
 
@@ -27614,6 +27677,70 @@ defmodule OrbitalDynamics.CandidateRefresh do
     end
   end
 
+  defp validation_safety_case_input_contract_counts(report) do
+    case validation_safety_case_evidence_rows(report) do
+      [] ->
+        report
+        |> Map.get("input_contracts")
+        |> list_value()
+        |> count_source_report_values()
+
+      rows ->
+        rows
+        |> Enum.map(&validation_safety_case_evidence_contract/1)
+        |> count_source_report_values()
+    end
+  end
+
+  defp validation_safety_case_evidence_refs_by(report, field) do
+    case validation_safety_case_evidence_rows(report) do
+      [] ->
+        Map.get(report, validation_safety_case_evidence_refs_field(field))
+
+      rows ->
+        rows
+        |> Enum.reduce(%{}, fn row, refs_by_field ->
+          value = validation_safety_case_evidence_ref_group_value(row, field)
+          evidence_ref = validation_safety_case_evidence_ref(row)
+
+          if value in [nil, ""] or evidence_ref in [nil, ""] do
+            refs_by_field
+          else
+            Map.update(refs_by_field, to_string(value), [to_string(evidence_ref)], fn refs ->
+              [to_string(evidence_ref) | refs]
+            end)
+          end
+        end)
+        |> Map.new(fn {value, refs} -> {value, refs |> Enum.uniq() |> Enum.sort()} end)
+        |> non_empty_map()
+    end
+  end
+
+  defp validation_safety_case_evidence_refs_field("schema_contract"),
+    do: "evidence_refs_by_contract"
+
+  defp validation_safety_case_evidence_refs_field(field), do: "evidence_refs_by_#{field}"
+
+  defp validation_safety_case_evidence_status_count(report, status, fallback_field) do
+    case validation_safety_case_evidence_rows(report) do
+      [] ->
+        numeric_report_count(report, fallback_field)
+
+      rows ->
+        Enum.count(rows, &(validation_safety_case_evidence_status(&1) == status))
+    end
+  end
+
+  defp validation_safety_case_evidence_field_sum(report, field) do
+    case validation_safety_case_evidence_rows(report) do
+      [] ->
+        numeric_report_count(report, field)
+
+      rows ->
+        sum_report_count(rows, &numeric_report_count(&1, field))
+    end
+  end
+
   defp validation_safety_case_evidence_rows(report) do
     report
     |> Map.get("evidence", [])
@@ -27623,6 +27750,20 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp validation_safety_case_evidence_status(row) do
     Map.get(row, "status") || Map.get(row, "evidence_status")
   end
+
+  defp validation_safety_case_evidence_contract(row) do
+    Map.get(row, "schema_contract") || Map.get(row, "input_contract")
+  end
+
+  defp validation_safety_case_evidence_ref(row) do
+    Map.get(row, "evidence_ref") || Map.get(row, "ref")
+  end
+
+  defp validation_safety_case_evidence_ref_group_value(row, "schema_contract") do
+    validation_safety_case_evidence_contract(row)
+  end
+
+  defp validation_safety_case_evidence_ref_group_value(row, field), do: Map.get(row, field)
 
   defp operational_readiness_report_gate_count(report) do
     case numeric_report_count(report, "gate_count") do

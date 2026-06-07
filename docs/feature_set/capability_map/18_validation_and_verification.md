@@ -274,7 +274,7 @@ Status: **implemented**.
   reports as blocking, even when stale top-level fixture-rollup status/count
   fields claim pass.
 - Safety-case inputs also discover schema-validation reports preserved in operator-review packages and Cadence-import manifests, lifting those review/import rows as evidence while keeping certification and operator authority out of the summary.
-- CandidateRefresh now accepts direct or result-artifact-wrapped `validation_safety_case_summary.v1` inputs as passive source-report provenance, preserving evidence status/count and evidence-reference routing maps without changing candidate selection. When evidence rows are present, CandidateRefresh derives source-report evidence status maps from those rows instead of trusting stale top-level `evidence_status_counts` aggregates.
+- CandidateRefresh now accepts direct or result-artifact-wrapped `validation_safety_case_summary.v1` inputs as passive source-report provenance, preserving evidence status/count and evidence-reference routing maps without changing candidate selection. When evidence rows are present, CandidateRefresh derives source-report evidence counts, pressure counts, input-contract maps, and evidence-reference maps from those rows instead of trusting stale top-level safety-case aggregates.
 
 ## Quality-gate report fixture
 
