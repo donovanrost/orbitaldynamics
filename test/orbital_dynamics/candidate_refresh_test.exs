@@ -39011,6 +39011,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         "schema_contract" => "timeline_transition_application_report.v1",
         "application_count" => 99,
         "selected_activity_count" => 99,
+        "selected_timeline_integrity_review_count" => 99,
+        "selected_timeline_integrity_issue_count" => 99,
+        "selected_timeline_integrity_issue_type_counts" => %{"stale_integrity_issue" => 99},
         "selected_activity_id_counts" => %{"stale_selected_activity" => 99},
         "review_required_count" => 99,
         "preserved_source_count" => 99,
@@ -39045,6 +39048,18 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
             "transition_decision" => "withhold",
             "required_operator_action" => "review_duplicate_timeline_identity",
             "duplicate_timeline_identity_scope" => "replacement"
+          }
+        ],
+        "selected_activities" => [
+          %{
+            "activity_id" => "selected_downlink_activity",
+            "timeline_id" => "timeline:selected_downlink",
+            "timeline_integrity_status" => "review_required",
+            "timeline_integrity_issue_count" => 2,
+            "timeline_integrity_issue_types" => [
+              "missing_dependency_activity",
+              "self_dependency_timeline"
+            ]
           }
         ],
         "provenance" => %{"trust_boundary" => "ops_transition_application"}
@@ -39115,6 +39130,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  "paths" => ["source_timeline_transition_application_report"],
                  "application_count" => 3,
                  "selected_activity_count" => 1,
+                 "selected_timeline_integrity_review_count" => 1,
+                 "selected_timeline_integrity_issue_count" => 2,
+                 "selected_timeline_integrity_issue_type_counts" => %{
+                   "missing_dependency_activity" => 1,
+                   "self_dependency_timeline" => 1
+                 },
                  "selected_activity_id_counts" => %{"selected_downlink_activity" => 1},
                  "preserved_source_count" => 0,
                  "recorded_replacement_count" => 0,
@@ -39138,6 +39159,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "source_application_count" => 3,
       "source_report_paths" => ["source_timeline_transition_application_report"],
       "selected_activity_count" => 1,
+      "selected_timeline_integrity_review_count" => 1,
+      "selected_timeline_integrity_issue_count" => 2,
+      "selected_timeline_integrity_issue_type_counts" => %{
+        "missing_dependency_activity" => 1,
+        "self_dependency_timeline" => 1
+      },
       "selected_activity_id_counts" => %{"selected_downlink_activity" => 1},
       "review_required_count" => 2,
       "preserved_source_count" => 0,
@@ -39170,6 +39197,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "trust_boundaries" => ["ops_transition_application"],
       "branch_local_timeline_transition_application_pressure" => true,
       "branch_local_selected_activity_pressure" => true,
+      "branch_local_selected_integrity_pressure" => true,
       "branch_local_review_required_pressure" => true,
       "branch_local_preserved_transition_pressure" => false,
       "branch_local_duplicate_identity_pressure" => true,
@@ -39290,6 +39318,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       |> Timeline.transition_application_summary()
       |> Map.put("application_count", 99)
       |> Map.put("selected_activity_count", 99)
+      |> Map.put("selected_timeline_integrity_review_count", 99)
+      |> Map.put("selected_timeline_integrity_issue_count", 99)
+      |> Map.put("selected_timeline_integrity_issue_types", ["stale_integrity_issue"])
       |> Map.put("review_required_count", 99)
       |> Map.put("preserved_source_count", 99)
       |> Map.put("recorded_replacement_count", 99)
@@ -39304,6 +39335,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       |> Map.drop([
         "application_count",
         "selected_activity_count",
+        "selected_timeline_integrity_review_count",
+        "selected_timeline_integrity_issue_count",
+        "selected_timeline_integrity_issue_types",
         "review_required_count",
         "preserved_source_count",
         "recorded_replacement_count",
@@ -39316,6 +39350,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       |> Map.merge(%{
         "application_count" => 3,
         "selected_activity_count" => 1,
+        "selected_timeline_integrity_review_count" => 0,
+        "selected_timeline_integrity_issue_count" => 0,
+        "selected_timeline_integrity_issue_types" => [],
         "review_required_count" => 3,
         "preserved_source_count" => 1,
         "recorded_replacement_count" => 0,
@@ -39404,6 +39441,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  ],
                  "application_count" => 12,
                  "selected_activity_count" => 4,
+                 "selected_timeline_integrity_review_count" => 0,
+                 "selected_timeline_integrity_issue_count" => 0,
                  "selected_activity_id_counts" => %{"cmd_lock" => 4},
                  "review_activity_id_counts" => %{
                    "cmd_added" => 4,
@@ -39437,6 +39476,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "source_result_artifact.timeline_transition_application_summary"
              ],
              "selected_activity_count" => 4,
+             "selected_timeline_integrity_review_count" => 0,
+             "selected_timeline_integrity_issue_count" => 0,
+             "selected_timeline_integrity_issue_type_counts" => %{},
              "selected_activity_id_counts" => %{"cmd_lock" => 4},
              "review_activity_id_counts" => %{
                "cmd_added" => 4,
@@ -39464,6 +39506,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              ],
              "branch_local_timeline_transition_application_pressure" => true,
              "branch_local_selected_activity_pressure" => true,
+             "branch_local_selected_integrity_pressure" => false,
              "branch_local_review_required_pressure" => true,
              "branch_local_preserved_transition_pressure" => true,
              "branch_local_operator_review_pressure" => true

@@ -1947,17 +1947,19 @@ provenance.
 expose the timeline-transition-application slice as a branch-local replay
 summary. It preserves top-level source-report contract/count/row-count/path rollups,
 source application paths, application/selected/review/preserved/replacement/
-withheld counts, selected-activity ID maps, status/decision/action maps,
+withheld counts, selected-activity ID maps, selected-subset timeline-integrity
+review/issue counts and issue-type counts, status/decision/action maps,
 duplicate identity counts/maps, trust-boundary evidence, and branch-local
-application, selection, review, preservation,
+application, selection, selected-integrity, review, preservation,
 duplicate-identity, and operator-review pressure booleans without applying
 timeline transitions, mutating timelines, selecting candidates, approving
 imports, writing to Cadence, or regenerating candidates. The family-level
 timeline-transition-application pressure boolean is true for selected-activity
 evidence even when application/status/decision maps are absent. Application counts,
-duplicate identity counts, selected-activity ID maps, and status/decision/
-action/scope maps are derived from application rows when rows are present
-instead of trusted from stale top-level transition aggregates.
+duplicate identity counts, selected-activity ID maps, selected-integrity counts,
+and status/decision/action/scope maps are derived from application or selected
+activity rows when rows are present instead of trusted from stale top-level
+transition aggregates.
 Selected, review-required, preserved-source, recorded-replacement, and
 withheld-review counts follow the same row-first rule.
 The family-level transition-application pressure boolean is also true for

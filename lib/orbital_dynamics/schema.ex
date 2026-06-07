@@ -23678,6 +23678,8 @@ defmodule OrbitalDynamics.Schema do
         non_negative_integer_property_schemas([
           "application_count",
           "selected_activity_count",
+          "selected_timeline_integrity_review_count",
+          "selected_timeline_integrity_issue_count",
           "review_required_count",
           "preserved_source_count",
           "recorded_replacement_count",
@@ -23692,6 +23694,7 @@ defmodule OrbitalDynamics.Schema do
           [
             "selected_activity_id_counts",
             "review_activity_id_counts",
+            "selected_timeline_integrity_issue_type_counts",
             "application_status_counts",
             "transition_decision_counts",
             "required_operator_action_counts",
@@ -29431,6 +29434,8 @@ defmodule OrbitalDynamics.Schema do
         [
           "application_count",
           "selected_activity_count",
+          "selected_timeline_integrity_review_count",
+          "selected_timeline_integrity_issue_count",
           "review_required_count",
           "preserved_source_count",
           "recorded_replacement_count",
@@ -29449,6 +29454,7 @@ defmodule OrbitalDynamics.Schema do
       [
         "selected_activity_id_counts",
         "review_activity_id_counts",
+        "selected_timeline_integrity_issue_type_counts",
         "application_status_counts",
         "transition_decision_counts",
         "required_operator_action_counts",

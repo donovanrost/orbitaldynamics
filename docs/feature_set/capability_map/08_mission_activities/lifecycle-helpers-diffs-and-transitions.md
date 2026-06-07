@@ -179,8 +179,9 @@ handoffs. Runtime validation and JSON Schema export pin the same timeline
 model-limit list for compact summaries. CandidateRefresh also accepts direct and
 result-artifact-wrapped transition-application summaries as source-report
 provenance, preserving the compact summary contract,
-selected/review/preserved/withheld counts, routing maps, source paths, and
-trust-boundary evidence without applying transitions or mutating timelines.
+selected/review/preserved/withheld counts, selected-subset integrity review and
+issue counts, selected-integrity issue-type counts, routing maps, source paths,
+and trust-boundary evidence without applying transitions or mutating timelines.
 Existing `timeline_transition_application_summary.v1` artifacts are accepted as
 idempotent inputs by the transition-application-summary facade when downstream
 queues already hold the compact summary artifact.

@@ -14549,6 +14549,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
        ) do
     application_count = summary_integer(transition_summary, "application_count")
     selected_activity_count = summary_integer(transition_summary, "selected_activity_count")
+
+    selected_integrity_review_count =
+      summary_integer(transition_summary, "selected_timeline_integrity_review_count")
+
+    selected_integrity_issue_count =
+      summary_integer(transition_summary, "selected_timeline_integrity_issue_count")
+
+    selected_integrity_issue_type_counts =
+      Map.get(transition_summary, "selected_timeline_integrity_issue_type_counts", %{})
+
     review_required_count = summary_integer(transition_summary, "review_required_count")
     preserved_source_count = summary_integer(transition_summary, "preserved_source_count")
     recorded_replacement_count = summary_integer(transition_summary, "recorded_replacement_count")
@@ -14582,9 +14592,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
     selected_activity_pressure =
       selected_activity_count > 0 or map_size(selected_activity_id_counts) > 0
 
+    selected_integrity_pressure =
+      selected_integrity_review_count + selected_integrity_issue_count > 0 or
+        map_size(selected_integrity_issue_type_counts) > 0
+
     review_required_pressure =
       review_required_count + withheld_review_count > 0 or review_action_count > 0 or
-        map_size(review_activity_id_counts) > 0
+        map_size(review_activity_id_counts) > 0 or selected_integrity_pressure
 
     preserved_transition_pressure =
       preserved_source_count + recorded_replacement_count > 0
@@ -14611,6 +14625,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "source_application_count" => application_count,
       "source_report_paths" => Map.get(transition_summary, "paths", []),
       "selected_activity_count" => selected_activity_count,
+      "selected_timeline_integrity_review_count" => selected_integrity_review_count,
+      "selected_timeline_integrity_issue_count" => selected_integrity_issue_count,
+      "selected_timeline_integrity_issue_type_counts" => selected_integrity_issue_type_counts,
       "selected_activity_id_counts" => selected_activity_id_counts,
       "review_activity_id_counts" => review_activity_id_counts,
       "review_required_count" => review_required_count,
@@ -14630,6 +14647,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         application_evidence_pressure or selected_activity_pressure or
           review_required_pressure or preserved_transition_pressure or duplicate_identity_pressure,
       "branch_local_selected_activity_pressure" => selected_activity_pressure,
+      "branch_local_selected_integrity_pressure" => selected_integrity_pressure,
       "branch_local_review_required_pressure" => review_required_pressure,
       "branch_local_preserved_transition_pressure" => preserved_transition_pressure,
       "branch_local_duplicate_identity_pressure" => duplicate_identity_pressure,
@@ -23327,6 +23345,22 @@ defmodule OrbitalDynamics.CandidateRefresh do
           reports,
           &timeline_transition_application_report_selected_activity_count/1
         ),
+      "selected_timeline_integrity_review_count" =>
+        sum_report_count(
+          reports,
+          &timeline_transition_application_report_selected_integrity_review_count/1
+        ),
+      "selected_timeline_integrity_issue_count" =>
+        sum_report_count(
+          reports,
+          &timeline_transition_application_report_selected_integrity_issue_count/1
+        ),
+      "selected_timeline_integrity_issue_type_counts" =>
+        reports
+        |> Enum.map(
+          &timeline_transition_application_report_selected_integrity_issue_type_counts/1
+        )
+        |> merge_count_maps(),
       "selected_activity_id_counts" =>
         reports
         |> Enum.map(&timeline_transition_application_report_selected_activity_id_counts/1)
@@ -32604,6 +32638,40 @@ defmodule OrbitalDynamics.CandidateRefresh do
     )
   end
 
+  defp timeline_transition_application_report_selected_integrity_review_count(report) do
+    if timeline_transition_application_summary_source?(report) do
+      numeric_report_count(report, "selected_timeline_integrity_review_count")
+    else
+      report
+      |> timeline_transition_application_selected_integrity_rows()
+      |> Enum.count(&timeline_transition_application_selected_integrity_review_row?/1)
+    end
+  end
+
+  defp timeline_transition_application_report_selected_integrity_issue_count(report) do
+    if timeline_transition_application_summary_source?(report) do
+      numeric_report_count(report, "selected_timeline_integrity_issue_count")
+    else
+      report
+      |> timeline_transition_application_selected_integrity_rows()
+      |> Enum.map(&summary_integer(&1, "timeline_integrity_issue_count"))
+      |> Enum.sum()
+    end
+  end
+
+  defp timeline_transition_application_report_selected_integrity_issue_type_counts(report) do
+    if timeline_transition_application_summary_source?(report) do
+      report
+      |> Map.get("selected_timeline_integrity_issue_types", [])
+      |> count_source_report_values()
+    else
+      report
+      |> timeline_transition_application_selected_integrity_rows()
+      |> Enum.flat_map(&(Map.get(&1, "timeline_integrity_issue_types") |> List.wrap()))
+      |> count_source_report_values()
+    end
+  end
+
   defp timeline_transition_application_report_selected_activity_id_counts(report) do
     if timeline_transition_application_summary_source?(report) do
       report
@@ -32755,6 +32823,52 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.get("applications", [])
     |> Enum.map(&stringify_keys/1)
   end
+
+  defp timeline_transition_application_selected_integrity_rows(report) do
+    selected_activities =
+      report
+      |> Map.get("selected_activities", [])
+      |> Enum.map(&stringify_keys/1)
+
+    if selected_activities == [] do
+      report
+      |> timeline_transition_application_report_rows()
+      |> Enum.filter(&timeline_transition_application_selected_integrity_context?/1)
+      |> Enum.map(fn row ->
+        %{
+          "timeline_integrity_status" => Map.get(row, "selected_timeline_integrity_status"),
+          "timeline_integrity_issue_count" =>
+            Map.get(row, "selected_timeline_integrity_issue_count"),
+          "timeline_integrity_issue_types" =>
+            Map.get(row, "selected_timeline_integrity_issue_types"),
+          "timeline_integrity_issues" => Map.get(row, "selected_timeline_integrity_issues"),
+          "required_operator_action" => Map.get(row, "required_operator_action")
+        }
+        |> compact_map()
+      end)
+    else
+      selected_activities
+    end
+  end
+
+  defp timeline_transition_application_selected_integrity_context?(%{} = row) do
+    row["selected_timeline_integrity_status"] not in [nil, ""] or
+      row["selected_timeline_integrity_issue_count"] not in [nil, ""] or
+      List.wrap(row["selected_timeline_integrity_issue_types"]) != [] or
+      List.wrap(row["selected_timeline_integrity_issues"]) != []
+  end
+
+  defp timeline_transition_application_selected_integrity_context?(_row), do: false
+
+  defp timeline_transition_application_selected_integrity_review_row?(%{} = row) do
+    normalized_timeline_diff_token(Map.get(row, "timeline_integrity_status")) ==
+      "review_required" or
+      summary_integer(row, "timeline_integrity_issue_count") > 0 or
+      List.wrap(Map.get(row, "timeline_integrity_issue_types")) != [] or
+      Map.get(row, "required_operator_action") == "review_timeline_integrity"
+  end
+
+  defp timeline_transition_application_selected_integrity_review_row?(_row), do: false
 
   defp timeline_transition_application_selected_activity_row?(row) do
     timeline_transition_application_value_present?(row["selected_activity"]) or
