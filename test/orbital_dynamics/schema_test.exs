@@ -29370,6 +29370,7 @@ defmodule OrbitalDynamics.SchemaTest do
       },
       %{
         id: :dl_followup,
+        timeline_id: :"timeline:dl_followup",
         type: :downlink,
         starts_at_s: 40.0,
         ends_at_s: 55.0,
@@ -29426,7 +29427,7 @@ defmodule OrbitalDynamics.SchemaTest do
              "replacement_dependent_activity_count" => 2,
              "impacted_source_activity_ids" => ["dl_followup", "health_gate"],
              "impacted_source_timeline_ids" => [
-               "timeline:downlink:40.0",
+               "timeline:dl_followup",
                "timeline:health_check:0.0"
              ],
              "dependent_activity_ids" => ["cmd_main", "obs_parallel"],
@@ -29447,7 +29448,7 @@ defmodule OrbitalDynamics.SchemaTest do
              "impacted_dependency_activity_ids" => ["health_gate"],
              "impacted_dependency_timeline_ids" => [],
              "impacted_exclusive_with_activity_ids" => ["dl_followup"],
-             "impacted_exclusive_with_timeline_ids" => [],
+             "impacted_exclusive_with_timeline_ids" => ["timeline:dl_followup"],
              "assumptions" => %{
                "execution_boundary" => "artifact_only_no_schedule_mutation",
                "operator_authority" => "not_granted_by_summary"
