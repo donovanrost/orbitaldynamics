@@ -6842,6 +6842,92 @@ defmodule OrbitalDynamics.Validation do
         "checks contact allocation counts, routing maps, and model-limit boundary only"
       ]
     },
+    "fixture.artifact.contact_allocation_reservation_conflict_summary.v1" => %{
+      "id" => "fixture.artifact.contact_allocation_reservation_conflict_summary.v1",
+      "model_id" => "artifact.contact_allocation_reservation_conflict_summary.v1",
+      "reference_case" => "checked-in contact allocation reservation conflict summary",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" =>
+          "study_results/contact_allocation_reservation_conflict_summary_v1.json",
+        "contract" => "contact_allocation_reservation_conflict_summary.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "contact_allocation_reservation_conflict_summary.v1",
+        "model" => "artifact_only_contact_allocation_reservation_conflict_summary",
+        "source_artifact_type" => "contact_allocation_report.v1",
+        "source" => "validation.contact_allocation_reservation_conflict_summary",
+        "input_contact_count" => 2,
+        "row_derived_input_contact_count" => 2,
+        "station_reservation_contact_count" => 2,
+        "row_derived_station_reservation_contact_count" => 2,
+        "reservation_conflict_contact_count" => 1,
+        "row_derived_reservation_conflict_contact_count" => 1,
+        "reservation_review_contact_count" => 1,
+        "row_derived_reservation_review_contact_count" => 1,
+        "station_reservation_match_status_counts" => %{"matched" => 1, "overlap" => 1},
+        "row_derived_station_reservation_match_status_counts" => %{
+          "matched" => 1,
+          "overlap" => 1
+        },
+        "reservation_conflict_match_status_counts" => %{"overlap" => 1},
+        "row_derived_reservation_conflict_match_status_counts" => %{"overlap" => 1},
+        "station_reservation_status_counts" => %{"confirmed" => 2},
+        "row_derived_station_reservation_status_counts" => %{"confirmed" => 2},
+        "station_reserved_by_counts" => %{"ops_team_b" => 2},
+        "row_derived_station_reserved_by_counts" => %{"ops_team_b" => 2},
+        "station_reservation_keys" => "reservation_1",
+        "row_derived_station_reservation_keys" => "reservation_1",
+        "reservation_conflict_contact_keys" => "dl_reserved_intruder",
+        "row_derived_reservation_conflict_contact_keys" => "dl_reserved_intruder",
+        "reservation_review_contact_keys" => "dl_reserved_intruder",
+        "row_derived_reservation_review_contact_keys" => "dl_reserved_intruder",
+        "station_reservation_contact_ids_by_match_status" => %{
+          "matched" => ["dl_reserved_owner"],
+          "overlap" => ["dl_reserved_intruder"]
+        },
+        "row_derived_station_reservation_contact_ids_by_match_status" => %{
+          "matched" => ["dl_reserved_owner"],
+          "overlap" => ["dl_reserved_intruder"]
+        },
+        "reservation_conflict_contact_ids_by_match_status" => %{
+          "overlap" => ["dl_reserved_intruder"]
+        },
+        "row_derived_reservation_conflict_contact_ids_by_match_status" => %{
+          "overlap" => ["dl_reserved_intruder"]
+        },
+        "reservation_conflict_contact_ids_by_direction_and_ground_station_id" => %{
+          "downlink" => %{"equator_prime" => ["dl_reserved_intruder"]}
+        },
+        "row_derived_reservation_conflict_contact_ids_by_direction_and_ground_station_id" => %{
+          "downlink" => %{"equator_prime" => ["dl_reserved_intruder"]}
+        },
+        "station_reservation_ids_by_expiration_status" => %{
+          "expired" => ["reservation_1"]
+        },
+        "model_limit_count" => 8
+      },
+      "tolerances" => %{
+        "input_contact_count" => 0,
+        "row_derived_input_contact_count" => 0,
+        "station_reservation_contact_count" => 0,
+        "row_derived_station_reservation_contact_count" => 0,
+        "reservation_conflict_contact_count" => 0,
+        "row_derived_reservation_conflict_contact_count" => 0,
+        "reservation_review_contact_count" => 0,
+        "row_derived_reservation_review_contact_count" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not external reservation validation",
+        "checks reservation conflict counts, routing maps, and model-limit boundary only"
+      ]
+    },
     "fixture.artifact.contact_allocation_provider_reservation_request_summary.v1" => %{
       "id" => "fixture.artifact.contact_allocation_provider_reservation_request_summary.v1",
       "model_id" => "artifact.contact_allocation_provider_reservation_request_summary.v1",
@@ -14625,6 +14711,99 @@ defmodule OrbitalDynamics.Validation do
     }
   end
 
+  def artifact_observations("contact_allocation_reservation_conflict_summary.v1", artifact)
+      when is_map(artifact) do
+    artifact = stringify_keys(artifact)
+    rows = map_rows(artifact, "rows")
+    conflict_rows = map_rows(artifact, "reservation_conflict_rows")
+    review_rows = map_rows(artifact, "reservation_review_rows")
+    reservation_rows = Enum.reject(rows, &(Map.get(&1, "station_reservation_id") == nil))
+
+    %{
+      "schema_contract" => Map.get(artifact, "schema_contract"),
+      "model" => Map.get(artifact, "model"),
+      "source_artifact_type" => Map.get(artifact, "source_artifact_type"),
+      "source" => Map.get(artifact, "source"),
+      "input_contact_count" => Map.get(artifact, "input_contact_count"),
+      "row_derived_input_contact_count" => length(rows),
+      "station_reservation_contact_count" =>
+        Map.get(artifact, "station_reservation_contact_count"),
+      "row_derived_station_reservation_contact_count" => length(reservation_rows),
+      "reservation_conflict_contact_count" =>
+        Map.get(artifact, "reservation_conflict_contact_count"),
+      "row_derived_reservation_conflict_contact_count" => length(conflict_rows),
+      "reservation_review_contact_count" => Map.get(artifact, "reservation_review_contact_count"),
+      "row_derived_reservation_review_contact_count" => length(review_rows),
+      "station_reservation_match_status_counts" =>
+        Map.get(artifact, "station_reservation_match_status_counts"),
+      "row_derived_station_reservation_match_status_counts" =>
+        row_value_counts(reservation_rows, "station_reservation_match_status"),
+      "reservation_conflict_match_status_counts" =>
+        Map.get(artifact, "reservation_conflict_match_status_counts"),
+      "row_derived_reservation_conflict_match_status_counts" =>
+        row_value_counts(conflict_rows, "station_reservation_match_status"),
+      "station_reservation_status_counts" =>
+        Map.get(artifact, "station_reservation_status_counts"),
+      "row_derived_station_reservation_status_counts" =>
+        row_value_counts(reservation_rows, "station_reservation_status"),
+      "station_reserved_by_counts" => Map.get(artifact, "station_reserved_by_counts"),
+      "row_derived_station_reserved_by_counts" =>
+        row_value_counts(reservation_rows, "station_reserved_by"),
+      "station_reservation_ids" => Map.get(artifact, "station_reservation_ids"),
+      "station_reservation_keys" =>
+        artifact
+        |> list_values("station_reservation_ids")
+        |> Enum.join("|"),
+      "row_derived_station_reservation_ids" =>
+        unique_row_values(reservation_rows, "station_reservation_id"),
+      "row_derived_station_reservation_keys" =>
+        reservation_rows
+        |> unique_row_values("station_reservation_id")
+        |> Enum.join("|"),
+      "reservation_conflict_contact_ids" => Map.get(artifact, "reservation_conflict_contact_ids"),
+      "reservation_conflict_contact_keys" =>
+        artifact
+        |> list_values("reservation_conflict_contact_ids")
+        |> Enum.join("|"),
+      "row_derived_reservation_conflict_contact_ids" =>
+        unique_row_values(conflict_rows, "contact_id"),
+      "row_derived_reservation_conflict_contact_keys" =>
+        conflict_rows
+        |> unique_row_values("contact_id")
+        |> Enum.join("|"),
+      "reservation_review_contact_ids" => Map.get(artifact, "reservation_review_contact_ids"),
+      "reservation_review_contact_keys" =>
+        artifact
+        |> list_values("reservation_review_contact_ids")
+        |> Enum.join("|"),
+      "row_derived_reservation_review_contact_ids" =>
+        unique_row_values(review_rows, "contact_id"),
+      "row_derived_reservation_review_contact_keys" =>
+        review_rows
+        |> unique_row_values("contact_id")
+        |> Enum.join("|"),
+      "station_reservation_contact_ids_by_match_status" =>
+        Map.get(artifact, "station_reservation_contact_ids_by_match_status"),
+      "row_derived_station_reservation_contact_ids_by_match_status" =>
+        reservation_rows
+        |> group_row_ids_by_value("station_reservation_match_status", "contact_id")
+        |> sort_grouped_values(),
+      "reservation_conflict_contact_ids_by_match_status" =>
+        Map.get(artifact, "reservation_conflict_contact_ids_by_match_status"),
+      "row_derived_reservation_conflict_contact_ids_by_match_status" =>
+        conflict_rows
+        |> group_row_ids_by_value("station_reservation_match_status", "contact_id")
+        |> sort_grouped_values(),
+      "reservation_conflict_contact_ids_by_direction_and_ground_station_id" =>
+        Map.get(artifact, "reservation_conflict_contact_ids_by_direction_and_ground_station_id"),
+      "row_derived_reservation_conflict_contact_ids_by_direction_and_ground_station_id" =>
+        contact_ids_by_direction_and_ground_station_id(conflict_rows),
+      "station_reservation_ids_by_expiration_status" =>
+        Map.get(artifact, "station_reservation_ids_by_expiration_status"),
+      "model_limit_count" => count(artifact, "model_limits")
+    }
+  end
+
   def artifact_observations(
         "contact_allocation_provider_reservation_request_summary.v1",
         artifact
@@ -16506,6 +16685,14 @@ defmodule OrbitalDynamics.Validation do
     |> Enum.reject(&is_nil/1)
     |> Enum.uniq()
     |> length()
+  end
+
+  defp unique_row_values(rows, key) do
+    rows
+    |> Enum.map(&Map.get(&1, key))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
+    |> Enum.sort()
   end
 
   defp group_row_ids_by_value(rows, value_key, id_key) do
