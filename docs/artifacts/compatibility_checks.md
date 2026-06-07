@@ -583,6 +583,12 @@ replay fixture. It checks readiness/import/status maps, gate counts, and
 trust-boundary status from imported operational-readiness evidence without
 granting execution authority, operator authority, candidate selection, import
 approval, or Cadence writes.
+The registry also includes a generated CandidateRefresh timeline-activity
+precondition replay fixture. It checks blocked/review precondition status,
+dependency and exclusivity routing, invalid-activity input evidence, overlap
+allowance, and trust-boundary status without mutating schedules, granting
+operator authority, selecting candidates, approving imports, or writing to
+Cadence.
 The registry also includes a generated CandidateRefresh timeline-transition
 application replay fixture. It checks selected-integrity review and issue
 counts, missing-dependency issue-type routing, application status maps,

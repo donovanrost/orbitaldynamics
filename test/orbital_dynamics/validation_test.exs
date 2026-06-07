@@ -4049,6 +4049,84 @@ defmodule OrbitalDynamics.ValidationTest do
              Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
   end
 
+  test "verifies candidate refresh timeline activity precondition replay fixtures" do
+    fixture_id = "fixture.artifact.candidate_refresh.timeline_activity_precondition_replay"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = candidate_refresh_timeline_activity_precondition_fixture()
+    observations = candidate_refresh_timeline_activity_precondition_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "source_report_family_count" => 1,
+             "source_report_row_count" => 3,
+             "source_timeline_activity_precondition_report_count" => 2,
+             "source_timeline_activity_precondition_row_count" => 3,
+             "source_timeline_activity_precondition_status_counts" => %{
+               "blocked" => 1,
+               "review_required" => 1
+             },
+             "source_timeline_activity_precondition_blocked_precondition_count" => 2,
+             "source_timeline_activity_precondition_review_precondition_count" => 1,
+             "source_timeline_activity_precondition_blocked_precondition_type_counts" => %{
+               "payload_unavailable" => 1,
+               "resource_block_declared" => 1
+             },
+             "source_timeline_activity_precondition_review_precondition_type_counts" => %{
+               "degraded_mode" => 1
+             },
+             "source_timeline_activity_precondition_invalid_activity_input_count" => 1,
+             "source_timeline_activity_precondition_invalid_activity_input_reason_counts" => %{
+               "missing_activity_type" => 1
+             },
+             "source_timeline_activity_precondition_dependency_activity_id_counts" => %{
+               "health_check_1" => 1,
+               "obs_1" => 1
+             },
+             "source_timeline_activity_precondition_dependency_timeline_id_counts" => %{
+               "timeline:health_check_1" => 1
+             },
+             "source_timeline_activity_precondition_exclusive_with_activity_id_counts" => %{
+               "dl_conflict" => 1
+             },
+             "source_timeline_activity_precondition_exclusive_with_timeline_id_counts" => %{
+               "timeline:dl_conflict" => 1
+             },
+             "source_timeline_activity_precondition_allow_overlap_counts" => %{"true" => 1},
+             "source_timeline_activity_precondition_trust_boundary_status" => "declared"
+           } = observations
+
+    stale_dependency_observations =
+      observations
+      |> Map.put("source_timeline_activity_precondition_dependency_activity_id_counts", %{
+        "stale_dependency" => 1
+      })
+
+    assert {:ok, stale_dependency_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_dependency_observations)
+
+    assert stale_dependency_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_dependency_verification["checks"],
+             &(&1["field"] ==
+                 "source_timeline_activity_precondition_dependency_activity_id_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _validated_artifact} =
+             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
+  end
+
   test "verifies candidate refresh timeline transition application replay fixtures" do
     fixture_id = "fixture.artifact.candidate_refresh.timeline_transition_application_replay"
 
@@ -11324,6 +11402,8 @@ defmodule OrbitalDynamics.ValidationTest do
           candidate_refresh_contact_intent_direction_fixture_observations(),
         "fixture.artifact.candidate_refresh.operational_readiness_replay" =>
           candidate_refresh_operational_readiness_fixture_observations(),
+        "fixture.artifact.candidate_refresh.timeline_activity_precondition_replay" =>
+          candidate_refresh_timeline_activity_precondition_fixture_observations(),
         "fixture.artifact.candidate_refresh.resource_projection_replay" =>
           candidate_refresh_resource_projection_fixture_observations(),
         "fixture.artifact.candidate_refresh.timeline_transition_application_replay" =>
@@ -11561,8 +11641,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 153,
-             "status_counts" => %{"pass" => 153},
+             "fixture_count" => 154,
+             "status_counts" => %{"pass" => 154},
              "reports" => reports
            } = report
 
@@ -11589,6 +11669,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.candidate_refresh.quality_gate_replay",
              "fixture.artifact.candidate_refresh.resource_projection_replay",
              "fixture.artifact.candidate_refresh.resource_provenance_v1",
+             "fixture.artifact.candidate_refresh.timeline_activity_precondition_replay",
              "fixture.artifact.candidate_refresh.timeline_transition_application_replay",
              "fixture.artifact.candidate_refresh.v1",
              "fixture.artifact.candidate_rejection_report.v1",
@@ -11732,7 +11813,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 153},
+             "status_counts" => %{"fail" => 154},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -12289,6 +12370,72 @@ defmodule OrbitalDynamics.ValidationTest do
     |> Map.put("provenance", %{
       "trust_boundary" => "generated_operational_readiness_fixture"
     })
+  end
+
+  defp candidate_refresh_timeline_activity_precondition_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(
+      candidate_refresh_timeline_activity_precondition_fixture()
+    )
+  end
+
+  defp candidate_refresh_timeline_activity_precondition_fixture do
+    result_set(%{})
+    |> CandidateRefresh.build(
+      candidate_refresh: candidate_refresh_timeline_activity_precondition_request(),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  defp candidate_refresh_timeline_activity_precondition_request do
+    %{
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-timeline-precondition-challenge",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [],
+        "source" => %{"system" => "validation_challenge"},
+        "quality" => %{"level" => "accepted"},
+        "provenance" => %{"created_by" => "validation_fixture"}
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "targets" => [],
+      "constraints" => %{},
+      "scoring_policy" => %{},
+      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
+      "source_timeline_activity_precondition_summary" =>
+        candidate_refresh_timeline_activity_precondition_summaries()
+    }
+  end
+
+  defp candidate_refresh_timeline_activity_precondition_summaries do
+    [
+      %{
+        id: :cmd_preflight,
+        type: :command,
+        payload_available: false,
+        degraded: true,
+        resource_blocking_dimension: :power,
+        dependency_activity_ids: [:health_check_1, :obs_1],
+        dependency_timeline_ids: [:"timeline:health_check_1"],
+        exclusive_with_activity_ids: [:dl_conflict],
+        exclusive_with_timeline_ids: [:"timeline:dl_conflict"],
+        allow_overlap: true,
+        metadata: %{timeline_id: :"timeline:cmd_preflight"}
+      }
+      |> Timeline.activity_precondition_summary(),
+      %{id: :bad_missing_type}
+      |> Timeline.activity_precondition_summary()
+    ]
+    |> Enum.map(
+      &Map.put(&1, "provenance", %{
+        "trust_boundary" => "generated_timeline_precondition_fixture"
+      })
+    )
   end
 
   defp candidate_refresh_timeline_transition_application_fixture_observations do

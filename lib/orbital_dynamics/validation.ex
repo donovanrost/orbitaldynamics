@@ -1916,6 +1916,87 @@ defmodule OrbitalDynamics.Validation do
         "checks candidate-refresh replay of operational-readiness provenance without granting execution, operator authority, candidate selection, import approval, or Cadence writes"
       ]
     },
+    "fixture.artifact.candidate_refresh.timeline_activity_precondition_replay" => %{
+      "id" => "fixture.artifact.candidate_refresh.timeline_activity_precondition_replay",
+      "model_id" => "artifact.candidate_refresh.v1",
+      "reference_case" =>
+        "generated candidate refresh replay of timeline-activity precondition evidence",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "source" => "generated_candidate_refresh_timeline_activity_precondition_fixture",
+        "contract" => "candidate_refresh.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "candidate_refresh.v1",
+        "schema_version" => 1,
+        "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 1,
+        "source_report_row_count" => 3,
+        "source_timeline_activity_precondition_report_count" => 2,
+        "source_timeline_activity_precondition_row_count" => 3,
+        "source_timeline_activity_precondition_status_counts" => %{
+          "blocked" => 1,
+          "review_required" => 1
+        },
+        "source_timeline_activity_precondition_blocked_precondition_count" => 2,
+        "source_timeline_activity_precondition_review_precondition_count" => 1,
+        "source_timeline_activity_precondition_blocked_precondition_type_counts" => %{
+          "payload_unavailable" => 1,
+          "resource_block_declared" => 1
+        },
+        "source_timeline_activity_precondition_review_precondition_type_counts" => %{
+          "degraded_mode" => 1
+        },
+        "source_timeline_activity_precondition_invalid_activity_input_count" => 1,
+        "source_timeline_activity_precondition_invalid_activity_input_reason_counts" => %{
+          "missing_activity_type" => 1
+        },
+        "source_timeline_activity_precondition_dependency_activity_id_counts" => %{
+          "health_check_1" => 1,
+          "obs_1" => 1
+        },
+        "source_timeline_activity_precondition_dependency_timeline_id_counts" => %{
+          "timeline:health_check_1" => 1
+        },
+        "source_timeline_activity_precondition_exclusive_with_activity_id_counts" => %{
+          "dl_conflict" => 1
+        },
+        "source_timeline_activity_precondition_exclusive_with_timeline_id_counts" => %{
+          "timeline:dl_conflict" => 1
+        },
+        "source_timeline_activity_precondition_allow_overlap_counts" => %{"true" => 1},
+        "source_timeline_activity_precondition_trust_boundary_status" => "declared"
+      },
+      "tolerances" => %{
+        "schema_version" => 0,
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 0,
+        "source_report_row_count" => 0,
+        "source_timeline_activity_precondition_report_count" => 0,
+        "source_timeline_activity_precondition_row_count" => 0,
+        "source_timeline_activity_precondition_blocked_precondition_count" => 0,
+        "source_timeline_activity_precondition_review_precondition_count" => 0,
+        "source_timeline_activity_precondition_invalid_activity_input_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal generated artifact regression, not external timeline validation",
+        "checks candidate-refresh replay of timeline-activity precondition provenance without mutating schedules, granting operator authority, selecting candidates, approving imports, or writing to Cadence"
+      ]
+    },
     "fixture.artifact.candidate_refresh.timeline_transition_application_replay" => %{
       "id" => "fixture.artifact.candidate_refresh.timeline_transition_application_replay",
       "model_id" => "artifact.candidate_refresh.v1",
@@ -11543,6 +11624,9 @@ defmodule OrbitalDynamics.Validation do
     operational_readiness_summary =
       Map.get(source_reports, "operational_readiness_report") || %{}
 
+    timeline_activity_precondition_summary =
+      Map.get(source_reports, "timeline_activity_precondition_summary") || %{}
+
     timeline_transition_summary =
       Map.get(source_reports, "timeline_transition_application_report") || %{}
 
@@ -11690,6 +11774,41 @@ defmodule OrbitalDynamics.Validation do
         Map.get(operational_readiness_summary, "status_counts") || %{},
       "source_operational_readiness_trust_boundary_status" =>
         Map.get(operational_readiness_summary, "trust_boundary_status"),
+      "source_timeline_activity_precondition_report_count" =>
+        Map.get(timeline_activity_precondition_summary, "count"),
+      "source_timeline_activity_precondition_row_count" =>
+        Map.get(timeline_activity_precondition_summary, "row_count"),
+      "source_timeline_activity_precondition_status_counts" =>
+        Map.get(timeline_activity_precondition_summary, "precondition_status_counts") || %{},
+      "source_timeline_activity_precondition_blocked_precondition_count" =>
+        Map.get(timeline_activity_precondition_summary, "blocked_precondition_count"),
+      "source_timeline_activity_precondition_review_precondition_count" =>
+        Map.get(timeline_activity_precondition_summary, "review_precondition_count"),
+      "source_timeline_activity_precondition_blocked_precondition_type_counts" =>
+        Map.get(timeline_activity_precondition_summary, "blocked_precondition_type_counts") ||
+          %{},
+      "source_timeline_activity_precondition_review_precondition_type_counts" =>
+        Map.get(timeline_activity_precondition_summary, "review_precondition_type_counts") ||
+          %{},
+      "source_timeline_activity_precondition_invalid_activity_input_count" =>
+        Map.get(timeline_activity_precondition_summary, "invalid_activity_input_count"),
+      "source_timeline_activity_precondition_invalid_activity_input_reason_counts" =>
+        Map.get(timeline_activity_precondition_summary, "invalid_activity_input_reason_counts") ||
+          %{},
+      "source_timeline_activity_precondition_dependency_activity_id_counts" =>
+        Map.get(timeline_activity_precondition_summary, "dependency_activity_id_counts") || %{},
+      "source_timeline_activity_precondition_dependency_timeline_id_counts" =>
+        Map.get(timeline_activity_precondition_summary, "dependency_timeline_id_counts") || %{},
+      "source_timeline_activity_precondition_exclusive_with_activity_id_counts" =>
+        Map.get(timeline_activity_precondition_summary, "exclusive_with_activity_id_counts") ||
+          %{},
+      "source_timeline_activity_precondition_exclusive_with_timeline_id_counts" =>
+        Map.get(timeline_activity_precondition_summary, "exclusive_with_timeline_id_counts") ||
+          %{},
+      "source_timeline_activity_precondition_allow_overlap_counts" =>
+        Map.get(timeline_activity_precondition_summary, "allow_overlap_counts") || %{},
+      "source_timeline_activity_precondition_trust_boundary_status" =>
+        Map.get(timeline_activity_precondition_summary, "trust_boundary_status"),
       "source_objective_satisfaction_report_count" =>
         Map.get(objective_satisfaction_summary, "count"),
       "source_objective_satisfaction_gap_row_count" =>
