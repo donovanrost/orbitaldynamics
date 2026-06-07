@@ -30930,7 +30930,15 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
   end
 
   test "quality gate replay accepts operational import-readiness summaries" do
-    import_readiness_summary = quality_gate_import_readiness_summary_fixture()
+    import_readiness_summary =
+      quality_gate_import_readiness_summary_fixture()
+      |> Map.merge(%{
+        "import_readiness_row_count" => 99,
+        "review_required_quality_gate_row_ids" => ["stale_review_gate"],
+        "blocked_quality_gate_row_ids" => ["stale_blocked_gate"],
+        "ready_quality_gate_row_ids" => ["stale_ready_gate"],
+        "analysis_only_quality_gate_row_ids" => ["stale_analysis_gate"]
+      })
 
     refresh = %{
       "source_operational_quality_gate_import_readiness_summary" => import_readiness_summary

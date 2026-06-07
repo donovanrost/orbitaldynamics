@@ -395,6 +395,11 @@ status maps, review/stale/import-preparation/blocked row routing, analysis-only
 boundaries, and the no-Cadence-write/no-authority assumptions, and executable
 verification rejects stale ready-for-import counts plus stale row-derived
 freshness evidence before adapter queues can trust the compact summary.
+CandidateRefresh replay also derives reconstructed quality-gate status,
+generic ready/review/analysis/blocked row routing, and row counts from
+`quality_gate_row_ids_by_status` when present, preventing stale compact
+import-readiness top-level arrays from steering branch-local quality-gate
+pressure.
 The same readiness gate also consumes contact-allocation station pressure
 handoffs: ground-station reserved, unavailable, zero-capacity, and
 reduced-capacity allocation reasons become row-derived availability reason

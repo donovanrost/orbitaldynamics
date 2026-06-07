@@ -94,6 +94,12 @@ Status: **implemented** (with a **partial** semantic-depth area, plus **near-ter
   import row IDs from the same `cadence_import` quality-gate rows. Standalone
   analysis-only cadence-import rows are routed through explicit
   `analysis_only_quality_gate_row_ids` without making them import-ready.
+- CandidateRefresh accepts compact
+  `operational_quality_gate_import_readiness_summary.v1` handoffs as
+  quality-gate source-report provenance and derives reconstructed generic
+  gate status, ready/review/analysis/blocked row routing, and row counts from
+  `quality_gate_row_ids_by_status` when present instead of stale top-level
+  routing arrays.
 - CandidateRefresh accepts compact `operational_quality_gate_summary.v1`
   handoffs as quality-gate source-report provenance from direct, accepted-state,
   mission-state, and wrapped result-artifact inputs, preserving status,
