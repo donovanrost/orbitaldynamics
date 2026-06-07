@@ -16233,7 +16233,10 @@ defmodule OrbitalDynamics.SchemaTest do
           "reserved" => 1,
           "unavailable" => 1
         },
-        "station_pressure_precedence_rank_counts" => %{"1" => 1, "2" => 1}
+        "station_pressure_precedence_rank_counts" => %{"1" => 1, "2" => 1},
+        "provider_reservation_request_contact_ids_by_direction_and_ground_station" => %{
+          "downlink" => %{"equator_prime" => ["dl_reserved_owner"]}
+        }
       })
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
@@ -16259,6 +16262,30 @@ defmodule OrbitalDynamics.SchemaTest do
              invalid_station_pressure_count_report["errors"],
              &(&1["path"] ==
                  "$.provenance.source_reports.contact_allocation_report.station_pressure_availability_counts.reserved")
+           )
+
+    invalid_provider_reservation_contact_id =
+      put_in(
+        artifact_with_station_pressure_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "provider_reservation_request_contact_ids_by_direction_and_ground_station",
+          "downlink",
+          "equator_prime",
+          Access.at(0)
+        ],
+        "bad contact"
+      )
+
+    assert {:error, invalid_provider_reservation_contact_id_report} =
+             Schema.validate_artifact(invalid_provider_reservation_contact_id)
+
+    assert Enum.any?(
+             invalid_provider_reservation_contact_id_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.provider_reservation_request_contact_ids_by_direction_and_ground_station.downlink.equator_prime[0]")
            )
 
     artifact_with_station_calendar_summary =

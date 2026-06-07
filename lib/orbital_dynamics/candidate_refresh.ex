@@ -2439,6 +2439,24 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "contact_allocation_report",
           "provider_reservation_review_contact_ids_by_direction"
         ),
+      "source_report_contact_allocation_provider_reservation_no_request_contact_ids_by_direction_and_ground_station" =>
+        source_report_summary_family_merge_nested_string_list_maps(
+          source_reports,
+          "contact_allocation_report",
+          "provider_reservation_no_request_contact_ids_by_direction_and_ground_station"
+        ),
+      "source_report_contact_allocation_provider_reservation_request_contact_ids_by_direction_and_ground_station" =>
+        source_report_summary_family_merge_nested_string_list_maps(
+          source_reports,
+          "contact_allocation_report",
+          "provider_reservation_request_contact_ids_by_direction_and_ground_station"
+        ),
+      "source_report_contact_allocation_provider_reservation_review_contact_ids_by_direction_and_ground_station" =>
+        source_report_summary_family_merge_nested_string_list_maps(
+          source_reports,
+          "contact_allocation_report",
+          "provider_reservation_review_contact_ids_by_direction_and_ground_station"
+        ),
       "source_report_contact_allocation_provider_reservation_request_contact_ids_by_match_status" =>
         source_report_summary_family_merge_string_list_maps(
           source_reports,
@@ -8326,6 +8344,24 @@ defmodule OrbitalDynamics.CandidateRefresh do
     provider_reservation_review_contact_ids_by_direction =
       Map.get(allocation_summary, "provider_reservation_review_contact_ids_by_direction")
 
+    provider_reservation_no_request_contact_ids_by_direction_and_station =
+      Map.get(
+        allocation_summary,
+        "provider_reservation_no_request_contact_ids_by_direction_and_ground_station"
+      )
+
+    provider_reservation_request_contact_ids_by_direction_and_station =
+      Map.get(
+        allocation_summary,
+        "provider_reservation_request_contact_ids_by_direction_and_ground_station"
+      )
+
+    provider_reservation_review_contact_ids_by_direction_and_station =
+      Map.get(
+        allocation_summary,
+        "provider_reservation_review_contact_ids_by_direction_and_ground_station"
+      )
+
     provider_reservation_request_contact_ids_by_match_status =
       Map.get(allocation_summary, "provider_reservation_request_contact_ids_by_match_status")
 
@@ -8376,6 +8412,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
         map_size(provider_reservation_no_request_contact_ids_by_direction || %{}) > 0 or
         map_size(provider_reservation_request_contact_ids_by_direction || %{}) > 0 or
         map_size(provider_reservation_review_contact_ids_by_direction || %{}) > 0 or
+        map_size(provider_reservation_no_request_contact_ids_by_direction_and_station || %{}) >
+          0 or
+        map_size(provider_reservation_request_contact_ids_by_direction_and_station || %{}) > 0 or
+        map_size(provider_reservation_review_contact_ids_by_direction_and_station || %{}) > 0 or
         map_size(provider_reservation_request_contact_ids_by_match_status || %{}) > 0 or
         map_size(provider_reservation_review_contact_ids_by_match_status || %{}) > 0 or
         map_size(provider_reservation_request_ids_by_match_status || %{}) > 0 or
@@ -8547,6 +8587,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
         provider_reservation_request_contact_ids_by_direction,
       "provider_reservation_review_contact_ids_by_direction" =>
         provider_reservation_review_contact_ids_by_direction,
+      "provider_reservation_no_request_contact_ids_by_direction_and_ground_station" =>
+        provider_reservation_no_request_contact_ids_by_direction_and_station,
+      "provider_reservation_request_contact_ids_by_direction_and_ground_station" =>
+        provider_reservation_request_contact_ids_by_direction_and_station,
+      "provider_reservation_review_contact_ids_by_direction_and_ground_station" =>
+        provider_reservation_review_contact_ids_by_direction_and_station,
       "provider_reservation_request_contact_ids_by_match_status" =>
         provider_reservation_request_contact_ids_by_match_status,
       "provider_reservation_review_contact_ids_by_match_status" =>
@@ -26997,6 +27043,24 @@ defmodule OrbitalDynamics.CandidateRefresh do
           &contact_allocation_report_provider_reservation_review_contact_ids_by_direction/1
         )
         |> merge_string_list_maps(),
+      "provider_reservation_no_request_contact_ids_by_direction_and_ground_station" =>
+        reports
+        |> Enum.map(
+          &contact_allocation_report_provider_reservation_no_request_contact_ids_by_direction_and_station/1
+        )
+        |> merge_nested_string_list_maps(),
+      "provider_reservation_request_contact_ids_by_direction_and_ground_station" =>
+        reports
+        |> Enum.map(
+          &contact_allocation_report_provider_reservation_request_contact_ids_by_direction_and_station/1
+        )
+        |> merge_nested_string_list_maps(),
+      "provider_reservation_review_contact_ids_by_direction_and_ground_station" =>
+        reports
+        |> Enum.map(
+          &contact_allocation_report_provider_reservation_review_contact_ids_by_direction_and_station/1
+        )
+        |> merge_nested_string_list_maps(),
       "provider_reservation_request_contact_ids_by_match_status" =>
         reports
         |> Enum.map(
@@ -37704,6 +37768,72 @@ defmodule OrbitalDynamics.CandidateRefresh do
     )
   end
 
+  defp contact_allocation_report_provider_reservation_no_request_contact_ids_by_direction_and_station(
+         report
+       ) do
+    rows = contact_allocation_report_rows_for_summary(report)
+
+    if contact_allocation_provider_reservation_request_summary_rows?(report) and rows != [] do
+      rows
+      |> provider_reservation_no_request_rows()
+      |> contact_allocation_contact_ids_by_direction_and_station()
+    else
+      explicit =
+        [
+          "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
+          "provider_reservation_no_request_contact_ids_by_direction_and_ground_station"
+        ]
+        |> Enum.find_value(fn field ->
+          report
+          |> Map.get(field)
+          |> nested_map_value_lists()
+        end)
+
+      if not is_nil(explicit) do
+        explicit
+      else
+        case contact_allocation_report_provider_reservation_candidate_rows(report) do
+          [] ->
+            nil
+
+          _candidate_rows ->
+            rows
+            |> provider_reservation_no_request_rows()
+            |> contact_allocation_contact_ids_by_direction_and_station()
+        end
+      end
+    end
+  end
+
+  defp contact_allocation_report_provider_reservation_request_contact_ids_by_direction_and_station(
+         report
+       ) do
+    contact_allocation_report_provider_reservation_contact_ids_by_direction_and_station(
+      report,
+      [
+        "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
+        "provider_reservation_request_contact_ids_by_direction_and_ground_station"
+      ],
+      &contact_allocation_provider_reservation_request_ready_row?/1
+    )
+  end
+
+  defp contact_allocation_report_provider_reservation_review_contact_ids_by_direction_and_station(
+         report
+       ) do
+    contact_allocation_report_provider_reservation_contact_ids_by_direction_and_station(
+      report,
+      [
+        "provider_reservation_review_contact_ids_by_direction_and_ground_station_id",
+        "provider_reservation_review_contact_ids_by_direction_and_ground_station"
+      ],
+      fn row ->
+        contact_allocation_provider_reservation_candidate_row?(row) and
+          not contact_allocation_provider_reservation_request_ready_row?(row)
+      end
+    )
+  end
+
   defp contact_allocation_report_provider_reservation_request_contact_ids_by_match_status(report) do
     contact_allocation_report_provider_reservation_contact_ids_by_field(
       report,
@@ -37756,6 +37886,25 @@ defmodule OrbitalDynamics.CandidateRefresh do
         rows
         |> Enum.map(&contact_allocation_summary_contact_id/1)
         |> sorted_non_empty_values()
+    end
+  end
+
+  defp contact_allocation_report_provider_reservation_contact_ids_by_direction_and_station(
+         report,
+         fallback_fields,
+         filter
+       ) do
+    case contact_allocation_report_rows_for_summary(report) |> Enum.filter(filter) do
+      [] ->
+        fallback_fields
+        |> Enum.find_value(fn fallback_field ->
+          report
+          |> Map.get(fallback_field)
+          |> nested_map_value_lists()
+        end)
+
+      rows ->
+        contact_allocation_contact_ids_by_direction_and_station(rows)
     end
   end
 
@@ -50256,6 +50405,21 @@ defmodule OrbitalDynamics.CandidateRefresh do
         summary_string_list_map(summary, "provider_reservation_request_contact_ids_by_direction"),
       "provider_reservation_review_contact_ids_by_direction" =>
         summary_string_list_map(summary, "provider_reservation_review_contact_ids_by_direction"),
+      "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id" =>
+        summary_nested_string_list_map_fields(summary, [
+          "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
+          "provider_reservation_no_request_contact_ids_by_direction_and_ground_station"
+        ]),
+      "provider_reservation_request_contact_ids_by_direction_and_ground_station_id" =>
+        summary_nested_string_list_map_fields(summary, [
+          "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
+          "provider_reservation_request_contact_ids_by_direction_and_ground_station"
+        ]),
+      "provider_reservation_review_contact_ids_by_direction_and_ground_station_id" =>
+        summary_nested_string_list_map_fields(summary, [
+          "provider_reservation_review_contact_ids_by_direction_and_ground_station_id",
+          "provider_reservation_review_contact_ids_by_direction_and_ground_station"
+        ]),
       "provider_reservation_request_contact_ids_by_match_status" =>
         summary_string_list_map(
           summary,

@@ -6960,6 +6960,15 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         "provider_reservation_review_contact_ids_by_direction" => %{
           "uplink" => ["dl_review_overlap"]
         },
+        "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id" => %{
+          "stale_direction" => %{"stale_station" => ["stale_no_request_contact"]}
+        },
+        "provider_reservation_request_contact_ids_by_direction_and_ground_station_id" => %{
+          "downlink" => %{"stale_station" => ["stale_request_contact"]}
+        },
+        "provider_reservation_review_contact_ids_by_direction_and_ground_station_id" => %{
+          "uplink" => %{"stale_station" => ["stale_review_contact"]}
+        },
         "provider_reservation_request_contact_ids_by_match_status" => %{
           "matched" => ["dl_reserved_owner"]
         },
@@ -7092,6 +7101,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                %{"downlink" => ["dl_reserved_owner"]},
              "source_report_contact_allocation_provider_reservation_review_contact_ids_by_direction" =>
                %{"uplink" => ["dl_review_overlap"]},
+             "source_report_contact_allocation_provider_reservation_no_request_contact_ids_by_direction_and_ground_station" =>
+               %{"tracking" => %{"equator_prime" => ["dl_unreserved"]}},
+             "source_report_contact_allocation_provider_reservation_request_contact_ids_by_direction_and_ground_station" =>
+               %{"downlink" => %{"equator_prime" => ["dl_reserved_owner"]}},
+             "source_report_contact_allocation_provider_reservation_review_contact_ids_by_direction_and_ground_station" =>
+               %{"uplink" => %{"equator_prime" => ["dl_review_overlap"]}},
              "source_report_contact_allocation_direction_routing" =>
                ^expected_provider_direction_routing,
              "source_report_contact_allocation_provider_reservation_request_contact_ids_by_match_status" =>
@@ -7115,6 +7130,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  ],
                  "provider_reservation_request_status_counts" => %{
                    "review_required" => 1
+                 },
+                 "provider_reservation_no_request_contact_ids_by_direction_and_ground_station" =>
+                   %{"tracking" => %{"equator_prime" => ["dl_unreserved"]}},
+                 "provider_reservation_request_contact_ids_by_direction_and_ground_station" => %{
+                   "downlink" => %{"equator_prime" => ["dl_reserved_owner"]}
+                 },
+                 "provider_reservation_review_contact_ids_by_direction_and_ground_station" => %{
+                   "uplink" => %{"equator_prime" => ["dl_review_overlap"]}
                  },
                  "direction_routing" => ^expected_provider_direction_routing,
                  "provider_reservation_request_summary_schema_contract" =>
@@ -7150,6 +7173,15 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              },
              "provider_reservation_review_contact_ids_by_direction" => %{
                "uplink" => ["dl_review_overlap"]
+             },
+             "provider_reservation_no_request_contact_ids_by_direction_and_ground_station" => %{
+               "tracking" => %{"equator_prime" => ["dl_unreserved"]}
+             },
+             "provider_reservation_request_contact_ids_by_direction_and_ground_station" => %{
+               "downlink" => %{"equator_prime" => ["dl_reserved_owner"]}
+             },
+             "provider_reservation_review_contact_ids_by_direction_and_ground_station" => %{
+               "uplink" => %{"equator_prime" => ["dl_review_overlap"]}
              },
              "direction_routing" => ^expected_provider_direction_routing,
              "provider_reservation_request_contact_ids_by_match_status" => %{
@@ -7203,6 +7235,15 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       },
       "provider_reservation_review_contact_ids_by_direction" => %{
         "uplink" => ["wrapper_review_contact"]
+      },
+      "provider_reservation_no_request_contact_ids_by_direction_and_ground_station" => %{
+        "tracking" => %{"polar_prime" => ["wrapper_no_request_contact"]}
+      },
+      "provider_reservation_request_contact_ids_by_direction_and_ground_station" => %{
+        "downlink" => %{"equator_prime" => ["wrapper_request_contact"]}
+      },
+      "provider_reservation_review_contact_ids_by_direction_and_ground_station" => %{
+        "uplink" => %{"polar_prime" => ["wrapper_review_contact"]}
       },
       "provider_reservation_request_contact_ids_by_match_status" => %{
         "matched" => ["wrapper_request_contact"]
@@ -7275,6 +7316,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                %{"downlink" => ["wrapper_request_contact"]},
              "source_report_contact_allocation_provider_reservation_review_contact_ids_by_direction" =>
                %{"uplink" => ["wrapper_review_contact"]},
+             "source_report_contact_allocation_provider_reservation_no_request_contact_ids_by_direction_and_ground_station" =>
+               %{"tracking" => %{"polar_prime" => ["wrapper_no_request_contact"]}},
+             "source_report_contact_allocation_provider_reservation_request_contact_ids_by_direction_and_ground_station" =>
+               %{"downlink" => %{"equator_prime" => ["wrapper_request_contact"]}},
+             "source_report_contact_allocation_provider_reservation_review_contact_ids_by_direction_and_ground_station" =>
+               %{"uplink" => %{"polar_prime" => ["wrapper_review_contact"]}},
              "source_report_contact_allocation_provider_reservation_request_ids_by_match_status" =>
                %{"matched" => ["wrapper_reservation"]},
              "source_report_contact_allocation_provider_reservation_review_ids_by_match_status" =>
@@ -7286,6 +7333,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  ],
                  "count" => 1,
                  "row_count" => 2,
+                 "provider_reservation_no_request_contact_ids_by_direction_and_ground_station" =>
+                   %{"tracking" => %{"polar_prime" => ["wrapper_no_request_contact"]}},
+                 "provider_reservation_request_contact_ids_by_direction_and_ground_station" => %{
+                   "downlink" => %{"equator_prime" => ["wrapper_request_contact"]}
+                 },
+                 "provider_reservation_review_contact_ids_by_direction_and_ground_station" => %{
+                   "uplink" => %{"polar_prime" => ["wrapper_review_contact"]}
+                 },
                  "provider_reservation_request_summary_schema_contract" =>
                    "contact_allocation_provider_reservation_request_summary.v1",
                  "trust_boundary_status" => "declared",
@@ -7316,6 +7371,15 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              },
              "provider_reservation_review_contact_ids_by_direction" => %{
                "uplink" => ["wrapper_review_contact"]
+             },
+             "provider_reservation_no_request_contact_ids_by_direction_and_ground_station" => %{
+               "tracking" => %{"polar_prime" => ["wrapper_no_request_contact"]}
+             },
+             "provider_reservation_request_contact_ids_by_direction_and_ground_station" => %{
+               "downlink" => %{"equator_prime" => ["wrapper_request_contact"]}
+             },
+             "provider_reservation_review_contact_ids_by_direction_and_ground_station" => %{
+               "uplink" => %{"polar_prime" => ["wrapper_review_contact"]}
              },
              "provider_reservation_request_ids_by_match_status" => %{
                "matched" => ["wrapper_reservation"]

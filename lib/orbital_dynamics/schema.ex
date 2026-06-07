@@ -24019,10 +24019,17 @@ defmodule OrbitalDynamics.Schema do
 
   defp candidate_refresh_contact_allocation_source_report_summary_json_schema do
     candidate_refresh_source_report_summary_json_schema()
-    |> put_in(
-      ["properties", "direction_routing"],
-      contact_allocation_direction_routing_json_schema()
-    )
+    |> update_in(["properties"], fn properties ->
+      Map.merge(properties, %{
+        "direction_routing" => contact_allocation_direction_routing_json_schema(),
+        "provider_reservation_no_request_contact_ids_by_direction_and_ground_station" =>
+          nested_stable_id_array_map_json_schema(),
+        "provider_reservation_request_contact_ids_by_direction_and_ground_station" =>
+          nested_stable_id_array_map_json_schema(),
+        "provider_reservation_review_contact_ids_by_direction_and_ground_station" =>
+          nested_stable_id_array_map_json_schema()
+      })
+    end)
   end
 
   defp candidate_refresh_contact_contention_source_report_summary_json_schema do
@@ -29215,6 +29222,7 @@ defmodule OrbitalDynamics.Schema do
         |> validate_candidate_refresh_constraint_context(path, summary)
         |> validate_candidate_refresh_resource_projection_context(path, summary)
         |> validate_candidate_refresh_resource_filter_context(path, summary)
+        |> validate_candidate_refresh_contact_allocation_context(path, summary)
         |> validate_candidate_refresh_contact_contention_context(path, summary)
         |> validate_candidate_refresh_candidate_rejection_context(path, summary)
         |> validate_candidate_refresh_provider_counteroffer_context(path, summary)
@@ -29662,6 +29670,31 @@ defmodule OrbitalDynamics.Schema do
     |> validate_non_negative_integer_count_map(
       path <> ".contact_contention_contact_id_counts",
       Map.get(summary, "contact_contention_contact_id_counts")
+    )
+  end
+
+  defp validate_candidate_refresh_contact_allocation_context(issues, path, summary) do
+    issues
+    |> validate_nested_stable_id_array_map(
+      path <> ".provider_reservation_no_request_contact_ids_by_direction_and_ground_station",
+      Map.get(
+        summary,
+        "provider_reservation_no_request_contact_ids_by_direction_and_ground_station"
+      )
+    )
+    |> validate_nested_stable_id_array_map(
+      path <> ".provider_reservation_request_contact_ids_by_direction_and_ground_station",
+      Map.get(
+        summary,
+        "provider_reservation_request_contact_ids_by_direction_and_ground_station"
+      )
+    )
+    |> validate_nested_stable_id_array_map(
+      path <> ".provider_reservation_review_contact_ids_by_direction_and_ground_station",
+      Map.get(
+        summary,
+        "provider_reservation_review_contact_ids_by_direction_and_ground_station"
+      )
     )
   end
 

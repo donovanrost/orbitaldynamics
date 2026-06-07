@@ -912,6 +912,8 @@ ID maps by status and owner,
 station-reservation expiration seconds, expiration status counts, earliest
 expiration, review-time active/expired classification, and contact/reservation
 ID maps by expiration status,
+provider-reservation request-ready, review-required, and no-request contact-ID
+maps by direction and by direction/ground station,
 capacity-pack status maps,
 capacity-pack contact counts, required/selected/deferred demand totals,
 station/status maps, all-contact and selected/deferred contact-ID station maps,
@@ -927,8 +929,9 @@ blocked/deferred allocation counts and allocation-status maps are absent. When
 flattened partial source-report identity is incomplete, explicit zero identity
 counts are retained, missing or nil paths remain omitted after valid counts,
 explicit empty path lists are preserved, and non-identity capacity-pack,
-deferred-contact, station-pressure, reservation-conflict, invalid-input, review,
-and direction maps still drive branch-local replay pressure. When
+deferred-contact, station-pressure, reservation-conflict, provider-reservation,
+invalid-input, review, and direction/ground-station maps still drive
+branch-local replay pressure. When
 allocation rows are present, allocation-reason contact IDs, generic
 allocation-review contact IDs, declared allocation-status and allocation-reason maps,
 declared deferred/blocked contact counts,
@@ -978,9 +981,10 @@ Branch-generated refresh requests preserve direct and `source_result_artifact` /
 capacity-pack, and provider-reservation request summaries with
 wrapper-qualified request input paths and inherited trust-boundary evidence.
 CandidateRefresh preserves request-ready, review-required, and no-request
-contact IDs by direction, request/review contact IDs by station and match
-status, plus request/review reservation IDs by match status, while retaining
-the artifact-only no-provider-reservation / no-schedule-mutation boundary.
+contact IDs by direction and by direction/ground station, request/review contact
+IDs by station and match status, plus request/review reservation IDs by match
+status, while retaining the artifact-only no-provider-reservation /
+no-schedule-mutation boundary.
 Direct or result-artifact-wrapped `source_contact_allocation_summary` /
 `contact_allocation_summary` inputs also replay through the same
 contact-allocation provenance family, preserving the validated
