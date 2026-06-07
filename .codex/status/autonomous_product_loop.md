@@ -5,104 +5,92 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Contact contention report capability assumptions.
+Single-activity state no-authority assumption schema pinning.
 
 Status:
 Implemented, reviewed, and product commit created; ledger publish pending.
 
 Slice-selection note:
 Selected slice:
-Emit and validate `ContactContention.capabilities/0` routing metadata inside
-`contact_contention_report.v1` assumptions.
+Pin the fixed no-authority `assumptions` maps for
+`timeline_activity_status_state.v1`, `timeline_activity_approval_state.v1`, and
+`timeline_activity_lifecycle_state.v1` in JSON Schema export.
 
 Why this slice:
-Contact contention canonicalizes contact types/directions, station availability
-aliases and precedence, station/source/required capacity value paths,
-reservation-priority statuses, provider direction aliases, provider result
-labels, contact identity fields, and command-contact directions before
-allocation, resolution, operator review, and Cadence import. The full contention
-report currently carries basic assumptions and model limits, but the advertised
-capability metadata is not schema-pinned for downstream compatibility checks.
+The single-activity state helpers already emit and runtime-validate
+artifact-only/no-schedule-mutation/no-operator-authority/no-command-execution
+assumptions, with lifecycle state also declaring no Cadence import. The checked
+schemas still expose those assumptions as a loose object, so schema-only
+handoffs cannot detect stale boundary metadata.
 
 Level 6 pillar:
-Durable schema-versioned communications artifacts and Cadence-facing contention
-handoff fidelity.
+Durable schema-versioned timeline artifacts and Cadence-facing adapter safety.
 
 Current evidence gap:
-`contact_contention_report.v1` validates row-derived conflict counts and model
-limits, but stale present capability metadata is not schema-checkable because
-the full report lacks capability-derived assumptions.
+Runtime validation rejects stale no-authority assumption fields, but exported
+schemas do not advertise the same exact constants for these three handoffs.
 
-Docs to read:
-- `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
-- `docs/mission_planning/high_fidelity/06_operational_concerns.md`
-- `docs/artifacts/compatibility_checks.md`
+Docs read:
+- `docs/artifacts/field_families/mission_activities.md`
+- `docs/mission_planning/high_fidelity/04_plan_structure_and_lifecycle.md`
 
 Likely files:
-- `lib/orbital_dynamics/communications/contact_contention.ex`
 - `lib/orbital_dynamics/schema.ex`
-- `test/orbital_dynamics/communications/contact_contention_test.exs`
+- `test/orbital_dynamics/timeline_feedback_test.exs`
 - `test/orbital_dynamics/schema_test.exs`
-- `schemas/contact_contention_report.v1.schema.json`
+- `schemas/timeline_activity_status_state.v1.schema.json`
+- `schemas/timeline_activity_approval_state.v1.schema.json`
+- `schemas/timeline_activity_lifecycle_state.v1.schema.json`
+- `schemas/timeline_lifecycle_state_summary.v1.schema.json`
 - `schemas/orbital_dynamics.schema_bundle.v1.json`
-- `study_results/contact_contention_report_v1.json`
-- `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
-- `docs/mission_planning/high_fidelity/06_operational_concerns.md`
-- `docs/artifacts/compatibility_checks.md`
+- `docs/artifacts/field_families/mission_activities.md`
 
 Likely tests:
-- `mix test test/orbital_dynamics/communications/contact_contention_test.exs:<report test line>`
-- `mix test test/orbital_dynamics/schema_test.exs:<contact contention fixture/schema line>`
-- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs:<contact contention schema export line>`
+- `mix test test/orbital_dynamics/timeline_feedback_test.exs:<single activity state tests>`
+- `mix test test/orbital_dynamics/schema_test.exs:<activity state fixture/schema tests>`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 
 Definition of done:
-- Contact-contention reports emit optional capability-derived type/direction,
-  station availability, capacity-path, reservation-priority, provider alias,
-  result-key, identity-field, and command-direction assumptions.
-- `Schema.json_schema/1` exports optional exact `const` values for those fields.
-- `Schema.validate_artifact/1` rejects stale present values while older reports
-  without the optional capability fields still validate.
-- Focused contact-contention, schema fixture/export, schema lint, and whitespace
-  checks pass.
-- Docs and checked-in fixture/schema artifacts are refreshed.
-
-Previous pushed slice:
-Resource-filter report capability assumptions landed in product commit
-`36bc41d` and final pushed ledger commit `d1974ca`, with local and `origin/main`
-verified at `d1974ca510faa21091be66e332f6557aa6ddb85b`.
+- The three single-activity state schemas export exact assumption constants.
+- Tests prove schema export matches the runtime no-authority assumptions.
+- Existing runtime validation of stale assumptions remains covered.
+- Checked-in schema exports are refreshed.
+- Focused tests, schema lint, and whitespace checks pass.
 
 Current implementation:
-- `contact_contention_report.v1` now emits optional capability-derived
-  assumptions from `ContactContention.capabilities/0`.
-- The JSON schema exports exact optional `const` values for contact
-  type/direction vocabularies, station availability metadata, station/source/
-  required capacity value paths, reservation-priority vocabularies, resolution
-  priority metadata, provider aliases/result keys, contact identity fields, and
-  command-contact directions.
-- Runtime validation rejects stale present values for those optional fields
-  while reports omitting the additive fields remain compatible.
-- The checked-in contention fixture and schema exports were regenerated.
-- Docs were updated in the ground-network capability map, operational concerns,
-  and compatibility-checks artifact guide.
+- `timeline_activity_status_state.v1` and
+  `timeline_activity_approval_state.v1` schemas now require and pin
+  `artifact_only`, `no_schedule_mutation`, `no_operator_authority_grant`, and
+  `no_command_execution` assumptions to `true`.
+- `timeline_activity_lifecycle_state.v1` additionally requires and pins
+  `no_cadence_import` to `true`.
+- Schema tests assert the exported assumption schema and runtime stale
+  assumption rejection for status, approval, and lifecycle states.
+- Checked-in schema exports and the schema bundle were refreshed.
+- Mission-activities docs mention the schema-pinned no-authority boundary.
 
 Verification:
-- `mix format lib/orbital_dynamics/communications/contact_contention.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/communications/contact_contention_test.exs test/orbital_dynamics/schema_test.exs`
+- `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
+- `mix test test/orbital_dynamics/schema_test.exs:10461 test/orbital_dynamics/schema_test.exs:10594 test/orbital_dynamics/schema_test.exs:10742 test/orbital_dynamics/schema_test.exs:10953`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `mix test test/orbital_dynamics/communications/contact_contention_test.exs:467 test/orbital_dynamics/schema_test.exs:619 test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix test test/orbital_dynamics/communications/contact_contention_test.exs`
+- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 
 Review:
 - Read-only sidecar review reported no findings.
-- Residual risk: full project test suite was not run; slice-local tests and
-  schema lint passed.
+- Residual risk: full project test suite was not run; focused schema/export
+  checks and schema lint passed.
 
 Product commit:
-- `2fc4e99` (`Add contact contention capability assumptions`)
+- `64faa50` (`Pin activity state assumption schemas`)
+
+Previous pushed slice:
+Contact-contention report capability assumptions landed in product commit
+`2fc4e99` and final pushed ledger commit `9f97c16`, with local and
+`origin/main` verified at `9f97c16bc380f6209e52bd68cce7500fbbbd418c`.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
