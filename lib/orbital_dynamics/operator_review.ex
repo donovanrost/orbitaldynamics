@@ -14815,6 +14815,18 @@ defmodule OrbitalDynamics.OperatorReview do
       reports,
       "provider_reservation_review_contact_ids_by_direction"
     )
+    |> put_contact_allocation_nested_id_map_summary(
+      reports,
+      "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id"
+    )
+    |> put_contact_allocation_nested_id_map_summary(
+      reports,
+      "provider_reservation_request_contact_ids_by_direction_and_ground_station_id"
+    )
+    |> put_contact_allocation_nested_id_map_summary(
+      reports,
+      "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
+    )
     |> put_contact_allocation_id_map_summary(
       reports,
       "provider_reservation_request_contact_ids_by_match_status"
@@ -14976,6 +14988,19 @@ defmodule OrbitalDynamics.OperatorReview do
     end
   end
 
+  defp put_contact_allocation_nested_id_map_summary(package, reports, field) do
+    values =
+      reports
+      |> Enum.map(&Map.get(&1, field))
+      |> Enum.filter(&is_map/1)
+      |> merge_nested_string_list_maps()
+
+    case values do
+      values when values == %{} -> package
+      values -> Map.put(package, field, values)
+    end
+  end
+
   defp contact_allocation_count_maps(reports, field) do
     reports
     |> Enum.map(fn
@@ -15016,6 +15041,18 @@ defmodule OrbitalDynamics.OperatorReview do
           (current ++ values)
           |> Enum.uniq()
           |> Enum.sort()
+        end)
+      end)
+    end)
+  end
+
+  defp merge_nested_string_list_maps(maps) do
+    Enum.reduce(maps, %{}, fn map, acc ->
+      Enum.reduce(map, acc, fn {outer_key, inner_map}, acc ->
+        inner_values = if is_map(inner_map), do: merge_string_list_maps([inner_map]), else: %{}
+
+        Map.update(acc, outer_key, inner_values, fn current ->
+          merge_string_list_maps([current, inner_values])
         end)
       end)
     end)

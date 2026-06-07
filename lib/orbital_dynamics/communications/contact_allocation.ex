@@ -1635,6 +1635,12 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
         contact_ids_by_field(request_rows, "direction"),
       "provider_reservation_review_contact_ids_by_direction" =>
         contact_ids_by_field(review_rows, "direction"),
+      "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id" =>
+        contact_ids_by_direction_and_ground_station_id(no_request_rows),
+      "provider_reservation_request_contact_ids_by_direction_and_ground_station_id" =>
+        contact_ids_by_direction_and_ground_station_id(request_rows),
+      "provider_reservation_review_contact_ids_by_direction_and_ground_station_id" =>
+        contact_ids_by_direction_and_ground_station_id(review_rows),
       "provider_reservation_request_contact_ids_by_match_status" =>
         contact_ids_by_field(request_rows, "station_reservation_match_status"),
       "provider_reservation_review_contact_ids_by_match_status" =>

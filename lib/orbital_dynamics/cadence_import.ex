@@ -2234,6 +2234,12 @@ defmodule OrbitalDynamics.CadenceImport do
         context["provider_reservation_request_contact_ids_by_direction"],
       "provider_reservation_review_contact_ids_by_direction" =>
         context["provider_reservation_review_contact_ids_by_direction"],
+      "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id" =>
+        context["provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id"],
+      "provider_reservation_request_contact_ids_by_direction_and_ground_station_id" =>
+        context["provider_reservation_request_contact_ids_by_direction_and_ground_station_id"],
+      "provider_reservation_review_contact_ids_by_direction_and_ground_station_id" =>
+        context["provider_reservation_review_contact_ids_by_direction_and_ground_station_id"],
       "provider_reservation_request_contact_ids_by_match_status" =>
         context["provider_reservation_request_contact_ids_by_match_status"],
       "provider_reservation_review_contact_ids_by_match_status" =>
@@ -2352,6 +2358,9 @@ defmodule OrbitalDynamics.CadenceImport do
       "provider_reservation_no_request_contact_ids_by_direction",
       "provider_reservation_request_contact_ids_by_direction",
       "provider_reservation_review_contact_ids_by_direction",
+      "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
+      "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
+      "provider_reservation_review_contact_ids_by_direction_and_ground_station_id",
       "provider_reservation_request_contact_ids_by_match_status",
       "provider_reservation_review_contact_ids_by_match_status",
       "provider_reservation_request_ids_by_match_status",

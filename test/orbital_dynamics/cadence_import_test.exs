@@ -2122,6 +2122,24 @@ defmodule OrbitalDynamics.CadenceImportTest do
              "command" => ["dl_review_overlap"]
            }
 
+    assert manifest[
+             "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id"
+           ] == %{
+             "uplink" => %{"equator_prime" => ["dl_unreserved"]}
+           }
+
+    assert manifest[
+             "provider_reservation_request_contact_ids_by_direction_and_ground_station_id"
+           ] == %{
+             "downlink" => %{"equator_prime" => ["dl_reserved_owner"]}
+           }
+
+    assert manifest[
+             "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
+           ] == %{
+             "command" => %{"equator_prime" => ["dl_review_overlap"]}
+           }
+
     assert manifest["provider_reservation_request_contact_ids_by_match_status"] == %{
              "matched" => ["dl_reserved_owner"]
            }
@@ -13321,6 +13339,15 @@ defmodule OrbitalDynamics.CadenceImportTest do
       },
       "provider_reservation_review_contact_ids_by_direction" => %{
         "command" => ["dl_review_overlap"]
+      },
+      "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id" => %{
+        "uplink" => %{"equator_prime" => ["dl_unreserved"]}
+      },
+      "provider_reservation_request_contact_ids_by_direction_and_ground_station_id" => %{
+        "downlink" => %{"equator_prime" => ["dl_reserved_owner"]}
+      },
+      "provider_reservation_review_contact_ids_by_direction_and_ground_station_id" => %{
+        "command" => %{"equator_prime" => ["dl_review_overlap"]}
       },
       "provider_reservation_request_contact_ids_by_match_status" => %{
         "matched" => ["dl_reserved_owner"]

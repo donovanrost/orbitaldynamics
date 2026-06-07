@@ -4742,6 +4742,9 @@ defmodule OrbitalDynamics.Schema do
         "provider_reservation_no_request_contact_ids_by_direction",
         "provider_reservation_request_contact_ids_by_direction",
         "provider_reservation_review_contact_ids_by_direction",
+        "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
+        "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
+        "provider_reservation_review_contact_ids_by_direction_and_ground_station_id",
         "model_limits"
       ],
       "nested_contracts" => ["contact_allocation_report.v1"]
@@ -5262,6 +5265,9 @@ defmodule OrbitalDynamics.Schema do
         "provider_reservation_no_request_contact_ids_by_direction",
         "provider_reservation_request_contact_ids_by_direction",
         "provider_reservation_review_contact_ids_by_direction",
+        "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
+        "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
+        "provider_reservation_review_contact_ids_by_direction_and_ground_station_id",
         "provider_reservation_request_contact_ids_by_match_status",
         "provider_reservation_review_contact_ids_by_match_status",
         "provider_reservation_request_ids_by_match_status",
@@ -6573,6 +6579,9 @@ defmodule OrbitalDynamics.Schema do
         "provider_reservation_no_request_contact_ids_by_direction",
         "provider_reservation_request_contact_ids_by_direction",
         "provider_reservation_review_contact_ids_by_direction",
+        "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
+        "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
+        "provider_reservation_review_contact_ids_by_direction_and_ground_station_id",
         "provider_reservation_request_contact_ids_by_match_status",
         "provider_reservation_review_contact_ids_by_match_status",
         "provider_reservation_request_ids_by_match_status",
@@ -15145,6 +15154,19 @@ defmodule OrbitalDynamics.Schema do
     stable_id_array_map_schema()
   end
 
+  defp json_schema_property(
+         field,
+         @contact_allocation_provider_reservation_request_summary,
+         _contract
+       )
+       when field in [
+              "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
+              "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
+              "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
+            ] do
+    nested_stable_id_array_map_json_schema()
+  end
+
   defp json_schema_property("invalid_contact_input_ids", @contact_filter_report, _contract) do
     stable_id_array_schema()
   end
@@ -17133,6 +17155,9 @@ defmodule OrbitalDynamics.Schema do
                 "provider_reservation_no_request_contact_ids_by_direction",
                 "provider_reservation_request_contact_ids_by_direction",
                 "provider_reservation_review_contact_ids_by_direction",
+                "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
+                "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
+                "provider_reservation_review_contact_ids_by_direction_and_ground_station_id",
                 "provider_reservation_request_contact_ids_by_match_status",
                 "provider_reservation_review_contact_ids_by_match_status",
                 "provider_reservation_request_ids_by_match_status",
@@ -17212,6 +17237,14 @@ defmodule OrbitalDynamics.Schema do
              "station_pressure_contact_ids_by_precedence_rank"
            ] ->
         %{"type" => "object", "additionalProperties" => stable_id_array_schema()}
+
+      field
+      when field in [
+             "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
+             "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
+             "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
+           ] ->
+        nested_stable_id_array_map_json_schema()
 
       _field ->
         string_array_schema()
@@ -52736,6 +52769,27 @@ defmodule OrbitalDynamics.Schema do
       summary,
       "provider_reservation_review_contact_ids_by_direction"
     )
+    |> validate_nested_stable_id_array_map(
+      path <> ".provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
+      Map.get(
+        summary,
+        "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id"
+      )
+    )
+    |> validate_nested_stable_id_array_map(
+      path <> ".provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
+      Map.get(
+        summary,
+        "provider_reservation_request_contact_ids_by_direction_and_ground_station_id"
+      )
+    )
+    |> validate_nested_stable_id_array_map(
+      path <> ".provider_reservation_review_contact_ids_by_direction_and_ground_station_id",
+      Map.get(
+        summary,
+        "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
+      )
+    )
     |> expect_type(
       path,
       summary,
@@ -52965,6 +53019,27 @@ defmodule OrbitalDynamics.Schema do
     |> expect_field_equals(
       path,
       summary,
+      "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
+      row_ids_by_direction_and_ground_station(no_request_rows, "contact_id"),
+      "must equal row-derived provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
+      row_ids_by_direction_and_ground_station(request_rows, "contact_id"),
+      "must equal row-derived provider_reservation_request_contact_ids_by_direction_and_ground_station_id"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "provider_reservation_review_contact_ids_by_direction_and_ground_station_id",
+      row_ids_by_direction_and_ground_station(review_rows, "contact_id"),
+      "must equal row-derived provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
       "provider_reservation_request_contact_ids_by_match_status",
       row_ids_by_field(request_rows, "station_reservation_match_status", "contact_id"),
       "must equal row-derived provider_reservation_request_contact_ids_by_match_status"
@@ -53166,6 +53241,12 @@ defmodule OrbitalDynamics.Schema do
     issues
     |> expect_optional_type(path, report, field, :map)
     |> validate_stable_id_array_map(path <> ".#{field}", Map.get(report, field))
+  end
+
+  defp validate_optional_nested_stable_id_array_map(issues, path, report, field) do
+    issues
+    |> expect_optional_type(path, report, field, :map)
+    |> validate_nested_stable_id_array_map(path <> ".#{field}", Map.get(report, field))
   end
 
   defp validate_contact_allocation_expiration_handoff_summary(issues, path, artifact) do
@@ -53386,6 +53467,21 @@ defmodule OrbitalDynamics.Schema do
       path,
       artifact,
       "provider_reservation_review_contact_ids_by_direction"
+    )
+    |> validate_optional_nested_stable_id_array_map(
+      path,
+      artifact,
+      "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id"
+    )
+    |> validate_optional_nested_stable_id_array_map(
+      path,
+      artifact,
+      "provider_reservation_request_contact_ids_by_direction_and_ground_station_id"
+    )
+    |> validate_optional_nested_stable_id_array_map(
+      path,
+      artifact,
+      "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
     )
     |> validate_optional_stable_id_array_map(
       path,

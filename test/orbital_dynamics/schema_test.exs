@@ -6537,6 +6537,24 @@ defmodule OrbitalDynamics.SchemaTest do
              &(&1["path"] == "$.provider_reservation_request_ids_by_match_status.matched[0]")
            )
 
+    invalid_provider_reservation_direction_station_ids =
+      Map.put(
+        package,
+        "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
+        %{
+          "downlink" => %{"equator_prime" => ["bad id"]}
+        }
+      )
+
+    assert {:error, provider_reservation_direction_station_ids_report} =
+             Schema.validate_artifact(invalid_provider_reservation_direction_station_ids)
+
+    assert Enum.any?(
+             provider_reservation_direction_station_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.provider_reservation_request_contact_ids_by_direction_and_ground_station_id.downlink.equator_prime[0]")
+           )
+
     invalid_capacity_pack_demand =
       Map.put(package, "capacity_pack_required_capacity_fraction", -1.0)
 
@@ -21106,6 +21124,17 @@ defmodule OrbitalDynamics.SchemaTest do
                "tracking" => ["dl_reserved_intruder"],
                "uplink" => ["dl_unreserved"]
              },
+             "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id" =>
+               %{
+                 "tracking" => %{"equator_prime" => ["dl_reserved_intruder"]},
+                 "uplink" => %{"equator_prime" => ["dl_unreserved"]}
+               },
+             "provider_reservation_request_contact_ids_by_direction_and_ground_station_id" => %{
+               "downlink" => %{"equator_prime" => ["dl_reserved_owner"]}
+             },
+             "provider_reservation_review_contact_ids_by_direction_and_ground_station_id" => %{
+               "command" => %{"equator_prime" => ["dl_review_overlap"]}
+             },
              "provider_reservation_request_ids_by_match_status" => %{
                "matched" => ["reservation_1"]
              },
@@ -21252,6 +21281,33 @@ defmodule OrbitalDynamics.SchemaTest do
 
     Enum.each(
       [
+        "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
+        "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
+        "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
+      ],
+      fn field ->
+        assert get_in(cadence_schema, [
+                 "properties",
+                 field,
+                 "additionalProperties",
+                 "additionalProperties",
+                 "items",
+                 "pattern"
+               ]) == stable_id_pattern
+
+        assert get_in(operator_review_schema, [
+                 "properties",
+                 field,
+                 "additionalProperties",
+                 "additionalProperties",
+                 "items",
+                 "pattern"
+               ]) == stable_id_pattern
+      end
+    )
+
+    Enum.each(
+      [
         "provider_reservation_no_request_contact_ids_by_direction",
         "provider_reservation_request_contact_ids_by_direction",
         "provider_reservation_review_contact_ids_by_direction"
@@ -21260,6 +21316,26 @@ defmodule OrbitalDynamics.SchemaTest do
         assert get_in(provider_request_schema, [
                  "properties",
                  field,
+                 "additionalProperties",
+                 "items",
+                 "pattern"
+               ]) == stable_id_pattern
+
+        refute field in provider_request_schema["required"]
+      end
+    )
+
+    Enum.each(
+      [
+        "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
+        "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
+        "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
+      ],
+      fn field ->
+        assert get_in(provider_request_schema, [
+                 "properties",
+                 field,
+                 "additionalProperties",
                  "additionalProperties",
                  "items",
                  "pattern"
