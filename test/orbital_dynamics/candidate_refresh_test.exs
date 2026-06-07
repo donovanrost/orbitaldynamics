@@ -29784,6 +29784,18 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_quality_gate_timeline_ids_by_changed_field" => %{
                "resource_assignment" => ["timeline:quality_changed"]
              },
+             "source_report_quality_gate_branch_local_review_pressure" => true,
+             "source_report_quality_gate_branch_local_import_pressure" => true,
+             "source_report_quality_gate_branch_local_resource_pressure" => true,
+             "source_report_quality_gate_branch_local_timeline_publication_pressure" => true,
+             "source_report_quality_gate_branch_local_timeline_publication_dependency_pressure" =>
+               true,
+             "source_report_quality_gate_branch_local_timeline_publication_changed_field_pressure" =>
+               true,
+             "source_report_quality_gate_branch_local_timeline_publication_invalidation_pressure" =>
+               true,
+             "source_report_quality_gate_branch_local_timeline_publication_review_pressure" =>
+               true,
              "source_reports" => %{
                "quality_gate_report" => %{
                  "gate_count" => 3,
@@ -29930,13 +29942,155 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "review_required" => 1
              },
              "source_report_quality_gate_analysis_mode_counts" => %{"simulation" => 1},
-             "source_report_quality_gate_source_readiness_report_count" => 1
+             "source_report_quality_gate_source_readiness_report_count" => 1,
+             "source_report_quality_gate_branch_local_review_pressure" => true,
+             "source_report_quality_gate_branch_local_import_pressure" => true,
+             "source_report_quality_gate_branch_local_resource_pressure" => true,
+             "source_report_quality_gate_branch_local_timeline_publication_pressure" => true,
+             "source_report_quality_gate_branch_local_timeline_publication_dependency_pressure" =>
+               true,
+             "source_report_quality_gate_branch_local_timeline_publication_changed_field_pressure" =>
+               true,
+             "source_report_quality_gate_branch_local_timeline_publication_invalidation_pressure" =>
+               true,
+             "source_report_quality_gate_branch_local_timeline_publication_review_pressure" =>
+               true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.quality_gate_replay_summary(artifact) == replay_summary
 
     assert OrbitalDynamics.candidate_refresh_quality_gate_replay_summary(artifact) ==
              replay_summary
+  end
+
+  test "quality gate replay reads strategy branch candidate-source summary metadata" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "candidate_source" => %{
+        "candidate_refresh_request_source_report_summary" => %{
+          "source_reports" => %{
+            "quality_gate_report" => %{
+              "contract" => "quality_gate_report.v1",
+              "count" => 1,
+              "row_count" => 2,
+              "paths" => [
+                "candidate_source.candidate_refresh_request.source_quality_gate_report"
+              ],
+              "readiness_level_counts" => %{"operator_review" => 1},
+              "import_classification_counts" => %{"review_only" => 1},
+              "status_counts" => %{"review_required" => 1},
+              "gate_count" => 2,
+              "review_gate_count" => 1,
+              "blocked_gate_count" => 1,
+              "gate_status_counts" => %{"review_required" => 1, "blocked" => 1},
+              "gate_classification_counts" => %{"review_only" => 1, "blocked" => 1},
+              "manifest_review_required_count" => 1,
+              "blocked_import_count" => 1,
+              "import_status_counts" => %{"review_required_before_import" => 1},
+              "cadence_import_status_counts" => %{"missing" => 1},
+              "resource_availability_reason_counts" => %{"payload_unavailable" => 1},
+              "resource_availability_reason_ids" => ["payload_unavailable"],
+              "unavailable_resource_reason_ids" => ["payload_unavailable"],
+              "resource_blocking_dimension_counts" => %{"payload" => 1},
+              "publication_status_counts" => %{"review_required" => 1},
+              "dependency_impact_status_counts" => %{"review_required" => 1},
+              "publication_authority_counts" => %{"operator_review" => 1},
+              "publication_ids" => ["timeline_publication:quality_branch"],
+              "changed_field_counts" => %{"resource_assignment" => 1},
+              "timeline_ids_by_changed_field" => %{
+                "resource_assignment" => ["timeline:quality_branch_changed"]
+              },
+              "review_timeline_ids" => ["timeline:quality_branch_review"],
+              "trust_boundary_status" => "declared",
+              "trust_boundaries" => ["branch_quality_gate"]
+            }
+          }
+        }
+      },
+      "provenance" => %{
+        "source_reports" => %{
+          "quality_gate_report" => %{
+            "contract" => "quality_gate_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.quality_gate_report"],
+            "readiness_level_counts" => %{},
+            "import_status_counts" => %{},
+            "resource_availability_reason_counts" => %{}
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.quality_gate_replay_summary(artifact)
+
+    assert summary["source"] ==
+             "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.quality_gate_report"
+
+    assert summary["contract"] == "quality_gate_report.v1"
+    assert summary["source_report_count"] == 1
+    assert summary["source_report_row_count"] == 2
+
+    assert summary["source_report_paths"] == [
+             "candidate_source.candidate_refresh_request.source_quality_gate_report"
+           ]
+
+    assert summary["readiness_level_counts"] == %{"operator_review" => 1}
+    assert summary["import_classification_counts"] == %{"review_only" => 1}
+    assert summary["status_counts"] == %{"review_required" => 1}
+    assert summary["gate_count"] == 2
+    assert summary["review_gate_count"] == 1
+    assert summary["blocked_gate_count"] == 1
+    assert summary["gate_status_counts"] == %{"review_required" => 1, "blocked" => 1}
+    assert summary["gate_classification_counts"] == %{"review_only" => 1, "blocked" => 1}
+    assert summary["manifest_review_required_count"] == 1
+    assert summary["blocked_import_count"] == 1
+    assert summary["import_status_counts"] == %{"review_required_before_import" => 1}
+    assert summary["cadence_import_status_counts"] == %{"missing" => 1}
+    assert summary["resource_availability_reason_counts"] == %{"payload_unavailable" => 1}
+    assert summary["resource_availability_reason_ids"] == ["payload_unavailable"]
+    assert summary["unavailable_resource_reason_ids"] == ["payload_unavailable"]
+    assert summary["resource_blocking_dimension_counts"] == %{"payload" => 1}
+    assert summary["publication_status_counts"] == %{"review_required" => 1}
+    assert summary["dependency_impact_status_counts"] == %{"review_required" => 1}
+    assert summary["publication_authority_counts"] == %{"operator_review" => 1}
+    assert summary["publication_ids"] == ["timeline_publication:quality_branch"]
+    assert summary["changed_field_counts"] == %{"resource_assignment" => 1}
+
+    assert summary["timeline_ids_by_changed_field"] == %{
+             "resource_assignment" => ["timeline:quality_branch_changed"]
+           }
+
+    assert summary["review_timeline_ids"] == ["timeline:quality_branch_review"]
+    assert summary["branch_local_review_pressure"]
+    assert summary["branch_local_import_pressure"]
+    assert summary["branch_local_resource_pressure"]
+    assert summary["branch_local_timeline_publication_pressure"]
+    assert summary["branch_local_timeline_publication_dependency_pressure"]
+    assert summary["branch_local_timeline_publication_changed_field_pressure"]
+    refute summary["branch_local_timeline_publication_invalidation_pressure"]
+    assert summary["branch_local_timeline_publication_review_pressure"]
+
+    assert summary["assumptions"]["replay_scope"] ==
+             "quality_gate_candidate_source_report_summary_only"
+
+    assert %{
+             "source_report_quality_gate_branch_local_review_pressure" => true,
+             "source_report_quality_gate_branch_local_import_pressure" => true,
+             "source_report_quality_gate_branch_local_resource_pressure" => true,
+             "source_report_quality_gate_branch_local_timeline_publication_pressure" => true,
+             "source_report_quality_gate_branch_local_timeline_publication_dependency_pressure" =>
+               true,
+             "source_report_quality_gate_branch_local_timeline_publication_changed_field_pressure" =>
+               true,
+             "source_report_quality_gate_branch_local_timeline_publication_invalidation_pressure" =>
+               false,
+             "source_report_quality_gate_branch_local_timeline_publication_review_pressure" =>
+               true
+           } = CandidateRefresh.source_report_summary(artifact)
+
+    assert OrbitalDynamics.candidate_refresh_quality_gate_replay_summary(artifact) ==
+             summary
   end
 
   test "quality gate replay summary omits contract when source report is absent" do

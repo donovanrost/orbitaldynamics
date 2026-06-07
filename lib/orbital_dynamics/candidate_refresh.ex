@@ -6899,6 +6899,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
       )
     )
     |> Map.merge(
+      source_report_quality_gate_replay_summary_fields(refresh_or_artifact, source_reports)
+    )
+    |> Map.merge(
       source_report_contact_contention_replay_summary_fields(refresh_or_artifact, source_reports)
     )
     |> Map.merge(
@@ -9710,6 +9713,36 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "source_report_operational_readiness_branch_local_timeline_publication_invalidation_pressure" =>
         Map.get(timeline_fields, "branch_local_timeline_publication_invalidation_pressure"),
       "source_report_operational_readiness_branch_local_timeline_publication_review_pressure" =>
+        Map.get(timeline_fields, "branch_local_timeline_publication_review_pressure")
+    }
+  end
+
+  defp source_report_quality_gate_replay_summary_fields(refresh_or_artifact, source_reports) do
+    branch_quality_gate_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "quality_gate_report")
+
+    quality_gate_summary =
+      branch_quality_gate_summary || Map.get(source_reports, "quality_gate_report", %{})
+
+    pressure_fields = quality_gate_replay_pressure_fields(quality_gate_summary)
+    timeline_fields = timeline_publication_context_replay_fields(quality_gate_summary, false)
+
+    %{
+      "source_report_quality_gate_branch_local_review_pressure" =>
+        Map.get(pressure_fields, "branch_local_review_pressure"),
+      "source_report_quality_gate_branch_local_import_pressure" =>
+        Map.get(pressure_fields, "branch_local_import_pressure"),
+      "source_report_quality_gate_branch_local_resource_pressure" =>
+        Map.get(pressure_fields, "branch_local_resource_pressure"),
+      "source_report_quality_gate_branch_local_timeline_publication_pressure" =>
+        Map.get(timeline_fields, "branch_local_timeline_publication_pressure"),
+      "source_report_quality_gate_branch_local_timeline_publication_dependency_pressure" =>
+        Map.get(timeline_fields, "branch_local_timeline_publication_dependency_pressure"),
+      "source_report_quality_gate_branch_local_timeline_publication_changed_field_pressure" =>
+        Map.get(timeline_fields, "branch_local_timeline_publication_changed_field_pressure"),
+      "source_report_quality_gate_branch_local_timeline_publication_invalidation_pressure" =>
+        Map.get(timeline_fields, "branch_local_timeline_publication_invalidation_pressure"),
+      "source_report_quality_gate_branch_local_timeline_publication_review_pressure" =>
         Map.get(timeline_fields, "branch_local_timeline_publication_review_pressure")
     }
   end
@@ -15303,18 +15336,110 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> compact_map()
   end
 
+  defp quality_gate_replay_pressure_fields(quality_gate_summary) do
+    review_gate_count = summary_integer(quality_gate_summary, "review_gate_count")
+    blocked_gate_count = summary_integer(quality_gate_summary, "blocked_gate_count")
+    import_review_count = summary_integer(quality_gate_summary, "manifest_review_required_count")
+    missing_import_count = summary_integer(quality_gate_summary, "missing_import_count")
+    blocked_import_count = summary_integer(quality_gate_summary, "blocked_import_count")
+    invalid_import_count = summary_integer(quality_gate_summary, "invalid_cadence_import_count")
+
+    resource_pressure_count =
+      summary_integer(quality_gate_summary, "resource_availability_pressure_count")
+
+    resource_availability_reason_counts =
+      Map.get(quality_gate_summary, "resource_availability_reason_counts", %{})
+
+    resource_availability_reason_ids =
+      Map.get(quality_gate_summary, "resource_availability_reason_ids", [])
+
+    station_availability_reason_ids =
+      Map.get(quality_gate_summary, "station_availability_reason_ids", [])
+
+    station_availability_reason_counts =
+      Map.get(quality_gate_summary, "station_availability_reason_counts", %{})
+
+    unavailable_resource_reason_ids =
+      Map.get(quality_gate_summary, "unavailable_resource_reason_ids", [])
+
+    resource_blocking_dimension_counts =
+      Map.get(quality_gate_summary, "resource_blocking_dimension_counts", %{})
+
+    blocked_contact_ids_by_blocking_dimension =
+      Map.get(quality_gate_summary, "blocked_contact_ids_by_blocking_dimension", %{})
+
+    blocked_contact_ids_by_spacecraft_id =
+      Map.get(quality_gate_summary, "blocked_contact_ids_by_spacecraft_id", %{})
+
+    blocked_contact_ids_by_status =
+      Map.get(quality_gate_summary, "blocked_contact_ids_by_status", %{})
+
+    readiness_level_counts = Map.get(quality_gate_summary, "readiness_level_counts", %{})
+
+    import_classification_counts =
+      Map.get(quality_gate_summary, "import_classification_counts", %{})
+
+    status_counts = Map.get(quality_gate_summary, "status_counts", %{})
+    analysis_mode_counts = Map.get(quality_gate_summary, "analysis_mode_counts", %{})
+    gate_status_counts = Map.get(quality_gate_summary, "gate_status_counts", %{})
+    gate_classification_counts = Map.get(quality_gate_summary, "gate_classification_counts", %{})
+    import_status_counts = Map.get(quality_gate_summary, "import_status_counts", %{})
+
+    cadence_import_status_counts =
+      Map.get(quality_gate_summary, "cadence_import_status_counts", %{})
+
+    %{
+      "branch_local_review_pressure" =>
+        review_gate_count > 0 or blocked_gate_count > 0 or
+          map_size(readiness_level_counts) > 0 or
+          map_size(import_classification_counts) > 0 or map_size(status_counts) > 0 or
+          map_size(analysis_mode_counts) > 0 or map_size(gate_status_counts) > 0 or
+          map_size(gate_classification_counts) > 0,
+      "branch_local_import_pressure" =>
+        import_review_count + missing_import_count + blocked_import_count + invalid_import_count >
+          0 or map_size(import_status_counts) > 0 or map_size(cadence_import_status_counts) > 0,
+      "branch_local_resource_pressure" =>
+        resource_pressure_count > 0 or map_size(resource_availability_reason_counts) > 0 or
+          resource_availability_reason_ids != [] or station_availability_reason_ids != [] or
+          map_size(station_availability_reason_counts) > 0 or
+          unavailable_resource_reason_ids != [] or
+          map_size(resource_blocking_dimension_counts) > 0 or
+          map_size(blocked_contact_ids_by_blocking_dimension) > 0 or
+          map_size(blocked_contact_ids_by_spacecraft_id) > 0 or
+          map_size(blocked_contact_ids_by_status) > 0
+    }
+  end
+
   @doc """
   Builds a compact branch-local quality-gate replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, mutate candidates, approve operator
-  actions, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, mutate
+  candidates, approve operator actions, or write to Cadence.
   """
   def quality_gate_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
+    branch_quality_gate_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "quality_gate_report")
+
     quality_gate_summary =
-      get_in(source_summary, ["source_reports", "quality_gate_report"]) || %{}
+      branch_quality_gate_summary ||
+        get_in(source_summary, ["source_reports", "quality_gate_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_quality_gate_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.quality_gate_report",
+          "quality_gate_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.quality_gate_report",
+          "quality_gate_source_report_provenance_only"
+        }
+      end
 
     review_gate_count = summary_integer(quality_gate_summary, "review_gate_count")
     blocked_gate_count = summary_integer(quality_gate_summary, "blocked_gate_count")
@@ -15394,31 +15519,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     import_readiness_gate_ids = Map.get(quality_gate_summary, "import_readiness_gate_ids", [])
 
-    resource_pressure =
-      resource_pressure_count > 0 or map_size(resource_availability_reason_counts) > 0 or
-        resource_availability_reason_ids != [] or station_availability_reason_ids != [] or
-        map_size(station_availability_reason_counts) > 0 or
-        unavailable_resource_reason_ids != [] or map_size(resource_blocking_dimension_counts) > 0 or
-        map_size(blocked_contact_ids_by_blocking_dimension) > 0 or
-        map_size(blocked_contact_ids_by_spacecraft_id) > 0 or
-        map_size(blocked_contact_ids_by_status) > 0
-
-    review_pressure =
-      review_gate_count > 0 or blocked_gate_count > 0 or map_size(readiness_level_counts) > 0 or
-        map_size(import_classification_counts) > 0 or map_size(status_counts) > 0 or
-        map_size(analysis_mode_counts) > 0 or map_size(gate_status_counts) > 0 or
-        map_size(gate_classification_counts) > 0
-
-    import_pressure =
-      import_review_count + missing_import_count + blocked_import_count + invalid_import_count >
-        0 or map_size(import_status_counts) > 0 or map_size(cadence_import_status_counts) > 0
-
     timeline_publication_context =
       timeline_publication_context_replay_fields(quality_gate_summary, false)
 
+    pressure_fields = quality_gate_replay_pressure_fields(quality_gate_summary)
+
     %{
       "model" => "artifact_only_candidate_refresh_quality_gate_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.quality_gate_report",
+      "source" => summary_source,
       "contract" =>
         source_report_summary_contract(quality_gate_summary, "quality_gate_report.v1"),
       "source_report_count" => summary_integer(quality_gate_summary, "count"),
@@ -15494,12 +15602,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "blocked_contact_ids_by_status" => blocked_contact_ids_by_status,
       "source_readiness_report_count" =>
         summary_integer(quality_gate_summary, "source_readiness_report_count"),
-      "branch_local_review_pressure" => review_pressure,
-      "branch_local_import_pressure" => import_pressure,
-      "branch_local_resource_pressure" => resource_pressure,
+      "branch_local_review_pressure" => Map.get(pressure_fields, "branch_local_review_pressure"),
+      "branch_local_import_pressure" => Map.get(pressure_fields, "branch_local_import_pressure"),
+      "branch_local_resource_pressure" =>
+        Map.get(pressure_fields, "branch_local_resource_pressure"),
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "quality_gate_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_quality_gate_replay_summary",
         "cadence_write" => "not_performed_by_summary",
         "candidate_generation" => "not_performed_by_summary"
