@@ -10311,7 +10311,11 @@ defmodule OrbitalDynamics.SchemaTest do
       type: :observe,
       scenario_id: :leo_1,
       status: "In Progress",
-      metadata: %{timeline_id: :"timeline:obs_provider"}
+      source_window_id: :"visibility:obs_provider",
+      metadata: %{
+        timeline_id: :"timeline:obs_provider",
+        source_window_id: :"visibility:obs_provider"
+      }
     }
 
     realized = %{
@@ -10322,7 +10326,11 @@ defmodule OrbitalDynamics.SchemaTest do
       metadata: %{timeline_id: :"timeline:obs_provider"}
     }
 
-    state = OrbitalDynamics.Timeline.activity_status_state(planned, realized)
+    fixture = read_json!("study_results/timeline_activity_status_state_v1.json")
+    state = OrbitalDynamics.timeline_activity_status_state(planned, realized)
+
+    assert state == fixture
+    assert state["invalid_activity_input"] == false
 
     assert {:ok, %{"schema_contract" => "timeline_activity_status_state.v1"}} =
              Schema.validate_artifact(state)
@@ -10421,7 +10429,13 @@ defmodule OrbitalDynamics.SchemaTest do
       type: :command,
       scenario_id: :leo_1,
       approval_status: "Review Required",
-      metadata: %{timeline_id: :"timeline:cmd_provider"}
+      command_window_id: :"command_window:cmd_provider",
+      command_window_type: :command_window,
+      source_window_id: :"command:cmd_provider",
+      metadata: %{
+        timeline_id: :"timeline:cmd_provider",
+        source_window_id: :"command:cmd_provider"
+      }
     }
 
     realized = %{
@@ -10429,10 +10443,16 @@ defmodule OrbitalDynamics.SchemaTest do
       type: :command,
       scenario_id: :leo_1,
       approval_status: :approved,
+      command_window_id: :"command_window:cmd_provider",
+      command_window_type: :command_window,
       metadata: %{timeline_id: :"timeline:cmd_provider"}
     }
 
-    state = OrbitalDynamics.Timeline.activity_approval_state(planned, realized)
+    fixture = read_json!("study_results/timeline_activity_approval_state_v1.json")
+    state = OrbitalDynamics.timeline_activity_approval_state(planned, realized)
+
+    assert state == fixture
+    assert state["invalid_activity_input"] == false
 
     assert {:ok, %{"schema_contract" => "timeline_activity_approval_state.v1"}} =
              Schema.validate_artifact(state)
@@ -10576,6 +10596,9 @@ defmodule OrbitalDynamics.SchemaTest do
       scenario_id: :leo_1,
       status: "In Progress",
       approval_status: "Review Required",
+      command_window_id: :"command_window:cmd_provider",
+      command_window_type: :command_window,
+      source_window_id: :"command:cmd_provider",
       metadata: %{
         timeline_id: :"timeline:cmd_provider",
         source_window_id: :"command:cmd_provider"
@@ -10588,10 +10611,16 @@ defmodule OrbitalDynamics.SchemaTest do
       scenario_id: :leo_1,
       status: "succeeded",
       approval_status: :approved,
+      command_window_id: :"command_window:cmd_provider",
+      command_window_type: :command_window,
       metadata: %{timeline_id: :"timeline:cmd_provider"}
     }
 
-    state = OrbitalDynamics.Timeline.activity_lifecycle_state(planned, realized)
+    fixture = read_json!("study_results/timeline_activity_lifecycle_state_v1.json")
+    state = OrbitalDynamics.timeline_activity_lifecycle_state(planned, realized)
+
+    assert state == fixture
+    assert state["invalid_activity_input"] == false
 
     assert {:ok, %{"schema_contract" => "timeline_activity_lifecycle_state.v1"}} =
              Schema.validate_artifact(state)

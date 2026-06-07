@@ -858,6 +858,15 @@ categories, and artifact-only/no-schedule-mutation/no-command-execution
 assumptions. Executable validation rejects stale row counts and stale
 row-derived match-strategy maps before compact activity-state handoffs can
 steer review/import adapters.
+Checked-in single-activity status, approval, and lifecycle-state fixtures are
+also exact-regenerated through
+`OrbitalDynamics.timeline_activity_status_state/2`,
+`OrbitalDynamics.timeline_activity_approval_state/2`, and
+`OrbitalDynamics.timeline_activity_lifecycle_state/2` before schema validation.
+These fixture checks pin normalized transition decisions, review/import routing,
+planned and realized activity contexts, explicit `invalid_activity_input`
+evidence, and the artifact-only `no-schedule-mutation`, `no-authority`,
+`no-command`, and `no-Cadence-write` boundary for single-activity handoffs.
 `study_results/timeline_dependency_impact_summary_v1.json` now feeds a curated
 `timeline_dependency_impact_summary.v1` validation-reference fixture. The
 observations check source/replacement counts, changed-source counts, dependent
