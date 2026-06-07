@@ -1180,6 +1180,12 @@ assumptions.
 route counts, custody/latency/risk status maps, route IDs, source/relay/station
 ID sets, status-routed route ID maps, latency maxima, model-limit boundaries,
 and artifact-only no-relay-scheduling/no-custody-delivery assumptions.
+Focused schema-reference coverage also regenerates the checked-in fixture
+exactly through `OrbitalDynamics.relay_data_path_summary/2` from its checked-in
+route rows and source before schema validation, pinning relay/direct row
+evidence, generated route ID stability, status routing, latency maxima, model
+limits, and the no-scheduling/no-custody-delivery/no-provider-reservation
+boundary.
 Executable validation rejects stale relay/direct route counts, custody routing,
 relay-spacecraft ID sets, latency routing, and generated `model_limits` that no
 longer match relay data-path rows, so relay/store-and-forward handoffs cannot

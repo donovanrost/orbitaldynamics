@@ -5,36 +5,36 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Resource projection flow summary fixture coverage.
+Relay data-path summary fixture coverage.
 
 Status:
 Implemented, verified, and reviewed; ready for commit/push.
 
-Files changed:
+Files expected:
 - `.codex/status/autonomous_product_loop.md`
 - `test/orbital_dynamics/schema_test.exs`
 - `docs/artifacts/compatibility_checks.md`
 
 Slice-selection note:
-Selected after the operational quality gate import-readiness summary fixture
-coverage was pushed at `e7f4e8c7e15dd61defcf01b61465659e6ea8ce2f` and live
-reassessment of remaining checked-in summary fixtures without focused
-regeneration tests. `resource_projection_flow_summary.v1` already has a
-checked-in fixture, a public facade, and runtime/schema coverage for
-resource-flow rows, resource pressure routing, ignored/invalid inputs, model
-limits, and no-schedule-mutation boundaries, and it regenerates exactly from
-the checked-in `resource_projection_report.v1` fixture. This slice is
-fixture/reference hardening only: prove the existing compact resource
-projection flow summary fixture regenerates exactly through the public facade
-from the existing source report without propagating resource state, writing
-Cadence, importing, executing commands, or mutating schedules.
+Selected after resource projection flow summary fixture coverage was pushed at
+`cac2f6a2f66769a50138a1da1a0a68315dcf7e06` and live reassessment of remaining
+checked-in summary fixtures without focused schema/reference tests.
+`relay_data_path_summary.v1` has an existing checked-in fixture, public
+`OrbitalDynamics.relay_data_path_summary/2` facade, runtime coverage, and
+validation observations, but the checked-in fixture is not yet pinned in the
+schema fixture block the way the recent summary artifacts are. A live probe
+confirmed the fixture regenerates exactly from its checked-in `rows` and
+`source`, making this a narrow fixture/reference hardening slice that does not
+add scheduling, crosslink visibility, custody acknowledgement delivery,
+provider reservation, operator authority, or schedule mutation behavior.
 
 Definition of done:
-- Add focused schema/reference coverage proving the fixture validates and
-  regenerates from public facades, preserving source identity, activity and
-  flow-row counts, projected-resource counts, resource-flow status, resource
-  pressure counts/routing maps, ignored and invalid input counters, energy/
-  storage/downlink totals, model limits, and artifact-only no-schedule-mutation
+- Add focused schema/reference coverage proving the checked-in
+  `relay_data_path_summary.v1` fixture validates and regenerates exactly
+  through the public facade from its checked-in route rows and source.
+- Pin route counts, relay/direct split, custody/latency/risk status counts,
+  route ID routing maps, spacecraft/station/downlink ID sets, latency maxima,
+  row-level direct and relay route evidence, model limits, and artifact-only
   assumptions.
 - Update compatibility docs to name the exact public-facade regeneration check.
 - Run focused schema/reference tests, schema lint for the existing fixture,
@@ -42,38 +42,35 @@ Definition of done:
 
 Implementation notes:
 - Added focused schema-test coverage proving the existing checked-in
-  `resource_projection_flow_summary.v1` fixture regenerates exactly from public
-  `OrbitalDynamics.resource_projection_flow_summary/1` using the checked-in
-  `resource_projection_report.v1` source fixture.
-- The test preserves source identity, activity and flow-row counts,
-  projected-resource counts, resource-flow status, resource pressure counts and
-  routing maps, ignored and invalid input counters, energy/storage/downlink
-  totals, model limits, and no-schedule-mutation assumptions.
+  `relay_data_path_summary.v1` fixture regenerates exactly from public
+  `OrbitalDynamics.relay_data_path_summary/2` using the fixture's checked-in
+  route rows and source.
+- The test preserves route counts, relay/direct split, custody/latency/risk
+  status counts, route ID routing maps, spacecraft/station/downlink ID sets,
+  latency maxima, row-level direct and relay route evidence, generated route ID
+  stability, model limits, and artifact-only assumptions.
 - Updated compatibility docs to name the exact public-facade regeneration check
   before schema validation.
 
 Verification:
 - `mix format test/orbital_dynamics/schema_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:1327`
-- `mix orbital_dynamics.schema.lint --input study_results/resource_projection_flow_summary_v1.json --contract resource_projection_flow_summary.v1`
+- `mix test test/orbital_dynamics/schema_test.exs:1262`
+- `mix orbital_dynamics.schema.lint --input study_results/relay_data_path_summary_v1.json --contract relay_data_path_summary.v1`
 - `git diff --check`
 
 Review:
-- Read-only review sidecar `019ea1c1-c4ca-79b1-82d1-a1f6b1ea5a04`
-  found the original explicit assertions were narrower than the slice claim.
-  Added direct assertions for peak battery overuse, zero storage/downlink
-  totals, input resource and valid activity counts, resource-pressure type and
-  ground-station routing maps, ignored reason counts, invalid input arrays, and
-  artifact-only no-schedule-mutation/no-state-reconciliation assumptions, then
-  reran the focused test, schema lint, and `git diff --check`. The reviewer
-  also confirmed the fixture regenerates exactly through public
-  `OrbitalDynamics.resource_projection_flow_summary/1` from the checked-in
-  `resource_projection_report.v1` fixture and that `.gitignore` is unrelated
-  and should not be staged.
+- Read-only review sidecar `019ea1c8-ad67-7782-b3e7-5690143a638d` found no
+  issues. It confirmed the test proves exact regeneration through public
+  `OrbitalDynamics.relay_data_path_summary/2` before schema validation, pins
+  route counts, relay/direct split, custody/latency/risk routing, row evidence,
+  generated route ID stability, assumptions, and model limits, and that docs
+  and ledger do not overclaim. The reviewer also reran the focused test,
+  fixture lint, and a slice-scoped `git diff --check`; `.gitignore` remains
+  unrelated and should not be staged.
 
 Last commit:
-`e7f4e8c7e15dd61defcf01b61465659e6ea8ce2f` pushed to `origin/main` for
-operational quality gate import-readiness summary fixture coverage.
+`cac2f6a2f66769a50138a1da1a0a68315dcf7e06` pushed to `origin/main` for
+resource projection flow summary fixture coverage.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is

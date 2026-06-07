@@ -1259,6 +1259,103 @@ defmodule OrbitalDynamics.SchemaTest do
              |> Enum.map(&to_string/1)
   end
 
+  test "validates checked-in relay data-path summary fixture" do
+    summary = read_json!("study_results/relay_data_path_summary_v1.json")
+
+    generated_summary =
+      OrbitalDynamics.relay_data_path_summary(summary["rows"], source: summary["source"])
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "relay_data_path_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "schema_contract" => "relay_data_path_summary.v1",
+             "schema_version" => 1,
+             "model" => "artifact_only_relay_data_path_summary",
+             "source" => "relay_ops",
+             "route_count" => 2,
+             "relay_route_count" => 1,
+             "direct_downlink_route_count" => 1,
+             "custody_status_counts" => %{"confirmed" => 1, "missing_ack" => 1},
+             "latency_status_counts" => %{"exceeds_limit" => 1, "within_limit" => 1},
+             "risk_status_counts" => %{"high" => 1, "nominal" => 1},
+             "route_ids" => [relay_route_id, "route_direct"],
+             "source_spacecraft_ids" => ["sat_a", "sat_b"],
+             "relay_spacecraft_ids" => ["relay_1", "relay_2"],
+             "ground_station_ids" => ["dss_14", "dss_35"],
+             "ground_downlink_contact_ids" => ["downlink_1", "downlink_2"],
+             "route_ids_by_custody_status" => %{
+               "confirmed" => [relay_route_id],
+               "missing_ack" => ["route_direct"]
+             },
+             "route_ids_by_latency_status" => %{
+               "exceeds_limit" => ["route_direct"],
+               "within_limit" => [relay_route_id]
+             },
+             "route_ids_by_risk_status" => %{
+               "high" => ["route_direct"],
+               "nominal" => [relay_route_id]
+             },
+             "route_ids_by_ground_station_id" => %{
+               "dss_14" => [relay_route_id],
+               "dss_35" => ["route_direct"]
+             },
+             "maximum_latency_s" => 500.0,
+             "maximum_latency_limit_s" => 300.0,
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_relay_scheduling_or_schedule_mutation",
+               "crosslink_visibility_model" => "not_evaluated",
+               "custody_acknowledgement_delivery" => "not_performed",
+               "provider_reservation" => "not_performed",
+               "operator_authority" => "not_granted_by_summary"
+             },
+             "rows" => [
+               %{
+                 "route_id" => relay_route_id,
+                 "source_spacecraft_id" => "sat_a",
+                 "relay_chain_spacecraft_ids" => ["relay_2", "relay_1"],
+                 "relay_hop_count" => 2,
+                 "ground_station_id" => "dss_14",
+                 "ground_downlink_contact_id" => "downlink_1",
+                 "custody_status" => "confirmed",
+                 "latency_s" => 180.0,
+                 "latency_limit_s" => 240.0,
+                 "latency_status" => "within_limit",
+                 "risk_status" => "nominal",
+                 "risk_reasons" => [],
+                 "product_ids" => ["image_alpha"],
+                 "collection_ids" => ["collection_alpha"]
+               },
+               %{
+                 "route_id" => "route_direct",
+                 "source_spacecraft_id" => "sat_b",
+                 "relay_chain_spacecraft_ids" => [],
+                 "relay_hop_count" => 0,
+                 "ground_station_id" => "dss_35",
+                 "ground_downlink_contact_id" => "downlink_2",
+                 "custody_status" => "missing_ack",
+                 "latency_s" => 500.0,
+                 "latency_limit_s" => 300.0,
+                 "latency_status" => "exceeds_limit",
+                 "risk_status" => "high",
+                 "risk_reasons" => [
+                   "custody_missing_ack",
+                   "latency_exceeds_limit",
+                   "operator review queued"
+                 ],
+                 "product_ids" => ["image_beta"],
+                 "collection_ids" => []
+               }
+             ]
+           } = summary
+
+    assert String.starts_with?(relay_route_id, "relay_data_path:sat_a:downlink_1:")
+    assert relay_route_id =~ ~r/^relay_data_path:sat_a:downlink_1:[0-9a-f]{12}$/
+    assert summary["model_limits"] == LinkCapacity.capabilities().relay_data_path_model_limits
+  end
+
   test "validates checked-in resource filter summary fixture" do
     report = read_json!("study_results/resource_filter_report_v1.json")
     summary = read_json!("study_results/resource_filter_summary_v1.json")
