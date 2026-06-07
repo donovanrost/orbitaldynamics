@@ -1854,6 +1854,118 @@ defmodule OrbitalDynamics.SchemaTest do
              summary["model_limits"]
   end
 
+  test "validates checked-in operational quality gate import readiness summary fixture" do
+    source = %{
+      "schema_contract" => "cadence_import_manifest.v1",
+      "model" => "cadence_import_manifest_fixture",
+      "manifest_id" => "manifest_1",
+      "source_artifact_type" => "planned_activity.v1",
+      "source_artifact_id" => "activity_1",
+      "model_limits" => ["adapter_handoff_only"],
+      "rows" => [
+        %{
+          "id" => "import_1",
+          "rank" => 1,
+          "import_action" => "import_replacement_activity",
+          "import_status" => "ready_for_import",
+          "cadence_import_status" => "present",
+          "source_freshness_report" => %{
+            "schema_contract" => "freshness_report.v1",
+            "model" => "accepted_snapshot_horizon_and_quality_freshness",
+            "generated_at" => "2026-05-14T00:00:00Z",
+            "source" => "accepted_planning_state",
+            "accepted_state_snapshot_id" => "accepted_state_1",
+            "accepted_state_age_s" => 120.0,
+            "max_accepted_state_age_s" => 60.0,
+            "horizon_start_s" => 0.0,
+            "horizon_end_s" => 600.0,
+            "accepted_state_epoch_s" => -120.0,
+            "state_quality" => "planning_accepted",
+            "allowed_state_quality_levels" => ["planning_accepted"],
+            "status" => "stale",
+            "stale_reasons" => ["accepted_snapshot_older_than_policy"],
+            "unknown_reasons" => []
+          }
+        }
+      ]
+    }
+
+    summary =
+      read_json!("study_results/operational_quality_gate_import_readiness_summary_v1.json")
+
+    generated_summary = OrbitalDynamics.operational_quality_gate_import_readiness_summary(source)
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "operational_quality_gate_import_readiness_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "schema_contract" => "operational_quality_gate_import_readiness_summary.v1",
+             "model" => "artifact_only_quality_gate_import_readiness_summary",
+             "source" => "quality_gate_report.v1",
+             "source_artifact_type" => "planned_activity.v1",
+             "source_artifact_id" => "activity_1",
+             "source_quality_gate_report_id" => "quality_gate:planned_activity.v1:activity_1",
+             "source_readiness_report_id" =>
+               "operational_readiness:planned_activity.v1:activity_1",
+             "import_readiness_row_count" => 1,
+             "ready_for_import_count" => 1,
+             "manifest_review_required_count" => 0,
+             "blocked_import_count" => 0,
+             "missing_import_count" => 0,
+             "invalid_cadence_import_count" => 0,
+             "current_freshness_count" => 0,
+             "stale_freshness_count" => 1,
+             "unknown_freshness_count" => 0,
+             "freshness_status_counts" => %{"stale" => 1},
+             "freshness_status_ids" => ["stale"],
+             "import_status_counts" => %{"ready_for_import" => 1},
+             "import_status_ids" => ["ready_for_import"],
+             "cadence_import_status_counts" => %{"present" => 1},
+             "cadence_import_status_ids" => ["present"],
+             "freshness_review_required" => true,
+             "import_preparation_required" => false,
+             "import_blocked" => false,
+             "quality_gate_row_ids_by_status" => %{
+               "review_required" => [
+                 "quality_gate:planned_activity.v1:activity_1:cadence_import:5"
+               ]
+             },
+             "quality_gate_ids_by_status" => %{"review_required" => ["cadence_import"]},
+             "review_required_quality_gate_row_ids" => [
+               "quality_gate:planned_activity.v1:activity_1:cadence_import:5"
+             ],
+             "blocked_quality_gate_row_ids" => [],
+             "ready_quality_gate_row_ids" => [],
+             "analysis_only_quality_gate_row_ids" => [],
+             "stale_or_unknown_freshness_quality_gate_row_ids" => [
+               "quality_gate:planned_activity.v1:activity_1:cadence_import:5"
+             ],
+             "import_preparation_quality_gate_row_ids" => [],
+             "blocked_import_quality_gate_row_ids" => [],
+             "import_readiness_gate_ids" => ["cadence_import"],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_cadence_write",
+               "operator_authority" => "not_granted_by_import_readiness_summary",
+               "cadence_write" => "not_performed_by_summary",
+               "command_execution" => "not_performed_by_summary",
+               "source" => "quality_gate_report.v1"
+             }
+           } = summary
+
+    assert summary["model_limits"] == [
+             "quality_gate_import_readiness_summary_routes_only",
+             "quality_gate_import_readiness_summary_does_not_approve_or_import"
+           ]
+
+    assert {:ok, import_readiness_schema} =
+             Schema.json_schema("operational_quality_gate_import_readiness_summary.v1")
+
+    assert get_in(import_readiness_schema, ["properties", "model_limits", "const"]) ==
+             summary["model_limits"]
+  end
+
   test "validates checked-in station reservation review summary fixture" do
     review_summary = read_json!("study_results/station_reservation_review_summary_v1.json")
 

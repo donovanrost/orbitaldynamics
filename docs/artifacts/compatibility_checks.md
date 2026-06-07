@@ -462,6 +462,10 @@ status maps, review/stale/import-preparation/blocked row routing, analysis-only
 boundaries, and the no-Cadence-write/no-authority assumptions, and executable
 verification rejects stale ready-for-import counts plus stale row-derived
 freshness evidence before adapter queues can trust the compact summary.
+Focused checked-in fixture coverage exact-compares the public
+`OrbitalDynamics.operational_quality_gate_import_readiness_summary/1` facade
+output from the deterministic planned-activity ready-import source with stale
+freshness evidence before schema validation.
 CandidateRefresh replay also derives reconstructed quality-gate status,
 generic ready/review/analysis/blocked row routing, and row counts from
 `quality_gate_row_ids_by_status` when present, preventing stale compact
