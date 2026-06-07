@@ -1472,8 +1472,51 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
 
     assert model_limits == expected_model_limits
 
+    assert get_in(report, ["assumptions", "subsystem_model_capability_contract"]) ==
+             "subsystem_model_capability.v1"
+
+    assert get_in(report, ["assumptions", "subsystem_model_capability_ids"]) == [
+             "subsystem.power.battery.energy_storage.planning_grade",
+             "subsystem.data_recorder.storage_buffer.planning_grade"
+           ]
+
+    assert get_in(report, ["assumptions", "subsystem_model_capability_ids_by_resource"]) == %{
+             "battery" => "subsystem.power.battery.energy_storage.planning_grade",
+             "storage" => "subsystem.data_recorder.storage_buffer.planning_grade"
+           }
+
     assert {:ok, %{"schema_contract" => "resource_projection_report.v1"}} =
              Schema.validate_artifact(report)
+
+    stale_subsystem_ids =
+      put_in(report, ["assumptions", "subsystem_model_capability_ids"], [
+        "subsystem.unknown.planning_grade"
+      ])
+
+    assert {:error, stale_subsystem_ids_report} = Schema.validate_artifact(stale_subsystem_ids)
+
+    assert Enum.any?(
+             stale_subsystem_ids_report["errors"],
+             &(&1["path"] == "$.assumptions.subsystem_model_capability_ids" and
+                 &1["message"] == "must match ResourceProjection subsystem model capability IDs")
+           )
+
+    stale_subsystem_ids_by_resource =
+      put_in(
+        report,
+        ["assumptions", "subsystem_model_capability_ids_by_resource", "storage"],
+        "subsystem.storage.legacy"
+      )
+
+    assert {:error, stale_subsystem_ids_by_resource_report} =
+             Schema.validate_artifact(stale_subsystem_ids_by_resource)
+
+    assert Enum.any?(
+             stale_subsystem_ids_by_resource_report["errors"],
+             &(&1["path"] == "$.assumptions.subsystem_model_capability_ids_by_resource" and
+                 &1["message"] ==
+                   "must match ResourceProjection subsystem model capability IDs by resource")
+           )
 
     assert %{
              "projected_resources" => [
@@ -5029,6 +5072,20 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
     assert "no_subsystem_simulation" in model_limits
     assert "no_realized_state_resource_reconciliation" in model_limits
 
+    assert get_in(flow_report, ["assumptions", "subsystem_model_capability_contract"]) ==
+             "subsystem_model_capability.v1"
+
+    assert get_in(flow_report, ["assumptions", "subsystem_model_capability_ids"]) == [
+             "subsystem.power.battery.energy_storage.planning_grade",
+             "subsystem.data_recorder.storage_buffer.planning_grade"
+           ]
+
+    assert get_in(flow_report, ["assumptions", "subsystem_model_capability_ids_by_resource"]) ==
+             %{
+               "battery" => "subsystem.power.battery.energy_storage.planning_grade",
+               "storage" => "subsystem.data_recorder.storage_buffer.planning_grade"
+             }
+
     assert ResourceProjection.flow_report(projection_report) == flow_report
     assert ResourceProjection.flow_report(flow_report) == flow_report
     assert ResourceProjection.flow_summary(projection_report) == flow_report
@@ -5052,6 +5109,22 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
 
     assert {:ok, %{"schema_contract" => "resource_projection_flow_summary.v1"}} =
              Schema.validate_artifact(flow_report)
+
+    stale_subsystem_contract =
+      put_in(
+        flow_report,
+        ["assumptions", "subsystem_model_capability_contract"],
+        "spacecraft_model.v1"
+      )
+
+    assert {:error, stale_subsystem_contract_report} =
+             Schema.validate_artifact(stale_subsystem_contract)
+
+    assert Enum.any?(
+             stale_subsystem_contract_report["errors"],
+             &(&1["path"] == "$.assumptions.subsystem_model_capability_contract" and
+                 &1["message"] == "must equal \"subsystem_model_capability.v1\"")
+           )
 
     stale_model = Map.put(flow_report, "model", "custom_selected_activity_resource_flow_summary")
 

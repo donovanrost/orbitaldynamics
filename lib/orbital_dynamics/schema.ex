@@ -15212,6 +15212,10 @@ defmodule OrbitalDynamics.Schema do
     }
   end
 
+  defp json_schema_property("assumptions", @resource_projection_report, _contract) do
+    resource_projection_assumptions_json_schema()
+  end
+
   defp json_schema_property("model", @resource_projection_flow_summary, _contract) do
     %{"type" => "string", "const" => "artifact_only_selected_activity_resource_flow_summary"}
   end
@@ -15339,7 +15343,7 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property("assumptions", @resource_projection_flow_summary, _contract) do
-    %{"type" => "object", "additionalProperties" => true}
+    resource_projection_assumptions_json_schema()
   end
 
   defp json_schema_property("conflict_groups", @contact_contention_report, _contract) do
@@ -37308,6 +37312,7 @@ defmodule OrbitalDynamics.Schema do
     )
     |> expect_type(path, report, "projected_resources", :list)
     |> expect_type(path, report, "assumptions", :map)
+    |> validate_resource_projection_subsystem_model_assumptions(path, report)
     |> validate_optional_rows(
       path <> ".invalid_resource_summary_inputs",
       Map.get(report, "invalid_resource_summary_inputs"),
@@ -37510,6 +37515,7 @@ defmodule OrbitalDynamics.Schema do
       "must match resource projection model limits"
     )
     |> expect_type(path, summary, "assumptions", :map)
+    |> validate_resource_projection_subsystem_model_assumptions(path, summary)
     |> validate_rows(
       "#{path}.projected_resources",
       Map.get(summary, "projected_resources", []),
@@ -52715,6 +52721,76 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.ResourceProjection.capabilities()
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
+  end
+
+  defp resource_projection_assumptions_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "properties" => %{
+        "subsystem_model_capability_contract" => %{
+          "type" => "string",
+          "const" => "subsystem_model_capability.v1"
+        },
+        "subsystem_model_capability_ids" => %{
+          "type" => "array",
+          "const" => resource_projection_subsystem_model_capability_ids(),
+          "items" => %{
+            "type" => "string",
+            "enum" => resource_projection_subsystem_model_capability_ids()
+          }
+        },
+        "subsystem_model_capability_ids_by_resource" => %{
+          "type" => "object",
+          "const" => resource_projection_subsystem_model_capability_ids_by_resource(),
+          "additionalProperties" => %{"type" => "string"}
+        }
+      }
+    }
+  end
+
+  defp validate_resource_projection_subsystem_model_assumptions(
+         issues,
+         path,
+         %{"assumptions" => assumptions}
+       )
+       when is_map(assumptions) do
+    issues
+    |> expect_optional_field_equals(
+      path <> ".assumptions",
+      assumptions,
+      "subsystem_model_capability_contract",
+      "subsystem_model_capability.v1",
+      "must equal \"subsystem_model_capability.v1\""
+    )
+    |> expect_optional_field_equals(
+      path <> ".assumptions",
+      assumptions,
+      "subsystem_model_capability_ids",
+      resource_projection_subsystem_model_capability_ids(),
+      "must match ResourceProjection subsystem model capability IDs"
+    )
+    |> expect_optional_field_equals(
+      path <> ".assumptions",
+      assumptions,
+      "subsystem_model_capability_ids_by_resource",
+      resource_projection_subsystem_model_capability_ids_by_resource(),
+      "must match ResourceProjection subsystem model capability IDs by resource"
+    )
+  end
+
+  defp validate_resource_projection_subsystem_model_assumptions(issues, _path, _artifact),
+    do: issues
+
+  defp resource_projection_subsystem_model_capability_ids do
+    OrbitalDynamics.ResourceProjection.capabilities()
+    |> Map.fetch!(:subsystem_model_capability_ids)
+  end
+
+  defp resource_projection_subsystem_model_capability_ids_by_resource do
+    OrbitalDynamics.ResourceProjection.capabilities()
+    |> Map.fetch!(:subsystem_model_capability_ids_by_resource)
+    |> Map.new(fn {resource, id} -> {Atom.to_string(resource), id} end)
   end
 
   defp resource_projection_report_models do

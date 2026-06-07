@@ -1762,6 +1762,15 @@ defmodule OrbitalDynamics.SchemaTest do
                "realized_state_reconciliation" => "not_performed",
                "scope" => "selected_activity_resource_flow_and_pressure_evidence",
                "source" => "campaign.resource_summaries",
+               "subsystem_model_capability_contract" => "subsystem_model_capability.v1",
+               "subsystem_model_capability_ids" => [
+                 "subsystem.power.battery.energy_storage.planning_grade",
+                 "subsystem.data_recorder.storage_buffer.planning_grade"
+               ],
+               "subsystem_model_capability_ids_by_resource" => %{
+                 "battery" => "subsystem.power.battery.energy_storage.planning_grade",
+                 "storage" => "subsystem.data_recorder.storage_buffer.planning_grade"
+               },
                "subsystem_simulation" => "not_performed"
              }
            } = summary
@@ -4555,11 +4564,13 @@ defmodule OrbitalDynamics.SchemaTest do
                %{
                  "spacecraft_id" => "leo_1",
                  "projected_storage_margin" => 0.75,
-                 "projected_downlink_margin" => 1.0,
+                 "projected_downlink_margin" => projected_downlink_margin,
                  "resource_source_quality" => "operator_supplied"
                }
              ]
            } = resource_projection_report
+
+    assert projected_downlink_margin == 1.0
 
     invalid_resource_projection_input_count =
       Map.put(resource_projection_report, "input_resource_summary_count", 1.0)

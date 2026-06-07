@@ -372,6 +372,17 @@ defmodule OrbitalDynamics.ResourceProjection do
     }
   end
 
+  defp subsystem_model_capability_assumptions do
+    %{
+      "subsystem_model_capability_contract" => "subsystem_model_capability.v1",
+      "subsystem_model_capability_ids" => subsystem_model_capability_ids(),
+      "subsystem_model_capability_ids_by_resource" =>
+        subsystem_model_capability_ids_by_resource()
+        |> Enum.map(fn {resource, id} -> {Atom.to_string(resource), id} end)
+        |> Map.new()
+    }
+  end
+
   @doc """
   Builds a `resource_projection_report.v1`.
 
@@ -485,30 +496,32 @@ defmodule OrbitalDynamics.ResourceProjection do
         resource_trust_boundary_status_counts(projected_resources),
       "resource_spacecraft_ids_by_trust_boundary_status" =>
         resource_spacecraft_ids_by_trust_boundary_status(projected_resources),
-      "assumptions" => %{
-        "source" => source,
-        "activity_match" =>
-          "spacecraft_id_or_scenario_id_match_id_less_single_summary_applies_to_all_activities",
-        "storage_model" =>
-          "starting_storage_used_mb + estimated_storage_produced_mb - storage_limited_downlinked_mb",
-        "downlink_model" => "capacity_adjusted_estimated_throughput_consumes_downlink_capacity",
-        "activity_flow_model" =>
-          "activities_ordered_by_starts_at_s_then_id_with_storage_downlink_roll_forward",
-        "activity_status_model" =>
-          "terminal_or_approval_rejected_activities_are_audited_with_zero_projected_resource_effect",
-        "realized_data_volume_model" =>
-          "actual data-volume fields and delivered/received aliases are preserved as evidence and do not reconcile projected resource state",
-        "invalid_activity_input" =>
-          "selected activity inputs missing stable identity, activity type, valid unit-interval completion or capacity-fraction evidence, or valid non-negative resource quantities are preserved for operator review and excluded from resource projection",
-        "invalid_resource_summary_input" =>
-          "external resource summaries with invalid identity, negative capacity/use fields, out-of-range margins, or stale derived margins are preserved for operator review and excluded from resource projection",
-        "duplicate_resource_summary_scope" =>
-          "duplicate valid resource summaries for the same spacecraft or wildcard scope are preserved for operator review and excluded from resource projection math",
-        "mixed_wildcard_resource_summary_scope" =>
-          "id-less wildcard resource summaries only apply when they are the single summary; mixed wildcard and scoped summaries are preserved for operator review and excluded from projection math",
-        "resource_trust_boundary_model" =>
-          "resource_trust_boundary_status records whether each external resource summary declared a trust boundary"
-      }
+      "assumptions" =>
+        %{
+          "source" => source,
+          "activity_match" =>
+            "spacecraft_id_or_scenario_id_match_id_less_single_summary_applies_to_all_activities",
+          "storage_model" =>
+            "starting_storage_used_mb + estimated_storage_produced_mb - storage_limited_downlinked_mb",
+          "downlink_model" => "capacity_adjusted_estimated_throughput_consumes_downlink_capacity",
+          "activity_flow_model" =>
+            "activities_ordered_by_starts_at_s_then_id_with_storage_downlink_roll_forward",
+          "activity_status_model" =>
+            "terminal_or_approval_rejected_activities_are_audited_with_zero_projected_resource_effect",
+          "realized_data_volume_model" =>
+            "actual data-volume fields and delivered/received aliases are preserved as evidence and do not reconcile projected resource state",
+          "invalid_activity_input" =>
+            "selected activity inputs missing stable identity, activity type, valid unit-interval completion or capacity-fraction evidence, or valid non-negative resource quantities are preserved for operator review and excluded from resource projection",
+          "invalid_resource_summary_input" =>
+            "external resource summaries with invalid identity, negative capacity/use fields, out-of-range margins, or stale derived margins are preserved for operator review and excluded from resource projection",
+          "duplicate_resource_summary_scope" =>
+            "duplicate valid resource summaries for the same spacecraft or wildcard scope are preserved for operator review and excluded from resource projection math",
+          "mixed_wildcard_resource_summary_scope" =>
+            "id-less wildcard resource summaries only apply when they are the single summary; mixed wildcard and scoped summaries are preserved for operator review and excluded from projection math",
+          "resource_trust_boundary_model" =>
+            "resource_trust_boundary_status records whether each external resource summary declared a trust boundary"
+        }
+        |> Map.merge(subsystem_model_capability_assumptions())
     }
   end
 
@@ -703,18 +716,20 @@ defmodule OrbitalDynamics.ResourceProjection do
       "projected_resources" => Enum.map(projected_resources, &resource_flow_projection_summary/1),
       "activity_resource_flow" => flow_rows,
       "model_limits" => model_limits(),
-      "assumptions" => %{
-        "execution_boundary" => "artifact_only_no_schedule_mutation",
-        "scope" => "selected_activity_resource_flow_and_pressure_evidence",
-        "projection_model" => "thin_time_ordered_resource_roll_forward",
-        "source" => get_in(report, ["assumptions", "source"]),
-        "activity_status_model" =>
-          get_in(report, ["assumptions", "activity_status_model"]) ||
-            "terminal_or_approval_rejected_activities_are_audited_with_zero_projected_resource_effect",
-        "subsystem_simulation" => "not_performed",
-        "realized_state_reconciliation" => "not_performed",
-        "latency_model" => "declared_activity_timestamps_only"
-      }
+      "assumptions" =>
+        %{
+          "execution_boundary" => "artifact_only_no_schedule_mutation",
+          "scope" => "selected_activity_resource_flow_and_pressure_evidence",
+          "projection_model" => "thin_time_ordered_resource_roll_forward",
+          "source" => get_in(report, ["assumptions", "source"]),
+          "activity_status_model" =>
+            get_in(report, ["assumptions", "activity_status_model"]) ||
+              "terminal_or_approval_rejected_activities_are_audited_with_zero_projected_resource_effect",
+          "subsystem_simulation" => "not_performed",
+          "realized_state_reconciliation" => "not_performed",
+          "latency_model" => "declared_activity_timestamps_only"
+        }
+        |> Map.merge(subsystem_model_capability_assumptions())
     }
     |> compact_map()
   end

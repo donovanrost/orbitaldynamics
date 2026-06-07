@@ -242,6 +242,11 @@ Status: **implemented**.
   battery and storage record IDs behind the selected-activity flow assumptions,
   so discovery clients can link flow evidence to declarative model contracts
   without treating the roll-forward as propagated subsystem state.
+- Generated `resource_projection_report.v1` artifacts and derived
+  `resource_projection_flow_summary.v1` artifacts also carry those exact
+  subsystem capability contract/ID assumptions, and runtime validation rejects
+  stale assumption values when adapters provide them, while keeping the fields
+  additive for older artifacts.
 - V1 `campaign_plan.v1` artifacts attach that compact flow summary whenever
   selected-activity resource projection is available, letting campaign-level
   review/import queues route storage, downlink, ignored-activity, and pressure

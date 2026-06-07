@@ -127,7 +127,9 @@ adjustment and the declared battery-energy consumed/generated alias paths used
 before battery state projection. ResourceProjection and ResourceSummary
 roll-forward capability metadata now also name the exact
 `subsystem_model_capability.v1` battery and storage records behind those thin
-flow assumptions, without claiming continuous subsystem-state propagation.
+flow assumptions, and generated projection reports/flow summaries carry the
+same contract/ID assumptions for review/import traceability without claiming
+continuous subsystem-state propagation.
 `resource_projection_report.v1` validation and schema export now pin the known
 thin projection model variants so stale model identifiers fail before the
 artifact-only resource-state evidence is trusted.
