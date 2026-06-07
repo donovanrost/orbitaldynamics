@@ -213,6 +213,10 @@ required-capacity fraction/percent paths used by capacity-pack demand totals,
 and contention resolution summaries route required-capacity demand by
 selected/deferred status plus source counts and contact IDs by source for
 review/import triage.
+Contact-intent summaries now carry station-capacity and required-capacity alias
+path assumptions directly in the artifact, with runtime validation pinning stale
+values when present, while preserving the no-provider-reservation and
+no-schedule-mutation boundary.
 Link-capacity summaries likewise derive contact counters, ignored-contact
 reason counts, selected/required/actual evidence counters, invalid-input
 counters, and station-reservation match counts from station rows or evidence

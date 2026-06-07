@@ -1047,6 +1047,16 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
       end)
 
     summary = ContactIntent.summary(stale_rows)
+    capabilities = ContactIntent.capabilities()
+
+    station_capacity_value_paths =
+      json_capacity_value_paths(capabilities.station_capacity_value_paths)
+
+    required_capacity_value_paths =
+      json_capacity_value_paths(capabilities.required_capacity_value_paths)
+
+    required_capacity_fraction_source_values =
+      capabilities.required_capacity_fraction_source_values
 
     assert summary == %{
              "schema_contract" => "contact_intent_summary.v1",
@@ -1171,6 +1181,10 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
              "assumptions" => %{
                "execution_boundary" =>
                  "artifact_only_no_provider_reservation_or_schedule_mutation",
+               "required_capacity_fraction_source_values" =>
+                 required_capacity_fraction_source_values,
+               "required_capacity_value_paths" => required_capacity_value_paths,
+               "station_capacity_value_paths" => station_capacity_value_paths,
                "source_artifact_type" => "contact_intent.v1"
              }
            }
@@ -1248,6 +1262,30 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
     assert get_in(summary_schema, ["properties", "model_limits", "items", "enum"]) ==
              summary["model_limits"]
 
+    assert get_in(summary_schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "station_capacity_value_paths",
+             "const"
+           ]) == station_capacity_value_paths
+
+    assert get_in(summary_schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "required_capacity_value_paths",
+             "const"
+           ]) == required_capacity_value_paths
+
+    assert get_in(summary_schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "required_capacity_fraction_source_values",
+             "const"
+           ]) == required_capacity_fraction_source_values
+
     assert get_in(summary_schema, ["properties", "direction_routing", "type"]) == "object"
 
     stale_model_summary = Map.put(summary, "model", "stale_contact_intent_summary")
@@ -1281,6 +1319,55 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
              stale_source_summary_validation["errors"],
              &(&1["path"] == "$.source_artifact_type" and
                  &1["message"] == "must equal \"contact_intent.v1\"")
+           )
+
+    stale_required_capacity_paths =
+      put_in(
+        summary,
+        ["assumptions", "required_capacity_value_paths"],
+        [%{"unit" => "fraction", "path" => ["legacy_capacity_fraction"]}]
+      )
+
+    assert {:error, stale_required_capacity_paths_validation} =
+             Schema.validate_artifact(stale_required_capacity_paths)
+
+    assert Enum.any?(
+             stale_required_capacity_paths_validation["errors"],
+             &(&1["path"] == "$.assumptions.required_capacity_value_paths" and
+                 &1["message"] == "must match ContactIntent required capacity value paths")
+           )
+
+    stale_station_capacity_paths =
+      put_in(
+        summary,
+        ["assumptions", "station_capacity_value_paths"],
+        [%{"unit" => "fraction", "path" => ["legacy_station_capacity"]}]
+      )
+
+    assert {:error, stale_station_capacity_paths_validation} =
+             Schema.validate_artifact(stale_station_capacity_paths)
+
+    assert Enum.any?(
+             stale_station_capacity_paths_validation["errors"],
+             &(&1["path"] == "$.assumptions.station_capacity_value_paths" and
+                 &1["message"] == "must match ContactIntent station capacity value paths")
+           )
+
+    stale_required_capacity_sources =
+      put_in(
+        summary,
+        ["assumptions", "required_capacity_fraction_source_values"],
+        ["legacy_required_capacity_source"]
+      )
+
+    assert {:error, stale_required_capacity_sources_validation} =
+             Schema.validate_artifact(stale_required_capacity_sources)
+
+    assert Enum.any?(
+             stale_required_capacity_sources_validation["errors"],
+             &(&1["path"] == "$.assumptions.required_capacity_fraction_source_values" and
+                 &1["message"] ==
+                   "must match ContactIntent required capacity fraction source values")
            )
 
     stale_summary = Map.put(summary, "capacity_pack_required_capacity_fraction", 99.0)
@@ -2411,5 +2498,11 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
         ends_at_s: 10.0
       })
     end
+  end
+
+  defp json_capacity_value_paths(paths) do
+    Enum.map(paths, fn %{unit: unit, path: path} ->
+      %{"unit" => Atom.to_string(unit), "path" => path}
+    end)
   end
 end

@@ -328,6 +328,20 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
     Enum.map(paths, fn {unit, path} -> %{unit: unit, path: path} end)
   end
 
+  defp capacity_value_path_assumptions(paths) do
+    Enum.map(paths, fn {unit, path} -> %{"unit" => Atom.to_string(unit), "path" => path} end)
+  end
+
+  defp capacity_alias_assumptions do
+    %{
+      "station_capacity_value_paths" =>
+        capacity_value_path_assumptions(@station_capacity_value_paths),
+      "required_capacity_value_paths" =>
+        capacity_value_path_assumptions(@required_capacity_value_paths),
+      "required_capacity_fraction_source_values" => @required_capacity_fraction_source_values
+    }
+  end
+
   @doc """
   Converts downlink/contact-like activity maps into `contact_intent.v1` rows.
   """
@@ -449,10 +463,12 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
           required_capacity_fraction_by_direction_and_station,
           capacity_pack_contact_ids_by_direction_and_station
         ),
-      "assumptions" => %{
-        "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
-        "source_artifact_type" => @schema_contract
-      }
+      "assumptions" =>
+        %{
+          "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
+          "source_artifact_type" => @schema_contract
+        }
+        |> Map.merge(capacity_alias_assumptions())
     }
   end
 

@@ -11108,7 +11108,7 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property("assumptions", @contact_intent_summary, _contract) do
-    %{"type" => "object", "additionalProperties" => true}
+    contact_intent_summary_assumptions_json_schema()
   end
 
   defp json_schema_property("classification", @policy_decision, _contract) do
@@ -19844,6 +19844,73 @@ defmodule OrbitalDynamics.Schema do
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
     |> Enum.sort()
+  end
+
+  defp contact_intent_summary_assumptions_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "properties" => %{
+        "execution_boundary" => %{
+          "type" => "string",
+          "const" => "artifact_only_no_provider_reservation_or_schedule_mutation"
+        },
+        "source_artifact_type" => %{"type" => "string", "const" => "contact_intent.v1"},
+        "station_capacity_value_paths" => %{
+          "type" => "array",
+          "const" => contact_intent_station_capacity_value_path_assumptions(),
+          "items" => contact_intent_capacity_value_path_json_schema()
+        },
+        "required_capacity_value_paths" => %{
+          "type" => "array",
+          "const" => contact_intent_required_capacity_value_path_assumptions(),
+          "items" => contact_intent_capacity_value_path_json_schema()
+        },
+        "required_capacity_fraction_source_values" => %{
+          "type" => "array",
+          "const" => contact_intent_required_capacity_fraction_source_values(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_intent_required_capacity_fraction_source_values()
+          }
+        }
+      }
+    }
+  end
+
+  defp contact_intent_capacity_value_path_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => false,
+      "required" => ["unit", "path"],
+      "properties" => %{
+        "unit" => %{"type" => "string", "enum" => ["fraction", "percent"]},
+        "path" => string_array_schema()
+      }
+    }
+  end
+
+  defp contact_intent_station_capacity_value_path_assumptions do
+    OrbitalDynamics.Communications.ContactIntent.capabilities()
+    |> Map.fetch!(:station_capacity_value_paths)
+    |> contact_intent_capacity_value_path_assumptions()
+  end
+
+  defp contact_intent_required_capacity_value_path_assumptions do
+    OrbitalDynamics.Communications.ContactIntent.capabilities()
+    |> Map.fetch!(:required_capacity_value_paths)
+    |> contact_intent_capacity_value_path_assumptions()
+  end
+
+  defp contact_intent_capacity_value_path_assumptions(paths) do
+    Enum.map(paths, fn %{unit: unit, path: path} ->
+      %{"unit" => Atom.to_string(unit), "path" => path}
+    end)
+  end
+
+  defp contact_intent_required_capacity_fraction_source_values do
+    OrbitalDynamics.Communications.ContactIntent.capabilities()
+    |> Map.fetch!(:required_capacity_fraction_source_values)
   end
 
   defp contact_filter_report_model_limits do
@@ -32670,6 +32737,27 @@ defmodule OrbitalDynamics.Schema do
           assumptions,
           "source_artifact_type",
           "contact_intent.v1"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_capacity_value_paths",
+          contact_intent_station_capacity_value_path_assumptions(),
+          "must match ContactIntent station capacity value paths"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "required_capacity_value_paths",
+          contact_intent_required_capacity_value_path_assumptions(),
+          "must match ContactIntent required capacity value paths"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "required_capacity_fraction_source_values",
+          contact_intent_required_capacity_fraction_source_values(),
+          "must match ContactIntent required capacity fraction source values"
         )
 
       _assumptions ->
