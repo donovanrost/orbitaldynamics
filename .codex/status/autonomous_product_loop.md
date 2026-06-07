@@ -8,7 +8,7 @@ Current slice:
 Contact allocation station-pressure capability assumptions.
 
 Status:
-Implemented, verified, reviewed, and committed; push pending.
+Implemented, verified, reviewed, committed, and pushed.
 
 Slice completed:
 Station-pressure summaries now carry optional capability-derived assumptions for
@@ -60,6 +60,9 @@ boundary.
 
 Product commit:
 `d0c0734` (`Add station pressure summary capability assumptions`).
+
+Handoff commit:
+`110d855` (`Update autonomous loop handoff`).
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
