@@ -1074,10 +1074,12 @@ Station-reservation review, hold, and hold import-readiness summary validation
 rejects stale generated `model_limits`, and schema export pins the artifact-only
 summary models plus exact StationCalendar `model_limits` used by generated
 handoffs. The checked-in
-`study_results/station_reservation_hold_summary_v1.json` and
+`study_results/station_reservation_review_summary_v1.json`,
+`study_results/station_reservation_hold_summary_v1.json`, and
 `study_results/station_reservation_hold_import_readiness_summary_v1.json`
-fixtures cover expired and missing hold evidence, owner/status/action routing,
-and no-provider-write/no-Cadence-write boundaries.
+fixtures cover expired, active, and missing reservation evidence,
+owner/status/action routing, no-provider-reservation review boundaries, and the
+hold import-readiness no-provider-write/no-Cadence-write boundary.
 Candidate-refresh station-reservation replay also derives hold
 import-readiness status/action/direction routing from compact
 `import_readiness_rows` when present, so stale top-level hold import maps cannot

@@ -939,51 +939,62 @@ defmodule OrbitalDynamics.SchemaTest do
            } = Validation.artifact_observations("contact_contention_report.v1", report)
   end
 
+  test "validates checked-in station reservation review summary fixture" do
+    review_summary = read_json!("study_results/station_reservation_review_summary_v1.json")
+
+    reservation_report = station_reservation_summary_fixture_report()
+
+    generated_review_summary =
+      OrbitalDynamics.station_reservation_review_summary(reservation_report, now_s: 300.0)
+
+    assert generated_review_summary == review_summary
+
+    assert {:ok, %{"schema_contract" => "station_reservation_review_summary.v1"}} =
+             Schema.validate_artifact(review_summary)
+
+    assert %{
+             "source_artifact_type" => "station_reservation_report.v1",
+             "source" => "station_calendar_report.reservation_evidence",
+             "reservation_count" => 3,
+             "affected_contact_reservation_count" => 1,
+             "provider_calendar_contention_group_count" => 2,
+             "reservation_review_status" => "review_required",
+             "reservation_expiration_count" => 2,
+             "earliest_reservation_expires_at_s" => 240.0,
+             "expired_reservation_count" => 1,
+             "active_reservation_count" => 1,
+             "missing_reservation_expiration_count" => 1,
+             "reservation_expiration_status_counts" => %{
+               "active" => 1,
+               "expired" => 1,
+               "missing" => 1
+             },
+             "reservation_ids_by_expiration_status" => %{
+               "active" => ["reservation_active"],
+               "expired" => ["reservation_expired"],
+               "missing" => ["reservation_missing"]
+             },
+             "review_reservation_ids" => [
+               "reservation_active",
+               "reservation_expired",
+               "reservation_missing"
+             ],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_provider_reservation",
+               "operator_authority" => "not_granted_by_summary",
+               "deadline_evaluation" => "relative_to_now_s",
+               "now_s" => 300.0
+             }
+           } = review_summary
+  end
+
   test "validates checked-in station reservation hold summary fixtures" do
     hold_summary = read_json!("study_results/station_reservation_hold_summary_v1.json")
 
     hold_import_readiness_summary =
       read_json!("study_results/station_reservation_hold_import_readiness_summary_v1.json")
 
-    reservation_report =
-      OrbitalDynamics.station_reservation_report(%{
-        "schema_contract" => "station_calendar_report.v1",
-        "source" => "ops_calendar",
-        "affected_contacts" => [
-          %{
-            "contact_id" => "dl_source_reserved",
-            "ground_station_id" => "equator_prime",
-            "source_station_calendar_entry" => %{
-              "id" => "calendar_reserved_1",
-              "provider_id" => "ops_calendar",
-              "provider_entry_id" => "provider_reserved_1",
-              "availability" => "reserved",
-              "reservation_id" => "reservation_expired",
-              "reservation_status" => "held",
-              "reserved_by" => "ops_calendar",
-              "reservation_expires_at_s" => 240.0
-            }
-          }
-        ],
-        "provider_calendar_contention_groups" => [
-          %{
-            "provider_calendar_contention_status" => "provider_calendar_overlap",
-            "ground_station_id" => "equator_prime",
-            "reservation_ids" => ["reservation_active"],
-            "reservation_statuses" => ["confirmed"],
-            "reservation_expires_at_s" => [420.0],
-            "required_operator_action" => "review_station_provider_contention"
-          },
-          %{
-            "provider_calendar_contention_status" => "provider_calendar_overlap",
-            "ground_station_id" => "polar_prime",
-            "reservation_ids" => ["reservation_missing"],
-            "reservation_statuses" => ["held"],
-            "reserved_by" => ["partner_calendar"],
-            "required_operator_action" => "review_station_provider_contention"
-          }
-        ]
-      })
+    reservation_report = station_reservation_summary_fixture_report()
 
     generated_hold_summary =
       OrbitalDynamics.station_reservation_hold_summary(reservation_report, now_s: 300.0)
@@ -26734,6 +26745,47 @@ defmodule OrbitalDynamics.SchemaTest do
       },
       source: "stale_provider_calendar"
     )
+  end
+
+  defp station_reservation_summary_fixture_report do
+    OrbitalDynamics.station_reservation_report(%{
+      "schema_contract" => "station_calendar_report.v1",
+      "source" => "ops_calendar",
+      "affected_contacts" => [
+        %{
+          "contact_id" => "dl_source_reserved",
+          "ground_station_id" => "equator_prime",
+          "source_station_calendar_entry" => %{
+            "id" => "calendar_reserved_1",
+            "provider_id" => "ops_calendar",
+            "provider_entry_id" => "provider_reserved_1",
+            "availability" => "reserved",
+            "reservation_id" => "reservation_expired",
+            "reservation_status" => "held",
+            "reserved_by" => "ops_calendar",
+            "reservation_expires_at_s" => 240.0
+          }
+        }
+      ],
+      "provider_calendar_contention_groups" => [
+        %{
+          "provider_calendar_contention_status" => "provider_calendar_overlap",
+          "ground_station_id" => "equator_prime",
+          "reservation_ids" => ["reservation_active"],
+          "reservation_statuses" => ["confirmed"],
+          "reservation_expires_at_s" => [420.0],
+          "required_operator_action" => "review_station_provider_contention"
+        },
+        %{
+          "provider_calendar_contention_status" => "provider_calendar_overlap",
+          "ground_station_id" => "polar_prime",
+          "reservation_ids" => ["reservation_missing"],
+          "reservation_statuses" => ["held"],
+          "reserved_by" => ["partner_calendar"],
+          "required_operator_action" => "review_station_provider_contention"
+        }
+      ]
+    })
   end
 
   defp read_json!(path) do
