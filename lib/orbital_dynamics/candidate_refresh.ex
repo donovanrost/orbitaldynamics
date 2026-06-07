@@ -6883,6 +6883,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       }
     }
     |> Map.merge(source_report_storage_downlink_pressure_summary_fields(source_reports))
+    |> Map.merge(source_report_candidate_diff_replay_summary_fields(source_reports))
     |> Map.merge(source_report_candidate_rejection_replay_summary_fields(source_reports))
     |> Map.merge(source_report_contact_allocation_replay_summary_fields(source_reports))
     |> Map.merge(source_report_contact_intent_replay_summary_fields(source_reports))
@@ -6995,6 +6996,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    candidate_diff_replay_summary_from_summary(diff_summary, summary_source, replay_scope)
+  end
+
+  defp candidate_diff_replay_summary_from_summary(diff_summary, summary_source, replay_scope) do
     retained_candidate_count = summary_integer(diff_summary, "retained_candidate_count")
     new_candidate_count = summary_integer(diff_summary, "new_candidate_count")
     invalidated_candidate_count = summary_integer(diff_summary, "invalidated_candidate_count")
@@ -9607,6 +9612,27 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "resource_pressure_station_calendar_provider_ids_by_type"),
       "source_report_storage_downlink_pressure_resource_pressure_station_calendar_provider_entry_ids_by_type" =>
         Map.get(summary, "resource_pressure_station_calendar_provider_entry_ids_by_type")
+    }
+  end
+
+  defp source_report_candidate_diff_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("candidate_diff_report", %{})
+      |> candidate_diff_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.candidate_diff_report",
+        "candidate_diff_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_candidate_diff_branch_local_diff_pressure" =>
+        Map.get(summary, "branch_local_diff_pressure"),
+      "source_report_candidate_diff_branch_local_new_candidate_pressure" =>
+        Map.get(summary, "branch_local_new_candidate_pressure"),
+      "source_report_candidate_diff_branch_local_invalidated_candidate_pressure" =>
+        Map.get(summary, "branch_local_invalidated_candidate_pressure"),
+      "source_report_candidate_diff_branch_local_semantic_change_pressure" =>
+        Map.get(summary, "branch_local_semantic_change_pressure")
     }
   end
 

@@ -2188,6 +2188,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "gs_equator" => 2,
                "gs_polar" => 1
              },
+             "source_report_candidate_diff_branch_local_diff_pressure" => true,
+             "source_report_candidate_diff_branch_local_new_candidate_pressure" => true,
+             "source_report_candidate_diff_branch_local_invalidated_candidate_pressure" => true,
+             "source_report_candidate_diff_branch_local_semantic_change_pressure" => true,
              "source_reports" => %{
                "candidate_diff_report" => %{
                  "paths" => ["mission_state.source_candidate_diff_report"],
@@ -2315,7 +2319,11 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_candidate_diff_ground_station_counts" => %{
                "gs_equator" => 2,
                "gs_polar" => 1
-             }
+             },
+             "source_report_candidate_diff_branch_local_diff_pressure" => true,
+             "source_report_candidate_diff_branch_local_new_candidate_pressure" => true,
+             "source_report_candidate_diff_branch_local_invalidated_candidate_pressure" => true,
+             "source_report_candidate_diff_branch_local_semantic_change_pressure" => true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.candidate_diff_replay_summary(artifact) == replay_summary
