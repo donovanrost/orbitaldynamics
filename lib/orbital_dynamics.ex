@@ -51,6 +51,7 @@ defmodule OrbitalDynamics do
   alias OrbitalDynamics.Study
   alias OrbitalDynamics.Study.Benchmark.Report, as: StudyBenchmarkReport
   alias OrbitalDynamics.StudyRunner
+  alias OrbitalDynamics.SubsystemModel
   alias OrbitalDynamics.Timeline
   alias OrbitalDynamics.TimelineFeedback
   alias OrbitalDynamics.Units
@@ -487,6 +488,7 @@ defmodule OrbitalDynamics do
         activity_templates: activity_template_capabilities(),
         candidate_refresh: CandidateRefresh.capabilities(),
         optimizer: Optimizer.capabilities(),
+        subsystem_models: SubsystemModel.capabilities(),
         search: %{
           grid: Grid.capabilities(),
           monte_carlo: MonteCarlo.capabilities()
@@ -1458,6 +1460,27 @@ defmodule OrbitalDynamics do
   """
   def environment_provider_capabilities_for_request(request) do
     Environment.provider_capabilities_for_request(request)
+  end
+
+  @doc """
+  Returns built-in subsystem model capability records.
+  """
+  def subsystem_model_capabilities do
+    SubsystemModel.capabilities()
+  end
+
+  @doc """
+  Describes the planning-grade battery energy-storage subsystem model.
+  """
+  def battery_energy_storage_model(opts \\ []) do
+    SubsystemModel.battery_energy_storage(opts)
+  end
+
+  @doc """
+  Validates a subsystem model capability record.
+  """
+  def validate_subsystem_model_capability(record) do
+    SubsystemModel.validate_capability(record)
   end
 
   @doc """

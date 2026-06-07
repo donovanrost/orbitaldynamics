@@ -38,12 +38,16 @@ Implemented or partially implemented modules and artifacts include:
   Sun and constant Earth-rotation capability records in result artifacts and
   exposes provider capability boundaries for fixed Sun, constant Earth rotation,
   and a reference exponential atmosphere-density interface.
+- Subsystem model registry: `OrbitalDynamics.SubsystemModel` now exposes a
+  schema-validated `subsystem_model_capability.v1` record for planning-grade
+  battery energy storage, giving resource-flow evidence an explicit model
+  identity/provenance boundary before full spacecraft configuration exists.
 - Example manifests and outputs in `studies/`, `study_results/`, and
   `benchmark_results/`.
 
 The current implementation is strongest as a transparent LEO planning prototype.
 Its weakest areas are high-fidelity dynamics, frame/time transformations,
-resource simulation, event precision guarantees, optimizer breadth, schema
-versioning discipline, external validation evidence, external orbit-data
-ingestion, and deeper candidate-refresh integration across V2/V3 repair.
-
+resource simulation beyond declarative planning-grade subsystem contracts, event
+precision guarantees, optimizer breadth, schema versioning discipline, external
+validation evidence, external orbit-data ingestion, and deeper
+candidate-refresh integration across V2/V3 repair.

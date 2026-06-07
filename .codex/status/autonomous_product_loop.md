@@ -5,88 +5,106 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Timeline publication generated-ID identity-policy scope.
+Subsystem model capability contract foothold.
 
 Status:
-Implemented, verified, reviewed, committed, and pushed.
+Implemented, verified, and reviewed; ready to commit and push.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
+- `lib/orbital_dynamics/subsystem_model.ex`
+- `lib/orbital_dynamics.ex`
 - `lib/orbital_dynamics/schema.ex`
+- `lib/orbital_dynamics/validation.ex`
 - `test/orbital_dynamics/schema_test.exs`
+- `test/orbital_dynamics/capabilities_test.exs`
+- `test/orbital_dynamics/validation_test.exs`
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `docs/feature_set/capability_map/17_reproducibility_artifacts_and_audit.md`
-- `schemas/*.schema.json`
+- `study_results/subsystem_model_capability_v1.json`
+- `study_results/capability_catalog_v1.json`
+- `study_results/schema_migration_report_v1.json`
+- `schemas/subsystem_model_capability.v1.schema.json`
 - `schemas/orbital_dynamics.schema_bundle.v1.json`
-- `schemas/study_manifest.v1.schema.json`
+- `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`
+- `docs/feature_set/current_capability_snapshot.md`
+- `docs/mission_planning/high_fidelity/16_near_term_planning_candidates.md`
 
 Slice-selection note:
 Selected slice:
-Advertise the deterministic `timeline_publication_summary.v1` generated
-`publication_id` scope through `Schema.identity_policy/0`.
+Add a narrow `subsystem_model_capability.v1` artifact family with a public
+facade, executable schema validation, checked-in JSON Schema export, capability
+catalog exposure, and one representative battery energy-storage capability
+record.
 
 Why this slice:
-`Timeline.publication_summary/2` already mints stable publication IDs from
-publication sequence, source artifact ID, and superseded artifact IDs, but the
-public identity policy still only advertises older generated-ID scopes. Adding
-this scope closes a current reproducibility/compatibility policy gap for a
-recently promoted timeline handoff artifact.
+High-fidelity planning docs identify explicit spacecraft/subsystem model
+contracts as the first useful resource-simulation foothold. Environment model
+capability records already provide the adjacent pattern; adding the subsystem
+side gives downstream resource projection a schema-validated place to declare
+model identity, provenance, fidelity, parameters, and known limits without
+building the full spacecraft model in this slice.
 
 Level 6 pillar advanced:
-Reproducible artifact identity and Cadence-facing compatibility contracts.
+Resource-simulation model contracts and Cadence-facing setup fidelity.
 
 Implementation notes:
-- Added a `timeline_publication_summary.v1.publication_id` generated-ID scope
-  to `Schema.identity_policy/0`.
-- Focused runtime and schema-export tests pin the generated field and semantic
-  identity fields plus the current semantic-invariant wording.
-- The exported invariant is intentionally limited to stable serialization of
-  the declared lineage; it does not claim collision-proof detection for every
-  possible stable-ID delimiter combination.
-- Refreshed checked-in JSON Schema exports so the embedded identity policy is
-  current.
-- Refreshed the separate checked-in study-manifest JSON Schema, which embeds
-  the same identity policy.
-- The reproducibility capability doc now names timeline-publication
-  `publication_id` lineage in the identity-policy coverage.
+- Added `OrbitalDynamics.SubsystemModel` with a built-in planning-grade
+  battery energy-storage capability record.
+- Added public facades:
+  `OrbitalDynamics.subsystem_model_capabilities/0`,
+  `OrbitalDynamics.battery_energy_storage_model/1`, and
+  `OrbitalDynamics.validate_subsystem_model_capability/1`.
+- Registered `subsystem_model_capability.v1` in the executable schema registry,
+  JSON Schema export path, capability catalog, and validation fixture counts.
+- Runtime validation now rejects unstable IDs and malformed string scalar fields
+  consistently with executable schema validation.
+- Refreshed checked-in schema exports, capability catalog, schema-migration
+  fixture, and new subsystem capability fixture.
+- Updated docs to mark the subsystem-model contract as an implemented foothold
+  while keeping full spacecraft models and propagated subsystem simulation out
+  of scope.
 
 Tests run:
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `mix orbital_dynamics.manifest.schema.export --output schemas/study_manifest.v1.schema.json`
-- `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs test/mix/tasks/orbital_dynamics.schema.export_test.exs`
+- `mix orbital_dynamics.capabilities --format json --output study_results/capability_catalog_v1.json`
+- `mix run -e 'write = fn path, artifact -> json = artifact |> :json.encode() |> IO.iodata_to_binary(); File.write!(path, json <> "\n") end; deprecated = OrbitalDynamics.Validation.schema_migration_report(deprecated_contracts: %{"campaign_plan.v1" => "campaign_strategy.v3"}); write.("study_results/schema_migration_report_v1.json", deprecated)'`
+- `mix format lib/orbital_dynamics/subsystem_model.ex lib/orbital_dynamics.ex lib/orbital_dynamics/schema.ex lib/orbital_dynamics/validation.ex test/orbital_dynamics/capabilities_test.exs test/orbital_dynamics/schema_test.exs test/orbital_dynamics/validation_test.exs test/mix/tasks/orbital_dynamics.schema.export_test.exs`
+- `mix test test/orbital_dynamics/capabilities_test.exs test/orbital_dynamics/schema_test.exs:305 test/orbital_dynamics/schema_test.exs:327 test/orbital_dynamics/schema_test.exs:27393 test/orbital_dynamics/schema_test.exs:29976 test/orbital_dynamics/schema_test.exs:30357 test/mix/tasks/orbital_dynamics.schema.export_test.exs test/orbital_dynamics/validation_test.exs:48 test/orbital_dynamics/validation_test.exs:4322 test/orbital_dynamics/validation_test.exs:10857 test/orbital_dynamics/validation_test.exs:10942`
 - `mix orbital_dynamics.schema.lint --all`
-- `mix test test/orbital_dynamics/schema_test.exs test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix test test/orbital_dynamics/study/manifest_test.exs test/mix/tasks/orbital_dynamics.manifest.schema.export_test.exs`
 - `git diff --check`
 
 Docs/artifacts changed:
-- Updated the reproducibility capability map.
-- Refreshed checked-in standalone schema exports and
-  `schemas/orbital_dynamics.schema_bundle.v1.json`.
-- Refreshed `schemas/study_manifest.v1.schema.json`.
+- Added `study_results/subsystem_model_capability_v1.json`.
+- Added `schemas/subsystem_model_capability.v1.schema.json`.
+- Refreshed `schemas/orbital_dynamics.schema_bundle.v1.json`,
+  `study_results/capability_catalog_v1.json`, and
+  `study_results/schema_migration_report_v1.json`.
+- Updated spacecraft/resource capability map, current capability snapshot, and
+  high-fidelity near-term planning candidates.
 
 Review:
-- Read-only review found two blockers: the separate study-manifest schema export
-  was stale, and the original semantic invariant overclaimed collision-proof
-  superseded-lineage changes.
-- Fixed by exporting `schemas/study_manifest.v1.schema.json`, adding manifest
-  test coverage to verification, and narrowing the semantic invariant to match
-  the current serialized publication ID behavior.
-- Follow-up read-only confirmation review found no remaining blockers.
+- Read-only reviewer Hegel found one blocker: the public subsystem capability
+  validator accepted schema-invalid records with unstable IDs or non-string
+  scalar fields.
+- Fixed by adding stable-ID and scalar string checks in
+  `OrbitalDynamics.SubsystemModel.validate_capability/1` plus regression tests
+  covering invalid `id`, `subsystem`, `model`, `source`, and `fidelity_tier`.
+- Hegel found no other subsystem blockers. The broader reference-fixture report
+  still has unrelated pre-existing observation drift outside this slice.
 
 Remaining maturity gaps:
-- Broader cross-version generated-ID invariants remain partial beyond the
-  policy scopes explicitly advertised in `Schema.identity_policy/0`.
-- External reference validation baselines remain out of scope for this slice.
+- Full `spacecraft_model.v1` and executable subsystem state propagation remain
+  out of scope for this slice.
+- External ICD-derived subsystem calibration and validation baselines remain
+  future work.
 
 Last commit:
-`041941434729f42b529427ab80d50f796d709134` pushed to `origin/main` for
-Timeline publication generated-ID identity-policy scope.
+`041941434729f42b529427ab80d50f796d709134` pushed to `origin/main` for the
+previous Timeline publication generated-ID identity-policy scope.
 
 Next candidate:
-Consider the mapper-identified `subsystem_model_capability.v1` model contract
-slice as a larger follow-up, or re-read the guide/current checkout for a
-smaller current-state gap before selecting the next slice.
+After this slice, continue from the live guide/status and prefer another narrow
+resource-simulation contract gap before expanding into full spacecraft models.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is

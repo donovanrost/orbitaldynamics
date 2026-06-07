@@ -324,6 +324,56 @@ defmodule OrbitalDynamics.SchemaTest do
            )
   end
 
+  test "validates subsystem model capability contract and checked-in fixture" do
+    capability = OrbitalDynamics.battery_energy_storage_model()
+
+    assert capability == hd(OrbitalDynamics.subsystem_model_capabilities())
+    assert :ok = OrbitalDynamics.validate_subsystem_model_capability(capability)
+
+    assert {:ok, %{"schema_contract" => "subsystem_model_capability.v1", "status" => "pass"}} =
+             Schema.validate_artifact(capability)
+
+    fixture = read_json!("study_results/subsystem_model_capability_v1.json")
+
+    assert fixture == capability
+
+    stale_limits = Map.put(capability, "known_limits", ["different"])
+
+    assert {:error, report} =
+             Schema.validate_artifact(stale_limits,
+               schema_contract: "subsystem_model_capability.v1"
+             )
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.known_limits" and
+                 &1["message"] == "must match SubsystemModel.capabilities known limits")
+           )
+
+    Enum.each(
+      [
+        {"id", "bad id with spaces"},
+        {"subsystem", 1},
+        {"model", 1},
+        {"source", 1},
+        {"fidelity_tier", 1}
+      ],
+      fn {field, value} ->
+        invalid = Map.put(capability, field, value)
+
+        assert {:error, {:invalid_field, ^field}} =
+                 OrbitalDynamics.validate_subsystem_model_capability(invalid)
+
+        assert {:error, invalid_report} =
+                 Schema.validate_artifact(invalid,
+                   schema_contract: "subsystem_model_capability.v1"
+                 )
+
+        assert Enum.any?(invalid_report["errors"], &(&1["path"] == "$.#{field}"))
+      end
+    )
+  end
+
   test "validates generated V1 campaign artifacts and proposed contact contracts" do
     artifact = campaign_artifact()
 
@@ -27435,6 +27485,39 @@ defmodule OrbitalDynamics.SchemaTest do
              "string"
 
     assert get_in(provider_schema, ["properties", "known_limits", "items", "type"]) == "string"
+
+    assert {:ok, subsystem_schema} = Schema.json_schema("subsystem_model_capability.v1")
+
+    assert "fidelity_tier" in subsystem_schema["required"]
+    assert get_in(subsystem_schema, ["properties", "subsystem", "type"]) == "string"
+    assert get_in(subsystem_schema, ["properties", "fidelity_tier", "type"]) == "string"
+
+    assert get_in(subsystem_schema, ["properties", "validation_level", "enum"]) == [
+             "analysis",
+             "artifact_contract",
+             "assumption_declared",
+             "educational",
+             "validated"
+           ]
+
+    assert get_in(subsystem_schema, ["properties", "state_variables", "items", "type"]) ==
+             "string"
+
+    assert get_in(subsystem_schema, ["properties", "activity_effects", "type"]) == "object"
+    assert get_in(subsystem_schema, ["properties", "parameters", "type"]) == "object"
+
+    assert Enum.any?(
+             subsystem_schema["allOf"],
+             &(get_in(&1, ["if", "properties", "id", "const"]) ==
+                 "subsystem.power.battery.energy_storage.planning_grade" and
+                 get_in(&1, ["then", "properties", "known_limits", "const"]) ==
+                   [
+                     "selected_activity_sequence_only",
+                     "declared_energy_hints_only",
+                     "no_continuous_power_bus_or_thermal_coupling",
+                     "no_battery_degradation_or_charge_dynamics"
+                   ])
+           )
   end
 
   test "validates checked-in timeline feedback report fixture" do
@@ -30162,7 +30245,7 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert migration_report["status"] == "review_required"
     assert migration_report["deprecated_contract_count"] == 1
-    assert migration_report["status_counts"] == %{"current" => 119, "deprecated" => 1}
+    assert migration_report["status_counts"] == %{"current" => 120, "deprecated" => 1}
 
     stale_migration_model =
       Map.put(migration_report, "model", "stale_schema_migration_report_model")

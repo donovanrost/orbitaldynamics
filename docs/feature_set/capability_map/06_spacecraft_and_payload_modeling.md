@@ -15,6 +15,15 @@ Status: **implemented**.
 ### Spacecraft identity and `ResourceSummary` normalization
 
 - `Spacecraft` exposes identity, dry mass, propellant mass, area, and drag coefficient fields.
+- `SubsystemModel` exposes `subsystem_model_capability.v1` records through
+  `OrbitalDynamics.subsystem_model_capabilities/0`,
+  `OrbitalDynamics.battery_energy_storage_model/1`, and
+  `OrbitalDynamics.validate_subsystem_model_capability/1`. The first built-in
+  record declares the planning-grade battery energy-storage model used by
+  selected-activity resource-flow evidence, including model identity,
+  provenance, fidelity tier, state variables, activity-effect fields,
+  parameters, and exact known limits. This is a declarative model contract, not
+  continuous power-bus, thermal, degradation, or charge-dynamics simulation.
 - `ResourceSummary` normalizes planning-grade fuel, power, storage, downlink, payload, antenna, degraded-mode, assumptions, and provenance rows, plus declared or provenance-inferred source quality.
 - Top-level facades `OrbitalDynamics.resource_summary_from_map!/1`, `OrbitalDynamics.resource_summary_to_map/1`, and `OrbitalDynamics.resource_summaries_to_maps/1` provide standalone `resource_summary.v1` normalization. This includes:
   - clean numeric-string resource quantities and margins;
@@ -397,7 +406,10 @@ Status: **partial**.
 
 Status: **near-term**.
 
-- Broaden subsystem-specific constraints when calibrated data exists.
+- Broaden subsystem-specific capability records and constraints when calibrated
+  data exists.
+- Add `spacecraft_model.v1` once enough subsystem records exist to justify a
+  composed spacecraft configuration artifact.
 
 ## Later
 

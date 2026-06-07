@@ -56,6 +56,16 @@ defmodule OrbitalDynamics.CapabilitiesTest do
     assert catalog.planning.candidate_refresh == OrbitalDynamics.CandidateRefresh.capabilities()
     assert catalog.planning.search.grid == OrbitalDynamics.Search.Grid.capabilities()
     assert catalog.planning.search.monte_carlo == OrbitalDynamics.Search.MonteCarlo.capabilities()
+
+    assert [
+             %{
+               "schema_contract" => "subsystem_model_capability.v1",
+               "subsystem" => "power",
+               "model" => "battery_energy_storage_planning_grade",
+               "fidelity_tier" => "planning_grade"
+             }
+           ] = catalog.planning.subsystem_models
+
     assert :operational_timeline_report in catalog.operations.timeline.public_facades
     assert :timeline_diff_report in catalog.operations.timeline.public_facades
     assert :timeline_link in catalog.operations.timeline.public_facades

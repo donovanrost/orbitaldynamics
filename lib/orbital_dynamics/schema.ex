@@ -2731,6 +2731,7 @@ defmodule OrbitalDynamics.Schema do
   @score_term_report "score_term_report.v1"
   @environment_model_capability "environment_model_capability.v1"
   @environment_provider_capability "environment_provider_capability.v1"
+  @subsystem_model_capability "subsystem_model_capability.v1"
   @schema_validation_report "schema_validation_report.v1"
   @schema_validation_batch_report "schema_validation_batch_report.v1"
   @schema_migration_report "schema_migration_report.v1"
@@ -5711,6 +5712,29 @@ defmodule OrbitalDynamics.Schema do
         "outputs",
         "parameters",
         "trust_boundary",
+        "provenance"
+      ],
+      "nested_contracts" => []
+    },
+    @subsystem_model_capability => %{
+      "schema_contract" => @subsystem_model_capability,
+      "artifact_family" => "subsystem_model_capability",
+      "schema_version" => 1,
+      "required_fields" => [
+        "id",
+        "schema_contract",
+        "subsystem",
+        "model",
+        "source",
+        "fidelity_tier",
+        "validation_level",
+        "applicability",
+        "state_variables",
+        "activity_effects",
+        "parameters",
+        "known_limits"
+      ],
+      "optional_fields" => [
         "provenance"
       ],
       "nested_contracts" => []
@@ -8842,6 +8866,9 @@ defmodule OrbitalDynamics.Schema do
   defp infer_contract(%{"schema_contract" => "environment_provider_capability.v1"}),
     do: @environment_provider_capability
 
+  defp infer_contract(%{"schema_contract" => "subsystem_model_capability.v1"}),
+    do: @subsystem_model_capability
+
   defp infer_contract(%{"schema_contract" => "strategy_recommendation.v1"}),
     do: @strategy_recommendation
 
@@ -8995,6 +9022,7 @@ defmodule OrbitalDynamics.Schema do
     |> maybe_add_constraint_report_model_limit_conditions(name)
     |> maybe_add_environment_model_capability_known_limit_conditions(name)
     |> maybe_add_environment_provider_capability_known_limit_conditions(name)
+    |> maybe_add_subsystem_model_capability_known_limit_conditions(name)
     |> maybe_add_validation_record_registry_conditions(name)
   end
 
@@ -9147,6 +9175,24 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp maybe_add_environment_provider_capability_known_limit_conditions(schema, _name), do: schema
+
+  defp maybe_add_subsystem_model_capability_known_limit_conditions(
+         schema,
+         @subsystem_model_capability
+       ) do
+    conditions =
+      for %{"id" => id, "known_limits" => limits} <-
+            OrbitalDynamics.SubsystemModel.capabilities() do
+        %{
+          "if" => %{"properties" => %{"id" => stable_id_const_json_schema(id)}},
+          "then" => %{"properties" => %{"known_limits" => %{"const" => limits}}}
+        }
+      end
+
+    Map.update(schema, "allOf", conditions, &(List.wrap(&1) ++ conditions))
+  end
+
+  defp maybe_add_subsystem_model_capability_known_limit_conditions(schema, _name), do: schema
 
   defp maybe_add_validation_record_registry_conditions(schema, @validation_record) do
     conditions = validation_record_registry_conditions()
@@ -11660,6 +11706,25 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property("provenance", @environment_provider_capability, _contract) do
+    %{"type" => "object", "additionalProperties" => true}
+  end
+
+  defp json_schema_property(field, @subsystem_model_capability, _contract)
+       when field in ["state_variables", "known_limits"] do
+    string_array_schema()
+  end
+
+  defp json_schema_property("validation_level", @subsystem_model_capability, _contract) do
+    validation_level_json_schema()
+  end
+
+  defp json_schema_property(field, @subsystem_model_capability, _contract)
+       when field in ["subsystem", "model", "source", "fidelity_tier"] do
+    %{"type" => "string"}
+  end
+
+  defp json_schema_property(field, @subsystem_model_capability, _contract)
+       when field in ["applicability", "activity_effects", "parameters", "provenance"] do
     %{"type" => "object", "additionalProperties" => true}
   end
 
@@ -30055,6 +30120,12 @@ defmodule OrbitalDynamics.Schema do
     []
     |> require_fields("$", artifact, contract["required_fields"])
     |> validate_environment_provider_capability("$", artifact)
+  end
+
+  defp validate_contract(@subsystem_model_capability, contract, artifact) do
+    []
+    |> require_fields("$", artifact, contract["required_fields"])
+    |> validate_subsystem_model_capability("$", artifact)
   end
 
   defp validate_contract(@schema_validation_report, contract, artifact) do
@@ -63194,6 +63265,27 @@ defmodule OrbitalDynamics.Schema do
     end
   end
 
+  defp validate_subsystem_model_capability(issues, path, record) do
+    issues
+    |> validate_stable_ids(path, record, ["id"])
+    |> expect_equal(path, record, "schema_contract", "subsystem_model_capability.v1")
+    |> expect_type(path, record, "subsystem", :binary)
+    |> expect_type(path, record, "model", :binary)
+    |> expect_type(path, record, "source", :binary)
+    |> expect_type(path, record, "fidelity_tier", :binary)
+    |> expect_type(path, record, "validation_level", :binary)
+    |> expect_one_of(path, record, "validation_level", validation_tolerance_policy_level_names())
+    |> expect_type(path, record, "applicability", :map)
+    |> expect_type(path, record, "state_variables", :list)
+    |> expect_type(path, record, "activity_effects", :map)
+    |> expect_type(path, record, "parameters", :map)
+    |> expect_type(path, record, "known_limits", :list)
+    |> validate_string_list_items(path, record, "state_variables")
+    |> validate_string_list_items(path, record, "known_limits")
+    |> validate_subsystem_model_contract(path, record)
+    |> expect_optional_type(path, record, "provenance", :map)
+  end
+
   defp validate_environment_model_contract(issues, path, record) do
     case OrbitalDynamics.Environment.validate_capability(record) do
       :ok ->
@@ -63250,6 +63342,28 @@ defmodule OrbitalDynamics.Schema do
 
       {:error, reason} ->
         [error(path, "invalid environment provider capability: #{inspect(reason)}") | issues]
+    end
+  end
+
+  defp validate_subsystem_model_contract(issues, path, record) do
+    case OrbitalDynamics.SubsystemModel.validate_capability(record) do
+      :ok ->
+        issues
+
+      {:error, {:invalid_field, "known_limits"}} ->
+        [
+          error(
+            path <> ".known_limits",
+            "must match SubsystemModel.capabilities known limits"
+          )
+          | issues
+        ]
+
+      {:error, {:invalid_field, field}} ->
+        [error(path <> ".#{field}", "is invalid") | issues]
+
+      {:error, reason} ->
+        [error(path, "invalid subsystem model capability: #{inspect(reason)}") | issues]
     end
   end
 

@@ -5066,6 +5066,28 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
            ]) == validation_levels
 
     assert get_in(schemas, [
+             "subsystem_model_capability.v1",
+             "properties",
+             "validation_level",
+             "enum"
+           ]) == validation_levels
+
+    assert get_in(schemas, [
+             "subsystem_model_capability.v1",
+             "properties",
+             "fidelity_tier",
+             "type"
+           ]) == "string"
+
+    assert get_in(schemas, [
+             "subsystem_model_capability.v1",
+             "properties",
+             "state_variables",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(schemas, [
              "environment_provider_capability.v1",
              "properties",
              "source",
@@ -5133,6 +5155,15 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                &(get_in(&1, ["if", "properties", "id", "const"]) == provider["id"] and
                    get_in(&1, ["then", "properties", "known_limits", "const"]) ==
                      provider["known_limits"])
+             )
+    end)
+
+    Enum.each(OrbitalDynamics.SubsystemModel.capabilities(), fn subsystem ->
+      assert Enum.any?(
+               schemas["subsystem_model_capability.v1"]["allOf"],
+               &(get_in(&1, ["if", "properties", "id", "const"]) == subsystem["id"] and
+                   get_in(&1, ["then", "properties", "known_limits", "const"]) ==
+                     subsystem["known_limits"])
              )
     end)
 

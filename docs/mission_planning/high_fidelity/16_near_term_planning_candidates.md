@@ -10,13 +10,21 @@ For the current implementation queue, start with
 ## Lane 1: Model Contracts And Configuration
 
 First useful slice:
-define `spacecraft_model.v1` and `subsystem_model_capability.v1` as small,
-schema-validated configuration artifacts.
+define `spacecraft_model.v1` and expand `subsystem_model_capability.v1`
+records into a small schema-validated model-configuration set.
+
+Implemented foothold:
+`subsystem_model_capability.v1` now has a planning-grade battery
+energy-storage capability record, public facades, executable schema validation,
+checked-in JSON Schema export, and a checked-in fixture. This gives resource
+projection a declarative model-identity/provenance boundary without claiming
+full spacecraft configuration or subsystem-state propagation.
 
 Candidate artifacts:
 
 - `spacecraft_model.v1`
-- `subsystem_model_capability.v1`
+- additional `subsystem_model_capability.v1` records for calibrated
+  storage, thermal, payload, and attitude subsystems
 - `model_acceptance_report.v1`
 - dataset metadata and suitability labels
 
