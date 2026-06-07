@@ -1023,6 +1023,12 @@ Candidate-refresh provider-reservation replay likewise preserves the compact
 summary's full allocation rows and derives no-request counts, contact IDs, and
 direction maps from those rows when present, so stale explicit no-request
 aggregates cannot steer branch-local provider-reservation routing.
+`study_results/contact_allocation_summary_v1.json` now feeds a curated
+`contact_allocation_summary.v1` validation-reference fixture. The observations
+check allocation counts/status maps, allocation-reason contact routing,
+station-pressure routing, reservation expiration and match/status maps, review
+rows, model limits, and no-provider-reservation/no-schedule-mutation
+assumptions.
 The validation-reference registry and checked-in
 `study_results/contact_allocation_provider_reservation_request_summary_v1.json`
 fixture also include a generated

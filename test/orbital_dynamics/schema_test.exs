@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.SchemaTest do
   alias OrbitalDynamics.{
     CadenceImport,
     CampaignPlanner,
+    Communications.ContactAllocation,
     Communications.StationCalendar,
     Epoch,
     OperatorReview,
@@ -17075,6 +17076,120 @@ defmodule OrbitalDynamics.SchemaTest do
                &(&1["path"] == "$.#{field}" and &1["message"] == message)
              )
     end)
+  end
+
+  test "validates checked-in contact allocation summary fixture" do
+    summary = read_json!("study_results/contact_allocation_summary_v1.json")
+
+    report = %{
+      "schema_contract" => "contact_allocation_report.v1",
+      "model" => "deterministic_station_contact_allocation",
+      "source" => "validation.contact_allocation_summary",
+      "rows" => [
+        %{
+          "id" => "contact_allocation:dl_1",
+          "contact_id" => "dl_1",
+          "allocation_status" => "allocated",
+          "effective_allocation_status" => "allocated",
+          "allocation_reason" => "selected_by_contention_resolution",
+          "ground_station_id" => "equator_prime",
+          "direction" => "downlink",
+          "review_status" => "operator_review_required"
+        },
+        %{
+          "id" => "contact_allocation:dl_2",
+          "contact_id" => "dl_2",
+          "allocation_status" => "deferred",
+          "effective_allocation_status" => "deferred",
+          "allocation_reason" => "same_station_contention",
+          "ground_station_id" => "equator_prime",
+          "direction" => "downlink",
+          "selected_contact_id" => "dl_1",
+          "review_status" => "operator_review_required"
+        },
+        %{
+          "id" => "contact_allocation:dl_3",
+          "contact_id" => "dl_3",
+          "allocation_status" => "blocked",
+          "effective_allocation_status" => "blocked",
+          "allocation_reason" => "ground_station_reserved",
+          "ground_station_id" => "equator_prime",
+          "direction" => "downlink",
+          "station_availability" => "reserved",
+          "station_calendar_precedence_availability" => "reserved",
+          "station_calendar_precedence_rank" => 1,
+          "station_reservation_id" => "reservation_1",
+          "station_reservation_status" => "reserved",
+          "station_reserved_by" => "network_partner",
+          "station_reservation_match_status" => "overlap",
+          "station_reservation_expires_at_s" => 420.0,
+          "review_status" => "operator_review_required"
+        }
+      ],
+      "reduced_capacity_pack_groups" => [],
+      "model_limits" => [
+        "artifact_level_only",
+        "no_provider_reservation",
+        "no_schedule_mutation",
+        "no_full_realized_contact_reconciliation"
+      ]
+    }
+
+    generated_summary = OrbitalDynamics.contact_allocation_summary(report)
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "contact_allocation_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "source_artifact_type" => "contact_allocation_report.v1",
+             "source" => "validation.contact_allocation_summary",
+             "input_contact_count" => 3,
+             "allocated_contact_count" => 1,
+             "returned_allocated_contact_count" => 1,
+             "deferred_contact_count" => 1,
+             "blocked_contact_count" => 1,
+             "allocation_status_counts" => %{
+               "allocated" => 1,
+               "blocked" => 1,
+               "deferred" => 1
+             },
+             "allocation_reason_counts" => %{
+               "ground_station_reserved" => 1,
+               "same_station_contention" => 1,
+               "selected_by_contention_resolution" => 1
+             },
+             "contact_ids_by_allocation_reason" => %{
+               "ground_station_reserved" => ["dl_3"],
+               "same_station_contention" => ["dl_2"],
+               "selected_by_contention_resolution" => ["dl_1"]
+             },
+             "allocated_contact_ids" => ["dl_1"],
+             "deferred_contact_ids" => ["dl_2"],
+             "blocked_contact_ids" => ["dl_3"],
+             "station_pressure_contact_ids_by_ground_station_id" => %{
+               "equator_prime" => ["dl_3"]
+             },
+             "station_pressure_contact_ids_by_availability" => %{"reserved" => ["dl_3"]},
+             "station_reservation_ids" => ["reservation_1"],
+             "station_reservation_expires_at_s" => [420.0],
+             "station_reservation_expiration_status_counts" => %{"declared" => 1},
+             "station_reservation_contact_ids_by_match_status" => %{"overlap" => ["dl_3"]},
+             "station_reservation_ids_by_match_status" => %{"overlap" => ["reservation_1"]},
+             "review_contact_ids" => ["dl_1", "dl_2", "dl_3"],
+             "review_row_count" => 3,
+             "assumptions" => %{
+               "execution_boundary" =>
+                 "artifact_only_no_provider_reservation_or_schedule_mutation",
+               "operator_authority" => "not_granted_by_summary",
+               "source" => "contact_allocation_report.v1"
+             }
+           } = summary
+
+    assert summary["model_limits"] ==
+             ContactAllocation.capabilities().known_limits
+             |> Enum.map(&Atom.to_string/1)
   end
 
   test "validates checked-in provider reservation request summary fixture" do
