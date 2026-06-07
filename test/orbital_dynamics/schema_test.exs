@@ -27724,6 +27724,111 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert Enum.any?(validation_report["errors"], &(&1["path"] == "$.evidence_count"))
 
+    checked_in_summary = read_json!("study_results/validation_safety_case_summary_v1.json")
+
+    schema_validation_pass = %{
+      "schema_contract" => "schema_validation_report.v1",
+      "status" => "pass",
+      "validated_contract" => "candidate_refresh.v1",
+      "error_count" => 0,
+      "warning_count" => 0
+    }
+
+    schema_validation_fail = %{
+      "schema_contract" => "schema_validation_report.v1",
+      "status" => "fail",
+      "validated_contract" => "candidate_refresh.v1",
+      "error_count" => 1,
+      "warning_count" => 0
+    }
+
+    checked_in_evidence = [
+      Validation.model_acceptance_report(["orbit_data.simple_json", "event.access_windows"],
+        intended_use: :operational_import
+      ),
+      schema_validation_pass,
+      schema_validation_fail,
+      schema_validation_fail
+    ]
+
+    generated_checked_in_summary =
+      OrbitalDynamics.validation_safety_case_summary(checked_in_evidence,
+        case_id: "case:compatibility-example"
+      )
+
+    assert generated_checked_in_summary == checked_in_summary
+
+    assert {:ok, %{"schema_contract" => "validation_safety_case_summary.v1"}} =
+             Schema.validate_artifact(checked_in_summary,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+
+    assert %{
+             "schema_contract" => "validation_safety_case_summary.v1",
+             "schema_version" => 1,
+             "model" => "artifact_only_validation_safety_case_summary",
+             "source" => "validation.safety_case_evidence",
+             "summary_id" => "validation_safety_case:case:compatibility-example",
+             "case_id" => "case:compatibility-example",
+             "status" => "blocked",
+             "evidence_count" => 4,
+             "input_contracts" => [
+               "model_acceptance_report.v1",
+               "schema_validation_report.v1"
+             ],
+             "evidence_status_counts" => %{
+               "accepted_for_use" => 1,
+               "blocked" => 2,
+               "review_required" => 1
+             },
+             "blocked_evidence_count" => 2,
+             "review_required_evidence_count" => 1,
+             "accepted_evidence_count" => 1,
+             "model_accepted_count" => 1,
+             "model_review_required_count" => 1,
+             "model_blocked_count" => 0,
+             "unknown_model_count" => 0,
+             "schema_error_count" => 2,
+             "schema_warning_count" => 0,
+             "schema_validation_report_count" => 0,
+             "schema_validation_failed_report_count" => 0,
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_cadence_write",
+               "certification_authority" => "not_granted_by_summary",
+               "operator_authority" => "not_granted_by_summary"
+             }
+           } = checked_in_summary
+
+    assert checked_in_summary["evidence_refs_by_status"] == %{
+             "accepted_for_use" => ["schema_validation_report.v1:candidate_refresh.v1"],
+             "blocked" => [
+               "schema_validation_report.v1:candidate_refresh.v1",
+               "schema_validation_report.v1:candidate_refresh.v1"
+             ],
+             "review_required" => [
+               "model_acceptance_report.v1:model_acceptance:operational_import:orbit_data.simple_json__event.access_windows"
+             ]
+           }
+
+    assert checked_in_summary["evidence_refs_by_contract"] == %{
+             "model_acceptance_report.v1" => [
+               "model_acceptance_report.v1:model_acceptance:operational_import:orbit_data.simple_json__event.access_windows"
+             ],
+             "schema_validation_report.v1" => [
+               "schema_validation_report.v1:candidate_refresh.v1",
+               "schema_validation_report.v1:candidate_refresh.v1",
+               "schema_validation_report.v1:candidate_refresh.v1"
+             ]
+           }
+
+    assert Enum.map(checked_in_summary["evidence"], & &1["rank"]) == [1, 2, 3, 4]
+
+    assert checked_in_summary["model_limits"] == [
+             "acceptance is evidence-based and not flight certification",
+             "unknown models are blocked until registered validation evidence exists",
+             "operational import acceptance remains artifact-only and requires downstream operator policy"
+           ]
+
     assert {:ok, safety_case_schema} = Schema.json_schema("validation_safety_case_summary.v1")
 
     assert safety_case_schema["required"] == [

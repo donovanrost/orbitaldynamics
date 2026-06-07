@@ -247,6 +247,12 @@ example now includes blocked schema-validation evidence preserved through both
 operator-review and Cadence-import containers, and
 `study_results/validation_reference_fixtures.json` verifies those blocked
 handoff evidence counts and duplicate schema-validation evidence references.
+Focused schema-reference coverage also regenerates the checked-in fixture
+exactly through `OrbitalDynamics.validation_safety_case_summary/2` from
+deterministic model-acceptance and schema-validation evidence before schema
+validation, pinning case identity, evidence status/reference routing, model and
+schema-validation row evidence, model limits, and the
+no-certification/no-authority boundary.
 Batch schema-validation evidence contributes aggregate schema issue counts and
 nested report pass/fail counts without rerunning lint.
 Wrapper artifacts may provide `schema_validation_batch_report` or
