@@ -1789,6 +1789,71 @@ defmodule OrbitalDynamics.Validation do
         "checks candidate-refresh replay of resource-projection pressure provenance without resource mutation, candidate selection, import approval, or Cadence writes"
       ]
     },
+    "fixture.artifact.candidate_refresh.quality_gate_replay" => %{
+      "id" => "fixture.artifact.candidate_refresh.quality_gate_replay",
+      "model_id" => "artifact.candidate_refresh.v1",
+      "reference_case" => "generated candidate refresh replay of quality-gate import evidence",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "source" => "generated_candidate_refresh_quality_gate_fixture",
+        "contract" => "candidate_refresh.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "candidate_refresh.v1",
+        "schema_version" => 1,
+        "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 1,
+        "source_report_row_count" => 5,
+        "source_quality_gate_report_count" => 1,
+        "source_quality_gate_row_count" => 5,
+        "source_quality_gate_gate_count" => 5,
+        "source_quality_gate_passed_gate_count" => 5,
+        "source_quality_gate_review_gate_count" => 0,
+        "source_quality_gate_analysis_gate_count" => 0,
+        "source_quality_gate_blocked_gate_count" => 0,
+        "source_quality_gate_readiness_level_counts" => %{"import_eligible" => 1},
+        "source_quality_gate_import_classification_counts" => %{"importable" => 1},
+        "source_quality_gate_status_counts" => %{"passed" => 1},
+        "source_quality_gate_gate_status_counts" => %{"passed" => 5},
+        "source_quality_gate_gate_classification_counts" => %{"importable" => 5},
+        "source_quality_gate_ready_for_import_count" => 1,
+        "source_quality_gate_import_status_counts" => %{"ready_for_import" => 1},
+        "source_quality_gate_cadence_import_status_counts" => %{"present" => 1},
+        "source_quality_gate_trust_boundary_status" => "declared"
+      },
+      "tolerances" => %{
+        "schema_version" => 0,
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 0,
+        "source_report_row_count" => 0,
+        "source_quality_gate_report_count" => 0,
+        "source_quality_gate_row_count" => 0,
+        "source_quality_gate_gate_count" => 0,
+        "source_quality_gate_passed_gate_count" => 0,
+        "source_quality_gate_review_gate_count" => 0,
+        "source_quality_gate_analysis_gate_count" => 0,
+        "source_quality_gate_blocked_gate_count" => 0,
+        "source_quality_gate_ready_for_import_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal generated artifact regression, not external readiness validation",
+        "checks candidate-refresh replay of quality-gate import-readiness provenance without granting operator authority, candidate selection, import approval, or Cadence writes"
+      ]
+    },
     "fixture.artifact.candidate_refresh.timeline_transition_application_replay" => %{
       "id" => "fixture.artifact.candidate_refresh.timeline_transition_application_replay",
       "model_id" => "artifact.candidate_refresh.v1",
@@ -11411,6 +11476,7 @@ defmodule OrbitalDynamics.Validation do
     objective_tradeoff_summary = Map.get(source_reports, "objective_tradeoff_report") || %{}
     score_term_summary = Map.get(source_reports, "score_term_report") || %{}
     resource_projection_summary = Map.get(source_reports, "resource_projection_report") || %{}
+    quality_gate_summary = Map.get(source_reports, "quality_gate_report") || %{}
 
     timeline_transition_summary =
       Map.get(source_reports, "timeline_transition_application_report") || %{}
@@ -11508,6 +11574,35 @@ defmodule OrbitalDynamics.Validation do
           %{},
       "source_resource_projection_trust_boundary_status" =>
         Map.get(resource_projection_summary, "trust_boundary_status"),
+      "source_quality_gate_report_count" => Map.get(quality_gate_summary, "count"),
+      "source_quality_gate_row_count" => Map.get(quality_gate_summary, "row_count"),
+      "source_quality_gate_gate_count" => Map.get(quality_gate_summary, "gate_count"),
+      "source_quality_gate_passed_gate_count" =>
+        Map.get(quality_gate_summary, "passed_gate_count"),
+      "source_quality_gate_review_gate_count" =>
+        Map.get(quality_gate_summary, "review_gate_count"),
+      "source_quality_gate_analysis_gate_count" =>
+        Map.get(quality_gate_summary, "analysis_gate_count"),
+      "source_quality_gate_blocked_gate_count" =>
+        Map.get(quality_gate_summary, "blocked_gate_count"),
+      "source_quality_gate_readiness_level_counts" =>
+        Map.get(quality_gate_summary, "readiness_level_counts") || %{},
+      "source_quality_gate_import_classification_counts" =>
+        Map.get(quality_gate_summary, "import_classification_counts") || %{},
+      "source_quality_gate_status_counts" =>
+        Map.get(quality_gate_summary, "status_counts") || %{},
+      "source_quality_gate_gate_status_counts" =>
+        Map.get(quality_gate_summary, "gate_status_counts") || %{},
+      "source_quality_gate_gate_classification_counts" =>
+        Map.get(quality_gate_summary, "gate_classification_counts") || %{},
+      "source_quality_gate_ready_for_import_count" =>
+        Map.get(quality_gate_summary, "ready_for_import_count"),
+      "source_quality_gate_import_status_counts" =>
+        Map.get(quality_gate_summary, "import_status_counts") || %{},
+      "source_quality_gate_cadence_import_status_counts" =>
+        Map.get(quality_gate_summary, "cadence_import_status_counts") || %{},
+      "source_quality_gate_trust_boundary_status" =>
+        Map.get(quality_gate_summary, "trust_boundary_status"),
       "source_objective_satisfaction_report_count" =>
         Map.get(objective_satisfaction_summary, "count"),
       "source_objective_satisfaction_gap_row_count" =>

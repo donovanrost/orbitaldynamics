@@ -573,6 +573,11 @@ replay fixture. It checks projected-resource and invalid-input counts, resource
 pressure status/type/direction maps, activity routing, and trust-boundary
 status without resource mutation, candidate selection, import approval, or
 Cadence writes.
+The registry also includes a generated CandidateRefresh quality-gate replay
+fixture. It checks gate counts, readiness/import/status/classification maps,
+ready-for-import evidence, Cadence-import status routing, and trust-boundary
+status without granting operator authority, candidate selection, import
+approval, or Cadence writes.
 The registry also includes a generated CandidateRefresh timeline-transition
 application replay fixture. It checks selected-integrity review and issue
 counts, missing-dependency issue-type routing, application status maps,
