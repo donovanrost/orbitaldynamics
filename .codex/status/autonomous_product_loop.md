@@ -5,63 +5,62 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-CandidateRefresh provider-reservation direction-station replay.
+CandidateRefresh quality-gate schema-validation status-ID replay.
 
 Status:
 Completed locally; product commit created and handoff updated.
 
 Slice-selection note:
 Selected slice:
-Preserve provider-reservation request/no-request/review contact-ID maps by
-direction and ground station through CandidateRefresh source-report and compact
-replay summaries.
+Preserve quality-gate schema-validation status IDs through CandidateRefresh
+source-report and compact quality-gate replay summaries.
 
 Why this slice:
-The provider-reservation request summary now exposes direction-plus-station
-routing, but CandidateRefresh replay still lifts only flat direction maps and
-request/review station maps. Branch-local queues that split provider reservation
-work by antenna and direction still need to reopen source rows.
+`operational_quality_gate_schema_validation_summary.v1` exposes
+`schema_validation_status_ids`, but CandidateRefresh quality-gate replay only
+preserves schema-validation status counts, failed quality-gate row IDs, and gate
+IDs. Branch-local schema-blocker queues lose the compact status-ID routing
+unless they reopen the source summary.
 
 Level 6 pillar:
-Fleet-level resource/contact/station-calendar/allocation behavior with
-branch-local refreshed candidate evidence.
+Approval-aware automation boundaries, durable schema-versioned artifacts, and
+refreshed candidates from current source-report evidence.
 
 Current evidence gap:
-`candidate_refresh.v1` source-report summaries and replay summaries do not
-preserve provider-reservation request/no-request/review contact IDs by both
-direction and ground station.
+CandidateRefresh quality-gate provenance and `quality_gate_replay_summary/1`
+do not preserve `schema_validation_status_ids`.
 
 Docs to read:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
-- `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`
-- `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
+- `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`
+- `docs/mission_planning/high_fidelity/12_operational_readiness.md`
 
 Likely files:
 - `lib/orbital_dynamics/candidate_refresh.ex`
 - `lib/orbital_dynamics/schema.ex`
 - `test/orbital_dynamics/candidate_refresh_test.exs`
 - `test/orbital_dynamics/schema_test.exs`
-- generated CandidateRefresh schemas and bundle as needed
+- generated CandidateRefresh schemas and bundle if schema-visible
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
-- `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`
+- `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`
 
 Likely tests:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:<provider reservation replay selector>`
-- `mix test test/orbital_dynamics/schema_test.exs:<candidate refresh source-report selector>`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:<schema-validation replay selector>`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:<wrapped schema-validation replay selector>`
+- focused CandidateRefresh source-report schema validation selector if schema-visible
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 
 Definition of done:
-- CandidateRefresh source-report summaries preserve no-request/request/review
-  contact-ID maps by direction and ground station.
-- Compact provider-reservation request replay output exposes those nested maps
-  without reopening source rows.
-- Schema validation/export treats the new maps as optional nested stable-ID maps.
-- Focused tests cover direct and wrapped provider-reservation summary replay.
-- Docs describe branch-local direction/station routing without implying provider
-  writes, schedule mutation, or operator authority.
+- CandidateRefresh source-report summaries preserve `schema_validation_status_ids`.
+- Compact quality-gate replay exposes those status IDs for direct and wrapped
+  schema-validation summaries.
+- Schema validation/export covers the field when schema-visible.
+- Focused tests cover direct and wrapped summary replay.
+- Docs describe branch-local schema-validation status routing without implying
+  import approval, Cadence write, or schema certification.
 
 Previous pushed slice:
 Provider reservation request direction-station routing landed in product commit
@@ -69,19 +68,18 @@ Provider reservation request direction-station routing landed in product commit
 verified at `b658d891992fb796e5aeef7f9126dcb7d2e83ee4`.
 
 Completed slice:
-CandidateRefresh provider-reservation direction-station replay landed in product
-commit `968a25b`. CandidateRefresh source-report summaries and compact
-contact-allocation replay now preserve provider-reservation no-request,
-request-ready, and review-required contact-ID maps by direction and ground
-station. Full-row provider-reservation summaries derive the nested maps from
-rows, while wrapped compact summaries preserve explicit nested maps. Candidate
-refresh provenance schema/export now exposes the nested maps as optional nested
-stable-ID maps and executable validation rejects malformed nested stable IDs.
-Docs describe branch-local station/direction routing without adding provider
-reservation, schedule mutation, Cadence write, or operator authority.
+CandidateRefresh quality-gate schema-validation status-ID replay landed in
+product commit `78615e9`. CandidateRefresh source-report summaries and compact
+quality-gate replay now preserve `schema_validation_status_ids` from direct,
+accepted-state, mission-state, and wrapped
+`operational_quality_gate_schema_validation_summary.v1` handoffs. Candidate
+refresh provenance schema/export exposes the list as optional strings and
+executable validation rejects malformed list items. Docs describe branch-local
+schema-validation status routing without adding import approval, Cadence write,
+or schema certification.
 
 Verification:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:6933 test/orbital_dynamics/candidate_refresh_test.exs:7210 test/orbital_dynamics/schema_test.exs:15879`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:31559 test/orbital_dynamics/candidate_refresh_test.exs:31716 test/orbital_dynamics/schema_test.exs:15879`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
