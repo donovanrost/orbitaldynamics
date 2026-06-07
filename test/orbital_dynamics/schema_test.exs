@@ -988,6 +988,54 @@ defmodule OrbitalDynamics.SchemaTest do
            } = review_summary
   end
 
+  test "validates checked-in station calendar precedence summary fixture" do
+    precedence_summary = read_json!("study_results/station_calendar_precedence_summary_v1.json")
+
+    station_calendar_report = station_calendar_precedence_summary_fixture_report()
+
+    generated_precedence_summary =
+      OrbitalDynamics.station_calendar_precedence_summary(station_calendar_report)
+
+    assert generated_precedence_summary == precedence_summary
+
+    assert {:ok, %{"schema_contract" => "station_calendar_precedence_summary.v1"}} =
+             Schema.validate_artifact(precedence_summary)
+
+    assert %{
+             "source_artifact_type" => "station_calendar_report.v1",
+             "source" => "ops_calendar",
+             "affected_contact_count" => 1,
+             "precedence_review_status" => "review_required",
+             "applied_availability_counts" => %{"unavailable" => 1},
+             "overlap_availability_counts" => %{
+               "reduced_capacity" => 1,
+               "reserved" => 1,
+               "unavailable" => 1
+             },
+             "affected_contact_ids_by_applied_availability" => %{
+               "unavailable" => ["dl_1"]
+             },
+             "affected_contact_ids_by_overlap_availability" => %{
+               "reduced_capacity" => ["dl_1"],
+               "reserved" => ["dl_1"],
+               "unavailable" => ["dl_1"]
+             },
+             "reserved_under_higher_precedence_contact_count" => 1,
+             "reserved_under_higher_precedence_contact_ids" => ["dl_1"],
+             "reserved_under_higher_precedence_contact_ids_by_applied_availability" => %{
+               "unavailable" => ["dl_1"]
+             },
+             "unavailable_contact_ids" => ["dl_1"],
+             "reserved_overlap_contact_ids" => ["dl_1"],
+             "reduced_capacity_contact_ids" => ["dl_1"],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_provider_reservation",
+               "operator_authority" => "not_granted_by_summary",
+               "scope" => "station_calendar_availability_precedence_review"
+             }
+           } = precedence_summary
+  end
+
   test "validates checked-in station reservation hold summary fixtures" do
     hold_summary = read_json!("study_results/station_reservation_hold_summary_v1.json")
 
@@ -26745,6 +26793,53 @@ defmodule OrbitalDynamics.SchemaTest do
       },
       source: "stale_provider_calendar"
     )
+  end
+
+  defp station_calendar_precedence_summary_fixture_report do
+    contacts = [
+      %{
+        id: :dl_1,
+        type: :downlink,
+        scenario_id: :leo_1,
+        ground_station_id: :equator_prime,
+        starts_at_s: 100.0,
+        ends_at_s: 160.0
+      }
+    ]
+
+    provider = %{
+      schema_contract: "station_calendar_provider.v1",
+      id: :ops_calendar,
+      entries: [
+        %{
+          id: :equator_reduced,
+          station_id: :equator_prime,
+          availability: :available,
+          capacity_fraction: 0.5,
+          start_s: 90.0,
+          end_s: 170.0
+        },
+        %{
+          id: :equator_reserved,
+          station_id: :equator_prime,
+          availability: :reserved,
+          reservation_id: :reservation_42,
+          reserved_by: :ops_team_b,
+          reservation_status: :confirmed,
+          start_s: 90.0,
+          end_s: 170.0
+        },
+        %{
+          id: :equator_outage,
+          station_id: :equator_prime,
+          availability: "Outage",
+          start_s: 90.0,
+          end_s: 170.0
+        }
+      ]
+    }
+
+    OrbitalDynamics.station_calendar_report(contacts, provider, source: "ops_calendar")
   end
 
   defp station_reservation_summary_fixture_report do

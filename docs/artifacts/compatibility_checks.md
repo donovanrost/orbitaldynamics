@@ -1016,9 +1016,12 @@ request/review/no-request direction maps, and schema export pins the
 artifact-only model constant, string source boundary, and exact `model_limits`,
 so provider-reservation handoff summaries are not treated as provider-write,
 schedule-mutation, or operator-authority artifacts.
-Station-calendar precedence summary schema export pins the artifact-only model
-constant and exact `model_limits` used by generated compact precedence handoff
-summaries.
+`study_results/station_calendar_precedence_summary_v1.json` is observed for
+applied/overlap availability routing, reserved-under-higher-precedence contact
+IDs, unavailable/reserved/reduced-capacity contact ID sets, and artifact-only
+no-provider-reservation assumptions. Station-calendar precedence summary schema
+export pins the artifact-only model constant and exact `model_limits` used by
+generated compact precedence handoff summaries.
 `study_results/contact_filter_report_v1.json` is observed for kept/suppressed
 candidate counts, row-derived suppressed-candidate counters, duplicate
 suppressed-candidate counts, reservation match maps, suppression-reason routing
