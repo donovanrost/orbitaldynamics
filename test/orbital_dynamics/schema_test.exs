@@ -3784,6 +3784,165 @@ defmodule OrbitalDynamics.SchemaTest do
            } = rows_by_id["leo_2_downlink_polar_north_1"]
   end
 
+  test "validates checked-in station calendar report fixture regenerates through public facade" do
+    report = read_json!("study_results/station_calendar_report_v1.json")
+
+    contacts = [
+      %{
+        id: :dl_1,
+        type: :downlink,
+        scenario_id: :leo_1,
+        ground_station_id: :equator_prime,
+        starts_at_s: 100.0,
+        ends_at_s: 160.0
+      },
+      %{
+        id: :cmd_1,
+        type: :planned_contact,
+        direction: :command,
+        scenario_id: :leo_1,
+        ground_station_id: :equator_prime,
+        starts_at_s: 170.0,
+        ends_at_s: 190.0
+      }
+    ]
+
+    provider = %{
+      schema_contract: "station_calendar_provider.v1",
+      id: :ops_calendar,
+      provenance: %{trust_boundary: :operator_declared_station_calendar},
+      entries: [
+        %{
+          id: :equator_capacity,
+          station_id: :equator_prime,
+          availability: :available,
+          start_s: 90.0,
+          end_s: 170.0,
+          capacity_fraction: 0.5,
+          provenance: %{
+            source: :station_calendar_provider,
+            provider_id: :ops_calendar,
+            trust_boundary: :operator_declared_station_calendar
+          }
+        },
+        %{
+          id: :equator_reserved,
+          station_id: :equator_prime,
+          availability: :reserved,
+          start_s: 165.0,
+          end_s: 200.0,
+          reservation_id: :provider_reservation_42,
+          reserved_by: :cadence_ops,
+          reservation_status: :confirmed,
+          provenance: %{
+            source: :station_calendar_provider,
+            provider_id: :ops_calendar,
+            trust_boundary: :operator_declared_station_calendar
+          }
+        }
+      ]
+    }
+
+    generated_report =
+      OrbitalDynamics.station_calendar_report(contacts, provider, source: "ops_calendar")
+
+    assert generated_report == report
+
+    assert {:ok, %{"schema_contract" => "station_calendar_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert report["model"] == "campaign_ground_network_interval_overlay"
+
+    assert report["model_limits"] == [
+             "declared_data_only",
+             "no_network_calls",
+             "no_provider_reservation",
+             "no_schedule_mutation",
+             "no_conflict_resolution"
+           ]
+
+    assert %{
+             "input_contact_count" => 2,
+             "calendar_entry_count" => 2,
+             "affected_contact_count" => 2,
+             "affected_duration_s" => 80.0,
+             "duplicate_affected_contact_id_count" => 0,
+             "duplicate_affected_contact_row_count" => 0,
+             "provider_calendar_contention_group_count" => 1,
+             "provider_counteroffer_count" => 0,
+             "calendar_entry_trust_boundary_status_counts" => %{"declared" => 2},
+             "station_calendar_trust_boundary_status_counts" => %{"declared" => 2},
+             "station_reservation_match_status_counts" => %{"overlap" => 1}
+           } = report
+
+    assert report["affected_contact_ids_by_reservation_match_status"] == %{
+             "overlap" => ["cmd_1"]
+           }
+
+    assert report["affected_contact_ids_by_station_calendar_trust_boundary_status"] == %{
+             "declared" => ["cmd_1", "dl_1"]
+           }
+
+    assert report["assumptions"] == %{
+             "duplicate_affected_contact_identity" =>
+               "duplicate affected-contact row IDs are suffixed deterministically while preserving contact_id",
+             "execution_boundary" => "artifact_only_no_provider_reservation",
+             "matching" => "ground_station_id_and_time_interval_overlap",
+             "resolution" => "report_and_annotate_only_no_candidate_suppression",
+             "source" => "ops_calendar"
+           }
+
+    rows_by_contact_id = Map.new(report["affected_contacts"], &{&1["contact_id"], &1})
+
+    assert %{
+             "contact_type" => "downlink",
+             "ground_station_id" => "equator_prime",
+             "station_availability" => "reduced_capacity",
+             "station_calendar_entry_id" => "equator_capacity",
+             "station_calendar_provider_id" => "ops_calendar",
+             "station_calendar_provider_entry_id" => "equator_capacity",
+             "station_calendar_precedence_availability" => "reduced_capacity",
+             "station_calendar_precedence_rank" => 2,
+             "station_calendar_trust_boundary_status" => "declared",
+             "capacity_fraction" => 0.5,
+             "provider_counteroffer_negotiation_state" => "unknown"
+           } = rows_by_contact_id["dl_1"]
+
+    assert %{
+             "contact_type" => "planned_contact",
+             "direction" => "command",
+             "ground_station_id" => "equator_prime",
+             "station_availability" => "reserved",
+             "station_contention_status" => "reserved_overlap",
+             "station_calendar_entry_id" => "equator_reserved",
+             "station_calendar_provider_id" => "ops_calendar",
+             "station_calendar_provider_entry_id" => "equator_reserved",
+             "station_calendar_precedence_availability" => "reserved",
+             "station_calendar_precedence_rank" => 1,
+             "station_reservation_id" => "provider_reservation_42",
+             "station_reservation_match_status" => "overlap",
+             "station_reservation_status" => "confirmed",
+             "station_reserved_by" => "cadence_ops",
+             "provider_counteroffer_negotiation_state" => "unknown"
+           } = rows_by_contact_id["cmd_1"]
+
+    assert [
+             %{
+               "id" => "station_calendar_provider_contention:equator_prime:1",
+               "ground_station_id" => "equator_prime",
+               "entry_count" => 2,
+               "entry_ids" => ["equator_capacity", "equator_reserved"],
+               "provider_ids" => ["ops_calendar"],
+               "provider_entry_ids" => ["equator_capacity", "equator_reserved"],
+               "provider_calendar_contention_status" => "provider_calendar_overlap",
+               "required_operator_action" => "review_station_provider_contention",
+               "approval_status" => "operator_review_required",
+               "overlap_duration_s" => 5.0,
+               "trust_boundary_statuses" => ["declared"]
+             }
+           ] = report["provider_calendar_contention_groups"]
+  end
+
   test "validates checked-in link capacity report fixture regenerates through public facade" do
     report = read_json!("study_results/link_capacity_report_v1.json")
 
@@ -23601,6 +23760,8 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert get_in(row_schema, ["properties", "ground_station_id", "pattern"]) ==
              Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "station_availability", "type"]) == "string"
 
     assert get_in(row_schema, ["properties", "estimated_throughput_mb", "type"]) == "number"
 

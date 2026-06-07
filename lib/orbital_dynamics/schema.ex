@@ -18070,6 +18070,7 @@ defmodule OrbitalDynamics.Schema do
         "station_calendar_provider_ids" => stable_id_array_schema(),
         "station_calendar_provider_entry_ids" => stable_id_array_schema(),
         "station_calendar_directions" => string_array_schema(),
+        "station_availability" => %{"type" => "string"},
         "station_reservation_ids" => stable_id_array_schema(),
         "station_reserved_bys" => string_array_schema(),
         "station_reservation_statuses" => string_array_schema(),
