@@ -326,16 +326,23 @@ defmodule OrbitalDynamics.SchemaTest do
 
   test "validates subsystem model capability contract and checked-in fixture" do
     capability = OrbitalDynamics.battery_energy_storage_model()
+    storage_capability = OrbitalDynamics.data_storage_buffer_model()
 
-    assert capability == hd(OrbitalDynamics.subsystem_model_capabilities())
+    assert [^capability, ^storage_capability] = OrbitalDynamics.subsystem_model_capabilities()
     assert :ok = OrbitalDynamics.validate_subsystem_model_capability(capability)
+    assert :ok = OrbitalDynamics.validate_subsystem_model_capability(storage_capability)
 
     assert {:ok, %{"schema_contract" => "subsystem_model_capability.v1", "status" => "pass"}} =
              Schema.validate_artifact(capability)
 
-    fixture = read_json!("study_results/subsystem_model_capability_v1.json")
+    assert {:ok, %{"schema_contract" => "subsystem_model_capability.v1", "status" => "pass"}} =
+             Schema.validate_artifact(storage_capability)
 
-    assert fixture == capability
+    battery_fixture = read_json!("study_results/subsystem_model_capability_v1.json")
+    storage_fixture = read_json!("study_results/subsystem_model_capability_storage_v1.json")
+
+    assert battery_fixture == capability
+    assert storage_fixture == storage_capability
 
     stale_limits = Map.put(capability, "known_limits", ["different"])
 
@@ -27516,6 +27523,19 @@ defmodule OrbitalDynamics.SchemaTest do
                      "declared_energy_hints_only",
                      "no_continuous_power_bus_or_thermal_coupling",
                      "no_battery_degradation_or_charge_dynamics"
+                   ])
+           )
+
+    assert Enum.any?(
+             subsystem_schema["allOf"],
+             &(get_in(&1, ["if", "properties", "id", "const"]) ==
+                 "subsystem.data_recorder.storage_buffer.planning_grade" and
+                 get_in(&1, ["then", "properties", "known_limits", "const"]) ==
+                   [
+                     "selected_activity_sequence_only",
+                     "declared_data_volume_hints_only",
+                     "storage_limited_downlink_arithmetic_only",
+                     "no_partition_priority_deletion_or_latency_model"
                    ])
            )
   end

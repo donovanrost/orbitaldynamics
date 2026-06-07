@@ -5,24 +5,19 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Subsystem model capability contract foothold.
+Subsystem storage model capability record.
 
 Status:
-Implemented, verified, reviewed, committed, and pushed.
+Implemented, verified, and reviewed; ready to commit and push.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `lib/orbital_dynamics/subsystem_model.ex`
 - `lib/orbital_dynamics.ex`
-- `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/validation.ex`
 - `test/orbital_dynamics/schema_test.exs`
 - `test/orbital_dynamics/capabilities_test.exs`
-- `test/orbital_dynamics/validation_test.exs`
-- `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `study_results/subsystem_model_capability_v1.json`
+- `study_results/subsystem_model_capability_storage_v1.json`
 - `study_results/capability_catalog_v1.json`
-- `study_results/schema_migration_report_v1.json`
 - `schemas/subsystem_model_capability.v1.schema.json`
 - `schemas/orbital_dynamics.schema_bundle.v1.json`
 - `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`
@@ -31,66 +26,56 @@ Files changed:
 
 Slice-selection note:
 Selected slice:
-Add a narrow `subsystem_model_capability.v1` artifact family with a public
-facade, executable schema validation, checked-in JSON Schema export, capability
-catalog exposure, and one representative battery energy-storage capability
-record.
+Add a second built-in `subsystem_model_capability.v1` record for planning-grade
+onboard data storage, plus a public facade and fixture/export/doc updates.
 
 Why this slice:
-High-fidelity planning docs identify explicit spacecraft/subsystem model
-contracts as the first useful resource-simulation foothold. Environment model
-capability records already provide the adjacent pattern; adding the subsystem
-side gives downstream resource projection a schema-validated place to declare
-model identity, provenance, fidelity, parameters, and known limits without
-building the full spacecraft model in this slice.
+The previous slice established the subsystem capability family with a battery
+record. Resource projection also already exposes storage production/downlink
+roll-forward behavior from selected activities and resource summaries. Adding a
+storage-model capability record gives that existing storage evidence the same
+explicit model identity/provenance/fidelity boundary without introducing full
+recorder simulation or spacecraft-model composition.
 
 Level 6 pillar advanced:
 Resource-simulation model contracts and Cadence-facing setup fidelity.
 
 Implementation notes:
-- Added `OrbitalDynamics.SubsystemModel` with a built-in planning-grade
-  battery energy-storage capability record.
-- Added public facades:
-  `OrbitalDynamics.subsystem_model_capabilities/0`,
-  `OrbitalDynamics.battery_energy_storage_model/1`, and
-  `OrbitalDynamics.validate_subsystem_model_capability/1`.
-- Registered `subsystem_model_capability.v1` in the executable schema registry,
-  JSON Schema export path, capability catalog, and validation fixture counts.
-- Runtime validation now rejects unstable IDs and malformed string scalar fields
-  consistently with executable schema validation.
-- Refreshed checked-in schema exports, capability catalog, schema-migration
-  fixture, and new subsystem capability fixture.
-- Updated docs to mark the subsystem-model contract as an implemented foothold
-  while keeping full spacecraft models and propagated subsystem simulation out
-  of scope.
+- Added a built-in planning-grade data-recorder storage-buffer capability
+  record in deterministic order after the battery energy-storage record.
+- Added `OrbitalDynamics.data_storage_buffer_model/1`.
+- Runtime and schema tests now validate the storage record, checked-in fixture,
+  and exported known-limit const alongside the battery record.
+- Refreshed `schemas/subsystem_model_capability.v1.schema.json`,
+  `schemas/orbital_dynamics.schema_bundle.v1.json`, and
+  `study_results/capability_catalog_v1.json`.
+- Updated docs to state the subsystem contract foothold now covers battery and
+  data-recorder storage while still excluding recorder partition, deletion,
+  latency, full spacecraft configuration, and propagated subsystem state.
 
 Tests run:
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - `mix orbital_dynamics.capabilities --format json --output study_results/capability_catalog_v1.json`
-- `mix run -e 'write = fn path, artifact -> json = artifact |> :json.encode() |> IO.iodata_to_binary(); File.write!(path, json <> "\n") end; deprecated = OrbitalDynamics.Validation.schema_migration_report(deprecated_contracts: %{"campaign_plan.v1" => "campaign_strategy.v3"}); write.("study_results/schema_migration_report_v1.json", deprecated)'`
-- `mix format lib/orbital_dynamics/subsystem_model.ex lib/orbital_dynamics.ex lib/orbital_dynamics/schema.ex lib/orbital_dynamics/validation.ex test/orbital_dynamics/capabilities_test.exs test/orbital_dynamics/schema_test.exs test/orbital_dynamics/validation_test.exs test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix test test/orbital_dynamics/capabilities_test.exs test/orbital_dynamics/schema_test.exs:305 test/orbital_dynamics/schema_test.exs:327 test/orbital_dynamics/schema_test.exs:27393 test/orbital_dynamics/schema_test.exs:29976 test/orbital_dynamics/schema_test.exs:30357 test/mix/tasks/orbital_dynamics.schema.export_test.exs test/orbital_dynamics/validation_test.exs:48 test/orbital_dynamics/validation_test.exs:4322 test/orbital_dynamics/validation_test.exs:10857 test/orbital_dynamics/validation_test.exs:10942`
+- `mix format lib/orbital_dynamics/subsystem_model.ex lib/orbital_dynamics.ex test/orbital_dynamics/capabilities_test.exs test/orbital_dynamics/schema_test.exs`
+- `mix test test/orbital_dynamics/capabilities_test.exs test/orbital_dynamics/schema_test.exs:327 test/orbital_dynamics/schema_test.exs:27393 test/orbital_dynamics/schema_test.exs:30357 test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
 - `git diff --check`
 
 Docs/artifacts changed:
-- Added `study_results/subsystem_model_capability_v1.json`.
-- Added `schemas/subsystem_model_capability.v1.schema.json`.
-- Refreshed `schemas/orbital_dynamics.schema_bundle.v1.json`,
-  `study_results/capability_catalog_v1.json`, and
-  `study_results/schema_migration_report_v1.json`.
+- Added `study_results/subsystem_model_capability_storage_v1.json`.
+- Refreshed checked-in subsystem JSON Schema, schema bundle, and capability
+  catalog fixture.
 - Updated spacecraft/resource capability map, current capability snapshot, and
   high-fidelity near-term planning candidates.
 
 Review:
-- Read-only reviewer Hegel found one blocker: the public subsystem capability
-  validator accepted schema-invalid records with unstable IDs or non-string
-  scalar fields.
-- Fixed by adding stable-ID and scalar string checks in
-  `OrbitalDynamics.SubsystemModel.validate_capability/1` plus regression tests
-  covering invalid `id`, `subsystem`, `model`, `source`, and `fidelity_tier`.
-- Hegel found no other subsystem blockers. The broader reference-fixture report
-  still has unrelated pre-existing observation drift outside this slice.
+- Read-only reviewer Jason found one publish blocker: the new storage fixture
+  was still untracked at review time.
+- Fixed by including `study_results/subsystem_model_capability_storage_v1.json`
+  in the slice staging set.
+- Jason found no code blockers; runtime order, facade, validation consistency,
+  schema export consts, catalog refresh, docs, and focused tests were
+  consistent.
 
 Remaining maturity gaps:
 - Full `spacecraft_model.v1` and executable subsystem state propagation remain
@@ -99,8 +84,8 @@ Remaining maturity gaps:
   future work.
 
 Last commit:
-`0dedd1f44b348522078486ca24f9a07475ff770f` pushed to `origin/main` for
-Subsystem model capability contract foothold.
+`35a1ba0af94842b9fc47dfcd358d9a7f01f18b84` pushed to `origin/main` for the
+previous subsystem model capability contract foothold handoff.
 
 Next candidate:
 After this slice, continue from the live guide/status and prefer another narrow

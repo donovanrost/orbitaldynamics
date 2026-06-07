@@ -18,12 +18,14 @@ Status: **implemented**.
 - `SubsystemModel` exposes `subsystem_model_capability.v1` records through
   `OrbitalDynamics.subsystem_model_capabilities/0`,
   `OrbitalDynamics.battery_energy_storage_model/1`, and
-  `OrbitalDynamics.validate_subsystem_model_capability/1`. The first built-in
-  record declares the planning-grade battery energy-storage model used by
-  selected-activity resource-flow evidence, including model identity,
-  provenance, fidelity tier, state variables, activity-effect fields,
-  parameters, and exact known limits. This is a declarative model contract, not
-  continuous power-bus, thermal, degradation, or charge-dynamics simulation.
+  `OrbitalDynamics.data_storage_buffer_model/1`, plus
+  `OrbitalDynamics.validate_subsystem_model_capability/1`. The built-in
+  records declare the planning-grade battery energy-storage and data-recorder
+  storage-buffer models used by selected-activity resource-flow evidence,
+  including model identity, provenance, fidelity tier, state variables,
+  activity-effect fields, parameters, and exact known limits. These are
+  declarative model contracts, not continuous power-bus, thermal, degradation,
+  partition-priority, deletion-rule, latency, or charge-dynamics simulation.
 - `ResourceSummary` normalizes planning-grade fuel, power, storage, downlink, payload, antenna, degraded-mode, assumptions, and provenance rows, plus declared or provenance-inferred source quality.
 - Top-level facades `OrbitalDynamics.resource_summary_from_map!/1`, `OrbitalDynamics.resource_summary_to_map/1`, and `OrbitalDynamics.resource_summaries_to_maps/1` provide standalone `resource_summary.v1` normalization. This includes:
   - clean numeric-string resource quantities and margins;

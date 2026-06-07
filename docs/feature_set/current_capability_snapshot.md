@@ -39,9 +39,10 @@ Implemented or partially implemented modules and artifacts include:
   exposes provider capability boundaries for fixed Sun, constant Earth rotation,
   and a reference exponential atmosphere-density interface.
 - Subsystem model registry: `OrbitalDynamics.SubsystemModel` now exposes a
-  schema-validated `subsystem_model_capability.v1` record for planning-grade
-  battery energy storage, giving resource-flow evidence an explicit model
-  identity/provenance boundary before full spacecraft configuration exists.
+  schema-validated `subsystem_model_capability.v1` record set for
+  planning-grade battery energy storage and data-recorder storage buffering,
+  giving resource-flow evidence an explicit model identity/provenance boundary
+  before full spacecraft configuration exists.
 - Example manifests and outputs in `studies/`, `study_results/`, and
   `benchmark_results/`.
 

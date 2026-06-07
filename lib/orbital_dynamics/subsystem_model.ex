@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.SubsystemModel do
   """
 
   @battery_energy_storage_id "subsystem.power.battery.energy_storage.planning_grade"
+  @data_storage_buffer_id "subsystem.data_recorder.storage_buffer.planning_grade"
   @validation_levels ~w(analysis artifact_contract assumption_declared educational validated)
 
   @doc """
@@ -15,7 +16,8 @@ defmodule OrbitalDynamics.SubsystemModel do
   """
   def capabilities do
     [
-      battery_energy_storage()
+      battery_energy_storage(),
+      data_storage_buffer()
     ]
   end
 
@@ -57,6 +59,50 @@ defmodule OrbitalDynamics.SubsystemModel do
         "round_trip_efficiency" => Keyword.get(opts, :round_trip_efficiency, 1.0)
       },
       "known_limits" => known_limits()
+    }
+  end
+
+  @doc """
+  Describes the planning-grade data-recorder storage model used by resource flow evidence.
+  """
+  def data_storage_buffer(opts \\ []) do
+    %{
+      "id" => @data_storage_buffer_id,
+      "schema_contract" => "subsystem_model_capability.v1",
+      "subsystem" => "data_recorder",
+      "model" => "data_storage_buffer_planning_grade",
+      "source" => Keyword.get(opts, :source, "resource_projection_activity_data_volume_hints"),
+      "fidelity_tier" => "planning_grade",
+      "validation_level" => "assumption_declared",
+      "applicability" => %{
+        "resource_dimensions" => ["storage", "downlink"],
+        "activity_effect_fields" => [
+          "planned_data_volume_mb",
+          "data_volume_mb",
+          "estimated_data_volume_mb",
+          "estimated_storage_mb",
+          "required_downlink_mb",
+          "selected_downlink_mb"
+        ],
+        "time_span" => "selected_activity_sequence"
+      },
+      "state_variables" => [
+        "storage_capacity_mb",
+        "storage_used_mb",
+        "storage_remaining_mb",
+        "storage_margin"
+      ],
+      "activity_effects" => %{
+        "production" => "add declared planned activity data volume to used storage",
+        "downlink" => "subtract storage-limited declared downlink volume from used storage"
+      },
+      "parameters" => %{
+        "storage_capacity_mb" => Keyword.get(opts, :storage_capacity_mb, 1000.0),
+        "min_storage_margin" => Keyword.get(opts, :min_storage_margin, 0.0),
+        "downlink_completion_policy" =>
+          Keyword.get(opts, :downlink_completion_policy, "selected_activity_order")
+      },
+      "known_limits" => known_limits(@data_storage_buffer_id)
     }
   end
 
@@ -138,6 +184,10 @@ defmodule OrbitalDynamics.SubsystemModel do
   def validate_capability(_record), do: {:error, :invalid_record}
 
   defp known_limits do
+    known_limits(@battery_energy_storage_id)
+  end
+
+  defp known_limits(@battery_energy_storage_id) do
     [
       "selected_activity_sequence_only",
       "declared_energy_hints_only",
@@ -146,8 +196,18 @@ defmodule OrbitalDynamics.SubsystemModel do
     ]
   end
 
-  defp known_limits_drift?(%{"id" => @battery_energy_storage_id, "known_limits" => limits}) do
-    limits != known_limits()
+  defp known_limits(@data_storage_buffer_id) do
+    [
+      "selected_activity_sequence_only",
+      "declared_data_volume_hints_only",
+      "storage_limited_downlink_arithmetic_only",
+      "no_partition_priority_deletion_or_latency_model"
+    ]
+  end
+
+  defp known_limits_drift?(%{"id" => id, "known_limits" => limits})
+       when id in [@battery_energy_storage_id, @data_storage_buffer_id] do
+    limits != known_limits(id)
   end
 
   defp known_limits_drift?(_record), do: false

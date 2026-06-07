@@ -63,6 +63,12 @@ defmodule OrbitalDynamics.CapabilitiesTest do
                "subsystem" => "power",
                "model" => "battery_energy_storage_planning_grade",
                "fidelity_tier" => "planning_grade"
+             },
+             %{
+               "schema_contract" => "subsystem_model_capability.v1",
+               "subsystem" => "data_recorder",
+               "model" => "data_storage_buffer_planning_grade",
+               "fidelity_tier" => "planning_grade"
              }
            ] = catalog.planning.subsystem_models
 

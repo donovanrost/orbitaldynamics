@@ -1477,6 +1477,13 @@ defmodule OrbitalDynamics do
   end
 
   @doc """
+  Describes the planning-grade data-recorder storage subsystem model.
+  """
+  def data_storage_buffer_model(opts \\ []) do
+    SubsystemModel.data_storage_buffer(opts)
+  end
+
+  @doc """
   Validates a subsystem model capability record.
   """
   def validate_subsystem_model_capability(record) do
