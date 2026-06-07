@@ -6887,6 +6887,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_candidate_rejection_replay_summary_fields(source_reports))
     |> Map.merge(source_report_provider_counteroffer_replay_summary_fields(source_reports))
     |> Map.merge(
+      source_report_freshness_replay_summary_fields(refresh_or_artifact, source_reports)
+    )
+    |> Map.merge(
       source_report_contact_contention_replay_summary_fields(refresh_or_artifact, source_reports)
     )
     |> Map.merge(
@@ -9728,6 +9731,39 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "branch_local_counteroffer_import_readiness_pressure"),
       "source_report_provider_counteroffer_branch_local_plan_impact_pressure" =>
         Map.get(summary, "branch_local_plan_impact_pressure")
+    }
+  end
+
+  defp source_report_freshness_replay_summary_fields(refresh_or_artifact, source_reports) do
+    branch_freshness_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "freshness_report")
+
+    freshness_summary =
+      branch_freshness_summary || Map.get(source_reports, "freshness_report", %{})
+
+    {summary_source, replay_scope} =
+      if branch_freshness_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.freshness_report",
+          "freshness_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.freshness_report",
+          "freshness_source_report_provenance_only"
+        }
+      end
+
+    summary =
+      freshness_replay_summary_from_summary(freshness_summary, summary_source, replay_scope)
+
+    %{
+      "source_report_freshness_branch_local_stale_pressure" =>
+        Map.get(summary, "branch_local_stale_pressure"),
+      "source_report_freshness_branch_local_unknown_pressure" =>
+        Map.get(summary, "branch_local_unknown_pressure"),
+      "source_report_freshness_branch_local_freshness_pressure" =>
+        Map.get(summary, "branch_local_freshness_pressure")
     }
   end
 
@@ -15517,16 +15553,38 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local freshness replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, mutate candidates, approve imports, or
-  write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, mutate
+  candidates, approve imports, or write to Cadence.
   """
   def freshness_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
-    freshness_summary =
-      get_in(source_summary, ["source_reports", "freshness_report"]) || %{}
+    branch_freshness_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "freshness_report")
 
+    freshness_summary =
+      branch_freshness_summary ||
+        get_in(source_summary, ["source_reports", "freshness_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_freshness_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.freshness_report",
+          "freshness_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.freshness_report",
+          "freshness_source_report_provenance_only"
+        }
+      end
+
+    freshness_replay_summary_from_summary(freshness_summary, summary_source, replay_scope)
+  end
+
+  defp freshness_replay_summary_from_summary(freshness_summary, summary_source, replay_scope) do
     status_counts = Map.get(freshness_summary, "status_counts", %{})
     stale_reason_count = summary_integer(freshness_summary, "stale_reason_count")
     unknown_reason_count = summary_integer(freshness_summary, "unknown_reason_count")
@@ -15548,7 +15606,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_freshness_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.freshness_report",
+      "source" => summary_source,
       "contract" => source_report_summary_contract(freshness_summary, "freshness_report.v1"),
       "source_report_count" => summary_integer(freshness_summary, "count"),
       "source_report_row_count" => summary_integer(freshness_summary, "row_count"),
@@ -15567,7 +15625,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "branch_local_freshness_pressure" => stale_pressure or unknown_pressure,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "freshness_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_freshness_replay_summary",
         "import_approval" => "not_granted_by_freshness_replay_summary",
         "cadence_write" => "not_performed_by_summary",
