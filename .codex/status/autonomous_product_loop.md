@@ -8,7 +8,7 @@ Current slice:
 Contact allocation capacity-pack summary capability assumptions.
 
 Status:
-Implemented, verified, reviewed, ready to commit and push.
+Implemented, verified, reviewed, committed; handoff update in progress.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -82,7 +82,8 @@ Remaining maturity gaps:
   vocabularies that may merit artifact-carried assumptions in later slices.
 
 Last commit:
-Pending.
+`f5d02e6a7f00da80f4149fcf7331b3eef4fed78d` for Contact allocation
+capacity-pack summary capability assumptions.
 
 Next candidate:
 After review/publish, continue from the live guide/status and prefer another
