@@ -6928,6 +6928,77 @@ defmodule OrbitalDynamics.Validation do
         "checks reservation conflict counts, routing maps, and model-limit boundary only"
       ]
     },
+    "fixture.artifact.contact_allocation_station_pressure_summary.v1" => %{
+      "id" => "fixture.artifact.contact_allocation_station_pressure_summary.v1",
+      "model_id" => "artifact.contact_allocation_station_pressure_summary.v1",
+      "reference_case" => "checked-in contact allocation station pressure summary",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/contact_allocation_station_pressure_summary_v1.json",
+        "contract" => "contact_allocation_station_pressure_summary.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "contact_allocation_station_pressure_summary.v1",
+        "model" => "artifact_only_contact_allocation_station_pressure_summary",
+        "source_artifact_type" => "contact_allocation_report.v1",
+        "source" => "validation.contact_allocation_station_pressure_summary",
+        "input_contact_count" => 3,
+        "row_derived_input_contact_count" => 3,
+        "station_pressure_contact_count" => 1,
+        "row_derived_station_pressure_contact_count" => 1,
+        "station_pressure_review_contact_count" => 1,
+        "row_derived_station_pressure_review_contact_count" => 1,
+        "station_pressure_contact_keys" => "dl_3",
+        "row_derived_station_pressure_contact_keys" => "dl_3",
+        "station_pressure_review_contact_keys" => "dl_3",
+        "row_derived_station_pressure_review_contact_keys" => "dl_3",
+        "station_pressure_contact_ids_by_ground_station_id" => %{
+          "equator_prime" => ["dl_3"]
+        },
+        "row_derived_station_pressure_contact_ids_by_ground_station_id" => %{
+          "equator_prime" => ["dl_3"]
+        },
+        "station_pressure_contact_ids_by_availability" => %{"reserved" => ["dl_3"]},
+        "row_derived_station_pressure_contact_ids_by_availability" => %{
+          "reserved" => ["dl_3"]
+        },
+        "station_pressure_contact_ids_by_precedence_availability" => %{
+          "reserved" => ["dl_3"]
+        },
+        "row_derived_station_pressure_contact_ids_by_precedence_availability" => %{
+          "reserved" => ["dl_3"]
+        },
+        "station_pressure_contact_ids_by_precedence_rank" => %{"1" => ["dl_3"]},
+        "row_derived_station_pressure_contact_ids_by_precedence_rank" => %{
+          "1" => ["dl_3"]
+        },
+        "station_pressure_contact_ids_by_direction_and_ground_station_id" => %{
+          "downlink" => %{"equator_prime" => ["dl_3"]}
+        },
+        "row_derived_station_pressure_contact_ids_by_direction_and_ground_station_id" => %{
+          "downlink" => %{"equator_prime" => ["dl_3"]}
+        },
+        "model_limit_count" => 8
+      },
+      "tolerances" => %{
+        "input_contact_count" => 0,
+        "row_derived_input_contact_count" => 0,
+        "station_pressure_contact_count" => 0,
+        "row_derived_station_pressure_contact_count" => 0,
+        "station_pressure_review_contact_count" => 0,
+        "row_derived_station_pressure_review_contact_count" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not external station validation",
+        "checks station pressure counts, routing maps, and model-limit boundary only"
+      ]
+    },
     "fixture.artifact.contact_allocation_provider_reservation_request_summary.v1" => %{
       "id" => "fixture.artifact.contact_allocation_provider_reservation_request_summary.v1",
       "model_id" => "artifact.contact_allocation_provider_reservation_request_summary.v1",
@@ -14804,6 +14875,80 @@ defmodule OrbitalDynamics.Validation do
     }
   end
 
+  def artifact_observations("contact_allocation_station_pressure_summary.v1", artifact)
+      when is_map(artifact) do
+    artifact = stringify_keys(artifact)
+    rows = map_rows(artifact, "rows")
+    pressure_rows = station_pressure_rows(rows)
+    review_rows = Enum.filter(pressure_rows, &(Map.get(&1, "review_status") != nil))
+
+    %{
+      "schema_contract" => Map.get(artifact, "schema_contract"),
+      "model" => Map.get(artifact, "model"),
+      "source_artifact_type" => Map.get(artifact, "source_artifact_type"),
+      "source" => Map.get(artifact, "source"),
+      "input_contact_count" => Map.get(artifact, "input_contact_count"),
+      "row_derived_input_contact_count" => length(rows),
+      "station_pressure_contact_count" => Map.get(artifact, "station_pressure_contact_count"),
+      "row_derived_station_pressure_contact_count" => length(pressure_rows),
+      "station_pressure_review_contact_count" =>
+        Map.get(artifact, "station_pressure_review_contact_count"),
+      "row_derived_station_pressure_review_contact_count" => length(review_rows),
+      "station_pressure_contact_ids" => Map.get(artifact, "station_pressure_contact_ids"),
+      "station_pressure_contact_keys" =>
+        artifact
+        |> list_values("station_pressure_contact_ids")
+        |> Enum.join("|"),
+      "row_derived_station_pressure_contact_ids" =>
+        unique_row_values(pressure_rows, "contact_id"),
+      "row_derived_station_pressure_contact_keys" =>
+        pressure_rows
+        |> unique_row_values("contact_id")
+        |> Enum.join("|"),
+      "station_pressure_review_contact_ids" =>
+        Map.get(artifact, "station_pressure_review_contact_ids"),
+      "station_pressure_review_contact_keys" =>
+        artifact
+        |> list_values("station_pressure_review_contact_ids")
+        |> Enum.join("|"),
+      "row_derived_station_pressure_review_contact_ids" =>
+        unique_row_values(review_rows, "contact_id"),
+      "row_derived_station_pressure_review_contact_keys" =>
+        review_rows
+        |> unique_row_values("contact_id")
+        |> Enum.join("|"),
+      "station_pressure_contact_ids_by_ground_station_id" =>
+        Map.get(artifact, "station_pressure_contact_ids_by_ground_station_id"),
+      "row_derived_station_pressure_contact_ids_by_ground_station_id" =>
+        pressure_rows
+        |> group_row_ids_by_value("ground_station_id", "contact_id")
+        |> sort_grouped_values(),
+      "station_pressure_contact_ids_by_availability" =>
+        Map.get(artifact, "station_pressure_contact_ids_by_availability"),
+      "row_derived_station_pressure_contact_ids_by_availability" =>
+        pressure_rows
+        |> group_row_ids_by_value("station_availability", "contact_id")
+        |> sort_grouped_values(),
+      "station_pressure_contact_ids_by_precedence_availability" =>
+        Map.get(artifact, "station_pressure_contact_ids_by_precedence_availability"),
+      "row_derived_station_pressure_contact_ids_by_precedence_availability" =>
+        pressure_rows
+        |> group_row_ids_by_value("station_calendar_precedence_availability", "contact_id")
+        |> sort_grouped_values(),
+      "station_pressure_contact_ids_by_precedence_rank" =>
+        Map.get(artifact, "station_pressure_contact_ids_by_precedence_rank"),
+      "row_derived_station_pressure_contact_ids_by_precedence_rank" =>
+        pressure_rows
+        |> group_row_ids_by_value("station_calendar_precedence_rank", "contact_id")
+        |> sort_grouped_values(),
+      "station_pressure_contact_ids_by_direction_and_ground_station_id" =>
+        Map.get(artifact, "station_pressure_contact_ids_by_direction_and_ground_station_id"),
+      "row_derived_station_pressure_contact_ids_by_direction_and_ground_station_id" =>
+        contact_ids_by_direction_and_ground_station_id(pressure_rows),
+      "model_limit_count" => count(artifact, "model_limits")
+    }
+  end
+
   def artifact_observations(
         "contact_allocation_provider_reservation_request_summary.v1",
         artifact
@@ -16735,6 +16880,14 @@ defmodule OrbitalDynamics.Validation do
         |> sort_grouped_values()
 
       {to_string(direction), ground_station_map}
+    end)
+  end
+
+  defp station_pressure_rows(rows) do
+    Enum.filter(rows, fn row ->
+      Map.get(row, "station_availability") != nil or
+        Map.get(row, "station_calendar_precedence_availability") != nil or
+        Map.get(row, "station_calendar_precedence_rank") != nil
     end)
   end
 
