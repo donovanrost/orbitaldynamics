@@ -6896,6 +6896,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_objective_gap_replay_summary_fields(source_reports))
     |> Map.merge(source_report_timeline_feedback_replay_summary_fields(source_reports))
     |> Map.merge(source_report_operational_timeline_replay_summary_fields(source_reports))
+    |> Map.merge(
+      source_report_timeline_activity_lifecycle_state_replay_summary_fields(source_reports)
+    )
     |> Map.merge(source_report_timeline_lifecycle_state_replay_summary_fields(source_reports))
     |> Map.merge(
       source_report_timeline_activity_precondition_replay_summary_fields(source_reports)
@@ -9876,6 +9879,27 @@ defmodule OrbitalDynamics.CandidateRefresh do
     }
   end
 
+  defp source_report_timeline_activity_lifecycle_state_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("timeline_activity_lifecycle_state", %{})
+      |> timeline_activity_lifecycle_state_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.timeline_activity_lifecycle_state",
+        "timeline_activity_lifecycle_state_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_timeline_activity_lifecycle_state_branch_local_timeline_activity_lifecycle_state_pressure" =>
+        Map.get(summary, "branch_local_timeline_activity_lifecycle_state_pressure"),
+      "source_report_timeline_activity_lifecycle_state_branch_local_review_pressure" =>
+        Map.get(summary, "branch_local_activity_lifecycle_review_pressure"),
+      "source_report_timeline_activity_lifecycle_state_branch_local_action_pressure" =>
+        Map.get(summary, "branch_local_activity_lifecycle_action_pressure"),
+      "source_report_timeline_activity_lifecycle_state_branch_local_routing_pressure" =>
+        Map.get(summary, "branch_local_activity_lifecycle_routing_pressure")
+    }
+  end
+
   defp source_report_timeline_lifecycle_state_replay_summary_fields(source_reports) do
     summary =
       source_reports
@@ -12149,6 +12173,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    timeline_activity_lifecycle_state_replay_summary_from_summary(
+      lifecycle_summary,
+      summary_source,
+      replay_scope
+    )
+  end
+
+  defp timeline_activity_lifecycle_state_replay_summary_from_summary(
+         lifecycle_summary,
+         summary_source,
+         replay_scope
+       ) do
     row_count = summary_integer(lifecycle_summary, "row_count")
     review_required_count = summary_integer(lifecycle_summary, "review_required_count")
 

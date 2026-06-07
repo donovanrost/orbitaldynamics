@@ -20487,8 +20487,35 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_timeline_activity_lifecycle_state_transition_application_provenance_operator_action_reason_counts" =>
                %{"activity_execution_recorded" => 1},
              "source_report_timeline_activity_lifecycle_state_action_routing" =>
-               ^expected_action_routing
+               ^expected_action_routing,
+             "source_report_timeline_activity_lifecycle_state_branch_local_timeline_activity_lifecycle_state_pressure" =>
+               true,
+             "source_report_timeline_activity_lifecycle_state_branch_local_review_pressure" =>
+               true,
+             "source_report_timeline_activity_lifecycle_state_branch_local_action_pressure" =>
+               true,
+             "source_report_timeline_activity_lifecycle_state_branch_local_routing_pressure" =>
+               true
            } = source_summary
+
+    provenance_artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{"source_reports" => source_summary["source_reports"]}
+    }
+
+    assert %{
+             "source_report_timeline_activity_lifecycle_state_branch_local_timeline_activity_lifecycle_state_pressure" =>
+               true,
+             "source_report_timeline_activity_lifecycle_state_branch_local_review_pressure" =>
+               true,
+             "source_report_timeline_activity_lifecycle_state_branch_local_action_pressure" =>
+               true,
+             "source_report_timeline_activity_lifecycle_state_branch_local_routing_pressure" =>
+               true
+           } = CandidateRefresh.source_report_summary(provenance_artifact)
+
+    assert CandidateRefresh.timeline_activity_lifecycle_state_replay_summary(provenance_artifact) ==
+             replay_summary
 
     lifecycle_rows =
       Enum.filter(review["rows"], &(&1["review_type"] == "timeline_lifecycle_state_review"))
