@@ -1889,8 +1889,8 @@ defmodule OrbitalDynamics do
   @doc """
   Applies a safe lifecycle-status transition to one timeline activity row.
   """
-  def timeline_transition_activity_status(activity, status) do
-    Timeline.transition_activity_status(activity, status)
+  def timeline_transition_activity_status(activity, status, opts \\ []) do
+    Timeline.transition_activity_status(activity, status, opts)
   end
 
   @doc """
@@ -1898,15 +1898,15 @@ defmodule OrbitalDynamics do
 
   Raises when the transition requires operator review.
   """
-  def timeline_transition_activity_status!(activity, status) do
-    Timeline.transition_activity_status!(activity, status)
+  def timeline_transition_activity_status!(activity, status, opts \\ []) do
+    Timeline.transition_activity_status!(activity, status, opts)
   end
 
   @doc """
   Applies a safe approval-status transition to one timeline activity row.
   """
-  def timeline_transition_activity_approval_status(activity, approval_status) do
-    Timeline.transition_activity_approval_status(activity, approval_status)
+  def timeline_transition_activity_approval_status(activity, approval_status, opts \\ []) do
+    Timeline.transition_activity_approval_status(activity, approval_status, opts)
   end
 
   @doc """
@@ -1914,15 +1914,15 @@ defmodule OrbitalDynamics do
 
   Raises when the transition requires operator review.
   """
-  def timeline_transition_activity_approval_status!(activity, approval_status) do
-    Timeline.transition_activity_approval_status!(activity, approval_status)
+  def timeline_transition_activity_approval_status!(activity, approval_status, opts \\ []) do
+    Timeline.transition_activity_approval_status!(activity, approval_status, opts)
   end
 
   @doc """
   Applies a normalized lifecycle event to one timeline activity row.
   """
-  def timeline_apply_lifecycle_event(activity, event) do
-    Timeline.apply_lifecycle_event(activity, event)
+  def timeline_apply_lifecycle_event(activity, event, opts \\ []) do
+    Timeline.apply_lifecycle_event(activity, event, opts)
   end
 
   @doc """
@@ -1930,8 +1930,8 @@ defmodule OrbitalDynamics do
 
   Raises when the resulting status or approval transition requires operator review.
   """
-  def timeline_apply_lifecycle_event!(activity, event) do
-    Timeline.apply_lifecycle_event!(activity, event)
+  def timeline_apply_lifecycle_event!(activity, event, opts \\ []) do
+    Timeline.apply_lifecycle_event!(activity, event, opts)
   end
 
   @doc """

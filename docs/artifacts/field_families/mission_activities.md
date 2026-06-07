@@ -316,7 +316,9 @@ accept stale model-limit lists. Transition-application reports also preserve
 the selected activity context, selected activity row, application row, and
 operator-review/Cadence-import handoff rows so review/import consumers can
 distinguish helper-applied lifecycle state from hand-authored replacement rows
-without applying transitions.
+without applying transitions. Direct status, approval, and lifecycle-event
+helpers can also opt into the same selected-activity dependency/exclusivity
+review gate before returning helper-applied activity rows.
 `Timeline.integrity_report/2` exposes the same
 dependency/exclusivity validation as a compact validated
 `timeline_integrity_report.v1` artifact-only summary with review rows,

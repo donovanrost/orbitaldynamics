@@ -4447,7 +4447,10 @@ defmodule OrbitalDynamics.Timeline do
   blocks transitions that require operator review, and does not mutate schedules,
   grant operator authority, or execute commands.
   """
-  def transition_activity_status(activity, status) when is_map(activity) do
+  def transition_activity_status(activity, status, opts \\ [])
+
+  def transition_activity_status(activity, status, opts)
+      when is_map(activity) and is_list(opts) do
     source_activity = activity_to_map(activity)
     replacement_activity = Map.put(source_activity, "status", status)
 
@@ -4459,18 +4462,18 @@ defmodule OrbitalDynamics.Timeline do
     if transition_requires_operator_review?(transition) do
       {:error, transition}
     else
-      {:ok,
-       replacement_activity
-       |> put_transition_application_provenance(
-         "transition_activity_status",
-         "status",
-         transition
-       )
-       |> normalize_activity()}
+      replacement_activity
+      |> put_transition_application_provenance(
+        "transition_activity_status",
+        "status",
+        transition
+      )
+      |> normalize_activity()
+      |> maybe_validate_transition_helper_selected_integrity(opts)
     end
   end
 
-  def transition_activity_status(_activity, _status),
+  def transition_activity_status(_activity, _status, _opts),
     do: raise(ArgumentError, "activity must be a map or MissionPlan.Activity")
 
   @doc """
@@ -4478,14 +4481,13 @@ defmodule OrbitalDynamics.Timeline do
 
   Raises when the transition would require operator review.
   """
-  def transition_activity_status!(activity, status) do
-    case transition_activity_status(activity, status) do
+  def transition_activity_status!(activity, status, opts \\ []) do
+    case transition_activity_status(activity, status, opts) do
       {:ok, activity} ->
         activity
 
       {:error, transition} ->
-        raise ArgumentError,
-              "unsafe timeline activity status transition #{transition["from"]} -> #{transition["to"]}: #{transition["operator_action_reason"]}"
+        raise_transition_activity_status_error(transition)
     end
   end
 
@@ -4967,7 +4969,10 @@ defmodule OrbitalDynamics.Timeline do
   blocks transitions that require operator review, and does not grant operator
   authority, mutate schedules, or execute commands.
   """
-  def transition_activity_approval_status(activity, approval_status) when is_map(activity) do
+  def transition_activity_approval_status(activity, approval_status, opts \\ [])
+
+  def transition_activity_approval_status(activity, approval_status, opts)
+      when is_map(activity) and is_list(opts) do
     source_activity = activity_to_map(activity)
     replacement_activity = Map.put(source_activity, "approval_status", approval_status)
 
@@ -4981,18 +4986,18 @@ defmodule OrbitalDynamics.Timeline do
     if transition_requires_operator_review?(transition) do
       {:error, transition}
     else
-      {:ok,
-       replacement_activity
-       |> put_transition_application_provenance(
-         "transition_activity_approval_status",
-         "approval_status",
-         transition
-       )
-       |> normalize_activity()}
+      replacement_activity
+      |> put_transition_application_provenance(
+        "transition_activity_approval_status",
+        "approval_status",
+        transition
+      )
+      |> normalize_activity()
+      |> maybe_validate_transition_helper_selected_integrity(opts)
     end
   end
 
-  def transition_activity_approval_status(_activity, _approval_status),
+  def transition_activity_approval_status(_activity, _approval_status, _opts),
     do: raise(ArgumentError, "activity must be a map or MissionPlan.Activity")
 
   @doc """
@@ -5000,14 +5005,13 @@ defmodule OrbitalDynamics.Timeline do
 
   Raises when the transition would require operator review.
   """
-  def transition_activity_approval_status!(activity, approval_status) do
-    case transition_activity_approval_status(activity, approval_status) do
+  def transition_activity_approval_status!(activity, approval_status, opts \\ []) do
+    case transition_activity_approval_status(activity, approval_status, opts) do
       {:ok, activity} ->
         activity
 
       {:error, transition} ->
-        raise ArgumentError,
-              "unsafe timeline activity approval transition #{transition["from"]} -> #{transition["to"]}: #{transition["operator_action_reason"]}"
+        raise_transition_activity_approval_status_error(transition)
     end
   end
 
@@ -5019,7 +5023,9 @@ defmodule OrbitalDynamics.Timeline do
   and approval transitions with timeline review semantics, and does not mutate
   schedules, grant operator authority, or execute commands.
   """
-  def apply_lifecycle_event(activity, event) when is_map(activity) do
+  def apply_lifecycle_event(activity, event, opts \\ [])
+
+  def apply_lifecycle_event(activity, event, opts) when is_map(activity) and is_list(opts) do
     source_activity = activity_to_map(activity)
     replacement_activity = lifecycle_event_replacement_activity!(source_activity, event)
     source_state = optional_activity_state_input(source_activity, 1)
@@ -5029,21 +5035,21 @@ defmodule OrbitalDynamics.Timeline do
 
     case lifecycle_event_review_transition(status_transition, approval_transition) do
       nil ->
-        {:ok,
-         replacement_activity
-         |> put_transition_application_provenance(
-           "apply_lifecycle_event",
-           lifecycle_event_provenance_field(status_transition, approval_transition),
-           lifecycle_event_provenance_transition(status_transition, approval_transition)
-         )
-         |> normalize_activity()}
+        replacement_activity
+        |> put_transition_application_provenance(
+          "apply_lifecycle_event",
+          lifecycle_event_provenance_field(status_transition, approval_transition),
+          lifecycle_event_provenance_transition(status_transition, approval_transition)
+        )
+        |> normalize_activity()
+        |> maybe_validate_transition_helper_selected_integrity(opts)
 
       transition ->
         {:error, transition}
     end
   end
 
-  def apply_lifecycle_event(_activity, _event),
+  def apply_lifecycle_event(_activity, _event, _opts),
     do: raise(ArgumentError, "activity must be a map or MissionPlan.Activity")
 
   @doc """
@@ -5052,14 +5058,13 @@ defmodule OrbitalDynamics.Timeline do
   Raises when the resulting status or approval transition would require
   operator review.
   """
-  def apply_lifecycle_event!(activity, event) do
-    case apply_lifecycle_event(activity, event) do
+  def apply_lifecycle_event!(activity, event, opts \\ []) do
+    case apply_lifecycle_event(activity, event, opts) do
       {:ok, activity} ->
         activity
 
       {:error, transition} ->
-        raise ArgumentError,
-              "unsafe timeline activity lifecycle event #{transition["field"]} transition #{transition["from"]} -> #{transition["to"]}: #{transition["operator_action_reason"]}"
+        raise_apply_lifecycle_event_error(transition)
     end
   end
 
@@ -5773,6 +5778,84 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp maybe_gate_single_transition_selected_activity(application, _opts), do: application
+
+  defp maybe_validate_transition_helper_selected_integrity(activity, opts) do
+    if Keyword.get(opts, :validate_selected_integrity?, false) do
+      activity
+      |> List.wrap()
+      |> annotate_transition_selected_activities(opts)
+      |> case do
+        [%{} = selected_with_integrity] ->
+          if timeline_integrity_review?(selected_with_integrity) do
+            {:error, transition_helper_selected_integrity_error(selected_with_integrity)}
+          else
+            {:ok, selected_with_integrity}
+          end
+
+        _other ->
+          {:ok, activity}
+      end
+    else
+      {:ok, activity}
+    end
+  end
+
+  defp transition_helper_selected_integrity_error(selected_activity) do
+    issue_types = list_value(selected_activity, "timeline_integrity_issue_types")
+
+    %{
+      "field" => "timeline_integrity",
+      "transition_category" => "selected_timeline_integrity_review_required",
+      "requires_operator_review" => true,
+      "required_operator_action" => "review_timeline_integrity",
+      "operator_action_reason" => selected_integrity_reason(issue_types),
+      "selected_timeline_integrity_status" => selected_activity["timeline_integrity_status"],
+      "selected_timeline_integrity_issue_count" =>
+        selected_activity["timeline_integrity_issue_count"],
+      "selected_timeline_integrity_issue_types" => issue_types,
+      "selected_timeline_integrity_issues" => selected_activity["timeline_integrity_issues"],
+      "selected_missing_dependency_activity_ids" =>
+        selected_activity["missing_dependency_activity_ids"],
+      "selected_missing_dependency_timeline_ids" =>
+        selected_activity["missing_dependency_timeline_ids"],
+      "selected_self_dependency_activity_ids" =>
+        selected_activity["self_dependency_activity_ids"],
+      "selected_self_dependency_timeline_ids" => selected_activity["self_dependency_timeline_ids"]
+    }
+    |> compact_map()
+  end
+
+  defp raise_transition_activity_status_error(%{"field" => "timeline_integrity"} = transition) do
+    raise ArgumentError,
+          "unsafe timeline activity selected integrity: #{transition["operator_action_reason"]}"
+  end
+
+  defp raise_transition_activity_status_error(transition) do
+    raise ArgumentError,
+          "unsafe timeline activity status transition #{transition["from"]} -> #{transition["to"]}: #{transition["operator_action_reason"]}"
+  end
+
+  defp raise_transition_activity_approval_status_error(
+         %{"field" => "timeline_integrity"} = transition
+       ) do
+    raise ArgumentError,
+          "unsafe timeline activity selected integrity: #{transition["operator_action_reason"]}"
+  end
+
+  defp raise_transition_activity_approval_status_error(transition) do
+    raise ArgumentError,
+          "unsafe timeline activity approval transition #{transition["from"]} -> #{transition["to"]}: #{transition["operator_action_reason"]}"
+  end
+
+  defp raise_apply_lifecycle_event_error(%{"field" => "timeline_integrity"} = transition) do
+    raise ArgumentError,
+          "unsafe timeline activity selected integrity: #{transition["operator_action_reason"]}"
+  end
+
+  defp raise_apply_lifecycle_event_error(transition) do
+    raise ArgumentError,
+          "unsafe timeline activity lifecycle event #{transition["field"]} transition #{transition["from"]} -> #{transition["to"]}: #{transition["operator_action_reason"]}"
+  end
 
   defp maybe_gate_single_transition_decision_integrity(
          %{"transition_decision" => decision} = transition_decision,

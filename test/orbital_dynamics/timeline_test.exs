@@ -6608,6 +6608,107 @@ defmodule OrbitalDynamics.TimelineTest do
             }} = Timeline.transition_activity_status(activity, "provider magic")
   end
 
+  test "direct lifecycle helpers can gate selected activity integrity" do
+    activity = %{
+      id: :cmd_waiting_on_gate,
+      type: :command,
+      scenario_id: :leo_1,
+      status: :executing,
+      approval_status: :pending,
+      starts_at_s: 10.0,
+      ends_at_s: 20.0,
+      depends_on: [:missing_gate],
+      metadata: %{timeline_id: :"timeline:cmd_waiting_on_gate"}
+    }
+
+    assert {:ok, completed} = Timeline.transition_activity_status(activity, "succeeded")
+    refute Map.has_key?(completed, "timeline_integrity_status")
+
+    assert {:ok, completed_without_dependency_check} =
+             Timeline.transition_activity_status(activity, "succeeded",
+               validate_selected_integrity?: true,
+               validate_selected_dependencies?: false
+             )
+
+    refute Map.has_key?(completed_without_dependency_check, "timeline_integrity_status")
+
+    assert {:error,
+            %{
+              "field" => "timeline_integrity",
+              "transition_category" => "selected_timeline_integrity_review_required",
+              "requires_operator_review" => true,
+              "required_operator_action" => "review_timeline_integrity",
+              "operator_action_reason" =>
+                "selected_timeline_integrity_issue_requires_review:missing_dependency_activity",
+              "selected_timeline_integrity_status" => "review_required",
+              "selected_timeline_integrity_issue_count" => 1,
+              "selected_timeline_integrity_issue_types" => ["missing_dependency_activity"],
+              "selected_missing_dependency_activity_ids" => ["missing_gate"]
+            }} =
+             Timeline.transition_activity_status(activity, "succeeded",
+               validate_selected_integrity?: true
+             )
+
+    assert_raise ArgumentError,
+                 ~r/unsafe timeline activity selected integrity: selected_timeline_integrity_issue_requires_review:missing_dependency_activity/,
+                 fn ->
+                   Timeline.transition_activity_status!(activity, "succeeded",
+                     validate_selected_integrity?: true
+                   )
+                 end
+
+    assert {:error,
+            %{
+              "field" => "timeline_integrity",
+              "selected_timeline_integrity_issue_types" => ["missing_dependency_activity"]
+            }} =
+             Timeline.transition_activity_approval_status(activity, "No Review Required",
+               validate_selected_integrity?: true
+             )
+
+    lifecycle_error =
+      Timeline.apply_lifecycle_event(activity, "record completion",
+        validate_selected_integrity?: true
+      )
+
+    assert {:error,
+            %{
+              "field" => "timeline_integrity",
+              "selected_timeline_integrity_issue_types" => ["missing_dependency_activity"]
+            }} = lifecycle_error
+
+    assert OrbitalDynamics.timeline_apply_lifecycle_event(activity, "record completion",
+             validate_selected_integrity?: true
+           ) == lifecycle_error
+
+    duplicate_exclusivity_activity =
+      activity
+      |> Map.delete(:depends_on)
+      |> Map.put(:id, :cmd_duplicate_exclusivity)
+      |> Map.put(:exclusive_with_activity_ids, [:dl_clear, :dl_clear])
+      |> put_in([:metadata, :timeline_id], :"timeline:cmd_duplicate_exclusivity")
+
+    assert {:error,
+            %{
+              "field" => "timeline_integrity",
+              "required_operator_action" => "review_timeline_integrity",
+              "selected_timeline_integrity_issue_count" => 1,
+              "selected_timeline_integrity_issue_types" => [
+                "duplicate_exclusivity_activity"
+              ],
+              "selected_timeline_integrity_issues" => [
+                %{
+                  "type" => "duplicate_exclusivity_activity",
+                  "duplicate_exclusivity_activity_id" => "dl_clear"
+                }
+              ]
+            }} =
+             Timeline.transition_activity_status(duplicate_exclusivity_activity, "succeeded",
+               validate_selected_integrity?: true,
+               validate_selected_dependencies?: false
+             )
+  end
+
   test "normalizes planned and realized activity status state for review and import handoff" do
     planned = %{
       id: :obs_provider,
