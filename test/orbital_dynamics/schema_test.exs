@@ -11334,6 +11334,180 @@ defmodule OrbitalDynamics.SchemaTest do
            )
   end
 
+  test "validates checked-in timeline preservation report fixture" do
+    preservation_report = read_json!("study_results/timeline_preservation_report_v1.json")
+
+    activities = [
+      %{
+        id: :cmd_mutable,
+        type: :command,
+        status: :planned,
+        approval_status: :pending
+      },
+      %{
+        id: :contact_locked,
+        type: :contact,
+        status: :planned,
+        locked: true,
+        metadata: %{timeline_id: :"timeline:planned_contact"}
+      },
+      %{
+        id: :obs_done,
+        type: :observe,
+        status: :completed,
+        metadata: %{timeline_id: :"timeline:observe"}
+      },
+      %{
+        id: :bad_missing_type,
+        status: :planned
+      }
+    ]
+
+    generated_preservation_report =
+      OrbitalDynamics.timeline_preservation_report(
+        activities,
+        source: "validation.timeline_preservation_report"
+      )
+
+    assert generated_preservation_report == preservation_report
+
+    assert {:ok, %{"schema_contract" => "timeline_preservation_report.v1"}} =
+             Schema.validate_artifact(preservation_report)
+
+    assert %{
+             "schema_contract" => "timeline_preservation_report.v1",
+             "model" => "artifact_only_lifecycle_preservation_summary",
+             "source" => "validation.timeline_preservation_report",
+             "activity_count" => 4,
+             "mutable_activity_count" => 1,
+             "preserve_activity_count" => 2,
+             "review_change_activity_count" => 1,
+             "preservation_sensitive_activity_count" => 3,
+             "timeline_preservation_status" => "review_required",
+             "protection_decision_counts" => %{
+               "mutable" => 1,
+               "preserve" => 2,
+               "review_change" => 1
+             },
+             "protection_category_counts" => %{
+               "executed" => 1,
+               "invalid_activity_input" => 1,
+               "locked_or_approved" => 1,
+               "none" => 1
+             },
+             "protection_reason_counts" => %{
+               "activity_already_completed" => 1,
+               "activity_locked_or_approved" => 1,
+               "missing_activity_type" => 1,
+               "no_timeline_protection" => 1
+             },
+             "preserve_activity_ids" => ["contact_locked", "obs_done"],
+             "preserve_timeline_ids" => [
+               "timeline:observe",
+               "timeline:planned_contact"
+             ],
+             "review_change_activity_ids" => ["bad_missing_type"],
+             "review_change_timeline_ids" => [
+               "timeline:invalid_activity_input:bad_missing_type"
+             ],
+             "mutable_activity_ids" => ["cmd_mutable"],
+             "preservation_sensitive_activity_ids" => [
+               "bad_missing_type",
+               "contact_locked",
+               "obs_done"
+             ],
+             "preservation_sensitive_timeline_ids" => [
+               "timeline:invalid_activity_input:bad_missing_type",
+               "timeline:observe",
+               "timeline:planned_contact"
+             ],
+             "activity_id_sets_by_protection_decision" => %{
+               "mutable" => ["cmd_mutable"],
+               "preserve" => ["contact_locked", "obs_done"],
+               "review_change" => ["bad_missing_type"]
+             },
+             "timeline_id_sets_by_protection_decision" => %{
+               "mutable" => ["timeline:command"],
+               "preserve" => [
+                 "timeline:observe",
+                 "timeline:planned_contact"
+               ],
+               "review_change" => ["timeline:invalid_activity_input:bad_missing_type"]
+             },
+             "activity_id_sets_by_protection_category" => %{
+               "executed" => ["obs_done"],
+               "invalid_activity_input" => ["bad_missing_type"],
+               "locked_or_approved" => ["contact_locked"],
+               "none" => ["cmd_mutable"]
+             },
+             "timeline_id_sets_by_protection_category" => %{
+               "executed" => ["timeline:observe"],
+               "invalid_activity_input" => ["timeline:invalid_activity_input:bad_missing_type"],
+               "locked_or_approved" => ["timeline:planned_contact"],
+               "none" => ["timeline:command"]
+             },
+             "activity_id_sets_by_protection_reason" => %{
+               "activity_already_completed" => ["obs_done"],
+               "activity_locked_or_approved" => ["contact_locked"],
+               "missing_activity_type" => ["bad_missing_type"],
+               "no_timeline_protection" => ["cmd_mutable"]
+             },
+             "timeline_id_sets_by_protection_reason" => %{
+               "activity_already_completed" => ["timeline:observe"],
+               "activity_locked_or_approved" => ["timeline:planned_contact"],
+               "missing_activity_type" => ["timeline:invalid_activity_input:bad_missing_type"],
+               "no_timeline_protection" => ["timeline:command"]
+             },
+             "model_limits" => [
+               "artifact_level_only",
+               "no_schedule_mutation",
+               "no_command_execution",
+               "derived_identity_when_no_persistent_timeline_id"
+             ],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_schedule_mutation",
+               "scope" => "lifecycle_lock_approval_and_executed_preservation_review",
+               "source" => "validation.timeline_preservation_report"
+             }
+           } = preservation_report
+
+    assert [
+             %{
+               "activity_id" => "contact_locked",
+               "approval_status" => "not_evaluated",
+               "locked" => true,
+               "protection_category" => "locked_or_approved",
+               "protection_decision" => "preserve",
+               "reason" => "activity_locked_or_approved",
+               "status" => "planned",
+               "timeline_id" => "timeline:planned_contact",
+               "timeline_identity" => %{
+                 "activity_id" => "contact_locked",
+                 "activity_type" => "contact",
+                 "timeline_id" => "timeline:planned_contact"
+               }
+             },
+             %{
+               "activity_id" => "obs_done",
+               "protection_category" => "executed",
+               "protection_decision" => "preserve",
+               "reason" => "activity_already_completed",
+               "status" => "completed",
+               "timeline_id" => "timeline:observe"
+             },
+             %{
+               "activity_id" => "bad_missing_type",
+               "invalid_activity_input" => true,
+               "invalid_activity_input_reason" => "missing_activity_type",
+               "protection_category" => "invalid_activity_input",
+               "protection_decision" => "review_change",
+               "reason" => "missing_activity_type",
+               "status" => "invalid",
+               "timeline_id" => "timeline:invalid_activity_input:bad_missing_type"
+             }
+           ] = preservation_report["rows"]
+  end
+
   test "validates checked-in timeline preservation status fixture" do
     preservation_status = read_json!("study_results/timeline_preservation_status_v1.json")
 

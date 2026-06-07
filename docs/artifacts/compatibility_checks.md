@@ -88,6 +88,12 @@ Timeline preservation exports now constrain
 fields to their executable artifact-only model constants, and the preservation
 report `source` field plus generated report/status `model_limits` lists export
 to match runtime validation.
+Focused schema-reference coverage exact-regenerates the checked-in
+`study_results/timeline_preservation_report_v1.json` fixture through
+`OrbitalDynamics.timeline_preservation_report/2` from deterministic mutable,
+locked, completed, and invalid activity inputs before schema validation,
+pinning protection count maps, preservation-sensitive routing, row evidence,
+and the artifact-only no-schedule-mutation boundary.
 `study_results/timeline_preservation_status_v1.json` now feeds a curated
 `timeline_preservation_status.v1` validation-reference fixture. The observations
 check locked/protected activity preservation status, timeline identity,
