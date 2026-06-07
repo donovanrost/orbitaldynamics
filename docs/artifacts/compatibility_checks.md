@@ -204,6 +204,9 @@ against the evidence rows. Its exported schema pins the artifact-only model
 `artifact_only_validation_safety_case_summary`, matching runtime validation so
 stale safety-case summary model identifiers cannot pass schema-only handoff
 checks.
+Validation fixture report evidence is classified from nested fixture report
+statuses when they are present, so a stale top-level fixture-rollup `pass`
+cannot make failed fixture evidence appear accepted in a safety-case handoff.
 Candidate-refresh validation-safety-case replay summaries use those evidence
 rows to derive source-report evidence status maps when rows are present, so
 stale top-level `evidence_status_counts` fields cannot steer review/blocking

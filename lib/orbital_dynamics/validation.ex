@@ -9722,6 +9722,7 @@ defmodule OrbitalDynamics.Validation do
         :validation_safety_case_schema_validation_count_rollups,
         :validation_safety_case_schema_validation_batch_nested_status_floor,
         :validation_safety_case_fixture_count_rollups,
+        :validation_safety_case_fixture_nested_status_floor,
         :validation_safety_case_review_import_handoff_evidence,
         :validation_safety_case_input_contract_routing,
         :validation_safety_case_status_ref_routing,
@@ -10717,6 +10718,15 @@ defmodule OrbitalDynamics.Validation do
 
       true ->
         safety_case_schema_validation_status(report)
+    end
+  end
+
+  defp safety_case_fixture_status(%{"reports" => reports})
+       when is_list(reports) and reports != [] do
+    if Enum.all?(reports, &(Map.get(&1, "status") == "pass")) do
+      "accepted_for_use"
+    else
+      "blocked"
     end
   end
 

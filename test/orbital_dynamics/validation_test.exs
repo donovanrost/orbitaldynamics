@@ -725,6 +725,8 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert :validation_safety_case_fixture_count_rollups in capabilities.safety_case_evidence_semantics
 
+    assert :validation_safety_case_fixture_nested_status_floor in capabilities.safety_case_evidence_semantics
+
     assert :validation_safety_case_review_import_handoff_evidence in capabilities.safety_case_evidence_semantics
   end
 
@@ -842,6 +844,78 @@ defmodule OrbitalDynamics.ValidationTest do
              &(&1["path"] == "$.evidence[0].status" and
                  &1["message"] == "must match schema-validation batch evidence counts")
            )
+  end
+
+  test "blocks safety-case fixture evidence from nested failed fixture reports" do
+    stale_top_level_fixture_report = %{
+      "schema_contract" => "validation_reference_fixture_report.v1",
+      "status" => "pass",
+      "report_id" => "validation_fixture_stale_status",
+      "fixture_count" => 2,
+      "status_counts" => %{"pass" => 2},
+      "reports" => [
+        %{
+          "schema_contract" => "validation_reference_report.v1",
+          "fixture_id" => "fixture.artifact.schema_validation_report.v1",
+          "model_id" => "artifact.schema_validation_report.v1",
+          "validation_level" => "artifact_contract",
+          "status" => "fail",
+          "status_counts" => %{"fail" => 1},
+          "checks" => [
+            %{
+              "field" => "status",
+              "status" => "fail",
+              "expected" => "pass",
+              "observed" => "fail",
+              "tolerance" => 0.0
+            }
+          ]
+        },
+        %{
+          "schema_contract" => "validation_reference_report.v1",
+          "fixture_id" => "fixture.artifact.validation_check.v1",
+          "model_id" => "artifact.validation_check.v1",
+          "validation_level" => "artifact_contract",
+          "status" => "pass",
+          "status_counts" => %{"pass" => 1},
+          "checks" => [
+            %{
+              "field" => "status",
+              "status" => "pass",
+              "expected" => "pass",
+              "observed" => "pass",
+              "tolerance" => 0.0
+            }
+          ]
+        }
+      ]
+    }
+
+    assert %{
+             "status" => "blocked",
+             "fixture_passed_count" => 1,
+             "fixture_failed_count" => 1,
+             "evidence_status_counts" => %{"blocked" => 1},
+             "evidence_refs_by_status" => %{
+               "blocked" => [
+                 "validation_reference_fixture_report.v1:validation_fixture_stale_status"
+               ]
+             },
+             "evidence" => [
+               %{
+                 "schema_contract" => "validation_reference_fixture_report.v1",
+                 "status" => "blocked",
+                 "fixture_passed_count" => 1,
+                 "fixture_failed_count" => 1
+               }
+             ]
+           } =
+             safety_case_summary = Validation.safety_case_summary(stale_top_level_fixture_report)
+
+    assert {:ok, %{"schema_contract" => "validation_safety_case_summary.v1"}} =
+             Schema.validate_artifact(safety_case_summary,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
   end
 
   test "discovers schema-validation evidence preserved in review and import containers" do

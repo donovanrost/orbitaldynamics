@@ -239,6 +239,8 @@ Status: **implemented**.
 - Aggregate schema issue counts.
 - Nested schema-validation report counts.
 - Nested schema-validation batch reports from wrapped handoff inputs.
+- Validation fixture report evidence classified from nested fixture-report
+  statuses before trusting stale top-level pass/fail rollups.
 - Executable row-derived count/map validation.
 - The no-certification/no-operator-authority boundary for unsafe-but-plausible evidence bundles.
 
@@ -256,6 +258,9 @@ Status: **implemented**.
 **Blocking and discovery behavior.**
 
 - Safety-case schema-validation batch evidence now treats failed/error nested reports as blocking, even when stale top-level batch status/count fields claim pass.
+- Safety-case validation-fixture evidence now treats failed nested fixture
+  reports as blocking, even when stale top-level fixture-rollup status/count
+  fields claim pass.
 - Safety-case inputs also discover schema-validation reports preserved in operator-review packages and Cadence-import manifests, lifting those review/import rows as evidence while keeping certification and operator authority out of the summary.
 - CandidateRefresh now accepts direct or result-artifact-wrapped `validation_safety_case_summary.v1` inputs as passive source-report provenance, preserving evidence status/count and evidence-reference routing maps without changing candidate selection. When evidence rows are present, CandidateRefresh derives source-report evidence status maps from those rows instead of trusting stale top-level `evidence_status_counts` aggregates.
 
