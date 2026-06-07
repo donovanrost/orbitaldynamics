@@ -3359,6 +3359,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       ]
       |> ContactIntent.summary()
       |> Map.merge(%{
+        "contact_intent_count" => 99,
+        "capacity_pack_required_contact_count" => 99,
         "direction_counts" => %{"uplink" => 99},
         "direction_routing" => %{
           "uplink" => %{
@@ -3770,7 +3772,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert summary["source_report_count"] == 1
     assert summary["station_feedback_count"] == 0
-    assert summary["capacity_pack_required_contact_count"] == 0
+    assert summary["capacity_pack_required_contact_count"] == 1
     assert summary["capacity_pack_required_capacity_fraction"] == 0.0
     assert summary["capacity_pack_required_capacity_fraction_by_ground_station"] == %{}
     assert summary["capacity_pack_required_capacity_fraction_by_direction"] == %{}
@@ -4527,12 +4529,112 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     summary = CandidateRefresh.contact_intent_replay_summary(artifact)
 
+    assert summary["source_report_row_count"] == 1
+    assert summary["capacity_pack_required_contact_count"] == 1
     assert summary["directions"] == ["downlink"]
     assert summary["direction_counts"] == %{"downlink" => 1}
     assert summary["contact_ids_by_direction"] == %{"downlink" => ["contact_downlink"]}
     assert summary["direction_routing"] == direction_routing
     assert summary["branch_local_contact_intent_pressure"]
     assert summary["branch_local_capacity_pack_pressure"]
+  end
+
+  test "contact intent replay counts nested direction station contact maps" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_intent" => %{
+            "contract" => "contact_intent_summary.v1",
+            "count" => 1,
+            "row_count" => 99,
+            "capacity_pack_required_contact_count" => 99,
+            "contact_ids_by_direction_and_ground_station" => %{
+              "downlink" => %{"equator_prime" => ["nested_contact_a"]},
+              "tracking" => %{"dss_43" => ["nested_contact_b"]}
+            },
+            "capacity_pack_contact_ids_by_direction_and_ground_station" => %{
+              "downlink" => %{"equator_prime" => ["nested_contact_a"]}
+            }
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.contact_intent_replay_summary(artifact)
+
+    assert summary["source_report_row_count"] == 2
+    assert summary["capacity_pack_required_contact_count"] == 1
+
+    assert summary["contact_ids_by_direction_and_ground_station"] == %{
+             "downlink" => %{"equator_prime" => ["nested_contact_a"]},
+             "tracking" => %{"dss_43" => ["nested_contact_b"]}
+           }
+
+    assert summary["capacity_pack_contact_ids_by_direction_and_ground_station"] == %{
+             "downlink" => %{"equator_prime" => ["nested_contact_a"]}
+           }
+
+    assert summary["branch_local_contact_intent_pressure"]
+    assert summary["branch_local_capacity_pack_pressure"]
+  end
+
+  test "contact intent replay treats explicit empty contact maps as zero counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_intent" => %{
+            "contract" => "contact_intent_summary.v1",
+            "count" => 1,
+            "row_count" => 99,
+            "capacity_pack_required_contact_count" => 99,
+            "contact_ids_by_direction" => %{},
+            "contact_ids_by_ground_station" => %{},
+            "capacity_pack_contact_ids_by_direction" => %{},
+            "capacity_pack_contact_ids_by_ground_station" => %{},
+            "required_capacity_fraction_contact_ids_by_source" => %{}
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.contact_intent_replay_summary(artifact)
+
+    assert summary["source_report_row_count"] == 0
+    assert summary["capacity_pack_required_contact_count"] == 0
+    assert summary["contact_ids_by_direction"] == %{}
+    refute summary["branch_local_contact_intent_pressure"]
+    refute summary["branch_local_capacity_pack_pressure"]
+  end
+
+  test "contact intent replay does not count stale routing when empty maps are present" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_intent" => %{
+            "contract" => "contact_intent_summary.v1",
+            "row_count" => 99,
+            "capacity_pack_required_contact_count" => 99,
+            "contact_ids_by_direction" => %{},
+            "capacity_pack_contact_ids_by_direction" => %{},
+            "direction_routing" => %{
+              "downlink" => %{
+                "contact_ids" => ["stale_route_contact"],
+                "capacity_pack_contact_ids" => ["stale_route_contact"]
+              }
+            }
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.contact_intent_replay_summary(artifact)
+
+    assert summary["source_report_row_count"] == 0
+    assert summary["capacity_pack_required_contact_count"] == 0
+    assert summary["direction_routing"]["downlink"]["contact_ids"] == ["stale_route_contact"]
   end
 
   test "source report summary aggregates contact intent station feedback maps" do

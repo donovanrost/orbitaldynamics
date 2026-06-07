@@ -12281,8 +12281,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
        ) do
     station_feedback_count = summary_integer(intent_summary, "station_feedback_count")
 
+    source_report_row_count =
+      contact_intent_summary_contact_count(intent_summary, "row_count")
+
     required_contact_count =
-      summary_integer(intent_summary, "capacity_pack_required_contact_count")
+      contact_intent_summary_capacity_pack_contact_count(
+        intent_summary,
+        "capacity_pack_required_contact_count"
+      )
 
     required_capacity_fraction =
       numeric_value(Map.get(intent_summary, "capacity_pack_required_capacity_fraction")) || 0.0
@@ -12339,7 +12345,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "source" => summary_source,
       "contract" => source_report_summary_contract(intent_summary, "contact_intent.v1"),
       "source_report_count" => summary_integer(intent_summary, "count"),
-      "source_report_row_count" => summary_integer(intent_summary, "row_count"),
+      "source_report_row_count" => source_report_row_count,
       "source_report_paths" => Map.get(intent_summary, "paths", []),
       "station_feedback_count" => station_feedback_count,
       "station_calendar_status_counts" => station_calendar_status_counts,
@@ -25144,7 +25150,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "count" => length(sources),
       "row_count" =>
         summaries
-        |> Enum.map(&numeric_report_count(&1, "contact_intent_count"))
+        |> Enum.map(&contact_intent_summary_contact_count(&1, "contact_intent_count"))
         |> Enum.sum()
         |> report_count(),
       "source_summary_model_counts" => count_report_field_values(summaries, "model"),
@@ -25155,7 +25161,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "station_feedback_count" => 0,
       "capacity_pack_required_contact_count" =>
         summaries
-        |> Enum.map(&numeric_report_count(&1, "capacity_pack_required_contact_count"))
+        |> Enum.map(
+          &contact_intent_summary_capacity_pack_contact_count(
+            &1,
+            "capacity_pack_required_contact_count"
+          )
+        )
         |> Enum.sum()
         |> report_count(),
       "capacity_pack_required_capacity_fraction" =>
@@ -25374,6 +25385,127 @@ defmodule OrbitalDynamics.CandidateRefresh do
       true -> Enum.sort(statuses) |> List.first()
     end
   end
+
+  defp contact_intent_summary_contact_count(summary, fallback_field) do
+    flat_contact_id_maps =
+      [
+        Map.get(summary, "contact_ids_by_direction"),
+        Map.get(summary, "contact_ids_by_ground_station_id"),
+        Map.get(summary, "contact_ids_by_ground_station")
+      ]
+      |> Enum.filter(&is_map/1)
+
+    nested_contact_id_maps =
+      [
+        Map.get(summary, "contact_ids_by_direction_and_ground_station_id"),
+        Map.get(summary, "contact_ids_by_direction_and_ground_station")
+      ]
+      |> Enum.filter(&is_map/1)
+
+    direction_routing = Map.get(summary, "direction_routing")
+
+    cond do
+      flat_contact_id_maps != [] or nested_contact_id_maps != [] ->
+        flat_contact_ids =
+          flat_contact_id_maps
+          |> Enum.flat_map(&contact_intent_string_list_map_contact_ids/1)
+
+        nested_contact_ids =
+          nested_contact_id_maps
+          |> Enum.flat_map(&contact_intent_nested_string_list_map_contact_ids/1)
+
+        flat_contact_ids
+        |> Kernel.++(nested_contact_ids)
+        |> contact_intent_count_unique_contact_ids()
+
+      is_map(direction_routing) ->
+        direction_routing
+        |> contact_intent_direction_routing_contact_ids("contact_ids")
+        |> contact_intent_count_unique_contact_ids()
+
+      true ->
+        summary_integer(summary, fallback_field)
+    end
+  end
+
+  defp contact_intent_summary_capacity_pack_contact_count(summary, fallback_field) do
+    flat_contact_id_maps =
+      [
+        Map.get(summary, "capacity_pack_contact_ids_by_direction"),
+        Map.get(summary, "capacity_pack_contact_ids_by_ground_station_id"),
+        Map.get(summary, "capacity_pack_contact_ids_by_ground_station"),
+        Map.get(summary, "required_capacity_fraction_contact_ids_by_source")
+      ]
+      |> Enum.filter(&is_map/1)
+
+    nested_contact_id_maps =
+      [
+        Map.get(summary, "capacity_pack_contact_ids_by_direction_and_ground_station_id"),
+        Map.get(summary, "capacity_pack_contact_ids_by_direction_and_ground_station")
+      ]
+      |> Enum.filter(&is_map/1)
+
+    direction_routing = Map.get(summary, "direction_routing")
+
+    cond do
+      flat_contact_id_maps != [] or nested_contact_id_maps != [] ->
+        flat_contact_ids =
+          flat_contact_id_maps
+          |> Enum.flat_map(&contact_intent_string_list_map_contact_ids/1)
+
+        nested_contact_ids =
+          nested_contact_id_maps
+          |> Enum.flat_map(&contact_intent_nested_string_list_map_contact_ids/1)
+
+        flat_contact_ids
+        |> Kernel.++(nested_contact_ids)
+        |> contact_intent_count_unique_contact_ids()
+
+      is_map(direction_routing) ->
+        direction_routing
+        |> contact_intent_direction_routing_contact_ids("capacity_pack_contact_ids")
+        |> contact_intent_count_unique_contact_ids()
+
+      true ->
+        summary_integer(summary, fallback_field)
+    end
+  end
+
+  defp contact_intent_string_list_map_contact_ids(contact_ids_by_group) do
+    contact_ids_by_group
+    |> Enum.flat_map(fn {_group, contact_ids} -> list_value(contact_ids) end)
+  end
+
+  defp contact_intent_nested_string_list_map_contact_ids(contact_ids_by_outer_group) do
+    contact_ids_by_outer_group
+    |> Enum.flat_map(fn
+      {_outer_group, %{} = contact_ids_by_inner_group} ->
+        contact_intent_string_list_map_contact_ids(contact_ids_by_inner_group)
+
+      {_outer_group, _contact_ids_by_inner_group} ->
+        []
+    end)
+  end
+
+  defp contact_intent_count_unique_contact_ids(contact_ids) do
+    contact_ids
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.map(&to_string/1)
+    |> Enum.uniq()
+    |> length()
+  end
+
+  defp contact_intent_direction_routing_contact_ids(%{} = direction_routing, contact_ids_field) do
+    direction_routing
+    |> Map.values()
+    |> Enum.flat_map(fn
+      %{} = route -> route |> Map.get(contact_ids_field, []) |> list_value()
+      _route -> []
+    end)
+  end
+
+  defp contact_intent_direction_routing_contact_ids(_direction_routing, _contact_ids_field),
+    do: []
 
   defp string_list_map_counts(%{} = list_map) do
     list_map

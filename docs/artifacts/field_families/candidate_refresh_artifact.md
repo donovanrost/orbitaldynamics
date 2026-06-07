@@ -1593,6 +1593,9 @@ source-report summaries expose those per-station and per-direction all-contact
 and capacity-pack contact ID maps, the per-direction/per-ground-station maps,
 plus direction-routing maps alongside the nested
 `source_reports.contact_intent` provenance.
+Compact no-row contact-intent summary handoffs derive replay row counts and
+capacity-pack required-contact counts from present all-contact and capacity-pack
+contact-ID routing maps before falling back to duplicated scalar counters.
 The replay helper can inspect V3 branch
 `candidate_source` metadata that carries
 `candidate_refresh_request_source_report_summary`, or derive the same family
