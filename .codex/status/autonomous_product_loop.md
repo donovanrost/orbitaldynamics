@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-CandidateRefresh provider-reservation no-request row replay.
+CandidateRefresh station-reservation hold import-readiness row-derived routing.
 
 Status:
 Implemented and verified; ready for commit/push.
@@ -13,60 +13,59 @@ Implemented and verified; ready for commit/push.
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `docs/artifacts/compatibility_checks.md`
-- `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
+- `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`
 - `lib/orbital_dynamics/candidate_refresh.ex`
 - `test/orbital_dynamics/candidate_refresh_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:6831`
-  passed, covering compact provider-reservation request summaries with stale
-  explicit no-request counts, IDs, and direction maps while full rows carry the
-  authoritative no-request contact.
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:5956 test/orbital_dynamics/candidate_refresh_test.exs:6831 test/orbital_dynamics/candidate_refresh_test.exs:7076`
-  passed, covering unchanged raw contact-allocation behavior, the new
-  full-row compact-summary replay behavior, and legacy compact summaries that
-  only carry request/review rows plus explicit no-request aggregates.
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:33675`
+  passed, covering compact hold import-readiness summaries with stale top-level
+  import-status, required-action, and direction maps while rows carry the
+  authoritative routing evidence.
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:33938`
+  passed, covering wrapped hold import-readiness summary handoffs.
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:33675 test/orbital_dynamics/candidate_refresh_test.exs:33938`
+  passed, covering the direct stale-map regression and wrapped handoff together.
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
   passed, 711 tests.
 - `mix orbital_dynamics.schema.lint --input study_results/candidate_refresh_v1.json --contract candidate_refresh.v1`
   passed with 0 errors and 0 warnings.
 - `git diff --check`
   passed.
-- `mix test`
-  passed, 3043 tests. The known ScenarioRunner `:propagator_exit` log appeared
-  during the green run.
 
 Docs/artifacts changed:
-- Contact-allocation docs now state that CandidateRefresh provider-reservation
-  replay preserves full compact-summary rows and derives no-request counts,
-  contact IDs, and direction maps from those rows when present.
+- Station-calendar and compatibility docs now state that CandidateRefresh
+  station-reservation replay derives hold import-readiness status/action/
+  direction routing from `import_readiness_rows` when present.
 
 Level 6 pillar advanced:
-Approval-aware provider-reservation replay boundaries fail closed against stale
-top-level no-request routing aggregates.
+Approval-aware station-reservation import-review boundaries fail closed against
+stale top-level hold import-routing aggregates.
 
 Remaining maturity gaps:
 Continue looking for compact review/import or candidate-refresh replay surfaces
-that trust top-level summaries despite richer nested rows.
+that trust top-level summaries despite richer nested rows, then return to
+quality gates/import-readiness if resource/contact replay is saturated.
 
 Last commit:
-`aec61bfc28eedf3d717933a8836f01586a9a62aa` pushed to `origin/main` for
-row-derived validation-safety-case replay counts.
+`7eda14f7620ee74e0a98fca5513cf2cc9a382c14` pushed to `origin/main` for
+provider no-request replay from compact provider-reservation rows.
 
 Next candidate:
-After this slice is verified and pushed, inspect the next resource/contact
-allocation replay or compact review/import surface named by the live queue.
+After this slice is verified and pushed, reassess whether the next actionable
+gap is another compact review/import replay surface or the quality/readiness
+queue.
 
 Blocked:
 No.
 
 Notes:
-- Slice-selection note: selected after live inspection showed timeline
-  status/approval transitions already covered, and contact-allocation docs plus
-  code showed compact provider-reservation summaries validate no-request fields
-  from `rows` while CandidateRefresh rebuilt replay reports from only request
-  and review rows. Definition of done is row-derived no-request replay from
-  full compact-summary rows, docs updated, focused and broader verification,
-  and a commit excluding unrelated local dirt.
+- Slice-selection note: selected after live inspection showed ResourceSummary
+  roll-forward and station-reservation hold/import summaries were already
+  broadly implemented, but CandidateRefresh hold import-readiness replay still
+  copied stale top-level import-status, required-action, and direction maps from
+  compact summaries despite authoritative `import_readiness_rows`. Definition
+  of done is row-derived import routing, stale-map regression, docs updated,
+  focused and broader verification, and a commit excluding unrelated local dirt.
 - `.gitignore` still has an unrelated pre-existing local scratch-ignore change
   and is not part of this slice.

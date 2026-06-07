@@ -1040,6 +1040,10 @@ Station-reservation review, hold, and hold import-readiness summary validation
 rejects stale generated `model_limits`, and schema export pins the artifact-only
 summary models plus exact StationCalendar `model_limits` used by generated
 handoffs.
+Candidate-refresh station-reservation replay also derives hold
+import-readiness status/action/direction routing from compact
+`import_readiness_rows` when present, so stale top-level hold import maps cannot
+steer branch-local import-review pressure.
 `study_results/validation_reference_fixtures.json` is refreshed from the
 current validation-reference registry, so its fixture IDs and `fixture_count`
 track `OrbitalDynamics.Validation.reference_fixtures/0`.

@@ -24857,11 +24857,11 @@ defmodule OrbitalDynamics.CandidateRefresh do
         station_reservation_report_optional_count_sum(reports, "no_import_required_count"),
       "reservation_hold_import_status_counts" =>
         reports
-        |> Enum.map(&Map.get(&1, "reservation_hold_import_status_counts"))
+        |> Enum.map(&station_reservation_report_hold_import_status_counts/1)
         |> merge_count_maps(),
       "required_import_action_counts" =>
         reports
-        |> Enum.map(&Map.get(&1, "required_import_action_counts"))
+        |> Enum.map(&station_reservation_report_hold_required_import_action_counts/1)
         |> merge_count_maps(),
       "reservation_hold_ids" =>
         reports
@@ -24869,7 +24869,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         |> merge_string_lists(),
       "reservation_hold_ids_by_import_status" =>
         reports
-        |> Enum.map(&Map.get(&1, "reservation_hold_ids_by_import_status"))
+        |> Enum.map(&station_reservation_report_hold_ids_by_import_status/1)
         |> merge_string_list_maps(),
       "reservation_hold_ids_by_expiration_status" =>
         reports
@@ -24889,12 +24889,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
         |> merge_string_list_maps(),
       "reservation_hold_ids_by_required_import_action" =>
         reports
-        |> Enum.map(&Map.get(&1, "reservation_hold_ids_by_required_import_action"))
+        |> Enum.map(&station_reservation_report_hold_ids_by_required_import_action/1)
         |> merge_string_list_maps(),
       "reservation_hold_ids_by_direction" => reservation_hold_ids_by_direction,
       "reservation_hold_contact_ids_by_import_status" =>
         reports
-        |> Enum.map(&Map.get(&1, "reservation_hold_contact_ids_by_import_status"))
+        |> Enum.map(&station_reservation_report_hold_contact_ids_by_import_status/1)
         |> merge_string_list_maps(),
       "reservation_hold_contact_ids_by_direction" => reservation_hold_contact_ids_by_direction,
       "reservation_hold_contact_ids_by_expiration_status" =>
@@ -33065,6 +33065,26 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> station_reservation_report_single_value_count()
   end
 
+  defp station_reservation_report_hold_import_status_counts(report) do
+    case station_reservation_report_hold_import_readiness_row_count_map(
+           report,
+           ["station_reservation_hold_import_status"]
+         ) do
+      nil -> Map.get(report, "reservation_hold_import_status_counts")
+      counts -> counts
+    end
+  end
+
+  defp station_reservation_report_hold_required_import_action_counts(report) do
+    case station_reservation_report_hold_import_readiness_row_count_map(
+           report,
+           ["required_operator_action", "required_import_action"]
+         ) do
+      nil -> Map.get(report, "required_import_action_counts")
+      counts -> counts
+    end
+  end
+
   defp station_reservation_report_single_value_count(value) do
     case normalized_timeline_diff_token(value) do
       value when value in [nil, ""] -> nil
@@ -33202,56 +33222,117 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp station_reservation_report_hold_ids_by_direction(report) do
-    case Map.get(report, "reservation_hold_ids_by_direction") |> map_value_lists() do
-      nil ->
-        if station_reservation_report_hold_replay_report?(report) do
-          report
-          |> station_reservation_report_rows()
-          |> Enum.flat_map(fn row ->
-            row = stringify_keys(row)
-            directions = station_reservation_report_row_directions(row)
-            reservation_ids = station_reservation_report_row_reservation_ids(row)
+    case station_reservation_report_hold_ids_by_direction_from_rows(report) do
+      nil -> Map.get(report, "reservation_hold_ids_by_direction") |> map_value_lists()
+      values -> values
+    end
+  end
 
-            for direction <- directions,
-                reservation_id <- reservation_ids,
-                direction not in [nil, ""],
-                reservation_id not in [nil, ""] do
-              {direction, reservation_id}
-            end
-          end)
-          |> Enum.uniq()
-          |> grouped_source_report_ids()
-        end
+  defp station_reservation_report_hold_ids_by_import_status(report) do
+    case station_reservation_report_hold_import_readiness_row_id_map(
+           report,
+           ["station_reservation_hold_import_status"]
+         ) do
+      nil -> Map.get(report, "reservation_hold_ids_by_import_status")
+      values -> values
+    end
+  end
 
-      values ->
-        values
+  defp station_reservation_report_hold_ids_by_required_import_action(report) do
+    case station_reservation_report_hold_import_readiness_row_id_map(
+           report,
+           ["required_operator_action", "required_import_action"]
+         ) do
+      nil -> Map.get(report, "reservation_hold_ids_by_required_import_action")
+      values -> values
     end
   end
 
   defp station_reservation_report_hold_contact_ids_by_direction(report) do
-    case Map.get(report, "reservation_hold_contact_ids_by_direction") |> map_value_lists() do
-      nil ->
-        if station_reservation_report_hold_replay_report?(report) do
-          report
-          |> station_reservation_report_rows()
-          |> Enum.flat_map(fn row ->
-            row = stringify_keys(row)
-            directions = station_reservation_report_row_directions(row)
-            contact_ids = station_reservation_report_row_contact_ids(row)
+    case station_reservation_report_hold_contact_ids_by_direction_from_rows(report) do
+      nil -> Map.get(report, "reservation_hold_contact_ids_by_direction") |> map_value_lists()
+      values -> values
+    end
+  end
 
-            for direction <- directions,
-                contact_id <- contact_ids,
-                direction not in [nil, ""],
-                contact_id not in [nil, ""] do
-              {direction, contact_id}
-            end
-          end)
-          |> Enum.uniq()
-          |> grouped_source_report_ids()
+  defp station_reservation_report_hold_contact_ids_by_import_status(report) do
+    case station_reservation_report_hold_import_readiness_row_contact_id_map(
+           report,
+           ["station_reservation_hold_import_status"]
+         ) do
+      nil -> Map.get(report, "reservation_hold_contact_ids_by_import_status")
+      values -> values
+    end
+  end
+
+  defp station_reservation_report_hold_ids_by_direction_from_rows(report) do
+    if station_reservation_report_hold_replay_report?(report) do
+      report
+      |> station_reservation_report_rows()
+      |> Enum.flat_map(fn row ->
+        row = stringify_keys(row)
+        directions = station_reservation_report_row_directions(row)
+        reservation_ids = station_reservation_report_row_reservation_ids(row)
+
+        for direction <- directions,
+            reservation_id <- reservation_ids,
+            direction not in [nil, ""],
+            reservation_id not in [nil, ""] do
+          {direction, reservation_id}
         end
+      end)
+      |> Enum.uniq()
+      |> grouped_source_report_ids()
+    end
+  end
 
-      values ->
-        values
+  defp station_reservation_report_hold_contact_ids_by_direction_from_rows(report) do
+    if station_reservation_report_hold_replay_report?(report) do
+      report
+      |> station_reservation_report_rows()
+      |> Enum.flat_map(fn row ->
+        row = stringify_keys(row)
+        directions = station_reservation_report_row_directions(row)
+        contact_ids = station_reservation_report_row_contact_ids(row)
+
+        for direction <- directions,
+            contact_id <- contact_ids,
+            direction not in [nil, ""],
+            contact_id not in [nil, ""] do
+          {direction, contact_id}
+        end
+      end)
+      |> Enum.uniq()
+      |> grouped_source_report_ids()
+    end
+  end
+
+  defp station_reservation_report_hold_import_readiness_row_count_map(report, fields) do
+    if station_reservation_report_hold_import_readiness_report?(report) do
+      report
+      |> station_reservation_report_rows()
+      |> Enum.flat_map(fn row ->
+        row
+        |> stringify_keys()
+        |> station_reservation_report_row_values(fields)
+      end)
+      |> count_station_reservation_report_values()
+    end
+  end
+
+  defp station_reservation_report_hold_import_readiness_row_id_map(report, fields) do
+    if station_reservation_report_hold_import_readiness_report?(report) do
+      report
+      |> station_reservation_report_rows()
+      |> station_reservation_report_ids_by_values(fields)
+    end
+  end
+
+  defp station_reservation_report_hold_import_readiness_row_contact_id_map(report, fields) do
+    if station_reservation_report_hold_import_readiness_report?(report) do
+      report
+      |> station_reservation_report_rows()
+      |> station_reservation_report_contact_ids_by_values(fields)
     end
   end
 

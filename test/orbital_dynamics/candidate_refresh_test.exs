@@ -33685,17 +33685,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "review_required_before_import_count" => 2,
       "no_import_required_count" => 0,
       "reservation_hold_import_status_counts" => %{
-        "review_required_before_import" => 2
+        "stale_import_status" => 99
       },
       "reservation_hold_status_counts" => %{"held" => 2},
       "reservation_hold_expiration_status_counts" => %{"expired" => 1, "missing" => 1},
       "required_import_action_counts" => %{
-        "review_station_provider_contention" => 1,
-        "review_station_reservation_overlap" => 1
+        "stale_action" => 99
       },
       "reservation_hold_ids" => ["reservation_expired", "reservation_missing"],
       "reservation_hold_ids_by_import_status" => %{
-        "review_required_before_import" => ["reservation_expired", "reservation_missing"]
+        "stale_import_status" => ["stale_reservation"]
       },
       "reservation_hold_ids_by_expiration_status" => %{
         "expired" => ["reservation_expired"],
@@ -33709,14 +33708,19 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         "partner_calendar" => ["reservation_missing"]
       },
       "reservation_hold_ids_by_required_import_action" => %{
-        "review_station_provider_contention" => ["reservation_missing"],
-        "review_station_reservation_overlap" => ["reservation_expired"]
+        "stale_action" => ["stale_reservation"]
+      },
+      "reservation_hold_ids_by_direction" => %{
+        "stale_direction" => ["stale_reservation"]
       },
       "reservation_hold_contact_ids_by_import_status" => %{
-        "review_required_before_import" => ["dl_source_reserved"]
+        "stale_import_status" => ["stale_contact"]
       },
       "reservation_hold_contact_ids_by_expiration_status" => %{
         "expired" => ["dl_source_reserved"]
+      },
+      "reservation_hold_contact_ids_by_direction" => %{
+        "stale_direction" => ["stale_contact"]
       },
       "review_contact_ids" => ["dl_source_reserved"],
       "import_readiness_rows" => [
