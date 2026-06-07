@@ -5,7 +5,8 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-CandidateRefresh contact-intent compact contact-map replay counts.
+CandidateRefresh contact-allocation compact capacity-pack contact-map replay
+counts.
 
 Status:
 Implemented, verified, and reviewed; ready for commit/push.
@@ -17,58 +18,62 @@ Files changed:
 - `test/orbital_dynamics/candidate_refresh_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:3341 test/orbital_dynamics/candidate_refresh_test.exs:3726 test/orbital_dynamics/candidate_refresh_test.exs:4478 test/orbital_dynamics/candidate_refresh_test.exs:4542 test/orbital_dynamics/candidate_refresh_test.exs:4582 test/orbital_dynamics/candidate_refresh_test.exs:4611`
-  passed, 6 tests, covering compact contact-intent summaries with stale scalar
-  counts, contact-map capacity-pack replay, partial-identity
-  direction-routing replay, nested direction/station contact-ID maps,
-  explicit-empty contact-map replay, and empty-map precedence over stale
-  direction-routing counts.
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:7919 test/orbital_dynamics/candidate_refresh_test.exs:8012 test/orbital_dynamics/candidate_refresh_test.exs:8043 test/orbital_dynamics/candidate_refresh_test.exs:13535`
+  passed, 4 tests, covering no-row capacity-pack contact counts from
+  preserved contact-ID maps, explicit-empty map precedence over stale scalar
+  counts, existing provenance summary reuse, and storage/downlink pressure
+  replay.
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
-  passed, 722 tests.
+  passed, 725 tests.
 - `mix orbital_dynamics.schema.lint --input study_results/candidate_refresh_v1.json --contract candidate_refresh.v1`
   passed with 0 errors and 0 warnings.
 - `git diff --check`
   passed.
-- `slice_reviewer` sidecar first found missing nested direction/station
-  contact-ID map counting; after the fix, follow-up review reported no
-  remaining must-fix findings.
+- `slice_reviewer` sidecar found stale capacity-pack scalar paths in existing
+  provenance summary flattening and storage/downlink replay; both were fixed
+  and reverified. Follow-up review reported no remaining must-fix findings.
 
 Docs/artifacts changed:
 - CandidateRefresh artifact docs now state that compact no-row
-  contact-intent summary handoffs derive replay row counts and
-  capacity-pack required-contact counts from present all-contact and
-  capacity-pack contact-ID routing maps before falling back to duplicated
-  scalar counters.
+  contact-allocation capacity-pack handoffs derive capacity-pack contact
+  counts from present capacity-pack contact-ID maps before falling back to
+  duplicated scalar counters.
 
 Level 6 pillar advanced:
-Contact-intent replay fails closed against stale compact no-row scalar counts
-when richer direction/station contact-ID maps are present.
+Fleet-level contact allocation/resource evidence.
 
 Remaining maturity gaps:
 Continue looking for compact review/import replay surfaces that trust top-level
-summaries despite richer nested maps or rows. Commit and push remain pending
-for this slice.
+summaries despite richer nested maps or rows. This slice targets compact
+contact-allocation capacity-pack counters that still trust duplicated scalar
+counts despite preserved contact-ID maps. Read-only review, commit, and push
+are complete; commit and push remain pending for this slice.
 
 Last commit:
-`9a41b625f3b659ad5b274fa298c0e8986e9f01bd` pushed to `origin/main` for
-validation-safety-case compact evidence-map replay counts.
+`39f8a96480c9fa0e1e93d0a06b9054caa81dd187` pushed to `origin/main` for
+contact-intent compact contact-map replay counts.
 
 Next candidate:
-After broader verification and push, reassess resource/comms or
-validation/readiness replay families for another narrow stale-top-level or
-compact no-row aggregation gap.
+After this slice, reassess contact-allocation station-pressure,
+reservation-conflict, or readiness replay families for another narrow
+stale-top-level or compact no-row aggregation gap.
 
 Blocked:
 No.
 
 Notes:
-- Slice-selection note: selected after live inspection showed contact-intent
-  direction routing was already implemented, but compact
-  `contact_intent_summary.v1` replay still used stale `contact_intent_count`
-  and `capacity_pack_required_contact_count` scalars even when all-contact or
-  capacity-pack contact-ID maps carried the canonical no-row contact set.
-  Definition of done is contact-map-derived compact counts, explicit-empty
-  regressions, docs updated, focused and broader verification, read-only
-  review, and a commit excluding unrelated local dirt.
+- Slice-selection note: selected after live inspection showed
+  contact-allocation capacity-pack maps are preserved through compact
+  source-report summaries without rows, but replay still reads
+  `capacity_pack_contact_count` and related selected/deferred contact counters
+  from duplicated scalars. Level 6 pillar is fleet-level contact allocation
+  evidence. Docs to read are the ground-network capability map and
+  CandidateRefresh artifact family doc. Likely files are
+  `lib/orbital_dynamics/candidate_refresh.ex`,
+  `test/orbital_dynamics/candidate_refresh_test.exs`, and
+  `docs/artifacts/field_families/candidate_refresh_artifact.md`. Definition
+  of done is map-derived capacity-pack contact counts, explicit-empty/stale
+  scalar regressions, docs updated, focused and broader verification,
+  read-only review, and a commit excluding unrelated local dirt.
 - `.gitignore` still has an unrelated pre-existing local scratch-ignore change
   and is not part of this slice.

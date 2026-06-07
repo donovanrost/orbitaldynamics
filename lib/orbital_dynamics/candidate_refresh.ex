@@ -1882,11 +1882,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "source_artifact_type_counts"
         ),
       "source_report_contact_allocation_capacity_pack_contact_count" =>
-        source_report_summary_family_count(
-          source_reports,
-          "contact_allocation_report",
-          "capacity_pack_contact_count"
-        ),
+        source_report_summary_contact_allocation_capacity_pack_contact_count(source_reports),
       "source_report_contact_allocation_direction_counts" =>
         source_report_summary_family_merge_count_maps(
           source_reports,
@@ -7957,7 +7953,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       Map.get(allocation_summary, "capacity_pack_contact_ids_by_status", %{})
 
     capacity_pack_contact_count =
-      case summary_integer(allocation_summary, "capacity_pack_contact_count") do
+      case contact_allocation_capacity_pack_contact_count(allocation_summary) do
         0 -> nil
         count -> count
       end
@@ -10928,7 +10924,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       Map.get(allocation_summary, "capacity_pack_contact_ids_by_status", %{})
 
     capacity_pack_contact_count =
-      case summary_integer(allocation_summary, "capacity_pack_contact_count") do
+      case contact_allocation_capacity_pack_contact_count(allocation_summary) do
         0 -> nil
         count -> count
       end
@@ -20702,6 +20698,17 @@ defmodule OrbitalDynamics.CandidateRefresh do
     source_report_summary_family_count(source_reports, family, field) || 0
   end
 
+  defp source_report_summary_contact_allocation_capacity_pack_contact_count(source_reports) do
+    if Map.has_key?(source_reports, "contact_allocation_report") do
+      source_reports
+      |> Map.take(["contact_allocation_report"])
+      |> Map.values()
+      |> Enum.map(&contact_allocation_capacity_pack_contact_count/1)
+      |> Enum.sum()
+      |> report_count()
+    end
+  end
+
   defp source_report_summary_family_identity_count(source_reports, family, field) do
     if source_report_summary_family_has_identity_counts?(source_reports, family) do
       source_report_summary_family_count(source_reports, family, field)
@@ -25506,6 +25513,43 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
   defp contact_intent_direction_routing_contact_ids(_direction_routing, _contact_ids_field),
     do: []
+
+  defp contact_allocation_capacity_pack_contact_count(summary) do
+    summary
+    |> contact_allocation_string_list_maps_unique_contact_count(
+      [
+        "capacity_pack_contact_ids_by_ground_station_id",
+        "capacity_pack_contact_ids_by_ground_station",
+        "capacity_pack_contact_ids_by_direction",
+        "capacity_pack_contact_ids_by_status",
+        "capacity_pack_selected_contact_ids_by_ground_station_id",
+        "capacity_pack_selected_contact_ids_by_ground_station",
+        "capacity_pack_selected_contact_ids_by_direction",
+        "capacity_pack_deferred_contact_ids_by_ground_station_id",
+        "capacity_pack_deferred_contact_ids_by_ground_station",
+        "capacity_pack_deferred_contact_ids_by_direction",
+        "required_capacity_fraction_contact_ids_by_source"
+      ],
+      "capacity_pack_contact_count"
+    )
+  end
+
+  defp contact_allocation_string_list_maps_unique_contact_count(summary, fields, fallback_field) do
+    contact_id_maps =
+      fields
+      |> Enum.map(&Map.get(summary, &1))
+      |> Enum.filter(&is_map/1)
+
+    case contact_id_maps do
+      [] ->
+        numeric_report_count(summary, fallback_field)
+
+      maps ->
+        maps
+        |> Enum.flat_map(&contact_intent_string_list_map_contact_ids/1)
+        |> contact_intent_count_unique_contact_ids()
+    end
+  end
 
   defp string_list_map_counts(%{} = list_map) do
     list_map
@@ -35787,7 +35831,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp contact_allocation_report_capacity_pack_contact_count(report) do
     case contact_allocation_report_capacity_pack_rows(report) do
       [] ->
-        numeric_report_count(report, "capacity_pack_contact_count")
+        contact_allocation_capacity_pack_contact_count(report)
 
       rows ->
         rows |> Enum.map(&contact_allocation_summary_contact_id/1) |> Enum.uniq() |> length()

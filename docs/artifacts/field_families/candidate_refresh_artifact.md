@@ -1020,6 +1020,9 @@ counts, capacity-pack contact/status/station/source maps,
 required/selected/deferred capacity demand totals, reduced-capacity pack groups,
 group status/count/ID maps from compact summaries, and the artifact-only
 no-allocation/no candidate-selection boundary.
+Compact no-row capacity-pack handoffs derive capacity-pack contact counts from
+present capacity-pack contact-ID maps before falling back to duplicated scalar
+counters.
 The public contact-allocation report publishes the validated
 `contact_allocation_report.v1` contract with exact contact-allocation
 `model_limits` pinned by executable validation and schema export.

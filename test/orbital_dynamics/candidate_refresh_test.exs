@@ -7922,6 +7922,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       |> Map.put("rows", [])
       |> Map.put("review_rows", [])
       |> Map.put("reduced_capacity_pack_groups", [])
+      |> Map.put("capacity_pack_contact_count", 99)
 
     refresh = %{"source_contact_allocation_capacity_pack_summary" => summary}
 
@@ -7947,6 +7948,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                %{"downlink" => ["dl_capacity_primary", "dl_capacity_secondary"]},
              "source_report_contact_allocation_capacity_pack_deferred_contact_ids_by_direction" =>
                %{"downlink" => ["dl_capacity_overflow"]},
+             "source_report_contact_allocation_capacity_pack_contact_count" => 3,
              "source_report_contact_allocation_capacity_pack_group_ids" => [
                "pack_equator_prime"
              ],
@@ -7994,6 +7996,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "capacity_pack_deferred_contact_ids_by_direction" => %{
                "downlink" => ["dl_capacity_overflow"]
              },
+             "capacity_pack_contact_count" => 3,
              "branch_local_capacity_pack_pressure" => true
            } = CandidateRefresh.contact_allocation_replay_summary(refresh)
 
@@ -8004,6 +8007,62 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert CandidateRefresh.contact_allocation_replay_summary(artifact) ==
              CandidateRefresh.contact_allocation_replay_summary(refresh)
+  end
+
+  test "contact allocation replay treats explicit empty capacity-pack maps as zero counts" do
+    summary = %{
+      "schema_contract" => "contact_allocation_capacity_pack_summary.v1",
+      "model" => "artifact_only_contact_allocation_capacity_pack_summary",
+      "source_artifact_type" => "contact_allocation_report.v1",
+      "capacity_pack_contact_count" => 99,
+      "capacity_pack_contact_ids_by_ground_station" => %{},
+      "capacity_pack_contact_ids_by_direction" => %{},
+      "capacity_pack_contact_ids_by_status" => %{}
+    }
+
+    refresh = %{"source_contact_allocation_capacity_pack_summary" => summary}
+    source_summary = CandidateRefresh.source_report_summary(refresh)
+
+    refute Map.has_key?(
+             source_summary,
+             "source_report_contact_allocation_capacity_pack_contact_count"
+           )
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{"source_reports" => source_summary["source_reports"]}
+    }
+
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
+
+    refute Map.has_key?(replay_summary, "capacity_pack_contact_count")
+    assert replay_summary["capacity_pack_contact_ids_by_ground_station"] == %{}
+    refute replay_summary["branch_local_capacity_pack_pressure"]
+  end
+
+  test "contact allocation source summary rederives stale provenance capacity-pack counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 1,
+            "row_count" => 0,
+            "capacity_pack_contact_count" => 99,
+            "capacity_pack_contact_ids_by_direction" => %{
+              "downlink" => ["capacity_contact_a", "capacity_contact_b"]
+            }
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
+
+    assert source_summary["source_report_contact_allocation_capacity_pack_contact_count"] == 2
+    assert replay_summary["capacity_pack_contact_count"] == 2
   end
 
   test "source report summary replays contact allocation capacity-pack summaries from result artifact wrappers" do
@@ -13471,6 +13530,33 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
            } = summary
 
     refute summary["branch_local_downlink_shortfall_pressure"]
+  end
+
+  test "storage downlink pressure replay ignores stale capacity-pack count with empty maps" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 1,
+            "row_count" => 0,
+            "capacity_pack_contact_count" => 99,
+            "capacity_pack_contact_ids_by_ground_station" => %{},
+            "capacity_pack_contact_ids_by_direction" => %{},
+            "capacity_pack_contact_ids_by_status" => %{}
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.storage_downlink_pressure_replay_summary(artifact)
+
+    refute Map.has_key?(summary, "capacity_pack_contact_count")
+    assert summary["capacity_pack_contact_ids_by_ground_station"] == %{}
+    refute summary["branch_local_capacity_pack_pressure"]
+    refute summary["branch_local_downlink_pressure"]
+    refute summary["branch_local_storage_downlink_pressure"]
   end
 
   test "storage downlink pressure replay summary treats provider ID routing maps as downlink pressure" do
