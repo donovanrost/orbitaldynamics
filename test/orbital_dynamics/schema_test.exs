@@ -17081,59 +17081,7 @@ defmodule OrbitalDynamics.SchemaTest do
   test "validates checked-in contact allocation summary fixture" do
     summary = read_json!("study_results/contact_allocation_summary_v1.json")
 
-    report = %{
-      "schema_contract" => "contact_allocation_report.v1",
-      "model" => "deterministic_station_contact_allocation",
-      "source" => "validation.contact_allocation_summary",
-      "rows" => [
-        %{
-          "id" => "contact_allocation:dl_1",
-          "contact_id" => "dl_1",
-          "allocation_status" => "allocated",
-          "effective_allocation_status" => "allocated",
-          "allocation_reason" => "selected_by_contention_resolution",
-          "ground_station_id" => "equator_prime",
-          "direction" => "downlink",
-          "review_status" => "operator_review_required"
-        },
-        %{
-          "id" => "contact_allocation:dl_2",
-          "contact_id" => "dl_2",
-          "allocation_status" => "deferred",
-          "effective_allocation_status" => "deferred",
-          "allocation_reason" => "same_station_contention",
-          "ground_station_id" => "equator_prime",
-          "direction" => "downlink",
-          "selected_contact_id" => "dl_1",
-          "review_status" => "operator_review_required"
-        },
-        %{
-          "id" => "contact_allocation:dl_3",
-          "contact_id" => "dl_3",
-          "allocation_status" => "blocked",
-          "effective_allocation_status" => "blocked",
-          "allocation_reason" => "ground_station_reserved",
-          "ground_station_id" => "equator_prime",
-          "direction" => "downlink",
-          "station_availability" => "reserved",
-          "station_calendar_precedence_availability" => "reserved",
-          "station_calendar_precedence_rank" => 1,
-          "station_reservation_id" => "reservation_1",
-          "station_reservation_status" => "reserved",
-          "station_reserved_by" => "network_partner",
-          "station_reservation_match_status" => "overlap",
-          "station_reservation_expires_at_s" => 420.0,
-          "review_status" => "operator_review_required"
-        }
-      ],
-      "reduced_capacity_pack_groups" => [],
-      "model_limits" => [
-        "artifact_level_only",
-        "no_provider_reservation",
-        "no_schedule_mutation",
-        "no_full_realized_contact_reconciliation"
-      ]
-    }
+    report = contact_allocation_summary_fixture_report("validation.contact_allocation_summary")
 
     generated_summary = OrbitalDynamics.contact_allocation_summary(report)
 
@@ -17186,6 +17134,64 @@ defmodule OrbitalDynamics.SchemaTest do
                "source" => "contact_allocation_report.v1"
              }
            } = summary
+
+    assert summary["model_limits"] ==
+             ContactAllocation.capabilities().known_limits
+             |> Enum.map(&Atom.to_string/1)
+  end
+
+  test "validates checked-in contact allocation station pressure summary fixture" do
+    summary =
+      read_json!("study_results/contact_allocation_station_pressure_summary_v1.json")
+
+    report =
+      contact_allocation_summary_fixture_report(
+        "validation.contact_allocation_station_pressure_summary"
+      )
+
+    generated_summary = OrbitalDynamics.contact_allocation_station_pressure_summary(report)
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "contact_allocation_station_pressure_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "source_artifact_type" => "contact_allocation_report.v1",
+             "source" => "validation.contact_allocation_station_pressure_summary",
+             "input_contact_count" => 3,
+             "station_pressure_contact_count" => 1,
+             "station_pressure_review_contact_count" => 1,
+             "station_pressure_contact_ids" => ["dl_3"],
+             "station_pressure_review_contact_ids" => ["dl_3"],
+             "station_pressure_contact_ids_by_ground_station_id" => %{
+               "equator_prime" => ["dl_3"]
+             },
+             "station_pressure_contact_counts_by_ground_station_id" => %{
+               "equator_prime" => 1
+             },
+             "station_pressure_contact_ids_by_availability" => %{"reserved" => ["dl_3"]},
+             "station_pressure_contact_counts_by_availability" => %{"reserved" => 1},
+             "station_pressure_contact_ids_by_precedence_availability" => %{
+               "reserved" => ["dl_3"]
+             },
+             "station_pressure_contact_counts_by_precedence_availability" => %{
+               "reserved" => 1
+             },
+             "station_pressure_contact_ids_by_precedence_rank" => %{"1" => ["dl_3"]},
+             "station_pressure_contact_counts_by_precedence_rank" => %{"1" => 1},
+             "station_pressure_contact_ids_by_direction_and_ground_station_id" => %{
+               "downlink" => %{"equator_prime" => ["dl_3"]}
+             },
+             "assumptions" => %{
+               "execution_boundary" =>
+                 "artifact_only_no_provider_reservation_or_schedule_mutation",
+               "operator_authority" => "not_granted_by_station_pressure_summary",
+               "source" => "contact_allocation_report.v1"
+             }
+           } = summary
+
+    assert Enum.map(summary["review_rows"], & &1["contact_id"]) == ["dl_3"]
 
     assert summary["model_limits"] ==
              ContactAllocation.capabilities().known_limits
@@ -27241,6 +27247,62 @@ defmodule OrbitalDynamics.SchemaTest do
     contacts
     |> OrbitalDynamics.station_calendar_report(provider, source: "provider_counteroffers")
     |> OrbitalDynamics.provider_counteroffer_report()
+  end
+
+  defp contact_allocation_summary_fixture_report(source) do
+    %{
+      "schema_contract" => "contact_allocation_report.v1",
+      "model" => "deterministic_station_contact_allocation",
+      "source" => source,
+      "rows" => [
+        %{
+          "id" => "contact_allocation:dl_1",
+          "contact_id" => "dl_1",
+          "allocation_status" => "allocated",
+          "effective_allocation_status" => "allocated",
+          "allocation_reason" => "selected_by_contention_resolution",
+          "ground_station_id" => "equator_prime",
+          "direction" => "downlink",
+          "review_status" => "operator_review_required"
+        },
+        %{
+          "id" => "contact_allocation:dl_2",
+          "contact_id" => "dl_2",
+          "allocation_status" => "deferred",
+          "effective_allocation_status" => "deferred",
+          "allocation_reason" => "same_station_contention",
+          "ground_station_id" => "equator_prime",
+          "direction" => "downlink",
+          "selected_contact_id" => "dl_1",
+          "review_status" => "operator_review_required"
+        },
+        %{
+          "id" => "contact_allocation:dl_3",
+          "contact_id" => "dl_3",
+          "allocation_status" => "blocked",
+          "effective_allocation_status" => "blocked",
+          "allocation_reason" => "ground_station_reserved",
+          "ground_station_id" => "equator_prime",
+          "direction" => "downlink",
+          "station_availability" => "reserved",
+          "station_calendar_precedence_availability" => "reserved",
+          "station_calendar_precedence_rank" => 1,
+          "station_reservation_id" => "reservation_1",
+          "station_reservation_status" => "reserved",
+          "station_reserved_by" => "network_partner",
+          "station_reservation_match_status" => "overlap",
+          "station_reservation_expires_at_s" => 420.0,
+          "review_status" => "operator_review_required"
+        }
+      ],
+      "reduced_capacity_pack_groups" => [],
+      "model_limits" => [
+        "artifact_level_only",
+        "no_provider_reservation",
+        "no_schedule_mutation",
+        "no_full_realized_contact_reconciliation"
+      ]
+    }
   end
 
   defp station_reservation_summary_fixture_report do

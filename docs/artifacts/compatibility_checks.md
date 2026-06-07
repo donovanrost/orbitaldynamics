@@ -1029,6 +1029,12 @@ check allocation counts/status maps, allocation-reason contact routing,
 station-pressure routing, reservation expiration and match/status maps, review
 rows, model limits, and no-provider-reservation/no-schedule-mutation
 assumptions.
+`study_results/contact_allocation_station_pressure_summary_v1.json` now feeds a
+curated `contact_allocation_station_pressure_summary.v1` validation-reference
+fixture. The observations check station-pressure and review counts, contact-ID
+routing by ground station, availability, precedence availability/rank, direction
+and ground station, review rows, model limits, and
+no-provider-reservation/no-schedule-mutation assumptions.
 The validation-reference registry and checked-in
 `study_results/contact_allocation_provider_reservation_request_summary_v1.json`
 fixture also include a generated
