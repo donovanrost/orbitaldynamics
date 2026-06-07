@@ -16552,6 +16552,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "reserved" => 1,
                "unavailable" => 1
              },
+             "source_report_station_calendar_branch_local_station_calendar_pressure" => true,
+             "source_report_station_calendar_branch_local_affected_contact_pressure" => true,
+             "source_report_station_calendar_branch_local_provider_contention_pressure" => true,
+             "source_report_station_calendar_branch_local_station_availability_pressure" => true,
              "source_reports" => %{
                "station_calendar_report" => %{
                  "affected_contact_count" => 3,
@@ -16972,7 +16976,11 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "reduced_capacity" => 1,
                "reserved" => 1,
                "unavailable" => 1
-             }
+             },
+             "source_report_station_calendar_branch_local_station_calendar_pressure" => true,
+             "source_report_station_calendar_branch_local_affected_contact_pressure" => true,
+             "source_report_station_calendar_branch_local_provider_contention_pressure" => true,
+             "source_report_station_calendar_branch_local_station_availability_pressure" => true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.station_calendar_replay_summary(artifact) == replay_summary
@@ -17443,6 +17451,133 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["branch_local_affected_contact_pressure"]
     assert summary["branch_local_provider_contention_pressure"]
     assert summary["branch_local_station_availability_pressure"]
+  end
+
+  test "station calendar replay reads strategy branch candidate-source summary metadata" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "candidate_source" => %{
+        "candidate_refresh_request_source_report_summary" => %{
+          "source_reports" => %{
+            "station_calendar_report" => %{
+              "contract" => "station_calendar_report.v1",
+              "count" => 1,
+              "row_count" => 0,
+              "paths" => [
+                "candidate_source.candidate_refresh_request.source_station_calendar_report"
+              ],
+              "affected_contact_count" => 0,
+              "provider_calendar_contention_group_count" => 0,
+              "affected_contact_ids" => ["branch_contact"],
+              "contact_ids_by_direction" => %{"downlink" => ["branch_contact"]},
+              "provider_calendar_contention_group_ids" => ["branch_contention_group"],
+              "provider_calendar_contention_source_entry_ids" => ["branch_source_entry"],
+              "provider_calendar_contention_provider_entry_ids" => ["branch_provider_entry"],
+              "provider_calendar_contention_provider_entry_ids_by_provider" => %{
+                "ops_calendar" => ["branch_provider_entry"]
+              },
+              "provider_calendar_contention_provider_entry_ids_by_ground_station" => %{
+                "equator_prime" => ["branch_provider_entry"]
+              },
+              "provider_calendar_contention_provider_ids_by_direction" => %{
+                "downlink" => ["ops_calendar"]
+              },
+              "provider_calendar_contention_provider_entry_ids_by_direction" => %{
+                "downlink" => ["branch_provider_entry"]
+              },
+              "provider_calendar_contention_capacity_fractions_by_provider" => %{
+                "ops_calendar" => [0.35]
+              },
+              "provider_calendar_contention_capacity_fractions_by_direction" => %{
+                "downlink" => [0.35]
+              },
+              "station_capacity_fractions_by_ground_station" => %{"equator_prime" => [0.55]},
+              "trust_boundary_status" => "declared",
+              "trust_boundaries" => ["branch_station_calendar"]
+            }
+          }
+        }
+      },
+      "provenance" => %{
+        "source_reports" => %{
+          "station_calendar_report" => %{
+            "contract" => "station_calendar_report.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["source_station_calendar_report"],
+            "affected_contact_count" => 0,
+            "provider_calendar_contention_group_count" => 0,
+            "affected_contact_ids" => [],
+            "provider_calendar_contention_group_ids" => []
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.station_calendar_replay_summary(artifact)
+
+    assert summary["source"] ==
+             "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.station_calendar_report"
+
+    assert summary["source_report_count"] == 1
+    assert summary["source_report_row_count"] == 0
+
+    assert summary["source_report_paths"] == [
+             "candidate_source.candidate_refresh_request.source_station_calendar_report"
+           ]
+
+    assert summary["affected_contact_ids"] == ["branch_contact"]
+    assert summary["contact_ids_by_direction"] == %{"downlink" => ["branch_contact"]}
+
+    assert summary["provider_calendar_contention_group_ids"] == ["branch_contention_group"]
+    assert summary["provider_calendar_contention_source_entry_ids"] == ["branch_source_entry"]
+    assert summary["provider_calendar_contention_provider_entry_ids"] == ["branch_provider_entry"]
+
+    assert summary["provider_calendar_contention_provider_entry_ids_by_provider"] == %{
+             "ops_calendar" => ["branch_provider_entry"]
+           }
+
+    assert summary["provider_calendar_contention_provider_entry_ids_by_ground_station"] == %{
+             "equator_prime" => ["branch_provider_entry"]
+           }
+
+    assert summary["provider_calendar_contention_provider_ids_by_direction"] == %{
+             "downlink" => ["ops_calendar"]
+           }
+
+    assert summary["provider_calendar_contention_provider_entry_ids_by_direction"] == %{
+             "downlink" => ["branch_provider_entry"]
+           }
+
+    assert summary["provider_calendar_contention_capacity_fractions_by_provider"] == %{
+             "ops_calendar" => [0.35]
+           }
+
+    assert summary["provider_calendar_contention_capacity_fractions_by_direction"] == %{
+             "downlink" => [0.35]
+           }
+
+    assert summary["station_capacity_fractions_by_ground_station"] == %{
+             "equator_prime" => [0.55]
+           }
+
+    assert summary["trust_boundaries"] == ["branch_station_calendar"]
+    assert summary["branch_local_station_calendar_pressure"]
+    assert summary["branch_local_affected_contact_pressure"]
+    assert summary["branch_local_provider_contention_pressure"]
+    assert summary["branch_local_station_availability_pressure"]
+
+    assert summary["assumptions"]["replay_scope"] ==
+             "station_calendar_candidate_source_report_summary_only"
+
+    assert %{
+             "source_report_station_calendar_branch_local_station_calendar_pressure" => true,
+             "source_report_station_calendar_branch_local_affected_contact_pressure" => true,
+             "source_report_station_calendar_branch_local_provider_contention_pressure" => true,
+             "source_report_station_calendar_branch_local_station_availability_pressure" => true
+           } = CandidateRefresh.source_report_summary(artifact)
+
+    assert OrbitalDynamics.candidate_refresh_station_calendar_replay_summary(artifact) == summary
   end
 
   test "source report summary aggregates command window feedback routing keys" do

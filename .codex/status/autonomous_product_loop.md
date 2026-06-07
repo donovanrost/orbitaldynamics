@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Candidate-refresh contact-contention-resolution replay branch summary routing.
+Candidate-refresh station-calendar replay branch summary routing.
 
 Status:
 Implemented, verified, reviewed, and ready for mechanical commit/push.
@@ -16,39 +16,39 @@ Files changed:
 - `test/orbital_dynamics/candidate_refresh_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:4638 test/orbital_dynamics/candidate_refresh_test.exs:5429`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:16244 test/orbital_dynamics/candidate_refresh_test.exs:17456`
   passed, 2 tests.
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs test/orbital_dynamics/schema_test.exs`
-  passed, 824 tests.
+  passed, 825 tests.
 - `git diff --check` passed.
-- `slice_reviewer` found no must-fix findings. It confirmed branch-first
-  selection parity with the dedicated replay helper and noted the unrelated
-  dirty `.gitignore` remains outside this slice.
+- `slice_reviewer` found no must-fix findings. It confirmed the source-summary
+  booleans reuse the factored replay builder, branch summaries are preferred
+  consistently, and the unrelated dirty `.gitignore` remains outside this
+  slice.
 
 Docs/artifacts changed:
 - None expected; this is a compact source-summary projection of already
   advertised replay semantics.
 
 Level 6 pillar advanced:
-Branch-local candidate refresh depth and contact-contention-resolution replay
-semantics.
+Branch-local candidate refresh depth and station-calendar replay semantics.
 
 Remaining maturity gaps:
-`source_report_contact_contention_resolution_branch_replay_summary` is
-advertised and `contact_contention_resolution_replay_summary/1` derives
-branch-local resolution, deferred-contact, capacity-pack, and action pressure.
-Current `source_report_summary/1` exposes raw contact-contention-resolution
-rollups plus those composed replay booleans, using the same candidate-source
-branch-first summary selection as the dedicated replay helper.
+`source_report_station_calendar_branch_replay_summary` is advertised and
+`station_calendar_replay_summary/1` derives branch-local station-calendar,
+affected-contact, provider-contention, and station-availability pressure. The
+live helper now inspects branch candidate-source summary metadata before
+falling back to source-report provenance, matching the advertised branch
+semantics. Current `source_report_summary/1` now exposes raw station-calendar
+rollups plus those composed replay booleans.
 
 Last commit:
-`04e9ebaad8ca11f61a8721687facf37eb0f8e4e5` pushed to `origin/main` for
-candidate-refresh contact-contention replay branch summary routing.
+`a98a481513f7ca61d38759d7fb8eaa0af2cffd07` pushed to `origin/main` for
+candidate-refresh contact-contention-resolution replay branch summary routing.
 
 Next candidate:
 After this slice, reassess from the source-report capability catalog. Remaining
-advertised branch replay projections include station-calendar and
-readiness/validation families.
+advertised branch replay projections include readiness/validation families.
 
 Blocked:
 No.

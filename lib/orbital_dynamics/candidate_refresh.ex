@@ -6901,6 +6901,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_contact_filter_replay_summary_fields(source_reports))
     |> Map.merge(source_report_resource_filter_replay_summary_fields(source_reports))
     |> Map.merge(source_report_resource_projection_replay_summary_fields(source_reports))
+    |> Map.merge(
+      source_report_station_calendar_replay_summary_fields(refresh_or_artifact, source_reports)
+    )
     |> Map.merge(source_report_station_reservation_replay_summary_fields(source_reports))
     |> Map.merge(source_report_command_window_replay_summary_fields(source_reports))
     |> Map.merge(source_report_maneuver_review_replay_summary_fields(source_reports))
@@ -9813,6 +9816,41 @@ defmodule OrbitalDynamics.CandidateRefresh do
     }
   end
 
+  defp source_report_station_calendar_replay_summary_fields(refresh_or_artifact, source_reports) do
+    branch_station_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "station_calendar_report")
+
+    station_summary =
+      branch_station_summary || Map.get(source_reports, "station_calendar_report", %{})
+
+    {summary_source, replay_scope} =
+      if branch_station_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.station_calendar_report",
+          "station_calendar_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.station_calendar_report",
+          "station_calendar_source_report_provenance_only"
+        }
+      end
+
+    summary =
+      station_calendar_replay_summary_from_summary(station_summary, summary_source, replay_scope)
+
+    %{
+      "source_report_station_calendar_branch_local_station_calendar_pressure" =>
+        Map.get(summary, "branch_local_station_calendar_pressure"),
+      "source_report_station_calendar_branch_local_affected_contact_pressure" =>
+        Map.get(summary, "branch_local_affected_contact_pressure"),
+      "source_report_station_calendar_branch_local_provider_contention_pressure" =>
+        Map.get(summary, "branch_local_provider_contention_pressure"),
+      "source_report_station_calendar_branch_local_station_availability_pressure" =>
+        Map.get(summary, "branch_local_station_availability_pressure")
+    }
+  end
+
   defp source_report_contact_intent_replay_summary_fields(source_reports) do
     summary =
       source_reports
@@ -10927,16 +10965,39 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds a compact branch-local station-calendar replay summary.
 
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, mutate station calendars or schedules,
-  select candidates, approve imports, or write to Cadence.
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, mutate
+  station calendars or schedules, select candidates, approve imports, or write
+  to Cadence.
   """
   def station_calendar_replay_summary(refresh_or_artifact) do
     source_summary = source_report_summary(refresh_or_artifact)
 
-    station_summary =
-      get_in(source_summary, ["source_reports", "station_calendar_report"]) || %{}
+    branch_station_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "station_calendar_report")
 
+    station_summary =
+      branch_station_summary ||
+        get_in(source_summary, ["source_reports", "station_calendar_report"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_station_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.station_calendar_report",
+          "station_calendar_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.station_calendar_report",
+          "station_calendar_source_report_provenance_only"
+        }
+      end
+
+    station_calendar_replay_summary_from_summary(station_summary, summary_source, replay_scope)
+  end
+
+  defp station_calendar_replay_summary_from_summary(station_summary, summary_source, replay_scope) do
     affected_contact_count = summary_integer(station_summary, "affected_contact_count")
 
     source_summary_model_counts =
@@ -11143,7 +11204,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     %{
       "model" => "artifact_only_candidate_refresh_station_calendar_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.station_calendar_report",
+      "source" => summary_source,
       "contract" => source_report_summary_contract(station_summary, "station_calendar_report.v1"),
       "source_report_count" => summary_integer(station_summary, "count"),
       "source_report_row_count" => summary_integer(station_summary, "row_count"),
@@ -11348,7 +11409,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
           map_size(provider_contention_capacity_fractions_by_direction) > 0,
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "station_calendar_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_station_calendar_replay_summary",
         "station_calendar_mutation" => "not_performed_by_summary",
         "schedule_mutation" => "not_performed_by_summary",
