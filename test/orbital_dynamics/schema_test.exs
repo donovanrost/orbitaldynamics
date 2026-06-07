@@ -17198,6 +17198,75 @@ defmodule OrbitalDynamics.SchemaTest do
              |> Enum.map(&Atom.to_string/1)
   end
 
+  test "validates checked-in contact allocation reservation conflict summary fixture" do
+    summary =
+      read_json!("study_results/contact_allocation_reservation_conflict_summary_v1.json")
+
+    report = contact_allocation_reservation_conflict_summary_fixture_report()
+
+    generated_summary =
+      OrbitalDynamics.contact_allocation_reservation_conflict_summary(report, now_s: 400.0)
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "contact_allocation_reservation_conflict_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "source_artifact_type" => "contact_allocation_report.v1",
+             "source" => "validation.contact_allocation_reservation_conflict_summary",
+             "input_contact_count" => 2,
+             "station_reservation_contact_count" => 2,
+             "reservation_conflict_contact_count" => 1,
+             "reservation_review_contact_count" => 1,
+             "station_reservation_match_status_counts" => %{
+               "matched" => 1,
+               "overlap" => 1
+             },
+             "reservation_conflict_match_status_counts" => %{"overlap" => 1},
+             "station_reservation_status_counts" => %{"confirmed" => 2},
+             "station_reserved_by_counts" => %{"ops_team_b" => 2},
+             "station_reservation_ids" => ["reservation_1"],
+             "station_reservation_expires_at_s" => [360.0],
+             "station_reservation_expiration_now_s" => 400.0,
+             "station_reservation_expiration_status_counts" => %{"expired" => 2},
+             "earliest_station_reservation_expires_at_s" => 360.0,
+             "reservation_conflict_contact_ids" => ["dl_reserved_intruder"],
+             "reservation_review_contact_ids" => ["dl_reserved_intruder"],
+             "station_reservation_contact_ids_by_match_status" => %{
+               "matched" => ["dl_reserved_owner"],
+               "overlap" => ["dl_reserved_intruder"]
+             },
+             "reservation_conflict_contact_ids_by_match_status" => %{
+               "overlap" => ["dl_reserved_intruder"]
+             },
+             "reservation_conflict_contact_ids_by_direction_and_ground_station_id" => %{
+               "downlink" => %{"equator_prime" => ["dl_reserved_intruder"]}
+             },
+             "station_reservation_ids_by_expiration_status" => %{
+               "expired" => ["reservation_1"]
+             },
+             "assumptions" => %{
+               "execution_boundary" =>
+                 "artifact_only_no_provider_reservation_or_schedule_mutation",
+               "operator_authority" => "not_granted_by_reservation_conflict_summary",
+               "source" => "contact_allocation_report.v1"
+             }
+           } = summary
+
+    assert Enum.map(summary["reservation_conflict_rows"], & &1["contact_id"]) == [
+             "dl_reserved_intruder"
+           ]
+
+    assert Enum.map(summary["reservation_review_rows"], & &1["contact_id"]) == [
+             "dl_reserved_intruder"
+           ]
+
+    assert summary["model_limits"] ==
+             ContactAllocation.capabilities().known_limits
+             |> Enum.map(&Atom.to_string/1)
+  end
+
   test "validates checked-in provider reservation request summary fixture" do
     summary =
       read_json!("study_results/contact_allocation_provider_reservation_request_summary_v1.json")
@@ -27292,6 +27361,53 @@ defmodule OrbitalDynamics.SchemaTest do
           "station_reserved_by" => "network_partner",
           "station_reservation_match_status" => "overlap",
           "station_reservation_expires_at_s" => 420.0,
+          "review_status" => "operator_review_required"
+        }
+      ],
+      "reduced_capacity_pack_groups" => [],
+      "model_limits" => [
+        "artifact_level_only",
+        "no_provider_reservation",
+        "no_schedule_mutation",
+        "no_full_realized_contact_reconciliation"
+      ]
+    }
+  end
+
+  defp contact_allocation_reservation_conflict_summary_fixture_report do
+    %{
+      "schema_contract" => "contact_allocation_report.v1",
+      "model" => "deterministic_station_contact_allocation",
+      "source" => "validation.contact_allocation_reservation_conflict_summary",
+      "rows" => [
+        %{
+          "id" => "contact_allocation:dl_reserved_owner",
+          "contact_id" => "dl_reserved_owner",
+          "allocation_status" => "allocated",
+          "effective_allocation_status" => "allocated",
+          "allocation_reason" => "station_reservation_matched",
+          "ground_station_id" => "equator_prime",
+          "direction" => "downlink",
+          "station_reservation_id" => "reservation_1",
+          "station_reservation_status" => "confirmed",
+          "station_reserved_by" => "ops_team_b",
+          "station_reservation_match_status" => "matched",
+          "station_reservation_expires_at_s" => 360.0,
+          "review_status" => "accepted_for_planning"
+        },
+        %{
+          "id" => "contact_allocation:dl_reserved_intruder",
+          "contact_id" => "dl_reserved_intruder",
+          "allocation_status" => "blocked",
+          "effective_allocation_status" => "blocked",
+          "allocation_reason" => "ground_station_reserved",
+          "ground_station_id" => "equator_prime",
+          "direction" => "downlink",
+          "station_reservation_id" => "reservation_1",
+          "station_reservation_status" => "confirmed",
+          "station_reserved_by" => "ops_team_b",
+          "station_reservation_match_status" => "overlap",
+          "station_reservation_expires_at_s" => 360.0,
           "review_status" => "operator_review_required"
         }
       ],

@@ -1035,6 +1035,12 @@ fixture. The observations check station-pressure and review counts, contact-ID
 routing by ground station, availability, precedence availability/rank, direction
 and ground station, review rows, model limits, and
 no-provider-reservation/no-schedule-mutation assumptions.
+`study_results/contact_allocation_reservation_conflict_summary_v1.json` now
+feeds a curated `contact_allocation_reservation_conflict_summary.v1`
+validation-reference fixture. The observations check reservation contact,
+conflict, and review counts, match/status/owner/expiration routing,
+direction-and-station conflict maps, row subsets, model limits, and
+no-provider-reservation/no-schedule-mutation assumptions.
 The validation-reference registry and checked-in
 `study_results/contact_allocation_provider_reservation_request_summary_v1.json`
 fixture also include a generated
