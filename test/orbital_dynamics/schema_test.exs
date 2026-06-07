@@ -10070,6 +10070,73 @@ defmodule OrbitalDynamics.SchemaTest do
              ])
   end
 
+  test "validates checked-in timeline activity-state fixture regenerates through public facade" do
+    state = read_json!("study_results/timeline_activity_state_v1.json")
+
+    planned = %{
+      id: :cmd_lock,
+      type: :command,
+      status: :approved,
+      approved: true,
+      locked: true,
+      starts_at_s: 100,
+      ends_at_s: 120,
+      metadata: %{timeline_id: :"timeline:cmd_lock"}
+    }
+
+    realized = %{
+      id: :cmd_new,
+      type: :command,
+      status: :executed,
+      starts_at_s: 130,
+      ends_at_s: 140,
+      metadata: %{timeline_id: :"timeline:cmd_new"}
+    }
+
+    generated_state = OrbitalDynamics.timeline_activity_state(planned, realized)
+
+    assert generated_state == state
+
+    assert {:ok, %{"schema_contract" => "timeline_activity_state.v1"}} =
+             Schema.validate_artifact(state)
+
+    assert state["schema_contract"] == "timeline_activity_state.v1"
+    assert state["model"] == "artifact_only_timeline_activity_state"
+    assert state["validation_level"] == "artifact_contract"
+    assert state["state_status"] == "review_required"
+    assert state["row_count"] == 2
+    assert state["activity_ids"] == ["cmd_lock", "cmd_new"]
+    assert state["review_activity_ids"] == ["cmd_lock", "cmd_new"]
+    assert state["status_counts"] == %{"planned_only" => 1, "realized_only" => 1}
+
+    assert state["match_strategy_counts"] == %{
+             "unmatched_planned" => 1,
+             "unmatched_realized" => 1
+           }
+
+    assert state["planned_status_category"] == "planned"
+    assert state["planned_locked"] == true
+    assert state["planned_executed"] == false
+    assert state["realized_status_category"] == "executed"
+    assert state["realized_locked"] == false
+    assert state["realized_executed"] == true
+    assert state["review_required"] == true
+
+    assert state["planned_protection_decision"] == "preserve"
+    assert state["planned_protection_category"] == "locked_or_approved"
+    assert state["realized_trust_boundary_status"] == "missing"
+
+    assert state["model_limits"] == [
+             "artifact_level_only",
+             "no_schedule_mutation",
+             "no_command_execution",
+             "no_operator_authority_decision",
+             "timing_deltas_require_declared_actual_times"
+           ]
+
+    assert Enum.map(state["rows"], & &1["activity_id"]) == ["cmd_lock", "cmd_new"]
+  end
+
   test "validates timeline activity-state row-derived artifact fields" do
     planned = %{
       id: :downlink_equator,

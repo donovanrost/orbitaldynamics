@@ -858,6 +858,12 @@ categories, and artifact-only/no-schedule-mutation/no-command-execution
 assumptions. Executable validation rejects stale row counts and stale
 row-derived match-strategy maps before compact activity-state handoffs can
 steer review/import adapters.
+Focused schema-reference coverage exact-regenerates the checked-in activity
+state fixture through `OrbitalDynamics.timeline_activity_state/3` from
+deterministic planned and realized command inputs before schema validation,
+pinning lifecycle-derived status categories, lock/executed booleans, protection
+evidence, trust-boundary status, reconciliation rows, exact model limits, and
+the no-schedule-mutation/no-authority/no-command boundary.
 Checked-in single-activity status, approval, and lifecycle-state fixtures are
 also exact-regenerated through
 `OrbitalDynamics.timeline_activity_status_state/2`,
