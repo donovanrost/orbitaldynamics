@@ -5,94 +5,81 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Resource projection artifact subsystem capability assumptions.
+Contact intent summary capacity alias assumptions.
 
 Status:
 Implemented, verified, reviewed, committed locally, and awaiting push.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/resource_projection.ex`
+- `lib/orbital_dynamics/communications/contact_intent.ex`
 - `lib/orbital_dynamics/schema.ex`
-- `test/orbital_dynamics/resource_projection_test.exs`
-- `test/orbital_dynamics/schema_test.exs`
-- `schemas/resource_projection_report.v1.schema.json`
-- `schemas/resource_projection_flow_summary.v1.schema.json`
-- `schemas/campaign_plan.v1.schema.json`
+- `test/orbital_dynamics/communications/contact_intent_test.exs`
+- `schemas/contact_intent_summary.v1.schema.json`
 - `schemas/orbital_dynamics.schema_bundle.v1.json`
-- `study_results/resource_projection_report_v1.json`
-- `study_results/resource_projection_flow_summary_v1.json`
-- `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`
-- `docs/mission_planning/high_fidelity/01_digital_twin_and_subsystem_models.md`
+- `study_results/contact_intent_summary_v1.json`
+- `docs/feature_set/capability_map/07_ground_network/05_contact_intent_refresh_and_allocation_policy.md`
+- `docs/mission_planning/high_fidelity/06_operational_concerns.md`
 
 Slice-selection note:
 Selected slice:
-Emit and validate the exact `subsystem_model_capability.v1` contract and
-battery/storage capability IDs inside `resource_projection_report.v1` and
-`resource_projection_flow_summary.v1` assumptions.
+Emit and validate `ContactIntent.capabilities/0` station-capacity and
+required-capacity alias path metadata inside `contact_intent_summary.v1`
+assumptions.
 
 Why this slice:
-The previous slice made resource-flow discovery metadata point at the built-in
-battery and storage subsystem model records, but the emitted projection
-artifacts still only describe their thin roll-forward assumptions in prose.
-Putting the exact contract and IDs into artifact assumptions lets downstream
-review/import adapters verify which declarative subsystem models were used
-without changing projection math or claiming propagated subsystem state.
+Contact-intent capability metadata already advertises the station-capacity and
+required-capacity fraction/percent/value aliases used before capacity-pack
+demand totals are derived. The emitted summary only carries a provider-write
+boundary assumption, so adapters cannot verify which alias contract produced
+the demand evidence without consulting a separate capability catalog.
 
 Level 6 pillar advanced:
-Resource-simulation model contracts and Cadence-facing artifact traceability.
+Communications allocation contract traceability and Cadence-facing artifact
+handoff fidelity.
 
 Implementation notes:
-- `ResourceProjection.report/3` now emits additive subsystem capability
-  assumptions naming `subsystem_model_capability.v1`, the ordered battery and
-  storage capability IDs, and the IDs by resource.
-- `ResourceProjection.flow_summary/1` emits the same assumptions through a
-  shared helper so compact flow artifacts and full projection reports do not
-  drift.
-- `Schema.validate_artifact/1` keeps those assumptions optional for older
-  artifacts, but rejects stale contract, ID list, or by-resource values when
-  the fields are present.
-- JSON Schema export now makes the optional assumptions schema-visible for
-  `resource_projection_report.v1` and `resource_projection_flow_summary.v1`.
-- The checked-in canonical report and flow-summary fixtures now carry the
-  subsystem capability assumptions. The flow summary was regenerated from
-  `OrbitalDynamics.resource_projection_flow_summary/1`.
+- `ContactIntent.summary/1` now emits station-capacity value paths,
+  required-capacity value paths, and required-capacity source values in
+  summary assumptions using JSON-facing `%{"unit", "path"}` maps.
+- `Schema.json_schema/1` now exposes those optional assumption fields on
+  `contact_intent_summary.v1` with exact capability-derived `const` values.
+- `Schema.validate_artifact/1` preserves older summaries without the optional
+  fields, but rejects stale path/source-value assumptions when present.
+- The checked-in `contact_intent_summary_v1.json` fixture was regenerated from
+  the public `ContactIntent.summary/2` path.
 
 Tests run:
-- `mix format lib/orbital_dynamics/resource_projection.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/resource_projection_test.exs`
+- `mix format lib/orbital_dynamics/communications/contact_intent.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/communications/contact_intent_test.exs`
+- `mix test test/orbital_dynamics/communications/contact_intent_test.exs`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `mix test test/orbital_dynamics/resource_projection_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:1697 test/orbital_dynamics/schema_test.exs:4438 test/orbital_dynamics/schema_test.exs:24601 test/mix/tasks/orbital_dynamics.schema.export_test.exs:5506`
+- `mix test test/orbital_dynamics/communications/contact_intent_test.exs test/orbital_dynamics/schema_test.exs:1114 test/mix/tasks/orbital_dynamics.schema.export_test.exs:130`
 - `mix orbital_dynamics.schema.lint --all`
-- `mix test test/orbital_dynamics/validation_test.exs:9934 test/orbital_dynamics/validation_test.exs:10041`
-- `mix test test/orbital_dynamics/resource_projection_test.exs test/orbital_dynamics/schema_test.exs:1697 test/orbital_dynamics/schema_test.exs:4438 test/orbital_dynamics/schema_test.exs:24601 test/mix/tasks/orbital_dynamics.schema.export_test.exs:5506 test/orbital_dynamics/validation_test.exs:9934 test/orbital_dynamics/validation_test.exs:10041`
 - `git diff --check`
 
 Docs/artifacts changed:
-- Refreshed resource projection report/flow-summary schemas, campaign-plan
-  nested schema, and the schema bundle.
-- Refreshed `study_results/resource_projection_report_v1.json` and
-  `study_results/resource_projection_flow_summary_v1.json`.
-- Updated spacecraft/resource capability map and digital-twin/subsystem model
-  planning doc.
+- Refreshed `schemas/contact_intent_summary.v1.schema.json` and
+  `schemas/orbital_dynamics.schema_bundle.v1.json`.
+- Refreshed `study_results/contact_intent_summary_v1.json`.
+- Updated contact-intent/capacity planning docs to describe artifact-carried
+  alias-path assumptions under the no-provider-write boundary.
 
 Review:
-- Read-only reviewer Poincare found one blocker: the canonical
-  `study_results/resource_projection_report_v1.json` fixture still lacked the
-  new generated assumptions. Fixed by updating the canonical report fixture,
-  rerunning the flow-summary fixture generation, adding a by-resource stale
-  assumption regression, and rerunning focused verification plus schema lint.
-- Poincare rechecked the fixed slice and found no remaining blockers.
+- Read-only reviewer Bacon found no blockers.
+- Bacon confirmed generated assumptions, optional stale-value validation,
+  schema const export, fixture/docs alignment, and the no-provider-write /
+  no-schedule-mutation boundary. Follow-up coverage note was addressed by
+  adding direct stale-present tests for `station_capacity_value_paths` and
+  `required_capacity_fraction_source_values`.
 
 Remaining maturity gaps:
-- Full `spacecraft_model.v1` and executable subsystem state propagation remain
+- Provider reservation authority, provider writes, and schedule mutation remain
   out of scope for this slice.
-- External ICD-derived subsystem calibration and validation baselines remain
-  future work.
+- Contact allocation/reservation conflict decisions remain separate artifacts.
 
 Last commit:
-`25dd9e79372d325385fb3e362b9dd1c4e2bc13f67` committed locally for Resource
-projection artifact subsystem capability assumptions.
+`454c25315bfc9fbe4d685c55ba11f81765a6e1f9` committed locally for Contact
+intent summary capacity alias assumptions.
 
 Next candidate:
 After this slice, continue from the live guide/status and prefer another narrow
