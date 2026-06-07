@@ -30286,7 +30286,21 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
   end
 
   test "quality gate replay accepts operational quality gate summaries" do
-    quality_gate_summary = quality_gate_summary_fixture()
+    quality_gate_summary =
+      quality_gate_summary_fixture()
+      |> Map.drop(["rows", "non_passed_rows"])
+      |> Map.merge(%{
+        "readiness_level" => "import_eligible",
+        "import_classification" => "importable",
+        "status" => "passed",
+        "gate_count" => 99,
+        "passed_gate_count" => 99,
+        "review_gate_count" => 99,
+        "analysis_gate_count" => 99,
+        "blocked_gate_count" => 99,
+        "gate_status_counts" => %{"passed" => 99},
+        "gate_classification_counts" => %{"importable" => 99}
+      })
 
     refresh = %{
       "accepted_planning_state" => %{
@@ -30319,6 +30333,11 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_quality_gate_source_artifact_type_counts" => %{
                "planned_activity.v1" => 3
              },
+             "source_report_quality_gate_readiness_level_counts" => %{"blocked" => 3},
+             "source_report_quality_gate_import_classification_counts" => %{
+               "blocked" => 3
+             },
+             "source_report_quality_gate_status_counts" => %{"blocked" => 3},
              "source_report_quality_gate_gate_count" => 6,
              "source_report_quality_gate_review_gate_count" => 3,
              "source_report_quality_gate_blocked_gate_count" => 3,
@@ -30369,6 +30388,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "operational_quality_gate_summary.v1" => 3
              },
              "source_artifact_type_counts" => %{"planned_activity.v1" => 3},
+             "readiness_level_counts" => %{"blocked" => 3},
+             "import_classification_counts" => %{"blocked" => 3},
+             "status_counts" => %{"blocked" => 3},
              "gate_count" => 6,
              "review_gate_count" => 3,
              "blocked_gate_count" => 3,
@@ -30393,6 +30415,80 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     }
 
     assert CandidateRefresh.quality_gate_replay_summary(artifact) == replay_summary
+  end
+
+  test "quality gate replay treats explicit empty quality-gate summary status maps as zero rows" do
+    quality_gate_summary =
+      quality_gate_summary_fixture()
+      |> Map.drop(["rows", "non_passed_rows"])
+      |> Map.merge(%{
+        "readiness_level" => "blocked",
+        "import_classification" => "blocked",
+        "status" => "blocked",
+        "gate_count" => 99,
+        "review_gate_count" => 99,
+        "blocked_gate_count" => 99,
+        "gate_status_counts" => %{"blocked" => 99},
+        "gate_classification_counts" => %{"blocked" => 99},
+        "quality_gate_row_ids_by_status" => %{},
+        "gate_ids_by_status" => %{},
+        "quality_gate_ids_by_status" => %{},
+        "non_passed_quality_gate_row_ids" => [],
+        "non_passed_gate_ids" => [],
+        "non_passed_gate_count" => 0
+      })
+
+    refresh = %{"source_operational_quality_gate_summary" => quality_gate_summary}
+
+    source_report_summary = CandidateRefresh.source_report_summary(refresh)
+
+    assert %{
+             "source_report_count" => 1,
+             "source_report_row_count" => 0,
+             "source_report_quality_gate_count" => 1,
+             "source_report_quality_gate_row_count" => 0,
+             "source_report_quality_gate_readiness_level_counts" => %{"import_eligible" => 1},
+             "source_report_quality_gate_import_classification_counts" => %{
+               "importable" => 1
+             },
+             "source_report_quality_gate_status_counts" => %{"passed" => 1},
+             "source_report_quality_gate_gate_count" => 0,
+             "source_report_quality_gate_review_gate_count" => 0,
+             "source_report_quality_gate_blocked_gate_count" => 0,
+             "source_reports" => %{
+               "quality_gate_report" => %{
+                 "row_count" => 0,
+                 "gate_count" => 0,
+                 "review_gate_count" => 0,
+                 "blocked_gate_count" => 0
+               }
+             }
+           } = source_report_summary
+
+    assert Map.get(
+             source_report_summary,
+             "source_report_quality_gate_quality_gate_row_ids_by_status",
+             %{}
+           ) ==
+             %{}
+
+    replay_summary = CandidateRefresh.quality_gate_replay_summary(refresh)
+
+    assert %{
+             "source_report_count" => 1,
+             "source_report_row_count" => 0,
+             "readiness_level_counts" => %{"import_eligible" => 1},
+             "import_classification_counts" => %{"importable" => 1},
+             "status_counts" => %{"passed" => 1},
+             "gate_count" => 0,
+             "review_gate_count" => 0,
+             "blocked_gate_count" => 0,
+             "branch_local_review_pressure" => true
+           } = replay_summary
+
+    assert Map.get(replay_summary, "quality_gate_row_ids_by_status", %{}) == %{}
+    assert Map.get(replay_summary, "review_required_quality_gate_row_ids", []) == []
+    assert Map.get(replay_summary, "blocked_quality_gate_row_ids", []) == []
   end
 
   test "quality gate replay accepts wrapped operational quality gate summaries" do

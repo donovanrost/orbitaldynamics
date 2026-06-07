@@ -330,6 +330,11 @@ Executable validation rejects stale row-derived quality-gate classification,
 readiness level, status, gate counts/maps, gate ID routing groups, nested
 readiness/quality source-gate handoff drift, copied source-report summary
 drift, model-limit drift, and no-Cadence-write/no-authority boundary drift.
+CandidateRefresh replay also derives reconstructed readiness/status,
+classification, gate counts, and per-status count maps from
+`quality_gate_row_ids_by_status` for compact no-row
+`operational_quality_gate_summary.v1` handoffs, preventing stale top-level
+summary counts from steering branch-local quality-gate pressure.
 
 Resource-pressure examples are checked in alongside the ready-import fixture:
 `study_results/operational_readiness_resource_pressure_v1.json`,

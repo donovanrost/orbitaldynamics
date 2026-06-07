@@ -45427,8 +45427,25 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
   defp quality_gate_report_from_quality_gate_summary(%{} = summary) do
     summary = stringify_keys(summary)
-    row_ids_by_status = Map.get(summary, "quality_gate_row_ids_by_status", %{})
+    row_ids_by_status = Map.get(summary, "quality_gate_row_ids_by_status")
     gate_ids_by_status = Map.get(summary, "gate_ids_by_status", %{})
+    rows = summary["rows"]
+
+    gate_count =
+      quality_gate_summary_row_count(row_ids_by_status, summary["gate_count"])
+
+    gate_status_counts =
+      quality_gate_summary_count_map(row_ids_by_status, summary["gate_status_counts"])
+
+    gate_classification_counts =
+      quality_gate_summary_classification_count_map(
+        row_ids_by_status,
+        summary["gate_classification_counts"]
+      )
+
+    status = quality_gate_summary_status(row_ids_by_status, summary)
+    classification = quality_gate_summary_import_classification(row_ids_by_status, summary)
+    readiness_level = quality_gate_summary_readiness_level(row_ids_by_status, summary)
 
     %{
       "schema_contract" => "quality_gate_report.v1",
@@ -45440,17 +45457,21 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "source_artifact_id" => summary["source_artifact_id"],
       "source_quality_gate_report_id" => summary["source_quality_gate_report_id"],
       "source_readiness_report_id" => summary["source_readiness_report_id"],
-      "readiness_level" => summary["readiness_level"],
-      "import_classification" => summary["import_classification"],
-      "status" => summary["status"],
-      "gate_count" => summary["gate_count"],
-      "passed_gate_count" => summary["passed_gate_count"],
-      "review_gate_count" => summary["review_gate_count"],
-      "analysis_gate_count" => summary["analysis_gate_count"],
-      "blocked_gate_count" => summary["blocked_gate_count"],
-      "gate_status_counts" => summary["gate_status_counts"],
-      "gate_classification_counts" => summary["gate_classification_counts"],
-      "quality_gate_row_ids_by_status" => row_ids_by_status,
+      "readiness_level" => readiness_level,
+      "import_classification" => classification,
+      "status" => status,
+      "gate_count" => gate_count,
+      "passed_gate_count" =>
+        quality_gate_summary_status_count(row_ids_by_status, summary, "passed"),
+      "review_gate_count" =>
+        quality_gate_summary_status_count(row_ids_by_status, summary, "review_required"),
+      "analysis_gate_count" =>
+        quality_gate_summary_status_count(row_ids_by_status, summary, "analysis_only"),
+      "blocked_gate_count" =>
+        quality_gate_summary_status_count(row_ids_by_status, summary, "blocked"),
+      "gate_status_counts" => gate_status_counts,
+      "gate_classification_counts" => gate_classification_counts,
+      "quality_gate_row_ids_by_status" => row_ids_by_status || %{},
       "quality_gate_ids_by_status" => gate_ids_by_status,
       "review_required_quality_gate_row_ids" =>
         quality_gate_summary_list_map_values(row_ids_by_status, "review_required"),
@@ -45470,7 +45491,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "non_passed_gate_ids" => summary["non_passed_gate_ids"],
       "non_passed_gate_count" => summary["non_passed_gate_count"],
       "non_passed_rows" => summary["non_passed_rows"],
-      "rows" => summary["rows"],
+      "rows" => rows,
       "trust_boundary" => summary["trust_boundary"],
       "trust_boundaries" => summary["trust_boundaries"],
       "assumptions" => summary["assumptions"]
@@ -45857,6 +45878,62 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp quality_gate_summary_row_count(_row_ids_by_status, fallback_count), do: fallback_count
+
+  defp quality_gate_summary_status_count(%{} = row_ids_by_status, _summary, status) do
+    row_ids_by_status
+    |> quality_gate_summary_list_map_values(status)
+    |> length()
+  end
+
+  defp quality_gate_summary_status_count(_row_ids_by_status, summary, "passed"),
+    do: summary["passed_gate_count"]
+
+  defp quality_gate_summary_status_count(_row_ids_by_status, summary, "review_required"),
+    do: summary["review_gate_count"]
+
+  defp quality_gate_summary_status_count(_row_ids_by_status, summary, "analysis_only"),
+    do: summary["analysis_gate_count"]
+
+  defp quality_gate_summary_status_count(_row_ids_by_status, summary, "blocked"),
+    do: summary["blocked_gate_count"]
+
+  defp quality_gate_summary_count_map(%{} = row_ids_by_status, _fallback_counts) do
+    quality_gate_import_readiness_status_counts(row_ids_by_status)
+  end
+
+  defp quality_gate_summary_count_map(_row_ids_by_status, fallback_counts), do: fallback_counts
+
+  defp quality_gate_summary_classification_count_map(%{} = row_ids_by_status, _fallback_counts) do
+    quality_gate_import_readiness_classification_counts(row_ids_by_status)
+  end
+
+  defp quality_gate_summary_classification_count_map(_row_ids_by_status, fallback_counts),
+    do: fallback_counts
+
+  defp quality_gate_summary_status(%{} = row_ids_by_status, _summary) do
+    quality_gate_status_from_row_ids(row_ids_by_status)
+  end
+
+  defp quality_gate_summary_status(_row_ids_by_status, summary), do: summary["status"]
+
+  defp quality_gate_summary_import_classification(%{} = row_ids_by_status, _summary) do
+    row_ids_by_status
+    |> quality_gate_status_from_row_ids()
+    |> quality_gate_import_readiness_classification()
+  end
+
+  defp quality_gate_summary_import_classification(_row_ids_by_status, summary),
+    do: summary["import_classification"]
+
+  defp quality_gate_summary_readiness_level(%{} = row_ids_by_status, _summary) do
+    row_ids_by_status
+    |> quality_gate_status_from_row_ids()
+    |> quality_gate_import_readiness_classification()
+    |> quality_gate_import_readiness_level()
+  end
+
+  defp quality_gate_summary_readiness_level(_row_ids_by_status, summary),
+    do: summary["readiness_level"]
 
   defp quality_gate_schema_validation_status(%{} = summary) do
     cond do
