@@ -4858,11 +4858,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "model_ids_by_intended_use"
         ),
       "source_report_validation_safety_case_evidence_count" =>
-        source_report_summary_family_count(
-          source_reports,
-          "validation_safety_case_summary",
-          "row_count"
-        ),
+        source_report_validation_safety_case_evidence_count(source_reports),
       "source_report_validation_safety_case_contract" =>
         source_report_summary_family_field(
           source_reports,
@@ -4918,21 +4914,21 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "evidence_refs_by_contract"
         ),
       "source_report_validation_safety_case_accepted_evidence_count" =>
-        source_report_summary_family_count(
+        source_report_validation_safety_case_evidence_status_count(
           source_reports,
-          "validation_safety_case_summary",
+          "accepted_for_use",
           "accepted_evidence_count"
         ),
       "source_report_validation_safety_case_review_required_evidence_count" =>
-        source_report_summary_family_count(
+        source_report_validation_safety_case_evidence_status_count(
           source_reports,
-          "validation_safety_case_summary",
+          "review_required",
           "review_required_evidence_count"
         ),
       "source_report_validation_safety_case_blocked_evidence_count" =>
-        source_report_summary_family_count(
+        source_report_validation_safety_case_evidence_status_count(
           source_reports,
-          "validation_safety_case_summary",
+          "blocked",
           "blocked_evidence_count"
         ),
       "source_report_validation_safety_case_model_accepted_count" =>
@@ -15814,9 +15810,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
   defp validation_safety_case_replay_pressure_fields(safety_case_summary) do
     review_required_evidence_count =
-      summary_integer(safety_case_summary, "review_required_evidence_count")
+      validation_safety_case_summary_evidence_status_count(
+        safety_case_summary,
+        "review_required",
+        "review_required_evidence_count"
+      )
 
-    blocked_evidence_count = summary_integer(safety_case_summary, "blocked_evidence_count")
+    blocked_evidence_count =
+      validation_safety_case_summary_evidence_status_count(
+        safety_case_summary,
+        "blocked",
+        "blocked_evidence_count"
+      )
 
     model_review_required_count =
       summary_integer(safety_case_summary, "model_review_required_count")
@@ -15928,10 +15933,29 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
-    review_required_evidence_count =
-      summary_integer(safety_case_summary, "review_required_evidence_count")
+    source_report_row_count =
+      validation_safety_case_summary_evidence_count(safety_case_summary, "row_count")
 
-    blocked_evidence_count = summary_integer(safety_case_summary, "blocked_evidence_count")
+    accepted_evidence_count =
+      validation_safety_case_summary_evidence_status_count(
+        safety_case_summary,
+        "accepted_for_use",
+        "accepted_evidence_count"
+      )
+
+    review_required_evidence_count =
+      validation_safety_case_summary_evidence_status_count(
+        safety_case_summary,
+        "review_required",
+        "review_required_evidence_count"
+      )
+
+    blocked_evidence_count =
+      validation_safety_case_summary_evidence_status_count(
+        safety_case_summary,
+        "blocked",
+        "blocked_evidence_count"
+      )
 
     model_review_required_count =
       summary_integer(safety_case_summary, "model_review_required_count")
@@ -15973,15 +15997,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "validation_safety_case_summary.v1"
         ),
       "source_report_count" => summary_integer(safety_case_summary, "count"),
-      "source_report_row_count" => summary_integer(safety_case_summary, "row_count"),
+      "source_report_row_count" => source_report_row_count,
       "source_report_paths" => Map.get(safety_case_summary, "paths", []),
       "status_counts" => status_counts,
       "evidence_status_counts" => evidence_status_counts,
       "input_contract_counts" => input_contract_counts,
       "evidence_refs_by_status" => evidence_refs_by_status,
       "evidence_refs_by_contract" => evidence_refs_by_contract,
-      "accepted_evidence_count" =>
-        summary_integer(safety_case_summary, "accepted_evidence_count"),
+      "accepted_evidence_count" => accepted_evidence_count,
       "review_required_evidence_count" => review_required_evidence_count,
       "blocked_evidence_count" => blocked_evidence_count,
       "model_accepted_count" => summary_integer(safety_case_summary, "model_accepted_count"),
@@ -27672,10 +27695,69 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Enum.sort()
   end
 
+  defp source_report_validation_safety_case_evidence_count(source_reports) do
+    case Map.get(source_reports, "validation_safety_case_summary") do
+      %{} = summary ->
+        if validation_safety_case_summary_has_evidence_count_source?(summary) do
+          validation_safety_case_summary_evidence_count(summary, "row_count")
+        end
+
+      _summary ->
+        nil
+    end
+  end
+
+  defp source_report_validation_safety_case_evidence_status_count(
+         source_reports,
+         status,
+         fallback_field
+       ) do
+    case Map.get(source_reports, "validation_safety_case_summary") do
+      %{} = summary ->
+        if validation_safety_case_summary_has_evidence_status_count_source?(
+             summary,
+             fallback_field
+           ) do
+          validation_safety_case_summary_evidence_status_count(summary, status, fallback_field)
+        end
+
+      _summary ->
+        nil
+    end
+  end
+
+  defp validation_safety_case_summary_has_evidence_count_source?(summary) do
+    Enum.any?(
+      [
+        "row_count",
+        "evidence_count",
+        "evidence_status_counts",
+        "evidence_refs_by_status",
+        "evidence_refs_by_contract",
+        "input_contract_counts"
+      ],
+      &Map.has_key?(summary, &1)
+    )
+  end
+
+  defp validation_safety_case_summary_has_evidence_status_count_source?(
+         summary,
+         fallback_field
+       ) do
+    Enum.any?(
+      [
+        fallback_field,
+        "evidence_status_counts",
+        "evidence_refs_by_status"
+      ],
+      &Map.has_key?(summary, &1)
+    )
+  end
+
   defp validation_safety_case_evidence_count(report) do
     case validation_safety_case_evidence_rows(report) do
       [] ->
-        numeric_report_count(report, "evidence_count")
+        validation_safety_case_summary_evidence_count(report, "evidence_count")
 
       rows ->
         length(rows)
@@ -27697,10 +27779,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp validation_safety_case_input_contract_counts(report) do
     case validation_safety_case_evidence_rows(report) do
       [] ->
-        report
-        |> Map.get("input_contracts")
-        |> list_value()
-        |> count_source_report_values()
+        case Map.get(report, "input_contract_counts") do
+          %{} = counts ->
+            counts
+
+          _counts ->
+            report
+            |> Map.get("input_contracts")
+            |> list_value()
+            |> count_source_report_values()
+        end
 
       rows ->
         rows
@@ -27741,11 +27829,72 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp validation_safety_case_evidence_status_count(report, status, fallback_field) do
     case validation_safety_case_evidence_rows(report) do
       [] ->
-        numeric_report_count(report, fallback_field)
+        validation_safety_case_summary_evidence_status_count(report, status, fallback_field)
 
       rows ->
         Enum.count(rows, &(validation_safety_case_evidence_status(&1) == status))
     end
+  end
+
+  defp validation_safety_case_summary_evidence_count(summary, fallback_field) do
+    case validation_safety_case_summary_evidence_map_count(summary) do
+      {:ok, count} -> count
+      :error -> summary_integer(summary, fallback_field)
+    end
+  end
+
+  defp validation_safety_case_summary_evidence_status_count(summary, status, fallback_field) do
+    cond do
+      is_map(Map.get(summary, "evidence_status_counts")) ->
+        summary
+        |> Map.get("evidence_status_counts")
+        |> summary_integer(status)
+
+      is_map(Map.get(summary, "evidence_refs_by_status")) ->
+        summary
+        |> Map.get("evidence_refs_by_status")
+        |> Map.get(status, [])
+        |> list_value()
+        |> length()
+
+      true ->
+        summary_integer(summary, fallback_field)
+    end
+  end
+
+  defp validation_safety_case_summary_evidence_map_count(summary) do
+    [
+      "evidence_status_counts",
+      "evidence_refs_by_status",
+      "evidence_refs_by_contract",
+      "input_contract_counts"
+    ]
+    |> Enum.find_value(:error, fn field ->
+      case Map.get(summary, field) do
+        %{} = map -> {:ok, validation_safety_case_summary_map_count(field, map)}
+        _map -> false
+      end
+    end)
+  end
+
+  defp validation_safety_case_summary_map_count("evidence_status_counts", counts) do
+    counts
+    |> Map.values()
+    |> Enum.map(&summary_integer(%{"count" => &1}, "count"))
+    |> Enum.sum()
+  end
+
+  defp validation_safety_case_summary_map_count("input_contract_counts", counts) do
+    validation_safety_case_summary_map_count("evidence_status_counts", counts)
+  end
+
+  defp validation_safety_case_summary_map_count(_field, refs_by_key) do
+    refs_by_key
+    |> Enum.flat_map(fn {_key, refs} -> list_value(refs) end)
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.map(&to_string/1)
+    |> Enum.uniq()
+    |> length()
   end
 
   defp validation_safety_case_evidence_field_sum(report, field) do

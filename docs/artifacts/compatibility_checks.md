@@ -226,6 +226,10 @@ Candidate-refresh validation-safety-case replay summaries use those evidence
 rows to derive source-report evidence counts, pressure counts, input-contract
 maps, and evidence-reference maps when rows are present, so stale top-level
 safety-case aggregates cannot steer review/blocking/schema/fixture pressure.
+Compact no-row safety-case handoffs also derive evidence row counts and
+accepted/review/blocked evidence counts from present evidence-status and
+evidence-reference maps before falling back to duplicated top-level scalar
+counters.
 The summary includes deterministic evidence references grouped by summary status
 and input contract, so handoff consumers can route blocked and review-required
 evidence without re-scanning the evidence rows.

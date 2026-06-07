@@ -39545,8 +39545,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "validation_reference_fixture.v1" => ["fixture:challenge_case"]
            }
 
-    assert summary["review_required_evidence_count"] == 0
-    assert summary["blocked_evidence_count"] == 0
+    assert summary["review_required_evidence_count"] == 1
+    assert summary["blocked_evidence_count"] == 1
     assert summary["schema_warning_count"] == 0
     assert summary["fixture_failed_count"] == 0
     assert summary["trust_boundary_status"] == "declared"
@@ -39928,6 +39928,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     summary = CandidateRefresh.validation_safety_case_replay_summary(artifact)
 
+    assert summary["source_report_row_count"] == 1
+    assert summary["blocked_evidence_count"] == 1
     assert summary["branch_local_review_pressure"]
     assert summary["branch_local_blocking_pressure"]
     assert summary["branch_local_schema_pressure"]
@@ -39987,8 +39989,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "provenance.source_reports.validation_safety_case_summary"
            ]
 
-    assert summary["review_required_evidence_count"] == 0
-    assert summary["blocked_evidence_count"] == 0
+    assert summary["review_required_evidence_count"] == 1
+    assert summary["blocked_evidence_count"] == 1
     assert summary["schema_warning_count"] == 0
     assert summary["schema_validation_failed_report_count"] == 0
     assert summary["fixture_failed_count"] == 0
@@ -40014,6 +40016,98 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["branch_local_blocking_pressure"]
     assert summary["branch_local_schema_pressure"]
     assert summary["branch_local_fixture_pressure"]
+  end
+
+  test "validation safety case compact source summary derives counts from evidence maps" do
+    compact_safety_case_summary = %{
+      "schema_contract" => "validation_safety_case_summary.v1",
+      "status" => "accepted_for_use",
+      "evidence_count" => 99,
+      "accepted_evidence_count" => 99,
+      "review_required_evidence_count" => 0,
+      "blocked_evidence_count" => 0,
+      "evidence_status_counts" => %{
+        "blocked" => 1,
+        "review_required" => 1
+      },
+      "input_contract_counts" => %{
+        "schema_validation_report.v1" => 1,
+        "validation_reference_fixture.v1" => 1
+      },
+      "evidence_refs_by_status" => %{
+        "blocked" => ["schema_validation_report.v1:error"],
+        "review_required" => ["validation_reference_fixture.v1:fixture.review"]
+      },
+      "evidence_refs_by_contract" => %{
+        "schema_validation_report.v1" => ["schema_validation_report.v1:error"],
+        "validation_reference_fixture.v1" => ["validation_reference_fixture.v1:fixture.review"]
+      },
+      "provenance" => %{"trust_boundary" => "compact_safety_case"}
+    }
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "source_validation_safety_case_summary" => compact_safety_case_summary
+    }
+
+    assert %{
+             "source_report_validation_safety_case_evidence_count" => 2,
+             "source_report_validation_safety_case_accepted_evidence_count" => 0,
+             "source_report_validation_safety_case_review_required_evidence_count" => 1,
+             "source_report_validation_safety_case_blocked_evidence_count" => 1,
+             "source_report_validation_safety_case_input_contract_counts" => %{
+               "schema_validation_report.v1" => 1,
+               "validation_reference_fixture.v1" => 1
+             },
+             "source_report_validation_safety_case_branch_local_review_pressure" => true,
+             "source_report_validation_safety_case_branch_local_blocking_pressure" => true,
+             "source_report_validation_safety_case_branch_local_schema_pressure" => true,
+             "source_report_validation_safety_case_branch_local_fixture_pressure" => true
+           } = CandidateRefresh.source_report_summary(artifact)
+
+    assert %{
+             "source_report_row_count" => 2,
+             "accepted_evidence_count" => 0,
+             "review_required_evidence_count" => 1,
+             "blocked_evidence_count" => 1,
+             "branch_local_review_pressure" => true,
+             "branch_local_blocking_pressure" => true,
+             "branch_local_schema_pressure" => true,
+             "branch_local_fixture_pressure" => true
+           } = CandidateRefresh.validation_safety_case_replay_summary(artifact)
+  end
+
+  test "validation safety case replay treats explicit empty evidence maps as zero counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "validation_safety_case_summary" => %{
+            "contract" => "validation_safety_case_summary.v1",
+            "count" => 1,
+            "row_count" => 99,
+            "accepted_evidence_count" => 99,
+            "review_required_evidence_count" => 99,
+            "blocked_evidence_count" => 99,
+            "evidence_status_counts" => %{},
+            "input_contract_counts" => %{},
+            "evidence_refs_by_status" => %{},
+            "evidence_refs_by_contract" => %{}
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.validation_safety_case_replay_summary(artifact)
+
+    assert summary["source_report_row_count"] == 0
+    assert summary["accepted_evidence_count"] == 0
+    assert summary["review_required_evidence_count"] == 0
+    assert summary["blocked_evidence_count"] == 0
+    refute summary["branch_local_review_pressure"]
+    refute summary["branch_local_blocking_pressure"]
+    refute summary["branch_local_schema_pressure"]
+    refute summary["branch_local_fixture_pressure"]
   end
 
   test "source report summaries separate station and unavailable readiness reasons" do

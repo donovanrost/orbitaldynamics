@@ -275,6 +275,9 @@ Status: **implemented**.
   fields claim pass.
 - Safety-case inputs also discover schema-validation reports preserved in operator-review packages and Cadence-import manifests, lifting those review/import rows as evidence while keeping certification and operator authority out of the summary.
 - CandidateRefresh now accepts direct or result-artifact-wrapped `validation_safety_case_summary.v1` inputs as passive source-report provenance, preserving evidence status/count and evidence-reference routing maps without changing candidate selection. When evidence rows are present, CandidateRefresh derives source-report evidence counts, pressure counts, input-contract maps, and evidence-reference maps from those rows instead of trusting stale top-level safety-case aggregates.
+- Compact no-row CandidateRefresh safety-case replay derives evidence row counts
+  and accepted/review/blocked evidence counts from present evidence-status and
+  evidence-reference maps before falling back to duplicated scalar counters.
 
 ## Quality-gate report fixture
 
