@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Candidate-refresh schema-validation replay branch summary routing.
+Candidate-refresh operational-readiness replay source-summary flags.
 
 Status:
 Implemented, verified, reviewed, and ready for mechanical commit/push.
@@ -16,35 +16,34 @@ Files changed:
 - `test/orbital_dynamics/candidate_refresh_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:27420 test/orbital_dynamics/candidate_refresh_test.exs:27892`
-  passed, 2 tests.
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:28063 test/orbital_dynamics/candidate_refresh_test.exs:29330 test/orbital_dynamics/candidate_refresh_test.exs:29530`
+  passed, 3 tests.
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs test/orbital_dynamics/schema_test.exs`
   passed, 828 tests.
 - `git diff --check` passed.
-- `slice_reviewer` found no must-fix findings. It confirmed branch-first
-  schema-validation replay matches neighboring freshness/refresh-budget
-  patterns, preserves provenance fallback, exposes compact source-summary
-  booleans, and has adequate focused coverage.
+- `slice_reviewer` found no must-fix findings. It confirmed branch/provenance
+  precedence, shared pressure-boolean logic between replay and source-summary
+  projection, timeline-publication flag parity, and focused coverage.
 
 Docs/artifacts changed:
 - None expected; this is a compact source-summary projection of already
   advertised replay semantics.
 
 Level 6 pillar advanced:
-Branch-local candidate refresh depth and schema-validation replay semantics.
+Approval-aware automation boundaries, import readiness, and branch-local
+candidate refresh depth.
 
 Remaining maturity gaps:
-`source_report_schema_validation_branch_replay_summary` is advertised and
-`schema_validation_replay_summary/1` derives branch-local validation,
-schema-error, schema-warning, and remediation pressure. The live helper now
-inspects branch candidate-source summary metadata before falling back to
-source-report provenance, matching the advertised branch semantics. Current
-`source_report_summary/1` now exposes raw schema-validation rollups plus those
-composed replay booleans.
+`source_report_operational_readiness_branch_replay_summary` is advertised and
+`operational_readiness_replay_summary/1` already inspects branch
+candidate-source summary metadata before falling back to provenance. Current
+`source_report_summary/1` now exposes raw operational-readiness rollups plus the
+composed branch-local review, import, execution-boundary, resource, and
+timeline-publication pressure booleans.
 
 Last commit:
-`c3e3204b4b9ab4d06195245f32ab4437778d71f1` pushed to `origin/main` for
-candidate-refresh refresh-budget replay branch summary routing.
+`4ec8514e6993207b9d771ca400d2db1f11d11deb` pushed to `origin/main` for
+candidate-refresh schema-validation replay branch summary routing.
 
 Next candidate:
 After this slice, reassess from the source-report capability catalog. Remaining

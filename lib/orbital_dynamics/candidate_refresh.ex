@@ -6893,6 +6893,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
       source_report_refresh_budget_replay_summary_fields(refresh_or_artifact, source_reports)
     )
     |> Map.merge(
+      source_report_operational_readiness_replay_summary_fields(
+        refresh_or_artifact,
+        source_reports
+      )
+    )
+    |> Map.merge(
       source_report_contact_contention_replay_summary_fields(refresh_or_artifact, source_reports)
     )
     |> Map.merge(
@@ -9670,6 +9676,41 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "resource_pressure_station_calendar_provider_ids_by_type"),
       "source_report_storage_downlink_pressure_resource_pressure_station_calendar_provider_entry_ids_by_type" =>
         Map.get(summary, "resource_pressure_station_calendar_provider_entry_ids_by_type")
+    }
+  end
+
+  defp source_report_operational_readiness_replay_summary_fields(
+         refresh_or_artifact,
+         source_reports
+       ) do
+    branch_readiness_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "operational_readiness_report")
+
+    readiness_summary =
+      branch_readiness_summary || Map.get(source_reports, "operational_readiness_report", %{})
+
+    pressure_fields = operational_readiness_replay_pressure_fields(readiness_summary)
+    timeline_fields = timeline_publication_context_replay_fields(readiness_summary, true)
+
+    %{
+      "source_report_operational_readiness_branch_local_review_pressure" =>
+        Map.get(pressure_fields, "branch_local_review_pressure"),
+      "source_report_operational_readiness_branch_local_import_pressure" =>
+        Map.get(pressure_fields, "branch_local_import_pressure"),
+      "source_report_operational_readiness_branch_local_execution_boundary_pressure" =>
+        Map.get(pressure_fields, "branch_local_execution_boundary_pressure"),
+      "source_report_operational_readiness_branch_local_resource_pressure" =>
+        Map.get(pressure_fields, "branch_local_resource_pressure"),
+      "source_report_operational_readiness_branch_local_timeline_publication_pressure" =>
+        Map.get(timeline_fields, "branch_local_timeline_publication_pressure"),
+      "source_report_operational_readiness_branch_local_timeline_publication_dependency_pressure" =>
+        Map.get(timeline_fields, "branch_local_timeline_publication_dependency_pressure"),
+      "source_report_operational_readiness_branch_local_timeline_publication_changed_field_pressure" =>
+        Map.get(timeline_fields, "branch_local_timeline_publication_changed_field_pressure"),
+      "source_report_operational_readiness_branch_local_timeline_publication_invalidation_pressure" =>
+        Map.get(timeline_fields, "branch_local_timeline_publication_invalidation_pressure"),
+      "source_report_operational_readiness_branch_local_timeline_publication_review_pressure" =>
+        Map.get(timeline_fields, "branch_local_timeline_publication_review_pressure")
     }
   end
 
@@ -14978,6 +15019,92 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> compact_map()
   end
 
+  defp operational_readiness_replay_pressure_fields(readiness_summary) do
+    review_gate_count = summary_integer(readiness_summary, "review_gate_count")
+    blocked_gate_count = summary_integer(readiness_summary, "blocked_gate_count")
+    review_required_count = summary_integer(readiness_summary, "review_required_count")
+    import_review_count = summary_integer(readiness_summary, "manifest_review_required_count")
+    missing_import_count = summary_integer(readiness_summary, "missing_import_count")
+    blocked_import_count = summary_integer(readiness_summary, "blocked_import_count")
+    invalid_import_count = summary_integer(readiness_summary, "invalid_cadence_import_count")
+    import_ineligible_count = summary_integer(readiness_summary, "import_ineligible_count")
+    execution_boundary_counts = Map.get(readiness_summary, "execution_boundary_counts", %{})
+    analysis_mode_source_counts = Map.get(readiness_summary, "analysis_mode_source_counts", %{})
+    handoff_only_count = summary_integer(readiness_summary, "handoff_only_count")
+    execution_denied_count = summary_integer(readiness_summary, "execution_denied_count")
+    cadence_write_denied_count = summary_integer(readiness_summary, "cadence_write_denied_count")
+
+    operator_authority_denied_count =
+      summary_integer(readiness_summary, "operator_authority_denied_count")
+
+    resource_pressure_count =
+      summary_integer(readiness_summary, "resource_availability_pressure_count")
+
+    resource_availability_reason_counts =
+      Map.get(readiness_summary, "resource_availability_reason_counts", %{})
+
+    resource_availability_reason_ids =
+      Map.get(readiness_summary, "resource_availability_reason_ids", [])
+
+    station_availability_reason_ids =
+      Map.get(readiness_summary, "station_availability_reason_ids", [])
+
+    station_availability_reason_counts =
+      Map.get(readiness_summary, "station_availability_reason_counts", %{})
+
+    unavailable_resource_reason_ids =
+      Map.get(readiness_summary, "unavailable_resource_reason_ids", [])
+
+    resource_blocking_dimension_counts =
+      Map.get(readiness_summary, "resource_blocking_dimension_counts", %{})
+
+    review_type_counts = Map.get(readiness_summary, "review_type_counts", %{})
+    import_action_counts = Map.get(readiness_summary, "import_action_counts", %{})
+    source_review_type_counts = Map.get(readiness_summary, "source_review_type_counts", %{})
+    gate_status_counts = Map.get(readiness_summary, "gate_status_counts")
+    gate_classification_counts = Map.get(readiness_summary, "gate_classification_counts")
+    gate_ids_by_status = Map.get(readiness_summary, "gate_ids_by_status")
+    gate_ids_by_classification = Map.get(readiness_summary, "gate_ids_by_classification")
+    review_required_gate_ids = Map.get(readiness_summary, "review_required_gate_ids")
+    blocked_gate_ids = Map.get(readiness_summary, "blocked_gate_ids")
+    non_passed_gate_ids = Map.get(readiness_summary, "non_passed_gate_ids")
+    non_passed_gate_count = summary_integer(readiness_summary, "non_passed_gate_count")
+
+    resource_pressure =
+      resource_pressure_count > 0 or map_size(resource_availability_reason_counts) > 0 or
+        resource_availability_reason_ids != [] or station_availability_reason_ids != [] or
+        map_size(station_availability_reason_counts) > 0 or
+        unavailable_resource_reason_ids != [] or map_size(resource_blocking_dimension_counts) > 0
+
+    review_pressure =
+      review_gate_count > 0 or blocked_gate_count > 0 or review_required_count > 0 or
+        map_size(review_type_counts) > 0 or map_size(source_review_type_counts) > 0
+
+    import_pressure =
+      import_review_count + missing_import_count + blocked_import_count + invalid_import_count +
+        import_ineligible_count >
+        0 or map_size(import_action_counts) > 0
+
+    execution_boundary_pressure =
+      map_size(execution_boundary_counts) > 0 or map_size(analysis_mode_source_counts) > 0 or
+        handoff_only_count + execution_denied_count + cadence_write_denied_count +
+          operator_authority_denied_count >
+          0
+
+    %{
+      "branch_local_review_pressure" =>
+        review_pressure or map_size(empty_map_if_nil(gate_status_counts)) > 0 or
+          map_size(empty_map_if_nil(gate_classification_counts)) > 0 or
+          map_size(empty_map_if_nil(gate_ids_by_status)) > 0 or
+          map_size(empty_map_if_nil(gate_ids_by_classification)) > 0 or
+          List.wrap(review_required_gate_ids) != [] or List.wrap(blocked_gate_ids) != [] or
+          List.wrap(non_passed_gate_ids) != [] or non_passed_gate_count > 0,
+      "branch_local_import_pressure" => import_pressure,
+      "branch_local_execution_boundary_pressure" => execution_boundary_pressure,
+      "branch_local_resource_pressure" => resource_pressure
+    }
+  end
+
   @doc """
   Builds a compact branch-local operational-readiness replay summary.
 
@@ -15057,30 +15184,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
     resource_blocking_dimension_counts =
       Map.get(readiness_summary, "resource_blocking_dimension_counts", %{})
 
-    resource_pressure =
-      resource_pressure_count > 0 or map_size(resource_availability_reason_counts) > 0 or
-        resource_availability_reason_ids != [] or station_availability_reason_ids != [] or
-        map_size(station_availability_reason_counts) > 0 or
-        unavailable_resource_reason_ids != [] or map_size(resource_blocking_dimension_counts) > 0
-
     review_type_counts = Map.get(readiness_summary, "review_type_counts", %{})
     import_action_counts = Map.get(readiness_summary, "import_action_counts", %{})
     source_review_type_counts = Map.get(readiness_summary, "source_review_type_counts", %{})
-
-    review_pressure =
-      review_gate_count > 0 or blocked_gate_count > 0 or review_required_count > 0 or
-        map_size(review_type_counts) > 0 or map_size(source_review_type_counts) > 0
-
-    import_pressure =
-      import_review_count + missing_import_count + blocked_import_count + invalid_import_count +
-        import_ineligible_count >
-        0 or map_size(import_action_counts) > 0
-
-    execution_boundary_pressure =
-      map_size(execution_boundary_counts) > 0 or map_size(analysis_mode_source_counts) > 0 or
-        handoff_only_count + execution_denied_count + cadence_write_denied_count +
-          operator_authority_denied_count >
-          0
 
     gate_status_counts = Map.get(readiness_summary, "gate_status_counts")
     gate_classification_counts = Map.get(readiness_summary, "gate_classification_counts")
@@ -15094,6 +15200,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     timeline_publication_context =
       timeline_publication_context_replay_fields(readiness_summary, true)
+
+    pressure_fields = operational_readiness_replay_pressure_fields(readiness_summary)
 
     %{
       "model" => "artifact_only_candidate_refresh_operational_readiness_replay_summary",
@@ -15177,16 +15285,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "source_review_type_counts" => source_review_type_counts,
       "trust_boundary_status" => Map.get(readiness_summary, "trust_boundary_status"),
       "trust_boundaries" => Map.get(readiness_summary, "trust_boundaries", []),
-      "branch_local_review_pressure" =>
-        review_pressure or map_size(empty_map_if_nil(gate_status_counts)) > 0 or
-          map_size(empty_map_if_nil(gate_classification_counts)) > 0 or
-          map_size(empty_map_if_nil(gate_ids_by_status)) > 0 or
-          map_size(empty_map_if_nil(gate_ids_by_classification)) > 0 or
-          List.wrap(review_required_gate_ids) != [] or List.wrap(blocked_gate_ids) != [] or
-          List.wrap(non_passed_gate_ids) != [] or non_passed_gate_count > 0,
-      "branch_local_import_pressure" => import_pressure,
-      "branch_local_execution_boundary_pressure" => execution_boundary_pressure,
-      "branch_local_resource_pressure" => resource_pressure,
+      "branch_local_review_pressure" => Map.get(pressure_fields, "branch_local_review_pressure"),
+      "branch_local_import_pressure" => Map.get(pressure_fields, "branch_local_import_pressure"),
+      "branch_local_execution_boundary_pressure" =>
+        Map.get(pressure_fields, "branch_local_execution_boundary_pressure"),
+      "branch_local_resource_pressure" =>
+        Map.get(pressure_fields, "branch_local_resource_pressure"),
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
         "replay_scope" => replay_scope,

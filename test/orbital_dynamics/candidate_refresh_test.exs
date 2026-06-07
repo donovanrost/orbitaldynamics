@@ -28294,6 +28294,21 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_operational_readiness_timeline_ids_by_changed_field" => %{
                "start_time" => ["timeline:changed"]
              },
+             "source_report_operational_readiness_branch_local_review_pressure" => true,
+             "source_report_operational_readiness_branch_local_import_pressure" => true,
+             "source_report_operational_readiness_branch_local_execution_boundary_pressure" =>
+               false,
+             "source_report_operational_readiness_branch_local_resource_pressure" => true,
+             "source_report_operational_readiness_branch_local_timeline_publication_pressure" =>
+               true,
+             "source_report_operational_readiness_branch_local_timeline_publication_dependency_pressure" =>
+               true,
+             "source_report_operational_readiness_branch_local_timeline_publication_changed_field_pressure" =>
+               true,
+             "source_report_operational_readiness_branch_local_timeline_publication_invalidation_pressure" =>
+               true,
+             "source_report_operational_readiness_branch_local_timeline_publication_review_pressure" =>
+               true,
              "source_reports" => %{
                "operational_readiness_report" => %{
                  "gate_count" => 5,
@@ -28456,7 +28471,22 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              },
              "source_report_operational_readiness_station_availability_reason_counts" => %{
                "ground_station_reserved" => 1
-             }
+             },
+             "source_report_operational_readiness_branch_local_review_pressure" => true,
+             "source_report_operational_readiness_branch_local_import_pressure" => true,
+             "source_report_operational_readiness_branch_local_execution_boundary_pressure" =>
+               false,
+             "source_report_operational_readiness_branch_local_resource_pressure" => true,
+             "source_report_operational_readiness_branch_local_timeline_publication_pressure" =>
+               true,
+             "source_report_operational_readiness_branch_local_timeline_publication_dependency_pressure" =>
+               true,
+             "source_report_operational_readiness_branch_local_timeline_publication_changed_field_pressure" =>
+               true,
+             "source_report_operational_readiness_branch_local_timeline_publication_invalidation_pressure" =>
+               true,
+             "source_report_operational_readiness_branch_local_timeline_publication_review_pressure" =>
+               true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.operational_readiness_replay_summary(artifact) == replay_summary
@@ -29408,6 +29438,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["assumptions"]["replay_scope"] ==
              "operational_readiness_candidate_source_report_summary_only"
 
+    assert %{
+             "source_report_operational_readiness_branch_local_review_pressure" => true,
+             "source_report_operational_readiness_branch_local_import_pressure" => true,
+             "source_report_operational_readiness_branch_local_execution_boundary_pressure" =>
+               false,
+             "source_report_operational_readiness_branch_local_resource_pressure" => true,
+             "source_report_operational_readiness_branch_local_timeline_publication_pressure" =>
+               false
+           } = CandidateRefresh.source_report_summary(artifact)
+
     assert OrbitalDynamics.candidate_refresh_operational_readiness_replay_summary(artifact) ==
              summary
   end
@@ -29543,6 +29583,15 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert summary["assumptions"]["replay_scope"] ==
              "operational_readiness_candidate_source_report_summary_only"
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    refute source_summary["source_report_operational_readiness_branch_local_review_pressure"]
+    refute source_summary["source_report_operational_readiness_branch_local_import_pressure"]
+
+    assert source_summary[
+             "source_report_operational_readiness_branch_local_resource_pressure"
+           ]
   end
 
   test "source report summary aggregates quality gate routing maps" do
