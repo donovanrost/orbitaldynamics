@@ -396,6 +396,22 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     Enum.map(paths, fn {unit, path} -> %{unit: unit, path: path} end)
   end
 
+  defp capacity_value_path_assumptions(paths) do
+    Enum.map(paths, fn {unit, path} -> %{"unit" => Atom.to_string(unit), "path" => path} end)
+  end
+
+  defp capacity_pack_capability_assumptions do
+    %{
+      "capacity_pack_statuses" => @capacity_pack_statuses,
+      "reduced_capacity_pack_statuses" => @reduced_capacity_pack_statuses,
+      "required_capacity_fraction_source_values" => @required_capacity_fraction_source_values,
+      "required_capacity_value_paths" =>
+        capacity_value_path_assumptions(@required_capacity_value_paths),
+      "default_required_capacity_value_paths" =>
+        capacity_value_path_assumptions(@default_required_capacity_value_paths)
+    }
+  end
+
   @doc """
   Allocates contact candidates into deterministic planning rows.
 
@@ -1418,11 +1434,15 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
       "reduced_capacity_pack_groups" => pack_groups,
       "review_rows" => capacity_pack_rows,
       "model_limits" => model_limits(),
-      "assumptions" => %{
-        "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
-        "source" => "contact_allocation_report.v1",
-        "operator_authority" => "not_granted_by_capacity_pack_summary"
-      }
+      "assumptions" =>
+        Map.merge(
+          %{
+            "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
+            "source" => "contact_allocation_report.v1",
+            "operator_authority" => "not_granted_by_capacity_pack_summary"
+          },
+          capacity_pack_capability_assumptions()
+        )
     }
     |> compact_map()
   end

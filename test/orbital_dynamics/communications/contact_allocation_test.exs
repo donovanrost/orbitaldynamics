@@ -7335,6 +7335,21 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              ]
            } = ContactAllocation.summary(report)
 
+    expected_capability_assumptions = contact_allocation_capacity_pack_capability_assumptions()
+    expected_capacity_pack_statuses = expected_capability_assumptions["capacity_pack_statuses"]
+
+    expected_reduced_capacity_pack_statuses =
+      expected_capability_assumptions["reduced_capacity_pack_statuses"]
+
+    expected_required_capacity_fraction_source_values =
+      expected_capability_assumptions["required_capacity_fraction_source_values"]
+
+    expected_required_capacity_value_paths =
+      expected_capability_assumptions["required_capacity_value_paths"]
+
+    expected_default_required_capacity_value_paths =
+      expected_capability_assumptions["default_required_capacity_value_paths"]
+
     assert %{
              "schema_contract" => "contact_allocation_capacity_pack_summary.v1",
              "model" => "artifact_only_contact_allocation_capacity_pack_summary",
@@ -7406,7 +7421,15 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              "assumptions" => %{
                "execution_boundary" =>
                  "artifact_only_no_provider_reservation_or_schedule_mutation",
-               "operator_authority" => "not_granted_by_capacity_pack_summary"
+               "operator_authority" => "not_granted_by_capacity_pack_summary",
+               "source" => "contact_allocation_report.v1",
+               "capacity_pack_statuses" => ^expected_capacity_pack_statuses,
+               "reduced_capacity_pack_statuses" => ^expected_reduced_capacity_pack_statuses,
+               "required_capacity_fraction_source_values" =>
+                 ^expected_required_capacity_fraction_source_values,
+               "required_capacity_value_paths" => ^expected_required_capacity_value_paths,
+               "default_required_capacity_value_paths" =>
+                 ^expected_default_required_capacity_value_paths
              }
            } = capacity_pack_summary = ContactAllocation.capacity_pack_summary(report)
 
@@ -7439,6 +7462,56 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
 
     assert get_in(capacity_pack_schema, ["properties", "model_limits", "items", "enum"]) ==
              model_limits
+
+    assert get_in(capacity_pack_schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "capacity_pack_statuses",
+             "const"
+           ]) == expected_capability_assumptions["capacity_pack_statuses"]
+
+    assert get_in(capacity_pack_schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "required_capacity_value_paths",
+             "const"
+           ]) == expected_capability_assumptions["required_capacity_value_paths"]
+
+    for {field, stale_value, message} <- [
+          {"capacity_pack_statuses", ["stale_capacity_pack_status"],
+           "must match ContactAllocation capacity pack statuses"},
+          {"reduced_capacity_pack_statuses", ["stale_reduced_capacity_pack_status"],
+           "must match ContactAllocation reduced capacity pack statuses"},
+          {"required_capacity_fraction_source_values", ["stale_required_capacity_source"],
+           "must match ContactAllocation required capacity source values"},
+          {"required_capacity_value_paths",
+           [%{"unit" => "fraction", "path" => ["stale_required_capacity_fraction"]}],
+           "must match ContactAllocation required capacity value paths"},
+          {"default_required_capacity_value_paths",
+           [%{"unit" => "fraction", "path" => ["stale_default_required_capacity_fraction"]}],
+           "must match ContactAllocation default required capacity value paths"}
+        ] do
+      stale_capacity_pack_assumption =
+        put_in(capacity_pack_summary, ["assumptions", field], stale_value)
+
+      assert {:error, stale_capacity_pack_assumption_errors} =
+               Schema.validate_artifact(stale_capacity_pack_assumption)
+
+      assert Enum.any?(
+               stale_capacity_pack_assumption_errors["errors"],
+               &(&1["path"] == "$.assumptions.#{field}" and &1["message"] == message)
+             )
+    end
+
+    capacity_pack_summary_without_optional_capability_assumptions =
+      drop_contact_allocation_capacity_pack_capability_assumptions(capacity_pack_summary)
+
+    assert {:ok, %{"schema_contract" => "contact_allocation_capacity_pack_summary.v1"}} =
+             Schema.validate_artifact(
+               capacity_pack_summary_without_optional_capability_assumptions
+             )
 
     stale_capacity_pack_model =
       Map.put(capacity_pack_summary, "model", "stale_contact_allocation_capacity_pack_summary")
@@ -7961,5 +8034,38 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
 
     assert module_summary.(atom_keyed_summary) == summary
     assert facade_summary.(atom_keyed_summary) == summary
+  end
+
+  defp contact_allocation_capacity_pack_capability_assumptions do
+    capabilities = ContactAllocation.capabilities()
+
+    %{
+      "capacity_pack_statuses" => capabilities.capacity_pack_statuses,
+      "reduced_capacity_pack_statuses" => capabilities.reduced_capacity_pack_statuses,
+      "required_capacity_fraction_source_values" =>
+        capabilities.required_capacity_fraction_source_values,
+      "required_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.required_capacity_value_paths),
+      "default_required_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.default_required_capacity_value_paths)
+    }
+  end
+
+  defp json_capacity_value_paths(paths) do
+    Enum.map(paths, fn %{unit: unit, path: path} ->
+      %{"unit" => Atom.to_string(unit), "path" => path}
+    end)
+  end
+
+  defp drop_contact_allocation_capacity_pack_capability_assumptions(artifact) do
+    update_in(artifact, ["assumptions"], fn assumptions ->
+      Map.drop(assumptions, [
+        "capacity_pack_statuses",
+        "reduced_capacity_pack_statuses",
+        "required_capacity_fraction_source_values",
+        "required_capacity_value_paths",
+        "default_required_capacity_value_paths"
+      ])
+    end)
   end
 end

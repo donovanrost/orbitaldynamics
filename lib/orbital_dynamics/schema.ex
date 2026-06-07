@@ -14829,6 +14829,10 @@ defmodule OrbitalDynamics.Schema do
     }
   end
 
+  defp json_schema_property("assumptions", @contact_allocation_capacity_pack_summary, _contract) do
+    contact_allocation_capacity_pack_summary_assumptions_json_schema()
+  end
+
   defp json_schema_property(
          "source_artifact_type",
          @contact_allocation_capacity_pack_summary,
@@ -19931,6 +19935,104 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Communications.ContactAllocation.capabilities()
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
+  end
+
+  defp contact_allocation_capacity_pack_statuses do
+    OrbitalDynamics.Communications.ContactAllocation.capabilities()
+    |> Map.fetch!(:capacity_pack_statuses)
+  end
+
+  defp contact_allocation_reduced_capacity_pack_statuses do
+    OrbitalDynamics.Communications.ContactAllocation.capabilities()
+    |> Map.fetch!(:reduced_capacity_pack_statuses)
+  end
+
+  defp contact_allocation_required_capacity_fraction_source_values do
+    OrbitalDynamics.Communications.ContactAllocation.capabilities()
+    |> Map.fetch!(:required_capacity_fraction_source_values)
+  end
+
+  defp contact_allocation_required_capacity_value_path_assumptions do
+    OrbitalDynamics.Communications.ContactAllocation.capabilities()
+    |> Map.fetch!(:required_capacity_value_paths)
+    |> contact_allocation_capacity_value_path_assumptions()
+  end
+
+  defp contact_allocation_default_required_capacity_value_path_assumptions do
+    OrbitalDynamics.Communications.ContactAllocation.capabilities()
+    |> Map.fetch!(:default_required_capacity_value_paths)
+    |> contact_allocation_capacity_value_path_assumptions()
+  end
+
+  defp contact_allocation_capacity_value_path_assumptions(paths) do
+    Enum.map(paths, fn %{unit: unit, path: path} ->
+      %{"unit" => Atom.to_string(unit), "path" => path}
+    end)
+  end
+
+  defp contact_allocation_capacity_value_path_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => false,
+      "required" => ["unit", "path"],
+      "properties" => %{
+        "unit" => %{"type" => "string", "enum" => ["fraction", "percent"]},
+        "path" => string_array_schema()
+      }
+    }
+  end
+
+  defp contact_allocation_capacity_pack_summary_assumptions_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => ["execution_boundary", "source", "operator_authority"],
+      "properties" => %{
+        "execution_boundary" => %{
+          "type" => "string",
+          "const" => "artifact_only_no_provider_reservation_or_schedule_mutation"
+        },
+        "source" => %{"type" => "string", "const" => "contact_allocation_report.v1"},
+        "operator_authority" => %{
+          "type" => "string",
+          "const" => "not_granted_by_capacity_pack_summary"
+        },
+        "capacity_pack_statuses" => %{
+          "type" => "array",
+          "const" => contact_allocation_capacity_pack_statuses(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_allocation_capacity_pack_statuses()
+          }
+        },
+        "reduced_capacity_pack_statuses" => %{
+          "type" => "array",
+          "const" => contact_allocation_reduced_capacity_pack_statuses(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_allocation_reduced_capacity_pack_statuses()
+          }
+        },
+        "required_capacity_fraction_source_values" => %{
+          "type" => "array",
+          "const" => contact_allocation_required_capacity_fraction_source_values(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_allocation_required_capacity_fraction_source_values()
+          }
+        },
+        "required_capacity_value_paths" => %{
+          "type" => "array",
+          "const" => contact_allocation_required_capacity_value_path_assumptions(),
+          "items" => contact_allocation_capacity_value_path_json_schema()
+        },
+        "default_required_capacity_value_paths" => %{
+          "type" => "array",
+          "const" => contact_allocation_default_required_capacity_value_path_assumptions(),
+          "items" => contact_allocation_capacity_value_path_json_schema()
+        }
+      }
+    }
   end
 
   defp link_capacity_model_limits do
@@ -50760,6 +50862,41 @@ defmodule OrbitalDynamics.Schema do
           assumptions,
           "operator_authority",
           "not_granted_by_capacity_pack_summary"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "capacity_pack_statuses",
+          contact_allocation_capacity_pack_statuses(),
+          "must match ContactAllocation capacity pack statuses"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "reduced_capacity_pack_statuses",
+          contact_allocation_reduced_capacity_pack_statuses(),
+          "must match ContactAllocation reduced capacity pack statuses"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "required_capacity_fraction_source_values",
+          contact_allocation_required_capacity_fraction_source_values(),
+          "must match ContactAllocation required capacity source values"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "required_capacity_value_paths",
+          contact_allocation_required_capacity_value_path_assumptions(),
+          "must match ContactAllocation required capacity value paths"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "default_required_capacity_value_paths",
+          contact_allocation_default_required_capacity_value_path_assumptions(),
+          "must match ContactAllocation default required capacity value paths"
         )
 
       _assumptions ->

@@ -187,7 +187,11 @@ effective-status, allocation-reason, capacity-pack, reservation-match count
 maps, and scalar allocation/contact counters are derived from normalized rows
 or pack groups so stale top-level report summaries do not leak into the routing
 aid. `ContactAllocation.capabilities/0` advertises the capacity-pack row
-statuses and reduced-capacity pack-group statuses used by those summaries.
+statuses, reduced-capacity pack-group statuses, required-capacity source values,
+and required/default required-capacity value paths used by those summaries; the
+capacity-pack summary carries those values in optional assumptions so adapter
+handoffs can validate stale present metadata without rejecting older summaries
+that omit it.
 It also advertises the reservation match, reservation-conflict, and
 reservation-expiration status vocabularies used by reservation-conflict
 summaries, keeping that routing artifact-only rather than provider authority.

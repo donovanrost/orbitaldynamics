@@ -20544,6 +20544,20 @@ defmodule OrbitalDynamics.SchemaTest do
     report = contact_allocation_capacity_pack_summary_fixture_report()
 
     generated_summary = OrbitalDynamics.contact_allocation_capacity_pack_summary(report)
+    expected_capability_assumptions = contact_allocation_capacity_pack_capability_assumptions()
+    expected_capacity_pack_statuses = expected_capability_assumptions["capacity_pack_statuses"]
+
+    expected_reduced_capacity_pack_statuses =
+      expected_capability_assumptions["reduced_capacity_pack_statuses"]
+
+    expected_required_capacity_fraction_source_values =
+      expected_capability_assumptions["required_capacity_fraction_source_values"]
+
+    expected_required_capacity_value_paths =
+      expected_capability_assumptions["required_capacity_value_paths"]
+
+    expected_default_required_capacity_value_paths =
+      expected_capability_assumptions["default_required_capacity_value_paths"]
 
     assert generated_summary == summary
 
@@ -20618,7 +20632,14 @@ defmodule OrbitalDynamics.SchemaTest do
                "execution_boundary" =>
                  "artifact_only_no_provider_reservation_or_schedule_mutation",
                "operator_authority" => "not_granted_by_capacity_pack_summary",
-               "source" => "contact_allocation_report.v1"
+               "source" => "contact_allocation_report.v1",
+               "capacity_pack_statuses" => ^expected_capacity_pack_statuses,
+               "reduced_capacity_pack_statuses" => ^expected_reduced_capacity_pack_statuses,
+               "required_capacity_fraction_source_values" =>
+                 ^expected_required_capacity_fraction_source_values,
+               "required_capacity_value_paths" => ^expected_required_capacity_value_paths,
+               "default_required_capacity_value_paths" =>
+                 ^expected_default_required_capacity_value_paths
              }
            } = summary
 
@@ -20634,6 +20655,24 @@ defmodule OrbitalDynamics.SchemaTest do
     assert summary["model_limits"] ==
              ContactAllocation.capabilities().known_limits
              |> Enum.map(&Atom.to_string/1)
+
+    assert {:ok, schema} = Schema.json_schema("contact_allocation_capacity_pack_summary.v1")
+
+    assert get_in(schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "capacity_pack_statuses",
+             "const"
+           ]) == expected_capability_assumptions["capacity_pack_statuses"]
+
+    assert get_in(schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "default_required_capacity_value_paths",
+             "const"
+           ]) == expected_capability_assumptions["default_required_capacity_value_paths"]
   end
 
   test "validates checked-in contact allocation reservation conflict summary fixture" do
@@ -32078,6 +32117,27 @@ defmodule OrbitalDynamics.SchemaTest do
       |> Enum.sort()
 
     assert missing_fields == []
+  end
+
+  defp contact_allocation_capacity_pack_capability_assumptions do
+    capabilities = ContactAllocation.capabilities()
+
+    %{
+      "capacity_pack_statuses" => capabilities.capacity_pack_statuses,
+      "reduced_capacity_pack_statuses" => capabilities.reduced_capacity_pack_statuses,
+      "required_capacity_fraction_source_values" =>
+        capabilities.required_capacity_fraction_source_values,
+      "required_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.required_capacity_value_paths),
+      "default_required_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.default_required_capacity_value_paths)
+    }
+  end
+
+  defp json_capacity_value_paths(paths) do
+    Enum.map(paths, fn %{unit: unit, path: path} ->
+      %{"unit" => Atom.to_string(unit), "path" => path}
+    end)
   end
 
   defp opaque_identity_property_paths(schema) do
