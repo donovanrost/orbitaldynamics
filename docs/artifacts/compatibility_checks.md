@@ -523,14 +523,16 @@ station collections are empty while keeping the source paths under
 `mission_state.source_operational_readiness_report` and
 `mission_state.source_quality_gate_report`. The artifact is also registered in
 the validation-reference fixture set, where the observations check the refresh
-product counts and nonzero source-report family/row totals. Candidate-refresh
-schema validation applies the same resource-context shape checks to those
-source-report summaries that readiness and quality-gate rows use: pressure
-counts, resource/station reason-count maps, and analysis-mode count maps must be
-non-negative integers; reason ID and trust-boundary lists must contain strings; and
-trust-boundary status must be a string when present. When both pressure counts
-and reason-count maps are present, executable validation requires the scalar
-pressure count to equal the reason-count map sum. The checked-in
+product counts, nonzero source-report family/row totals, and derived
+quality-gate/readiness gate counts, status maps, import-classification maps,
+readiness-level maps, and trust-boundary status. Candidate-refresh schema
+validation applies the same resource-context shape checks to those source-report
+summaries that readiness and quality-gate rows use: pressure counts,
+resource/station reason-count maps, and analysis-mode count maps must be
+non-negative integers; reason ID and trust-boundary lists must contain strings;
+and trust-boundary status must be a string when present. When both pressure
+counts and reason-count maps are present, executable validation requires the
+scalar pressure count to equal the reason-count map sum. The checked-in
 `candidate_refresh.v1` JSON Schema and schema bundle export the same nested
 `provenance.source_reports` resource, analysis-mode, and trust-boundary context
 properties for downstream compatibility tooling.

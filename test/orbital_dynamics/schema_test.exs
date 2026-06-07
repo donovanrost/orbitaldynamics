@@ -16068,7 +16068,41 @@ defmodule OrbitalDynamics.SchemaTest do
                "eclipse_interval_count" => 0,
                "warning_count" => 3,
                "source_report_family_count" => 2,
-               "source_report_row_count" => 7
+               "source_report_row_count" => 7,
+               "source_quality_gate_report_count" => 1,
+               "source_quality_gate_row_count" => 6,
+               "source_quality_gate_gate_count" => 6,
+               "source_quality_gate_passed_gate_count" => 3,
+               "source_quality_gate_review_gate_count" => 3,
+               "source_quality_gate_analysis_gate_count" => 0,
+               "source_quality_gate_blocked_gate_count" => 0,
+               "source_quality_gate_readiness_level_counts" => %{"operator_review" => 1},
+               "source_quality_gate_import_classification_counts" => %{"review_only" => 1},
+               "source_quality_gate_status_counts" => %{"review_required" => 1},
+               "source_quality_gate_gate_status_counts" => %{
+                 "passed" => 3,
+                 "review_required" => 3
+               },
+               "source_quality_gate_gate_classification_counts" => %{
+                 "importable" => 3,
+                 "review_only" => 3
+               },
+               "source_quality_gate_trust_boundary_status" => "missing",
+               "source_operational_readiness_report_count" => 1,
+               "source_operational_readiness_row_count" => 1,
+               "source_operational_readiness_gate_count" => 6,
+               "source_operational_readiness_passed_gate_count" => 3,
+               "source_operational_readiness_review_gate_count" => 3,
+               "source_operational_readiness_analysis_gate_count" => 0,
+               "source_operational_readiness_blocked_gate_count" => 0,
+               "source_operational_readiness_readiness_level_counts" => %{
+                 "operator_review" => 1
+               },
+               "source_operational_readiness_import_classification_counts" => %{
+                 "review_only" => 1
+               },
+               "source_operational_readiness_status_counts" => %{"review_required" => 1},
+               "source_operational_readiness_trust_boundary_status" => "missing"
              }
 
     invalid_reason_id =
