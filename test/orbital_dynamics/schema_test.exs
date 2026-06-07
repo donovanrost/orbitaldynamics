@@ -10746,6 +10746,178 @@ defmodule OrbitalDynamics.SchemaTest do
            )
   end
 
+  test "validates checked-in timeline integrity report fixture" do
+    report = read_json!("study_results/timeline_integrity_report_v1.json")
+
+    activities = [
+      %{
+        id: :health_gate,
+        type: :health_check,
+        starts_at_s: 0.0,
+        ends_at_s: 15.0,
+        ground_station_id: :dss_14,
+        direction: :command
+      },
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 10.0,
+        ends_at_s: 20.0,
+        ground_station_id: :dss_14,
+        direction: :command,
+        dependencies: [:health_gate, :missing_gate],
+        exclusive_with: [:dl_conflict]
+      },
+      %{
+        id: :dl_conflict,
+        type: :downlink,
+        starts_at_s: 12.0,
+        ends_at_s: 22.0,
+        ground_station_id: :dss_14,
+        direction: :downlink
+      }
+    ]
+
+    generated_report = OrbitalDynamics.timeline_integrity_report(activities, [])
+
+    assert generated_report == report
+
+    assert {:ok, %{"schema_contract" => "timeline_integrity_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert %{
+             "schema_contract" => "timeline_integrity_report.v1",
+             "model" => "artifact_only_timeline_integrity_summary",
+             "validation_level" => "artifact_contract",
+             "source" => "timeline.activities",
+             "activity_count" => 3,
+             "valid_activity_count" => 3,
+             "invalid_activity_input_count" => 0,
+             "timeline_integrity_status" => "review_required",
+             "timeline_integrity_review_count" => 1,
+             "timeline_integrity_issue_count" => 3,
+             "timeline_integrity_issue_types" => [
+               "dependency_order_violation",
+               "exclusivity_overlap",
+               "missing_dependency_activity"
+             ],
+             "timeline_integrity_issue_type_counts" => %{
+               "dependency_order_violation" => 1,
+               "exclusivity_overlap" => 1,
+               "missing_dependency_activity" => 1
+             },
+             "required_operator_action_counts" => %{"review_timeline_integrity" => 1},
+             "operator_action_reason_counts" => %{"timeline_integrity_issue" => 1},
+             "dependency_issue_count" => 2,
+             "exclusivity_issue_count" => 1,
+             "review_activity_ids" => ["cmd_main"],
+             "review_timeline_ids" => ["timeline:command:dss_14:10.0"],
+             "review_activity_ids_by_issue_type" => %{
+               "dependency_order_violation" => ["cmd_main"],
+               "exclusivity_overlap" => ["cmd_main"],
+               "missing_dependency_activity" => ["cmd_main"]
+             },
+             "review_timeline_ids_by_issue_type" => %{
+               "dependency_order_violation" => ["timeline:command:dss_14:10.0"],
+               "exclusivity_overlap" => ["timeline:command:dss_14:10.0"],
+               "missing_dependency_activity" => ["timeline:command:dss_14:10.0"]
+             },
+             "review_activity_ids_by_required_operator_action" => %{
+               "review_timeline_integrity" => ["cmd_main"]
+             },
+             "review_timeline_ids_by_required_operator_action" => %{
+               "review_timeline_integrity" => ["timeline:command:dss_14:10.0"]
+             },
+             "review_activity_ids_by_operator_action_reason" => %{
+               "timeline_integrity_issue" => ["cmd_main"]
+             },
+             "review_timeline_ids_by_operator_action_reason" => %{
+               "timeline_integrity_issue" => ["timeline:command:dss_14:10.0"]
+             },
+             "dependency_review_activity_ids" => ["cmd_main"],
+             "dependency_review_timeline_ids" => ["timeline:command:dss_14:10.0"],
+             "exclusivity_review_activity_ids" => ["cmd_main"],
+             "exclusivity_review_timeline_ids" => ["timeline:command:dss_14:10.0"],
+             "invalid_activity_input_ids" => [],
+             "missing_dependency_activity_ids" => ["missing_gate"],
+             "missing_dependency_timeline_ids" => [],
+             "dependency_cycle_activity_ids" => [],
+             "dependency_cycle_timeline_ids" => [],
+             "dependency_order_violation_activity_ids" => ["health_gate"],
+             "dependency_order_violation_timeline_ids" => [],
+             "exclusivity_violation_activity_ids" => ["dl_conflict"],
+             "exclusivity_violation_timeline_ids" => ["timeline:downlink:dss_14:12.0"],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_schedule_mutation",
+               "scope" => "dependency_and_exclusivity_integrity_validation",
+               "missing_dependency_validation" => "enabled",
+               "source" => "timeline.activities"
+             },
+             "model_limits" => [
+               "artifact_level_only",
+               "no_schedule_mutation",
+               "no_command_execution",
+               "derived_identity_when_no_persistent_timeline_id"
+             ]
+           } = report
+
+    assert [
+             %{
+               "id" => "timeline_row:2:cmd_main",
+               "activity_id" => "cmd_main",
+               "timeline_id" => "timeline:command:dss_14:10.0",
+               "activity_type" => "command",
+               "status" => "planned",
+               "approval_status" => "not_evaluated",
+               "required_operator_action" => "review_timeline_integrity",
+               "operator_action_reason" => "timeline_integrity_issue",
+               "timeline_integrity_status" => "review_required",
+               "timeline_integrity_issue_count" => 3,
+               "timeline_integrity_issue_types" => [
+                 "dependency_order_violation",
+                 "exclusivity_overlap",
+                 "missing_dependency_activity"
+               ],
+               "missing_dependency_activity_ids" => ["missing_gate"],
+               "dependency_order_violation_activity_ids" => ["health_gate"],
+               "exclusivity_violation_activity_ids" => ["dl_conflict"],
+               "exclusivity_violation_timeline_ids" => ["timeline:downlink:dss_14:12.0"],
+               "dependency_activity_ids" => ["health_gate", "missing_gate"],
+               "exclusive_with_activity_ids" => ["dl_conflict"],
+               "timeline_identity" => %{
+                 "activity_id" => "cmd_main",
+                 "activity_type" => "command",
+                 "subject_id" => "dss_14",
+                 "timeline_id" => "timeline:command:dss_14:10.0"
+               },
+               "activity_context" => %{
+                 "command_window_id" => "command_window:cmd_main",
+                 "command_window_type" => "command_window",
+                 "dependencies" => ["health_gate", "missing_gate"],
+                 "dependency_activity_ids" => ["health_gate", "missing_gate"],
+                 "direction" => "command",
+                 "duration_s" => 10.0,
+                 "ends_at_s" => 20.0,
+                 "exclusive_with_activity_ids" => ["dl_conflict"],
+                 "ground_station_id" => "dss_14",
+                 "starts_at_s" => 10.0,
+                 "timeline_identity" => %{
+                   "activity_id" => "cmd_main",
+                   "activity_type" => "command",
+                   "subject_id" => "dss_14",
+                   "timeline_id" => "timeline:command:dss_14:10.0"
+                 }
+               }
+             }
+           ] = report["rows"]
+
+    assert [
+             %{"type" => "dependency_order_violation"},
+             %{"type" => "missing_dependency_activity"},
+             %{"type" => "exclusivity_overlap"}
+           ] = hd(report["rows"])["timeline_integrity_issues"]
+  end
+
   test "exports and validates timeline diff summary fields" do
     assert {:ok, schema} = Schema.json_schema("timeline_diff_summary.v1")
 
