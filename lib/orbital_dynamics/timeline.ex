@@ -966,6 +966,7 @@ defmodule OrbitalDynamics.Timeline do
         :transition_selected_activities
       ],
       public_facades: [
+        :operational_timeline_report,
         :normalize_timeline_activity,
         :normalize_timeline_activities,
         :timeline_diff_report,

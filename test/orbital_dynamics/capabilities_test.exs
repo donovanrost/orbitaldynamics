@@ -56,6 +56,7 @@ defmodule OrbitalDynamics.CapabilitiesTest do
     assert catalog.planning.candidate_refresh == OrbitalDynamics.CandidateRefresh.capabilities()
     assert catalog.planning.search.grid == OrbitalDynamics.Search.Grid.capabilities()
     assert catalog.planning.search.monte_carlo == OrbitalDynamics.Search.MonteCarlo.capabilities()
+    assert :operational_timeline_report in catalog.operations.timeline.public_facades
     assert :timeline_diff_report in catalog.operations.timeline.public_facades
     assert :timeline_link in catalog.operations.timeline.public_facades
     assert catalog.operations.contact_allocation == ContactAllocation.capabilities()

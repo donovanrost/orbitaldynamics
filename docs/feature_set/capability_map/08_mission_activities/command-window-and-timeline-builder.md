@@ -79,6 +79,7 @@ Direct operator-review and Cadence-import builders flatten list- or map-valued p
 ## Operational timeline report builder
 
 `OrbitalDynamics.Timeline` provides a reusable artifact-only `operational_timeline_report.v1` builder, public facade, and `normalize_activity/2` and `normalize_activities/2` typed activity normalizers for planned activities.
+`Timeline.capabilities/0` advertises the top-level `operational_timeline_report` facade alongside those normalization helpers, so adapters can discover the root report-builder entry point without depending on module-specific helper names.
 
 It includes:
 
