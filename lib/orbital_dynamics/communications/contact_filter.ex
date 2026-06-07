@@ -146,6 +146,24 @@ defmodule OrbitalDynamics.Communications.ContactFilter do
     Enum.map(paths, fn {unit, path} -> %{unit: unit, path: path} end)
   end
 
+  defp capacity_value_path_assumptions(paths) do
+    Enum.map(paths, fn {unit, path} ->
+      %{"unit" => Atom.to_string(unit), "path" => path}
+    end)
+  end
+
+  defp capability_assumptions do
+    %{
+      "suppressed_directions" => @suppressed_directions,
+      "suppression_reasons" => capabilities().suppression_reasons,
+      "station_unavailable_aliases" => @unavailable_aliases,
+      "station_availability_precedence" => @station_availability_severity,
+      "station_capacity_value_paths" => capacity_value_path_assumptions(@capacity_value_paths),
+      "contact_capacity_value_paths" => capacity_value_path_assumptions(@capacity_value_paths),
+      "provider_direction_aliases" => @provider_direction_aliases
+    }
+  end
+
   @doc """
   Filters contact candidates using externally supplied ground-network entries,
   a `station_calendar_provider.v1` object, or a list of provider artifacts.
@@ -208,6 +226,15 @@ defmodule OrbitalDynamics.Communications.ContactFilter do
         "schema_contract" => @schema_contract,
         "model" => "thin_ground_network_availability_filter",
         "model_limits" => model_limits(),
+        "assumptions" =>
+          Map.merge(
+            %{
+              "execution_boundary" =>
+                "artifact_only_no_provider_reservation_or_schedule_mutation",
+              "operator_authority" => "not_granted_by_filter"
+            },
+            capability_assumptions()
+          ),
         "input_candidate_count" => length(candidates),
         "kept_candidate_count" => length(kept),
         "suppressed_candidate_count" => length(suppressed),

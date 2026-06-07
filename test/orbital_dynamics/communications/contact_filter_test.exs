@@ -590,6 +590,10 @@ defmodule OrbitalDynamics.Communications.ContactFilterTest do
     assert "no_schedule_mutation" in model_limits
     assert "no_link_budget_model" in model_limits
 
+    expected_assumptions = contact_filter_report_capability_assumptions()
+
+    assert Map.take(report["assumptions"], Map.keys(expected_assumptions)) == expected_assumptions
+
     expected_model_limits =
       ContactFilter.capabilities()
       |> Map.fetch!(:known_limits)
@@ -599,6 +603,38 @@ defmodule OrbitalDynamics.Communications.ContactFilterTest do
 
     assert {:ok, %{"schema_contract" => "contact_filter_report.v1"}} =
              Schema.validate_artifact(report)
+
+    stale_assumptions = [
+      {"suppressed_directions", ["downlink"], "must match ContactFilter suppressed directions"},
+      {"suppression_reasons", ["ground_station_unavailable"],
+       "must match ContactFilter suppression reasons"},
+      {"station_unavailable_aliases", ["offline"],
+       "must match ContactFilter station unavailable aliases"},
+      {"station_availability_precedence", %{"available" => 99},
+       "must match ContactFilter station availability precedence"},
+      {"station_capacity_value_paths", [],
+       "must match ContactFilter station capacity value paths"},
+      {"contact_capacity_value_paths", [],
+       "must match ContactFilter contact capacity value paths"},
+      {"provider_direction_aliases", %{"dl" => "command"},
+       "must match ContactFilter provider direction aliases"}
+    ]
+
+    for {field, value, message} <- stale_assumptions do
+      stale_report = put_in(report, ["assumptions", field], value)
+
+      assert {:error, stale_validation_report} = Schema.validate_artifact(stale_report)
+
+      assert Enum.any?(
+               stale_validation_report["errors"],
+               &(&1["path"] == "$.assumptions.#{field}" and &1["message"] == message)
+             )
+    end
+
+    compatible_report = drop_contact_filter_report_capability_assumptions(report)
+
+    assert {:ok, %{"schema_contract" => "contact_filter_report.v1"}} =
+             Schema.validate_artifact(compatible_report)
   end
 
   test "suppresses only matching direction contacts for direction-scoped station windows" do
@@ -2701,6 +2737,36 @@ defmodule OrbitalDynamics.Communications.ContactFilterTest do
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
              Schema.validate_artifact(manifest)
+  end
+
+  defp contact_filter_report_capability_assumptions do
+    capabilities = ContactFilter.capabilities()
+
+    %{
+      "suppressed_directions" => capabilities.suppressed_directions,
+      "suppression_reasons" => capabilities.suppression_reasons,
+      "station_unavailable_aliases" => capabilities.station_unavailable_aliases,
+      "station_availability_precedence" => capabilities.station_availability_precedence,
+      "station_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.station_capacity_value_paths),
+      "contact_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.contact_capacity_value_paths),
+      "provider_direction_aliases" => capabilities.provider_direction_aliases
+    }
+  end
+
+  defp json_capacity_value_paths(paths) do
+    Enum.map(paths, fn %{unit: unit, path: path} ->
+      %{"unit" => Atom.to_string(unit), "path" => path}
+    end)
+  end
+
+  defp drop_contact_filter_report_capability_assumptions(report) do
+    update_in(
+      report,
+      ["assumptions"],
+      &Map.drop(&1, Map.keys(contact_filter_report_capability_assumptions()))
+    )
   end
 
   defp contact(id, attrs) do

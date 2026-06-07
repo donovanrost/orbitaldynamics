@@ -340,7 +340,7 @@ Contact filtering plus station-calendar provider and raw ground-network normaliz
 - Direct contact candidates with station-calendar outage evidence are suppressed even when no separate ground-network interval is supplied.
 - Nested source-calendar outage evidence outranks lower-severity flattened status fields.
 
-`ContactFilter.capabilities/0` advertises those unavailable aliases and the station-availability precedence map used for suppression routing.
+`ContactFilter.capabilities/0` advertises those unavailable aliases and the station-availability precedence map used for suppression routing. `contact_filter_report.v1` now carries optional capability-derived assumptions for unavailable aliases, availability precedence, station/contact capacity value paths, suppressed directions/reasons, and provider direction aliases; present stale values are rejected while older reports can omit them.
 
 - Direct/provider station-calendar counteroffer evidence produces **review-only** contact-filter suppression rows **without accepting the offer, reserving provider time, or mutating the schedule**.
 

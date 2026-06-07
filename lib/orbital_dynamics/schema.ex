@@ -5789,6 +5789,7 @@ defmodule OrbitalDynamics.Schema do
       "optional_fields" => [
         "policy",
         "model_limits",
+        "assumptions",
         "invalid_contact_input_count",
         "invalid_contact_input_ids",
         "suppression_reason_counts",
@@ -15142,6 +15143,10 @@ defmodule OrbitalDynamics.Schema do
     }
   end
 
+  defp json_schema_property("assumptions", @contact_filter_report, _contract) do
+    contact_filter_report_assumptions_json_schema()
+  end
+
   defp json_schema_property(field, @resource_filter_report, _contract)
        when field in ["invalid_candidate_input_ids", "invalid_resource_summary_input_ids"] do
     stable_id_array_schema()
@@ -19957,6 +19962,114 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Communications.ContactFilter.capabilities()
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
+  end
+
+  defp contact_filter_suppressed_directions do
+    OrbitalDynamics.Communications.ContactFilter.capabilities()
+    |> Map.fetch!(:suppressed_directions)
+  end
+
+  defp contact_filter_suppression_reasons do
+    OrbitalDynamics.Communications.ContactFilter.capabilities()
+    |> Map.fetch!(:suppression_reasons)
+  end
+
+  defp contact_filter_station_unavailable_aliases do
+    OrbitalDynamics.Communications.ContactFilter.capabilities()
+    |> Map.fetch!(:station_unavailable_aliases)
+  end
+
+  defp contact_filter_station_availability_precedence do
+    OrbitalDynamics.Communications.ContactFilter.capabilities()
+    |> Map.fetch!(:station_availability_precedence)
+  end
+
+  defp contact_filter_station_capacity_value_path_assumptions do
+    OrbitalDynamics.Communications.ContactFilter.capabilities()
+    |> Map.fetch!(:station_capacity_value_paths)
+    |> contact_filter_capacity_value_path_assumptions()
+  end
+
+  defp contact_filter_contact_capacity_value_path_assumptions do
+    OrbitalDynamics.Communications.ContactFilter.capabilities()
+    |> Map.fetch!(:contact_capacity_value_paths)
+    |> contact_filter_capacity_value_path_assumptions()
+  end
+
+  defp contact_filter_capacity_value_path_assumptions(paths) do
+    Enum.map(paths, fn %{unit: unit, path: path} ->
+      %{"unit" => Atom.to_string(unit), "path" => path}
+    end)
+  end
+
+  defp contact_filter_provider_direction_aliases do
+    OrbitalDynamics.Communications.ContactFilter.capabilities()
+    |> Map.fetch!(:provider_direction_aliases)
+  end
+
+  defp contact_filter_report_assumptions_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => ["execution_boundary", "operator_authority"],
+      "properties" => %{
+        "execution_boundary" => %{
+          "type" => "string",
+          "const" => "artifact_only_no_provider_reservation_or_schedule_mutation"
+        },
+        "operator_authority" => %{"type" => "string", "const" => "not_granted_by_filter"},
+        "suppressed_directions" => %{
+          "type" => "array",
+          "const" => contact_filter_suppressed_directions(),
+          "items" => %{"type" => "string", "enum" => contact_filter_suppressed_directions()}
+        },
+        "suppression_reasons" => %{
+          "type" => "array",
+          "const" => contact_filter_suppression_reasons(),
+          "items" => %{"type" => "string", "enum" => contact_filter_suppression_reasons()}
+        },
+        "station_unavailable_aliases" => %{
+          "type" => "array",
+          "const" => contact_filter_station_unavailable_aliases(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_filter_station_unavailable_aliases()
+          }
+        },
+        "station_availability_precedence" => %{
+          "type" => "object",
+          "const" => contact_filter_station_availability_precedence(),
+          "additionalProperties" => %{"type" => "integer", "minimum" => 0}
+        },
+        "station_capacity_value_paths" => %{
+          "type" => "array",
+          "const" => contact_filter_station_capacity_value_path_assumptions(),
+          "items" => contact_filter_capacity_value_path_json_schema()
+        },
+        "contact_capacity_value_paths" => %{
+          "type" => "array",
+          "const" => contact_filter_contact_capacity_value_path_assumptions(),
+          "items" => contact_filter_capacity_value_path_json_schema()
+        },
+        "provider_direction_aliases" => %{
+          "type" => "object",
+          "const" => contact_filter_provider_direction_aliases(),
+          "additionalProperties" => %{"type" => "string"}
+        }
+      }
+    }
+  end
+
+  defp contact_filter_capacity_value_path_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => false,
+      "required" => ["unit", "path"],
+      "properties" => %{
+        "unit" => %{"type" => "string", "enum" => ["fraction", "percent"]},
+        "path" => string_array_schema()
+      }
+    }
   end
 
   defp contact_allocation_model_limits do
@@ -33731,6 +33844,7 @@ defmodule OrbitalDynamics.Schema do
     |> expect_non_negative_integer(path, report, "suppressed_candidate_count")
     |> expect_optional_type(path, report, "policy", :map)
     |> expect_optional_type(path, report, "model_limits", :list)
+    |> expect_optional_type(path, report, "assumptions", :map)
     |> expect_optional_non_negative_integer(path, report, "invalid_contact_input_count")
     |> expect_optional_type(path, report, "invalid_contact_input_ids", :list)
     |> expect_optional_type(path, report, "suppression_reason_counts", :map)
@@ -33774,6 +33888,7 @@ defmodule OrbitalDynamics.Schema do
     )
     |> validate_string_list_items(path, report, "model_limits")
     |> validate_contact_filter_report_model_limits(path, report)
+    |> validate_contact_filter_report_assumptions(path, report)
     |> validate_rows(
       path <> ".suppressed_candidates",
       Map.get(report, "suppressed_candidates", []),
@@ -33799,6 +33914,83 @@ defmodule OrbitalDynamics.Schema do
             | issues
           ]
         end
+
+      _value ->
+        issues
+    end
+  end
+
+  defp validate_contact_filter_report_assumptions(issues, path, report) do
+    case Map.get(report, "assumptions") do
+      nil ->
+        issues
+
+      :null ->
+        issues
+
+      assumptions when is_map(assumptions) ->
+        issues
+        |> expect_equal(
+          path <> ".assumptions",
+          assumptions,
+          "execution_boundary",
+          "artifact_only_no_provider_reservation_or_schedule_mutation"
+        )
+        |> expect_equal(
+          path <> ".assumptions",
+          assumptions,
+          "operator_authority",
+          "not_granted_by_filter"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "suppressed_directions",
+          contact_filter_suppressed_directions(),
+          "must match ContactFilter suppressed directions"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "suppression_reasons",
+          contact_filter_suppression_reasons(),
+          "must match ContactFilter suppression reasons"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_unavailable_aliases",
+          contact_filter_station_unavailable_aliases(),
+          "must match ContactFilter station unavailable aliases"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_availability_precedence",
+          contact_filter_station_availability_precedence(),
+          "must match ContactFilter station availability precedence"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_capacity_value_paths",
+          contact_filter_station_capacity_value_path_assumptions(),
+          "must match ContactFilter station capacity value paths"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "contact_capacity_value_paths",
+          contact_filter_contact_capacity_value_path_assumptions(),
+          "must match ContactFilter contact capacity value paths"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "provider_direction_aliases",
+          contact_filter_provider_direction_aliases(),
+          "must match ContactFilter provider direction aliases"
+        )
 
       _value ->
         issues

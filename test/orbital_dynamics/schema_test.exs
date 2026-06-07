@@ -5,6 +5,7 @@ defmodule OrbitalDynamics.SchemaTest do
     CadenceImport,
     CampaignPlanner,
     Communications.ContactAllocation,
+    Communications.ContactFilter,
     Communications.LinkCapacity,
     Communications.StationCalendar,
     Epoch,
@@ -3932,6 +3933,10 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert {:ok, %{"schema_contract" => "contact_filter_report.v1"}} =
              Schema.validate_artifact(report)
+
+    expected_assumptions = contact_filter_report_capability_assumptions()
+
+    assert Map.take(report["assumptions"], Map.keys(expected_assumptions)) == expected_assumptions
 
     assert report["model"] == "thin_ground_network_availability_filter"
 
@@ -31049,6 +31054,18 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(contact_filter_schema, ["properties", "model", "const"]) ==
              "thin_ground_network_availability_filter"
 
+    expected_contact_filter_assumptions = contact_filter_report_capability_assumptions()
+
+    for {field, value} <- expected_contact_filter_assumptions do
+      assert get_in(contact_filter_schema, [
+               "properties",
+               "assumptions",
+               "properties",
+               field,
+               "const"
+             ]) == value
+    end
+
     assert get_in(contact_filter_schema, ["properties", "model_limits", "items", "enum"]) == [
              "artifact_level_only",
              "externally_supplied_ground_network",
@@ -32300,6 +32317,22 @@ defmodule OrbitalDynamics.SchemaTest do
         json_capacity_value_paths(capabilities.required_capacity_value_paths),
       "default_required_capacity_value_paths" =>
         json_capacity_value_paths(capabilities.default_required_capacity_value_paths)
+    }
+  end
+
+  defp contact_filter_report_capability_assumptions do
+    capabilities = ContactFilter.capabilities()
+
+    %{
+      "suppressed_directions" => capabilities.suppressed_directions,
+      "suppression_reasons" => capabilities.suppression_reasons,
+      "station_unavailable_aliases" => capabilities.station_unavailable_aliases,
+      "station_availability_precedence" => capabilities.station_availability_precedence,
+      "station_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.station_capacity_value_paths),
+      "contact_capacity_value_paths" =>
+        json_capacity_value_paths(capabilities.contact_capacity_value_paths),
+      "provider_direction_aliases" => capabilities.provider_direction_aliases
     }
   end
 

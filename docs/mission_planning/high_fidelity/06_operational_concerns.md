@@ -287,7 +287,11 @@ Feature areas:
   replay, and Cadence-import handoffs; `ContactAllocation.capabilities/0` advertises
   the exact provider-counteroffer handoff field list preserved through
   allocation review/import, and `ContactFilter.capabilities/0` advertises the
-  same provider-counteroffer timing-delta handoff fields at suppression);
+  same provider-counteroffer timing-delta handoff fields at suppression, while
+  `contact_filter_report.v1` optionally records capability-derived unavailable
+  aliases, availability precedence, capacity value paths, suppressed
+  directions/reasons, and provider direction aliases with stale-present
+  validation and omitted-field compatibility);
   capability metadata advertises the public report facades, supported
   negotiation-state values, provider-counteroffer review/import action names,
   and the lock-deadline/import-readiness/plan-impact status vocabularies used
