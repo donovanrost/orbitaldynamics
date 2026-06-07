@@ -3157,6 +3157,100 @@ defmodule OrbitalDynamics.TimelineTest do
     refute Map.has_key?(invalid_template_row, "activity_template")
     refute Map.has_key?(invalid_template_row["activity_context"], "activity_template")
 
+    template_hint_activity = %{
+      id: :cmd_template_hints,
+      type: :command,
+      activity_template: %{
+        schema_contract: :"activity_template.v1",
+        id: :command_template,
+        activity_type: :command,
+        operational_hints: %{
+          setup_duration_s: 42.0,
+          cooldown_duration_s: 6.0,
+          telemetry_confirmation_required: true,
+          telemetry_confirmation_status: :required
+        }
+      }
+    }
+
+    assert %{
+             "setup_duration_s" => 42.0,
+             "cooldown_duration_s" => 6.0,
+             "telemetry_confirmation_required" => true,
+             "telemetry_confirmation_status" => "required",
+             "activity_context" => %{
+               "setup_duration_s" => 42.0,
+               "cooldown_duration_s" => 6.0,
+               "telemetry_confirmation_required" => true,
+               "telemetry_confirmation_status" => "required"
+             }
+           } =
+             template_hint_row = hd(Timeline.operational_report([template_hint_activity])["rows"])
+
+    assert {:ok, %{"schema_contract" => "operational_timeline_report.v1"}} =
+             Schema.validate_artifact(Timeline.operational_report([template_hint_activity]))
+
+    assert Timeline.activity_context(template_hint_activity)
+           |> Map.take([
+             "setup_duration_s",
+             "cooldown_duration_s",
+             "telemetry_confirmation_required",
+             "telemetry_confirmation_status"
+           ]) == %{
+             "setup_duration_s" => 42.0,
+             "cooldown_duration_s" => 6.0,
+             "telemetry_confirmation_required" => true,
+             "telemetry_confirmation_status" => "required"
+           }
+
+    assert get_in(template_hint_row, [
+             "activity_template",
+             "operational_hints",
+             "setup_duration_s"
+           ]) == 42.0
+
+    explicit_hint_activity =
+      template_hint_activity
+      |> Map.put(:id, :cmd_explicit_hints)
+      |> Map.merge(%{
+        setup_duration_s: 12.0,
+        cooldown_duration_s: 3.0,
+        telemetry_confirmation_required: false,
+        telemetry_confirmation_status: :waived
+      })
+
+    assert %{
+             "setup_duration_s" => 12.0,
+             "cooldown_duration_s" => 3.0,
+             "telemetry_confirmation_required" => false,
+             "telemetry_confirmation_status" => "waived",
+             "activity_context" => %{
+               "setup_duration_s" => 12.0,
+               "cooldown_duration_s" => 3.0,
+               "telemetry_confirmation_required" => false,
+               "telemetry_confirmation_status" => "waived"
+             }
+           } = hd(Timeline.operational_report([explicit_hint_activity])["rows"])
+
+    malformed_hint_activity =
+      template_hint_activity
+      |> Map.put(:id, :cmd_malformed_hints)
+      |> put_in([:activity_template, :operational_hints], "not-a-map")
+      |> Map.merge(%{
+        setup_duration_s: "soon",
+        telemetry_confirmation_required: "maybe"
+      })
+
+    malformed_hint_row = hd(Timeline.operational_report([malformed_hint_activity])["rows"])
+    refute Map.has_key?(malformed_hint_row, "setup_duration_s")
+    refute Map.has_key?(malformed_hint_row, "telemetry_confirmation_required")
+    refute Map.has_key?(malformed_hint_row["activity_context"], "setup_duration_s")
+    refute Map.has_key?(malformed_hint_row["activity_context"], "telemetry_confirmation_required")
+    refute Map.has_key?(malformed_hint_row["activity_template"], "operational_hints")
+
+    assert {:ok, %{"schema_contract" => "operational_timeline_report.v1"}} =
+             Schema.validate_artifact(Timeline.operational_report([malformed_hint_activity]))
+
     stale_review_count = Map.put(integrity_report, "timeline_integrity_review_count", 99)
 
     assert {:error, stale_review_count_validation} =

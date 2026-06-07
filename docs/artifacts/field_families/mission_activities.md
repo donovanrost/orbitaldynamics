@@ -358,7 +358,11 @@ Baseline templates also publish typed `operational_hints` for setup duration,
 cooldown duration, and telemetry-confirmation expectations. Template
 instantiation copies those advisory hints into normalized timeline rows and
 activity contexts without changing schedule bounds, granting authority, or
-executing commands.
+executing commands. Direct raw timeline-map activities that carry valid
+`activity_template.v1` provenance derive the same row and `activity_context`
+hint fields from nested `operational_hints` when explicit top-level activity
+hint values are absent; explicit top-level values remain authoritative, and
+malformed hint values remain out of schema-visible row/context fields.
 They also publish typed `subsystem_state_hints` with required and produced
 subsystem-state declarations. Template instantiation preserves those
 declarations in `activity_template.v1` provenance at the row level and inside

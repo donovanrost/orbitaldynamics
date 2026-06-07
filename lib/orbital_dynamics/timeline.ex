@@ -2873,15 +2873,15 @@ defmodule OrbitalDynamics.Timeline do
       "cadence_import_status" => cadence_import_status,
       "starts_at_s" => activity_start(activity),
       "ends_at_s" => activity_end(activity),
-      "setup_duration_s" => first_number(activity, ["setup_duration_s"]),
-      "cooldown_duration_s" => first_number(activity, ["cooldown_duration_s"]),
+      "setup_duration_s" => activity_operational_hint_number(activity, "setup_duration_s"),
+      "cooldown_duration_s" => activity_operational_hint_number(activity, "cooldown_duration_s"),
       "telemetry_confirmation_required" =>
-        first_boolean(activity, [
+        activity_operational_hint_boolean(activity, [
           "telemetry_confirmation_required",
           "telemetry_confirmation_required?"
         ]),
       "telemetry_confirmation_status" =>
-        first_scalar_string(activity, ["telemetry_confirmation_status"]),
+        activity_operational_hint_string(activity, "telemetry_confirmation_status"),
       "direction" => Map.get(activity, "direction"),
       "spacecraft_id" => Map.get(activity, "spacecraft_id"),
       "ground_station_id" => Map.get(activity, "ground_station_id"),
@@ -3113,6 +3113,12 @@ defmodule OrbitalDynamics.Timeline do
 
     activity
     |> Map.take(@activity_context_keys)
+    |> Map.drop([
+      "setup_duration_s",
+      "cooldown_duration_s",
+      "telemetry_confirmation_required",
+      "telemetry_confirmation_status"
+    ])
     |> drop_invalid_activity_context_cadence_import(activity)
     |> Enum.reject(fn {_key, value} -> value in [nil, []] end)
     |> Map.new()
@@ -3164,11 +3170,79 @@ defmodule OrbitalDynamics.Timeline do
         "subsystem_state_hints",
         "assumptions"
       ])
+      |> normalize_activity_template_provenance()
       |> compact_map()
     end
   end
 
   defp activity_template_provenance(_activity), do: nil
+
+  defp normalize_activity_template_provenance(%{"operational_hints" => hints} = template) do
+    case normalize_activity_template_operational_hints(hints) do
+      hints when is_map(hints) and map_size(hints) > 0 ->
+        Map.put(template, "operational_hints", hints)
+
+      _hints ->
+        Map.delete(template, "operational_hints")
+    end
+  end
+
+  defp normalize_activity_template_provenance(template), do: template
+
+  defp normalize_activity_template_operational_hints(%{} = hints) do
+    hints = stringify_keys(hints)
+
+    hints
+    |> Map.drop([
+      "setup_duration_s",
+      "cooldown_duration_s",
+      "telemetry_confirmation_required",
+      "telemetry_confirmation_status"
+    ])
+    |> maybe_put_operational_hint_number("setup_duration_s", Map.get(hints, "setup_duration_s"))
+    |> maybe_put_operational_hint_number(
+      "cooldown_duration_s",
+      Map.get(hints, "cooldown_duration_s")
+    )
+    |> maybe_put_operational_hint_boolean(
+      "telemetry_confirmation_required",
+      Map.get(hints, "telemetry_confirmation_required")
+    )
+    |> maybe_put_operational_hint_string(
+      "telemetry_confirmation_status",
+      Map.get(hints, "telemetry_confirmation_status")
+    )
+    |> compact_map()
+  end
+
+  defp normalize_activity_template_operational_hints(_hints), do: nil
+
+  defp maybe_put_operational_hint_number(hints, key, value) do
+    case numeric_value(value) do
+      number when is_number(number) and number >= 0.0 -> Map.put(hints, key, number)
+      _value -> hints
+    end
+  end
+
+  defp maybe_put_operational_hint_boolean(hints, key, value) do
+    case boolean_value(value) do
+      value when is_boolean(value) -> Map.put(hints, key, value)
+      _value -> hints
+    end
+  end
+
+  defp maybe_put_operational_hint_string(hints, key, value) when is_binary(value) do
+    case String.trim(value) do
+      "" -> hints
+      value -> Map.put(hints, key, value)
+    end
+  end
+
+  defp maybe_put_operational_hint_string(hints, key, value)
+       when is_atom(value) and not is_nil(value),
+       do: Map.put(hints, key, Atom.to_string(value))
+
+  defp maybe_put_operational_hint_string(hints, _key, _value), do: hints
 
   defp activity_lifecycle_context(activity) do
     %{}
@@ -3224,17 +3298,70 @@ defmodule OrbitalDynamics.Timeline do
 
   defp activity_operational_hint_context(activity) do
     %{
-      "setup_duration_s" => first_number(activity, ["setup_duration_s"]),
-      "cooldown_duration_s" => first_number(activity, ["cooldown_duration_s"]),
+      "setup_duration_s" => activity_operational_hint_number(activity, "setup_duration_s"),
+      "cooldown_duration_s" => activity_operational_hint_number(activity, "cooldown_duration_s"),
       "telemetry_confirmation_required" =>
-        first_boolean(activity, [
+        activity_operational_hint_boolean(activity, [
           "telemetry_confirmation_required",
           "telemetry_confirmation_required?"
         ]),
       "telemetry_confirmation_status" =>
-        first_scalar_string(activity, ["telemetry_confirmation_status"])
+        activity_operational_hint_string(activity, "telemetry_confirmation_status")
     }
     |> compact_map()
+  end
+
+  defp activity_operational_hint_number(activity, key) do
+    case first_present_value(activity, [key]) do
+      {:ok, value} ->
+        numeric_value(value)
+
+      :error ->
+        activity
+        |> activity_template_operational_hints()
+        |> Map.get(key)
+        |> numeric_value()
+    end
+  end
+
+  defp activity_operational_hint_boolean(activity, keys) do
+    case first_present_value(activity, keys) do
+      {:ok, value} ->
+        boolean_value(value)
+
+      :error ->
+        hints = activity_template_operational_hints(activity)
+
+        keys
+        |> Enum.find_value(fn key -> Map.get(hints, key) |> boolean_value() end)
+    end
+  end
+
+  defp activity_operational_hint_string(activity, key) do
+    case first_present_value(activity, [key]) do
+      {:ok, value} when is_binary(value) and value != "" ->
+        value
+
+      {:ok, value} when is_atom(value) and not is_nil(value) ->
+        Atom.to_string(value)
+
+      {:ok, _value} ->
+        nil
+
+      :error ->
+        case Map.get(activity_template_operational_hints(activity), key) do
+          value when is_binary(value) and value != "" -> value
+          value when is_atom(value) and not is_nil(value) -> Atom.to_string(value)
+          _value -> nil
+        end
+    end
+  end
+
+  defp activity_template_operational_hints(activity) do
+    case activity_template_provenance(activity) do
+      %{"operational_hints" => %{} = hints} -> hints
+      _provenance -> %{}
+    end
   end
 
   defp activity_source_window_context(activity) do
@@ -9124,6 +9251,23 @@ defmodule OrbitalDynamics.Timeline do
       values ->
         duplicate_id_list(values, ["timeline_id", "persistent_id"])
     end
+  end
+
+  defp first_present_value(activity, keys) do
+    Enum.find_value(keys, :error, fn key ->
+      metadata = Map.get(activity, "metadata") || Map.get(activity, :metadata) || %{}
+
+      case fetch_key_or_atom(activity, key) do
+        {:ok, value} ->
+          {:ok, value}
+
+        :error ->
+          case fetch_key_or_atom(metadata, key) do
+            {:ok, value} -> {:ok, value}
+            :error -> false
+          end
+      end
+    end)
   end
 
   defp first_value(activity, keys) do
