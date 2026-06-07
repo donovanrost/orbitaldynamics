@@ -420,6 +420,15 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     }
   end
 
+  defp station_pressure_capability_assumptions do
+    %{
+      "station_unavailable_aliases" => @unavailable_aliases,
+      "station_blocking_availability" => @station_blocking_availability,
+      "station_availability_precedence" => @station_availability_severity,
+      "provider_direction_aliases" => @provider_direction_aliases
+    }
+  end
+
   defp reservation_conflict_capability_assumptions do
     %{
       "station_reservation_match_statuses" => @station_reservation_match_statuses,
@@ -1371,11 +1380,15 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
       "rows" => rows,
       "review_rows" => review_rows,
       "model_limits" => model_limits(),
-      "assumptions" => %{
-        "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
-        "source" => "contact_allocation_report.v1",
-        "operator_authority" => "not_granted_by_station_pressure_summary"
-      }
+      "assumptions" =>
+        Map.merge(
+          %{
+            "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
+            "source" => "contact_allocation_report.v1",
+            "operator_authority" => "not_granted_by_station_pressure_summary"
+          },
+          station_pressure_capability_assumptions()
+        )
     }
     |> compact_map()
   end

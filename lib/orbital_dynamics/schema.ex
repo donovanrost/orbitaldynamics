@@ -14751,6 +14751,14 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(
+         "assumptions",
+         @contact_allocation_station_pressure_summary,
+         _contract
+       ) do
+    contact_allocation_station_pressure_summary_assumptions_json_schema()
+  end
+
+  defp json_schema_property(
          "model_limits",
          @contact_allocation_station_pressure_summary,
          _contract
@@ -19983,6 +19991,21 @@ defmodule OrbitalDynamics.Schema do
     |> Map.fetch!(:provider_reservation_request_statuses)
   end
 
+  defp contact_allocation_station_unavailable_aliases do
+    OrbitalDynamics.Communications.ContactAllocation.capabilities()
+    |> Map.fetch!(:station_unavailable_aliases)
+  end
+
+  defp contact_allocation_station_blocking_availability do
+    OrbitalDynamics.Communications.ContactAllocation.capabilities()
+    |> Map.fetch!(:station_blocking_availability)
+  end
+
+  defp contact_allocation_station_availability_precedence do
+    OrbitalDynamics.Communications.ContactAllocation.capabilities()
+    |> Map.fetch!(:station_availability_precedence)
+  end
+
   defp contact_allocation_provider_direction_aliases do
     OrbitalDynamics.Communications.ContactAllocation.capabilities()
     |> Map.fetch!(:provider_direction_aliases)
@@ -20071,6 +20094,51 @@ defmodule OrbitalDynamics.Schema do
           "type" => "array",
           "const" => contact_allocation_default_required_capacity_value_path_assumptions(),
           "items" => contact_allocation_capacity_value_path_json_schema()
+        }
+      }
+    }
+  end
+
+  defp contact_allocation_station_pressure_summary_assumptions_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => ["execution_boundary", "source", "operator_authority"],
+      "properties" => %{
+        "execution_boundary" => %{
+          "type" => "string",
+          "const" => "artifact_only_no_provider_reservation_or_schedule_mutation"
+        },
+        "source" => %{"type" => "string", "const" => "contact_allocation_report.v1"},
+        "operator_authority" => %{
+          "type" => "string",
+          "const" => "not_granted_by_station_pressure_summary"
+        },
+        "station_unavailable_aliases" => %{
+          "type" => "array",
+          "const" => contact_allocation_station_unavailable_aliases(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_allocation_station_unavailable_aliases()
+          }
+        },
+        "station_blocking_availability" => %{
+          "type" => "array",
+          "const" => contact_allocation_station_blocking_availability(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_allocation_station_blocking_availability()
+          }
+        },
+        "station_availability_precedence" => %{
+          "type" => "object",
+          "const" => contact_allocation_station_availability_precedence(),
+          "additionalProperties" => %{"type" => "integer", "minimum" => 0}
+        },
+        "provider_direction_aliases" => %{
+          "type" => "object",
+          "const" => contact_allocation_provider_direction_aliases(),
+          "additionalProperties" => %{"type" => "string"}
         }
       }
     }
@@ -50702,6 +50770,34 @@ defmodule OrbitalDynamics.Schema do
           assumptions,
           "operator_authority",
           "not_granted_by_station_pressure_summary"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_unavailable_aliases",
+          contact_allocation_station_unavailable_aliases(),
+          "must match ContactAllocation station unavailable aliases"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_blocking_availability",
+          contact_allocation_station_blocking_availability(),
+          "must match ContactAllocation station blocking availability"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_availability_precedence",
+          contact_allocation_station_availability_precedence(),
+          "must match ContactAllocation station availability precedence"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "provider_direction_aliases",
+          contact_allocation_provider_direction_aliases(),
+          "must match ContactAllocation provider direction aliases"
         )
 
       _assumptions ->

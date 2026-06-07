@@ -202,6 +202,10 @@ Provider-reservation request summaries carry the capability-declared
 request-status vocabulary, station-reservation match statuses, and provider
 direction aliases in optional assumptions so adapter handoffs can validate
 stale present metadata without rejecting older summaries that omit it.
+Station-pressure summaries carry the capability-declared unavailable aliases,
+blocking availability values, availability precedence, and provider direction
+aliases in optional assumptions so stale present metadata is schema-checkable
+without rejecting older summaries that omit it.
 Summaries do not reserve provider time, mutate schedules, or approve contacts.
 Station-reservation summaries now publish validated
 `station_reservation_report.v1` artifacts for affected reservation overlaps and

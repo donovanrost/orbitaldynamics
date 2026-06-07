@@ -20496,6 +20496,21 @@ defmodule OrbitalDynamics.SchemaTest do
     assert {:ok, %{"schema_contract" => "contact_allocation_station_pressure_summary.v1"}} =
              Schema.validate_artifact(summary)
 
+    expected_capability_assumptions =
+      contact_allocation_station_pressure_capability_assumptions()
+
+    expected_station_unavailable_aliases =
+      expected_capability_assumptions["station_unavailable_aliases"]
+
+    expected_station_blocking_availability =
+      expected_capability_assumptions["station_blocking_availability"]
+
+    expected_station_availability_precedence =
+      expected_capability_assumptions["station_availability_precedence"]
+
+    expected_provider_direction_aliases =
+      expected_capability_assumptions["provider_direction_aliases"]
+
     assert %{
              "source_artifact_type" => "contact_allocation_report.v1",
              "source" => "validation.contact_allocation_station_pressure_summary",
@@ -20527,7 +20542,11 @@ defmodule OrbitalDynamics.SchemaTest do
                "execution_boundary" =>
                  "artifact_only_no_provider_reservation_or_schedule_mutation",
                "operator_authority" => "not_granted_by_station_pressure_summary",
-               "source" => "contact_allocation_report.v1"
+               "source" => "contact_allocation_report.v1",
+               "station_unavailable_aliases" => ^expected_station_unavailable_aliases,
+               "station_blocking_availability" => ^expected_station_blocking_availability,
+               "station_availability_precedence" => ^expected_station_availability_precedence,
+               "provider_direction_aliases" => ^expected_provider_direction_aliases
              }
            } = summary
 
@@ -20536,6 +20555,40 @@ defmodule OrbitalDynamics.SchemaTest do
     assert summary["model_limits"] ==
              ContactAllocation.capabilities().known_limits
              |> Enum.map(&Atom.to_string/1)
+
+    assert {:ok, schema} = Schema.json_schema("contact_allocation_station_pressure_summary.v1")
+
+    assert get_in(schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "station_unavailable_aliases",
+             "const"
+           ]) == expected_station_unavailable_aliases
+
+    assert get_in(schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "station_blocking_availability",
+             "const"
+           ]) == expected_station_blocking_availability
+
+    assert get_in(schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "station_availability_precedence",
+             "const"
+           ]) == expected_station_availability_precedence
+
+    assert get_in(schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "provider_direction_aliases",
+             "const"
+           ]) == expected_provider_direction_aliases
   end
 
   test "validates checked-in contact allocation capacity pack summary fixture" do
@@ -32249,6 +32302,17 @@ defmodule OrbitalDynamics.SchemaTest do
       "provider_reservation_request_statuses" =>
         capabilities.provider_reservation_request_statuses,
       "station_reservation_match_statuses" => capabilities.station_reservation_match_statuses,
+      "provider_direction_aliases" => capabilities.provider_direction_aliases
+    }
+  end
+
+  defp contact_allocation_station_pressure_capability_assumptions do
+    capabilities = ContactAllocation.capabilities()
+
+    %{
+      "station_unavailable_aliases" => capabilities.station_unavailable_aliases,
+      "station_blocking_availability" => capabilities.station_blocking_availability,
+      "station_availability_precedence" => capabilities.station_availability_precedence,
       "provider_direction_aliases" => capabilities.provider_direction_aliases
     }
   end

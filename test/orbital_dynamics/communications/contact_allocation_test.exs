@@ -748,6 +748,21 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
       &OrbitalDynamics.contact_allocation_summary(&1, now_s: 999.0)
     )
 
+    expected_station_pressure_capability_assumptions =
+      contact_allocation_station_pressure_capability_assumptions()
+
+    expected_station_unavailable_aliases =
+      expected_station_pressure_capability_assumptions["station_unavailable_aliases"]
+
+    expected_station_blocking_availability =
+      expected_station_pressure_capability_assumptions["station_blocking_availability"]
+
+    expected_station_availability_precedence =
+      expected_station_pressure_capability_assumptions["station_availability_precedence"]
+
+    expected_provider_direction_aliases =
+      expected_station_pressure_capability_assumptions["provider_direction_aliases"]
+
     assert %{
              "schema_contract" => "contact_allocation_station_pressure_summary.v1",
              "model" => "artifact_only_contact_allocation_station_pressure_summary",
@@ -777,7 +792,11 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
                "execution_boundary" =>
                  "artifact_only_no_provider_reservation_or_schedule_mutation",
                "source" => "contact_allocation_report.v1",
-               "operator_authority" => "not_granted_by_station_pressure_summary"
+               "operator_authority" => "not_granted_by_station_pressure_summary",
+               "station_unavailable_aliases" => ^expected_station_unavailable_aliases,
+               "station_blocking_availability" => ^expected_station_blocking_availability,
+               "station_availability_precedence" => ^expected_station_availability_precedence,
+               "provider_direction_aliases" => ^expected_provider_direction_aliases
              }
            } = station_pressure_summary = ContactAllocation.station_pressure_summary(report)
 
@@ -802,6 +821,29 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
 
     assert get_in(station_pressure_schema, ["properties", "model_limits", "items", "enum"]) ==
              station_pressure_model_limits
+
+    station_pressure_assumptions_schema =
+      get_in(station_pressure_schema, ["properties", "assumptions", "properties"])
+
+    assert get_in(station_pressure_assumptions_schema, [
+             "station_unavailable_aliases",
+             "const"
+           ]) == expected_station_unavailable_aliases
+
+    assert get_in(station_pressure_assumptions_schema, [
+             "station_blocking_availability",
+             "const"
+           ]) == expected_station_blocking_availability
+
+    assert get_in(station_pressure_assumptions_schema, [
+             "station_availability_precedence",
+             "const"
+           ]) == expected_station_availability_precedence
+
+    assert get_in(station_pressure_assumptions_schema, [
+             "provider_direction_aliases",
+             "const"
+           ]) == expected_provider_direction_aliases
 
     stale_station_pressure_model =
       Map.put(
@@ -866,6 +908,35 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              &(&1["path"] == "$.review_rows" and
                  &1["message"] == "must equal row-derived review_rows")
            )
+
+    for {field, stale_value, expected_message} <- [
+          {"station_unavailable_aliases", ["offline"],
+           "must match ContactAllocation station unavailable aliases"},
+          {"station_blocking_availability", ["reserved"],
+           "must match ContactAllocation station blocking availability"},
+          {"station_availability_precedence", %{"available" => 99},
+           "must match ContactAllocation station availability precedence"},
+          {"provider_direction_aliases", %{"dl" => "command"},
+           "must match ContactAllocation provider direction aliases"}
+        ] do
+      stale_station_pressure_assumption =
+        put_in(station_pressure_summary, ["assumptions", field], stale_value)
+
+      assert {:error, stale_station_pressure_assumption_errors} =
+               Schema.validate_artifact(stale_station_pressure_assumption)
+
+      assert Enum.any?(
+               stale_station_pressure_assumption_errors["errors"],
+               &(&1["path"] == "$.assumptions.#{field}" and
+                   &1["message"] == expected_message)
+             )
+    end
+
+    omitted_station_pressure_capability_assumptions =
+      drop_contact_allocation_station_pressure_capability_assumptions(station_pressure_summary)
+
+    assert {:ok, %{"schema_contract" => "contact_allocation_station_pressure_summary.v1"}} =
+             Schema.validate_artifact(omitted_station_pressure_capability_assumptions)
 
     assert_summary_handoff(
       station_pressure_summary,
@@ -8235,6 +8306,28 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
       Map.drop(assumptions, [
         "provider_reservation_request_statuses",
         "station_reservation_match_statuses",
+        "provider_direction_aliases"
+      ])
+    end)
+  end
+
+  defp contact_allocation_station_pressure_capability_assumptions do
+    capabilities = ContactAllocation.capabilities()
+
+    %{
+      "station_unavailable_aliases" => capabilities.station_unavailable_aliases,
+      "station_blocking_availability" => capabilities.station_blocking_availability,
+      "station_availability_precedence" => capabilities.station_availability_precedence,
+      "provider_direction_aliases" => capabilities.provider_direction_aliases
+    }
+  end
+
+  defp drop_contact_allocation_station_pressure_capability_assumptions(artifact) do
+    update_in(artifact, ["assumptions"], fn assumptions ->
+      Map.drop(assumptions, [
+        "station_unavailable_aliases",
+        "station_blocking_availability",
+        "station_availability_precedence",
         "provider_direction_aliases"
       ])
     end)
