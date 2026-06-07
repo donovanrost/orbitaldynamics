@@ -8,7 +8,7 @@ Current slice:
 Contact allocation station-pressure capability assumptions.
 
 Status:
-Implemented, verified, and reviewed; publish pending.
+Implemented, verified, reviewed, and committed; push pending.
 
 Slice completed:
 Station-pressure summaries now carry optional capability-derived assumptions for
@@ -59,7 +59,7 @@ docs/fixtures, and no expanded provider-reservation or operator-authority
 boundary.
 
 Product commit:
-Pending.
+`d0c0734` (`Add station pressure summary capability assumptions`).
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
