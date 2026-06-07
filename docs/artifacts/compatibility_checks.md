@@ -337,6 +337,15 @@ operator authority; analysis-only markers such as simulation, trade study, and
 not-for-execution remain handoff evidence only. Its schema export pins the
 artifact-only execution-boundary summary model and `model_limits` used by
 generated summaries.
+`study_results/operational_execution_boundary_summary_v1.json` now checks in
+the compact execution-boundary view generated from the readiness fixture. Its
+validation-reference coverage exact-compares the public facade output before
+schema validation and observes source identity, readiness/import/status
+classification, import eligibility, handoff-only and execution/Cadence/operator
+authority flags, execution boundary, operational-mode gate context, gate counts,
+non-passed gates, model limits, and no-Cadence-write/no-command-execution/
+no-import assumptions without writing Cadence, importing activities, executing
+commands, granting operator authority, or mutating schedules.
 
 The validation-reference fixture set also includes a curated
 `quality_gate_report.v1` artifact generated from the readiness fixture. Its
