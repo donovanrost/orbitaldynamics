@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Validation safety-case summary fixture coverage.
+Timeline lifecycle-state summary fixture refresh and coverage.
 
 Status:
 Implemented, verified, and reviewed; ready for commit/push.
@@ -14,64 +14,75 @@ Files expected:
 - `.codex/status/autonomous_product_loop.md`
 - `test/orbital_dynamics/schema_test.exs`
 - `docs/artifacts/compatibility_checks.md`
+- `study_results/timeline_lifecycle_state_summary_v1.json`
 
 Slice-selection note:
-Selected after timeline dependency impact summary fixture coverage was pushed
-at `0a79b5e5c6b3f71dd5830822c31833eb93ebd125` and live reassessment of the
-remaining validation summary fixture without focused schema/reference tests.
-`validation_safety_case_summary.v1` has an existing checked-in fixture, public
-`OrbitalDynamics.validation_safety_case_summary/2` facade, schema coverage, and
-validation observations. A live probe confirmed the fixture regenerates exactly
-from compact model-acceptance and schema-validation evidence with the checked-in
-case ID, making this a narrow fixture/reference hardening slice that does not
-grant certification authority, grant operator authority, write Cadence, import
-artifacts, execute commands, or mutate schedules.
+Selected after validation safety-case summary fixture coverage was pushed at
+`c62e44cfed5291b251a179c80d792b582f896ccc` and live reassessment of checked-in
+summary fixtures. `timeline_lifecycle_state_summary.v1` still has only
+schema-visible fixture assertions, and a live public-facade probe showed the
+checked-in fixture is stale relative to current
+`OrbitalDynamics.timeline_lifecycle_state_summary/3` output: non-duplicate
+lifecycle rows now carry row-level `model_limits` and
+`invalid_activity_input: false` fields emitted by the runtime. This is a narrow
+fixture-refresh and coverage slice for the existing public facade; it does not
+grant operator authority, write Cadence, import artifacts, execute commands, or
+mutate schedules.
 
 Definition of done:
-- Add focused schema/reference coverage proving the checked-in
-  `validation_safety_case_summary.v1` fixture validates and regenerates exactly
-  through the public facade from deterministic model-acceptance and
-  schema-validation evidence.
-- Pin case/summary identity, overall status, evidence counts and status
-  routing, input contracts, model-acceptance counts, schema-validation row
-  evidence, evidence reference routing, model limits, and
-  no-certification/no-authority assumptions.
-- Update compatibility docs to name the exact public-facade regeneration check.
-- Run focused schema/reference tests, schema lint for the existing fixture,
+- Refresh the checked-in `timeline_lifecycle_state_summary.v1` fixture from the
+  public facade using deterministic planned/realized lifecycle rows that
+  preserve command-window context, scenario identity, duplicate timeline
+  identity review routing, preserved executed activities, and recordable
+  replacements.
+- Add focused schema coverage proving the refreshed fixture validates and
+  regenerates exactly through `OrbitalDynamics.timeline_lifecycle_state_summary/3`.
+- Pin summary identity/counts, transition/import/operator-action rollups,
+  review and record/preserve routing, duplicate timeline identity routing,
+  row-level model limits, invalid-input flags, and artifact-only/no-authority
+  assumptions.
+- Update compatibility docs to name the fixture refresh and exact
+  public-facade regeneration check.
+- Run focused schema/reference tests, schema lint for the refreshed fixture,
   read-only review, and commit/push only this slice's files.
 
 Implementation notes:
-- Added focused schema-test coverage proving the existing checked-in
-  `validation_safety_case_summary.v1` fixture regenerates exactly from public
-  `OrbitalDynamics.validation_safety_case_summary/2` using deterministic
-  model-acceptance and schema-validation evidence plus the checked-in case ID.
-- The test preserves case/summary identity, blocked/review/accepted evidence
-  counts and status routing, input contracts, model-acceptance counts,
-  schema-validation row evidence, duplicate evidence reference routing, model
-  limits, and no-certification/no-authority assumptions.
-- Updated compatibility docs to name the exact public-facade regeneration check
-  before schema validation.
+- Refreshed `study_results/timeline_lifecycle_state_summary_v1.json` from
+  public `OrbitalDynamics.timeline_lifecycle_state_summary/3` output using the
+  deterministic planned/realized lifecycle scenario with command-window context,
+  scenario identity, duplicate timeline identity routing, one preserved
+  executed activity, and one recordable replacement.
+- Added focused schema-test coverage that exact-compares the refreshed fixture
+  against public-facade output before schema validation.
+- The test pins summary identity/counts, transition/import/operator-action
+  rollups, review/record/preserve timeline IDs, duplicate timeline identity
+  routing, row ranks, row-level model limits, invalid-input flags, and
+  artifact-only/no-authority assumptions.
+- Updated compatibility docs to name the fixture refresh and exact
+  public-facade regeneration check.
 
 Verification:
 - `mix format test/orbital_dynamics/schema_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:27759`
-- `mix orbital_dynamics.schema.lint --input study_results/validation_safety_case_summary_v1.json --contract validation_safety_case_summary.v1`
-- `git diff --check`
+- `mix test test/orbital_dynamics/schema_test.exs:10355`
+- `mix orbital_dynamics.schema.lint --input study_results/timeline_lifecycle_state_summary_v1.json --contract timeline_lifecycle_state_summary.v1`
+- `git diff --check -- .codex/status/autonomous_product_loop.md docs/artifacts/compatibility_checks.md study_results/timeline_lifecycle_state_summary_v1.json test/orbital_dynamics/schema_test.exs`
 
 Review:
-- Read-only review sidecar `019ea1e6-bdaa-7311-be14-a075bba11d29` found no
-  issues. It confirmed the test regenerates the checked-in fixture through
-  public `OrbitalDynamics.validation_safety_case_summary/2`, exact-compares
-  before schema validation, pins identity, status/count rollups,
-  model/schema-validation evidence, no-certification/no-authority assumptions,
-  evidence reference routing, and model limits, and that docs and ledger do not
-  overclaim. The reviewer also reran the focused test, fixture lint, and a
+- Read-only review sidecar `019ea1ed-cde3-7b83-8a5c-50a6a076ed4d` found no
+  issues. It confirmed the slice is limited to the four expected files, the
+  test exact-regenerates the fixture through
+  `OrbitalDynamics.timeline_lifecycle_state_summary/3` before schema
+  validation, the assertions pin identity/counts/routing/assumptions and row
+  details, the refreshed fixture includes artifact-only assumptions, duplicate
+  routing, row-level `model_limits`, and `invalid_activity_input` fields, and
+  docs/ledger do not claim import, execution, operator authority, or schedule
+  mutation. The reviewer reran the focused fixture test, fixture lint, and
   slice-scoped `git diff --check`; `.gitignore` remains unrelated and should
   not be staged.
 
 Last commit:
-`0a79b5e5c6b3f71dd5830822c31833eb93ebd125` pushed to `origin/main` for
-timeline dependency impact summary fixture coverage.
+`c62e44cfed5291b251a179c80d792b582f896ccc` pushed to `origin/main` for
+validation safety-case summary fixture coverage.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is

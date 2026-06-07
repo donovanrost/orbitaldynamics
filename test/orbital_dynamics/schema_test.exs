@@ -10352,6 +10352,197 @@ defmodule OrbitalDynamics.SchemaTest do
            )
   end
 
+  test "validates checked-in timeline lifecycle-state summary fixture" do
+    summary = read_json!("study_results/timeline_lifecycle_state_summary_v1.json")
+
+    planned = [
+      %{
+        id: :cmd_provider,
+        type: :command,
+        scenario_id: :leo_1,
+        status: "In Progress",
+        approval_status: "Review Required",
+        command_window_id: :"command_window:cmd_provider",
+        command_window_type: :command_window,
+        metadata: %{timeline_id: :"timeline:cmd_provider"}
+      },
+      %{
+        id: :obs_record,
+        type: :observe,
+        status: :planned,
+        approval_status: :not_required,
+        metadata: %{timeline_id: :"timeline:obs_record"}
+      },
+      %{
+        id: :done_keep,
+        type: :command,
+        status: :completed,
+        approval_status: :approved,
+        command_window_id: :"command_window:done_keep",
+        command_window_type: :command_window,
+        metadata: %{timeline_id: :"timeline:done_keep"}
+      },
+      %{
+        id: :dup_a,
+        type: :observe,
+        status: :planned,
+        metadata: %{timeline_id: :"timeline:dup"}
+      },
+      %{
+        id: :dup_b,
+        type: :observe,
+        status: :planned,
+        metadata: %{timeline_id: :"timeline:dup"}
+      }
+    ]
+
+    realized = [
+      %{
+        id: :cmd_provider,
+        type: :command,
+        scenario_id: :leo_1,
+        status: "succeeded",
+        approval_status: :approved,
+        command_window_id: :"command_window:cmd_provider",
+        command_window_type: :command_window,
+        metadata: %{timeline_id: :"timeline:cmd_provider"}
+      },
+      %{
+        id: :obs_record,
+        type: :observe,
+        status: :completed,
+        approval_status: :not_required,
+        metadata: %{timeline_id: :"timeline:obs_record"}
+      },
+      %{
+        id: :done_keep,
+        type: :command,
+        status: :completed,
+        approval_status: :approved,
+        command_window_id: :"command_window:done_keep",
+        command_window_type: :command_window,
+        metadata: %{timeline_id: :"timeline:done_keep"}
+      }
+    ]
+
+    generated_summary =
+      OrbitalDynamics.timeline_lifecycle_state_summary(
+        planned,
+        realized,
+        source: "validation.timeline_lifecycle_state_summary"
+      )
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "timeline_lifecycle_state_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "schema_contract" => "timeline_lifecycle_state_summary.v1",
+             "model" => "artifact_only_timeline_lifecycle_state_summary",
+             "validation_level" => "artifact_contract",
+             "source" => "validation.timeline_lifecycle_state_summary",
+             "planned_activity_count" => 5,
+             "realized_activity_count" => 3,
+             "row_count" => 4,
+             "recordable_count" => 1,
+             "preserved_count" => 1,
+             "review_required_count" => 2,
+             "duplicate_timeline_identity_count" => 1,
+             "invalid_activity_input_count" => 0,
+             "transition_decision_counts" => %{
+               "none" => 1,
+               "record" => 1,
+               "review" => 2
+             },
+             "required_operator_action_counts" => %{
+               "none" => 1,
+               "record_timeline_change" => 1,
+               "review_activity_approval" => 1,
+               "review_duplicate_timeline_identity" => 1
+             },
+             "import_action_counts" => %{
+               "import_replacement_activity" => 1,
+               "record_preserved_activity" => 1,
+               "review_timeline_diff" => 2
+             },
+             "recordable_timeline_ids" => ["timeline:obs_record"],
+             "preserved_timeline_ids" => ["timeline:done_keep"],
+             "review_timeline_ids" => ["timeline:cmd_provider", "timeline:dup"],
+             "review_activity_ids" => ["cmd_provider", "dup_a", "dup_b"],
+             "invalid_activity_input_ids" => [],
+             "review_timeline_ids_by_required_operator_action" => %{
+               "review_activity_approval" => ["timeline:cmd_provider"],
+               "review_duplicate_timeline_identity" => ["timeline:dup"]
+             },
+             "review_timeline_ids_by_status_transition_category" => %{
+               "execution_recorded" => ["timeline:cmd_provider"]
+             },
+             "review_timeline_ids_by_approval_transition_category" => %{
+               "approval_granted" => ["timeline:cmd_provider"]
+             },
+             "assumptions" => %{
+               "cadence_import" => "not_performed_by_summary",
+               "command_execution" => "not_performed_by_summary",
+               "execution_boundary" => "artifact_only_no_schedule_mutation",
+               "identity_match" => "planned and realized rows are paired by timeline identity",
+               "operator_authority" => "not_granted_by_summary"
+             }
+           } = summary
+
+    assert [
+             %{
+               "timeline_id" => "timeline:cmd_provider",
+               "transition_decision" => "review",
+               "required_operator_action" => "review_activity_approval",
+               "status_transition_decision" => "record",
+               "approval_transition_decision" => "review",
+               "invalid_activity_input" => false,
+               "model_limits" => [
+                 "artifact_level_only",
+                 "no_schedule_mutation",
+                 "no_command_execution",
+                 "derived_identity_when_no_persistent_timeline_id"
+               ],
+               "assumptions" => %{
+                 "artifact_only" => true,
+                 "no_cadence_import" => true,
+                 "no_command_execution" => true,
+                 "no_operator_authority_grant" => true,
+                 "no_schedule_mutation" => true
+               }
+             },
+             %{
+               "timeline_id" => "timeline:done_keep",
+               "transition_decision" => "none",
+               "required_operator_action" => "none",
+               "import_action" => "record_preserved_activity",
+               "invalid_activity_input" => false
+             },
+             %{
+               "timeline_id" => "timeline:dup",
+               "transition_decision" => "review",
+               "timeline_identity_collision" => true,
+               "planned_activity_ids" => ["dup_a", "dup_b"],
+               "required_operator_actions" => ["review_duplicate_timeline_identity"]
+             },
+             %{
+               "timeline_id" => "timeline:obs_record",
+               "transition_decision" => "record",
+               "required_operator_action" => "record_timeline_change",
+               "import_action" => "import_replacement_activity",
+               "invalid_activity_input" => false
+             }
+           ] = summary["rows"]
+
+    assert Enum.map(summary["rows"], & &1["rank"]) == [1, 2, 3, 4]
+
+    assert [
+             %{"timeline_id" => "timeline:cmd_provider"},
+             %{"timeline_id" => "timeline:dup"}
+           ] = summary["review_rows"]
+  end
+
   test "exports and validates timeline integrity report fields" do
     assert {:ok, schema} = Schema.json_schema("timeline_integrity_report.v1")
 
