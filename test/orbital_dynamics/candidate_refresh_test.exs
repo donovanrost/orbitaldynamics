@@ -38907,6 +38907,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_validation_safety_case_model_blocked_count" => 1,
              "source_report_validation_safety_case_quality_gate_review_count" => 1,
              "source_report_validation_safety_case_schema_warning_count" => 2,
+             "source_report_validation_safety_case_branch_local_review_pressure" => true,
+             "source_report_validation_safety_case_branch_local_blocking_pressure" => true,
+             "source_report_validation_safety_case_branch_local_schema_pressure" => true,
+             "source_report_validation_safety_case_branch_local_fixture_pressure" => false,
              "source_reports" => %{
                "validation_safety_case_summary" => safety_case_summary
              }
@@ -39021,13 +39025,133 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "review_required" => ["quality_gate_report.v1:gate.review"]
              },
              "source_report_validation_safety_case_blocked_evidence_count" => 1,
-             "source_report_validation_safety_case_schema_warning_count" => 2
+             "source_report_validation_safety_case_schema_warning_count" => 2,
+             "source_report_validation_safety_case_branch_local_review_pressure" => true,
+             "source_report_validation_safety_case_branch_local_blocking_pressure" => true,
+             "source_report_validation_safety_case_branch_local_schema_pressure" => true,
+             "source_report_validation_safety_case_branch_local_fixture_pressure" => false
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.validation_safety_case_replay_summary(artifact) == replay_summary
 
     assert OrbitalDynamics.candidate_refresh_validation_safety_case_replay_summary(artifact) ==
              replay_summary
+  end
+
+  test "validation safety case replay reads strategy branch candidate-source summary metadata" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "candidate_source" => %{
+        "candidate_refresh_request_source_report_summary" => %{
+          "source_reports" => %{
+            "validation_safety_case_summary" => %{
+              "contract" => "validation_safety_case_summary.v1",
+              "count" => 1,
+              "row_count" => 2,
+              "paths" => [
+                "candidate_source.candidate_refresh_request.source_validation_safety_case_summary"
+              ],
+              "status_counts" => %{"review_required" => 1},
+              "evidence_status_counts" => %{"blocked" => 1, "review_required" => 1},
+              "input_contract_counts" => %{
+                "schema_validation_report.v1" => 1,
+                "validation_reference_fixture.v1" => 1
+              },
+              "evidence_refs_by_status" => %{
+                "blocked" => ["schema_validation_report.v1:error"],
+                "review_required" => ["quality_gate_report.v1:review"]
+              },
+              "evidence_refs_by_contract" => %{
+                "schema_validation_report.v1" => ["schema_validation_report.v1:error"],
+                "validation_reference_fixture.v1" => ["fixture:challenge_case"]
+              },
+              "accepted_evidence_count" => 0,
+              "review_required_evidence_count" => 0,
+              "blocked_evidence_count" => 0,
+              "model_blocked_count" => 0,
+              "readiness_blocked_count" => 0,
+              "quality_gate_blocked_count" => 0,
+              "schema_error_count" => 0,
+              "schema_warning_count" => 0,
+              "schema_validation_failed_report_count" => 0,
+              "fixture_failed_count" => 0,
+              "trust_boundary_status" => "declared",
+              "trust_boundaries" => ["branch_validation_safety_case"]
+            }
+          }
+        }
+      },
+      "provenance" => %{
+        "source_reports" => %{
+          "validation_safety_case_summary" => %{
+            "contract" => "validation_safety_case_summary.v1",
+            "count" => 0,
+            "row_count" => 0,
+            "paths" => ["provenance.source_reports.validation_safety_case_summary"],
+            "status_counts" => %{},
+            "evidence_status_counts" => %{},
+            "input_contract_counts" => %{},
+            "evidence_refs_by_status" => %{},
+            "evidence_refs_by_contract" => %{}
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.validation_safety_case_replay_summary(artifact)
+
+    assert summary["source"] ==
+             "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.validation_safety_case_summary"
+
+    assert summary["contract"] == "validation_safety_case_summary.v1"
+    assert summary["source_report_count"] == 1
+    assert summary["source_report_row_count"] == 2
+
+    assert summary["source_report_paths"] == [
+             "candidate_source.candidate_refresh_request.source_validation_safety_case_summary"
+           ]
+
+    assert summary["status_counts"] == %{"review_required" => 1}
+    assert summary["evidence_status_counts"] == %{"blocked" => 1, "review_required" => 1}
+
+    assert summary["input_contract_counts"] == %{
+             "schema_validation_report.v1" => 1,
+             "validation_reference_fixture.v1" => 1
+           }
+
+    assert summary["evidence_refs_by_status"] == %{
+             "blocked" => ["schema_validation_report.v1:error"],
+             "review_required" => ["quality_gate_report.v1:review"]
+           }
+
+    assert summary["evidence_refs_by_contract"] == %{
+             "schema_validation_report.v1" => ["schema_validation_report.v1:error"],
+             "validation_reference_fixture.v1" => ["fixture:challenge_case"]
+           }
+
+    assert summary["review_required_evidence_count"] == 0
+    assert summary["blocked_evidence_count"] == 0
+    assert summary["schema_warning_count"] == 0
+    assert summary["fixture_failed_count"] == 0
+    assert summary["trust_boundary_status"] == "declared"
+    assert summary["trust_boundaries"] == ["branch_validation_safety_case"]
+    assert summary["branch_local_review_pressure"]
+    assert summary["branch_local_blocking_pressure"]
+    assert summary["branch_local_schema_pressure"]
+    assert summary["branch_local_fixture_pressure"]
+
+    assert summary["assumptions"]["replay_scope"] ==
+             "validation_safety_case_candidate_source_report_summary_only"
+
+    assert %{
+             "source_report_validation_safety_case_branch_local_review_pressure" => true,
+             "source_report_validation_safety_case_branch_local_blocking_pressure" => true,
+             "source_report_validation_safety_case_branch_local_schema_pressure" => true,
+             "source_report_validation_safety_case_branch_local_fixture_pressure" => true
+           } = CandidateRefresh.source_report_summary(artifact)
+
+    assert OrbitalDynamics.candidate_refresh_validation_safety_case_replay_summary(artifact) ==
+             summary
   end
 
   test "validation safety case replay summary omits contract when source report is absent" do

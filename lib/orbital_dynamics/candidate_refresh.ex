@@ -6905,6 +6905,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
       source_report_model_acceptance_replay_summary_fields(refresh_or_artifact, source_reports)
     )
     |> Map.merge(
+      source_report_validation_safety_case_replay_summary_fields(
+        refresh_or_artifact,
+        source_reports
+      )
+    )
+    |> Map.merge(
       source_report_contact_contention_replay_summary_fields(refresh_or_artifact, source_reports)
     )
     |> Map.merge(
@@ -9766,6 +9772,31 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(pressure_fields, "branch_local_blocking_pressure"),
       "source_report_model_acceptance_branch_local_unknown_model_pressure" =>
         Map.get(pressure_fields, "branch_local_unknown_model_pressure")
+    }
+  end
+
+  defp source_report_validation_safety_case_replay_summary_fields(
+         refresh_or_artifact,
+         source_reports
+       ) do
+    branch_safety_case_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "validation_safety_case_summary")
+
+    safety_case_summary =
+      branch_safety_case_summary ||
+        Map.get(source_reports, "validation_safety_case_summary", %{})
+
+    pressure_fields = validation_safety_case_replay_pressure_fields(safety_case_summary)
+
+    %{
+      "source_report_validation_safety_case_branch_local_review_pressure" =>
+        Map.get(pressure_fields, "branch_local_review_pressure"),
+      "source_report_validation_safety_case_branch_local_blocking_pressure" =>
+        Map.get(pressure_fields, "branch_local_blocking_pressure"),
+      "source_report_validation_safety_case_branch_local_schema_pressure" =>
+        Map.get(pressure_fields, "branch_local_schema_pressure"),
+      "source_report_validation_safety_case_branch_local_fixture_pressure" =>
+        Map.get(pressure_fields, "branch_local_fixture_pressure")
     }
   end
 
@@ -15763,19 +15794,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> compact_map()
   end
 
-  @doc """
-  Builds a compact branch-local validation-safety-case replay summary.
-
-  The summary is derived from candidate-refresh source-report provenance. It
-  does not replay refresh generation, mutate candidates, certify safety cases,
-  approve imports, or write to Cadence.
-  """
-  def validation_safety_case_replay_summary(refresh_or_artifact) do
-    source_summary = source_report_summary(refresh_or_artifact)
-
-    safety_case_summary =
-      get_in(source_summary, ["source_reports", "validation_safety_case_summary"]) || %{}
-
+  defp validation_safety_case_replay_pressure_fields(safety_case_summary) do
     review_required_evidence_count =
       summary_integer(safety_case_summary, "review_required_evidence_count")
 
@@ -15853,8 +15872,83 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(evidence_refs_by_status, "review_required", []) != []
 
     %{
+      "branch_local_review_pressure" => review_pressure,
+      "branch_local_blocking_pressure" => blocking_pressure,
+      "branch_local_schema_pressure" => schema_pressure,
+      "branch_local_fixture_pressure" => fixture_pressure
+    }
+  end
+
+  @doc """
+  Builds a compact branch-local validation-safety-case replay summary.
+
+  The summary is derived from candidate-refresh source-report summaries,
+  preferring branch-local candidate-source summary metadata when present and
+  falling back to provenance. It does not replay refresh generation, mutate
+  candidates, certify safety cases, approve imports, or write to Cadence.
+  """
+  def validation_safety_case_replay_summary(refresh_or_artifact) do
+    source_summary = source_report_summary(refresh_or_artifact)
+
+    branch_safety_case_summary =
+      source_report_summary_branch_family(refresh_or_artifact, "validation_safety_case_summary")
+
+    safety_case_summary =
+      branch_safety_case_summary ||
+        get_in(source_summary, ["source_reports", "validation_safety_case_summary"]) || %{}
+
+    {summary_source, replay_scope} =
+      if branch_safety_case_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.validation_safety_case_summary",
+          "validation_safety_case_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.validation_safety_case_summary",
+          "validation_safety_case_source_report_provenance_only"
+        }
+      end
+
+    review_required_evidence_count =
+      summary_integer(safety_case_summary, "review_required_evidence_count")
+
+    blocked_evidence_count = summary_integer(safety_case_summary, "blocked_evidence_count")
+
+    model_review_required_count =
+      summary_integer(safety_case_summary, "model_review_required_count")
+
+    model_blocked_count = summary_integer(safety_case_summary, "model_blocked_count")
+
+    readiness_review_required_count =
+      summary_integer(safety_case_summary, "readiness_review_required_count")
+
+    readiness_blocked_count = summary_integer(safety_case_summary, "readiness_blocked_count")
+    quality_gate_review_count = summary_integer(safety_case_summary, "quality_gate_review_count")
+
+    quality_gate_blocked_count =
+      summary_integer(safety_case_summary, "quality_gate_blocked_count")
+
+    schema_error_count = summary_integer(safety_case_summary, "schema_error_count")
+    schema_warning_count = summary_integer(safety_case_summary, "schema_warning_count")
+
+    schema_validation_failed_report_count =
+      summary_integer(safety_case_summary, "schema_validation_failed_report_count")
+
+    fixture_failed_count = summary_integer(safety_case_summary, "fixture_failed_count")
+    status_counts = Map.get(safety_case_summary, "status_counts", %{})
+    evidence_status_counts = Map.get(safety_case_summary, "evidence_status_counts", %{})
+    input_contract_counts = Map.get(safety_case_summary, "input_contract_counts", %{})
+    evidence_refs_by_status = Map.get(safety_case_summary, "evidence_refs_by_status", %{})
+
+    evidence_refs_by_contract =
+      Map.get(safety_case_summary, "evidence_refs_by_contract", %{})
+
+    pressure_fields = validation_safety_case_replay_pressure_fields(safety_case_summary)
+
+    %{
       "model" => "artifact_only_candidate_refresh_validation_safety_case_replay_summary",
-      "source" => "candidate_refresh.source_report_provenance.validation_safety_case_summary",
+      "source" => summary_source,
       "contract" =>
         source_report_summary_contract(
           safety_case_summary,
@@ -15890,13 +15984,15 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "fixture_failed_count" => fixture_failed_count,
       "trust_boundary_status" => Map.get(safety_case_summary, "trust_boundary_status"),
       "trust_boundaries" => Map.get(safety_case_summary, "trust_boundaries", []),
-      "branch_local_review_pressure" => review_pressure,
-      "branch_local_blocking_pressure" => blocking_pressure,
-      "branch_local_schema_pressure" => schema_pressure,
-      "branch_local_fixture_pressure" => fixture_pressure,
+      "branch_local_review_pressure" => Map.get(pressure_fields, "branch_local_review_pressure"),
+      "branch_local_blocking_pressure" =>
+        Map.get(pressure_fields, "branch_local_blocking_pressure"),
+      "branch_local_schema_pressure" => Map.get(pressure_fields, "branch_local_schema_pressure"),
+      "branch_local_fixture_pressure" =>
+        Map.get(pressure_fields, "branch_local_fixture_pressure"),
       "assumptions" => %{
         "execution_boundary" => "artifact_only_no_refresh_replay_mutation",
-        "replay_scope" => "validation_safety_case_source_report_provenance_only",
+        "replay_scope" => replay_scope,
         "operator_authority" => "not_granted_by_validation_safety_case_replay_summary",
         "safety_case_certification" => "not_performed_by_summary",
         "model_certification" => "not_performed_by_summary",
