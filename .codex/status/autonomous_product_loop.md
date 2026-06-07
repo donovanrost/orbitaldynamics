@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Candidate-refresh candidate-diff replay branch summary routing.
+Candidate-refresh provider-counteroffer replay branch summary routing.
 
 Status:
 Implemented, verified, reviewed, and ready for mechanical commit/push.
@@ -16,7 +16,7 @@ Files changed:
 - `test/orbital_dynamics/candidate_refresh_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:2113` passed, 1
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:25833` passed, 1
   test.
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs test/orbital_dynamics/schema_test.exs`
   passed, 824 tests.
@@ -28,24 +28,24 @@ Docs/artifacts changed:
   advertised replay semantics.
 
 Level 6 pillar advanced:
-Branch-local candidate refresh depth and candidate-diff replay semantics.
+Branch-local candidate refresh depth and provider-counteroffer replay
+semantics.
 
 Remaining maturity gaps:
-`source_report_candidate_diff_branch_replay_summary` is advertised and
-`candidate_diff_replay_summary/1` derives branch-local diff, new-candidate,
-invalidated-candidate, and semantic-change pressure. This slice now exposes
-those composed candidate-diff pressure booleans on `source_report_summary/1`
-for compact consumers.
+`source_report_provider_counteroffer_branch_replay_summary` is advertised and
+`provider_counteroffer_replay_summary/1` derives branch-local review, cost,
+timing, lock, import-readiness, and plan-impact pressure. This slice now
+exposes those composed provider-counteroffer pressure booleans on
+`source_report_summary/1` for compact consumers.
 
 Last commit:
-`85a1bf1eb526d80823479b7457a18cdabb968621` pushed to `origin/main` for
-candidate-refresh candidate-rejection replay branch summary routing.
+`93b6c4f96e96a9ce390a2a98488a27f2da222098` pushed to `origin/main` for
+candidate-refresh candidate-diff replay branch summary routing.
 
 Next candidate:
 After this slice, reassess from the source-report capability catalog. Remaining
-advertised branch replay projections include provider counteroffer,
-station-calendar, contact contention, contact contention resolution, and
-readiness/validation families.
+advertised branch replay projections include station-calendar, contact
+contention, contact contention resolution, and readiness/validation families.
 
 Blocked:
 No.

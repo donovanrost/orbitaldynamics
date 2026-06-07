@@ -6885,6 +6885,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_storage_downlink_pressure_summary_fields(source_reports))
     |> Map.merge(source_report_candidate_diff_replay_summary_fields(source_reports))
     |> Map.merge(source_report_candidate_rejection_replay_summary_fields(source_reports))
+    |> Map.merge(source_report_provider_counteroffer_replay_summary_fields(source_reports))
     |> Map.merge(source_report_contact_allocation_replay_summary_fields(source_reports))
     |> Map.merge(source_report_contact_intent_replay_summary_fields(source_reports))
     |> Map.merge(source_report_link_capacity_replay_summary_fields(source_reports))
@@ -7202,6 +7203,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
+    provider_counteroffer_replay_summary_from_summary(
+      counteroffer_summary,
+      summary_source,
+      replay_scope
+    )
+  end
+
+  defp provider_counteroffer_replay_summary_from_summary(
+         counteroffer_summary,
+         summary_source,
+         replay_scope
+       ) do
     reviewable_count = summary_integer(counteroffer_summary, "reviewable_count")
     cost_delta_count = summary_integer(counteroffer_summary, "counteroffer_cost_delta_count")
     timing_shift_count = summary_integer(counteroffer_summary, "counteroffer_timing_shift_count")
@@ -9652,6 +9665,33 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "branch_local_review_pressure"),
       "source_report_candidate_rejection_branch_local_invalid_input_pressure" =>
         Map.get(summary, "branch_local_invalid_input_pressure")
+    }
+  end
+
+  defp source_report_provider_counteroffer_replay_summary_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("provider_counteroffer_report", %{})
+      |> provider_counteroffer_replay_summary_from_summary(
+        "candidate_refresh.source_report_provenance.provider_counteroffer_report",
+        "provider_counteroffer_source_report_provenance_only"
+      )
+
+    %{
+      "source_report_provider_counteroffer_branch_local_counteroffer_pressure" =>
+        Map.get(summary, "branch_local_counteroffer_pressure"),
+      "source_report_provider_counteroffer_branch_local_review_pressure" =>
+        Map.get(summary, "branch_local_counteroffer_review_pressure"),
+      "source_report_provider_counteroffer_branch_local_cost_pressure" =>
+        Map.get(summary, "branch_local_counteroffer_cost_pressure"),
+      "source_report_provider_counteroffer_branch_local_timing_pressure" =>
+        Map.get(summary, "branch_local_counteroffer_timing_pressure"),
+      "source_report_provider_counteroffer_branch_local_lock_pressure" =>
+        Map.get(summary, "branch_local_counteroffer_lock_pressure"),
+      "source_report_provider_counteroffer_branch_local_import_readiness_pressure" =>
+        Map.get(summary, "branch_local_counteroffer_import_readiness_pressure"),
+      "source_report_provider_counteroffer_branch_local_plan_impact_pressure" =>
+        Map.get(summary, "branch_local_plan_impact_pressure")
     }
   end
 

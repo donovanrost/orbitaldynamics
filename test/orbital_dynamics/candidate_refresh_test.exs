@@ -25917,6 +25917,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_provider_counteroffer_impact_counteroffer_ids" => ["offer_2"],
              "source_report_provider_counteroffer_timing_shift_counteroffer_ids" => ["offer_2"],
              "source_report_provider_counteroffer_cost_delta_counteroffer_ids" => ["offer_2"],
+             "source_report_provider_counteroffer_branch_local_counteroffer_pressure" => true,
+             "source_report_provider_counteroffer_branch_local_review_pressure" => true,
+             "source_report_provider_counteroffer_branch_local_cost_pressure" => true,
+             "source_report_provider_counteroffer_branch_local_timing_pressure" => true,
+             "source_report_provider_counteroffer_branch_local_lock_pressure" => true,
+             "source_report_provider_counteroffer_branch_local_import_readiness_pressure" =>
+               false,
+             "source_report_provider_counteroffer_branch_local_plan_impact_pressure" => true,
              "source_reports" => %{
                "provider_counteroffer_report" => %{
                  "count" => 2,
@@ -26031,7 +26039,15 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_provider_counteroffer_plan_impact_status_counts" => %{
                "review_required" => 1
              },
-             "source_report_provider_counteroffer_cost_delta_counteroffer_ids" => ["offer_2"]
+             "source_report_provider_counteroffer_cost_delta_counteroffer_ids" => ["offer_2"],
+             "source_report_provider_counteroffer_branch_local_counteroffer_pressure" => true,
+             "source_report_provider_counteroffer_branch_local_review_pressure" => true,
+             "source_report_provider_counteroffer_branch_local_cost_pressure" => true,
+             "source_report_provider_counteroffer_branch_local_timing_pressure" => true,
+             "source_report_provider_counteroffer_branch_local_lock_pressure" => true,
+             "source_report_provider_counteroffer_branch_local_import_readiness_pressure" =>
+               false,
+             "source_report_provider_counteroffer_branch_local_plan_impact_pressure" => true
            } = CandidateRefresh.source_report_summary(artifact)
 
     assert CandidateRefresh.provider_counteroffer_replay_summary(artifact) == replay_summary
