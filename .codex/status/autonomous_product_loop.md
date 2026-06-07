@@ -8,7 +8,7 @@ Current slice:
 Link capacity artifact capability assumptions.
 
 Status:
-Implemented, verified, reviewed, and ready to commit.
+Implemented, verified, reviewed, committed, and pushed.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -84,8 +84,8 @@ Remaining maturity gaps:
   separate future slices.
 
 Last commit:
-`754d1d88d6d7c606f09738e240ca3d319d91e605` pushed to `origin/main` for the
-completed Contact intent summary capacity alias assumptions handoff.
+`e79e52c7757fe121cfee6cbc259050c563aa62af` pushed to `origin/main` for Link
+capacity artifact capability assumptions.
 
 Next candidate:
 After review/publish, continue from the live guide/status and prefer another
