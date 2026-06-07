@@ -8,7 +8,7 @@ Current slice:
 Contact allocation reservation-conflict capability assumptions.
 
 Status:
-Implemented, verified, and reviewed; publish pending.
+Implemented, verified, reviewed, and committed; push pending.
 
 Slice completed:
 Reservation-conflict summaries now carry optional capability-derived
@@ -43,7 +43,7 @@ consts, stale-present rejection, omitted-optional compatibility, and no expanded
 authority boundary.
 
 Product commit:
-Pending.
+`b4df86d` (`Add reservation conflict summary capability assumptions`).
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
