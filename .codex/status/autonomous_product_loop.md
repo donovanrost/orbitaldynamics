@@ -8,7 +8,7 @@ Current slice:
 Subsystem storage model capability record.
 
 Status:
-Implemented, verified, and reviewed; ready to commit and push.
+Implemented, verified, reviewed, committed, and pushed.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -84,8 +84,8 @@ Remaining maturity gaps:
   future work.
 
 Last commit:
-`35a1ba0af94842b9fc47dfcd358d9a7f01f18b84` pushed to `origin/main` for the
-previous subsystem model capability contract foothold handoff.
+`6d51b175c3ecf852c40e1795864da44be288cdee` pushed to `origin/main` for
+Subsystem storage model capability record.
 
 Next candidate:
 After this slice, continue from the live guide/status and prefer another narrow
