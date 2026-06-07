@@ -5,97 +5,90 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Link-capacity report optional-field validity and fixture coverage.
+Contact-filter full report fixture exact regeneration through the public facade.
 
 Status:
 Implemented, verified, and reviewed; ready for commit/push.
 
 Files expected:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/communications/link_capacity.ex`
-- `test/orbital_dynamics/communications/link_capacity_test.exs`
-- `test/orbital_dynamics/schema_test.exs`
 - `docs/artifacts/compatibility_checks.md`
-- `study_results/link_capacity_report_v1.json`
+- `lib/orbital_dynamics/schema.ex`
+- `schemas/candidate_refresh.v1.schema.json`
+- `schemas/contact_allocation_capacity_pack_summary.v1.schema.json`
+- `schemas/contact_allocation_provider_reservation_request_summary.v1.schema.json`
+- `schemas/contact_allocation_report.v1.schema.json`
+- `schemas/contact_allocation_reservation_conflict_summary.v1.schema.json`
+- `schemas/contact_allocation_station_pressure_summary.v1.schema.json`
+- `schemas/contact_allocation_summary.v1.schema.json`
+- `schemas/orbital_dynamics.schema_bundle.v1.json`
+- `study_results/contact_filter_report_v1.json`
+- `test/orbital_dynamics/schema_test.exs`
 
 Slice-selection note:
-Selected after contact allocation capacity-pack fixture coverage was pushed at
-`ff1aa7f7b56ec893e6c57da1b7d0c465ba4489b3` and live reassessment stayed in the
+Selected after link-capacity report fixture coverage was pushed at
+`f345e93c2829f05d2dc1f5bd9de25498ab79b6a9` and live reassessment stayed in the
 guide's resource and communications allocation queue. A no-edit probe showed
-`OrbitalDynamics.link_capacity_report/3` emits present-but-`nil` optional
-requirement, actual-throughput, completion, reservation-match, and derivation
-fields for a simple fixed-rate downlink report with no explicit downlink
-requirement or realized selected contact. The generated artifact fails
-`link_capacity_report.v1` validation even though the checked-in full report
-fixture validates by omitting those absent optional fields. This is a narrow
-public-facade contract fix plus fixture coverage slice; it does not model link
-budgets, reserve provider time, write Cadence, import artifacts, execute
-commands, or mutate schedules.
+the checked-in `study_results/contact_filter_report_v1.json` validates, but
+current `OrbitalDynamics.contact_filter_report/2` generates a schema-valid
+report with current row-derived fields that does not match the fixture. This is
+a narrow public-facade fixture coverage slice; it does not reserve provider
+time, mutate schedules, execute commands, import artifacts, or write Cadence.
 
 Definition of done:
-- Make `OrbitalDynamics.link_capacity_report/3` and `LinkCapacity.report/3`
-  produce schema-valid `link_capacity_report.v1` output when optional downlink
-  requirement, realized throughput/completion, reservation-match, or derivation
-  evidence is absent.
-- Add focused communications coverage proving the public facade output validates
-  for the no-requirement/no-realized-data case.
-- Add focused schema coverage proving `study_results/link_capacity_report_v1.json`
-  exact-regenerates through the public facade from deterministic fixed-rate
-  contact input, then validates.
-- Refresh the checked-in full link-capacity fixture if current runtime output
-  adds valid optional counters or assumptions, preserving fixed-rate
-  capacity-adjusted throughput math and artifact-only no-link-budget/no-provider-
-  reservation/no-schedule-mutation boundaries.
-- Update compatibility docs to name the facade validity fix and exact full
-  report regeneration check.
-- Run focused link-capacity/schema tests, schema lint for the refreshed fixture,
-  read-only review, and commit/push only this slice's files.
+- Refresh `study_results/contact_filter_report_v1.json` mechanically through
+  `OrbitalDynamics.contact_filter_report/2` from deterministic contact and
+  ground-network input.
+- Add focused schema coverage that exact-compares the checked-in fixture against
+  public-facade output before schema validation and pins current row-derived
+  counters, reservation-match routing, trust-boundary routing, and model limits.
+- Update compatibility docs to name the exact full report regeneration check and
+  artifact-only no-provider-reservation/no-schedule-mutation/no-Cadence-write
+  boundary.
+- Run focused schema/contact-filter tests, schema lint for the refreshed
+  fixture, read-only review, and commit/push only this slice's files.
 
 Implementation notes:
-- Applied the existing link-capacity row compaction behavior to the top-level
-  `link_capacity_report.v1` map so absent optional requirement,
-  actual-throughput, completion, reservation-match, and derivation fields are
-  omitted instead of emitted as present `nil` values.
-- Refreshed `study_results/link_capacity_report_v1.json` mechanically from
-  public `OrbitalDynamics.link_capacity_report/3` output using one
-  deterministic fixed-rate downlink contact with declared station capacity.
-- Added focused communications coverage proving public facade output validates
-  for a no-requirement/no-realized-data report and contains no top-level nil
-  optional values.
-- Added focused schema-test coverage that exact-compares the checked-in full
-  link-capacity fixture against public-facade output before schema validation,
-  pinning fixed-rate capacity-adjusted throughput math, current optional
-  counters, station capacity evidence, model limits, and artifact-only
-  no-link-budget/no-provider-reservation/no-schedule-mutation assumptions.
-- Updated compatibility docs to name the facade validity fix and exact full
-  report regeneration check.
+- Refreshed `study_results/contact_filter_report_v1.json` mechanically from
+  `OrbitalDynamics.contact_filter_report/2` using deterministic unavailable
+  downlink, unavailable tracking, and reserved downlink inputs.
+- Added focused schema coverage exact-comparing the checked-in full
+  contact-filter report against public-facade output before schema validation,
+  pinning row-derived suppression counts, reservation-match routing,
+  trust-boundary routing, current row evidence, and model limits.
+- Added contact-allocation row schema visibility for emitted
+  `station_calendar_provider_id` and `station_calendar_provider_entry_id`
+  fields discovered by the schema-visible sweep, then refreshed checked-in
+  schema exports and bundle.
+- Updated compatibility docs with the exact regeneration check and artifact-only
+  no-provider-reservation/no-schedule-mutation/no-Cadence-write boundary.
 
 Verification:
-- `mix format lib/orbital_dynamics/communications/link_capacity.ex test/orbital_dynamics/communications/link_capacity_test.exs test/orbital_dynamics/schema_test.exs`
-- `mix test test/orbital_dynamics/communications/link_capacity_test.exs:4466`
+- `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/schema_test.exs`
+- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - `mix test test/orbital_dynamics/schema_test.exs:3644`
-- `mix test test/orbital_dynamics/schema_test.exs:3728`
-- `mix test test/orbital_dynamics/schema_test.exs:29137`
-- `mix orbital_dynamics.schema.lint --input study_results/link_capacity_report_v1.json --contract link_capacity_report.v1`
+- `mix test test/orbital_dynamics/schema_test.exs:3869`
+- `mix test test/orbital_dynamics/schema_test.exs:22226`
+- `mix test test/orbital_dynamics/schema_test.exs:29866`
+- `mix test test/orbital_dynamics/schema_test.exs:29879`
+- `mix test test/orbital_dynamics/communications/contact_filter_test.exs:2025`
+- `mix orbital_dynamics.schema.lint --input study_results/contact_filter_report_v1.json --contract contact_filter_report.v1`
 - `mix orbital_dynamics.schema.lint --all`
-- `git diff --check -- .codex/status/autonomous_product_loop.md docs/artifacts/compatibility_checks.md lib/orbital_dynamics/communications/link_capacity.ex study_results/link_capacity_report_v1.json test/orbital_dynamics/communications/link_capacity_test.exs test/orbital_dynamics/schema_test.exs`
+- `git diff --check -- .codex/status/autonomous_product_loop.md docs/artifacts/compatibility_checks.md lib/orbital_dynamics/schema.ex schemas study_results/contact_filter_report_v1.json test/orbital_dynamics/schema_test.exs`
 
 Review:
-- Read-only review sidecar `019ea23a-795c-7671-9b8b-fa82663f1f57` found no
-  correctness issues. It confirmed top-level `compact_map/1` removes invalid
-  present-`nil` optional fields while required report fields remain populated,
-  and that the public facade and checked-in full fixture tests cover the
-  no-requirement/no-realized-data case.
-- The reviewer noted a low docs improvement: the link-capacity compatibility
-  paragraph did not explicitly carry the no-Cadence-write boundary. Fixed by
-  adding artifact-only no-link-budget/no-provider-reservation/no-schedule-
-  mutation/no-Cadence-write wording to the paragraph.
-- The reviewer also noted the publish risk that unrelated `.gitignore` remains
-  dirty; staging for this slice stays path-scoped and excludes `.gitignore`.
+- Read-only review sidecar `019ea247-fe73-7db1-aa30-3446d65a49e2` found no
+  must-fix correctness issues.
+- It confirmed the refreshed fixture is generated through the public facade,
+  the contact-allocation schema visibility fix is scoped to optional fields
+  already emitted by runtime rows, and the standalone, embedded, and bundle
+  exports carry those fields.
+- Residual risk is low and limited to the exact-facade-output fixture remaining
+  intentional.
 
 Last commit:
-`ff1aa7f7b56ec893e6c57da1b7d0c465ba4489b3` pushed to `origin/main` for contact
-allocation capacity-pack report fixture coverage.
+`f345e93c2829f05d2dc1f5bd9de25498ab79b6a9` pushed to `origin/main` for
+link-capacity report optional-field validity and fixture coverage.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is

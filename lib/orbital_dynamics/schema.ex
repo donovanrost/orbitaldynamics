@@ -18248,6 +18248,11 @@ defmodule OrbitalDynamics.Schema do
         "station_calendar_precedence_rank" => %{"type" => "integer", "minimum" => 0},
         "station_calendar_precedence_availability" => %{"type" => "string"},
         "station_calendar_entry_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "station_calendar_provider_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
+        "station_calendar_provider_entry_id" => %{
+          "type" => "string",
+          "pattern" => @stable_id_pattern
+        },
         "station_calendar_directions" => string_array_schema(),
         "station_calendar_trust_boundary_status" => %{"type" => "string"},
         "trust_boundary" => %{"type" => "string"},

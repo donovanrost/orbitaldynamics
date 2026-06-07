@@ -1217,7 +1217,13 @@ maps, station availability maps, and model-limit boundaries. Executable
 validation rejects stale kept/suppressed counts, invalid contact-input IDs, and
 reservation match-status maps that no longer match suppressed candidates,
 rejects stale contact-filter model strings, and exports the same model constant
-used by generated contact-filter reports.
+used by generated contact-filter reports. Focused schema-reference coverage also
+exact-regenerates the checked-in full report through
+`OrbitalDynamics.contact_filter_report/2` from deterministic contact candidates
+and declared ground-network rows before schema validation, pinning current
+direction, trust-boundary, reservation-match, and suppression-reason routing.
+The full report fixture remains an artifact-only no-provider-reservation/no-
+schedule-mutation/no-Cadence-write handoff.
 `study_results/contact_contention_report_v1.json` and
 `study_results/contact_contention_resolution_report_v1.json` are observed for
 conflict/recommendation counts, row-derived scalar

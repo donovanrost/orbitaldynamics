@@ -3641,6 +3641,149 @@ defmodule OrbitalDynamics.SchemaTest do
     assert Enum.any?(import_report["errors"], &(&1["path"] == "$.cadence_import.external_id"))
   end
 
+  test "validates checked-in contact filter report fixture regenerates through public facade" do
+    report = read_json!("study_results/contact_filter_report_v1.json")
+
+    candidates = [
+      %{
+        id: :leo_1_downlink_equator_prime_1,
+        type: :downlink,
+        scenario_id: :leo_1,
+        ground_station_id: :equator_prime,
+        source_window_id: :"window:leo_1:ground_station_access:equator_prime:1",
+        starts_at_s: 100.0,
+        ends_at_s: 160.0
+      },
+      %{
+        id: :leo_1_tracking_equator_prime_1,
+        type: :tracking,
+        scenario_id: :leo_1,
+        ground_station_id: :equator_prime,
+        source_window_id: :"window:leo_1:ground_station_access:equator_prime:tracking:1",
+        starts_at_s: 100.0,
+        ends_at_s: 160.0
+      },
+      %{
+        id: :leo_2_downlink_polar_north_1,
+        type: :downlink,
+        scenario_id: :leo_2,
+        ground_station_id: :polar_north,
+        source_window_id: :"window:leo_2:ground_station_access:polar_north:1",
+        starts_at_s: 220.0,
+        ends_at_s: 300.0
+      }
+    ]
+
+    ground_network = [
+      %{
+        ground_station_id: :equator_prime,
+        status: :unavailable,
+        starts_at_s: 90.0,
+        ends_at_s: 170.0
+      },
+      %{
+        ground_station_id: :polar_north,
+        status: :reserved,
+        starts_at_s: 200.0,
+        ends_at_s: 320.0,
+        reservation_id: :"reservation:polar_north:1",
+        reserved_by: :provider_calendar,
+        reservation_status: :reserved
+      }
+    ]
+
+    generated_report = OrbitalDynamics.contact_filter_report(candidates, ground_network)
+
+    assert generated_report == report
+
+    assert {:ok, %{"schema_contract" => "contact_filter_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert report["model"] == "thin_ground_network_availability_filter"
+
+    assert report["model_limits"] == [
+             "artifact_level_only",
+             "externally_supplied_ground_network",
+             "no_provider_reservation",
+             "no_schedule_mutation",
+             "no_link_budget_model"
+           ]
+
+    assert %{
+             "input_candidate_count" => 3,
+             "kept_candidate_count" => 0,
+             "suppressed_candidate_count" => 3,
+             "invalid_contact_input_count" => 0,
+             "duplicate_suppressed_candidate_id_count" => 0,
+             "duplicate_suppressed_candidate_row_count" => 0,
+             "suppression_reason_counts" => %{
+               "ground_station_reserved" => 1,
+               "ground_station_unavailable" => 2
+             },
+             "station_reservation_match_status_counts" => %{"overlap" => 1},
+             "station_calendar_trust_boundary_status_counts" => %{"missing" => 3}
+           } = report
+
+    assert report["suppressed_candidate_ids_by_reason"] == %{
+             "ground_station_reserved" => ["leo_2_downlink_polar_north_1"],
+             "ground_station_unavailable" => [
+               "leo_1_downlink_equator_prime_1",
+               "leo_1_tracking_equator_prime_1"
+             ]
+           }
+
+    assert report["suppressed_candidate_ids_by_reservation_match_status"] == %{
+             "overlap" => ["leo_2_downlink_polar_north_1"]
+           }
+
+    assert report["suppressed_candidate_ids_by_station_calendar_trust_boundary_status"] == %{
+             "missing" => [
+               "leo_1_downlink_equator_prime_1",
+               "leo_1_tracking_equator_prime_1",
+               "leo_2_downlink_polar_north_1"
+             ]
+           }
+
+    rows_by_id = Map.new(report["suppressed_candidates"], &{&1["id"], &1})
+
+    assert %{
+             "type" => "downlink",
+             "direction" => "downlink",
+             "spacecraft_id" => "leo_1",
+             "ground_station_id" => "equator_prime",
+             "suppressed_reason" => "ground_station_unavailable",
+             "station_availability" => "unavailable",
+             "station_calendar_trust_boundary_status" => "missing",
+             "source_station_calendar_entry" => %{"status" => "unavailable"}
+           } = rows_by_id["leo_1_downlink_equator_prime_1"]
+
+    assert %{
+             "type" => "tracking",
+             "direction" => "tracking",
+             "suppressed_reason" => "ground_station_unavailable",
+             "station_availability" => "unavailable",
+             "station_calendar_trust_boundary_status" => "missing"
+           } = rows_by_id["leo_1_tracking_equator_prime_1"]
+
+    assert %{
+             "type" => "downlink",
+             "direction" => "downlink",
+             "spacecraft_id" => "leo_2",
+             "ground_station_id" => "polar_north",
+             "suppressed_reason" => "ground_station_reserved",
+             "station_availability" => "reserved",
+             "station_contention_status" => "reserved_overlap",
+             "station_reservation_id" => "reservation:polar_north:1",
+             "station_reservation_match_status" => "overlap",
+             "station_reservation_status" => "reserved",
+             "station_reserved_by" => "provider_calendar",
+             "station_calendar_reservation_ids" => ["reservation:polar_north:1"],
+             "station_calendar_reservation_overlap_count" => 1,
+             "station_calendar_reservation_statuses" => ["reserved"],
+             "station_calendar_reserved_by" => ["provider_calendar"]
+           } = rows_by_id["leo_2_downlink_polar_north_1"]
+  end
+
   test "validates checked-in link capacity report fixture regenerates through public facade" do
     report = read_json!("study_results/link_capacity_report_v1.json")
 
@@ -22089,6 +22232,20 @@ defmodule OrbitalDynamics.SchemaTest do
                  stable_id_pattern
       end
     )
+
+    allocation_row_schema = get_in(allocation_schema, ["properties", "rows", "items"])
+
+    assert get_in(allocation_row_schema, [
+             "properties",
+             "station_calendar_provider_id",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(allocation_row_schema, [
+             "properties",
+             "station_calendar_provider_entry_id",
+             "pattern"
+           ]) == stable_id_pattern
 
     pack_group_schema =
       get_in(allocation_schema, ["properties", "reduced_capacity_pack_groups", "items"])
