@@ -841,6 +841,104 @@ defmodule OrbitalDynamics.SchemaTest do
            } = resolution_report
   end
 
+  test "validates checked-in cross-station contact contention challenge fixture" do
+    report = read_json!("study_results/contact_contention_cross_station_spacecraft_v1.json")
+
+    contacts = [
+      %{
+        id: :dl_equator,
+        type: :downlink,
+        scenario_id: :leo_1,
+        spacecraft_id: :sat_1,
+        ground_station_id: :equator_prime,
+        starts_at_s: 100.0,
+        ends_at_s: 160.0,
+        score: 8.0
+      },
+      %{
+        id: :dl_dsn,
+        type: :downlink,
+        scenario_id: :leo_1,
+        spacecraft_id: :sat_1,
+        ground_station_id: :deep_space_net,
+        starts_at_s: 120.0,
+        ends_at_s: 170.0,
+        score: 10.0
+      },
+      %{
+        id: :dl_other_spacecraft,
+        type: :downlink,
+        scenario_id: :leo_1,
+        spacecraft_id: :sat_2,
+        ground_station_id: :polar_aux,
+        starts_at_s: 125.0,
+        ends_at_s: 155.0,
+        score: 7.0
+      }
+    ]
+
+    generated_report =
+      OrbitalDynamics.contact_contention_report(
+        contacts,
+        source: "generated_cross_station_spacecraft_contention_fixture"
+      )
+
+    assert generated_report == report
+
+    assert {:ok, %{"schema_contract" => "contact_contention_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert %{
+             "schema_contract" => "contact_contention_report.v1",
+             "model" => "single_station_interval_overlap",
+             "input_contact_count" => 3,
+             "conflict_group_count" => 1,
+             "conflicted_contact_count" => 2,
+             "duplicate_contact_candidate_count" => 0,
+             "invalid_contact_input_count" => 0,
+             "model_limits" => [
+               "artifact_level_only",
+               "no_provider_reservation",
+               "no_candidate_suppression",
+               "no_schedule_mutation",
+               "no_link_budget_model"
+             ],
+             "conflict_groups" => [
+               %{
+                 "id" => "spacecraft:sat_1:contention:1",
+                 "resource_scope" => "spacecraft",
+                 "ground_station_id" => "multi_station",
+                 "ground_station_ids" => ["deep_space_net", "equator_prime"],
+                 "spacecraft_id" => "sat_1",
+                 "spacecraft_ids" => ["sat_1"],
+                 "contact_ids" => ["dl_equator", "dl_dsn"],
+                 "direction" => "downlink",
+                 "directions" => ["downlink"],
+                 "required_operator_action" => "review_contact_contention",
+                 "operator_action_reason" => "same_spacecraft_overlapping_contact_windows",
+                 "approval_status" => "operator_review_required",
+                 "contention_window_s" => 70.0,
+                 "overlap_duration_s" => 40.0,
+                 "max_concurrent_contacts" => 2,
+                 "overlap_contact_pair_count" => 1
+               }
+             ],
+             "assumptions" => %{
+               "resolution" => "report_only_no_candidate_suppression"
+             }
+           } = report
+
+    assert %{
+             "resource_scope_counts" => %{"spacecraft" => 1},
+             "conflict_group_ids_by_resource_scope" => %{
+               "spacecraft" => ["spacecraft:sat_1:contention:1"]
+             },
+             "required_operator_action_counts" => %{
+               "review_contact_contention" => 1
+             }
+           } = Validation.artifact_observations("contact_contention_report.v1", report)
+  end
+
   test "validates checked-in optimizer and objective explanation examples" do
     optimizer_contract = read_json!("study_results/optimizer_contract_v1.json")
     ranking_comparison_report = read_json!("study_results/ranking_comparison_report_v1.json")

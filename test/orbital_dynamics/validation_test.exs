@@ -9274,6 +9274,11 @@ defmodule OrbitalDynamics.ValidationTest do
 
     report = contact_contention_cross_station_fixture()
 
+    checked_in_report =
+      read_json!("study_results/contact_contention_cross_station_spacecraft_v1.json")
+
+    assert checked_in_report == report
+
     assert {:ok, %{"schema_contract" => "contact_contention_report.v1"}} =
              Schema.validate_artifact(report,
                schema_contract: "contact_contention_report.v1"

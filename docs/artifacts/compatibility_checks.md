@@ -1041,11 +1041,13 @@ stale contact-contention resolution report model strings and exports the same
 recommendation model constant used by generated resolution reports. Resolution
 summary validation rejects stale summary model strings plus stale generated
 `model_limits`, and exports the artifact-only summary model constant plus exact
-`model_limits` used by generated handoffs. The
-validation-reference registry also includes a generated cross-station
-same-spacecraft contention challenge fixture, so spacecraft-scope contention
-routing and row-derived resource-scope maps are checked without
-provider reservation, schedule mutation, or candidate suppression.
+`model_limits` used by generated handoffs. The validation-reference registry
+and checked-in
+`study_results/contact_contention_cross_station_spacecraft_v1.json` fixture
+also include a generated cross-station same-spacecraft contention challenge, so
+spacecraft-scope contention routing and row-derived resource-scope maps are
+checked without provider reservation, schedule mutation, or candidate
+suppression.
 Candidate-refresh validation fixtures replay that same generated contention
 challenge through source-report provenance, pinning branch-local resource-scope,
 direction, contact-ID, and operator-action summaries without performing contact

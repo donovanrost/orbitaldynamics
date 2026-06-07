@@ -5,81 +5,81 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Contact-allocation provider-reservation request fixture.
+Cross-station contact-contention challenge fixture.
 
 Status:
 Implemented, verified, and reviewed; ready for commit/push.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `study_results/contact_allocation_provider_reservation_request_summary_v1.json`
+- `study_results/contact_contention_cross_station_spacecraft_v1.json`
 - `test/orbital_dynamics/schema_test.exs`
+- `test/orbital_dynamics/validation_test.exs`
 - `docs/artifacts/compatibility_checks.md`
 
 Slice-selection note:
-Selected after the unavailable-resource quality-gate fixture slice was pushed
-at `7270c70059619d11ece36c2292a3e688a5d8e292` and live reassessment of the
-resource/communications queue. Contact-allocation provider-reservation request
-summaries are implemented, validation-reference registry coverage exists, and
-docs describe request, review, no-request, and direction-routing checks. The
-`study_results/` examples include the base contact-allocation fixture and
-capacity-pack fixture, but not the schema-visible
-`contact_allocation_provider_reservation_request_summary.v1` compact handoff.
-This leaves provider-reservation request routing without the same checked-in
-example/lint coverage as neighboring allocation summaries. The slice is
-fixture/reference hardening only: add a non-empty checked-in provider-request
-summary generated through the public facade and verify it without reserving
-provider time, mutating schedules, or granting operator authority.
+Selected after the provider-reservation request fixture slice was pushed at
+`290c9fafcbe0aae90ac0ff52ba633272fcac82a8` and live reassessment of the
+resource/communications queue. The contact-contention family has checked-in
+base report and resolution report fixtures, and the validation-reference
+registry includes a generated cross-station same-spacecraft contention
+challenge. That challenge exercises spacecraft-scope conflict routing and
+row-derived resource-scope maps, but it is generated only inside validation
+tests and has no checked-in `study_results/` example. This slice is
+fixture/reference hardening only: add the cross-station spacecraft contention
+challenge as a checked-in artifact generated through the existing public
+contention facade, without changing allocation, provider reservation, schedule
+mutation, candidate suppression, import approval, or Cadence writes.
 
 Definition of done:
 - Add a checked-in
-  `study_results/contact_allocation_provider_reservation_request_summary_v1.json`
-  with request-ready, review-required, and no-request rows.
+  `study_results/contact_contention_cross_station_spacecraft_v1.json` with a
+  same-spacecraft, cross-station contention row.
 - Add focused schema/reference coverage proving the fixture validates and
-  regenerates from the public provider-reservation request summary facade,
-  preserving request/review/no-request counts, contact-ID maps, direction maps,
-  reservation-ID maps, and no-provider-write assumptions.
+  regenerates from the public contact-contention facade, preserving
+  spacecraft-scope resource routing, direction/contact maps, operator-action
+  routing, and artifact-only assumptions.
 - Update compatibility docs to name the checked-in fixture path alongside the
-  validation-reference registry entry.
+  validation-reference registry challenge.
 - Run focused schema/reference tests, schema lint for the new fixture, read-only
   review, and commit/push only this slice's files.
 
 Implementation notes:
 - Added the checked-in
-  `study_results/contact_allocation_provider_reservation_request_summary_v1.json`
-  fixture generated through
-  `OrbitalDynamics.contact_allocation_provider_reservation_request_summary/3`.
-- Covered request-ready, review-required, and no-request routing with contact
-  IDs, direction maps, match-status reservation IDs, and explicit artifact-only
-  no-provider-write assumptions.
-- Extended compatibility docs to name the checked-in fixture path alongside the
-  validation-reference registry coverage, and tightened the provider-reservation
-  boundary wording so the artifact is explicitly not provider-write,
-  schedule-mutation, or operator-authority output.
+  `study_results/contact_contention_cross_station_spacecraft_v1.json` fixture
+  generated through `OrbitalDynamics.contact_contention_report/2`.
+- Added focused schema coverage that regenerates the fixture from the public
+  facade, validates it, and asserts same-spacecraft cross-station conflict
+  routing, spacecraft resource scope, operator action, model limits, and
+  no-suppression assumptions.
+- Extended the existing validation-reference challenge test so its generated
+  fixture must match the checked-in artifact.
+- Updated compatibility docs to name the checked-in fixture path alongside the
+  validation-reference registry challenge.
 
 Tests run:
-- `mix test test/orbital_dynamics/schema_test.exs:16638`
+- `mix test test/orbital_dynamics/schema_test.exs:844`
+  passed, 1 test after correcting the new assertion to the actual
+  `Validation.artifact_observations/2` contention-report surface.
+- `mix test test/orbital_dynamics/validation_test.exs:9267`
   passed, 1 test.
-- `mix test test/orbital_dynamics/schema_test.exs:16519`
-  passed, 1 test.
-- `mix test test/orbital_dynamics/validation_test.exs:8851`
-  passed, 1 test.
-- `mix orbital_dynamics.schema.lint --input study_results/contact_allocation_provider_reservation_request_summary_v1.json --contract contact_allocation_provider_reservation_request_summary.v1`
+- `mix orbital_dynamics.schema.lint --input study_results/contact_contention_cross_station_spacecraft_v1.json --contract contact_contention_report.v1`
   passed with 0 errors and 0 warnings.
 - `git diff --check`
   passed.
 
 Review:
-- Read-only review sidecar `019ea149-18a5-7062-8fe1-e760f3e0512a`
-  reported no must-fix findings. It confirmed the fixture regenerates through
-  the public facade, validates against the schema, and preserves the no provider
-  reservation, no schedule mutation, and no operator authority boundary. The
-  reviewer noted one easy-to-misread existing phrase around provider-write
-  treatment; this slice tightened that wording in the touched docs paragraph.
+- Read-only review sidecar `019ea150-0aab-7830-b661-1947103a7004`
+  reported no must-fix findings. It confirmed the checked-in fixture
+  regenerates through `OrbitalDynamics.contact_contention_report/2`, validates
+  against `contact_contention_report.v1`, and is tied to the existing
+  validation-reference challenge. It also confirmed the docs do not imply
+  allocation, provider reservation, schedule mutation, candidate suppression,
+  import approval, or Cadence writes.
 
 Last commit:
-`7270c70059619d11ece36c2292a3e688a5d8e292` pushed to `origin/main` for
-operational quality-gate unavailable-resource fixture coverage.
+`290c9fafcbe0aae90ac0ff52ba633272fcac82a8` pushed to `origin/main` for
+provider-reservation request fixture coverage.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
