@@ -8,7 +8,7 @@ Current slice:
 Resource flow subsystem model capability references.
 
 Status:
-Implemented, verified, and reviewed; ready to commit and push.
+Implemented, verified, reviewed, committed, and pushed.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -78,8 +78,8 @@ Remaining maturity gaps:
   future work.
 
 Last commit:
-`d133f0fb43090760ce5a55a9cde20cf065516d3b` pushed to `origin/main` for the
-previous subsystem storage model capability handoff.
+`c7d81326a2b0a7f171d1fce2e0e17ee1fa10122f` pushed to `origin/main` for
+Resource flow subsystem model capability references.
 
 Next candidate:
 After this slice, continue from the live guide/status and prefer another narrow
