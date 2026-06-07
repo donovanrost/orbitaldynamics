@@ -195,6 +195,9 @@ that omit it.
 It also advertises the reservation match, reservation-conflict, and
 reservation-expiration status vocabularies used by reservation-conflict
 summaries, keeping that routing artifact-only rather than provider authority.
+Reservation-conflict summaries carry those vocabularies plus provider direction
+aliases in optional assumptions so stale present metadata is schema-checkable
+without rejecting older summaries that omit it.
 Provider-reservation request summaries carry the capability-declared
 request-status vocabulary, station-reservation match statuses, and provider
 direction aliases in optional assumptions so adapter handoffs can validate

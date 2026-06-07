@@ -14615,6 +14615,14 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(
+         "assumptions",
+         @contact_allocation_reservation_conflict_summary,
+         _contract
+       ) do
+    contact_allocation_reservation_conflict_summary_assumptions_json_schema()
+  end
+
+  defp json_schema_property(
          field,
          @contact_allocation_reservation_conflict_summary,
          _contract
@@ -19960,6 +19968,16 @@ defmodule OrbitalDynamics.Schema do
     |> Map.fetch!(:station_reservation_match_statuses)
   end
 
+  defp contact_allocation_reservation_conflict_match_statuses do
+    OrbitalDynamics.Communications.ContactAllocation.capabilities()
+    |> Map.fetch!(:reservation_conflict_match_statuses)
+  end
+
+  defp contact_allocation_station_reservation_expiration_statuses do
+    OrbitalDynamics.Communications.ContactAllocation.capabilities()
+    |> Map.fetch!(:station_reservation_expiration_statuses)
+  end
+
   defp contact_allocation_provider_reservation_request_statuses do
     OrbitalDynamics.Communications.ContactAllocation.capabilities()
     |> Map.fetch!(:provider_reservation_request_statuses)
@@ -20053,6 +20071,54 @@ defmodule OrbitalDynamics.Schema do
           "type" => "array",
           "const" => contact_allocation_default_required_capacity_value_path_assumptions(),
           "items" => contact_allocation_capacity_value_path_json_schema()
+        }
+      }
+    }
+  end
+
+  defp contact_allocation_reservation_conflict_summary_assumptions_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => ["execution_boundary", "source", "operator_authority"],
+      "properties" => %{
+        "execution_boundary" => %{
+          "type" => "string",
+          "const" => "artifact_only_no_provider_reservation_or_schedule_mutation"
+        },
+        "source" => %{"type" => "string", "const" => "contact_allocation_report.v1"},
+        "operator_authority" => %{
+          "type" => "string",
+          "const" => "not_granted_by_reservation_conflict_summary"
+        },
+        "station_reservation_match_statuses" => %{
+          "type" => "array",
+          "const" => contact_allocation_station_reservation_match_statuses(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_allocation_station_reservation_match_statuses()
+          }
+        },
+        "reservation_conflict_match_statuses" => %{
+          "type" => "array",
+          "const" => contact_allocation_reservation_conflict_match_statuses(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_allocation_reservation_conflict_match_statuses()
+          }
+        },
+        "station_reservation_expiration_statuses" => %{
+          "type" => "array",
+          "const" => contact_allocation_station_reservation_expiration_statuses(),
+          "items" => %{
+            "type" => "string",
+            "enum" => contact_allocation_station_reservation_expiration_statuses()
+          }
+        },
+        "provider_direction_aliases" => %{
+          "type" => "object",
+          "const" => contact_allocation_provider_direction_aliases(),
+          "additionalProperties" => %{"type" => "string"}
         }
       }
     }
@@ -50249,6 +50315,34 @@ defmodule OrbitalDynamics.Schema do
           assumptions,
           "operator_authority",
           "not_granted_by_reservation_conflict_summary"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_reservation_match_statuses",
+          contact_allocation_station_reservation_match_statuses(),
+          "must match ContactAllocation station reservation match statuses"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "reservation_conflict_match_statuses",
+          contact_allocation_reservation_conflict_match_statuses(),
+          "must match ContactAllocation reservation conflict match statuses"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_reservation_expiration_statuses",
+          contact_allocation_station_reservation_expiration_statuses(),
+          "must match ContactAllocation station reservation expiration statuses"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "provider_direction_aliases",
+          contact_allocation_provider_direction_aliases(),
+          "must match ContactAllocation provider direction aliases"
         )
 
       _assumptions ->

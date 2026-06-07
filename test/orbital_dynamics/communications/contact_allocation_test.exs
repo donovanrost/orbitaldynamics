@@ -2259,6 +2259,21 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
 
     summary = ContactAllocation.reservation_conflict_summary(report, now_s: 400.0)
 
+    expected_capability_assumptions =
+      contact_allocation_reservation_conflict_capability_assumptions()
+
+    expected_station_reservation_match_statuses =
+      expected_capability_assumptions["station_reservation_match_statuses"]
+
+    expected_reservation_conflict_match_statuses =
+      expected_capability_assumptions["reservation_conflict_match_statuses"]
+
+    expected_station_reservation_expiration_statuses =
+      expected_capability_assumptions["station_reservation_expiration_statuses"]
+
+    expected_provider_direction_aliases =
+      expected_capability_assumptions["provider_direction_aliases"]
+
     assert %{
              "schema_contract" => "contact_allocation_reservation_conflict_summary.v1",
              "model" => "artifact_only_contact_allocation_reservation_conflict_summary",
@@ -2325,7 +2340,14 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
                "execution_boundary" =>
                  "artifact_only_no_provider_reservation_or_schedule_mutation",
                "source" => "contact_allocation_report.v1",
-               "operator_authority" => "not_granted_by_reservation_conflict_summary"
+               "operator_authority" => "not_granted_by_reservation_conflict_summary",
+               "station_reservation_match_statuses" =>
+                 ^expected_station_reservation_match_statuses,
+               "reservation_conflict_match_statuses" =>
+                 ^expected_reservation_conflict_match_statuses,
+               "station_reservation_expiration_statuses" =>
+                 ^expected_station_reservation_expiration_statuses,
+               "provider_direction_aliases" => ^expected_provider_direction_aliases
              }
            } = summary
 
@@ -2351,6 +2373,66 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
 
     assert get_in(reservation_conflict_schema, ["properties", "model_limits", "items", "enum"]) ==
              reservation_conflict_model_limits
+
+    assert get_in(reservation_conflict_schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "station_reservation_match_statuses",
+             "const"
+           ]) == expected_capability_assumptions["station_reservation_match_statuses"]
+
+    assert get_in(reservation_conflict_schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "reservation_conflict_match_statuses",
+             "const"
+           ]) == expected_capability_assumptions["reservation_conflict_match_statuses"]
+
+    assert get_in(reservation_conflict_schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "station_reservation_expiration_statuses",
+             "const"
+           ]) == expected_capability_assumptions["station_reservation_expiration_statuses"]
+
+    assert get_in(reservation_conflict_schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "provider_direction_aliases",
+             "const"
+           ]) == expected_capability_assumptions["provider_direction_aliases"]
+
+    for {field, stale_value, message} <- [
+          {"station_reservation_match_statuses", ["stale_match_status"],
+           "must match ContactAllocation station reservation match statuses"},
+          {"reservation_conflict_match_statuses", ["stale_conflict_match_status"],
+           "must match ContactAllocation reservation conflict match statuses"},
+          {"station_reservation_expiration_statuses", ["stale_expiration_status"],
+           "must match ContactAllocation station reservation expiration statuses"},
+          {"provider_direction_aliases", %{"dl" => "command"},
+           "must match ContactAllocation provider direction aliases"}
+        ] do
+      stale_reservation_conflict_assumption =
+        put_in(summary, ["assumptions", field], stale_value)
+
+      assert {:error, stale_reservation_conflict_assumption_errors} =
+               Schema.validate_artifact(stale_reservation_conflict_assumption)
+
+      assert Enum.any?(
+               stale_reservation_conflict_assumption_errors["errors"],
+               &(&1["path"] == "$.assumptions.#{field}" and &1["message"] == message)
+             )
+    end
+
+    summary_without_optional_capability_assumptions =
+      drop_contact_allocation_reservation_conflict_capability_assumptions(summary)
+
+    assert {:ok, %{"schema_contract" => "contact_allocation_reservation_conflict_summary.v1"}} =
+             Schema.validate_artifact(summary_without_optional_capability_assumptions)
 
     stale_conflict_model =
       Map.put(summary, "model", "stale_contact_allocation_reservation_conflict_summary")
@@ -8153,6 +8235,29 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
       Map.drop(assumptions, [
         "provider_reservation_request_statuses",
         "station_reservation_match_statuses",
+        "provider_direction_aliases"
+      ])
+    end)
+  end
+
+  defp contact_allocation_reservation_conflict_capability_assumptions do
+    capabilities = ContactAllocation.capabilities()
+
+    %{
+      "station_reservation_match_statuses" => capabilities.station_reservation_match_statuses,
+      "reservation_conflict_match_statuses" => capabilities.reservation_conflict_match_statuses,
+      "station_reservation_expiration_statuses" =>
+        capabilities.station_reservation_expiration_statuses,
+      "provider_direction_aliases" => capabilities.provider_direction_aliases
+    }
+  end
+
+  defp drop_contact_allocation_reservation_conflict_capability_assumptions(artifact) do
+    update_in(artifact, ["assumptions"], fn assumptions ->
+      Map.drop(assumptions, [
+        "station_reservation_match_statuses",
+        "reservation_conflict_match_statuses",
+        "station_reservation_expiration_statuses",
         "provider_direction_aliases"
       ])
     end)

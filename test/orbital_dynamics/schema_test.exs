@@ -20684,6 +20684,21 @@ defmodule OrbitalDynamics.SchemaTest do
     generated_summary =
       OrbitalDynamics.contact_allocation_reservation_conflict_summary(report, now_s: 400.0)
 
+    expected_capability_assumptions =
+      contact_allocation_reservation_conflict_capability_assumptions()
+
+    expected_station_reservation_match_statuses =
+      expected_capability_assumptions["station_reservation_match_statuses"]
+
+    expected_reservation_conflict_match_statuses =
+      expected_capability_assumptions["reservation_conflict_match_statuses"]
+
+    expected_station_reservation_expiration_statuses =
+      expected_capability_assumptions["station_reservation_expiration_statuses"]
+
+    expected_provider_direction_aliases =
+      expected_capability_assumptions["provider_direction_aliases"]
+
     assert generated_summary == summary
 
     assert {:ok, %{"schema_contract" => "contact_allocation_reservation_conflict_summary.v1"}} =
@@ -20727,7 +20742,14 @@ defmodule OrbitalDynamics.SchemaTest do
                "execution_boundary" =>
                  "artifact_only_no_provider_reservation_or_schedule_mutation",
                "operator_authority" => "not_granted_by_reservation_conflict_summary",
-               "source" => "contact_allocation_report.v1"
+               "source" => "contact_allocation_report.v1",
+               "station_reservation_match_statuses" =>
+                 ^expected_station_reservation_match_statuses,
+               "reservation_conflict_match_statuses" =>
+                 ^expected_reservation_conflict_match_statuses,
+               "station_reservation_expiration_statuses" =>
+                 ^expected_station_reservation_expiration_statuses,
+               "provider_direction_aliases" => ^expected_provider_direction_aliases
              }
            } = summary
 
@@ -20742,6 +20764,41 @@ defmodule OrbitalDynamics.SchemaTest do
     assert summary["model_limits"] ==
              ContactAllocation.capabilities().known_limits
              |> Enum.map(&Atom.to_string/1)
+
+    assert {:ok, schema} =
+             Schema.json_schema("contact_allocation_reservation_conflict_summary.v1")
+
+    assert get_in(schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "station_reservation_match_statuses",
+             "const"
+           ]) == expected_capability_assumptions["station_reservation_match_statuses"]
+
+    assert get_in(schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "reservation_conflict_match_statuses",
+             "const"
+           ]) == expected_capability_assumptions["reservation_conflict_match_statuses"]
+
+    assert get_in(schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "station_reservation_expiration_statuses",
+             "const"
+           ]) == expected_capability_assumptions["station_reservation_expiration_statuses"]
+
+    assert get_in(schema, [
+             "properties",
+             "assumptions",
+             "properties",
+             "provider_direction_aliases",
+             "const"
+           ]) == expected_capability_assumptions["provider_direction_aliases"]
   end
 
   test "validates checked-in provider reservation request summary fixture" do
@@ -32192,6 +32249,18 @@ defmodule OrbitalDynamics.SchemaTest do
       "provider_reservation_request_statuses" =>
         capabilities.provider_reservation_request_statuses,
       "station_reservation_match_statuses" => capabilities.station_reservation_match_statuses,
+      "provider_direction_aliases" => capabilities.provider_direction_aliases
+    }
+  end
+
+  defp contact_allocation_reservation_conflict_capability_assumptions do
+    capabilities = ContactAllocation.capabilities()
+
+    %{
+      "station_reservation_match_statuses" => capabilities.station_reservation_match_statuses,
+      "reservation_conflict_match_statuses" => capabilities.reservation_conflict_match_statuses,
+      "station_reservation_expiration_statuses" =>
+        capabilities.station_reservation_expiration_statuses,
       "provider_direction_aliases" => capabilities.provider_direction_aliases
     }
   end
