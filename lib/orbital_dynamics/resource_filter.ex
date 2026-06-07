@@ -252,6 +252,15 @@ defmodule OrbitalDynamics.ResourceFilter do
        "model" => "resource_summary_availability_and_margin_filter",
        "policy" => policy,
        "model_limits" => model_limits(),
+       "assumptions" =>
+         Map.merge(
+           %{
+             "execution_boundary" => "artifact_only_no_schedule_mutation",
+             "operator_authority" => "not_granted_by_resource_filter",
+             "resource_state_propagation" => "not_performed"
+           },
+           capability_assumptions()
+         ),
        "input_resource_summary_count" => length(summaries) + length(invalid_summaries),
        "valid_resource_summary_count" => length(summaries),
        "invalid_resource_summary_input_count" => length(invalid_summaries),
@@ -383,6 +392,27 @@ defmodule OrbitalDynamics.ResourceFilter do
     capabilities()
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
+  end
+
+  defp capability_assumptions do
+    capabilities = capabilities()
+
+    %{
+      "resource_filter_policy_fields" => capabilities.resource_filter_policy_fields,
+      "resource_availability_aliases" => capabilities.resource_availability_aliases,
+      "resource_degraded_aliases" => capabilities.resource_degraded_aliases,
+      "resource_margin_aliases" => capabilities.resource_margin_aliases,
+      "resource_power_margin_source_aliases" => capabilities.resource_power_margin_source_aliases,
+      "resource_availability_true_tokens" => capabilities.resource_availability_true_tokens,
+      "resource_availability_false_tokens" => capabilities.resource_availability_false_tokens,
+      "provider_direction_aliases" => capabilities.provider_direction_aliases,
+      "station_calendar_direction_aliases" => capabilities.station_calendar_direction_aliases,
+      "provider_result_map_value_keys" => capabilities.provider_result_map_value_keys,
+      "candidate_stable_identity_fields" => capabilities.candidate_stable_identity_fields,
+      "station_calendar_id_list_fields" => capabilities.station_calendar_id_list_fields,
+      "suppression_reasons" => capabilities.suppression_reasons,
+      "row_review_statuses" => capabilities.row_review_statuses
+    }
   end
 
   defp resource_filter_summary(report) do

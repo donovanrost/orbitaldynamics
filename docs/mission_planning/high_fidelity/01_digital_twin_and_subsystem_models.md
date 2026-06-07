@@ -110,6 +110,11 @@ stays audit-only instead of reconciling recorder state.
 schema-validated selected-activity projection from `resource_summary.v1` plus
 selected activity rows into `resource_projection_flow_summary.v1`; it does not
 claim continuous recorder, power, thermal, or link-budget propagation.
+`resource_filter_report.v1` keeps the same thin boundary by pinning
+`ResourceFilter.capabilities/0` policy fields, aliases, status tokens, provider
+result keys, identity fields, suppression reasons, and review statuses in
+optional assumptions, with stale-present validation but no added resource-state
+propagation.
 Flow summaries keep terminal/rejected/suppressed selected activities visible as
 ignored zero-effect rows and expose ignored activity reason counts plus IDs by
 ignored-effect reason for review/import routing without reopening the full

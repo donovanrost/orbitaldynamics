@@ -5818,6 +5818,7 @@ defmodule OrbitalDynamics.Schema do
       "optional_fields" => [
         "policy",
         "model_limits",
+        "assumptions",
         "input_resource_summary_count",
         "valid_resource_summary_count",
         "invalid_resource_summary_input_count",
@@ -15200,6 +15201,10 @@ defmodule OrbitalDynamics.Schema do
     }
   end
 
+  defp json_schema_property("assumptions", @resource_filter_report, _contract) do
+    resource_filter_report_assumptions_json_schema()
+  end
+
   defp json_schema_property(field, @resource_projection_report, _contract)
        when field in [
               "invalid_resource_summary_input_ids",
@@ -20590,6 +20595,180 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.ResourceFilter.capabilities()
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
+  end
+
+  defp resource_filter_policy_fields do
+    OrbitalDynamics.ResourceFilter.capabilities()
+    |> Map.fetch!(:resource_filter_policy_fields)
+  end
+
+  defp resource_filter_availability_aliases do
+    OrbitalDynamics.ResourceFilter.capabilities()
+    |> Map.fetch!(:resource_availability_aliases)
+  end
+
+  defp resource_filter_degraded_aliases do
+    OrbitalDynamics.ResourceFilter.capabilities()
+    |> Map.fetch!(:resource_degraded_aliases)
+  end
+
+  defp resource_filter_margin_aliases do
+    OrbitalDynamics.ResourceFilter.capabilities()
+    |> Map.fetch!(:resource_margin_aliases)
+  end
+
+  defp resource_filter_power_margin_source_aliases do
+    OrbitalDynamics.ResourceFilter.capabilities()
+    |> Map.fetch!(:resource_power_margin_source_aliases)
+  end
+
+  defp resource_filter_availability_true_tokens do
+    OrbitalDynamics.ResourceFilter.capabilities()
+    |> Map.fetch!(:resource_availability_true_tokens)
+  end
+
+  defp resource_filter_availability_false_tokens do
+    OrbitalDynamics.ResourceFilter.capabilities()
+    |> Map.fetch!(:resource_availability_false_tokens)
+  end
+
+  defp resource_filter_provider_direction_aliases do
+    OrbitalDynamics.ResourceFilter.capabilities()
+    |> Map.fetch!(:provider_direction_aliases)
+  end
+
+  defp resource_filter_station_calendar_direction_aliases do
+    OrbitalDynamics.ResourceFilter.capabilities()
+    |> Map.fetch!(:station_calendar_direction_aliases)
+  end
+
+  defp resource_filter_provider_result_map_value_keys do
+    OrbitalDynamics.ResourceFilter.capabilities()
+    |> Map.fetch!(:provider_result_map_value_keys)
+  end
+
+  defp resource_filter_candidate_stable_identity_fields do
+    OrbitalDynamics.ResourceFilter.capabilities()
+    |> Map.fetch!(:candidate_stable_identity_fields)
+  end
+
+  defp resource_filter_station_calendar_id_list_fields do
+    OrbitalDynamics.ResourceFilter.capabilities()
+    |> Map.fetch!(:station_calendar_id_list_fields)
+  end
+
+  defp resource_filter_suppression_reasons do
+    OrbitalDynamics.ResourceFilter.capabilities()
+    |> Map.fetch!(:suppression_reasons)
+  end
+
+  defp resource_filter_row_review_statuses do
+    OrbitalDynamics.ResourceFilter.capabilities()
+    |> Map.fetch!(:row_review_statuses)
+  end
+
+  defp resource_filter_report_assumptions_json_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => ["execution_boundary", "operator_authority", "resource_state_propagation"],
+      "properties" => %{
+        "execution_boundary" => %{
+          "type" => "string",
+          "const" => "artifact_only_no_schedule_mutation"
+        },
+        "operator_authority" => %{
+          "type" => "string",
+          "const" => "not_granted_by_resource_filter"
+        },
+        "resource_state_propagation" => %{"type" => "string", "const" => "not_performed"},
+        "resource_filter_policy_fields" => %{
+          "type" => "array",
+          "const" => resource_filter_policy_fields(),
+          "items" => %{"type" => "string", "enum" => resource_filter_policy_fields()}
+        },
+        "resource_availability_aliases" => %{
+          "type" => "object",
+          "const" => resource_filter_availability_aliases(),
+          "additionalProperties" => string_array_schema()
+        },
+        "resource_degraded_aliases" => %{
+          "type" => "array",
+          "const" => resource_filter_degraded_aliases(),
+          "items" => %{"type" => "string", "enum" => resource_filter_degraded_aliases()}
+        },
+        "resource_margin_aliases" => %{
+          "type" => "object",
+          "const" => resource_filter_margin_aliases(),
+          "additionalProperties" => string_array_schema()
+        },
+        "resource_power_margin_source_aliases" => %{
+          "type" => "array",
+          "const" => resource_filter_power_margin_source_aliases(),
+          "items" => %{
+            "type" => "string",
+            "enum" => resource_filter_power_margin_source_aliases()
+          }
+        },
+        "resource_availability_true_tokens" => %{
+          "type" => "array",
+          "const" => resource_filter_availability_true_tokens(),
+          "items" => %{"type" => "string", "enum" => resource_filter_availability_true_tokens()}
+        },
+        "resource_availability_false_tokens" => %{
+          "type" => "array",
+          "const" => resource_filter_availability_false_tokens(),
+          "items" => %{
+            "type" => "string",
+            "enum" => resource_filter_availability_false_tokens()
+          }
+        },
+        "provider_direction_aliases" => %{
+          "type" => "object",
+          "const" => resource_filter_provider_direction_aliases(),
+          "additionalProperties" => %{"type" => "string"}
+        },
+        "station_calendar_direction_aliases" => %{
+          "type" => "object",
+          "const" => resource_filter_station_calendar_direction_aliases(),
+          "additionalProperties" => %{"type" => "string"}
+        },
+        "provider_result_map_value_keys" => %{
+          "type" => "array",
+          "const" => resource_filter_provider_result_map_value_keys(),
+          "items" => %{
+            "type" => "string",
+            "enum" => resource_filter_provider_result_map_value_keys()
+          }
+        },
+        "candidate_stable_identity_fields" => %{
+          "type" => "array",
+          "const" => resource_filter_candidate_stable_identity_fields(),
+          "items" => %{
+            "type" => "string",
+            "enum" => resource_filter_candidate_stable_identity_fields()
+          }
+        },
+        "station_calendar_id_list_fields" => %{
+          "type" => "array",
+          "const" => resource_filter_station_calendar_id_list_fields(),
+          "items" => %{
+            "type" => "string",
+            "enum" => resource_filter_station_calendar_id_list_fields()
+          }
+        },
+        "suppression_reasons" => %{
+          "type" => "array",
+          "const" => resource_filter_suppression_reasons(),
+          "items" => %{"type" => "string", "enum" => resource_filter_suppression_reasons()}
+        },
+        "row_review_statuses" => %{
+          "type" => "array",
+          "const" => resource_filter_row_review_statuses(),
+          "items" => %{"type" => "string", "enum" => resource_filter_row_review_statuses()}
+        }
+      }
+    }
   end
 
   defp timeline_feedback_report_model_limits do
@@ -45962,6 +46141,7 @@ defmodule OrbitalDynamics.Schema do
       "duplicate_suppressed_candidate_id_count"
     )
     |> expect_optional_type(path, report, "model_limits", :list)
+    |> expect_optional_type(path, report, "assumptions", :map)
     |> validate_string_list_items(path, report, "model_limits")
     |> validate_optional_exact_model_limits(
       path,
@@ -45969,6 +46149,7 @@ defmodule OrbitalDynamics.Schema do
       resource_filter_report_model_limits(),
       "must match resource filter report model limits"
     )
+    |> validate_resource_filter_report_assumptions(path, report)
     |> validate_optional_rows(
       path <> ".invalid_resource_summary_inputs",
       Map.get(report, "invalid_resource_summary_inputs"),
@@ -45980,6 +46161,138 @@ defmodule OrbitalDynamics.Schema do
       &validate_suppressed_candidate/3
     )
     |> validate_filter_report_counts(path, report, "resource")
+  end
+
+  defp validate_resource_filter_report_assumptions(issues, path, report) do
+    case Map.get(report, "assumptions") do
+      nil ->
+        issues
+
+      :null ->
+        issues
+
+      assumptions when is_map(assumptions) ->
+        issues
+        |> expect_equal(
+          path <> ".assumptions",
+          assumptions,
+          "execution_boundary",
+          "artifact_only_no_schedule_mutation"
+        )
+        |> expect_equal(
+          path <> ".assumptions",
+          assumptions,
+          "operator_authority",
+          "not_granted_by_resource_filter"
+        )
+        |> expect_equal(
+          path <> ".assumptions",
+          assumptions,
+          "resource_state_propagation",
+          "not_performed"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "resource_filter_policy_fields",
+          resource_filter_policy_fields(),
+          "must match ResourceFilter policy fields"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "resource_availability_aliases",
+          resource_filter_availability_aliases(),
+          "must match ResourceFilter resource availability aliases"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "resource_degraded_aliases",
+          resource_filter_degraded_aliases(),
+          "must match ResourceFilter resource degraded aliases"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "resource_margin_aliases",
+          resource_filter_margin_aliases(),
+          "must match ResourceFilter resource margin aliases"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "resource_power_margin_source_aliases",
+          resource_filter_power_margin_source_aliases(),
+          "must match ResourceFilter resource power margin source aliases"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "resource_availability_true_tokens",
+          resource_filter_availability_true_tokens(),
+          "must match ResourceFilter resource availability true tokens"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "resource_availability_false_tokens",
+          resource_filter_availability_false_tokens(),
+          "must match ResourceFilter resource availability false tokens"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "provider_direction_aliases",
+          resource_filter_provider_direction_aliases(),
+          "must match ResourceFilter provider direction aliases"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_calendar_direction_aliases",
+          resource_filter_station_calendar_direction_aliases(),
+          "must match ResourceFilter station calendar direction aliases"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "provider_result_map_value_keys",
+          resource_filter_provider_result_map_value_keys(),
+          "must match ResourceFilter provider result map value keys"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "candidate_stable_identity_fields",
+          resource_filter_candidate_stable_identity_fields(),
+          "must match ResourceFilter candidate stable identity fields"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "station_calendar_id_list_fields",
+          resource_filter_station_calendar_id_list_fields(),
+          "must match ResourceFilter station calendar ID list fields"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "suppression_reasons",
+          resource_filter_suppression_reasons(),
+          "must match ResourceFilter suppression reasons"
+        )
+        |> expect_optional_field_equals(
+          path <> ".assumptions",
+          assumptions,
+          "row_review_statuses",
+          resource_filter_row_review_statuses(),
+          "must match ResourceFilter row review statuses"
+        )
+
+      _assumptions ->
+        issues
+    end
   end
 
   defp validate_suppressed_candidate(issues, path, candidate) do

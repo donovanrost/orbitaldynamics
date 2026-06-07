@@ -79,6 +79,7 @@ Status: **implemented**.
   - resource availability alias/status-token and degraded-alias metadata;
   - capability row semantics for availability suppression, margin-policy suppression, source-quality and trust-boundary count maps, station-context passthrough, invalid input review rows, candidate stable identity fields, station-calendar ID-list fields;
   - resource-margin aliases such as `storage_capacity_margin`, `downlink_capacity_margin`, and `battery_soc` before policy suppression, with `battery_soc` also feeding `power_margin` when no explicit power margin is supplied.
+- `resource_filter_report.v1` carries optional capability-derived assumptions for policy fields, availability aliases and status tokens, degraded and margin aliases, provider/station direction aliases, provider result-map value keys, candidate identity fields, station-calendar ID-list fields, suppression reasons, and review statuses. Executable validation rejects stale present values while preserving older reports that omit the additive capability fields.
 - Its input-summary and suppressed-resource count maps are schema-exported non-negative integer count maps, and executable validation rejects negative values before adapters consume the report.
 
 ### `contact_filter_report.v1` model limits and counts

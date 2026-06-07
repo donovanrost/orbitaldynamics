@@ -13,6 +13,7 @@ defmodule OrbitalDynamics.SchemaTest do
     OperationalReadiness,
     Policy,
     ResourceSummary,
+    ResourceFilter,
     ResultSet,
     Schema,
     Validation
@@ -1613,6 +1614,10 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert {:ok, %{"schema_contract" => "resource_filter_report.v1"}} =
              Schema.validate_artifact(report)
+
+    expected_assumptions = resource_filter_report_capability_assumptions()
+
+    assert Map.take(report["assumptions"], Map.keys(expected_assumptions)) == expected_assumptions
 
     assert report["model"] == "resource_summary_availability_and_margin_filter"
 
@@ -31221,6 +31226,18 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert {:ok, resource_filter_schema} = Schema.json_schema("resource_filter_report.v1")
 
+    expected_resource_filter_assumptions = resource_filter_report_capability_assumptions()
+
+    for {field, value} <- expected_resource_filter_assumptions do
+      assert get_in(resource_filter_schema, [
+               "properties",
+               "assumptions",
+               "properties",
+               field,
+               "const"
+             ]) == value
+    end
+
     resource_suppressed_schema =
       get_in(resource_filter_schema, ["properties", "suppressed_candidates", "items"])
 
@@ -32333,6 +32350,27 @@ defmodule OrbitalDynamics.SchemaTest do
       "contact_capacity_value_paths" =>
         json_capacity_value_paths(capabilities.contact_capacity_value_paths),
       "provider_direction_aliases" => capabilities.provider_direction_aliases
+    }
+  end
+
+  defp resource_filter_report_capability_assumptions do
+    capabilities = ResourceFilter.capabilities()
+
+    %{
+      "resource_filter_policy_fields" => capabilities.resource_filter_policy_fields,
+      "resource_availability_aliases" => capabilities.resource_availability_aliases,
+      "resource_degraded_aliases" => capabilities.resource_degraded_aliases,
+      "resource_margin_aliases" => capabilities.resource_margin_aliases,
+      "resource_power_margin_source_aliases" => capabilities.resource_power_margin_source_aliases,
+      "resource_availability_true_tokens" => capabilities.resource_availability_true_tokens,
+      "resource_availability_false_tokens" => capabilities.resource_availability_false_tokens,
+      "provider_direction_aliases" => capabilities.provider_direction_aliases,
+      "station_calendar_direction_aliases" => capabilities.station_calendar_direction_aliases,
+      "provider_result_map_value_keys" => capabilities.provider_result_map_value_keys,
+      "candidate_stable_identity_fields" => capabilities.candidate_stable_identity_fields,
+      "station_calendar_id_list_fields" => capabilities.station_calendar_id_list_fields,
+      "suppression_reasons" => capabilities.suppression_reasons,
+      "row_review_statuses" => capabilities.row_review_statuses
     }
   end
 

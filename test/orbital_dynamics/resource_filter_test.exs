@@ -687,6 +687,11 @@ defmodule OrbitalDynamics.ResourceFilterTest do
     assert "no_subsystem_simulation" in model_limits
     assert "no_schedule_mutation" in model_limits
 
+    expected_report_assumptions = resource_filter_report_capability_assumptions()
+
+    assert Map.take(report["assumptions"], Map.keys(expected_report_assumptions)) ==
+             expected_report_assumptions
+
     assert %{
              "schema_contract" => "resource_filter_summary.v1",
              "model" => "artifact_only_resource_filter_summary",
@@ -799,6 +804,56 @@ defmodule OrbitalDynamics.ResourceFilterTest do
 
     assert {:ok, %{"schema_contract" => "resource_filter_report.v1"}} =
              Schema.validate_artifact(report)
+
+    stale_report_assumptions = [
+      {"resource_filter_policy_fields", ["min_downlink_margin"],
+       "must match ResourceFilter policy fields"},
+      {"resource_availability_aliases", %{"payload_available" => []},
+       "must match ResourceFilter resource availability aliases"},
+      {"resource_degraded_aliases", [], "must match ResourceFilter resource degraded aliases"},
+      {"resource_margin_aliases", %{"storage_margin" => []},
+       "must match ResourceFilter resource margin aliases"},
+      {"resource_power_margin_source_aliases", [],
+       "must match ResourceFilter resource power margin source aliases"},
+      {"resource_availability_true_tokens", ["true"],
+       "must match ResourceFilter resource availability true tokens"},
+      {"resource_availability_false_tokens", ["false"],
+       "must match ResourceFilter resource availability false tokens"},
+      {"provider_direction_aliases", %{"dl" => "command"},
+       "must match ResourceFilter provider direction aliases"},
+      {"station_calendar_direction_aliases", %{"up" => "uplink"},
+       "must match ResourceFilter station calendar direction aliases"},
+      {"provider_result_map_value_keys", ["result"],
+       "must match ResourceFilter provider result map value keys"},
+      {"candidate_stable_identity_fields", ["scenario_id"],
+       "must match ResourceFilter candidate stable identity fields"},
+      {"station_calendar_id_list_fields", ["station_calendar_reservation_ids"],
+       "must match ResourceFilter station calendar ID list fields"},
+      {"suppression_reasons", ["payload_unavailable"],
+       "must match ResourceFilter suppression reasons"},
+      {"row_review_statuses", [], "must match ResourceFilter row review statuses"}
+    ]
+
+    for {field, value, message} <- stale_report_assumptions do
+      stale_report = put_in(report, ["assumptions", field], value)
+
+      assert {:error, stale_validation_report} = Schema.validate_artifact(stale_report)
+
+      assert Enum.any?(
+               stale_validation_report["errors"],
+               &(&1["path"] == "$.assumptions.#{field}" and &1["message"] == message)
+             )
+    end
+
+    compatible_report = drop_resource_filter_report_capability_assumptions(report)
+
+    assert {:ok, %{"schema_contract" => "resource_filter_report.v1"}} =
+             Schema.validate_artifact(compatible_report)
+
+    assert {:ok, %{"schema_contract" => "resource_filter_report.v1"}} =
+             report
+             |> Map.delete("assumptions")
+             |> Schema.validate_artifact()
 
     stale_report_model_limits = Map.put(report, "model_limits", ["artifact_level_only"])
 
@@ -3416,6 +3471,35 @@ defmodule OrbitalDynamics.ResourceFilterTest do
              "min_activity_thermal_margin_c" => 2.0,
              "min_downlink_margin" => 0.5
            }
+  end
+
+  defp resource_filter_report_capability_assumptions do
+    capabilities = ResourceFilter.capabilities()
+
+    %{
+      "resource_filter_policy_fields" => capabilities.resource_filter_policy_fields,
+      "resource_availability_aliases" => capabilities.resource_availability_aliases,
+      "resource_degraded_aliases" => capabilities.resource_degraded_aliases,
+      "resource_margin_aliases" => capabilities.resource_margin_aliases,
+      "resource_power_margin_source_aliases" => capabilities.resource_power_margin_source_aliases,
+      "resource_availability_true_tokens" => capabilities.resource_availability_true_tokens,
+      "resource_availability_false_tokens" => capabilities.resource_availability_false_tokens,
+      "provider_direction_aliases" => capabilities.provider_direction_aliases,
+      "station_calendar_direction_aliases" => capabilities.station_calendar_direction_aliases,
+      "provider_result_map_value_keys" => capabilities.provider_result_map_value_keys,
+      "candidate_stable_identity_fields" => capabilities.candidate_stable_identity_fields,
+      "station_calendar_id_list_fields" => capabilities.station_calendar_id_list_fields,
+      "suppression_reasons" => capabilities.suppression_reasons,
+      "row_review_statuses" => capabilities.row_review_statuses
+    }
+  end
+
+  defp drop_resource_filter_report_capability_assumptions(report) do
+    update_in(
+      report,
+      ["assumptions"],
+      &Map.drop(&1, Map.keys(resource_filter_report_capability_assumptions()))
+    )
   end
 
   test "returns no suppressions when summaries do not match any candidate" do
