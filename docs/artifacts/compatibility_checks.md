@@ -1035,6 +1035,12 @@ fixture. The observations check station-pressure and review counts, contact-ID
 routing by ground station, availability, precedence availability/rank, direction
 and ground station, review rows, model limits, and
 no-provider-reservation/no-schedule-mutation assumptions.
+`study_results/contact_allocation_capacity_pack_summary_v1.json` now feeds a
+curated `contact_allocation_capacity_pack_summary.v1` validation-reference
+fixture. The observations check capacity-pack and reduced-pack counts,
+status/contact-ID routing, selected and deferred required-capacity fractions,
+required-capacity source maps, reduced capacity pack group routing, review rows,
+model limits, and no-provider-reservation/no-schedule-mutation assumptions.
 `study_results/contact_allocation_reservation_conflict_summary_v1.json` now
 feeds a curated `contact_allocation_reservation_conflict_summary.v1`
 validation-reference fixture. The observations check reservation contact,

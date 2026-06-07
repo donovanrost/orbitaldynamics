@@ -17198,6 +17198,104 @@ defmodule OrbitalDynamics.SchemaTest do
              |> Enum.map(&Atom.to_string/1)
   end
 
+  test "validates checked-in contact allocation capacity pack summary fixture" do
+    summary = read_json!("study_results/contact_allocation_capacity_pack_summary_v1.json")
+
+    report = contact_allocation_capacity_pack_summary_fixture_report()
+
+    generated_summary = OrbitalDynamics.contact_allocation_capacity_pack_summary(report)
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "contact_allocation_capacity_pack_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    pack_group_id = "capacity_pack:equator_prime:downlink:100_160"
+
+    assert %{
+             "source_artifact_type" => "contact_allocation_report.v1",
+             "source" => "validation.contact_allocation_capacity_pack_summary",
+             "input_contact_count" => 3,
+             "capacity_pack_contact_count" => 3,
+             "capacity_pack_review_status" => "review_required",
+             "reduced_capacity_pack_group_count" => 1,
+             "reduced_capacity_pack_status_counts" => %{"capacity_limited" => 1},
+             "capacity_pack_status_counts" => %{
+               "deferred_by_reduced_station_capacity_pack" => 1,
+               "selected_by_contention_resolution" => 1,
+               "selected_by_reduced_station_capacity_pack" => 1
+             },
+             "capacity_pack_contact_ids_by_status" => %{
+               "deferred_by_reduced_station_capacity_pack" => ["dl_capacity_overflow"],
+               "selected_by_contention_resolution" => ["dl_capacity_primary"],
+               "selected_by_reduced_station_capacity_pack" => ["dl_capacity_secondary"]
+             },
+             "capacity_pack_contact_ids_by_ground_station_id" => %{
+               "equator_prime" => [
+                 "dl_capacity_overflow",
+                 "dl_capacity_primary",
+                 "dl_capacity_secondary"
+               ]
+             },
+             "capacity_pack_selected_contact_ids_by_ground_station_id" => %{
+               "equator_prime" => ["dl_capacity_primary", "dl_capacity_secondary"]
+             },
+             "capacity_pack_deferred_contact_ids_by_ground_station_id" => %{
+               "equator_prime" => ["dl_capacity_overflow"]
+             },
+             "capacity_pack_required_capacity_fraction" => 0.75,
+             "capacity_pack_selected_required_capacity_fraction" => 0.5,
+             "capacity_pack_deferred_required_capacity_fraction" => 0.25,
+             "capacity_pack_required_capacity_fraction_by_status" => %{
+               "deferred_by_reduced_station_capacity_pack" => 0.25,
+               "selected_by_contention_resolution" => 0.25,
+               "selected_by_reduced_station_capacity_pack" => 0.25
+             },
+             "capacity_pack_required_capacity_fraction_by_ground_station_id" => %{
+               "equator_prime" => 0.75
+             },
+             "capacity_pack_selected_required_capacity_fraction_by_ground_station_id" => %{
+               "equator_prime" => 0.5
+             },
+             "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id" => %{
+               "equator_prime" => 0.25
+             },
+             "required_capacity_fraction_source_counts" => %{
+               "contact_required_capacity_fraction" => 3
+             },
+             "required_capacity_fraction_contact_ids_by_source" => %{
+               "contact_required_capacity_fraction" => [
+                 "dl_capacity_overflow",
+                 "dl_capacity_primary",
+                 "dl_capacity_secondary"
+               ]
+             },
+             "reduced_capacity_packed_contact_ids" => ["dl_capacity_secondary"],
+             "reduced_capacity_deferred_contact_ids" => ["dl_capacity_overflow"],
+             "capacity_pack_group_ids" => [^pack_group_id],
+             "capacity_pack_group_ids_by_status" => %{"capacity_limited" => [^pack_group_id]},
+             "assumptions" => %{
+               "execution_boundary" =>
+                 "artifact_only_no_provider_reservation_or_schedule_mutation",
+               "operator_authority" => "not_granted_by_capacity_pack_summary",
+               "source" => "contact_allocation_report.v1"
+             }
+           } = summary
+
+    assert [%{"contention_group_id" => ^pack_group_id, "pack_status" => "capacity_limited"}] =
+             summary["reduced_capacity_pack_groups"]
+
+    assert Enum.map(summary["review_rows"], & &1["contact_id"]) == [
+             "dl_capacity_primary",
+             "dl_capacity_secondary",
+             "dl_capacity_overflow"
+           ]
+
+    assert summary["model_limits"] ==
+             ContactAllocation.capabilities().known_limits
+             |> Enum.map(&Atom.to_string/1)
+  end
+
   test "validates checked-in contact allocation reservation conflict summary fixture" do
     summary =
       read_json!("study_results/contact_allocation_reservation_conflict_summary_v1.json")
@@ -27365,6 +27463,118 @@ defmodule OrbitalDynamics.SchemaTest do
         }
       ],
       "reduced_capacity_pack_groups" => [],
+      "model_limits" => [
+        "artifact_level_only",
+        "no_provider_reservation",
+        "no_schedule_mutation",
+        "no_full_realized_contact_reconciliation"
+      ]
+    }
+  end
+
+  defp contact_allocation_capacity_pack_summary_fixture_report do
+    pack_group_id = "capacity_pack:equator_prime:downlink:100_160"
+
+    capacity_requirement_rows = [
+      %{
+        "contact_id" => "dl_capacity_primary",
+        "allocation_status" => "allocated",
+        "allocation_reason" => "selected_by_contention_resolution",
+        "capacity_pack_status" => "selected_by_contention_resolution",
+        "required_capacity_fraction" => 0.25,
+        "required_capacity_fraction_source" => "contact_required_capacity_fraction"
+      },
+      %{
+        "contact_id" => "dl_capacity_secondary",
+        "allocation_status" => "allocated",
+        "allocation_reason" => "selected_by_reduced_station_capacity_pack",
+        "capacity_pack_status" => "selected_by_reduced_station_capacity_pack",
+        "required_capacity_fraction" => 0.25,
+        "required_capacity_fraction_source" => "contact_required_capacity_fraction"
+      },
+      %{
+        "contact_id" => "dl_capacity_overflow",
+        "allocation_status" => "deferred",
+        "allocation_reason" => "same_station_contention",
+        "capacity_pack_status" => "deferred_by_reduced_station_capacity_pack",
+        "required_capacity_fraction" => 0.25,
+        "required_capacity_fraction_source" => "contact_required_capacity_fraction"
+      }
+    ]
+
+    %{
+      "schema_contract" => "contact_allocation_report.v1",
+      "model" => "deterministic_station_contact_allocation",
+      "source" => "validation.contact_allocation_capacity_pack_summary",
+      "rows" => [
+        %{
+          "id" => "contact_allocation:dl_capacity_primary",
+          "contact_id" => "dl_capacity_primary",
+          "allocation_status" => "allocated",
+          "effective_allocation_status" => "allocated",
+          "allocation_reason" => "selected_by_contention_resolution",
+          "ground_station_id" => "equator_prime",
+          "direction" => "downlink",
+          "capacity_fraction" => 0.5,
+          "required_capacity_fraction" => 0.25,
+          "required_capacity_fraction_source" => "contact_required_capacity_fraction",
+          "capacity_pack_group_id" => pack_group_id,
+          "capacity_pack_status" => "selected_by_contention_resolution",
+          "capacity_pack_capacity_fraction" => 0.5,
+          "capacity_pack_used_fraction" => 0.5,
+          "review_status" => "accepted_for_planning"
+        },
+        %{
+          "id" => "contact_allocation:dl_capacity_secondary",
+          "contact_id" => "dl_capacity_secondary",
+          "allocation_status" => "allocated",
+          "effective_allocation_status" => "allocated",
+          "allocation_reason" => "selected_by_reduced_station_capacity_pack",
+          "ground_station_id" => "equator_prime",
+          "direction" => "downlink",
+          "capacity_fraction" => 0.5,
+          "required_capacity_fraction" => 0.25,
+          "required_capacity_fraction_source" => "contact_required_capacity_fraction",
+          "capacity_pack_group_id" => pack_group_id,
+          "capacity_pack_status" => "selected_by_reduced_station_capacity_pack",
+          "capacity_pack_capacity_fraction" => 0.5,
+          "capacity_pack_used_fraction" => 0.5,
+          "review_status" => "operator_review_required"
+        },
+        %{
+          "id" => "contact_allocation:dl_capacity_overflow",
+          "contact_id" => "dl_capacity_overflow",
+          "allocation_status" => "deferred",
+          "effective_allocation_status" => "deferred",
+          "allocation_reason" => "same_station_contention",
+          "ground_station_id" => "equator_prime",
+          "direction" => "downlink",
+          "selected_contact_id" => "dl_capacity_secondary",
+          "capacity_fraction" => 0.5,
+          "required_capacity_fraction" => 0.25,
+          "required_capacity_fraction_source" => "contact_required_capacity_fraction",
+          "capacity_pack_group_id" => pack_group_id,
+          "capacity_pack_status" => "deferred_by_reduced_station_capacity_pack",
+          "capacity_pack_capacity_fraction" => 0.5,
+          "capacity_pack_used_fraction" => 0.5,
+          "review_status" => "operator_review_required"
+        }
+      ],
+      "reduced_capacity_pack_groups" => [
+        %{
+          "contention_group_id" => pack_group_id,
+          "ground_station_id" => "equator_prime",
+          "direction" => "downlink",
+          "capacity_fraction" => 0.5,
+          "used_capacity_fraction" => 0.5,
+          "required_capacity_fraction" => 0.75,
+          "pack_status" => "capacity_limited",
+          "selected_contact_ids" => ["dl_capacity_primary"],
+          "capacity_packed_contact_ids" => ["dl_capacity_secondary"],
+          "deferred_contact_ids" => ["dl_capacity_overflow"],
+          "capacity_requirement_rows" => capacity_requirement_rows
+        }
+      ],
       "model_limits" => [
         "artifact_level_only",
         "no_provider_reservation",
