@@ -45489,8 +45489,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
   defp quality_gate_report_from_unavailable_resource_summary(%{} = summary) do
     summary = stringify_keys(summary)
-    row_ids_by_status = Map.get(summary, "quality_gate_row_ids_by_status", %{})
+    row_ids_by_status = Map.get(summary, "quality_gate_row_ids_by_status")
     gate_ids_by_status = Map.get(summary, "quality_gate_ids_by_status", %{})
+
+    resource_availability_row_count =
+      quality_gate_summary_row_count(
+        row_ids_by_status,
+        summary["resource_availability_row_count"]
+      )
 
     resource_availability_reason_counts =
       [
@@ -45521,7 +45527,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "readiness_level" => quality_gate_import_readiness_level(classification),
       "import_classification" => classification,
       "status" => status,
-      "gate_count" => summary["resource_availability_row_count"],
+      "gate_count" => resource_availability_row_count,
       "passed_gate_count" =>
         length(quality_gate_summary_list_map_values(row_ids_by_status, "passed")),
       "review_gate_count" =>
@@ -45544,7 +45550,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         summary["blocked_contact_ids_by_blocking_dimension"],
       "blocked_contact_ids_by_spacecraft_id" => summary["blocked_contact_ids_by_spacecraft_id"],
       "blocked_contact_ids_by_status" => summary["blocked_contact_ids_by_status"],
-      "quality_gate_row_ids_by_status" => row_ids_by_status,
+      "quality_gate_row_ids_by_status" => row_ids_by_status || %{},
       "quality_gate_ids_by_status" => gate_ids_by_status,
       "review_required_quality_gate_row_ids" =>
         quality_gate_summary_list_map_values(row_ids_by_status, "review_required"),

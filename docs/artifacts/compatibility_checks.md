@@ -356,6 +356,10 @@ blocking-dimension counts, blocked-contact routing, quality-gate row/status
 routing maps, and no-Cadence-write/no-authority assumptions, and executable
 verification rejects stale reason maps, blocked-contact maps, and row-status
 counts before adapter queues can trust the compact summary.
+CandidateRefresh replay also derives reconstructed generic quality-gate row
+counts from `quality_gate_row_ids_by_status` when present, while preserving the
+resource-specific pressure counts and blocked-contact routing maps from the
+compact unavailable-resource summary.
 The public quality-gate schema-validation summary publishes
 `operational_quality_gate_schema_validation_summary.v1` for Cadence-import
 quality-gate rows carrying schema-validation evidence, preserving pass/fail and
