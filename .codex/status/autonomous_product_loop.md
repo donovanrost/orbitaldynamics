@@ -8,7 +8,7 @@ Current slice:
 Contact allocation triage-summary capability assumptions.
 
 Status:
-Implemented, verified, and reviewed; publish pending.
+Implemented, verified, reviewed, and committed; push pending.
 
 Slice completed:
 Allocation triage summaries now carry optional capability-derived assumptions
@@ -64,7 +64,7 @@ omitted-optional compatibility, refreshed docs/fixtures, and no expanded
 provider-reservation or operator-authority boundary.
 
 Product commit:
-Pending.
+`b521c0e` (`Add allocation summary capability assumptions`).
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
