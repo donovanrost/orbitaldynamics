@@ -1877,6 +1877,83 @@ defmodule OrbitalDynamics.SchemaTest do
              summary["model_limits"]
   end
 
+  test "validates checked-in operational quality gate unavailable-resource summary fixture" do
+    report = read_json!("study_results/quality_gate_resource_pressure_v1.json")
+
+    summary =
+      read_json!("study_results/operational_quality_gate_unavailable_resource_summary_v1.json")
+
+    generated_summary =
+      OrbitalDynamics.operational_quality_gate_unavailable_resource_summary(report)
+
+    assert generated_summary == summary
+
+    assert {:ok,
+            %{
+              "schema_contract" => "operational_quality_gate_unavailable_resource_summary.v1"
+            }} = Schema.validate_artifact(summary)
+
+    assert %{
+             "schema_contract" => "operational_quality_gate_unavailable_resource_summary.v1",
+             "model" => "artifact_only_quality_gate_unavailable_resource_summary",
+             "source" => "quality_gate_report.v1",
+             "source_artifact_type" => "resource_projection_report.v1",
+             "source_artifact_id" => "resource_summaries",
+             "source_quality_gate_report_id" =>
+               "quality_gate:resource_projection_report.v1:resource_summaries",
+             "source_readiness_report_id" =>
+               "operational_readiness:resource_projection_report.v1:resource_summaries",
+             "resource_availability_row_count" => 1,
+             "unavailable_resource_row_count" => 1,
+             "unavailable_resource_pressure_count" => 2,
+             "unavailable_resource_reason_counts" => %{
+               "antenna_unavailable" => 1,
+               "payload_unavailable" => 1
+             },
+             "unavailable_resource_reason_ids" => [
+               "antenna_unavailable",
+               "payload_unavailable"
+             ],
+             "station_availability_reason_counts" => %{},
+             "station_availability_reason_ids" => [],
+             "resource_blocking_dimension_counts" => %{},
+             "blocked_contact_ids_by_blocking_dimension" => %{},
+             "blocked_contact_ids_by_spacecraft_id" => %{},
+             "blocked_contact_ids_by_status" => %{},
+             "quality_gate_row_ids_by_status" => %{
+               "review_required" => [
+                 "quality_gate:resource_projection_report.v1:resource_summaries:resource_availability:4"
+               ]
+             },
+             "quality_gate_ids_by_status" => %{
+               "review_required" => ["resource_availability"]
+             },
+             "review_required_quality_gate_row_ids" => [
+               "quality_gate:resource_projection_report.v1:resource_summaries:resource_availability:4"
+             ],
+             "blocked_quality_gate_row_ids" => [],
+             "resource_availability_gate_ids" => ["resource_availability"],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_cadence_write",
+               "source" => "quality_gate_report.v1",
+               "operator_authority" => "not_granted_by_unavailable_resource_summary",
+               "cadence_write" => "not_performed_by_summary",
+               "command_execution" => "not_performed_by_summary"
+             }
+           } = summary
+
+    assert summary["model_limits"] == [
+             "quality_gate_unavailable_resource_summary_routes_only",
+             "quality_gate_unavailable_resource_summary_does_not_approve_or_import"
+           ]
+
+    assert {:ok, unavailable_resource_schema} =
+             Schema.json_schema("operational_quality_gate_unavailable_resource_summary.v1")
+
+    assert get_in(unavailable_resource_schema, ["properties", "model_limits", "const"]) ==
+             summary["model_limits"]
+  end
+
   test "validates checked-in operational quality gate operator training summary fixture" do
     source = %{
       "schema_contract" => "cadence_import_manifest.v1",
