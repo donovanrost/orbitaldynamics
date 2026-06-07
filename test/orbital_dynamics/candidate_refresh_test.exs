@@ -6838,11 +6838,11 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         "provider_reservation_candidate_contact_count" => 2,
         "provider_reservation_request_contact_count" => 1,
         "provider_reservation_review_contact_count" => 1,
-        "provider_reservation_no_request_contact_count" => 1,
+        "provider_reservation_no_request_contact_count" => 99,
         "provider_reservation_request_status" => "review_required",
         "provider_reservation_request_contact_ids" => ["dl_reserved_owner"],
         "provider_reservation_review_contact_ids" => ["dl_review_overlap"],
-        "provider_reservation_no_request_contact_ids" => ["dl_unreserved"],
+        "provider_reservation_no_request_contact_ids" => ["stale_no_request_contact"],
         "provider_reservation_request_contact_ids_by_ground_station_id" => %{
           "equator_prime" => ["dl_reserved_owner"]
         },
@@ -6850,7 +6850,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
           "equator_prime" => ["dl_review_overlap"]
         },
         "provider_reservation_no_request_contact_ids_by_direction" => %{
-          "tracking" => ["dl_unreserved"]
+          "stale_direction" => ["stale_no_request_contact"]
         },
         "provider_reservation_request_contact_ids_by_direction" => %{
           "downlink" => ["dl_reserved_owner"]
@@ -6870,6 +6870,32 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         "provider_reservation_review_ids_by_match_status" => %{
           "overlap" => ["reservation_review"]
         },
+        "rows" => [
+          %{
+            "contact_id" => "dl_reserved_owner",
+            "allocation_status" => "allocated",
+            "ground_station_id" => "equator_prime",
+            "direction" => "Down Link",
+            "station_reservation_id" => "reservation_1",
+            "station_reservation_match_status" => "matched",
+            "station_reservation_status" => "confirmed"
+          },
+          %{
+            "contact_id" => "dl_review_overlap",
+            "allocation_status" => "allocated",
+            "ground_station_id" => "equator_prime",
+            "direction" => "uplink",
+            "station_reservation_id" => "reservation_review",
+            "station_reservation_match_status" => "overlap",
+            "station_reservation_status" => "confirmed"
+          },
+          %{
+            "contact_id" => "dl_unreserved",
+            "allocation_status" => "blocked",
+            "ground_station_id" => "equator_prime",
+            "direction" => "Tracking"
+          }
+        ],
         "provider_reservation_request_rows" => [
           %{
             "contact_id" => "dl_reserved_owner",
@@ -6911,7 +6937,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         "provider_reservation_review_contact_ids" => []
       },
       "tracking" => %{
-        "contact_ids" => [],
+        "contact_count" => 1,
+        "contact_ids" => ["dl_unreserved"],
         "station_pressure_contact_ids" => [],
         "reservation_conflict_contact_ids" => [],
         "provider_reservation_no_request_contact_ids" => ["dl_unreserved"],
@@ -6934,7 +6961,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert %{
              "source_report_family_count" => 1,
              "source_report_count" => 1,
-             "source_report_row_count" => 2,
+             "source_report_row_count" => 3,
              "source_report_counts_by_family" => %{"contact_allocation_report" => 1},
              "source_report_contact_allocation_provider_reservation_candidate_contact_count" => 2,
              "source_report_contact_allocation_provider_reservation_request_contact_count" => 1,
@@ -6996,7 +7023,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert %{
              "source_report_count" => 1,
-             "source_report_row_count" => 2,
+             "source_report_row_count" => 3,
              "provider_reservation_candidate_contact_count" => 2,
              "provider_reservation_request_contact_count" => 1,
              "provider_reservation_review_contact_count" => 1,

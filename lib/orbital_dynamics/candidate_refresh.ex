@@ -36713,19 +36713,25 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp contact_allocation_report_provider_reservation_no_request_contact_count(report) do
-    case numeric_report_count(report, "provider_reservation_no_request_contact_count") do
-      count when count > 0 ->
-        count
+    rows = contact_allocation_report_rows_for_summary(report)
 
-      _count ->
-        case contact_allocation_report_provider_reservation_candidate_rows(report) do
-          [] ->
-            0
+    cond do
+      contact_allocation_provider_reservation_request_summary_rows?(report) and rows != [] ->
+        provider_reservation_no_request_rows(rows) |> length()
 
-          candidate_rows ->
-            contact_allocation_report_rows_for_summary(report)
-            |> length()
-            |> Kernel.-(length(candidate_rows))
+      true ->
+        case numeric_report_count(report, "provider_reservation_no_request_contact_count") do
+          count when count > 0 ->
+            count
+
+          _count ->
+            case contact_allocation_report_provider_reservation_candidate_rows(report) do
+              [] ->
+                0
+
+              candidate_rows ->
+                length(rows) - length(candidate_rows)
+            end
         end
     end
   end
@@ -36828,25 +36834,33 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp contact_allocation_report_provider_reservation_no_request_contact_ids(report) do
-    explicit_ids =
-      report
-      |> Map.get("provider_reservation_no_request_contact_ids", [])
-      |> List.wrap()
+    rows = contact_allocation_report_rows_for_summary(report)
+
+    if contact_allocation_provider_reservation_request_summary_rows?(report) and rows != [] do
+      rows
+      |> provider_reservation_no_request_rows()
+      |> Enum.map(&contact_allocation_summary_contact_id/1)
       |> sorted_non_empty_values()
-
-    if not is_nil(explicit_ids) do
-      explicit_ids
     else
-      case contact_allocation_report_provider_reservation_candidate_rows(report) do
-        [] ->
-          []
+      explicit_ids =
+        report
+        |> Map.get("provider_reservation_no_request_contact_ids", [])
+        |> List.wrap()
+        |> sorted_non_empty_values()
 
-        _candidate_rows ->
-          report
-          |> contact_allocation_report_rows_for_summary()
-          |> Enum.reject(&contact_allocation_provider_reservation_candidate_row?/1)
-          |> Enum.map(&contact_allocation_summary_contact_id/1)
-          |> sorted_non_empty_values()
+      if not is_nil(explicit_ids) do
+        explicit_ids
+      else
+        case contact_allocation_report_provider_reservation_candidate_rows(report) do
+          [] ->
+            []
+
+          _candidate_rows ->
+            rows
+            |> provider_reservation_no_request_rows()
+            |> Enum.map(&contact_allocation_summary_contact_id/1)
+            |> sorted_non_empty_values()
+        end
       end
     end
   end
@@ -36879,27 +36893,37 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp contact_allocation_report_provider_reservation_no_request_contact_ids_by_direction(report) do
-    explicit =
-      report
-      |> Map.get("provider_reservation_no_request_contact_ids_by_direction")
-      |> map_value_lists()
+    rows = contact_allocation_report_rows_for_summary(report)
 
-    if not is_nil(explicit) do
-      explicit
+    if contact_allocation_provider_reservation_request_summary_rows?(report) and rows != [] do
+      rows
+      |> provider_reservation_no_request_rows()
+      |> Enum.map(fn row ->
+        {contact_allocation_summary_direction(row), contact_allocation_summary_contact_id(row)}
+      end)
+      |> contact_allocation_grouped_contact_ids()
     else
-      case contact_allocation_report_provider_reservation_candidate_rows(report) do
-        [] ->
-          nil
+      explicit =
+        report
+        |> Map.get("provider_reservation_no_request_contact_ids_by_direction")
+        |> map_value_lists()
 
-        _candidate_rows ->
-          report
-          |> contact_allocation_report_rows_for_summary()
-          |> Enum.reject(&contact_allocation_provider_reservation_candidate_row?/1)
-          |> Enum.map(fn row ->
-            {contact_allocation_summary_direction(row),
-             contact_allocation_summary_contact_id(row)}
-          end)
-          |> contact_allocation_grouped_contact_ids()
+      if not is_nil(explicit) do
+        explicit
+      else
+        case contact_allocation_report_provider_reservation_candidate_rows(report) do
+          [] ->
+            nil
+
+          _candidate_rows ->
+            rows
+            |> provider_reservation_no_request_rows()
+            |> Enum.map(fn row ->
+              {contact_allocation_summary_direction(row),
+               contact_allocation_summary_contact_id(row)}
+            end)
+            |> contact_allocation_grouped_contact_ids()
+        end
       end
     end
   end
@@ -37099,6 +37123,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Enum.reject(&is_nil/1)
     |> Enum.uniq()
     |> Enum.sort()
+  end
+
+  defp contact_allocation_provider_reservation_request_summary_rows?(report) do
+    Map.get(report, "source_summary_full_rows_present") == true and
+      Map.get(report, "source_summary_schema_contract") ==
+        "contact_allocation_provider_reservation_request_summary.v1"
+  end
+
+  defp provider_reservation_no_request_rows(rows) do
+    Enum.reject(rows, &contact_allocation_provider_reservation_candidate_row?/1)
   end
 
   defp contact_allocation_summary_station_reservation?(row) do
@@ -49227,6 +49261,15 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp contact_allocation_report_from_provider_reservation_request_summary(%{} = summary) do
+    rows =
+      summary
+      |> Map.get("rows", [])
+      |> List.wrap()
+      |> Enum.filter(&is_map/1)
+      |> Enum.map(&stringify_keys/1)
+
+    source_summary_full_rows_present? = rows != []
+
     request_rows =
       summary
       |> Map.get("provider_reservation_request_rows", [])
@@ -49241,14 +49284,21 @@ defmodule OrbitalDynamics.CandidateRefresh do
       |> Enum.filter(&is_map/1)
       |> Enum.map(&stringify_keys/1)
 
+    rows =
+      case rows do
+        [] -> request_rows ++ review_rows
+        rows -> rows
+      end
+
     %{
       "schema_contract" => "contact_allocation_report.v1",
       "model" => "preserved_contact_allocation_provider_reservation_request_summary",
       "source" => Map.get(summary, "source"),
       "source_summary_model" => Map.get(summary, "model"),
       "source_summary_schema_contract" => Map.get(summary, "schema_contract"),
+      "source_summary_full_rows_present" => source_summary_full_rows_present?,
       "source_artifact_type" => Map.get(summary, "source_artifact_type"),
-      "rows" => request_rows ++ review_rows,
+      "rows" => rows,
       "provider_reservation_candidate_contact_count" =>
         contact_allocation_summary_count(
           summary,
