@@ -4599,6 +4599,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "quality_gate_report",
           "schema_validation_status_counts"
         ),
+      "source_report_quality_gate_schema_validation_status_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "quality_gate_report",
+          "schema_validation_status_ids"
+        ),
       "source_report_quality_gate_failed_schema_validation_quality_gate_row_ids" =>
         source_report_summary_family_merge_string_lists(
           source_reports,
@@ -15664,6 +15670,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "freshness_status_counts" => Map.get(quality_gate_summary, "freshness_status_counts", %{}),
       "schema_validation_status_counts" =>
         Map.get(quality_gate_summary, "schema_validation_status_counts", %{}),
+      "schema_validation_status_ids" =>
+        Map.get(quality_gate_summary, "schema_validation_status_ids", []),
       "failed_schema_validation_quality_gate_row_ids" =>
         Map.get(quality_gate_summary, "failed_schema_validation_quality_gate_row_ids", []),
       "schema_validation_gate_ids" =>
@@ -23867,6 +23875,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
         reports
         |> Enum.map(&quality_gate_row_count_map(&1, "schema_validation_status_counts"))
         |> merge_count_maps(),
+      "schema_validation_status_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_string_list(&1, "schema_validation_status_ids"))
+        |> sorted_string_values(),
       "failed_schema_validation_quality_gate_row_ids" =>
         reports
         |> Enum.flat_map(
@@ -46504,6 +46516,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "schema_validation_warning_count" => summary["schema_validation_warning_count"],
       "schema_validation_remediation_count" => summary["schema_validation_remediation_count"],
       "schema_validation_status_counts" => summary["schema_validation_status_counts"],
+      "schema_validation_status_ids" => summary["schema_validation_status_ids"],
       "quality_gate_row_ids_by_status" => row_ids_by_status || %{},
       "quality_gate_ids_by_status" => gate_ids_by_status,
       "review_required_quality_gate_row_ids" =>

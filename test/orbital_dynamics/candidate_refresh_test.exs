@@ -31594,6 +31594,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_quality_gate_schema_validation_status_counts" => %{
                "fail" => 3
              },
+             "source_report_quality_gate_schema_validation_status_ids" => ["fail"],
              "source_report_quality_gate_failed_schema_validation_quality_gate_row_ids" => [
                "quality_gate:activity_1:schema_validation"
              ],
@@ -31612,6 +31613,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                    "operational_quality_gate_schema_validation_summary.v1" => 3
                  },
                  "schema_validation_status_counts" => %{"fail" => 3},
+                 "schema_validation_status_ids" => ["fail"],
                  "failed_schema_validation_quality_gate_row_ids" => [
                    "quality_gate:activity_1:schema_validation"
                  ]
@@ -31635,6 +31637,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "gate_count" => 3,
              "blocked_gate_count" => 3,
              "schema_validation_status_counts" => %{"fail" => 3},
+             "schema_validation_status_ids" => ["fail"],
              "failed_schema_validation_quality_gate_row_ids" => [
                "quality_gate:activity_1:schema_validation"
              ],
@@ -31736,6 +31739,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "operational_quality_gate_schema_validation_summary.v1" => 1
              },
              "schema_validation_status_counts" => %{"fail" => 1},
+             "schema_validation_status_ids" => ["fail"],
              "failed_schema_validation_quality_gate_row_ids" => [
                "quality_gate:activity_1:schema_validation"
              ],
@@ -31754,6 +31758,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "operational_quality_gate_schema_validation_summary.v1" => 1
              },
              "schema_validation_status_counts" => %{"fail" => 1},
+             "schema_validation_status_ids" => ["fail"],
              "failed_schema_validation_quality_gate_row_ids" => [
                "quality_gate:activity_1:schema_validation"
              ],

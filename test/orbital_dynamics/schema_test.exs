@@ -16014,6 +16014,23 @@ defmodule OrbitalDynamics.SchemaTest do
              "pattern"
            ]) == Schema.identity_policy()["stable_id_pattern"]
 
+    quality_gate_source_report_properties =
+      get_in(candidate_refresh_schema, [
+        "properties",
+        "provenance",
+        "properties",
+        "source_reports",
+        "properties",
+        "quality_gate_report",
+        "properties"
+      ])
+
+    assert get_in(quality_gate_source_report_properties, [
+             "schema_validation_status_ids",
+             "items",
+             "type"
+           ]) == "string"
+
     assert %{
              "paths" => ["mission_state.source_quality_gate_report"],
              "contract" => "quality_gate_report.v1",
@@ -16067,6 +16084,28 @@ defmodule OrbitalDynamics.SchemaTest do
              invalid_reason_id_report["errors"],
              &(&1["path"] ==
                  "$.provenance.source_reports.quality_gate_report.resource_availability_reason_ids[0]")
+           )
+
+    invalid_schema_validation_status_id =
+      update_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "quality_gate_report"
+        ],
+        fn summary ->
+          Map.put(summary, "schema_validation_status_ids", [42])
+        end
+      )
+
+    assert {:error, invalid_schema_validation_status_id_report} =
+             Schema.validate_artifact(invalid_schema_validation_status_id)
+
+    assert Enum.any?(
+             invalid_schema_validation_status_id_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.quality_gate_report.schema_validation_status_ids[0]")
            )
 
     invalid_reason_count =

@@ -87,8 +87,9 @@ Status: **implemented** (with a **partial** semantic-depth area, plus **near-ter
   `operational_quality_gate_schema_validation_summary.v1` handoffs as
   quality-gate source-report provenance from direct, accepted-state,
   mission-state, and wrapped result-artifact inputs, preserving schema status
-  maps, failed quality-gate row IDs, schema-validation gate IDs, and
-  no-authority evidence without replaying refresh generation. Reconstructed
+  maps, schema-validation status IDs, failed quality-gate row IDs,
+  schema-validation gate IDs, and no-authority evidence without replaying
+  refresh generation. Reconstructed
   generic quality-gate row counts come from `quality_gate_row_ids_by_status`
   when present, so stale compact schema-validation row counts cannot inflate
   branch-local quality-gate pressure.

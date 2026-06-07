@@ -2235,9 +2235,9 @@ compact `operational_quality_gate_import_readiness_summary.v1` inputs replay
 through the `quality_gate_report` provenance family with wrapper-qualified
 paths, inherited trust-boundary evidence, source-summary model/schema/source
 artifact counts, freshness/import/Cadence-import/schema-validation maps, gate
-row ID maps, and import-readiness gate IDs preserved. They remain artifact-only:
-they do not certify gates, approve imports, write to Cadence, or regenerate
-candidates.
+row ID maps, schema-validation status IDs, and import-readiness gate IDs
+preserved. They remain artifact-only: they do not certify gates, approve
+imports, write to Cadence, or regenerate candidates.
 The replay helper can inspect V3 branch `candidate_source` metadata that carries
 `candidate_refresh_request_source_report_summary`, so strategy-derived branch
 refreshes preserve quality-gate review/import/resource pressure through the

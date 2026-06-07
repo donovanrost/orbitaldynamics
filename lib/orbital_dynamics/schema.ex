@@ -23812,7 +23812,8 @@ defmodule OrbitalDynamics.Schema do
         "stale_or_unknown_freshness_quality_gate_row_ids" => stable_id_array_schema(),
         "import_preparation_quality_gate_row_ids" => stable_id_array_schema(),
         "blocked_import_quality_gate_row_ids" => stable_id_array_schema(),
-        "import_readiness_gate_ids" => stable_id_array_schema()
+        "import_readiness_gate_ids" => stable_id_array_schema(),
+        "schema_validation_status_ids" => string_array_schema()
       })
     end)
   end
@@ -29511,6 +29512,11 @@ defmodule OrbitalDynamics.Schema do
       fn field, acc ->
         validate_stable_id_list(acc, path <> ".#{field}", Map.get(summary, field))
       end
+    )
+    |> validate_string_list_items(
+      path,
+      summary,
+      "schema_validation_status_ids"
     )
   end
 
