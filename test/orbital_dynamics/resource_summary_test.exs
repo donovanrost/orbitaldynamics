@@ -780,6 +780,7 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
         ground_station_id: :equator_prime,
         source_window_id: :window_alpha,
         station_calendar_entry_id: :station_entry_alpha,
+        station_calendar_provider_id: :provider_alpha,
         station_calendar_provider_entry_id: :provider_entry_alpha,
         station_calendar_directions: [:downlink],
         throughput_model: %{station_capacity_fraction: 0.5}
@@ -801,6 +802,9 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
              },
              "resource_pressure_station_calendar_entry_ids_by_type" => %{
                "downlink_shortfall" => ["station_entry_alpha"]
+             },
+             "resource_pressure_station_calendar_provider_ids_by_type" => %{
+               "downlink_shortfall" => ["provider_alpha"]
              },
              "resource_pressure_station_calendar_provider_entry_ids_by_type" => %{
                "downlink_shortfall" => ["provider_entry_alpha"]
@@ -836,6 +840,11 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
         "resource_pressure_station_calendar_entry_ids_by_type",
         %{"downlink_shortfall" => ["stale_station_entry"]},
         "must equal row-derived resource_pressure_station_calendar_entry_ids_by_type"
+      },
+      {
+        "resource_pressure_station_calendar_provider_ids_by_type",
+        %{"downlink_shortfall" => ["stale_provider"]},
+        "must equal row-derived resource_pressure_station_calendar_provider_ids_by_type"
       },
       {
         "resource_pressure_station_calendar_provider_entry_ids_by_type",
