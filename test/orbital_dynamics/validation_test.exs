@@ -721,6 +721,8 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert :validation_safety_case_quality_gate_count_rollups in capabilities.safety_case_evidence_semantics
 
+    assert :validation_safety_case_quality_gate_row_status_floor in capabilities.safety_case_evidence_semantics
+
     assert :validation_safety_case_schema_validation_count_rollups in capabilities.safety_case_evidence_semantics
 
     assert :validation_safety_case_schema_validation_batch_nested_status_floor in capabilities.safety_case_evidence_semantics
@@ -792,6 +794,48 @@ defmodule OrbitalDynamics.ValidationTest do
            } =
              safety_case_summary =
              Validation.safety_case_summary(stale_top_level_model_acceptance)
+
+    assert {:ok, %{"schema_contract" => "validation_safety_case_summary.v1"}} =
+             Schema.validate_artifact(safety_case_summary,
+               schema_contract: "validation_safety_case_summary.v1"
+             )
+  end
+
+  test "derives safety-case quality-gate evidence from rows when top-level counts are stale" do
+    stale_top_level_quality_gate = %{
+      "schema_contract" => "quality_gate_report.v1",
+      "report_id" => "quality_gate:stale_top_level",
+      "source_readiness_report_id" => "operational_readiness:stale_top_level",
+      "readiness_level" => "import_eligible",
+      "import_classification" => "importable",
+      "status" => "passed",
+      "review_gate_count" => 0,
+      "analysis_gate_count" => 0,
+      "blocked_gate_count" => 0,
+      "rows" => [
+        %{"id" => "schema_validation", "status" => "review_required"},
+        %{"id" => "cadence_import", "status" => "blocked"}
+      ]
+    }
+
+    assert %{
+             "status" => "blocked",
+             "quality_gate_review_count" => 1,
+             "quality_gate_blocked_count" => 1,
+             "evidence_status_counts" => %{"blocked" => 1},
+             "evidence_refs_by_status" => %{
+               "blocked" => ["quality_gate_report.v1:quality_gate:stale_top_level"]
+             },
+             "evidence" => [
+               %{
+                 "schema_contract" => "quality_gate_report.v1",
+                 "status" => "blocked",
+                 "quality_gate_review_count" => 1,
+                 "quality_gate_blocked_count" => 1
+               }
+             ]
+           } =
+             safety_case_summary = Validation.safety_case_summary(stale_top_level_quality_gate)
 
     assert {:ok, %{"schema_contract" => "validation_safety_case_summary.v1"}} =
              Schema.validate_artifact(safety_case_summary,

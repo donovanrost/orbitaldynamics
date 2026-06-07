@@ -9720,6 +9720,7 @@ defmodule OrbitalDynamics.Validation do
         :validation_safety_case_model_acceptance_row_status_floor,
         :validation_safety_case_readiness_count_rollups,
         :validation_safety_case_quality_gate_count_rollups,
+        :validation_safety_case_quality_gate_row_status_floor,
         :validation_safety_case_schema_validation_count_rollups,
         :validation_safety_case_schema_validation_batch_nested_status_floor,
         :validation_safety_case_fixture_count_rollups,
@@ -10557,15 +10558,30 @@ defmodule OrbitalDynamics.Validation do
   end
 
   defp safety_case_evidence_row(%{"schema_contract" => "quality_gate_report.v1"} = report) do
+    rows = map_rows(report, "rows")
+
     %{
       "schema_contract" => "quality_gate_report.v1",
-      "status" => safety_case_quality_gate_status(report),
+      "status" => safety_case_quality_gate_status(report, rows),
       "report_id" => Map.get(report, "report_id"),
       "source_readiness_report_id" => Map.get(report, "source_readiness_report_id"),
       "readiness_level" => Map.get(report, "readiness_level"),
       "import_classification" => Map.get(report, "import_classification"),
-      "quality_gate_review_count" => numeric_count(report, "review_gate_count"),
-      "quality_gate_blocked_count" => numeric_count(report, "blocked_gate_count")
+      "quality_gate_review_count" =>
+        quality_gate_row_count_or_report_count(
+          rows,
+          report,
+          "review_required",
+          "review_gate_count"
+        ) +
+          quality_gate_row_count_or_report_count(
+            rows,
+            report,
+            "analysis_only",
+            "analysis_gate_count"
+          ),
+      "quality_gate_blocked_count" =>
+        quality_gate_row_count_or_report_count(rows, report, "blocked", "blocked_gate_count")
     }
     |> compact_validation_map()
   end
@@ -10755,13 +10771,36 @@ defmodule OrbitalDynamics.Validation do
 
   defp safety_case_readiness_status(_report), do: "accepted_for_use"
 
-  defp safety_case_quality_gate_status(report) do
+  defp safety_case_quality_gate_status(_report, rows) when is_list(rows) and rows != [] do
+    cond do
+      count_rows_matching(rows, "status", "blocked") > 0 ->
+        "blocked"
+
+      count_rows_matching(rows, "status", "review_required") > 0 or
+          count_rows_matching(rows, "status", "analysis_only") > 0 ->
+        "review_required"
+
+      true ->
+        "accepted_for_use"
+    end
+  end
+
+  defp safety_case_quality_gate_status(report, _rows) do
     cond do
       numeric_count(report, "blocked_gate_count") > 0 -> "blocked"
       numeric_count(report, "review_gate_count") > 0 -> "review_required"
       numeric_count(report, "analysis_gate_count") > 0 -> "review_required"
       true -> "accepted_for_use"
     end
+  end
+
+  defp quality_gate_row_count_or_report_count(rows, _report, status, _field)
+       when is_list(rows) and rows != [] do
+    count_rows_matching(rows, "status", status)
+  end
+
+  defp quality_gate_row_count_or_report_count(_rows, report, _status, field) do
+    numeric_count(report, field)
   end
 
   defp safety_case_schema_validation_status(report) do
