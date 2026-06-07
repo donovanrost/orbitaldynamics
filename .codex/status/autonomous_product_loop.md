@@ -8,7 +8,7 @@ Current slice:
 ResourceSummary selected-activity alias row semantics.
 
 Status:
-Implemented, verified, reviewed, and ready for commit/push.
+Implemented, verified, reviewed, committed, and pushed.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -47,7 +47,8 @@ Docs/artifacts changed:
 
 Review:
 - Read-only subagent review found one must-fix ledger mismatch.
-- Fixed by updating this ledger with all changed files and verification.
+- Fixed by updating the ledger with all changed files and verification before
+  committing the slice.
 - No code/doc/test blocker found. Residual risk is low: new row-semantic atoms
   are public metadata expansion.
 
@@ -55,19 +56,22 @@ Remaining maturity gaps:
 - Resource projection remains selected-activity, artifact-only evidence, not a
   calibrated continuous subsystem simulation.
 - Broader resource/contact allocation hardening remains available in the guide.
+- Contact-allocation review/import behavior is already deep; choose the next
+  slice from a current evidence gap rather than duplicating existing summary
+  surfaces.
 
 Last commit:
-`73734daa20bfab113c2cac8f9c81adaa11842b49` pushed to `origin/main` for
-ResourceSummary roll-forward storage/downlink alias metadata.
+`0a6b5f57c86a598e3ac59d731e89e8a5bea36a83` pushed to `origin/main` for
+ResourceSummary selected-activity alias row semantics.
 
 Next candidate:
-Continue from `docs/autonomous_work_guide.md`; likely next candidate is another
-resource/contact allocation hardening gap unless live verification shows a
-broken contract.
+Continue from `docs/autonomous_work_guide.md`; likely next candidate is a
+behavioral resource/contact allocation gap or the next guide queue item if live
+evidence shows allocation examples are already covered.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
-  not part of this slice.
+  not part of the completed slices.
 
 Blocked:
 No.
