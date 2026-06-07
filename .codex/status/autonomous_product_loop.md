@@ -5,8 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Candidate-refresh timeline-activity-approval-state replay branch summary
-routing.
+Candidate-refresh timeline-preservation replay branch summary routing.
 
 Status:
 Implemented, verified, reviewed, and ready for mechanical commit/push.
@@ -17,10 +16,10 @@ Files changed:
 - `test/orbital_dynamics/candidate_refresh_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:21034` passed, 1
-  test.
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:22448 test/orbital_dynamics/candidate_refresh_test.exs:22685 test/orbital_dynamics/candidate_refresh_test.exs:33959`
+  passed, 3 tests.
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs test/orbital_dynamics/schema_test.exs`
-  passed, 823 tests.
+  passed, 824 tests.
 - `git diff --check` passed.
 - `slice_reviewer` found no must-fix findings.
 
@@ -29,24 +28,26 @@ Docs/artifacts changed:
   advertised replay semantics.
 
 Level 6 pillar advanced:
-Branch-local candidate refresh depth and approval-aware replay semantics.
+Branch-local candidate refresh depth and timeline preservation replay
+semantics.
 
 Remaining maturity gaps:
-`source_report_timeline_activity_approval_state_branch_replay_summary` is
-advertised and `timeline_activity_approval_state_replay_summary/1` derives
-branch-local approval-state pressure. This slice now exposes those composed
-approval-state pressure booleans on `source_report_summary/1` for source-report
-consumers with contract-scoped approval-state evidence.
+`source_report_timeline_preservation_branch_replay_summary` is advertised and
+`timeline_preservation_replay_summary/1` derives branch-local preservation
+pressure from preservation review provenance. This slice now exposes those
+composed preservation pressure booleans on `source_report_summary/1` when
+preservation report/status evidence is present, and returns false branch flags
+without invoking operator-review synthesis when preservation evidence is absent.
 
 Last commit:
-`710f49140897aafd306e16d24c91639e8e7047f0` pushed to `origin/main` for
-candidate-refresh timeline-activity-status-state replay branch summary routing.
+`2d66fe960c3634a75126c07ce3f9d0fd576f7805` pushed to `origin/main` for
+candidate-refresh timeline-activity-approval-state replay branch summary
+routing.
 
 Next candidate:
-After this slice, reassess from the source-report capability catalog.
-Timeline-preservation remains advertised as branch replay, but it derives from
-preservation review rows rather than only nested `source_reports`, so verify
-that surface before selecting it.
+After this slice, reassess from the source-report capability catalog and avoid
+broadening beyond branch replay projections unless a higher-value live gap is
+clear.
 
 Blocked:
 No.

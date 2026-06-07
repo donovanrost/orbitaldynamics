@@ -22506,6 +22506,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     review = OperatorReview.from_candidate_refresh_artifact(artifact)
     import = CadenceImport.from_candidate_refresh_artifact(artifact)
+    source_summary = CandidateRefresh.source_report_summary(artifact)
     replay_summary = CandidateRefresh.timeline_preservation_replay_summary(artifact)
 
     preservation_rows =
@@ -22597,6 +22598,15 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              OrbitalDynamics.candidate_refresh_timeline_preservation_replay_summary(artifact)
 
     assert %{
+             "source_report_timeline_preservation_branch_local_timeline_preservation_pressure" =>
+               true,
+             "source_report_timeline_preservation_branch_local_review_pressure" => true,
+             "source_report_timeline_preservation_branch_local_record_pressure" => true,
+             "source_report_timeline_preservation_branch_local_action_pressure" => true,
+             "source_report_timeline_preservation_branch_local_routing_pressure" => true
+           } = source_summary
+
+    assert %{
              "source_artifact_type" => "candidate_refresh.v1",
              "timeline_preservation_review_count" => 12,
              "review_type_counts" => %{"timeline_preservation_review" => 12}
@@ -22670,6 +22680,31 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
              Schema.validate_artifact(import)
+  end
+
+  test "source report summary omits preservation branch pressure for absent preservation rows" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "timeline_feedback_report" => %{
+            "contract" => "timeline_feedback_report.v1",
+            "count" => 1,
+            "row_count" => 1,
+            "paths" => ["source_timeline_feedback_report"]
+          }
+        }
+      }
+    }
+
+    assert %{
+             "source_report_timeline_preservation_branch_local_timeline_preservation_pressure" =>
+               false,
+             "source_report_timeline_preservation_branch_local_review_pressure" => false,
+             "source_report_timeline_preservation_branch_local_record_pressure" => false,
+             "source_report_timeline_preservation_branch_local_action_pressure" => false,
+             "source_report_timeline_preservation_branch_local_routing_pressure" => false
+           } = CandidateRefresh.source_report_summary(artifact)
   end
 
   test "timeline preservation replay reads branch candidate-source preservation rows" do

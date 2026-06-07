@@ -6916,6 +6916,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(
       source_report_timeline_activity_precondition_replay_summary_fields(source_reports)
     )
+    |> Map.merge(source_report_timeline_preservation_replay_summary_fields(refresh_or_artifact))
     |> Map.merge(source_report_timeline_dependency_impact_replay_summary_fields(source_reports))
     |> Map.merge(source_report_timeline_diff_replay_summary_fields(source_reports))
     |> Map.merge(source_report_timeline_integrity_replay_summary_fields(source_reports))
@@ -10048,6 +10049,69 @@ defmodule OrbitalDynamics.CandidateRefresh do
     }
   end
 
+  defp source_report_timeline_preservation_replay_summary_fields(refresh_or_artifact) do
+    summary =
+      if timeline_preservation_replay_input?(refresh_or_artifact) do
+        timeline_preservation_replay_summary(refresh_or_artifact)
+      else
+        %{
+          "branch_local_timeline_preservation_pressure" => false,
+          "branch_local_timeline_preservation_review_pressure" => false,
+          "branch_local_timeline_preservation_record_pressure" => false,
+          "branch_local_timeline_preservation_action_pressure" => false,
+          "branch_local_timeline_preservation_routing_pressure" => false
+        }
+      end
+
+    %{
+      "source_report_timeline_preservation_branch_local_timeline_preservation_pressure" =>
+        Map.get(summary, "branch_local_timeline_preservation_pressure"),
+      "source_report_timeline_preservation_branch_local_review_pressure" =>
+        Map.get(summary, "branch_local_timeline_preservation_review_pressure"),
+      "source_report_timeline_preservation_branch_local_record_pressure" =>
+        Map.get(summary, "branch_local_timeline_preservation_record_pressure"),
+      "source_report_timeline_preservation_branch_local_action_pressure" =>
+        Map.get(summary, "branch_local_timeline_preservation_action_pressure"),
+      "source_report_timeline_preservation_branch_local_routing_pressure" =>
+        Map.get(summary, "branch_local_timeline_preservation_routing_pressure")
+    }
+  end
+
+  defp timeline_preservation_replay_input?(value) when is_list(value) do
+    Enum.any?(value, &timeline_preservation_replay_input?/1)
+  end
+
+  defp timeline_preservation_replay_input?(%{} = value) do
+    artifact = stringify_keys(value)
+
+    Map.get(artifact, "schema_contract") in [
+      "timeline_preservation_report.v1",
+      "timeline_preservation_status.v1"
+    ] or
+      timeline_preservation_replay_direct_input?(artifact) or
+      timeline_preservation_replay_input?(Map.get(artifact, "candidate_source")) or
+      timeline_preservation_replay_input?(Map.get(artifact, "source_result_artifact")) or
+      timeline_preservation_replay_input?(Map.get(artifact, "result_artifact"))
+  end
+
+  defp timeline_preservation_replay_input?(_value), do: false
+
+  defp timeline_preservation_replay_direct_input?(artifact) do
+    [
+      "source_timeline_preservation_report",
+      "timeline_preservation_report",
+      "source_timeline_preservation_status",
+      "timeline_preservation_status"
+    ]
+    |> Enum.any?(fn key -> timeline_preservation_replay_value?(Map.get(artifact, key)) end)
+  end
+
+  defp timeline_preservation_replay_value?(value) when is_list(value),
+    do: Enum.any?(value, &timeline_preservation_replay_value?/1)
+
+  defp timeline_preservation_replay_value?(%{}), do: true
+  defp timeline_preservation_replay_value?(_value), do: false
+
   defp source_report_timeline_dependency_impact_replay_summary_fields(source_reports) do
     summary =
       source_reports
@@ -12698,46 +12762,55 @@ defmodule OrbitalDynamics.CandidateRefresh do
       rows
       |> Enum.map(&Map.get(&1, "required_operator_action"))
       |> count_source_report_values()
+      |> empty_map_if_nil()
 
     preservation_status_counts =
       rows
       |> Enum.map(&Map.get(&1, "timeline_preservation_status"))
       |> count_source_report_values()
+      |> empty_map_if_nil()
 
     protection_decision_counts =
       rows
       |> Enum.map(&Map.get(&1, "timeline_preservation_protection_decision"))
       |> count_source_report_values()
+      |> empty_map_if_nil()
 
     protection_category_counts =
       rows
       |> Enum.map(&Map.get(&1, "timeline_preservation_protection_category"))
       |> count_source_report_values()
+      |> empty_map_if_nil()
 
     protection_reason_counts =
       rows
       |> Enum.map(&Map.get(&1, "timeline_preservation_protection_reason"))
       |> count_source_report_values()
+      |> empty_map_if_nil()
 
     source_contract_counts =
       rows
       |> Enum.map(&timeline_preservation_replay_row_source_contract/1)
       |> count_source_report_values()
+      |> empty_map_if_nil()
 
     source_model_counts =
       rows
       |> Enum.map(&timeline_preservation_replay_row_source_model/1)
       |> count_source_report_values()
+      |> empty_map_if_nil()
 
     activity_id_counts =
       rows
       |> Enum.flat_map(&timeline_preservation_replay_row_ids(&1, "activity_id"))
       |> count_source_report_values()
+      |> empty_map_if_nil()
 
     timeline_id_counts =
       rows
       |> Enum.flat_map(&timeline_preservation_replay_row_ids(&1, "timeline_id"))
       |> count_source_report_values()
+      |> empty_map_if_nil()
 
     preservation_required_rows =
       Enum.filter(rows, &(&1["timeline_preservation_status"] == "preservation_required"))
@@ -12751,7 +12824,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     review_change_rows =
       Enum.filter(rows, &(&1["timeline_preservation_protection_decision"] == "review_change"))
 
-    action_routing = timeline_preservation_replay_action_routing(rows)
+    action_routing = timeline_preservation_replay_action_routing(rows) |> empty_map_if_nil()
 
     trust_boundaries =
       rows
