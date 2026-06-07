@@ -1006,14 +1006,16 @@ Candidate-refresh provider-reservation replay likewise preserves the compact
 summary's full allocation rows and derives no-request counts, contact IDs, and
 direction maps from those rows when present, so stale explicit no-request
 aggregates cannot steer branch-local provider-reservation routing.
-The validation-reference registry also includes a generated
-`contact_allocation_provider_reservation_request_summary.v1` fixture that
+The validation-reference registry and checked-in
+`study_results/contact_allocation_provider_reservation_request_summary_v1.json`
+fixture also include a generated
+`contact_allocation_provider_reservation_request_summary.v1` case that
 observes provider-reservation request, review, and no-request counts plus
 direction routing maps. Fixture verification rejects stale row-derived
 request/review/no-request direction maps, and schema export pins the
-artifact-only model constant, string source boundary, and exact `model_limits`
-before provider-reservation handoff summaries can be treated as provider-write,
-schedule-mutation, or operator authority.
+artifact-only model constant, string source boundary, and exact `model_limits`,
+so provider-reservation handoff summaries are not treated as provider-write,
+schedule-mutation, or operator-authority artifacts.
 Station-calendar precedence summary schema export pins the artifact-only model
 constant and exact `model_limits` used by generated compact precedence handoff
 summaries.

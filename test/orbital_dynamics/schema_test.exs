@@ -16635,6 +16635,131 @@ defmodule OrbitalDynamics.SchemaTest do
     end)
   end
 
+  test "validates checked-in provider reservation request summary fixture" do
+    summary =
+      read_json!("study_results/contact_allocation_provider_reservation_request_summary_v1.json")
+
+    contacts = [
+      %{
+        id: :dl_reserved_owner,
+        type: :downlink,
+        direction: :downlink,
+        scenario_id: :leo_1,
+        spacecraft_id: :sat_ready,
+        ground_station_id: :equator_prime,
+        source_window_id: :window_dl_reserved_owner,
+        starts_at_s: 100.0,
+        ends_at_s: 160.0,
+        station_reservation_id: :reservation_1,
+        score: 5
+      },
+      %{
+        id: :dl_review_overlap,
+        type: :command,
+        direction: :command,
+        scenario_id: :leo_1,
+        spacecraft_id: :sat_ready,
+        ground_station_id: :equator_prime,
+        source_window_id: :window_dl_review_overlap,
+        starts_at_s: 210.0,
+        ends_at_s: 240.0,
+        station_reservation_id: :reservation_review,
+        station_reservation_match_status: :overlap,
+        station_reservation_status: :confirmed,
+        score: 4
+      },
+      %{
+        id: :dl_reserved_intruder,
+        type: :tracking,
+        direction: :tracking,
+        scenario_id: :leo_1,
+        spacecraft_id: :sat_ready,
+        ground_station_id: :equator_prime,
+        source_window_id: :window_dl_reserved_intruder,
+        starts_at_s: 100.0,
+        ends_at_s: 160.0,
+        score: 3
+      },
+      %{
+        id: :dl_unreserved,
+        type: :uplink,
+        direction: :uplink,
+        scenario_id: :leo_1,
+        spacecraft_id: :sat_ready,
+        ground_station_id: :equator_prime,
+        source_window_id: :window_dl_unreserved,
+        starts_at_s: 320.0,
+        ends_at_s: 360.0,
+        score: 2
+      }
+    ]
+
+    ground_network = [
+      %{
+        ground_station_id: :equator_prime,
+        status: :reserved,
+        starts_at_s: 90.0,
+        ends_at_s: 170.0,
+        reservation_id: :reservation_1,
+        reserved_by: "ops_team_b",
+        reservation_status: :confirmed,
+        reservation_expires_at_s: 360.0
+      }
+    ]
+
+    generated_summary =
+      OrbitalDynamics.contact_allocation_provider_reservation_request_summary(
+        contacts,
+        ground_network,
+        source: "validation.provider_reservation_request_summary"
+      )
+
+    assert generated_summary == summary
+
+    assert {:ok,
+            %{"schema_contract" => "contact_allocation_provider_reservation_request_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "source_artifact_type" => "contact_allocation_report.v1",
+             "source" => "validation.provider_reservation_request_summary",
+             "input_contact_count" => 4,
+             "provider_reservation_candidate_contact_count" => 2,
+             "provider_reservation_request_contact_count" => 1,
+             "provider_reservation_review_contact_count" => 1,
+             "provider_reservation_no_request_contact_count" => 2,
+             "provider_reservation_request_status" => "review_required",
+             "provider_reservation_request_contact_ids" => ["dl_reserved_owner"],
+             "provider_reservation_review_contact_ids" => ["dl_review_overlap"],
+             "provider_reservation_no_request_contact_ids" => [
+               "dl_reserved_intruder",
+               "dl_unreserved"
+             ],
+             "provider_reservation_request_contact_ids_by_direction" => %{
+               "downlink" => ["dl_reserved_owner"]
+             },
+             "provider_reservation_review_contact_ids_by_direction" => %{
+               "command" => ["dl_review_overlap"]
+             },
+             "provider_reservation_no_request_contact_ids_by_direction" => %{
+               "tracking" => ["dl_reserved_intruder"],
+               "uplink" => ["dl_unreserved"]
+             },
+             "provider_reservation_request_ids_by_match_status" => %{
+               "matched" => ["reservation_1"]
+             },
+             "provider_reservation_review_ids_by_match_status" => %{
+               "overlap" => ["reservation_review"]
+             },
+             "assumptions" => %{
+               "execution_boundary" =>
+                 "artifact_only_no_provider_reservation_or_schedule_mutation",
+               "provider_reservation_execution" => "not_performed_by_summary",
+               "operator_authority" => "not_granted_by_provider_reservation_request_summary"
+             }
+           } = summary
+  end
+
   test "exports stable-id hints for standalone artifact identity fields" do
     stable_id_pattern = Schema.identity_policy()["stable_id_pattern"]
 
