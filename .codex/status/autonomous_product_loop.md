@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-CandidateRefresh quality-gate import-readiness status-ID replay.
+CandidateRefresh generic quality-gate classification-ID replay.
 
 Status:
 Completed locally; product commit created and handoff updated.
@@ -22,7 +22,7 @@ Files changed:
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:31772 test/orbital_dynamics/candidate_refresh_test.exs:31980 test/orbital_dynamics/schema_test.exs:30906`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:30853 test/orbital_dynamics/candidate_refresh_test.exs:31009 test/orbital_dynamics/candidate_refresh_test.exs:31089`
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 - `mix orbital_dynamics.schema.lint --all`
@@ -30,10 +30,9 @@ Tests run:
 
 Docs/artifacts changed:
 CandidateRefresh source-report and compact replay docs now name
-`freshness_status_ids`, `import_status_ids`, and `cadence_import_status_ids`
-as artifact-only routing evidence for compact import-readiness summaries.
-CandidateRefresh schema export now exposes those fields under quality-gate
-source-report provenance.
+classification-grouped gate and quality-gate row ID maps as artifact-only
+routing evidence. CandidateRefresh schema export now exposes those fields under
+quality-gate source-report provenance.
 
 Level 6 pillar advanced:
 Approval-aware automation boundaries, durable schema-versioned artifacts, and
@@ -45,12 +44,12 @@ or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Product commit `b7e11ee336d8b1902af1f41756b8e38a665a63cb`.
+Product commit `0403462f02fef63466234d569e84a399bfd2fc01`.
 
 Next candidate:
-Reassess from `docs/autonomous_work_guide.md` and the Level 6 calibration docs;
-prefer one narrow CandidateRefresh/review/import replay or validation fixture
-gap over broad roadmap exploration.
+Reassess from `docs/autonomous_work_guide.md`; prefer one narrow
+CandidateRefresh/review/import replay or validation fixture gap over broad
+roadmap exploration.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
