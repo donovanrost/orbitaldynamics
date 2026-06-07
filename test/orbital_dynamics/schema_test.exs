@@ -1259,6 +1259,71 @@ defmodule OrbitalDynamics.SchemaTest do
              |> Enum.map(&to_string/1)
   end
 
+  test "validates checked-in resource filter summary fixture" do
+    report = read_json!("study_results/resource_filter_report_v1.json")
+    summary = read_json!("study_results/resource_filter_summary_v1.json")
+
+    generated_summary = OrbitalDynamics.resource_filter_summary(report)
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "resource_filter_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "source_artifact_type" => "resource_filter_report.v1",
+             "input_candidate_count" => 3,
+             "kept_candidate_count" => 1,
+             "suppressed_candidate_count" => 2,
+             "suppression_review_status" => "review_required",
+             "suppressed_candidate_ids" => [
+               "leo_1_downlink_equator_prime_1",
+               "leo_1_observe_target_a_1"
+             ],
+             "suppressed_reason_counts" => %{
+               "downlink_margin_below_policy" => 1,
+               "storage_margin_below_observe_policy" => 1
+             },
+             "suppressed_candidate_ids_by_reason" => %{
+               "downlink_margin_below_policy" => ["leo_1_downlink_equator_prime_1"],
+               "storage_margin_below_observe_policy" => ["leo_1_observe_target_a_1"]
+             },
+             "resource_blocking_dimension_counts" => %{"downlink" => 1, "storage" => 1},
+             "suppressed_candidate_ids_by_resource_blocking_dimension" => %{
+               "downlink" => ["leo_1_downlink_equator_prime_1"],
+               "storage" => ["leo_1_observe_target_a_1"]
+             },
+             "suppressed_candidate_ids_by_scenario_id" => %{
+               "leo_1" => ["leo_1_downlink_equator_prime_1", "leo_1_observe_target_a_1"]
+             },
+             "suppressed_resource_source_quality_counts" => %{},
+             "suppressed_candidate_ids_by_resource_source_quality" => %{},
+             "suppressed_resource_trust_boundary_status_counts" => %{"missing" => 2},
+             "suppressed_candidate_ids_by_resource_trust_boundary_status" => %{
+               "missing" => ["leo_1_downlink_equator_prime_1", "leo_1_observe_target_a_1"]
+             },
+             "invalid_candidate_input_count" => 0,
+             "invalid_candidate_input_ids" => [],
+             "invalid_resource_summary_input_count" => 0,
+             "invalid_resource_summary_input_ids" => [],
+             "duplicate_suppressed_candidate_id_count" => 0,
+             "duplicate_suppressed_candidate_row_count" => 0,
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_schedule_mutation",
+               "operator_authority" => "not_granted_by_resource_filter_summary",
+               "resource_state_propagation" => "not_performed",
+               "source" => "resource_filter_report.v1"
+             }
+           } = summary
+
+    assert Enum.map(summary["review_rows"], & &1["id"]) == [
+             "leo_1_observe_target_a_1",
+             "leo_1_downlink_equator_prime_1"
+           ]
+
+    assert summary["model_limits"] == report["model_limits"]
+  end
+
   test "validates checked-in station reservation review summary fixture" do
     review_summary = read_json!("study_results/station_reservation_review_summary_v1.json")
 

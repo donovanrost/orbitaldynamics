@@ -943,6 +943,12 @@ kept/suppressed counts, suppressed trust maps, and resource-filter model-limit
 drift, rejects stale resource-filter model strings, and exports the same model
 constant plus exact `model_limits` used by generated resource-filter reports and
 compact summaries.
+`study_results/resource_filter_summary_v1.json` now feeds a curated
+`resource_filter_summary.v1` validation-reference fixture. The observations
+check input/kept/suppressed/invalid counts, suppression review status,
+suppressed IDs by reason, scenario, resource blocking dimension, source quality,
+and trust-boundary status, duplicate counters, review rows, model limits, and
+artifact-only no-resource-propagation/no-schedule-mutation assumptions.
 `study_results/objective_satisfaction_report_v1.json` and
 `study_results/objective_tradeoff_report_v1.json` are observed for objective
 status maps, selected/satisfied/required totals, planned-not-executed
