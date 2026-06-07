@@ -3274,6 +3274,9 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
     assert get_in(precondition_summary_schema, ["properties", "validation_level", "const"]) ==
              "artifact_contract"
 
+    assert get_in(precondition_summary_schema, ["properties", "model_limits", "const"]) ==
+             OrbitalDynamics.Timeline.model_limits()
+
     assert get_in(precondition_summary_schema, ["properties", "precondition_status", "enum"]) ==
              precondition_capabilities.activity_precondition_statuses
 

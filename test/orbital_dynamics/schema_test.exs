@@ -12770,6 +12770,7 @@ defmodule OrbitalDynamics.SchemaTest do
              "schema_contract",
              "model",
              "validation_level",
+             "model_limits",
              "precondition_status",
              "blocked_precondition_count",
              "review_precondition_count",
@@ -12786,6 +12787,12 @@ defmodule OrbitalDynamics.SchemaTest do
              "artifact_only_timeline_activity_precondition_summary"
 
     assert get_in(schema, ["properties", "validation_level", "const"]) == "artifact_contract"
+
+    assert get_in(schema, ["properties", "model_limits", "const"]) ==
+             OrbitalDynamics.Timeline.model_limits()
+
+    assert get_in(schema, ["properties", "model_limits", "items", "enum"]) ==
+             OrbitalDynamics.Timeline.model_limits()
 
     capabilities = OrbitalDynamics.Timeline.capabilities()
 
@@ -12859,6 +12866,7 @@ defmodule OrbitalDynamics.SchemaTest do
              "schema_contract" => "timeline_activity_precondition_summary.v1",
              "model" => "artifact_only_timeline_activity_precondition_summary",
              "validation_level" => "artifact_contract",
+             "model_limits" => model_limits,
              "activity_id" => "cmd_source",
              "activity_type" => "command",
              "timeline_id" => "timeline:cmd_source",
@@ -12903,6 +12911,8 @@ defmodule OrbitalDynamics.SchemaTest do
                "resource_authority" => "not_reserved_by_precondition_summary"
              }
            } = summary
+
+    assert model_limits == OrbitalDynamics.Timeline.model_limits()
   end
 
   test "validates timeline activity precondition summary artifact fields" do
@@ -12910,6 +12920,7 @@ defmodule OrbitalDynamics.SchemaTest do
       "schema_contract" => "timeline_activity_precondition_summary.v1",
       "model" => "artifact_only_timeline_activity_precondition_summary",
       "validation_level" => "artifact_contract",
+      "model_limits" => OrbitalDynamics.Timeline.model_limits(),
       "activity_id" => "cmd_source",
       "timeline_id" => "timeline:cmd_source",
       "activity_type" => "command",
@@ -12953,6 +12964,16 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert {:ok, %{"schema_contract" => "timeline_activity_precondition_summary.v1"}} =
              Schema.validate_artifact(valid_summary)
+
+    stale_model_limits = Map.put(valid_summary, "model_limits", ["artifact_level_only"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_model_limits)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] =~ "must match timeline report model limits")
+           )
 
     invalid_status = Map.put(valid_summary, "precondition_status", "custom")
 

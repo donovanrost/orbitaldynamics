@@ -6337,6 +6337,7 @@ defmodule OrbitalDynamics.Schema do
         "schema_contract",
         "model",
         "validation_level",
+        "model_limits",
         "precondition_status",
         "blocked_precondition_count",
         "review_precondition_count",
@@ -10738,6 +10739,14 @@ defmodule OrbitalDynamics.Schema do
          _contract
        ) do
     %{"type" => "string", "const" => "artifact_contract"}
+  end
+
+  defp json_schema_property("model_limits", @timeline_activity_precondition_summary, _contract) do
+    %{
+      "type" => "array",
+      "const" => timeline_report_model_limits(),
+      "items" => %{"type" => "string", "enum" => timeline_report_model_limits()}
+    }
   end
 
   defp json_schema_property(
@@ -43566,6 +43575,14 @@ defmodule OrbitalDynamics.Schema do
       "artifact_only_timeline_activity_precondition_summary"
     )
     |> expect_equal(path, summary, "validation_level", "artifact_contract")
+    |> expect_type(path, summary, "model_limits", :list)
+    |> validate_string_list_items(path, summary, "model_limits")
+    |> validate_optional_exact_model_limits(
+      path,
+      summary,
+      timeline_report_model_limits(),
+      "must match timeline report model limits"
+    )
     |> validate_stable_ids(path, summary, ["activity_id", "timeline_id"])
     |> expect_optional_type(path, summary, "activity_type", :binary)
     |> expect_one_of(

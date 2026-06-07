@@ -5933,6 +5933,7 @@ defmodule OrbitalDynamics.TimelineTest do
              "model" => "artifact_only_timeline_activity_precondition_summary",
              "schema_contract" => "timeline_activity_precondition_summary.v1",
              "validation_level" => "artifact_contract",
+             "model_limits" => model_limits,
              "activity_id" => "cmd_source",
              "timeline_id" => "timeline:cmd_source",
              "activity_type" => "command",
@@ -5969,6 +5970,8 @@ defmodule OrbitalDynamics.TimelineTest do
                "resource_authority" => "not_reserved_by_precondition_summary"
              }
            } = precondition_summary = Timeline.activity_precondition_summary(source)
+
+    assert model_limits == Timeline.model_limits()
 
     assert OrbitalDynamics.timeline_activity_precondition_summary(source) == precondition_summary
 

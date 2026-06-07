@@ -88,7 +88,8 @@ activity input remains review-required input evidence rather than a resource
 reservation or schedule mutation. The summary contract validates its
 precondition status/count fields, typed precondition rows, optional timeline
 identity, dependency/exclusivity context arrays, `allow_overlap`, and
-no-authority assumptions.
+no-authority assumptions, and generated summaries pin the Timeline
+`model_limits` boundary.
 Those compact precondition summaries now route through
 `OrbitalDynamics.operator_review_package/1` and
 `OrbitalDynamics.cadence_import_manifest/1` as

@@ -12,6 +12,12 @@
     "resource_block_declared"
   ],
   "model": "artifact_only_timeline_activity_precondition_summary",
+  "model_limits": [
+    "artifact_level_only",
+    "no_schedule_mutation",
+    "no_command_execution",
+    "derived_identity_when_no_persistent_timeline_id"
+  ],
   "precondition_status": "blocked",
   "preconditions": [
     {

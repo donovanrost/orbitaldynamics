@@ -174,8 +174,8 @@ Provider alias normalization:
 - `Timeline.activity_precondition_summary/1` and
   `OrbitalDynamics.timeline_activity_precondition_summary/1` emit the validated
   `timeline_activity_precondition_summary.v1` contract for timeline-map
-  preflights, including no-authority assumptions and review-required invalid
-  input evidence.
+  preflights, including no-authority assumptions, Timeline `model_limits`, and
+  review-required invalid input evidence.
 - V1 `campaign_plan.v1` artifacts attach selected-activity
   `timeline_activity_precondition_summary.v1` rows beside the operational
   timeline report, so campaign-level review/import queues can route clear,

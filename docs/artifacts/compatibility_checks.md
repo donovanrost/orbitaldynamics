@@ -884,7 +884,9 @@ review type lists, row-derived precondition status/type maps, timeline identity,
 and artifact-only/no-authority assumptions. Executable validation rejects stale
 top-level precondition counts and stale row-derived type maps, so precondition
 summaries remain review evidence instead of silently becoming schedule,
-operator, or resource authority.
+operator, or resource authority. Generated summaries now carry the exact
+Timeline `model_limits` list, and schema export/runtime validation reject stale
+timeline execution-boundary assumptions.
 Focused schema-reference coverage also regenerates the checked-in fixture
 exactly through `OrbitalDynamics.timeline_activity_precondition_summary/1` from
 deterministic activity input before schema validation, pinning payload,
