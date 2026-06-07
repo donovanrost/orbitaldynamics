@@ -6879,6 +6879,11 @@ defmodule OrbitalDynamics.Validation do
           "tracking" => ["dl_reserved_intruder"],
           "uplink" => ["dl_unreserved"]
         },
+        "row_derived_provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id" =>
+          %{
+            "tracking" => %{"equator_prime" => ["dl_reserved_intruder"]},
+            "uplink" => %{"equator_prime" => ["dl_unreserved"]}
+          },
         "provider_reservation_request_contact_ids_by_direction" => %{
           "downlink" => ["dl_reserved_owner"]
         },
@@ -14669,6 +14674,8 @@ defmodule OrbitalDynamics.Validation do
         no_request_rows
         |> group_row_ids_by_value("direction", "contact_id")
         |> sort_grouped_values(),
+      "row_derived_provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id" =>
+        contact_ids_by_direction_and_ground_station_id(no_request_rows),
       "provider_reservation_request_contact_ids_by_direction" =>
         Map.get(artifact, "provider_reservation_request_contact_ids_by_direction"),
       "row_derived_provider_reservation_request_contact_ids_by_direction" =>
@@ -16515,6 +16522,20 @@ defmodule OrbitalDynamics.Validation do
     |> Enum.group_by(&get_in(&1, value_path), &Map.get(&1, id_key))
     |> Map.new(fn {value, ids} ->
       {to_string(value), ids |> Enum.reject(&is_nil/1) |> Enum.sort()}
+    end)
+  end
+
+  defp contact_ids_by_direction_and_ground_station_id(rows) do
+    rows
+    |> Enum.reject(&(Map.get(&1, "direction") == nil or Map.get(&1, "ground_station_id") == nil))
+    |> Enum.group_by(&Map.get(&1, "direction"))
+    |> Map.new(fn {direction, direction_rows} ->
+      ground_station_map =
+        direction_rows
+        |> group_row_ids_by_value("ground_station_id", "contact_id")
+        |> sort_grouped_values()
+
+      {to_string(direction), ground_station_map}
     end)
   end
 

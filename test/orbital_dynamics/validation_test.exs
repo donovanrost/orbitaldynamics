@@ -9416,6 +9416,32 @@ defmodule OrbitalDynamics.ValidationTest do
                  &1["status"] == "fail")
            )
 
+    stale_no_request_direction_station_observations =
+      observations
+      |> put_in(
+        [
+          "row_derived_provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
+          "tracking",
+          "equator_prime"
+        ],
+        ["stale_contact"]
+      )
+
+    assert {:ok, stale_no_request_direction_station_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_no_request_direction_station_observations
+             )
+
+    assert stale_no_request_direction_station_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_no_request_direction_station_verification["checks"],
+             &(&1["field"] ==
+                 "row_derived_provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id" and
+                 &1["status"] == "fail")
+           )
+
     assert OrbitalDynamics.validation_artifact_observations(
              "contact_allocation_provider_reservation_request_summary.v1",
              summary
