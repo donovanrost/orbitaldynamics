@@ -2082,6 +2082,115 @@ defmodule OrbitalDynamics.Validation do
         "checks candidate-refresh replay of timeline lifecycle-state provenance without mutating schedules, granting operator authority, selecting candidates, approving imports, or writing to Cadence"
       ]
     },
+    "fixture.artifact.candidate_refresh.timeline_activity_lifecycle_replay" => %{
+      "id" => "fixture.artifact.candidate_refresh.timeline_activity_lifecycle_replay",
+      "model_id" => "artifact.candidate_refresh.v1",
+      "reference_case" =>
+        "generated candidate refresh replay of timeline activity lifecycle evidence",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "source" => "generated_candidate_refresh_timeline_activity_lifecycle_fixture",
+        "contract" => "candidate_refresh.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "candidate_refresh.v1",
+        "schema_version" => 1,
+        "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 1,
+        "source_report_row_count" => 1,
+        "source_timeline_activity_lifecycle_report_count" => 1,
+        "source_timeline_activity_lifecycle_row_count" => 1,
+        "source_timeline_activity_lifecycle_review_required_count" => 1,
+        "source_timeline_activity_lifecycle_invalid_activity_input_count" => 0,
+        "source_timeline_activity_lifecycle_transition_decision_counts" => %{"review" => 1},
+        "source_timeline_activity_lifecycle_status_transition_decision_counts" => %{
+          "record" => 1
+        },
+        "source_timeline_activity_lifecycle_approval_transition_decision_counts" => %{
+          "review" => 1
+        },
+        "source_timeline_activity_lifecycle_required_operator_action_counts" => %{
+          "record_timeline_change" => 1,
+          "review_activity_approval" => 1
+        },
+        "source_timeline_activity_lifecycle_import_action_counts" => %{
+          "review_timeline_diff" => 1
+        },
+        "source_timeline_activity_lifecycle_planned_status_category_counts" => %{
+          "planned" => 1
+        },
+        "source_timeline_activity_lifecycle_realized_status_category_counts" => %{
+          "executed" => 1
+        },
+        "source_timeline_activity_lifecycle_planned_approval_category_counts" => %{
+          "review_required" => 1
+        },
+        "source_timeline_activity_lifecycle_realized_approval_category_counts" => %{
+          "protected" => 1
+        },
+        "source_timeline_activity_lifecycle_status_transition_category_counts" => %{
+          "execution_recorded" => 1
+        },
+        "source_timeline_activity_lifecycle_approval_transition_category_counts" => %{
+          "approval_granted" => 1
+        },
+        "source_timeline_activity_lifecycle_protection_decision_counts" => %{
+          "mutable" => 1,
+          "preserve" => 1
+        },
+        "source_timeline_activity_lifecycle_protection_category_counts" => %{
+          "executed" => 1,
+          "none" => 1
+        },
+        "source_timeline_activity_lifecycle_action_routing" => %{
+          "record_timeline_change" => %{
+            "activity_ids" => ["cmd_provider"],
+            "approval_transition_categories" => ["approval_granted"],
+            "protection_categories" => ["executed", "none"],
+            "review_count" => 1,
+            "status_transition_categories" => ["execution_recorded"],
+            "timeline_ids" => ["timeline:cmd_provider"]
+          },
+          "review_activity_approval" => %{
+            "activity_ids" => ["cmd_provider"],
+            "approval_transition_categories" => ["approval_granted"],
+            "protection_categories" => ["executed", "none"],
+            "review_count" => 1,
+            "status_transition_categories" => ["execution_recorded"],
+            "timeline_ids" => ["timeline:cmd_provider"]
+          }
+        },
+        "source_timeline_activity_lifecycle_trust_boundary_status" => "declared"
+      },
+      "tolerances" => %{
+        "schema_version" => 0,
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 0,
+        "source_report_row_count" => 0,
+        "source_timeline_activity_lifecycle_report_count" => 0,
+        "source_timeline_activity_lifecycle_row_count" => 0,
+        "source_timeline_activity_lifecycle_review_required_count" => 0,
+        "source_timeline_activity_lifecycle_invalid_activity_input_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal generated artifact regression, not external timeline validation",
+        "checks candidate-refresh replay of timeline activity lifecycle provenance without mutating schedules, granting operator authority, selecting candidates, approving imports, or writing to Cadence"
+      ]
+    },
     "fixture.artifact.candidate_refresh.timeline_transition_application_replay" => %{
       "id" => "fixture.artifact.candidate_refresh.timeline_transition_application_replay",
       "model_id" => "artifact.candidate_refresh.v1",
@@ -11712,6 +11821,9 @@ defmodule OrbitalDynamics.Validation do
     timeline_activity_precondition_summary =
       Map.get(source_reports, "timeline_activity_precondition_summary") || %{}
 
+    timeline_activity_lifecycle_summary =
+      Map.get(source_reports, "timeline_activity_lifecycle_state") || %{}
+
     timeline_lifecycle_state_summary =
       Map.get(source_reports, "timeline_lifecycle_state_summary") || %{}
 
@@ -11897,6 +12009,46 @@ defmodule OrbitalDynamics.Validation do
         Map.get(timeline_activity_precondition_summary, "allow_overlap_counts") || %{},
       "source_timeline_activity_precondition_trust_boundary_status" =>
         Map.get(timeline_activity_precondition_summary, "trust_boundary_status"),
+      "source_timeline_activity_lifecycle_report_count" =>
+        Map.get(timeline_activity_lifecycle_summary, "count"),
+      "source_timeline_activity_lifecycle_row_count" =>
+        Map.get(timeline_activity_lifecycle_summary, "row_count"),
+      "source_timeline_activity_lifecycle_review_required_count" =>
+        Map.get(timeline_activity_lifecycle_summary, "review_required_count"),
+      "source_timeline_activity_lifecycle_invalid_activity_input_count" =>
+        Map.get(timeline_activity_lifecycle_summary, "invalid_activity_input_count"),
+      "source_timeline_activity_lifecycle_transition_decision_counts" =>
+        Map.get(timeline_activity_lifecycle_summary, "transition_decision_counts") || %{},
+      "source_timeline_activity_lifecycle_status_transition_decision_counts" =>
+        Map.get(timeline_activity_lifecycle_summary, "status_transition_decision_counts") || %{},
+      "source_timeline_activity_lifecycle_approval_transition_decision_counts" =>
+        Map.get(timeline_activity_lifecycle_summary, "approval_transition_decision_counts") ||
+          %{},
+      "source_timeline_activity_lifecycle_required_operator_action_counts" =>
+        Map.get(timeline_activity_lifecycle_summary, "required_operator_action_counts") || %{},
+      "source_timeline_activity_lifecycle_import_action_counts" =>
+        Map.get(timeline_activity_lifecycle_summary, "import_action_counts") || %{},
+      "source_timeline_activity_lifecycle_planned_status_category_counts" =>
+        Map.get(timeline_activity_lifecycle_summary, "planned_status_category_counts") || %{},
+      "source_timeline_activity_lifecycle_realized_status_category_counts" =>
+        Map.get(timeline_activity_lifecycle_summary, "realized_status_category_counts") || %{},
+      "source_timeline_activity_lifecycle_planned_approval_category_counts" =>
+        Map.get(timeline_activity_lifecycle_summary, "planned_approval_category_counts") || %{},
+      "source_timeline_activity_lifecycle_realized_approval_category_counts" =>
+        Map.get(timeline_activity_lifecycle_summary, "realized_approval_category_counts") || %{},
+      "source_timeline_activity_lifecycle_status_transition_category_counts" =>
+        Map.get(timeline_activity_lifecycle_summary, "status_transition_category_counts") || %{},
+      "source_timeline_activity_lifecycle_approval_transition_category_counts" =>
+        Map.get(timeline_activity_lifecycle_summary, "approval_transition_category_counts") ||
+          %{},
+      "source_timeline_activity_lifecycle_protection_decision_counts" =>
+        Map.get(timeline_activity_lifecycle_summary, "protection_decision_counts") || %{},
+      "source_timeline_activity_lifecycle_protection_category_counts" =>
+        Map.get(timeline_activity_lifecycle_summary, "protection_category_counts") || %{},
+      "source_timeline_activity_lifecycle_action_routing" =>
+        Map.get(timeline_activity_lifecycle_summary, "action_routing") || %{},
+      "source_timeline_activity_lifecycle_trust_boundary_status" =>
+        Map.get(timeline_activity_lifecycle_summary, "trust_boundary_status"),
       "source_timeline_lifecycle_state_report_count" =>
         Map.get(timeline_lifecycle_state_summary, "count"),
       "source_timeline_lifecycle_state_row_count" =>

@@ -4210,6 +4210,101 @@ defmodule OrbitalDynamics.ValidationTest do
              Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
   end
 
+  test "verifies candidate refresh timeline activity lifecycle replay fixtures" do
+    fixture_id = "fixture.artifact.candidate_refresh.timeline_activity_lifecycle_replay"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = candidate_refresh_timeline_activity_lifecycle_fixture()
+    observations = candidate_refresh_timeline_activity_lifecycle_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "source_report_family_count" => 1,
+             "source_report_row_count" => 1,
+             "source_timeline_activity_lifecycle_report_count" => 1,
+             "source_timeline_activity_lifecycle_row_count" => 1,
+             "source_timeline_activity_lifecycle_review_required_count" => 1,
+             "source_timeline_activity_lifecycle_invalid_activity_input_count" => 0,
+             "source_timeline_activity_lifecycle_transition_decision_counts" => %{
+               "review" => 1
+             },
+             "source_timeline_activity_lifecycle_status_transition_decision_counts" => %{
+               "record" => 1
+             },
+             "source_timeline_activity_lifecycle_approval_transition_decision_counts" => %{
+               "review" => 1
+             },
+             "source_timeline_activity_lifecycle_required_operator_action_counts" => %{
+               "record_timeline_change" => 1,
+               "review_activity_approval" => 1
+             },
+             "source_timeline_activity_lifecycle_import_action_counts" => %{
+               "review_timeline_diff" => 1
+             },
+             "source_timeline_activity_lifecycle_planned_status_category_counts" => %{
+               "planned" => 1
+             },
+             "source_timeline_activity_lifecycle_realized_status_category_counts" => %{
+               "executed" => 1
+             },
+             "source_timeline_activity_lifecycle_planned_approval_category_counts" => %{
+               "review_required" => 1
+             },
+             "source_timeline_activity_lifecycle_realized_approval_category_counts" => %{
+               "protected" => 1
+             },
+             "source_timeline_activity_lifecycle_status_transition_category_counts" => %{
+               "execution_recorded" => 1
+             },
+             "source_timeline_activity_lifecycle_approval_transition_category_counts" => %{
+               "approval_granted" => 1
+             },
+             "source_timeline_activity_lifecycle_protection_decision_counts" => %{
+               "mutable" => 1,
+               "preserve" => 1
+             },
+             "source_timeline_activity_lifecycle_protection_category_counts" => %{
+               "executed" => 1,
+               "none" => 1
+             },
+             "source_timeline_activity_lifecycle_trust_boundary_status" => "declared"
+           } = observations
+
+    stale_action_observations =
+      observations
+      |> put_in(
+        [
+          "source_timeline_activity_lifecycle_required_operator_action_counts",
+          "review_activity_approval"
+        ],
+        0
+      )
+
+    assert {:ok, stale_action_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_action_observations)
+
+    assert stale_action_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_action_verification["checks"],
+             &(&1["field"] ==
+                 "source_timeline_activity_lifecycle_required_operator_action_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _validated_artifact} =
+             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
+  end
+
   test "verifies candidate refresh timeline transition application replay fixtures" do
     fixture_id = "fixture.artifact.candidate_refresh.timeline_transition_application_replay"
 
@@ -11487,6 +11582,8 @@ defmodule OrbitalDynamics.ValidationTest do
           candidate_refresh_operational_readiness_fixture_observations(),
         "fixture.artifact.candidate_refresh.timeline_activity_precondition_replay" =>
           candidate_refresh_timeline_activity_precondition_fixture_observations(),
+        "fixture.artifact.candidate_refresh.timeline_activity_lifecycle_replay" =>
+          candidate_refresh_timeline_activity_lifecycle_fixture_observations(),
         "fixture.artifact.candidate_refresh.timeline_lifecycle_state_replay" =>
           candidate_refresh_timeline_lifecycle_state_fixture_observations(),
         "fixture.artifact.candidate_refresh.resource_projection_replay" =>
@@ -11726,8 +11823,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 155,
-             "status_counts" => %{"pass" => 155},
+             "fixture_count" => 156,
+             "status_counts" => %{"pass" => 156},
              "reports" => reports
            } = report
 
@@ -11754,6 +11851,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.candidate_refresh.quality_gate_replay",
              "fixture.artifact.candidate_refresh.resource_projection_replay",
              "fixture.artifact.candidate_refresh.resource_provenance_v1",
+             "fixture.artifact.candidate_refresh.timeline_activity_lifecycle_replay",
              "fixture.artifact.candidate_refresh.timeline_activity_precondition_replay",
              "fixture.artifact.candidate_refresh.timeline_lifecycle_state_replay",
              "fixture.artifact.candidate_refresh.timeline_transition_application_replay",
@@ -11899,7 +11997,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 155},
+             "status_counts" => %{"fail" => 156},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -12566,6 +12664,51 @@ defmodule OrbitalDynamics.ValidationTest do
     timeline_lifecycle_state_summary_fixture()
     |> Map.put("provenance", %{
       "trust_boundary" => "generated_timeline_lifecycle_fixture"
+    })
+  end
+
+  defp candidate_refresh_timeline_activity_lifecycle_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(candidate_refresh_timeline_activity_lifecycle_fixture())
+  end
+
+  defp candidate_refresh_timeline_activity_lifecycle_fixture do
+    result_set(%{})
+    |> CandidateRefresh.build(
+      candidate_refresh: candidate_refresh_timeline_activity_lifecycle_request(),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  defp candidate_refresh_timeline_activity_lifecycle_request do
+    %{
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-timeline-activity-lifecycle-challenge",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [],
+        "source" => %{"system" => "validation_challenge"},
+        "quality" => %{"level" => "accepted"},
+        "provenance" => %{"created_by" => "validation_fixture"}
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "targets" => [],
+      "constraints" => %{},
+      "scoring_policy" => %{},
+      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
+      "source_timeline_activity_lifecycle_state" =>
+        candidate_refresh_timeline_activity_lifecycle_state()
+    }
+  end
+
+  defp candidate_refresh_timeline_activity_lifecycle_state do
+    timeline_activity_lifecycle_state_fixture()
+    |> Map.put("provenance", %{
+      "trust_boundary" => "generated_timeline_activity_lifecycle_fixture"
     })
   end
 

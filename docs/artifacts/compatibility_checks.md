@@ -595,6 +595,12 @@ record/preserve/review routing, duplicate timeline-identity review evidence,
 operator-action maps, and trust-boundary status without mutating schedules,
 granting operator authority, selecting candidates, approving imports, or
 writing to Cadence.
+The registry also includes a generated CandidateRefresh timeline-activity
+lifecycle replay fixture. It checks single-activity lifecycle transition
+decisions, status/approval/protection category maps, required operator-action
+maps, import-action maps, action routing, and trust-boundary status without
+mutating schedules, granting operator authority, selecting candidates,
+approving imports, or writing to Cadence.
 The registry also includes a generated CandidateRefresh timeline-transition
 application replay fixture. It checks selected-integrity review and issue
 counts, missing-dependency issue-type routing, application status maps,
