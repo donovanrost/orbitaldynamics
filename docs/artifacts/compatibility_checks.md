@@ -568,6 +568,11 @@ fixture. It checks objective-satisfaction, objective-tradeoff, and score-term
 source-report provenance counts, row-derived gap/status/term maps, source
 activity routing, and trust-boundary status without objective generation, score
 recalculation, candidate selection, import approval, or Cadence writes.
+The registry also includes a generated CandidateRefresh timeline-transition
+application replay fixture. It checks selected-integrity review and issue
+counts, missing-dependency issue-type routing, application status maps,
+operator-action maps, and trust-boundary status without schedule mutation,
+candidate selection, import approval, or Cadence writes.
 `study_results/branch_comparison_report_v1.json` and
 `study_results/candidate_diff_report_v1.json` now feed curated
 validation-reference fixtures. The observations check branch ranking and
@@ -918,6 +923,9 @@ fixture. The observations check selected/review/preserved/withheld counts,
 application status and transition-decision maps, required-action routing,
 review timeline IDs by operator action, row-derived review-application
 transition categories, and no-schedule-mutation/no-authority assumptions.
+CandidateRefresh replay of generated transition summaries is also pinned by a
+validation-reference fixture, including selected-integrity review/issue counts
+and required timeline-integrity review actions.
 Executable validation rejects stale review-required counts and stale
 row-derived required-action maps before compact transition summaries can steer
 review/import routing.

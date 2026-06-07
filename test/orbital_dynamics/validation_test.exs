@@ -27,6 +27,7 @@ defmodule OrbitalDynamics.ValidationTest do
     Spacecraft,
     StateVector,
     Target,
+    Timeline,
     Trajectory,
     OperatorReview,
     OperationalReadiness,
@@ -3853,6 +3854,67 @@ defmodule OrbitalDynamics.ValidationTest do
     assert Enum.any?(
              stale_routing_verification["checks"],
              &(&1["field"] == "source_contact_intent_direction_routing" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _validated_artifact} =
+             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
+  end
+
+  test "verifies candidate refresh timeline transition application replay fixtures" do
+    fixture_id = "fixture.artifact.candidate_refresh.timeline_transition_application_replay"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = candidate_refresh_timeline_transition_application_fixture()
+    observations = candidate_refresh_timeline_transition_application_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "source_report_family_count" => 1,
+             "source_report_row_count" => 1,
+             "source_timeline_transition_application_report_count" => 1,
+             "source_timeline_transition_application_row_count" => 1,
+             "source_timeline_transition_application_application_count" => 1,
+             "source_timeline_transition_application_selected_activity_count" => 1,
+             "source_timeline_transition_application_selected_integrity_review_count" => 1,
+             "source_timeline_transition_application_selected_integrity_issue_count" => 1,
+             "source_timeline_transition_application_selected_integrity_issue_type_counts" => %{
+               "missing_dependency_activity" => 1
+             },
+             "source_timeline_transition_application_review_required_count" => 1,
+             "source_timeline_transition_application_status_counts" => %{
+               "selected_timeline_integrity_review_required" => 1
+             },
+             "source_timeline_transition_application_required_operator_action_counts" => %{
+               "review_timeline_integrity" => 1
+             },
+             "source_timeline_transition_application_trust_boundary_status" => "declared"
+           } = observations
+
+    stale_issue_type_observations =
+      observations
+      |> Map.put("source_timeline_transition_application_selected_integrity_issue_type_counts", %{
+        "stale_issue" => 1
+      })
+
+    assert {:ok, stale_issue_type_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_issue_type_observations)
+
+    assert stale_issue_type_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_issue_type_verification["checks"],
+             &(&1["field"] ==
+                 "source_timeline_transition_application_selected_integrity_issue_type_counts" and
                  &1["status"] == "fail")
            )
 
@@ -11072,6 +11134,8 @@ defmodule OrbitalDynamics.ValidationTest do
           candidate_refresh_contact_contention_challenge_fixture_observations(),
         "fixture.artifact.candidate_refresh.contact_intent_direction_replay" =>
           candidate_refresh_contact_intent_direction_fixture_observations(),
+        "fixture.artifact.candidate_refresh.timeline_transition_application_replay" =>
+          candidate_refresh_timeline_transition_application_fixture_observations(),
         "fixture.artifact.candidate_refresh.objective_gap_replay" =>
           candidate_refresh_objective_gap_fixture_observations(),
         "fixture.artifact.candidate_refresh.resource_provenance_v1" =>
@@ -11303,8 +11367,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 149,
-             "status_counts" => %{"pass" => 149},
+             "fixture_count" => 150,
+             "status_counts" => %{"pass" => 150},
              "reports" => reports
            } = report
 
@@ -11328,6 +11392,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.candidate_refresh.contact_intent_direction_replay",
              "fixture.artifact.candidate_refresh.objective_gap_replay",
              "fixture.artifact.candidate_refresh.resource_provenance_v1",
+             "fixture.artifact.candidate_refresh.timeline_transition_application_replay",
              "fixture.artifact.candidate_refresh.v1",
              "fixture.artifact.candidate_rejection_report.v1",
              "fixture.artifact.capability_catalog.v1",
@@ -11470,7 +11535,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 149},
+             "status_counts" => %{"fail" => 150},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -11863,6 +11928,64 @@ defmodule OrbitalDynamics.ValidationTest do
         }
       ]
     }
+  end
+
+  defp candidate_refresh_timeline_transition_application_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(
+      candidate_refresh_timeline_transition_application_fixture()
+    )
+  end
+
+  defp candidate_refresh_timeline_transition_application_fixture do
+    result_set(%{})
+    |> CandidateRefresh.build(
+      candidate_refresh: candidate_refresh_timeline_transition_application_request(),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  defp candidate_refresh_timeline_transition_application_request do
+    %{
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-transition-application-challenge",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [],
+        "source" => %{"system" => "validation_challenge"},
+        "quality" => %{"level" => "accepted"},
+        "provenance" => %{"created_by" => "validation_fixture"}
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "targets" => [],
+      "constraints" => %{},
+      "scoring_policy" => %{},
+      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
+      "source_timeline_transition_application_summary" =>
+        candidate_refresh_timeline_transition_application_summary()
+    }
+  end
+
+  defp candidate_refresh_timeline_transition_application_summary do
+    activity = %{
+      id: :obs_waiting_on_gate,
+      type: :observe,
+      target_id: :target_alpha,
+      starts_at_s: 30.0,
+      ends_at_s: 40.0,
+      depends_on: [:missing_gate],
+      metadata: %{timeline_id: :"timeline:obs_waiting_on_gate"}
+    }
+
+    [activity]
+    |> Timeline.transition_application_summary([activity])
+    |> Map.put("provenance", %{
+      "trust_boundary" => "generated_timeline_transition_application_fixture"
+    })
   end
 
   defp candidate_refresh_objective_gap_fixture_observations do

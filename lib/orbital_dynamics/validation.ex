@@ -1710,6 +1710,72 @@ defmodule OrbitalDynamics.Validation do
         "checks candidate-refresh replay of contact-intent direction and capacity-pack provenance without contact generation, contact allocation, candidate selection, import approval, or Cadence writes"
       ]
     },
+    "fixture.artifact.candidate_refresh.timeline_transition_application_replay" => %{
+      "id" => "fixture.artifact.candidate_refresh.timeline_transition_application_replay",
+      "model_id" => "artifact.candidate_refresh.v1",
+      "reference_case" =>
+        "generated candidate refresh replay of timeline-transition selected-integrity evidence",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "source" => "generated_candidate_refresh_timeline_transition_application_fixture",
+        "contract" => "candidate_refresh.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "candidate_refresh.v1",
+        "schema_version" => 1,
+        "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 1,
+        "source_report_row_count" => 1,
+        "source_timeline_transition_application_report_count" => 1,
+        "source_timeline_transition_application_row_count" => 1,
+        "source_timeline_transition_application_application_count" => 1,
+        "source_timeline_transition_application_selected_activity_count" => 1,
+        "source_timeline_transition_application_selected_integrity_review_count" => 1,
+        "source_timeline_transition_application_selected_integrity_issue_count" => 1,
+        "source_timeline_transition_application_selected_integrity_issue_type_counts" => %{
+          "missing_dependency_activity" => 1
+        },
+        "source_timeline_transition_application_review_required_count" => 1,
+        "source_timeline_transition_application_status_counts" => %{
+          "selected_timeline_integrity_review_required" => 1
+        },
+        "source_timeline_transition_application_required_operator_action_counts" => %{
+          "review_timeline_integrity" => 1
+        },
+        "source_timeline_transition_application_trust_boundary_status" => "declared"
+      },
+      "tolerances" => %{
+        "schema_version" => 0,
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 0,
+        "source_report_row_count" => 0,
+        "source_timeline_transition_application_report_count" => 0,
+        "source_timeline_transition_application_row_count" => 0,
+        "source_timeline_transition_application_application_count" => 0,
+        "source_timeline_transition_application_selected_activity_count" => 0,
+        "source_timeline_transition_application_selected_integrity_review_count" => 0,
+        "source_timeline_transition_application_selected_integrity_issue_count" => 0,
+        "source_timeline_transition_application_review_required_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal generated artifact regression, not transition execution validation",
+        "checks candidate-refresh replay of timeline-transition selected-integrity provenance without schedule mutation, candidate selection, import approval, or Cadence writes"
+      ]
+    },
     "fixture.artifact.candidate_refresh.objective_gap_replay" => %{
       "id" => "fixture.artifact.candidate_refresh.objective_gap_replay",
       "model_id" => "artifact.candidate_refresh.v1",
@@ -6066,7 +6132,7 @@ defmodule OrbitalDynamics.Validation do
         "planned_count" => 4,
         "realized_count" => 4,
         "row_count" => 4,
-        "operational_feedback_count" => 10,
+        "operational_feedback_count" => 16,
         "operational_feedback_excluded_count" => 1,
         "duplicate_realized_feedback_count" => 0,
         "ambiguous_timeline_feedback_count" => 0,
@@ -6250,8 +6316,14 @@ defmodule OrbitalDynamics.Validation do
           "reserved" => ["dl_3"],
           "unavailable" => ["cmd_unavailable"]
         },
-        "reported_station_pressure_contact_ids_by_precedence_availability" => %{},
-        "reported_station_pressure_contact_ids_by_precedence_rank" => %{},
+        "reported_station_pressure_contact_ids_by_precedence_availability" => %{
+          "reserved" => ["dl_3"],
+          "unavailable" => ["cmd_unavailable"]
+        },
+        "reported_station_pressure_contact_ids_by_precedence_rank" => %{
+          "0" => ["cmd_unavailable"],
+          "1" => ["dl_3"]
+        },
         "station_reservation_match_status_counts" => %{"overlap" => 1},
         "station_calendar_trust_boundary_status_counts" => %{"missing" => 2},
         "calendar_entry_trust_boundary_status_counts" => %{"missing" => 2},
@@ -6456,8 +6528,20 @@ defmodule OrbitalDynamics.Validation do
             "dl_capacity_secondary"
           ]
         },
-        "reported_station_pressure_contact_ids_by_precedence_availability" => %{},
-        "reported_station_pressure_contact_ids_by_precedence_rank" => %{},
+        "reported_station_pressure_contact_ids_by_precedence_availability" => %{
+          "reduced_capacity" => [
+            "dl_capacity_overflow",
+            "dl_capacity_primary",
+            "dl_capacity_secondary"
+          ]
+        },
+        "reported_station_pressure_contact_ids_by_precedence_rank" => %{
+          "2" => [
+            "dl_capacity_overflow",
+            "dl_capacity_primary",
+            "dl_capacity_secondary"
+          ]
+        },
         "contact_ids_by_effective_allocation_status" => %{
           "allocated" => ["dl_capacity_primary", "dl_capacity_secondary"],
           "deferred" => ["dl_capacity_overflow"]
@@ -6507,24 +6591,27 @@ defmodule OrbitalDynamics.Validation do
         "schema_contract" => "contact_filter_report.v1",
         "model" => "thin_ground_network_availability_filter",
         "input_candidate_count" => 3,
-        "kept_candidate_count" => 1,
-        "suppressed_candidate_count" => 2,
-        "row_derived_suppressed_candidate_count" => 2,
-        "suppressed_candidate_row_count" => 2,
+        "kept_candidate_count" => 0,
+        "suppressed_candidate_count" => 3,
+        "row_derived_suppressed_candidate_count" => 3,
+        "suppressed_candidate_row_count" => 3,
         "duplicate_suppressed_candidate_id_count" => 0,
         "duplicate_suppressed_candidate_row_count" => 0,
         "station_reservation_match_status_counts" => %{"overlap" => 1},
         "suppressed_reason_counts" => %{
           "ground_station_reserved" => 1,
-          "ground_station_unavailable" => 1
+          "ground_station_unavailable" => 2
         },
         "suppressed_station_availability_counts" => %{
           "reserved" => 1,
-          "unavailable" => 1
+          "unavailable" => 2
         },
         "suppressed_candidate_ids_by_reason" => %{
           "ground_station_reserved" => ["leo_2_downlink_polar_north_1"],
-          "ground_station_unavailable" => ["leo_1_downlink_equator_prime_1"]
+          "ground_station_unavailable" => [
+            "leo_1_downlink_equator_prime_1",
+            "leo_1_tracking_equator_prime_1"
+          ]
         },
         "model_limit_count" => 5
       },
@@ -7398,7 +7485,7 @@ defmodule OrbitalDynamics.Validation do
         "duplicate_suppressed_candidate_row_count" => 0,
         "resource_source_quality_counts" => %{"operator_supplied" => 1},
         "resource_trust_boundary_status_counts" => %{"missing" => 1},
-        "suppressed_resource_source_quality_counts" => %{},
+        "suppressed_resource_source_quality_counts" => %{"operator_supplied" => 2},
         "suppressed_resource_trust_boundary_status_counts" => %{"missing" => 2},
         "suppressed_reason_counts" => %{
           "downlink_margin_below_policy" => 1,
@@ -9381,10 +9468,10 @@ defmodule OrbitalDynamics.Validation do
         "calendar_entry_count" => 2,
         "affected_contact_count" => 2,
         "affected_duration_s" => 80.0,
-        "provider_calendar_contention_group_count" => 0,
+        "provider_calendar_contention_group_count" => 1,
         "duplicate_affected_contact_id_count" => 0,
         "duplicate_affected_contact_row_count" => 0,
-        "station_reservation_match_status_counts" => %{},
+        "station_reservation_match_status_counts" => %{"overlap" => 1},
         "row_derived_station_reservation_match_status_counts" => %{"overlap" => 1},
         "stale_reservation_hold_count" => 0,
         "row_derived_stale_reservation_hold_count" => 0,
@@ -11245,6 +11332,9 @@ defmodule OrbitalDynamics.Validation do
     objective_tradeoff_summary = Map.get(source_reports, "objective_tradeoff_report") || %{}
     score_term_summary = Map.get(source_reports, "score_term_report") || %{}
 
+    timeline_transition_summary =
+      Map.get(source_reports, "timeline_transition_application_report") || %{}
+
     %{
       "schema_contract" => Map.get(artifact, "schema_contract"),
       "schema_version" => Map.get(artifact, "schema_version"),
@@ -11375,7 +11465,30 @@ defmodule OrbitalDynamics.Validation do
       "source_score_term_source_activity_id_counts" =>
         Map.get(score_term_summary, "source_activity_id_counts") || %{},
       "source_score_term_trust_boundary_status" =>
-        Map.get(score_term_summary, "trust_boundary_status")
+        Map.get(score_term_summary, "trust_boundary_status"),
+      "source_timeline_transition_application_report_count" =>
+        Map.get(timeline_transition_summary, "count"),
+      "source_timeline_transition_application_row_count" =>
+        Map.get(timeline_transition_summary, "row_count"),
+      "source_timeline_transition_application_application_count" =>
+        Map.get(timeline_transition_summary, "application_count"),
+      "source_timeline_transition_application_selected_activity_count" =>
+        Map.get(timeline_transition_summary, "selected_activity_count"),
+      "source_timeline_transition_application_selected_integrity_review_count" =>
+        Map.get(timeline_transition_summary, "selected_timeline_integrity_review_count"),
+      "source_timeline_transition_application_selected_integrity_issue_count" =>
+        Map.get(timeline_transition_summary, "selected_timeline_integrity_issue_count"),
+      "source_timeline_transition_application_selected_integrity_issue_type_counts" =>
+        Map.get(timeline_transition_summary, "selected_timeline_integrity_issue_type_counts") ||
+          %{},
+      "source_timeline_transition_application_review_required_count" =>
+        Map.get(timeline_transition_summary, "review_required_count"),
+      "source_timeline_transition_application_status_counts" =>
+        Map.get(timeline_transition_summary, "application_status_counts") || %{},
+      "source_timeline_transition_application_required_operator_action_counts" =>
+        Map.get(timeline_transition_summary, "required_operator_action_counts") || %{},
+      "source_timeline_transition_application_trust_boundary_status" =>
+        Map.get(timeline_transition_summary, "trust_boundary_status")
     }
     |> compact_validation_map()
   end
