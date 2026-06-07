@@ -2961,6 +2961,26 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
                    "must equal row-derived provider_reservation_request_contact_ids_by_direction_and_ground_station_id")
            )
 
+    stale_no_request_direction_station_map =
+      Map.put(
+        summary,
+        "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
+        %{
+          "tracking" => %{"equator_prime" => ["stale_contact"]}
+        }
+      )
+
+    assert {:error, stale_no_request_direction_station_map_errors} =
+             Schema.validate_artifact(stale_no_request_direction_station_map)
+
+    assert Enum.any?(
+             stale_no_request_direction_station_map_errors["errors"],
+             &(&1["path"] ==
+                 "$.provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id" and
+                 &1["message"] ==
+                   "must equal row-derived provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id")
+           )
+
     stale_request_rows =
       Map.update!(summary, "rows", fn rows ->
         Enum.map(rows, fn

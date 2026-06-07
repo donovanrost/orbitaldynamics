@@ -1280,7 +1280,8 @@ fixture also include a generated
 `contact_allocation_provider_reservation_request_summary.v1` case that
 observes provider-reservation request, review, and no-request counts plus
 direction routing maps. Fixture verification rejects stale row-derived
-request/review/no-request direction maps, and schema export pins the
+request/review/no-request direction maps, including no-request direction and
+ground-station maps, and schema export pins the
 artifact-only model constant, string source boundary, and exact `model_limits`,
 so provider-reservation handoff summaries are not treated as provider-write,
 schedule-mutation, or operator-authority artifacts.
