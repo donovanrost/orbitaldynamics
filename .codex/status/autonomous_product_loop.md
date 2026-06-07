@@ -8,7 +8,7 @@ Current slice:
 Timeline publication generated-ID identity-policy scope.
 
 Status:
-Implemented, verified, and reviewed; publish pending.
+Implemented, verified, reviewed, committed, and pushed.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -80,13 +80,13 @@ Remaining maturity gaps:
 - External reference validation baselines remain out of scope for this slice.
 
 Last commit:
-`cfb65f04671f36db73ed19bc24998d4c36349664` pushed to `origin/main` for the
-previous autonomous-loop handoff.
+`041941434729f42b529427ab80d50f796d709134` pushed to `origin/main` for
+Timeline publication generated-ID identity-policy scope.
 
 Next candidate:
-Publish the timeline publication generated-ID identity-policy slice, then
-consider the mapper-identified `subsystem_model_capability.v1` model contract
-slice as a larger follow-up.
+Consider the mapper-identified `subsystem_model_capability.v1` model contract
+slice as a larger follow-up, or re-read the guide/current checkout for a
+smaller current-state gap before selecting the next slice.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
