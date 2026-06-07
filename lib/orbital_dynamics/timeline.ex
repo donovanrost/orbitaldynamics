@@ -968,10 +968,12 @@ defmodule OrbitalDynamics.Timeline do
       public_facades: [
         :normalize_timeline_activity,
         :normalize_timeline_activities,
+        :timeline_diff_report,
         :timeline_activity_transition,
         :timeline_activity_context,
         :timeline_activity_precondition_summary,
         :timeline_identity,
+        :timeline_link,
         :timeline_preservation_report,
         :timeline_dependency_impact_summary,
         :timeline_publication_summary,

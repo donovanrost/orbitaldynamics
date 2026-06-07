@@ -43,6 +43,9 @@ status/approval transition helpers.
 - **Reusable context** includes normalized dependency and exclusivity stable-ID
   arrays, plus timing, target, station availability, and schedule-conflict
   context, plus top-level or metadata-supplied command/contact feedback evidence.
+- The capability catalog advertises the top-level `timeline_link` facade next
+  to identity/context helpers, so adapter consumers can discover the
+  source-to-replacement join-key handoff without inferring it from diff rows.
 - **Raw timeline lifecycle events** use the same provider lifecycle-event
   aliases as typed mission-plan activities, then validate the resulting status
   and approval transitions before returning normalized timeline rows with
@@ -96,6 +99,8 @@ timelines.
 
 - Comparison includes typed status and approval-transition objects plus
   dependency/exclusivity stable-ID arrays.
+- `Timeline.capabilities/0` advertises the top-level
+  `timeline_diff_report` facade alongside the diff helper metadata.
 - `Timeline.capabilities/0` advertises the core and activity-context compare
   fields that drive `changed_fields` and `changed_field_counts`.
 - Non-negative bounds apply to transition/diff scalar counters and duplicate
