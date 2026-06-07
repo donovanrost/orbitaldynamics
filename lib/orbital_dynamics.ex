@@ -2346,6 +2346,13 @@ defmodule OrbitalDynamics do
   end
 
   @doc """
+  Normalizes resource-filter policy thresholds without filtering candidates.
+  """
+  def resource_filter_policy(policy) do
+    ResourceFilter.resource_filter_policy(policy)
+  end
+
+  @doc """
   Normalizes one externally supplied planning-grade resource summary.
   """
   def resource_summary_from_map!(source) do

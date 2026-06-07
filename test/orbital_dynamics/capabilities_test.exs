@@ -57,6 +57,7 @@ defmodule OrbitalDynamics.CapabilitiesTest do
     assert catalog.planning.search.grid == OrbitalDynamics.Search.Grid.capabilities()
     assert catalog.planning.search.monte_carlo == OrbitalDynamics.Search.MonteCarlo.capabilities()
     assert catalog.operations.contact_allocation == ContactAllocation.capabilities()
+    assert :resource_filter_policy in catalog.operations.resource_filter.public_facades
     assert catalog.operations.policy == OrbitalDynamics.Policy.capabilities()
     assert catalog.operations.cadence_import == OrbitalDynamics.CadenceImport.capabilities()
 

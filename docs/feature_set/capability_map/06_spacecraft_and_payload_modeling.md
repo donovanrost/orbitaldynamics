@@ -380,6 +380,7 @@ Status: **partial**.
 ### Thermal-margin policy threshold
 
 - Resource filters can apply `min_activity_thermal_margin_c` as an artifact-level policy threshold, emitting `thermal_margin_below_policy` suppressions with a `thermal` blocking dimension while still treating the margin as externally supplied evidence rather than propagated thermal state.
+- `ResourceFilter.resource_filter_policy/1` and `OrbitalDynamics.resource_filter_policy/1` normalize the advertised policy threshold fields before filtering, so callers can inspect the effective fuel, thermal, observe-power/storage, and downlink threshold map without running candidate suppression.
 - V3 campaign strategy branch derivation recognizes those prior resource-filter suppressions as `thermal_margin_c` pressure, carries the report policy threshold into branch-local refresh, and exposes the resulting thermal margin on branch comparison rows.
 
 ### Caveats

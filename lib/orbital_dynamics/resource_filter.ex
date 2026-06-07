@@ -92,6 +92,14 @@ defmodule OrbitalDynamics.ResourceFilter do
                                     "uplink_command" => "command"
                                   })
   @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
+  @resource_filter_policy_fields ~w(
+    min_activity_fuel_margin
+    min_activity_thermal_margin_c
+    min_observe_power_margin
+    min_observe_storage_margin
+    min_downlink_power_margin
+    min_downlink_margin
+  )
   alias OrbitalDynamics.Policy
 
   @doc """
@@ -139,8 +147,10 @@ defmodule OrbitalDynamics.ResourceFilter do
       public_facades: [
         :filter_resource_candidates,
         :resource_filter_report,
-        :resource_filter_summary
+        :resource_filter_summary,
+        :resource_filter_policy
       ],
+      resource_filter_policy_fields: @resource_filter_policy_fields,
       resource_availability_aliases: @resource_availability_aliases,
       resource_degraded_aliases: @resource_degraded_aliases,
       resource_margin_aliases: @resource_margin_aliases,
@@ -362,15 +372,9 @@ defmodule OrbitalDynamics.ResourceFilter do
   def resource_filter_policy(policy) do
     policy = stringify_keys(policy || %{})
 
-    %{
-      "min_activity_fuel_margin" => policy_number_or_nil(policy, "min_activity_fuel_margin"),
-      "min_activity_thermal_margin_c" =>
-        policy_number_or_nil(policy, "min_activity_thermal_margin_c"),
-      "min_observe_power_margin" => policy_number_or_nil(policy, "min_observe_power_margin"),
-      "min_observe_storage_margin" => policy_number_or_nil(policy, "min_observe_storage_margin"),
-      "min_downlink_power_margin" => policy_number_or_nil(policy, "min_downlink_power_margin"),
-      "min_downlink_margin" => policy_number_or_nil(policy, "min_downlink_margin")
-    }
+    Map.new(@resource_filter_policy_fields, fn field ->
+      {field, policy_number_or_nil(policy, field)}
+    end)
     |> Enum.reject(fn {_key, value} -> is_nil(value) end)
     |> Map.new()
   end

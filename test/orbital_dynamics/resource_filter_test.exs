@@ -23,6 +23,7 @@ defmodule OrbitalDynamics.ResourceFilterTest do
              station_calendar_direction_aliases: station_calendar_direction_aliases,
              provider_result_map_value_keys: provider_result_map_value_keys,
              public_facades: public_facades,
+             resource_filter_policy_fields: resource_filter_policy_fields,
              candidate_stable_identity_fields: candidate_stable_identity_fields,
              station_calendar_id_list_fields: station_calendar_id_list_fields
            } = ResourceFilter.capabilities()
@@ -113,8 +114,39 @@ defmodule OrbitalDynamics.ResourceFilterTest do
     assert public_facades == [
              :filter_resource_candidates,
              :resource_filter_report,
-             :resource_filter_summary
+             :resource_filter_summary,
+             :resource_filter_policy
            ]
+
+    assert resource_filter_policy_fields == [
+             "min_activity_fuel_margin",
+             "min_activity_thermal_margin_c",
+             "min_observe_power_margin",
+             "min_observe_storage_margin",
+             "min_downlink_power_margin",
+             "min_downlink_margin"
+           ]
+  end
+
+  test "normalizes resource filter policy thresholds through public facades" do
+    policy = %{
+      :min_activity_fuel_margin => "0.25",
+      "min_activity_thermal_margin_c" => 2,
+      "min_observe_power_margin" => "invalid",
+      :min_observe_storage_margin => nil,
+      :min_downlink_power_margin => 0.4,
+      :min_downlink_margin => "0.5"
+    }
+
+    assert ResourceFilter.resource_filter_policy(policy) == %{
+             "min_activity_fuel_margin" => 0.25,
+             "min_activity_thermal_margin_c" => 2.0,
+             "min_downlink_power_margin" => 0.4,
+             "min_downlink_margin" => 0.5
+           }
+
+    assert OrbitalDynamics.resource_filter_policy(policy) ==
+             ResourceFilter.resource_filter_policy(policy)
   end
 
   test "preserves invalid resource summaries without suppressing candidates" do
@@ -3376,6 +3408,14 @@ defmodule OrbitalDynamics.ResourceFilterTest do
              "suppressed_candidate_ids" => ["obs_1"],
              "suppressed_reason_counts" => %{"payload_unavailable" => 1}
            } = OrbitalDynamics.resource_filter_summary(candidates, summaries)
+
+    assert OrbitalDynamics.resource_filter_policy(%{
+             min_activity_thermal_margin_c: "2.0",
+             min_downlink_margin: 0.5
+           }) == %{
+             "min_activity_thermal_margin_c" => 2.0,
+             "min_downlink_margin" => 0.5
+           }
   end
 
   test "returns no suppressions when summaries do not match any candidate" do

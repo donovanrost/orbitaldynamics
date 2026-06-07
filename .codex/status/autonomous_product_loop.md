@@ -5,52 +5,48 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Contact allocation reservation-conflict handoff metadata.
+Resource filter policy threshold facade metadata.
 
 Status:
 Implemented, verified, reviewed, and ready for mechanical commit/push.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `docs/artifacts/field_families/candidate_refresh_artifact.md`
-- `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
-- `lib/orbital_dynamics/communications/contact_allocation.ex`
-- `test/orbital_dynamics/communications/contact_allocation_test.exs`
+- `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`
+- `lib/orbital_dynamics.ex`
+- `lib/orbital_dynamics/resource_filter.ex`
+- `test/orbital_dynamics/capabilities_test.exs`
+- `test/orbital_dynamics/resource_filter_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs`
-  passed, 66 tests.
-- `mix test test/orbital_dynamics/operator_review_test.exs:14831 test/orbital_dynamics/cadence_import_test.exs:2080 test/orbital_dynamics/operator_review_test.exs:6926 test/orbital_dynamics/cadence_import_test.exs:2205`
-  passed, 4 tests covering provider-reservation and station-reservation
-  review/import handoffs.
-- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs test/orbital_dynamics/operator_review_test.exs:14831 test/orbital_dynamics/cadence_import_test.exs:2080 test/orbital_dynamics/operator_review_test.exs:6926 test/orbital_dynamics/cadence_import_test.exs:2205`
-  passed, 70 tests.
-- `mix test test/orbital_dynamics/capabilities_test.exs`
-  passed, 6 tests.
+- `mix format lib/orbital_dynamics.ex lib/orbital_dynamics/resource_filter.ex test/orbital_dynamics/capabilities_test.exs test/orbital_dynamics/resource_filter_test.exs`
+  completed.
+- `mix test test/orbital_dynamics/resource_filter_test.exs test/orbital_dynamics/capabilities_test.exs`
+  passed, 43 tests.
 - `git diff --check`
   passed.
-- `slice_reviewer` found no must-fix findings and confirmed no schema/export
-  drift for this metadata-and-docs slice.
+- `slice_reviewer` found no must-fix findings; one stale ledger pillar label
+  was corrected.
 
 Docs/artifacts changed:
-- `ContactAllocation.capabilities/0` now advertises the existing
-  reservation-conflict review/import handoff as `station_reservation_review`
-  and `review_station_reservation`.
-- Contact-allocation and candidate-refresh docs now state that unresolved
-  reservation conflicts are station-reservation review work, not provider
-  reservation request candidates.
+- `ResourceFilter.capabilities/0` now advertises the policy threshold fields
+  and public `resource_filter_policy` facade.
+- `OrbitalDynamics.resource_filter_policy/1` exposes threshold normalization at
+  the top-level API.
+- Spacecraft/resource docs describe the facade as inspection-only policy
+  normalization before filtering.
 
 Level 6 pillar advanced:
-Fleet-level contact/station-calendar allocation handoffs and approval-aware
-import readiness.
+Fleet-level resource allocation policy metadata and approval-aware import
+readiness.
 
 Remaining maturity gaps:
-Capability metadata is aligned for reservation-conflict handoffs, but broader
-communications allocation policies still need richer import-readiness gates.
+Resource-filter policy thresholds are discoverable, but broader communications
+allocation policies still need richer import-readiness gates.
 
 Last commit:
-`e6a6147522b4a8e5078c071b194a55053d403484` pushed to `origin/main` for
-command authority/safety precondition gating.
+`a5b0ecbde7e7bc5d72ff268c3edcba33ed1a856f` pushed to `origin/main` for
+contact allocation reservation-conflict handoff metadata.
 
 Next candidate:
 After this slice, continue from resource and communications allocation semantics
