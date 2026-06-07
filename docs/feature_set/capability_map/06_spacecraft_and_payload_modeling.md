@@ -29,7 +29,8 @@ Status: **implemented**.
   `throughput_model`, and nested `metadata` selected-activity aliases used by
   the underlying projection for planned storage production, audit-only actual
   data volume, downlink throughput, and battery consumed/generated energy before
-  flow roll-forward.
+  flow roll-forward, with row semantics naming those storage/data-volume,
+  downlink-throughput, and battery-energy alias groups for discovery.
 - Resource-summary facade constructors normalize canonical and alias spacecraft identities into stable string IDs and reject unstable IDs before emitting `resource_summary.v1` rows.
 
 ### Ground-network contact filtering (`ContactFilter`)

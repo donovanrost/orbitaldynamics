@@ -83,6 +83,9 @@ defmodule OrbitalDynamics.ResourceSummaryTest do
     assert :battery_energy_generated_aliases in row_semantics
     assert :resource_activity_type_aliases in row_semantics
     assert :selected_activity_resource_roll_forward in row_semantics
+    assert :resource_summary_roll_forward_selected_activity_storage_aliases in row_semantics
+    assert :resource_summary_roll_forward_selected_activity_downlink_aliases in row_semantics
+    assert :resource_summary_roll_forward_selected_activity_battery_aliases in row_semantics
     assert :resource_summary_roll_forward_flow_status_values in row_semantics
     assert :resource_summary_roll_forward_pressure_status_values in row_semantics
     assert :resource_summary_roll_forward_pressure_type_values in row_semantics
