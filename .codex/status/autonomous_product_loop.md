@@ -8,7 +8,7 @@ Current slice:
 Contact allocation reservation-conflict capability assumptions.
 
 Status:
-Implemented, verified, reviewed, and committed; push pending.
+Implemented, verified, reviewed, committed, and pushed.
 
 Slice completed:
 Reservation-conflict summaries now carry optional capability-derived
@@ -44,6 +44,9 @@ authority boundary.
 
 Product commit:
 `b4df86d` (`Add reservation conflict summary capability assumptions`).
+
+Handoff commit:
+`fc37650` (`Update autonomous loop handoff`).
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
