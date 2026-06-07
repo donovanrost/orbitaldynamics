@@ -437,6 +437,10 @@ certification/qualification routing, review-required/review-only row routing,
 and the no-Cadence-write/no-authority assumptions, and executable verification
 rejects stale requirement counts plus stale review-row evidence before adapter
 queues can trust the compact summary.
+Focused checked-in fixture coverage exact-compares the public
+`OrbitalDynamics.operational_quality_gate_operator_training_summary/1` facade
+output from the deterministic planned-activity ready-import source with
+operator-training requirements before schema validation.
 CandidateRefresh replay also derives reconstructed generic quality-gate row
 counts from `quality_gate_row_ids_by_status` when present, while preserving
 operator-training requirement counts and role/training/certification/

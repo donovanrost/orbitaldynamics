@@ -1640,6 +1640,110 @@ defmodule OrbitalDynamics.SchemaTest do
              summary["model_limits"]
   end
 
+  test "validates checked-in operational quality gate operator training summary fixture" do
+    source = %{
+      "schema_contract" => "cadence_import_manifest.v1",
+      "model" => "cadence_import_manifest_fixture",
+      "manifest_id" => "manifest_1",
+      "source_artifact_type" => "planned_activity.v1",
+      "source_artifact_id" => "activity_1",
+      "model_limits" => ["adapter_handoff_only"],
+      "rows" => [
+        %{
+          "id" => "import_1",
+          "rank" => 1,
+          "import_action" => "import_replacement_activity",
+          "import_status" => "ready_for_import",
+          "cadence_import_status" => "present",
+          "required_operator_roles" => ["mission_director", "contact_operator"],
+          "required_training_ids" => ["contact_replan_drill"],
+          "required_certification_ids" => ["cadence_import_cert"],
+          "required_qualification_ids" => ["sat_ops_current"]
+        }
+      ]
+    }
+
+    summary =
+      read_json!("study_results/operational_quality_gate_operator_training_summary_v1.json")
+
+    generated_summary = OrbitalDynamics.operational_quality_gate_operator_training_summary(source)
+
+    assert generated_summary == summary
+
+    assert {:ok,
+            %{
+              "schema_contract" => "operational_quality_gate_operator_training_summary.v1"
+            }} = Schema.validate_artifact(summary)
+
+    assert %{
+             "schema_contract" => "operational_quality_gate_operator_training_summary.v1",
+             "model" => "artifact_only_quality_gate_operator_training_summary",
+             "source" => "quality_gate_report.v1",
+             "source_artifact_type" => "planned_activity.v1",
+             "source_artifact_id" => "activity_1",
+             "source_quality_gate_report_id" => "quality_gate:planned_activity.v1:activity_1",
+             "source_readiness_report_id" =>
+               "operational_readiness:planned_activity.v1:activity_1",
+             "operator_training_row_count" => 1,
+             "operator_training_requirement_count" => 5,
+             "operator_training_requirement_counts" => %{
+               "certification" => 1,
+               "operator_role" => 2,
+               "qualification" => 1,
+               "training" => 1
+             },
+             "operator_training_requirement_ids" => [
+               "certification",
+               "operator_role",
+               "qualification",
+               "training"
+             ],
+             "required_operator_roles" => ["contact_operator", "mission_director"],
+             "required_training_ids" => ["contact_replan_drill"],
+             "required_certification_ids" => ["cadence_import_cert"],
+             "required_qualification_ids" => ["sat_ops_current"],
+             "quality_gate_row_ids_by_status" => %{
+               "review_required" => [
+                 "quality_gate:planned_activity.v1:activity_1:operator_training:4"
+               ]
+             },
+             "quality_gate_row_ids_by_classification" => %{
+               "review_only" => [
+                 "quality_gate:planned_activity.v1:activity_1:operator_training:4"
+               ]
+             },
+             "quality_gate_ids_by_status" => %{"review_required" => ["operator_training"]},
+             "quality_gate_ids_by_classification" => %{"review_only" => ["operator_training"]},
+             "review_required_quality_gate_row_ids" => [
+               "quality_gate:planned_activity.v1:activity_1:operator_training:4"
+             ],
+             "review_only_quality_gate_row_ids" => [
+               "quality_gate:planned_activity.v1:activity_1:operator_training:4"
+             ],
+             "blocked_quality_gate_row_ids" => [],
+             "operator_training_gate_ids" => ["operator_training"],
+             "operator_training_review_required" => true,
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_cadence_write",
+               "operator_authority" => "not_granted_by_operator_training_summary",
+               "cadence_write" => "not_performed_by_summary",
+               "command_execution" => "not_performed_by_summary",
+               "source" => "quality_gate_report.v1"
+             }
+           } = summary
+
+    assert summary["model_limits"] == [
+             "quality_gate_operator_training_summary_routes_only",
+             "quality_gate_operator_training_summary_does_not_approve_or_import"
+           ]
+
+    assert {:ok, operator_training_schema} =
+             Schema.json_schema("operational_quality_gate_operator_training_summary.v1")
+
+    assert get_in(operator_training_schema, ["properties", "model_limits", "const"]) ==
+             summary["model_limits"]
+  end
+
   test "validates checked-in station reservation review summary fixture" do
     review_summary = read_json!("study_results/station_reservation_review_summary_v1.json")
 
