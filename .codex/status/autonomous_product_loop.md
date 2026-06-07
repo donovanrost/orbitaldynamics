@@ -5,28 +5,28 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Provider-reservation request/review nested observation parity.
+Reservation-conflict validation-reference observation fixture.
 
 Status:
-Completed locally; provider-reservation validation-reference observations now
-include row-derived request and review direction/ground-station routing, so
-fixture verification catches stale nested request/review maps alongside the
-no-request map.
+Completed locally; `contact_allocation_reservation_conflict_summary.v1` now has
+a curated validation-reference fixture and `Validation.artifact_observations/2`
+support for row-derived conflict/review counts, reservation IDs, status maps,
+and nested direction/ground-station conflict routing.
 
 Files changed:
 - `lib/orbital_dynamics/validation.ex`
 - `test/orbital_dynamics/validation_test.exs`
-- `docs/artifacts/compatibility_checks.md`
 
 Tests run:
-- `mix run -e '<provider reservation nested observation smoke check>'`
-- `mix orbital_dynamics.schema.lint --input study_results/contact_allocation_provider_reservation_request_summary_v1.json --contract contact_allocation_provider_reservation_request_summary.v1`
+- `mix run -e '<reservation conflict observation smoke check>'`
+- `mix orbital_dynamics.schema.lint --input study_results/contact_allocation_reservation_conflict_summary_v1.json --contract contact_allocation_reservation_conflict_summary.v1`
 - `git diff --check`
-- `mix test test/orbital_dynamics/validation_test.exs:9356 test/orbital_dynamics/communications/contact_allocation_test.exs:2661`
+- `mix test test/orbital_dynamics/validation_test.exs:9356`
+- `mix test test/orbital_dynamics/validation_test.exs`
 
 Docs/artifacts changed:
-- No artifact shape changes; compatibility docs now name request, review, and
-  no-request direction/ground-station fixture verification.
+- No artifact shape changes; existing compatibility docs now match the
+  validation-reference registry for reservation-conflict summaries.
 
 Level 6 pillar advanced:
 Fleet-level resource/contact allocation behavior and durable schema-versioned
@@ -39,7 +39,7 @@ or operator-review replay does not yet preserve.
 
 Last commit:
 Pending commit; previous pushed commit
-`b58613822eb6754166e1fa21e4cb79d143864d7e`.
+`a377f2e6f50b61f38d34bc406998b3a13877a6fd`.
 
 Next candidate:
 Reassess the guide queue against the live worktree after committing this slice.
