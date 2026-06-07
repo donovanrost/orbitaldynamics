@@ -322,6 +322,9 @@ distinguish helper-applied lifecycle state from hand-authored replacement rows
 without applying transitions. Direct status, approval, and lifecycle-event
 helpers can also opt into the same selected-activity dependency/exclusivity
 review gate before returning helper-applied activity rows.
+That selected-integrity gate lifts the same missing, self, duplicate, cycle,
+order-violation, and exclusivity-overlap ID families onto transition
+decision/application evidence and review/import handoff rows.
 `Timeline.integrity_report/2` exposes the same
 dependency/exclusivity validation as a compact validated
 `timeline_integrity_report.v1` artifact-only summary with review rows,

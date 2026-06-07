@@ -14660,6 +14660,20 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(row_schema, ["properties", "selected_timeline_integrity_issue_count"]) ==
              %{"type" => "integer", "minimum" => 0}
 
+    assert get_in(row_schema, [
+             "properties",
+             "selected_duplicate_exclusivity_activity_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "selected_dependency_order_violation_timeline_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
     assert get_in(row_schema, ["properties", "source_duplicate_activity_count"]) ==
              %{"type" => "integer", "minimum" => 0}
   end
@@ -21323,10 +21337,26 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert get_in(cadence_row_schema, [
              "properties",
+             "selected_duplicate_exclusivity_activity_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
+
+    assert get_in(cadence_row_schema, [
+             "properties",
              "source_review_row",
              "properties",
              "selected_timeline_integrity_issue_count"
            ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(cadence_row_schema, [
+             "properties",
+             "source_review_row",
+             "properties",
+             "selected_dependency_order_violation_timeline_ids",
+             "items",
+             "pattern"
+           ]) == stable_id_pattern
 
     assert get_in(cadence_row_schema, ["properties", "contention_group_id", "pattern"]) ==
              stable_id_pattern

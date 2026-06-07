@@ -1053,7 +1053,22 @@ defmodule OrbitalDynamics.Schema do
     {"selected_missing_dependency_activity_ids", "selected_missing_dependency_activity_ids"},
     {"selected_missing_dependency_timeline_ids", "selected_missing_dependency_timeline_ids"},
     {"selected_self_dependency_activity_ids", "selected_self_dependency_activity_ids"},
-    {"selected_self_dependency_timeline_ids", "selected_self_dependency_timeline_ids"}
+    {"selected_self_dependency_timeline_ids", "selected_self_dependency_timeline_ids"},
+    {"selected_duplicate_dependency_activity_ids", "selected_duplicate_dependency_activity_ids"},
+    {"selected_duplicate_dependency_timeline_ids", "selected_duplicate_dependency_timeline_ids"},
+    {"selected_duplicate_exclusivity_activity_ids",
+     "selected_duplicate_exclusivity_activity_ids"},
+    {"selected_duplicate_exclusivity_timeline_ids",
+     "selected_duplicate_exclusivity_timeline_ids"},
+    {"selected_dependency_cycle_activity_ids", "selected_dependency_cycle_activity_ids"},
+    {"selected_dependency_cycle_timeline_ids", "selected_dependency_cycle_timeline_ids"},
+    {"selected_dependency_order_violation_activity_ids",
+     "selected_dependency_order_violation_activity_ids"},
+    {"selected_dependency_order_violation_timeline_ids",
+     "selected_dependency_order_violation_timeline_ids"},
+    {"selected_exclusivity_violation_activity_ids",
+     "selected_exclusivity_violation_activity_ids"},
+    {"selected_exclusivity_violation_timeline_ids", "selected_exclusivity_violation_timeline_ids"}
   ]
   @timeline_transition_application_handoff_source_review_fields Enum.map(
                                                                   [
@@ -1083,6 +1098,16 @@ defmodule OrbitalDynamics.Schema do
                                                                     "selected_missing_dependency_timeline_ids",
                                                                     "selected_self_dependency_activity_ids",
                                                                     "selected_self_dependency_timeline_ids",
+                                                                    "selected_duplicate_dependency_activity_ids",
+                                                                    "selected_duplicate_dependency_timeline_ids",
+                                                                    "selected_duplicate_exclusivity_activity_ids",
+                                                                    "selected_duplicate_exclusivity_timeline_ids",
+                                                                    "selected_dependency_cycle_activity_ids",
+                                                                    "selected_dependency_cycle_timeline_ids",
+                                                                    "selected_dependency_order_violation_activity_ids",
+                                                                    "selected_dependency_order_violation_timeline_ids",
+                                                                    "selected_exclusivity_violation_activity_ids",
+                                                                    "selected_exclusivity_violation_timeline_ids",
                                                                     "source_timeline_application"
                                                                   ],
                                                                   &{&1, &1}
@@ -1165,6 +1190,22 @@ defmodule OrbitalDynamics.Schema do
     {"selected_missing_dependency_timeline_ids", "selected_missing_dependency_timeline_ids"},
     {"selected_self_dependency_activity_ids", "selected_self_dependency_activity_ids"},
     {"selected_self_dependency_timeline_ids", "selected_self_dependency_timeline_ids"},
+    {"selected_duplicate_dependency_activity_ids", "selected_duplicate_dependency_activity_ids"},
+    {"selected_duplicate_dependency_timeline_ids", "selected_duplicate_dependency_timeline_ids"},
+    {"selected_duplicate_exclusivity_activity_ids",
+     "selected_duplicate_exclusivity_activity_ids"},
+    {"selected_duplicate_exclusivity_timeline_ids",
+     "selected_duplicate_exclusivity_timeline_ids"},
+    {"selected_dependency_cycle_activity_ids", "selected_dependency_cycle_activity_ids"},
+    {"selected_dependency_cycle_timeline_ids", "selected_dependency_cycle_timeline_ids"},
+    {"selected_dependency_order_violation_activity_ids",
+     "selected_dependency_order_violation_activity_ids"},
+    {"selected_dependency_order_violation_timeline_ids",
+     "selected_dependency_order_violation_timeline_ids"},
+    {"selected_exclusivity_violation_activity_ids",
+     "selected_exclusivity_violation_activity_ids"},
+    {"selected_exclusivity_violation_timeline_ids",
+     "selected_exclusivity_violation_timeline_ids"},
     {"source_timeline_identity", "source_timeline_identity"},
     {"replacement_timeline_identity", "replacement_timeline_identity"},
     {"source_activity_context", "source_activity_context"},
@@ -26334,6 +26375,16 @@ defmodule OrbitalDynamics.Schema do
         "selected_missing_dependency_timeline_ids" => stable_id_array_schema(),
         "selected_self_dependency_activity_ids" => stable_id_array_schema(),
         "selected_self_dependency_timeline_ids" => stable_id_array_schema(),
+        "selected_duplicate_dependency_activity_ids" => stable_id_array_schema(),
+        "selected_duplicate_dependency_timeline_ids" => stable_id_array_schema(),
+        "selected_duplicate_exclusivity_activity_ids" => stable_id_array_schema(),
+        "selected_duplicate_exclusivity_timeline_ids" => stable_id_array_schema(),
+        "selected_dependency_cycle_activity_ids" => stable_id_array_schema(),
+        "selected_dependency_cycle_timeline_ids" => stable_id_array_schema(),
+        "selected_dependency_order_violation_activity_ids" => stable_id_array_schema(),
+        "selected_dependency_order_violation_timeline_ids" => stable_id_array_schema(),
+        "selected_exclusivity_violation_activity_ids" => stable_id_array_schema(),
+        "selected_exclusivity_violation_timeline_ids" => stable_id_array_schema(),
         "source_timeline_diff" => timeline_diff_row_json_schema()
       }
     }
@@ -27681,6 +27732,16 @@ defmodule OrbitalDynamics.Schema do
           "selected_missing_dependency_timeline_ids" => stable_id_array_schema(),
           "selected_self_dependency_activity_ids" => stable_id_array_schema(),
           "selected_self_dependency_timeline_ids" => stable_id_array_schema(),
+          "selected_duplicate_dependency_activity_ids" => stable_id_array_schema(),
+          "selected_duplicate_dependency_timeline_ids" => stable_id_array_schema(),
+          "selected_duplicate_exclusivity_activity_ids" => stable_id_array_schema(),
+          "selected_duplicate_exclusivity_timeline_ids" => stable_id_array_schema(),
+          "selected_dependency_cycle_activity_ids" => stable_id_array_schema(),
+          "selected_dependency_cycle_timeline_ids" => stable_id_array_schema(),
+          "selected_dependency_order_violation_activity_ids" => stable_id_array_schema(),
+          "selected_dependency_order_violation_timeline_ids" => stable_id_array_schema(),
+          "selected_exclusivity_violation_activity_ids" => stable_id_array_schema(),
+          "selected_exclusivity_violation_timeline_ids" => stable_id_array_schema(),
           "source_timeline_diff_summary" => timeline_diff_summary_source_json_schema(),
           "source_timeline_transition_application_summary" =>
             timeline_transition_application_summary_source_json_schema(),
@@ -28220,6 +28281,16 @@ defmodule OrbitalDynamics.Schema do
           "selected_missing_dependency_timeline_ids" => stable_id_array_schema(),
           "selected_self_dependency_activity_ids" => stable_id_array_schema(),
           "selected_self_dependency_timeline_ids" => stable_id_array_schema(),
+          "selected_duplicate_dependency_activity_ids" => stable_id_array_schema(),
+          "selected_duplicate_dependency_timeline_ids" => stable_id_array_schema(),
+          "selected_duplicate_exclusivity_activity_ids" => stable_id_array_schema(),
+          "selected_duplicate_exclusivity_timeline_ids" => stable_id_array_schema(),
+          "selected_dependency_cycle_activity_ids" => stable_id_array_schema(),
+          "selected_dependency_cycle_timeline_ids" => stable_id_array_schema(),
+          "selected_dependency_order_violation_activity_ids" => stable_id_array_schema(),
+          "selected_dependency_order_violation_timeline_ids" => stable_id_array_schema(),
+          "selected_exclusivity_violation_activity_ids" => stable_id_array_schema(),
+          "selected_exclusivity_violation_timeline_ids" => stable_id_array_schema(),
           "source_timeline_diff_summary" => timeline_diff_summary_source_json_schema(),
           "source_timeline_transition_application_summary" =>
             timeline_transition_application_summary_source_json_schema(),
@@ -28963,6 +29034,16 @@ defmodule OrbitalDynamics.Schema do
           "selected_missing_dependency_timeline_ids" => stable_id_array_schema(),
           "selected_self_dependency_activity_ids" => stable_id_array_schema(),
           "selected_self_dependency_timeline_ids" => stable_id_array_schema(),
+          "selected_duplicate_dependency_activity_ids" => stable_id_array_schema(),
+          "selected_duplicate_dependency_timeline_ids" => stable_id_array_schema(),
+          "selected_duplicate_exclusivity_activity_ids" => stable_id_array_schema(),
+          "selected_duplicate_exclusivity_timeline_ids" => stable_id_array_schema(),
+          "selected_dependency_cycle_activity_ids" => stable_id_array_schema(),
+          "selected_dependency_cycle_timeline_ids" => stable_id_array_schema(),
+          "selected_dependency_order_violation_activity_ids" => stable_id_array_schema(),
+          "selected_dependency_order_violation_timeline_ids" => stable_id_array_schema(),
+          "selected_exclusivity_violation_activity_ids" => stable_id_array_schema(),
+          "selected_exclusivity_violation_timeline_ids" => stable_id_array_schema(),
           "source_timeline_diff_summary" => timeline_diff_summary_source_json_schema(),
           "source_timeline_transition_application_summary" =>
             timeline_transition_application_summary_source_json_schema(),
@@ -45581,6 +45662,34 @@ defmodule OrbitalDynamics.Schema do
     |> validate_optional_stable_id_list(path, row, "selected_self_dependency_activity_ids")
     |> expect_optional_type(path, row, "selected_self_dependency_timeline_ids", :list)
     |> validate_optional_stable_id_list(path, row, "selected_self_dependency_timeline_ids")
+    |> expect_optional_type(path, row, "selected_duplicate_dependency_activity_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "selected_duplicate_dependency_activity_ids")
+    |> expect_optional_type(path, row, "selected_duplicate_dependency_timeline_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "selected_duplicate_dependency_timeline_ids")
+    |> expect_optional_type(path, row, "selected_duplicate_exclusivity_activity_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "selected_duplicate_exclusivity_activity_ids")
+    |> expect_optional_type(path, row, "selected_duplicate_exclusivity_timeline_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "selected_duplicate_exclusivity_timeline_ids")
+    |> expect_optional_type(path, row, "selected_dependency_cycle_activity_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "selected_dependency_cycle_activity_ids")
+    |> expect_optional_type(path, row, "selected_dependency_cycle_timeline_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "selected_dependency_cycle_timeline_ids")
+    |> expect_optional_type(path, row, "selected_dependency_order_violation_activity_ids", :list)
+    |> validate_optional_stable_id_list(
+      path,
+      row,
+      "selected_dependency_order_violation_activity_ids"
+    )
+    |> expect_optional_type(path, row, "selected_dependency_order_violation_timeline_ids", :list)
+    |> validate_optional_stable_id_list(
+      path,
+      row,
+      "selected_dependency_order_violation_timeline_ids"
+    )
+    |> expect_optional_type(path, row, "selected_exclusivity_violation_activity_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "selected_exclusivity_violation_activity_ids")
+    |> expect_optional_type(path, row, "selected_exclusivity_violation_timeline_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "selected_exclusivity_violation_timeline_ids")
   end
 
   defp validate_optional_timeline_transition_application_row(issues, _path, nil), do: issues

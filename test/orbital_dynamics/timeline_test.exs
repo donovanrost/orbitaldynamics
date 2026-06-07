@@ -6871,7 +6871,8 @@ defmodule OrbitalDynamics.TimelineTest do
                   "type" => "duplicate_exclusivity_activity",
                   "duplicate_exclusivity_activity_id" => "dl_clear"
                 }
-              ]
+              ],
+              "selected_duplicate_exclusivity_activity_ids" => ["dl_clear"]
             }} =
              Timeline.transition_activity_status(duplicate_exclusivity_activity, "succeeded",
                validate_selected_integrity?: true,
@@ -8600,6 +8601,73 @@ defmodule OrbitalDynamics.TimelineTest do
 
     assert {:ok, %{"schema_contract" => "timeline_transition_application_report.v1"}} =
              Schema.validate_artifact(self_dependency_report)
+
+    duplicate_exclusivity_source = %{
+      id: :obs_duplicate_exclusivity,
+      type: :observe,
+      target_id: :target_alpha,
+      status: :planned,
+      approval_status: :approved,
+      locked: true,
+      starts_at_s: 60.0,
+      ends_at_s: 70.0,
+      exclusive_with_activity_ids: [:dl_clear, :dl_clear],
+      metadata: %{timeline_id: :"timeline:obs_duplicate_exclusivity"}
+    }
+
+    duplicate_exclusivity_report =
+      Timeline.transition_application_report(
+        [duplicate_exclusivity_source],
+        [],
+        validate_selected_dependencies?: false
+      )
+
+    assert %{
+             "application_status" => "source_preserved_pending_review",
+             "selected_activity_source" => "source",
+             "selected_timeline_integrity_issue_types" => ["duplicate_exclusivity_activity"],
+             "selected_duplicate_exclusivity_activity_ids" => ["dl_clear"],
+             "selected_activity" => %{
+               "duplicate_exclusivity_activity_ids" => ["dl_clear"]
+             }
+           } = List.first(duplicate_exclusivity_report["applications"])
+
+    duplicate_exclusivity_review =
+      OrbitalDynamics.operator_review_package(duplicate_exclusivity_report)
+
+    assert [duplicate_exclusivity_review_row] = duplicate_exclusivity_review["rows"]
+
+    assert duplicate_exclusivity_review_row["selected_duplicate_exclusivity_activity_ids"] == [
+             "dl_clear"
+           ]
+
+    assert get_in(duplicate_exclusivity_review_row, [
+             "source_timeline_application",
+             "selected_duplicate_exclusivity_activity_ids"
+           ]) == ["dl_clear"]
+
+    duplicate_exclusivity_manifest =
+      CadenceImport.from_timeline_transition_application_report(duplicate_exclusivity_report)
+
+    assert [duplicate_exclusivity_manifest_row] = duplicate_exclusivity_manifest["rows"]
+
+    assert duplicate_exclusivity_manifest_row["selected_duplicate_exclusivity_activity_ids"] == [
+             "dl_clear"
+           ]
+
+    assert get_in(duplicate_exclusivity_manifest_row, [
+             "source_review_row",
+             "selected_duplicate_exclusivity_activity_ids"
+           ]) == ["dl_clear"]
+
+    assert {:ok, %{"schema_contract" => "timeline_transition_application_report.v1"}} =
+             Schema.validate_artifact(duplicate_exclusivity_report)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(duplicate_exclusivity_review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(duplicate_exclusivity_manifest)
 
     manifest = CadenceImport.from_timeline_transition_application_report(gated_report)
 

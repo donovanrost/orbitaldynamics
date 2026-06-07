@@ -6025,27 +6025,15 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp transition_helper_selected_integrity_error(selected_activity) do
-    issue_types = list_value(selected_activity, "timeline_integrity_issue_types")
-
     %{
       "field" => "timeline_integrity",
       "transition_category" => "selected_timeline_integrity_review_required",
       "requires_operator_review" => true,
       "required_operator_action" => "review_timeline_integrity",
-      "operator_action_reason" => selected_integrity_reason(issue_types),
-      "selected_timeline_integrity_status" => selected_activity["timeline_integrity_status"],
-      "selected_timeline_integrity_issue_count" =>
-        selected_activity["timeline_integrity_issue_count"],
-      "selected_timeline_integrity_issue_types" => issue_types,
-      "selected_timeline_integrity_issues" => selected_activity["timeline_integrity_issues"],
-      "selected_missing_dependency_activity_ids" =>
-        selected_activity["missing_dependency_activity_ids"],
-      "selected_missing_dependency_timeline_ids" =>
-        selected_activity["missing_dependency_timeline_ids"],
-      "selected_self_dependency_activity_ids" =>
-        selected_activity["self_dependency_activity_ids"],
-      "selected_self_dependency_timeline_ids" => selected_activity["self_dependency_timeline_ids"]
+      "operator_action_reason" =>
+        selected_integrity_reason(list_value(selected_activity, "timeline_integrity_issue_types"))
     }
+    |> Map.merge(selected_integrity_context(selected_activity))
     |> compact_map()
   end
 
@@ -6132,35 +6120,7 @@ defmodule OrbitalDynamics.Timeline do
       |> Map.put("transition_decision_reason", reason)
       |> Map.put("requires_operator_review", true)
       |> Map.put("required_operator_action", "review_timeline_integrity")
-      |> Map.put(
-        "selected_timeline_integrity_status",
-        selected_activity["timeline_integrity_status"]
-      )
-      |> Map.put(
-        "selected_timeline_integrity_issue_count",
-        selected_activity["timeline_integrity_issue_count"]
-      )
-      |> Map.put("selected_timeline_integrity_issue_types", issue_types)
-      |> Map.put(
-        "selected_timeline_integrity_issues",
-        selected_activity["timeline_integrity_issues"]
-      )
-      |> Map.put(
-        "selected_missing_dependency_activity_ids",
-        selected_activity["missing_dependency_activity_ids"]
-      )
-      |> Map.put(
-        "selected_missing_dependency_timeline_ids",
-        selected_activity["missing_dependency_timeline_ids"]
-      )
-      |> Map.put(
-        "selected_self_dependency_activity_ids",
-        selected_activity["self_dependency_activity_ids"]
-      )
-      |> Map.put(
-        "selected_self_dependency_timeline_ids",
-        selected_activity["self_dependency_timeline_ids"]
-      )
+      |> Map.merge(selected_integrity_context(selected_activity))
       |> Map.update("reason", reason, fn current_reason ->
         if current_reason in [nil, "no_timeline_change"], do: reason, else: current_reason
       end)
@@ -6206,35 +6166,7 @@ defmodule OrbitalDynamics.Timeline do
       |> Map.put("requires_operator_review", true)
       |> put_selected_integrity_review_action()
       |> put_selected_integrity_application_status()
-      |> Map.put(
-        "selected_timeline_integrity_status",
-        selected_activity["timeline_integrity_status"]
-      )
-      |> Map.put(
-        "selected_timeline_integrity_issue_count",
-        selected_activity["timeline_integrity_issue_count"]
-      )
-      |> Map.put("selected_timeline_integrity_issue_types", issue_types)
-      |> Map.put(
-        "selected_timeline_integrity_issues",
-        selected_activity["timeline_integrity_issues"]
-      )
-      |> Map.put(
-        "selected_missing_dependency_activity_ids",
-        selected_activity["missing_dependency_activity_ids"]
-      )
-      |> Map.put(
-        "selected_missing_dependency_timeline_ids",
-        selected_activity["missing_dependency_timeline_ids"]
-      )
-      |> Map.put(
-        "selected_self_dependency_activity_ids",
-        selected_activity["self_dependency_activity_ids"]
-      )
-      |> Map.put(
-        "selected_self_dependency_timeline_ids",
-        selected_activity["self_dependency_timeline_ids"]
-      )
+      |> Map.merge(selected_integrity_context(selected_activity))
       |> Map.update("reason", selected_integrity_reason(issue_types), fn reason ->
         if reason in [nil, "no_timeline_change"],
           do: selected_integrity_reason(issue_types),
@@ -6244,6 +6176,45 @@ defmodule OrbitalDynamics.Timeline do
     else
       application
     end
+  end
+
+  defp selected_integrity_context(selected_activity) do
+    %{
+      "selected_timeline_integrity_status" => selected_activity["timeline_integrity_status"],
+      "selected_timeline_integrity_issue_count" =>
+        selected_activity["timeline_integrity_issue_count"],
+      "selected_timeline_integrity_issue_types" =>
+        list_value(selected_activity, "timeline_integrity_issue_types"),
+      "selected_timeline_integrity_issues" => selected_activity["timeline_integrity_issues"],
+      "selected_missing_dependency_activity_ids" =>
+        selected_activity["missing_dependency_activity_ids"],
+      "selected_missing_dependency_timeline_ids" =>
+        selected_activity["missing_dependency_timeline_ids"],
+      "selected_self_dependency_activity_ids" =>
+        selected_activity["self_dependency_activity_ids"],
+      "selected_self_dependency_timeline_ids" =>
+        selected_activity["self_dependency_timeline_ids"],
+      "selected_duplicate_dependency_activity_ids" =>
+        selected_activity["duplicate_dependency_activity_ids"],
+      "selected_duplicate_dependency_timeline_ids" =>
+        selected_activity["duplicate_dependency_timeline_ids"],
+      "selected_duplicate_exclusivity_activity_ids" =>
+        selected_activity["duplicate_exclusivity_activity_ids"],
+      "selected_duplicate_exclusivity_timeline_ids" =>
+        selected_activity["duplicate_exclusivity_timeline_ids"],
+      "selected_dependency_cycle_activity_ids" =>
+        selected_activity["dependency_cycle_activity_ids"],
+      "selected_dependency_cycle_timeline_ids" =>
+        selected_activity["dependency_cycle_timeline_ids"],
+      "selected_dependency_order_violation_activity_ids" =>
+        selected_activity["dependency_order_violation_activity_ids"],
+      "selected_dependency_order_violation_timeline_ids" =>
+        selected_activity["dependency_order_violation_timeline_ids"],
+      "selected_exclusivity_violation_activity_ids" =>
+        selected_activity["exclusivity_violation_activity_ids"],
+      "selected_exclusivity_violation_timeline_ids" =>
+        selected_activity["exclusivity_violation_timeline_ids"]
+    }
   end
 
   defp put_selected_integrity_review_action(%{"required_operator_action" => action} = application)

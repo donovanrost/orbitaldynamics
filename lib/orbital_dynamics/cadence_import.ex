@@ -5197,6 +5197,24 @@ defmodule OrbitalDynamics.CadenceImport do
         row["selected_missing_dependency_timeline_ids"],
       "selected_self_dependency_activity_ids" => row["selected_self_dependency_activity_ids"],
       "selected_self_dependency_timeline_ids" => row["selected_self_dependency_timeline_ids"],
+      "selected_duplicate_dependency_activity_ids" =>
+        row["selected_duplicate_dependency_activity_ids"],
+      "selected_duplicate_dependency_timeline_ids" =>
+        row["selected_duplicate_dependency_timeline_ids"],
+      "selected_duplicate_exclusivity_activity_ids" =>
+        row["selected_duplicate_exclusivity_activity_ids"],
+      "selected_duplicate_exclusivity_timeline_ids" =>
+        row["selected_duplicate_exclusivity_timeline_ids"],
+      "selected_dependency_cycle_activity_ids" => row["selected_dependency_cycle_activity_ids"],
+      "selected_dependency_cycle_timeline_ids" => row["selected_dependency_cycle_timeline_ids"],
+      "selected_dependency_order_violation_activity_ids" =>
+        row["selected_dependency_order_violation_activity_ids"],
+      "selected_dependency_order_violation_timeline_ids" =>
+        row["selected_dependency_order_violation_timeline_ids"],
+      "selected_exclusivity_violation_activity_ids" =>
+        row["selected_exclusivity_violation_activity_ids"],
+      "selected_exclusivity_violation_timeline_ids" =>
+        row["selected_exclusivity_violation_timeline_ids"],
       "approval_status" => approval_status,
       "policy_classification" => row["policy_classification"],
       "approval_rule_matches" => row["approval_rule_matches"],

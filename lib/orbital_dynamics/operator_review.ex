@@ -9279,6 +9279,16 @@ defmodule OrbitalDynamics.OperatorReview do
             "selected_missing_dependency_timeline_ids",
             "selected_self_dependency_activity_ids",
             "selected_self_dependency_timeline_ids",
+            "selected_duplicate_dependency_activity_ids",
+            "selected_duplicate_dependency_timeline_ids",
+            "selected_duplicate_exclusivity_activity_ids",
+            "selected_duplicate_exclusivity_timeline_ids",
+            "selected_dependency_cycle_activity_ids",
+            "selected_dependency_cycle_timeline_ids",
+            "selected_dependency_order_violation_activity_ids",
+            "selected_dependency_order_violation_timeline_ids",
+            "selected_exclusivity_violation_activity_ids",
+            "selected_exclusivity_violation_timeline_ids",
             "transition_application_provenance"
           ])
         )
@@ -9506,6 +9516,24 @@ defmodule OrbitalDynamics.OperatorReview do
         row["selected_missing_dependency_timeline_ids"],
       "selected_self_dependency_activity_ids" => row["selected_self_dependency_activity_ids"],
       "selected_self_dependency_timeline_ids" => row["selected_self_dependency_timeline_ids"],
+      "selected_duplicate_dependency_activity_ids" =>
+        row["selected_duplicate_dependency_activity_ids"],
+      "selected_duplicate_dependency_timeline_ids" =>
+        row["selected_duplicate_dependency_timeline_ids"],
+      "selected_duplicate_exclusivity_activity_ids" =>
+        row["selected_duplicate_exclusivity_activity_ids"],
+      "selected_duplicate_exclusivity_timeline_ids" =>
+        row["selected_duplicate_exclusivity_timeline_ids"],
+      "selected_dependency_cycle_activity_ids" => row["selected_dependency_cycle_activity_ids"],
+      "selected_dependency_cycle_timeline_ids" => row["selected_dependency_cycle_timeline_ids"],
+      "selected_dependency_order_violation_activity_ids" =>
+        row["selected_dependency_order_violation_activity_ids"],
+      "selected_dependency_order_violation_timeline_ids" =>
+        row["selected_dependency_order_violation_timeline_ids"],
+      "selected_exclusivity_violation_activity_ids" =>
+        row["selected_exclusivity_violation_activity_ids"],
+      "selected_exclusivity_violation_timeline_ids" =>
+        row["selected_exclusivity_violation_timeline_ids"],
       "source_timeline_diff" => row
     }
     |> compact_map()
