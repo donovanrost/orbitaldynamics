@@ -16,6 +16,12 @@
   "invalid_activity_input_count": 0,
   "invalid_activity_input_ids": [],
   "model": "artifact_only_timeline_lifecycle_state_summary",
+  "model_limits": [
+    "artifact_level_only",
+    "no_schedule_mutation",
+    "no_command_execution",
+    "derived_identity_when_no_persistent_timeline_id"
+  ],
   "planned_activity_count": 5,
   "planned_approval_category_counts": {
     "other": 1,

@@ -395,7 +395,7 @@ inputs as review rows without mutating schedules, importing to Cadence, granting
 operator authority, or executing commands. Those summaries publish the validated
 `timeline_lifecycle_state_summary.v1` schema contract so row-derived counts,
 review rows, invalid activity input IDs, identity maps, and action/category maps
-remain adapter-safe.
+remain adapter-safe while pinning the Timeline `model_limits` boundary.
 Operator-review packages and Cadence-import manifests can now consume those
 lifecycle-state summaries directly, preserving review timeline/activity IDs,
 transition decisions, status/approval transitions, protection context, source

@@ -10989,6 +10989,10 @@ defmodule OrbitalDynamics.SchemaTest do
              "artifact_only_timeline_lifecycle_state_summary"
 
     assert get_in(schema, ["properties", "validation_level", "const"]) == "artifact_contract"
+
+    assert get_in(schema, ["properties", "model_limits", "const"]) ==
+             OrbitalDynamics.Timeline.model_limits()
+
     assert get_in(schema, ["properties", "source", "type"]) == "string"
 
     assert get_in(schema, ["properties", "rows", "items", "required"]) == [
@@ -11086,6 +11090,16 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert {:ok, %{"schema_contract" => "timeline_lifecycle_state_summary.v1"}} =
              Schema.validate_artifact(summary)
+
+    stale_model_limits = Map.put(summary, "model_limits", ["artifact_level_only"])
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_model_limits)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.model_limits" and
+                 &1["message"] =~ "must match timeline report model limits")
+           )
 
     invalid_model = Map.put(summary, "model", "custom")
 
@@ -11251,6 +11265,7 @@ defmodule OrbitalDynamics.SchemaTest do
              "schema_contract" => "timeline_lifecycle_state_summary.v1",
              "model" => "artifact_only_timeline_lifecycle_state_summary",
              "validation_level" => "artifact_contract",
+             "model_limits" => model_limits,
              "source" => "validation.timeline_lifecycle_state_summary",
              "planned_activity_count" => 5,
              "realized_activity_count" => 3,
@@ -11299,6 +11314,8 @@ defmodule OrbitalDynamics.SchemaTest do
                "operator_authority" => "not_granted_by_summary"
              }
            } = summary
+
+    assert model_limits == OrbitalDynamics.Timeline.model_limits()
 
     assert [
              %{

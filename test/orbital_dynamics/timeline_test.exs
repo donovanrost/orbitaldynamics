@@ -7472,6 +7472,7 @@ defmodule OrbitalDynamics.TimelineTest do
              "schema_contract" => "timeline_lifecycle_state_summary.v1",
              "model" => "artifact_only_timeline_lifecycle_state_summary",
              "validation_level" => "artifact_contract",
+             "model_limits" => model_limits,
              "planned_activity_count" => 5,
              "realized_activity_count" => 3,
              "row_count" => 4,
@@ -7519,6 +7520,8 @@ defmodule OrbitalDynamics.TimelineTest do
                "command_execution" => "not_performed_by_summary"
              }
            } = summary = Timeline.lifecycle_state_summary(planned, realized)
+
+    assert model_limits == Timeline.model_limits()
 
     assert [%{"timeline_id" => "timeline:cmd_provider"}, %{"timeline_id" => "timeline:dup"}] =
              summary["review_rows"]

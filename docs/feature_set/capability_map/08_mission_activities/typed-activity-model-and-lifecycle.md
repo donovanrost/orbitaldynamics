@@ -148,7 +148,8 @@ Helpers (all without schedule mutation or command execution):
   duplicate/invalid-input review rows without schedule mutation, Cadence import,
   operator authority, or command execution. They publish the validated
   `timeline_lifecycle_state_summary.v1` contract so counts, review rows, review
-  IDs, and action/category maps remain row-derived.
+  IDs, action/category maps, and Timeline `model_limits` remain row-derived and
+  schema-pinned.
 - Operator-review packages and Cadence-import manifests accept lifecycle-state
   summaries as artifact-only handoff inputs, carrying lifecycle review rows,
   status/approval transition evidence, protection context, and source rows

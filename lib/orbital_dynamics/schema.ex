@@ -7280,6 +7280,7 @@ defmodule OrbitalDynamics.Schema do
         "model",
         "source",
         "validation_level",
+        "model_limits",
         "planned_activity_count",
         "realized_activity_count",
         "row_count",
@@ -13024,6 +13025,14 @@ defmodule OrbitalDynamics.Schema do
 
   defp json_schema_property("validation_level", @timeline_lifecycle_state_summary, _contract) do
     %{"type" => "string", "const" => "artifact_contract"}
+  end
+
+  defp json_schema_property("model_limits", @timeline_lifecycle_state_summary, _contract) do
+    %{
+      "type" => "array",
+      "const" => timeline_report_model_limits(),
+      "items" => %{"type" => "string", "enum" => timeline_report_model_limits()}
+    }
   end
 
   defp json_schema_property("source", @timeline_lifecycle_state_summary, _contract) do
@@ -44691,6 +44700,14 @@ defmodule OrbitalDynamics.Schema do
     )
     |> expect_type(path, summary, "source", :binary)
     |> expect_equal(path, summary, "validation_level", "artifact_contract")
+    |> expect_type(path, summary, "model_limits", :list)
+    |> validate_string_list_items(path, summary, "model_limits")
+    |> validate_optional_exact_model_limits(
+      path,
+      summary,
+      timeline_report_model_limits(),
+      "must match timeline report model limits"
+    )
     |> expect_non_negative_integer(path, summary, "planned_activity_count")
     |> expect_non_negative_integer(path, summary, "realized_activity_count")
     |> expect_non_negative_integer(path, summary, "row_count")

@@ -4973,6 +4973,7 @@ defmodule OrbitalDynamics.Timeline do
       "model" => "artifact_only_timeline_lifecycle_state_summary",
       "source" => source,
       "validation_level" => "artifact_contract",
+      "model_limits" => model_limits(),
       "planned_activity_count" => length(planned_rows),
       "realized_activity_count" => length(realized_rows),
       "row_count" => length(rows),

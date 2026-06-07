@@ -108,8 +108,8 @@ fixture is refreshed from
 `OrbitalDynamics.timeline_lifecycle_state_summary/3` and exact-compared before
 schema validation. The fixture preserves command-window context, duplicate
 timeline-identity review routing, record/preserve/review count maps,
-row-level model limits, invalid-input flags, and the artifact-only
-no-operator-authority/no-schedule-mutation boundary.
+top-level and row-level model limits, invalid-input flags, and the
+artifact-only no-operator-authority/no-schedule-mutation boundary.
 Candidate-rejection report exports likewise constrain
 `candidate_rejection_report.v1` to the artifact-only candidate-rejection model
 constant, a string `source`, and the exact generated `model_limits` list,
