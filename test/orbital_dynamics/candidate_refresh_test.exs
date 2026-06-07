@@ -21263,6 +21263,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              approval_replay_summary["action_routing"]
 
     assert %{
+             "source_report_timeline_activity_state_branch_local_timeline_activity_state_pressure" =>
+               true,
+             "source_report_timeline_activity_state_branch_local_review_pressure" => true,
+             "source_report_timeline_activity_state_branch_local_action_pressure" => true,
+             "source_report_timeline_activity_state_branch_local_routing_pressure" => true
+           } = source_summary
+
+    assert %{
              "model" => "artifact_only_candidate_refresh_timeline_activity_state_replay_summary",
              "source" => "candidate_refresh.source_report_provenance.timeline_activity_state",
              "source_report_count" => 9,
@@ -21281,6 +21289,22 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert replay_summary ==
              OrbitalDynamics.candidate_refresh_timeline_activity_state_replay_summary(artifact)
+
+    provenance_artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{"source_reports" => source_summary["source_reports"]}
+    }
+
+    assert %{
+             "source_report_timeline_activity_state_branch_local_timeline_activity_state_pressure" =>
+               true,
+             "source_report_timeline_activity_state_branch_local_review_pressure" => true,
+             "source_report_timeline_activity_state_branch_local_action_pressure" => true,
+             "source_report_timeline_activity_state_branch_local_routing_pressure" => true
+           } = CandidateRefresh.source_report_summary(provenance_artifact)
+
+    assert CandidateRefresh.timeline_activity_state_replay_summary(provenance_artifact) ==
+             replay_summary
 
     assert %{
              "model" =>

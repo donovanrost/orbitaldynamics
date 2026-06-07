@@ -5,40 +5,40 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Candidate-refresh timeline-activity-lifecycle replay branch summary routing.
+Candidate-refresh timeline-activity-state replay branch summary routing.
 
 Status:
 Implemented, verified, reviewed, and ready for mechanical commit/push.
 
 Completed slice:
-Expose composed timeline-activity-lifecycle replay branch flags on
+Expose composed timeline-activity-state replay branch flags on
 `CandidateRefresh.source_report_summary/1`.
 
 Why this slice:
 The public capability catalog advertises
-`source_report_timeline_activity_lifecycle_state_branch_replay_summary`. The
-dedicated `timeline_activity_lifecycle_state_replay_summary/1` helper already
-derives branch-local lifecycle-state, review, action, and routing pressure, but
-the main `source_report_summary/1` surface only exposes the underlying
-activity-lifecycle rollups.
+`source_report_timeline_activity_state_branch_replay_summary`. The dedicated
+`timeline_activity_state_replay_summary/1` helper already derives branch-local
+activity-state, review, action, and routing pressure, but the main
+`source_report_summary/1` surface only exposes the underlying activity-state
+rollups.
 
 Level 6 pillar:
-Branch-local candidate refresh depth and activity-lifecycle replay semantics.
+Branch-local candidate refresh depth and activity-state replay semantics.
 
 What changed:
 - `CandidateRefresh.source_report_summary/1` now exposes
-  timeline-activity-lifecycle branch-local replay flags for lifecycle-state,
-  review, action, and routing pressure.
-- `timeline_activity_lifecycle_state_replay_summary/1` now uses a private
-  summary builder, so the public replay helper and source-report summary fields
-  share the same branch-pressure logic without recursing through
+  timeline-activity-state branch-local replay flags for activity-state, review,
+  action, and routing pressure.
+- `timeline_activity_state_replay_summary/1` now uses a private summary
+  builder, so the public replay helper and source-report summary fields share
+  the same branch-pressure logic without recursing through
   `source_report_summary/1`.
 - Candidate-refresh regression coverage proves the source-report summary
-  carries the composed activity-lifecycle branch flags for raw provenance and
-  compact `timeline_activity_lifecycle_state` provenance.
+  carries the composed activity-state branch flags for raw provenance and
+  compact `timeline_activity_state` provenance.
 
 Verification:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:20272` passed, 1
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:21034` passed, 1
   test.
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs test/orbital_dynamics/schema_test.exs`
   passed, 823 tests.
@@ -48,6 +48,8 @@ Verification:
   contract did not change.
 
 Recently completed slices:
+- `6f810766317f1e0560046e08dee2917e9d1a604a` pushed to `origin/main` for
+  candidate-refresh timeline-activity-lifecycle replay branch summary routing.
 - `aec39a94dd17c059d2ab9adc8ff9f29b2e49a3e4` pushed to `origin/main` for
   candidate-refresh timeline-activity-precondition replay branch summary
   routing.
