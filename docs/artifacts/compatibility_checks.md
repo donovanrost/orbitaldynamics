@@ -837,6 +837,11 @@ status/approval transition categories, and no-schedule-mutation/no-authority
 assumptions. Executable validation rejects stale review-required counts and
 stale row-derived transition category maps before compact diff summaries can
 steer review/import routing.
+Focused schema-reference coverage also regenerates the checked-in fixture
+exactly through `OrbitalDynamics.timeline_diff_summary/3` from deterministic
+source/replacement activities before schema validation, pinning diff counts,
+changed-field routing, status/approval transition routing, model limits, and
+the no-schedule-mutation/no-authority boundary.
 `study_results/timeline_integrity_report_v1.json` now feeds a curated
 `timeline_integrity_report.v1` validation-reference fixture. The observations
 check dependency/exclusivity review rows, issue-type counts, required-action and

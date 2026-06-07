@@ -10736,6 +10736,157 @@ defmodule OrbitalDynamics.SchemaTest do
            )
   end
 
+  test "validates checked-in timeline diff summary fixture" do
+    summary = read_json!("study_results/timeline_diff_summary_v1.json")
+
+    source = [
+      %{
+        id: :obs_1,
+        type: :observe,
+        scenario_id: :leo_1,
+        spacecraft_id: :leo_1,
+        target_id: :target_a,
+        source_window_id: :target_a_window_1,
+        starts_at_s: 10.0,
+        ends_at_s: 20.0,
+        status: :approved,
+        approval_status: :approved,
+        metadata: %{timeline_id: :"timeline:obs_1"}
+      },
+      %{
+        id: :dl_removed,
+        type: :downlink,
+        scenario_id: :leo_1,
+        spacecraft_id: :leo_1,
+        ground_station_id: :dss_14,
+        source_window_id: :dss_14_pass_removed,
+        starts_at_s: 30.0,
+        ends_at_s: 40.0,
+        metadata: %{timeline_id: :"timeline:dl_removed"}
+      }
+    ]
+
+    replacement = [
+      %{
+        id: :obs_1b,
+        type: :observe,
+        scenario_id: :leo_1,
+        spacecraft_id: :leo_1,
+        target_id: :target_a,
+        source_window_id: :target_a_window_1,
+        starts_at_s: 12.0,
+        ends_at_s: 22.0,
+        status: :planned,
+        approval_status: :pending,
+        metadata: %{timeline_id: :"timeline:obs_1"}
+      },
+      %{
+        id: :cmd_added,
+        type: :command,
+        scenario_id: :leo_1,
+        spacecraft_id: :leo_1,
+        ground_station_id: :dss_14,
+        source_window_id: :dss_14_pass_added,
+        starts_at_s: 50.0,
+        ends_at_s: 55.0,
+        metadata: %{timeline_id: :"timeline:cmd_added"}
+      }
+    ]
+
+    generated_summary =
+      OrbitalDynamics.timeline_diff_summary(source, replacement, source: "repair.activities")
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "timeline_diff_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "schema_contract" => "timeline_diff_summary.v1",
+             "model" => "artifact_only_timeline_diff_summary",
+             "validation_level" => "artifact_contract",
+             "source_artifact_type" => "timeline_diff_report.v1",
+             "source" => "repair.activities",
+             "source_activity_count" => 2,
+             "replacement_activity_count" => 2,
+             "row_count" => 3,
+             "added_count" => 1,
+             "removed_count" => 1,
+             "changed_count" => 1,
+             "unchanged_count" => 0,
+             "review_required_count" => 3,
+             "diff_status_counts" => %{"added" => 1, "changed" => 1, "removed" => 1},
+             "transition_decision_counts" => %{"preserve_source" => 1, "review" => 2},
+             "required_operator_action_counts" => %{
+               "review_added_activity" => 1,
+               "review_changed_protected_activity" => 1,
+               "review_removed_activity" => 1
+             },
+             "status_transition_category_counts" => %{
+               "status_added" => 1,
+               "status_changed" => 1,
+               "status_removed" => 1
+             },
+             "approval_transition_category_counts" => %{
+               "approval_regressed" => 1,
+               "approval_removed" => 1,
+               "approval_review_required" => 1
+             },
+             "changed_field_counts" => %{
+               "activity_id" => 1,
+               "approval_status" => 1,
+               "ends_at_s" => 1,
+               "starts_at_s" => 1,
+               "status" => 1,
+               "timeline_presence" => 2
+             },
+             "added_timeline_ids" => ["timeline:cmd_added"],
+             "removed_timeline_ids" => ["timeline:dl_removed"],
+             "changed_timeline_ids" => ["timeline:obs_1"],
+             "unchanged_timeline_ids" => [],
+             "review_timeline_ids" => [
+               "timeline:cmd_added",
+               "timeline:dl_removed",
+               "timeline:obs_1"
+             ],
+             "review_timeline_ids_by_required_operator_action" => %{
+               "review_added_activity" => ["timeline:cmd_added"],
+               "review_changed_protected_activity" => ["timeline:obs_1"],
+               "review_removed_activity" => ["timeline:dl_removed"]
+             },
+             "review_timeline_ids_by_status_transition_category" => %{
+               "status_added" => ["timeline:cmd_added"],
+               "status_changed" => ["timeline:obs_1"],
+               "status_removed" => ["timeline:dl_removed"]
+             },
+             "review_timeline_ids_by_approval_transition_category" => %{
+               "approval_regressed" => ["timeline:obs_1"],
+               "approval_removed" => ["timeline:dl_removed"],
+               "approval_review_required" => ["timeline:cmd_added"]
+             },
+             "timeline_ids_by_changed_field" => %{
+               "activity_id" => ["timeline:obs_1"],
+               "approval_status" => ["timeline:obs_1"],
+               "ends_at_s" => ["timeline:obs_1"],
+               "starts_at_s" => ["timeline:obs_1"],
+               "status" => ["timeline:obs_1"],
+               "timeline_presence" => ["timeline:cmd_added", "timeline:dl_removed"]
+             },
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_schedule_mutation",
+               "operator_authority" => "not_granted_by_summary"
+             }
+           } = summary
+
+    assert Enum.map(summary["review_rows"], & &1["timeline_id"]) == [
+             "timeline:cmd_added",
+             "timeline:dl_removed",
+             "timeline:obs_1"
+           ]
+
+    assert summary["model_limits"] == OrbitalDynamics.Timeline.model_limits()
+  end
+
   test "exports and validates timeline preservation model and source fields" do
     assert {:ok, report_schema} = Schema.json_schema("timeline_preservation_report.v1")
     assert {:ok, status_schema} = Schema.json_schema("timeline_preservation_status.v1")
