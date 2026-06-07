@@ -3655,6 +3655,30 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "stable_id_pattern"
            ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
 
+    publication_id_scope =
+      schemas
+      |> get_in([
+        "backend_acceptance_policy.v1",
+        "x-orbital-dynamics",
+        "identity_policy",
+        "generated_id_scopes"
+      ])
+      |> Enum.find(&(&1["scope"] == "timeline_publication_summary.v1.publication_id"))
+
+    assert publication_id_scope["generated_id_field"] == "publication_id"
+
+    assert publication_id_scope["identity_fields"] == [
+             "publication_sequence",
+             "source_artifact_id",
+             "supersedes_artifact_ids"
+           ]
+
+    assert publication_id_scope["semantic_invariants"] == [
+             "source_record_order_must_not_change_publication_id",
+             "same_publication_sequence_and_artifact_lineage_must_keep_publication_id",
+             "publication_id_serializes_declared_artifact_lineage"
+           ]
+
     assert get_in(schemas, [
              "backend_acceptance_policy.v1",
              "$defs",

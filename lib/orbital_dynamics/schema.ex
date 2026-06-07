@@ -2895,6 +2895,25 @@ defmodule OrbitalDynamics.Schema do
           "semantic_route_evidence_changes_must_change_generated_route_id",
           "explicit_route_id_takes_precedence_over_generated_route_id"
         ]
+      },
+      %{
+        "scope" => "timeline_publication_summary.v1.publication_id",
+        "generated_id_field" => "publication_id",
+        "identity_fields" => [
+          "publication_sequence",
+          "source_artifact_id",
+          "supersedes_artifact_ids"
+        ],
+        "ordering" => [
+          "publication_sequence",
+          "source_artifact_id",
+          "supersedes_artifact_ids"
+        ],
+        "semantic_invariants" => [
+          "source_record_order_must_not_change_publication_id",
+          "same_publication_sequence_and_artifact_lineage_must_keep_publication_id",
+          "publication_id_serializes_declared_artifact_lineage"
+        ]
       }
     ],
     "breaking_changes" => [

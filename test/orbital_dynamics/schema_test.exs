@@ -30,6 +30,32 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert capabilities.identity_policy_version == Schema.identity_policy()["policy_version"]
 
+    publication_id_scope =
+      Enum.find(
+        Schema.identity_policy()["generated_id_scopes"],
+        &(&1["scope"] == "timeline_publication_summary.v1.publication_id")
+      )
+
+    assert publication_id_scope["generated_id_field"] == "publication_id"
+
+    assert publication_id_scope["identity_fields"] == [
+             "publication_sequence",
+             "source_artifact_id",
+             "supersedes_artifact_ids"
+           ]
+
+    assert publication_id_scope["ordering"] == [
+             "publication_sequence",
+             "source_artifact_id",
+             "supersedes_artifact_ids"
+           ]
+
+    assert publication_id_scope["semantic_invariants"] == [
+             "source_record_order_must_not_change_publication_id",
+             "same_publication_sequence_and_artifact_lineage_must_keep_publication_id",
+             "publication_id_serializes_declared_artifact_lineage"
+           ]
+
     assert capabilities.validation_report_contracts == [
              "schema_validation_report.v1",
              "schema_validation_batch_report.v1",

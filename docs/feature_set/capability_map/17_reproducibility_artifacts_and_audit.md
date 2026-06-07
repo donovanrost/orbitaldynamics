@@ -44,7 +44,8 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   embedded in standalone contract schemas and the structural `study_manifest.v1`
   manifest schema.
 - It names generated-ID semantic invariants for campaign/candidate-refresh
-  source ordering and sequence suffix assignment.
+  source ordering, sequence suffix assignment, and timeline-publication
+  `publication_id` lineage.
 - It is enforced by artifact linting for public artifact rows.
 - Manifest field-reference artifacts carry compatibility and identity policy
   version breadcrumbs plus a compact generated-ID identity-policy summary for
@@ -683,6 +684,9 @@ First nested coverage exists for:
   identity policy and advertise it through capability metadata: explicit route
   IDs take precedence, while fallback IDs are stable under route ordering changes
   and change when semantic route evidence changes.
+- Timeline-publication summaries export their generated `publication_id` scope
+  through the same identity policy, pinning publication sequence, source
+  artifact ID, and superseded artifact lineage as the semantic identity inputs.
 - Broader cross-version invariants beyond the current public-ID policy scopes are
   still partial.
 
