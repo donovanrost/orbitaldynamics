@@ -5,16 +5,18 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Provider-reservation nested no-request observation parity.
+Provider-reservation request/review nested observation parity.
 
 Status:
 Completed locally; provider-reservation validation-reference observations now
-include row-derived no-request direction/ground-station routing, so fixture
-verification catches stale nested no-request maps.
+include row-derived request and review direction/ground-station routing, so
+fixture verification catches stale nested request/review maps alongside the
+no-request map.
 
 Files changed:
 - `lib/orbital_dynamics/validation.ex`
 - `test/orbital_dynamics/validation_test.exs`
+- `docs/artifacts/compatibility_checks.md`
 
 Tests run:
 - `mix run -e '<provider reservation nested observation smoke check>'`
@@ -23,7 +25,7 @@ Tests run:
 - `mix test test/orbital_dynamics/validation_test.exs:9356 test/orbital_dynamics/communications/contact_allocation_test.exs:2661`
 
 Docs/artifacts changed:
-- No artifact shape changes; compatibility docs already name the nested
+- No artifact shape changes; compatibility docs now name request, review, and
   no-request direction/ground-station fixture verification.
 
 Level 6 pillar advanced:
@@ -37,7 +39,7 @@ or operator-review replay does not yet preserve.
 
 Last commit:
 Pending commit; previous pushed commit
-`1f5023386e7b4210ae4dd4ce8bf82f9bdf018c4f`.
+`b58613822eb6754166e1fa21e4cb79d143864d7e`.
 
 Next candidate:
 Reassess the guide queue against the live worktree after committing this slice.
