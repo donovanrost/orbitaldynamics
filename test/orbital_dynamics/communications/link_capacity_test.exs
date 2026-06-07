@@ -4485,6 +4485,11 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
              "rows" => [%{"contact_ids" => ["dl_1"], "selected_contact_ids" => []}]
            } = report
 
+    refute Enum.any?(report, fn {_key, value} -> is_nil(value) end)
+
+    assert {:ok, %{"schema_contract" => "link_capacity_report.v1"}} =
+             Schema.validate_artifact(report)
+
     assert LinkCapacity.report(report) == report
     assert OrbitalDynamics.link_capacity_report(report) == report
 

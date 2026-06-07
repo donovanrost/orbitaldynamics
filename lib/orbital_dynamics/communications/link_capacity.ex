@@ -788,6 +788,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
         "link_budget_model" => "none"
       }
     }
+    |> compact_map()
   end
 
   def report(_candidates, _selected_contacts, _opts),

@@ -1252,11 +1252,17 @@ and selected-contact counts, row-derived scalar contact/selected/evidence
 counters, throughput totals, station-selection routing maps, and model-limit
 boundaries. Executable validation rejects stale contact/selected counts,
 throughput totals, ignored-contact lists that no longer match link rows, and
-stale link-capacity model strings; exported schemas publish the same model
-constant, string source boundary, and exact `model_limits` as generated
-reports. Link-capacity summary validation rejects stale summary model strings
-and stale generated `model_limits`, and schema export pins the artifact-only
-summary model plus exact `model_limits` used by generated handoffs.
+stale link-capacity model strings; focused schema-reference coverage also
+exact-regenerates the checked-in full report through
+`OrbitalDynamics.link_capacity_report/3` and verifies absent optional
+requirement/actual-throughput/completion fields are not emitted as invalid
+present `nil` values. Exported schemas publish the same model constant, string
+source boundary, and exact `model_limits` as generated reports. Link-capacity
+summary validation rejects stale summary model strings and stale generated
+`model_limits`, and schema export pins the artifact-only summary model plus
+exact `model_limits` used by generated handoffs. The full report fixture
+remains an artifact-only no-link-budget/no-provider-reservation/no-schedule-
+mutation/no-Cadence-write handoff.
 `study_results/link_capacity_summary_v1.json` now feeds a curated
 `link_capacity_summary.v1` validation-reference fixture. The observations check
 station/contact/effective/selected/actual-throughput counts, selected and

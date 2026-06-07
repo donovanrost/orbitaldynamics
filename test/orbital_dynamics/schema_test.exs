@@ -3641,6 +3641,90 @@ defmodule OrbitalDynamics.SchemaTest do
     assert Enum.any?(import_report["errors"], &(&1["path"] == "$.cadence_import.external_id"))
   end
 
+  test "validates checked-in link capacity report fixture regenerates through public facade" do
+    report = read_json!("study_results/link_capacity_report_v1.json")
+
+    contacts = [
+      %{
+        id: :leo_1_downlink_equator_prime_1,
+        type: :downlink,
+        scenario_id: :leo_1,
+        ground_station_id: :equator_prime,
+        estimated_throughput_mb: 345.42424173964787,
+        capacity_fraction: 0.5
+      }
+    ]
+
+    generated_report =
+      OrbitalDynamics.link_capacity_report(
+        contacts,
+        [],
+        source: "campaign_plan.candidate_activities"
+      )
+
+    assert generated_report == report
+
+    assert {:ok, %{"schema_contract" => "link_capacity_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    refute Enum.any?(report, fn {_key, value} -> is_nil(value) end)
+
+    assert %{
+             "model" => "fixed_rate_downlink_capacity_summary",
+             "source" => "campaign_plan.candidate_activities",
+             "contact_count" => 1,
+             "effective_contact_count" => 1,
+             "ignored_contact_count" => 0,
+             "selected_contact_count" => 0,
+             "required_downlink_contact_count" => 0,
+             "actual_throughput_contact_count" => 0,
+             "actual_completion_contact_count" => 0,
+             "capacity_adjusted_throughput_mb" => capacity_adjusted_throughput_mb,
+             "selected_capacity_adjusted_throughput_mb" => 0,
+             "unused_capacity_adjusted_throughput_mb" => unused_capacity_adjusted_throughput_mb,
+             "selection_utilization_status" => "unselected_capacity",
+             "rows" => [
+               %{
+                 "ground_station_id" => "equator_prime",
+                 "contact_ids" => ["leo_1_downlink_equator_prime_1"],
+                 "contact_count" => 1,
+                 "effective_contact_count" => 1,
+                 "selected_contact_count" => 0,
+                 "selected_contact_ids" => [],
+                 "required_downlink_contact_count" => 0,
+                 "actual_throughput_contact_count" => 0,
+                 "actual_completion_contact_count" => 0,
+                 "estimated_throughput_mb" => 345.42424173964787,
+                 "capacity_adjusted_throughput_mb" => row_capacity_adjusted_throughput_mb,
+                 "selected_capacity_adjusted_throughput_mb" => 0,
+                 "unused_capacity_adjusted_throughput_mb" =>
+                   row_unused_capacity_adjusted_throughput_mb,
+                 "capacity_fraction_min" => 0.5,
+                 "capacity_fraction_max" => 0.5,
+                 "station_availability" => "reduced_capacity",
+                 "selection_utilization_status" => "unselected_capacity"
+               }
+             ]
+           } = report
+
+    assert_in_delta capacity_adjusted_throughput_mb, 172.71212086982393, 1.0e-12
+    assert_in_delta unused_capacity_adjusted_throughput_mb, 172.71212086982393, 1.0e-12
+    assert_in_delta row_capacity_adjusted_throughput_mb, 172.71212086982393, 1.0e-12
+    assert_in_delta row_unused_capacity_adjusted_throughput_mb, 172.71212086982393, 1.0e-12
+
+    assert report["model_limits"] == [
+             "artifact_level_only",
+             "fixed_rate_summary",
+             "no_link_budget_model",
+             "limited_realized_selected_throughput_reconciliation",
+             "limited_realized_selected_completion_fraction_reconciliation",
+             "no_full_realized_contact_reconciliation",
+             "no_modulation_or_coding_model",
+             "no_provider_reservation",
+             "no_schedule_mutation"
+           ]
+  end
+
   test "validates checked-in resource and communications report examples" do
     link_capacity_report = read_json!("study_results/link_capacity_report_v1.json")
     resource_filter_report = read_json!("study_results/resource_filter_report_v1.json")
@@ -3661,11 +3745,11 @@ defmodule OrbitalDynamics.SchemaTest do
     assert %{
              "model" => "fixed_rate_downlink_capacity_summary",
              "contact_count" => 1,
-             "capacity_adjusted_throughput_mb" => 172.71212086982394,
+             "capacity_adjusted_throughput_mb" => 172.71212086982393,
              "rows" => [
                %{
                  "ground_station_id" => "equator_prime",
-                 "capacity_adjusted_throughput_mb" => 172.71212086982394,
+                 "capacity_adjusted_throughput_mb" => 172.71212086982393,
                  "contact_ids" => ["leo_1_downlink_equator_prime_1"]
                }
              ]
