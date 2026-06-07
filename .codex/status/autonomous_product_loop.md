@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-CandidateRefresh resource-projection validation-reference fixture.
+CandidateRefresh quality-gate validation-reference fixture.
 
 Status:
 Completed and product commit created.
@@ -17,7 +17,7 @@ Files changed:
 - `docs/artifacts/compatibility_checks.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/validation_test.exs:3864 test/orbital_dynamics/validation_test.exs:11170`
+- `mix test test/orbital_dynamics/validation_test.exs:3939 test/orbital_dynamics/validation_test.exs:11227`
 - `mix orbital_dynamics.schema.lint --input study_results/validation_reference_fixtures.json --contract validation_reference_fixture_report.v1`
 - `mix test test/orbital_dynamics/schema_test.exs:15348 test/orbital_dynamics/schema_test.exs:15445`
 - `mix test test/orbital_dynamics/validation_test.exs`
@@ -25,8 +25,8 @@ Tests run:
 - `git diff --check`
 
 Docs/artifacts changed:
-Validation-reference fixture report refreshed to 151 passing fixtures; docs now
-name the generated CandidateRefresh resource-projection replay fixture.
+Validation-reference fixture report refreshed to 152 passing fixtures; docs now
+name the generated CandidateRefresh quality-gate replay fixture.
 
 Level 6 pillar advanced:
 Approval-aware automation boundaries, durable schema-versioned artifacts, and
@@ -38,13 +38,12 @@ or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Product commit `9c4f7b500e5de79d961c33ee802f5e6294d484ef`.
+Product commit `99697ee983d24f0977eafaea592f614ff770127d`.
 
 Next candidate:
-Continue with another compact source-report replay fixture gap, preferably one
-where readiness, quality-gate, or import-review evidence is already preserved
-through CandidateRefresh but not yet pinned in the validation-reference
-registry.
+Continue with another compact source-report replay fixture gap, preferably
+operational-readiness replay or import-review evidence that CandidateRefresh
+already preserves but the validation-reference registry does not yet pin.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
