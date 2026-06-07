@@ -38,11 +38,11 @@ or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Pending commit; previous pushed commit
-`92c832d43f6ab2fa7be9176ba3057261f023f89a`.
+Pushed `100fd66fd933f55d17f1f6d027a72accb654d841`.
 
 Next candidate:
-Reassess the guide queue against the live worktree after committing this slice.
+Continue contact-allocation validation-reference parity for remaining compact
+summary fixtures, starting with the capacity-pack summary if still unsupported.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
