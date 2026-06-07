@@ -31831,9 +31831,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["status_counts"] == %{"blocked" => 1, "review_required" => 1}
     assert summary["model_count"] == 2
     assert summary["accepted_count"] == 0
-    assert summary["review_required_count"] == 0
-    assert summary["blocked_count"] == 0
-    assert summary["unknown_model_count"] == 0
+    assert summary["review_required_count"] == 1
+    assert summary["blocked_count"] == 1
+    assert summary["unknown_model_count"] == 1
     assert summary["validation_level_counts"] == %{"unknown" => 1}
 
     assert summary["model_ids_by_status"] == %{
@@ -31866,6 +31866,72 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert OrbitalDynamics.candidate_refresh_model_acceptance_replay_summary(artifact) ==
              summary
+  end
+
+  test "model acceptance compact source summary derives counts from routing maps" do
+    compact_model_acceptance_report = %{
+      "schema_contract" => "model_acceptance_report.v1",
+      "intended_use" => "operational_import",
+      "status" => "accepted",
+      "row_count" => 99,
+      "model_count" => 99,
+      "accepted_count" => 99,
+      "review_required_count" => 0,
+      "blocked_count" => 0,
+      "unknown_model_count" => 0,
+      "validation_level_counts" => %{"stale_validation_level" => 99},
+      "model_ids_by_status" => %{
+        "blocked" => ["missing.model"],
+        "review_required" => ["event.access_windows"]
+      },
+      "model_ids_by_validation_level" => %{
+        "analysis" => ["event.access_windows"],
+        "unknown" => ["missing.model"]
+      },
+      "model_ids_by_intended_use" => %{
+        "operational_import" => ["event.access_windows", "missing.model"]
+      },
+      "provenance" => %{"trust_boundary" => "compact_model_acceptance"}
+    }
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "source_model_acceptance_report" => compact_model_acceptance_report
+    }
+
+    assert %{
+             "source_report_model_acceptance_count" => 1,
+             "source_report_model_acceptance_row_count" => 2,
+             "source_report_model_acceptance_model_count" => 2,
+             "source_report_model_acceptance_accepted_count" => 0,
+             "source_report_model_acceptance_review_required_count" => 1,
+             "source_report_model_acceptance_blocked_count" => 1,
+             "source_report_model_acceptance_unknown_model_count" => 1,
+             "source_report_model_acceptance_validation_level_counts" => %{
+               "analysis" => 1,
+               "unknown" => 1
+             },
+             "source_report_model_acceptance_model_ids_by_status" => %{
+               "blocked" => ["missing.model"],
+               "review_required" => ["event.access_windows"]
+             },
+             "source_report_model_acceptance_branch_local_review_pressure" => true,
+             "source_report_model_acceptance_branch_local_blocking_pressure" => true,
+             "source_report_model_acceptance_branch_local_unknown_model_pressure" => true
+           } = CandidateRefresh.source_report_summary(artifact)
+
+    assert %{
+             "source_report_row_count" => 2,
+             "model_count" => 2,
+             "accepted_count" => 0,
+             "review_required_count" => 1,
+             "blocked_count" => 1,
+             "unknown_model_count" => 1,
+             "validation_level_counts" => %{"analysis" => 1, "unknown" => 1},
+             "branch_local_review_pressure" => true,
+             "branch_local_blocking_pressure" => true,
+             "branch_local_unknown_model_pressure" => true
+           } = CandidateRefresh.model_acceptance_replay_summary(artifact)
   end
 
   test "model acceptance replay summary omits contract when source report is absent" do
@@ -32072,9 +32138,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["source_report_row_count"] == 2
     assert summary["source_report_record_count"] == 2
     assert summary["source_report_paths"] == ["provenance.source_reports.model_acceptance_report"]
-    assert summary["review_required_count"] == 0
-    assert summary["blocked_count"] == 0
-    assert summary["unknown_model_count"] == 0
+    assert summary["model_count"] == 2
+    assert summary["review_required_count"] == 1
+    assert summary["blocked_count"] == 1
+    assert summary["unknown_model_count"] == 1
     assert summary["status_counts"] == %{"blocked" => 1, "review_required" => 1}
     assert summary["validation_level_counts"] == %{"unknown" => 1}
 
@@ -32120,15 +32187,55 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     summary = CandidateRefresh.model_acceptance_replay_summary(artifact)
 
     assert summary["source_report_count"] == 1
-    assert summary["source_report_row_count"] == 0
+    assert summary["source_report_row_count"] == 1
     assert summary["source_report_paths"] == ["provenance.source_reports.model_acceptance_report"]
     assert summary["status_counts"] == %{"blocked" => 1}
+    assert summary["model_count"] == 1
+    assert summary["blocked_count"] == 1
+    assert summary["unknown_model_count"] == 1
     assert summary["model_ids_by_status"] == %{"blocked" => ["missing.model"]}
     assert summary["model_ids_by_validation_level"] == %{"unknown" => ["missing.model"]}
     assert summary["model_ids_by_intended_use"] == %{"operational_import" => ["missing.model"]}
     assert summary["branch_local_review_pressure"]
     assert summary["branch_local_blocking_pressure"]
     assert summary["branch_local_unknown_model_pressure"]
+  end
+
+  test "model acceptance replay treats explicit empty routing maps as zero counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "model_acceptance_report" => %{
+            "contract" => "model_acceptance_report.v1",
+            "count" => 1,
+            "row_count" => 99,
+            "model_count" => 99,
+            "accepted_count" => 99,
+            "review_required_count" => 99,
+            "blocked_count" => 99,
+            "unknown_model_count" => 99,
+            "validation_level_counts" => %{"unknown" => 99},
+            "model_ids_by_status" => %{},
+            "model_ids_by_validation_level" => %{},
+            "model_ids_by_intended_use" => %{}
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.model_acceptance_replay_summary(artifact)
+
+    assert summary["source_report_row_count"] == 0
+    assert summary["model_count"] == 0
+    assert summary["accepted_count"] == 0
+    assert summary["review_required_count"] == 0
+    assert summary["blocked_count"] == 0
+    assert summary["unknown_model_count"] == 0
+    assert summary["validation_level_counts"] == %{}
+    refute summary["branch_local_review_pressure"]
+    refute summary["branch_local_blocking_pressure"]
+    refute summary["branch_local_unknown_model_pressure"]
   end
 
   test "source report summary derives candidate rejection routing maps from rows" do

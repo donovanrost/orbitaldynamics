@@ -225,7 +225,7 @@ The following top-level facades expose the same model-evidence and reference-che
 - Facade access via `OrbitalDynamics.validation_model_acceptance_report/2`.
 - Checked-in JSON Schema export.
 
-The validation-reference fixture set now includes an operational-import model-acceptance report case covering accepted, review-required, blocked, and unknown model rows, including fixture observations and stale-reference checks for model-ID routing maps. CandidateRefresh model-acceptance replay derives validation-level counts and model-ID routing maps from rows when rows are present, so stale top-level model-acceptance aggregates cannot steer branch-local review/blocking pressure.
+The validation-reference fixture set now includes an operational-import model-acceptance report case covering accepted, review-required, blocked, and unknown model rows, including fixture observations and stale-reference checks for model-ID routing maps. CandidateRefresh model-acceptance replay derives validation-level counts and model-ID routing maps from rows when rows are present, so stale top-level model-acceptance aggregates cannot steer branch-local review/blocking pressure. Compact no-row replay derives row/model counts, accepted/review/blocked counts, unknown-model counts, and validation-level counts from present model-ID routing maps before falling back to duplicated scalar counters.
 
 ## Safety-case summary
 

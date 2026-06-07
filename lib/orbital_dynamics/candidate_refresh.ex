@@ -15674,13 +15674,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
   defp model_acceptance_replay_pressure_fields(model_acceptance_summary) do
     review_required_count =
-      summary_integer(model_acceptance_summary, "review_required_count")
+      model_acceptance_summary_status_count(model_acceptance_summary, "review_required")
 
-    blocked_count = summary_integer(model_acceptance_summary, "blocked_count")
-    unknown_model_count = summary_integer(model_acceptance_summary, "unknown_model_count")
+    blocked_count = model_acceptance_summary_status_count(model_acceptance_summary, "blocked")
+
+    unknown_model_count =
+      model_acceptance_summary_validation_level_count(model_acceptance_summary, "unknown")
 
     status_counts = Map.get(model_acceptance_summary, "status_counts", %{})
-    validation_level_counts = Map.get(model_acceptance_summary, "validation_level_counts", %{})
+
+    validation_level_counts =
+      model_acceptance_summary_validation_level_counts(model_acceptance_summary)
+
     model_ids_by_status = Map.get(model_acceptance_summary, "model_ids_by_status", %{})
 
     model_ids_by_validation_level =
@@ -15737,14 +15742,26 @@ defmodule OrbitalDynamics.CandidateRefresh do
         }
       end
 
-    review_required_count =
-      summary_integer(model_acceptance_summary, "review_required_count")
+    source_report_row_count =
+      model_acceptance_summary_count(model_acceptance_summary, "row_count")
 
-    blocked_count = summary_integer(model_acceptance_summary, "blocked_count")
-    unknown_model_count = summary_integer(model_acceptance_summary, "unknown_model_count")
+    model_count = model_acceptance_summary_count(model_acceptance_summary, "model_count")
+
+    accepted_count = model_acceptance_summary_status_count(model_acceptance_summary, "accepted")
+
+    review_required_count =
+      model_acceptance_summary_status_count(model_acceptance_summary, "review_required")
+
+    blocked_count = model_acceptance_summary_status_count(model_acceptance_summary, "blocked")
+
+    unknown_model_count =
+      model_acceptance_summary_validation_level_count(model_acceptance_summary, "unknown")
 
     status_counts = Map.get(model_acceptance_summary, "status_counts", %{})
-    validation_level_counts = Map.get(model_acceptance_summary, "validation_level_counts", %{})
+
+    validation_level_counts =
+      model_acceptance_summary_validation_level_counts(model_acceptance_summary)
+
     model_ids_by_status = Map.get(model_acceptance_summary, "model_ids_by_status", %{})
 
     model_ids_by_validation_level =
@@ -15761,13 +15778,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "contract" =>
         source_report_summary_contract(model_acceptance_summary, "model_acceptance_report.v1"),
       "source_report_count" => summary_integer(model_acceptance_summary, "count"),
-      "source_report_row_count" => summary_integer(model_acceptance_summary, "row_count"),
+      "source_report_row_count" => source_report_row_count,
       "source_report_record_count" => summary_integer(model_acceptance_summary, "record_count"),
       "source_report_paths" => Map.get(model_acceptance_summary, "paths", []),
       "intended_use_counts" => Map.get(model_acceptance_summary, "intended_use_counts", %{}),
       "status_counts" => status_counts,
-      "model_count" => summary_integer(model_acceptance_summary, "model_count"),
-      "accepted_count" => summary_integer(model_acceptance_summary, "accepted_count"),
+      "model_count" => model_count,
+      "accepted_count" => accepted_count,
       "review_required_count" => review_required_count,
       "blocked_count" => blocked_count,
       "unknown_model_count" => unknown_model_count,
@@ -23867,17 +23884,17 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "paths" => Enum.map(sources, fn {path, _report} -> path end),
       "contract" => "model_acceptance_report.v1",
       "count" => length(sources),
-      "row_count" => sum_report_count(reports, &model_acceptance_report_row_count/1),
+      "row_count" => sum_report_count(reports, &model_acceptance_report_summary_row_count/1),
       "record_count" => sum_report_count(reports, &model_acceptance_report_record_count/1),
       "intended_use_counts" => count_report_field_values(reports, "intended_use"),
       "status_counts" => count_report_field_values(reports, "status"),
-      "model_count" => sum_report_count(reports, &numeric_report_count(&1, "model_count")),
-      "accepted_count" => sum_report_count(reports, &numeric_report_count(&1, "accepted_count")),
+      "model_count" => sum_report_count(reports, &model_acceptance_report_model_count/1),
+      "accepted_count" => sum_report_count(reports, &model_acceptance_report_accepted_count/1),
       "review_required_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "review_required_count")),
-      "blocked_count" => sum_report_count(reports, &numeric_report_count(&1, "blocked_count")),
+        sum_report_count(reports, &model_acceptance_report_review_required_count/1),
+      "blocked_count" => sum_report_count(reports, &model_acceptance_report_blocked_count/1),
       "unknown_model_count" =>
-        sum_report_count(reports, &numeric_report_count(&1, "unknown_model_count")),
+        sum_report_count(reports, &model_acceptance_report_unknown_model_count/1),
       "validation_level_counts" =>
         reports
         |> Enum.map(&model_acceptance_report_validation_level_counts/1)
@@ -30395,17 +30412,49 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
   defp row_station_reservation_value_present?(value), do: value not in [nil, ""]
 
-  defp model_acceptance_report_row_count(report), do: length(Map.get(report, "rows", []))
-
   defp model_acceptance_report_record_count(report), do: length(Map.get(report, "records", []))
+
+  defp model_acceptance_report_summary_row_count(report) do
+    case model_acceptance_report_rows(report) do
+      [] -> model_acceptance_summary_count(report, "row_count")
+      rows -> length(rows)
+    end
+  end
+
+  defp model_acceptance_report_model_count(report) do
+    case model_acceptance_report_rows(report) do
+      [] -> model_acceptance_summary_count(report, "model_count")
+      rows -> length(rows)
+    end
+  end
+
+  defp model_acceptance_report_accepted_count(report),
+    do: model_acceptance_report_status_count(report, "accepted")
+
+  defp model_acceptance_report_review_required_count(report),
+    do: model_acceptance_report_status_count(report, "review_required")
+
+  defp model_acceptance_report_blocked_count(report),
+    do: model_acceptance_report_status_count(report, "blocked")
+
+  defp model_acceptance_report_unknown_model_count(report) do
+    case model_acceptance_report_rows(report) do
+      [] -> model_acceptance_summary_validation_level_count(report, "unknown")
+      rows -> Enum.count(rows, &((Map.get(&1, "validation_level") || "unknown") == "unknown"))
+    end
+  end
+
+  defp model_acceptance_report_status_count(report, status) do
+    case model_acceptance_report_rows(report) do
+      [] -> model_acceptance_summary_status_count(report, status)
+      rows -> Enum.count(rows, &((Map.get(&1, "status") || "unknown") == status))
+    end
+  end
 
   defp model_acceptance_report_validation_level_counts(report) do
     case model_acceptance_report_rows(report) do
       [] ->
-        case Map.get(report, "validation_level_counts") do
-          %{} = counts -> counts
-          _counts -> %{}
-        end
+        model_acceptance_summary_validation_level_counts(report)
 
       rows ->
         rows
@@ -30475,6 +30524,82 @@ defmodule OrbitalDynamics.CandidateRefresh do
     report
     |> Map.get("rows", [])
     |> Enum.map(&stringify_keys/1)
+  end
+
+  defp model_acceptance_summary_count(summary, field) do
+    case model_acceptance_summary_model_id_count(summary) do
+      {:ok, count} -> count
+      :error -> summary_integer(summary, field)
+    end
+  end
+
+  defp model_acceptance_summary_status_count(summary, status) do
+    case Map.get(summary, "model_ids_by_status") do
+      %{} = model_ids_by_status ->
+        model_ids_by_status
+        |> Map.get(status, [])
+        |> list_value()
+        |> length()
+
+      _model_ids_by_status ->
+        summary_integer(summary, "#{status}_count")
+    end
+  end
+
+  defp model_acceptance_summary_validation_level_count(summary, validation_level) do
+    case Map.get(summary, "model_ids_by_validation_level") do
+      %{} = model_ids_by_validation_level ->
+        model_ids_by_validation_level
+        |> Map.get(validation_level, [])
+        |> list_value()
+        |> length()
+
+      _model_ids_by_validation_level ->
+        summary_integer(summary, "unknown_model_count")
+    end
+  end
+
+  defp model_acceptance_summary_validation_level_counts(summary) do
+    case Map.get(summary, "model_ids_by_validation_level") do
+      %{} = model_ids_by_validation_level ->
+        model_acceptance_model_id_count_map(model_ids_by_validation_level)
+
+      _model_ids_by_validation_level ->
+        case Map.get(summary, "validation_level_counts") do
+          %{} = counts -> counts
+          _counts -> %{}
+        end
+    end
+  end
+
+  defp model_acceptance_summary_model_id_count(summary) do
+    [
+      "model_ids_by_status",
+      "model_ids_by_validation_level",
+      "model_ids_by_intended_use"
+    ]
+    |> Enum.find_value(:error, fn field ->
+      case Map.get(summary, field) do
+        %{} = model_id_map -> {:ok, model_acceptance_model_id_map_model_count(model_id_map)}
+        _model_id_map -> false
+      end
+    end)
+  end
+
+  defp model_acceptance_model_id_count_map(model_id_map) do
+    model_id_map
+    |> Enum.map(fn {key, values} -> {to_string(key), values |> list_value() |> length()} end)
+    |> Enum.reject(fn {_key, count} -> count == 0 end)
+    |> Map.new()
+  end
+
+  defp model_acceptance_model_id_map_model_count(model_id_map) do
+    model_id_map
+    |> Enum.flat_map(fn {_key, values} -> list_value(values) end)
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.map(&to_string/1)
+    |> Enum.uniq()
+    |> length()
   end
 
   defp operational_timeline_report_contact_feedback_count(report) do

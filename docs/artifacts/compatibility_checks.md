@@ -151,7 +151,10 @@ registry model-acceptance classifier used by generated reports.
 Candidate-refresh model-acceptance replay summaries derive validation-level
 counts and model-ID routing maps from rows when rows are present, so stale
 top-level validation-level and routing aggregates cannot steer branch-local
-review/blocking pressure.
+review/blocking pressure. Compact no-row model-acceptance handoffs also derive
+model row counts, accepted/review/blocked counts, unknown-model counts, and
+validation-level counts from present model-ID routing maps before falling back
+to duplicated top-level scalar counters.
 
 Validation reference fixture reports now include an
 `operational_readiness_report.v1` artifact-contract fixture generated from a
