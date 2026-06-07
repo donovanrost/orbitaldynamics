@@ -4593,6 +4593,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "quality_gate_report",
           "freshness_status_counts"
         ),
+      "source_report_quality_gate_freshness_status_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "quality_gate_report",
+          "freshness_status_ids"
+        ),
       "source_report_quality_gate_schema_validation_status_counts" =>
         source_report_summary_family_merge_count_maps(
           source_reports,
@@ -4623,11 +4629,23 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "quality_gate_report",
           "import_status_counts"
         ),
+      "source_report_quality_gate_import_status_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "quality_gate_report",
+          "import_status_ids"
+        ),
       "source_report_quality_gate_cadence_import_status_counts" =>
         source_report_summary_family_merge_count_maps(
           source_reports,
           "quality_gate_report",
           "cadence_import_status_counts"
+        ),
+      "source_report_quality_gate_cadence_import_status_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "quality_gate_report",
+          "cadence_import_status_ids"
         ),
       "source_report_quality_gate_source_summary_model_counts" =>
         source_report_summary_family_merge_count_maps(
@@ -15668,6 +15686,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "missing_import_count" => missing_import_count,
       "invalid_cadence_import_count" => invalid_import_count,
       "freshness_status_counts" => Map.get(quality_gate_summary, "freshness_status_counts", %{}),
+      "freshness_status_ids" => Map.get(quality_gate_summary, "freshness_status_ids", []),
       "schema_validation_status_counts" =>
         Map.get(quality_gate_summary, "schema_validation_status_counts", %{}),
       "schema_validation_status_ids" =>
@@ -15693,7 +15712,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "operator_training_gate_ids" =>
         Map.get(quality_gate_summary, "operator_training_gate_ids", []),
       "import_status_counts" => import_status_counts,
+      "import_status_ids" => Map.get(quality_gate_summary, "import_status_ids", []),
       "cadence_import_status_counts" => cadence_import_status_counts,
+      "cadence_import_status_ids" =>
+        Map.get(quality_gate_summary, "cadence_import_status_ids", []),
       "source_summary_model_counts" =>
         Map.get(quality_gate_summary, "source_summary_model_counts", %{}),
       "source_summary_schema_contract_counts" =>
@@ -23858,6 +23880,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
         reports
         |> Enum.map(&quality_gate_row_count_map(&1, "freshness_status_counts"))
         |> merge_count_maps(),
+      "freshness_status_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_string_list(&1, "freshness_status_ids"))
+        |> sorted_string_values(),
       "schema_validation_pass_count" =>
         sum_report_count(reports, &quality_gate_row_count(&1, "schema_validation_pass_count")),
       "schema_validation_fail_count" =>
@@ -23930,10 +23956,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
         reports
         |> Enum.map(&quality_gate_row_count_map(&1, "import_status_counts"))
         |> merge_count_maps(),
+      "import_status_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_string_list(&1, "import_status_ids"))
+        |> sorted_string_values(),
       "cadence_import_status_counts" =>
         reports
         |> Enum.map(&quality_gate_row_count_map(&1, "cadence_import_status_counts"))
         |> merge_count_maps(),
+      "cadence_import_status_ids" =>
+        reports
+        |> Enum.flat_map(&quality_gate_string_list(&1, "cadence_import_status_ids"))
+        |> sorted_string_values(),
       "source_summary_model_counts" =>
         reports
         |> Enum.map(&quality_gate_source_summary_model/1)
@@ -46587,6 +46621,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "stale_freshness_count" => summary["stale_freshness_count"],
       "unknown_freshness_count" => summary["unknown_freshness_count"],
       "freshness_status_counts" => summary["freshness_status_counts"],
+      "freshness_status_ids" => summary["freshness_status_ids"],
       "schema_validation_pass_count" => summary["schema_validation_pass_count"],
       "schema_validation_fail_count" => summary["schema_validation_fail_count"],
       "schema_validation_error_count" => summary["schema_validation_error_count"],
@@ -46594,7 +46629,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "schema_validation_remediation_count" => summary["schema_validation_remediation_count"],
       "schema_validation_status_counts" => summary["schema_validation_status_counts"],
       "import_status_counts" => summary["import_status_counts"],
+      "import_status_ids" => summary["import_status_ids"],
       "cadence_import_status_counts" => summary["cadence_import_status_counts"],
+      "cadence_import_status_ids" => summary["cadence_import_status_ids"],
       "quality_gate_row_ids_by_status" => row_ids_by_status || %{},
       "quality_gate_ids_by_status" => summary["quality_gate_ids_by_status"],
       "publication_status_counts" => summary["publication_status_counts"],

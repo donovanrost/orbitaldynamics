@@ -31833,16 +31833,26 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "stale" => 1,
                "unknown" => 1
              },
+             "source_report_quality_gate_freshness_status_ids" => ["stale", "unknown"],
              "source_report_quality_gate_schema_validation_status_counts" => %{"fail" => 1},
              "source_report_quality_gate_import_status_counts" => %{
                "ready_for_import" => 1,
                "review_required_before_import" => 1
              },
+             "source_report_quality_gate_import_status_ids" => [
+               "ready_for_import",
+               "review_required_before_import"
+             ],
              "source_report_quality_gate_cadence_import_status_counts" => %{
                "invalid" => 1,
                "missing" => 1,
                "present" => 1
              },
+             "source_report_quality_gate_cadence_import_status_ids" => [
+               "invalid",
+               "missing",
+               "present"
+             ],
              "source_report_quality_gate_quality_gate_row_ids_by_status" => %{
                "blocked" => ["quality_gate:cadence_import:blocked"],
                "review_required" => ["quality_gate:cadence_import:stale"]
@@ -31870,6 +31880,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                    "operational_quality_gate_import_readiness_summary.v1" => 1
                  },
                  "publication_status_counts" => %{"published" => 1},
+                 "freshness_status_ids" => ["stale", "unknown"],
+                 "import_status_ids" => [
+                   "ready_for_import",
+                   "review_required_before_import"
+                 ],
+                 "cadence_import_status_ids" => ["invalid", "missing", "present"],
                  "timeline_publication_source_artifact_type_counts" => %{
                    "operational_timeline_report.v1" => 1
                  },
@@ -31912,16 +31928,22 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "missing_import_count" => 1,
              "invalid_cadence_import_count" => 1,
              "freshness_status_counts" => %{"stale" => 1, "unknown" => 1},
+             "freshness_status_ids" => ["stale", "unknown"],
              "schema_validation_status_counts" => %{"fail" => 1},
              "import_status_counts" => %{
                "ready_for_import" => 1,
                "review_required_before_import" => 1
              },
+             "import_status_ids" => [
+               "ready_for_import",
+               "review_required_before_import"
+             ],
              "cadence_import_status_counts" => %{
                "invalid" => 1,
                "missing" => 1,
                "present" => 1
              },
+             "cadence_import_status_ids" => ["invalid", "missing", "present"],
              "quality_gate_row_ids_by_status" => %{
                "blocked" => ["quality_gate:cadence_import:blocked"],
                "review_required" => ["quality_gate:cadence_import:stale"]
@@ -31984,6 +32006,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "blocked" => ["quality_gate:cadence_import:blocked"],
                "review_required" => ["quality_gate:cadence_import:stale"]
              },
+             "freshness_status_ids" => ["stale", "unknown"],
+             "import_status_ids" => [
+               "ready_for_import",
+               "review_required_before_import"
+             ],
+             "cadence_import_status_ids" => ["invalid", "missing", "present"],
              "stale_or_unknown_freshness_quality_gate_row_ids" => [
                "quality_gate:cadence_import:stale"
              ],
@@ -32001,6 +32029,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_summary_schema_contract_counts" => %{
                "operational_quality_gate_import_readiness_summary.v1" => 1
              },
+             "freshness_status_ids" => ["stale", "unknown"],
+             "import_status_ids" => [
+               "ready_for_import",
+               "review_required_before_import"
+             ],
+             "cadence_import_status_ids" => ["invalid", "missing", "present"],
              "branch_local_import_pressure" => true
            } = CandidateRefresh.quality_gate_replay_summary(artifact)
 
@@ -57611,6 +57645,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "stale_freshness_count" => 1,
       "unknown_freshness_count" => 1,
       "freshness_status_counts" => %{"stale" => 1, "unknown" => 1},
+      "freshness_status_ids" => ["stale", "unknown"],
       "schema_validation_pass_count" => 0,
       "schema_validation_fail_count" => 1,
       "schema_validation_error_count" => 1,
@@ -57621,11 +57656,13 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         "ready_for_import" => 1,
         "review_required_before_import" => 1
       },
+      "import_status_ids" => ["ready_for_import", "review_required_before_import"],
       "cadence_import_status_counts" => %{
         "invalid" => 1,
         "missing" => 1,
         "present" => 1
       },
+      "cadence_import_status_ids" => ["invalid", "missing", "present"],
       "quality_gate_row_ids_by_status" => %{
         "blocked" => ["quality_gate:cadence_import:blocked"],
         "review_required" => ["quality_gate:cadence_import:stale"]

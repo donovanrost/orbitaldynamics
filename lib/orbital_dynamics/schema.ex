@@ -23813,6 +23813,9 @@ defmodule OrbitalDynamics.Schema do
         "import_preparation_quality_gate_row_ids" => stable_id_array_schema(),
         "blocked_import_quality_gate_row_ids" => stable_id_array_schema(),
         "import_readiness_gate_ids" => stable_id_array_schema(),
+        "freshness_status_ids" => string_array_schema(),
+        "import_status_ids" => string_array_schema(),
+        "cadence_import_status_ids" => string_array_schema(),
         "schema_validation_status_ids" => string_array_schema()
       })
     end)
@@ -29518,6 +29521,9 @@ defmodule OrbitalDynamics.Schema do
       summary,
       "schema_validation_status_ids"
     )
+    |> validate_string_list_items(path, summary, "freshness_status_ids")
+    |> validate_string_list_items(path, summary, "import_status_ids")
+    |> validate_string_list_items(path, summary, "cadence_import_status_ids")
   end
 
   defp validate_candidate_refresh_schema_validation_context(issues, path, summary) do

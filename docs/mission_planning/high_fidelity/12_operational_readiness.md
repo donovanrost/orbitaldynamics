@@ -159,11 +159,12 @@ Current implementation:
   the validated
   `operational_quality_gate_import_readiness_summary.v1` freshness/import-status
   half of the same `cadence_import` quality-gate row context, including
-  stale/unknown freshness routing, import-preparation row IDs, blocked import
-  row IDs, analysis-only row IDs, Cadence-import status IDs, and no-authority
-  assumptions. Runtime validation and JSON Schema export pin the summary's
-  artifact-only model-limit list so adapter queues cannot accept stale
-  import-readiness trust-boundary declarations.
+  stale/unknown freshness routing, freshness status IDs, import status IDs,
+  import-preparation row IDs, blocked import row IDs, analysis-only row IDs,
+  Cadence-import status IDs, and no-authority assumptions. Runtime validation
+  and JSON Schema export pin the summary's artifact-only model-limit list so
+  adapter queues cannot accept stale import-readiness trust-boundary
+  declarations.
 - `OperationalReadiness.quality_gate_operator_training_summary/2` and
   `OrbitalDynamics.operational_quality_gate_operator_training_summary/2`
   publish the validated
