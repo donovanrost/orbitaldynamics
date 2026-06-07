@@ -3700,7 +3700,101 @@ defmodule OrbitalDynamics.Timeline do
       "suppressed_activity_types",
       "activity type appears in suppressed activity types"
     )
+    |> maybe_add_command_authority_precondition(activity)
+    |> maybe_add_command_safety_preconditions(activity)
     |> add_activity_template_required_state_preconditions(activity)
+  end
+
+  defp maybe_add_command_authority_precondition(preconditions, activity) do
+    case command_authority_precondition_evidence(activity) do
+      nil ->
+        preconditions
+
+      {field, value, reason} ->
+        maybe_add_activity_precondition(
+          preconditions,
+          true,
+          "command_authority_missing",
+          "review_required",
+          field,
+          reason,
+          value
+        )
+    end
+  end
+
+  defp command_authority_precondition_evidence(activity) do
+    authorized? =
+      first_boolean(activity, ["command_authorized", "command_authorized?", "authority_granted"])
+
+    status =
+      activity
+      |> first_scalar_string(["command_authority_status", "authority_status"])
+      |> normalized_token()
+
+    required_authority =
+      first_scalar_string(activity, ["required_authority", "required_escalation_authority"])
+
+    cond do
+      authorized? == false ->
+        {"command_authorized", false, "command authority is explicitly not granted"}
+
+      status in [
+        "missing",
+        "authority_missing",
+        "required",
+        "operator_required",
+        "review_required",
+        "pending",
+        "not_authorized",
+        "unauthorized"
+      ] ->
+        {"command_authority_status",
+         first_scalar_string(activity, ["command_authority_status", "authority_status"]),
+         "command authority status requires operator review"}
+
+      not is_nil(required_authority) and authorized? != true ->
+        {"required_authority", required_authority, "required command authority is declared"}
+
+      true ->
+        nil
+    end
+  end
+
+  defp maybe_add_command_safety_preconditions(preconditions, activity) do
+    safety_status =
+      activity
+      |> first_scalar_string(["command_safety_status", "safety_status"])
+      |> normalized_token()
+
+    safety_checked? =
+      first_boolean(activity, [
+        "command_safety_checked",
+        "command_safety_checked?",
+        "safety_checked"
+      ])
+
+    preconditions
+    |> maybe_add_activity_precondition(
+      safety_status in ["failed", "fail", "unsafe", "blocked", "rejected"],
+      "command_safety_failed",
+      "blocked",
+      "command_safety_status",
+      "command safety status is explicitly unsafe or failed",
+      first_scalar_string(activity, ["command_safety_status", "safety_status"])
+    )
+    |> maybe_add_activity_precondition(
+      safety_checked? == false or
+        safety_status in ["missing", "required", "unchecked", "not_checked", "pending"],
+      "command_safety_unchecked",
+      "review_required",
+      if(safety_checked? == false, do: "command_safety_checked", else: "command_safety_status"),
+      "command safety check requires review before command handoff",
+      if(safety_checked? == false,
+        do: false,
+        else: first_scalar_string(activity, ["command_safety_status", "safety_status"])
+      )
+    )
   end
 
   defp add_activity_template_required_state_preconditions(preconditions, activity) do

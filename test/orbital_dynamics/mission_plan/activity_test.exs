@@ -819,20 +819,32 @@ defmodule OrbitalDynamics.MissionPlan.ActivityTest do
         degraded: true,
         resource_blocking_dimension: :power,
         power_margin: 0.0,
-        suppressed_activity_types: [:command]
+        suppressed_activity_types: [:command],
+        metadata: %{
+          command_authority_status: :operator_required,
+          required_authority: :flight_director,
+          command_authorized: false,
+          command_safety_status: :unsafe,
+          command_safety_checked: false
+        }
       )
 
     assert %{
              "precondition_status" => "blocked",
-             "blocked_precondition_count" => 4,
-             "review_precondition_count" => 1,
+             "blocked_precondition_count" => 5,
+             "review_precondition_count" => 3,
              "blocked_precondition_types" => [
                "activity_type_suppressed",
+               "command_safety_failed",
                "payload_unavailable",
                "power_margin_depleted",
                "resource_block_declared"
              ],
-             "review_precondition_types" => ["degraded_mode"]
+             "review_precondition_types" => [
+               "command_authority_missing",
+               "command_safety_unchecked",
+               "degraded_mode"
+             ]
            } = summary = Activity.precondition_summary(blocked)
 
     assert Enum.any?(summary["preconditions"], fn
@@ -860,6 +872,30 @@ defmodule OrbitalDynamics.MissionPlan.ActivityTest do
              _other ->
                false
            end)
+
+    assert %{
+             "type" => "command_authority_missing",
+             "status" => "review_required",
+             "field" => "command_authorized",
+             "reason" => "command authority is explicitly not granted",
+             "value" => false
+           } in summary["preconditions"]
+
+    assert %{
+             "type" => "command_safety_failed",
+             "status" => "blocked",
+             "field" => "command_safety_status",
+             "reason" => "command safety status is explicitly unsafe or failed",
+             "value" => "unsafe"
+           } in summary["preconditions"]
+
+    assert %{
+             "type" => "command_safety_unchecked",
+             "status" => "review_required",
+             "field" => "command_safety_checked",
+             "reason" => "command safety check requires review before command handoff",
+             "value" => false
+           } in summary["preconditions"]
 
     assert summary ==
              blocked

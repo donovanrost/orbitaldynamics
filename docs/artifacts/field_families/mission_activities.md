@@ -71,9 +71,12 @@ For callers that need a compact preflight over declared activity conditions,
 `precondition_summary/1` reports clear, review-required, or blocked state from
 explicit resource availability, degraded mode, resource-blocking dimensions,
 depleted unit-interval margins, current-type suppression/incompatibility fields,
-and `activity_template.v1` required subsystem-state hints. Required subsystem
-states become review-required precondition rows with subsystem/state evidence;
-produced subsystem states remain template provenance only. The matching
+command authority/safety evidence, and `activity_template.v1` required
+subsystem-state hints. Missing command authority and unchecked command safety
+become review-required precondition rows, while explicit unsafe/failed command
+safety becomes blocked before review/import handoff. Required subsystem states
+become review-required precondition rows with subsystem/state evidence; produced
+subsystem states remain template provenance only. The matching
 `mission_plan_activity_precondition_summary/1` facade keeps that summary
 artifact-only: it does not mutate schedules, reserve resources, execute
 commands, simulate subsystem state machines, or grant operator authority.

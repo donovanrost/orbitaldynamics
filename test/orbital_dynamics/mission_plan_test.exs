@@ -18,6 +18,9 @@ defmodule OrbitalDynamics.MissionPlanTest do
     assert "fuel_margin_depleted" in precondition_types
     assert "resource_block_declared" in precondition_types
     assert "activity_type_incompatible" in precondition_types
+    assert "command_authority_missing" in precondition_types
+    assert "command_safety_failed" in precondition_types
+    assert "command_safety_unchecked" in precondition_types
     assert "degraded_mode" in precondition_types
     assert "subsystem_state_required" in precondition_types
     assert :precondition_rows in precondition_row_semantics
@@ -39,6 +42,11 @@ defmodule OrbitalDynamics.MissionPlanTest do
         "resource_blocking_dimension" => "payload_power",
         "incompatible_activity_types" => "command",
         "metadata" => %{
+          "command_authority_status" => "operator_required",
+          "required_authority" => "flight_director",
+          "command_authorized" => "false",
+          "command_safety_status" => "unsafe",
+          "command_safety_checked" => "false",
           "activity_template" => %{
             "schema_contract" => "activity_template.v1",
             "id" => "command_template",
@@ -67,12 +75,18 @@ defmodule OrbitalDynamics.MissionPlanTest do
              "activity_type" => "command",
              "precondition_status" => "blocked",
              "blocked_precondition_types" => blocked_types,
-             "review_precondition_types" => ["degraded_mode", "subsystem_state_required"],
+             "review_precondition_types" => [
+               "command_authority_missing",
+               "command_safety_unchecked",
+               "degraded_mode",
+               "subsystem_state_required"
+             ],
              "preconditions" => preconditions
            } = summary
 
     assert Enum.sort(blocked_types) == [
              "activity_type_incompatible",
+             "command_safety_failed",
              "fuel_margin_depleted",
              "payload_unavailable",
              "resource_block_declared"
@@ -91,6 +105,30 @@ defmodule OrbitalDynamics.MissionPlanTest do
                "state" => "armed",
                "blocking" => true
              }
+           } in preconditions
+
+    assert %{
+             "type" => "command_authority_missing",
+             "status" => "review_required",
+             "field" => "command_authorized",
+             "reason" => "command authority is explicitly not granted",
+             "value" => false
+           } in preconditions
+
+    assert %{
+             "type" => "command_safety_failed",
+             "status" => "blocked",
+             "field" => "command_safety_status",
+             "reason" => "command safety status is explicitly unsafe or failed",
+             "value" => "unsafe"
+           } in preconditions
+
+    assert %{
+             "type" => "command_safety_unchecked",
+             "status" => "review_required",
+             "field" => "command_safety_checked",
+             "reason" => "command safety check requires review before command handoff",
+             "value" => false
            } in preconditions
 
     refute Enum.any?(preconditions, &(&1["type"] == "subsystem_state_produced"))

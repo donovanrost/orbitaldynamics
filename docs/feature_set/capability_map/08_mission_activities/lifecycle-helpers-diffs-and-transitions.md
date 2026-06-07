@@ -53,7 +53,9 @@ status/approval transition helpers.
 - **Timeline precondition summaries** expose the same clear, review-required,
   and blocked activity-condition classification used by operational timeline
   rows, without building a report, reserving resources, mutating schedules, or
-  granting operator authority.
+  granting operator authority. Command authority and safety evidence is part of
+  that preflight: missing authority or unchecked safety requires review, and
+  explicitly unsafe/failed safety blocks handoff.
 - **Status/approval-transition review semantics** route unsupported provider
   lifecycle values to operator review instead of treating them as routine
   planned-status changes or approval grants/removals.

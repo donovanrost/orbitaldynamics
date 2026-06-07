@@ -198,6 +198,9 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
                           "activity_type_incompatible",
                           "activity_type_suppressed",
                           "antenna_unavailable",
+                          "command_authority_missing",
+                          "command_safety_failed",
+                          "command_safety_unchecked",
                           "degraded_mode",
                           "payload_unavailable",
                           "resource_block_declared",
@@ -1254,7 +1257,123 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       "suppressed_activity_types",
       "activity type appears in suppressed activity types"
     )
+    |> maybe_add_command_authority_precondition(activity)
+    |> maybe_add_command_safety_preconditions(activity)
     |> add_activity_template_required_state_preconditions(activity)
+  end
+
+  defp maybe_add_command_authority_precondition(preconditions, %__MODULE__{} = activity) do
+    case command_authority_precondition_evidence(activity) do
+      nil ->
+        preconditions
+
+      {field, value, reason} ->
+        maybe_add_precondition(
+          preconditions,
+          true,
+          "command_authority_missing",
+          "review_required",
+          field,
+          reason,
+          value
+        )
+    end
+  end
+
+  defp command_authority_precondition_evidence(%__MODULE__{} = activity) do
+    metadata = activity_command_metadata(activity)
+    authorized? = metadata_boolean(metadata, :command_authorized, :authority_granted)
+    status = metadata_token(metadata, :command_authority_status, :authority_status)
+    status_value = metadata_value(metadata, :command_authority_status, :authority_status)
+
+    required_authority =
+      metadata_value(metadata, :required_authority, :required_escalation_authority)
+
+    cond do
+      authorized? == false ->
+        {"command_authorized", false, "command authority is explicitly not granted"}
+
+      status in [
+        "missing",
+        "authority_missing",
+        "required",
+        "operator_required",
+        "review_required",
+        "pending",
+        "not_authorized",
+        "unauthorized"
+      ] ->
+        {"command_authority_status", status_value,
+         "command authority status requires operator review"}
+
+      not is_nil(required_authority) and authorized? != true ->
+        {"required_authority", required_authority, "required command authority is declared"}
+
+      true ->
+        nil
+    end
+  end
+
+  defp maybe_add_command_safety_preconditions(preconditions, %__MODULE__{} = activity) do
+    metadata = activity_command_metadata(activity)
+    safety_status = metadata_token(metadata, :command_safety_status, :safety_status)
+    safety_status_value = metadata_value(metadata, :command_safety_status, :safety_status)
+    safety_checked? = metadata_boolean(metadata, :command_safety_checked, :safety_checked)
+
+    preconditions
+    |> maybe_add_precondition(
+      safety_status in ["failed", "fail", "unsafe", "blocked", "rejected"],
+      "command_safety_failed",
+      "blocked",
+      "command_safety_status",
+      "command safety status is explicitly unsafe or failed",
+      safety_status_value
+    )
+    |> maybe_add_precondition(
+      safety_checked? == false or
+        safety_status in ["missing", "required", "unchecked", "not_checked", "pending"],
+      "command_safety_unchecked",
+      "review_required",
+      if(safety_checked? == false, do: "command_safety_checked", else: "command_safety_status"),
+      "command safety check requires review before command handoff",
+      if(safety_checked? == false, do: false, else: safety_status_value)
+    )
+  end
+
+  defp activity_command_metadata(%__MODULE__{metadata: metadata}) when is_map(metadata) do
+    artifact_value(metadata)
+  end
+
+  defp activity_command_metadata(_activity), do: %{}
+
+  defp metadata_value(metadata, key, aliases) do
+    aliases = List.wrap(aliases)
+
+    Enum.reduce_while([key | aliases], nil, fn key, _acc ->
+      value = field(metadata, key)
+
+      if is_nil(value) do
+        {:cont, nil}
+      else
+        {:halt, artifact_value(value)}
+      end
+    end)
+  end
+
+  defp metadata_token(metadata, key, aliases) do
+    case metadata_value(metadata, key, aliases) do
+      value when is_binary(value) -> normalized_token(value)
+      value when is_atom(value) -> value |> Atom.to_string() |> normalized_token()
+      _value -> nil
+    end
+  end
+
+  defp metadata_boolean(metadata, key, aliases) do
+    case metadata_value(metadata, key, aliases) do
+      value when value in [true, "true", "1", 1] -> true
+      value when value in [false, "false", "0", 0] -> false
+      _value -> nil
+    end
   end
 
   defp add_activity_template_required_state_preconditions(preconditions, %__MODULE__{} = activity) do
