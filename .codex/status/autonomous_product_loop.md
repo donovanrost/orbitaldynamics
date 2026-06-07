@@ -8,7 +8,7 @@ Current slice:
 Contact allocation provider-reservation request capability assumptions.
 
 Status:
-Implemented, verified, reviewed, committed; handoff update in progress.
+Implemented, verified, reviewed, committed, and pushed.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -84,8 +84,9 @@ Remaining maturity gaps:
   artifact-carried assumption slice.
 
 Last commit:
-`efb6aa07b16edbfb24e9872c04b13297f67f4b79` for Contact allocation
-provider-reservation request capability assumptions.
+`efb6aa07b16edbfb24e9872c04b13297f67f4b79` pushed to `origin/main` for
+Contact allocation provider-reservation request capability assumptions.
+Handoff commit `f92c3137cbc58f69fd4e5f2f3e0125361538d126` is also pushed.
 
 Next candidate:
 After review/publish, continue from the live guide/status and prefer another
