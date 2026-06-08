@@ -89,7 +89,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Pending product commit for station-reservation review summary pressure.
+`4904a47` Derive reservation review summary pressure.
 
 Next candidate:
 Reinspect live code for the next planner-visible resource/contact evidence gap.
@@ -99,6 +99,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `4904a47` derived station-reservation review summary pressure branches.
 - `3920603` derived relay data-path summary pressure branches.
 - `aa4cb47` derived operational-readiness gate-summary pressure branches.
 - `fe0ac70` derived timeline preservation report/status pressure branches.
