@@ -7661,6 +7661,94 @@ defmodule OrbitalDynamics.ValidationTest do
            ) == Validation.artifact_observations("contact_intent.v1", report)
   end
 
+  test "verifies curated contact intent summary reference fixtures" do
+    fixture_id = "fixture.artifact.contact_intent_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.contact_intent_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = contact_intent_summary_fixture()
+    observations = contact_intent_summary_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert observations["contact_intent_count"] == 3
+    assert observations["capacity_pack_required_contact_count"] == 3
+    assert observations["capacity_pack_required_capacity_fraction"] == 0.95
+    assert observations["direction_counts"] == %{"command" => 1, "downlink" => 1, "tracking" => 1}
+    assert observations["direction_keys"] == "command|downlink|tracking"
+    assert observations["ground_station_keys"] == "dss_43|equator_prime"
+
+    assert observations["capacity_pack_required_capacity_fraction_by_direction"] == %{
+             "command" => 0.5,
+             "downlink" => 0.25,
+             "tracking" => 0.2
+           }
+
+    assert observations["required_capacity_fraction_source_keys"] ==
+             "capacity_model|contact_required_capacity_fraction|throughput_model"
+
+    assert observations["execution_boundary"] ==
+             "artifact_only_no_provider_reservation_or_schedule_mutation"
+
+    assert observations["no_provider_reservation"] == true
+    assert observations["no_schedule_mutation"] == true
+    assert observations["no_command_execution"] == true
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "contact_intent_summary.v1",
+             report
+           ) == Validation.artifact_observations("contact_intent_summary.v1", report)
+
+    stale_direction_observations = put_in(observations, ["direction_counts", "downlink"], 0)
+
+    assert {:ok, stale_direction_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_direction_observations)
+
+    assert stale_direction_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_direction_verification["checks"],
+             &(&1["field"] == "direction_counts" and &1["status"] == "fail")
+           )
+
+    stale_capacity_observations =
+      Map.put(observations, "capacity_pack_required_capacity_fraction", 0.5)
+
+    assert {:ok, stale_capacity_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_capacity_observations)
+
+    assert stale_capacity_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_capacity_verification["checks"],
+             &(&1["field"] == "capacity_pack_required_capacity_fraction" and
+                 &1["status"] == "fail")
+           )
+
+    stale_boundary_observations =
+      Map.put(observations, "execution_boundary", "provider_reservation_ready")
+
+    assert {:ok, stale_boundary_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_boundary_observations)
+
+    assert stale_boundary_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_boundary_verification["checks"],
+             &(&1["field"] == "execution_boundary" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report, schema_contract: "contact_intent_summary.v1")
+  end
+
   test "verifies curated refreshed window reference fixtures" do
     fixture_id = "fixture.artifact.refreshed_window.v1"
 
@@ -12835,6 +12923,8 @@ defmodule OrbitalDynamics.ValidationTest do
         "fixture.artifact.contact_filter_report.v1" =>
           contact_filter_report_fixture_observations(),
         "fixture.artifact.contact_intent.v1" => contact_intent_fixture_observations(),
+        "fixture.artifact.contact_intent_summary.v1" =>
+          contact_intent_summary_fixture_observations(),
         "fixture.artifact.environment_model_capability.constant_earth_rotation" =>
           environment_model_capability_constant_earth_rotation_fixture_observations(),
         "fixture.artifact.environment_model_capability.fixed_sun" =>
@@ -13058,8 +13148,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 168,
-             "status_counts" => %{"pass" => 168},
+             "fixture_count" => 169,
+             "status_counts" => %{"pass" => 169},
              "reports" => reports
            } = report
 
@@ -13107,6 +13197,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.contact_contention_resolution_report.v1",
              "fixture.artifact.contact_filter_report.v1",
              "fixture.artifact.contact_intent.v1",
+             "fixture.artifact.contact_intent_summary.v1",
              "fixture.artifact.environment_model_capability.constant_earth_rotation",
              "fixture.artifact.environment_model_capability.fixed_sun",
              "fixture.artifact.environment_provider_capability.constant_earth_rotation",
@@ -13244,7 +13335,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 168},
+             "status_counts" => %{"fail" => 169},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -14595,6 +14686,15 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp contact_intent_fixture do
     read_json!("study_results/contact_intent_v1.json")
+  end
+
+  defp contact_intent_summary_fixture_observations do
+    "contact_intent_summary.v1"
+    |> Validation.artifact_observations(contact_intent_summary_fixture())
+  end
+
+  defp contact_intent_summary_fixture do
+    read_json!("study_results/contact_intent_summary_v1.json")
   end
 
   defp refreshed_window_fixture_observations do

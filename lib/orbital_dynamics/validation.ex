@@ -4517,6 +4517,80 @@ defmodule OrbitalDynamics.Validation do
         "checks contact intent timing, approval routing, Cadence import metadata, and no-reservation/no-mutation boundaries only"
       ]
     },
+    "fixture.artifact.contact_intent_summary.v1" => %{
+      "id" => "fixture.artifact.contact_intent_summary.v1",
+      "model_id" => "artifact.contact_intent_summary.v1",
+      "reference_case" => "checked-in contact intent summary artifact",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/contact_intent_summary_v1.json",
+        "contract" => "contact_intent_summary.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "contact_intent_summary.v1",
+        "model" => "artifact_only_contact_intent_summary",
+        "source_artifact_type" => "contact_intent.v1",
+        "contact_intent_count" => 3,
+        "capacity_pack_required_contact_count" => 3,
+        "capacity_pack_required_capacity_fraction" => 0.95,
+        "capacity_pack_required_capacity_fraction_by_ground_station_id" => %{
+          "dss_43" => 0.5,
+          "equator_prime" => 0.45
+        },
+        "capacity_pack_required_capacity_fraction_by_direction" => %{
+          "command" => 0.5,
+          "downlink" => 0.25,
+          "tracking" => 0.2
+        },
+        "direction_counts" => %{"command" => 1, "downlink" => 1, "tracking" => 1},
+        "direction_keys" => "command|downlink|tracking",
+        "ground_station_keys" => "dss_43|equator_prime",
+        "contact_ids_by_ground_station_id" => %{
+          "dss_43" => ["throughput_capacity_contact"],
+          "equator_prime" => ["capacity_model_contact", "direct_capacity_contact"]
+        },
+        "contact_ids_by_direction" => %{
+          "command" => ["throughput_capacity_contact"],
+          "downlink" => ["direct_capacity_contact"],
+          "tracking" => ["capacity_model_contact"]
+        },
+        "capacity_pack_contact_ids_by_direction" => %{
+          "command" => ["throughput_capacity_contact"],
+          "downlink" => ["direct_capacity_contact"],
+          "tracking" => ["capacity_model_contact"]
+        },
+        "required_capacity_fraction_source_counts" => %{
+          "capacity_model" => 1,
+          "contact_required_capacity_fraction" => 1,
+          "throughput_model" => 1
+        },
+        "required_capacity_fraction_source_keys" =>
+          "capacity_model|contact_required_capacity_fraction|throughput_model",
+        "direction_routing_count" => 3,
+        "model_limit_count" => 5,
+        "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
+        "assumption_source_artifact_type" => "contact_intent.v1",
+        "no_provider_reservation" => true,
+        "no_schedule_mutation" => true,
+        "no_command_execution" => true
+      },
+      "tolerances" => %{
+        "contact_intent_count" => 0,
+        "capacity_pack_required_contact_count" => 0,
+        "capacity_pack_required_capacity_fraction" => 0.0,
+        "direction_routing_count" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by contact_intent_summary.v1 validation tests"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not external ground-network validation",
+        "checks compact contact direction, station, capacity-source routing, and no-provider-reservation/no-mutation boundaries only"
+      ]
+    },
     "fixture.artifact.refreshed_window.v1" => %{
       "id" => "fixture.artifact.refreshed_window.v1",
       "model_id" => "artifact.refreshed_window.v1",
@@ -13983,6 +14057,57 @@ defmodule OrbitalDynamics.Validation do
       "no_schedule_mutation" => "no_schedule_mutation" in model_limits,
       "no_command_execution" => "no_command_execution" in model_limits,
       "model_limit_count" => length(model_limits)
+    }
+  end
+
+  def artifact_observations("contact_intent_summary.v1", artifact) when is_map(artifact) do
+    artifact = stringify_keys(artifact)
+    model_limits = list_values(artifact, "model_limits")
+    direction_routing = Map.get(artifact, "direction_routing") || %{}
+    source_counts = Map.get(artifact, "required_capacity_fraction_source_counts") || %{}
+
+    %{
+      "schema_contract" => Map.get(artifact, "schema_contract"),
+      "model" => Map.get(artifact, "model"),
+      "source_artifact_type" => Map.get(artifact, "source_artifact_type"),
+      "contact_intent_count" => Map.get(artifact, "contact_intent_count"),
+      "capacity_pack_required_contact_count" =>
+        Map.get(artifact, "capacity_pack_required_contact_count"),
+      "capacity_pack_required_capacity_fraction" =>
+        Map.get(artifact, "capacity_pack_required_capacity_fraction"),
+      "capacity_pack_required_capacity_fraction_by_ground_station_id" =>
+        Map.get(artifact, "capacity_pack_required_capacity_fraction_by_ground_station_id") ||
+          %{},
+      "capacity_pack_required_capacity_fraction_by_direction" =>
+        Map.get(artifact, "capacity_pack_required_capacity_fraction_by_direction") || %{},
+      "direction_counts" => Map.get(artifact, "direction_counts") || %{},
+      "direction_keys" =>
+        artifact
+        |> list_values("directions")
+        |> Enum.join("|"),
+      "ground_station_keys" =>
+        artifact
+        |> list_values("ground_station_ids")
+        |> Enum.join("|"),
+      "contact_ids_by_ground_station_id" =>
+        Map.get(artifact, "contact_ids_by_ground_station_id") || %{},
+      "contact_ids_by_direction" => Map.get(artifact, "contact_ids_by_direction") || %{},
+      "capacity_pack_contact_ids_by_direction" =>
+        Map.get(artifact, "capacity_pack_contact_ids_by_direction") || %{},
+      "required_capacity_fraction_source_counts" => source_counts,
+      "required_capacity_fraction_source_keys" =>
+        source_counts
+        |> Map.keys()
+        |> Enum.sort()
+        |> Enum.join("|"),
+      "direction_routing_count" => map_size(direction_routing),
+      "model_limit_count" => length(model_limits),
+      "execution_boundary" => get_in(artifact, ["assumptions", "execution_boundary"]),
+      "assumption_source_artifact_type" =>
+        get_in(artifact, ["assumptions", "source_artifact_type"]),
+      "no_provider_reservation" => "no_provider_reservation" in model_limits,
+      "no_schedule_mutation" => "no_schedule_mutation" in model_limits,
+      "no_command_execution" => "no_command_execution" in model_limits
     }
   end
 
