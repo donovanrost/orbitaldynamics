@@ -90,7 +90,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Previous slice: `1344424` Update autonomous loop handoff.
+`fcd9a35` Derive operator training quality gate pressure.
 
 Next candidate:
 After this slice, continue specialized quality-gate summary branch-pressure gaps
@@ -101,6 +101,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `fcd9a35` derived operator-training quality-gate summary pressure.
 - `9bfadda` derived unavailable-resource quality-gate summary pressure.
 - `13e927a` derived quality-gate summary pressure branches.
 - `482bcf2` derived counteroffer plan-impact pressure branches.
