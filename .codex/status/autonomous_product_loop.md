@@ -81,7 +81,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Pending commit/push for preservation protection-category handoff flattening.
+`7172c7c` Flatten preservation category handoffs.
 
 Next candidate:
 Continue guide-priority typed timeline/resource semantics, likely dependency
@@ -92,6 +92,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `7172c7c` flattened preservation protection-category handoffs.
 - `72ade0b` flattened dependency-impact aggregate ID handoffs.
 - `c32f339` flattened lifecycle reason handoffs.
 - `51a60b7` routed lifecycle-summary operator-action reasons.
