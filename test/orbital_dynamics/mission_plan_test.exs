@@ -387,6 +387,54 @@ defmodule OrbitalDynamics.MissionPlanTest do
              OrbitalDynamics.Schema.validate_artifact(report)
   end
 
+  test "round trips station reservation context through typed activities" do
+    activity =
+      Activity.from_map!(%{
+        "id" => "provider_reserved_contact",
+        "activity_type" => "planned_contact",
+        "ground_station_id" => "gs_a",
+        "direction" => "downlink",
+        "starts_at_s" => 310.0,
+        "ends_at_s" => 370.0,
+        "station_reservation_id" => "reservation:partner_a:310",
+        "station_reservation_expires_at_s" => "480.0",
+        "station_reserved_by" => :ops_team_a,
+        "station_reservation_status" => "Confirmed",
+        "station_reservation_match_status" => :owner_matched
+      })
+
+    assert %Activity{
+             station_reservation_id: "reservation:partner_a:310",
+             station_reservation_expires_at_s: 480.0,
+             station_reserved_by: :ops_team_a,
+             station_reservation_status: "Confirmed",
+             station_reservation_match_status: :owner_matched
+           } = activity
+
+    assert %{
+             "station_reservation_id" => "reservation:partner_a:310",
+             "station_reservation_expires_at_s" => 480.0,
+             "station_reserved_by" => "ops_team_a",
+             "station_reservation_status" => "Confirmed",
+             "station_reservation_match_status" => "owner_matched"
+           } = Activity.to_artifact_map(activity)
+
+    report = OrbitalDynamics.Timeline.operational_report([activity])
+
+    assert %{
+             "activity_context" => %{
+               "station_reservation_id" => "reservation:partner_a:310",
+               "station_reservation_expires_at_s" => 480.0,
+               "station_reserved_by" => "ops_team_a",
+               "station_reservation_status" => "confirmed",
+               "station_reservation_match_status" => "owner_matched"
+             }
+           } = List.first(report["rows"])
+
+    assert {:ok, %{"schema_contract" => "operational_timeline_report.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(report)
+  end
+
   test "rejects malformed collection latency objective context at typed ingress" do
     assert_raise ArgumentError, ~r/collection_latency_objective_count/, fn ->
       Activity.from_map!(%{
@@ -501,6 +549,28 @@ defmodule OrbitalDynamics.MissionPlanTest do
         "ends_at_s" => 40.0,
         "source_station_calendar_entry" => ["not", "a", "map"]
       })
+    end
+  end
+
+  test "rejects malformed station reservation context at typed ingress" do
+    for {field, value} <- [
+          {"station_reservation_id", "bad reservation id"},
+          {"station_reservation_expires_at_s", "-1"},
+          {"station_reserved_by", ""},
+          {"station_reservation_status", ""},
+          {"station_reservation_match_status", ""}
+        ] do
+      assert_raise ArgumentError, ~r/#{field}/, fn ->
+        Activity.from_map!(%{
+          "id" => "bad_#{field}",
+          "activity_type" => "planned_contact",
+          "ground_station_id" => "gs_a",
+          "direction" => "downlink",
+          "starts_at_s" => 10.0,
+          "ends_at_s" => 40.0,
+          field => value
+        })
+      end
     end
   end
 

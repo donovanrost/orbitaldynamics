@@ -148,6 +148,12 @@ They also preserve direct `station_calendar_directions` and nested
 `source_station_calendar_entry` provenance so direction-scoped
 provider-calendar routing evidence survives typed activity and operational
 timeline handoffs without mutating station calendars.
+Direct station reservation evidence (`station_reservation_id`,
+`station_reservation_expires_at_s`, `station_reserved_by`,
+`station_reservation_status`, and `station_reservation_match_status`) is
+preserved the same way, so provider reservation state can round trip through
+typed activities without creating, extending, approving, or importing a
+reservation.
 Nested source-station-calendar availability/status evidence also derives
 station unavailable and reserved rejection reasons for generated candidates.
 Reviewable rejected rows can now be lifted into `operator_review_package.v1`

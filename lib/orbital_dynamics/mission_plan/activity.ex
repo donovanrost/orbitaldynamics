@@ -238,6 +238,11 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     :station_calendar_status,
     :station_calendar_trust_boundary_status,
     :source_station_calendar_entry,
+    :station_reservation_id,
+    :station_reservation_expires_at_s,
+    :station_reserved_by,
+    :station_reservation_status,
+    :station_reservation_match_status,
     :capacity_fraction,
     :station_capacity_fraction,
     :capacity_pack_capacity_fraction,
@@ -461,6 +466,11 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
           station_calendar_status: atom() | String.t() | nil,
           station_calendar_trust_boundary_status: atom() | String.t() | nil,
           source_station_calendar_entry: map() | nil,
+          station_reservation_id: atom() | String.t() | nil,
+          station_reservation_expires_at_s: number() | nil,
+          station_reserved_by: atom() | String.t() | nil,
+          station_reservation_status: atom() | String.t() | nil,
+          station_reservation_match_status: atom() | String.t() | nil,
           capacity_fraction: number() | nil,
           station_capacity_fraction: number() | nil,
           capacity_pack_capacity_fraction: number() | nil,
@@ -754,6 +764,11 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
         :station_calendar_status,
         :station_calendar_trust_boundary_status,
         :source_station_calendar_entry,
+        :station_reservation_id,
+        :station_reservation_expires_at_s,
+        :station_reserved_by,
+        :station_reservation_status,
+        :station_reservation_match_status,
         :capacity_fraction,
         :station_capacity_fraction,
         :capacity_pack_capacity_fraction,
@@ -1827,6 +1842,11 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       station_calendar_status: activity.station_calendar_status,
       station_calendar_trust_boundary_status: activity.station_calendar_trust_boundary_status,
       source_station_calendar_entry: activity.source_station_calendar_entry,
+      station_reservation_id: activity.station_reservation_id,
+      station_reservation_expires_at_s: activity.station_reservation_expires_at_s,
+      station_reserved_by: activity.station_reserved_by,
+      station_reservation_status: activity.station_reservation_status,
+      station_reservation_match_status: activity.station_reservation_match_status,
       capacity_fraction: activity.capacity_fraction,
       station_capacity_fraction: activity.station_capacity_fraction,
       capacity_pack_capacity_fraction: activity.capacity_pack_capacity_fraction,
@@ -2107,6 +2127,11 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       Keyword.get(opts, :station_calendar_trust_boundary_status)
 
     source_station_calendar_entry = Keyword.get(opts, :source_station_calendar_entry)
+    station_reservation_id = Keyword.get(opts, :station_reservation_id)
+    station_reservation_expires_at_s = Keyword.get(opts, :station_reservation_expires_at_s)
+    station_reserved_by = Keyword.get(opts, :station_reserved_by)
+    station_reservation_status = Keyword.get(opts, :station_reservation_status)
+    station_reservation_match_status = Keyword.get(opts, :station_reservation_match_status)
     capacity_fraction = Keyword.get(opts, :capacity_fraction)
     station_capacity_fraction = Keyword.get(opts, :station_capacity_fraction)
     capacity_pack_capacity_fraction = Keyword.get(opts, :capacity_pack_capacity_fraction)
@@ -2402,6 +2427,23 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
 
       not (is_nil(source_station_calendar_entry) or is_map(source_station_calendar_entry)) ->
         raise ArgumentError, "source_station_calendar_entry must be nil or a map"
+
+      not optional_stable_identifier?(station_reservation_id) ->
+        raise ArgumentError, "station_reservation_id must be nil or a stable identifier"
+
+      not optional_non_negative_number?(station_reservation_expires_at_s) ->
+        raise ArgumentError,
+              "station_reservation_expires_at_s must be nil or a non-negative number"
+
+      not optional_scalar?(station_reserved_by) ->
+        raise ArgumentError, "station_reserved_by must be nil, a string, or an atom"
+
+      not optional_scalar?(station_reservation_status) ->
+        raise ArgumentError, "station_reservation_status must be nil, a string, or an atom"
+
+      not optional_scalar?(station_reservation_match_status) ->
+        raise ArgumentError,
+              "station_reservation_match_status must be nil, a string, or an atom"
 
       not optional_unit_interval?(capacity_fraction) ->
         raise ArgumentError, "capacity_fraction must be nil or between 0.0 and 1.0"
@@ -2966,6 +3008,11 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
           station_calendar_status: station_calendar_status,
           station_calendar_trust_boundary_status: station_calendar_trust_boundary_status,
           source_station_calendar_entry: source_station_calendar_entry,
+          station_reservation_id: station_reservation_id,
+          station_reservation_expires_at_s: station_reservation_expires_at_s,
+          station_reserved_by: station_reserved_by,
+          station_reservation_status: station_reservation_status,
+          station_reservation_match_status: station_reservation_match_status,
           capacity_fraction: capacity_fraction,
           station_capacity_fraction: station_capacity_fraction,
           capacity_pack_capacity_fraction: capacity_pack_capacity_fraction,
@@ -3240,6 +3287,35 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       optional_map!(
         field(source, :source_station_calendar_entry),
         "source_station_calendar_entry"
+      )
+    )
+    |> maybe_put_opt(
+      :station_reservation_id,
+      optional_stable_identifier!(
+        field(source, :station_reservation_id),
+        "station_reservation_id"
+      )
+    )
+    |> maybe_put_opt(
+      :station_reservation_expires_at_s,
+      optional_non_negative_number!(
+        field(source, :station_reservation_expires_at_s),
+        "station_reservation_expires_at_s"
+      )
+    )
+    |> maybe_put_opt(
+      :station_reserved_by,
+      optional_scalar!(field(source, :station_reserved_by), "station_reserved_by")
+    )
+    |> maybe_put_opt(
+      :station_reservation_status,
+      optional_scalar!(field(source, :station_reservation_status), "station_reservation_status")
+    )
+    |> maybe_put_opt(
+      :station_reservation_match_status,
+      optional_scalar!(
+        field(source, :station_reservation_match_status),
+        "station_reservation_match_status"
       )
     )
     |> maybe_put_opt(
