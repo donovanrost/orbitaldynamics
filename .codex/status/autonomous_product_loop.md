@@ -45,8 +45,8 @@ reassessing Level 6 gaps from the guide after this Cadence-import challenge
 slice is reviewed and published.
 
 Last commit:
-Pending for this slice. Previous pushed commit was
-`ab913954ec7ea275746c383b85d3482f4a0da203`.
+`9937a56fd00cddf1dcc7932d262b5b0f708bdf8c` (`Test Cadence import battery
+replay drift`).
 
 Next candidate:
 After publishing this slice, reassess Level 6 gaps from the guide/ledger.
