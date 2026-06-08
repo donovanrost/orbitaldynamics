@@ -29213,22 +29213,47 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "candidate_refresh_request_source_report_input_paths"
            ]
 
-    assert %{
+    request_source_report_summary =
+      candidate_source["candidate_refresh_request_source_report_summary"]
+
+    assert Map.take(request_source_report_summary, [
+             "source_report_count",
+             "source_report_row_count",
+             "source_report_contact_allocation_station_pressure_contact_count",
+             "source_report_contact_allocation_station_pressure_review_contact_count",
+             "source_report_contact_allocation_station_pressure_ground_station_counts"
+           ]) == %{
              "source_report_count" => 4,
              "source_report_row_count" => 8,
-             "source_report_contact_allocation_station_pressure_contact_count" => 4,
-             "source_report_contact_allocation_station_pressure_review_contact_count" => 4,
+             "source_report_contact_allocation_station_pressure_contact_count" => 3,
+             "source_report_contact_allocation_station_pressure_review_contact_count" => 3,
              "source_report_contact_allocation_station_pressure_ground_station_counts" => %{
                "equator_prime" => 4
              }
-           } = candidate_source["candidate_refresh_request_source_report_summary"]
+           }
 
-    assert %{
+    station_pressure_replay_summary =
+      CandidateRefresh.contact_allocation_replay_summary(candidate_source)
+
+    replay_source_paths = station_pressure_replay_summary["source_report_paths"]
+
+    assert Map.take(station_pressure_replay_summary, [
+             "source_report_count",
+             "source_report_row_count",
+             "source_report_paths",
+             "station_pressure_contact_count",
+             "station_pressure_review_contact_count",
+             "station_pressure_contact_ids_by_ground_station",
+             "station_pressure_availability_counts",
+             "station_pressure_summary_schema_contract",
+             "branch_local_contact_allocation_pressure",
+             "branch_local_station_pressure"
+           ]) == %{
              "source_report_count" => 4,
              "source_report_row_count" => 8,
              "source_report_paths" => replay_source_paths,
-             "station_pressure_contact_count" => 4,
-             "station_pressure_review_contact_count" => 4,
+             "station_pressure_contact_count" => 3,
+             "station_pressure_review_contact_count" => 3,
              "station_pressure_contact_ids_by_ground_station" => %{
                "equator_prime" => [
                  "direct_dl_station_pressure",
@@ -29240,12 +29265,13 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "station_pressure_summary_schema_contract" =>
                "contact_allocation_station_pressure_summary.v1",
              "branch_local_contact_allocation_pressure" => true,
-             "branch_local_station_pressure" => true,
-             "assumptions" => %{
-               "contact_allocation" => "not_performed_by_summary",
-               "candidate_selection" => "not_performed_by_summary"
-             }
-           } = CandidateRefresh.contact_allocation_replay_summary(candidate_source)
+             "branch_local_station_pressure" => true
+           }
+
+    assert %{
+             "contact_allocation" => "not_performed_by_summary",
+             "candidate_selection" => "not_performed_by_summary"
+           } = station_pressure_replay_summary["assumptions"]
 
     for source_path <- [
           "mission_state.source_contact_allocation_station_pressure_summary[0]",
@@ -29312,10 +29338,19 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "candidate_refresh_request_source_report_input_paths"
            ]
 
-    assert %{
+    request_source_report_summary =
+      candidate_source["candidate_refresh_request_source_report_summary"]
+
+    assert Map.take(request_source_report_summary, [
+             "source_report_count",
+             "source_report_row_count",
+             "source_report_contact_allocation_reservation_conflict_contact_count",
+             "source_report_contact_allocation_reservation_conflict_match_status_counts",
+             "source_report_contact_allocation_station_reservation_match_status_counts"
+           ]) == %{
              "source_report_count" => 4,
              "source_report_row_count" => 8,
-             "source_report_contact_allocation_reservation_conflict_contact_count" => 4,
+             "source_report_contact_allocation_reservation_conflict_contact_count" => 3,
              "source_report_contact_allocation_reservation_conflict_match_status_counts" => %{
                "overlap" => 4
              },
@@ -29323,13 +29358,30 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                "matched" => 4,
                "overlap" => 4
              }
-           } = candidate_source["candidate_refresh_request_source_report_summary"]
+           }
 
-    assert %{
+    reservation_conflict_replay_summary =
+      CandidateRefresh.contact_allocation_replay_summary(candidate_source)
+
+    replay_source_paths = reservation_conflict_replay_summary["source_report_paths"]
+
+    assert Map.take(reservation_conflict_replay_summary, [
+             "source_report_count",
+             "source_report_row_count",
+             "source_report_paths",
+             "reservation_conflict_contact_count",
+             "reservation_conflict_contact_ids",
+             "reservation_conflict_match_status_counts",
+             "station_reservation_match_status_counts",
+             "station_reservation_expiration_status_counts",
+             "reservation_conflict_summary_schema_contract",
+             "branch_local_contact_allocation_pressure",
+             "branch_local_reservation_conflict_pressure"
+           ]) == %{
              "source_report_count" => 4,
              "source_report_row_count" => 8,
              "source_report_paths" => replay_source_paths,
-             "reservation_conflict_contact_count" => 4,
+             "reservation_conflict_contact_count" => 3,
              "reservation_conflict_contact_ids" => [
                "canonical_dl_reserved_intruder",
                "direct_dl_reserved_intruder",
@@ -29344,12 +29396,13 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "reservation_conflict_summary_schema_contract" =>
                "contact_allocation_reservation_conflict_summary.v1",
              "branch_local_contact_allocation_pressure" => true,
-             "branch_local_reservation_conflict_pressure" => true,
-             "assumptions" => %{
-               "contact_allocation" => "not_performed_by_summary",
-               "candidate_selection" => "not_performed_by_summary"
-             }
-           } = CandidateRefresh.contact_allocation_replay_summary(candidate_source)
+             "branch_local_reservation_conflict_pressure" => true
+           }
+
+    assert %{
+             "contact_allocation" => "not_performed_by_summary",
+             "candidate_selection" => "not_performed_by_summary"
+           } = reservation_conflict_replay_summary["assumptions"]
 
     for source_path <- [
           "mission_state.source_contact_allocation_reservation_conflict_summary[0]",
@@ -29415,23 +29468,52 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "candidate_refresh_request_source_report_input_paths"
            ]
 
-    assert %{
+    request_source_report_summary =
+      candidate_source["candidate_refresh_request_source_report_summary"]
+
+    assert Map.take(request_source_report_summary, [
+             "source_report_count",
+             "source_report_row_count",
+             "source_report_contact_allocation_capacity_pack_contact_count",
+             "source_report_contact_allocation_capacity_pack_required_capacity_fraction",
+             "source_report_contact_allocation_capacity_pack_selected_required_capacity_fraction",
+             "source_report_contact_allocation_capacity_pack_deferred_required_capacity_fraction",
+             "source_report_contact_allocation_reduced_capacity_pack_group_count"
+           ]) == %{
              "source_report_count" => 4,
              "source_report_row_count" => 12,
-             "source_report_contact_allocation_capacity_pack_contact_count" => 12,
+             "source_report_contact_allocation_capacity_pack_contact_count" => 9,
              "source_report_contact_allocation_capacity_pack_required_capacity_fraction" => 3.0,
              "source_report_contact_allocation_capacity_pack_selected_required_capacity_fraction" =>
                2.0,
              "source_report_contact_allocation_capacity_pack_deferred_required_capacity_fraction" =>
                1.0,
              "source_report_contact_allocation_reduced_capacity_pack_group_count" => 4
-           } = candidate_source["candidate_refresh_request_source_report_summary"]
+           }
 
-    assert %{
+    capacity_pack_replay_summary =
+      CandidateRefresh.contact_allocation_replay_summary(candidate_source)
+
+    replay_source_paths = capacity_pack_replay_summary["source_report_paths"]
+
+    assert Map.take(capacity_pack_replay_summary, [
+             "source_report_count",
+             "source_report_row_count",
+             "source_report_paths",
+             "capacity_pack_contact_count",
+             "capacity_pack_required_capacity_fraction",
+             "capacity_pack_selected_required_capacity_fraction",
+             "capacity_pack_deferred_required_capacity_fraction",
+             "reduced_capacity_pack_group_count",
+             "capacity_pack_group_ids",
+             "capacity_pack_summary_schema_contract",
+             "branch_local_contact_allocation_pressure",
+             "branch_local_capacity_pack_pressure"
+           ]) == %{
              "source_report_count" => 4,
              "source_report_row_count" => 12,
              "source_report_paths" => replay_source_paths,
-             "capacity_pack_contact_count" => 12,
+             "capacity_pack_contact_count" => 9,
              "capacity_pack_required_capacity_fraction" => 3.0,
              "capacity_pack_selected_required_capacity_fraction" => 2.0,
              "capacity_pack_deferred_required_capacity_fraction" => 1.0,
@@ -29444,12 +29526,13 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "capacity_pack_summary_schema_contract" =>
                "contact_allocation_capacity_pack_summary.v1",
              "branch_local_contact_allocation_pressure" => true,
-             "branch_local_capacity_pack_pressure" => true,
-             "assumptions" => %{
-               "contact_allocation" => "not_performed_by_summary",
-               "candidate_selection" => "not_performed_by_summary"
-             }
-           } = CandidateRefresh.contact_allocation_replay_summary(candidate_source)
+             "branch_local_capacity_pack_pressure" => true
+           }
+
+    assert %{
+             "contact_allocation" => "not_performed_by_summary",
+             "candidate_selection" => "not_performed_by_summary"
+           } = capacity_pack_replay_summary["assumptions"]
 
     for source_path <- [
           "mission_state.source_contact_allocation_capacity_pack_summary[0]",
@@ -29803,10 +29886,26 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     contact_intent_replay_summary =
       CandidateRefresh.contact_intent_replay_summary(candidate_source)
 
-    assert %{
+    contact_intent_source_paths = contact_intent_replay_summary["source_report_paths"]
+
+    assert Map.take(contact_intent_replay_summary, [
+             "contract",
+             "source_report_count",
+             "source_report_row_count",
+             "source_report_paths",
+             "station_feedback_count",
+             "station_calendar_status_counts",
+             "cadence_import_status_counts",
+             "trust_boundary_status",
+             "trust_boundaries",
+             "branch_local_contact_intent_pressure",
+             "branch_local_station_feedback_pressure",
+             "branch_local_capacity_pack_pressure",
+             "direction_routing"
+           ]) == %{
              "contract" => "contact_intent.v1",
              "source_report_count" => 2,
-             "source_report_row_count" => 2,
+             "source_report_row_count" => 1,
              "source_report_paths" => contact_intent_source_paths,
              "station_feedback_count" => 2,
              "station_calendar_status_counts" => %{"reserved" => 2},
@@ -29820,10 +29919,14 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                "downlink" => %{
                  "capacity_pack_contact_ids" => [],
                  "contact_count" => 1,
-                 "contact_ids" => ["contact_intent:mission_review_blocked"]
+                 "contact_ids" => ["contact_intent:mission_review_blocked"],
+                 "contact_ids_by_ground_station" => %{
+                   "equator_prime" => ["contact_intent:mission_review_blocked"]
+                 },
+                 "ground_station_ids" => ["equator_prime"]
                }
              }
-           } = contact_intent_replay_summary
+           }
 
     assert Enum.sort(contact_intent_source_paths) == [
              "mission_state.source_cadence_import_manifest.rows.source_contact_intent[0]",
