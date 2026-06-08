@@ -5,16 +5,15 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Operational execution-boundary summary validation-reference fixture coverage.
+Contact intent summary validation-reference fixture coverage.
 
 Status:
-Implemented and verified. The checked-in
-`operational_execution_boundary_summary.v1` handoff now has a curated
-validation-reference fixture that pins source identity, import eligibility,
-handoff-only and execution/Cadence/operator authority flags, top-level and
-assumption-level execution boundaries, operational-mode gate identity, gate
-counts, model limits, and no-command-execution/no-write assumptions. The
-validation-reference rollup now reports 168 passing fixtures.
+Implemented and verified. The checked-in `contact_intent_summary.v1` handoff
+now has a curated validation-reference fixture that pins contact and capacity
+counts, direction/station/contact routing maps, capacity-source routing,
+capacity fractions, model limits, and artifact-only no-provider-reservation/
+no-schedule-mutation/no-command-execution assumptions. The validation-reference
+rollup now reports 169 passing fixtures.
 
 Files changed:
 - `lib/orbital_dynamics/validation.ex`
@@ -23,7 +22,7 @@ Files changed:
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/validation_test.exs:2180 test/orbital_dynamics/schema_test.exs:1962`
+- `mix test test/orbital_dynamics/validation_test.exs:7660 test/orbital_dynamics/schema_test.exs:1134`
 - `mix test test/orbital_dynamics/validation_test.exs:12569`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
@@ -31,25 +30,25 @@ Tests run:
 
 Docs/artifacts changed:
 - `study_results/validation_reference_fixtures.json` now includes
-  `fixture.artifact.operational_execution_boundary_summary.v1`.
+  `fixture.artifact.contact_intent_summary.v1`.
 - Existing compatibility docs already named this guard; no doc text changed.
 
 Level 6 pillar advanced:
-Approval-aware automation boundaries, import readiness, clear Cadence
-integration artifacts with no Cadence DB/API/execution coupling, and durable
-schema-versioned compatibility checks.
+Fleet-level resource/contact allocation behavior, durable schema-versioned
+artifacts and compatibility checks, and clear Cadence integration artifacts
+with no provider reservation or schedule mutation.
 
 Remaining maturity gaps:
-Continue broadening compact adapter-facing readiness/resource handoffs with
+Compact adapter-facing communications/resource handoffs still need
 stale-observation coverage where schema lint alone is weaker.
 
 Last commit:
 Pending commit/push for this slice. Previous pushed commit
-`9796b91f157876da0aaeeecd9a4041ef4507627e`.
+`854ef4fe30e6d6e087af8caafbcc9bcc513bca7c`.
 
 Next candidate:
-Reassess resource/readiness gates or another checked-in compact adapter handoff
-with missing validation-reference coverage.
+Reassess link-capacity, resource-filter, station-calendar,
+provider-counteroffer, and contact-contention summary fixture gaps.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
