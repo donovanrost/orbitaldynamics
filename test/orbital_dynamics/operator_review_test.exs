@@ -8132,6 +8132,76 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(package)
   end
 
+  test "candidate refresh state-scoped schema validation reports become review and import rows" do
+    report = schema_validation_report()
+
+    batch = %{
+      "schema_contract" => "schema_validation_batch_report.v1",
+      "validation_mode" => "artifact_directory",
+      "input_dir" => "study_results",
+      "status" => "fail",
+      "reports" => [
+        %{"path" => "study_results/bad_campaign.json", "report" => report}
+      ]
+    }
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:state_schema_validation:001",
+      "accepted_planning_state" => %{"source_schema_validation_report" => report},
+      "mission_state" => %{"source_schema_validation_batch_report" => batch}
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:state_schema_validation:001",
+             "review_count" => 2,
+             "schema_validation_review_count" => 2
+           } = package
+
+    assert Enum.map(package["rows"], & &1["source"]) == [
+             "candidate_refresh.accepted_planning_state.source_schema_validation_report.errors",
+             "candidate_refresh.mission_state.source_schema_validation_batch_report.reports[0].report.errors"
+           ]
+
+    assert %{
+             "review_type" => "schema_validation_review",
+             "validated_contract" => "campaign_plan.v1",
+             "issue_path" => "$.plan_id",
+             "source_schema_validation_report" => %{
+               "schema_contract" => "schema_validation_report.v1"
+             }
+           } = List.first(package["rows"])
+
+    assert %{
+             "source_schema_validation_report" => %{
+               "batch_entry_path" => "study_results/bad_campaign.json"
+             }
+           } = List.last(package["rows"])
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:state_schema_validation:001",
+             "row_count" => 2,
+             "source_review_type_counts" => %{"schema_validation_review" => 2}
+           } = manifest
+
+    assert Enum.map(manifest["rows"], &get_in(&1, ["source_review_row", "source"])) == [
+             "candidate_refresh.accepted_planning_state.source_schema_validation_report.errors",
+             "candidate_refresh.mission_state.source_schema_validation_batch_report.reports[0].report.errors"
+           ]
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "candidate refresh schema validation containers become operator review rows" do
     operator_report = schema_validation_report()
 

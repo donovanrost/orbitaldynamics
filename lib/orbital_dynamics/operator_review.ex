@@ -12021,6 +12021,22 @@ defmodule OrbitalDynamics.OperatorReview do
   defp candidate_refresh_schema_validation_rows(artifact) do
     direct_rows =
       [
+        {"candidate_refresh.accepted_planning_state.source_schema_validation_report",
+         get_in(artifact, ["accepted_planning_state", "source_schema_validation_report"])},
+        {"candidate_refresh.accepted_planning_state.schema_validation_report",
+         get_in(artifact, ["accepted_planning_state", "schema_validation_report"])},
+        {"candidate_refresh.accepted_planning_state.source_schema_validation_batch_report",
+         get_in(artifact, ["accepted_planning_state", "source_schema_validation_batch_report"])},
+        {"candidate_refresh.accepted_planning_state.schema_validation_batch_report",
+         get_in(artifact, ["accepted_planning_state", "schema_validation_batch_report"])},
+        {"candidate_refresh.mission_state.source_schema_validation_report",
+         get_in(artifact, ["mission_state", "source_schema_validation_report"])},
+        {"candidate_refresh.mission_state.schema_validation_report",
+         get_in(artifact, ["mission_state", "schema_validation_report"])},
+        {"candidate_refresh.mission_state.source_schema_validation_batch_report",
+         get_in(artifact, ["mission_state", "source_schema_validation_batch_report"])},
+        {"candidate_refresh.mission_state.schema_validation_batch_report",
+         get_in(artifact, ["mission_state", "schema_validation_batch_report"])},
         {"candidate_refresh.source_schema_validation_report",
          artifact["source_schema_validation_report"]},
         {"candidate_refresh.schema_validation_report", artifact["schema_validation_report"]},
