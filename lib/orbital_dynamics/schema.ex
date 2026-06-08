@@ -18522,6 +18522,9 @@ defmodule OrbitalDynamics.Schema do
           "branch_station_reserved_by" => string_array_schema(),
           "branch_station_reservation_statuses" => string_array_schema(),
           "branch_station_reservation_match_statuses" => string_array_schema(),
+          "branch_station_reservation_conflict_contact_ids" => stable_id_array_schema(),
+          "branch_station_reservation_conflict_reservation_ids" => stable_id_array_schema(),
+          "branch_station_reservation_conflict_match_statuses" => string_array_schema(),
           "branch_image_quality_min_score" => %{
             "type" => "number",
             "minimum" => 0.0,
@@ -27956,6 +27959,9 @@ defmodule OrbitalDynamics.Schema do
           "branch_station_reserved_by" => string_array_schema(),
           "branch_station_reservation_statuses" => string_array_schema(),
           "branch_station_reservation_match_statuses" => string_array_schema(),
+          "branch_station_reservation_conflict_contact_ids" => stable_id_array_schema(),
+          "branch_station_reservation_conflict_reservation_ids" => stable_id_array_schema(),
+          "branch_station_reservation_conflict_match_statuses" => string_array_schema(),
           "branch_image_quality_min_score" => %{
             "type" => "number",
             "minimum" => 0.0,
@@ -28557,6 +28563,9 @@ defmodule OrbitalDynamics.Schema do
           "branch_station_reserved_by" => string_array_schema(),
           "branch_station_reservation_statuses" => string_array_schema(),
           "branch_station_reservation_match_statuses" => string_array_schema(),
+          "branch_station_reservation_conflict_contact_ids" => stable_id_array_schema(),
+          "branch_station_reservation_conflict_reservation_ids" => stable_id_array_schema(),
+          "branch_station_reservation_conflict_match_statuses" => string_array_schema(),
           "branch_image_quality_min_score" => %{
             "type" => "number",
             "minimum" => 0.0,
@@ -28993,6 +29002,9 @@ defmodule OrbitalDynamics.Schema do
           "branch_station_reserved_by" => string_array_schema(),
           "branch_station_reservation_statuses" => string_array_schema(),
           "branch_station_reservation_match_statuses" => string_array_schema(),
+          "branch_station_reservation_conflict_contact_ids" => stable_id_array_schema(),
+          "branch_station_reservation_conflict_reservation_ids" => stable_id_array_schema(),
+          "branch_station_reservation_conflict_match_statuses" => string_array_schema(),
           "branch_image_quality_min_score" => %{
             "type" => "number",
             "minimum" => 0.0,
@@ -37038,6 +37050,34 @@ defmodule OrbitalDynamics.Schema do
     |> validate_string_list_items(path, row, "branch_station_reservation_statuses")
     |> expect_optional_type(path, row, "branch_station_reservation_match_statuses", :list)
     |> validate_string_list_items(path, row, "branch_station_reservation_match_statuses")
+    |> expect_optional_type(path, row, "branch_station_reservation_conflict_contact_ids", :list)
+    |> validate_optional_stable_id_list(
+      path,
+      row,
+      "branch_station_reservation_conflict_contact_ids"
+    )
+    |> expect_optional_type(
+      path,
+      row,
+      "branch_station_reservation_conflict_reservation_ids",
+      :list
+    )
+    |> validate_optional_stable_id_list(
+      path,
+      row,
+      "branch_station_reservation_conflict_reservation_ids"
+    )
+    |> expect_optional_type(
+      path,
+      row,
+      "branch_station_reservation_conflict_match_statuses",
+      :list
+    )
+    |> validate_string_list_items(
+      path,
+      row,
+      "branch_station_reservation_conflict_match_statuses"
+    )
     |> expect_optional_number(path, row, "branch_image_quality_min_score")
     |> expect_optional_type(path, row, "branch_image_quality_statuses", :list)
     |> validate_string_list_items(path, row, "branch_image_quality_statuses")

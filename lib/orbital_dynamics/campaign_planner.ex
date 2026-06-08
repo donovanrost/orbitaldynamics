@@ -43149,6 +43149,22 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "station_reservation_match_status",
           "reservation_match_status"
         ]),
+      "branch_station_reservation_conflict_contact_ids" =>
+        branch_station_reservation_conflict_unique_values(events, [
+          "contact_id",
+          "source_activity_id",
+          "source_activity_ids"
+        ]),
+      "branch_station_reservation_conflict_reservation_ids" =>
+        branch_station_reservation_conflict_unique_values(events, [
+          "station_reservation_id",
+          "reservation_id"
+        ]),
+      "branch_station_reservation_conflict_match_statuses" =>
+        branch_station_reservation_conflict_match_statuses(events, [
+          "station_reservation_match_status",
+          "reservation_match_status"
+        ]),
       "branch_image_quality_min_score" => minimum_present(events, "image_quality_score"),
       "branch_image_quality_statuses" =>
         branch_event_unique_values(events, "image_quality_status"),
@@ -43319,6 +43335,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> maybe_put_nonempty("branch_station_reserved_by")
     |> maybe_put_nonempty("branch_station_reservation_statuses")
     |> maybe_put_nonempty("branch_station_reservation_match_statuses")
+    |> maybe_put_nonempty("branch_station_reservation_conflict_contact_ids")
+    |> maybe_put_nonempty("branch_station_reservation_conflict_reservation_ids")
+    |> maybe_put_nonempty("branch_station_reservation_conflict_match_statuses")
     |> maybe_put_nonempty("branch_image_quality_min_score")
     |> maybe_put_nonempty("branch_image_quality_statuses")
     |> maybe_put_nonempty("branch_image_quality_sources")
@@ -43488,6 +43507,42 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> Enum.filter(&(is_binary(&1) and &1 != ""))
     |> Enum.uniq()
     |> Enum.sort()
+  end
+
+  defp branch_station_reservation_conflict_unique_values(events, fields) do
+    events
+    |> Enum.filter(&station_reservation_conflict_event?/1)
+    |> branch_event_unique_values(fields)
+  end
+
+  defp branch_station_reservation_conflict_match_statuses(events, fields) do
+    events
+    |> Enum.filter(&station_reservation_conflict_event?/1)
+    |> branch_event_unique_values(fields)
+    |> Enum.filter(&station_reservation_conflict_match_status?/1)
+  end
+
+  defp station_reservation_conflict_event?(event) do
+    [event]
+    |> branch_event_unique_values([
+      "station_reservation_match_status",
+      "reservation_match_status"
+    ])
+    |> Enum.any?(&station_reservation_conflict_match_status?/1)
+  end
+
+  defp station_reservation_conflict_match_status?(status) do
+    status
+    |> normalized_status_token()
+    |> case do
+      nil -> false
+      "" -> false
+      "matched" -> false
+      "owner_matched" -> false
+      "owned" -> false
+      "owner" -> false
+      _status -> true
+    end
   end
 
   defp branch_event_requires_operator_review(events) do

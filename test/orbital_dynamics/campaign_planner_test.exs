@@ -40983,9 +40983,14 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       |> put_in(["reservation_conflict_rows", Access.at(0), "starts_at_s"], 620.0)
       |> put_in(["reservation_conflict_rows", Access.at(0), "ends_at_s"], 680.0)
       |> put_in(["reservation_conflict_rows", Access.at(0), "required_downlink_mb"], 43.0)
+      |> put_in(
+        ["reservation_conflict_rows", Access.at(0), "reservation_match_status"],
+        "matched"
+      )
       |> put_in(["reservation_review_rows", Access.at(0), "starts_at_s"], 620.0)
       |> put_in(["reservation_review_rows", Access.at(0), "ends_at_s"], 680.0)
       |> put_in(["reservation_review_rows", Access.at(0), "required_downlink_mb"], 43.0)
+      |> put_in(["reservation_review_rows", Access.at(0), "reservation_match_status"], "matched")
 
     capacity_summary =
       "summary_capacity"
@@ -41044,10 +41049,14 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            } = List.first(station_branch["events"])
 
     reservation_branch =
-      branch(
-        artifact,
-        "derived_contact_allocation_pressure_deferred_summary_reservation_dl_reserved_intruder"
-      )
+      Enum.find(artifact["branches"], fn branch ->
+        branch["branch_id"] =~
+          "derived_contact_allocation_pressure_deferred_summary_reservation_dl_reserved_intruder" and
+          Enum.any?(
+            branch["events"] || [],
+            &(&1["contact_id"] == "summary_reservation_dl_reserved_intruder")
+          )
+      end)
 
     assert %{
              "type" => "downlink_completion_gap",
@@ -41059,6 +41068,22 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                "mission_state.source_contact_allocation_reservation_conflict_summary",
              "trust_boundary" => "summary_reservation_reservation_conflict_fixture"
            } = List.first(reservation_branch["events"])
+
+    reservation_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == reservation_branch["branch_id"]))
+
+    assert reservation_row["branch_station_reservation_conflict_contact_ids"] == [
+             "summary_reservation_dl_reserved_intruder"
+           ]
+
+    assert reservation_row["branch_station_reservation_conflict_reservation_ids"] == [
+             "summary_reservation_reservation_1"
+           ]
+
+    assert reservation_row["branch_station_reservation_conflict_match_statuses"] == [
+             "overlap"
+           ]
 
     capacity_branch =
       branch(

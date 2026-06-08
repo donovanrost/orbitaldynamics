@@ -24815,6 +24815,27 @@ defmodule OrbitalDynamics.SchemaTest do
              "pattern"
            ]) == Schema.identity_policy()["stable_id_pattern"]
 
+    assert get_in(row_schema, [
+             "properties",
+             "branch_station_reservation_conflict_contact_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "branch_station_reservation_conflict_reservation_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "branch_station_reservation_conflict_match_statuses",
+             "items",
+             "type"
+           ]) == "string"
+
     assert get_in(row_schema, ["properties", "repair_score_term_keys", "items", "type"]) ==
              "string"
 
