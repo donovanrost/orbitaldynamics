@@ -80,7 +80,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Pending commit/push for lifecycle reason handoff flattening.
+`c32f339` Flatten lifecycle reason handoffs.
 
 Next candidate:
 Continue guide-priority typed timeline/resource semantics, likely dependency
@@ -91,6 +91,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `c32f339` flattened lifecycle reason handoffs.
 - `51a60b7` routed lifecycle-summary operator-action reasons.
 - `893c5d4` updated autonomous loop handoff.
 - `74a5b4d` scored readiness and quality-gate pressure branch risks.
