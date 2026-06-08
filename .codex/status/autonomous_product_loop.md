@@ -5,51 +5,52 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-CandidateRefresh provider-counteroffer source-summary assertion drift.
+CampaignPlanner source-summary assertion drift.
 
 Status:
-Product commit complete; CandidateRefresh provider-counteroffer plan-impact and
-import-readiness source-summary assertions now match the current deterministic
-summary contract, including lock-deadline routing evidence, timing-shift counts,
-and summary-level trust-boundary semantics.
+Product commit complete; CampaignPlanner branch-refresh source-summary
+assertions now match the current deterministic CandidateRefresh replay contract.
+Contact-allocation station-pressure, reservation-conflict, and capacity-pack
+tests distinguish row counts from unique contact-id counts, and contact-intent
+replay assertions include current direction/ground-station routing evidence.
 
 Files changed:
-- `test/orbital_dynamics/candidate_refresh_test.exs`
+- `test/orbital_dynamics/campaign_planner_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:42547 test/orbital_dynamics/candidate_refresh_test.exs:42635`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:29161 test/orbital_dynamics/campaign_planner_test.exs:29286 test/orbital_dynamics/campaign_planner_test.exs:29417 test/orbital_dynamics/campaign_planner_test.exs:29734`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs`
 - `git diff --check`
 - Broader caveat: full `mix test` was not rerun after this test-only slice.
-  Before this slice it reported 10 failures: two CandidateRefresh
-  provider-counteroffer assertion drifts fixed here, plus unrelated checked-in
-  schema/validation fixture freshness and CampaignPlanner source-summary
-  assertion drift. The known `:propagator_exit` log from
-  `scenario_runner_test` also appeared during that full run.
+  Before the two assertion-drift slices it reported 10 failures; the
+  CandidateRefresh provider-counteroffer and CampaignPlanner source-summary
+  failures have now been addressed with focused/full-file green tests.
+  Remaining likely full-suite failures are checked-in schema/validation fixture
+  freshness. The known `:propagator_exit` log from `scenario_runner_test` also
+  appeared during the earlier full run.
 
 Docs/artifacts changed:
 - No product/schema/artifact changes; this updates tests to the existing
-  provider-counteroffer summary output.
+  CampaignPlanner/CandidateRefresh summary output.
 
 Level 6 pillar advanced:
-Branch-local CandidateRefresh verification: provider-counteroffer summary tests
-now assert current replay evidence instead of stale narrower maps.
+Branch-local CampaignPlanner verification: source-summary handoff tests now pin
+current replay evidence without brittle exact equality on additive assumption
+metadata.
 
 Remaining maturity gaps:
-Resolve the unrelated schema fixture/export drift and source-summary assertion
-drift shown by full `mix test`, especially checked-in schema validation batch
-freshness and CampaignPlanner contact-allocation source-summary counts, then
+Resolve checked-in schema fixture/export drift shown by full `mix test`, then
 continue closing thin artifact-only replay gaps where compact source summaries
 or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Product commit `61939cf1fa59294f7474afb3666555a8259d677c`.
+Product commit `c0d2f1daf9db11d61bd15250e66a107bf317bf83`.
 
 Next candidate:
-Narrowly address the remaining full-suite drift, starting with either the
-checked-in schema validation batch freshness or the CampaignPlanner
-contact-allocation source-summary assertion drift.
+Narrowly address the remaining full-suite schema fixture/export drift, starting
+with checked-in study manifest schema freshness or schema validation batch
+report freshness.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
