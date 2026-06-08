@@ -8369,6 +8369,131 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(package)
   end
 
+  test "candidate refresh operational quality gate summaries become operator review rows" do
+    summary = study_result_fixture("operational_quality_gate_summary_v1.json")
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:operational_quality_gate_summary:001",
+      "source_operational_quality_gate_summary" => summary
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:operational_quality_gate_summary:001",
+             "review_count" => 3,
+             "quality_gate_review_count" => 3
+           } = package
+
+    assert Enum.map(package["rows"], & &1["source"]) == [
+             "candidate_refresh.source_operational_quality_gate_summary.rows",
+             "candidate_refresh.source_operational_quality_gate_summary.rows",
+             "candidate_refresh.source_operational_quality_gate_summary.rows"
+           ]
+
+    assert %{
+             "review_type" => "quality_gate_review",
+             "source" => "candidate_refresh.source_operational_quality_gate_summary.rows",
+             "required_operator_action" => "review_quality_gate",
+             "quality_gate_id" => "resource_availability",
+             "quality_gate_status" => "review_required",
+             "quality_gate_classification" => "review_only",
+             "readiness_level" => "operator_review",
+             "resource_availability_pressure_count" => 2,
+             "resource_availability_reason_counts" => %{
+               "antenna_unavailable" => 1,
+               "payload_unavailable" => 1
+             },
+             "source_quality_gate_row" => %{
+               "gate_id" => "resource_availability",
+               "source_summary_schema_contract" => "operational_quality_gate_summary.v1",
+               "source_summary_model" => "artifact_only_quality_gate_summary"
+             },
+             "source_quality_gate_report" => %{
+               "schema_contract" => "quality_gate_report.v1",
+               "report_id" => "quality_gate:resource_projection_report.v1:resource_summaries",
+               "source_summary_schema_contract" => "operational_quality_gate_summary.v1",
+               "source_summary_model" => "artifact_only_quality_gate_summary",
+               "quality_gate_row_ids_by_status" => %{
+                 "review_required" => [
+                   "quality_gate:resource_projection_report.v1:resource_summaries:cadence_import:6",
+                   "quality_gate:resource_projection_report.v1:resource_summaries:operator_review:5",
+                   "quality_gate:resource_projection_report.v1:resource_summaries:resource_availability:4"
+                 ]
+               }
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["quality_gate_id"] == "resource_availability")
+             )
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+  end
+
+  test "candidate refresh result artifact operational quality gate summaries become operator review rows" do
+    summary = study_result_fixture("operational_quality_gate_summary_v1.json")
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:wrapped_operational_quality_gate_summary:001",
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "source_operational_quality_gate_summary" => summary,
+          "operational_quality_gate_summary" => summary
+        }
+      ]
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" =>
+               "candidate_refresh:wrapped_operational_quality_gate_summary:001",
+             "review_count" => 6,
+             "quality_gate_review_count" => 6
+           } = package
+
+    assert Enum.map(package["rows"], & &1["source"]) == [
+             "candidate_refresh.source_result_artifact[0].source_operational_quality_gate_summary.rows",
+             "candidate_refresh.source_result_artifact[0].source_operational_quality_gate_summary.rows",
+             "candidate_refresh.source_result_artifact[0].source_operational_quality_gate_summary.rows",
+             "candidate_refresh.source_result_artifact[0].operational_quality_gate_summary.rows",
+             "candidate_refresh.source_result_artifact[0].operational_quality_gate_summary.rows",
+             "candidate_refresh.source_result_artifact[0].operational_quality_gate_summary.rows"
+           ]
+
+    assert %{
+             "review_type" => "quality_gate_review",
+             "source" =>
+               "candidate_refresh.source_result_artifact[0].operational_quality_gate_summary.rows",
+             "quality_gate_id" => "cadence_import",
+             "quality_gate_status" => "review_required",
+             "source_quality_gate_row" => %{
+               "gate_id" => "cadence_import",
+               "source_summary_schema_contract" => "operational_quality_gate_summary.v1"
+             },
+             "source_quality_gate_report" => %{
+               "source_summary_schema_contract" => "operational_quality_gate_summary.v1",
+               "non_passed_gate_count" => 3
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source"] ==
+                   "candidate_refresh.source_result_artifact[0].operational_quality_gate_summary.rows" and
+                   &1["quality_gate_id"] == "cadence_import")
+             )
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+  end
+
   test "candidate refresh compact quality gate import-readiness summaries become review and import rows" do
     summary = quality_gate_import_readiness_summary()
 
