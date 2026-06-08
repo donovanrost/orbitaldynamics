@@ -42608,6 +42608,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "counteroffer_end_delta_count" => 1,
              "counteroffer_duration_delta_count" => 1,
              "counteroffer_lock_deadline_count" => 1,
+             "counteroffer_lock_deadline_status_counts" => %{"active" => 1},
+             "counteroffer_ids_by_lock_deadline_status" => %{
+               "active" => ["counteroffer_1"]
+             },
              "earliest_counteroffer_lock_deadline_s" => 360.0,
              "plan_impact_summary_count" => 1,
              "plan_impact_status_counts" => %{"review_required" => 1},
@@ -42618,8 +42622,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "cost_delta_counteroffer_ids" => ["counteroffer_1"],
              "counteroffer_status_counts" => %{"proposed" => 1},
              "required_operator_action_counts" => %{"review_provider_counteroffer" => 1},
+             "review_counteroffer_ids" => [],
              "trust_boundary_status" => "declared",
-             "trust_boundaries" => ["counterparty_provider", "provider_calendar_feed"]
+             "trust_boundaries" => ["provider_calendar_feed"]
            } =
              get_in(artifact, ["provenance", "source_reports", "provider_counteroffer_report"])
 
@@ -42704,6 +42709,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "reviewable_count" => 1,
              "counteroffer_cost_delta_count" => 1,
              "counteroffer_cost_delta_total" => 75.0,
+             "counteroffer_timing_shift_count" => 1,
+             "counteroffer_start_delta_count" => 1,
+             "counteroffer_end_delta_count" => 1,
+             "counteroffer_duration_delta_count" => 1,
              "counteroffer_lock_deadline_count" => 1,
              "earliest_counteroffer_lock_deadline_s" => 360.0,
              "import_readiness_summary_count" => 1,
@@ -42737,11 +42746,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "review_provider_counteroffer" => 1
              },
              "trust_boundary_status" => "declared",
-             "trust_boundaries" => [
-               "counterparty_provider",
-               "ops_import_readiness_summary",
-               "provider_calendar_feed"
-             ]
+             "trust_boundaries" => ["ops_import_readiness_summary", "provider_calendar_feed"]
            } =
              get_in(artifact, ["provenance", "source_reports", "provider_counteroffer_report"])
 
