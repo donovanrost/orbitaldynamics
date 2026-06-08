@@ -8,7 +8,7 @@ Current slice:
 Quality-gate unavailable-resource CandidateRefresh review/import handoff.
 
 Status:
-Completed locally; CandidateRefresh OperatorReview/CadenceImport handoffs now
+Completed and pushed; CandidateRefresh OperatorReview/CadenceImport handoffs now
 lift compact `operational_quality_gate_unavailable_resource_summary.v1` inputs
 from top-level refresh fields, accepted/mission state, `source_result_artifact`,
 and `result_artifact` wrappers. Compact summaries reconstruct non-passed
@@ -45,8 +45,8 @@ or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Pending commit; previous pushed commit
-`e6467de6d688bcb6bf639cd6bb3496afcd3c11a3`.
+Pushed `d733aee377f775b0e568de67073cd257749b2bcb` after product commit
+`79d937a168be82a3459eadde93ecbb787b4f9420`.
 
 Next candidate:
 Continue the quality-gates/import-eligibility queue by reassessing compact
