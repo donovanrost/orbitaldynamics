@@ -13959,20 +13959,23 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp objective_satisfaction_required_observations(row) do
-    [
-      row["required_observations"],
-      row["required_observation_count"],
-      row["required_target_observations"],
-      row["required_target_observation_count"],
-      row["target_required_observation_count"],
-      row["required_revisits"],
-      row["required_revisit_count"],
-      row["target_required_revisit_count"],
-      row["required_coverage_count"],
-      row["target_required_coverage_count"]
-    ]
-    |> Enum.map(&numeric_or_nil/1)
-    |> Enum.find(&is_number/1)
+    explicit =
+      [
+        row["required_observations"],
+        row["required_observation_count"],
+        row["required_target_observations"],
+        row["required_target_observation_count"],
+        row["target_required_observation_count"],
+        row["required_revisits"],
+        row["required_revisit_count"],
+        row["target_required_revisit_count"],
+        row["required_coverage_count"],
+        row["target_required_coverage_count"]
+      ]
+      |> Enum.map(&numeric_or_nil/1)
+      |> Enum.find(&is_number/1)
+
+    explicit || objective_satisfaction_required_observations_from_direct_gap(row)
   end
 
   defp objective_satisfaction_planned_observations(row) do
@@ -15033,6 +15036,19 @@ defmodule OrbitalDynamics.CampaignPlanner do
     end
   end
 
+  defp objective_satisfaction_required_observations_from_direct_gap(row) do
+    case objective_satisfaction_direct_target_gap(row) do
+      gap when is_number(gap) and gap > 0.0 ->
+        planned_observations = objective_satisfaction_planned_observations(row)
+        planned_count = planned_observations || objective_satisfaction_planned_contacts(row)
+
+        planned_count + gap
+
+      _gap ->
+        nil
+    end
+  end
+
   defp objective_satisfaction_score_term_downlink_gap?(row),
     do: positive_number?(objective_satisfaction_score_term_downlink_gap(row))
 
@@ -15077,6 +15093,24 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "revisit_shortfall_count",
       "coverage_shortfall_count"
     ])
+  end
+
+  defp objective_satisfaction_direct_target_gap(row) do
+    [
+      row["observation_count_gap"],
+      row["missing_observation_count"],
+      row["target_observation_gap_count"],
+      row["observation_shortfall_count"],
+      row["revisit_gap_count"],
+      row["missing_revisit_count"],
+      row["target_revisit_gap_count"],
+      row["revisit_shortfall_count"],
+      row["coverage_shortfall_count"],
+      row["target_coverage_gap_count"],
+      row["coverage_gap_count"]
+    ]
+    |> Enum.map(&numeric_or_nil/1)
+    |> Enum.find(&is_number/1)
   end
 
   defp objective_score_term_number(row, keys) do
@@ -15768,6 +15802,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Enum.find(&is_number/1)
 
     explicit ||
+      objective_tradeoff_required_observations_from_direct_gap(row) ||
       objective_tradeoff_required_observations_from_score_terms(row) ||
       objective_tradeoff_required_target_count(row)
   end
@@ -16229,6 +16264,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
     end
   end
 
+  defp objective_tradeoff_required_observations_from_direct_gap(row) do
+    case objective_tradeoff_direct_target_gap(row) do
+      gap when is_number(gap) and gap > 0.0 ->
+        objective_tradeoff_planned_observations(row) + gap
+
+      _gap ->
+        nil
+    end
+  end
+
   defp objective_tradeoff_score_term_downlink_gap?(row),
     do: positive_number?(objective_tradeoff_score_term_downlink_gap(row))
 
@@ -16273,6 +16318,24 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "revisit_shortfall_count",
       "coverage_shortfall_count"
     ])
+  end
+
+  defp objective_tradeoff_direct_target_gap(row) do
+    [
+      row["observation_count_gap"],
+      row["missing_observation_count"],
+      row["target_observation_gap_count"],
+      row["observation_shortfall_count"],
+      row["revisit_gap_count"],
+      row["missing_revisit_count"],
+      row["target_revisit_gap_count"],
+      row["revisit_shortfall_count"],
+      row["coverage_shortfall_count"],
+      row["target_coverage_gap_count"],
+      row["coverage_gap_count"]
+    ]
+    |> Enum.map(&numeric_or_nil/1)
+    |> Enum.find(&is_number/1)
   end
 
   defp objective_tradeoff_score_term_number(row, keys) do

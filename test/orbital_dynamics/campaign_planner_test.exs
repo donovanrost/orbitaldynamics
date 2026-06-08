@@ -52976,6 +52976,103 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives objective tradeoff target counts from direct observation shortfall aliases" do
+    prior_plan =
+      base_plan(%{
+        "candidate_activities" => [
+          observe(
+            "obs_tradeoff_shortfall_recovery_a",
+            "leo_1",
+            "target_tradeoff_shortfall",
+            360.0,
+            420.0,
+            12.0
+          ),
+          observe(
+            "obs_tradeoff_shortfall_recovery_b",
+            "leo_1",
+            "target_tradeoff_shortfall",
+            480.0,
+            540.0,
+            12.0
+          )
+        ],
+        "source_objective_tradeoff_report" => %{
+          "schema_contract" => "objective_tradeoff_report.v1",
+          "model" => "provider_target_shortfall_tradeoffs",
+          "ranking_count" => 1,
+          "provenance" => %{"trust_boundary" => "provider_tradeoff_shortfall_review"},
+          "rows" => [
+            %{
+              "rank" => 2,
+              "scenario_id" => "leo_1",
+              "branch_id" => "tradeoff_direct_observation_shortfall",
+              "objective" => "target coverage",
+              "selected" => false,
+              "score" => 64.0,
+              "score_delta_from_selected" => -11.0,
+              "target" => %{
+                "id" => "target_tradeoff_shortfall",
+                "priority" => "8.0",
+                "latitude_deg" => -9.0,
+                "longitude_deg" => 31.0,
+                "minimum_elevation_deg" => 15.0
+              },
+              "selected_observation_count" => "1",
+              "observation_shortfall_count" => "2"
+            }
+          ]
+        }
+      })
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put(:targets, [])
+
+    artifact =
+      strategy(prior_plan,
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    branch =
+      branch(
+        artifact,
+        "derived_objective_tradeoff_pressure_tradeoff_direct_observation_shortfall"
+      )
+
+    assert %{
+             "type" => "urgent_target",
+             "objective_type" => "target_coverage",
+             "target_id" => "target_tradeoff_shortfall",
+             "priority" => 8.0,
+             "planned_observations" => 1.0,
+             "required_observations" => 3.0,
+             "score" => 64.0,
+             "score_delta_from_selected" => -11.0,
+             "feedback_source" => "prior_plan.source_objective_tradeoff_report",
+             "feedback_scope" => "objective_tradeoff",
+             "trust_boundary" => "provider_tradeoff_shortfall_review",
+             "derivation_reasons" => [
+               "objective_tradeoff_target_gap",
+               "objective_tradeoff_unselected"
+             ]
+           } = List.first(branch["events"])
+
+    additions =
+      Enum.filter(
+        branch["candidate_plan"]["strategic_additions"],
+        &(&1["target_id"] == "target_tradeoff_shortfall")
+      )
+
+    assert length(additions) >= 2
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy derives objective tradeoff target refresh from inline target specs" do
     prior_plan =
       base_plan(%{
@@ -54901,6 +54998,85 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              &(&1["target_id"] == "target_list_b" and
                  get_in(&1, ["feasibility", "required_observations"]) == 2)
            )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
+  test "strategy derives objective satisfaction target counts from direct observation shortfall aliases" do
+    prior_plan =
+      base_plan(%{
+        "candidate_activities" => [
+          observe("obs_shortfall_recovery_a", "leo_1", "target_shortfall", 360.0, 420.0, 12.0),
+          observe("obs_shortfall_recovery_b", "leo_1", "target_shortfall", 480.0, 540.0, 12.0)
+        ],
+        "source_objective_satisfaction_report" => %{
+          "schema_contract" => "objective_satisfaction_report.v1",
+          "model" => "provider_target_shortfall_summary",
+          "source" => "provider.objective_summary",
+          "objective_count" => 1,
+          "provenance" => %{"trust_boundary" => "provider_shortfall_review"},
+          "rows" => [
+            %{
+              "id" => "objective:direct_observation_shortfall",
+              "objective" => "target coverage",
+              "status" => "partial",
+              "target" => %{
+                "id" => "target_shortfall",
+                "priority" => "6.0",
+                "latitude_deg" => 14.0,
+                "longitude_deg" => -23.0,
+                "minimum_elevation_deg" => 13.0
+              },
+              "selected_observation_count" => "1",
+              "observation_shortfall_count" => "2"
+            }
+          ]
+        }
+      })
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put(:targets, [])
+
+    artifact =
+      strategy(prior_plan,
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    branch =
+      branch(
+        artifact,
+        "derived_objective_satisfaction_objective:direct_observation_shortfall:target_shortfall"
+      )
+
+    assert %{
+             "type" => "urgent_target",
+             "objective_type" => "target_coverage",
+             "target_id" => "target_shortfall",
+             "priority" => 6.0,
+             "planned_observations" => 1.0,
+             "required_observations" => 3,
+             "feedback_source" => "prior_plan.source_objective_satisfaction_report",
+             "feedback_scope" => "objective_satisfaction",
+             "objective_status" => "partial",
+             "trust_boundary" => "provider_shortfall_review",
+             "derivation_reasons" => [
+               "objective_satisfaction_target_gap",
+               "objective_status_partial"
+             ]
+           } = List.first(branch["events"])
+
+    additions =
+      Enum.filter(
+        branch["candidate_plan"]["strategic_additions"],
+        &(&1["target_id"] == "target_shortfall")
+      )
+
+    assert length(additions) >= 2
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)

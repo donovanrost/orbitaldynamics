@@ -113,6 +113,7 @@
 - Nested or flattened operator-review and Cadence-import objective-satisfaction rows can replay the same downlink, target, and collection-latency branch-local refresh pressure without resubmitting the source report.
 - Objective-tradeoff pressure rows normalize JSON-style `selected` booleans so unselected branch rationale is preserved for adapter-shaped inputs, and accept adapter-facing `rows` as a read-only alias for canonical `tradeoffs`.
 - Direct provider observation-count aliases such as `required_observation_count` and `selected_observation_count` now drive the required/planned observation counts on derived target refresh branches.
+- Direct provider target-gap count aliases such as `observation_shortfall_count`, `missing_observation_count`, `revisit_shortfall_count`, and `coverage_shortfall_count` add to planned observations when explicit required counts are absent.
 - Objective-satisfaction row scenario, station, time-window, target-geometry, candidate-window, and spacecraft-selector fields are preserved so branch-local refresh filters can stage scoped replacements instead of broad generic additions.
 
 ### Inline target spec objects
@@ -138,7 +139,7 @@
 - Preserved evidence:
   - Branch/scenario identity, score deltas, score terms, source activity IDs, latency-window evidence, data-volume evidence, source objective status aliases.
   - Provider contact lists/objects that infer required/planned contact counts and source activity IDs.
-  - Provider target lists/objects that infer required/planned observation counts.
+  - Provider target lists/objects and direct observation shortfall aliases that infer required/planned observation counts.
   - Nested source/selected/satisfied/candidate observation or activity objects that preserve the singular observation source activity ID and can provide target, collection, product, payload, instrument, collection-end, deadline, and latency-measurement plus data-volume demand evidence for latency-scoped downlink refresh, even when nested contact objects also add lineage IDs, inline target priority/geometry, and trust-boundary evidence.
 - Duplicate tradeoff branch identities from source and canonical reports are retained as independent pressure branches with deterministic suffixes from report source, branch/objective identity, station/target routing, source activities, required work, timing, and trust-boundary evidence, while non-duplicated tradeoff rows keep their historical unsuffixed IDs.
 - Nested or flattened operator-review and Cadence-import objective-tradeoff rows use the same replay path, preserving review/import trust-boundary evidence.
