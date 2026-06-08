@@ -246,6 +246,11 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     :station_calendar_ambiguous_entry_count,
     :station_calendar_ambiguous_entry_ids,
     :station_contention_status,
+    :station_calendar_reservation_overlap_count,
+    :station_calendar_reservation_expires_at_s,
+    :station_calendar_reservation_ids,
+    :station_calendar_reserved_by,
+    :station_calendar_reservation_statuses,
     :station_reservation_id,
     :station_reservation_expires_at_s,
     :station_reserved_by,
@@ -482,6 +487,11 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
           station_calendar_ambiguous_entry_count: non_neg_integer() | nil,
           station_calendar_ambiguous_entry_ids: [atom() | String.t()],
           station_contention_status: atom() | String.t() | nil,
+          station_calendar_reservation_overlap_count: non_neg_integer() | nil,
+          station_calendar_reservation_expires_at_s: [number()],
+          station_calendar_reservation_ids: [atom() | String.t()],
+          station_calendar_reserved_by: [atom() | String.t()],
+          station_calendar_reservation_statuses: [atom() | String.t()],
           station_reservation_id: atom() | String.t() | nil,
           station_reservation_expires_at_s: number() | nil,
           station_reserved_by: atom() | String.t() | nil,
@@ -788,6 +798,11 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
         :station_calendar_ambiguous_entry_count,
         :station_calendar_ambiguous_entry_ids,
         :station_contention_status,
+        :station_calendar_reservation_overlap_count,
+        :station_calendar_reservation_expires_at_s,
+        :station_calendar_reservation_ids,
+        :station_calendar_reserved_by,
+        :station_calendar_reservation_statuses,
         :station_reservation_id,
         :station_reservation_expires_at_s,
         :station_reserved_by,
@@ -1874,6 +1889,13 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       station_calendar_ambiguous_entry_count: activity.station_calendar_ambiguous_entry_count,
       station_calendar_ambiguous_entry_ids: activity.station_calendar_ambiguous_entry_ids,
       station_contention_status: activity.station_contention_status,
+      station_calendar_reservation_overlap_count:
+        activity.station_calendar_reservation_overlap_count,
+      station_calendar_reservation_expires_at_s:
+        activity.station_calendar_reservation_expires_at_s,
+      station_calendar_reservation_ids: activity.station_calendar_reservation_ids,
+      station_calendar_reserved_by: activity.station_calendar_reserved_by,
+      station_calendar_reservation_statuses: activity.station_calendar_reservation_statuses,
       station_reservation_id: activity.station_reservation_id,
       station_reservation_expires_at_s: activity.station_reservation_expires_at_s,
       station_reserved_by: activity.station_reserved_by,
@@ -2085,6 +2107,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       {:station_calendar_overlap_entry_ids, []} -> true
       {:station_calendar_overlap_availabilities, []} -> true
       {:station_calendar_ambiguous_entry_ids, []} -> true
+      {:station_calendar_reservation_expires_at_s, []} -> true
+      {:station_calendar_reservation_ids, []} -> true
+      {:station_calendar_reserved_by, []} -> true
+      {:station_calendar_reservation_statuses, []} -> true
       {:downlink_completion_sources, []} -> true
       {_key, value} -> is_nil(value)
     end)
@@ -2181,6 +2207,21 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       Keyword.get(opts, :station_calendar_ambiguous_entry_ids, [])
 
     station_contention_status = Keyword.get(opts, :station_contention_status)
+
+    station_calendar_reservation_overlap_count =
+      Keyword.get(opts, :station_calendar_reservation_overlap_count)
+
+    station_calendar_reservation_expires_at_s =
+      Keyword.get(opts, :station_calendar_reservation_expires_at_s, [])
+
+    station_calendar_reservation_ids =
+      Keyword.get(opts, :station_calendar_reservation_ids, [])
+
+    station_calendar_reserved_by = Keyword.get(opts, :station_calendar_reserved_by, [])
+
+    station_calendar_reservation_statuses =
+      Keyword.get(opts, :station_calendar_reservation_statuses, [])
+
     station_reservation_id = Keyword.get(opts, :station_reservation_id)
     station_reservation_expires_at_s = Keyword.get(opts, :station_reservation_expires_at_s)
     station_reserved_by = Keyword.get(opts, :station_reserved_by)
@@ -2447,6 +2488,33 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
         "station-calendar entry ids"
       )
 
+    station_calendar_reservation_expires_at_s =
+      non_negative_number_list_input!(
+        station_calendar_reservation_expires_at_s,
+        "station_calendar_reservation_expires_at_s"
+      )
+
+    station_calendar_reservation_ids =
+      id_list_input!(
+        station_calendar_reservation_ids,
+        "station_calendar_reservation_ids",
+        "station reservation ids"
+      )
+
+    station_calendar_reserved_by =
+      scalar_list_input!(
+        station_calendar_reserved_by,
+        "station_calendar_reserved_by",
+        "reservation owner labels"
+      )
+
+    station_calendar_reservation_statuses =
+      scalar_list_input!(
+        station_calendar_reservation_statuses,
+        "station_calendar_reservation_statuses",
+        "reservation status labels"
+      )
+
     cond do
       status not in @activity_statuses ->
         raise ArgumentError, "status must be one of #{inspect(@activity_statuses)}"
@@ -2523,6 +2591,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
 
       not optional_scalar?(station_contention_status) ->
         raise ArgumentError, "station_contention_status must be nil, a string, or an atom"
+
+      not optional_non_negative_integer?(station_calendar_reservation_overlap_count) ->
+        raise ArgumentError,
+              "station_calendar_reservation_overlap_count must be nil or a non-negative integer"
 
       not optional_stable_identifier?(station_reservation_id) ->
         raise ArgumentError, "station_reservation_id must be nil or a stable identifier"
@@ -3112,6 +3184,11 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
           station_calendar_ambiguous_entry_count: station_calendar_ambiguous_entry_count,
           station_calendar_ambiguous_entry_ids: station_calendar_ambiguous_entry_ids,
           station_contention_status: station_contention_status,
+          station_calendar_reservation_overlap_count: station_calendar_reservation_overlap_count,
+          station_calendar_reservation_expires_at_s: station_calendar_reservation_expires_at_s,
+          station_calendar_reservation_ids: station_calendar_reservation_ids,
+          station_calendar_reserved_by: station_calendar_reserved_by,
+          station_calendar_reservation_statuses: station_calendar_reservation_statuses,
           station_reservation_id: station_reservation_id,
           station_reservation_expires_at_s: station_reservation_expires_at_s,
           station_reserved_by: station_reserved_by,
@@ -3449,6 +3526,44 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     |> maybe_put_opt(
       :station_contention_status,
       optional_scalar!(field(source, :station_contention_status), "station_contention_status")
+    )
+    |> maybe_put_opt(
+      :station_calendar_reservation_overlap_count,
+      optional_non_negative_integer!(
+        field(source, :station_calendar_reservation_overlap_count),
+        "station_calendar_reservation_overlap_count"
+      )
+    )
+    |> maybe_put_opt(
+      :station_calendar_reservation_expires_at_s,
+      optional_non_negative_number_list!(
+        field(source, :station_calendar_reservation_expires_at_s),
+        "station_calendar_reservation_expires_at_s"
+      )
+    )
+    |> maybe_put_opt(
+      :station_calendar_reservation_ids,
+      optional_id_list!(
+        field(source, :station_calendar_reservation_ids),
+        "station_calendar_reservation_ids",
+        "station reservation ids"
+      )
+    )
+    |> maybe_put_opt(
+      :station_calendar_reserved_by,
+      optional_scalar_list!(
+        field(source, :station_calendar_reserved_by),
+        "station_calendar_reserved_by",
+        "reservation owner labels"
+      )
+    )
+    |> maybe_put_opt(
+      :station_calendar_reservation_statuses,
+      optional_scalar_list!(
+        field(source, :station_calendar_reservation_statuses),
+        "station_calendar_reservation_statuses",
+        "reservation status labels"
+      )
     )
     |> maybe_put_opt(
       :station_reservation_id,
@@ -4596,6 +4711,11 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   defp optional_scalar_list!(values, field, description),
     do: scalar_list_input!(values, field, description)
 
+  defp optional_non_negative_number_list!(nil, _field), do: nil
+
+  defp optional_non_negative_number_list!(values, field),
+    do: non_negative_number_list_input!(values, field)
+
   defp optional_map_list!(nil, _field, _description), do: nil
 
   defp optional_map_list!(values, field, description),
@@ -4901,6 +5021,44 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   end
 
   defp scalar_list_value(_value), do: []
+
+  defp non_negative_number_list_input!(values, field) do
+    case non_negative_number_list_values(values) do
+      {:ok, numbers} -> numbers
+      :error -> raise ArgumentError, "#{field} must be a list of non-negative numbers"
+    end
+  end
+
+  defp non_negative_number_list_values(values) when is_list(values) do
+    Enum.reduce_while(values, {:ok, []}, fn value, {:ok, numbers} ->
+      case non_negative_number_list_values(value) do
+        {:ok, value_numbers} -> {:cont, {:ok, numbers ++ value_numbers}}
+        :error -> {:halt, :error}
+      end
+    end)
+  end
+
+  defp non_negative_number_list_values(value) when is_binary(value) do
+    values =
+      value
+      |> String.split(",", trim: false)
+      |> Enum.map(&String.trim/1)
+
+    numbers = Enum.map(values, &numeric_or_nil/1)
+
+    if values != [] and Enum.all?(numbers, &(is_number(&1) and &1 >= 0.0)) do
+      {:ok, numbers}
+    else
+      :error
+    end
+  end
+
+  defp non_negative_number_list_values(value) do
+    case numeric_or_nil(value) do
+      number when is_number(number) and number >= 0.0 -> {:ok, [number]}
+      _other -> :error
+    end
+  end
 
   defp map_list_input!(values, field, description) do
     case map_list_values(values) do

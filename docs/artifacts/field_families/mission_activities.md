@@ -164,6 +164,13 @@ Typed activities also preserve station-calendar overlap review evidence:
 This keeps provider overlap/ambiguity provenance visible to timeline
 review/import handoffs without allocating capacity, creating reservations, or
 resolving ambiguity automatically.
+Aggregate reservation-list evidence
+(`station_calendar_reservation_overlap_count`,
+`station_calendar_reservation_expires_at_s`,
+`station_calendar_reservation_ids`, `station_calendar_reserved_by`, and
+`station_calendar_reservation_statuses`) also round trips through typed
+activities as provider-calendar review context without creating, extending,
+approving, or importing those reservations.
 Nested source-station-calendar availability/status evidence also derives
 station unavailable and reserved rejection reasons for generated candidates.
 Reviewable rejected rows can now be lifted into `operator_review_package.v1`

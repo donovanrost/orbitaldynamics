@@ -140,6 +140,11 @@ defmodule OrbitalDynamics.MissionPlan.ActivityTest do
     assert :station_calendar_ambiguous_entry_count in preserved_fields
     assert :station_calendar_ambiguous_entry_ids in preserved_fields
     assert :station_contention_status in preserved_fields
+    assert :station_calendar_reservation_overlap_count in preserved_fields
+    assert :station_calendar_reservation_expires_at_s in preserved_fields
+    assert :station_calendar_reservation_ids in preserved_fields
+    assert :station_calendar_reserved_by in preserved_fields
+    assert :station_calendar_reservation_statuses in preserved_fields
     assert :station_reservation_id in preserved_fields
     assert :station_reservation_expires_at_s in preserved_fields
     assert :station_reserved_by in preserved_fields

@@ -543,6 +543,64 @@ defmodule OrbitalDynamics.MissionPlanTest do
              OrbitalDynamics.Schema.validate_artifact(report)
   end
 
+  test "round trips station calendar reservation lists through typed activities" do
+    activity =
+      Activity.from_map!(%{
+        "id" => "provider_reservation_list_contact",
+        "activity_type" => "planned_contact",
+        "ground_station_id" => "gs_a",
+        "direction" => "downlink",
+        "starts_at_s" => 470.0,
+        "ends_at_s" => 530.0,
+        "station_calendar_reservation_overlap_count" => "2",
+        "station_calendar_reservation_expires_at_s" => "240.0, 420",
+        "station_calendar_reservation_ids" =>
+          "reservation:partner_a:390, reservation:partner_b:420",
+        "station_calendar_reserved_by" => [:ops_team_a, "ops_team_b"],
+        "station_calendar_reservation_statuses" => ["Confirmed", :pending_review]
+      })
+
+    assert %Activity{
+             station_calendar_reservation_overlap_count: 2,
+             station_calendar_reservation_expires_at_s: [240.0, 420.0],
+             station_calendar_reservation_ids: [
+               "reservation:partner_a:390",
+               "reservation:partner_b:420"
+             ],
+             station_calendar_reserved_by: [:ops_team_a, "ops_team_b"],
+             station_calendar_reservation_statuses: ["Confirmed", :pending_review]
+           } = activity
+
+    assert %{
+             "station_calendar_reservation_overlap_count" => 2,
+             "station_calendar_reservation_expires_at_s" => [240.0, 420.0],
+             "station_calendar_reservation_ids" => [
+               "reservation:partner_a:390",
+               "reservation:partner_b:420"
+             ],
+             "station_calendar_reserved_by" => ["ops_team_a", "ops_team_b"],
+             "station_calendar_reservation_statuses" => ["Confirmed", "pending_review"]
+           } = Activity.to_artifact_map(activity)
+
+    report = OrbitalDynamics.Timeline.operational_report([activity])
+
+    assert %{
+             "activity_context" => %{
+               "station_calendar_reservation_overlap_count" => 2,
+               "station_calendar_reservation_expires_at_s" => [240.0, 420.0],
+               "station_calendar_reservation_ids" => [
+                 "reservation:partner_a:390",
+                 "reservation:partner_b:420"
+               ],
+               "station_calendar_reserved_by" => ["ops_team_a", "ops_team_b"],
+               "station_calendar_reservation_statuses" => ["confirmed", "pending_review"]
+             }
+           } = List.first(report["rows"])
+
+    assert {:ok, %{"schema_contract" => "operational_timeline_report.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(report)
+  end
+
   test "rejects malformed collection latency objective context at typed ingress" do
     assert_raise ArgumentError, ~r/collection_latency_objective_count/, fn ->
       Activity.from_map!(%{
@@ -670,6 +728,28 @@ defmodule OrbitalDynamics.MissionPlanTest do
           {"station_calendar_ambiguous_entry_count", "-1"},
           {"station_calendar_ambiguous_entry_ids", "bad calendar id"},
           {"station_contention_status", ""}
+        ] do
+      assert_raise ArgumentError, ~r/#{field}/, fn ->
+        Activity.from_map!(%{
+          "id" => "bad_#{field}",
+          "activity_type" => "planned_contact",
+          "ground_station_id" => "gs_a",
+          "direction" => "downlink",
+          "starts_at_s" => 10.0,
+          "ends_at_s" => 40.0,
+          field => value
+        })
+      end
+    end
+  end
+
+  test "rejects malformed station calendar reservation lists at typed ingress" do
+    for {field, value} <- [
+          {"station_calendar_reservation_overlap_count", "-1"},
+          {"station_calendar_reservation_expires_at_s", ["240.0", "bad expires"]},
+          {"station_calendar_reservation_ids", "bad reservation id"},
+          {"station_calendar_reserved_by", [%{"owner" => "ops"}]},
+          {"station_calendar_reservation_statuses", [%{"status" => "confirmed"}]}
         ] do
       assert_raise ArgumentError, ~r/#{field}/, fn ->
         Activity.from_map!(%{
