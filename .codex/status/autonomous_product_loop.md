@@ -5,48 +5,42 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Cadence-import resource-projection stale battery replay challenge coverage.
+Cadence-import link-capacity source-window lineage replay coverage.
 
 Status:
-Implemented and parent-verified. Candidate-refresh replay tests now challenge
-`CadenceImport.from_resource_projection_report/1` battery-margin replay against
-stale base battery derivation inputs, proving the Cadence-import handoff path
-preserves replayed battery state-of-charge, drops stale capacity/energy-derived
-inputs, emits power-margin suppression, and validates the resulting
-`candidate_refresh.v1` artifact. The full-file verification also exposed two
-stale contact-allocation station-pressure fallback test fixtures; those tests
-now delete newer status maps before exercising older ground-station/scalar
-fallback paths.
+Implemented and parent-verified. Candidate-refresh replay tests now assert that
+`CadenceImport.from_link_capacity_report/1` preserves link-capacity source-window
+lineage through import-row reconstruction, including source-report paths and
+source-window routing maps by direction, ground station, spacecraft, and
+requirement status while still deriving the downlink shortfall candidate.
 
 Files changed:
 - `test/orbital_dynamics/candidate_refresh_test.exs`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:51323`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:50233 test/orbital_dynamics/candidate_refresh_test.exs:51267 test/orbital_dynamics/candidate_refresh_test.exs:51323`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:7749 test/orbital_dynamics/candidate_refresh_test.exs:7784 test/orbital_dynamics/candidate_refresh_test.exs:51327`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:51129`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 
 Docs/artifacts changed:
-- No public docs/artifacts changed; this is stale-input replay test hardening
-  for an existing Cadence-import adapter path.
+- No public docs/artifacts changed; this is Cadence-import replay lineage test
+  hardening for an existing link-capacity adapter path.
 
 Level 6 pillar advanced:
 Branch-local candidate refresh depth plus adapter-facing validation/challenge
-coverage. Stale battery derivation inputs can no longer hide replayed
-Cadence-import resource-projection power-margin pressure.
+coverage. Link-capacity source-window routing can no longer disappear at the
+Cadence-import boundary while shortfall replay still appears to work.
 
 Remaining maturity gaps:
 Compact adapter-facing handoffs still need more stale-observation coverage
 across other source-report families where schema lint alone is weaker. Continue
-reassessing Level 6 gaps from the guide after this Cadence-import challenge
-slice is reviewed and published.
+reassessing Level 6 gaps from the guide after this link-capacity lineage slice
+is reviewed and published.
 
 Last commit:
-`9937a56fd00cddf1dcc7932d262b5b0f708bdf8c` (`Test Cadence import battery
-replay drift`).
+Pending for this slice. Previous pushed commit was
+`a3a9333d6ca198a66183ddf50e364e660225fe16`.
 
 Next candidate:
 After publishing this slice, reassess Level 6 gaps from the guide/ledger.

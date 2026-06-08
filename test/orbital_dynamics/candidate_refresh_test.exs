@@ -51131,9 +51131,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "schema_contract" => "link_capacity_report.v1",
       "rows" => [
         %{
+          "spacecraft_id" => "leo_1",
           "ground_station_id" => "equator_prime",
+          "direction" => "downlink",
           "actual_downlink_shortfall_mb" => 420.0,
-          "actual_downlink_requirement_status" => "shortfall"
+          "actual_downlink_requirement_status" => "shortfall",
+          "source_window_id" => "window_actual"
         }
       ]
     }
@@ -51152,6 +51155,24 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     downlink = Enum.find(artifact["candidate_activities"], &(&1["type"] == "downlink"))
     assert downlink["required_downlink_mb"] == 420.0
     assert downlink["selected_downlink_shortfall_mb"] == 60.0
+
+    assert %{
+             "source_report_link_capacity_paths" => [
+               "source_cadence_import_manifest.rows.source_link_capacity"
+             ],
+             "source_report_link_capacity_source_window_ids_by_direction" => %{
+               "downlink" => ["window_actual"]
+             },
+             "source_report_link_capacity_source_window_ids_by_ground_station" => %{
+               "equator_prime" => ["window_actual"]
+             },
+             "source_report_link_capacity_source_window_ids_by_spacecraft" => %{
+               "leo_1" => ["window_actual"]
+             },
+             "source_report_link_capacity_source_window_ids_by_requirement_status" => %{
+               "shortfall" => ["window_actual"]
+             }
+           } = CandidateRefresh.source_report_summary(artifact)
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
