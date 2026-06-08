@@ -8687,6 +8687,12 @@ defmodule OrbitalDynamics.OperatorReview do
         "attitude_confidence" => row_or_context_value(row, "attitude_confidence"),
         "starts_at_s" => row["starts_at_s"],
         "ends_at_s" => row["ends_at_s"],
+        "setup_duration_s" => row_or_context_value(row, "setup_duration_s"),
+        "cooldown_duration_s" => row_or_context_value(row, "cooldown_duration_s"),
+        "telemetry_confirmation_required" =>
+          row_or_context_value(row, "telemetry_confirmation_required"),
+        "telemetry_confirmation_status" =>
+          row_or_context_value(row, "telemetry_confirmation_status"),
         "status" => row["status"],
         "approval_status" => operational_timeline_approval_status(row),
         "source_approval_status" => row["approval_status"],

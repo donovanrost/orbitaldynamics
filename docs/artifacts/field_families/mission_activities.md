@@ -103,6 +103,10 @@ precondition status, counts, type arrays, and typed precondition rows from the
 source operational timeline row; schema validation rejects stale copied
 precondition values across `source_operational_timeline` and Cadence
 `source_review_row` boundaries.
+Operational timeline review rows also lift template-derived
+`setup_duration_s`, `cooldown_duration_s`, `telemetry_confirmation_required`,
+and `telemetry_confirmation_status` fields to top-level adapter metadata while
+preserving the same values in the source activity context.
 Existing `operational_timeline_report.v1` artifacts are accepted as idempotent
 inputs by the operational timeline report facade when queues already hold the
 root timeline artifact.

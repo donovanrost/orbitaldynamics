@@ -17131,6 +17131,17 @@ defmodule OrbitalDynamics.OperatorReviewTest do
             "direction" => "command",
             "ground_station_id" => "dss_14",
             "source_window_id" => "cmd_window_1",
+            "activity_template" => %{
+              "schema_contract" => "activity_template.v1",
+              "id" => "template:command:ops",
+              "activity_type" => "command",
+              "operational_hints" => %{
+                "setup_duration_s" => 15.0,
+                "cooldown_duration_s" => 5.0,
+                "telemetry_confirmation_required" => true,
+                "telemetry_confirmation_status" => "required"
+              }
+            },
             "dependencies" => ["health_1"],
             "dependency_timeline_ids" => ["timeline:health_1"],
             "exclusive_with_activity_ids" => ["command_chain"],
@@ -17310,6 +17321,10 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              "attitude_model" => "attitude_solver:v2",
              "attitude_source" => "mission_plan",
              "attitude_confidence" => 0.91,
+             "setup_duration_s" => 15.0,
+             "cooldown_duration_s" => 5.0,
+             "telemetry_confirmation_required" => true,
+             "telemetry_confirmation_status" => "required",
              "link_protocol" => "ccsds",
              "frequency_band" => "x_band",
              "modulation" => "qpsk",
@@ -17370,6 +17385,10 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              "source_activity_context" => %{
                "contact_result" => "accepted,DROPPED",
                "command_result" => "accepted,rejected",
+               "setup_duration_s" => 15.0,
+               "cooldown_duration_s" => 5.0,
+               "telemetry_confirmation_required" => true,
+               "telemetry_confirmation_status" => "required",
                "lighting_condition" => "partial_eclipse",
                "lighting_detail_model" => "sampled_eclipse_overlap_fraction_tag",
                "lighting_confidence" => 0.82
