@@ -8,7 +8,7 @@ Current slice:
 State-scoped model-acceptance CandidateRefresh operator-review handoff.
 
 Status:
-Completed locally; CandidateRefresh OperatorReview handoffs now lift
+Completed and pushed; CandidateRefresh OperatorReview handoffs now lift
 `model_acceptance_report.v1` review/blocking rows from accepted planning state
 and mission state, matching the existing top-level and result-artifact wrapped
 paths. Rows preserve state-qualified source paths, intended-use/status/
@@ -44,8 +44,8 @@ or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Pending commit; previous pushed commit
-`1c234714853a2793dc5d79164da07be6e23e9c47`.
+Pushed `febb5d858a7c4909de1f3e55c7ce18cacf30430d` after product commit
+`651aacf904a2bb9e11a25784648d6359ead54d61`.
 
 Next candidate:
 After committing, continue branch-local CandidateRefresh depth by checking
