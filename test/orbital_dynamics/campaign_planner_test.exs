@@ -29146,6 +29146,333 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives branch pressure from timeline lifecycle state summaries" do
+    lifecycle_summary = fn prefix, trust_boundary ->
+      planned = [
+        %{
+          id: :"#{prefix}_cmd_pending",
+          type: :command,
+          status: :planned,
+          approval_status: :pending,
+          starts_at_s: 10.0,
+          ends_at_s: 20.0,
+          metadata: %{timeline_id: "timeline:#{prefix}:cmd_pending"}
+        },
+        %{
+          id: :"#{prefix}_dup_a",
+          type: :observe,
+          status: :planned,
+          starts_at_s: 30.0,
+          ends_at_s: 40.0,
+          metadata: %{timeline_id: "timeline:#{prefix}:dup"}
+        },
+        %{
+          id: :"#{prefix}_dup_b",
+          type: :observe,
+          status: :planned,
+          starts_at_s: 35.0,
+          ends_at_s: 45.0,
+          metadata: %{timeline_id: "timeline:#{prefix}:dup"}
+        },
+        %{
+          id: :"#{prefix}_bad_missing_type",
+          status: :planned,
+          starts_at_s: 50.0,
+          ends_at_s: 60.0,
+          metadata: %{timeline_id: "timeline:#{prefix}:bad_missing_type"}
+        }
+      ]
+
+      realized = [
+        %{
+          id: :"#{prefix}_cmd_pending",
+          type: :command,
+          status: :executed,
+          approval_status: :approved,
+          starts_at_s: 10.0,
+          ends_at_s: 20.0,
+          metadata: %{timeline_id: "timeline:#{prefix}:cmd_pending"}
+        }
+      ]
+
+      planned
+      |> Timeline.lifecycle_state_summary(realized, source: "mission.#{prefix}.lifecycle")
+      |> Map.put("provenance", %{"trust_boundary" => trust_boundary})
+    end
+
+    direct_summary = lifecycle_summary.("direct_lifecycle", "direct_lifecycle_boundary")
+    canonical_summary = lifecycle_summary.("canonical_lifecycle", "canonical_lifecycle_boundary")
+
+    wrapped_summary =
+      lifecycle_summary.("wrapped_lifecycle", "wrapped_lifecycle_boundary")
+      |> Map.delete("provenance")
+
+    assert {:ok, %{"schema_contract" => "timeline_lifecycle_state_summary.v1"}} =
+             Schema.validate_artifact(direct_summary)
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put("source_timeline_lifecycle_state_summary", direct_summary)
+      |> Map.put("timeline_lifecycle_state_summary", canonical_summary)
+      |> Map.put(:source_result_artifact, %{
+        "schema_contract" => "result_artifact.v1",
+        "artifact_type" => "mission_state_result_artifact",
+        "timeline_lifecycle_state_summary" => wrapped_summary,
+        "provenance" => %{"trust_boundary" => "wrapped_lifecycle_artifact_boundary"}
+      })
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    direct_branch =
+      branch(
+        artifact,
+        "derived_timeline_lifecycle_state_pressure_mission.direct_lifecycle.lifecycle"
+      )
+
+    assert %{
+             "type" => "timeline_lifecycle_state_pressure",
+             "timeline_lifecycle_state_status" => "review_required",
+             "review_required_count" => 3,
+             "duplicate_timeline_identity_count" => 1,
+             "invalid_activity_input_count" => 1,
+             "review_timeline_ids" => [
+               "timeline:direct_lifecycle:cmd_pending",
+               "timeline:direct_lifecycle:dup",
+               "timeline:invalid_activity_input:direct_lifecycle_bad_missing_type"
+             ],
+             "review_activity_ids" => [
+               "direct_lifecycle_cmd_pending",
+               "direct_lifecycle_dup_a",
+               "direct_lifecycle_dup_b",
+               "timeline_row:4:direct_lifecycle_bad_missing_type"
+             ],
+             "invalid_activity_input_ids" => [
+               "timeline_row:4:direct_lifecycle_bad_missing_type"
+             ],
+             "required_operator_action_counts" => %{
+               "review_activity_approval" => 1,
+               "review_duplicate_timeline_identity" => 1,
+               "review_invalid_activity_input" => 1
+             },
+             "import_action_counts" => %{"review_timeline_diff" => 3},
+             "feedback_source" => "mission_state.source_timeline_lifecycle_state_summary",
+             "feedback_scope" => "timeline_lifecycle_state",
+             "trust_boundary" => "direct_lifecycle_boundary",
+             "requires_operator_review" => true,
+             "derivation_reasons" => ["timeline_lifecycle_state_summary_pressure"]
+           } = List.first(direct_branch["events"])
+
+    assert Enum.any?(
+             direct_branch["risk_indicators"],
+             &(&1["type"] == "timeline_lifecycle_state_review" and
+                 &1["invalid_activity_input_ids"] == [
+                   "timeline_row:4:direct_lifecycle_bad_missing_type"
+                 ] and
+                 &1["feedback_source"] ==
+                   "mission_state.source_timeline_lifecycle_state_summary")
+           )
+
+    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+
+    direct_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] ==
+            "derived_timeline_lifecycle_state_pressure_mission.direct_lifecycle.lifecycle")
+      )
+
+    assert direct_row["branch_timeline_lifecycle_state_statuses"] == ["review_required"]
+
+    assert direct_row["branch_timeline_lifecycle_state_review_timeline_ids"] == [
+             "timeline:direct_lifecycle:cmd_pending",
+             "timeline:direct_lifecycle:dup",
+             "timeline:invalid_activity_input:direct_lifecycle_bad_missing_type"
+           ]
+
+    assert direct_row["branch_timeline_lifecycle_state_invalid_activity_input_ids"] == [
+             "timeline_row:4:direct_lifecycle_bad_missing_type"
+           ]
+
+    assert direct_row["branch_timeline_lifecycle_state_required_operator_actions"] == [
+             "review_activity_approval",
+             "review_duplicate_timeline_identity",
+             "review_invalid_activity_input"
+           ]
+
+    assert direct_row["branch_timeline_lifecycle_state_import_actions"] == [
+             "review_timeline_diff"
+           ]
+
+    wrapped_branch =
+      branch(
+        artifact,
+        "derived_timeline_lifecycle_state_pressure_mission.wrapped_lifecycle.lifecycle"
+      )
+
+    assert %{
+             "feedback_source" =>
+               "mission_state.source_result_artifact.timeline_lifecycle_state_summary",
+             "trust_boundary" => "wrapped_lifecycle_artifact_boundary"
+           } = List.first(wrapped_branch["events"])
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
+  test "strategy derives branch pressure from timeline activity lifecycle states" do
+    lifecycle_state = fn prefix, trust_boundary ->
+      Timeline.activity_lifecycle_state(
+        %{
+          id: :"#{prefix}_cmd_pending",
+          type: :command,
+          status: :planned,
+          approval_status: :pending,
+          starts_at_s: 10.0,
+          ends_at_s: 20.0,
+          metadata: %{timeline_id: "timeline:#{prefix}:cmd_pending"}
+        },
+        %{
+          id: :"#{prefix}_cmd_pending",
+          type: :command,
+          status: :executed,
+          approval_status: :approved,
+          starts_at_s: 10.0,
+          ends_at_s: 20.0,
+          metadata: %{timeline_id: "timeline:#{prefix}:cmd_pending"}
+        }
+      )
+      |> Map.put("trust_boundary", trust_boundary)
+    end
+
+    direct_state =
+      lifecycle_state.("direct_activity_lifecycle_pressure", "direct_activity_lifecycle_boundary")
+
+    canonical_state =
+      lifecycle_state.(
+        "canonical_activity_lifecycle_pressure",
+        "canonical_activity_lifecycle_boundary"
+      )
+
+    wrapped_state =
+      lifecycle_state.(
+        "wrapped_activity_lifecycle_pressure",
+        "wrapped_activity_lifecycle_boundary"
+      )
+      |> Map.delete("trust_boundary")
+
+    assert {:ok, %{"schema_contract" => "timeline_activity_lifecycle_state.v1"}} =
+             Schema.validate_artifact(direct_state)
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put("source_timeline_activity_lifecycle_state", direct_state)
+      |> Map.put("timeline_activity_lifecycle_state", canonical_state)
+      |> Map.put(:source_result_artifact, %{
+        "schema_contract" => "result_artifact.v1",
+        "artifact_type" => "mission_state_result_artifact",
+        "timeline_activity_lifecycle_state" => wrapped_state,
+        "provenance" => %{"trust_boundary" => "wrapped_activity_lifecycle_artifact_boundary"}
+      })
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    direct_branch =
+      branch(
+        artifact,
+        "derived_timeline_activity_lifecycle_state_pressure_direct_activity_lifecycle_pressure_cmd_pending"
+      )
+
+    assert %{
+             "type" => "timeline_activity_lifecycle_state_pressure",
+             "activity_id" => "direct_activity_lifecycle_pressure_cmd_pending",
+             "timeline_id" => "timeline:direct_activity_lifecycle_pressure:cmd_pending",
+             "transition_decision" => "review",
+             "status_transition_decision" => "record",
+             "approval_transition_decision" => "review",
+             "required_operator_action" => "review_activity_approval",
+             "required_operator_actions" => [
+               "record_timeline_change",
+               "review_activity_approval"
+             ],
+             "operator_action_reasons" => [
+               "activity_execution_recorded",
+               "approval_grant_requires_operator_authority"
+             ],
+             "import_action" => "review_timeline_diff",
+             "feedback_source" => "mission_state.source_timeline_activity_lifecycle_state",
+             "feedback_scope" => "timeline_activity_lifecycle_state",
+             "trust_boundary" => "direct_activity_lifecycle_boundary",
+             "requires_operator_review" => true,
+             "derivation_reasons" => ["timeline_activity_lifecycle_state_pressure"]
+           } = List.first(direct_branch["events"])
+
+    assert Enum.any?(
+             direct_branch["risk_indicators"],
+             &(&1["type"] == "timeline_activity_lifecycle_state_review" and
+                 &1["activity_id"] ==
+                   "direct_activity_lifecycle_pressure_cmd_pending" and
+                 &1["feedback_source"] ==
+                   "mission_state.source_timeline_activity_lifecycle_state")
+           )
+
+    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+
+    direct_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] ==
+            "derived_timeline_activity_lifecycle_state_pressure_direct_activity_lifecycle_pressure_cmd_pending")
+      )
+
+    assert direct_row["branch_timeline_activity_lifecycle_state_activity_ids"] == [
+             "direct_activity_lifecycle_pressure_cmd_pending"
+           ]
+
+    assert direct_row["branch_timeline_activity_lifecycle_state_timeline_ids"] == [
+             "timeline:direct_activity_lifecycle_pressure:cmd_pending"
+           ]
+
+    assert direct_row["branch_timeline_activity_lifecycle_state_transition_decisions"] == [
+             "review"
+           ]
+
+    assert direct_row["branch_timeline_activity_lifecycle_state_required_operator_actions"] == [
+             "record_timeline_change",
+             "review_activity_approval"
+           ]
+
+    assert direct_row["branch_timeline_activity_lifecycle_state_import_actions"] == [
+             "review_timeline_diff"
+           ]
+
+    wrapped_branch =
+      branch(
+        artifact,
+        "derived_timeline_activity_lifecycle_state_pressure_wrapped_activity_lifecycle_pressure_cmd_pending"
+      )
+
+    assert %{
+             "feedback_source" =>
+               "mission_state.source_result_artifact.timeline_activity_lifecycle_state",
+             "trust_boundary" => "wrapped_activity_lifecycle_artifact_boundary"
+           } = List.first(wrapped_branch["events"])
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy carries mission-state contact-allocation summaries into branch refresh requests" do
     direct_summary = contact_allocation_summary_fixture("direct")
     canonical_summary = contact_allocation_summary_fixture("canonical")
