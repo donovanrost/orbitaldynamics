@@ -230,6 +230,12 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     :resource_trust_boundary_status,
     :resource_provenance,
     :resource_blocking_dimension,
+    :station_availability,
+    :station_calendar_entry_id,
+    :station_calendar_provider_id,
+    :station_calendar_provider_entry_id,
+    :station_calendar_status,
+    :station_calendar_trust_boundary_status,
     :capacity_fraction,
     :station_capacity_fraction,
     :capacity_pack_capacity_fraction,
@@ -445,6 +451,12 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
           resource_trust_boundary_status: atom() | String.t() | nil,
           resource_provenance: map() | nil,
           resource_blocking_dimension: atom() | String.t() | nil,
+          station_availability: atom() | String.t() | nil,
+          station_calendar_entry_id: atom() | String.t() | nil,
+          station_calendar_provider_id: atom() | String.t() | nil,
+          station_calendar_provider_entry_id: atom() | String.t() | nil,
+          station_calendar_status: atom() | String.t() | nil,
+          station_calendar_trust_boundary_status: atom() | String.t() | nil,
           capacity_fraction: number() | nil,
           station_capacity_fraction: number() | nil,
           capacity_pack_capacity_fraction: number() | nil,
@@ -730,6 +742,12 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
         :resource_trust_boundary_status,
         :resource_provenance,
         :resource_blocking_dimension,
+        :station_availability,
+        :station_calendar_entry_id,
+        :station_calendar_provider_id,
+        :station_calendar_provider_entry_id,
+        :station_calendar_status,
+        :station_calendar_trust_boundary_status,
         :capacity_fraction,
         :station_capacity_fraction,
         :capacity_pack_capacity_fraction,
@@ -1795,6 +1813,12 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       resource_trust_boundary_status: activity.resource_trust_boundary_status,
       resource_provenance: activity.resource_provenance,
       resource_blocking_dimension: activity.resource_blocking_dimension,
+      station_availability: activity.station_availability,
+      station_calendar_entry_id: activity.station_calendar_entry_id,
+      station_calendar_provider_id: activity.station_calendar_provider_id,
+      station_calendar_provider_entry_id: activity.station_calendar_provider_entry_id,
+      station_calendar_status: activity.station_calendar_status,
+      station_calendar_trust_boundary_status: activity.station_calendar_trust_boundary_status,
       capacity_fraction: activity.capacity_fraction,
       station_capacity_fraction: activity.station_capacity_fraction,
       capacity_pack_capacity_fraction: activity.capacity_pack_capacity_fraction,
@@ -2063,6 +2087,15 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     resource_trust_boundary_status = Keyword.get(opts, :resource_trust_boundary_status)
     resource_provenance = Keyword.get(opts, :resource_provenance)
     resource_blocking_dimension = Keyword.get(opts, :resource_blocking_dimension)
+    station_availability = Keyword.get(opts, :station_availability)
+    station_calendar_entry_id = Keyword.get(opts, :station_calendar_entry_id)
+    station_calendar_provider_id = Keyword.get(opts, :station_calendar_provider_id)
+    station_calendar_provider_entry_id = Keyword.get(opts, :station_calendar_provider_entry_id)
+    station_calendar_status = Keyword.get(opts, :station_calendar_status)
+
+    station_calendar_trust_boundary_status =
+      Keyword.get(opts, :station_calendar_trust_boundary_status)
+
     capacity_fraction = Keyword.get(opts, :capacity_fraction)
     station_capacity_fraction = Keyword.get(opts, :station_capacity_fraction)
     capacity_pack_capacity_fraction = Keyword.get(opts, :capacity_pack_capacity_fraction)
@@ -2332,6 +2365,26 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
 
       not optional_scalar?(resource_blocking_dimension) ->
         raise ArgumentError, "resource_blocking_dimension must be nil, a string, or an atom"
+
+      not optional_scalar?(station_availability) ->
+        raise ArgumentError, "station_availability must be nil, a string, or an atom"
+
+      not optional_stable_identifier?(station_calendar_entry_id) ->
+        raise ArgumentError, "station_calendar_entry_id must be nil or a stable identifier"
+
+      not optional_stable_identifier?(station_calendar_provider_id) ->
+        raise ArgumentError, "station_calendar_provider_id must be nil or a stable identifier"
+
+      not optional_stable_identifier?(station_calendar_provider_entry_id) ->
+        raise ArgumentError,
+              "station_calendar_provider_entry_id must be nil or a stable identifier"
+
+      not optional_scalar?(station_calendar_status) ->
+        raise ArgumentError, "station_calendar_status must be nil, a string, or an atom"
+
+      not optional_scalar?(station_calendar_trust_boundary_status) ->
+        raise ArgumentError,
+              "station_calendar_trust_boundary_status must be nil, a string, or an atom"
 
       not optional_unit_interval?(capacity_fraction) ->
         raise ArgumentError, "capacity_fraction must be nil or between 0.0 and 1.0"
@@ -2888,6 +2941,12 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
           resource_trust_boundary_status: resource_trust_boundary_status,
           resource_provenance: resource_provenance,
           resource_blocking_dimension: resource_blocking_dimension,
+          station_availability: station_availability,
+          station_calendar_entry_id: station_calendar_entry_id,
+          station_calendar_provider_id: station_calendar_provider_id,
+          station_calendar_provider_entry_id: station_calendar_provider_entry_id,
+          station_calendar_status: station_calendar_status,
+          station_calendar_trust_boundary_status: station_calendar_trust_boundary_status,
           capacity_fraction: capacity_fraction,
           station_capacity_fraction: station_capacity_fraction,
           capacity_pack_capacity_fraction: capacity_pack_capacity_fraction,
@@ -3112,6 +3171,42 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     |> maybe_put_opt(
       :resource_blocking_dimension,
       optional_scalar!(field(source, :resource_blocking_dimension))
+    )
+    |> maybe_put_opt(
+      :station_availability,
+      optional_scalar!(field(source, :station_availability), "station_availability")
+    )
+    |> maybe_put_opt(
+      :station_calendar_entry_id,
+      optional_stable_identifier!(
+        field(source, :station_calendar_entry_id),
+        "station_calendar_entry_id"
+      )
+    )
+    |> maybe_put_opt(
+      :station_calendar_provider_id,
+      optional_stable_identifier!(
+        field(source, :station_calendar_provider_id),
+        "station_calendar_provider_id"
+      )
+    )
+    |> maybe_put_opt(
+      :station_calendar_provider_entry_id,
+      optional_stable_identifier!(
+        field(source, :station_calendar_provider_entry_id),
+        "station_calendar_provider_entry_id"
+      )
+    )
+    |> maybe_put_opt(
+      :station_calendar_status,
+      optional_scalar!(field(source, :station_calendar_status), "station_calendar_status")
+    )
+    |> maybe_put_opt(
+      :station_calendar_trust_boundary_status,
+      optional_scalar!(
+        field(source, :station_calendar_trust_boundary_status),
+        "station_calendar_trust_boundary_status"
+      )
     )
     |> maybe_put_opt(
       :capacity_fraction,
@@ -4109,6 +4204,16 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   defp optional_scalar?(value) when is_atom(value), do: true
   defp optional_scalar?(_value), do: false
 
+  defp optional_stable_identifier?(nil), do: true
+
+  defp optional_stable_identifier?(value) when is_binary(value),
+    do: Regex.match?(@stable_id_pattern, value)
+
+  defp optional_stable_identifier?(value) when is_atom(value),
+    do: value |> Atom.to_string() |> optional_stable_identifier?()
+
+  defp optional_stable_identifier?(_value), do: false
+
   defp optional_number_or_scalar?(nil), do: true
   defp optional_number_or_scalar?(value) when is_number(value), do: true
   defp optional_number_or_scalar?(value), do: optional_scalar?(value)
@@ -4177,6 +4282,13 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   defp optional_scalar!(_value),
     do: raise(ArgumentError, "scalar fields must be strings or atoms")
 
+  defp optional_scalar!(nil, _field), do: nil
+  defp optional_scalar!(value, _field) when is_binary(value) and value != "", do: value
+  defp optional_scalar!(value, _field) when is_atom(value) and not is_nil(value), do: value
+
+  defp optional_scalar!(_value, field),
+    do: raise(ArgumentError, "#{field} must be nil, a string, or an atom")
+
   defp optional_number_or_scalar!(nil), do: nil
   defp optional_number_or_scalar!(value) when is_number(value), do: value
 
@@ -4214,6 +4326,16 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       raise ArgumentError, "identifier fields must be non-empty"
     else
       value
+    end
+  end
+
+  defp optional_stable_identifier!(nil, _field), do: nil
+
+  defp optional_stable_identifier!(value, field) do
+    if optional_stable_identifier?(value) do
+      value
+    else
+      raise ArgumentError, "#{field} must be a stable identifier"
     end
   end
 

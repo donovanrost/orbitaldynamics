@@ -278,6 +278,58 @@ defmodule OrbitalDynamics.MissionPlanTest do
              OrbitalDynamics.Schema.validate_artifact(report)
   end
 
+  test "round trips station calendar identity and status context through typed activities" do
+    activity =
+      Activity.from_map!(%{
+        "id" => "reserved_provider_contact",
+        "activity_type" => "planned_contact",
+        "ground_station_id" => "gs_a",
+        "direction" => "downlink",
+        "starts_at_s" => 170.0,
+        "ends_at_s" => 230.0,
+        "station_availability" => :reserved,
+        "station_calendar_entry_id" => "calendar:entry_a",
+        "station_calendar_provider_id" => "provider:partner_a",
+        "station_calendar_provider_entry_id" => "provider_entry:partner_a:170",
+        "station_calendar_status" => :reserved_overlap,
+        "station_calendar_trust_boundary_status" => "declared"
+      })
+
+    assert %Activity{
+             station_availability: :reserved,
+             station_calendar_entry_id: "calendar:entry_a",
+             station_calendar_provider_id: "provider:partner_a",
+             station_calendar_provider_entry_id: "provider_entry:partner_a:170",
+             station_calendar_status: :reserved_overlap,
+             station_calendar_trust_boundary_status: "declared"
+           } = activity
+
+    assert %{
+             "station_availability" => "reserved",
+             "station_calendar_entry_id" => "calendar:entry_a",
+             "station_calendar_provider_id" => "provider:partner_a",
+             "station_calendar_provider_entry_id" => "provider_entry:partner_a:170",
+             "station_calendar_status" => "reserved_overlap",
+             "station_calendar_trust_boundary_status" => "declared"
+           } = Activity.to_artifact_map(activity)
+
+    report = OrbitalDynamics.Timeline.operational_report([activity])
+
+    assert %{
+             "activity_context" => %{
+               "station_availability" => "reserved",
+               "station_calendar_entry_id" => "calendar:entry_a",
+               "station_calendar_provider_id" => "provider:partner_a",
+               "station_calendar_provider_entry_id" => "provider_entry:partner_a:170",
+               "station_calendar_status" => "reserved_overlap",
+               "station_calendar_trust_boundary_status" => "declared"
+             }
+           } = List.first(report["rows"])
+
+    assert {:ok, %{"schema_contract" => "operational_timeline_report.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(report)
+  end
+
   test "rejects malformed collection latency objective context at typed ingress" do
     assert_raise ArgumentError, ~r/collection_latency_objective_count/, fn ->
       Activity.from_map!(%{
@@ -331,6 +383,29 @@ defmodule OrbitalDynamics.MissionPlanTest do
           {"capacity_fraction", "1.1"},
           {"station_capacity_fraction", -0.1},
           {"capacity_pack_capacity_fraction", "not-a-number"}
+        ] do
+      assert_raise ArgumentError, ~r/#{field}/, fn ->
+        Activity.from_map!(%{
+          "id" => "bad_#{field}",
+          "activity_type" => "planned_contact",
+          "ground_station_id" => "gs_a",
+          "direction" => "downlink",
+          "starts_at_s" => 10.0,
+          "ends_at_s" => 40.0,
+          field => value
+        })
+      end
+    end
+  end
+
+  test "rejects malformed station calendar identity and status context at typed ingress" do
+    for {field, value} <- [
+          {"station_calendar_entry_id", "bad calendar id"},
+          {"station_calendar_provider_id", "bad provider id"},
+          {"station_calendar_provider_entry_id", "bad provider entry id"},
+          {"station_availability", ""},
+          {"station_calendar_status", ""},
+          {"station_calendar_trust_boundary_status", ""}
         ] do
       assert_raise ArgumentError, ~r/#{field}/, fn ->
         Activity.from_map!(%{

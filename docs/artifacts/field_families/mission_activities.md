@@ -138,6 +138,12 @@ Typed activities preserve top-level `capacity_fraction`,
 station-capacity evidence, so provider-authored reduced-capacity context can
 round trip through `MissionPlan.Activity` and operational timeline activity
 contexts without becoming a station reservation or execution authority.
+Typed activities also preserve direct station-calendar identity/status context
+(`station_calendar_entry_id`, `station_calendar_provider_id`,
+`station_calendar_provider_entry_id`, `station_availability`,
+`station_calendar_status`, and `station_calendar_trust_boundary_status`) so
+provider-calendar review evidence can round trip through typed activity
+handoffs without creating a reservation or granting import/execution authority.
 Nested source-station-calendar availability/status evidence also derives
 station unavailable and reserved rejection reasons for generated candidates.
 Reviewable rejected rows can now be lifted into `operator_review_package.v1`

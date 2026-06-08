@@ -82,6 +82,13 @@ Preserved across string-keyed artifact ingress and egress:
   `station_capacity_fraction`, and `capacity_pack_capacity_fraction` survive
   typed activity ingress/egress and operational timeline context handoff as
   bounded review/allocation evidence, without reserving station capacity.
+- **Station-calendar identity/status evidence** — explicit
+  `station_calendar_entry_id`, `station_calendar_provider_id`,
+  `station_calendar_provider_entry_id`, `station_availability`,
+  `station_calendar_status`, and `station_calendar_trust_boundary_status`
+  survive typed activity ingress/egress and operational timeline context
+  handoff as provider-calendar review evidence, without creating station
+  reservations.
 
 ## Evidence and telemetry fields
 
@@ -111,9 +118,10 @@ metadata is also carried for downstream adapter preflight.
   explicit scope, durable timeline identity, resource/product identity,
   target-priority evidence, observation-objective context,
   collection-latency objective context, feedback success evidence,
-  station-capacity fraction evidence, observation-quality evidence, fixed-rate
-  and realized link-rate/duration telemetry, source-window and command-window
-  context, Cadence import metadata, and dependency/exclusivity arrays.
+  station-calendar identity/status evidence, station-capacity fraction
+  evidence, observation-quality evidence, fixed-rate and realized
+  link-rate/duration telemetry, source-window and command-window context,
+  Cadence import metadata, and dependency/exclusivity arrays.
 - Manifest-backed activities inherit the parent mission-plan ID and spacecraft
   ID when omitted, and reject conflicting child scope.
 - Each manifest-backed activity carries status, approval status, lock state,
