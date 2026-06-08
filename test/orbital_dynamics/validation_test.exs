@@ -9173,6 +9173,85 @@ defmodule OrbitalDynamics.ValidationTest do
              Validation.artifact_observations("timeline_preservation_report.v1", report)
   end
 
+  test "verifies curated timeline preservation status reference fixtures" do
+    fixture_id = "fixture.artifact.timeline_preservation_status.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.timeline_preservation_status.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    status = timeline_preservation_status_fixture()
+    observations = timeline_preservation_status_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert observations["activity_id"] == "dl_locked"
+    assert observations["activity_type"] == "downlink"
+    assert observations["timeline_identity_timeline_id"] == "timeline:dl_locked"
+    assert observations["protection_decision"] == "preserve"
+    assert observations["timeline_preservation_status"] == "preservation_required"
+    assert observations["requires_preservation"] == true
+    assert observations["requires_operator_review"] == false
+    assert observations["execution_boundary"] == "artifact_only_no_schedule_mutation"
+
+    stale_status_observations =
+      observations
+      |> Map.put("timeline_preservation_status", "mutable")
+
+    assert {:ok, stale_status_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_status_observations)
+
+    assert stale_status_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_status_verification["checks"],
+             &(&1["field"] == "timeline_preservation_status" and &1["status"] == "fail")
+           )
+
+    stale_identity_observations =
+      observations
+      |> Map.put("timeline_identity_timeline_id", "timeline:dl_unlocked")
+
+    assert {:ok, stale_identity_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_identity_observations)
+
+    assert stale_identity_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_identity_verification["checks"],
+             &(&1["field"] == "timeline_identity_timeline_id" and &1["status"] == "fail")
+           )
+
+    stale_boundary_observations =
+      observations
+      |> Map.put("execution_boundary", "schedule_mutation_ready")
+
+    assert {:ok, stale_boundary_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_boundary_observations)
+
+    assert stale_boundary_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_boundary_verification["checks"],
+             &(&1["field"] == "execution_boundary" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_status} =
+             Schema.validate_artifact(status,
+               schema_contract: "timeline_preservation_status.v1"
+             )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "timeline_preservation_status.v1",
+             status
+           ) == Validation.artifact_observations("timeline_preservation_status.v1", status)
+  end
+
   test "verifies curated timeline integrity report reference fixtures" do
     fixture_id = "fixture.artifact.timeline_integrity_report.v1"
 
@@ -13725,6 +13804,8 @@ defmodule OrbitalDynamics.ValidationTest do
           timeline_lifecycle_state_summary_fixture_observations(),
         "fixture.artifact.timeline_preservation_report.v1" =>
           timeline_preservation_report_fixture_observations(),
+        "fixture.artifact.timeline_preservation_status.v1" =>
+          timeline_preservation_status_fixture_observations(),
         "fixture.artifact.timeline_publication_summary.v1" =>
           timeline_publication_summary_fixture_observations(),
         "fixture.artifact.timeline_transition_application_report.v1" =>
@@ -13748,8 +13829,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 177,
-             "status_counts" => %{"pass" => 177},
+             "fixture_count" => 178,
+             "status_counts" => %{"pass" => 178},
              "reports" => reports
            } = report
 
@@ -13915,6 +13996,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.timeline_integrity_report.v1",
              "fixture.artifact.timeline_lifecycle_state_summary.v1",
              "fixture.artifact.timeline_preservation_report.v1",
+             "fixture.artifact.timeline_preservation_status.v1",
              "fixture.artifact.timeline_publication_summary.v1",
              "fixture.artifact.timeline_transition_application_report.v1",
              "fixture.artifact.timeline_transition_application_selected_integrity.v1",
@@ -13943,7 +14025,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 177},
+             "status_counts" => %{"fail" => 178},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -15492,6 +15574,15 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp timeline_preservation_report_fixture do
     read_json!("study_results/timeline_preservation_report_v1.json")
+  end
+
+  defp timeline_preservation_status_fixture_observations do
+    "timeline_preservation_status.v1"
+    |> Validation.artifact_observations(timeline_preservation_status_fixture())
+  end
+
+  defp timeline_preservation_status_fixture do
+    read_json!("study_results/timeline_preservation_status_v1.json")
   end
 
   defp timeline_dependency_impact_summary_fixture_observations do
