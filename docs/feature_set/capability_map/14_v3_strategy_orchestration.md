@@ -1551,6 +1551,14 @@ Selected recommendations also include:
   operator-training context, and resource-availability pressure IDs/counts when
   a quality-gate pressure event drives the recommended branch.
 
+Operational-readiness and quality-gate pressure events also emit branch risk
+indicators with the same report, source-artifact, gate, required-action,
+feedback, trust-boundary, operator-training, and resource-availability routing
+context. Those risk rows contribute to the standard strategy `risk_penalty`, so
+otherwise equal branches with readiness or quality-gate review pressure rank
+below pressure-free alternatives when `risk_weight` applies, and branch
+comparison rows expose the corresponding risk types.
+
 The corresponding strategy-recommendation operator-review row and Cadence import
 gate flatten those same risk type and stable-ID arrays, plus resource-pressure
 status/type lists and first-pressure kinds, for adapter routing. Selected

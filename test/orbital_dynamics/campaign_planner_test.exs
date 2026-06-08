@@ -18391,6 +18391,61 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert artifact["recommendation"]["recommended_branch_id"] == "urgent"
 
     assert %{
+             "type" => "risk_driver",
+             "risk_type" => "operational_readiness_pressure",
+             "severity" => "medium",
+             "report_id" => "operational_readiness:resource_projection_report.v1:live_ops",
+             "source_artifact_type" => "resource_projection_report.v1",
+             "source_artifact_id" => "live_ops",
+             "readiness_level" => "operator_review",
+             "import_classification" => "review_only",
+             "operational_readiness_status" => "review_required",
+             "readiness_gate_id" => "operator_training",
+             "readiness_gate_status" => "review_required",
+             "readiness_gate_classification" => "review_only",
+             "required_operator_action" => "review_operational_readiness",
+             "feedback_source" => "mission_state.source_operational_readiness_report.gates",
+             "feedback_scope" => "operational_readiness",
+             "feedback_key" => "operator_training",
+             "trust_boundary" => "mission_state_operational_readiness_report"
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "operational_readiness_pressure")
+             )
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "quality_gate_pressure",
+             "severity" => "medium",
+             "report_id" => "quality_gate:resource_projection_report.v1:live_ops",
+             "source_artifact_type" => "resource_projection_report.v1",
+             "source_artifact_id" => "live_ops",
+             "source_readiness_report_id" =>
+               "operational_readiness:resource_projection_report.v1:live_ops",
+             "readiness_level" => "operator_review",
+             "import_classification" => "review_only",
+             "quality_gate_status" => "review_required",
+             "gate_id" => "resource_availability",
+             "gate_status" => "review_required",
+             "gate_classification" => "review_only",
+             "required_operator_action" => "review_operational_readiness",
+             "feedback_source" => "mission_state.source_quality_gate_report.rows",
+             "feedback_scope" => "quality_gate",
+             "feedback_key" => "resource_availability",
+             "trust_boundary" => "mission_state_quality_gate_report",
+             "resource_availability_reason_ids" => [
+               "antenna_unavailable",
+               "payload_unavailable"
+             ]
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and &1["risk_type"] == "quality_gate_pressure")
+             )
+
+    assert %{
              "type" => "operational_readiness_pressure",
              "recommended_branch_id" => "urgent",
              "report_id" => "operational_readiness:resource_projection_report.v1:live_ops",
@@ -18519,6 +18574,148 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1", "status" => "pass"}} =
              Schema.validate_artifact(review_import)
+  end
+
+  test "readiness and quality-gate pressure penalize otherwise equal strategy branches" do
+    prior_plan =
+      base_plan(%{
+        "planning_horizon" => %{"duration_s" => 2_000.0},
+        "activities" => [],
+        "candidate_activities" => []
+      })
+
+    urgent_event = %{
+      type: "urgent_target",
+      target_id: "target_hot",
+      starts_at_s: 500.0,
+      ends_at_s: 560.0,
+      priority: 20.0,
+      candidate_windows: [
+        %{
+          id: "candidate_obs_hot",
+          type: "observe",
+          target_id: "target_hot",
+          scenario_id: "leo_1",
+          starts_at_s: 500.0,
+          ends_at_s: 560.0,
+          duration_s: 60.0,
+          score: 10.0
+        }
+      ]
+    }
+
+    readiness_event = %{
+      type: "operational_readiness_pressure",
+      report_id: "operational_readiness:resource_projection_report.v1:live_ops",
+      source_artifact_type: "resource_projection_report.v1",
+      source_artifact_id: "live_ops",
+      readiness_level: "operator_review",
+      import_classification: "review_only",
+      operational_readiness_status: "review_required",
+      readiness_gate_id: "operator_training",
+      readiness_gate_status: "review_required",
+      readiness_gate_classification: "review_only",
+      readiness_gate_reason: "operator training requires role-qualified review",
+      required_operator_action: "review_operational_readiness",
+      feedback_source: "mission_state.source_operational_readiness_report.gates",
+      feedback_scope: "operational_readiness",
+      feedback_key: "operator_training",
+      trust_boundary: "mission_state_operational_readiness_report"
+    }
+
+    quality_gate_event = %{
+      type: "quality_gate_pressure",
+      report_id: "quality_gate:resource_projection_report.v1:live_ops",
+      source_artifact_type: "resource_projection_report.v1",
+      source_artifact_id: "live_ops",
+      source_readiness_report_id: "operational_readiness:resource_projection_report.v1:live_ops",
+      readiness_level: "operator_review",
+      import_classification: "review_only",
+      quality_gate_status: "review_required",
+      gate_id: "resource_availability",
+      gate_status: "review_required",
+      gate_classification: "review_only",
+      gate_reason: "resource availability evidence requires operator review before import",
+      required_operator_action: "review_operational_readiness",
+      feedback_source: "mission_state.source_quality_gate_report.rows",
+      feedback_scope: "quality_gate",
+      feedback_key: "resource_availability",
+      trust_boundary: "mission_state_quality_gate_report",
+      resource_availability_reason_ids: ["antenna_unavailable", "payload_unavailable"]
+    }
+
+    artifact =
+      strategy(prior_plan,
+        mission_state:
+          mission_state([%{"type" => "priority_commitment", "target_id" => "target_hot"}]),
+        strategy_policy: %{
+          "mission_value_weight" => 10.0,
+          "risk_weight" => 5.0,
+          "approval_load_weight" => 0.0
+        },
+        approval_policy: %{
+          "blocked_risk_types" => [],
+          "operator_review_risk_limit" => 10
+        },
+        branches: [
+          %{id: "baseline"},
+          %{id: "urgent_clean", events: [urgent_event]},
+          %{id: "urgent_pressure", events: [urgent_event, readiness_event, quality_gate_event]}
+        ],
+        current_epoch_s: 0.0
+      )
+
+    assert artifact["recommendation"]["recommended_branch_id"] == "urgent_clean"
+
+    clean_branch = branch(artifact, "urgent_clean")
+    pressure_branch = branch(artifact, "urgent_pressure")
+
+    assert clean_branch["score_terms"]["risk_penalty"] == -5.0
+    assert pressure_branch["score_terms"]["risk_penalty"] == -15.0
+    assert pressure_branch["score"] < clean_branch["score"]
+
+    assert %{
+             "type" => "operational_readiness_pressure",
+             "severity" => "medium",
+             "report_id" => "operational_readiness:resource_projection_report.v1:live_ops",
+             "readiness_gate_id" => "operator_training",
+             "required_operator_action" => "review_operational_readiness",
+             "trust_boundary" => "mission_state_operational_readiness_report"
+           } =
+             Enum.find(
+               pressure_branch["risk_indicators"],
+               &(&1["type"] == "operational_readiness_pressure")
+             )
+
+    assert %{
+             "type" => "quality_gate_pressure",
+             "severity" => "medium",
+             "report_id" => "quality_gate:resource_projection_report.v1:live_ops",
+             "gate_id" => "resource_availability",
+             "resource_availability_reason_ids" => [
+               "antenna_unavailable",
+               "payload_unavailable"
+             ],
+             "trust_boundary" => "mission_state_quality_gate_report"
+           } =
+             Enum.find(
+               pressure_branch["risk_indicators"],
+               &(&1["type"] == "quality_gate_pressure")
+             )
+
+    pressure_comparison =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent_pressure"))
+
+    assert pressure_comparison["risk_count"] == 3
+    assert "operational_readiness_pressure" in pressure_comparison["risk_types"]
+    assert "quality_gate_pressure" in pressure_comparison["risk_types"]
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+
+    assert {:ok, %{"schema_contract" => "branch_comparison_report.v1", "status" => "pass"}} =
+             Schema.validate_artifact(artifact["branch_comparison_report"])
   end
 
   test "strategy requires at least two branches" do

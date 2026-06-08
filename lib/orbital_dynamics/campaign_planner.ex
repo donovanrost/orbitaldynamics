@@ -3168,6 +3168,34 @@ defmodule OrbitalDynamics.CampaignPlanner do
     "resource projection for #{row["spacecraft_id"]} exceeds declared battery capacity by #{value} Wh"
   end
 
+  defp event_risk_indicators(%{"type" => "operational_readiness_pressure"} = event) do
+    [
+      event
+      |> Map.take(operational_readiness_pressure_risk_fields())
+      |> Map.merge(%{
+        "type" => "operational_readiness_pressure",
+        "severity" => readiness_pressure_risk_severity(event),
+        "reason" =>
+          event["readiness_gate_reason"] ||
+            "operational readiness pressure requires review before import"
+      })
+      |> compact_map()
+    ]
+  end
+
+  defp event_risk_indicators(%{"type" => "quality_gate_pressure"} = event) do
+    [
+      event
+      |> Map.take(quality_gate_pressure_risk_fields())
+      |> Map.merge(%{
+        "type" => "quality_gate_pressure",
+        "severity" => readiness_pressure_risk_severity(event),
+        "reason" => event["gate_reason"] || "quality gate pressure requires review before import"
+      })
+      |> compact_map()
+    ]
+  end
+
   defp event_risk_indicators(%{"type" => "ground_station_outage"} = event) do
     station = event_ground_station_id(event)
 
@@ -3678,6 +3706,101 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp event_risk_indicators(_event), do: []
 
+  defp readiness_pressure_risk_severity(event) do
+    blocked_values = ["blocked", "blocked_by_policy", "review_blocked_operational_readiness"]
+
+    if Enum.any?(
+         [
+           event["readiness_level"],
+           event["import_classification"],
+           event["operational_readiness_status"],
+           event["readiness_gate_status"],
+           event["readiness_gate_classification"],
+           event["quality_gate_status"],
+           event["gate_status"],
+           event["gate_classification"],
+           event["required_operator_action"]
+         ],
+         &(&1 in blocked_values)
+       ) do
+      "high"
+    else
+      "medium"
+    end
+  end
+
+  defp operational_readiness_pressure_risk_fields do
+    [
+      "report_id",
+      "source_artifact_type",
+      "source_artifact_id",
+      "readiness_level",
+      "import_classification",
+      "operational_readiness_status",
+      "gate_count",
+      "passed_gate_count",
+      "review_gate_count",
+      "analysis_gate_count",
+      "blocked_gate_count",
+      "readiness_gate_id",
+      "readiness_gate_status",
+      "readiness_gate_classification",
+      "readiness_gate_reason",
+      "analysis_mode",
+      "analysis_mode_source",
+      "required_operator_action",
+      "feedback_source",
+      "feedback_scope",
+      "feedback_key",
+      "trust_boundary",
+      "operator_training_requirement_count",
+      "operator_training_requirement_counts",
+      "required_operator_roles",
+      "required_training_ids",
+      "required_certification_ids",
+      "required_qualification_ids"
+    ]
+  end
+
+  defp quality_gate_pressure_risk_fields do
+    [
+      "report_id",
+      "source_artifact_type",
+      "source_artifact_id",
+      "source_readiness_report_id",
+      "readiness_level",
+      "import_classification",
+      "quality_gate_status",
+      "gate_count",
+      "passed_gate_count",
+      "review_gate_count",
+      "analysis_gate_count",
+      "blocked_gate_count",
+      "gate_id",
+      "gate_status",
+      "gate_classification",
+      "gate_reason",
+      "analysis_mode",
+      "analysis_mode_source",
+      "required_operator_action",
+      "feedback_source",
+      "feedback_scope",
+      "feedback_key",
+      "trust_boundary",
+      "operator_training_requirement_count",
+      "operator_training_requirement_counts",
+      "required_operator_roles",
+      "required_training_ids",
+      "required_certification_ids",
+      "required_qualification_ids",
+      "resource_availability_pressure_count",
+      "resource_availability_reason_counts",
+      "resource_availability_reason_ids",
+      "unavailable_resource_reason_ids",
+      "resource_blocking_dimension_counts"
+    ]
+  end
+
   defp degraded_spacecraft_activity_type_risks(event, spacecraft_id) do
     event
     |> Map.get("derivation_reasons", [])
@@ -4124,6 +4247,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "resource_pressure_status" => risk["resource_pressure_status"],
           "resource_pressure_types" => risk["resource_pressure_types"]
         }
+        |> Map.merge(recommendation_pressure_risk_context(risk))
         |> compact_map()
       end)
 
@@ -4578,6 +4702,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp recommendation_feedback_rows(_branch), do: []
+
+  defp recommendation_pressure_risk_context(%{"type" => "operational_readiness_pressure"} = risk) do
+    Map.take(risk, operational_readiness_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"type" => "quality_gate_pressure"} = risk) do
+    Map.take(risk, quality_gate_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(_risk), do: %{}
 
   defp feedback_adjustment_row?(adjustments) do
     Enum.any?(
