@@ -330,6 +330,63 @@ defmodule OrbitalDynamics.MissionPlanTest do
              OrbitalDynamics.Schema.validate_artifact(report)
   end
 
+  test "round trips station calendar directions and source entry through typed activities" do
+    activity =
+      Activity.from_map!(%{
+        "id" => "provider_direction_contact",
+        "activity_type" => "planned_contact",
+        "ground_station_id" => "gs_a",
+        "direction" => "downlink",
+        "starts_at_s" => 240.0,
+        "ends_at_s" => 300.0,
+        "station_calendar_directions" => "downlink",
+        "source_station_calendar_entry" => %{
+          "id" => "calendar:source_entry_a",
+          "station_calendar_provider_id" => "provider:partner_a",
+          "direction" => "command",
+          "availability" => "reserved"
+        }
+      })
+
+    assert %Activity{
+             station_calendar_directions: ["downlink"],
+             source_station_calendar_entry: %{
+               "id" => "calendar:source_entry_a",
+               "station_calendar_provider_id" => "provider:partner_a",
+               "direction" => "command",
+               "availability" => "reserved"
+             }
+           } = activity
+
+    assert %{
+             "station_calendar_directions" => ["downlink"],
+             "source_station_calendar_entry" => %{
+               "id" => "calendar:source_entry_a",
+               "station_calendar_provider_id" => "provider:partner_a",
+               "direction" => "command",
+               "availability" => "reserved"
+             }
+           } = Activity.to_artifact_map(activity)
+
+    report = OrbitalDynamics.Timeline.operational_report([activity])
+
+    assert %{
+             "activity_context" => %{
+               "station_calendar_directions" => ["command", "downlink"],
+               "station_calendar_entry_id" => "calendar:source_entry_a",
+               "source_station_calendar_entry" => %{
+                 "id" => "calendar:source_entry_a",
+                 "station_calendar_provider_id" => "provider:partner_a",
+                 "direction" => "command",
+                 "availability" => "reserved"
+               }
+             }
+           } = List.first(report["rows"])
+
+    assert {:ok, %{"schema_contract" => "operational_timeline_report.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(report)
+  end
+
   test "rejects malformed collection latency objective context at typed ingress" do
     assert_raise ArgumentError, ~r/collection_latency_objective_count/, fn ->
       Activity.from_map!(%{
@@ -418,6 +475,32 @@ defmodule OrbitalDynamics.MissionPlanTest do
           field => value
         })
       end
+    end
+  end
+
+  test "rejects malformed station calendar directions and source entry at typed ingress" do
+    assert_raise ArgumentError, ~r/station_calendar_directions/, fn ->
+      Activity.from_map!(%{
+        "id" => "bad_station_calendar_directions",
+        "activity_type" => "planned_contact",
+        "ground_station_id" => "gs_a",
+        "direction" => "downlink",
+        "starts_at_s" => 10.0,
+        "ends_at_s" => 40.0,
+        "station_calendar_directions" => [%{"direction" => "downlink"}]
+      })
+    end
+
+    assert_raise ArgumentError, ~r/source_station_calendar_entry/, fn ->
+      Activity.from_map!(%{
+        "id" => "bad_source_station_calendar_entry",
+        "activity_type" => "planned_contact",
+        "ground_station_id" => "gs_a",
+        "direction" => "downlink",
+        "starts_at_s" => 10.0,
+        "ends_at_s" => 40.0,
+        "source_station_calendar_entry" => ["not", "a", "map"]
+      })
     end
   end
 

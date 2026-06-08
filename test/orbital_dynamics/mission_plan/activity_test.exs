@@ -128,8 +128,10 @@ defmodule OrbitalDynamics.MissionPlan.ActivityTest do
     assert :station_calendar_entry_id in preserved_fields
     assert :station_calendar_provider_id in preserved_fields
     assert :station_calendar_provider_entry_id in preserved_fields
+    assert :station_calendar_directions in preserved_fields
     assert :station_calendar_status in preserved_fields
     assert :station_calendar_trust_boundary_status in preserved_fields
+    assert :source_station_calendar_entry in preserved_fields
     assert :capacity_fraction in preserved_fields
     assert :station_capacity_fraction in preserved_fields
     assert :capacity_pack_capacity_fraction in preserved_fields

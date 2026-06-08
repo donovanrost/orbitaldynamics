@@ -144,6 +144,10 @@ Typed activities also preserve direct station-calendar identity/status context
 `station_calendar_status`, and `station_calendar_trust_boundary_status`) so
 provider-calendar review evidence can round trip through typed activity
 handoffs without creating a reservation or granting import/execution authority.
+They also preserve direct `station_calendar_directions` and nested
+`source_station_calendar_entry` provenance so direction-scoped
+provider-calendar routing evidence survives typed activity and operational
+timeline handoffs without mutating station calendars.
 Nested source-station-calendar availability/status evidence also derives
 station unavailable and reserved rejection reasons for generated candidates.
 Reviewable rejected rows can now be lifted into `operator_review_package.v1`

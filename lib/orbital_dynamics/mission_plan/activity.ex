@@ -234,8 +234,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     :station_calendar_entry_id,
     :station_calendar_provider_id,
     :station_calendar_provider_entry_id,
+    :station_calendar_directions,
     :station_calendar_status,
     :station_calendar_trust_boundary_status,
+    :source_station_calendar_entry,
     :capacity_fraction,
     :station_capacity_fraction,
     :capacity_pack_capacity_fraction,
@@ -455,8 +457,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
           station_calendar_entry_id: atom() | String.t() | nil,
           station_calendar_provider_id: atom() | String.t() | nil,
           station_calendar_provider_entry_id: atom() | String.t() | nil,
+          station_calendar_directions: [atom() | String.t()],
           station_calendar_status: atom() | String.t() | nil,
           station_calendar_trust_boundary_status: atom() | String.t() | nil,
+          source_station_calendar_entry: map() | nil,
           capacity_fraction: number() | nil,
           station_capacity_fraction: number() | nil,
           capacity_pack_capacity_fraction: number() | nil,
@@ -746,8 +750,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
         :station_calendar_entry_id,
         :station_calendar_provider_id,
         :station_calendar_provider_entry_id,
+        :station_calendar_directions,
         :station_calendar_status,
         :station_calendar_trust_boundary_status,
+        :source_station_calendar_entry,
         :capacity_fraction,
         :station_capacity_fraction,
         :capacity_pack_capacity_fraction,
@@ -1817,8 +1823,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       station_calendar_entry_id: activity.station_calendar_entry_id,
       station_calendar_provider_id: activity.station_calendar_provider_id,
       station_calendar_provider_entry_id: activity.station_calendar_provider_entry_id,
+      station_calendar_directions: activity.station_calendar_directions,
       station_calendar_status: activity.station_calendar_status,
       station_calendar_trust_boundary_status: activity.station_calendar_trust_boundary_status,
+      source_station_calendar_entry: activity.source_station_calendar_entry,
       capacity_fraction: activity.capacity_fraction,
       station_capacity_fraction: activity.station_capacity_fraction,
       capacity_pack_capacity_fraction: activity.capacity_pack_capacity_fraction,
@@ -2020,6 +2028,7 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       {:observation_objective_types, []} -> true
       {:collection_latency_objective_ids, []} -> true
       {:collection_latency_objective_types, []} -> true
+      {:station_calendar_directions, []} -> true
       {:downlink_completion_sources, []} -> true
       {_key, value} -> is_nil(value)
     end)
@@ -2091,11 +2100,13 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     station_calendar_entry_id = Keyword.get(opts, :station_calendar_entry_id)
     station_calendar_provider_id = Keyword.get(opts, :station_calendar_provider_id)
     station_calendar_provider_entry_id = Keyword.get(opts, :station_calendar_provider_entry_id)
+    station_calendar_directions = Keyword.get(opts, :station_calendar_directions, [])
     station_calendar_status = Keyword.get(opts, :station_calendar_status)
 
     station_calendar_trust_boundary_status =
       Keyword.get(opts, :station_calendar_trust_boundary_status)
 
+    source_station_calendar_entry = Keyword.get(opts, :source_station_calendar_entry)
     capacity_fraction = Keyword.get(opts, :capacity_fraction)
     station_capacity_fraction = Keyword.get(opts, :station_capacity_fraction)
     capacity_pack_capacity_fraction = Keyword.get(opts, :capacity_pack_capacity_fraction)
@@ -2379,12 +2390,18 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
         raise ArgumentError,
               "station_calendar_provider_entry_id must be nil or a stable identifier"
 
+      not valid_scalar_list?(station_calendar_directions) ->
+        raise ArgumentError, "station_calendar_directions must be a list of direction labels"
+
       not optional_scalar?(station_calendar_status) ->
         raise ArgumentError, "station_calendar_status must be nil, a string, or an atom"
 
       not optional_scalar?(station_calendar_trust_boundary_status) ->
         raise ArgumentError,
               "station_calendar_trust_boundary_status must be nil, a string, or an atom"
+
+      not (is_nil(source_station_calendar_entry) or is_map(source_station_calendar_entry)) ->
+        raise ArgumentError, "source_station_calendar_entry must be nil or a map"
 
       not optional_unit_interval?(capacity_fraction) ->
         raise ArgumentError, "capacity_fraction must be nil or between 0.0 and 1.0"
@@ -2945,8 +2962,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
           station_calendar_entry_id: station_calendar_entry_id,
           station_calendar_provider_id: station_calendar_provider_id,
           station_calendar_provider_entry_id: station_calendar_provider_entry_id,
+          station_calendar_directions: station_calendar_directions,
           station_calendar_status: station_calendar_status,
           station_calendar_trust_boundary_status: station_calendar_trust_boundary_status,
+          source_station_calendar_entry: source_station_calendar_entry,
           capacity_fraction: capacity_fraction,
           station_capacity_fraction: station_capacity_fraction,
           capacity_pack_capacity_fraction: capacity_pack_capacity_fraction,
@@ -3198,6 +3217,14 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       )
     )
     |> maybe_put_opt(
+      :station_calendar_directions,
+      optional_scalar_list!(
+        field(source, :station_calendar_directions),
+        "station_calendar_directions",
+        "direction labels"
+      )
+    )
+    |> maybe_put_opt(
       :station_calendar_status,
       optional_scalar!(field(source, :station_calendar_status), "station_calendar_status")
     )
@@ -3206,6 +3233,13 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       optional_scalar!(
         field(source, :station_calendar_trust_boundary_status),
         "station_calendar_trust_boundary_status"
+      )
+    )
+    |> maybe_put_opt(
+      :source_station_calendar_entry,
+      optional_map!(
+        field(source, :source_station_calendar_entry),
+        "source_station_calendar_entry"
       )
     )
     |> maybe_put_opt(
@@ -4342,6 +4376,12 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   defp optional_map!(nil), do: nil
   defp optional_map!(value) when is_map(value), do: value
   defp optional_map!(_value), do: raise(ArgumentError, "map fields must be maps")
+
+  defp optional_map!(nil, _field), do: nil
+  defp optional_map!(value, _field) when is_map(value), do: value
+
+  defp optional_map!(_value, field),
+    do: raise(ArgumentError, "#{field} must be nil or a map")
 
   defp optional_cadence_import!(nil), do: nil
 
