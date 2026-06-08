@@ -72,8 +72,8 @@ fixtures with numeric representation mismatches. Compact adapter-facing handoffs
 still need stale-observation coverage where schema lint alone is weaker.
 
 Last commit:
-Pending for this slice. Previous pushed commit was
-`d96137f5d6ee88eeca53deddce839974244e2750`.
+`1c3447cefafd7610232418ea1cad078df5ac43b3` (`Add timeline publication
+invalidation status`).
 
 Next candidate:
 After publishing this slice, either address the unrelated contact-allocation
