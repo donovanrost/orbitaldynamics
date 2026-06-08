@@ -53441,6 +53441,7 @@ defmodule OrbitalDynamics.Schema do
 
   defp contact_allocation_provider_reservation_candidate_row?(row) do
     Map.get(row, "allocation_status") == "allocated" and
+      Map.get(row, "effective_allocation_status") in [nil, "allocated"] and
       contact_allocation_reservation_expiration_row?(row)
   end
 

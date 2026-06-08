@@ -3101,6 +3101,89 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              })
   end
 
+  test "provider reservation request summary excludes policy-blocked allocated rows" do
+    summary =
+      ContactAllocation.provider_reservation_request_summary(%{
+        "schema_contract" => "contact_allocation_report.v1",
+        "source" => "unit_test.provider_reservation_policy_block",
+        "rows" => [
+          %{
+            "id" => "contact_allocation:dl_policy_blocked_reservation",
+            "contact_id" => "dl_policy_blocked_reservation",
+            "ground_station_id" => "equator_prime",
+            "direction" => "downlink",
+            "allocation_status" => "allocated",
+            "effective_allocation_status" => "policy_blocked",
+            "approval_status" => "blocked_by_policy",
+            "station_reservation_id" => "reservation_1",
+            "station_reservation_match_status" => "matched"
+          }
+        ]
+      })
+
+    assert %{
+             "provider_reservation_candidate_contact_count" => 0,
+             "provider_reservation_request_contact_count" => 0,
+             "provider_reservation_review_contact_count" => 0,
+             "provider_reservation_no_request_contact_count" => 1,
+             "provider_reservation_request_status" => "clear",
+             "provider_reservation_request_contact_ids" => [],
+             "provider_reservation_review_contact_ids" => [],
+             "provider_reservation_no_request_contact_ids" => [
+               "dl_policy_blocked_reservation"
+             ],
+             "provider_reservation_no_request_contact_ids_by_direction" => %{
+               "downlink" => ["dl_policy_blocked_reservation"]
+             },
+             "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id" =>
+               %{
+                 "downlink" => %{"equator_prime" => ["dl_policy_blocked_reservation"]}
+               }
+           } = summary
+
+    assert {:ok,
+            %{"schema_contract" => "contact_allocation_provider_reservation_request_summary.v1"}} =
+             Schema.validate_artifact(summary)
+  end
+
+  test "provider reservation request summary normalizes legacy allocated rows" do
+    summary =
+      ContactAllocation.provider_reservation_request_summary(%{
+        "schema_contract" => "contact_allocation_report.v1",
+        "source" => "unit_test.provider_reservation_legacy_rows",
+        "rows" => [
+          %{
+            "id" => "contact_allocation:dl_legacy_reservation",
+            "contact_id" => "dl_legacy_reservation",
+            "ground_station_id" => "equator_prime",
+            "direction" => "downlink",
+            "allocation_status" => "allocated",
+            "station_reservation_id" => "reservation_1",
+            "station_reservation_match_status" => "matched"
+          }
+        ]
+      })
+
+    assert %{
+             "provider_reservation_candidate_contact_count" => 1,
+             "provider_reservation_request_contact_count" => 1,
+             "provider_reservation_review_contact_count" => 0,
+             "provider_reservation_no_request_contact_count" => 0,
+             "provider_reservation_request_status" => "request_ready",
+             "provider_reservation_request_contact_ids" => ["dl_legacy_reservation"],
+             "provider_reservation_request_rows" => [
+               %{
+                 "contact_id" => "dl_legacy_reservation",
+                 "effective_allocation_status" => "allocated"
+               }
+             ]
+           } = summary
+
+    assert {:ok,
+            %{"schema_contract" => "contact_allocation_provider_reservation_request_summary.v1"}} =
+             Schema.validate_artifact(summary)
+  end
+
   test "allocates downlink contacts that match provider reservation ownership" do
     contacts = [
       contact(:dl_reserved_owner,

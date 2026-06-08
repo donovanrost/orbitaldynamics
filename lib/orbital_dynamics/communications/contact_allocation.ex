@@ -1152,6 +1152,7 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
       |> Map.get("rows", [])
       |> Enum.filter(&is_map/1)
       |> Enum.map(&normalize_station_calendar_status_fields/1)
+      |> Enum.map(&ensure_effective_allocation_status/1)
 
     review_rows = Enum.filter(rows, &allocation_summary_review_row?/1)
     station_pressure_rows = station_pressure_summary_rows(rows)
@@ -1613,6 +1614,7 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
       |> Map.get("rows", [])
       |> Enum.filter(&is_map/1)
       |> Enum.map(&normalize_station_calendar_status_fields/1)
+      |> Enum.map(&ensure_effective_allocation_status/1)
 
     reservation_candidate_rows =
       Enum.filter(rows, &provider_reservation_request_candidate_row?/1)
@@ -1691,6 +1693,12 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
 
   defp provider_reservation_request_status(_request_rows, _review_rows), do: "clear"
 
+  defp ensure_effective_allocation_status(%{"effective_allocation_status" => status} = row)
+       when is_binary(status),
+       do: row
+
+  defp ensure_effective_allocation_status(row), do: put_effective_allocation_status(row)
+
   defp reservation_conflict_row?(row) do
     station_pressure_value?(row["station_reservation_match_status"]) and
       row["station_reservation_match_status"] not in ["matched", "owner_matched"]
@@ -1702,7 +1710,9 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
   end
 
   defp provider_reservation_request_candidate_row?(row) do
-    row["allocation_status"] == "allocated" and station_reservation_summary_row?(row)
+    row["allocation_status"] == "allocated" and
+      row["effective_allocation_status"] in [nil, "allocated"] and
+      station_reservation_summary_row?(row)
   end
 
   defp station_reservation_summary_row?(row) do
