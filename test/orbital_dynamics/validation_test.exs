@@ -12257,6 +12257,100 @@ defmodule OrbitalDynamics.ValidationTest do
            ) == Validation.artifact_observations("resource_filter_report.v1", report)
   end
 
+  test "verifies curated resource filter summary reference fixtures" do
+    fixture_id = "fixture.artifact.resource_filter_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.resource_filter_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = resource_filter_summary_fixture()
+    observations = resource_filter_summary_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "input_candidate_count" => 3,
+             "kept_candidate_count" => 1,
+             "suppressed_candidate_count" => 2,
+             "suppression_review_status" => "review_required",
+             "suppressed_candidate_ids" =>
+               "leo_1_downlink_equator_prime_1|leo_1_observe_target_a_1",
+             "suppressed_reason_counts" => %{
+               "downlink_margin_below_policy" => 1,
+               "storage_margin_below_observe_policy" => 1
+             },
+             "resource_blocking_dimension_counts" => %{"downlink" => 1, "storage" => 1},
+             "suppressed_resource_source_quality_counts" => %{"operator_supplied" => 2},
+             "suppressed_resource_trust_boundary_status_counts" => %{"missing" => 2},
+             "review_row_count" => 2,
+             "review_row_ids" => "leo_1_observe_target_a_1|leo_1_downlink_equator_prime_1",
+             "execution_boundary" => "artifact_only_no_schedule_mutation",
+             "assumption_source" => "resource_filter_report.v1",
+             "operator_authority" => "not_granted_by_resource_filter_summary",
+             "resource_state_propagation" => "not_performed",
+             "no_schedule_mutation" => true,
+             "no_resource_time_propagation" => true,
+             "no_subsystem_simulation" => true
+           } = observations
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "resource_filter_summary.v1",
+             report
+           ) == Validation.artifact_observations("resource_filter_summary.v1", report)
+
+    stale_count_observations = Map.put(observations, "suppressed_candidate_count", 1)
+
+    assert {:ok, stale_count_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_count_observations)
+
+    assert stale_count_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_count_verification["checks"],
+             &(&1["field"] == "suppressed_candidate_count" and &1["status"] == "fail")
+           )
+
+    stale_routing_observations =
+      put_in(
+        observations,
+        ["suppressed_candidate_ids_by_resource_blocking_dimension", "downlink"],
+        []
+      )
+
+    assert {:ok, stale_routing_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_routing_observations)
+
+    assert stale_routing_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_routing_verification["checks"],
+             &(&1["field"] == "suppressed_candidate_ids_by_resource_blocking_dimension" and
+                 &1["status"] == "fail")
+           )
+
+    stale_boundary_observations =
+      Map.put(observations, "execution_boundary", "resource_state_propagated")
+
+    assert {:ok, stale_boundary_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_boundary_observations)
+
+    assert stale_boundary_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_boundary_verification["checks"],
+             &(&1["field"] == "execution_boundary" and &1["status"] == "fail")
+           )
+
+    assert {:ok, %{"schema_contract" => "resource_filter_summary.v1"}} =
+             Schema.validate_artifact(report, schema_contract: "resource_filter_summary.v1")
+  end
+
   test "verifies curated objective satisfaction report reference fixtures" do
     fixture_id = "fixture.artifact.objective_satisfaction_report.v1"
 
@@ -13123,6 +13217,8 @@ defmodule OrbitalDynamics.ValidationTest do
         "fixture.artifact.quality_gate_report.v1" => quality_gate_report_fixture_observations(),
         "fixture.artifact.resource_filter_report.v1" =>
           resource_filter_report_fixture_observations(),
+        "fixture.artifact.resource_filter_summary.v1" =>
+          resource_filter_summary_fixture_observations(),
         "fixture.artifact.resource_filter_report.stale_resource_summary_margins" =>
           resource_filter_stale_margin_fixture_observations(),
         "fixture.artifact.resource_projection_report.v1" =>
@@ -13242,8 +13338,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 170,
-             "status_counts" => %{"pass" => 170},
+             "fixture_count" => 171,
+             "status_counts" => %{"pass" => 171},
              "reports" => reports
            } = report
 
@@ -13352,6 +13448,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.remaining_horizon.v1",
              "fixture.artifact.resource_filter_report.stale_resource_summary_margins",
              "fixture.artifact.resource_filter_report.v1",
+             "fixture.artifact.resource_filter_summary.v1",
              "fixture.artifact.resource_projection_flow_summary.v1",
              "fixture.artifact.resource_projection_report.battery_handoff_v1",
              "fixture.artifact.resource_projection_report.stale_resource_summary_margins",
@@ -13430,7 +13527,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 170},
+             "status_counts" => %{"fail" => 171},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -15351,6 +15448,15 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp resource_filter_report_fixture do
     read_json!("study_results/resource_filter_report_v1.json")
+  end
+
+  defp resource_filter_summary_fixture_observations do
+    "resource_filter_summary.v1"
+    |> Validation.artifact_observations(resource_filter_summary_fixture())
+  end
+
+  defp resource_filter_summary_fixture do
+    read_json!("study_results/resource_filter_summary_v1.json")
   end
 
   defp resource_filter_stale_margin_fixture_observations do

@@ -8711,6 +8711,89 @@ defmodule OrbitalDynamics.Validation do
         "checks resource filter counts, suppression routing maps, trust-boundary maps, and model-limit boundary only"
       ]
     },
+    "fixture.artifact.resource_filter_summary.v1" => %{
+      "id" => "fixture.artifact.resource_filter_summary.v1",
+      "model_id" => "artifact.resource_filter_summary.v1",
+      "reference_case" => "checked-in resource filter summary artifact",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/resource_filter_summary_v1.json",
+        "contract" => "resource_filter_summary.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "resource_filter_summary.v1",
+        "model" => "artifact_only_resource_filter_summary",
+        "source_artifact_type" => "resource_filter_report.v1",
+        "input_candidate_count" => 3,
+        "kept_candidate_count" => 1,
+        "suppressed_candidate_count" => 2,
+        "suppression_review_status" => "review_required",
+        "suppressed_candidate_ids" => "leo_1_downlink_equator_prime_1|leo_1_observe_target_a_1",
+        "suppressed_reason_counts" => %{
+          "downlink_margin_below_policy" => 1,
+          "storage_margin_below_observe_policy" => 1
+        },
+        "suppressed_candidate_ids_by_reason" => %{
+          "downlink_margin_below_policy" => ["leo_1_downlink_equator_prime_1"],
+          "storage_margin_below_observe_policy" => ["leo_1_observe_target_a_1"]
+        },
+        "resource_blocking_dimension_counts" => %{"downlink" => 1, "storage" => 1},
+        "suppressed_candidate_ids_by_resource_blocking_dimension" => %{
+          "downlink" => ["leo_1_downlink_equator_prime_1"],
+          "storage" => ["leo_1_observe_target_a_1"]
+        },
+        "suppressed_candidate_ids_by_scenario_id" => %{
+          "leo_1" => ["leo_1_downlink_equator_prime_1", "leo_1_observe_target_a_1"]
+        },
+        "suppressed_resource_source_quality_counts" => %{"operator_supplied" => 2},
+        "suppressed_candidate_ids_by_resource_source_quality" => %{
+          "operator_supplied" => [
+            "leo_1_downlink_equator_prime_1",
+            "leo_1_observe_target_a_1"
+          ]
+        },
+        "suppressed_resource_trust_boundary_status_counts" => %{"missing" => 2},
+        "suppressed_candidate_ids_by_resource_trust_boundary_status" => %{
+          "missing" => ["leo_1_downlink_equator_prime_1", "leo_1_observe_target_a_1"]
+        },
+        "invalid_candidate_input_count" => 0,
+        "invalid_candidate_input_ids" => "",
+        "invalid_resource_summary_input_count" => 0,
+        "invalid_resource_summary_input_ids" => "",
+        "duplicate_suppressed_candidate_id_count" => 0,
+        "duplicate_suppressed_candidate_row_count" => 0,
+        "review_row_count" => 2,
+        "review_row_ids" => "leo_1_observe_target_a_1|leo_1_downlink_equator_prime_1",
+        "model_limit_count" => 5,
+        "execution_boundary" => "artifact_only_no_schedule_mutation",
+        "assumption_source" => "resource_filter_report.v1",
+        "operator_authority" => "not_granted_by_resource_filter_summary",
+        "resource_state_propagation" => "not_performed",
+        "no_schedule_mutation" => true,
+        "no_resource_time_propagation" => true,
+        "no_subsystem_simulation" => true
+      },
+      "tolerances" => %{
+        "input_candidate_count" => 0,
+        "kept_candidate_count" => 0,
+        "suppressed_candidate_count" => 0,
+        "invalid_candidate_input_count" => 0,
+        "invalid_resource_summary_input_count" => 0,
+        "duplicate_suppressed_candidate_id_count" => 0,
+        "duplicate_suppressed_candidate_row_count" => 0,
+        "review_row_count" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by resource_filter_summary.v1 validation tests"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not subsystem simulation validation",
+        "checks compact suppression counts, routing maps, review rows, and no-mutation/no-propagation boundaries only"
+      ]
+    },
     "fixture.artifact.resource_filter_report.stale_resource_summary_margins" => %{
       "id" => "fixture.artifact.resource_filter_report.stale_resource_summary_margins",
       "model_id" => "artifact.resource_filter_report.v1",
@@ -16954,6 +17037,73 @@ defmodule OrbitalDynamics.Validation do
         |> group_row_ids_by_value("resource_blocking_dimension", "id")
         |> sort_grouped_values(),
       "model_limit_count" => count(artifact, "model_limits")
+    }
+  end
+
+  def artifact_observations("resource_filter_summary.v1", artifact) when is_map(artifact) do
+    artifact = stringify_keys(artifact)
+    model_limits = list_values(artifact, "model_limits")
+    review_rows = map_rows(artifact, "review_rows")
+
+    %{
+      "schema_contract" => Map.get(artifact, "schema_contract"),
+      "model" => Map.get(artifact, "model"),
+      "source_artifact_type" => Map.get(artifact, "source_artifact_type"),
+      "input_candidate_count" => Map.get(artifact, "input_candidate_count"),
+      "kept_candidate_count" => Map.get(artifact, "kept_candidate_count"),
+      "suppressed_candidate_count" => Map.get(artifact, "suppressed_candidate_count"),
+      "suppression_review_status" => Map.get(artifact, "suppression_review_status"),
+      "suppressed_candidate_ids" =>
+        artifact
+        |> list_values("suppressed_candidate_ids")
+        |> Enum.join("|"),
+      "suppressed_reason_counts" => Map.get(artifact, "suppressed_reason_counts") || %{},
+      "suppressed_candidate_ids_by_reason" =>
+        Map.get(artifact, "suppressed_candidate_ids_by_reason") || %{},
+      "resource_blocking_dimension_counts" =>
+        Map.get(artifact, "resource_blocking_dimension_counts") || %{},
+      "suppressed_candidate_ids_by_resource_blocking_dimension" =>
+        Map.get(artifact, "suppressed_candidate_ids_by_resource_blocking_dimension") || %{},
+      "suppressed_candidate_ids_by_scenario_id" =>
+        Map.get(artifact, "suppressed_candidate_ids_by_scenario_id") || %{},
+      "suppressed_resource_source_quality_counts" =>
+        Map.get(artifact, "suppressed_resource_source_quality_counts") || %{},
+      "suppressed_candidate_ids_by_resource_source_quality" =>
+        Map.get(artifact, "suppressed_candidate_ids_by_resource_source_quality") || %{},
+      "suppressed_resource_trust_boundary_status_counts" =>
+        Map.get(artifact, "suppressed_resource_trust_boundary_status_counts") || %{},
+      "suppressed_candidate_ids_by_resource_trust_boundary_status" =>
+        Map.get(artifact, "suppressed_candidate_ids_by_resource_trust_boundary_status") || %{},
+      "invalid_candidate_input_count" => Map.get(artifact, "invalid_candidate_input_count"),
+      "invalid_candidate_input_ids" =>
+        artifact
+        |> list_values("invalid_candidate_input_ids")
+        |> Enum.join("|"),
+      "invalid_resource_summary_input_count" =>
+        Map.get(artifact, "invalid_resource_summary_input_count"),
+      "invalid_resource_summary_input_ids" =>
+        artifact
+        |> list_values("invalid_resource_summary_input_ids")
+        |> Enum.join("|"),
+      "duplicate_suppressed_candidate_id_count" =>
+        Map.get(artifact, "duplicate_suppressed_candidate_id_count"),
+      "duplicate_suppressed_candidate_row_count" =>
+        Map.get(artifact, "duplicate_suppressed_candidate_row_count"),
+      "review_row_count" => length(review_rows),
+      "review_row_ids" =>
+        review_rows
+        |> Enum.map(&Map.get(&1, "id"))
+        |> Enum.reject(&is_nil/1)
+        |> Enum.join("|"),
+      "model_limit_count" => length(model_limits),
+      "execution_boundary" => get_in(artifact, ["assumptions", "execution_boundary"]),
+      "assumption_source" => get_in(artifact, ["assumptions", "source"]),
+      "operator_authority" => get_in(artifact, ["assumptions", "operator_authority"]),
+      "resource_state_propagation" =>
+        get_in(artifact, ["assumptions", "resource_state_propagation"]),
+      "no_schedule_mutation" => "no_schedule_mutation" in model_limits,
+      "no_resource_time_propagation" => "no_resource_time_propagation" in model_limits,
+      "no_subsystem_simulation" => "no_subsystem_simulation" in model_limits
     }
   end
 
