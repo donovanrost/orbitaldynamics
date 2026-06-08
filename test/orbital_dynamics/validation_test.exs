@@ -7661,6 +7661,85 @@ defmodule OrbitalDynamics.ValidationTest do
            ) == Validation.artifact_observations("planned_activity.v1", report)
   end
 
+  test "verifies curated activity template reference fixtures" do
+    fixture_id = "fixture.artifact.activity_template.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.activity_template.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    template = activity_template_fixture()
+    observations = activity_template_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert observations["activity_type"] == "observe"
+    assert observations["required_field_keys"] == "id|type|target_id|starts_at_s|ends_at_s"
+    assert observations["optional_field_count"] == 7
+    assert observations["setup_duration_s"] == 120
+    assert observations["cooldown_duration_s"] == 60
+    assert observations["telemetry_confirmation_required"] == true
+    assert observations["required_state_keys"] == "spacecraft:standby|payload:ready"
+    assert observations["produced_state_keys"] == "payload:observation_collected"
+    assert observations["precondition_type_keys"] == "payload_unavailable"
+    assert observations["boundary"] == "template_only_no_schedule_mutation"
+
+    stale_hint_observations =
+      observations
+      |> Map.put("setup_duration_s", 30)
+
+    assert {:ok, stale_hint_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_hint_observations)
+
+    assert stale_hint_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_hint_verification["checks"],
+             &(&1["field"] == "setup_duration_s" and &1["status"] == "fail")
+           )
+
+    stale_state_observations =
+      observations
+      |> Map.put("required_state_keys", "payload:ready")
+
+    assert {:ok, stale_state_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_state_observations)
+
+    assert stale_state_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_state_verification["checks"],
+             &(&1["field"] == "required_state_keys" and &1["status"] == "fail")
+           )
+
+    stale_limit_observations =
+      observations
+      |> Map.put("no_resource_reservation", false)
+
+    assert {:ok, stale_limit_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_limit_observations)
+
+    assert stale_limit_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_limit_verification["checks"],
+             &(&1["field"] == "no_resource_reservation" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_template} =
+             Schema.validate_artifact(template, schema_contract: "activity_template.v1")
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "activity_template.v1",
+             template
+           ) == Validation.artifact_observations("activity_template.v1", template)
+  end
+
   test "verifies curated realized activity reference fixtures" do
     fixture_id = "fixture.artifact.realized_activity.v1"
 
@@ -13513,6 +13592,7 @@ defmodule OrbitalDynamics.ValidationTest do
           accepted_planning_state_opm_fixture_observations(),
         "fixture.artifact.accepted_planning_state.simple" =>
           accepted_planning_state_fixture_observations(),
+        "fixture.artifact.activity_template.v1" => activity_template_fixture_observations(),
         "fixture.artifact.approval_requirement.v1" => approval_requirement_fixture_observations(),
         "fixture.artifact.backend_acceptance_policy.v1" =>
           backend_acceptance_policy_fixture_observations(),
@@ -13829,8 +13909,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 178,
-             "status_counts" => %{"pass" => 178},
+             "fixture_count" => 179,
+             "status_counts" => %{"pass" => 179},
              "reports" => reports
            } = report
 
@@ -13838,6 +13918,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.accepted_planning_state.oem",
              "fixture.artifact.accepted_planning_state.opm",
              "fixture.artifact.accepted_planning_state.simple",
+             "fixture.artifact.activity_template.v1",
              "fixture.artifact.approval_requirement.v1",
              "fixture.artifact.backend_acceptance_policy.v1",
              "fixture.artifact.branch_comparison_report.v1",
@@ -14025,7 +14106,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 178},
+             "status_counts" => %{"fail" => 179},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -15340,6 +15421,15 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp planned_activity_fixture do
     read_json!("study_results/planned_activity_v1.json")
+  end
+
+  defp activity_template_fixture_observations do
+    "activity_template.v1"
+    |> Validation.artifact_observations(activity_template_fixture())
+  end
+
+  defp activity_template_fixture do
+    read_json!("study_results/activity_template_v1.json")
   end
 
   defp realized_activity_fixture_observations do

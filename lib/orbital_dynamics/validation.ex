@@ -4304,6 +4304,82 @@ defmodule OrbitalDynamics.Validation do
         "checks planned activity identity, timing, dependency/exclusivity counts, resource trust, and execution-uncertainty metadata only"
       ]
     },
+    "fixture.artifact.activity_template.v1" => %{
+      "id" => "fixture.artifact.activity_template.v1",
+      "model_id" => "artifact.activity_template.v1",
+      "reference_case" => "checked-in observe activity template artifact",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/activity_template_v1.json",
+        "contract" => "activity_template.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "activity_template.v1",
+        "id" => "template:observe:basic",
+        "activity_type" => "observe",
+        "template_version" => 1,
+        "validation_level" => "artifact_contract",
+        "display_name" => "Basic observe activity",
+        "field_count" => 12,
+        "required_field_count" => 5,
+        "optional_field_count" => 7,
+        "required_field_keys" => "id|type|target_id|starts_at_s|ends_at_s",
+        "optional_field_keys" =>
+          "payload_id|instrument_id|allow_overlap|setup_duration_s|cooldown_duration_s|telemetry_confirmation_required|telemetry_confirmation_status",
+        "default_type" => "observe",
+        "default_allow_overlap" => false,
+        "lifecycle_status" => "planned",
+        "lifecycle_approval_status" => "not_evaluated",
+        "lifecycle_locked" => false,
+        "lifecycle_allow_overlap" => false,
+        "setup_duration_s" => 120,
+        "cooldown_duration_s" => 60,
+        "telemetry_confirmation_required" => true,
+        "telemetry_confirmation_status" => "required",
+        "required_state_count" => 2,
+        "required_state_keys" => "spacecraft:standby|payload:ready",
+        "required_blocking_state_count" => 2,
+        "produced_state_count" => 1,
+        "produced_state_keys" => "payload:observation_collected",
+        "precondition_count" => 1,
+        "precondition_type_keys" => "payload_unavailable",
+        "blocking_precondition_count" => 1,
+        "precondition_status_counts" => %{"review_required" => 1},
+        "requires_payload" => true,
+        "uses_storage" => true,
+        "estimated_data_volume_mb" => 48,
+        "suppressed_activity_type_keys" => "downlink",
+        "boundary" => "template_only_no_schedule_mutation",
+        "known_limit_count" => 2,
+        "known_limit_keys" => "template_only_no_schedule_mutation|no_resource_reservation",
+        "template_only_no_schedule_mutation" => true,
+        "no_resource_reservation" => true
+      },
+      "tolerances" => %{
+        "template_version" => 0,
+        "field_count" => 0,
+        "required_field_count" => 0,
+        "optional_field_count" => 0,
+        "setup_duration_s" => 0,
+        "cooldown_duration_s" => 0,
+        "required_state_count" => 0,
+        "required_blocking_state_count" => 0,
+        "produced_state_count" => 0,
+        "precondition_count" => 0,
+        "blocking_precondition_count" => 0,
+        "estimated_data_volume_mb" => 0,
+        "known_limit_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not external activity validation",
+        "checks typed template fields, advisory operational/subsystem hints, and no-mutation/no-reservation limits only"
+      ]
+    },
     "fixture.artifact.realized_activity.v1" => %{
       "id" => "fixture.artifact.realized_activity.v1",
       "model_id" => "artifact.realized_activity.v1",
@@ -14577,6 +14653,82 @@ defmodule OrbitalDynamics.Validation do
     }
   end
 
+  def artifact_observations("activity_template.v1", artifact) when is_map(artifact) do
+    artifact = stringify_keys(artifact)
+    operational_hints = stringify_keys(Map.get(artifact, "operational_hints") || %{})
+    lifecycle_defaults = stringify_keys(Map.get(artifact, "lifecycle_defaults") || %{})
+    default_fields = stringify_keys(Map.get(artifact, "default_fields") || %{})
+    resource_hints = stringify_keys(Map.get(artifact, "resource_hints") || %{})
+    subsystem_hints = stringify_keys(Map.get(artifact, "subsystem_state_hints") || %{})
+
+    required_states =
+      subsystem_hints |> Map.get("required_states", []) |> Enum.map(&stringify_keys/1)
+
+    produced_states =
+      subsystem_hints |> Map.get("produced_states", []) |> Enum.map(&stringify_keys/1)
+
+    preconditions = map_rows(artifact, "precondition_hints")
+    known_limits = list_values(artifact, "known_limits")
+
+    %{
+      "schema_contract" => Map.get(artifact, "schema_contract"),
+      "id" => Map.get(artifact, "id"),
+      "activity_type" => Map.get(artifact, "activity_type"),
+      "template_version" => Map.get(artifact, "template_version"),
+      "validation_level" => Map.get(artifact, "validation_level"),
+      "display_name" => Map.get(artifact, "display_name"),
+      "field_count" => Map.get(artifact, "field_count"),
+      "required_field_count" => Map.get(artifact, "required_field_count"),
+      "optional_field_count" => Map.get(artifact, "optional_field_count"),
+      "required_field_keys" =>
+        artifact
+        |> list_values("required_fields")
+        |> Enum.join("|"),
+      "optional_field_keys" =>
+        artifact
+        |> list_values("optional_fields")
+        |> Enum.join("|"),
+      "default_type" => Map.get(default_fields, "type"),
+      "default_allow_overlap" => Map.get(default_fields, "allow_overlap"),
+      "lifecycle_status" => Map.get(lifecycle_defaults, "status"),
+      "lifecycle_approval_status" => Map.get(lifecycle_defaults, "approval_status"),
+      "lifecycle_locked" => Map.get(lifecycle_defaults, "locked"),
+      "lifecycle_allow_overlap" => Map.get(lifecycle_defaults, "allow_overlap"),
+      "setup_duration_s" => Map.get(operational_hints, "setup_duration_s"),
+      "cooldown_duration_s" => Map.get(operational_hints, "cooldown_duration_s"),
+      "telemetry_confirmation_required" =>
+        Map.get(operational_hints, "telemetry_confirmation_required"),
+      "telemetry_confirmation_status" =>
+        Map.get(operational_hints, "telemetry_confirmation_status"),
+      "required_state_count" => length(required_states),
+      "required_state_keys" => joined_subsystem_state_keys(required_states),
+      "required_blocking_state_count" => Enum.count(required_states, &(&1["blocking"] == true)),
+      "produced_state_count" => length(produced_states),
+      "produced_state_keys" => joined_subsystem_state_keys(produced_states),
+      "precondition_count" => length(preconditions),
+      "precondition_type_keys" =>
+        preconditions
+        |> Enum.map(&Map.get(&1, "precondition_type"))
+        |> Enum.reject(&is_nil/1)
+        |> Enum.join("|"),
+      "blocking_precondition_count" => Enum.count(preconditions, &(&1["blocking"] == true)),
+      "precondition_status_counts" => count_rows_by_value(preconditions, "status"),
+      "requires_payload" => Map.get(resource_hints, "requires_payload"),
+      "uses_storage" => Map.get(resource_hints, "uses_storage"),
+      "estimated_data_volume_mb" => Map.get(resource_hints, "estimated_data_volume_mb"),
+      "suppressed_activity_type_keys" =>
+        resource_hints
+        |> list_values("suppressed_activity_types")
+        |> Enum.join("|"),
+      "boundary" => get_in(artifact, ["assumptions", "boundary"]),
+      "known_limit_count" => length(known_limits),
+      "known_limit_keys" => Enum.join(known_limits, "|"),
+      "template_only_no_schedule_mutation" =>
+        "template_only_no_schedule_mutation" in known_limits,
+      "no_resource_reservation" => "no_resource_reservation" in known_limits
+    }
+  end
+
   def artifact_observations("planned_activity.v1", artifact) when is_map(artifact) do
     artifact = stringify_keys(artifact)
     timeline_identity = Map.get(artifact, "timeline_identity", %{})
@@ -19727,6 +19879,18 @@ defmodule OrbitalDynamics.Validation do
     |> Enum.reject(&is_nil/1)
     |> Enum.uniq()
     |> Enum.sort()
+    |> Enum.join("|")
+  end
+
+  defp joined_subsystem_state_keys(rows) when is_list(rows) do
+    rows
+    |> Enum.map(fn row ->
+      subsystem = Map.get(row, "subsystem")
+      state = Map.get(row, "state")
+
+      if is_nil(subsystem) or is_nil(state), do: nil, else: "#{subsystem}:#{state}"
+    end)
+    |> Enum.reject(&is_nil/1)
     |> Enum.join("|")
   end
 
