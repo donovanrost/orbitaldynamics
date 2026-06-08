@@ -6936,6 +6936,131 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(package)
   end
 
+  test "candidate refresh provider counteroffer review and import summaries become review rows" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:provider_counteroffer_summaries:001",
+      "source_provider_counteroffer_review_summary" =>
+        study_result_fixture("provider_counteroffer_review_summary_v1.json"),
+      "source_provider_counteroffer_import_readiness_summary" =>
+        study_result_fixture("provider_counteroffer_import_readiness_summary_v1.json")
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:provider_counteroffer_summaries:001",
+             "review_count" => 2,
+             "provider_counteroffer_review_count" => 2
+           } = package
+
+    assert %{
+             "review_type" => "provider_counteroffer_review",
+             "source" =>
+               "candidate_refresh.source_provider_counteroffer_review_summary.review_rows",
+             "provider_counteroffer_id" => "provider_offer_1",
+             "provider_counteroffer_lock_deadline_s" => 150.0,
+             "source_provider_counteroffer" => %{
+               "source_provider_counteroffer_summary" => %{
+                 "schema_contract" => "provider_counteroffer_review_summary.v1",
+                 "counteroffer_review_status" => "review_required"
+               }
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source"] ==
+                   "candidate_refresh.source_provider_counteroffer_review_summary.review_rows")
+             )
+
+    assert %{
+             "review_type" => "provider_counteroffer_review",
+             "source" =>
+               "candidate_refresh.source_provider_counteroffer_import_readiness_summary.import_readiness_rows",
+             "provider_counteroffer_id" => "provider_offer_1",
+             "source_provider_counteroffer" => %{
+               "provider_counteroffer_import_status" => "review_required_before_import",
+               "source_provider_counteroffer_summary" => %{
+                 "schema_contract" => "provider_counteroffer_import_readiness_summary.v1",
+                 "import_readiness_status" => "review_required",
+                 "provider_counteroffer_import_status_counts" => %{
+                   "review_required_before_import" => 1
+                 }
+               }
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source"] ==
+                   "candidate_refresh.source_provider_counteroffer_import_readiness_summary.import_readiness_rows")
+             )
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+  end
+
+  test "candidate refresh result artifact provider counteroffer summaries become review rows" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:wrapped_provider_counteroffer_summaries:001",
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "source_provider_counteroffer_review_summary" =>
+            study_result_fixture("provider_counteroffer_review_summary_v1.json"),
+          "provider_counteroffer_import_readiness_summary" =>
+            study_result_fixture("provider_counteroffer_import_readiness_summary_v1.json")
+        }
+      ]
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" =>
+               "candidate_refresh:wrapped_provider_counteroffer_summaries:001",
+             "review_count" => 2,
+             "provider_counteroffer_review_count" => 2
+           } = package
+
+    assert %{
+             "review_type" => "provider_counteroffer_review",
+             "source" =>
+               "candidate_refresh.source_result_artifact[0].source_provider_counteroffer_review_summary.review_rows",
+             "source_provider_counteroffer" => %{
+               "source_provider_counteroffer_summary" => %{
+                 "schema_contract" => "provider_counteroffer_review_summary.v1"
+               }
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source"] ==
+                   "candidate_refresh.source_result_artifact[0].source_provider_counteroffer_review_summary.review_rows")
+             )
+
+    assert %{
+             "review_type" => "provider_counteroffer_review",
+             "source" =>
+               "candidate_refresh.source_result_artifact[0].provider_counteroffer_import_readiness_summary.import_readiness_rows",
+             "source_provider_counteroffer" => %{
+               "source_provider_counteroffer_summary" => %{
+                 "schema_contract" => "provider_counteroffer_import_readiness_summary.v1"
+               }
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source"] ==
+                   "candidate_refresh.source_result_artifact[0].provider_counteroffer_import_readiness_summary.import_readiness_rows")
+             )
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+  end
+
   test "candidate refresh source provider counteroffer plan-impact summaries become operator review rows" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",

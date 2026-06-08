@@ -13392,13 +13392,22 @@ defmodule OrbitalDynamics.OperatorReview do
 
     plan_impact_rows =
       [
+        {"candidate_refresh.source_provider_counteroffer_review_summary",
+         artifact["source_provider_counteroffer_review_summary"], "review_rows"},
+        {"candidate_refresh.provider_counteroffer_review_summary",
+         artifact["provider_counteroffer_review_summary"], "review_rows"},
+        {"candidate_refresh.source_provider_counteroffer_import_readiness_summary",
+         artifact["source_provider_counteroffer_import_readiness_summary"],
+         "import_readiness_rows"},
+        {"candidate_refresh.provider_counteroffer_import_readiness_summary",
+         artifact["provider_counteroffer_import_readiness_summary"], "import_readiness_rows"},
         {"candidate_refresh.source_provider_counteroffer_plan_impact_summary",
-         artifact["source_provider_counteroffer_plan_impact_summary"]},
+         artifact["source_provider_counteroffer_plan_impact_summary"], "impact_rows"},
         {"candidate_refresh.provider_counteroffer_plan_impact_summary",
-         artifact["provider_counteroffer_plan_impact_summary"]}
+         artifact["provider_counteroffer_plan_impact_summary"], "impact_rows"}
       ]
-      |> Enum.flat_map(fn {source, summary_or_summaries} ->
-        source_provider_counteroffer_plan_impact_summary_rows(summary_or_summaries, source)
+      |> Enum.flat_map(fn {source, summary_or_summaries, row_key} ->
+        source_provider_counteroffer_summary_rows(summary_or_summaries, source, row_key)
       end)
 
     report_rows ++
@@ -13422,23 +13431,60 @@ defmodule OrbitalDynamics.OperatorReview do
 
   defp source_provider_counteroffer_report_rows(_report, _source), do: []
 
-  defp source_provider_counteroffer_plan_impact_summary_rows(summaries, source)
+  defp source_provider_counteroffer_summary_rows(summaries, source, row_key)
        when is_list(summaries) do
     summaries
     |> Enum.with_index()
     |> Enum.flat_map(fn {summary, index} ->
-      source_provider_counteroffer_plan_impact_summary_rows(summary, "#{source}[#{index}]")
+      source_provider_counteroffer_summary_rows(summary, "#{source}[#{index}]", row_key)
     end)
   end
 
-  defp source_provider_counteroffer_plan_impact_summary_rows(%{} = summary, source) do
+  defp source_provider_counteroffer_summary_rows(%{} = summary, source, row_key) do
+    summary = stringify_keys(summary)
+
     summary
-    |> stringify_keys()
-    |> Map.get("impact_rows", [])
-    |> provider_counteroffer_rows("#{source}.impact_rows")
+    |> Map.get(row_key, [])
+    |> Enum.map(&provider_counteroffer_summary_row(&1, summary))
+    |> provider_counteroffer_rows("#{source}.#{row_key}")
   end
 
-  defp source_provider_counteroffer_plan_impact_summary_rows(_summary, _source), do: []
+  defp source_provider_counteroffer_summary_rows(_summary, _source, _row_key), do: []
+
+  defp provider_counteroffer_summary_row(%{} = row, %{} = summary) do
+    row
+    |> stringify_keys()
+    |> Map.put(
+      "source_provider_counteroffer_summary",
+      provider_counteroffer_summary_context(summary)
+    )
+  end
+
+  defp provider_counteroffer_summary_row(row, _summary), do: row
+
+  defp provider_counteroffer_summary_context(%{} = summary) do
+    summary
+    |> Map.take([
+      "model",
+      "schema_contract",
+      "source",
+      "source_artifact_type",
+      "source_artifact_id",
+      "counteroffer_count",
+      "reviewable_count",
+      "review_counteroffer_ids",
+      "counteroffer_review_status",
+      "import_readiness_status",
+      "import_classification",
+      "provider_counteroffer_import_status_counts",
+      "required_import_action_counts",
+      "plan_impact_status",
+      "counteroffer_lock_deadline_status_counts",
+      "counteroffer_ids_by_lock_deadline_status",
+      "assumptions"
+    ])
+    |> compact_map()
+  end
 
   defp candidate_refresh_result_artifact_provider_counteroffer_rows(artifact) do
     [
@@ -13473,19 +13519,29 @@ defmodule OrbitalDynamics.OperatorReview do
        artifact["source_provider_counteroffer_report"]},
       {:report, "#{source}.provider_counteroffer_report",
        artifact["provider_counteroffer_report"]},
-      {:plan_impact, "#{source}.source_provider_counteroffer_plan_impact_summary",
-       artifact["source_provider_counteroffer_plan_impact_summary"]},
-      {:plan_impact, "#{source}.provider_counteroffer_plan_impact_summary",
-       artifact["provider_counteroffer_plan_impact_summary"]}
+      {:summary, "#{source}.source_provider_counteroffer_review_summary",
+       artifact["source_provider_counteroffer_review_summary"], "review_rows"},
+      {:summary, "#{source}.provider_counteroffer_review_summary",
+       artifact["provider_counteroffer_review_summary"], "review_rows"},
+      {:summary, "#{source}.source_provider_counteroffer_import_readiness_summary",
+       artifact["source_provider_counteroffer_import_readiness_summary"],
+       "import_readiness_rows"},
+      {:summary, "#{source}.provider_counteroffer_import_readiness_summary",
+       artifact["provider_counteroffer_import_readiness_summary"], "import_readiness_rows"},
+      {:summary, "#{source}.source_provider_counteroffer_plan_impact_summary",
+       artifact["source_provider_counteroffer_plan_impact_summary"], "impact_rows"},
+      {:summary, "#{source}.provider_counteroffer_plan_impact_summary",
+       artifact["provider_counteroffer_plan_impact_summary"], "impact_rows"}
     ]
     |> Enum.flat_map(fn
       {:report, report_source, report_or_reports} ->
         source_provider_counteroffer_report_rows(report_or_reports, report_source)
 
-      {:plan_impact, summary_source, summary_or_summaries} ->
-        source_provider_counteroffer_plan_impact_summary_rows(
+      {:summary, summary_source, summary_or_summaries, row_key} ->
+        source_provider_counteroffer_summary_rows(
           summary_or_summaries,
-          summary_source
+          summary_source,
+          row_key
         )
     end)
   end
