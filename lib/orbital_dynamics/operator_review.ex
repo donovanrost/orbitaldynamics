@@ -4844,14 +4844,25 @@ defmodule OrbitalDynamics.OperatorReview do
   defp candidate_refresh_candidate_diff_rows(artifact) do
     source_window_lineage = Map.get(artifact, "source_window_lineage", [])
 
-    [
-      {"candidate_refresh.source_candidate_diff_report",
-       artifact["source_candidate_diff_report"]},
-      {"candidate_refresh.candidate_diff_report", artifact["candidate_diff_report"]}
-    ]
-    |> Enum.flat_map(fn {source, report_or_reports} ->
-      source_candidate_diff_report_rows(report_or_reports, source, source_window_lineage)
-    end)
+    direct_rows =
+      [
+        {"candidate_refresh.accepted_planning_state.source_candidate_diff_report",
+         get_in(artifact, ["accepted_planning_state", "source_candidate_diff_report"])},
+        {"candidate_refresh.accepted_planning_state.candidate_diff_report",
+         get_in(artifact, ["accepted_planning_state", "candidate_diff_report"])},
+        {"candidate_refresh.mission_state.source_candidate_diff_report",
+         get_in(artifact, ["mission_state", "source_candidate_diff_report"])},
+        {"candidate_refresh.mission_state.candidate_diff_report",
+         get_in(artifact, ["mission_state", "candidate_diff_report"])},
+        {"candidate_refresh.source_candidate_diff_report",
+         artifact["source_candidate_diff_report"]},
+        {"candidate_refresh.candidate_diff_report", artifact["candidate_diff_report"]}
+      ]
+      |> Enum.flat_map(fn {source, report_or_reports} ->
+        source_candidate_diff_report_rows(report_or_reports, source, source_window_lineage)
+      end)
+
+    direct_rows ++ candidate_refresh_result_artifact_candidate_diff_rows(artifact)
   end
 
   defp source_candidate_diff_report_rows(reports, source, source_window_lineage)
@@ -4871,6 +4882,45 @@ defmodule OrbitalDynamics.OperatorReview do
   end
 
   defp source_candidate_diff_report_rows(_report, _source, _source_window_lineage), do: []
+
+  defp candidate_refresh_result_artifact_candidate_diff_rows(artifact) do
+    [
+      {"candidate_refresh.source_result_artifact", artifact["source_result_artifact"]},
+      {"candidate_refresh.result_artifact", artifact["result_artifact"]}
+    ]
+    |> Enum.flat_map(fn {source, artifact_or_artifacts} ->
+      result_artifact_candidate_diff_rows(artifact_or_artifacts, source)
+    end)
+  end
+
+  defp result_artifact_candidate_diff_rows(artifacts, source) when is_list(artifacts) do
+    artifacts
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {artifact, index} ->
+      result_artifact_candidate_diff_rows(artifact, "#{source}[#{index}]")
+    end)
+  end
+
+  defp result_artifact_candidate_diff_rows(
+         %{"schema_contract" => "candidate_diff_report.v1"} = report,
+         source
+       ) do
+    source_candidate_diff_report_rows(report, source, [])
+  end
+
+  defp result_artifact_candidate_diff_rows(%{} = artifact, source) do
+    artifact = stringify_keys(artifact)
+
+    [
+      {"#{source}.source_candidate_diff_report", artifact["source_candidate_diff_report"]},
+      {"#{source}.candidate_diff_report", artifact["candidate_diff_report"]}
+    ]
+    |> Enum.flat_map(fn {report_source, report_or_reports} ->
+      source_candidate_diff_report_rows(report_or_reports, report_source, [])
+    end)
+  end
+
+  defp result_artifact_candidate_diff_rows(_artifact, _source), do: []
 
   defp candidate_refresh_command_window_rows(artifact) do
     direct_rows =
