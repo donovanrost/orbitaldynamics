@@ -1388,6 +1388,11 @@ handoffs. The checked-in
 fixtures cover expired, active, and missing reservation evidence,
 owner/status/action routing, no-provider-reservation review boundaries, and the
 hold import-readiness no-provider-write/no-Cadence-write boundary.
+The validation-reference registry also observes the checked-in hold
+import-readiness summary as a curated fixture, checking review-only import
+classification, row-derived hold import-status/action maps, reservation ID
+routing by import status and required action, and the no-provider/no-Cadence
+write boundary.
 Candidate-refresh station-reservation replay also derives hold
 import-readiness status/action/direction routing from compact
 `import_readiness_rows` when present, so stale top-level hold import maps cannot

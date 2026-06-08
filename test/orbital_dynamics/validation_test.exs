@@ -3030,6 +3030,112 @@ defmodule OrbitalDynamics.ValidationTest do
            )
   end
 
+  test "verifies curated station reservation hold import-readiness summary reference fixtures" do
+    fixture_id = "fixture.artifact.station_reservation_hold_import_readiness_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] ==
+             "artifact.station_reservation_hold_import_readiness_summary.v1"
+
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    summary = station_reservation_hold_import_readiness_summary_fixture()
+    observations = station_reservation_hold_import_readiness_summary_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "import_readiness_status" => "review_required",
+             "import_classification" => "review_only",
+             "reservation_hold_import_status_counts" => %{
+               "review_required_before_import" => 2
+             },
+             "row_derived_reservation_hold_import_status_counts" => %{
+               "review_required_before_import" => 2
+             },
+             "required_import_action_counts" => %{
+               "review_station_provider_contention" => 1,
+               "review_station_reservation_overlap" => 1
+             },
+             "row_derived_required_import_action_counts" => %{
+               "review_station_provider_contention" => 1,
+               "review_station_reservation_overlap" => 1
+             },
+             "execution_boundary" => "artifact_only_no_provider_or_cadence_writes",
+             "provider_write" => "not_performed_by_summary",
+             "cadence_write" => "not_performed_by_summary"
+           } = observations
+
+    stale_import_status_observations =
+      observations
+      |> put_in(["row_derived_reservation_hold_import_status_counts", "ready_for_import"], 1)
+
+    assert {:ok, stale_import_status_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_import_status_observations)
+
+    assert stale_import_status_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_import_status_verification["checks"],
+             &(&1["field"] == "row_derived_reservation_hold_import_status_counts" and
+                 &1["status"] == "fail")
+           )
+
+    stale_action_ids_observations =
+      observations
+      |> put_in(
+        [
+          "row_derived_reservation_hold_ids_by_required_import_action",
+          "review_station_reservation_overlap"
+        ],
+        []
+      )
+
+    assert {:ok, stale_action_ids_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_action_ids_observations)
+
+    assert stale_action_ids_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_action_ids_verification["checks"],
+             &(&1["field"] == "row_derived_reservation_hold_ids_by_required_import_action" and
+                 &1["status"] == "fail")
+           )
+
+    stale_boundary_observations =
+      observations
+      |> Map.put("cadence_write", "performed_by_summary")
+
+    assert {:ok, stale_boundary_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_boundary_observations)
+
+    assert stale_boundary_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_boundary_verification["checks"],
+             &(&1["field"] == "cadence_write" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "station_reservation_hold_import_readiness_summary.v1",
+             summary
+           ) ==
+             Validation.artifact_observations(
+               "station_reservation_hold_import_readiness_summary.v1",
+               summary
+             )
+
+    assert {:ok,
+            %{
+              "schema_contract" => "station_reservation_hold_import_readiness_summary.v1"
+            }} = Schema.validate_artifact(summary)
+  end
+
   test "verifies curated station calendar provider reference fixtures" do
     fixture_id = "fixture.artifact.station_calendar_provider.v1"
 
@@ -12198,6 +12304,8 @@ defmodule OrbitalDynamics.ValidationTest do
           station_calendar_provider_fixture_observations(),
         "fixture.artifact.station_calendar_report.stale_provider_reservation_hold" =>
           station_calendar_report_fixture_observations(),
+        "fixture.artifact.station_reservation_hold_import_readiness_summary.v1" =>
+          station_reservation_hold_import_readiness_summary_fixture_observations(),
         "fixture.artifact.station_reservation_report.stale_provider_reservation_hold" =>
           station_reservation_report_fixture_observations(),
         "fixture.artifact.station_calendar_report.v1" =>
@@ -12261,8 +12369,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 160,
-             "status_counts" => %{"pass" => 160},
+             "fixture_count" => 161,
+             "status_counts" => %{"pass" => 161},
              "reports" => reports
            } = report
 
@@ -12390,6 +12498,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.station_calendar_provider.v1",
              "fixture.artifact.station_calendar_report.stale_provider_reservation_hold",
              "fixture.artifact.station_calendar_report.v1",
+             "fixture.artifact.station_reservation_hold_import_readiness_summary.v1",
              "fixture.artifact.station_reservation_report.stale_provider_reservation_hold",
              "fixture.artifact.strategy_branch.v1",
              "fixture.artifact.strategy_recommendation.v1",
@@ -12439,7 +12548,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 160},
+             "status_counts" => %{"fail" => 161},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -14607,6 +14716,17 @@ defmodule OrbitalDynamics.ValidationTest do
   defp station_reservation_report_fixture do
     station_calendar_report_fixture()
     |> StationCalendar.reservation_report()
+  end
+
+  defp station_reservation_hold_import_readiness_summary_fixture_observations do
+    "station_reservation_hold_import_readiness_summary.v1"
+    |> Validation.artifact_observations(
+      station_reservation_hold_import_readiness_summary_fixture()
+    )
+  end
+
+  defp station_reservation_hold_import_readiness_summary_fixture do
+    read_json!("study_results/station_reservation_hold_import_readiness_summary_v1.json")
   end
 
   defp station_calendar_provider_fixture_observations do

@@ -10283,6 +10283,85 @@ defmodule OrbitalDynamics.Validation do
         "does not call provider APIs, reserve station time, or mutate schedules"
       ]
     },
+    "fixture.artifact.station_reservation_hold_import_readiness_summary.v1" => %{
+      "id" => "fixture.artifact.station_reservation_hold_import_readiness_summary.v1",
+      "model_id" => "artifact.station_reservation_hold_import_readiness_summary.v1",
+      "reference_case" => "checked-in station reservation hold import-readiness summary",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" =>
+          "study_results/station_reservation_hold_import_readiness_summary_v1.json",
+        "source_contract" => "station_reservation_report.v1",
+        "contract" => "station_reservation_hold_import_readiness_summary.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "station_reservation_hold_import_readiness_summary.v1",
+        "model" => "artifact_only_station_reservation_hold_import_readiness_summary",
+        "source_artifact_type" => "station_reservation_report.v1",
+        "source" => "station_calendar_report.reservation_evidence",
+        "reservation_hold_count" => 2,
+        "import_readiness_status" => "review_required",
+        "import_classification" => "review_only",
+        "ready_for_import_count" => 0,
+        "review_required_before_import_count" => 2,
+        "no_import_required_count" => 0,
+        "reservation_hold_import_status_counts" => %{"review_required_before_import" => 2},
+        "row_derived_reservation_hold_import_status_counts" => %{
+          "review_required_before_import" => 2
+        },
+        "required_import_action_counts" => %{
+          "review_station_provider_contention" => 1,
+          "review_station_reservation_overlap" => 1
+        },
+        "row_derived_required_import_action_counts" => %{
+          "review_station_provider_contention" => 1,
+          "review_station_reservation_overlap" => 1
+        },
+        "reservation_hold_ids_by_import_status" => %{
+          "review_required_before_import" => ["reservation_expired", "reservation_missing"]
+        },
+        "row_derived_reservation_hold_ids_by_import_status" => %{
+          "review_required_before_import" => ["reservation_expired", "reservation_missing"]
+        },
+        "reservation_hold_ids_by_required_import_action" => %{
+          "review_station_provider_contention" => ["reservation_missing"],
+          "review_station_reservation_overlap" => ["reservation_expired"]
+        },
+        "row_derived_reservation_hold_ids_by_required_import_action" => %{
+          "review_station_provider_contention" => ["reservation_missing"],
+          "review_station_reservation_overlap" => ["reservation_expired"]
+        },
+        "reservation_hold_contact_ids_by_import_status" => %{
+          "review_required_before_import" => ["dl_source_reserved"]
+        },
+        "row_derived_reservation_hold_contact_ids_by_import_status" => %{
+          "review_required_before_import" => ["dl_source_reserved"]
+        },
+        "execution_boundary" => "artifact_only_no_provider_or_cadence_writes",
+        "provider_write" => "not_performed_by_summary",
+        "cadence_write" => "not_performed_by_summary",
+        "reservation_acceptance" => "not_performed_by_summary",
+        "operator_authority" => "not_granted_by_import_readiness_summary",
+        "model_limit_count" => 5
+      },
+      "tolerances" => %{
+        "reservation_hold_count" => 0,
+        "ready_for_import_count" => 0,
+        "review_required_before_import_count" => 0,
+        "no_import_required_count" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by station_reservation_hold_import_readiness_summary.v1 validation tests"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not external provider validation",
+        "checks hold import-readiness routing and no-provider/no-Cadence-write boundary only",
+        "does not call provider APIs, accept reservations, or write Cadence imports"
+      ]
+    },
     "fixture.artifact.station_calendar_report.v1" => %{
       "id" => "fixture.artifact.station_calendar_report.v1",
       "model_id" => "artifact.station_calendar_report.v1",
@@ -16845,6 +16924,57 @@ defmodule OrbitalDynamics.Validation do
     }
   end
 
+  def artifact_observations("station_reservation_hold_import_readiness_summary.v1", artifact)
+      when is_map(artifact) do
+    artifact = stringify_keys(artifact)
+    rows = map_rows(artifact, "import_readiness_rows")
+
+    %{
+      "schema_contract" => Map.get(artifact, "schema_contract"),
+      "model" => Map.get(artifact, "model"),
+      "source_artifact_type" => Map.get(artifact, "source_artifact_type"),
+      "source" => Map.get(artifact, "source"),
+      "reservation_hold_count" => Map.get(artifact, "reservation_hold_count"),
+      "import_readiness_status" => Map.get(artifact, "import_readiness_status"),
+      "import_classification" => Map.get(artifact, "import_classification"),
+      "ready_for_import_count" => Map.get(artifact, "ready_for_import_count"),
+      "review_required_before_import_count" =>
+        Map.get(artifact, "review_required_before_import_count"),
+      "no_import_required_count" => Map.get(artifact, "no_import_required_count"),
+      "reservation_hold_import_status_counts" =>
+        Map.get(artifact, "reservation_hold_import_status_counts") || %{},
+      "row_derived_reservation_hold_import_status_counts" =>
+        count_rows_by_value(rows, "station_reservation_hold_import_status"),
+      "required_import_action_counts" => Map.get(artifact, "required_import_action_counts") || %{},
+      "row_derived_required_import_action_counts" =>
+        count_rows_by_value(rows, "required_operator_action"),
+      "reservation_hold_ids_by_import_status" =>
+        Map.get(artifact, "reservation_hold_ids_by_import_status") || %{},
+      "row_derived_reservation_hold_ids_by_import_status" =>
+        group_row_list_ids_by_value(
+          rows,
+          "station_reservation_hold_import_status",
+          "reservation_ids"
+        ),
+      "reservation_hold_ids_by_required_import_action" =>
+        Map.get(artifact, "reservation_hold_ids_by_required_import_action") || %{},
+      "row_derived_reservation_hold_ids_by_required_import_action" =>
+        group_row_list_ids_by_value(rows, "required_operator_action", "reservation_ids"),
+      "reservation_hold_contact_ids_by_import_status" =>
+        Map.get(artifact, "reservation_hold_contact_ids_by_import_status") || %{},
+      "row_derived_reservation_hold_contact_ids_by_import_status" =>
+        rows
+        |> group_row_ids_by_present_value("station_reservation_hold_import_status", "contact_id")
+        |> sort_grouped_values(),
+      "execution_boundary" => get_in(artifact, ["assumptions", "execution_boundary"]),
+      "provider_write" => get_in(artifact, ["assumptions", "provider_write"]),
+      "cadence_write" => get_in(artifact, ["assumptions", "cadence_write"]),
+      "reservation_acceptance" => get_in(artifact, ["assumptions", "reservation_acceptance"]),
+      "operator_authority" => get_in(artifact, ["assumptions", "operator_authority"]),
+      "model_limit_count" => count(artifact, "model_limits")
+    }
+  end
+
   def artifact_observations("model_acceptance_report.v1", artifact) when is_map(artifact) do
     artifact = stringify_keys(artifact)
 
@@ -17188,6 +17318,22 @@ defmodule OrbitalDynamics.Validation do
     |> Enum.group_by(&Map.get(&1, value_key), &Map.get(&1, id_key))
     |> Map.new(fn {value, ids} ->
       {to_string(value), Enum.reject(ids, &is_nil/1)}
+    end)
+  end
+
+  defp group_row_list_ids_by_value(rows, value_key, id_key) do
+    rows
+    |> Enum.group_by(&(Map.get(&1, value_key) || "unknown"), &List.wrap(Map.get(&1, id_key)))
+    |> Map.new(fn {value, id_lists} ->
+      ids =
+        id_lists
+        |> List.flatten()
+        |> Enum.reject(&is_nil/1)
+        |> Enum.map(&to_string/1)
+        |> Enum.uniq()
+        |> Enum.sort()
+
+      {to_string(value), ids}
     end)
   end
 
