@@ -2847,6 +2847,94 @@ defmodule OrbitalDynamics.CadenceImportTest do
              Schema.validate_artifact(manifest)
   end
 
+  test "candidate refresh import preserves wrapped timeline preservation reports" do
+    report = timeline_preservation_report()
+    source_preservation = hd(report["rows"])
+    review_preservation = Enum.at(report["rows"], 1)
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:wrapped_preservation_report_import",
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "timeline_preservation_report" => report
+        }
+      ]
+    }
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:wrapped_preservation_report_import",
+             "row_count" => 2,
+             "ready_count" => 1,
+             "review_required_count" => 1,
+             "import_action_counts" => %{"review_timeline_preservation" => 2},
+             "source_review_type_counts" => %{"timeline_preservation_review" => 2}
+           } = manifest
+
+    assert Enum.map(manifest["rows"], & &1["source"]) == [
+             "candidate_refresh.source_result_artifact[0].timeline_preservation_report.rows",
+             "candidate_refresh.source_result_artifact[0].timeline_preservation_report.rows"
+           ]
+
+    assert [
+             %{
+               "import_action" => "review_timeline_preservation",
+               "import_status" => "ready_for_import",
+               "source_review_type" => "timeline_preservation_review",
+               "source_review_action" => "record_timeline_preservation",
+               "approval_status" => "not_required",
+               "timeline_id" => "timeline:planned_contact",
+               "activity_id" => "contact_locked",
+               "timeline_preservation_status" => "preservation_required",
+               "requires_preservation" => true,
+               "requires_operator_review" => false,
+               "timeline_preservation_protection_decision" => "preserve",
+               "timeline_preservation_protection_category" => "locked_or_approved",
+               "timeline_preservation_protection_reason" => "activity_locked_or_approved",
+               "preserve_activity_count" => 1,
+               "review_change_activity_count" => 1,
+               "preservation_sensitive_activity_count" => 2,
+               "has_cadence_import" => false,
+               "source_timeline_preservation" => ^source_preservation,
+               "source_review_row" => %{
+                 "source" =>
+                   "candidate_refresh.source_result_artifact[0].timeline_preservation_report.rows",
+                 "review_type" => "timeline_preservation_review",
+                 "source_timeline_preservation" => ^source_preservation
+               }
+             },
+             %{
+               "import_action" => "review_timeline_preservation",
+               "import_status" => "review_required_before_import",
+               "source_review_type" => "timeline_preservation_review",
+               "source_review_action" => "review_timeline_preservation",
+               "approval_status" => "operator_review_required",
+               "timeline_id" => "timeline:invalid_activity_input:bad_missing_type",
+               "activity_id" => "bad_missing_type",
+               "timeline_preservation_status" => "review_required",
+               "requires_preservation" => false,
+               "requires_operator_review" => true,
+               "timeline_preservation_protection_decision" => "review_change",
+               "invalid_activity_input" => true,
+               "invalid_activity_input_reason" => "missing_activity_type",
+               "source_timeline_preservation" => ^review_preservation,
+               "source_review_row" => %{
+                 "source" =>
+                   "candidate_refresh.source_result_artifact[0].timeline_preservation_report.rows",
+                 "review_type" => "timeline_preservation_review",
+                 "source_timeline_preservation" => ^review_preservation
+               }
+             }
+           ] = manifest["rows"]
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "candidate refresh import preserves wrapped contact-allocation reports" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
