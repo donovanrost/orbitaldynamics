@@ -10900,6 +10900,7 @@ defmodule OrbitalDynamics.OperatorReview do
       }
       |> Map.merge(quality_gate_row_import_readiness_context(row))
       |> Map.merge(quality_gate_row_resource_context(row))
+      |> Map.merge(quality_gate_row_operator_training_context(row))
       |> compact_map()
     end)
   end
@@ -10923,6 +10924,126 @@ defmodule OrbitalDynamics.OperatorReview do
   end
 
   defp quality_gate_unavailable_resource_summary?(_summary), do: false
+
+  defp quality_gate_operator_training_summary?(%{} = summary) do
+    schema_contract = summary["schema_contract"] || summary[:schema_contract]
+    model = summary["model"] || summary[:model]
+
+    schema_contract in [nil, "operational_quality_gate_operator_training_summary.v1"] and
+      model == "artifact_only_quality_gate_operator_training_summary"
+  end
+
+  defp quality_gate_operator_training_summary?(_summary), do: false
+
+  defp quality_gate_report_from_operator_training_summary(%{} = summary) do
+    summary = stringify_keys(summary)
+    row_ids_by_status = Map.get(summary, "quality_gate_row_ids_by_status") || %{}
+    status = quality_gate_import_readiness_status_from_row_ids(row_ids_by_status)
+    classification = quality_gate_import_readiness_classification(status)
+
+    %{
+      "schema_contract" => "quality_gate_report.v1",
+      "model" => "preserved_operational_quality_gate_operator_training_summary",
+      "report_id" =>
+        summary["source_quality_gate_report_id"] ||
+          summary["source_artifact_id"] ||
+          "quality_gate:operator_training_summary",
+      "source" => summary["source"],
+      "source_summary_model" => summary["model"],
+      "source_summary_schema_contract" => summary["schema_contract"],
+      "source_artifact_type" => summary["source_artifact_type"],
+      "source_artifact_id" => summary["source_artifact_id"],
+      "source_readiness_report_id" => summary["source_readiness_report_id"],
+      "readiness_level" => quality_gate_import_readiness_level(classification),
+      "import_classification" => classification,
+      "status" => status,
+      "gate_count" =>
+        quality_gate_import_readiness_row_count(
+          %{"gate_count" => summary["operator_training_row_count"]},
+          row_ids_by_status
+        ),
+      "passed_gate_count" =>
+        length(quality_gate_import_readiness_row_ids(row_ids_by_status, summary, "passed")),
+      "review_gate_count" =>
+        length(
+          quality_gate_import_readiness_row_ids(row_ids_by_status, summary, "review_required")
+        ),
+      "analysis_gate_count" =>
+        length(quality_gate_import_readiness_row_ids(row_ids_by_status, summary, "analysis_only")),
+      "blocked_gate_count" =>
+        length(quality_gate_import_readiness_row_ids(row_ids_by_status, summary, "blocked")),
+      "gate_status_counts" => quality_gate_import_readiness_status_counts(row_ids_by_status),
+      "gate_classification_counts" =>
+        quality_gate_import_readiness_classification_counts(row_ids_by_status),
+      "operator_training_row_count" => summary["operator_training_row_count"],
+      "operator_training_requirement_count" => summary["operator_training_requirement_count"],
+      "operator_training_requirement_counts" => summary["operator_training_requirement_counts"],
+      "operator_training_requirement_ids" => summary["operator_training_requirement_ids"],
+      "required_operator_roles" => summary["required_operator_roles"],
+      "required_training_ids" => summary["required_training_ids"],
+      "required_certification_ids" => summary["required_certification_ids"],
+      "required_qualification_ids" => summary["required_qualification_ids"],
+      "quality_gate_row_ids_by_status" => row_ids_by_status,
+      "quality_gate_row_ids_by_classification" =>
+        summary["quality_gate_row_ids_by_classification"],
+      "quality_gate_ids_by_status" => summary["quality_gate_ids_by_status"],
+      "quality_gate_ids_by_classification" => summary["quality_gate_ids_by_classification"],
+      "passed_gate_ids" => quality_gate_import_readiness_gate_ids(summary, "passed"),
+      "review_required_gate_ids" =>
+        quality_gate_import_readiness_gate_ids(summary, "review_required"),
+      "analysis_only_gate_ids" =>
+        quality_gate_import_readiness_gate_ids(summary, "analysis_only"),
+      "blocked_gate_ids" => quality_gate_import_readiness_gate_ids(summary, "blocked"),
+      "assumptions" => summary["assumptions"],
+      "rows" => quality_gate_operator_training_rows(summary, row_ids_by_status)
+    }
+    |> compact_map()
+  end
+
+  defp quality_gate_operator_training_rows(summary, row_ids_by_status) do
+    ["review_required", "analysis_only", "blocked"]
+    |> Enum.flat_map(fn status ->
+      row_ids = quality_gate_import_readiness_row_ids(row_ids_by_status, summary, status)
+      gate_ids = quality_gate_import_readiness_gate_ids(summary, status)
+
+      row_ids
+      |> Enum.with_index()
+      |> Enum.map(fn {row_id, index} ->
+        gate_id =
+          Enum.at(gate_ids, index) ||
+            List.first(summary["operator_training_gate_ids"] || []) ||
+            "operator_training"
+
+        %{
+          "id" => row_id,
+          "gate_id" => gate_id,
+          "status" => status,
+          "classification" => quality_gate_import_readiness_classification(status),
+          "reason" => quality_gate_operator_training_reason(status),
+          "source_summary_schema_contract" => summary["schema_contract"],
+          "source_summary_model" => summary["model"],
+          "operator_training_requirement_count" => summary["operator_training_requirement_count"],
+          "operator_training_requirement_counts" =>
+            summary["operator_training_requirement_counts"],
+          "operator_training_requirement_ids" => summary["operator_training_requirement_ids"],
+          "required_operator_roles" => summary["required_operator_roles"],
+          "required_training_ids" => summary["required_training_ids"],
+          "required_certification_ids" => summary["required_certification_ids"],
+          "required_qualification_ids" => summary["required_qualification_ids"]
+        }
+        |> compact_map()
+      end)
+    end)
+  end
+
+  defp quality_gate_operator_training_reason("blocked"),
+    do: "operator training quality gate is blocked"
+
+  defp quality_gate_operator_training_reason("analysis_only"),
+    do: "operator training quality gate is analysis-only"
+
+  defp quality_gate_operator_training_reason(_status),
+    do: "operator training quality gate requires review"
 
   defp quality_gate_report_from_unavailable_resource_summary(%{} = summary) do
     summary = stringify_keys(summary)
@@ -11389,6 +11510,20 @@ defmodule OrbitalDynamics.OperatorReview do
       "resource_trust_boundary_status_counts" => row["resource_trust_boundary_status_counts"]
     }
   end
+
+  defp quality_gate_row_operator_training_context(%{"gate_id" => "operator_training"} = row) do
+    Map.take(row, [
+      "operator_training_requirement_count",
+      "operator_training_requirement_counts",
+      "operator_training_requirement_ids",
+      "required_operator_roles",
+      "required_training_ids",
+      "required_certification_ids",
+      "required_qualification_ids"
+    ])
+  end
+
+  defp quality_gate_row_operator_training_context(_row), do: %{}
 
   defp quality_gate_report_context(report) do
     Map.take(report, [
@@ -13430,6 +13565,16 @@ defmodule OrbitalDynamics.OperatorReview do
            "accepted_planning_state",
            "operational_quality_gate_unavailable_resource_summary"
          ])},
+        {"candidate_refresh.accepted_planning_state.source_operational_quality_gate_operator_training_summary",
+         get_in(artifact, [
+           "accepted_planning_state",
+           "source_operational_quality_gate_operator_training_summary"
+         ])},
+        {"candidate_refresh.accepted_planning_state.operational_quality_gate_operator_training_summary",
+         get_in(artifact, [
+           "accepted_planning_state",
+           "operational_quality_gate_operator_training_summary"
+         ])},
         {"candidate_refresh.mission_state.source_quality_gate_report",
          get_in(artifact, ["mission_state", "source_quality_gate_report"])},
         {"candidate_refresh.mission_state.quality_gate_report",
@@ -13454,6 +13599,16 @@ defmodule OrbitalDynamics.OperatorReview do
            "mission_state",
            "operational_quality_gate_unavailable_resource_summary"
          ])},
+        {"candidate_refresh.mission_state.source_operational_quality_gate_operator_training_summary",
+         get_in(artifact, [
+           "mission_state",
+           "source_operational_quality_gate_operator_training_summary"
+         ])},
+        {"candidate_refresh.mission_state.operational_quality_gate_operator_training_summary",
+         get_in(artifact, [
+           "mission_state",
+           "operational_quality_gate_operator_training_summary"
+         ])},
         {"candidate_refresh.source_quality_gate_report", artifact["source_quality_gate_report"]},
         {"candidate_refresh.quality_gate_report", artifact["quality_gate_report"]},
         {"candidate_refresh.source_operational_quality_gate_import_readiness_summary",
@@ -13463,7 +13618,11 @@ defmodule OrbitalDynamics.OperatorReview do
         {"candidate_refresh.source_operational_quality_gate_unavailable_resource_summary",
          artifact["source_operational_quality_gate_unavailable_resource_summary"]},
         {"candidate_refresh.operational_quality_gate_unavailable_resource_summary",
-         artifact["operational_quality_gate_unavailable_resource_summary"]}
+         artifact["operational_quality_gate_unavailable_resource_summary"]},
+        {"candidate_refresh.source_operational_quality_gate_operator_training_summary",
+         artifact["source_operational_quality_gate_operator_training_summary"]},
+        {"candidate_refresh.operational_quality_gate_operator_training_summary",
+         artifact["operational_quality_gate_operator_training_summary"]}
       ]
       |> Enum.flat_map(fn {source, report_or_reports} ->
         source_quality_gate_report_rows(report_or_reports, source)
@@ -13492,6 +13651,11 @@ defmodule OrbitalDynamics.OperatorReview do
       quality_gate_unavailable_resource_summary?(report) ->
         report
         |> quality_gate_report_from_unavailable_resource_summary()
+        |> quality_gate_rows(source)
+
+      quality_gate_operator_training_summary?(report) ->
+        report
+        |> quality_gate_report_from_operator_training_summary()
         |> quality_gate_rows(source)
 
       true ->
@@ -13539,7 +13703,11 @@ defmodule OrbitalDynamics.OperatorReview do
       {"#{source}.source_operational_quality_gate_unavailable_resource_summary",
        artifact["source_operational_quality_gate_unavailable_resource_summary"]},
       {"#{source}.operational_quality_gate_unavailable_resource_summary",
-       artifact["operational_quality_gate_unavailable_resource_summary"]}
+       artifact["operational_quality_gate_unavailable_resource_summary"]},
+      {"#{source}.source_operational_quality_gate_operator_training_summary",
+       artifact["source_operational_quality_gate_operator_training_summary"]},
+      {"#{source}.operational_quality_gate_operator_training_summary",
+       artifact["operational_quality_gate_operator_training_summary"]}
     ]
     |> Enum.flat_map(fn {report_source, report_or_reports} ->
       source_quality_gate_report_rows(report_or_reports, report_source)

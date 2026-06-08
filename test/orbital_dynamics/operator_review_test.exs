@@ -7801,6 +7801,109 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(manifest)
   end
 
+  test "candidate refresh compact operator-training quality gate summaries become review and import rows" do
+    summary = quality_gate_operator_training_summary()
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:quality_gate_operator_training:001",
+      "source_operational_quality_gate_operator_training_summary" =>
+        Map.put(summary, "operator_training_row_count", 99),
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "source_operational_quality_gate_operator_training_summary" => summary
+        }
+      ],
+      "result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "operational_quality_gate_operator_training_summary" => summary
+        }
+      ]
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:quality_gate_operator_training:001",
+             "review_count" => 3,
+             "quality_gate_review_count" => 3
+           } = package
+
+    assert Enum.map(package["rows"], & &1["source"]) == [
+             "candidate_refresh.source_operational_quality_gate_operator_training_summary",
+             "candidate_refresh.source_result_artifact[0].source_operational_quality_gate_operator_training_summary",
+             "candidate_refresh.result_artifact[0].operational_quality_gate_operator_training_summary"
+           ]
+
+    assert %{
+             "review_type" => "quality_gate_review",
+             "required_operator_action" => "review_quality_gate",
+             "quality_gate_id" => "operator_training",
+             "quality_gate_status" => "review_required",
+             "quality_gate_classification" => "review_only",
+             "readiness_level" => "operator_review",
+             "operator_training_requirement_count" => 5,
+             "operator_training_requirement_counts" => %{
+               "certification" => 1,
+               "operator_role" => 2,
+               "qualification" => 1,
+               "training" => 1
+             },
+             "operator_training_requirement_ids" => [
+               "certification",
+               "operator_role",
+               "qualification",
+               "training"
+             ],
+             "required_operator_roles" => ["contact_operator", "mission_director"],
+             "required_training_ids" => ["contact_replan_drill"],
+             "required_certification_ids" => ["cadence_import_cert"],
+             "required_qualification_ids" => ["sat_ops_current"],
+             "source_quality_gate_row" => %{
+               "id" => "quality_gate:activity_1:operator_training",
+               "gate_id" => "operator_training",
+               "operator_training_requirement_count" => 5
+             },
+             "source_quality_gate_report" => %{
+               "schema_contract" => "quality_gate_report.v1",
+               "report_id" => "quality_gate:planned_activity.v1:activity_1",
+               "quality_gate_row_ids_by_status" => %{
+                 "review_required" => ["quality_gate:activity_1:operator_training"]
+               }
+             }
+           } = List.first(package["rows"])
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:quality_gate_operator_training:001",
+             "row_count" => 3,
+             "source_review_type_counts" => %{"quality_gate_review" => 3},
+             "import_action_counts" => %{"review_quality_gate" => 3}
+           } = manifest
+
+    assert %{
+             "import_action" => "review_quality_gate",
+             "import_status" => "review_required_before_import",
+             "source_review_row" => %{
+               "source" =>
+                 "candidate_refresh.source_operational_quality_gate_operator_training_summary",
+               "operator_training_requirement_count" => 5,
+               "required_training_ids" => ["contact_replan_drill"]
+             }
+           } = List.first(manifest["rows"])
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "candidate refresh source schema validation reports become operator review rows" do
     source_schema_validation_report = %{
       "schema_contract" => "schema_validation_report.v1",
@@ -17055,6 +17158,61 @@ defmodule OrbitalDynamics.OperatorReviewTest do
         "command_execution" => "not_performed_by_summary"
       },
       "provenance" => %{"trust_boundary" => "unavailable_resource_summary_fixture"}
+    }
+  end
+
+  defp quality_gate_operator_training_summary do
+    %{
+      "schema_contract" => "operational_quality_gate_operator_training_summary.v1",
+      "model" => "artifact_only_quality_gate_operator_training_summary",
+      "source" => "quality_gate_report.v1",
+      "source_artifact_type" => "planned_activity.v1",
+      "source_artifact_id" => "activity_1",
+      "source_quality_gate_report_id" => "quality_gate:planned_activity.v1:activity_1",
+      "source_readiness_report_id" => "operational_readiness:planned_activity.v1:activity_1",
+      "operator_training_row_count" => 1,
+      "operator_training_requirement_count" => 5,
+      "operator_training_requirement_counts" => %{
+        "operator_role" => 2,
+        "training" => 1,
+        "certification" => 1,
+        "qualification" => 1
+      },
+      "operator_training_requirement_ids" => [
+        "certification",
+        "operator_role",
+        "qualification",
+        "training"
+      ],
+      "required_operator_roles" => ["contact_operator", "mission_director"],
+      "required_training_ids" => ["contact_replan_drill"],
+      "required_certification_ids" => ["cadence_import_cert"],
+      "required_qualification_ids" => ["sat_ops_current"],
+      "quality_gate_row_ids_by_status" => %{
+        "review_required" => ["quality_gate:activity_1:operator_training"]
+      },
+      "quality_gate_row_ids_by_classification" => %{
+        "review_only" => ["quality_gate:activity_1:operator_training"]
+      },
+      "quality_gate_ids_by_status" => %{"review_required" => ["operator_training"]},
+      "quality_gate_ids_by_classification" => %{"review_only" => ["operator_training"]},
+      "review_required_quality_gate_row_ids" => [
+        "quality_gate:activity_1:operator_training"
+      ],
+      "blocked_quality_gate_row_ids" => [],
+      "review_only_quality_gate_row_ids" => [
+        "quality_gate:activity_1:operator_training"
+      ],
+      "operator_training_gate_ids" => ["operator_training"],
+      "operator_training_review_required" => true,
+      "assumptions" => %{
+        "execution_boundary" => "artifact_only_no_cadence_write",
+        "source" => "quality_gate_report.v1",
+        "operator_authority" => "not_granted_by_operator_training_summary",
+        "cadence_write" => "not_performed_by_summary",
+        "command_execution" => "not_performed_by_summary"
+      },
+      "provenance" => %{"trust_boundary" => "operator_training_summary_fixture"}
     }
   end
 
