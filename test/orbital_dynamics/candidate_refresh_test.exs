@@ -25423,7 +25423,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         starts_at_s: 20.0,
         ends_at_s: 30.0,
         dependency_timeline_ids: [:"timeline:health_check:0.0"],
-        exclusive_with: [:health_gate]
+        exclusive_with: [:health_gate],
+        exclusive_with_timeline_ids: [:"timeline:health_check:0.0"]
       }
     ]
 
@@ -25440,7 +25441,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         starts_at_s: 20.0,
         ends_at_s: 30.0,
         dependency_timeline_ids: [:"timeline:health_check:0.0"],
-        exclusive_with: [:health_gate]
+        exclusive_with: [:health_gate],
+        exclusive_with_timeline_ids: [:"timeline:health_check:0.0"]
       }
     ]
 
@@ -25500,6 +25502,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                %{
                  "health_gate" => 6
                },
+             "source_report_timeline_dependency_impact_impacted_exclusive_timeline_id_counts" =>
+               %{
+                 "timeline:health_check:0.0" => 6
+               },
              "source_report_timeline_dependency_impact_dependent_activity_id_counts" => %{
                "cmd_combo" => 6
              },
@@ -25554,6 +25560,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "timeline:health_check:0.0" => 6
              },
              "impacted_exclusive_activity_id_counts" => %{"health_gate" => 6},
+             "impacted_exclusive_timeline_id_counts" => %{
+               "timeline:health_check:0.0" => 6
+             },
              "dependent_activity_id_counts" => %{"cmd_combo" => 6},
              "trust_boundary_status" => "declared",
              "trust_boundaries" => ["ops_dependency_impact"],
