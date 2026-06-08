@@ -5,25 +5,26 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Make quality-gate summaries branch-visible.
+Make quality-gate unavailable-resource summaries branch-visible.
 
 Status:
-Implemented and parent-verified. `operational_quality_gate_summary.v1`
-non-passed rows now derive V3 branch-local quality-gate pressure from direct,
-canonical, and result-artifact-wrapped mission-state summaries.
+Implemented and parent-verified.
+`operational_quality_gate_unavailable_resource_summary.v1` handoffs now create
+V3 branch-local resource availability/quality-gate pressure directly.
 
 Slice-selection note:
-- Selected slice: derive quality-gate branch pressure from
-  `operational_quality_gate_summary.v1` non-passed rows.
-- Why this slice: the roadmap asks for readiness/quality-gate blocks to affect
-  branch recommendations before review/import handoff; live code consumes full
-  `quality_gate_report.v1` rows for branch pressure but compact quality-gate
-  summaries are CandidateRefresh replay-only.
-- Level 6 pillar: approval-aware automation boundaries, quality gates, import
-  readiness, reproducible V3 branch trees, and Cadence-facing artifacts.
-- Current evidence gap: compact quality-gate summary rows can preserve blocked,
-  review-only, and analysis-only evidence without directly affecting V3 branch
-  risk, `risk_penalty`, or branch comparison explanations.
+- Selected slice: derive branch-local quality-gate/resource pressure from
+  `operational_quality_gate_unavailable_resource_summary.v1` handoffs.
+- Why this slice: the readiness roadmap says resource-availability
+  quality-gate summaries preserve unavailable-resource reason counts and
+  blocked contact routing; live code records those summaries as
+  CandidateRefresh inputs but does not use them as direct V3 branch pressure.
+- Level 6 pillar: resource/contact readiness, approval-aware automation
+  boundaries, reproducible V3 branch trees, and Cadence-facing artifacts.
+- Current evidence gap: compact unavailable-resource quality-gate summaries can
+  carry blocked contact IDs, unavailable-resource reasons, and station/resource
+  blocking dimensions without directly affecting branch risk, `risk_penalty`,
+  or branch comparison explanations.
 - Docs read:
   `docs/autonomous_work_guide.md`,
   `.codex/prompts/long_running_context_efficient_product_loop.md`,
@@ -38,10 +39,11 @@ Slice-selection note:
   `test/orbital_dynamics/campaign_planner_test.exs`,
   `.codex/status/autonomous_product_loop.md`.
 - Definition of done: direct/canonical/result-artifact quality-gate summaries
-  derive branch-local quality-gate pressure events with source paths, trust
-  boundaries, non-passed row context, and no-execution/import/write assumptions;
-  those events feed risk/scoring/comparison output; focused strategy/schema
-  validation passes; and whitespace checks are clean.
+  for unavailable resources derive branch-local quality-gate/resource pressure
+  events with source paths, trust boundaries, blocked-contact/resource context,
+  and no-execution/import/write assumptions; those events feed
+  risk/scoring/comparison output; focused strategy/schema validation passes;
+  and whitespace checks are clean.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -50,33 +52,34 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:41223` (1 passed, 666 excluded)
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:41136 test/orbital_dynamics/campaign_planner_test.exs:41223 test/orbital_dynamics/campaign_planner_test.exs:41477 test/orbital_dynamics/campaign_planner_test.exs:41554` (4 passed, 663 excluded)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:41427` (1 passed, 667 excluded)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:41136 test/orbital_dynamics/campaign_planner_test.exs:41223 test/orbital_dynamics/campaign_planner_test.exs:41427 test/orbital_dynamics/campaign_planner_test.exs:41708 test/orbital_dynamics/campaign_planner_test.exs:41785` (5 passed, 663 excluded)
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- None; this is runtime/test coverage for existing quality-gate summary
-  evidence.
+- None; this is runtime/test coverage for existing unavailable-resource
+  quality-gate summary evidence.
 
 Local review:
 - Mission-state normalization now preserves direct and canonical
-  `operational_quality_gate_summary.v1` fields so they can reach branch
-  derivation, matching CandidateRefresh source-report discovery.
-- Quality-gate pressure collection now combines full quality-gate reports with
-  compact operational quality-gate summaries and maps summary `non_passed_rows`
-  into branch-local quality-gate pressure events.
-- Events preserve feedback source paths, trust boundaries, readiness/import
-  classification, resource-availability context, source row/report snapshots,
-  and artifact-only no-execution/import/write assumptions.
-- Read-only reviewer Popper flagged that the new test fixture was not itself a
-  schema-valid `operational_quality_gate_summary.v1`; the fixture now uses
-  canonical gate IDs, required summary buckets/model limits, and direct
-  `Schema.validate_artifact/1` checks for direct/canonical/wrapped summaries.
+  `operational_quality_gate_unavailable_resource_summary.v1` fields so they can
+  reach branch derivation alongside result-artifact-wrapped summaries.
+- Quality-gate pressure collection maps unavailable-resource summaries into one
+  branch-local pressure row per review/blocked summary, retaining source paths,
+  trust boundaries, assumptions, resource reason counts, station reason counts,
+  blocked contact ID maps, and source summary snapshots.
+- Quality-gate events, risk indicators, and recommendation pressure rows keep
+  unavailable-resource reason/contact context; branch comparison rows carry the
+  resulting risk type and feedback source.
+- Read-only reviewer Popper flagged station-only pressure undercounting,
+  analysis-only summary dropping, and overstated comparison-row wording; the
+  adapter now merges station/unavailable reason counts, emits analysis-only
+  pressure rows, and the handoff wording is narrowed to the verified surfaces.
 
 Level 6 pillar advanced:
-Compact quality-gate summary evidence is now planner-visible in V3 branch
-scoring and comparison output, not only CandidateRefresh replay.
+Unavailable-resource quality-gate summary evidence is now planner-visible in V3
+branch scoring and comparison output, not only CandidateRefresh replay.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -86,10 +89,10 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`13e927a` Derive quality gate summary pressure branches.
+Previous slice: `b2942b9` Update autonomous loop handoff.
 
 Next candidate:
-After this slice, continue readiness/quality-gate summary branch-pressure gaps
+After this slice, continue specialized quality-gate summary branch-pressure gaps
 or move to resource/contact challenge fixtures after live-state inspection.
 
 Unrelated local changes:

@@ -41424,6 +41424,241 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives branch refresh from mission-state quality gate unavailable resource summaries" do
+    unavailable_resource_summary = fn prefix, status, classification, reason_kind ->
+      blocked_contact_id = "#{prefix}_dl_resource_blocked"
+
+      reason_id =
+        case reason_kind do
+          :station -> "ground_station_unavailable"
+          :resource -> "antenna_unavailable"
+        end
+
+      unavailable_resource_reason_ids =
+        case reason_kind do
+          :station -> []
+          :resource -> [reason_id]
+        end
+
+      resource_blocking_dimension_counts =
+        case reason_kind do
+          :station -> %{}
+          :resource -> %{"antenna" => 1}
+        end
+
+      contact_ids_by_blocking_dimension =
+        case reason_kind do
+          :station -> %{}
+          :resource -> %{"antenna" => [blocked_contact_id]}
+        end
+
+      quality_gate_report = %{
+        "schema_contract" => "quality_gate_report.v1",
+        "model" => "artifact_only_operational_quality_gate_report",
+        "report_id" => "quality_gate:#{prefix}",
+        "source_artifact_type" => "contact_allocation_report.v1",
+        "source_artifact_id" => "#{prefix}_resource_projection",
+        "source_readiness_report_id" => "operational_readiness:#{prefix}",
+        "readiness_level" => if(status == "blocked", do: "blocked", else: "operator_review"),
+        "import_classification" => classification,
+        "status" => status,
+        "gate_count" => 1,
+        "passed_gate_count" => 0,
+        "review_gate_count" => if(status == "review_required", do: 1, else: 0),
+        "analysis_gate_count" => 0,
+        "blocked_gate_count" => if(status == "blocked", do: 1, else: 0),
+        "gate_status_counts" => %{status => 1},
+        "gate_classification_counts" => %{classification => 1},
+        "rows" => [
+          %{
+            "id" => "quality_gate:#{prefix}:resource_availability:1",
+            "rank" => 1,
+            "gate_id" => "resource_availability",
+            "status" => status,
+            "classification" => classification,
+            "reason" => "#{prefix} unavailable antenna requires review",
+            "resource_availability_pressure_count" => 1,
+            "resource_availability_reason_counts" => %{reason_id => 1},
+            "resource_availability_reason_ids" => [reason_id],
+            "unavailable_resource_reason_ids" => unavailable_resource_reason_ids,
+            "resource_blocking_dimension_counts" => resource_blocking_dimension_counts,
+            "resource_blocked_contact_ids_by_blocking_dimension" =>
+              contact_ids_by_blocking_dimension,
+            "resource_blocked_contact_ids_by_spacecraft_id" => %{
+              "sat_1" => [blocked_contact_id]
+            }
+          }
+        ],
+        "assumptions" => %{"source" => "test.quality_gate_report"},
+        "model_limits" => ["artifact_only"]
+      }
+
+      quality_gate_report
+      |> OrbitalDynamics.OperationalReadiness.quality_gate_unavailable_resource_summary()
+      |> Map.put("provenance", %{
+        "trust_boundary" => "#{prefix}_unavailable_resource_summary_boundary"
+      })
+    end
+
+    direct_summary =
+      unavailable_resource_summary.("direct", "review_required", "review_only", :resource)
+
+    canonical_summary =
+      unavailable_resource_summary.("canonical", "blocked", "blocked", :resource)
+
+    wrapped_summary =
+      unavailable_resource_summary.("wrapped", "analysis_only", "analysis_only", :station)
+
+    assert {:ok,
+            %{"schema_contract" => "operational_quality_gate_unavailable_resource_summary.v1"}} =
+             Schema.validate_artifact(direct_summary)
+
+    assert {:ok,
+            %{"schema_contract" => "operational_quality_gate_unavailable_resource_summary.v1"}} =
+             Schema.validate_artifact(canonical_summary)
+
+    assert {:ok,
+            %{"schema_contract" => "operational_quality_gate_unavailable_resource_summary.v1"}} =
+             Schema.validate_artifact(wrapped_summary)
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put("source_operational_quality_gate_unavailable_resource_summary", direct_summary)
+      |> Map.put("operational_quality_gate_unavailable_resource_summary", canonical_summary)
+      |> Map.put("source_result_artifact", %{
+        "schema_contract" => "result_artifact.v1",
+        "artifact_type" => "mission_state_result_artifact",
+        "source_operational_quality_gate_unavailable_resource_summary" =>
+          Map.delete(wrapped_summary, "provenance"),
+        "provenance" => %{"trust_boundary" => "wrapped_unavailable_resource_summary_boundary"}
+      })
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    direct_branch =
+      Enum.find(artifact["branches"], fn branch ->
+        Enum.any?(
+          branch["events"] || [],
+          &(&1["type"] == "quality_gate_pressure" and
+              &1["source_artifact_id"] == "direct_resource_projection")
+        )
+      end)
+
+    assert direct_branch
+
+    assert %{
+             "type" => "quality_gate_pressure",
+             "source_artifact_type" => "contact_allocation_report.v1",
+             "source_artifact_id" => "direct_resource_projection",
+             "source_readiness_report_id" => "operational_readiness:direct",
+             "readiness_level" => "operator_review",
+             "import_classification" => "review_only",
+             "quality_gate_status" => "review_required",
+             "gate_count" => 1,
+             "review_gate_count" => 1,
+             "blocked_gate_count" => 0,
+             "gate_id" => "resource_availability",
+             "gate_status" => "review_required",
+             "gate_classification" => "review_only",
+             "gate_reason" => "unavailable resource summary requires review",
+             "resource_availability_pressure_count" => 1,
+             "resource_availability_reason_counts" => %{"antenna_unavailable" => 1},
+             "resource_availability_reason_ids" => ["antenna_unavailable"],
+             "unavailable_resource_reason_counts" => %{"antenna_unavailable" => 1},
+             "unavailable_resource_reason_ids" => ["antenna_unavailable"],
+             "resource_blocking_dimension_counts" => %{"antenna" => 1},
+             "blocked_contact_ids_by_blocking_dimension" => %{
+               "antenna" => ["direct_dl_resource_blocked"]
+             },
+             "blocked_contact_ids_by_spacecraft_id" => %{
+               "sat_1" => ["direct_dl_resource_blocked"]
+             },
+             "blocked_contact_ids_by_status" => %{
+               "review_required" => ["direct_dl_resource_blocked"]
+             },
+             "feedback_source" =>
+               "mission_state.source_operational_quality_gate_unavailable_resource_summary",
+             "feedback_scope" => "quality_gate",
+             "trust_boundary" => "direct_unavailable_resource_summary_boundary",
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_cadence_write",
+               "operator_authority" => "not_granted_by_unavailable_resource_summary",
+               "cadence_write" => "not_performed_by_summary",
+               "command_execution" => "not_performed_by_summary",
+               "source" => "quality_gate_report.v1"
+             },
+             "source_quality_gate_row" => %{
+               "gate_id" => "resource_availability",
+               "review_required_quality_gate_row_ids" => [
+                 "quality_gate:direct:resource_availability:1"
+               ]
+             },
+             "source_quality_gate_report" => %{
+               "schema_contract" => "operational_quality_gate_unavailable_resource_summary.v1"
+             }
+           } = List.first(direct_branch["events"])
+
+    assert Enum.any?(
+             direct_branch["risk_indicators"],
+             &(&1["type"] == "quality_gate_pressure" and
+                 &1["unavailable_resource_reason_counts"] == %{"antenna_unavailable" => 1})
+           )
+
+    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+
+    comparison_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == direct_branch["branch_id"]))
+
+    assert "quality_gate_pressure" in comparison_row["risk_types"]
+
+    assert comparison_row["branch_feedback_sources"] == [
+             "mission_state.source_operational_quality_gate_unavailable_resource_summary"
+           ]
+
+    assert Enum.any?(artifact["branches"], fn branch ->
+             Enum.any?(
+               branch["events"] || [],
+               &(&1["type"] == "quality_gate_pressure" and
+                   &1["source_artifact_id"] == "canonical_resource_projection" and
+                   &1["gate_status"] == "blocked")
+             )
+           end)
+
+    assert Enum.any?(artifact["branches"], fn branch ->
+             Enum.any?(
+               branch["events"] || [],
+               &(&1["type"] == "quality_gate_pressure" and
+                   &1["source_artifact_id"] == "wrapped_resource_projection" and
+                   &1["trust_boundary"] == "wrapped_unavailable_resource_summary_boundary" and
+                   &1["gate_status"] == "analysis_only" and
+                   &1["analysis_gate_count"] == 1 and
+                   &1["resource_availability_pressure_count"] == 1 and
+                   &1["resource_availability_reason_counts"] == %{
+                     "ground_station_unavailable" => 1
+                   } and
+                   &1["station_availability_reason_counts"] == %{
+                     "ground_station_unavailable" => 1
+                   } and
+                   &1["unavailable_resource_reason_counts"] == %{})
+             )
+           end)
+
+    assert "mission_state.source_operational_quality_gate_unavailable_resource_summary" in get_in(
+             direct_branch,
+             ["assumptions", "candidate_source", "source_report_input_paths"]
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy preserves operator-training readiness gate context in branch events" do
     readiness_report =
       %{
