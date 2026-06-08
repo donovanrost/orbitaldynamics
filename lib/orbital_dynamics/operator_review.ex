@@ -13574,6 +13574,14 @@ defmodule OrbitalDynamics.OperatorReview do
         {"candidate_refresh.source_station_reservation_report",
          artifact["source_station_reservation_report"]},
         {"candidate_refresh.station_reservation_report", artifact["station_reservation_report"]},
+        {"candidate_refresh.source_station_reservation_review_summary",
+         artifact["source_station_reservation_review_summary"]},
+        {"candidate_refresh.station_reservation_review_summary",
+         artifact["station_reservation_review_summary"]},
+        {"candidate_refresh.source_station_reservation_hold_summary",
+         artifact["source_station_reservation_hold_summary"]},
+        {"candidate_refresh.station_reservation_hold_summary",
+         artifact["station_reservation_hold_summary"]},
         {"candidate_refresh.source_station_reservation_hold_import_readiness_summary",
          artifact["source_station_reservation_hold_import_readiness_summary"]},
         {"candidate_refresh.station_reservation_hold_import_readiness_summary",
@@ -13597,21 +13605,127 @@ defmodule OrbitalDynamics.OperatorReview do
   defp source_station_reservation_report_rows(%{} = report, source) do
     report = stringify_keys(report)
 
-    if station_reservation_hold_import_readiness_summary?(report) do
-      source_station_reservation_report_rows_from_hold_import_readiness_summary(report, source)
-    else
-      station_reservation_rows(
-        Map.get(report, "affected_contacts", []),
-        "#{source}.affected_contacts"
-      ) ++
-        station_reservation_provider_contention_rows(
-          Map.get(report, "provider_calendar_contention_groups", []),
-          "#{source}.provider_calendar_contention_groups"
-        )
+    cond do
+      station_reservation_review_summary?(report) ->
+        source_station_reservation_report_rows_from_summary(report, source)
+
+      station_reservation_hold_summary?(report) ->
+        source_station_reservation_report_rows_from_summary(report, source)
+
+      station_reservation_hold_import_readiness_summary?(report) ->
+        source_station_reservation_report_rows_from_hold_import_readiness_summary(report, source)
+
+      station_reservation_report?(report) ->
+        station_reservation_rows(
+          Map.get(report, "affected_contacts", []),
+          "#{source}.affected_contacts"
+        ) ++
+          station_reservation_provider_contention_rows(
+            Map.get(report, "provider_calendar_contention_groups", []),
+            "#{source}.provider_calendar_contention_groups"
+          )
+
+      true ->
+        []
     end
   end
 
   defp source_station_reservation_report_rows(_report, _source), do: []
+
+  defp source_station_reservation_report_rows_from_summary(%{} = summary, source) do
+    summary = stringify_keys(summary)
+
+    {affected_rows, provider_rows} =
+      summary
+      |> Map.get("review_rows", [])
+      |> List.wrap()
+      |> Enum.filter(&is_map/1)
+      |> Enum.map(&stringify_keys/1)
+      |> Enum.map(&station_reservation_summary_row(&1, summary))
+      |> Enum.split_with(fn row ->
+        row["reservation_review_row_type"] != "provider_calendar_contention_group"
+      end)
+
+    station_reservation_rows(
+      affected_rows,
+      "#{source}.review_rows.affected_contacts"
+    ) ++
+      station_reservation_provider_contention_rows(
+        provider_rows,
+        "#{source}.review_rows.provider_calendar_contention_groups"
+      )
+  end
+
+  defp station_reservation_summary_row(%{} = row, %{} = summary) do
+    reservation_ids = Map.get(row, "reservation_ids", [])
+    reservation_statuses = Map.get(row, "reservation_statuses", [])
+    reserved_by = Map.get(row, "reserved_by", [])
+    reservation_expires_at_s = Map.get(row, "reservation_expires_at_s", [])
+
+    summary_context =
+      %{
+        "model" => summary["model"],
+        "schema_contract" => summary["schema_contract"],
+        "source_artifact_type" => summary["source_artifact_type"],
+        "source" => summary["source"],
+        "reservation_review_status" => summary["reservation_review_status"],
+        "reservation_hold_count" => summary["reservation_hold_count"],
+        "reservation_hold_review_status" => summary["reservation_hold_review_status"],
+        "reservation_hold_expiration_count" => summary["reservation_hold_expiration_count"],
+        "earliest_reservation_hold_expires_at_s" =>
+          summary["earliest_reservation_hold_expires_at_s"],
+        "reservation_hold_expiration_status_counts" =>
+          summary["reservation_hold_expiration_status_counts"],
+        "reservation_hold_status_counts" => summary["reservation_hold_status_counts"],
+        "reservation_hold_ids" => summary["reservation_hold_ids"],
+        "reservation_hold_ids_by_expiration_status" =>
+          summary["reservation_hold_ids_by_expiration_status"],
+        "reservation_hold_ids_by_status" => summary["reservation_hold_ids_by_status"],
+        "reservation_hold_ids_by_reserved_by" => summary["reservation_hold_ids_by_reserved_by"],
+        "reservation_hold_ids_by_row_type" => summary["reservation_hold_ids_by_row_type"],
+        "reservation_hold_contact_ids_by_expiration_status" =>
+          summary["reservation_hold_contact_ids_by_expiration_status"],
+        "review_contact_ids" => summary["review_contact_ids"],
+        "assumptions" => summary["assumptions"]
+      }
+      |> compact_map()
+
+    row
+    |> Map.put_new("id", station_reservation_summary_row_id(row))
+    |> Map.put_new("station_calendar_reservation_ids", reservation_ids)
+    |> Map.put_new("station_calendar_reservation_statuses", reservation_statuses)
+    |> Map.put_new("station_calendar_reserved_by", reserved_by)
+    |> Map.put_new("station_calendar_reservation_expires_at_s", reservation_expires_at_s)
+    |> Map.put_new("station_calendar_reservation_overlap_count", length(reservation_ids))
+    |> Map.put_new("station_reservation_id", List.first(reservation_ids))
+    |> Map.put_new("station_reserved_by", List.first(reserved_by))
+    |> Map.put_new("station_reservation_status", List.first(reservation_statuses))
+    |> Map.put_new("station_reservation_expires_at_s", List.first(reservation_expires_at_s))
+    |> Map.put("station_reservation_summary_model", summary["model"])
+    |> Map.put("station_reservation_summary_schema_contract", summary["schema_contract"])
+    |> Map.put("station_reservation_summary_source", summary["source"])
+    |> Map.put(
+      "station_reservation_summary_source_artifact_type",
+      summary["source_artifact_type"]
+    )
+    |> Map.put("station_reservation_hold_count", summary["reservation_hold_count"])
+    |> Map.put("station_reservation_hold_ids", summary["reservation_hold_ids"])
+    |> Map.put(
+      "station_reservation_hold_contact_ids_by_expiration_status",
+      summary["reservation_hold_contact_ids_by_expiration_status"]
+    )
+    |> Map.put("source_station_reservation_summary", summary_context)
+    |> compact_map()
+  end
+
+  defp station_reservation_summary_row_id(%{} = row) do
+    review_id([
+      "station_reservation_summary",
+      row["reservation_review_row_type"],
+      row["contact_id"] || row["ground_station_id"],
+      List.first(List.wrap(row["reservation_ids"]))
+    ])
+  end
 
   defp source_station_reservation_report_rows_from_hold_import_readiness_summary(
          %{} = summary,
@@ -13754,6 +13868,34 @@ defmodule OrbitalDynamics.OperatorReview do
 
   defp station_reservation_hold_import_readiness_summary?(_summary), do: false
 
+  defp station_reservation_report?(%{} = report) do
+    report = stringify_keys(report)
+
+    report["schema_contract"] in [nil, "station_reservation_report.v1"] and
+      (is_list(report["affected_contacts"]) or
+         is_list(report["provider_calendar_contention_groups"]))
+  end
+
+  defp station_reservation_review_summary?(%{} = summary) do
+    summary = stringify_keys(summary)
+
+    summary["model"] == "artifact_only_station_reservation_review_summary" and
+      summary["schema_contract"] in [nil, "station_reservation_review_summary.v1"] and
+      is_list(summary["review_rows"])
+  end
+
+  defp station_reservation_review_summary?(_summary), do: false
+
+  defp station_reservation_hold_summary?(%{} = summary) do
+    summary = stringify_keys(summary)
+
+    summary["model"] == "artifact_only_station_reservation_hold_summary" and
+      summary["schema_contract"] in [nil, "station_reservation_hold_summary.v1"] and
+      is_list(summary["review_rows"])
+  end
+
+  defp station_reservation_hold_summary?(_summary), do: false
+
   defp candidate_refresh_result_artifact_station_reservation_rows(artifact) do
     [
       {"candidate_refresh.source_result_artifact", artifact["source_result_artifact"]},
@@ -13786,6 +13928,14 @@ defmodule OrbitalDynamics.OperatorReview do
       {"#{source}.source_station_reservation_report",
        artifact["source_station_reservation_report"]},
       {"#{source}.station_reservation_report", artifact["station_reservation_report"]},
+      {"#{source}.source_station_reservation_review_summary",
+       artifact["source_station_reservation_review_summary"]},
+      {"#{source}.station_reservation_review_summary",
+       artifact["station_reservation_review_summary"]},
+      {"#{source}.source_station_reservation_hold_summary",
+       artifact["source_station_reservation_hold_summary"]},
+      {"#{source}.station_reservation_hold_summary",
+       artifact["station_reservation_hold_summary"]},
       {"#{source}.source_station_reservation_hold_import_readiness_summary",
        artifact["source_station_reservation_hold_import_readiness_summary"]},
       {"#{source}.station_reservation_hold_import_readiness_summary",

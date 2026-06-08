@@ -7391,6 +7391,92 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(package)
   end
 
+  test "candidate refresh station reservation summaries become operator review rows" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:station_reservation_summaries:001",
+      "source_station_reservation_review_summary" =>
+        station_reservation_summary_fixture("station_reservation_review_summary_v1.json"),
+      "source_station_reservation_hold_summary" =>
+        station_reservation_summary_fixture("station_reservation_hold_summary_v1.json")
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:station_reservation_summaries:001",
+             "review_count" => 5,
+             "station_reservation_review_count" => 5
+           } = package
+
+    assert %{
+             "review_type" => "station_reservation_review",
+             "source" =>
+               "candidate_refresh.source_station_reservation_review_summary.review_rows.affected_contacts",
+             "contact_id" => "dl_source_reserved",
+             "station_reservation_id" => "reservation_expired",
+             "source_station_reservation" => %{
+               "station_reservation_summary_model" =>
+                 "artifact_only_station_reservation_review_summary",
+               "station_reservation_summary_schema_contract" =>
+                 "station_reservation_review_summary.v1",
+               "source_station_reservation_summary" => %{
+                 "reservation_review_status" => "review_required"
+               }
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source"] ==
+                   "candidate_refresh.source_station_reservation_review_summary.review_rows.affected_contacts")
+             )
+
+    assert %{
+             "review_type" => "station_reservation_review",
+             "source" =>
+               "candidate_refresh.source_station_reservation_hold_summary.review_rows.affected_contacts",
+             "contact_id" => "dl_source_reserved",
+             "station_reservation_hold_count" => 2,
+             "station_reservation_hold_ids" => ["reservation_expired", "reservation_missing"],
+             "source_station_reservation" => %{
+               "station_reservation_summary_model" =>
+                 "artifact_only_station_reservation_hold_summary",
+               "source_station_reservation_summary" => %{
+                 "reservation_hold_review_status" => "review_required",
+                 "reservation_hold_count" => 2
+               }
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source"] ==
+                   "candidate_refresh.source_station_reservation_hold_summary.review_rows.affected_contacts")
+             )
+
+    assert %{
+             "review_type" => "station_reservation_review",
+             "source" =>
+               "candidate_refresh.source_station_reservation_hold_summary.review_rows.provider_calendar_contention_groups",
+             "provider_calendar_contention_group_id" =>
+               "station_reservation_summary:provider_calendar_contention_group:polar_prime:reservation_missing",
+             "station_reservation_hold_count" => 2,
+             "required_operator_action" => "review_station_provider_contention",
+             "source_station_reservation" => %{
+               "reservation_review_row_type" => "provider_calendar_contention_group",
+               "station_reservation_id" => "reservation_missing"
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source"] ==
+                   "candidate_refresh.source_station_reservation_hold_summary.review_rows.provider_calendar_contention_groups")
+             )
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+  end
+
   test "candidate refresh hold import-readiness summaries become station reservation review rows" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
@@ -7641,6 +7727,69 @@ defmodule OrbitalDynamics.OperatorReviewTest do
                package["rows"],
                &(&1["source"] ==
                    "candidate_refresh.source_result_artifact[0].source_station_reservation_hold_import_readiness_summary.import_readiness_rows.provider_calendar_contention_groups")
+             )
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+  end
+
+  test "candidate refresh result artifact station reservation summaries become operator review rows" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:wrapped_station_reservation_summaries:001",
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "source_station_reservation_review_summary" =>
+            station_reservation_summary_fixture("station_reservation_review_summary_v1.json"),
+          "station_reservation_hold_summary" =>
+            station_reservation_summary_fixture("station_reservation_hold_summary_v1.json")
+        }
+      ]
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" =>
+               "candidate_refresh:wrapped_station_reservation_summaries:001",
+             "review_count" => 5,
+             "station_reservation_review_count" => 5
+           } = package
+
+    assert %{
+             "review_type" => "station_reservation_review",
+             "source" =>
+               "candidate_refresh.source_result_artifact[0].source_station_reservation_review_summary.review_rows.affected_contacts",
+             "station_reservation_id" => "reservation_expired",
+             "source_station_reservation" => %{
+               "source_station_reservation_summary" => %{
+                 "schema_contract" => "station_reservation_review_summary.v1"
+               }
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source"] ==
+                   "candidate_refresh.source_result_artifact[0].source_station_reservation_review_summary.review_rows.affected_contacts")
+             )
+
+    assert %{
+             "review_type" => "station_reservation_review",
+             "source" =>
+               "candidate_refresh.source_result_artifact[0].station_reservation_hold_summary.review_rows.provider_calendar_contention_groups",
+             "station_reservation_hold_count" => 2,
+             "source_station_reservation" => %{
+               "source_station_reservation_summary" => %{
+                 "schema_contract" => "station_reservation_hold_summary.v1"
+               }
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source"] ==
+                   "candidate_refresh.source_result_artifact[0].station_reservation_hold_summary.review_rows.provider_calendar_contention_groups")
              )
 
     assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
@@ -17941,6 +18090,13 @@ defmodule OrbitalDynamics.OperatorReviewTest do
         "provider_reservation_execution" => "not_performed_by_summary"
       }
     }
+  end
+
+  defp station_reservation_summary_fixture(filename) do
+    ["study_results", filename]
+    |> Path.join()
+    |> File.read!()
+    |> :json.decode()
   end
 
   defp station_reservation_hold_import_readiness_summary do
