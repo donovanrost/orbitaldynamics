@@ -2690,6 +2690,154 @@ defmodule OrbitalDynamics.CadenceImportTest do
              Schema.validate_artifact(manifest)
   end
 
+  test "candidate refresh import preserves wrapped contact-allocation reports" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:wrapped_contact_allocation_import:001",
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "contact_allocation_report" => %{
+            "schema_contract" => "contact_allocation_report.v1",
+            "rows" => [
+              %{
+                "id" => "allocation:dl_wrapped_deferred",
+                "contact_id" => "dl_wrapped_deferred",
+                "type" => "downlink",
+                "spacecraft_id" => "sat_1",
+                "ground_station_id" => "equator_prime",
+                "direction" => "downlink",
+                "allocation_status" => "deferred",
+                "allocation_reason" => "reduced_station_capacity",
+                "selected" => false,
+                "capacity_pack_group_id" => "station:equator_prime:capacity_pack:1",
+                "capacity_pack_status" => "deferred_by_reduced_station_capacity_pack",
+                "required_capacity_fraction" => 0.3,
+                "required_capacity_fraction_source" => "wrapped_contact_allocation_report.rows",
+                "station_availability" => "available",
+                "station_reservation_id" => "reservation:equator_prime:dl_wrapped_deferred",
+                "station_reservation_expires_at_s" => 360.0,
+                "station_reserved_by" => "ops",
+                "station_reservation_status" => "held",
+                "station_reservation_match_status" => "matched",
+                "resource_blocking_dimension" => "antenna",
+                "source_contact_candidate" => %{"id" => "dl_wrapped_deferred"},
+                "source_resource_suppression" => %{
+                  "suppressed_reason" => "antenna_unavailable"
+                }
+              }
+            ],
+            "reduced_capacity_pack_groups" => [
+              %{
+                "contention_group_id" => "station:equator_prime:capacity_pack:1",
+                "ground_station_id" => "equator_prime",
+                "capacity_fraction" => 0.5,
+                "used_capacity_fraction" => 0.5,
+                "default_required_capacity_fraction" => 0.25,
+                "input_contact_ids" => ["dl_wrapped_primary", "dl_wrapped_deferred"],
+                "selected_contact_ids" => ["dl_wrapped_primary"],
+                "capacity_packed_contact_ids" => ["dl_wrapped_primary"],
+                "deferred_contact_ids" => ["dl_wrapped_deferred"],
+                "pack_status" => "packed_with_deferred_contacts"
+              }
+            ]
+          }
+        }
+      ]
+    }
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:wrapped_contact_allocation_import:001",
+             "row_count" => 2,
+             "review_required_count" => 2,
+             "import_action_counts" => %{
+               "review_contact_allocation" => 1,
+               "review_contact_allocation_capacity_pack" => 1
+             },
+             "source_review_type_counts" => %{
+               "contact_allocation_review" => 1,
+               "contact_allocation_capacity_pack_review" => 1
+             }
+           } = manifest
+
+    assert %{
+             "import_action" => "review_contact_allocation",
+             "source_review_type" => "contact_allocation_review",
+             "source_review_action" => "review_contact_allocation",
+             "import_status" => "review_required_before_import",
+             "approval_status" => "operator_review_required",
+             "subject_id" => "dl_wrapped_deferred",
+             "contact_id" => "dl_wrapped_deferred",
+             "activity_id" => "dl_wrapped_deferred",
+             "allocation_status" => "deferred",
+             "allocation_reason" => "reduced_station_capacity",
+             "ground_station_id" => "equator_prime",
+             "capacity_pack_group_id" => "station:equator_prime:capacity_pack:1",
+             "capacity_pack_status" => "deferred_by_reduced_station_capacity_pack",
+             "station_reservation_id" => "reservation:equator_prime:dl_wrapped_deferred",
+             "station_reservation_match_status" => "matched",
+             "resource_blocking_dimension" => "antenna",
+             "required_capacity_fraction" => 0.3,
+             "required_capacity_fraction_source" => "wrapped_contact_allocation_report.rows",
+             "has_cadence_import" => false,
+             "source_contact_allocation" => %{
+               "contact_id" => "dl_wrapped_deferred",
+               "allocation_reason" => "reduced_station_capacity",
+               "source_resource_suppression" => %{
+                 "suppressed_reason" => "antenna_unavailable"
+               }
+             },
+             "source_review_row" => %{
+               "source" =>
+                 "candidate_refresh.source_result_artifact[0].contact_allocation_report.rows",
+               "review_type" => "contact_allocation_review",
+               "source_contact_allocation" => %{
+                 "contact_id" => "dl_wrapped_deferred",
+                 "allocation_status" => "deferred"
+               }
+             }
+           } =
+             Enum.find(
+               manifest["rows"],
+               &(&1["import_action"] == "review_contact_allocation")
+             )
+
+    assert %{
+             "import_action" => "review_contact_allocation_capacity_pack",
+             "source_review_type" => "contact_allocation_capacity_pack_review",
+             "source_review_action" => "review_contact_allocation_capacity_pack",
+             "import_status" => "review_required_before_import",
+             "approval_status" => "operator_review_required",
+             "subject_id" => "station:equator_prime:capacity_pack:1",
+             "ground_station_id" => "equator_prime",
+             "capacity_fraction" => 0.5,
+             "used_capacity_fraction" => 0.5,
+             "default_required_capacity_fraction" => 0.25,
+             "selected_contact_ids" => ["dl_wrapped_primary"],
+             "deferred_contact_ids" => ["dl_wrapped_deferred"],
+             "has_cadence_import" => false,
+             "source_review_row" => %{
+               "source" =>
+                 "candidate_refresh.source_result_artifact[0].contact_allocation_report.reduced_capacity_pack_groups",
+               "review_type" => "contact_allocation_capacity_pack_review",
+               "source_contact_allocation_capacity_pack" => %{
+                 "contention_group_id" => "station:equator_prime:capacity_pack:1",
+                 "pack_status" => "packed_with_deferred_contacts"
+               }
+             }
+           } =
+             Enum.find(
+               manifest["rows"],
+               &(&1["import_action"] == "review_contact_allocation_capacity_pack")
+             )
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "candidate refresh import preserves provider-reservation request summary handoff rows" do
     artifact = %{
       "refresh_id" => "refresh:provider_reservation_handoff",
