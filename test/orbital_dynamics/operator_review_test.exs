@@ -12875,6 +12875,101 @@ defmodule OrbitalDynamics.OperatorReviewTest do
            )
   end
 
+  test "CandidateRefresh lifts transition application summaries from direct and result artifacts" do
+    direct_summary =
+      timeline_transition_application_summary()
+      |> Map.put("source", "transition_summary_direct")
+
+    source_result_summary =
+      timeline_transition_application_summary()
+      |> Map.put("source", "transition_summary_source_result")
+
+    nested_summary =
+      timeline_transition_application_summary()
+      |> Map.put("source", "transition_summary_nested_result")
+
+    artifact = %{
+      "refresh_id" => "refresh:transition_summary_result_handoff",
+      "timeline_transition_application_summary" => direct_summary,
+      "source_result_artifact" => [source_result_summary],
+      "result_artifact" => %{
+        "schema_contract" => "result_artifact.v1",
+        "timeline_transition_application_summary" => nested_summary
+      }
+    }
+
+    review = OperatorReview.from_candidate_refresh_artifact(artifact)
+    import = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    transition_rows =
+      Enum.filter(
+        review["rows"],
+        &(&1["source_timeline_transition_application_summary"]["schema_contract"] ==
+            "timeline_transition_application_summary.v1")
+      )
+
+    assert length(transition_rows) == 9
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "refresh:transition_summary_result_handoff",
+             "review_count" => 9,
+             "timeline_diff_count" => 9,
+             "required_operator_action_counts" => %{
+               "review_added_activity" => 3,
+               "review_changed_protected_activity" => 3,
+               "review_timeline_integrity" => 3
+             }
+           } = review
+
+    assert Enum.sort(Enum.map(transition_rows, & &1["source"])) == [
+             "candidate_refresh.result_artifact.timeline_transition_application_summary.review_applications",
+             "candidate_refresh.result_artifact.timeline_transition_application_summary.review_applications",
+             "candidate_refresh.result_artifact.timeline_transition_application_summary.review_applications",
+             "candidate_refresh.source_result_artifact[0].review_applications",
+             "candidate_refresh.source_result_artifact[0].review_applications",
+             "candidate_refresh.source_result_artifact[0].review_applications",
+             "candidate_refresh.timeline_transition_application_summary.review_applications",
+             "candidate_refresh.timeline_transition_application_summary.review_applications",
+             "candidate_refresh.timeline_transition_application_summary.review_applications"
+           ]
+
+    assert Enum.all?(
+             transition_rows,
+             &(&1["source_transition_application_count"] == 3 and
+                 &1["source_timeline_transition_application_summary"]["model"] ==
+                   "artifact_only_timeline_transition_application_summary")
+           )
+
+    import_rows =
+      Enum.filter(
+        import["rows"],
+        &(get_in(&1, [
+            "source_review_row",
+            "source_timeline_transition_application_summary",
+            "schema_contract"
+          ]) == "timeline_transition_application_summary.v1")
+      )
+
+    assert length(import_rows) == 9
+
+    assert Enum.all?(
+             import_rows,
+             &(get_in(&1, [
+                 "source_review_row",
+                 "source_timeline_transition_application_summary",
+                 "schema_contract"
+               ]) == "timeline_transition_application_summary.v1" and
+                 is_map(&1["source_review_row"]["source_timeline_application"]))
+           )
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(import)
+  end
+
   test "timeline diff summaries become operator review rows" do
     summary = timeline_diff_summary()
     package = OperatorReview.from_timeline_diff_summary(summary)

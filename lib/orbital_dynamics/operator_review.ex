@@ -5663,15 +5663,31 @@ defmodule OrbitalDynamics.OperatorReview do
   defp result_artifact_timeline_preservation_rows(_artifact, _source), do: []
 
   defp candidate_refresh_timeline_transition_application_rows(artifact) do
-    [
-      {"candidate_refresh.source_timeline_transition_application_report",
-       artifact["source_timeline_transition_application_report"]},
-      {"candidate_refresh.timeline_transition_application_report",
-       artifact["timeline_transition_application_report"]}
-    ]
-    |> Enum.flat_map(fn {source, report_or_reports} ->
-      source_timeline_transition_application_report_rows(report_or_reports, source)
-    end)
+    report_rows =
+      [
+        {"candidate_refresh.source_timeline_transition_application_report",
+         artifact["source_timeline_transition_application_report"]},
+        {"candidate_refresh.timeline_transition_application_report",
+         artifact["timeline_transition_application_report"]}
+      ]
+      |> Enum.flat_map(fn {source, report_or_reports} ->
+        source_timeline_transition_application_report_rows(report_or_reports, source)
+      end)
+
+    summary_rows =
+      [
+        {"candidate_refresh.source_timeline_transition_application_summary",
+         artifact["source_timeline_transition_application_summary"]},
+        {"candidate_refresh.timeline_transition_application_summary",
+         artifact["timeline_transition_application_summary"]}
+      ]
+      |> Enum.flat_map(fn {source, summary_or_summaries} ->
+        source_timeline_transition_application_summary_rows(summary_or_summaries, source)
+      end)
+
+    report_rows ++
+      summary_rows ++
+      candidate_refresh_result_artifact_timeline_transition_application_rows(artifact)
   end
 
   defp source_timeline_transition_application_report_rows(reports, source)
@@ -5694,6 +5710,65 @@ defmodule OrbitalDynamics.OperatorReview do
   end
 
   defp source_timeline_transition_application_report_rows(_report, _source), do: []
+
+  defp source_timeline_transition_application_summary_rows(summaries, source)
+       when is_list(summaries) do
+    summaries
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {summary, index} ->
+      source_timeline_transition_application_summary_rows(summary, "#{source}[#{index}]")
+    end)
+  end
+
+  defp source_timeline_transition_application_summary_rows(%{} = summary, source) do
+    summary
+    |> stringify_keys()
+    |> timeline_transition_application_summary_rows([], "#{source}.review_applications")
+  end
+
+  defp source_timeline_transition_application_summary_rows(_summary, _source), do: []
+
+  defp candidate_refresh_result_artifact_timeline_transition_application_rows(artifact) do
+    [
+      {"candidate_refresh.source_result_artifact", artifact["source_result_artifact"]},
+      {"candidate_refresh.result_artifact", artifact["result_artifact"]}
+    ]
+    |> Enum.flat_map(fn {source, artifact_or_artifacts} ->
+      result_artifact_timeline_transition_application_rows(artifact_or_artifacts, source)
+    end)
+  end
+
+  defp result_artifact_timeline_transition_application_rows(artifacts, source)
+       when is_list(artifacts) do
+    artifacts
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {artifact, index} ->
+      result_artifact_timeline_transition_application_rows(artifact, "#{source}[#{index}]")
+    end)
+  end
+
+  defp result_artifact_timeline_transition_application_rows(
+         %{"schema_contract" => "timeline_transition_application_summary.v1"} = summary,
+         source
+       ) do
+    source_timeline_transition_application_summary_rows(summary, source)
+  end
+
+  defp result_artifact_timeline_transition_application_rows(%{} = artifact, source) do
+    artifact = stringify_keys(artifact)
+
+    [
+      {"#{source}.source_timeline_transition_application_summary",
+       artifact["source_timeline_transition_application_summary"]},
+      {"#{source}.timeline_transition_application_summary",
+       artifact["timeline_transition_application_summary"]}
+    ]
+    |> Enum.flat_map(fn {summary_source, summary_or_summaries} ->
+      source_timeline_transition_application_summary_rows(summary_or_summaries, summary_source)
+    end)
+  end
+
+  defp result_artifact_timeline_transition_application_rows(_artifact, _source), do: []
 
   defp candidate_refresh_constraint_rows(artifact) do
     direct_rows =
@@ -9303,11 +9378,17 @@ defmodule OrbitalDynamics.OperatorReview do
     )
   end
 
-  defp timeline_transition_application_summary_rows(%{} = summary, opts) do
+  defp timeline_transition_application_summary_rows(
+         summary,
+         opts,
+         source \\ "timeline_transition_application_summary.review_applications"
+       )
+
+  defp timeline_transition_application_summary_rows(%{} = summary, opts, source) do
     summary
     |> Map.get("review_applications", [])
     |> timeline_transition_application_rows(
-      "timeline_transition_application_summary.review_applications",
+      source,
       option(opts, :approval_policy) || option(opts, "approval_policy")
     )
     |> Enum.map(&put_transition_application_summary_context(&1, summary))
