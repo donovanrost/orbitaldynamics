@@ -91,8 +91,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Pending for this slice. Previous product commit:
-`e22b772` Derive timeline lifecycle state pressure.
+`f75382e` Derive timeline precondition pressure.
 
 Next candidate:
 After this slice, reinspect live code for the next planner-visible readiness,
@@ -105,6 +104,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `f75382e` derived timeline activity-precondition summary pressure branches.
 - `e22b772` derived timeline lifecycle-state and activity lifecycle-state
   pressure branches.
 - `157220f` added contradictory reservation/contact-allocation challenge coverage.
