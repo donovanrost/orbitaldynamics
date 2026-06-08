@@ -1791,8 +1791,8 @@ families.
 `CandidateRefresh.timeline_activity_precondition_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_timeline_activity_precondition_replay_summary/1`
 expose timeline activity-precondition summaries as branch-local replay
-provenance. CandidateRefresh accepts direct/list-valued and wrapped
-`source_timeline_activity_precondition_summary` /
+provenance. CandidateRefresh accepts direct/list-valued, accepted-state,
+mission-state, and wrapped `source_timeline_activity_precondition_summary` /
 `timeline_activity_precondition_summary` artifacts, plus the same embedded
 source summaries preserved through operator-review packages and
 Cadence-import manifests. The replay summary preserves source paths,
@@ -1810,7 +1810,13 @@ complete precondition source-report identity (`count` and `row_count` present);
 partial placeholders only expose the declared contract. The helper does not
 evaluate preconditions, select
 candidates, approve imports, reserve resources, execute commands, write to
-Cadence, or regenerate candidates.
+Cadence, or regenerate candidates. OperatorReview and CadenceImport lift the
+same direct/list-valued, accepted-state, mission-state, and wrapped summaries
+into `timeline_activity_precondition_review` /
+`review_timeline_precondition` handoffs while preserving
+`candidate_refresh.*` source paths, dependency/exclusivity evidence,
+invalid-input evidence, and embedded source summaries without granting operator
+authority or evaluating preconditions.
 When the branch carries a non-empty
 `candidate_source.candidate_refresh_request_source_report_summary.source_reports.timeline_activity_precondition_summary`
 family, the replay helper labels its output source and replay scope as

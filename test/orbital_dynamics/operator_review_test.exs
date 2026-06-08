@@ -3118,6 +3118,165 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(package)
   end
 
+  test "CandidateRefresh lifts accepted planning state precondition summaries" do
+    summary =
+      Timeline.activity_precondition_summary(%{
+        id: :cmd_accepted_preflight,
+        type: :command,
+        payload_available: false,
+        dependency_activity_ids: [:health_check_1],
+        dependency_timeline_ids: [:"timeline:health_check_1"],
+        exclusive_with_activity_ids: [:dl_conflict],
+        exclusive_with_timeline_ids: [:"timeline:dl_conflict"],
+        allow_overlap: true,
+        metadata: %{timeline_id: :"timeline:cmd_accepted_preflight"}
+      })
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "refresh:accepted_precondition_handoff",
+      "accepted_planning_state" => %{
+        "source_timeline_activity_precondition_summary" => summary
+      }
+    }
+
+    review = OperatorReview.from_candidate_refresh_artifact(artifact)
+    import = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "refresh:accepted_precondition_handoff",
+             "review_count" => 1,
+             "timeline_activity_precondition_review_count" => 1,
+             "review_type_counts" => %{"timeline_activity_precondition_review" => 1},
+             "required_operator_action_counts" => %{
+               "review_blocked_activity_precondition" => 1
+             }
+           } = review
+
+    assert [
+             %{
+               "review_type" => "timeline_activity_precondition_review",
+               "source" =>
+                 "candidate_refresh.accepted_planning_state.source_timeline_activity_precondition_summary.summary",
+               "timeline_id" => "timeline:cmd_accepted_preflight",
+               "activity_id" => "cmd_accepted_preflight",
+               "precondition_status" => "blocked",
+               "required_operator_action" => "review_blocked_activity_precondition",
+               "dependency_activity_ids" => ["health_check_1"],
+               "exclusive_with_activity_ids" => ["dl_conflict"],
+               "allow_overlap" => true,
+               "source_timeline_activity_precondition_summary" => %{
+                 "schema_contract" => "timeline_activity_precondition_summary.v1",
+                 "timeline_id" => "timeline:cmd_accepted_preflight",
+                 "precondition_status" => "blocked"
+               }
+             }
+           ] = review["rows"]
+
+    assert %{
+             "row_count" => 1,
+             "import_action_counts" => %{"review_timeline_precondition" => 1},
+             "source_review_type_counts" => %{"timeline_activity_precondition_review" => 1}
+           } = import
+
+    assert [
+             %{
+               "import_action" => "review_timeline_precondition",
+               "source_review_type" => "timeline_activity_precondition_review",
+               "timeline_id" => "timeline:cmd_accepted_preflight",
+               "source_review_row" => %{
+                 "source" =>
+                   "candidate_refresh.accepted_planning_state.source_timeline_activity_precondition_summary.summary",
+                 "source_timeline_activity_precondition_summary" => %{
+                   "timeline_id" => "timeline:cmd_accepted_preflight"
+                 }
+               }
+             }
+           ] = import["rows"]
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(import)
+  end
+
+  test "CandidateRefresh lifts mission state precondition summaries" do
+    summary =
+      Timeline.activity_precondition_summary(%{
+        id: :cmd_mission_preflight,
+        type: :command,
+        degraded: true,
+        dependency_activity_ids: [:mission_health_check],
+        dependency_timeline_ids: [:"timeline:mission_health_check"],
+        metadata: %{timeline_id: :"timeline:cmd_mission_preflight"}
+      })
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "refresh:mission_precondition_handoff",
+      "mission_state" => %{
+        "timeline_activity_precondition_summary" => summary
+      }
+    }
+
+    review = OperatorReview.from_candidate_refresh_artifact(artifact)
+    import = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "refresh:mission_precondition_handoff",
+             "review_count" => 1,
+             "timeline_activity_precondition_review_count" => 1
+           } = review
+
+    assert [
+             %{
+               "review_type" => "timeline_activity_precondition_review",
+               "source" =>
+                 "candidate_refresh.mission_state.timeline_activity_precondition_summary.summary",
+               "timeline_id" => "timeline:cmd_mission_preflight",
+               "activity_id" => "cmd_mission_preflight",
+               "precondition_status" => "review_required",
+               "required_operator_action" => "review_activity_precondition",
+               "dependency_activity_ids" => ["mission_health_check"],
+               "source_timeline_activity_precondition_summary" => %{
+                 "schema_contract" => "timeline_activity_precondition_summary.v1",
+                 "timeline_id" => "timeline:cmd_mission_preflight",
+                 "precondition_status" => "review_required"
+               }
+             }
+           ] = review["rows"]
+
+    assert %{
+             "row_count" => 1,
+             "import_action_counts" => %{"review_timeline_precondition" => 1},
+             "source_review_type_counts" => %{"timeline_activity_precondition_review" => 1}
+           } = import
+
+    assert [
+             %{
+               "import_action" => "review_timeline_precondition",
+               "source_review_type" => "timeline_activity_precondition_review",
+               "timeline_id" => "timeline:cmd_mission_preflight",
+               "source_review_row" => %{
+                 "source" =>
+                   "candidate_refresh.mission_state.timeline_activity_precondition_summary.summary",
+                 "source_timeline_activity_precondition_summary" => %{
+                   "timeline_id" => "timeline:cmd_mission_preflight"
+                 }
+               }
+             }
+           ] = import["rows"]
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(import)
+  end
+
   test "single activity timeline states become operator review rows" do
     planned = %{
       id: :cmd_provider,
