@@ -5023,7 +5023,17 @@ defmodule OrbitalDynamics.OperatorReview do
         source_timeline_diff_report_rows(report_or_reports, source)
       end)
 
-    direct_rows ++ candidate_refresh_result_artifact_timeline_diff_rows(artifact)
+    summary_rows =
+      [
+        {"candidate_refresh.source_timeline_diff_summary",
+         artifact["source_timeline_diff_summary"]},
+        {"candidate_refresh.timeline_diff_summary", artifact["timeline_diff_summary"]}
+      ]
+      |> Enum.flat_map(fn {source, summary_or_summaries} ->
+        source_timeline_diff_summary_rows(summary_or_summaries, source)
+      end)
+
+    direct_rows ++ summary_rows ++ candidate_refresh_result_artifact_timeline_diff_rows(artifact)
   end
 
   defp source_timeline_diff_report_rows(reports, source) when is_list(reports) do
@@ -5042,6 +5052,22 @@ defmodule OrbitalDynamics.OperatorReview do
   end
 
   defp source_timeline_diff_report_rows(_report, _source), do: []
+
+  defp source_timeline_diff_summary_rows(summaries, source) when is_list(summaries) do
+    summaries
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {summary, index} ->
+      source_timeline_diff_summary_rows(summary, "#{source}[#{index}]")
+    end)
+  end
+
+  defp source_timeline_diff_summary_rows(%{} = summary, source) do
+    summary
+    |> stringify_keys()
+    |> timeline_diff_summary_rows("#{source}.review_rows")
+  end
+
+  defp source_timeline_diff_summary_rows(_summary, _source), do: []
 
   defp candidate_refresh_result_artifact_timeline_diff_rows(artifact) do
     [
@@ -5068,15 +5094,37 @@ defmodule OrbitalDynamics.OperatorReview do
     source_timeline_diff_report_rows(report, source)
   end
 
+  defp result_artifact_timeline_diff_rows(
+         %{"schema_contract" => "timeline_diff_summary.v1"} = summary,
+         source
+       ) do
+    source_timeline_diff_summary_rows(summary, source)
+  end
+
   defp result_artifact_timeline_diff_rows(%{} = artifact, source) do
     artifact = stringify_keys(artifact)
 
     [
       {"#{source}.source_timeline_diff_report", artifact["source_timeline_diff_report"]},
-      {"#{source}.timeline_diff_report", artifact["timeline_diff_report"]}
+      {"#{source}.timeline_diff_report", artifact["timeline_diff_report"]},
+      {"#{source}.source_timeline_diff_summary", artifact["source_timeline_diff_summary"]},
+      {"#{source}.timeline_diff_summary", artifact["timeline_diff_summary"]}
     ]
-    |> Enum.flat_map(fn {report_source, report_or_reports} ->
-      source_timeline_diff_report_rows(report_or_reports, report_source)
+    |> Enum.flat_map(fn
+      {summary_source, %{} = summary_or_report} ->
+        summary_or_report = stringify_keys(summary_or_report)
+
+        case summary_or_report["schema_contract"] do
+          "timeline_diff_summary.v1" ->
+            source_timeline_diff_summary_rows(summary_or_report, summary_source)
+
+          _contract ->
+            source_timeline_diff_report_rows(summary_or_report, summary_source)
+        end
+
+      {summary_source, summaries_or_reports} ->
+        source_timeline_diff_report_rows(summaries_or_reports, summary_source) ++
+          source_timeline_diff_summary_rows(summaries_or_reports, summary_source)
     end)
   end
 
@@ -9331,10 +9379,12 @@ defmodule OrbitalDynamics.OperatorReview do
     end)
   end
 
-  defp timeline_diff_summary_rows(%{} = summary) do
+  defp timeline_diff_summary_rows(summary, source \\ "timeline_diff_summary.review_rows")
+
+  defp timeline_diff_summary_rows(%{} = summary, source) do
     summary
     |> Map.get("review_rows", [])
-    |> timeline_diff_rows("timeline_diff_summary.review_rows")
+    |> timeline_diff_rows(source)
     |> Enum.map(&put_timeline_diff_summary_context(&1, summary))
   end
 
