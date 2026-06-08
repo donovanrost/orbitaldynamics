@@ -5,25 +5,23 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Quality-gate schema-validation CandidateRefresh review/import handoff.
+State-scoped schema-validation CandidateRefresh review/import handoff.
 
 Status:
-Completed and pushed; CandidateRefresh OperatorReview/CadenceImport handoffs now
-lift compact `operational_quality_gate_schema_validation_summary.v1` inputs from
-top-level refresh fields, accepted/mission state, `source_result_artifact`, and
-`result_artifact` wrappers. Compact summaries reconstruct non-passed
-`cadence_import` quality-gate review rows from status maps, preserving
-wrapper-qualified source paths, schema validation pass/fail/error/warning/
-remediation counts, blocked import routing, and artifact-only
-no-write/no-authority assumptions.
+Completed locally; CandidateRefresh OperatorReview/CadenceImport handoffs now
+lift `schema_validation_report.v1` and nested
+`schema_validation_batch_report.v1` entries from accepted planning state and
+mission state, not only top-level refresh fields and result-artifact wrappers.
+Rows preserve state-qualified source paths, batch entry paths, validation issue
+context, and artifact-only no-write/no-approval boundaries.
 
 Files changed:
 - `lib/orbital_dynamics/operator_review.ex`
 - `test/orbital_dynamics/operator_review_test.exs`
 
 Tests run:
-- `mix run -e '<quality-gate sibling compact-summary smoke>'`
-- `mix test test/orbital_dynamics/operator_review_test.exs:7911`
+- `mix run -e '<state-scoped schema-validation CandidateRefresh smoke>'`
+- `mix test test/orbital_dynamics/operator_review_test.exs:8146`
 - `mix test test/orbital_dynamics/operator_review_test.exs`
 - `git diff --check`
 - Caveat: `mix test test/orbital_dynamics/cadence_import_test.exs` and focused
@@ -32,12 +30,12 @@ Tests run:
   policy-rule row shape for `cmd_unavailable`.
 
 Docs/artifacts changed:
-- No schema/artifact shape changes; this wires existing quality-gate
-  schema-validation summary evidence into existing review/import rows.
+- No schema/artifact shape changes; this wires existing state-scoped
+  schema-validation evidence into existing review/import rows.
 
 Level 6 pillar advanced:
-Quality gates, readiness, and import eligibility replay from compact
-schema-versioned handoff artifacts into deterministic operator-review and
+Branch-local CandidateRefresh depth and deterministic validation evidence replay
+from accepted/mission-state source reports into operator-review and
 Cadence-import rows.
 
 Remaining maturity gaps:
@@ -46,14 +44,13 @@ or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Pushed `f9060eae8dd4066d0a0e552513e42d168a2593cc` after product commit
-`c8bf26112e598fc811c2ba343f713de325e56b0a`.
+Pending commit; previous pushed commit
+`14873410e68e0b2577a0074b9f2c50e0c3cf78ac`.
 
 Next candidate:
-Reassess the guide queue after committing: quality-gate compact summary
-handoffs are now covered for import-readiness, unavailable-resource,
-operator-training, and schema-validation sources; next likely slice should come
-from branch-local CandidateRefresh depth or validation/compatibility fixtures.
+After committing, continue branch-local CandidateRefresh depth by checking
+accepted/mission-state replay parity for one more source-report family before
+moving to validation/compatibility fixtures.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
