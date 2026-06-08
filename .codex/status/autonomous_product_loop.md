@@ -8,7 +8,7 @@ Current slice:
 Quality-gate import-readiness CandidateRefresh review/import handoff.
 
 Status:
-Completed locally; CandidateRefresh OperatorReview/CadenceImport handoffs now
+Completed and pushed; CandidateRefresh OperatorReview/CadenceImport handoffs now
 lift compact `operational_quality_gate_import_readiness_summary.v1` inputs from
 top-level refresh fields, accepted/mission state, `source_result_artifact`, and
 `result_artifact` wrappers. Compact summaries reconstruct only non-passed
@@ -45,13 +45,13 @@ or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Pending commit; previous pushed commit
-`ce9263bc88282162f797409a34afeaf4d06d9f92`.
+Pushed `11abc17cf4ddeff463b9c9cde53d32bc70ad6e9f` after product commit
+`5829196fdba35500fe840f57f0a0c49c78d30e3d`.
 
 Next candidate:
-After committing this slice, continue the quality-gates/import-eligibility queue
-by reassessing compact quality-gate operator-training, schema-validation, and
-unavailable-resource summaries for the same review/import handoff depth.
+Continue the quality-gates/import-eligibility queue by reassessing compact
+quality-gate operator-training, schema-validation, and unavailable-resource
+summaries for the same review/import handoff depth.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
