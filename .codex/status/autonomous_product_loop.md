@@ -43,7 +43,7 @@ preserve routing evidence that review/import or CandidateRefresh replay still
 does not consume.
 
 Last commit:
-Product commit pending.
+Product commit `933f94e8f09f1226bf03967a59cad20fc0f84661`.
 
 Next candidate:
 Reassess the next weak resource/contact summary, CandidateRefresh source-report
