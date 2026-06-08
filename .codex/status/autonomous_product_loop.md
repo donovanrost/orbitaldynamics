@@ -48,7 +48,7 @@ preserve routing evidence that review/import or CandidateRefresh replay still
 does not consume.
 
 Last commit:
-Product commit pending.
+Product commit `9a859475bbc49e1cd9d06d421ae9803b1e7b76aa`.
 
 Next candidate:
 Reassess remaining typed timeline summary wrappers, resource/contact allocation
