@@ -77,7 +77,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Pending.
+`74a5b4d` Score readiness pressure branch risks.
 
 Next candidate:
 Return to the guide's higher-priority typed timeline/resource semantics unless
@@ -88,6 +88,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `74a5b4d` scored readiness and quality-gate pressure branch risks.
 - `810c605` flattened readiness and quality-gate pressure handoff rows.
 - `4a5935a` explained readiness and quality-gate pressure recommendations.
 - `86d4687` refreshed operational timeline fixture regeneration.
