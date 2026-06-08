@@ -26343,6 +26343,28 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
   end
 
   test "timeline publication replay lifts review and import handoff rows" do
+    source = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 0.0, ends_at_s: 10.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    replacement = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 5.0, ends_at_s: 15.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
     summary =
       Timeline.publication_summary(
         %{
@@ -26350,7 +26372,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
           "id" => "timeline:handoff_plan:v1"
         },
         publication_sequence: 3,
-        publication_authority: :mission_operations
+        publication_authority: :mission_operations,
+        supersedes_artifact_ids: ["timeline:handoff_plan:v0"],
+        downstream_product_ids: [
+          "operator_review:handoff_plan:v1",
+          "cadence_import:handoff_plan:v1"
+        ],
+        dependency_impact_summary: Timeline.dependency_impact_summary(source, replacement),
+        timeline_diff_summary: Timeline.diff_summary(source, replacement)
       )
 
     package = OperatorReview.from_timeline_publication_summary(summary)
@@ -26362,7 +26391,22 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_paths" => [
                "source_operator_review_package.rows.source_timeline_publication_summary"
              ],
-             "publication_ids" => [publication_id]
+             "publication_ids" => [publication_id],
+             "invalidated_downstream_product_ids" => [
+               "cadence_import:handoff_plan:v1",
+               "operator_review:handoff_plan:v1"
+             ],
+             "dependency_impact_row_count" => 2,
+             "impacted_dependency_activity_ids" => ["health_gate"],
+             "timeline_diff_row_count" => 3,
+             "timeline_diff_review_required_count" => 2,
+             "review_timeline_ids" => [
+               "timeline:health_check:0.0",
+               "timeline:health_check:5.0"
+             ],
+             "branch_local_timeline_publication_dependency_pressure" => true,
+             "branch_local_timeline_publication_changed_field_pressure" => true,
+             "branch_local_timeline_publication_invalidation_pressure" => true
            } =
              CandidateRefresh.timeline_publication_replay_summary(%{
                "source_operator_review_package" => package
@@ -26376,7 +26420,22 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_paths" => [
                "source_cadence_import_manifest.rows.source_timeline_publication_summary"
              ],
-             "publication_ids" => [^publication_id]
+             "publication_ids" => [^publication_id],
+             "invalidated_downstream_product_ids" => [
+               "cadence_import:handoff_plan:v1",
+               "operator_review:handoff_plan:v1"
+             ],
+             "dependency_impact_row_count" => 2,
+             "impacted_dependency_activity_ids" => ["health_gate"],
+             "timeline_diff_row_count" => 3,
+             "timeline_diff_review_required_count" => 2,
+             "review_timeline_ids" => [
+               "timeline:health_check:0.0",
+               "timeline:health_check:5.0"
+             ],
+             "branch_local_timeline_publication_dependency_pressure" => true,
+             "branch_local_timeline_publication_changed_field_pressure" => true,
+             "branch_local_timeline_publication_invalidation_pressure" => true
            } =
              CandidateRefresh.timeline_publication_replay_summary(%{
                "source_cadence_import_manifest" => manifest
