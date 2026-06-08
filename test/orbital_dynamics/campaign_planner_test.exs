@@ -24362,6 +24362,280 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy-derived refresh preserves contradictory station reservation allocation evidence" do
+    challenge_contact = "challenge_dl_reserved_intruder"
+
+    station_calendar_report = %{
+      "schema_contract" => "station_calendar_report.v1",
+      "model" => "artifact_only_station_calendar_report",
+      "source" => "campaign_planner_test.contradictory_station_calendar",
+      "affected_contacts" => [
+        %{
+          "contact_id" => challenge_contact,
+          "scenario_id" => "leo_1",
+          "ground_station_id" => "equator_prime",
+          "direction" => "downlink",
+          "station_calendar_entry_id" => "challenge_station_reserved",
+          "station_calendar_provider_id" => "partner_calendar",
+          "station_calendar_provider_entry_id" => "partner_reserved_entry",
+          "station_calendar_status" => "reserved",
+          "availability" => "reserved",
+          "station_availability" => "reserved",
+          "station_reserved_by" => "partner_ops",
+          "station_reservation_id" => "challenge_reservation_1",
+          "station_reservation_status" => "confirmed",
+          "station_reservation_match_status" => "overlap",
+          "station_calendar_reservation_ids" => ["challenge_reservation_1"],
+          "station_calendar_reservation_statuses" => ["confirmed"],
+          "station_calendar_reservation_overlap_count" => 1,
+          "required_operator_action" => "review_station_reservation_overlap",
+          "trust_boundary" => "challenge_station_calendar_row"
+        }
+      ],
+      "provider_calendar_contention_groups" => [
+        %{
+          "provider_calendar_contention_group_id" => "challenge_provider_contention",
+          "ground_station_id" => "equator_prime",
+          "direction" => "downlink",
+          "provider_calendar_contention_status" => "review_required",
+          "provider_calendar_contention_provider_ids" => ["ops_calendar", "partner_calendar"],
+          "provider_calendar_contention_provider_entry_ids" => [
+            "ops_selected_entry",
+            "partner_reserved_entry"
+          ],
+          "provider_calendar_contention_availabilities" => ["available", "reserved"],
+          "provider_calendar_contention_reservation_ids" => ["challenge_reservation_1"],
+          "provider_calendar_contention_reserved_by" => ["partner_ops"],
+          "provider_calendar_contention_reservation_statuses" => ["confirmed"],
+          "required_operator_action" => "review_station_provider_contention",
+          "trust_boundary" => "challenge_provider_contention_row"
+        }
+      ],
+      "provenance" => %{"trust_boundary" => "challenge_station_calendar_report"}
+    }
+
+    station_reservation_report = %{
+      "schema_contract" => "station_reservation_report.v1",
+      "source" => "station_calendar_report.reservation_evidence",
+      "affected_contacts" => [
+        %{
+          "contact_id" => challenge_contact,
+          "ground_station_id" => "equator_prime",
+          "direction" => "downlink",
+          "station_reservation_match_status" => "overlap",
+          "station_reservation_id" => "challenge_reservation_1",
+          "station_reservation_status" => "confirmed",
+          "station_reserved_by" => "partner_ops",
+          "station_reservation_expires_at_s" => 300.0,
+          "required_operator_action" => "review_station_reservation_overlap",
+          "trust_boundary" => "challenge_station_reservation_row"
+        }
+      ],
+      "provider_calendar_contention_groups" => [],
+      "provenance" => %{"trust_boundary" => "challenge_station_reservation_report"}
+    }
+
+    reservation_hold_summary = %{
+      "model" => "artifact_only_station_reservation_hold_import_readiness_summary",
+      "schema_contract" => "station_reservation_hold_import_readiness_summary.v1",
+      "source_artifact_type" => "station_reservation_report.v1",
+      "source" => "station_calendar_report.reservation_evidence",
+      "reservation_hold_count" => 2,
+      "import_readiness_status" => "review_required",
+      "import_classification" => "review_only",
+      "ready_for_import_count" => 0,
+      "review_required_before_import_count" => 2,
+      "no_import_required_count" => 0,
+      "reservation_hold_import_status_counts" => %{
+        "review_required_before_import" => 2
+      },
+      "required_import_action_counts" => %{
+        "review_station_provider_contention" => 1,
+        "review_station_reservation_overlap" => 1
+      },
+      "reservation_hold_ids" => ["challenge_reservation_1", "challenge_provider_hold"],
+      "reservation_hold_ids_by_import_status" => %{
+        "review_required_before_import" => [
+          "challenge_provider_hold",
+          "challenge_reservation_1"
+        ]
+      },
+      "reservation_hold_ids_by_required_import_action" => %{
+        "review_station_provider_contention" => ["challenge_provider_hold"],
+        "review_station_reservation_overlap" => ["challenge_reservation_1"]
+      },
+      "reservation_hold_contact_ids_by_import_status" => %{
+        "review_required_before_import" => [challenge_contact]
+      },
+      "import_readiness_rows" => [
+        %{
+          "reservation_review_row_type" => "affected_contact",
+          "contact_id" => challenge_contact,
+          "reservation_ids" => ["challenge_reservation_1"],
+          "reservation_statuses" => ["held"],
+          "reserved_by" => ["partner_ops"],
+          "station_reservation_hold_import_status" => "review_required_before_import",
+          "required_operator_action" => "review_station_reservation_overlap"
+        },
+        %{
+          "reservation_review_row_type" => "provider_calendar_contention_group",
+          "reservation_ids" => ["challenge_provider_hold"],
+          "reservation_statuses" => ["held"],
+          "reserved_by" => ["partner_calendar"],
+          "station_reservation_hold_import_status" => "review_required_before_import",
+          "required_operator_action" => "review_station_provider_contention"
+        }
+      ],
+      "assumptions" => %{
+        "execution_boundary" => "artifact_only_no_provider_or_cadence_writes",
+        "provider_write" => "not_performed_by_summary",
+        "cadence_write" => "not_performed_by_summary",
+        "reservation_acceptance" => "not_performed_by_summary"
+      },
+      "provenance" => %{
+        "trust_boundary" => "challenge_station_reservation_hold_import_readiness"
+      }
+    }
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put(:source_station_calendar_report, station_calendar_report)
+      |> Map.put(:source_station_reservation_report, station_reservation_report)
+      |> Map.put(
+        :source_station_reservation_hold_import_readiness_summary,
+        reservation_hold_summary
+      )
+      |> Map.put(
+        :source_contact_allocation_summary,
+        contact_allocation_summary_fixture("challenge")
+      )
+      |> Map.put(
+        :source_contact_allocation_station_pressure_summary,
+        contact_allocation_station_pressure_summary_fixture("challenge")
+      )
+      |> Map.put(
+        :source_contact_allocation_reservation_conflict_summary,
+        contact_allocation_reservation_conflict_summary_fixture("challenge")
+      )
+      |> Map.put(
+        :source_contact_allocation_provider_reservation_request_summary,
+        contact_allocation_provider_reservation_request_summary_fixture("challenge")
+      )
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        branches: [
+          %{id: "baseline"},
+          %{
+            id: "challenge",
+            events: [%{type: "urgent_target", target_id: "target_a", priority: 12.0}]
+          }
+        ],
+        current_epoch_s: 0.0
+      )
+
+    challenge_branch = branch(artifact, "challenge")
+    candidate_source = challenge_branch["assumptions"]["candidate_source"]
+
+    source_report_input_paths =
+      get_in(challenge_branch, ["assumptions", "candidate_source", "source_report_input_paths"])
+
+    for source_path <- [
+          "mission_state.source_contact_allocation_summary",
+          "mission_state.source_contact_allocation_station_pressure_summary",
+          "mission_state.source_contact_allocation_reservation_conflict_summary",
+          "mission_state.source_contact_allocation_provider_reservation_request_summary",
+          "mission_state.source_station_calendar_report",
+          "mission_state.source_station_reservation_report",
+          "mission_state.source_station_reservation_hold_import_readiness_summary"
+        ] do
+      assert source_path in source_report_input_paths
+    end
+
+    contact_allocation_replay_summary =
+      CandidateRefresh.contact_allocation_replay_summary(candidate_source)
+
+    assert %{
+             "branch_local_contact_allocation_pressure" => true,
+             "branch_local_deferred_allocation_pressure" => true,
+             "branch_local_station_pressure" => true,
+             "branch_local_reservation_conflict_pressure" => true,
+             "branch_local_provider_reservation_request_pressure" => true,
+             "allocated_contact_ids" => allocated_contact_ids,
+             "deferred_contact_ids" => deferred_contact_ids,
+             "reservation_conflict_contact_ids" => reservation_conflict_contact_ids,
+             "provider_reservation_review_contact_ids" => provider_reservation_review_contact_ids,
+             "source_report_paths" => contact_allocation_source_paths
+           } = contact_allocation_replay_summary
+
+    assert "challenge_dl_allocated" in allocated_contact_ids
+    assert "challenge_dl_deferred" in deferred_contact_ids
+    assert challenge_contact in reservation_conflict_contact_ids
+    assert "challenge_dl_review_overlap" in provider_reservation_review_contact_ids
+
+    for source_path <- [
+          "mission_state.source_contact_allocation_summary",
+          "mission_state.source_contact_allocation_station_pressure_summary",
+          "mission_state.source_contact_allocation_reservation_conflict_summary",
+          "mission_state.source_contact_allocation_provider_reservation_request_summary"
+        ] do
+      assert source_path in contact_allocation_source_paths
+    end
+
+    station_calendar_replay_summary =
+      CandidateRefresh.station_calendar_replay_summary(candidate_source)
+
+    assert %{
+             "branch_local_station_calendar_pressure" => true,
+             "branch_local_affected_contact_pressure" => true,
+             "branch_local_provider_contention_pressure" => true,
+             "station_calendar_status_counts" => %{"reserved" => 1},
+             "affected_contact_availability_counts" => %{"reserved" => 1},
+             "provider_calendar_contention_group_count" => 1,
+             "affected_contact_ids" => [^challenge_contact],
+             "affected_station_reservation_ids" => ["challenge_reservation_1"],
+             "source_report_paths" => station_calendar_source_paths
+           } = station_calendar_replay_summary
+
+    assert "mission_state.source_station_calendar_report" in station_calendar_source_paths
+
+    station_reservation_replay_summary =
+      CandidateRefresh.station_reservation_replay_summary(candidate_source)
+
+    assert %{
+             "branch_local_station_reservation_pressure" => true,
+             "branch_local_reservation_review_pressure" => true,
+             "branch_local_reservation_hold_import_readiness_pressure" => true,
+             "station_reservation_match_status_counts" => %{"overlap" => 1},
+             "reservation_ids" => reservation_ids,
+             "reservation_hold_import_readiness_status_counts" => %{
+               "review_required" => 1
+             },
+             "reservation_hold_import_status_counts" => %{
+               "review_required_before_import" => 2
+             },
+             "source_report_paths" => station_reservation_source_paths
+           } = station_reservation_replay_summary
+
+    assert "challenge_reservation_1" in reservation_ids
+    assert "challenge_provider_hold" in reservation_ids
+
+    assert challenge_contact in station_reservation_replay_summary["affected_contact_ids"]
+
+    assert challenge_contact in get_in(
+             station_reservation_replay_summary,
+             ["reservation_hold_contact_ids_by_import_status", "review_required_before_import"]
+           )
+
+    assert "mission_state.source_station_reservation_report" in station_reservation_source_paths
+
+    assert "mission_state.source_station_reservation_hold_import_readiness_summary" in station_reservation_source_paths
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy derives branch refresh requests from rich mission state" do
     mission_state =
       mission_state_with_refresh_inputs()
