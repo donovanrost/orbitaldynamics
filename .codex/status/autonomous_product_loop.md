@@ -8,12 +8,12 @@ Current slice:
 Nested CandidateRefresh timeline-transition-application review/import handoff.
 
 Status:
-Implementation, focused verification, and read-only `slice_reviewer` handoff
-complete. CandidateRefresh accepted-planning-state and mission-state nested
-transition-application report/summary artifacts now project into OperatorReview
-`timeline_diff_review` rows and CadenceImport review rows. The result-artifact
-handoff also accepts exact and wrapped transition-application reports. Covered
-nested families: `source_timeline_transition_application_report`,
+Product commit complete. CandidateRefresh accepted-planning-state and
+mission-state nested transition-application report/summary artifacts now
+project into OperatorReview `timeline_diff_review` rows and CadenceImport
+review rows. The result-artifact handoff also accepts exact and wrapped
+transition-application reports. Covered nested families:
+`source_timeline_transition_application_report`,
 `timeline_transition_application_report`,
 `source_timeline_transition_application_summary`, and
 `timeline_transition_application_summary`.
@@ -49,11 +49,11 @@ preserve routing evidence that review/import or CandidateRefresh replay still
 does not consume.
 
 Last commit:
-Previous committed handoff `c87acc2 Record nested preservation review slice`.
-Current slice is not committed yet.
+Product commit `f0daa7afe9922384d19913fcacd413e16ba5381b`.
 
 Next candidate:
-Commit the current slice, then reassess the next weak
+Reassess the remaining summary-contract coverage map after nested
+transition-application projection and pick the next weak
 CandidateRefresh/OperatorReview/CadenceImport handoff.
 
 Unrelated local changes:
