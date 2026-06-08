@@ -8,7 +8,7 @@ Current slice:
 State-scoped freshness and refresh-budget CandidateRefresh review/import handoff.
 
 Status:
-Completed locally; CandidateRefresh OperatorReview/CadenceImport handoffs now
+Completed and pushed; CandidateRefresh OperatorReview/CadenceImport handoffs now
 lift `freshness_report.v1` and `refresh_budget_report.v1` review rows from
 accepted planning state and mission state, matching existing top-level and
 result-artifact wrapped paths. Rows preserve state-qualified source paths,
@@ -44,8 +44,8 @@ or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Pending commit; previous pushed commit
-`33a8e31cf4c8254fb527b67579d1cee5b5918fcc`.
+Pushed `40991f15dcd0b1c52612056d0f65a84af30fcfd6` after product commit
+`0a75cbae81b76302325be2e5a313e30a65efb3c5`.
 
 Next candidate:
 After committing, reassess branch-local CandidateRefresh parity; many
