@@ -3594,6 +3594,104 @@ defmodule OrbitalDynamics.ValidationTest do
             }} = Schema.validate_artifact(summary)
   end
 
+  test "verifies curated station calendar precedence summary reference fixtures" do
+    fixture_id = "fixture.artifact.station_calendar_precedence_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.station_calendar_precedence_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = station_calendar_precedence_summary_fixture()
+    observations = station_calendar_precedence_summary_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "source" => "ops_calendar",
+             "affected_contact_count" => 1,
+             "precedence_review_status" => "review_required",
+             "applied_availability_counts" => %{"unavailable" => 1},
+             "applied_status_counts" => %{"unavailable" => 1},
+             "overlap_availability_counts" => %{
+               "reduced_capacity" => 1,
+               "reserved" => 1,
+               "unavailable" => 1
+             },
+             "affected_contact_ids_by_overlap_availability" => %{
+               "reduced_capacity" => ["dl_1"],
+               "reserved" => ["dl_1"],
+               "unavailable" => ["dl_1"]
+             },
+             "reserved_under_higher_precedence_contact_count" => 1,
+             "reserved_under_higher_precedence_contact_ids" => "dl_1",
+             "unavailable_contact_ids" => "dl_1",
+             "reserved_overlap_contact_ids" => "dl_1",
+             "reduced_capacity_contact_ids" => "dl_1",
+             "execution_boundary" => "artifact_only_no_provider_reservation",
+             "scope" => "station_calendar_availability_precedence_review",
+             "operator_authority" => "not_granted_by_summary",
+             "no_provider_reservation" => true,
+             "no_schedule_mutation" => true,
+             "no_conflict_resolution" => true
+           } = observations
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "station_calendar_precedence_summary.v1",
+             report
+           ) == Validation.artifact_observations("station_calendar_precedence_summary.v1", report)
+
+    stale_count_observations =
+      Map.put(observations, "reserved_under_higher_precedence_contact_count", 0)
+
+    assert {:ok, stale_count_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_count_observations)
+
+    assert stale_count_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_count_verification["checks"],
+             &(&1["field"] == "reserved_under_higher_precedence_contact_count" and
+                 &1["status"] == "fail")
+           )
+
+    stale_routing_observations =
+      put_in(observations, ["affected_contact_ids_by_overlap_availability", "reserved"], [])
+
+    assert {:ok, stale_routing_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_routing_observations)
+
+    assert stale_routing_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_routing_verification["checks"],
+             &(&1["field"] == "affected_contact_ids_by_overlap_availability" and
+                 &1["status"] == "fail")
+           )
+
+    stale_boundary_observations =
+      Map.put(observations, "execution_boundary", "provider_reservation_ready")
+
+    assert {:ok, stale_boundary_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_boundary_observations)
+
+    assert stale_boundary_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_boundary_verification["checks"],
+             &(&1["field"] == "execution_boundary" and &1["status"] == "fail")
+           )
+
+    assert {:ok, %{"schema_contract" => "station_calendar_precedence_summary.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "station_calendar_precedence_summary.v1"
+             )
+  end
+
   test "verifies curated station calendar provider reference fixtures" do
     fixture_id = "fixture.artifact.station_calendar_provider.v1"
 
@@ -13261,6 +13359,8 @@ defmodule OrbitalDynamics.ValidationTest do
           source_window_lineage_fixture_observations(),
         "fixture.artifact.spacecraft_state_estimate.v1" =>
           spacecraft_state_estimate_fixture_observations(),
+        "fixture.artifact.station_calendar_precedence_summary.v1" =>
+          station_calendar_precedence_summary_fixture_observations(),
         "fixture.artifact.station_calendar_provider.v1" =>
           station_calendar_provider_fixture_observations(),
         "fixture.artifact.station_calendar_report.stale_provider_reservation_hold" =>
@@ -13338,8 +13438,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 171,
-             "status_counts" => %{"pass" => 171},
+             "fixture_count" => 172,
+             "status_counts" => %{"pass" => 172},
              "reports" => reports
            } = report
 
@@ -13470,6 +13570,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.score_term_report.v1",
              "fixture.artifact.source_window_lineage.v1",
              "fixture.artifact.spacecraft_state_estimate.v1",
+             "fixture.artifact.station_calendar_precedence_summary.v1",
              "fixture.artifact.station_calendar_provider.v1",
              "fixture.artifact.station_calendar_report.stale_provider_reservation_hold",
              "fixture.artifact.station_calendar_report.v1",
@@ -13527,7 +13628,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 171},
+             "status_counts" => %{"fail" => 172},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -15800,6 +15901,15 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp station_reservation_hold_import_readiness_summary_fixture do
     read_json!("study_results/station_reservation_hold_import_readiness_summary_v1.json")
+  end
+
+  defp station_calendar_precedence_summary_fixture_observations do
+    "station_calendar_precedence_summary.v1"
+    |> Validation.artifact_observations(station_calendar_precedence_summary_fixture())
+  end
+
+  defp station_calendar_precedence_summary_fixture do
+    read_json!("study_results/station_calendar_precedence_summary_v1.json")
   end
 
   defp station_calendar_provider_fixture_observations do
