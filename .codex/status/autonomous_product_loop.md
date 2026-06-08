@@ -44,7 +44,7 @@ does not consume. The adjacent wrapped timeline integrity report import path is
 a likely next candidate.
 
 Last commit:
-Pending.
+Product commit `4ca0873da6e6bb6fb183f51cfe9917592c78ca1d`.
 
 Next candidate:
 Reassess wrapped timeline integrity reports, resource/contact allocation
