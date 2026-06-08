@@ -5,52 +5,50 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-CampaignPlanner source-summary assertion drift.
+Checked-in schema validation fixture freshness.
 
 Status:
-Product commit complete; CampaignPlanner branch-refresh source-summary
-assertions now match the current deterministic CandidateRefresh replay contract.
-Contact-allocation station-pressure, reservation-conflict, and capacity-pack
-tests distinguish row counts from unique contact-id counts, and contact-intent
-replay assertions include current direction/ground-station routing evidence.
+Product commit complete; checked-in manifest/schema-validation artifacts now
+match current exporters and the runtime validation fixture registry. The schema
+validation batch fixture now reflects 152 passing `study_results` artifacts, and
+the validation reference fixture report now covers 160 passing curated fixtures.
 
 Files changed:
-- `test/orbital_dynamics/campaign_planner_test.exs`
+- `lib/orbital_dynamics/validation.ex`
+- `schemas/study_manifest.v1.schema.json`
+- `study_results/schema_validation_batch_report_v1.json`
+- `study_results/validation_reference_fixtures.json`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:29161 test/orbital_dynamics/campaign_planner_test.exs:29286 test/orbital_dynamics/campaign_planner_test.exs:29417 test/orbital_dynamics/campaign_planner_test.exs:29734`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs`
+- `mix orbital_dynamics.manifest.schema.export --output schemas/study_manifest.v1.schema.json`
+- `mix run -e '<regenerate validation_reference_fixtures from Validation.reference_fixtures/0>'`
+- `mix orbital_dynamics.schema.lint --all --input-dir study_results --output study_results/schema_validation_batch_report_v1.json`
+- `mix test test/orbital_dynamics/study/manifest_test.exs:730 test/orbital_dynamics/schema_test.exs:15392 test/orbital_dynamics/schema_test.exs:15490 test/mix/tasks/orbital_dynamics.schema.lint_test.exs:302`
+- `mix test test/orbital_dynamics/schema_test.exs test/orbital_dynamics/study/manifest_test.exs test/mix/tasks/orbital_dynamics.schema.lint_test.exs`
+- `mix test` (3137 passed; expected `:propagator_exit` log appeared from
+  `scenario_runner_test`)
 - `git diff --check`
-- Broader caveat: full `mix test` was not rerun after this test-only slice.
-  Before the two assertion-drift slices it reported 10 failures; the
-  CandidateRefresh provider-counteroffer and CampaignPlanner source-summary
-  failures have now been addressed with focused/full-file green tests.
-  Remaining likely full-suite failures are checked-in schema/validation fixture
-  freshness. The known `:propagator_exit` log from `scenario_runner_test` also
-  appeared during the earlier full run.
+- Full-suite caveat: none beyond the known `:propagator_exit` log noise; the
+  suite exits green.
 
 Docs/artifacts changed:
-- No product/schema/artifact changes; this updates tests to the existing
-  CampaignPlanner/CandidateRefresh summary output.
+- Generated schema/reference artifacts were refreshed from current code.
 
 Level 6 pillar advanced:
-Branch-local CampaignPlanner verification: source-summary handoff tests now pin
-current replay evidence without brittle exact equality on additive assumption
-metadata.
+Executable artifact-contract verification: checked-in schema exports and
+validation fixtures are back in sync with the current runtime contract registry.
 
 Remaining maturity gaps:
-Resolve checked-in schema fixture/export drift shown by full `mix test`, then
-continue closing thin artifact-only replay gaps where compact source summaries
+Continue closing thin artifact-only replay gaps where compact source summaries
 or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Product commit `c0d2f1daf9db11d61bd15250e66a107bf317bf83`.
+Product commit `93d24c53ec07ffde0743b567bf58ab63db82f51f`.
 
 Next candidate:
-Narrowly address the remaining full-suite schema fixture/export drift, starting
-with checked-in study manifest schema freshness or schema validation batch
-report freshness.
+Reassess branch-local CandidateRefresh parity from the now-green full suite and
+pick the next narrow artifact-only replay gap.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
