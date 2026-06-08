@@ -312,6 +312,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     :max_latency_s,
     :planned_latency_s,
     :actual_latency_s,
+    :collection_latency_objective_count,
+    :collection_latency_objective_ids,
+    :collection_latency_objective_source,
+    :collection_latency_objective_types,
     :planned_estimated_throughput_mb,
     :actual_throughput_mb,
     :link_protocol,
@@ -516,6 +520,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
           max_latency_s: number() | nil,
           planned_latency_s: number() | nil,
           actual_latency_s: number() | nil,
+          collection_latency_objective_count: non_neg_integer() | nil,
+          collection_latency_objective_ids: [atom() | String.t()],
+          collection_latency_objective_source: atom() | String.t() | nil,
+          collection_latency_objective_types: [atom() | String.t()],
           planned_estimated_throughput_mb: number() | nil,
           actual_throughput_mb: number() | nil,
           link_protocol: atom() | String.t() | nil,
@@ -790,6 +798,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
         :max_latency_s,
         :planned_latency_s,
         :actual_latency_s,
+        :collection_latency_objective_count,
+        :collection_latency_objective_ids,
+        :collection_latency_objective_source,
+        :collection_latency_objective_types,
         :planned_estimated_throughput_mb,
         :actual_throughput_mb,
         :link_protocol,
@@ -1844,6 +1856,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       max_latency_s: activity.max_latency_s,
       planned_latency_s: activity.planned_latency_s,
       actual_latency_s: activity.actual_latency_s,
+      collection_latency_objective_count: activity.collection_latency_objective_count,
+      collection_latency_objective_ids: activity.collection_latency_objective_ids,
+      collection_latency_objective_source: activity.collection_latency_objective_source,
+      collection_latency_objective_types: activity.collection_latency_objective_types,
       planned_estimated_throughput_mb: activity.planned_estimated_throughput_mb,
       actual_throughput_mb: activity.actual_throughput_mb,
       link_protocol: activity.link_protocol,
@@ -1948,6 +1964,8 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       {:incompatible_activity_types, []} -> true
       {:suppressed_activity_types, []} -> true
       {:target_priority_objective_ids, []} -> true
+      {:collection_latency_objective_ids, []} -> true
+      {:collection_latency_objective_types, []} -> true
       {:downlink_completion_sources, []} -> true
       {_key, value} -> is_nil(value)
     end)
@@ -2097,6 +2115,13 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     max_latency_s = Keyword.get(opts, :max_latency_s)
     planned_latency_s = Keyword.get(opts, :planned_latency_s)
     actual_latency_s = Keyword.get(opts, :actual_latency_s)
+    collection_latency_objective_count = Keyword.get(opts, :collection_latency_objective_count)
+    collection_latency_objective_ids = Keyword.get(opts, :collection_latency_objective_ids, [])
+    collection_latency_objective_source = Keyword.get(opts, :collection_latency_objective_source)
+
+    collection_latency_objective_types =
+      Keyword.get(opts, :collection_latency_objective_types, [])
+
     planned_estimated_throughput_mb = Keyword.get(opts, :planned_estimated_throughput_mb)
     actual_throughput_mb = Keyword.get(opts, :actual_throughput_mb)
     link_protocol = Keyword.get(opts, :link_protocol)
@@ -2518,6 +2543,22 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       not optional_number?(actual_latency_s) ->
         raise ArgumentError, "actual_latency_s must be nil or a number"
 
+      not optional_non_negative_integer?(collection_latency_objective_count) ->
+        raise ArgumentError,
+              "collection_latency_objective_count must be nil or a non-negative integer"
+
+      not valid_dependencies?(collection_latency_objective_ids) ->
+        raise ArgumentError,
+              "collection_latency_objective_ids must be a list of objective ids"
+
+      not optional_scalar?(collection_latency_objective_source) ->
+        raise ArgumentError,
+              "collection_latency_objective_source must be nil, a string, or an atom"
+
+      not valid_scalar_list?(collection_latency_objective_types) ->
+        raise ArgumentError,
+              "collection_latency_objective_types must be a list of objective types"
+
       not optional_number?(planned_estimated_throughput_mb) ->
         raise ArgumentError, "planned_estimated_throughput_mb must be nil or a number"
 
@@ -2869,6 +2910,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
           max_latency_s: max_latency_s,
           planned_latency_s: planned_latency_s,
           actual_latency_s: actual_latency_s,
+          collection_latency_objective_count: collection_latency_objective_count,
+          collection_latency_objective_ids: collection_latency_objective_ids,
+          collection_latency_objective_source: collection_latency_objective_source,
+          collection_latency_objective_types: collection_latency_objective_types,
           planned_estimated_throughput_mb: planned_estimated_throughput_mb,
           actual_throughput_mb: actual_throughput_mb,
           link_protocol: link_protocol,
@@ -3379,6 +3424,33 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     )
     |> maybe_put_opt(:planned_latency_s, optional_number!(field(source, :planned_latency_s)))
     |> maybe_put_opt(:actual_latency_s, optional_number!(field(source, :actual_latency_s)))
+    |> maybe_put_opt(
+      :collection_latency_objective_count,
+      optional_non_negative_integer!(
+        field(source, :collection_latency_objective_count),
+        "collection_latency_objective_count"
+      )
+    )
+    |> maybe_put_opt(
+      :collection_latency_objective_ids,
+      optional_id_list!(
+        field(source, :collection_latency_objective_ids),
+        "collection_latency_objective_ids",
+        "objective ids"
+      )
+    )
+    |> maybe_put_opt(
+      :collection_latency_objective_source,
+      optional_scalar!(field(source, :collection_latency_objective_source))
+    )
+    |> maybe_put_opt(
+      :collection_latency_objective_types,
+      optional_scalar_list!(
+        field(source, :collection_latency_objective_types),
+        "collection_latency_objective_types",
+        "objective types"
+      )
+    )
     |> maybe_put_opt(
       :planned_estimated_throughput_mb,
       optional_number!(
@@ -3906,6 +3978,13 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
 
   defp optional_non_negative_number?(_value), do: false
 
+  defp optional_non_negative_integer?(nil), do: true
+
+  defp optional_non_negative_integer?(value) when is_integer(value),
+    do: value >= 0
+
+  defp optional_non_negative_integer?(_value), do: false
+
   defp optional_unit_interval?(nil), do: true
 
   defp optional_unit_interval?(value) when is_number(value),
@@ -3945,6 +4024,24 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
         raise ArgumentError, "#{field} must be a number"
     end
   end
+
+  defp optional_non_negative_integer!(nil, _field), do: nil
+
+  defp optional_non_negative_integer!(value, _field) when is_integer(value) and value >= 0,
+    do: value
+
+  defp optional_non_negative_integer!(value, field) when is_binary(value) do
+    case Integer.parse(String.trim(value)) do
+      {integer, ""} when integer >= 0 ->
+        integer
+
+      _other ->
+        raise ArgumentError, "#{field} must be a non-negative integer"
+    end
+  end
+
+  defp optional_non_negative_integer!(_value, field),
+    do: raise(ArgumentError, "#{field} must be a non-negative integer")
 
   defp optional_unit_interval!(nil, _field), do: nil
 
@@ -3992,6 +4089,11 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
 
   defp optional_id_list!(values, field, description),
     do: id_list_input!(values, field, description)
+
+  defp optional_scalar_list!(nil, _field, _description), do: nil
+
+  defp optional_scalar_list!(values, field, description),
+    do: scalar_list_input!(values, field, description)
 
   defp optional_identifier!(nil), do: nil
 
@@ -4191,6 +4293,12 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
 
   defp valid_dependencies?(_dependencies), do: false
 
+  defp valid_scalar_list?(values) when is_list(values) do
+    match?({:ok, _values}, scalar_list_values(values))
+  end
+
+  defp valid_scalar_list?(_values), do: false
+
   defp dependencies_input!(values, field, description) do
     case dependency_values(values) do
       {:ok, ids} -> ids
@@ -4234,6 +4342,43 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   end
 
   defp dependency_activity_id_values(value), do: id_list_value(value)
+
+  defp scalar_list_input!(values, field, description) do
+    case scalar_list_values(values) do
+      {:ok, values} -> values
+      :error -> raise ArgumentError, "#{field} must be a list of #{description}"
+    end
+  end
+
+  defp scalar_list_values(values) when is_list(values) do
+    Enum.reduce_while(values, {:ok, []}, fn value, {:ok, scalars} ->
+      case scalar_list_values(value) do
+        {:ok, value_scalars} -> {:cont, {:ok, scalars ++ value_scalars}}
+        :error -> {:halt, :error}
+      end
+    end)
+  end
+
+  defp scalar_list_values(value) do
+    case scalar_list_value(value) do
+      [] -> :error
+      values -> {:ok, values}
+    end
+  end
+
+  defp scalar_list_value(value) when is_atom(value) and not is_nil(value),
+    do: [value]
+
+  defp scalar_list_value(value) when is_binary(value) do
+    values =
+      value
+      |> String.split(",", trim: false)
+      |> Enum.map(&String.trim/1)
+
+    if Enum.all?(values, &(&1 != "")), do: values, else: []
+  end
+
+  defp scalar_list_value(_value), do: []
 
   defp id_list_input!(values, field, description) do
     case id_list_values(values) do

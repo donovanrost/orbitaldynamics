@@ -237,9 +237,10 @@ to canonical `spacecraft_id`, so typed activity round trips do not drop the
 fields used by timeline identity, policy, review, and branch artifacts.
 Study-manifest mission-plan activities accept and export the same explicit
 scope, durable timeline identity, resource/product identity, target-priority
-evidence, feedback success evidence, observation/product quality evidence,
-lighting/eclipsing context, source-window and command-window context, Cadence
-import metadata, and dependency/exclusivity arrays in
+evidence, collection-latency objective context, feedback success evidence,
+observation/product quality evidence, lighting/eclipsing context, source-window
+and command-window context, Cadence import metadata, and dependency/exclusivity
+arrays in
 `study_manifest.v1.schema.json`;
 manifest-backed activities inherit the parent
 mission-plan ID and spacecraft ID when those scope fields are omitted, and

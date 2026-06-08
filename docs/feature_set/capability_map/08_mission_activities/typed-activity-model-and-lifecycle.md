@@ -73,6 +73,11 @@ Preserved across string-keyed artifact ingress and egress:
   common JSON aliases as operational timeline normalization.
 - **Scope** — explicit `scenario_id` and `spacecraft_id`, used by timeline
   identity, policy, review, and branch artifacts.
+- **Collection latency objectives** — explicit
+  `collection_latency_objective_count`, `collection_latency_objective_ids`,
+  `collection_latency_objective_source`, and
+  `collection_latency_objective_types` survive typed activity ingress/egress
+  and operational timeline context handoff.
 
 ## Evidence and telemetry fields
 
@@ -98,10 +103,10 @@ metadata is also carried for downstream adapter preflight.
 
 - The `study_manifest.v1` mission-plan activity schema/ingress accepts the same
   explicit scope, durable timeline identity, resource/product identity,
-  target-priority evidence, feedback success evidence, observation-quality
-  evidence, fixed-rate and realized link-rate/duration telemetry, source-window
-  and command-window context, Cadence import metadata, and
-  dependency/exclusivity arrays.
+  target-priority evidence, collection-latency objective context, feedback
+  success evidence, observation-quality evidence, fixed-rate and realized
+  link-rate/duration telemetry, source-window and command-window context,
+  Cadence import metadata, and dependency/exclusivity arrays.
 - Manifest-backed activities inherit the parent mission-plan ID and spacecraft
   ID when omitted, and reject conflicting child scope.
 - Each manifest-backed activity carries status, approval status, lock state,

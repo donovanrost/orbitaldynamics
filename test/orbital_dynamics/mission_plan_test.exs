@@ -134,6 +134,82 @@ defmodule OrbitalDynamics.MissionPlanTest do
     refute Enum.any?(preconditions, &(&1["type"] == "subsystem_state_produced"))
   end
 
+  test "round trips collection latency objective context through typed activities" do
+    activity =
+      Activity.from_map!(%{
+        "id" => "obs_latency_objective",
+        "activity_type" => "observe",
+        "target_id" => "target_a",
+        "starts_at_s" => 10.0,
+        "ends_at_s" => 40.0,
+        "collection_latency_objective_count" => "2",
+        "collection_latency_objective_ids" => "objective:delivery_latency,objective:customer_sla",
+        "collection_latency_objective_source" => "mission_sla",
+        "collection_latency_objective_types" => ["max latency", :customer_delivery]
+      })
+
+    assert %Activity{
+             collection_latency_objective_count: 2,
+             collection_latency_objective_ids: [
+               "objective:delivery_latency",
+               "objective:customer_sla"
+             ],
+             collection_latency_objective_source: "mission_sla",
+             collection_latency_objective_types: ["max latency", :customer_delivery]
+           } = activity
+
+    assert %{
+             "collection_latency_objective_count" => 2,
+             "collection_latency_objective_ids" => [
+               "objective:delivery_latency",
+               "objective:customer_sla"
+             ],
+             "collection_latency_objective_source" => "mission_sla",
+             "collection_latency_objective_types" => ["max latency", "customer_delivery"]
+           } = Activity.to_artifact_map(activity)
+
+    report = OrbitalDynamics.Timeline.operational_report([activity])
+
+    assert %{
+             "activity_context" => %{
+               "collection_latency_objective_count" => 2,
+               "collection_latency_objective_ids" => [
+                 "objective:delivery_latency",
+                 "objective:customer_sla"
+               ],
+               "collection_latency_objective_source" => "mission_sla",
+               "collection_latency_objective_types" => ["max latency", "customer_delivery"]
+             }
+           } = List.first(report["rows"])
+
+    assert {:ok, %{"schema_contract" => "operational_timeline_report.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(report)
+  end
+
+  test "rejects malformed collection latency objective context at typed ingress" do
+    assert_raise ArgumentError, ~r/collection_latency_objective_count/, fn ->
+      Activity.from_map!(%{
+        "id" => "bad_latency_count",
+        "activity_type" => "observe",
+        "target_id" => "target_a",
+        "starts_at_s" => 10.0,
+        "ends_at_s" => 40.0,
+        "collection_latency_objective_count" => "-1"
+      })
+    end
+
+    assert_raise ArgumentError, ~r/collection_latency_objective_ids/, fn ->
+      Activity.from_map!(%{
+        "id" => "bad_latency_objective_id",
+        "activity_type" => "observe",
+        "target_id" => "target_a",
+        "starts_at_s" => 10.0,
+        "ends_at_s" => 40.0,
+        "collection_latency_objective_ids" => ["bad objective id"]
+      })
+    end
+  end
+
   test "preflights typed activity transitions through public facades" do
     completed_activity = %{
       "id" => "obs_alias",
