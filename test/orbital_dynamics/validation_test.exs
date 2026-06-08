@@ -7740,6 +7740,102 @@ defmodule OrbitalDynamics.ValidationTest do
            ) == Validation.artifact_observations("activity_template.v1", template)
   end
 
+  test "verifies curated subsystem model capability reference fixtures" do
+    battery_fixture_id = "fixture.artifact.subsystem_model_capability.battery"
+    storage_fixture_id = "fixture.artifact.subsystem_model_capability.storage"
+
+    assert {:ok, battery_fixture} = Validation.reference_fixture(battery_fixture_id)
+    assert {:ok, storage_fixture} = Validation.reference_fixture(storage_fixture_id)
+
+    assert battery_fixture["model_id"] == "artifact.subsystem_model_capability.v1"
+    assert storage_fixture["model_id"] == "artifact.subsystem_model_capability.v1"
+
+    battery_capability = subsystem_model_capability_fixture()
+    storage_capability = subsystem_model_capability_storage_fixture()
+    battery_observations = subsystem_model_capability_fixture_observations()
+    storage_observations = subsystem_model_capability_storage_fixture_observations()
+
+    assert {:ok, battery_verification} =
+             Validation.verify_reference_fixture(battery_fixture_id, battery_observations)
+
+    assert {:ok, storage_verification} =
+             Validation.verify_reference_fixture(storage_fixture_id, storage_observations)
+
+    assert battery_verification["status"] == "pass"
+    assert storage_verification["status"] == "pass"
+    assert Enum.all?(battery_verification["checks"], &(&1["status"] == "pass"))
+    assert Enum.all?(storage_verification["checks"], &(&1["status"] == "pass"))
+
+    assert battery_observations["id"] ==
+             "subsystem.power.battery.energy_storage.planning_grade"
+
+    assert battery_observations["resource_dimensions"] == "battery"
+    assert battery_observations["activity_effect_types"] == "consumption|generation"
+
+    assert battery_observations["known_limit_keys"] ==
+             "selected_activity_sequence_only|declared_energy_hints_only|no_continuous_power_bus_or_thermal_coupling|no_battery_degradation_or_charge_dynamics"
+
+    assert storage_observations["id"] ==
+             "subsystem.data_recorder.storage_buffer.planning_grade"
+
+    assert storage_observations["resource_dimensions"] == "storage|downlink"
+    assert storage_observations["activity_effect_types"] == "downlink|production"
+
+    assert storage_observations["known_limit_keys"] ==
+             "selected_activity_sequence_only|declared_data_volume_hints_only|storage_limited_downlink_arithmetic_only|no_partition_priority_deletion_or_latency_model"
+
+    stale_battery_observations =
+      battery_observations
+      |> Map.put("resource_dimensions", "power")
+
+    assert {:ok, stale_battery_verification} =
+             Validation.verify_reference_fixture(battery_fixture_id, stale_battery_observations)
+
+    assert stale_battery_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_battery_verification["checks"],
+             &(&1["field"] == "resource_dimensions" and &1["status"] == "fail")
+           )
+
+    stale_storage_observations =
+      storage_observations
+      |> Map.put("storage_limited_downlink_arithmetic_only", false)
+
+    assert {:ok, stale_storage_verification} =
+             Validation.verify_reference_fixture(storage_fixture_id, stale_storage_observations)
+
+    assert stale_storage_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_storage_verification["checks"],
+             &(&1["field"] == "storage_limited_downlink_arithmetic_only" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_battery_capability} =
+             Schema.validate_artifact(battery_capability,
+               schema_contract: "subsystem_model_capability.v1"
+             )
+
+    assert {:ok, _valid_storage_capability} =
+             Schema.validate_artifact(storage_capability,
+               schema_contract: "subsystem_model_capability.v1"
+             )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "subsystem_model_capability.v1",
+             battery_capability
+           ) ==
+             Validation.artifact_observations("subsystem_model_capability.v1", battery_capability)
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "subsystem_model_capability.v1",
+             storage_capability
+           ) ==
+             Validation.artifact_observations("subsystem_model_capability.v1", storage_capability)
+  end
+
   test "verifies curated realized activity reference fixtures" do
     fixture_id = "fixture.artifact.realized_activity.v1"
 
@@ -13861,6 +13957,10 @@ defmodule OrbitalDynamics.ValidationTest do
           nx_study_benchmark_fixture_observations(),
         "fixture.artifact.study_benchmark.v1" => study_benchmark_fixture_observations(),
         "fixture.artifact.study_manifest_lint.v1" => study_manifest_lint_fixture_observations(),
+        "fixture.artifact.subsystem_model_capability.battery" =>
+          subsystem_model_capability_fixture_observations(),
+        "fixture.artifact.subsystem_model_capability.storage" =>
+          subsystem_model_capability_storage_fixture_observations(),
         "fixture.artifact.timeline_activity_approval_state.v1" =>
           timeline_activity_approval_state_fixture_observations(),
         "fixture.artifact.timeline_activity_lifecycle_state.v1" =>
@@ -13909,8 +14009,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 179,
-             "status_counts" => %{"pass" => 179},
+             "fixture_count" => 181,
+             "status_counts" => %{"pass" => 181},
              "reports" => reports
            } = report
 
@@ -14065,6 +14165,8 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.study_benchmark.nx_study_benchmark",
              "fixture.artifact.study_benchmark.v1",
              "fixture.artifact.study_manifest_lint.v1",
+             "fixture.artifact.subsystem_model_capability.battery",
+             "fixture.artifact.subsystem_model_capability.storage",
              "fixture.artifact.timeline_activity_approval_state.v1",
              "fixture.artifact.timeline_activity_lifecycle_state.v1",
              "fixture.artifact.timeline_activity_precondition_summary.v1",
@@ -14106,7 +14208,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 179},
+             "status_counts" => %{"fail" => 181},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -15430,6 +15532,24 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp activity_template_fixture do
     read_json!("study_results/activity_template_v1.json")
+  end
+
+  defp subsystem_model_capability_fixture_observations do
+    "subsystem_model_capability.v1"
+    |> Validation.artifact_observations(subsystem_model_capability_fixture())
+  end
+
+  defp subsystem_model_capability_fixture do
+    read_json!("study_results/subsystem_model_capability_v1.json")
+  end
+
+  defp subsystem_model_capability_storage_fixture_observations do
+    "subsystem_model_capability.v1"
+    |> Validation.artifact_observations(subsystem_model_capability_storage_fixture())
+  end
+
+  defp subsystem_model_capability_storage_fixture do
+    read_json!("study_results/subsystem_model_capability_storage_v1.json")
   end
 
   defp realized_activity_fixture_observations do

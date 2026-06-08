@@ -5,16 +5,15 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Activity template validation-reference fixture coverage.
+Subsystem model capability validation-reference fixture coverage.
 
 Status:
-Implemented, parent-verified, and read-only reviewed with one low ledger-only
-finding fixed before publish. The checked-in `activity_template.v1` handoff now
-has a curated validation-reference fixture that pins required/optional field
-catalogs, lifecycle defaults, operational hints, subsystem state hints,
-precondition/resource hints, validation level, and no-schedule-mutation/
-no-resource-reservation limits. The validation-reference rollup now reports 179
-passing fixtures.
+Implemented, parent-verified, and read-only reviewed with no findings. The
+checked-in battery and storage `subsystem_model_capability.v1` handoffs now have
+curated validation-reference fixtures that pin planning-grade subsystem/resource
+boundaries, applicability dimensions, activity effect fields, parameters, state
+variables, validation level, and known limits. The validation-reference rollup
+now reports 181 passing fixtures.
 
 Files changed:
 - `lib/orbital_dynamics/validation.ex`
@@ -23,21 +22,21 @@ Files changed:
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/validation_test.exs:7664 test/orbital_dynamics/schema_test.exs:89 test/orbital_dynamics/validation_test.exs:13580`
+- `mix test test/orbital_dynamics/validation_test.exs:7743 test/orbital_dynamics/schema_test.exs:330 test/orbital_dynamics/validation_test.exs:13676`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `mix orbital_dynamics.schema.lint --all`
-- Read-only slice review by Mill: one low ledger-only finding, fixed
+- Read-only slice review by Kepler: no findings
 
 Docs/artifacts changed:
 - `study_results/validation_reference_fixtures.json` now includes
-  `fixture.artifact.activity_template.v1`.
+  `fixture.artifact.subsystem_model_capability.battery` and
+  `fixture.artifact.subsystem_model_capability.storage`.
 - No doc text changed.
 
 Level 6 pillar advanced:
-Typed operational activity semantics with durable schema-versioned artifact
-boundaries, explicit operational hints, and no schedule mutation/resource
-reservation.
+Explicit subsystem/resource model boundaries for operational planning, with
+durable schema-versioned artifacts and known-limit evidence.
 
 Remaining maturity gaps:
 Compact adapter-facing handoffs still need stale-observation coverage where
@@ -46,12 +45,11 @@ schema lint alone is weaker.
 Last commit:
 This slice's publish commit; use `git log -1 --oneline` after push for the
 exact SHA. Previous pushed commit was
-`7d99e0e1b22388e2ce06fc5459ae767e12e4a5d5`.
+`7059e2d150d362b35e2260bb56fbe47676fbbe69`.
 
 Next candidate:
 After this slice, reassess remaining checked-in public artifacts without
-validation-reference coverage, especially `subsystem_model_capability*.json` if
-they are public handoffs and still uncovered.
+validation-reference coverage.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
