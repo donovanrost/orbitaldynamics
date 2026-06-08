@@ -39,8 +39,8 @@ reassessing Level 6 gaps from the guide after this link-capacity lineage slice
 is reviewed and published.
 
 Last commit:
-Pending for this slice. Previous pushed commit was
-`a3a9333d6ca198a66183ddf50e364e660225fe16`.
+`23e0566800962450ac834a0524d199e72e1947fa` (`Test Cadence import link
+capacity lineage`).
 
 Next candidate:
 After publishing this slice, reassess Level 6 gaps from the guide/ledger.
