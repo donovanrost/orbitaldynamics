@@ -5,41 +5,44 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Result-artifact contact-intent summary review/import compatibility coverage.
+Wrapped operational-readiness and quality-gate summary Cadence import coverage.
 
 Status:
 Product commit complete. Implementation, focused verification, and read-only
-`slice_reviewer` handoff are complete. Exact `source_result_artifact`
-contact-intent summaries and wrapped `result_artifact.contact_intent_summary`
-payloads are now pinned by OperatorReview/CadenceImport regression coverage.
-The reviewer found the first test version only inspected the downlink row; the
-test now asserts both command and downlink review/import rows, summary-qualified
-`candidate_refresh.*.summary_contacts` source paths, activity ids, contact ids,
-capacity-pack evidence, `review_contact_intent` import rows, and embedded
-`source_contact_intent_summary` evidence without generating contacts,
-allocating station time, selecting candidates, approving imports, or mutating
-schedules.
+`slice_reviewer` handoff are complete. CandidateRefresh Cadence-import
+regression coverage now pins result-artifact-wrapped
+`operational_readiness_gate_summary.v1`,
+`operational_execution_boundary_summary.v1`, and
+`operational_quality_gate_summary.v1` handoffs. The reviewer found the first
+test version did not directly assert all review-only adapter boundaries; the
+test now asserts wrapper-qualified source paths, import action/source-review
+type counts, operational-readiness gate rows, quality-gate rows, embedded
+source summaries, all rows remaining `review_required_before_import`, no
+Cadence import applied, and no command execution, Cadence write, or
+operator-authority grant.
 
 Files changed:
-- `test/orbital_dynamics/operator_review_test.exs`
+- `test/orbital_dynamics/cadence_import_test.exs`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/operator_review_test.exs:11378` (1 passed)
+- `mix test test/orbital_dynamics/cadence_import_test.exs:2077` (1 passed)
+- `mix test test/orbital_dynamics/cadence_import_test.exs:456 test/orbital_dynamics/cadence_import_test.exs:2078`
+  (2 passed)
+- `mix test test/orbital_dynamics/cadence_import_test.exs` (93 passed)
 - `mix test test/orbital_dynamics/operator_review_test.exs` (202 passed)
-- `mix test test/orbital_dynamics/cadence_import_test.exs` (92 passed)
 - `git diff --check`
-- `slice_reviewer` read-only review found missing all-directions assertions;
-  fixed in the regression test.
+- `slice_reviewer` read-only review found missing all-row review-only boundary
+  assertions; fixed in the regression test.
 
 Docs/artifacts changed:
-- None; this slice pins already documented/runtime-supported result-artifact
-  compact contact-intent summary handoffs.
+- None; this slice pins already documented/runtime-supported compact
+  operational-readiness and quality-gate handoffs.
 
 Level 6 pillar advanced:
-Fleet-level contact planning and Cadence-facing import readiness: compact
-contact-intent summary handoffs from result artifacts now have executable
-review/import compatibility coverage for direction-scoped routing.
+Durable schema-versioned artifacts and Cadence-facing import readiness:
+result-artifact-wrapped readiness and quality-gate summaries now have executable
+Cadence import compatibility coverage.
 
 Remaining maturity gaps:
 Continue closing thin artifact-only replay gaps where checked-in summaries
@@ -47,11 +50,11 @@ preserve routing evidence that review/import or CandidateRefresh replay still
 does not consume.
 
 Last commit:
-Product commit `21cdedf6ffe41275c397fec7e566abbd1cd93595`.
+Product commit `8507dc7db72b7f1831decc7acf4b1854f2aeffd0`.
 
 Next candidate:
-After pushing this handoff, reassess the next weak resource/contact or
-CandidateRefresh/OperatorReview/CadenceImport handoff.
+After pushing this handoff, reassess the next weak resource/contact,
+readiness/quality-gate, or CandidateRefresh handoff.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
