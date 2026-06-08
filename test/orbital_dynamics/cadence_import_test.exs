@@ -2074,6 +2074,182 @@ defmodule OrbitalDynamics.CadenceImportTest do
              Schema.validate_artifact(manifest)
   end
 
+  test "candidate refresh import preserves wrapped operational readiness and quality gate summaries" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:wrapped_readiness_quality_gate_import",
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "source_operational_readiness_gate_summary" => operational_readiness_gate_summary(),
+          "operational_execution_boundary_summary" => operational_execution_boundary_summary(),
+          "operational_quality_gate_summary" => operational_quality_gate_summary()
+        }
+      ]
+    }
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:wrapped_readiness_quality_gate_import",
+             "row_count" => 4,
+             "review_required_count" => 4,
+             "import_action_counts" => %{
+               "review_operational_readiness" => 3,
+               "review_quality_gate" => 1
+             },
+             "source_review_type_counts" => %{
+               "operational_readiness_review" => 3,
+               "quality_gate_review" => 1
+             }
+           } = manifest
+
+    assert Enum.map(manifest["rows"], & &1["source"]) == [
+             "candidate_refresh.source_result_artifact[0].operational_quality_gate_summary.rows",
+             "candidate_refresh.source_result_artifact[0].source_operational_readiness_gate_summary",
+             "candidate_refresh.source_result_artifact[0].source_operational_readiness_gate_summary.gates",
+             "candidate_refresh.source_result_artifact[0].operational_execution_boundary_summary"
+           ]
+
+    assert Enum.all?(
+             manifest["rows"],
+             &match?(
+               %{
+                 "import_status" => "review_required_before_import",
+                 "approval_status" => "operator_review_required",
+                 "has_cadence_import" => false
+               },
+               &1
+             )
+           )
+
+    assert %{
+             "import_action" => "review_quality_gate",
+             "source_review_type" => "quality_gate_review",
+             "source_review_action" => "review_quality_gate",
+             "quality_gate_id" => "resource_availability",
+             "quality_gate_status" => "review_required",
+             "quality_gate_classification" => "review_only",
+             "readiness_gate_id" => "resource_availability",
+             "resource_availability_pressure_count" => 3,
+             "source_quality_gate_report" => %{
+               "schema_contract" => "quality_gate_report.v1",
+               "source_summary_schema_contract" => "operational_quality_gate_summary.v1",
+               "source_summary_model" => "artifact_only_quality_gate_summary",
+               "non_passed_gate_count" => 1,
+               "assumptions" => %{
+                 "operator_authority" => "not_granted_by_quality_gate_summary"
+               }
+             },
+             "source_review_row" => %{
+               "source" =>
+                 "candidate_refresh.source_result_artifact[0].operational_quality_gate_summary.rows",
+               "source_quality_gate_report" => %{
+                 "source_summary_schema_contract" => "operational_quality_gate_summary.v1"
+               },
+               "source_quality_gate_row" => %{
+                 "source_summary_schema_contract" => "operational_quality_gate_summary.v1"
+               }
+             }
+           } =
+             Enum.find(
+               manifest["rows"],
+               &(&1["source_review_type"] == "quality_gate_review")
+             )
+
+    assert %{
+             "import_action" => "review_operational_readiness",
+             "source_review_type" => "operational_readiness_review",
+             "source_review_action" => "review_operational_readiness",
+             "source" =>
+               "candidate_refresh.source_result_artifact[0].source_operational_readiness_gate_summary",
+             "subject_id" => "activity_resource_pressure",
+             "operational_readiness_status" => "review_required",
+             "gate_count" => 1,
+             "source_operational_readiness_report" => %{
+               "schema_contract" => "operational_readiness_gate_summary.v1",
+               "source_summary_schema_contract" => "operational_readiness_gate_summary.v1",
+               "gates" => [%{"id" => "resource_availability"}],
+               "assumptions" => %{
+                 "operator_authority" => "not_granted_by_summary"
+               }
+             },
+             "source_review_row" => %{
+               "source" =>
+                 "candidate_refresh.source_result_artifact[0].source_operational_readiness_gate_summary",
+               "source_operational_readiness_report" => %{
+                 "source_summary_schema_contract" => "operational_readiness_gate_summary.v1"
+               }
+             }
+           } =
+             Enum.find(
+               manifest["rows"],
+               &(&1["source"] ==
+                   "candidate_refresh.source_result_artifact[0].source_operational_readiness_gate_summary")
+             )
+
+    assert %{
+             "import_action" => "review_operational_readiness",
+             "source_review_type" => "operational_readiness_review",
+             "source" =>
+               "candidate_refresh.source_result_artifact[0].source_operational_readiness_gate_summary.gates",
+             "readiness_gate_id" => "resource_availability",
+             "readiness_gate_status" => "review_required",
+             "resource_availability_pressure_count" => 3,
+             "source_operational_readiness_report" => %{
+               "source_summary_schema_contract" => "operational_readiness_gate_summary.v1"
+             },
+             "source_operational_readiness_gate" => %{
+               "id" => "resource_availability",
+               "status" => "review_required"
+             },
+             "source_review_row" => %{
+               "source_operational_readiness_gate" => %{
+                 "id" => "resource_availability",
+                 "status" => "review_required"
+               }
+             }
+           } =
+             Enum.find(
+               manifest["rows"],
+               &(&1["source"] ==
+                   "candidate_refresh.source_result_artifact[0].source_operational_readiness_gate_summary.gates")
+             )
+
+    assert %{
+             "import_action" => "review_operational_readiness",
+             "source_review_type" => "operational_readiness_review",
+             "source" =>
+               "candidate_refresh.source_result_artifact[0].operational_execution_boundary_summary",
+             "subject_id" => "activity_resource_pressure",
+             "source_operational_readiness_report" => %{
+               "schema_contract" => "operational_execution_boundary_summary.v1",
+               "source_summary_schema_contract" => "operational_execution_boundary_summary.v1",
+               "assumptions" => %{
+                 "command_execution" => "not_performed_by_summary",
+                 "cadence_write" => "not_performed_by_summary",
+                 "operator_authority" => "not_granted_by_execution_boundary_summary"
+               }
+             },
+             "source_review_row" => %{
+               "source" =>
+                 "candidate_refresh.source_result_artifact[0].operational_execution_boundary_summary",
+               "source_operational_readiness_report" => %{
+                 "source_summary_schema_contract" => "operational_execution_boundary_summary.v1"
+               }
+             }
+           } =
+             Enum.find(
+               manifest["rows"],
+               &(&1["source"] ==
+                   "candidate_refresh.source_result_artifact[0].operational_execution_boundary_summary")
+             )
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "candidate refresh import preserves provider-reservation request summary handoff rows" do
     artifact = %{
       "refresh_id" => "refresh:provider_reservation_handoff",
@@ -13043,6 +13219,22 @@ defmodule OrbitalDynamics.CadenceImportTest do
     ]
 
     Timeline.lifecycle_state_summary(planned, realized)
+  end
+
+  defp operational_readiness_gate_summary do
+    operational_readiness_resource_report()
+    |> OrbitalDynamics.operational_readiness_gate_summary()
+  end
+
+  defp operational_execution_boundary_summary do
+    operational_readiness_resource_report()
+    |> OrbitalDynamics.operational_execution_boundary_summary()
+  end
+
+  defp operational_quality_gate_summary do
+    operational_readiness_resource_report()
+    |> OrbitalDynamics.operational_quality_gate_report()
+    |> OrbitalDynamics.operational_quality_gate_summary()
   end
 
   defp quality_gate_report do
