@@ -41416,6 +41416,46 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "quality_gate_report",
              "station_availability_reason_counts"
            ]) == %{"ground_station_reserved" => 1}
+
+    stale_quality_gate_source_report =
+      artifact
+      |> put_in(
+        [
+          "provenance",
+          "source_reports",
+          "quality_gate_report",
+          "station_availability_reason_ids"
+        ],
+        []
+      )
+      |> put_in(
+        [
+          "provenance",
+          "source_reports",
+          "quality_gate_report",
+          "station_availability_reason_counts"
+        ],
+        %{}
+      )
+
+    assert {:error, stale_quality_gate_source_report_errors} =
+             Schema.validate_artifact(stale_quality_gate_source_report)
+
+    assert Enum.any?(
+             stale_quality_gate_source_report_errors["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.quality_gate_report.station_availability_reason_ids" and
+                 &1["message"] ==
+                   "must equal station availability reason IDs from resource_availability_reason_counts")
+           )
+
+    assert Enum.any?(
+             stale_quality_gate_source_report_errors["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.quality_gate_report.station_availability_reason_counts" and
+                 &1["message"] ==
+                   "must equal station availability reason counts from resource_availability_reason_counts")
+           )
   end
 
   test "generated candidate and source-window IDs are stable across event ordering" do
