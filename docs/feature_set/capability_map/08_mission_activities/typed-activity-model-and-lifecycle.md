@@ -82,6 +82,8 @@ Preserved across string-keyed artifact ingress and egress:
 ## Evidence and telemetry fields
 
 - Target-priority evidence with source/objective context.
+- Observation-objective context with explicit objective count, IDs, source, and
+  type labels.
 - Contact/command/observation/maneuver feedback success factors and source
   labels.
 - Candidate-refresh maneuver-review replay preserves required-operator-action
@@ -103,10 +105,11 @@ metadata is also carried for downstream adapter preflight.
 
 - The `study_manifest.v1` mission-plan activity schema/ingress accepts the same
   explicit scope, durable timeline identity, resource/product identity,
-  target-priority evidence, collection-latency objective context, feedback
-  success evidence, observation-quality evidence, fixed-rate and realized
-  link-rate/duration telemetry, source-window and command-window context,
-  Cadence import metadata, and dependency/exclusivity arrays.
+  target-priority evidence, observation-objective context,
+  collection-latency objective context, feedback success evidence,
+  observation-quality evidence, fixed-rate and realized link-rate/duration
+  telemetry, source-window and command-window context, Cadence import metadata,
+  and dependency/exclusivity arrays.
 - Manifest-backed activities inherit the parent mission-plan ID and spacecraft
   ID when omitted, and reject conflicting child scope.
 - Each manifest-backed activity carries status, approval status, lock state,

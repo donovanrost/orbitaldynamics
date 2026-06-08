@@ -254,6 +254,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     :target_priority_source,
     :target_priority_objective_ids,
     :target_priority_objective_type,
+    :observation_objective_count,
+    :observation_objective_ids,
+    :observation_objective_source,
+    :observation_objective_types,
     :contact_success,
     :contact_result,
     :contact_success_factor,
@@ -462,6 +466,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
           target_priority_source: atom() | String.t() | nil,
           target_priority_objective_ids: [atom() | String.t()],
           target_priority_objective_type: atom() | String.t() | nil,
+          observation_objective_count: non_neg_integer() | nil,
+          observation_objective_ids: [atom() | String.t()],
+          observation_objective_source: atom() | String.t() | nil,
+          observation_objective_types: [atom() | String.t()],
           contact_success: boolean() | nil,
           contact_result: atom() | String.t() | nil,
           contact_success_factor: number() | nil,
@@ -740,6 +748,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
         :target_priority_source,
         :target_priority_objective_ids,
         :target_priority_objective_type,
+        :observation_objective_count,
+        :observation_objective_ids,
+        :observation_objective_source,
+        :observation_objective_types,
         :contact_success,
         :contact_result,
         :contact_success_factor,
@@ -1798,6 +1810,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       target_priority_source: activity.target_priority_source,
       target_priority_objective_ids: activity.target_priority_objective_ids,
       target_priority_objective_type: activity.target_priority_objective_type,
+      observation_objective_count: activity.observation_objective_count,
+      observation_objective_ids: activity.observation_objective_ids,
+      observation_objective_source: activity.observation_objective_source,
+      observation_objective_types: activity.observation_objective_types,
       contact_success: activity.contact_success,
       contact_result: activity.contact_result,
       contact_success_factor: activity.contact_success_factor,
@@ -1964,6 +1980,8 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       {:incompatible_activity_types, []} -> true
       {:suppressed_activity_types, []} -> true
       {:target_priority_objective_ids, []} -> true
+      {:observation_objective_ids, []} -> true
+      {:observation_objective_types, []} -> true
       {:collection_latency_objective_ids, []} -> true
       {:collection_latency_objective_types, []} -> true
       {:downlink_completion_sources, []} -> true
@@ -2057,6 +2075,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     target_priority_source = Keyword.get(opts, :target_priority_source)
     target_priority_objective_ids = Keyword.get(opts, :target_priority_objective_ids, [])
     target_priority_objective_type = Keyword.get(opts, :target_priority_objective_type)
+    observation_objective_count = Keyword.get(opts, :observation_objective_count)
+    observation_objective_ids = Keyword.get(opts, :observation_objective_ids, [])
+    observation_objective_source = Keyword.get(opts, :observation_objective_source)
+    observation_objective_types = Keyword.get(opts, :observation_objective_types, [])
     contact_success = Keyword.get(opts, :contact_success)
     contact_result = Keyword.get(opts, :contact_result)
     contact_success_factor = Keyword.get(opts, :contact_success_factor)
@@ -2367,6 +2389,20 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
 
       not optional_scalar?(target_priority_objective_type) ->
         raise ArgumentError, "target_priority_objective_type must be nil, a string, or an atom"
+
+      not optional_non_negative_integer?(observation_objective_count) ->
+        raise ArgumentError,
+              "observation_objective_count must be nil or a non-negative integer"
+
+      not valid_dependencies?(observation_objective_ids) ->
+        raise ArgumentError, "observation_objective_ids must be a list of objective ids"
+
+      not optional_scalar?(observation_objective_source) ->
+        raise ArgumentError,
+              "observation_objective_source must be nil, a string, or an atom"
+
+      not valid_scalar_list?(observation_objective_types) ->
+        raise ArgumentError, "observation_objective_types must be a list of objective types"
 
       not optional_boolean?(contact_success) ->
         raise ArgumentError, "contact_success must be nil or a boolean"
@@ -2852,6 +2888,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
           target_priority_source: target_priority_source,
           target_priority_objective_ids: target_priority_objective_ids,
           target_priority_objective_type: target_priority_objective_type,
+          observation_objective_count: observation_objective_count,
+          observation_objective_ids: observation_objective_ids,
+          observation_objective_source: observation_objective_source,
+          observation_objective_types: observation_objective_types,
           contact_success: contact_success,
           contact_result: contact_result,
           contact_success_factor: contact_success_factor,
@@ -3171,6 +3211,33 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     |> maybe_put_opt(
       :target_priority_objective_type,
       optional_scalar!(field(source, :target_priority_objective_type))
+    )
+    |> maybe_put_opt(
+      :observation_objective_count,
+      optional_non_negative_integer!(
+        field(source, :observation_objective_count),
+        "observation_objective_count"
+      )
+    )
+    |> maybe_put_opt(
+      :observation_objective_ids,
+      optional_id_list!(
+        field(source, :observation_objective_ids),
+        "observation_objective_ids",
+        "objective ids"
+      )
+    )
+    |> maybe_put_opt(
+      :observation_objective_source,
+      optional_scalar!(field(source, :observation_objective_source))
+    )
+    |> maybe_put_opt(
+      :observation_objective_types,
+      optional_scalar_list!(
+        field(source, :observation_objective_types),
+        "observation_objective_types",
+        "objective types"
+      )
     )
     |> maybe_put_opt(:contact_success, optional_boolean!(field(source, :contact_success)))
     |> maybe_put_opt(:contact_result, optional_scalar!(field(source, :contact_result)))

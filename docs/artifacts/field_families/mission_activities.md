@@ -200,8 +200,11 @@ resource and product identity fields (`resource_id`, `collection_id`,
 `product_id`, `product_ids`, `payload_id`, and `instrument_id`), accepting the
 same common JSON aliases used by operational timeline normalization. Typed
 activities preserve observation priority evidence (`target_priority`,
-`target_priority_source`, and objective IDs/type) so manifest-authored target
-weighting reaches timeline review and branch-refresh scoring. Typed activities
+`target_priority_source`, and objective IDs/type) plus observation-objective
+context (`observation_objective_count`, `observation_objective_ids`,
+`observation_objective_source`, and `observation_objective_types`) so
+manifest-authored target weighting and objective routing reaches timeline review
+and branch-refresh scoring. Typed activities
 preserve contact, command, observation, and maneuver feedback evidence,
 including result labels, success booleans, success factors, factor source
 labels, feedback weights, and provider-declared observation/product quality
@@ -237,10 +240,10 @@ to canonical `spacecraft_id`, so typed activity round trips do not drop the
 fields used by timeline identity, policy, review, and branch artifacts.
 Study-manifest mission-plan activities accept and export the same explicit
 scope, durable timeline identity, resource/product identity, target-priority
-evidence, collection-latency objective context, feedback success evidence,
-observation/product quality evidence, lighting/eclipsing context, source-window
-and command-window context, Cadence import metadata, and dependency/exclusivity
-arrays in
+evidence, observation-objective context, collection-latency objective context,
+feedback success evidence, observation/product quality evidence,
+lighting/eclipsing context, source-window and command-window context, Cadence
+import metadata, and dependency/exclusivity arrays in
 `study_manifest.v1.schema.json`;
 manifest-backed activities inherit the parent
 mission-plan ID and spacecraft ID when those scope fields are omitted, and

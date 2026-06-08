@@ -148,6 +148,10 @@ defmodule OrbitalDynamics.MissionPlan.ActivityTest do
     assert :target_priority_source in preserved_fields
     assert :target_priority_objective_ids in preserved_fields
     assert :target_priority_objective_type in preserved_fields
+    assert :observation_objective_count in preserved_fields
+    assert :observation_objective_ids in preserved_fields
+    assert :observation_objective_source in preserved_fields
+    assert :observation_objective_types in preserved_fields
     assert :contact_success in preserved_fields
     assert :contact_result in preserved_fields
     assert :contact_success_factor in preserved_fields
@@ -191,6 +195,10 @@ defmodule OrbitalDynamics.MissionPlan.ActivityTest do
     assert :max_latency_s in preserved_fields
     assert :planned_latency_s in preserved_fields
     assert :actual_latency_s in preserved_fields
+    assert :collection_latency_objective_count in preserved_fields
+    assert :collection_latency_objective_ids in preserved_fields
+    assert :collection_latency_objective_source in preserved_fields
+    assert :collection_latency_objective_types in preserved_fields
     assert :planned_estimated_throughput_mb in preserved_fields
     assert :actual_throughput_mb in preserved_fields
     assert :link_protocol in preserved_fields

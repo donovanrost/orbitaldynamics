@@ -186,6 +186,58 @@ defmodule OrbitalDynamics.MissionPlanTest do
              OrbitalDynamics.Schema.validate_artifact(report)
   end
 
+  test "round trips observation objective context through typed activities" do
+    activity =
+      Activity.from_map!(%{
+        "id" => "obs_objective_context",
+        "activity_type" => "observe",
+        "target_id" => "target_a",
+        "starts_at_s" => 50.0,
+        "ends_at_s" => 90.0,
+        "observation_objective_count" => "2",
+        "observation_objective_ids" => "objective:target_coverage,objective:image_quality",
+        "observation_objective_source" => "campaign_objectives",
+        "observation_objective_types" => ["target coverage", :image_quality]
+      })
+
+    assert %Activity{
+             observation_objective_count: 2,
+             observation_objective_ids: [
+               "objective:target_coverage",
+               "objective:image_quality"
+             ],
+             observation_objective_source: "campaign_objectives",
+             observation_objective_types: ["target coverage", :image_quality]
+           } = activity
+
+    assert %{
+             "observation_objective_count" => 2,
+             "observation_objective_ids" => [
+               "objective:target_coverage",
+               "objective:image_quality"
+             ],
+             "observation_objective_source" => "campaign_objectives",
+             "observation_objective_types" => ["target coverage", "image_quality"]
+           } = Activity.to_artifact_map(activity)
+
+    report = OrbitalDynamics.Timeline.operational_report([activity])
+
+    assert %{
+             "activity_context" => %{
+               "observation_objective_count" => 2,
+               "observation_objective_ids" => [
+                 "objective:target_coverage",
+                 "objective:image_quality"
+               ],
+               "observation_objective_source" => "campaign_objectives",
+               "observation_objective_types" => ["target coverage", "image_quality"]
+             }
+           } = List.first(report["rows"])
+
+    assert {:ok, %{"schema_contract" => "operational_timeline_report.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(report)
+  end
+
   test "rejects malformed collection latency objective context at typed ingress" do
     assert_raise ArgumentError, ~r/collection_latency_objective_count/, fn ->
       Activity.from_map!(%{
@@ -206,6 +258,30 @@ defmodule OrbitalDynamics.MissionPlanTest do
         "starts_at_s" => 10.0,
         "ends_at_s" => 40.0,
         "collection_latency_objective_ids" => ["bad objective id"]
+      })
+    end
+  end
+
+  test "rejects malformed observation objective context at typed ingress" do
+    assert_raise ArgumentError, ~r/observation_objective_count/, fn ->
+      Activity.from_map!(%{
+        "id" => "bad_observation_objective_count",
+        "activity_type" => "observe",
+        "target_id" => "target_a",
+        "starts_at_s" => 10.0,
+        "ends_at_s" => 40.0,
+        "observation_objective_count" => "-1"
+      })
+    end
+
+    assert_raise ArgumentError, ~r/observation_objective_ids/, fn ->
+      Activity.from_map!(%{
+        "id" => "bad_observation_objective_id",
+        "activity_type" => "observe",
+        "target_id" => "target_a",
+        "starts_at_s" => 10.0,
+        "ends_at_s" => 40.0,
+        "observation_objective_ids" => ["bad objective id"]
       })
     end
   end
