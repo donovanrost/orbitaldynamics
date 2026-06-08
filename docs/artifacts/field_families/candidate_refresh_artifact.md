@@ -1030,7 +1030,7 @@ Direct or result-artifact-wrapped
 family, preserving the validated
 `contact_allocation_capacity_pack_summary.v1` contract, source paths, trust
 boundary, source summary model/schema/source-artifact identity counts, row
-counts, capacity-pack contact/status/station/source maps,
+counts, capacity-pack contact/status/station/direction/source maps,
 required/selected/deferred capacity demand totals, reduced-capacity pack groups,
 group status/count/ID maps from compact summaries, and the artifact-only
 no-allocation/no candidate-selection boundary.
@@ -1063,7 +1063,7 @@ conflict/review contact IDs, reservation IDs, and row subsets derived from the
 included allocation rows, plus exact contact-allocation `model_limits` pinned
 by executable validation and schema export. The public capacity-pack summary
 publishes the validated `contact_allocation_capacity_pack_summary.v1` contract,
-with contact counts, demand totals, status/station/source routing, pack group IDs,
+with contact counts, demand totals, status/station/direction/source routing, pack group IDs,
 reduced-capacity pack groups, and review rows derived from the included
 allocation rows. Generated capacity-pack summaries also carry the exact
 contact-allocation `model_limits` list, pinned by executable validation and

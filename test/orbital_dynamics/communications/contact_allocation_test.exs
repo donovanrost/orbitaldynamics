@@ -7920,6 +7920,21 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
 
     assert get_in(capacity_pack_schema, [
              "properties",
+             "capacity_pack_required_capacity_fraction_by_direction",
+             "additionalProperties",
+             "minimum"
+           ]) == 0.0
+
+    assert get_in(capacity_pack_schema, [
+             "properties",
+             "capacity_pack_contact_ids_by_direction",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(capacity_pack_schema, [
+             "properties",
              "assumptions",
              "properties",
              "capacity_pack_statuses",
@@ -8005,6 +8020,23 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
                  &1["message"] == "must equal row-derived capacity_pack_contact_count")
            )
 
+    stale_capacity_pack_direction =
+      put_in(
+        capacity_pack_summary,
+        ["capacity_pack_required_capacity_fraction_by_direction", "downlink"],
+        0.5
+      )
+
+    assert {:error, stale_capacity_pack_direction_errors} =
+             Schema.validate_artifact(stale_capacity_pack_direction)
+
+    assert Enum.any?(
+             stale_capacity_pack_direction_errors["errors"],
+             &(&1["path"] == "$.capacity_pack_required_capacity_fraction_by_direction" and
+                 &1["message"] ==
+                   "must equal row-derived capacity_pack_required_capacity_fraction_by_direction")
+           )
+
     stale_capacity_pack_rows =
       Map.update!(capacity_pack_summary, "rows", fn rows ->
         Enum.map(rows, fn
@@ -8045,7 +8077,10 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              "capacity_pack_contact_count" => 0,
              "capacity_pack_status_counts" => %{},
              "capacity_pack_selected_contact_ids_by_ground_station_id" => %{},
-             "capacity_pack_deferred_contact_ids_by_ground_station_id" => %{}
+             "capacity_pack_deferred_contact_ids_by_ground_station_id" => %{},
+             "capacity_pack_contact_ids_by_direction" => %{},
+             "capacity_pack_selected_contact_ids_by_direction" => %{},
+             "capacity_pack_deferred_contact_ids_by_direction" => %{}
            } =
              ContactAllocation.capacity_pack_summary(%{
                "schema_contract" => "contact_allocation_report.v1",

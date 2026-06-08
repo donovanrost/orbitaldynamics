@@ -21168,6 +21168,15 @@ defmodule OrbitalDynamics.SchemaTest do
              "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id" => %{
                "equator_prime" => 0.25
              },
+             "capacity_pack_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.75
+             },
+             "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.5
+             },
+             "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.25
+             },
              "required_capacity_fraction_source_counts" => %{
                "contact_required_capacity_fraction" => 3
              },
@@ -21177,6 +21186,19 @@ defmodule OrbitalDynamics.SchemaTest do
                  "dl_capacity_primary",
                  "dl_capacity_secondary"
                ]
+             },
+             "capacity_pack_contact_ids_by_direction" => %{
+               "downlink" => [
+                 "dl_capacity_overflow",
+                 "dl_capacity_primary",
+                 "dl_capacity_secondary"
+               ]
+             },
+             "capacity_pack_selected_contact_ids_by_direction" => %{
+               "downlink" => ["dl_capacity_primary", "dl_capacity_secondary"]
+             },
+             "capacity_pack_deferred_contact_ids_by_direction" => %{
+               "downlink" => ["dl_capacity_overflow"]
              },
              "reduced_capacity_packed_contact_ids" => ["dl_capacity_secondary"],
              "reduced_capacity_deferred_contact_ids" => ["dl_capacity_overflow"],
@@ -21211,6 +21233,21 @@ defmodule OrbitalDynamics.SchemaTest do
              |> Enum.map(&Atom.to_string/1)
 
     assert {:ok, schema} = Schema.json_schema("contact_allocation_capacity_pack_summary.v1")
+
+    assert get_in(schema, [
+             "properties",
+             "capacity_pack_required_capacity_fraction_by_direction",
+             "additionalProperties",
+             "minimum"
+           ]) == 0.0
+
+    assert get_in(schema, [
+             "properties",
+             "capacity_pack_contact_ids_by_direction",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
 
     assert get_in(schema, [
              "properties",

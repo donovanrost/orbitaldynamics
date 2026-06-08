@@ -4736,6 +4736,12 @@ defmodule OrbitalDynamics.Schema do
       ],
       "optional_fields" => [
         "source",
+        "capacity_pack_required_capacity_fraction_by_direction",
+        "capacity_pack_selected_required_capacity_fraction_by_direction",
+        "capacity_pack_deferred_required_capacity_fraction_by_direction",
+        "capacity_pack_contact_ids_by_direction",
+        "capacity_pack_selected_contact_ids_by_direction",
+        "capacity_pack_deferred_contact_ids_by_direction",
         "model_limits"
       ],
       "nested_contracts" => ["contact_allocation_report.v1"]
@@ -15114,6 +15120,9 @@ defmodule OrbitalDynamics.Schema do
               "capacity_pack_contact_ids_by_ground_station_id",
               "capacity_pack_selected_contact_ids_by_ground_station_id",
               "capacity_pack_deferred_contact_ids_by_ground_station_id",
+              "capacity_pack_contact_ids_by_direction",
+              "capacity_pack_selected_contact_ids_by_direction",
+              "capacity_pack_deferred_contact_ids_by_direction",
               "required_capacity_fraction_contact_ids_by_source",
               "capacity_pack_group_ids_by_status"
             ] do
@@ -15143,7 +15152,10 @@ defmodule OrbitalDynamics.Schema do
               "capacity_pack_required_capacity_fraction_by_status",
               "capacity_pack_required_capacity_fraction_by_ground_station_id",
               "capacity_pack_selected_required_capacity_fraction_by_ground_station_id",
-              "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id"
+              "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id",
+              "capacity_pack_required_capacity_fraction_by_direction",
+              "capacity_pack_selected_required_capacity_fraction_by_direction",
+              "capacity_pack_deferred_required_capacity_fraction_by_direction"
             ] do
     non_negative_number_map_json_schema()
   end
@@ -53031,6 +53043,31 @@ defmodule OrbitalDynamics.Schema do
       path <> ".capacity_pack_deferred_contact_ids_by_ground_station_id",
       Map.get(summary, "capacity_pack_deferred_contact_ids_by_ground_station_id")
     )
+    |> expect_optional_type(path, summary, "capacity_pack_contact_ids_by_direction", :map)
+    |> validate_stable_id_array_map(
+      path <> ".capacity_pack_contact_ids_by_direction",
+      Map.get(summary, "capacity_pack_contact_ids_by_direction")
+    )
+    |> expect_optional_type(
+      path,
+      summary,
+      "capacity_pack_selected_contact_ids_by_direction",
+      :map
+    )
+    |> validate_stable_id_array_map(
+      path <> ".capacity_pack_selected_contact_ids_by_direction",
+      Map.get(summary, "capacity_pack_selected_contact_ids_by_direction")
+    )
+    |> expect_optional_type(
+      path,
+      summary,
+      "capacity_pack_deferred_contact_ids_by_direction",
+      :map
+    )
+    |> validate_stable_id_array_map(
+      path <> ".capacity_pack_deferred_contact_ids_by_direction",
+      Map.get(summary, "capacity_pack_deferred_contact_ids_by_direction")
+    )
     |> expect_optional_non_negative_number(
       path,
       summary,
@@ -53080,6 +53117,36 @@ defmodule OrbitalDynamics.Schema do
     |> validate_non_negative_number_map(
       path <> ".capacity_pack_deferred_required_capacity_fraction_by_ground_station_id",
       Map.get(summary, "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id")
+    )
+    |> expect_optional_type(
+      path,
+      summary,
+      "capacity_pack_required_capacity_fraction_by_direction",
+      :map
+    )
+    |> validate_non_negative_number_map(
+      path <> ".capacity_pack_required_capacity_fraction_by_direction",
+      Map.get(summary, "capacity_pack_required_capacity_fraction_by_direction")
+    )
+    |> expect_optional_type(
+      path,
+      summary,
+      "capacity_pack_selected_required_capacity_fraction_by_direction",
+      :map
+    )
+    |> validate_non_negative_number_map(
+      path <> ".capacity_pack_selected_required_capacity_fraction_by_direction",
+      Map.get(summary, "capacity_pack_selected_required_capacity_fraction_by_direction")
+    )
+    |> expect_optional_type(
+      path,
+      summary,
+      "capacity_pack_deferred_required_capacity_fraction_by_direction",
+      :map
+    )
+    |> validate_non_negative_number_map(
+      path <> ".capacity_pack_deferred_required_capacity_fraction_by_direction",
+      Map.get(summary, "capacity_pack_deferred_required_capacity_fraction_by_direction")
     )
     |> expect_type(path, summary, "required_capacity_fraction_source_counts", :map)
     |> validate_non_negative_integer_count_map(
@@ -53280,6 +53347,27 @@ defmodule OrbitalDynamics.Schema do
       row_ids_by_field(deferred_capacity_pack_rows, "ground_station_id", "contact_id"),
       "must equal row-derived capacity_pack_deferred_contact_ids_by_ground_station_id"
     )
+    |> expect_optional_field_equals(
+      path,
+      summary,
+      "capacity_pack_contact_ids_by_direction",
+      row_ids_by_field(capacity_pack_rows, "direction", "contact_id"),
+      "must equal row-derived capacity_pack_contact_ids_by_direction"
+    )
+    |> expect_optional_field_equals(
+      path,
+      summary,
+      "capacity_pack_selected_contact_ids_by_direction",
+      row_ids_by_field(selected_capacity_pack_rows, "direction", "contact_id"),
+      "must equal row-derived capacity_pack_selected_contact_ids_by_direction"
+    )
+    |> expect_optional_field_equals(
+      path,
+      summary,
+      "capacity_pack_deferred_contact_ids_by_direction",
+      row_ids_by_field(deferred_capacity_pack_rows, "direction", "contact_id"),
+      "must equal row-derived capacity_pack_deferred_contact_ids_by_direction"
+    )
     |> expect_number_field_equals(
       path,
       summary,
@@ -53340,6 +53428,36 @@ defmodule OrbitalDynamics.Schema do
         "ground_station_id"
       ),
       "must equal row-derived capacity_pack_deferred_required_capacity_fraction_by_ground_station_id"
+    )
+    |> expect_optional_field_equals(
+      path,
+      summary,
+      "capacity_pack_required_capacity_fraction_by_direction",
+      contact_allocation_capacity_pack_required_fraction_by_field(
+        capacity_pack_rows,
+        "direction"
+      ),
+      "must equal row-derived capacity_pack_required_capacity_fraction_by_direction"
+    )
+    |> expect_optional_field_equals(
+      path,
+      summary,
+      "capacity_pack_selected_required_capacity_fraction_by_direction",
+      contact_allocation_capacity_pack_required_fraction_by_field(
+        selected_capacity_pack_rows,
+        "direction"
+      ),
+      "must equal row-derived capacity_pack_selected_required_capacity_fraction_by_direction"
+    )
+    |> expect_optional_field_equals(
+      path,
+      summary,
+      "capacity_pack_deferred_required_capacity_fraction_by_direction",
+      contact_allocation_capacity_pack_required_fraction_by_field(
+        deferred_capacity_pack_rows,
+        "direction"
+      ),
+      "must equal row-derived capacity_pack_deferred_required_capacity_fraction_by_direction"
     )
     |> expect_field_equals(
       path,

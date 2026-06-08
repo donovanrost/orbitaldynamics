@@ -1483,10 +1483,22 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
         capacity_pack_required_fraction_by_field(selected_capacity_pack_rows, "ground_station_id"),
       "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id" =>
         capacity_pack_required_fraction_by_field(deferred_capacity_pack_rows, "ground_station_id"),
+      "capacity_pack_required_capacity_fraction_by_direction" =>
+        capacity_pack_required_fraction_by_field(capacity_pack_rows, "direction"),
+      "capacity_pack_selected_required_capacity_fraction_by_direction" =>
+        capacity_pack_required_fraction_by_field(selected_capacity_pack_rows, "direction"),
+      "capacity_pack_deferred_required_capacity_fraction_by_direction" =>
+        capacity_pack_required_fraction_by_field(deferred_capacity_pack_rows, "direction"),
       "required_capacity_fraction_source_counts" =>
         count_by(capacity_pack_rows, "required_capacity_fraction_source"),
       "required_capacity_fraction_contact_ids_by_source" =>
         contact_ids_by_field(capacity_pack_rows, "required_capacity_fraction_source"),
+      "capacity_pack_contact_ids_by_direction" =>
+        contact_ids_by_field(capacity_pack_rows, "direction"),
+      "capacity_pack_selected_contact_ids_by_direction" =>
+        contact_ids_by_field(selected_capacity_pack_rows, "direction"),
+      "capacity_pack_deferred_contact_ids_by_direction" =>
+        contact_ids_by_field(deferred_capacity_pack_rows, "direction"),
       "reduced_capacity_packed_contact_ids" =>
         allocation_summary_contact_ids(
           capacity_pack_rows,
