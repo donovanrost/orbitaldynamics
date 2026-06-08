@@ -5,69 +5,77 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Harden import-readiness summary routing against stale top-level fields.
+Expose contact-allocation pressure status in branch comparison rows.
 
 Status:
-Published locally in product commit `63be127`; handoff commit pending.
-Compact `operational_quality_gate_import_readiness_summary.v1` handoffs should
-use `quality_gate_row_ids_by_status` as authoritative row routing when present,
-but CampaignPlanner currently still lets stale top-level blocked arrays steer
-branch status and risk context.
+Implemented; verification passed locally; commit pending.
+Contact-allocation pressure events already penalize V3 branches, but branch
+comparison rows flatten only generic contact/downlink, reservation, and
+capacity-pack fields. They do not expose allocation-specific status/reason,
+review/approval, or policy classification fields that explain the risk penalty.
 
 Slice-selection note:
-- Selected slice: add a stale-but-plausible import-readiness summary challenge
-  fixture and harden V3 pressure derivation to prefer row-status maps.
-- Why this slice: the roadmap calls for stale readiness/input challenge
-  fixtures, and docs state compact import-readiness summaries reconstruct
-  generic gate status/counts from `quality_gate_row_ids_by_status` when present
-  instead of stale top-level routing arrays.
-- Level 6 pillar: durable compatibility/challenge coverage and approval-aware
-  import readiness boundaries.
-- Current evidence gap: CampaignPlanner import-readiness pressure can be steered
-  by stale `blocked_quality_gate_row_ids` /
-  `blocked_import_quality_gate_row_ids` even when the row-status map says the
-  only live row is `review_required`.
+- Selected slice: add branch-comparison fields for contact-allocation
+  statuses, effective statuses, reasons, review statuses, approval statuses,
+  and policy classifications.
+- Why this slice: the roadmap prioritizes making existing resource/contact
+  review evidence planner-visible in branch scoring explanations.
+- Level 6 pillar: fleet-level resource/contact behavior and reproducible V3
+  branch trees with explainable score terms and deltas.
+- Current evidence gap: derived contact-allocation branches affect
+  `risk_penalty`, but comparison rows do not preserve allocation-specific
+  status/reason fields for adapter-facing review.
 - Docs read:
   `docs/autonomous_work_guide.md`,
   `.codex/prompts/long_running_context_efficient_product_loop.md`,
+  `docs/feature_set/completeness_levels/06_mature_operational_platform.md`,
+  `docs/feature_set/definition_of_feature_complete.md`,
+  `docs/feature_set/current_capability_snapshot.md`,
   `docs/feature_set/recommended_roadmap.md`,
-  `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`,
-  `docs/mission_planning/high_fidelity/12_operational_readiness.md`.
+  `docs/feature_set/capability_map/07_ground_network_and_communications_planning.md`,
+  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
+  `docs/mission_planning/high_fidelity/06_operational_concerns.md`.
 - Likely files: `lib/orbital_dynamics/campaign_planner.ex`,
+  `lib/orbital_dynamics/schema.ex`,
   `test/orbital_dynamics/campaign_planner_test.exs`,
+  `test/orbital_dynamics/schema_test.exs`,
   `.codex/status/autonomous_product_loop.md`.
-- Definition of done: a contradictory import-readiness summary with
-  `quality_gate_row_ids_by_status.review_required` and stale blocked top-level
-  fields derives review-required, not blocked, branch pressure; stale blocked
-  row IDs/booleans do not leak into event/risk context; existing valid
-  import-readiness pressure behavior remains covered; focused tests, compile,
-  and whitespace checks pass.
+- Definition of done: contact-allocation pressure branches keep
+  allocation/effective status, allocation reason, review/approval status, and
+  policy classification in `branch_comparison_report.v1` rows; the executable
+  schema and JSON schema expose those row fields; focused planner/schema tests,
+  compile, and whitespace checks pass.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `lib/orbital_dynamics/campaign_planner.ex`
+- `lib/orbital_dynamics/schema.ex`
 - `test/orbital_dynamics/campaign_planner_test.exs`
+- `test/orbital_dynamics/schema_test.exs`
+- `schemas/*.schema.json` branch-comparison export dependents
+- `schemas/orbital_dynamics.schema_bundle.v1.json`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:43944 test/orbital_dynamics/campaign_planner_test.exs:43671`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:40377 test/orbital_dynamics/schema_test.exs:24617`
+- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
+- `mix orbital_dynamics.schema.lint --all`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-None expected; this is a planner/test challenge-fixture slice for an existing
-quality-gate import-readiness summary artifact.
+Checked-in schema exports refreshed for `branch_comparison_report.v1` and
+top-level exports that embed the updated row shape.
 
 Local review:
-Import-readiness pressure now treats `quality_gate_row_ids_by_status` as
-authoritative when present. Generic review/analysis/blocked counts and branch
-status come from that map, while freshness/preparation/blocked import flags are
-scoped to row IDs still present in compatible statuses. A regression fixture
-covers a stale blocked top-level array disagreeing with a review-required row
-status map.
+Branch comparison rows now flatten contact-allocation status, effective status,
+allocation reason, review status, approval status, and policy classification
+from branch events. Existing contact-allocation pressure coverage now asserts
+deferred, blocked, and policy-blocked comparison rows, and schema tests pin the
+new optional string-array fields.
 
 Level 6 pillar advanced:
-Challenge-fixture coverage for stale compact handoffs and planner-visible
-readiness pressure routing.
+Planner-visible contact-allocation evidence and schema-versioned V3 branch
+comparison explainability.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -77,11 +85,11 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`63be127` Harden import readiness summary pressure.
+`b0e861b` Update autonomous loop handoff.
 
 Next candidate:
-Reinspect live code for the next planner-visible readiness/resource signal or
-challenge fixture gap after this challenge fixture lands.
+Reinspect live code for another resource/contact/readiness signal that affects
+branch scoring but is weak in comparison or review/import routing.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is

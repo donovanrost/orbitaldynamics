@@ -24743,6 +24743,20 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert get_in(row_schema, ["properties", "branch_event_types", "items", "type"]) == "string"
 
+    Enum.each(
+      [
+        "branch_contact_allocation_statuses",
+        "branch_contact_allocation_effective_statuses",
+        "branch_contact_allocation_reasons",
+        "branch_contact_allocation_review_statuses",
+        "branch_contact_allocation_approval_statuses",
+        "branch_contact_allocation_policy_classifications"
+      ],
+      fn field ->
+        assert get_in(row_schema, ["properties", field, "items", "type"]) == "string"
+      end
+    )
+
     assert get_in(row_schema, [
              "properties",
              "branch_event_trust_boundary_status_counts",

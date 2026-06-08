@@ -40669,6 +40669,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert reserved_row["branch_station_reserved_by"] == ["partner_team"]
     assert reserved_row["branch_station_reservation_statuses"] == ["confirmed"]
     assert reserved_row["branch_station_reservation_match_statuses"] == ["unmatched_overlap"]
+    assert reserved_row["branch_contact_allocation_statuses"] == ["blocked"]
+    assert reserved_row["branch_contact_allocation_reasons"] == ["station_reserved"]
 
     policy_branch =
       branch(artifact, "derived_contact_allocation_pressure_policy_blocked_dl_policy_blocked")
@@ -40752,6 +40754,33 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert pressure_row["capacity_pack_statuses"] == ["deferred_by_reduced_station_capacity_pack"]
     assert pressure_row["capacity_pack_min_capacity_fraction"] == 0.5
     assert pressure_row["capacity_pack_max_used_fraction"] == 0.5
+    assert pressure_row["branch_contact_allocation_statuses"] == ["deferred"]
+    assert pressure_row["branch_contact_allocation_effective_statuses"] == ["deferred"]
+    assert pressure_row["branch_contact_allocation_reasons"] == ["same_station_contention"]
+
+    policy_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] ==
+            "derived_contact_allocation_pressure_policy_blocked_dl_policy_blocked")
+      )
+
+    assert policy_row["branch_contact_allocation_statuses"] == ["allocated"]
+    assert policy_row["branch_contact_allocation_effective_statuses"] == ["policy_blocked"]
+
+    assert policy_row["branch_contact_allocation_reasons"] == [
+             "selected_by_contention_resolution"
+           ]
+
+    assert policy_row["branch_contact_allocation_review_statuses"] == [
+             "operator_review_required"
+           ]
+
+    assert policy_row["branch_contact_allocation_approval_statuses"] == ["blocked_by_policy"]
+
+    assert policy_row["branch_contact_allocation_policy_classifications"] == [
+             "blocked_by_policy"
+           ]
 
     refute Enum.any?(
              pressure_branch["repair_result"]["warnings"],

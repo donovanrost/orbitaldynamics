@@ -42799,6 +42799,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "branch_feedback_sources" => branch_event_unique_values(events, "feedback_source"),
       "branch_feedback_scopes" => branch_event_unique_values(events, "feedback_scope"),
       "branch_contact_results" => branch_event_unique_values(events, "contact_result"),
+      "branch_contact_allocation_statuses" =>
+        branch_event_unique_values(events, "allocation_status"),
+      "branch_contact_allocation_effective_statuses" =>
+        branch_event_unique_values(events, "effective_allocation_status"),
+      "branch_contact_allocation_reasons" =>
+        branch_event_unique_values(events, "allocation_reason"),
+      "branch_contact_allocation_review_statuses" =>
+        branch_event_unique_values(events, "review_status"),
+      "branch_contact_allocation_approval_statuses" =>
+        branch_event_unique_values(events, "approval_status"),
+      "branch_contact_allocation_policy_classifications" =>
+        branch_event_unique_values(events, "policy_classification"),
       "branch_realized_statuses" => branch_event_unique_values(events, "realized_status"),
       "branch_transition_types" => branch_event_transition_values(events, "transition_type"),
       "branch_transition_categories" =>
@@ -43123,6 +43135,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> maybe_put_nonempty("branch_feedback_sources")
     |> maybe_put_nonempty("branch_feedback_scopes")
     |> maybe_put_nonempty("branch_contact_results")
+    |> maybe_put_nonempty("branch_contact_allocation_statuses")
+    |> maybe_put_nonempty("branch_contact_allocation_effective_statuses")
+    |> maybe_put_nonempty("branch_contact_allocation_reasons")
+    |> maybe_put_nonempty("branch_contact_allocation_review_statuses")
+    |> maybe_put_nonempty("branch_contact_allocation_approval_statuses")
+    |> maybe_put_nonempty("branch_contact_allocation_policy_classifications")
     |> maybe_put_nonempty("branch_realized_statuses")
     |> maybe_put_nonempty("branch_transition_types")
     |> maybe_put_nonempty("branch_transition_categories")

@@ -18302,6 +18302,12 @@ defmodule OrbitalDynamics.Schema do
       "branch_feedback_sources" => string_array_schema(),
       "branch_feedback_scopes" => string_array_schema(),
       "branch_contact_results" => string_array_schema(),
+      "branch_contact_allocation_statuses" => string_array_schema(),
+      "branch_contact_allocation_effective_statuses" => string_array_schema(),
+      "branch_contact_allocation_reasons" => string_array_schema(),
+      "branch_contact_allocation_review_statuses" => string_array_schema(),
+      "branch_contact_allocation_approval_statuses" => string_array_schema(),
+      "branch_contact_allocation_policy_classifications" => string_array_schema(),
       "branch_realized_statuses" => string_array_schema(),
       "branch_transition_types" => string_array_schema(),
       "branch_transition_categories" => string_array_schema(),
@@ -37086,6 +37092,23 @@ defmodule OrbitalDynamics.Schema do
     |> validate_string_list_items(path, row, "branch_feedback_scopes")
     |> expect_optional_type(path, row, "branch_contact_results", :list)
     |> validate_string_list_items(path, row, "branch_contact_results")
+    |> expect_optional_type(path, row, "branch_contact_allocation_statuses", :list)
+    |> validate_string_list_items(path, row, "branch_contact_allocation_statuses")
+    |> expect_optional_type(path, row, "branch_contact_allocation_effective_statuses", :list)
+    |> validate_string_list_items(path, row, "branch_contact_allocation_effective_statuses")
+    |> expect_optional_type(path, row, "branch_contact_allocation_reasons", :list)
+    |> validate_string_list_items(path, row, "branch_contact_allocation_reasons")
+    |> expect_optional_type(path, row, "branch_contact_allocation_review_statuses", :list)
+    |> validate_string_list_items(path, row, "branch_contact_allocation_review_statuses")
+    |> expect_optional_type(path, row, "branch_contact_allocation_approval_statuses", :list)
+    |> validate_string_list_items(path, row, "branch_contact_allocation_approval_statuses")
+    |> expect_optional_type(
+      path,
+      row,
+      "branch_contact_allocation_policy_classifications",
+      :list
+    )
+    |> validate_string_list_items(path, row, "branch_contact_allocation_policy_classifications")
     |> expect_optional_type(path, row, "branch_realized_statuses", :list)
     |> validate_string_list_items(path, row, "branch_realized_statuses")
     |> expect_optional_type(path, row, "branch_transition_types", :list)
