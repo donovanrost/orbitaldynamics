@@ -13836,6 +13836,14 @@ defmodule OrbitalDynamics.CadenceImportTest do
                "activity_id" => "cmd_provider",
                "timeline_lifecycle_state_status" => "review_required",
                "transition_decision" => "review",
+               "source_lifecycle_state_operator_action_reason_counts" => %{
+                 "activity_execution_recorded" => 1,
+                 "approval_grant_requires_operator_authority" => 1
+               },
+               "source_lifecycle_state_review_timeline_ids_by_operator_action_reason" => %{
+                 "activity_execution_recorded" => ["timeline:cmd_provider"],
+                 "approval_grant_requires_operator_authority" => ["timeline:cmd_provider"]
+               },
                "status_transition" => %{
                  "transition_category" => "execution_recorded"
                },
@@ -13847,6 +13855,14 @@ defmodule OrbitalDynamics.CadenceImportTest do
                  "transition_decision" => "review"
                },
                "source_review_row" => %{
+                 "source_lifecycle_state_operator_action_reason_counts" => %{
+                   "activity_execution_recorded" => 1,
+                   "approval_grant_requires_operator_authority" => 1
+                 },
+                 "source_lifecycle_state_review_timeline_ids_by_operator_action_reason" => %{
+                   "activity_execution_recorded" => ["timeline:cmd_provider"],
+                   "approval_grant_requires_operator_authority" => ["timeline:cmd_provider"]
+                 },
                  "source_timeline_lifecycle_state" => %{
                    "timeline_id" => "timeline:cmd_provider"
                  }

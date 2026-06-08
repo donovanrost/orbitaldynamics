@@ -7560,6 +7560,8 @@ defmodule OrbitalDynamics.CadenceImport do
       "source_planned_activity_count",
       "source_realized_activity_count",
       "source_lifecycle_state_review_required_count",
+      "source_lifecycle_state_operator_action_reason_counts",
+      "source_lifecycle_state_review_timeline_ids_by_operator_action_reason",
       "planned_activity_ids",
       "realized_activity_ids",
       "planned_activity_id",

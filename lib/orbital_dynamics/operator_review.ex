@@ -10443,6 +10443,10 @@ defmodule OrbitalDynamics.OperatorReview do
       "source_planned_activity_count" => summary["planned_activity_count"],
       "source_realized_activity_count" => summary["realized_activity_count"],
       "source_lifecycle_state_review_required_count" => summary["review_required_count"],
+      "source_lifecycle_state_operator_action_reason_counts" =>
+        summary["operator_action_reason_counts"],
+      "source_lifecycle_state_review_timeline_ids_by_operator_action_reason" =>
+        summary["review_timeline_ids_by_operator_action_reason"],
       "planned_activity_context" => row["planned_activity_context"],
       "realized_activity_context" => row["realized_activity_context"]
     }

@@ -120,7 +120,9 @@ emit `timeline_diff_summary.v1`, a compact artifact-only triage surface over
 - Lifecycle-state summaries also preserve row-derived operator-action reason
   counts and review timeline ID maps by operator-action reason, so compact
   handoffs can route approval grants, recorded executions, duplicate timeline
-  identities, and invalid inputs without reopening every lifecycle row.
+  identities, and invalid inputs without reopening every lifecycle row. The
+  same summary-level reason maps are flattened into lifecycle-state
+  operator-review and Cadence-import rows for adapter routing.
 - Executable validation checks review-row-derived review counts and timeline ID
   maps while preserving the full-report count fields as source evidence.
 - Runtime validation and JSON Schema export pin the same timeline model-limit

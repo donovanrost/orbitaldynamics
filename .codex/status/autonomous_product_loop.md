@@ -5,71 +5,72 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Add operator-action reason routing to lifecycle-state summaries.
+Flatten lifecycle-summary operator-action reason routing into review/import
+handoffs.
 
 Status:
-Implemented and parent-verified. `timeline_lifecycle_state_summary.v1` now emits
-row-derived `operator_action_reason_counts` and
-`review_timeline_ids_by_operator_action_reason`, and executable validation
-rejects stale values that drift from lifecycle rows.
+Implemented and parent-verified. Lifecycle-state operator-review rows now carry
+the source summary's reason count/map fields, and Cadence import passthrough
+preserves the same fields at both the top-level import row and source review
+row.
 
 Slice-selection note:
-- Selected slice: lifecycle summary operator-action reason routing.
-- Why this slice: it is the next small typed timeline semantics gap after the
-  readiness scoring slice; compact lifecycle summaries should be routable by
-  the same review reasons present on lifecycle rows.
+- Selected slice: lifecycle summary reason routing handoff flattening.
+- Why this slice: it is the immediate follow-on from the completed lifecycle
+  summary reason routing slice, keeping compact review/import handoffs aligned
+  with the new artifact surface.
 - Level 6 pillar: durable schema-versioned artifacts and compatibility checks;
   approval-aware automation boundaries; typed operational activity lifecycle.
-- Current evidence gap: lifecycle rows carry `operator_action_reasons`, but
-  summary-level counters and review timeline ID maps are action/category keyed
-  only, so operators cannot route compact lifecycle summaries by specific reason
-  without reopening rows.
+- Current evidence gap: `timeline_lifecycle_state_summary.v1` has
+  `operator_action_reason_counts` and
+  `review_timeline_ids_by_operator_action_reason`, but
+  `timeline_lifecycle_state_review` / `review_timeline_lifecycle_state` rows
+  do not expose those summary-level fields directly.
 - Docs read:
   `docs/feature_set/capability_map/08_mission_activities/lifecycle-helpers-diffs-and-transitions.md`,
   `docs/feature_set/capability_map/08_mission_activities/integrity-rejection-and-preservation-reports.md`.
-- Files: `lib/orbital_dynamics/timeline.ex`,
-  `lib/orbital_dynamics/schema.ex`, `test/orbital_dynamics/timeline_test.exs`,
+- Files: `lib/orbital_dynamics/operator_review.ex`,
+  `lib/orbital_dynamics/cadence_import.ex`,
+  `test/orbital_dynamics/operator_review_test.exs`,
+  `test/orbital_dynamics/cadence_import_test.exs`,
   `docs/feature_set/capability_map/08_mission_activities/lifecycle-helpers-diffs-and-transitions.md`,
-  `schemas/timeline_lifecycle_state_summary.v1.schema.json`,
-  `schemas/orbital_dynamics.schema_bundle.v1.json`,
   `.codex/status/autonomous_product_loop.md`.
-- Definition of done: lifecycle summaries emit row-derived
-  `operator_action_reason_counts` and
-  `review_timeline_ids_by_operator_action_reason`; executable validation rejects
-  stale values; focused tests, schema export/lint, and whitespace checks pass.
+- Definition of done: lifecycle review rows and their Cadence import rows expose
+  source summary reason counts and review timeline IDs by reason; focused tests
+  and schema lint/whitespace checks pass.
 
 Files changed:
-- `lib/orbital_dynamics/timeline.ex`
-- `lib/orbital_dynamics/schema.ex`
-- `test/orbital_dynamics/timeline_test.exs`
+- `lib/orbital_dynamics/operator_review.ex`
+- `lib/orbital_dynamics/cadence_import.ex`
+- `test/orbital_dynamics/operator_review_test.exs`
+- `test/orbital_dynamics/cadence_import_test.exs`
 - `docs/feature_set/capability_map/08_mission_activities/lifecycle-helpers-diffs-and-transitions.md`
-- `schemas/timeline_lifecycle_state_summary.v1.schema.json`
-- `schemas/orbital_dynamics.schema_bundle.v1.json`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix format lib/orbital_dynamics/timeline.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/timeline_test.exs`
-- `mix test test/orbital_dynamics/timeline_test.exs:7664` (1 passed, 126 excluded)
-- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
+- `mix format lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/operator_review_test.exs test/orbital_dynamics/cadence_import_test.exs`
+- `mix test test/orbital_dynamics/operator_review_test.exs:2720 test/orbital_dynamics/cadence_import_test.exs:13790` (2 passed, 312 excluded)
 - `mix orbital_dynamics.schema.lint --all` (154 files, 154 artifacts, status pass)
 - `git diff --check`
 
 Docs/artifacts changed:
-- Documented lifecycle-summary reason-keyed routing for compact handoffs.
-- Refreshed the lifecycle-summary schema export and schema bundle for the new
-  optional count/map fields.
+- Documented that lifecycle-summary reason maps are flattened into
+  operator-review and Cadence-import handoff rows.
+- No schema export was refreshed in this slice; the review/import rows use
+  existing passthrough artifact surfaces and schema lint remains green.
 
 Local review:
-- The new summary fields are derived from row `operator_action_reasons`, which
-  already exist for normal lifecycle rows, duplicate timeline identity rows, and
-  invalid-input rows.
-- Validation compares both count maps and review timeline ID maps against rows,
-  mirroring the existing timeline-integrity summary pattern.
+- `timeline_lifecycle_state_review_row/4` copies
+  `source_lifecycle_state_operator_action_reason_counts` and
+  `source_lifecycle_state_review_timeline_ids_by_operator_action_reason` from
+  the lifecycle summary.
+- `CadenceImport` generic review passthrough now preserves both fields, keeping
+  queue adapters from reopening the full summary artifact to route by reason.
 
 Level 6 pillar advanced:
-Durable schema-versioned lifecycle artifacts, compatibility checks, and
-approval-aware automation boundaries. Compact lifecycle summaries now route by
-specific operator-action reason without reopening every row.
+Durable lifecycle handoff artifacts, compatibility checks, and approval-aware
+automation boundaries. Compact review/import rows can now route by specific
+operator-action reason without reopening the lifecycle summary.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -79,7 +80,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`51a60b7` Route lifecycle summary reasons.
+Pending commit/push for lifecycle reason handoff flattening.
 
 Next candidate:
 Continue guide-priority typed timeline/resource semantics, likely dependency
