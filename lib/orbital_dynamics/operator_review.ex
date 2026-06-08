@@ -5520,6 +5520,14 @@ defmodule OrbitalDynamics.OperatorReview do
   defp candidate_refresh_timeline_lifecycle_state_rows(artifact) do
     direct_rows =
       [
+        {"candidate_refresh.accepted_planning_state.source_timeline_lifecycle_state_summary",
+         get_in(artifact, ["accepted_planning_state", "source_timeline_lifecycle_state_summary"])},
+        {"candidate_refresh.accepted_planning_state.timeline_lifecycle_state_summary",
+         get_in(artifact, ["accepted_planning_state", "timeline_lifecycle_state_summary"])},
+        {"candidate_refresh.mission_state.source_timeline_lifecycle_state_summary",
+         get_in(artifact, ["mission_state", "source_timeline_lifecycle_state_summary"])},
+        {"candidate_refresh.mission_state.timeline_lifecycle_state_summary",
+         get_in(artifact, ["mission_state", "timeline_lifecycle_state_summary"])},
         {"candidate_refresh.source_timeline_lifecycle_state_summary",
          artifact["source_timeline_lifecycle_state_summary"]},
         {"candidate_refresh.timeline_lifecycle_state_summary",
