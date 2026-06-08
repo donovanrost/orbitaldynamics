@@ -5,16 +5,17 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Quality-gate unavailable-resource CandidateRefresh review/import handoff.
+Quality-gate operator-training CandidateRefresh review/import handoff.
 
 Status:
-Completed and pushed; CandidateRefresh OperatorReview/CadenceImport handoffs now
-lift compact `operational_quality_gate_unavailable_resource_summary.v1` inputs
-from top-level refresh fields, accepted/mission state, `source_result_artifact`,
-and `result_artifact` wrappers. Compact summaries reconstruct non-passed
-`resource_availability` quality-gate review rows from status maps, preserving
-wrapper-qualified source paths, unavailable/station reason counts, blocked
-contact routing maps, and artifact-only no-write/no-authority assumptions.
+Completed locally; CandidateRefresh OperatorReview/CadenceImport handoffs now
+lift compact `operational_quality_gate_operator_training_summary.v1` inputs from
+top-level refresh fields, accepted/mission state, `source_result_artifact`, and
+`result_artifact` wrappers. Compact summaries reconstruct non-passed
+`operator_training` quality-gate review rows from status maps, preserving
+wrapper-qualified source paths, training requirement counts, required role /
+training / certification / qualification IDs, and artifact-only
+no-write/no-authority assumptions.
 
 Files changed:
 - `lib/orbital_dynamics/operator_review.ex`
@@ -22,7 +23,7 @@ Files changed:
 
 Tests run:
 - `mix run -e '<quality-gate sibling compact-summary smoke>'`
-- `mix test test/orbital_dynamics/operator_review_test.exs:7700`
+- `mix test test/orbital_dynamics/operator_review_test.exs:7811`
 - `mix test test/orbital_dynamics/operator_review_test.exs`
 - `git diff --check`
 - Caveat: `mix test test/orbital_dynamics/cadence_import_test.exs` and focused
@@ -32,7 +33,7 @@ Tests run:
 
 Docs/artifacts changed:
 - No schema/artifact shape changes; this wires existing quality-gate
-  unavailable-resource summary evidence into existing review/import rows.
+  operator-training summary evidence into existing review/import rows.
 
 Level 6 pillar advanced:
 Quality gates, readiness, and import eligibility replay from compact
@@ -45,13 +46,13 @@ or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Pushed `d733aee377f775b0e568de67073cd257749b2bcb` after product commit
-`79d937a168be82a3459eadde93ecbb787b4f9420`.
+Pending commit; previous pushed commit
+`ae3dc787a276c2381f206c21fd2aef5f72a3edc9`.
 
 Next candidate:
 Continue the quality-gates/import-eligibility queue by reassessing compact
-quality-gate operator-training and schema-validation summaries for the same
-review/import handoff depth.
+quality-gate schema-validation summaries for the same review/import handoff
+depth.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
