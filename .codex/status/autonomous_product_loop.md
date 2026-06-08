@@ -5,32 +5,35 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Contact-allocation summary validation-reference observation fixture.
+Provider-reservation result-artifact OperatorReview handoff.
 
 Status:
-Completed locally; `contact_allocation_summary.v1` now has a curated
-validation-reference fixture and `Validation.artifact_observations/2` support
-for row-derived allocation counts/status/reason maps, effective-status contact
-routing, and station-pressure routing.
+Completed locally; CandidateRefresh OperatorReview/CadenceImport handoffs now
+lift standalone and nested `contact_allocation_provider_reservation_request_summary.v1`
+result artifacts from `source_result_artifact` / `result_artifact`, preserving
+provider-reservation request/review rows, source paths, summary counts, ID
+rollups, and the artifact-only no-provider-reservation/no-schedule-mutation
+boundary.
 
 Files changed:
-- `lib/orbital_dynamics/validation.ex`
-- `test/orbital_dynamics/validation_test.exs`
+- `lib/orbital_dynamics/operator_review.ex`
+- `test/orbital_dynamics/operator_review_test.exs`
 
 Tests run:
-- `mix run -e '<contact allocation summary observation smoke check>'`
-- `mix orbital_dynamics.schema.lint --input study_results/contact_allocation_summary_v1.json --contract contact_allocation_summary.v1`
+- `mix run -e '<provider result-artifact handoff smoke check>'`
+- `mix test test/orbital_dynamics/operator_review_test.exs:14967`
+- `mix test test/orbital_dynamics/operator_review_test.exs:14682`
+- `mix test test/orbital_dynamics/operator_review_test.exs`
 - `git diff --check`
-- `mix test test/orbital_dynamics/validation_test.exs:9560`
-- `mix test test/orbital_dynamics/validation_test.exs`
 
 Docs/artifacts changed:
-- No artifact shape changes; existing compatibility docs now match the
-  validation-reference registry for top-level contact-allocation summaries.
+- No artifact shape changes; existing CandidateRefresh/contact-allocation docs
+  already describe provider-reservation request summary result-artifact
+  handoffs.
 
 Level 6 pillar advanced:
-Fleet-level resource/contact allocation behavior and durable schema-versioned
-artifacts.
+Fleet-level resource/contact allocation behavior and durable OperatorReview /
+CadenceImport replay from schema-versioned artifacts.
 
 Remaining maturity gaps:
 Continue closing thin artifact-only replay gaps where compact source summaries
@@ -39,11 +42,12 @@ or operator-review replay does not yet preserve.
 
 Last commit:
 Pending commit; previous pushed commit
-`2b095fe4bc0c4028205332b97db42f6fc67c96e8`.
+`e8ccaf98eb3aa26c8262bc808ae086395ace8847`.
 
 Next candidate:
-Reassess the resource/contact allocation queue against the live worktree after
-committing this slice.
+After committing this slice, reassess whether any remaining resource/contact
+allocation replay gaps exist; otherwise return to typed operational activity and
+timeline semantics.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
