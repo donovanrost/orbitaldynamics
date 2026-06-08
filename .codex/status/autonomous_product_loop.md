@@ -85,7 +85,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Previous slice: `4796e0e` Reject stale lifecycle protection evidence.
+`1b5bbb8` Derive provider reservation request pressure branches.
 
 Next candidate:
 After this slice, continue resource/contact challenge coverage or move to
@@ -96,6 +96,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `1b5bbb8` derived provider reservation request pressure branches.
 - `4796e0e` rejected stale lifecycle-state protection evidence.
 - `9fdfb3a` derived timeline publication summary pressure branches.
 - `9c45b20` derived timeline dependency-impact summary pressure branches.
