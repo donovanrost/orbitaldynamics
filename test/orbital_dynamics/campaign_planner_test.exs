@@ -27650,6 +27650,136 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives branch pressure from timeline dependency-impact summaries" do
+    source = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 0.0, ends_at_s: 10.0},
+      %{
+        id: :cmd_combo,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependency_timeline_ids: [:"timeline:health_check:0.0"],
+        exclusive_with: [:health_gate]
+      }
+    ]
+
+    replacement = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 5.0, ends_at_s: 15.0},
+      %{
+        id: :cmd_combo,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependency_timeline_ids: [:"timeline:health_check:0.0"],
+        exclusive_with: [:health_gate]
+      }
+    ]
+
+    direct_summary =
+      source
+      |> Timeline.dependency_impact_summary(replacement)
+      |> Map.put("provenance", %{"trust_boundary" => "prior_dependency_impact_boundary"})
+
+    wrapped_summary = Map.delete(direct_summary, "provenance")
+
+    prior_plan =
+      base_plan(%{"source_timeline_dependency_impact_summary" => direct_summary})
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put(:source_result_artifact, %{
+        "schema_contract" => "result_artifact.v1",
+        "artifact_type" => "mission_state_result_artifact",
+        "timeline_dependency_impact_summary" => wrapped_summary,
+        "provenance" => %{"trust_boundary" => "mission_dependency_impact_artifact_boundary"}
+      })
+
+    artifact =
+      strategy(prior_plan,
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    dependency_branch_ids =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.map(& &1["branch_id"])
+      |> Enum.filter(
+        &String.starts_with?(&1, "derived_timeline_dependency_impact_pressure_cmd_combo")
+      )
+
+    assert length(dependency_branch_ids) == 4
+    assert length(Enum.uniq(dependency_branch_ids)) == 4
+
+    dependency_branches =
+      Enum.map(dependency_branch_ids, fn branch_id ->
+        {branch_id, branch(artifact, branch_id)}
+      end)
+
+    {prior_source_branch_id, prior_source_branch} =
+      Enum.find_value(dependency_branches, fn {branch_id, candidate_branch} ->
+        event = List.first(candidate_branch["events"])
+
+        if event["feedback_source"] ==
+             "prior_plan.source_timeline_dependency_impact_summary.dependency_impact_rows" and
+             event["dependency_impact_scope"] == "source" do
+          {branch_id, candidate_branch}
+        end
+      end)
+
+    assert %{
+             "type" => "timeline_dependency_impact_pressure",
+             "activity_id" => "cmd_combo",
+             "dependency_impact_scope" => "source",
+             "impacted_dependency_timeline_ids" => ["timeline:health_check:0.0"],
+             "feedback_scope" => "timeline_dependency_impact",
+             "trust_boundary" => "prior_dependency_impact_boundary",
+             "derivation_reasons" => ["timeline_dependency_impact_summary_pressure"]
+           } = List.first(prior_source_branch["events"])
+
+    assert Enum.any?(
+             prior_source_branch["risk_indicators"],
+             &(&1["type"] == "timeline_dependency_impact" and &1["severity"] == "high" and
+                 &1["impacted_dependency_timeline_ids"] == ["timeline:health_check:0.0"])
+           )
+
+    assert prior_source_branch["score_terms"]["risk_penalty"] < 0.0
+
+    prior_source_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == prior_source_branch_id))
+
+    assert prior_source_row["branch_timeline_dependency_impact_activity_ids"] == ["cmd_combo"]
+    assert prior_source_row["branch_timeline_dependency_impact_scopes"] == ["source"]
+
+    assert prior_source_row["branch_impacted_dependency_timeline_ids"] == [
+             "timeline:health_check:0.0"
+           ]
+
+    mission_branch =
+      Enum.find_value(dependency_branches, fn {_branch_id, candidate_branch} ->
+        event = List.first(candidate_branch["events"])
+
+        if event["feedback_source"] ==
+             "mission_state.source_result_artifact.timeline_dependency_impact_summary.dependency_impact_rows" and
+             event["dependency_impact_scope"] == "replacement" do
+          candidate_branch
+        end
+      end)
+
+    assert %{
+             "type" => "timeline_dependency_impact_pressure",
+             "activity_id" => "cmd_combo",
+             "dependency_impact_scope" => "replacement",
+             "feedback_scope" => "timeline_dependency_impact",
+             "trust_boundary" => "mission_dependency_impact_artifact_boundary"
+           } = List.first(mission_branch["events"])
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy carries mission-state timeline transition-application summaries into branch refresh requests" do
     protected_source = %{
       id: :cmd_lock,

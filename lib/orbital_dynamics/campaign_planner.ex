@@ -3485,6 +3485,29 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ]
   end
 
+  defp event_risk_indicators(%{"type" => "timeline_dependency_impact_pressure"} = event) do
+    [
+      %{
+        "type" => "timeline_dependency_impact",
+        "severity" => "high",
+        "reason" =>
+          "activity #{event["activity_id"] || event["timeline_id"]} has dependency or exclusivity links impacted by changed source timeline evidence",
+        "activity_id" => event["activity_id"],
+        "timeline_id" => event["timeline_id"],
+        "dependency_impact_scope" => event["dependency_impact_scope"],
+        "dependency_impact_status" => event["dependency_impact_status"],
+        "impacted_dependency_activity_ids" => event["impacted_dependency_activity_ids"],
+        "impacted_dependency_timeline_ids" => event["impacted_dependency_timeline_ids"],
+        "impacted_exclusive_with_activity_ids" => event["impacted_exclusive_with_activity_ids"],
+        "impacted_exclusive_with_timeline_ids" => event["impacted_exclusive_with_timeline_ids"],
+        "feedback_source" => event["feedback_source"],
+        "feedback_scope" => event["feedback_scope"],
+        "trust_boundary" => event["trust_boundary"]
+      }
+      |> compact_map()
+    ]
+  end
+
   defp event_risk_indicators(%{"type" => "downlink_demand_feedback"} = event) do
     station = event_ground_station_id(event) || "default"
 
@@ -5279,6 +5302,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Kernel.++(derived_mission_state_constraint_pressure_branches(mission_state))
       |> Kernel.++(derived_timeline_integrity_pressure_branches(prior_plan))
       |> Kernel.++(derived_mission_state_timeline_integrity_pressure_branches(mission_state))
+      |> Kernel.++(derived_timeline_dependency_impact_pressure_branches(prior_plan))
+      |> Kernel.++(
+        derived_mission_state_timeline_dependency_impact_pressure_branches(mission_state)
+      )
       |> Kernel.++(derived_timeline_diff_pressure_branches(prior_plan, policy))
       |> Kernel.++(derived_mission_state_timeline_diff_pressure_branches(mission_state, policy))
       |> Kernel.++(derived_planned_activity_pressure_branches(prior_plan))
@@ -5323,6 +5350,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> disambiguate_objective_tradeoff_pressure_branch_ids()
       |> disambiguate_constraint_pressure_branch_ids()
       |> disambiguate_timeline_integrity_pressure_branch_ids()
+      |> disambiguate_timeline_dependency_impact_pressure_branch_ids()
       |> disambiguate_timeline_diff_pressure_branch_ids()
       |> disambiguate_review_replay_pressure_branch_ids()
       |> disambiguate_degraded_spacecraft_branch_ids()
@@ -17542,6 +17570,53 @@ defmodule OrbitalDynamics.CampaignPlanner do
     end)
   end
 
+  defp derived_timeline_dependency_impact_pressure_branches(prior_plan) do
+    prior_plan
+    |> prior_plan_timeline_dependency_impact_pressure_rows()
+    |> Enum.flat_map(fn {row, source_path, index} ->
+      timeline_dependency_impact_pressure_branch(row, source_path, index)
+    end)
+  end
+
+  defp prior_plan_timeline_dependency_impact_pressure_rows(prior_plan) do
+    prior_plan
+    |> prior_plan_timeline_dependency_impact_summaries()
+    |> timeline_dependency_impact_pressure_rows()
+  end
+
+  defp prior_plan_timeline_dependency_impact_summaries(prior_plan) do
+    direct_summaries =
+      [
+        {"source_timeline_dependency_impact_summary",
+         "prior_plan.source_timeline_dependency_impact_summary"},
+        {"timeline_dependency_impact_summary", "prior_plan.timeline_dependency_impact_summary"}
+      ]
+      |> Enum.flat_map(fn {field, source_path} ->
+        prior_plan
+        |> Map.get(field)
+        |> timeline_dependency_impact_summary_entries(source_path)
+      end)
+
+    direct_summaries ++
+      prior_plan_result_artifact_timeline_dependency_impact_summaries(prior_plan)
+  end
+
+  defp timeline_dependency_impact_summary_entries(nil, _source_path), do: []
+
+  defp timeline_dependency_impact_summary_entries(summaries, source_path)
+       when is_list(summaries) do
+    summaries
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {summary, index} ->
+      timeline_dependency_impact_summary_entries(summary, "#{source_path}[#{index}]")
+    end)
+  end
+
+  defp timeline_dependency_impact_summary_entries(%{} = summary, source_path),
+    do: [{stringify_keys(summary), source_path}]
+
+  defp timeline_dependency_impact_summary_entries(_summary, _source_path), do: []
+
   defp prior_plan_timeline_integrity_pressure_rows(prior_plan) do
     prior_plan
     |> prior_plan_timeline_integrity_reports()
@@ -17644,6 +17719,26 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> Enum.flat_map(fn {row, source_path, index} ->
       timeline_integrity_pressure_branch(row, source_path, index)
     end)
+  end
+
+  defp derived_mission_state_timeline_dependency_impact_pressure_branches(mission_state) do
+    mission_state
+    |> mission_state_timeline_dependency_impact_pressure_rows()
+    |> Enum.flat_map(fn {row, source_path, index} ->
+      timeline_dependency_impact_pressure_branch(row, source_path, index)
+    end)
+  end
+
+  defp mission_state_timeline_dependency_impact_pressure_rows(mission_state) do
+    mission_state
+    |> mission_state_timeline_dependency_impact_pressure_summaries()
+    |> timeline_dependency_impact_pressure_rows()
+  end
+
+  defp mission_state_timeline_dependency_impact_pressure_summaries(mission_state) do
+    mission_state_source_timeline_dependency_impact_summaries(mission_state) ++
+      mission_state_canonical_timeline_dependency_impact_summaries(mission_state) ++
+      mission_state_result_artifact_timeline_dependency_impact_summaries(mission_state)
   end
 
   defp mission_state_timeline_integrity_pressure_rows(mission_state) do
@@ -18058,6 +18153,39 @@ defmodule OrbitalDynamics.CampaignPlanner do
     end
   end
 
+  defp mission_state_result_artifact_timeline_dependency_impact_summaries(mission_state) do
+    mission_state
+    |> mission_state_result_artifacts_with_source()
+    |> Enum.flat_map(fn {artifact, source_path} ->
+      result_artifact_timeline_dependency_impact_summaries(artifact, source_path)
+    end)
+  end
+
+  defp prior_plan_result_artifact_timeline_dependency_impact_summaries(prior_plan) do
+    prior_plan
+    |> prior_plan_result_artifacts_with_source()
+    |> Enum.flat_map(fn {artifact, source_path} ->
+      result_artifact_timeline_dependency_impact_summaries(artifact, source_path)
+    end)
+  end
+
+  defp result_artifact_timeline_dependency_impact_summaries(artifact, source_path) do
+    artifact = stringify_keys(artifact)
+
+    if artifact["schema_contract"] == "timeline_dependency_impact_summary.v1" do
+      [{artifact, source_path}]
+    else
+      ["source_timeline_dependency_impact_summary", "timeline_dependency_impact_summary"]
+      |> Enum.flat_map(fn summary_key ->
+        result_artifact_embedded_report_entries(
+          Map.get(artifact, summary_key),
+          artifact,
+          "#{source_path}.#{summary_key}"
+        )
+      end)
+    end
+  end
+
   defp prior_plan_result_artifact_timeline_diff_reports(prior_plan) do
     prior_plan
     |> prior_plan_result_artifacts_with_source()
@@ -18173,6 +18301,26 @@ defmodule OrbitalDynamics.CampaignPlanner do
     end)
   end
 
+  defp timeline_dependency_impact_pressure_rows(summaries) do
+    summaries
+    |> Enum.flat_map(fn {summary, source_path} ->
+      trust_boundary =
+        Map.get(summary, "trust_boundary") || get_in(summary, ["provenance", "trust_boundary"])
+
+      summary
+      |> Map.get("dependency_impact_rows", [])
+      |> Enum.map(&stringify_keys/1)
+      |> Enum.with_index(1)
+      |> Enum.map(fn {row, index} ->
+        {
+          Map.put(row, "_source_report_trust_boundary", trust_boundary),
+          "#{source_path}.dependency_impact_rows",
+          index
+        }
+      end)
+    end)
+  end
+
   defp timeline_integrity_pressure_branch(row, source_path, index) do
     case timeline_integrity_pressure_event(row, source_path) do
       nil ->
@@ -18226,6 +18374,75 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Map.merge(operational_timeline_activity_integrity_context(row))
       |> compact_map()
     end
+  end
+
+  defp timeline_dependency_impact_pressure_branch(row, source_path, index) do
+    case timeline_dependency_impact_pressure_event(row, source_path) do
+      nil ->
+        []
+
+      event ->
+        identity = row["activity_id"] || row["timeline_id"] || event["feedback_key"] || index
+
+        [
+          %{
+            "id" => "derived_timeline_dependency_impact_pressure_#{branch_id_fragment(identity)}",
+            "label" => "Derived timeline dependency impact pressure #{identity}",
+            "events" => [event],
+            "metadata" =>
+              %{
+                "derived_source" => source_path,
+                "timeline_id" => row["timeline_id"],
+                "dependency_impact_scope" => row["scope"] || row["dependency_impact_scope"],
+                "dependency_impact_status" => row["dependency_impact_status"]
+              }
+              |> compact_map()
+          }
+        ]
+    end
+  end
+
+  defp timeline_dependency_impact_pressure_event(row, source_path) do
+    row = stringify_keys(row)
+    issue_context = timeline_dependency_impact_context(row)
+    activity_id = realized_feedback_activity_id(row)
+    timeline_id = explicit_timeline_id(row)
+
+    if issue_context == %{} or (activity_id in [nil, ""] and timeline_id in [nil, ""]) do
+      nil
+    else
+      %{
+        "type" => "timeline_dependency_impact_pressure",
+        "activity_id" => activity_id,
+        "timeline_id" => timeline_id,
+        "dependency_impact_scope" => row["scope"] || row["dependency_impact_scope"],
+        "dependency_impact_status" => row["dependency_impact_status"],
+        "operator_action_reason" => row["operator_action_reason"],
+        "required_operator_action" =>
+          row["required_operator_action"] || "review_timeline_integrity",
+        "feedback_source" => source_path,
+        "feedback_scope" => "timeline_dependency_impact",
+        "feedback_key" => activity_id || timeline_id,
+        "trust_boundary" => operator_review_trust_boundary(row),
+        "derivation_reasons" => ["timeline_dependency_impact_summary_pressure"]
+      }
+      |> Map.merge(issue_context)
+      |> compact_map()
+    end
+  end
+
+  defp timeline_dependency_impact_context(row) do
+    %{
+      "dependency_activity_ids" => row["dependency_activity_ids"],
+      "dependency_timeline_ids" => row["dependency_timeline_ids"],
+      "exclusive_with_activity_ids" => row["exclusive_with_activity_ids"],
+      "exclusive_with_timeline_ids" => row["exclusive_with_timeline_ids"],
+      "impacted_dependency_activity_ids" => row["impacted_dependency_activity_ids"],
+      "impacted_dependency_timeline_ids" => row["impacted_dependency_timeline_ids"],
+      "impacted_exclusive_with_activity_ids" => row["impacted_exclusive_with_activity_ids"],
+      "impacted_exclusive_with_timeline_ids" => row["impacted_exclusive_with_timeline_ids"]
+    }
+    |> reject_empty_values()
   end
 
   defp timeline_diff_pressure_branch(row, source_path, index, policy \\ %{}) do
@@ -18324,6 +18541,91 @@ defmodule OrbitalDynamics.CampaignPlanner do
     do: String.starts_with?(id, "derived_timeline_integrity_pressure_")
 
   defp timeline_integrity_pressure_branch_id?(_id), do: false
+
+  defp disambiguate_timeline_dependency_impact_pressure_branch_ids(branches) do
+    id_counts = Enum.frequencies_by(branches, & &1["id"])
+
+    branches
+    |> Enum.with_index(1)
+    |> Enum.map(fn {branch, index} ->
+      branch_id = branch["id"]
+
+      if timeline_dependency_impact_pressure_branch_id?(branch_id) and
+           Map.get(id_counts, branch_id, 0) > 1 do
+        suffix =
+          branch
+          |> timeline_dependency_impact_pressure_branch_identity(index)
+          |> branch_id_fragment()
+
+        branch
+        |> Map.put("id", "#{branch_id}_#{suffix}")
+        |> Map.update("metadata", %{}, fn metadata ->
+          metadata
+          |> Map.put("timeline_dependency_impact_branch_base_id", branch_id)
+          |> Map.put("timeline_dependency_impact_branch_identity", suffix)
+        end)
+      else
+        branch
+      end
+    end)
+    |> disambiguate_duplicate_timeline_dependency_impact_suffixes()
+  end
+
+  defp timeline_dependency_impact_pressure_branch_id?(id) when is_binary(id),
+    do: String.starts_with?(id, "derived_timeline_dependency_impact_pressure_")
+
+  defp timeline_dependency_impact_pressure_branch_id?(_id), do: false
+
+  defp disambiguate_duplicate_timeline_dependency_impact_suffixes(branches) do
+    id_counts = Enum.frequencies_by(branches, & &1["id"])
+
+    branches
+    |> Enum.with_index(1)
+    |> Enum.map(fn {branch, index} ->
+      metadata = Map.get(branch, "metadata", %{})
+
+      if Map.has_key?(metadata, "timeline_dependency_impact_branch_base_id") and
+           Map.get(id_counts, branch["id"], 0) > 1 do
+        suffix = "#{metadata["timeline_dependency_impact_branch_identity"]}_#{index}"
+
+        branch
+        |> Map.put("id", "#{metadata["timeline_dependency_impact_branch_base_id"]}_#{suffix}")
+        |> Map.update(
+          "metadata",
+          %{},
+          &Map.put(&1, "timeline_dependency_impact_branch_identity", suffix)
+        )
+      else
+        branch
+      end
+    end)
+  end
+
+  defp timeline_dependency_impact_pressure_branch_identity(branch, index) do
+    branch
+    |> Map.get("events", [])
+    |> List.wrap()
+    |> Enum.flat_map(fn event ->
+      [
+        event["activity_id"],
+        event["timeline_id"],
+        event["feedback_source"],
+        event["dependency_impact_scope"],
+        event["impacted_dependency_activity_ids"],
+        event["impacted_dependency_timeline_ids"],
+        event["impacted_exclusive_with_activity_ids"],
+        event["impacted_exclusive_with_timeline_ids"]
+      ]
+    end)
+    |> List.flatten()
+    |> Enum.map(&encode_value/1)
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.uniq()
+    |> case do
+      [] -> index
+      identifiers -> Enum.join(identifiers, "_")
+    end
+  end
 
   defp disambiguate_duplicate_timeline_integrity_suffixes(branches) do
     id_counts = Enum.frequencies_by(branches, & &1["id"])
@@ -38581,6 +38883,32 @@ defmodule OrbitalDynamics.CampaignPlanner do
         branch_timeline_integrity_unique_values(events, "exclusivity_violation_timeline_ids"),
       "branch_exclusivity_violation_groups" =>
         branch_timeline_integrity_unique_values(events, "exclusivity_violation_group"),
+      "branch_timeline_dependency_impact_activity_ids" =>
+        branch_timeline_dependency_impact_unique_values(events, "activity_id"),
+      "branch_timeline_dependency_impact_timeline_ids" =>
+        branch_timeline_dependency_impact_unique_values(events, "timeline_id"),
+      "branch_timeline_dependency_impact_scopes" =>
+        branch_timeline_dependency_impact_unique_values(events, "dependency_impact_scope"),
+      "branch_impacted_dependency_activity_ids" =>
+        branch_timeline_dependency_impact_unique_values(
+          events,
+          "impacted_dependency_activity_ids"
+        ),
+      "branch_impacted_dependency_timeline_ids" =>
+        branch_timeline_dependency_impact_unique_values(
+          events,
+          "impacted_dependency_timeline_ids"
+        ),
+      "branch_impacted_exclusive_with_activity_ids" =>
+        branch_timeline_dependency_impact_unique_values(
+          events,
+          "impacted_exclusive_with_activity_ids"
+        ),
+      "branch_impacted_exclusive_with_timeline_ids" =>
+        branch_timeline_dependency_impact_unique_values(
+          events,
+          "impacted_exclusive_with_timeline_ids"
+        ),
       "branch_source_activity_ids" =>
         branch_event_unique_values(events, ["source_activity_id", "source_activity_ids"]),
       "branch_directions" => branch_event_unique_values(events, "direction"),
@@ -38692,6 +39020,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> maybe_put_nonempty("branch_exclusivity_violation_activity_ids")
     |> maybe_put_nonempty("branch_exclusivity_violation_timeline_ids")
     |> maybe_put_nonempty("branch_exclusivity_violation_groups")
+    |> maybe_put_nonempty("branch_timeline_dependency_impact_activity_ids")
+    |> maybe_put_nonempty("branch_timeline_dependency_impact_timeline_ids")
+    |> maybe_put_nonempty("branch_timeline_dependency_impact_scopes")
+    |> maybe_put_nonempty("branch_impacted_dependency_activity_ids")
+    |> maybe_put_nonempty("branch_impacted_dependency_timeline_ids")
+    |> maybe_put_nonempty("branch_impacted_exclusive_with_activity_ids")
+    |> maybe_put_nonempty("branch_impacted_exclusive_with_timeline_ids")
     |> maybe_put_nonempty("branch_source_activity_ids")
     |> maybe_put_nonempty("branch_directions")
     |> maybe_put_nonempty("branch_station_calendar_entry_ids")
@@ -38745,6 +39080,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp branch_timeline_integrity_unique_values(events, fields) do
     events
     |> Enum.filter(&(&1["type"] == "timeline_integrity_feedback"))
+    |> branch_event_unique_values(fields)
+  end
+
+  defp branch_timeline_dependency_impact_unique_values(events, fields) do
+    events
+    |> Enum.filter(&(&1["type"] == "timeline_dependency_impact_pressure"))
     |> branch_event_unique_values(fields)
   end
 
