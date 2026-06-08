@@ -86,7 +86,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Previous slice: `482bcf2` Derive counteroffer plan impact pressure branches.
+`13e927a` Derive quality gate summary pressure branches.
 
 Next candidate:
 After this slice, continue readiness/quality-gate summary branch-pressure gaps
@@ -97,6 +97,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `13e927a` derived quality-gate summary pressure branches.
 - `482bcf2` derived counteroffer plan-impact pressure branches.
 - `1b5bbb8` derived provider reservation request pressure branches.
 - `4796e0e` rejected stale lifecycle-state protection evidence.
