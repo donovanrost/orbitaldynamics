@@ -3833,6 +3833,121 @@ defmodule OrbitalDynamics.ValidationTest do
            )
   end
 
+  test "verifies curated provider counteroffer summary reference fixtures" do
+    fixtures = [
+      {
+        "fixture.artifact.provider_counteroffer_review_summary.v1",
+        "artifact.provider_counteroffer_review_summary.v1",
+        provider_counteroffer_review_summary_fixture(),
+        provider_counteroffer_review_summary_fixture_observations()
+      },
+      {
+        "fixture.artifact.provider_counteroffer_import_readiness_summary.v1",
+        "artifact.provider_counteroffer_import_readiness_summary.v1",
+        provider_counteroffer_import_readiness_summary_fixture(),
+        provider_counteroffer_import_readiness_summary_fixture_observations()
+      },
+      {
+        "fixture.artifact.provider_counteroffer_plan_impact_summary.v1",
+        "artifact.provider_counteroffer_plan_impact_summary.v1",
+        provider_counteroffer_plan_impact_summary_fixture(),
+        provider_counteroffer_plan_impact_summary_fixture_observations()
+      }
+    ]
+
+    for {fixture_id, model_id, artifact, observations} <- fixtures do
+      assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+      assert fixture["model_id"] == model_id
+      assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+      assert {:ok, verification} =
+               Validation.verify_reference_fixture(fixture_id, observations)
+
+      assert verification["status"] == "pass"
+      assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+      assert {:ok, %{"schema_contract" => schema_contract}} =
+               Schema.validate_artifact(artifact)
+
+      assert OrbitalDynamics.validation_artifact_observations(schema_contract, artifact) ==
+               Validation.artifact_observations(schema_contract, artifact)
+    end
+
+    stale_review_observations =
+      provider_counteroffer_review_summary_fixture_observations()
+      |> Map.put("counteroffer_review_status", "clear")
+
+    assert {:ok, stale_review_verification} =
+             Validation.verify_reference_fixture(
+               "fixture.artifact.provider_counteroffer_review_summary.v1",
+               stale_review_observations
+             )
+
+    assert stale_review_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_review_verification["checks"],
+             &(&1["field"] == "counteroffer_review_status" and &1["status"] == "fail")
+           )
+
+    stale_import_routing_observations =
+      provider_counteroffer_import_readiness_summary_fixture_observations()
+      |> put_in(
+        ["counteroffer_ids_by_required_import_action", "review_provider_counteroffer"],
+        []
+      )
+
+    assert {:ok, stale_import_routing_verification} =
+             Validation.verify_reference_fixture(
+               "fixture.artifact.provider_counteroffer_import_readiness_summary.v1",
+               stale_import_routing_observations
+             )
+
+    assert stale_import_routing_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_import_routing_verification["checks"],
+             &(&1["field"] == "counteroffer_ids_by_required_import_action" and
+                 &1["status"] == "fail")
+           )
+
+    stale_import_boundary_observations =
+      provider_counteroffer_import_readiness_summary_fixture_observations()
+      |> Map.put("cadence_write", "performed_by_summary")
+
+    assert {:ok, stale_import_boundary_verification} =
+             Validation.verify_reference_fixture(
+               "fixture.artifact.provider_counteroffer_import_readiness_summary.v1",
+               stale_import_boundary_observations
+             )
+
+    assert stale_import_boundary_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_import_boundary_verification["checks"],
+             &(&1["field"] == "cadence_write" and &1["status"] == "fail")
+           )
+
+    stale_impact_observations =
+      provider_counteroffer_plan_impact_summary_fixture_observations()
+      |> Map.put("row_derived_counteroffer_cost_delta_total", 0.0)
+
+    assert {:ok, stale_impact_verification} =
+             Validation.verify_reference_fixture(
+               "fixture.artifact.provider_counteroffer_plan_impact_summary.v1",
+               stale_impact_observations
+             )
+
+    assert stale_impact_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_impact_verification["checks"],
+             &(&1["field"] == "row_derived_counteroffer_cost_delta_total" and
+                 &1["status"] == "fail")
+           )
+  end
+
   test "verifies curated model acceptance report reference fixtures" do
     fixture_id = "fixture.artifact.model_acceptance_report.operational_import"
 
@@ -13497,8 +13612,14 @@ defmodule OrbitalDynamics.ValidationTest do
         "fixture.artifact.operational_timeline_report.v1" =>
           operational_timeline_report_fixture_observations(),
         "fixture.artifact.optimizer_contract.v1" => optimizer_contract_fixture_observations(),
+        "fixture.artifact.provider_counteroffer_import_readiness_summary.v1" =>
+          provider_counteroffer_import_readiness_summary_fixture_observations(),
+        "fixture.artifact.provider_counteroffer_plan_impact_summary.v1" =>
+          provider_counteroffer_plan_impact_summary_fixture_observations(),
         "fixture.artifact.provider_counteroffer_report.v1" =>
           provider_counteroffer_report_fixture_observations(),
+        "fixture.artifact.provider_counteroffer_review_summary.v1" =>
+          provider_counteroffer_review_summary_fixture_observations(),
         "fixture.artifact.quality_gate_report.v1" => quality_gate_report_fixture_observations(),
         "fixture.artifact.resource_filter_report.v1" =>
           resource_filter_report_fixture_observations(),
@@ -13627,8 +13748,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 174,
-             "status_counts" => %{"pass" => 174},
+             "fixture_count" => 177,
+             "status_counts" => %{"pass" => 177},
              "reports" => reports
            } = report
 
@@ -13727,7 +13848,10 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.policy_bundle.v1",
              "fixture.artifact.policy_decision.v1",
              "fixture.artifact.proposed_contact.v1",
+             "fixture.artifact.provider_counteroffer_import_readiness_summary.v1",
+             "fixture.artifact.provider_counteroffer_plan_impact_summary.v1",
              "fixture.artifact.provider_counteroffer_report.v1",
+             "fixture.artifact.provider_counteroffer_review_summary.v1",
              "fixture.artifact.quality_gate_report.v1",
              "fixture.artifact.ranking_comparison_report.v1",
              "fixture.artifact.realized_activity.v1",
@@ -13819,7 +13943,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 174},
+             "status_counts" => %{"fail" => 177},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -16217,6 +16341,33 @@ defmodule OrbitalDynamics.ValidationTest do
     contacts
     |> StationCalendar.report(provider, source: "provider_counteroffer_fixture")
     |> StationCalendar.provider_counteroffer_report()
+  end
+
+  defp provider_counteroffer_review_summary_fixture_observations do
+    "provider_counteroffer_review_summary.v1"
+    |> Validation.artifact_observations(provider_counteroffer_review_summary_fixture())
+  end
+
+  defp provider_counteroffer_review_summary_fixture do
+    read_json!("study_results/provider_counteroffer_review_summary_v1.json")
+  end
+
+  defp provider_counteroffer_import_readiness_summary_fixture_observations do
+    "provider_counteroffer_import_readiness_summary.v1"
+    |> Validation.artifact_observations(provider_counteroffer_import_readiness_summary_fixture())
+  end
+
+  defp provider_counteroffer_import_readiness_summary_fixture do
+    read_json!("study_results/provider_counteroffer_import_readiness_summary_v1.json")
+  end
+
+  defp provider_counteroffer_plan_impact_summary_fixture_observations do
+    "provider_counteroffer_plan_impact_summary.v1"
+    |> Validation.artifact_observations(provider_counteroffer_plan_impact_summary_fixture())
+  end
+
+  defp provider_counteroffer_plan_impact_summary_fixture do
+    read_json!("study_results/provider_counteroffer_plan_impact_summary_v1.json")
   end
 
   defp read_json!(path) do
