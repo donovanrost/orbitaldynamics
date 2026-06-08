@@ -12792,7 +12792,10 @@ defmodule OrbitalDynamics.OperatorReview do
         {"candidate_refresh.link_capacity_report", artifact["link_capacity_report"]},
         {"candidate_refresh.source_link_capacity_summary",
          artifact["source_link_capacity_summary"]},
-        {"candidate_refresh.link_capacity_summary", artifact["link_capacity_summary"]}
+        {"candidate_refresh.link_capacity_summary", artifact["link_capacity_summary"]},
+        {"candidate_refresh.source_relay_data_path_summary",
+         artifact["source_relay_data_path_summary"]},
+        {"candidate_refresh.relay_data_path_summary", artifact["relay_data_path_summary"]}
       ]
       |> Enum.flat_map(fn {source, report_or_reports} ->
         source_link_capacity_report_rows(report_or_reports, source)
@@ -12812,7 +12815,7 @@ defmodule OrbitalDynamics.OperatorReview do
   defp source_link_capacity_report_rows(%{} = report, source) do
     report = stringify_keys(report)
 
-    if link_capacity_summary?(report) do
+    if link_capacity_summary?(report) or relay_data_path_summary?(report) do
       source_link_capacity_summary_rows(report, source)
     else
       link_capacity_report_rows(report, source)
@@ -12967,6 +12970,20 @@ defmodule OrbitalDynamics.OperatorReview do
       "schema_contract" => summary["schema_contract"],
       "source_artifact_type" => summary["source_artifact_type"],
       "source" => summary["source"],
+      "route_count" => summary["route_count"],
+      "relay_route_count" => summary["relay_route_count"],
+      "direct_downlink_route_count" => summary["direct_downlink_route_count"],
+      "route_ids" => summary["route_ids"],
+      "route_ids_by_ground_station_id" => summary["route_ids_by_ground_station_id"],
+      "route_ids_by_latency_status" => summary["route_ids_by_latency_status"],
+      "route_ids_by_risk_status" => summary["route_ids_by_risk_status"],
+      "route_ids_by_custody_status" => summary["route_ids_by_custody_status"],
+      "source_spacecraft_ids" => summary["source_spacecraft_ids"],
+      "relay_spacecraft_ids" => summary["relay_spacecraft_ids"],
+      "ground_downlink_contact_ids" => summary["ground_downlink_contact_ids"],
+      "custody_status_counts" => summary["custody_status_counts"],
+      "latency_status_counts" => summary["latency_status_counts"],
+      "risk_status_counts" => summary["risk_status_counts"],
       "station_count" => summary["station_count"],
       "contact_count" => summary["contact_count"],
       "selected_contact_count" => summary["selected_contact_count"],
@@ -12986,6 +13003,14 @@ defmodule OrbitalDynamics.OperatorReview do
 
   defp link_capacity_summary?(%{"schema_contract" => "link_capacity_summary.v1"}), do: true
   defp link_capacity_summary?(_report), do: false
+
+  defp relay_data_path_summary?(%{} = summary) do
+    summary = stringify_keys(summary)
+
+    is_number(summary["route_count"]) and
+      (summary["model"] == "artifact_only_relay_data_path_summary" or
+         summary["schema_contract"] == "relay_data_path_summary.v1")
+  end
 
   defp candidate_refresh_result_artifact_link_capacity_rows(artifact) do
     [
@@ -13026,7 +13051,9 @@ defmodule OrbitalDynamics.OperatorReview do
       {"#{source}.source_link_capacity_report", artifact["source_link_capacity_report"]},
       {"#{source}.link_capacity_report", artifact["link_capacity_report"]},
       {"#{source}.source_link_capacity_summary", artifact["source_link_capacity_summary"]},
-      {"#{source}.link_capacity_summary", artifact["link_capacity_summary"]}
+      {"#{source}.link_capacity_summary", artifact["link_capacity_summary"]},
+      {"#{source}.source_relay_data_path_summary", artifact["source_relay_data_path_summary"]},
+      {"#{source}.relay_data_path_summary", artifact["relay_data_path_summary"]}
     ]
     |> Enum.flat_map(fn {report_source, report_or_reports} ->
       source_link_capacity_report_rows(report_or_reports, report_source)

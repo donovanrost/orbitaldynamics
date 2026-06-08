@@ -6006,6 +6006,128 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(package)
   end
 
+  test "candidate refresh relay data path summaries become link capacity review rows" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:relay_data_path_review:001",
+      "source_relay_data_path_summary" => study_result_fixture("relay_data_path_summary_v1.json")
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:relay_data_path_review:001",
+             "review_count" => 2,
+             "link_capacity_review_count" => 2
+           } = package
+
+    assert %{
+             "review_type" => "link_capacity_review",
+             "source" => "candidate_refresh.source_relay_data_path_summary.rows",
+             "subject_id" => "dss_14",
+             "ground_station_id" => "dss_14",
+             "required_operator_action" => "review_link_capacity_summary",
+             "source_link_capacity" => %{
+               "route_id" => "relay_data_path:sat_a:downlink_1:54b7e7ff594c",
+               "source_spacecraft_id" => "sat_a",
+               "source_summary_schema_contract" => "relay_data_path_summary.v1",
+               "source_link_capacity_summary" => %{
+                 "route_count" => 2,
+                 "relay_route_count" => 1,
+                 "route_ids_by_ground_station_id" => %{
+                   "dss_14" => ["relay_data_path:sat_a:downlink_1:54b7e7ff594c"]
+                 }
+               }
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source_link_capacity"]["route_id"] ==
+                   "relay_data_path:sat_a:downlink_1:54b7e7ff594c")
+             )
+
+    assert %{
+             "review_type" => "link_capacity_review",
+             "source" => "candidate_refresh.source_relay_data_path_summary.rows",
+             "subject_id" => "dss_35",
+             "ground_station_id" => "dss_35",
+             "source_link_capacity" => %{
+               "route_id" => "route_direct",
+               "latency_status" => "exceeds_limit",
+               "risk_status" => "high",
+               "source_link_capacity_summary" => %{
+                 "risk_status_counts" => %{"high" => 1, "nominal" => 1}
+               }
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source_link_capacity"]["route_id"] == "route_direct")
+             )
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+  end
+
+  test "candidate refresh result artifact relay data path summaries become review rows" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:wrapped_relay_data_path_review:001",
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "source_relay_data_path_summary" =>
+            study_result_fixture("relay_data_path_summary_v1.json")
+        },
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "relay_data_path_summary" => study_result_fixture("relay_data_path_summary_v1.json")
+        }
+      ]
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:wrapped_relay_data_path_review:001",
+             "review_count" => 4,
+             "link_capacity_review_count" => 4
+           } = package
+
+    assert %{
+             "review_type" => "link_capacity_review",
+             "source" =>
+               "candidate_refresh.source_result_artifact[0].source_relay_data_path_summary.rows",
+             "source_link_capacity" => %{
+               "source_summary_schema_contract" => "relay_data_path_summary.v1"
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source"] ==
+                   "candidate_refresh.source_result_artifact[0].source_relay_data_path_summary.rows")
+             )
+
+    assert %{
+             "review_type" => "link_capacity_review",
+             "source" =>
+               "candidate_refresh.source_result_artifact[1].relay_data_path_summary.rows",
+             "source_link_capacity" => %{
+               "source_summary_model" => "artifact_only_relay_data_path_summary"
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source"] ==
+                   "candidate_refresh.source_result_artifact[1].relay_data_path_summary.rows")
+             )
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+  end
+
   test "candidate refresh source contact filter reports become operator review rows" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
