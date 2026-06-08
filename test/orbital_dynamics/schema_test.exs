@@ -20826,6 +20826,8 @@ defmodule OrbitalDynamics.SchemaTest do
              },
              "station_pressure_contact_ids_by_availability" => %{"reserved" => ["dl_3"]},
              "station_pressure_contact_counts_by_availability" => %{"reserved" => 1},
+             "station_pressure_contact_ids_by_status" => %{"reserved" => ["dl_3"]},
+             "station_pressure_contact_counts_by_status" => %{"reserved" => 1},
              "station_pressure_contact_ids_by_precedence_availability" => %{
                "reserved" => ["dl_3"]
              },
@@ -32371,6 +32373,7 @@ defmodule OrbitalDynamics.SchemaTest do
           "ground_station_id" => "equator_prime",
           "direction" => "downlink",
           "station_availability" => "reserved",
+          "station_calendar_status" => "reserved",
           "station_calendar_precedence_availability" => "reserved",
           "station_calendar_precedence_rank" => 1,
           "station_reservation_id" => "reservation_1",

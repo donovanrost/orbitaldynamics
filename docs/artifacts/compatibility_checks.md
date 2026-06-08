@@ -1259,8 +1259,8 @@ assumptions.
 `study_results/contact_allocation_station_pressure_summary_v1.json` now feeds a
 curated `contact_allocation_station_pressure_summary.v1` validation-reference
 fixture. The observations check station-pressure and review counts, contact-ID
-routing by ground station, availability, precedence availability/rank, direction
-and ground station, review rows, model limits, and
+routing by ground station, availability, station-calendar status, precedence
+availability/rank, direction and ground station, review rows, model limits, and
 no-provider-reservation/no-schedule-mutation assumptions.
 `study_results/contact_allocation_capacity_pack_summary_v1.json` now feeds a
 curated `contact_allocation_capacity_pack_summary.v1` validation-reference

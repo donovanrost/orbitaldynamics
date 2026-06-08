@@ -6963,6 +6963,12 @@ defmodule OrbitalDynamics.Validation do
         "row_derived_station_pressure_contact_ids_by_availability" => %{
           "reserved" => ["dl_3"]
         },
+        "station_pressure_contact_ids_by_status" => %{"reserved" => ["dl_3"]},
+        "row_derived_station_pressure_contact_ids_by_status" => %{
+          "reserved" => ["dl_3"]
+        },
+        "station_pressure_contact_counts_by_status" => %{"reserved" => 1},
+        "row_derived_station_pressure_contact_counts_by_status" => %{"reserved" => 1},
         "station_pressure_contact_ids_by_precedence_availability" => %{
           "reserved" => ["dl_3"]
         },
@@ -15098,6 +15104,16 @@ defmodule OrbitalDynamics.Validation do
         pressure_rows
         |> group_row_ids_by_value("station_availability", "contact_id")
         |> sort_grouped_values(),
+      "station_pressure_contact_ids_by_status" =>
+        Map.get(artifact, "station_pressure_contact_ids_by_status"),
+      "row_derived_station_pressure_contact_ids_by_status" =>
+        pressure_rows
+        |> group_row_ids_by_value("station_calendar_status", "contact_id")
+        |> sort_grouped_values(),
+      "station_pressure_contact_counts_by_status" =>
+        Map.get(artifact, "station_pressure_contact_counts_by_status"),
+      "row_derived_station_pressure_contact_counts_by_status" =>
+        row_value_counts(pressure_rows, "station_calendar_status"),
       "station_pressure_contact_ids_by_precedence_availability" =>
         Map.get(artifact, "station_pressure_contact_ids_by_precedence_availability"),
       "row_derived_station_pressure_contact_ids_by_precedence_availability" =>
