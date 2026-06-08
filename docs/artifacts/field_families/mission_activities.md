@@ -539,7 +539,8 @@ and model-only inputs.
 `timeline_publication_summary.v1` as an artifact-only publication metadata
 handoff. It preserves deterministic publication ID/sequence, source artifact
 identity/type, superseded artifact IDs, downstream product IDs, invalidated
-downstream product IDs, optional dependency-impact status and impact ID sets,
+downstream product IDs, an explicit downstream invalidation status, optional
+dependency-impact status and impact ID sets,
 optional nested `timeline_diff_summary.v1` changed-field audit evidence,
 row/changed/review diff counts, changed-field counts, changed/review timeline
 IDs, changed-field timeline routing, publication authority, host-owned
@@ -553,7 +554,8 @@ Publication summaries can now route through
 `CadenceImport.from_timeline_publication_summary/2`, and the matching public
 facades as `timeline_publication_review` / `review_timeline_publication`
 handoff rows. Those rows preserve publication identity, sequence, status,
-authority, supersession, downstream invalidation, dependency-impact rollups,
+explicit downstream invalidation status, authority, supersession, downstream
+invalidation, dependency-impact rollups,
 changed-field audit counts and routing, and the nested source publication
 summary while leaving publication execution, notification delivery, and import
 authorization to downstream operators or host systems.

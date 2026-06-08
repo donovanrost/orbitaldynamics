@@ -6404,6 +6404,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "timeline_publication_summary",
           "publication_status_counts"
         ),
+      "source_report_timeline_publication_downstream_invalidation_status_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "timeline_publication_summary",
+          "downstream_invalidation_status_counts"
+        ),
       "source_report_timeline_publication_dependency_impact_status_counts" =>
         source_report_summary_family_merge_count_maps(
           source_reports,
@@ -14385,6 +14391,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     publication_status_counts = Map.get(publication_summary, "publication_status_counts", %{})
 
+    downstream_invalidation_status_counts =
+      Map.get(publication_summary, "downstream_invalidation_status_counts", %{})
+
     dependency_impact_status_counts =
       Map.get(publication_summary, "dependency_impact_status_counts", %{})
 
@@ -14434,6 +14443,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     invalidation_pressure =
       invalidated_downstream_product_ids != [] or
+        summary_integer(downstream_invalidation_status_counts, "invalidated") > 0 or
         summary_integer(publication_status_counts, "published_with_downstream_invalidations") > 0
 
     review_pressure =
@@ -14462,6 +14472,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "source_summary_schema_contract_counts" =>
         Map.get(publication_summary, "source_summary_schema_contract_counts", %{}),
       "publication_status_counts" => publication_status_counts,
+      "downstream_invalidation_status_counts" => downstream_invalidation_status_counts,
       "dependency_impact_status_counts" => dependency_impact_status_counts,
       "publication_authority_counts" => publication_authority_counts,
       "source_artifact_type_counts" => source_artifact_type_counts,
@@ -23252,6 +23263,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "publication_status_counts" =>
         summaries
         |> count_report_field_values("publication_status")
+        |> non_empty_map(),
+      "downstream_invalidation_status_counts" =>
+        summaries
+        |> count_report_field_values("downstream_invalidation_status")
         |> non_empty_map(),
       "dependency_impact_status_counts" =>
         summaries

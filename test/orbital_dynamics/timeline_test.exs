@@ -70,6 +70,8 @@ defmodule OrbitalDynamics.TimelineTest do
              dependency_impact_statuses: dependency_impact_statuses,
              publication_summary_fields: publication_summary_fields,
              publication_dependency_impact_statuses: publication_dependency_impact_statuses,
+             publication_downstream_invalidation_statuses:
+               publication_downstream_invalidation_statuses,
              publication_statuses: publication_statuses,
              candidate_rejection_reasons: candidate_rejection_reasons,
              candidate_rejection_station_capacity_fraction_paths:
@@ -285,10 +287,12 @@ defmodule OrbitalDynamics.TimelineTest do
     assert dependency_impact_statuses == ["clear", "review_required"]
     assert "publication_sequence" in publication_summary_fields
     assert "invalidated_downstream_product_ids" in publication_summary_fields
+    assert "downstream_invalidation_status" in publication_summary_fields
     assert "dependency_impact_row_count" in publication_summary_fields
     assert "changed_field_counts" in publication_summary_fields
     assert "timeline_ids_by_changed_field" in publication_summary_fields
     assert publication_dependency_impact_statuses == ["clear", "not_evaluated", "review_required"]
+    assert publication_downstream_invalidation_statuses == ["clear", "invalidated"]
 
     assert publication_statuses == [
              "published",
@@ -632,6 +636,12 @@ defmodule OrbitalDynamics.TimelineTest do
 
     assert get_in(publication_schema, ["properties", "publication_status", "enum"]) ==
              publication_statuses
+
+    assert get_in(publication_schema, [
+             "properties",
+             "downstream_invalidation_status",
+             "enum"
+           ]) == publication_downstream_invalidation_statuses
   end
 
   test "advertised activity-state facade preserves feedback artifact semantics" do
@@ -3613,6 +3623,7 @@ defmodule OrbitalDynamics.TimelineTest do
                "timeline_publication:7:timeline:published_plan:v2:timeline:published_plan:v1",
              "publication_sequence" => 7,
              "publication_status" => "published_with_downstream_invalidations",
+             "downstream_invalidation_status" => "invalidated",
              "publication_authority" => "mission_operations",
              "source_artifact_id" => "timeline:published_plan:v2",
              "source_artifact_type" => "operational_timeline_report.v1",
@@ -3690,8 +3701,21 @@ defmodule OrbitalDynamics.TimelineTest do
                    "must equal downstream invalidation and dependency impact state")
            )
 
+    stale_downstream_invalidation_status =
+      Map.put(summary, "downstream_invalidation_status", "clear")
+
+    assert {:error, stale_downstream_invalidation_status_report} =
+             Schema.validate_artifact(stale_downstream_invalidation_status)
+
+    assert Enum.any?(
+             stale_downstream_invalidation_status_report["errors"],
+             &(&1["path"] == "$.downstream_invalidation_status" and
+                 &1["message"] == "must equal invalidated_downstream_product_ids state")
+           )
+
     assert %{
              "publication_status" => "published",
+             "downstream_invalidation_status" => "clear",
              "dependency_impact_status" => "not_evaluated",
              "dependency_impact_row_count" => 0,
              "invalidated_downstream_product_ids" => []

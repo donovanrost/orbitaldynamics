@@ -7381,6 +7381,7 @@ defmodule OrbitalDynamics.CadenceImport do
       "publication_id",
       "publication_sequence",
       "publication_status",
+      "downstream_invalidation_status",
       "publication_authority",
       "supersedes_artifact_ids",
       "downstream_product_ids",

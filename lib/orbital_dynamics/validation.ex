@@ -6704,6 +6704,7 @@ defmodule OrbitalDynamics.Validation do
           "timeline_publication:7:timeline:published_plan:v2:timeline:published_plan:v1",
         "publication_sequence" => 7,
         "publication_status" => "published_with_downstream_invalidations",
+        "downstream_invalidation_status" => "invalidated",
         "publication_authority" => "mission_operations",
         "supersedes_artifact_ids" => "timeline:published_plan:v1",
         "downstream_product_ids" => "cadence_import:plan:v1|operator_review:plan:v1",
@@ -15996,6 +15997,7 @@ defmodule OrbitalDynamics.Validation do
       "publication_id" => Map.get(artifact, "publication_id"),
       "publication_sequence" => Map.get(artifact, "publication_sequence"),
       "publication_status" => Map.get(artifact, "publication_status"),
+      "downstream_invalidation_status" => Map.get(artifact, "downstream_invalidation_status"),
       "publication_authority" => Map.get(artifact, "publication_authority"),
       "supersedes_artifact_ids" =>
         artifact

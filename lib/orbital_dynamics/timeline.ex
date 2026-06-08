@@ -162,6 +162,7 @@ defmodule OrbitalDynamics.Timeline do
     publication_id
     publication_sequence
     publication_status
+    downstream_invalidation_status
     publication_authority
     source_artifact_id
     source_artifact_type
@@ -185,6 +186,7 @@ defmodule OrbitalDynamics.Timeline do
   )
   @dependency_impact_statuses ~w(clear review_required)
   @publication_dependency_impact_statuses ~w(clear not_evaluated review_required)
+  @publication_downstream_invalidation_statuses ~w(clear invalidated)
   @publication_statuses ~w(published published_with_downstream_invalidations review_required)
   @candidate_rejection_reasons ~w(
     no_access_window
@@ -1009,6 +1011,7 @@ defmodule OrbitalDynamics.Timeline do
       dependency_impact_statuses: @dependency_impact_statuses,
       publication_summary_fields: @publication_summary_fields,
       publication_dependency_impact_statuses: @publication_dependency_impact_statuses,
+      publication_downstream_invalidation_statuses: @publication_downstream_invalidation_statuses,
       publication_statuses: @publication_statuses,
       candidate_rejection_reasons: @candidate_rejection_reasons,
       candidate_rejection_station_capacity_fraction_paths:
@@ -1818,6 +1821,8 @@ defmodule OrbitalDynamics.Timeline do
       "publication_sequence" => publication_sequence,
       "publication_status" =>
         publication_status(invalidated_downstream_product_ids, dependency_impact_summary),
+      "downstream_invalidation_status" =>
+        publication_downstream_invalidation_status(invalidated_downstream_product_ids),
       "publication_authority" => publication_authority,
       "source_artifact_id" => source_artifact_id,
       "source_artifact_type" => source_artifact_type,
@@ -2018,6 +2023,11 @@ defmodule OrbitalDynamics.Timeline do
         "published"
     end
   end
+
+  defp publication_downstream_invalidation_status([]), do: "clear"
+
+  defp publication_downstream_invalidation_status(_invalidated_downstream_product_ids),
+    do: "invalidated"
 
   defp publication_summary_id(source_artifact_id, publication_sequence, supersedes_artifact_ids) do
     supersedes =

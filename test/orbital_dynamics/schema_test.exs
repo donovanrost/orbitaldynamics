@@ -19532,6 +19532,7 @@ defmodule OrbitalDynamics.SchemaTest do
         "count" => 1,
         "row_count" => 1,
         "publication_status_counts" => %{"review_required" => 1},
+        "downstream_invalidation_status_counts" => %{"clear" => 1},
         "dependency_impact_status_counts" => %{"review_required" => 1},
         "publication_authority_counts" => %{"mission_operations" => 1},
         "source_artifact_type_counts" => %{"operational_timeline_report.v1" => 1},
@@ -19580,6 +19581,12 @@ defmodule OrbitalDynamics.SchemaTest do
              "items",
              "pattern"
            ])
+
+    assert get_in(timeline_publication_source_report_properties, [
+             "downstream_invalidation_status_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
 
     assert get_in(timeline_publication_source_report_properties, [
              "dependency_impact_row_count",
@@ -29691,6 +29698,11 @@ defmodule OrbitalDynamics.SchemaTest do
              "review_required"
            ]
 
+    assert get_in(schema, ["properties", "downstream_invalidation_status", "enum"]) == [
+             "clear",
+             "invalidated"
+           ]
+
     assert get_in(schema, ["properties", "dependency_impact_status", "enum"]) == [
              "clear",
              "not_evaluated",
@@ -29793,6 +29805,18 @@ defmodule OrbitalDynamics.SchemaTest do
              &(&1["path"] == "$.publication_status" and
                  &1["message"] ==
                    "must equal downstream invalidation and dependency impact state")
+           )
+
+    stale_downstream_invalidation_status =
+      Map.put(summary, "downstream_invalidation_status", "clear")
+
+    assert {:error, validation_report} =
+             Schema.validate_artifact(stale_downstream_invalidation_status)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.downstream_invalidation_status" and
+                 &1["message"] == "must equal invalidated_downstream_product_ids state")
            )
 
     stale_model_limits = Map.put(summary, "model_limits", ["artifact_level_only"])
@@ -29918,6 +29942,7 @@ defmodule OrbitalDynamics.SchemaTest do
                "timeline_publication:7:timeline:published_plan:v2:timeline:published_plan:v1",
              "publication_sequence" => 7,
              "publication_status" => "published_with_downstream_invalidations",
+             "downstream_invalidation_status" => "invalidated",
              "publication_authority" => "mission_operations",
              "supersedes_artifact_ids" => ["timeline:published_plan:v1"],
              "downstream_product_ids" => ["cadence_import:plan:v1", "operator_review:plan:v1"],
@@ -30034,6 +30059,11 @@ defmodule OrbitalDynamics.SchemaTest do
                "published",
                "published_with_downstream_invalidations",
                "review_required"
+             ]
+
+      assert get_in(row_properties, ["downstream_invalidation_status", "enum"]) == [
+               "clear",
+               "invalidated"
              ]
 
       assert get_in(row_properties, ["publication_authority", "pattern"]) == stable_id_pattern

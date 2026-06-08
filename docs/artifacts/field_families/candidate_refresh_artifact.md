@@ -1924,7 +1924,8 @@ and publication rows preserved through operator-review packages or
 Cadence-import manifests. Replay preserves source-report contract/count/
 row-count/path rollups, publication ID/status/authority, source artifact IDs
 and types, superseded and downstream product IDs, invalidated downstream IDs,
-dependency-impact status/count/ID evidence, changed-field audit counts and
+explicit downstream invalidation status counts, dependency-impact
+status/count/ID evidence, changed-field audit counts and
 timeline routing, trust boundaries, and branch-local dependency, changed-field,
 invalidation, review, and publication pressure booleans. It never publishes,
 delivers notifications, mutates timelines, selects candidates, approves

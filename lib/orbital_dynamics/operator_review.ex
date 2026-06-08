@@ -10188,6 +10188,7 @@ defmodule OrbitalDynamics.OperatorReview do
         "publication_id" => summary["publication_id"],
         "publication_sequence" => summary["publication_sequence"],
         "publication_status" => summary["publication_status"],
+        "downstream_invalidation_status" => summary["downstream_invalidation_status"],
         "publication_authority" => summary["publication_authority"],
         "source_artifact_id" => summary["source_artifact_id"],
         "source_artifact_type" => summary["source_artifact_type"],

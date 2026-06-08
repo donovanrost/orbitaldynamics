@@ -2513,6 +2513,7 @@ defmodule OrbitalDynamics.OperatorReviewTest do
                  "timeline_publication:7:timeline:published_plan:v2:timeline:published_plan:v1",
                "publication_sequence" => 7,
                "publication_status" => "published_with_downstream_invalidations",
+               "downstream_invalidation_status" => "invalidated",
                "publication_authority" => "mission_operations",
                "source_artifact_id" => "timeline:published_plan:v2",
                "source_artifact_type" => "operational_timeline_report.v1",

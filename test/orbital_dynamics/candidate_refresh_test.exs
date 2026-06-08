@@ -26133,6 +26133,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_timeline_publication_status_counts" => %{
                "published_with_downstream_invalidations" => 1
              },
+             "source_report_timeline_publication_downstream_invalidation_status_counts" => %{
+               "invalidated" => 1
+             },
              "source_report_timeline_publication_dependency_impact_status_counts" => %{
                "review_required" => 1
              },
@@ -26177,6 +26180,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "publication_status_counts" => %{
                "published_with_downstream_invalidations" => 1
              },
+             "downstream_invalidation_status_counts" => %{"invalidated" => 1},
              "dependency_impact_status_counts" => %{"review_required" => 1},
              "publication_authority_counts" => %{"mission_operations" => 1},
              "source_artifact_type_counts" => %{"operational_timeline_report.v1" => 1},
@@ -26271,6 +26275,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                 "candidate_source.candidate_refresh_request.source_timeline_publication_summary"
               ],
               "publication_status_counts" => %{"review_required" => 1},
+              "downstream_invalidation_status_counts" => %{"clear" => 1},
               "dependency_impact_status_counts" => %{"review_required" => 1},
               "publication_ids" => ["timeline_publication:branch"],
               "source_artifact_ids" => ["timeline:branch_plan"],
@@ -26310,6 +26315,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert summary["publication_ids"] == ["timeline_publication:branch"]
     assert summary["source_artifact_ids"] == ["timeline:branch_plan"]
+    assert summary["downstream_invalidation_status_counts"] == %{"clear" => 1}
     assert summary["dependency_impact_row_count"] == 1
     assert summary["impacted_dependency_activity_ids"] == ["branch_dependency"]
     assert summary["timeline_diff_review_required_count"] == 1

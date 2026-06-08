@@ -987,8 +987,9 @@ through the public facade before schema validation.
 `study_results/timeline_publication_summary_v1.json` now feeds a curated
 `timeline_publication_summary.v1` validation-reference fixture. The observations
 check publication identity/status, supersession, downstream invalidation IDs,
-dependency-impact review routing, nested timeline-diff counts, changed-field
-maps, review timeline IDs, and no-schedule-mutation/no-authority assumptions.
+explicit downstream invalidation status, dependency-impact review routing,
+nested timeline-diff counts, changed-field maps, review timeline IDs, and
+no-schedule-mutation/no-authority assumptions.
 `study_results/operational_timeline_report_v1.json` is also observed with
 row-derived operational-kind, activity-status, approval-status,
 Cadence-import-status, required-action, timeline-integrity issue, and row-ID

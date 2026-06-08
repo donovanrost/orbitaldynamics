@@ -5625,6 +5625,7 @@ defmodule OrbitalDynamics.Schema do
       "optional_fields" => [
         "analysis_only_quality_gate_row_ids",
         "publication_status_counts",
+        "downstream_invalidation_status_counts",
         "dependency_impact_status_counts",
         "publication_authority_counts",
         "source_artifact_type_counts",
@@ -7080,6 +7081,7 @@ defmodule OrbitalDynamics.Schema do
       ],
       "optional_fields" => [
         "source_timeline_diff_summary",
+        "downstream_invalidation_status",
         "timeline_diff_row_count",
         "timeline_diff_changed_count",
         "timeline_diff_review_required_count",
@@ -10503,6 +10505,14 @@ defmodule OrbitalDynamics.Schema do
       "type" => "string",
       "enum" => ["published", "published_with_downstream_invalidations", "review_required"]
     }
+  end
+
+  defp json_schema_property(
+         "downstream_invalidation_status",
+         @timeline_publication_summary,
+         _contract
+       ) do
+    %{"type" => "string", "enum" => ["clear", "invalidated"]}
   end
 
   defp json_schema_property("dependency_impact_status", @timeline_publication_summary, _contract) do
@@ -16879,6 +16889,7 @@ defmodule OrbitalDynamics.Schema do
               "import_status_counts",
               "cadence_import_status_counts",
               "publication_status_counts",
+              "downstream_invalidation_status_counts",
               "dependency_impact_status_counts",
               "publication_authority_counts",
               "source_artifact_type_counts",
@@ -24923,6 +24934,7 @@ defmodule OrbitalDynamics.Schema do
   defp candidate_refresh_timeline_publication_context_json_schema_properties do
     %{
       "publication_status_counts" => non_negative_integer_count_map_json_schema(),
+      "downstream_invalidation_status_counts" => non_negative_integer_count_map_json_schema(),
       "dependency_impact_status_counts" => non_negative_integer_count_map_json_schema(),
       "publication_authority_counts" => non_negative_integer_count_map_json_schema(),
       "source_artifact_type_counts" => non_negative_integer_count_map_json_schema(),
@@ -28006,6 +28018,10 @@ defmodule OrbitalDynamics.Schema do
         "type" => "string",
         "enum" => ["published", "published_with_downstream_invalidations", "review_required"]
       },
+      "downstream_invalidation_status" => %{
+        "type" => "string",
+        "enum" => ["clear", "invalidated"]
+      },
       "publication_authority" => %{"type" => "string", "pattern" => @stable_id_pattern},
       "source_artifact_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
       "source_artifact_type" => %{"type" => "string", "minLength" => 1},
@@ -30678,6 +30694,7 @@ defmodule OrbitalDynamics.Schema do
       Enum.reduce(
         [
           "publication_status_counts",
+          "downstream_invalidation_status_counts",
           "dependency_impact_status_counts",
           "publication_authority_counts",
           "source_artifact_type_counts",
@@ -42212,6 +42229,7 @@ defmodule OrbitalDynamics.Schema do
       "publication_id",
       "publication_sequence",
       "publication_status",
+      "downstream_invalidation_status",
       "publication_authority",
       "source_artifact_id",
       "source_artifact_type",
@@ -42239,6 +42257,7 @@ defmodule OrbitalDynamics.Schema do
       "publication_id",
       "publication_sequence",
       "publication_status",
+      "downstream_invalidation_status",
       "publication_authority",
       "supersedes_artifact_ids",
       "downstream_product_ids",
@@ -43051,6 +43070,10 @@ defmodule OrbitalDynamics.Schema do
       "published_with_downstream_invalidations",
       "review_required"
     ])
+    |> expect_optional_one_of(path, summary, "downstream_invalidation_status", [
+      "clear",
+      "invalidated"
+    ])
     |> expect_one_of(path, summary, "dependency_impact_status", [
       "clear",
       "not_evaluated",
@@ -43101,6 +43124,13 @@ defmodule OrbitalDynamics.Schema do
           "published"
       end
 
+    expected_downstream_invalidation_status =
+      if list_value(summary, "invalidated_downstream_product_ids") == [] do
+        "clear"
+      else
+        "invalidated"
+      end
+
     issues
     |> expect_field_equals(
       path,
@@ -43108,6 +43138,13 @@ defmodule OrbitalDynamics.Schema do
       "publication_status",
       expected_status,
       "must equal downstream invalidation and dependency impact state"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "downstream_invalidation_status",
+      expected_downstream_invalidation_status,
+      "must equal invalidated_downstream_product_ids state"
     )
     |> validate_timeline_publication_summary_dependency_count(path, summary)
     |> validate_timeline_publication_summary_no_impact_without_review(path, summary)
@@ -57870,6 +57907,7 @@ defmodule OrbitalDynamics.Schema do
       "resource_source_quality_counts",
       "resource_trust_boundary_status_counts",
       "publication_status_counts",
+      "downstream_invalidation_status_counts",
       "dependency_impact_status_counts",
       "publication_authority_counts",
       "source_artifact_type_counts",
@@ -58139,6 +58177,7 @@ defmodule OrbitalDynamics.Schema do
       "resource_source_quality_counts",
       "resource_trust_boundary_status_counts",
       "publication_status_counts",
+      "downstream_invalidation_status_counts",
       "dependency_impact_status_counts",
       "publication_authority_counts",
       "source_artifact_type_counts",
