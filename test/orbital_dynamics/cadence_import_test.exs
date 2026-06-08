@@ -12206,6 +12206,12 @@ defmodule OrbitalDynamics.CadenceImportTest do
         "station_reservation_ids_by_expiration_status" => %{
           "declared" => ["reservation_campaign"]
         },
+        "reservation_conflict_contact_ids_by_direction" => %{
+          "downlink" => ["dl_campaign_conflict"]
+        },
+        "reservation_conflict_contact_ids_by_direction_and_ground_station_id" => %{
+          "downlink" => %{"gs_campaign" => ["dl_campaign_conflict"]}
+        },
         "resource_blocking_dimension_counts" => %{"antenna" => 1},
         "resource_blocked_contact_ids_by_blocking_dimension" => %{
           "antenna" => ["dl_campaign_resource"]
@@ -12297,6 +12303,14 @@ defmodule OrbitalDynamics.CadenceImportTest do
         },
         "station_reservation_ids_by_expiration_status" => %{
           "missing" => ["reservation_refresh"]
+        },
+        "reservation_conflict_contact_ids_by_direction" => %{
+          "downlink" => ["dl_refresh_conflict_a", "dl_refresh_conflict_b"]
+        },
+        "reservation_conflict_contact_ids_by_direction_and_ground_station_id" => %{
+          "downlink" => %{
+            "gs_refresh" => ["dl_refresh_conflict_a", "dl_refresh_conflict_b"]
+          }
         },
         "resource_blocking_dimension_counts" => %{"thermal" => 2},
         "resource_blocked_contact_ids_by_blocking_dimension" => %{
@@ -12423,6 +12437,12 @@ defmodule OrbitalDynamics.CadenceImportTest do
         "station_reservation_ids_by_reserved_by" => %{
           "ops_source" => ["reservation_source"]
         },
+        "reservation_conflict_contact_ids_by_direction" => %{
+          "downlink" => ["dl_source_conflict"]
+        },
+        "reservation_conflict_contact_ids_by_direction_and_ground_station_id" => %{
+          "downlink" => %{"gs_source" => ["dl_source_conflict"]}
+        },
         "resource_blocking_dimension_counts" => %{"antenna" => 1},
         "resource_blocked_contact_ids_by_blocking_dimension" => %{
           "antenna" => ["dl_source_resource"]
@@ -12522,6 +12542,12 @@ defmodule OrbitalDynamics.CadenceImportTest do
         },
         "station_reservation_ids_by_reserved_by" => %{
           "ops_result" => ["reservation_result"]
+        },
+        "reservation_conflict_contact_ids_by_direction" => %{
+          "downlink" => ["dl_result_conflict_a", "dl_result_conflict_b"]
+        },
+        "reservation_conflict_contact_ids_by_direction_and_ground_station_id" => %{
+          "downlink" => %{"gs_result" => ["dl_result_conflict_a", "dl_result_conflict_b"]}
         },
         "resource_blocking_dimension_counts" => %{"activity_type" => 2},
         "resource_blocked_contact_ids_by_blocking_dimension" => %{
@@ -12674,6 +12700,14 @@ defmodule OrbitalDynamics.CadenceImportTest do
              "declared" => ["reservation_campaign"]
            }
 
+    assert campaign["reservation_conflict_contact_ids_by_direction"] == %{
+             "downlink" => ["dl_campaign_conflict"]
+           }
+
+    assert campaign["reservation_conflict_contact_ids_by_direction_and_ground_station_id"] == %{
+             "downlink" => %{"gs_campaign" => ["dl_campaign_conflict"]}
+           }
+
     assert campaign["resource_blocking_dimension_counts"] == %{"antenna" => 1}
 
     assert campaign["resource_blocked_contact_ids_by_blocking_dimension"] == %{
@@ -12803,6 +12837,17 @@ defmodule OrbitalDynamics.CadenceImportTest do
     assert refresh["station_reservation_expiration_status_counts"] == %{"missing" => 2}
     assert refresh["station_reservation_declared_expiration_contact_count"] == 0
     assert refresh["station_reservation_missing_expiration_contact_count"] == 2
+
+    assert refresh["reservation_conflict_contact_ids_by_direction"] == %{
+             "downlink" => ["dl_refresh_conflict_a", "dl_refresh_conflict_b"]
+           }
+
+    assert refresh["reservation_conflict_contact_ids_by_direction_and_ground_station_id"] == %{
+             "downlink" => %{
+               "gs_refresh" => ["dl_refresh_conflict_a", "dl_refresh_conflict_b"]
+             }
+           }
+
     assert refresh["resource_blocking_dimension_counts"] == %{"thermal" => 2}
 
     assert refresh["resource_blocked_contact_ids_by_blocking_dimension"] == %{
@@ -12986,6 +13031,21 @@ defmodule OrbitalDynamics.CadenceImportTest do
     assert repair["station_reservation_ids_by_reserved_by"] == %{
              "ops_result" => ["reservation_result"],
              "ops_source" => ["reservation_source"]
+           }
+
+    assert repair["reservation_conflict_contact_ids_by_direction"] == %{
+             "downlink" => [
+               "dl_result_conflict_a",
+               "dl_result_conflict_b",
+               "dl_source_conflict"
+             ]
+           }
+
+    assert repair["reservation_conflict_contact_ids_by_direction_and_ground_station_id"] == %{
+             "downlink" => %{
+               "gs_result" => ["dl_result_conflict_a", "dl_result_conflict_b"],
+               "gs_source" => ["dl_source_conflict"]
+             }
            }
 
     assert repair["resource_blocking_dimension_counts"] == %{"activity_type" => 2, "antenna" => 1}
@@ -13197,6 +13257,21 @@ defmodule OrbitalDynamics.CadenceImportTest do
     assert strategy["station_reservation_ids_by_reserved_by"] == %{
              "ops_result" => ["reservation_result"],
              "ops_source" => ["reservation_source"]
+           }
+
+    assert strategy["reservation_conflict_contact_ids_by_direction"] == %{
+             "downlink" => [
+               "dl_result_conflict_a",
+               "dl_result_conflict_b",
+               "dl_source_conflict"
+             ]
+           }
+
+    assert strategy["reservation_conflict_contact_ids_by_direction_and_ground_station_id"] == %{
+             "downlink" => %{
+               "gs_result" => ["dl_result_conflict_a", "dl_result_conflict_b"],
+               "gs_source" => ["dl_source_conflict"]
+             }
            }
 
     assert strategy["resource_blocking_dimension_counts"] == %{

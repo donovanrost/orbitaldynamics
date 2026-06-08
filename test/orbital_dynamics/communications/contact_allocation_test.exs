@@ -2436,6 +2436,9 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              "reservation_conflict_contact_ids_by_match_status" => %{
                "overlap" => ["dl_reserved_intruder"]
              },
+             "reservation_conflict_contact_ids_by_direction" => %{
+               "downlink" => ["dl_reserved_intruder"]
+             },
              "reservation_conflict_contact_ids_by_direction_and_ground_station_id" => %{
                "downlink" => %{"equator_prime" => ["dl_reserved_intruder"]}
              },
@@ -2599,6 +2602,21 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              stale_conflict_count_errors["errors"],
              &(&1["path"] == "$.reservation_conflict_contact_count" and
                  &1["message"] == "must equal row-derived reservation_conflict_contact_count")
+           )
+
+    stale_conflict_direction =
+      Map.put(summary, "reservation_conflict_contact_ids_by_direction", %{
+        "uplink" => ["dl_reserved_intruder"]
+      })
+
+    assert {:error, stale_conflict_direction_errors} =
+             Schema.validate_artifact(stale_conflict_direction)
+
+    assert Enum.any?(
+             stale_conflict_direction_errors["errors"],
+             &(&1["path"] == "$.reservation_conflict_contact_ids_by_direction" and
+                 &1["message"] ==
+                   "must equal row-derived reservation_conflict_contact_ids_by_direction")
            )
 
     stale_conflict_direction_station =

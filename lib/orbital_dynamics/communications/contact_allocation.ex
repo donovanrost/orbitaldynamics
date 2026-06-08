@@ -1580,6 +1580,7 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
         contact_ids_by_field(reservation_rows, "station_reservation_match_status"),
       "reservation_conflict_contact_ids_by_match_status" =>
         contact_ids_by_field(conflict_rows, "station_reservation_match_status"),
+      "reservation_conflict_contact_ids_by_direction" => contact_ids_by_direction(conflict_rows),
       "reservation_conflict_contact_ids_by_direction_and_ground_station_id" =>
         conflict_contact_ids_by_direction_and_ground_station_id,
       "station_reservation_contact_ids_by_status" =>
@@ -1909,6 +1910,21 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     rows
     |> contact_ids_by_field(field)
     |> Map.new(fn {field_value, contact_ids} -> {to_string(field_value), contact_ids} end)
+  end
+
+  defp contact_ids_by_direction(rows) do
+    rows
+    |> Enum.reduce(%{}, fn row, acc ->
+      direction = normalize_direction(row["direction"] || row["type"])
+      contact_id = row["contact_id"]
+
+      if direction in [nil, ""] or contact_id in [nil, ""] do
+        acc
+      else
+        Map.update(acc, direction, [contact_id], fn contact_ids -> [contact_id | contact_ids] end)
+      end
+    end)
+    |> Map.new(fn {direction, contact_ids} -> {direction, sorted_stable_ids(contact_ids)} end)
   end
 
   defp allocation_summary_contact_ids_by_station(rows, status_field, status) do

@@ -2262,6 +2262,10 @@ defmodule OrbitalDynamics.CadenceImport do
         context["provider_reservation_request_ids_by_match_status"],
       "provider_reservation_review_ids_by_match_status" =>
         context["provider_reservation_review_ids_by_match_status"],
+      "reservation_conflict_contact_ids_by_direction" =>
+        context["reservation_conflict_contact_ids_by_direction"],
+      "reservation_conflict_contact_ids_by_direction_and_ground_station_id" =>
+        context["reservation_conflict_contact_ids_by_direction_and_ground_station_id"],
       "reduced_capacity_pack_group_count" => context["reduced_capacity_pack_group_count"],
       "reduced_capacity_pack_status_counts" => context["reduced_capacity_pack_status_counts"],
       "capacity_pack_group_ids" => context["capacity_pack_group_ids"],
@@ -2386,6 +2390,8 @@ defmodule OrbitalDynamics.CadenceImport do
       "provider_reservation_review_contact_ids_by_match_status",
       "provider_reservation_request_ids_by_match_status",
       "provider_reservation_review_ids_by_match_status",
+      "reservation_conflict_contact_ids_by_direction",
+      "reservation_conflict_contact_ids_by_direction_and_ground_station_id",
       "reduced_capacity_pack_group_count",
       "reduced_capacity_pack_status_counts",
       "capacity_pack_group_ids",

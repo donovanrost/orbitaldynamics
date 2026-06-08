@@ -13107,6 +13107,10 @@ defmodule OrbitalDynamics.OperatorReview do
       "station_pressure_contact_ids_by_direction_and_ground_station_id" =>
         summary["station_pressure_contact_ids_by_direction_and_ground_station_id"],
       "reservation_review_contact_ids" => summary["reservation_review_contact_ids"],
+      "reservation_conflict_contact_ids_by_direction" =>
+        summary["reservation_conflict_contact_ids_by_direction"],
+      "reservation_conflict_contact_ids_by_direction_and_ground_station_id" =>
+        summary["reservation_conflict_contact_ids_by_direction_and_ground_station_id"],
       "capacity_pack_review_status" => summary["capacity_pack_review_status"],
       "reduced_capacity_pack_group_count" => summary["reduced_capacity_pack_group_count"],
       "assumptions" => summary["assumptions"]
@@ -17048,6 +17052,14 @@ defmodule OrbitalDynamics.OperatorReview do
     |> put_contact_allocation_id_map_summary(
       reports,
       "provider_reservation_review_ids_by_match_status"
+    )
+    |> put_contact_allocation_id_map_summary(
+      reports,
+      "reservation_conflict_contact_ids_by_direction"
+    )
+    |> put_contact_allocation_nested_id_map_summary(
+      reports,
+      "reservation_conflict_contact_ids_by_direction_and_ground_station_id"
     )
     |> put_contact_allocation_id_map_summary(
       reports,

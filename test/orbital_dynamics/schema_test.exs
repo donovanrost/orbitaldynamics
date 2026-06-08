@@ -21323,6 +21323,9 @@ defmodule OrbitalDynamics.SchemaTest do
              "reservation_conflict_contact_ids_by_match_status" => %{
                "overlap" => ["dl_reserved_intruder"]
              },
+             "reservation_conflict_contact_ids_by_direction" => %{
+               "downlink" => ["dl_reserved_intruder"]
+             },
              "reservation_conflict_contact_ids_by_direction_and_ground_station_id" => %{
                "downlink" => %{"equator_prime" => ["dl_reserved_intruder"]}
              },
@@ -21649,7 +21652,8 @@ defmodule OrbitalDynamics.SchemaTest do
         "station_pressure_contact_ids_by_availability",
         "station_pressure_contact_ids_by_precedence_availability",
         "station_pressure_contact_ids_by_precedence_rank",
-        "station_pressure_contact_ids_by_direction"
+        "station_pressure_contact_ids_by_direction",
+        "reservation_conflict_contact_ids_by_direction"
       ],
       fn field ->
         assert get_in(cadence_schema, [
@@ -21674,7 +21678,8 @@ defmodule OrbitalDynamics.SchemaTest do
       [
         "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
         "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
-        "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
+        "provider_reservation_review_contact_ids_by_direction_and_ground_station_id",
+        "reservation_conflict_contact_ids_by_direction_and_ground_station_id"
       ],
       fn field ->
         assert get_in(cadence_schema, [

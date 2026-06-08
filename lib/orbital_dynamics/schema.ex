@@ -4723,6 +4723,7 @@ defmodule OrbitalDynamics.Schema do
         "source",
         "station_reservation_expiration_now_s",
         "earliest_station_reservation_expires_at_s",
+        "reservation_conflict_contact_ids_by_direction",
         "reservation_conflict_contact_ids_by_direction_and_ground_station_id",
         "model_limits"
       ],
@@ -5377,6 +5378,8 @@ defmodule OrbitalDynamics.Schema do
         "provider_reservation_review_contact_ids_by_match_status",
         "provider_reservation_request_ids_by_match_status",
         "provider_reservation_review_ids_by_match_status",
+        "reservation_conflict_contact_ids_by_direction",
+        "reservation_conflict_contact_ids_by_direction_and_ground_station_id",
         "reduced_capacity_pack_group_count",
         "reduced_capacity_pack_status_counts",
         "capacity_pack_group_ids",
@@ -6702,6 +6705,8 @@ defmodule OrbitalDynamics.Schema do
         "provider_reservation_review_contact_ids_by_match_status",
         "provider_reservation_request_ids_by_match_status",
         "provider_reservation_review_ids_by_match_status",
+        "reservation_conflict_contact_ids_by_direction",
+        "reservation_conflict_contact_ids_by_direction_and_ground_station_id",
         "reduced_capacity_pack_group_count",
         "reduced_capacity_pack_status_counts",
         "capacity_pack_group_ids",
@@ -14968,6 +14973,7 @@ defmodule OrbitalDynamics.Schema do
        when field in [
               "station_reservation_contact_ids_by_match_status",
               "reservation_conflict_contact_ids_by_match_status",
+              "reservation_conflict_contact_ids_by_direction",
               "station_reservation_contact_ids_by_status",
               "station_reservation_contact_ids_by_reserved_by",
               "station_reservation_contact_ids_by_expiration_status",
@@ -17371,6 +17377,8 @@ defmodule OrbitalDynamics.Schema do
                 "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
                 "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
                 "provider_reservation_review_contact_ids_by_direction_and_ground_station_id",
+                "reservation_conflict_contact_ids_by_direction",
+                "reservation_conflict_contact_ids_by_direction_and_ground_station_id",
                 "provider_reservation_request_contact_ids_by_match_status",
                 "provider_reservation_review_contact_ids_by_match_status",
                 "provider_reservation_request_ids_by_match_status",
@@ -17436,6 +17444,7 @@ defmodule OrbitalDynamics.Schema do
              "provider_reservation_no_request_contact_ids_by_direction",
              "provider_reservation_request_contact_ids_by_direction",
              "provider_reservation_review_contact_ids_by_direction",
+             "reservation_conflict_contact_ids_by_direction",
              "provider_reservation_request_contact_ids_by_match_status",
              "provider_reservation_review_contact_ids_by_match_status",
              "provider_reservation_request_ids_by_match_status",
@@ -17457,7 +17466,8 @@ defmodule OrbitalDynamics.Schema do
       when field in [
              "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
              "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
-             "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
+             "provider_reservation_review_contact_ids_by_direction_and_ground_station_id",
+             "reservation_conflict_contact_ids_by_direction_and_ground_station_id"
            ] ->
         nested_stable_id_array_map_json_schema()
 
@@ -52480,6 +52490,16 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(
       path,
       summary,
+      "reservation_conflict_contact_ids_by_direction",
+      :map
+    )
+    |> validate_stable_id_array_map(
+      path <> ".reservation_conflict_contact_ids_by_direction",
+      Map.get(summary, "reservation_conflict_contact_ids_by_direction")
+    )
+    |> expect_optional_type(
+      path,
+      summary,
       "reservation_conflict_contact_ids_by_direction_and_ground_station_id",
       :map
     )
@@ -52734,6 +52754,13 @@ defmodule OrbitalDynamics.Schema do
       "reservation_conflict_contact_ids_by_match_status",
       row_ids_by_field(conflict_rows, "station_reservation_match_status", "contact_id"),
       "must equal row-derived reservation_conflict_contact_ids_by_match_status"
+    )
+    |> expect_optional_field_equals(
+      path,
+      summary,
+      "reservation_conflict_contact_ids_by_direction",
+      row_ids_by_direction(conflict_rows, "contact_id"),
+      "must equal row-derived reservation_conflict_contact_ids_by_direction"
     )
     |> expect_optional_field_equals(
       path,
@@ -61462,6 +61489,22 @@ defmodule OrbitalDynamics.Schema do
     rows
     |> row_ids_by_field(group_field, id_field)
     |> Map.new(fn {group, ids} -> {to_string(group), ids} end)
+  end
+
+  defp row_ids_by_direction(rows, id_field) do
+    rows
+    |> Enum.filter(&is_map/1)
+    |> Enum.reduce(%{}, fn row, acc ->
+      direction = Map.get(row, "direction")
+      id = Map.get(row, id_field)
+
+      if direction in [nil, ""] or id in [nil, ""] do
+        acc
+      else
+        Map.update(acc, direction, [id], fn ids -> [id | ids] end)
+      end
+    end)
+    |> Map.new(fn {direction, ids} -> {direction, ids |> Enum.uniq() |> Enum.sort()} end)
   end
 
   defp row_ids_by_direction_and_ground_station(rows, id_field) do
