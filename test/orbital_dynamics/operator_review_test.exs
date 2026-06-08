@@ -4727,6 +4727,57 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(package)
   end
 
+  test "candidate refresh state-scoped model acceptance reports become operator review rows" do
+    report =
+      OrbitalDynamics.validation_model_acceptance_report(
+        ["orbit_data.simple_json", "event.access_windows", "propagator.two_body"],
+        intended_use: :operational_import
+      )
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:state_model_acceptance_review:001",
+      "accepted_planning_state" => %{"source_model_acceptance_report" => report},
+      "mission_state" => %{"model_acceptance_report" => report}
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:state_model_acceptance_review:001",
+             "review_count" => 4,
+             "model_acceptance_review_count" => 4
+           } = package
+
+    assert Enum.map(package["rows"], & &1["source"]) == [
+             "candidate_refresh.accepted_planning_state.source_model_acceptance_report.rows",
+             "candidate_refresh.accepted_planning_state.source_model_acceptance_report.rows",
+             "candidate_refresh.mission_state.model_acceptance_report.rows",
+             "candidate_refresh.mission_state.model_acceptance_report.rows"
+           ]
+
+    assert %{
+             "review_type" => "model_acceptance_review",
+             "subject_id" => "event.access_windows",
+             "required_operator_action" => "review_model_acceptance",
+             "approval_status" => "operator_review_required",
+             "model_acceptance_status" => "review_required",
+             "source_model_acceptance_report" => %{
+               "schema_contract" => "model_acceptance_report.v1",
+               "status" => "blocked"
+             }
+           } = List.first(package["rows"])
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert manifest["row_count"] == 0
+    assert manifest["rows"] == []
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+  end
+
   test "candidate refresh source validation safety-case summaries become operator review rows" do
     model_acceptance_report =
       OrbitalDynamics.validation_model_acceptance_report(["missing.model"],

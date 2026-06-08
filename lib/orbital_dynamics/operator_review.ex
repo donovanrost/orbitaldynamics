@@ -7033,6 +7033,14 @@ defmodule OrbitalDynamics.OperatorReview do
   defp candidate_refresh_model_acceptance_rows(artifact) do
     direct_rows =
       [
+        {"candidate_refresh.accepted_planning_state.source_model_acceptance_report",
+         get_in(artifact, ["accepted_planning_state", "source_model_acceptance_report"])},
+        {"candidate_refresh.accepted_planning_state.model_acceptance_report",
+         get_in(artifact, ["accepted_planning_state", "model_acceptance_report"])},
+        {"candidate_refresh.mission_state.source_model_acceptance_report",
+         get_in(artifact, ["mission_state", "source_model_acceptance_report"])},
+        {"candidate_refresh.mission_state.model_acceptance_report",
+         get_in(artifact, ["mission_state", "model_acceptance_report"])},
         {"candidate_refresh.source_model_acceptance_report",
          artifact["source_model_acceptance_report"]},
         {"candidate_refresh.model_acceptance_report", artifact["model_acceptance_report"]}
