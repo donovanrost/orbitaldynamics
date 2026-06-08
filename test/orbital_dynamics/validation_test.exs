@@ -9557,6 +9557,88 @@ defmodule OrbitalDynamics.ValidationTest do
              Schema.validate_artifact(summary)
   end
 
+  test "verifies curated contact allocation summary reference fixtures" do
+    fixture_id = "fixture.artifact.contact_allocation_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.contact_allocation_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    summary = read_json!("study_results/contact_allocation_summary_v1.json")
+
+    observations =
+      Validation.artifact_observations(
+        "contact_allocation_summary.v1",
+        summary
+      )
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               observations
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_allocation_status_observations =
+      observations
+      |> put_in(
+        [
+          "row_derived_contact_ids_by_effective_allocation_status",
+          "blocked"
+        ],
+        []
+      )
+
+    assert {:ok, stale_allocation_status_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_allocation_status_observations
+             )
+
+    assert stale_allocation_status_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_allocation_status_verification["checks"],
+             &(&1["field"] == "row_derived_contact_ids_by_effective_allocation_status" and
+                 &1["status"] == "fail")
+           )
+
+    stale_station_pressure_observations =
+      observations
+      |> put_in(
+        [
+          "row_derived_station_pressure_contact_ids_by_ground_station_id",
+          "equator_prime"
+        ],
+        []
+      )
+
+    assert {:ok, stale_station_pressure_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_station_pressure_observations
+             )
+
+    assert stale_station_pressure_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_station_pressure_verification["checks"],
+             &(&1["field"] == "row_derived_station_pressure_contact_ids_by_ground_station_id" and
+                 &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "contact_allocation_summary.v1",
+             summary
+           ) == observations
+
+    assert {:ok, %{"schema_contract" => "contact_allocation_summary.v1"}} =
+             Schema.validate_artifact(summary)
+  end
+
   test "verifies curated provider reservation request summary reference fixtures" do
     fixture_id = "fixture.artifact.contact_allocation_provider_reservation_request_summary.v1"
 
@@ -11887,6 +11969,8 @@ defmodule OrbitalDynamics.ValidationTest do
           contact_allocation_capacity_pack_report_fixture_observations(),
         "fixture.artifact.contact_allocation_capacity_pack_summary.v1" =>
           contact_allocation_capacity_pack_summary_fixture_observations(),
+        "fixture.artifact.contact_allocation_summary.v1" =>
+          contact_allocation_summary_fixture_observations(),
         "fixture.artifact.contact_allocation_report.v1" =>
           contact_allocation_report_fixture_observations(),
         "fixture.artifact.contact_allocation_reservation_conflict_summary.v1" =>
@@ -12111,8 +12195,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 159,
-             "status_counts" => %{"pass" => 159},
+             "fixture_count" => 160,
+             "status_counts" => %{"pass" => 160},
              "reports" => reports
            } = report
 
@@ -12154,6 +12238,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.contact_allocation_report.v1",
              "fixture.artifact.contact_allocation_reservation_conflict_summary.v1",
              "fixture.artifact.contact_allocation_station_pressure_summary.v1",
+             "fixture.artifact.contact_allocation_summary.v1",
              "fixture.artifact.contact_contention_report.cross_station_spacecraft",
              "fixture.artifact.contact_contention_report.v1",
              "fixture.artifact.contact_contention_resolution_report.v1",
@@ -12288,7 +12373,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 159},
+             "status_counts" => %{"fail" => 160},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -13920,6 +14005,13 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp contact_allocation_report_fixture do
     read_json!("study_results/contact_allocation_report_v1.json")
+  end
+
+  defp contact_allocation_summary_fixture_observations do
+    "contact_allocation_summary.v1"
+    |> Validation.artifact_observations(
+      read_json!("study_results/contact_allocation_summary_v1.json")
+    )
   end
 
   defp contact_allocation_capacity_pack_summary_fixture_observations do

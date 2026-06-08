@@ -7078,6 +7078,96 @@ defmodule OrbitalDynamics.Validation do
         "checks capacity-pack counts, routing maps, and model-limit boundary only"
       ]
     },
+    "fixture.artifact.contact_allocation_summary.v1" => %{
+      "id" => "fixture.artifact.contact_allocation_summary.v1",
+      "model_id" => "artifact.contact_allocation_summary.v1",
+      "reference_case" => "checked-in contact allocation summary",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/contact_allocation_summary_v1.json",
+        "contract" => "contact_allocation_summary.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "contact_allocation_summary.v1",
+        "model" => "artifact_only_contact_allocation_summary",
+        "source_artifact_type" => "contact_allocation_report.v1",
+        "source" => "validation.contact_allocation_summary",
+        "input_contact_count" => 3,
+        "row_derived_input_contact_count" => 3,
+        "allocated_contact_count" => 1,
+        "row_derived_allocated_contact_count" => 1,
+        "deferred_contact_count" => 1,
+        "row_derived_deferred_contact_count" => 1,
+        "blocked_contact_count" => 1,
+        "row_derived_blocked_contact_count" => 1,
+        "review_row_count" => 3,
+        "row_derived_review_row_count" => 3,
+        "allocation_status_counts" => %{"allocated" => 1, "blocked" => 1, "deferred" => 1},
+        "row_derived_allocation_status_counts" => %{
+          "allocated" => 1,
+          "blocked" => 1,
+          "deferred" => 1
+        },
+        "effective_allocation_status_counts" => %{
+          "allocated" => 1,
+          "blocked" => 1,
+          "deferred" => 1
+        },
+        "row_derived_effective_allocation_status_counts" => %{
+          "allocated" => 1,
+          "blocked" => 1,
+          "deferred" => 1
+        },
+        "allocation_reason_counts" => %{
+          "ground_station_reserved" => 1,
+          "same_station_contention" => 1,
+          "selected_by_contention_resolution" => 1
+        },
+        "row_derived_allocation_reason_counts" => %{
+          "ground_station_reserved" => 1,
+          "same_station_contention" => 1,
+          "selected_by_contention_resolution" => 1
+        },
+        "row_derived_contact_ids_by_effective_allocation_status" => %{
+          "allocated" => ["dl_1"],
+          "blocked" => ["dl_3"],
+          "deferred" => ["dl_2"]
+        },
+        "station_pressure_contact_ids_by_ground_station_id" => %{
+          "equator_prime" => ["dl_3"]
+        },
+        "row_derived_station_pressure_contact_ids_by_ground_station_id" => %{
+          "equator_prime" => ["dl_3"]
+        },
+        "station_pressure_contact_ids_by_availability" => %{"reserved" => ["dl_3"]},
+        "row_derived_station_pressure_contact_ids_by_availability" => %{
+          "reserved" => ["dl_3"]
+        },
+        "model_limit_count" => 8
+      },
+      "tolerances" => %{
+        "input_contact_count" => 0,
+        "row_derived_input_contact_count" => 0,
+        "allocated_contact_count" => 0,
+        "row_derived_allocated_contact_count" => 0,
+        "deferred_contact_count" => 0,
+        "row_derived_deferred_contact_count" => 0,
+        "blocked_contact_count" => 0,
+        "row_derived_blocked_contact_count" => 0,
+        "review_row_count" => 0,
+        "row_derived_review_row_count" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not external allocation validation",
+        "checks compact allocation counts, routing maps, and model-limit boundary only"
+      ]
+    },
     "fixture.artifact.contact_allocation_provider_reservation_request_summary.v1" => %{
       "id" => "fixture.artifact.contact_allocation_provider_reservation_request_summary.v1",
       "model_id" => "artifact.contact_allocation_provider_reservation_request_summary.v1",
@@ -15100,6 +15190,60 @@ defmodule OrbitalDynamics.Validation do
         |> sort_grouped_values(),
       "row_derived_capacity_pack_contact_ids_by_direction_and_ground_station_id" =>
         contact_ids_by_direction_and_ground_station_id(capacity_rows),
+      "model_limit_count" => count(artifact, "model_limits")
+    }
+  end
+
+  def artifact_observations("contact_allocation_summary.v1", artifact) when is_map(artifact) do
+    artifact = stringify_keys(artifact)
+    rows = map_rows(artifact, "rows")
+    review_rows = map_rows(artifact, "review_rows")
+    station_pressure_rows = station_pressure_rows(rows)
+
+    %{
+      "schema_contract" => Map.get(artifact, "schema_contract"),
+      "model" => Map.get(artifact, "model"),
+      "source_artifact_type" => Map.get(artifact, "source_artifact_type"),
+      "source" => Map.get(artifact, "source"),
+      "input_contact_count" => Map.get(artifact, "input_contact_count"),
+      "row_derived_input_contact_count" => length(rows),
+      "allocated_contact_count" => Map.get(artifact, "allocated_contact_count"),
+      "row_derived_allocated_contact_count" =>
+        Enum.count(rows, &(Map.get(&1, "allocation_status") == "allocated")),
+      "deferred_contact_count" => Map.get(artifact, "deferred_contact_count"),
+      "row_derived_deferred_contact_count" =>
+        Enum.count(rows, &(Map.get(&1, "allocation_status") == "deferred")),
+      "blocked_contact_count" => Map.get(artifact, "blocked_contact_count"),
+      "row_derived_blocked_contact_count" =>
+        Enum.count(rows, &(Map.get(&1, "allocation_status") == "blocked")),
+      "review_row_count" => Map.get(artifact, "review_row_count"),
+      "row_derived_review_row_count" => length(review_rows),
+      "allocation_status_counts" => Map.get(artifact, "allocation_status_counts"),
+      "row_derived_allocation_status_counts" => row_value_counts(rows, "allocation_status"),
+      "effective_allocation_status_counts" =>
+        Map.get(artifact, "effective_allocation_status_counts"),
+      "row_derived_effective_allocation_status_counts" =>
+        row_value_counts(rows, "effective_allocation_status"),
+      "allocation_reason_counts" => Map.get(artifact, "allocation_reason_counts"),
+      "row_derived_allocation_reason_counts" => row_value_counts(rows, "allocation_reason"),
+      "contact_ids_by_effective_allocation_status" =>
+        Map.get(artifact, "contact_ids_by_effective_allocation_status"),
+      "row_derived_contact_ids_by_effective_allocation_status" =>
+        rows
+        |> group_row_ids_by_value("effective_allocation_status", "contact_id")
+        |> sort_grouped_values(),
+      "station_pressure_contact_ids_by_ground_station_id" =>
+        Map.get(artifact, "station_pressure_contact_ids_by_ground_station_id"),
+      "row_derived_station_pressure_contact_ids_by_ground_station_id" =>
+        station_pressure_rows
+        |> group_row_ids_by_value("ground_station_id", "contact_id")
+        |> sort_grouped_values(),
+      "station_pressure_contact_ids_by_availability" =>
+        Map.get(artifact, "station_pressure_contact_ids_by_availability"),
+      "row_derived_station_pressure_contact_ids_by_availability" =>
+        station_pressure_rows
+        |> group_row_ids_by_value("station_availability", "contact_id")
+        |> sort_grouped_values(),
       "model_limit_count" => count(artifact, "model_limits")
     }
   end
