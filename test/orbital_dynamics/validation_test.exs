@@ -8858,6 +8858,116 @@ defmodule OrbitalDynamics.ValidationTest do
              )
   end
 
+  test "verifies curated timeline transition application selected integrity summary reference fixtures" do
+    fixture_id = "fixture.artifact.timeline_transition_application_selected_integrity_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.timeline_transition_application_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    summary = timeline_transition_application_selected_integrity_summary_fixture()
+
+    observations =
+      timeline_transition_application_selected_integrity_summary_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "selected_timeline_integrity_issue_count" => 1,
+             "selected_timeline_integrity_review_count" => 1,
+             "selected_timeline_integrity_issue_type_counts" => %{
+               "missing_dependency_activity" => 1
+             },
+             "row_derived_selected_timeline_integrity_issue_type_counts" => %{
+               "missing_dependency_activity" => 1
+             },
+             "row_derived_selected_required_operator_action_counts" => %{
+               "review_changed_protected_activity" => 1
+             },
+             "row_derived_selected_review_timeline_ids_by_required_operator_action" => %{
+               "review_changed_protected_activity" => ["timeline:cmd_lock"]
+             },
+             "row_derived_selected_missing_dependency_activity_keys" => "cmd_prereq"
+           } = observations
+
+    stale_selected_issue_count_observations =
+      observations
+      |> Map.put("selected_timeline_integrity_issue_count", 0)
+
+    assert {:ok, stale_selected_issue_count_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_selected_issue_count_observations
+             )
+
+    assert stale_selected_issue_count_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_selected_issue_count_verification["checks"],
+             &(&1["field"] == "selected_timeline_integrity_issue_count" and
+                 &1["status"] == "fail")
+           )
+
+    stale_selected_routing_observations =
+      observations
+      |> put_in(
+        [
+          "row_derived_selected_review_timeline_ids_by_required_operator_action",
+          "review_changed_protected_activity"
+        ],
+        []
+      )
+
+    assert {:ok, stale_selected_routing_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_selected_routing_observations)
+
+    assert stale_selected_routing_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_selected_routing_verification["checks"],
+             &(&1["field"] ==
+                 "row_derived_selected_review_timeline_ids_by_required_operator_action" and
+                 &1["status"] == "fail")
+           )
+
+    stale_selected_dependency_observations =
+      observations
+      |> Map.put("row_derived_selected_missing_dependency_activity_keys", "")
+
+    assert {:ok, stale_selected_dependency_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_selected_dependency_observations
+             )
+
+    assert stale_selected_dependency_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_selected_dependency_verification["checks"],
+             &(&1["field"] == "row_derived_selected_missing_dependency_activity_keys" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_summary} =
+             Schema.validate_artifact(summary,
+               schema_contract: "timeline_transition_application_summary.v1"
+             )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "timeline_transition_application_summary.v1",
+             summary
+           ) ==
+             Validation.artifact_observations(
+               "timeline_transition_application_summary.v1",
+               summary
+             )
+  end
+
   test "verifies curated timeline transition application report reference fixtures" do
     fixture_id = "fixture.artifact.timeline_transition_application_report.v1"
 
@@ -12665,6 +12775,8 @@ defmodule OrbitalDynamics.ValidationTest do
           timeline_transition_application_report_fixture_observations(),
         "fixture.artifact.timeline_transition_application_selected_integrity.v1" =>
           timeline_transition_application_selected_integrity_fixture_observations(),
+        "fixture.artifact.timeline_transition_application_selected_integrity_summary.v1" =>
+          timeline_transition_application_selected_integrity_summary_fixture_observations(),
         "fixture.artifact.timeline_transition_application_summary.v1" =>
           timeline_transition_application_summary_fixture_observations(),
         "fixture.artifact.validation_check.v1" => validation_check_fixture_observations(),
@@ -12680,8 +12792,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 164,
-             "status_counts" => %{"pass" => 164},
+             "fixture_count" => 165,
+             "status_counts" => %{"pass" => 165},
              "reports" => reports
            } = report
 
@@ -12838,6 +12950,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.timeline_preservation_report.v1",
              "fixture.artifact.timeline_transition_application_report.v1",
              "fixture.artifact.timeline_transition_application_selected_integrity.v1",
+             "fixture.artifact.timeline_transition_application_selected_integrity_summary.v1",
              "fixture.artifact.timeline_transition_application_summary.v1",
              "fixture.artifact.validation_check.v1",
              "fixture.artifact.validation_record.v1",
@@ -12862,7 +12975,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 164},
+             "status_counts" => %{"fail" => 165},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -14440,6 +14553,17 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp timeline_transition_application_selected_integrity_fixture do
     read_json!("study_results/timeline_transition_application_selected_integrity_v1.json")
+  end
+
+  defp timeline_transition_application_selected_integrity_summary_fixture_observations do
+    "timeline_transition_application_summary.v1"
+    |> Validation.artifact_observations(
+      timeline_transition_application_selected_integrity_summary_fixture()
+    )
+  end
+
+  defp timeline_transition_application_selected_integrity_summary_fixture do
+    read_json!("study_results/timeline_transition_application_selected_integrity_summary_v1.json")
   end
 
   defp timeline_transition_application_summary_fixture_observations do

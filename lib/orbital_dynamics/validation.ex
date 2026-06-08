@@ -6365,6 +6365,112 @@ defmodule OrbitalDynamics.Validation do
         "checks transition-application summary counts, review routing, and no-authority assumptions"
       ]
     },
+    "fixture.artifact.timeline_transition_application_selected_integrity_summary.v1" => %{
+      "id" => "fixture.artifact.timeline_transition_application_selected_integrity_summary.v1",
+      "model_id" => "artifact.timeline_transition_application_summary.v1",
+      "reference_case" => "checked-in transition application selected-integrity summary artifact",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" =>
+          "study_results/timeline_transition_application_selected_integrity_summary_v1.json",
+        "contract" => "timeline_transition_application_summary.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "timeline_transition_application_summary.v1",
+        "model" => "artifact_only_timeline_transition_application_summary",
+        "validation_level" => "artifact_contract",
+        "source_artifact_type" => "timeline_transition_application_report.v1",
+        "source" => "fixture.timeline.transition_application.selected_integrity",
+        "source_activity_count" => 2,
+        "replacement_activity_count" => 1,
+        "application_count" => 2,
+        "selected_activity_count" => 1,
+        "review_required_count" => 2,
+        "preserved_source_count" => 1,
+        "recorded_replacement_count" => 0,
+        "withheld_review_count" => 1,
+        "review_application_count" => 2,
+        "selected_timeline_integrity_issue_count" => 1,
+        "selected_timeline_integrity_review_count" => 1,
+        "selected_timeline_integrity_issue_type_counts" => %{
+          "missing_dependency_activity" => 1
+        },
+        "row_derived_selected_timeline_integrity_issue_type_counts" => %{
+          "missing_dependency_activity" => 1
+        },
+        "row_derived_selected_required_operator_action_counts" => %{
+          "review_changed_protected_activity" => 1
+        },
+        "row_derived_selected_review_timeline_ids_by_required_operator_action" => %{
+          "review_changed_protected_activity" => ["timeline:cmd_lock"]
+        },
+        "row_derived_selected_missing_dependency_activity_keys" => "cmd_prereq",
+        "application_status_counts" => %{
+          "operator_review_required" => 1,
+          "source_preserved_pending_review" => 1
+        },
+        "transition_decision_counts" => %{"preserve_source" => 1, "review" => 1},
+        "required_operator_action_counts" => %{
+          "review_changed_protected_activity" => 1,
+          "review_removed_activity" => 1
+        },
+        "status_transition_category_counts" => %{"status_removed" => 1},
+        "approval_transition_category_counts" => %{"approval_removed" => 1},
+        "row_derived_application_status_counts" => %{
+          "operator_review_required" => 1,
+          "source_preserved_pending_review" => 1
+        },
+        "row_derived_transition_decision_counts" => %{
+          "preserve_source" => 1,
+          "review" => 1
+        },
+        "row_derived_required_operator_action_counts" => %{
+          "review_changed_protected_activity" => 1,
+          "review_removed_activity" => 1
+        },
+        "row_derived_status_transition_category_counts" => %{"status_removed" => 1},
+        "row_derived_approval_transition_category_counts" => %{"approval_removed" => 1},
+        "review_timeline_ids_by_required_operator_action" => %{
+          "review_changed_protected_activity" => ["timeline:cmd_lock"],
+          "review_removed_activity" => ["timeline:cmd_prereq"]
+        },
+        "row_derived_review_timeline_ids_by_required_operator_action" => %{
+          "review_changed_protected_activity" => ["timeline:cmd_lock"],
+          "review_removed_activity" => ["timeline:cmd_prereq"]
+        },
+        "selected_activity_keys" => "cmd_lock",
+        "selected_timeline_keys" => "timeline:cmd_lock",
+        "review_activity_keys" => "cmd_lock|cmd_prereq",
+        "review_timeline_keys" => "timeline:cmd_lock|timeline:cmd_prereq",
+        "withheld_review_timeline_keys" => "timeline:cmd_prereq",
+        "execution_boundary" => "artifact_only_no_schedule_mutation",
+        "operator_authority" => "not_granted_by_summary",
+        "model_limit_count" => 4
+      },
+      "tolerances" => %{
+        "source_activity_count" => 0,
+        "replacement_activity_count" => 0,
+        "application_count" => 0,
+        "selected_activity_count" => 0,
+        "review_required_count" => 0,
+        "preserved_source_count" => 0,
+        "recorded_replacement_count" => 0,
+        "withheld_review_count" => 0,
+        "review_application_count" => 0,
+        "selected_timeline_integrity_issue_count" => 0,
+        "selected_timeline_integrity_review_count" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "generated by OrbitalDynamics.timeline_transition_application_summary/3",
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not external transition validation evidence",
+        "checks compact selected-integrity summary routing and no-authority assumptions"
+      ]
+    },
     "fixture.artifact.operational_timeline_report.v1" => %{
       "id" => "fixture.artifact.operational_timeline_report.v1",
       "model_id" => "artifact.operational_timeline_report.v1",
@@ -14623,6 +14729,16 @@ defmodule OrbitalDynamics.Validation do
     artifact = stringify_keys(artifact)
     review_applications = map_rows(artifact, "review_applications")
 
+    selected_integrity_review_applications =
+      Enum.filter(
+        review_applications,
+        &(Map.get(&1, "selected_timeline_integrity_status") == "review_required")
+      )
+
+    selected_integrity_issue_types =
+      review_applications
+      |> Enum.flat_map(&list_values(&1, "selected_timeline_integrity_issue_types"))
+
     %{
       "schema_contract" => Map.get(artifact, "schema_contract"),
       "model" => Map.get(artifact, "model"),
@@ -14638,6 +14754,26 @@ defmodule OrbitalDynamics.Validation do
       "recorded_replacement_count" => Map.get(artifact, "recorded_replacement_count"),
       "withheld_review_count" => Map.get(artifact, "withheld_review_count"),
       "review_application_count" => length(review_applications),
+      "selected_timeline_integrity_issue_count" =>
+        Map.get(artifact, "selected_timeline_integrity_issue_count"),
+      "selected_timeline_integrity_review_count" =>
+        Map.get(artifact, "selected_timeline_integrity_review_count"),
+      "selected_timeline_integrity_issue_type_counts" =>
+        artifact
+        |> list_values("selected_timeline_integrity_issue_types")
+        |> list_value_counts(),
+      "row_derived_selected_timeline_integrity_issue_type_counts" =>
+        list_value_counts(selected_integrity_issue_types),
+      "row_derived_selected_required_operator_action_counts" =>
+        count_rows_by_value(selected_integrity_review_applications, "required_operator_action"),
+      "row_derived_selected_review_timeline_ids_by_required_operator_action" =>
+        selected_integrity_review_applications
+        |> group_row_ids_by_value("required_operator_action", "timeline_id")
+        |> sort_grouped_values(),
+      "row_derived_selected_missing_dependency_activity_keys" =>
+        review_applications
+        |> Enum.flat_map(&list_values(&1, "selected_missing_dependency_activity_ids"))
+        |> stable_id_keys(),
       "application_status_counts" => Map.get(artifact, "application_status_counts"),
       "transition_decision_counts" => Map.get(artifact, "transition_decision_counts"),
       "required_operator_action_counts" => Map.get(artifact, "required_operator_action_counts"),

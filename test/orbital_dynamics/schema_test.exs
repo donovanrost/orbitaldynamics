@@ -12787,6 +12787,101 @@ defmodule OrbitalDynamics.SchemaTest do
     assert summary["model_limits"] == OrbitalDynamics.Timeline.model_limits()
   end
 
+  test "validates checked-in timeline transition application selected integrity summary fixture" do
+    summary =
+      read_json!(
+        "study_results/timeline_transition_application_selected_integrity_summary_v1.json"
+      )
+
+    dependency = %{
+      id: :cmd_prereq,
+      type: :command,
+      status: :planned,
+      approval_status: :pending,
+      starts_at_s: 0.0,
+      ends_at_s: 5.0,
+      metadata: %{timeline_id: :"timeline:cmd_prereq"}
+    }
+
+    protected_source = %{
+      id: :cmd_lock,
+      type: :command,
+      status: :planned,
+      approval_status: :approved,
+      locked: true,
+      starts_at_s: 10.0,
+      ends_at_s: 20.0,
+      depends_on: [:cmd_prereq],
+      metadata: %{timeline_id: :"timeline:cmd_lock"}
+    }
+
+    protected_replacement = %{
+      id: :cmd_lock,
+      type: :command,
+      status: :planned,
+      approval_status: :approved,
+      locked: true,
+      starts_at_s: 12.0,
+      ends_at_s: 22.0,
+      depends_on: [:cmd_prereq],
+      metadata: %{timeline_id: :"timeline:cmd_lock"}
+    }
+
+    generated_summary =
+      OrbitalDynamics.timeline_transition_application_summary(
+        [dependency, protected_source],
+        [protected_replacement],
+        source: "fixture.timeline.transition_application.selected_integrity"
+      )
+
+    assert generated_summary == summary
+
+    assert {:ok, %{"schema_contract" => "timeline_transition_application_summary.v1"}} =
+             Schema.validate_artifact(summary)
+
+    assert %{
+             "schema_contract" => "timeline_transition_application_summary.v1",
+             "model" => "artifact_only_timeline_transition_application_summary",
+             "validation_level" => "artifact_contract",
+             "source_artifact_type" => "timeline_transition_application_report.v1",
+             "source" => "fixture.timeline.transition_application.selected_integrity",
+             "source_activity_count" => 2,
+             "replacement_activity_count" => 1,
+             "application_count" => 2,
+             "selected_activity_count" => 1,
+             "review_required_count" => 2,
+             "preserved_source_count" => 1,
+             "withheld_review_count" => 1,
+             "selected_timeline_integrity_issue_count" => 1,
+             "selected_timeline_integrity_review_count" => 1,
+             "selected_timeline_integrity_issue_types" => ["missing_dependency_activity"],
+             "review_timeline_ids_by_required_operator_action" => %{
+               "review_changed_protected_activity" => ["timeline:cmd_lock"],
+               "review_removed_activity" => ["timeline:cmd_prereq"]
+             },
+             "selected_activity_ids" => ["cmd_lock"],
+             "selected_timeline_ids" => ["timeline:cmd_lock"],
+             "review_activity_ids" => ["cmd_lock", "cmd_prereq"],
+             "review_timeline_ids" => ["timeline:cmd_lock", "timeline:cmd_prereq"],
+             "withheld_review_timeline_ids" => ["timeline:cmd_prereq"]
+           } = summary
+
+    assert [
+             %{
+               "timeline_id" => "timeline:cmd_lock",
+               "application_status" => "source_preserved_pending_review",
+               "selected_timeline_integrity_status" => "review_required",
+               "selected_timeline_integrity_issue_types" => ["missing_dependency_activity"],
+               "selected_missing_dependency_activity_ids" => ["cmd_prereq"]
+             },
+             %{
+               "timeline_id" => "timeline:cmd_prereq",
+               "application_status" => "operator_review_required",
+               "required_operator_action" => "review_removed_activity"
+             }
+           ] = summary["review_applications"]
+  end
+
   test "exports timeline activity precondition summary schema fields" do
     assert {:ok, schema} = Schema.json_schema("timeline_activity_precondition_summary.v1")
 

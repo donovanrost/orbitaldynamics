@@ -962,14 +962,18 @@ Executable validation rejects stale issue counts and stale row-derived
 issue-type maps before integrity summaries can steer review/import routing.
 `study_results/timeline_transition_application_summary_v1.json` now feeds a
 curated `timeline_transition_application_summary.v1` validation-reference
-fixture. The observations check selected/review/preserved/withheld counts,
-application status and transition-decision maps, required-action routing,
-review timeline IDs by operator action, row-derived review-application
-transition categories, and no-schedule-mutation/no-authority assumptions.
+fixture. `study_results/timeline_transition_application_selected_integrity_summary_v1.json`
+also feeds a curated summary fixture for the selected missing-dependency review
+gate. The observations check selected/review/preserved/withheld counts,
+selected-integrity issue/action/dependency routing, application status and
+transition-decision maps, required-action routing, review timeline IDs by
+operator action, row-derived review-application transition categories, and
+no-schedule-mutation/no-authority assumptions.
 CandidateRefresh replay of generated transition summaries is also pinned by a
 validation-reference fixture, including selected-integrity review/issue counts
 and required timeline-integrity review actions.
-Executable validation rejects stale review-required counts and stale
+Executable validation rejects stale review-required counts, stale
+selected-integrity counts, stale selected-integrity routing, and stale
 row-derived required-action maps before compact transition summaries can steer
 review/import routing.
 Focused schema-reference coverage also regenerates the checked-in fixture
@@ -977,7 +981,9 @@ exactly through
 `OrbitalDynamics.timeline_transition_application_summary/3` from deterministic
 source/replacement activities before schema validation, pinning selected,
 review, preserved, and withheld routing, transition status maps, model limits,
-and the no-schedule-mutation/no-authority boundary.
+and the no-schedule-mutation/no-authority boundary. The selected-integrity
+summary fixture exact-regenerates the same missing-dependency review-gate case
+through the public facade before schema validation.
 `study_results/timeline_publication_summary_v1.json` now feeds a curated
 `timeline_publication_summary.v1` validation-reference fixture. The observations
 check publication identity/status, supersession, downstream invalidation IDs,
