@@ -8,10 +8,11 @@ Current slice:
 Make relay data-path summaries branch-visible as link-capacity pressure.
 
 Status:
-Selected; implementation pending.
-`relay_data_path_summary.v1` handoffs are CandidateRefresh-visible as compact
-link-capacity provenance, but CampaignPlanner currently derives branch pressure
-from link-capacity reports/summaries only.
+Implemented and parent-verified.
+`relay_data_path_summary.v1` handoffs now derive planner-visible
+link-capacity pressure with relay-route, custody, latency, risk, station,
+ground-downlink contact, trust-boundary, and artifact-only no-authority
+evidence.
 
 Slice-selection note:
 - Selected slice: derive branch-local link-capacity pressure from
@@ -48,32 +49,31 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs .codex/status/autonomous_product_loop.md`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:42119` (1 passed, 676 excluded)
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:42119 test/orbital_dynamics/candidate_refresh_test.exs:30035` (2 passed, 1416 excluded)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:26837` (1 passed, 677 excluded)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:26837 test/orbital_dynamics/candidate_refresh_test.exs:11844` (2 passed, 1417 excluded)
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- None expected; this is a planner/test slice for an existing readiness summary
-  artifact.
+- None expected; this is a planner/test slice for an existing relay data-path
+  summary artifact.
 
 Local review:
 - Direct, canonical, and result-artifact
-  `operational_readiness_gate_summary.v1` inputs now feed derived
-  operational-readiness pressure.
-- Summary-derived events carry readiness/import/status evidence, gate counts,
-  status/classification maps, gate ID routing, trust boundaries, and
-  no-authority assumptions.
-- Source paths distinguish direct, canonical, and wrapped result-artifact
-  summary rows.
-- Branch comparison rows expose readiness levels, import classifications,
-  statuses, gate statuses/classifications, and review/analysis/blocked/non-passed
-  gate IDs.
+  `relay_data_path_summary.v1` inputs now feed derived link-capacity pressure.
+- Summary-derived relay pressure events carry route IDs, source/relay
+  spacecraft IDs, custody/latency/risk statuses and counts, ground-station and
+  ground-downlink contact evidence, trust boundaries, and no-scheduling /
+  no-provider-write assumptions.
+- Strategy mission-state normalization now preserves direct relay summary fields
+  alongside existing result-artifact wrappers.
+- Branch comparison rows expose `relay_data_path_pressure` risk types and score
+  penalties without inventing downlink volume demand or mutating schedules.
 
 Level 6 pillar advanced:
-Compact Cadence-facing readiness summaries now affect V2/V3 branch scoring and
-comparison without reopening full readiness reports or granting import/operator
-authority.
+Compact Cadence-facing relay route summaries now affect V2/V3 branch scoring and
+comparison without reopening full relay reports, mutating schedules, writing
+provider reservations, or granting operator/provider authority.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -83,7 +83,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`aa4cb47` Derive readiness gate summary pressure.
+`3920603` Derive relay data path pressure.
 
 Next candidate:
 Reinspect live code for the next planner-visible resource/contact evidence gap.
@@ -93,6 +93,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `3920603` derived relay data-path summary pressure branches.
 - `aa4cb47` derived operational-readiness gate-summary pressure branches.
 - `fe0ac70` derived timeline preservation report/status pressure branches.
 - `f75382e` derived timeline activity-precondition summary pressure branches.
