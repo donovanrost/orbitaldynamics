@@ -14266,6 +14266,16 @@ defmodule OrbitalDynamics.ValidationTest do
              "reports" => reports
            } = report
 
+    checked_in_report = read_json!("study_results/validation_reference_fixtures.json")
+
+    assert checked_in_report == report
+
+    stale_checked_in_report =
+      checked_in_report
+      |> Map.update!("fixture_count", &(&1 - 1))
+
+    refute stale_checked_in_report == report
+
     assert Enum.map(reports, & &1["fixture_id"]) == [
              "fixture.artifact.accepted_planning_state.oem",
              "fixture.artifact.accepted_planning_state.opm",
