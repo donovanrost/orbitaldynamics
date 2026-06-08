@@ -41,7 +41,7 @@ preserve routing evidence that review/import or CandidateRefresh replay still
 does not consume.
 
 Last commit:
-Product commit pending.
+Product commit `22f9e7f1f935a8ae19ee9ee52ece9fd80c1879db`.
 
 Next candidate:
 Reassess the next weak resource/contact/provider summary, CandidateRefresh
