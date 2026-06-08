@@ -5,37 +5,45 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Provider-reservation request effective-status routing.
+Branch-local provider-reservation request effective-status replay.
 
 Status:
-Implemented and parent-verified. Provider-reservation request summaries now
-exclude allocated reservation rows whose `effective_allocation_status` is
-`policy_blocked`, so approval-blocked contacts cannot be routed as
-provider-request-ready work. Legacy allocation rows that omit
-`effective_allocation_status` are normalized before summary derivation, keeping
-older allocated reservation rows request-ready and schema-valid.
+Implemented and parent-verified. Candidate refresh now accepts
+provider-reservation request summaries that carry full `rows` without separate
+request/review row lists, rehydrates those full-row summaries through
+`ContactAllocation.provider_reservation_request_summary/1`, and derives replay
+counts, IDs, routing maps, and match-status reservation IDs from normalized
+rows instead of stale top-level aggregates. Allocated rows whose effective
+status is `policy_blocked` stay out of provider-request-ready routing, while
+legacy allocated rows that omit `effective_allocation_status` still normalize
+as request-ready when their reservation match is ready. Aggregate-only rowless
+summaries from the same artifact model are still accepted through the explicit
+top-level fallback path.
 
 Files changed:
-- `lib/orbital_dynamics/communications/contact_allocation.ex`
-- `lib/orbital_dynamics/schema.ex`
-- `test/orbital_dynamics/communications/contact_allocation_test.exs`
+- `lib/orbital_dynamics/candidate_refresh.ex`
+- `test/orbital_dynamics/candidate_refresh_test.exs`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:7236`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:7370`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `mix test test/orbital_dynamics/communications/contact_allocation_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs`
 - `git diff --check`
-- `mix test` (3224 passed; known `:propagator_exit` test log observed and suite exited green)
+- `mix test` (3226 passed; known `:propagator_exit` test log observed and suite exited green)
 
 Docs/artifacts changed:
-- No public docs or schema exports changed; this tightens existing
-  `contact_allocation_provider_reservation_request_summary.v1` derivation and
-  executable validation behavior.
+- No public docs or schema exports changed; this tightens candidate-refresh
+  replay semantics for the existing
+  `contact_allocation_provider_reservation_request_summary.v1` artifact family.
 
 Level 6 pillar advanced:
 Fleet-level resource/contact/station-calendar allocation behavior plus
-approval-aware provider-boundary routing. Provider reservation queues now follow
-effective allocation status rather than raw allocation status alone.
+approval-aware provider-boundary routing in branch-local refresh replay.
+Candidate-refresh source-report provenance now preserves the direct
+contact-allocation effective-status boundary instead of reintroducing
+policy-blocked provider requests from stale replay aggregates.
 
 Remaining maturity gaps:
 Resource/contact allocation still needs deeper planner-visible behavior for
@@ -44,7 +52,7 @@ Typed timeline lifecycle/publication semantics still need additional Level 6
 hardening.
 
 Last commit:
-`e74d003` Honor effective status in reservation requests.
+`54fd7ed` Replay provider reservation requests from rows.
 
 Next candidate:
 Reassess Level 6 gaps from the guide/ledger. Likely candidates include
@@ -57,17 +65,16 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slice:
+- `e74d003` honored effective status in provider-reservation request summaries.
 - `5b7f273` updated the quality-gate resource handoff.
 - `003073f` validated quality-gate resource handoff evidence.
 - `f9c215e` updated the transition evidence handoff.
 - `6f3b981` validated transition selected activity evidence.
-- `e135525` updated the study artifact freshness handoff.
-- `efd2aa9` refreshed study schema validation artifacts.
 
 Blocked:
 No.
 
 Notes:
-- Read-only reviewer found a must-fix legacy-row validation gap after the first
-  verification pass. The final slice includes the compatibility fix and reran
-  focused plus full verification.
+- Read-only reviewer found no issue with the full-row policy-blocked behavior
+  and flagged a missing aggregate-only rowless fallback regression. The final
+  slice includes that detection/test follow-up.
