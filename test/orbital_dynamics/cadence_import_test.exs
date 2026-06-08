@@ -3381,7 +3381,8 @@ defmodule OrbitalDynamics.CadenceImportTest do
                "requirement_type" => "contact_schedule_change",
                "policy_bundle_id" => "polar_link_capacity_guard_v1",
                "has_cadence_import" => false,
-               "source" => "candidate_refresh.source_result_artifact[0].link_capacity_report.rows",
+               "source" =>
+                 "candidate_refresh.source_result_artifact[0].link_capacity_report.rows",
                "source_link_capacity" => ^source_row,
                "source_review_row" => %{
                  "source" =>
@@ -4305,7 +4306,9 @@ defmodule OrbitalDynamics.CadenceImportTest do
            } = affected_row
 
     assert affected_row["source_station_reservation"] == affected_contact
-    assert get_in(affected_row, ["source_review_row", "source_station_reservation"]) == affected_contact
+
+    assert get_in(affected_row, ["source_review_row", "source_station_reservation"]) ==
+             affected_contact
 
     provider_contention_row =
       Enum.find(
@@ -12203,6 +12206,13 @@ defmodule OrbitalDynamics.CadenceImportTest do
         "station_pressure_contact_ids_by_precedence_rank" => %{
           "0" => ["dl_campaign_station"]
         },
+        "station_pressure_contact_counts_by_status" => %{"maintenance_window" => 1},
+        "station_pressure_contact_ids_by_status" => %{
+          "maintenance_window" => ["dl_campaign_station"]
+        },
+        "station_pressure_contact_ids_by_direction_and_ground_station_id" => %{
+          "downlink" => %{"gs_campaign" => ["dl_campaign_station"]}
+        },
         "capacity_pack_required_capacity_fraction" => 0.25,
         "capacity_pack_selected_required_capacity_fraction" => 0.25,
         "capacity_pack_deferred_required_capacity_fraction" => 0.0,
@@ -12277,6 +12287,13 @@ defmodule OrbitalDynamics.CadenceImportTest do
         "station_pressure_contact_counts_by_precedence_rank" => %{"1" => 1},
         "station_pressure_contact_ids_by_precedence_rank" => %{
           "1" => ["dl_refresh_station_a"]
+        },
+        "station_pressure_contact_counts_by_status" => %{"reservation_hold" => 2},
+        "station_pressure_contact_ids_by_status" => %{
+          "reservation_hold" => ["dl_refresh_station_a", "dl_refresh_station_b"]
+        },
+        "station_pressure_contact_ids_by_direction_and_ground_station_id" => %{
+          "downlink" => %{"gs_refresh" => ["dl_refresh_station_a", "dl_refresh_station_b"]}
         },
         "capacity_pack_required_capacity_fraction" => 0.5,
         "capacity_pack_selected_required_capacity_fraction" => 0.25,
@@ -12631,6 +12648,18 @@ defmodule OrbitalDynamics.CadenceImportTest do
              "0" => ["dl_campaign_station"]
            }
 
+    assert campaign["station_pressure_contact_counts_by_status"] == %{
+             "maintenance_window" => 1
+           }
+
+    assert campaign["station_pressure_contact_ids_by_status"] == %{
+             "maintenance_window" => ["dl_campaign_station"]
+           }
+
+    assert campaign["station_pressure_contact_ids_by_direction_and_ground_station_id"] == %{
+             "downlink" => %{"gs_campaign" => ["dl_campaign_station"]}
+           }
+
     assert campaign["capacity_pack_required_capacity_fraction"] == 0.25
     assert campaign["capacity_pack_selected_required_capacity_fraction"] == 0.25
     assert campaign["capacity_pack_deferred_required_capacity_fraction"] == 0.0
@@ -12730,6 +12759,20 @@ defmodule OrbitalDynamics.CadenceImportTest do
 
     assert refresh["station_pressure_contact_ids_by_precedence_rank"] == %{
              "1" => ["dl_refresh_station_a"]
+           }
+
+    assert refresh["station_pressure_contact_counts_by_status"] == %{
+             "reservation_hold" => 2
+           }
+
+    assert refresh["station_pressure_contact_ids_by_status"] == %{
+             "reservation_hold" => ["dl_refresh_station_a", "dl_refresh_station_b"]
+           }
+
+    assert refresh["station_pressure_contact_ids_by_direction_and_ground_station_id"] == %{
+             "downlink" => %{
+               "gs_refresh" => ["dl_refresh_station_a", "dl_refresh_station_b"]
+             }
            }
 
     assert refresh["capacity_pack_required_capacity_fraction"] == 0.5

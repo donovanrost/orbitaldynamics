@@ -13067,6 +13067,10 @@ defmodule OrbitalDynamics.OperatorReview do
       "blocked_contact_count" => summary["blocked_contact_count"],
       "review_contact_ids" => summary["review_contact_ids"],
       "station_pressure_review_contact_ids" => summary["station_pressure_review_contact_ids"],
+      "station_pressure_contact_ids_by_status" =>
+        summary["station_pressure_contact_ids_by_status"],
+      "station_pressure_contact_ids_by_direction_and_ground_station_id" =>
+        summary["station_pressure_contact_ids_by_direction_and_ground_station_id"],
       "reservation_review_contact_ids" => summary["reservation_review_contact_ids"],
       "capacity_pack_review_status" => summary["capacity_pack_review_status"],
       "reduced_capacity_pack_group_count" => summary["reduced_capacity_pack_group_count"],
@@ -16737,6 +16741,10 @@ defmodule OrbitalDynamics.OperatorReview do
       reports,
       "station_pressure_contact_counts_by_precedence_rank"
     )
+    |> put_contact_allocation_count_summary(
+      reports,
+      "station_pressure_contact_counts_by_status"
+    )
     |> put_contact_allocation_scalar_count_summary(
       reports,
       "station_pressure_contact_count"
@@ -16953,6 +16961,14 @@ defmodule OrbitalDynamics.OperatorReview do
     |> put_contact_allocation_id_map_summary(
       reports,
       "station_pressure_contact_ids_by_precedence_rank"
+    )
+    |> put_contact_allocation_id_map_summary(
+      reports,
+      "station_pressure_contact_ids_by_status"
+    )
+    |> put_contact_allocation_nested_id_map_summary(
+      reports,
+      "station_pressure_contact_ids_by_direction_and_ground_station_id"
     )
   end
 

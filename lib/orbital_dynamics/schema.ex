@@ -53638,6 +53638,26 @@ defmodule OrbitalDynamics.Schema do
       artifact,
       "station_pressure_contact_ids_by_precedence_rank"
     )
+    |> expect_optional_type(
+      path,
+      artifact,
+      "station_pressure_contact_counts_by_status",
+      :map
+    )
+    |> validate_non_negative_integer_count_map(
+      path <> ".station_pressure_contact_counts_by_status",
+      Map.get(artifact, "station_pressure_contact_counts_by_status")
+    )
+    |> validate_optional_stable_id_array_map(
+      path,
+      artifact,
+      "station_pressure_contact_ids_by_status"
+    )
+    |> validate_optional_nested_stable_id_array_map(
+      path,
+      artifact,
+      "station_pressure_contact_ids_by_direction_and_ground_station_id"
+    )
     |> expect_optional_non_negative_number(
       path,
       artifact,
