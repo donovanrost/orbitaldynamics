@@ -79,7 +79,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Previous slice: `b9fed8e` Derive timeline integrity pressure branches.
+`9c45b20` Derive timeline dependency impact pressure branches.
 
 Next candidate:
 After this slice, continue guide-priority typed timeline/publication pressure
@@ -90,6 +90,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `9c45b20` derived timeline dependency-impact summary pressure branches.
 - `b9fed8e` derived timeline-integrity report pressure branches.
 - `7ebe694` derived prior-plan contact-allocation summary pressure branches.
 - `a97d1ca` derived mission-state contact-allocation summary pressure branches.
