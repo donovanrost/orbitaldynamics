@@ -16358,6 +16358,154 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(import)
   end
 
+  test "CandidateRefresh lifts all nested transition application source paths" do
+    report = %{
+      "schema_contract" => "timeline_transition_application_report.v1",
+      "source" => "nested.timeline_transition_application_report",
+      "applications" => [
+        %{
+          "id" => "timeline_transition_application:timeline:cmd_nested_transition",
+          "rank" => 1,
+          "timeline_id" => "timeline:cmd_nested_transition",
+          "diff_status" => "added",
+          "changed_fields" => ["activity_added"],
+          "transition_decision" => "review",
+          "application_status" => "operator_review_required",
+          "selected_activity_source" => "replacement",
+          "selected_activity" => %{
+            "activity_id" => "cmd_nested_transition",
+            "starts_at_s" => 40.0,
+            "ends_at_s" => 50.0
+          },
+          "requires_operator_review" => true,
+          "required_operator_action" => "review_timeline_change",
+          "reason" => "replacement timeline adds command activity cmd_nested_transition",
+          "source_timeline_diff" => %{
+            "id" => "timeline_diff:timeline:cmd_nested_transition",
+            "rank" => 1,
+            "timeline_id" => "timeline:cmd_nested_transition",
+            "diff_status" => "added",
+            "replacement_activity_id" => "cmd_nested_transition",
+            "replacement_activity_type" => "command",
+            "changed_fields" => ["activity_added"],
+            "requires_operator_review" => true,
+            "required_operator_action" => "review_timeline_change",
+            "reason" => "replacement timeline adds command activity cmd_nested_transition"
+          }
+        }
+      ]
+    }
+
+    summary =
+      timeline_transition_application_summary()
+      |> Map.put("source", "nested.timeline_transition_application_summary")
+
+    cases = [
+      {"accepted_planning_state", "source_timeline_transition_application_report", report,
+       ".applications", 1, "source_timeline_application"},
+      {"accepted_planning_state", "timeline_transition_application_report", report,
+       ".applications", 1, "source_timeline_application"},
+      {"mission_state", "source_timeline_transition_application_report", report, ".applications",
+       1, "source_timeline_application"},
+      {"mission_state", "timeline_transition_application_report", report, ".applications", 1,
+       "source_timeline_application"},
+      {"accepted_planning_state", "source_timeline_transition_application_summary", summary,
+       ".review_applications", 3, "source_timeline_transition_application_summary"},
+      {"accepted_planning_state", "timeline_transition_application_summary", summary,
+       ".review_applications", 3, "source_timeline_transition_application_summary"},
+      {"mission_state", "source_timeline_transition_application_summary", summary,
+       ".review_applications", 3, "source_timeline_transition_application_summary"},
+      {"mission_state", "timeline_transition_application_summary", summary,
+       ".review_applications", 3, "source_timeline_transition_application_summary"}
+    ]
+
+    Enum.each(cases, fn {state_key, field, payload, source_suffix, expected_count,
+                         source_payload_key} ->
+      source = "candidate_refresh.#{state_key}.#{field}#{source_suffix}"
+
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "refresh_id" => "refresh:#{state_key}:#{field}",
+        state_key => %{field => payload}
+      }
+
+      review = OperatorReview.from_candidate_refresh_artifact(artifact)
+      import = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+      rows = Enum.filter(review["rows"], &(&1["source"] == source))
+
+      import_rows =
+        Enum.filter(import["rows"], &(get_in(&1, ["source_review_row", "source"]) == source))
+
+      assert length(rows) == expected_count
+      assert length(import_rows) == expected_count
+
+      assert %{
+               "review_count" => ^expected_count,
+               "timeline_diff_count" => ^expected_count
+             } = review
+
+      assert %{"row_count" => ^expected_count} = import
+
+      assert Enum.all?(rows, &(&1["review_type"] == "timeline_diff_review"))
+      assert Enum.all?(rows, &is_map(&1[source_payload_key]))
+      assert Enum.all?(import_rows, &(&1["source_review_type"] == "timeline_diff_review"))
+
+      assert Enum.all?(
+               import_rows,
+               &is_map(get_in(&1, ["source_review_row", source_payload_key]))
+             )
+    end)
+
+    wrapped_cases = [
+      {%{"source_result_artifact" => [report]},
+       "candidate_refresh.source_result_artifact[0].applications"},
+      {%{
+         "result_artifact" => %{
+           "schema_contract" => "result_artifact.v1",
+           "timeline_transition_application_report" => report
+         }
+       }, "candidate_refresh.result_artifact.timeline_transition_application_report.applications"}
+    ]
+
+    Enum.each(wrapped_cases, fn {artifact_fields, source} ->
+      artifact =
+        Map.merge(
+          %{
+            "schema_contract" => "candidate_refresh.v1",
+            "refresh_id" => "refresh:wrapped_transition_application_report"
+          },
+          artifact_fields
+        )
+
+      review = OperatorReview.from_candidate_refresh_artifact(artifact)
+      import = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+      assert [
+               %{
+                 "review_type" => "timeline_diff_review",
+                 "source" => ^source,
+                 "timeline_id" => "timeline:cmd_nested_transition",
+                 "source_timeline_application" => %{
+                   "application_status" => "operator_review_required"
+                 }
+               }
+             ] = review["rows"]
+
+      assert [
+               %{
+                 "source_review_type" => "timeline_diff_review",
+                 "source_review_row" => %{
+                   "source" => ^source,
+                   "source_timeline_application" => %{
+                     "application_status" => "operator_review_required"
+                   }
+                 }
+               }
+             ] = import["rows"]
+    end)
+  end
+
   test "timeline diff summaries become operator review rows" do
     summary = timeline_diff_summary()
     package = OperatorReview.from_timeline_diff_summary(summary)

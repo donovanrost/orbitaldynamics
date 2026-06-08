@@ -1996,11 +1996,16 @@ The same replay family accepts direct, accepted-state, mission-state, exact
 review activity IDs, review/withheld/preserved counts, status/decision/action
 maps, source paths, and trust-boundary evidence without expanding the summary
 into an applied transition or mutating timelines.
-`OperatorReview.from_candidate_refresh_artifact/1` also lifts direct
-`source_timeline_transition_application_report` and
-`timeline_transition_application_report` applications into `timeline_diff_review`
-rows with `candidate_refresh.*` source paths. This preserves application context
-for review without applying transitions or mutating timelines.
+`OperatorReview.from_candidate_refresh_artifact/1` and
+`CadenceImport.from_candidate_refresh_artifact/1` also lift direct,
+accepted-state, mission-state, and wrapped
+`source_timeline_transition_application_report` /
+`timeline_transition_application_report` applications plus compact
+`source_timeline_transition_application_summary` /
+`timeline_transition_application_summary` review applications into
+`timeline_diff_review` / review-import rows with `candidate_refresh.*` source
+paths. This preserves application context for review without applying
+transitions or mutating timelines.
 The replay helper can inspect V3 branch `candidate_source` metadata that carries
 `candidate_refresh_request_source_report_summary`, so strategy-derived branch
 refreshes preserve transition-application selection/review/duplicate pressure

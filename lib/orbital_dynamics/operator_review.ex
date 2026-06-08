@@ -5950,6 +5950,17 @@ defmodule OrbitalDynamics.OperatorReview do
   defp candidate_refresh_timeline_transition_application_rows(artifact) do
     report_rows =
       [
+        {"candidate_refresh.accepted_planning_state.source_timeline_transition_application_report",
+         get_in(artifact, [
+           "accepted_planning_state",
+           "source_timeline_transition_application_report"
+         ])},
+        {"candidate_refresh.accepted_planning_state.timeline_transition_application_report",
+         get_in(artifact, ["accepted_planning_state", "timeline_transition_application_report"])},
+        {"candidate_refresh.mission_state.source_timeline_transition_application_report",
+         get_in(artifact, ["mission_state", "source_timeline_transition_application_report"])},
+        {"candidate_refresh.mission_state.timeline_transition_application_report",
+         get_in(artifact, ["mission_state", "timeline_transition_application_report"])},
         {"candidate_refresh.source_timeline_transition_application_report",
          artifact["source_timeline_transition_application_report"]},
         {"candidate_refresh.timeline_transition_application_report",
@@ -5961,6 +5972,17 @@ defmodule OrbitalDynamics.OperatorReview do
 
     summary_rows =
       [
+        {"candidate_refresh.accepted_planning_state.source_timeline_transition_application_summary",
+         get_in(artifact, [
+           "accepted_planning_state",
+           "source_timeline_transition_application_summary"
+         ])},
+        {"candidate_refresh.accepted_planning_state.timeline_transition_application_summary",
+         get_in(artifact, ["accepted_planning_state", "timeline_transition_application_summary"])},
+        {"candidate_refresh.mission_state.source_timeline_transition_application_summary",
+         get_in(artifact, ["mission_state", "source_timeline_transition_application_summary"])},
+        {"candidate_refresh.mission_state.timeline_transition_application_summary",
+         get_in(artifact, ["mission_state", "timeline_transition_application_summary"])},
         {"candidate_refresh.source_timeline_transition_application_summary",
          artifact["source_timeline_transition_application_summary"]},
         {"candidate_refresh.timeline_transition_application_summary",
@@ -6039,17 +6061,32 @@ defmodule OrbitalDynamics.OperatorReview do
     source_timeline_transition_application_summary_rows(summary, source)
   end
 
+  defp result_artifact_timeline_transition_application_rows(
+         %{"schema_contract" => "timeline_transition_application_report.v1"} = report,
+         source
+       ) do
+    source_timeline_transition_application_report_rows(report, source)
+  end
+
   defp result_artifact_timeline_transition_application_rows(%{} = artifact, source) do
     artifact = stringify_keys(artifact)
 
     [
+      {"#{source}.source_timeline_transition_application_report",
+       artifact["source_timeline_transition_application_report"]},
+      {"#{source}.timeline_transition_application_report",
+       artifact["timeline_transition_application_report"]},
       {"#{source}.source_timeline_transition_application_summary",
        artifact["source_timeline_transition_application_summary"]},
       {"#{source}.timeline_transition_application_summary",
        artifact["timeline_transition_application_summary"]}
     ]
-    |> Enum.flat_map(fn {summary_source, summary_or_summaries} ->
-      source_timeline_transition_application_summary_rows(summary_or_summaries, summary_source)
+    |> Enum.flat_map(fn {source_field, report_or_summary} ->
+      if String.ends_with?(source_field, "_report") do
+        source_timeline_transition_application_report_rows(report_or_summary, source_field)
+      else
+        source_timeline_transition_application_summary_rows(report_or_summary, source_field)
+      end
     end)
   end
 
