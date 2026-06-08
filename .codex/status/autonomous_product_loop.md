@@ -5,37 +5,36 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Wrapped operational import-eligibility summary Cadence import coverage.
+Wrapped timeline dependency-impact summary Cadence import coverage.
 
 Status:
 Product commit complete. Implementation, focused verification, read-only
-`slice_reviewer` handoff, and push are complete. CandidateRefresh
-Cadence-import regression coverage now pins result-artifact-wrapped
-`operational_import_eligibility_summary.v1` handoffs. The test asserts exact
-wrapper-qualified source paths, operational-readiness import actions,
-review-only import classification, readiness/gate counts, embedded compact
-summary contracts, no Cadence import application, no command execution, no
-Cadence write, and no operator-authority grant.
+`slice_reviewer` handoff, and push are complete. CandidateRefresh Cadence-import
+regression coverage now pins result-artifact-wrapped
+`timeline_dependency_impact_summary.v1` handoffs. The test asserts
+wrapper-qualified source-review lineage, dependency-impact import actions, review-only
+import status, source/replacement dependency-impact scopes, impacted dependency
+and exclusivity ID sets, embedded source rows, and schema validation.
 
 Files changed:
 - `test/orbital_dynamics/cadence_import_test.exs`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/cadence_import_test.exs:2253` (1 passed)
-- `mix test test/orbital_dynamics/cadence_import_test.exs` (96 passed)
+- `mix test test/orbital_dynamics/cadence_import_test.exs:2583` (1 passed)
+- `mix test test/orbital_dynamics/cadence_import_test.exs` (97 passed)
 - `mix test test/orbital_dynamics/operator_review_test.exs` (202 passed)
 - `git diff --check`
 - `slice_reviewer` read-only review found no blocking findings.
 
 Docs/artifacts changed:
-- None; this slice pins already documented/runtime-supported compact
-  operational import-eligibility handoffs.
+None; this slice pins already documented/runtime-supported compact timeline
+dependency-impact handoffs.
 
 Level 6 pillar advanced:
 Durable schema-versioned artifacts and approval-aware Cadence import readiness:
-result-artifact-wrapped operational import-eligibility summaries now have
-executable Cadence import compatibility coverage.
+result-artifact-wrapped dependency-impact summaries now have executable Cadence
+import compatibility coverage for adapter routing.
 
 Remaining maturity gaps:
 Continue closing thin artifact-only replay gaps where checked-in summaries
@@ -43,7 +42,7 @@ preserve routing evidence that review/import or CandidateRefresh replay still
 does not consume.
 
 Last commit:
-Product commit `01a21bbfc1b62458cdb0a316f9b9bde27ffcd4c8`.
+Product commit `5a2ae185bc2d07f096a9e9dcc0e2e0c46388f41a`.
 
 Next candidate:
 Reassess the next weak resource/contact, readiness/quality-gate, or
