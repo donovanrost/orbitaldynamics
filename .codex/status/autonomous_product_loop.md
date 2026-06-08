@@ -8,9 +8,8 @@ Current slice:
 Nested CandidateRefresh single-activity lifecycle-state review/import handoff.
 
 Status:
-Implementation, focused verification, and read-only `slice_reviewer` handoff
-complete. CandidateRefresh accepted-planning-state and mission-state nested
-single-activity state artifacts now project into OperatorReview
+Product commit complete. CandidateRefresh accepted-planning-state and
+mission-state nested single-activity state artifacts now project into OperatorReview
 `timeline_lifecycle_state_review` rows and CadenceImport
 `review_timeline_lifecycle_state` rows. Covered nested families:
 `source_timeline_activity_state`, `timeline_activity_state`,
@@ -47,14 +46,14 @@ Remaining maturity gaps:
 Continue closing thin artifact-only replay gaps where checked-in summaries
 preserve routing evidence that review/import or CandidateRefresh replay still
 does not consume. Reassess remaining CandidateRefresh/OperatorReview/
-CadenceImport handoff gaps after the reviewer result.
+CadenceImport handoff gaps after this reviewer-confirmed slice.
 
 Last commit:
-Previous committed handoff `46713a9 Record nested precondition review slice`.
-Current slice is not committed yet.
+Product commit `4ae1817c5fa4cc37e94cd2680768410f4c8d7c8f`.
 
 Next candidate:
-Commit the current slice, then reassess the next weak
+Reassess the remaining summary-contract coverage map after nested
+single-activity state projection and pick the next weak
 CandidateRefresh/OperatorReview/CadenceImport handoff.
 
 Unrelated local changes:
