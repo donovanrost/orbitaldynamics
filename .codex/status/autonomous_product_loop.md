@@ -42,8 +42,8 @@ coverage across batch transition-application paths. Continue reassessing Level
 published.
 
 Last commit:
-Pending for this slice. Previous pushed commit was
-`a29aa1bcd1f3c90d5a6f8e1f1ec0f8d3c4a33041`.
+`8c42cf51e7d5bcd42c4e17bd1be48c390a8e0424` (`Test activity transition
+facades`).
 
 Next candidate:
 After publishing this slice, reassess Level 6 gaps from the guide/ledger.
