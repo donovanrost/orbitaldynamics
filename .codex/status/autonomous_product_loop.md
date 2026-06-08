@@ -91,7 +91,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`a0ceba4` Update autonomous loop handoff.
+`cd331cf` Flatten station pressure direction handoffs.
 
 Next candidate:
 Continue guide-priority resource/contact semantics or candidate-refresh depth
@@ -102,6 +102,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `cd331cf` flattened station-pressure direction handoffs.
 - `0c7c0e2` flattened capacity-pack direction handoffs.
 - `6cd75e3` updated autonomous loop handoff.
 - `7172c7c` flattened preservation protection-category handoffs.
@@ -114,7 +115,6 @@ Previous published slices:
 - `4a5935a` explained readiness and quality-gate pressure recommendations.
 - `86d4687` refreshed operational timeline fixture regeneration.
 - `2dc42cb` pinned timeline publication fixture regeneration.
-- `3f2f0d8` calibrated Level 6 roadmap status.
 
 Blocked:
 No.
