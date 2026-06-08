@@ -8,7 +8,7 @@ Current slice:
 State-scoped validation-safety-case CandidateRefresh operator-review handoff.
 
 Status:
-Completed locally; CandidateRefresh OperatorReview handoffs now lift
+Completed and pushed; CandidateRefresh OperatorReview handoffs now lift
 `validation_safety_case_summary.v1` review/blocking evidence from accepted
 planning state and mission state, matching the existing top-level and
 result-artifact wrapped paths. Rows preserve state-qualified source paths,
@@ -45,8 +45,8 @@ or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Pending commit; previous pushed commit
-`0cc0b92f31cfbaf97e5fe23354021d7494728b30`.
+Pushed `f8f25cac553a061307990a9da14be0718970da59` after product commit
+`aedb76f59b2234dd124caa5b995532ec04d34771`.
 
 Next candidate:
 After committing, continue branch-local CandidateRefresh depth by checking
