@@ -14162,6 +14162,102 @@ defmodule OrbitalDynamics.SchemaTest do
            ] = report["selected_activities"]
   end
 
+  test "validates checked-in timeline transition application selected integrity fixture" do
+    report =
+      read_json!("study_results/timeline_transition_application_selected_integrity_v1.json")
+
+    dependency = %{
+      id: :cmd_prereq,
+      type: :command,
+      status: :planned,
+      approval_status: :pending,
+      starts_at_s: 0.0,
+      ends_at_s: 5.0,
+      metadata: %{timeline_id: :"timeline:cmd_prereq"}
+    }
+
+    protected_source = %{
+      id: :cmd_lock,
+      type: :command,
+      status: :planned,
+      approval_status: :approved,
+      locked: true,
+      starts_at_s: 10.0,
+      ends_at_s: 20.0,
+      depends_on: [:cmd_prereq],
+      metadata: %{timeline_id: :"timeline:cmd_lock"}
+    }
+
+    protected_replacement = %{
+      id: :cmd_lock,
+      type: :command,
+      status: :planned,
+      approval_status: :approved,
+      locked: true,
+      starts_at_s: 12.0,
+      ends_at_s: 22.0,
+      depends_on: [:cmd_prereq],
+      metadata: %{timeline_id: :"timeline:cmd_lock"}
+    }
+
+    generated_report =
+      OrbitalDynamics.timeline_transition_application_report(
+        [dependency, protected_source],
+        [protected_replacement],
+        source: "fixture.timeline.transition_application.selected_integrity"
+      )
+
+    assert generated_report == report
+
+    assert {:ok, %{"schema_contract" => "timeline_transition_application_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert %{
+             "schema_contract" => "timeline_transition_application_report.v1",
+             "model" => "artifact_only_timeline_transition_application",
+             "source" => "fixture.timeline.transition_application.selected_integrity",
+             "source_activity_count" => 2,
+             "replacement_activity_count" => 1,
+             "application_count" => 2,
+             "selected_activity_count" => 1,
+             "review_required_count" => 2,
+             "preserved_source_count" => 1,
+             "withheld_review_count" => 1,
+             "selected_timeline_integrity_issue_count" => 1,
+             "selected_timeline_integrity_review_count" => 1,
+             "selected_timeline_integrity_issue_types" => ["missing_dependency_activity"],
+             "application_status_counts" => %{
+               "operator_review_required" => 1,
+               "source_preserved_pending_review" => 1
+             },
+             "required_operator_action_counts" => %{
+               "review_changed_protected_activity" => 1,
+               "review_removed_activity" => 1
+             }
+           } = report
+
+    assert [
+             %{
+               "timeline_id" => "timeline:cmd_lock",
+               "application_status" => "source_preserved_pending_review",
+               "required_operator_action" => "review_changed_protected_activity",
+               "selected_timeline_integrity_status" => "review_required",
+               "selected_timeline_integrity_issue_types" => ["missing_dependency_activity"],
+               "selected_missing_dependency_activity_ids" => ["cmd_prereq"],
+               "selected_activity" => %{
+                 "activity_id" => "cmd_lock",
+                 "timeline_integrity_status" => "review_required",
+                 "missing_dependency_activity_ids" => ["cmd_prereq"]
+               }
+             },
+             %{
+               "timeline_id" => "timeline:cmd_prereq",
+               "application_status" => "operator_review_required",
+               "required_operator_action" => "review_removed_activity"
+             }
+           ] = report["applications"]
+  end
+
   test "validates nested timeline transition applications in review and import handoffs" do
     source_diff = %{
       "id" => "timeline_diff:timeline:obs_1",

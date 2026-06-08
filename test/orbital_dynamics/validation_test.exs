@@ -8955,6 +8955,113 @@ defmodule OrbitalDynamics.ValidationTest do
              Validation.artifact_observations("timeline_transition_application_report.v1", report)
   end
 
+  test "verifies curated timeline transition application selected integrity reference fixtures" do
+    fixture_id = "fixture.artifact.timeline_transition_application_selected_integrity.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.timeline_transition_application_report.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = timeline_transition_application_selected_integrity_fixture()
+    observations = timeline_transition_application_selected_integrity_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "selected_timeline_integrity_issue_count" => 1,
+             "selected_timeline_integrity_review_count" => 1,
+             "selected_timeline_integrity_issue_type_counts" => %{
+               "missing_dependency_activity" => 1
+             },
+             "row_derived_selected_timeline_integrity_issue_type_counts" => %{
+               "missing_dependency_activity" => 1
+             },
+             "row_derived_selected_required_operator_action_counts" => %{
+               "review_changed_protected_activity" => 1
+             },
+             "row_derived_selected_application_ids_by_required_operator_action" => %{
+               "review_changed_protected_activity" => ["timeline_diff:timeline:cmd_lock"]
+             },
+             "row_derived_selected_missing_dependency_activity_keys" => "cmd_prereq"
+           } = observations
+
+    stale_selected_issue_count_observations =
+      observations
+      |> Map.put("selected_timeline_integrity_issue_count", 0)
+
+    assert {:ok, stale_selected_issue_count_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_selected_issue_count_observations
+             )
+
+    assert stale_selected_issue_count_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_selected_issue_count_verification["checks"],
+             &(&1["field"] == "selected_timeline_integrity_issue_count" and
+                 &1["status"] == "fail")
+           )
+
+    stale_selected_issue_type_observations =
+      observations
+      |> put_in(
+        [
+          "row_derived_selected_timeline_integrity_issue_type_counts",
+          "missing_dependency_activity"
+        ],
+        0
+      )
+
+    assert {:ok, stale_selected_issue_type_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_selected_issue_type_observations
+             )
+
+    assert stale_selected_issue_type_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_selected_issue_type_verification["checks"],
+             &(&1["field"] == "row_derived_selected_timeline_integrity_issue_type_counts" and
+                 &1["status"] == "fail")
+           )
+
+    stale_selected_dependency_observations =
+      observations
+      |> Map.put("row_derived_selected_missing_dependency_activity_keys", "")
+
+    assert {:ok, stale_selected_dependency_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_selected_dependency_observations
+             )
+
+    assert stale_selected_dependency_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_selected_dependency_verification["checks"],
+             &(&1["field"] == "row_derived_selected_missing_dependency_activity_keys" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "timeline_transition_application_report.v1"
+             )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "timeline_transition_application_report.v1",
+             report
+           ) ==
+             Validation.artifact_observations("timeline_transition_application_report.v1", report)
+  end
+
   test "verifies curated timeline feedback report reference fixtures" do
     fixture_id = "fixture.artifact.timeline_feedback_report.v1"
 
@@ -12556,6 +12663,8 @@ defmodule OrbitalDynamics.ValidationTest do
           timeline_preservation_report_fixture_observations(),
         "fixture.artifact.timeline_transition_application_report.v1" =>
           timeline_transition_application_report_fixture_observations(),
+        "fixture.artifact.timeline_transition_application_selected_integrity.v1" =>
+          timeline_transition_application_selected_integrity_fixture_observations(),
         "fixture.artifact.timeline_transition_application_summary.v1" =>
           timeline_transition_application_summary_fixture_observations(),
         "fixture.artifact.validation_check.v1" => validation_check_fixture_observations(),
@@ -12571,8 +12680,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 163,
-             "status_counts" => %{"pass" => 163},
+             "fixture_count" => 164,
+             "status_counts" => %{"pass" => 164},
              "reports" => reports
            } = report
 
@@ -12700,10 +12809,10 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.station_calendar_provider.v1",
              "fixture.artifact.station_calendar_report.stale_provider_reservation_hold",
              "fixture.artifact.station_calendar_report.v1",
-             "fixture.artifact.station_reservation_review_summary.v1",
-             "fixture.artifact.station_reservation_hold_summary.v1",
              "fixture.artifact.station_reservation_hold_import_readiness_summary.v1",
+             "fixture.artifact.station_reservation_hold_summary.v1",
              "fixture.artifact.station_reservation_report.stale_provider_reservation_hold",
+             "fixture.artifact.station_reservation_review_summary.v1",
              "fixture.artifact.strategy_branch.v1",
              "fixture.artifact.strategy_recommendation.v1",
              "fixture.artifact.study_benchmark.distributed_chunk_sweep",
@@ -12728,6 +12837,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.timeline_lifecycle_state_summary.v1",
              "fixture.artifact.timeline_preservation_report.v1",
              "fixture.artifact.timeline_transition_application_report.v1",
+             "fixture.artifact.timeline_transition_application_selected_integrity.v1",
              "fixture.artifact.timeline_transition_application_summary.v1",
              "fixture.artifact.validation_check.v1",
              "fixture.artifact.validation_record.v1",
@@ -12752,7 +12862,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 163},
+             "status_counts" => %{"fail" => 164},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -14319,6 +14429,17 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp timeline_transition_application_report_fixture do
     read_json!("study_results/timeline_transition_application_report_v1.json")
+  end
+
+  defp timeline_transition_application_selected_integrity_fixture_observations do
+    "timeline_transition_application_report.v1"
+    |> Validation.artifact_observations(
+      timeline_transition_application_selected_integrity_fixture()
+    )
+  end
+
+  defp timeline_transition_application_selected_integrity_fixture do
+    read_json!("study_results/timeline_transition_application_selected_integrity_v1.json")
   end
 
   defp timeline_transition_application_summary_fixture_observations do

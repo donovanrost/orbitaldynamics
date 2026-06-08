@@ -840,16 +840,18 @@ validation-reference fixtures. The observations check maneuver execution status
 and epoch/source/provenance/quality metadata, delta-v vector dimensions and
 magnitude consistency, recommendation model limits, required operator-review
 metadata, and the recommendation-only no-command-execution boundary.
-`study_results/timeline_diff_report_v1.json` and
-`study_results/timeline_transition_application_report_v1.json` now feed curated
-validation-reference fixtures. The observations check timeline
+`study_results/timeline_diff_report_v1.json`,
+`study_results/timeline_transition_application_report_v1.json`, and
+`study_results/timeline_transition_application_selected_integrity_v1.json` now
+feed curated validation-reference fixtures. The observations check timeline
 source/replacement counts, diff status and changed-field maps, operator-action
 row routing, review-required counts, row-derived timeline-diff
 status/transition/action/changed-field maps, row-derived diff/action row
 routing, row-derived transition application status/decision/action maps,
 status/approval transition maps, application ID routing,
-selected/preserved/withheld counts, review-gate assumptions, and
-no-schedule-mutation boundaries. Focused schema-reference coverage also
+selected/preserved/withheld counts, selected-integrity issue/action/dependency
+routing, review-gate assumptions, and no-schedule-mutation boundaries. Focused
+schema-reference coverage also
 refreshes and exact-regenerates the checked-in
 `study_results/timeline_diff_report_v1.json` fixture through
 `OrbitalDynamics.timeline_diff_report/3` from deterministic added, removed,
@@ -861,11 +863,14 @@ evidence. It also refreshes and exact-regenerates
 `OrbitalDynamics.timeline_transition_application_report/3` from deterministic
 protected-change, added, unchanged, and removed activity inputs before schema
 validation, pinning selected-activity precondition status/count fields as part
-of the public report surface. Executable validation rejects stale
-timeline-diff row/status/review counts, changed-field and action maps,
-transition-application counts, row-derived decision/action maps, and timeline
-model-limit drift, rejects stale transition-application report model strings,
-and exports the same model and model-limit constants with string source
+of the public report surface. The selected-integrity fixture exact-regenerates
+the missing-dependency review-gate case through the same public facade, pinning
+row-derived selected issue-type, required-action, application-ID, and missing
+dependency routing. Executable validation rejects stale timeline-diff
+row/status/review counts, changed-field and action maps, transition-application
+counts, row-derived decision/action maps, selected-integrity routing, and
+timeline model-limit drift, rejects stale transition-application report model
+strings, and exports the same model and model-limit constants with string source
 boundaries.
 Candidate-refresh transition-application replay summaries
 also derive application status, transition decision, required action, duplicate
