@@ -15416,6 +15416,177 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(import)
   end
 
+  test "CandidateRefresh lifts accepted planning state timeline diff summaries" do
+    summary =
+      timeline_diff_summary()
+      |> Map.put("source", "diff_summary_accepted_state")
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "refresh:accepted_timeline_diff_summary_handoff",
+      "accepted_planning_state" => %{
+        "source_timeline_diff_summary" => summary
+      }
+    }
+
+    review = OperatorReview.from_candidate_refresh_artifact(artifact)
+    import = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    diff_rows =
+      Enum.filter(
+        review["rows"],
+        &(&1["source_timeline_diff_summary"]["schema_contract"] == "timeline_diff_summary.v1")
+      )
+
+    assert length(diff_rows) == 3
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "refresh:accepted_timeline_diff_summary_handoff",
+             "review_count" => 3,
+             "timeline_diff_count" => 3,
+             "required_operator_action_counts" => %{
+               "review_added_activity" => 1,
+               "review_changed_protected_activity" => 1,
+               "review_removed_activity" => 1
+             }
+           } = review
+
+    assert Enum.map(diff_rows, & &1["source"]) == [
+             "candidate_refresh.accepted_planning_state.source_timeline_diff_summary.review_rows",
+             "candidate_refresh.accepted_planning_state.source_timeline_diff_summary.review_rows",
+             "candidate_refresh.accepted_planning_state.source_timeline_diff_summary.review_rows"
+           ]
+
+    assert %{
+             "review_type" => "timeline_diff_review",
+             "source" =>
+               "candidate_refresh.accepted_planning_state.source_timeline_diff_summary.review_rows",
+             "timeline_id" => "timeline:cmd_lock",
+             "diff_status" => "changed",
+             "transition_decision" => "preserve_source",
+             "source_timeline_diff_summary_review_required_count" => 3,
+             "source_timeline_diff_summary_changed_count" => 1,
+             "source_timeline_diff_summary" => %{
+               "schema_contract" => "timeline_diff_summary.v1",
+               "model" => "artifact_only_timeline_diff_summary",
+               "source" => "diff_summary_accepted_state",
+               "review_required_count" => 3
+             },
+             "source_timeline_diff" => %{
+               "requires_operator_review" => true
+             }
+           } = Enum.find(diff_rows, &(&1["timeline_id"] == "timeline:cmd_lock"))
+
+    import_rows =
+      Enum.filter(import["rows"], &(&1["source_review_type"] == "timeline_diff_review"))
+
+    assert length(import_rows) == 3
+
+    assert %{
+             "row_count" => 3,
+             "import_action_counts" => %{"review_timeline_diff" => 3},
+             "source_review_type_counts" => %{"timeline_diff_review" => 3}
+           } = import
+
+    assert %{
+             "import_action" => "review_timeline_diff",
+             "source_review_type" => "timeline_diff_review",
+             "timeline_id" => "timeline:cmd_lock",
+             "source_review_row" => %{
+               "source" =>
+                 "candidate_refresh.accepted_planning_state.source_timeline_diff_summary.review_rows",
+               "source_timeline_diff_summary" => %{
+                 "schema_contract" => "timeline_diff_summary.v1",
+                 "source" => "diff_summary_accepted_state"
+               }
+             }
+           } = Enum.find(import_rows, &(&1["timeline_id"] == "timeline:cmd_lock"))
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(import)
+  end
+
+  test "CandidateRefresh lifts mission state timeline diff summaries" do
+    summary =
+      timeline_diff_summary()
+      |> Map.put("source", "diff_summary_mission_state")
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "refresh:mission_timeline_diff_summary_handoff",
+      "mission_state" => %{
+        "timeline_diff_summary" => summary
+      }
+    }
+
+    review = OperatorReview.from_candidate_refresh_artifact(artifact)
+    import = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    diff_rows =
+      Enum.filter(
+        review["rows"],
+        &(&1["source_timeline_diff_summary"]["schema_contract"] == "timeline_diff_summary.v1")
+      )
+
+    assert length(diff_rows) == 3
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "refresh:mission_timeline_diff_summary_handoff",
+             "review_count" => 3,
+             "timeline_diff_count" => 3
+           } = review
+
+    assert Enum.map(diff_rows, & &1["source"]) == [
+             "candidate_refresh.mission_state.timeline_diff_summary.review_rows",
+             "candidate_refresh.mission_state.timeline_diff_summary.review_rows",
+             "candidate_refresh.mission_state.timeline_diff_summary.review_rows"
+           ]
+
+    assert %{
+             "review_type" => "timeline_diff_review",
+             "source" => "candidate_refresh.mission_state.timeline_diff_summary.review_rows",
+             "timeline_id" => "timeline:dl_removed",
+             "diff_status" => "removed",
+             "required_operator_action" => "review_removed_activity",
+             "source_timeline_diff_summary_row_count" => 3,
+             "source_timeline_diff_summary" => %{
+               "schema_contract" => "timeline_diff_summary.v1",
+               "source" => "diff_summary_mission_state",
+               "removed_count" => 1
+             }
+           } = Enum.find(diff_rows, &(&1["timeline_id"] == "timeline:dl_removed"))
+
+    assert %{
+             "row_count" => 3,
+             "import_action_counts" => %{"review_timeline_diff" => 3},
+             "source_review_type_counts" => %{"timeline_diff_review" => 3}
+           } = import
+
+    assert %{
+             "import_action" => "review_timeline_diff",
+             "source_review_type" => "timeline_diff_review",
+             "timeline_id" => "timeline:dl_removed",
+             "source_review_row" => %{
+               "source" => "candidate_refresh.mission_state.timeline_diff_summary.review_rows",
+               "source_timeline_diff_summary" => %{
+                 "schema_contract" => "timeline_diff_summary.v1",
+                 "source" => "diff_summary_mission_state"
+               }
+             }
+           } = Enum.find(import["rows"], &(&1["timeline_id"] == "timeline:dl_removed"))
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(import)
+  end
+
   test "timeline transition packages reject stale source application evidence" do
     source = [
       %{
