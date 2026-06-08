@@ -18444,8 +18444,81 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            } =
              Enum.find(explanation, &(&1["type"] == "quality_gate_pressure"))
 
+    expected_handoff = %{
+      "operational_readiness_report_ids" => [
+        "operational_readiness:resource_projection_report.v1:live_ops"
+      ],
+      "operational_readiness_source_artifact_types" => ["resource_projection_report.v1"],
+      "operational_readiness_source_artifact_ids" => ["live_ops"],
+      "operational_readiness_levels" => ["operator_review"],
+      "operational_readiness_import_classifications" => ["review_only"],
+      "operational_readiness_statuses" => ["review_required"],
+      "operational_readiness_gate_ids" => ["operator_training"],
+      "operational_readiness_gate_statuses" => ["review_required"],
+      "operational_readiness_gate_classifications" => ["review_only"],
+      "operational_readiness_required_operator_actions" => ["review_operational_readiness"],
+      "operational_readiness_feedback_sources" => [
+        "mission_state.source_operational_readiness_report.gates"
+      ],
+      "operational_readiness_feedback_scopes" => ["operational_readiness"],
+      "operational_readiness_feedback_keys" => ["operator_training"],
+      "operational_readiness_trust_boundaries" => [
+        "mission_state_operational_readiness_report"
+      ],
+      "quality_gate_report_ids" => ["quality_gate:resource_projection_report.v1:live_ops"],
+      "quality_gate_source_artifact_types" => ["resource_projection_report.v1"],
+      "quality_gate_source_artifact_ids" => ["live_ops"],
+      "quality_gate_source_readiness_report_ids" => [
+        "operational_readiness:resource_projection_report.v1:live_ops"
+      ],
+      "quality_gate_readiness_levels" => ["operator_review"],
+      "quality_gate_import_classifications" => ["review_only"],
+      "quality_gate_pressure_statuses" => ["review_required"],
+      "quality_gate_ids" => ["resource_availability"],
+      "quality_gate_statuses" => ["review_required"],
+      "quality_gate_classifications" => ["review_only"],
+      "quality_gate_required_operator_actions" => ["review_operational_readiness"],
+      "quality_gate_feedback_sources" => ["mission_state.source_quality_gate_report.rows"],
+      "quality_gate_feedback_scopes" => ["quality_gate"],
+      "quality_gate_feedback_keys" => ["resource_availability"],
+      "quality_gate_trust_boundaries" => ["mission_state_quality_gate_report"],
+      "quality_gate_resource_availability_reason_ids" => [
+        "antenna_unavailable",
+        "payload_unavailable"
+      ]
+    }
+
+    recommendation_review_row =
+      artifact["operator_review_package"]["rows"]
+      |> Enum.find(&(&1["review_type"] == "strategy_recommendation"))
+
+    assert Map.take(recommendation_review_row, Map.keys(expected_handoff)) == expected_handoff
+
+    selected_import_row =
+      artifact["cadence_import_manifest"]["rows"]
+      |> Enum.find(
+        &(&1["import_action"] == "import_strategy_recommendation" and &1["selected"] == true)
+      )
+
+    assert Map.take(selected_import_row, Map.keys(expected_handoff)) == expected_handoff
+
+    review_import =
+      OrbitalDynamics.cadence_import_manifest(artifact["operator_review_package"])
+
+    review_import_row =
+      review_import["rows"]
+      |> Enum.find(&(&1["source_review_type"] == "strategy_recommendation"))
+
+    assert Map.take(review_import_row, Map.keys(expected_handoff)) == expected_handoff
+
+    assert Map.take(review_import_row["source_review_row"], Map.keys(expected_handoff)) ==
+             expected_handoff
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1", "status" => "pass"}} =
+             Schema.validate_artifact(review_import)
   end
 
   test "strategy requires at least two branches" do

@@ -15688,6 +15688,9 @@ defmodule OrbitalDynamics.OperatorReview do
           |> merge_strategy_recommendation_context(
             strategy_recommendation_resource_pressure_context(recommendation)
           )
+          |> merge_strategy_recommendation_context(
+            strategy_recommendation_readiness_quality_gate_context(recommendation)
+          )
           |> Map.merge(operational_feedback_context)
           |> compact_map()
         ]
@@ -15845,6 +15848,78 @@ defmodule OrbitalDynamics.OperatorReview do
   end
 
   defp strategy_recommendation_resource_pressure_context(_recommendation), do: %{}
+
+  defp strategy_recommendation_readiness_quality_gate_context(%{"explanation" => explanation})
+       when is_list(explanation) do
+    rows = Enum.map(explanation, &stringify_keys/1)
+
+    readiness_rows =
+      Enum.filter(rows, &(&1["type"] == "operational_readiness_pressure"))
+
+    quality_gate_rows =
+      Enum.filter(rows, &(&1["type"] == "quality_gate_pressure"))
+
+    %{
+      "operational_readiness_report_ids" => risk_context_values(readiness_rows, "report_id"),
+      "operational_readiness_source_artifact_types" =>
+        risk_context_values(readiness_rows, "source_artifact_type"),
+      "operational_readiness_source_artifact_ids" =>
+        risk_context_values(readiness_rows, "source_artifact_id"),
+      "operational_readiness_levels" => risk_context_values(readiness_rows, "readiness_level"),
+      "operational_readiness_import_classifications" =>
+        risk_context_values(readiness_rows, "import_classification"),
+      "operational_readiness_statuses" =>
+        risk_context_values(readiness_rows, "operational_readiness_status"),
+      "operational_readiness_gate_ids" =>
+        risk_context_values(readiness_rows, "readiness_gate_id"),
+      "operational_readiness_gate_statuses" =>
+        risk_context_values(readiness_rows, "readiness_gate_status"),
+      "operational_readiness_gate_classifications" =>
+        risk_context_values(readiness_rows, "readiness_gate_classification"),
+      "operational_readiness_required_operator_actions" =>
+        risk_context_values(readiness_rows, "required_operator_action"),
+      "operational_readiness_feedback_sources" =>
+        risk_context_values(readiness_rows, "feedback_source"),
+      "operational_readiness_feedback_scopes" =>
+        risk_context_values(readiness_rows, "feedback_scope"),
+      "operational_readiness_feedback_keys" =>
+        risk_context_values(readiness_rows, "feedback_key"),
+      "operational_readiness_trust_boundaries" =>
+        risk_context_values(readiness_rows, "trust_boundary"),
+      "quality_gate_report_ids" => risk_context_values(quality_gate_rows, "report_id"),
+      "quality_gate_source_artifact_types" =>
+        risk_context_values(quality_gate_rows, "source_artifact_type"),
+      "quality_gate_source_artifact_ids" =>
+        risk_context_values(quality_gate_rows, "source_artifact_id"),
+      "quality_gate_source_readiness_report_ids" =>
+        risk_context_values(quality_gate_rows, "source_readiness_report_id"),
+      "quality_gate_readiness_levels" =>
+        risk_context_values(quality_gate_rows, "readiness_level"),
+      "quality_gate_import_classifications" =>
+        risk_context_values(quality_gate_rows, "import_classification"),
+      "quality_gate_pressure_statuses" =>
+        risk_context_values(quality_gate_rows, "quality_gate_status"),
+      "quality_gate_ids" => risk_context_values(quality_gate_rows, "gate_id"),
+      "quality_gate_statuses" => risk_context_values(quality_gate_rows, "gate_status"),
+      "quality_gate_classifications" =>
+        risk_context_values(quality_gate_rows, "gate_classification"),
+      "quality_gate_required_operator_actions" =>
+        risk_context_values(quality_gate_rows, "required_operator_action"),
+      "quality_gate_feedback_sources" =>
+        risk_context_values(quality_gate_rows, "feedback_source"),
+      "quality_gate_feedback_scopes" => risk_context_values(quality_gate_rows, "feedback_scope"),
+      "quality_gate_feedback_keys" => risk_context_values(quality_gate_rows, "feedback_key"),
+      "quality_gate_trust_boundaries" => risk_context_values(quality_gate_rows, "trust_boundary"),
+      "quality_gate_resource_availability_reason_ids" =>
+        risk_context_values(quality_gate_rows, ["resource_availability_reason_ids"]),
+      "quality_gate_unavailable_resource_reason_ids" =>
+        risk_context_values(quality_gate_rows, ["unavailable_resource_reason_ids"])
+    }
+    |> Enum.reject(fn {_key, values} -> values == [] end)
+    |> Map.new()
+  end
+
+  defp strategy_recommendation_readiness_quality_gate_context(_recommendation), do: %{}
 
   defp strategy_recommendation_risk_context(%{"risks_remaining" => risks}) when is_list(risks) do
     risks = Enum.map(risks, &stringify_keys/1)

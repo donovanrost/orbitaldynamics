@@ -2830,6 +2830,12 @@ defmodule OrbitalDynamics.CadenceImport do
         else: %{}
       )
     )
+    |> merge_strategy_recommendation_context(
+      if(selected?,
+        do: strategy_recommendation_readiness_quality_gate_context(recommendation),
+        else: %{}
+      )
+    )
     |> Map.merge(operational_feedback_context)
     |> compact_map()
   end
@@ -2893,6 +2899,78 @@ defmodule OrbitalDynamics.CadenceImport do
   end
 
   defp strategy_recommendation_resource_pressure_context(_recommendation), do: %{}
+
+  defp strategy_recommendation_readiness_quality_gate_context(%{"explanation" => explanation})
+       when is_list(explanation) do
+    rows = Enum.map(explanation, &stringify_keys/1)
+
+    readiness_rows =
+      Enum.filter(rows, &(&1["type"] == "operational_readiness_pressure"))
+
+    quality_gate_rows =
+      Enum.filter(rows, &(&1["type"] == "quality_gate_pressure"))
+
+    %{
+      "operational_readiness_report_ids" => risk_context_values(readiness_rows, "report_id"),
+      "operational_readiness_source_artifact_types" =>
+        risk_context_values(readiness_rows, "source_artifact_type"),
+      "operational_readiness_source_artifact_ids" =>
+        risk_context_values(readiness_rows, "source_artifact_id"),
+      "operational_readiness_levels" => risk_context_values(readiness_rows, "readiness_level"),
+      "operational_readiness_import_classifications" =>
+        risk_context_values(readiness_rows, "import_classification"),
+      "operational_readiness_statuses" =>
+        risk_context_values(readiness_rows, "operational_readiness_status"),
+      "operational_readiness_gate_ids" =>
+        risk_context_values(readiness_rows, "readiness_gate_id"),
+      "operational_readiness_gate_statuses" =>
+        risk_context_values(readiness_rows, "readiness_gate_status"),
+      "operational_readiness_gate_classifications" =>
+        risk_context_values(readiness_rows, "readiness_gate_classification"),
+      "operational_readiness_required_operator_actions" =>
+        risk_context_values(readiness_rows, "required_operator_action"),
+      "operational_readiness_feedback_sources" =>
+        risk_context_values(readiness_rows, "feedback_source"),
+      "operational_readiness_feedback_scopes" =>
+        risk_context_values(readiness_rows, "feedback_scope"),
+      "operational_readiness_feedback_keys" =>
+        risk_context_values(readiness_rows, "feedback_key"),
+      "operational_readiness_trust_boundaries" =>
+        risk_context_values(readiness_rows, "trust_boundary"),
+      "quality_gate_report_ids" => risk_context_values(quality_gate_rows, "report_id"),
+      "quality_gate_source_artifact_types" =>
+        risk_context_values(quality_gate_rows, "source_artifact_type"),
+      "quality_gate_source_artifact_ids" =>
+        risk_context_values(quality_gate_rows, "source_artifact_id"),
+      "quality_gate_source_readiness_report_ids" =>
+        risk_context_values(quality_gate_rows, "source_readiness_report_id"),
+      "quality_gate_readiness_levels" =>
+        risk_context_values(quality_gate_rows, "readiness_level"),
+      "quality_gate_import_classifications" =>
+        risk_context_values(quality_gate_rows, "import_classification"),
+      "quality_gate_pressure_statuses" =>
+        risk_context_values(quality_gate_rows, "quality_gate_status"),
+      "quality_gate_ids" => risk_context_values(quality_gate_rows, "gate_id"),
+      "quality_gate_statuses" => risk_context_values(quality_gate_rows, "gate_status"),
+      "quality_gate_classifications" =>
+        risk_context_values(quality_gate_rows, "gate_classification"),
+      "quality_gate_required_operator_actions" =>
+        risk_context_values(quality_gate_rows, "required_operator_action"),
+      "quality_gate_feedback_sources" =>
+        risk_context_values(quality_gate_rows, "feedback_source"),
+      "quality_gate_feedback_scopes" => risk_context_values(quality_gate_rows, "feedback_scope"),
+      "quality_gate_feedback_keys" => risk_context_values(quality_gate_rows, "feedback_key"),
+      "quality_gate_trust_boundaries" => risk_context_values(quality_gate_rows, "trust_boundary"),
+      "quality_gate_resource_availability_reason_ids" =>
+        risk_context_values(quality_gate_rows, ["resource_availability_reason_ids"]),
+      "quality_gate_unavailable_resource_reason_ids" =>
+        risk_context_values(quality_gate_rows, ["unavailable_resource_reason_ids"])
+    }
+    |> Enum.reject(fn {_key, values} -> values == [] end)
+    |> Map.new()
+  end
+
+  defp strategy_recommendation_readiness_quality_gate_context(_recommendation), do: %{}
 
   defp strategy_recommendation_risk_context(%{"risks_remaining" => risks}) when is_list(risks) do
     risks = Enum.map(risks, &stringify_keys/1)
@@ -6050,6 +6128,45 @@ defmodule OrbitalDynamics.CadenceImport do
       "resource_pressure_statuses" => row["resource_pressure_statuses"],
       "resource_pressure_types" => row["resource_pressure_types"],
       "first_resource_pressure_kinds" => row["first_resource_pressure_kinds"],
+      "operational_readiness_report_ids" => row["operational_readiness_report_ids"],
+      "operational_readiness_source_artifact_types" =>
+        row["operational_readiness_source_artifact_types"],
+      "operational_readiness_source_artifact_ids" =>
+        row["operational_readiness_source_artifact_ids"],
+      "operational_readiness_levels" => row["operational_readiness_levels"],
+      "operational_readiness_import_classifications" =>
+        row["operational_readiness_import_classifications"],
+      "operational_readiness_statuses" => row["operational_readiness_statuses"],
+      "operational_readiness_gate_ids" => row["operational_readiness_gate_ids"],
+      "operational_readiness_gate_statuses" => row["operational_readiness_gate_statuses"],
+      "operational_readiness_gate_classifications" =>
+        row["operational_readiness_gate_classifications"],
+      "operational_readiness_required_operator_actions" =>
+        row["operational_readiness_required_operator_actions"],
+      "operational_readiness_feedback_sources" => row["operational_readiness_feedback_sources"],
+      "operational_readiness_feedback_scopes" => row["operational_readiness_feedback_scopes"],
+      "operational_readiness_feedback_keys" => row["operational_readiness_feedback_keys"],
+      "operational_readiness_trust_boundaries" => row["operational_readiness_trust_boundaries"],
+      "quality_gate_report_ids" => row["quality_gate_report_ids"],
+      "quality_gate_source_artifact_types" => row["quality_gate_source_artifact_types"],
+      "quality_gate_source_artifact_ids" => row["quality_gate_source_artifact_ids"],
+      "quality_gate_source_readiness_report_ids" =>
+        row["quality_gate_source_readiness_report_ids"],
+      "quality_gate_readiness_levels" => row["quality_gate_readiness_levels"],
+      "quality_gate_import_classifications" => row["quality_gate_import_classifications"],
+      "quality_gate_pressure_statuses" => row["quality_gate_pressure_statuses"],
+      "quality_gate_ids" => row["quality_gate_ids"],
+      "quality_gate_statuses" => row["quality_gate_statuses"],
+      "quality_gate_classifications" => row["quality_gate_classifications"],
+      "quality_gate_required_operator_actions" => row["quality_gate_required_operator_actions"],
+      "quality_gate_feedback_sources" => row["quality_gate_feedback_sources"],
+      "quality_gate_feedback_scopes" => row["quality_gate_feedback_scopes"],
+      "quality_gate_feedback_keys" => row["quality_gate_feedback_keys"],
+      "quality_gate_trust_boundaries" => row["quality_gate_trust_boundaries"],
+      "quality_gate_resource_availability_reason_ids" =>
+        row["quality_gate_resource_availability_reason_ids"],
+      "quality_gate_unavailable_resource_reason_ids" =>
+        row["quality_gate_unavailable_resource_reason_ids"],
       "approval_requirement_count" => row["approval_requirement_count"],
       "branch_event_count" => row["branch_event_count"],
       "branch_event_types" => row["branch_event_types"],

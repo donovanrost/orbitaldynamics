@@ -1553,7 +1553,13 @@ Selected recommendations also include:
 
 The corresponding strategy-recommendation operator-review row and Cadence import
 gate flatten those same risk type and stable-ID arrays, plus resource-pressure
-status/type lists and first-pressure kinds, for adapter routing.
+status/type lists and first-pressure kinds, for adapter routing. Selected
+strategy recommendation review/import handoff rows also flatten
+operational-readiness and quality-gate pressure report IDs, source artifact IDs,
+readiness/import/status values, gate IDs/status/classifications, required
+actions, feedback source/scope/key lists, trust boundaries, and
+quality-gate resource-availability reason IDs so adapter queues can route
+readiness pressure without reopening `source_recommendation.explanation`.
 
 ## Executable validation
 
