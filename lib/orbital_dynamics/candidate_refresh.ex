@@ -25792,9 +25792,6 @@ defmodule OrbitalDynamics.CandidateRefresh do
     end)
   end
 
-  defp contact_intent_direction_routing_contact_ids(_direction_routing, _contact_ids_field),
-    do: []
-
   defp contact_allocation_capacity_pack_contact_count(summary) do
     summary
     |> contact_allocation_string_list_maps_unique_contact_count(
@@ -47246,8 +47243,6 @@ defmodule OrbitalDynamics.CandidateRefresh do
     end)
   end
 
-  defp source_schema_validation_batch_report_entries(_path, _value), do: []
-
   defp maybe_put_inherited_trust_boundary(report, trust_boundary)
        when trust_boundary in [nil, ""],
        do: report
@@ -52896,8 +52891,6 @@ defmodule OrbitalDynamics.CandidateRefresh do
       _trust_boundaries -> feedback
     end
   end
-
-  defp merged_timeline_feedback_source([]), do: %{}
 
   defp merged_timeline_feedback_source(sources) do
     trust_boundaries =

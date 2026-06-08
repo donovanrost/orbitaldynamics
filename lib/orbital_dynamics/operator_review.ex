@@ -13125,8 +13125,6 @@ defmodule OrbitalDynamics.OperatorReview do
     request_rows ++ review_rows
   end
 
-  defp source_contact_allocation_report_rows_from_provider_reservation_summary(_summary), do: []
-
   defp provider_reservation_summary_rows(rows, status, summary, assumptions, summary_context) do
     rows
     |> List.wrap()

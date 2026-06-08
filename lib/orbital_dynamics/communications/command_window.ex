@@ -1249,8 +1249,6 @@ defmodule OrbitalDynamics.Communications.CommandWindow do
       is_number(source["ends_at_s"] || source["end_s"])
   end
 
-  defp source_has_window_interval?(_source), do: false
-
   defp source_window_type(%{"type" => "command"}), do: "command_window"
   defp source_window_type(%{"type" => "health_check"}), do: "health_check_window"
   defp source_window_type(%{"type" => "tracking"}), do: "tracking_window"

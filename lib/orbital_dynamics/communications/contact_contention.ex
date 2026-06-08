@@ -3093,7 +3093,6 @@ defmodule OrbitalDynamics.Communications.ContactContention do
   defp encode_key(key) when is_atom(key), do: Atom.to_string(key)
   defp encode_key(key), do: key
 
-  defp encoded_value_or_nil(nil), do: nil
   defp encoded_value_or_nil(value), do: encode_value(value)
 
   defp aliased_value(contact, fields) do

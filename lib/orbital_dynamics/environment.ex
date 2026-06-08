@@ -288,8 +288,6 @@ defmodule OrbitalDynamics.Environment do
     end
   end
 
-  defp validate_known_provider_limits(_record), do: :ok
-
   defp known_provider_limits(%{"id" => id}) do
     provider_capabilities()
     |> Enum.find(&(&1["id"] == id))
