@@ -1580,7 +1580,8 @@ capacity-pack contact IDs, and required-capacity fraction by direction/station,
 trust-boundary evidence, and branch-local contact-intent, station-feedback,
 and capacity-pack pressure booleans without generating contacts, mutating
 contact allocation, selecting candidates, approving imports, writing to
-Cadence, or regenerating candidates. Direct or result-artifact-wrapped
+Cadence, or regenerating candidates. Direct, accepted-state, mission-state, or
+result-artifact-wrapped
 `source_contact_intent_summary` / `contact_intent_summary` inputs replay through
 the same family, preserving the `contact_intent_summary.v1` contract,
 source-summary model/schema/source-artifact identity counts, source paths,
@@ -1616,11 +1617,18 @@ The replay helper can inspect V3 branch
 from raw branch request contact-intent inputs, so strategy-derived branch
 refreshes preserve contact-intent station-feedback and import-status routing
 through the branch provenance boundary.
-Branch-generated refresh requests preserve direct and `source_result_artifact` /
-`result_artifact` wrapped raw `source_contact_intent`, `contact_intent`,
-`source_contact_intents`, and `contact_intents` inputs with wrapper-qualified
-request paths, station/direction capacity maps, all-contact direction routing,
-capacity-pack contact IDs, and direct plus inherited trust-boundary evidence.
+Operator-review packages and Cadence import manifests built from
+candidate-refresh artifacts also lift direct, accepted-state, mission-state, and
+result-artifact-wrapped compact contact-intent summaries into
+`contact_intent_review` / `review_contact_intent` handoffs, preserving
+`candidate_refresh.*` source paths, direction routing, source-summary context,
+capacity-pack contact IDs, and artifact-only no contact-generation,
+no-allocation, no-schedule-mutation boundaries. Branch-generated refresh
+requests preserve direct and `source_result_artifact` / `result_artifact`
+wrapped raw `source_contact_intent`, `contact_intent`, `source_contact_intents`,
+and `contact_intents` inputs with wrapper-qualified request paths,
+station/direction capacity maps, all-contact direction routing, capacity-pack
+contact IDs, and direct plus inherited trust-boundary evidence.
 When contact-intent provenance is absent, the replay summary omits the contract
 field rather than defaulting to `contact_intent.v1`.
 

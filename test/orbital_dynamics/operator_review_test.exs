@@ -10020,6 +10020,229 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(package)
   end
 
+  test "candidate refresh accepted planning state contact intent summaries become review rows" do
+    summary = %{
+      "schema_contract" => "contact_intent_summary.v1",
+      "model" => "artifact_only_contact_intent_summary",
+      "source_artifact_type" => "contact_intent.v1",
+      "source" => "operator_review_test.accepted_contact_intent_summary",
+      "contact_intent_count" => 2,
+      "capacity_pack_required_contact_count" => 1,
+      "contact_ids_by_ground_station_id" => %{
+        "equator_prime" => ["accepted_downlink_intent"],
+        "dss_43" => ["accepted_command_intent"]
+      },
+      "contact_ids_by_direction" => %{
+        "command" => ["accepted_command_intent"],
+        "downlink" => ["accepted_downlink_intent"]
+      },
+      "capacity_pack_contact_ids_by_direction" => %{
+        "downlink" => ["accepted_downlink_intent"]
+      },
+      "direction_routing" => %{
+        "command" => %{
+          "contact_count" => 1,
+          "contact_ids" => ["accepted_command_intent"],
+          "capacity_pack_contact_ids" => []
+        },
+        "downlink" => %{
+          "contact_count" => 1,
+          "contact_ids" => ["accepted_downlink_intent"],
+          "capacity_pack_required_capacity_fraction" => 0.35,
+          "capacity_pack_contact_ids" => ["accepted_downlink_intent"]
+        }
+      },
+      "assumptions" => %{
+        "execution_boundary" => "artifact_only_no_contact_generation_or_schedule_mutation"
+      }
+    }
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:accepted_contact_intent_summary_review",
+      "accepted_planning_state" => %{
+        "source_contact_intent_summary" => summary
+      }
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:accepted_contact_intent_summary_review",
+             "review_count" => 2,
+             "contact_intent_review_count" => 2,
+             "review_type_counts" => %{"contact_intent_review" => 2}
+           } = package
+
+    assert Enum.map(package["rows"], & &1["direction"]) == ["command", "downlink"]
+
+    assert %{
+             "source" =>
+               "candidate_refresh.accepted_planning_state.source_contact_intent_summary.summary_contacts",
+             "activity_id" =>
+               "contact_intent_summary:candidate_refresh.accepted_planning_state.source_contact_intent_summary:downlink",
+             "contact_id" => "accepted_downlink_intent",
+             "contact_ids" => ["accepted_downlink_intent"],
+             "capacity_pack_contact_ids" => ["accepted_downlink_intent"],
+             "required_capacity_fraction" => 0.35,
+             "source_summary_schema_contract" => "contact_intent_summary.v1",
+             "source_summary_source" => "operator_review_test.accepted_contact_intent_summary",
+             "source_contact_intent_summary" => %{
+               "schema_contract" => "contact_intent_summary.v1",
+               "source" => "operator_review_test.accepted_contact_intent_summary",
+               "direction_routing" => %{
+                 "downlink" => %{
+                   "contact_ids" => ["accepted_downlink_intent"],
+                   "capacity_pack_contact_ids" => ["accepted_downlink_intent"]
+                 }
+               }
+             },
+             "source_contact_intent" => %{
+               "direction" => "downlink",
+               "source_contact_intent_summary" => %{
+                 "schema_contract" => "contact_intent_summary.v1"
+               }
+             }
+           } = Enum.find(package["rows"], &(&1["direction"] == "downlink"))
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:accepted_contact_intent_summary_review",
+             "row_count" => 2,
+             "import_action_counts" => %{"review_contact_intent" => 2},
+             "source_review_type_counts" => %{"contact_intent_review" => 2}
+           } = manifest
+
+    assert %{
+             "import_action" => "review_contact_intent",
+             "source_review_type" => "contact_intent_review",
+             "activity_id" =>
+               "contact_intent_summary:candidate_refresh.accepted_planning_state.source_contact_intent_summary:downlink",
+             "source_review_row" => %{
+               "source" =>
+                 "candidate_refresh.accepted_planning_state.source_contact_intent_summary.summary_contacts",
+               "source_contact_intent_summary" => %{
+                 "schema_contract" => "contact_intent_summary.v1"
+               }
+             }
+           } = Enum.find(manifest["rows"], &(&1["direction"] == "downlink"))
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
+  test "candidate refresh mission state contact intent summaries become review rows" do
+    summary = %{
+      "schema_contract" => "contact_intent_summary.v1",
+      "model" => "artifact_only_contact_intent_summary",
+      "source_artifact_type" => "contact_intent.v1",
+      "source" => "operator_review_test.mission_contact_intent_summary",
+      "contact_intent_count" => 1,
+      "capacity_pack_required_contact_count" => 1,
+      "contact_ids_by_ground_station_id" => %{
+        "dss_14" => ["mission_tracking_intent"]
+      },
+      "contact_ids_by_direction" => %{
+        "tracking" => ["mission_tracking_intent"]
+      },
+      "capacity_pack_contact_ids_by_direction" => %{
+        "tracking" => ["mission_tracking_intent"]
+      },
+      "direction_routing" => %{
+        "tracking" => %{
+          "contact_count" => 1,
+          "contact_ids" => ["mission_tracking_intent"],
+          "capacity_pack_required_capacity_fraction" => 0.55,
+          "capacity_pack_contact_ids" => ["mission_tracking_intent"]
+        }
+      },
+      "assumptions" => %{
+        "execution_boundary" => "artifact_only_no_contact_generation_or_schedule_mutation"
+      }
+    }
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:mission_contact_intent_summary_review",
+      "mission_state" => %{
+        "contact_intent_summary" => summary
+      }
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:mission_contact_intent_summary_review",
+             "review_count" => 1,
+             "contact_intent_review_count" => 1,
+             "review_type_counts" => %{"contact_intent_review" => 1}
+           } = package
+
+    assert [
+             %{
+               "source" =>
+                 "candidate_refresh.mission_state.contact_intent_summary.summary_contacts",
+               "activity_id" =>
+                 "contact_intent_summary:candidate_refresh.mission_state.contact_intent_summary:tracking",
+               "direction" => "tracking",
+               "contact_id" => "mission_tracking_intent",
+               "contact_ids" => ["mission_tracking_intent"],
+               "capacity_pack_contact_ids" => ["mission_tracking_intent"],
+               "required_capacity_fraction" => 0.55,
+               "source_summary_schema_contract" => "contact_intent_summary.v1",
+               "source_summary_source" => "operator_review_test.mission_contact_intent_summary",
+               "source_contact_intent_summary" => %{
+                 "schema_contract" => "contact_intent_summary.v1",
+                 "direction_routing" => %{
+                   "tracking" => %{
+                     "contact_ids" => ["mission_tracking_intent"],
+                     "capacity_pack_contact_ids" => ["mission_tracking_intent"]
+                   }
+                 }
+               }
+             }
+           ] = package["rows"]
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:mission_contact_intent_summary_review",
+             "row_count" => 1,
+             "import_action_counts" => %{"review_contact_intent" => 1},
+             "source_review_type_counts" => %{"contact_intent_review" => 1}
+           } = manifest
+
+    assert [
+             %{
+               "import_action" => "review_contact_intent",
+               "source_review_type" => "contact_intent_review",
+               "activity_id" =>
+                 "contact_intent_summary:candidate_refresh.mission_state.contact_intent_summary:tracking",
+               "source_review_row" => %{
+                 "source" =>
+                   "candidate_refresh.mission_state.contact_intent_summary.summary_contacts",
+                 "source_contact_intent_summary" => %{
+                   "schema_contract" => "contact_intent_summary.v1"
+                 }
+               }
+             }
+           ] = manifest["rows"]
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "builds standalone freshness and refresh-budget review packages" do
     stale_freshness = %{
       "schema_contract" => "freshness_report.v1",
