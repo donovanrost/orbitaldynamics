@@ -3309,6 +3309,174 @@ defmodule OrbitalDynamics.CadenceImportTest do
              Schema.validate_artifact(manifest)
   end
 
+  test "candidate refresh import preserves wrapped contact filter reports" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:wrapped_contact_filter_import:001",
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "source_contact_filter_report" => %{
+            "schema_contract" => "contact_filter_report.v1",
+            "model" => "thin_ground_network_availability_filter",
+            "suppressed_candidates" => [
+              %{
+                "id" => "dl_wrapped_reserved",
+                "base_candidate_id" => "dl_wrapped",
+                "type" => "downlink",
+                "scenario_id" => "leo_1",
+                "starts_at_s" => 100.0,
+                "ends_at_s" => 160.0,
+                "ground_station_id" => "equator_prime",
+                "direction" => "downlink",
+                "station_availability" => "reserved",
+                "station_contention_status" => "reserved_overlap",
+                "station_reservation_id" => "reservation:equator_prime:dl_wrapped",
+                "station_reserved_by" => "network_partner",
+                "station_reservation_status" => "confirmed",
+                "station_reservation_match_status" => "overlap",
+                "approval_status" => "operator_review_required",
+                "approval_requirements" => [
+                  %{
+                    "activity_id" => "dl_wrapped_reserved",
+                    "activity_type" => "downlink",
+                    "action" => "review_suppressed_contact",
+                    "requirement_type" => "contact_schedule_change",
+                    "reason" => "ground_station_reserved"
+                  }
+                ],
+                "approval_rule_matches" => [
+                  %{"rule_id" => "reserved_station_contact_review"}
+                ],
+                "policy_decision" => %{
+                  "schema_contract" => "policy_decision.v1",
+                  "policy_bundle_id" => "ground_network_allocation_v1",
+                  "escalations" => [
+                    %{
+                      "rule_id" => "reserved_station_contact_review",
+                      "required_authority" => "contact_schedule_authority",
+                      "escalation_level" => "ops_lead",
+                      "escalation_queue" => "ground_network",
+                      "escalation_role" => "network_scheduler",
+                      "sla_s" => 600
+                    }
+                  ]
+                },
+                "suppressed_reason" => "ground_station_reserved",
+                "duplicate_suppressed_candidate_id_collision" => true,
+                "duplicate_suppressed_candidate_index" => 1,
+                "duplicate_suppressed_candidate_count" => 1,
+                "source_window_id" => "window:leo_1:ground_station_access:equator_prime:1",
+                "source_contact_candidate" => %{"id" => "dl_wrapped_reserved"}
+              }
+            ]
+          }
+        }
+      ]
+    }
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:wrapped_contact_filter_import:001",
+             "row_count" => 1,
+             "review_required_count" => 1,
+             "import_action_counts" => %{"review_contact_suppression" => 1},
+             "source_review_type_counts" => %{"contact_suppression" => 1}
+           } = manifest
+
+    assert [row] = manifest["rows"]
+
+    assert Map.take(row, [
+             "import_action",
+             "source_review_type",
+             "source_review_action",
+             "import_status",
+             "approval_status",
+             "subject_id",
+             "activity_id",
+             "base_candidate_id",
+             "activity_type",
+             "ground_station_id",
+             "direction",
+             "station_availability",
+             "station_contention_status",
+             "station_reservation_id",
+             "station_reserved_by",
+             "station_reservation_status",
+             "station_reservation_match_status",
+             "required_operator_action",
+             "requirement_type",
+             "required_authority",
+             "policy_bundle_id",
+             "rule_id",
+             "escalation_queue",
+             "duplicate_suppressed_candidate_id_collision",
+             "duplicate_suppressed_candidate_index",
+             "duplicate_suppressed_candidate_count",
+             "source_window_id",
+             "has_cadence_import"
+           ]) == %{
+             "import_action" => "review_contact_suppression",
+             "source_review_type" => "contact_suppression",
+             "source_review_action" => "review_suppressed_contact",
+             "import_status" => "review_required_before_import",
+             "approval_status" => "operator_review_required",
+             "subject_id" => "dl_wrapped_reserved",
+             "activity_id" => "dl_wrapped_reserved",
+             "base_candidate_id" => "dl_wrapped",
+             "activity_type" => "downlink",
+             "ground_station_id" => "equator_prime",
+             "direction" => "downlink",
+             "station_availability" => "reserved",
+             "station_contention_status" => "reserved_overlap",
+             "station_reservation_id" => "reservation:equator_prime:dl_wrapped",
+             "station_reserved_by" => "network_partner",
+             "station_reservation_status" => "confirmed",
+             "station_reservation_match_status" => "overlap",
+             "required_operator_action" => "review_suppressed_contact",
+             "requirement_type" => "contact_schedule_change",
+             "required_authority" => "contact_schedule_authority",
+             "policy_bundle_id" => "ground_network_allocation_v1",
+             "rule_id" => "reserved_station_contact_review",
+             "escalation_queue" => "ground_network",
+             "duplicate_suppressed_candidate_id_collision" => true,
+             "duplicate_suppressed_candidate_index" => 1,
+             "duplicate_suppressed_candidate_count" => 1,
+             "source_window_id" => "window:leo_1:ground_station_access:equator_prime:1",
+             "has_cadence_import" => false
+           }
+
+    assert row["source_contact_candidate"] == %{"id" => "dl_wrapped_reserved"}
+
+    assert %{
+             "id" => "dl_wrapped_reserved",
+             "suppressed_reason" => "ground_station_reserved",
+             "station_reservation_id" => "reservation:equator_prime:dl_wrapped"
+           } = row["source_contact_suppression"]
+
+    assert get_in(row, ["source_review_row", "source"]) ==
+             "candidate_refresh.source_result_artifact[0].source_contact_filter_report.suppressed_candidates"
+
+    assert get_in(row, ["source_review_row", "review_type"]) == "contact_suppression"
+
+    assert get_in(row, [
+             "source_review_row",
+             "source_contact_suppression",
+             "station_reservation_match_status"
+           ]) == "overlap"
+
+    assert get_in(row, [
+             "source_review_row",
+             "source_policy_decision",
+             "policy_bundle_id"
+           ]) == "ground_network_allocation_v1"
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "candidate refresh import preserves provider-reservation request summary handoff rows" do
     artifact = %{
       "refresh_id" => "refresh:provider_reservation_handoff",
