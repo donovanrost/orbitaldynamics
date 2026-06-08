@@ -5,83 +5,73 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Add hold import-readiness direction routing to the source summary.
+Make contact-allocation summary pressure planner-visible in strategy branches.
 
 Status:
-Implemented and parent-verified. The StationCalendar hold import-readiness
-source summary now emits optional row-derived reservation-hold and contact-ID
-maps by direction and by direction/ground station, validates those maps when
-present, and preserves them through operator-review and Cadence import rows.
+Implemented and parent-verified. Mission-state contact-allocation summary rows
+now derive V3 strategy pressure branches through the existing
+contact-allocation row path, so summary-only station pressure,
+reservation-conflict, and capacity-pack evidence can feed branch risk,
+`risk_penalty`, and branch comparison rows.
 
 Slice-selection note:
-- Selected slice: hold import-readiness direction routing at the StationCalendar
-  source-summary contract.
-- Why this slice: current docs promise direction-scoped hold/contact routing
-  for `station_reservation_hold_import_readiness_summary.v1`, but the live
-  producer/schema only expose import-status, expiration, owner, and action maps.
-- Level 6 pillar: durable schema-versioned artifacts and compatibility checks;
-  fleet-level resource, contact, station-calendar, and import-readiness behavior;
-  clear Cadence integration artifacts.
-- Current evidence gap:
-  docs claim direction-scoped hold/contact routing for compact
-  hold-import-readiness handoffs, but `station_reservation_hold_import_readiness_summary.v1`
-  does not emit or validate direction/ground-station maps.
+- Selected slice: derive V3 strategy pressure branches from mission-state
+  contact-allocation station-pressure, reservation-conflict, and capacity-pack
+  summary rows.
+- Why this slice: current Level 6 guidance points at deeper planner-visible use
+  of resource/contact evidence during branch scoring; direct
+  `contact_allocation_report` rows already become risk-scored branches, while
+  the newer compact summaries do not.
+- Level 6 pillar: planner-visible fleet resource/contact evidence, durable
+  artifact handoffs, and Cadence-facing review/import semantics.
+- Current evidence gap: summary-only deferred/blocked downlink contacts can be
+  replayed into CandidateRefresh and review artifacts without affecting V3
+  branch risk, `risk_penalty`, or branch comparison rows.
 - Docs read:
   `docs/autonomous_work_guide.md`,
-  `docs/feature_set/capability_map/07_ground_network_and_communications_planning.md`,
-  `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`,
-  `docs/artifacts/field_families/candidate_refresh_artifact.md`.
-- Likely files: `lib/orbital_dynamics/communications/station_calendar.ex`,
-  `lib/orbital_dynamics/schema.ex`,
-  `test/orbital_dynamics/communications/station_calendar_test.exs`,
-  `test/orbital_dynamics/schema_test.exs`,
-  `study_results/station_reservation_hold_import_readiness_summary_v1.json`,
-  `schemas/`,
+  `.codex/prompts/long_running_context_efficient_product_loop.md`,
+  `docs/feature_set/completeness_levels/06_mature_operational_platform.md`,
+  `docs/feature_set/definition_of_feature_complete.md`,
+  `docs/feature_set/current_capability_snapshot.md`,
+  `docs/feature_set/recommended_roadmap.md`,
+  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`.
+- Likely files: `lib/orbital_dynamics/campaign_planner.ex`,
+  `test/orbital_dynamics/campaign_planner_test.exs`,
   `.codex/status/autonomous_product_loop.md`.
-- Definition of done: the source summary emits row-derived hold/contact maps by
-  direction and direction/ground station, schema validation rejects stale maps,
-  checked-in fixture exact-regenerates, and focused tests plus schema
-  export/lint/whitespace checks pass.
+- Definition of done: mission-state summary rows can derive branch-local
+  `downlink_completion_gap` pressure events with source paths/trust boundaries,
+  those events feed risk/scoring/comparison output, focused strategy/schema
+  validation passes, and whitespace checks are clean.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/communications/station_calendar.ex`
-- `lib/orbital_dynamics/operator_review.ex`
-- `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/schema.ex`
-- `test/orbital_dynamics/communications/station_calendar_test.exs`
-- `test/orbital_dynamics/operator_review_test.exs`
-- `test/orbital_dynamics/cadence_import_test.exs`
-- `test/orbital_dynamics/schema_test.exs`
-- `study_results/station_reservation_hold_import_readiness_summary_v1.json`
-- `schemas/station_reservation_hold_import_readiness_summary.v1.schema.json`
-- `schemas/orbital_dynamics.schema_bundle.v1.json`
+- `lib/orbital_dynamics/campaign_planner.ex`
+- `test/orbital_dynamics/campaign_planner_test.exs`
 
 Tests run:
-- `mix format lib/orbital_dynamics/communications/station_calendar.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/communications/station_calendar_test.exs test/orbital_dynamics/operator_review_test.exs test/orbital_dynamics/cadence_import_test.exs test/orbital_dynamics/schema_test.exs`
+- `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:38868` (1 passed, 661 excluded)
 - `mix compile --warnings-as-errors`
-- `mix test test/orbital_dynamics/communications/station_calendar_test.exs:656 test/orbital_dynamics/operator_review_test.exs:9451 test/orbital_dynamics/operator_review_test.exs:9644 test/orbital_dynamics/cadence_import_test.exs:4520 test/orbital_dynamics/cadence_import_test.exs:4596` (4 passed, 352 excluded)
-- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `mix test test/orbital_dynamics/communications/station_calendar_test.exs:656 test/orbital_dynamics/schema_test.exs:2765 test/orbital_dynamics/operator_review_test.exs:9451 test/orbital_dynamics/operator_review_test.exs:9644 test/orbital_dynamics/cadence_import_test.exs:4520 test/orbital_dynamics/cadence_import_test.exs:4596` (5 passed, 519 excluded)
-- `mix orbital_dynamics.schema.lint --all` (154 files, 154 artifacts, status pass)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:38571 test/orbital_dynamics/campaign_planner_test.exs:38818 test/orbital_dynamics/campaign_planner_test.exs:38868 test/orbital_dynamics/campaign_planner_test.exs:39006` (4 passed, 658 excluded)
 - `git diff --check`
 
 Docs/artifacts changed:
-- Refreshed the checked-in hold import-readiness fixture with the new optional
-  direction routing maps.
-- Refreshed the hold import-readiness schema export and schema bundle.
+- None; behavior now matches the existing strategy-orchestration doc claims
+  that summary pressure evidence is preserved for branch-local consumers.
 
 Local review:
-- New source-summary maps are derived from `import_readiness_rows`, not copied
-  from stale top-level inputs.
-- Runtime validation rejects stale direction maps when present.
-- Operator-review and Cadence import row mappings preserve the source-summary
-  direction maps in station-reservation hold import-readiness handoffs.
+- Summary branch generation reuses `contact_allocation_pressure_branch/2` and
+  therefore preserves existing downlink-only/deferred-or-blocked semantics.
+- Summary row extraction is read-only and limited to row-like fields:
+  `rows`, `review_rows`, `reservation_conflict_rows`, and
+  `reservation_review_rows`.
+- Source paths and trust boundaries come from the owning mission-state summary
+  artifact, including result-artifact inherited trust boundaries through the
+  existing summary collectors.
 
 Level 6 pillar advanced:
-Fleet-level station-reservation hold import-readiness routing, durable
-schema-visible handoff artifacts, and clear Cadence adapter surfaces for
-direction-scoped import-review queues.
+Planner-visible resource/contact evidence and branch scoring depth for compact
+contact-allocation summary artifacts.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -91,11 +81,11 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`27ab76f` Add hold import readiness direction routing.
+`e42f221` Derive contact allocation summary pressure branches.
 
 Next candidate:
-Continue guide-priority resource/contact semantics or candidate-refresh depth
-after live-state inspection.
+After this slice, continue guide-priority resource/contact branch-scoring depth
+or external validation/schema-versioning gaps after live-state inspection.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is

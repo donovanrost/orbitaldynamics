@@ -5253,6 +5253,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
       )
       |> Kernel.++(derived_contact_allocation_pressure_branches(prior_plan))
       |> Kernel.++(derived_mission_state_contact_allocation_pressure_branches(mission_state))
+      |> Kernel.++(
+        derived_mission_state_contact_allocation_summary_pressure_branches(mission_state)
+      )
       |> Kernel.++(derived_mission_state_candidate_diff_pressure_branches(mission_state))
       |> Kernel.++(derived_mission_state_candidate_rejection_pressure_branches(mission_state))
       |> Kernel.++(derived_mission_state_provider_counteroffer_pressure_branches(mission_state))
@@ -9691,6 +9694,48 @@ defmodule OrbitalDynamics.CampaignPlanner do
         |> contact_allocation_pressure_branch(source_path)
       end)
     end)
+  end
+
+  defp derived_mission_state_contact_allocation_summary_pressure_branches(mission_state) do
+    mission_state
+    |> mission_state_contact_allocation_pressure_summaries()
+    |> Enum.flat_map(fn {summary, source_path} ->
+      trust_boundary =
+        Map.get(summary, "trust_boundary") || get_in(summary, ["provenance", "trust_boundary"])
+
+      summary
+      |> contact_allocation_summary_pressure_rows()
+      |> Enum.map(&stringify_keys/1)
+      |> Enum.map(&Map.put(&1, "_source_report_trust_boundary", trust_boundary))
+      |> Enum.flat_map(&contact_allocation_pressure_branch(&1, source_path))
+    end)
+  end
+
+  defp mission_state_contact_allocation_pressure_summaries(mission_state) do
+    mission_state_source_contact_allocation_summaries(mission_state) ++
+      mission_state_canonical_contact_allocation_summaries(mission_state) ++
+      mission_state_source_contact_allocation_station_pressure_summaries(mission_state) ++
+      mission_state_canonical_contact_allocation_station_pressure_summaries(mission_state) ++
+      mission_state_source_contact_allocation_reservation_conflict_summaries(mission_state) ++
+      mission_state_canonical_contact_allocation_reservation_conflict_summaries(mission_state) ++
+      mission_state_source_contact_allocation_capacity_pack_summaries(mission_state) ++
+      mission_state_canonical_contact_allocation_capacity_pack_summaries(mission_state)
+  end
+
+  defp contact_allocation_summary_pressure_rows(summary) do
+    [
+      "rows",
+      "review_rows",
+      "reservation_conflict_rows",
+      "reservation_review_rows"
+    ]
+    |> Enum.flat_map(fn field ->
+      summary
+      |> Map.get(field, [])
+      |> List.wrap()
+      |> Enum.filter(&is_map/1)
+    end)
+    |> Enum.uniq()
   end
 
   defp mission_state_contact_allocation_reports(mission_state) do
