@@ -90,18 +90,17 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Pending for this slice. Previous product commit:
-`fe0ac70` Derive timeline preservation pressure.
+`aa4cb47` Derive readiness gate summary pressure.
 
 Next candidate:
-After this slice, reinspect live code for the next planner-visible
-resource/contact evidence gap.
+Reinspect live code for the next planner-visible resource/contact evidence gap.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 
 Previous published slices:
+- `aa4cb47` derived operational-readiness gate-summary pressure branches.
 - `fe0ac70` derived timeline preservation report/status pressure branches.
 - `f75382e` derived timeline activity-precondition summary pressure branches.
 - `e22b772` derived timeline lifecycle-state and activity lifecycle-state
