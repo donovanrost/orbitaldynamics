@@ -42103,6 +42103,279 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives branch refresh from mission-state quality gate import readiness summaries" do
+    import_readiness_summary = fn prefix,
+                                  status,
+                                  classification,
+                                  freshness_status,
+                                  import_status,
+                                  cadence_status ->
+      freshness_counts = %{freshness_status => 1}
+      import_counts = %{import_status => 1}
+      cadence_counts = %{cadence_status => 1}
+
+      quality_gate_report = %{
+        "schema_contract" => "quality_gate_report.v1",
+        "model" => "artifact_only_operational_quality_gate_report",
+        "report_id" => "quality_gate:#{prefix}",
+        "source_artifact_type" => "planned_activity.v1",
+        "source_artifact_id" => "#{prefix}_import_payload",
+        "source_readiness_report_id" => "operational_readiness:#{prefix}",
+        "readiness_level" =>
+          case classification do
+            "blocked" -> "blocked"
+            "analysis_only" -> "analysis_only"
+            "review_only" -> "operator_review"
+          end,
+        "import_classification" => classification,
+        "status" => status,
+        "gate_count" => 1,
+        "passed_gate_count" => 0,
+        "review_gate_count" => if(status == "review_required", do: 1, else: 0),
+        "analysis_gate_count" => if(status == "analysis_only", do: 1, else: 0),
+        "blocked_gate_count" => if(status == "blocked", do: 1, else: 0),
+        "gate_status_counts" => %{status => 1},
+        "gate_classification_counts" => %{classification => 1},
+        "rows" => [
+          %{
+            "id" => "quality_gate:#{prefix}:cadence_import:1",
+            "rank" => 1,
+            "gate_id" => "cadence_import",
+            "status" => status,
+            "classification" => classification,
+            "reason" => "#{prefix} import readiness requires review",
+            "ready_for_import_count" => if(import_status == "ready_for_import", do: 1, else: 0),
+            "manifest_review_required_count" =>
+              if(import_status == "review_required_before_import", do: 1, else: 0),
+            "blocked_import_count" =>
+              if(import_status == "blocked_missing_cadence_import", do: 1, else: 0),
+            "missing_import_count" => if(cadence_status == "missing", do: 1, else: 0),
+            "invalid_cadence_import_count" => if(cadence_status == "invalid", do: 1, else: 0),
+            "current_freshness_count" => if(freshness_status == "current", do: 1, else: 0),
+            "stale_freshness_count" => if(freshness_status == "stale", do: 1, else: 0),
+            "unknown_freshness_count" => if(freshness_status == "unknown", do: 1, else: 0),
+            "freshness_status_counts" => freshness_counts,
+            "import_status_counts" => import_counts,
+            "cadence_import_status_counts" => cadence_counts
+          }
+        ],
+        "assumptions" => %{"source" => "test.quality_gate_report"},
+        "model_limits" => ["artifact_only"]
+      }
+
+      quality_gate_report
+      |> OrbitalDynamics.OperationalReadiness.quality_gate_import_readiness_summary()
+      |> Map.put("provenance", %{
+        "trust_boundary" => "#{prefix}_import_readiness_summary_boundary"
+      })
+    end
+
+    direct_summary =
+      import_readiness_summary.(
+        "direct",
+        "blocked",
+        "blocked",
+        "stale",
+        "blocked_missing_cadence_import",
+        "invalid"
+      )
+
+    canonical_summary =
+      import_readiness_summary.(
+        "canonical",
+        "review_required",
+        "review_only",
+        "unknown",
+        "review_required_before_import",
+        "present"
+      )
+
+    wrapped_summary =
+      import_readiness_summary.(
+        "wrapped",
+        "analysis_only",
+        "analysis_only",
+        "current",
+        "not_applicable",
+        "not_applicable"
+      )
+
+    assert {:ok, %{"schema_contract" => "operational_quality_gate_import_readiness_summary.v1"}} =
+             Schema.validate_artifact(direct_summary)
+
+    assert {:ok, %{"schema_contract" => "operational_quality_gate_import_readiness_summary.v1"}} =
+             Schema.validate_artifact(canonical_summary)
+
+    assert {:ok, %{"schema_contract" => "operational_quality_gate_import_readiness_summary.v1"}} =
+             Schema.validate_artifact(wrapped_summary)
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put("source_operational_quality_gate_import_readiness_summary", direct_summary)
+      |> Map.put("operational_quality_gate_import_readiness_summary", canonical_summary)
+      |> Map.put("source_result_artifact", %{
+        "schema_contract" => "result_artifact.v1",
+        "artifact_type" => "mission_state_result_artifact",
+        "source_operational_quality_gate_import_readiness_summary" =>
+          Map.delete(wrapped_summary, "provenance"),
+        "provenance" => %{"trust_boundary" => "wrapped_import_readiness_summary_boundary"}
+      })
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    direct_branch =
+      Enum.find(artifact["branches"], fn branch ->
+        String.starts_with?(branch["branch_id"], "derived_quality_gate_pressure_") and
+          Enum.any?(
+            branch["events"] || [],
+            &(&1["type"] == "quality_gate_pressure" and
+                &1["source_artifact_id"] == "direct_import_payload")
+          )
+      end)
+
+    assert direct_branch
+
+    assert %{
+             "type" => "quality_gate_pressure",
+             "source_artifact_type" => "planned_activity.v1",
+             "source_artifact_id" => "direct_import_payload",
+             "source_readiness_report_id" => "operational_readiness:direct",
+             "readiness_level" => "blocked",
+             "import_classification" => "blocked",
+             "quality_gate_status" => "blocked",
+             "gate_count" => 1,
+             "blocked_gate_count" => 1,
+             "gate_id" => "cadence_import",
+             "gate_status" => "blocked",
+             "gate_classification" => "blocked",
+             "gate_reason" => "import readiness summary blocks import",
+             "import_readiness_row_count" => 1,
+             "ready_for_import_count" => 0,
+             "manifest_review_required_count" => 0,
+             "blocked_import_count" => 1,
+             "missing_import_count" => 0,
+             "invalid_cadence_import_count" => 1,
+             "current_freshness_count" => 0,
+             "stale_freshness_count" => 1,
+             "unknown_freshness_count" => 0,
+             "freshness_status_counts" => %{"stale" => 1},
+             "freshness_status_ids" => ["stale"],
+             "import_status_counts" => %{"blocked_missing_cadence_import" => 1},
+             "import_status_ids" => ["blocked_missing_cadence_import"],
+             "cadence_import_status_counts" => %{"invalid" => 1},
+             "cadence_import_status_ids" => ["invalid"],
+             "freshness_review_required" => true,
+             "import_preparation_required" => false,
+             "import_blocked" => true,
+             "stale_or_unknown_freshness_quality_gate_row_ids" => [
+               "quality_gate:direct:cadence_import:1"
+             ],
+             "import_preparation_quality_gate_row_ids" => [],
+             "blocked_import_quality_gate_row_ids" => [
+               "quality_gate:direct:cadence_import:1"
+             ],
+             "feedback_source" =>
+               "mission_state.source_operational_quality_gate_import_readiness_summary",
+             "feedback_scope" => "quality_gate",
+             "trust_boundary" => "direct_import_readiness_summary_boundary",
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_cadence_write",
+               "operator_authority" => "not_granted_by_import_readiness_summary",
+               "cadence_write" => "not_performed_by_summary",
+               "command_execution" => "not_performed_by_summary",
+               "source" => "quality_gate_report.v1"
+             },
+             "source_quality_gate_row" => %{
+               "gate_id" => "cadence_import",
+               "blocked_quality_gate_row_ids" => [
+                 "quality_gate:direct:cadence_import:1"
+               ],
+               "blocked_import_quality_gate_row_ids" => [
+                 "quality_gate:direct:cadence_import:1"
+               ]
+             },
+             "source_quality_gate_report" => %{
+               "schema_contract" => "operational_quality_gate_import_readiness_summary.v1"
+             }
+           } = List.first(direct_branch["events"])
+
+    assert Enum.any?(
+             direct_branch["risk_indicators"],
+             &(&1["type"] == "quality_gate_pressure" and
+                 &1["import_blocked"] == true and
+                 &1["freshness_review_required"] == true and
+                 &1["import_status_counts"] == %{"blocked_missing_cadence_import" => 1} and
+                 &1["blocked_import_quality_gate_row_ids"] == [
+                   "quality_gate:direct:cadence_import:1"
+                 ])
+           )
+
+    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+
+    comparison_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == direct_branch["branch_id"]))
+
+    assert "quality_gate_pressure" in comparison_row["risk_types"]
+
+    assert comparison_row["branch_feedback_sources"] == [
+             "mission_state.source_operational_quality_gate_import_readiness_summary"
+           ]
+
+    canonical_branch =
+      Enum.find(artifact["branches"], fn branch ->
+        String.starts_with?(branch["branch_id"], "derived_quality_gate_pressure_") and
+          Enum.any?(
+            branch["events"] || [],
+            &(&1["type"] == "quality_gate_pressure" and
+                &1["source_artifact_id"] == "canonical_import_payload" and
+                &1["gate_status"] == "review_required" and
+                &1["freshness_status_counts"] == %{"unknown" => 1} and
+                &1["import_status_counts"] == %{"review_required_before_import" => 1} and
+                &1["import_preparation_required"] == true)
+          )
+      end)
+
+    wrapped_branch =
+      Enum.find(artifact["branches"], fn branch ->
+        String.starts_with?(branch["branch_id"], "derived_quality_gate_pressure_") and
+          Enum.any?(
+            branch["events"] || [],
+            &(&1["type"] == "quality_gate_pressure" and
+                &1["source_artifact_id"] == "wrapped_import_payload" and
+                &1["trust_boundary"] == "wrapped_import_readiness_summary_boundary" and
+                &1["gate_status"] == "analysis_only" and
+                &1["analysis_gate_count"] == 1 and
+                &1["import_status_counts"] == %{"not_applicable" => 1})
+          )
+      end)
+
+    assert canonical_branch
+    assert wrapped_branch
+
+    assert MapSet.size(
+             MapSet.new([
+               direct_branch["branch_id"],
+               canonical_branch["branch_id"],
+               wrapped_branch["branch_id"]
+             ])
+           ) == 3
+
+    assert "mission_state.source_operational_quality_gate_import_readiness_summary" in get_in(
+             direct_branch,
+             ["assumptions", "candidate_source", "source_report_input_paths"]
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy preserves operator-training readiness gate context in branch events" do
     readiness_report =
       %{

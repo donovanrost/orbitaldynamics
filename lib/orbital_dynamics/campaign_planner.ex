@@ -3894,6 +3894,27 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "required_training_ids",
       "required_certification_ids",
       "required_qualification_ids",
+      "import_readiness_row_count",
+      "ready_for_import_count",
+      "manifest_review_required_count",
+      "blocked_import_count",
+      "missing_import_count",
+      "invalid_cadence_import_count",
+      "current_freshness_count",
+      "stale_freshness_count",
+      "unknown_freshness_count",
+      "freshness_status_counts",
+      "freshness_status_ids",
+      "import_status_counts",
+      "import_status_ids",
+      "cadence_import_status_counts",
+      "cadence_import_status_ids",
+      "freshness_review_required",
+      "import_preparation_required",
+      "import_blocked",
+      "stale_or_unknown_freshness_quality_gate_row_ids",
+      "import_preparation_quality_gate_row_ids",
+      "blocked_import_quality_gate_row_ids",
       "schema_validation_row_count",
       "schema_validation_pass_count",
       "schema_validation_fail_count",
@@ -4715,6 +4736,27 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "required_training_ids",
         "required_certification_ids",
         "required_qualification_ids",
+        "import_readiness_row_count",
+        "ready_for_import_count",
+        "manifest_review_required_count",
+        "blocked_import_count",
+        "missing_import_count",
+        "invalid_cadence_import_count",
+        "current_freshness_count",
+        "stale_freshness_count",
+        "unknown_freshness_count",
+        "freshness_status_counts",
+        "freshness_status_ids",
+        "import_status_counts",
+        "import_status_ids",
+        "cadence_import_status_counts",
+        "cadence_import_status_ids",
+        "freshness_review_required",
+        "import_preparation_required",
+        "import_blocked",
+        "stale_or_unknown_freshness_quality_gate_row_ids",
+        "import_preparation_quality_gate_row_ids",
+        "blocked_import_quality_gate_row_ids",
         "schema_validation_row_count",
         "schema_validation_pass_count",
         "schema_validation_fail_count",
@@ -5114,6 +5156,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
         Map.get(state, "source_operational_quality_gate_schema_validation_summary"),
       "operational_quality_gate_schema_validation_summary" =>
         Map.get(state, "operational_quality_gate_schema_validation_summary"),
+      "source_operational_quality_gate_import_readiness_summary" =>
+        Map.get(state, "source_operational_quality_gate_import_readiness_summary"),
+      "operational_quality_gate_import_readiness_summary" =>
+        Map.get(state, "operational_quality_gate_import_readiness_summary"),
       "source_model_acceptance_report" => Map.get(state, "source_model_acceptance_report"),
       "model_acceptance_report" => Map.get(state, "model_acceptance_report"),
       "source_validation_safety_case_summary" =>
@@ -26881,7 +26927,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"source_operational_quality_gate_schema_validation_summary",
          "mission_state.source_operational_quality_gate_schema_validation_summary"},
         {"operational_quality_gate_schema_validation_summary",
-         "mission_state.operational_quality_gate_schema_validation_summary"}
+         "mission_state.operational_quality_gate_schema_validation_summary"},
+        {"source_operational_quality_gate_import_readiness_summary",
+         "mission_state.source_operational_quality_gate_import_readiness_summary"},
+        {"operational_quality_gate_import_readiness_summary",
+         "mission_state.operational_quality_gate_import_readiness_summary"}
       ]
       |> Enum.flat_map(fn {field, source_path} ->
         mission_state
@@ -26921,6 +26971,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
       mission_state_result_artifact_embedded_reports(
         mission_state,
         "operational_quality_gate_schema_validation_summary"
+      ) ++
+      mission_state_result_artifact_embedded_reports(
+        mission_state,
+        "source_operational_quality_gate_import_readiness_summary"
+      ) ++
+      mission_state_result_artifact_embedded_reports(
+        mission_state,
+        "operational_quality_gate_import_readiness_summary"
       )
   end
 
@@ -27004,6 +27062,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "source_quality_gate_report" => row["source_quality_gate_report"]
       }
       |> Map.merge(operational_readiness_operator_training_context(row))
+      |> Map.merge(quality_gate_import_readiness_context(row))
       |> Map.merge(quality_gate_schema_validation_context(row))
       |> Map.merge(quality_gate_resource_context(row))
       |> compact_map()
@@ -27073,8 +27132,79 @@ defmodule OrbitalDynamics.CampaignPlanner do
           source_path
         )
 
+      String.starts_with?(row_source, "operational_quality_gate_import_readiness_summary") ->
+        String.replace_prefix(
+          row_source,
+          "operational_quality_gate_import_readiness_summary",
+          source_path
+        )
+
       true ->
         source_path
+    end
+  end
+
+  defp quality_gate_pressure_rows(
+         %{"schema_contract" => "operational_quality_gate_import_readiness_summary.v1"} =
+           summary
+       ) do
+    summary = stringify_keys(summary)
+
+    case import_readiness_summary_gate_status(summary) do
+      nil ->
+        []
+
+      gate_status ->
+        gate_classification = quality_gate_status_classification(gate_status)
+
+        [
+          %{
+            "source" => "operational_quality_gate_import_readiness_summary",
+            "report_id" => summary["source_quality_gate_report_id"],
+            "source_artifact_type" => summary["source_artifact_type"],
+            "source_artifact_id" => summary["source_artifact_id"],
+            "source_readiness_report_id" => summary["source_readiness_report_id"],
+            "readiness_level" => quality_gate_status_readiness_level(gate_status),
+            "import_classification" => gate_classification,
+            "quality_gate_status" => gate_status,
+            "gate_count" => summary["import_readiness_row_count"],
+            "review_gate_count" => length(summary["review_required_quality_gate_row_ids"] || []),
+            "analysis_gate_count" => length(summary["analysis_only_quality_gate_row_ids"] || []),
+            "blocked_gate_count" => length(summary["blocked_quality_gate_row_ids"] || []),
+            "gate_id" => single_import_readiness_gate_id(summary["import_readiness_gate_ids"]),
+            "gate_status" => gate_status,
+            "gate_classification" => gate_classification,
+            "gate_reason" => import_readiness_summary_gate_reason(gate_status),
+            "import_readiness_row_count" => summary["import_readiness_row_count"],
+            "ready_for_import_count" => summary["ready_for_import_count"],
+            "manifest_review_required_count" => summary["manifest_review_required_count"],
+            "blocked_import_count" => summary["blocked_import_count"],
+            "missing_import_count" => summary["missing_import_count"],
+            "invalid_cadence_import_count" => summary["invalid_cadence_import_count"],
+            "current_freshness_count" => summary["current_freshness_count"],
+            "stale_freshness_count" => summary["stale_freshness_count"],
+            "unknown_freshness_count" => summary["unknown_freshness_count"],
+            "freshness_status_counts" => summary["freshness_status_counts"],
+            "freshness_status_ids" => summary["freshness_status_ids"],
+            "import_status_counts" => summary["import_status_counts"],
+            "import_status_ids" => summary["import_status_ids"],
+            "cadence_import_status_counts" => summary["cadence_import_status_counts"],
+            "cadence_import_status_ids" => summary["cadence_import_status_ids"],
+            "freshness_review_required" => summary["freshness_review_required"],
+            "import_preparation_required" => summary["import_preparation_required"],
+            "import_blocked" => summary["import_blocked"],
+            "stale_or_unknown_freshness_quality_gate_row_ids" =>
+              summary["stale_or_unknown_freshness_quality_gate_row_ids"],
+            "import_preparation_quality_gate_row_ids" =>
+              summary["import_preparation_quality_gate_row_ids"],
+            "blocked_import_quality_gate_row_ids" =>
+              summary["blocked_import_quality_gate_row_ids"],
+            "assumptions" => summary["assumptions"],
+            "source_quality_gate_row" => import_readiness_summary_source_row(summary),
+            "source_quality_gate_report" => summary
+          }
+          |> compact_map()
+        ]
     end
   end
 
@@ -27428,6 +27558,33 @@ defmodule OrbitalDynamics.CampaignPlanner do
     }
   end
 
+  defp quality_gate_import_readiness_context(%{} = row) do
+    %{
+      "import_readiness_row_count" => row["import_readiness_row_count"],
+      "ready_for_import_count" => row["ready_for_import_count"],
+      "manifest_review_required_count" => row["manifest_review_required_count"],
+      "blocked_import_count" => row["blocked_import_count"],
+      "missing_import_count" => row["missing_import_count"],
+      "invalid_cadence_import_count" => row["invalid_cadence_import_count"],
+      "current_freshness_count" => row["current_freshness_count"],
+      "stale_freshness_count" => row["stale_freshness_count"],
+      "unknown_freshness_count" => row["unknown_freshness_count"],
+      "freshness_status_counts" => row["freshness_status_counts"],
+      "freshness_status_ids" => row["freshness_status_ids"],
+      "import_status_counts" => row["import_status_counts"],
+      "import_status_ids" => row["import_status_ids"],
+      "cadence_import_status_counts" => row["cadence_import_status_counts"],
+      "cadence_import_status_ids" => row["cadence_import_status_ids"],
+      "freshness_review_required" => row["freshness_review_required"],
+      "import_preparation_required" => row["import_preparation_required"],
+      "import_blocked" => row["import_blocked"],
+      "stale_or_unknown_freshness_quality_gate_row_ids" =>
+        row["stale_or_unknown_freshness_quality_gate_row_ids"],
+      "import_preparation_quality_gate_row_ids" => row["import_preparation_quality_gate_row_ids"],
+      "blocked_import_quality_gate_row_ids" => row["blocked_import_quality_gate_row_ids"]
+    }
+  end
+
   defp unavailable_resource_summary_gate_status(summary) do
     cond do
       length(summary["blocked_quality_gate_row_ids"] || []) > 0 ->
@@ -27476,6 +27633,25 @@ defmodule OrbitalDynamics.CampaignPlanner do
     end
   end
 
+  defp import_readiness_summary_gate_status(summary) do
+    cond do
+      length(summary["blocked_quality_gate_row_ids"] || []) > 0 ->
+        "blocked"
+
+      length(summary["analysis_only_quality_gate_row_ids"] || []) > 0 ->
+        "analysis_only"
+
+      length(get_in(summary, ["quality_gate_row_ids_by_status", "analysis_only"]) || []) > 0 ->
+        "analysis_only"
+
+      length(summary["review_required_quality_gate_row_ids"] || []) > 0 ->
+        "review_required"
+
+      true ->
+        nil
+    end
+  end
+
   defp quality_gate_status_classification("blocked"), do: "blocked"
   defp quality_gate_status_classification("analysis_only"), do: "analysis_only"
   defp quality_gate_status_classification(_status), do: "review_only"
@@ -27511,6 +27687,15 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp schema_validation_summary_gate_reason(_status),
     do: "schema validation summary requires review"
 
+  defp import_readiness_summary_gate_reason("blocked"),
+    do: "import readiness summary blocks import"
+
+  defp import_readiness_summary_gate_reason("analysis_only"),
+    do: "import readiness summary requires analysis"
+
+  defp import_readiness_summary_gate_reason(_status),
+    do: "import readiness summary requires review"
+
   defp single_quality_gate_id([id | _rest]) when id not in [nil, ""], do: id
   defp single_quality_gate_id(_ids), do: "resource_availability"
 
@@ -27519,6 +27704,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp single_schema_validation_gate_id([id | _rest]) when id not in [nil, ""], do: id
   defp single_schema_validation_gate_id(_ids), do: "cadence_import"
+
+  defp single_import_readiness_gate_id([id | _rest]) when id not in [nil, ""], do: id
+  defp single_import_readiness_gate_id(_ids), do: "cadence_import"
 
   defp unavailable_resource_summary_source_row(summary) do
     %{
@@ -27558,6 +27746,25 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "failed_schema_validation_quality_gate_row_ids" =>
         summary["failed_schema_validation_quality_gate_row_ids"],
       "schema_validation_gate_ids" => summary["schema_validation_gate_ids"]
+    }
+    |> compact_map()
+  end
+
+  defp import_readiness_summary_source_row(summary) do
+    %{
+      "gate_id" => single_import_readiness_gate_id(summary["import_readiness_gate_ids"]),
+      "quality_gate_row_ids_by_status" => summary["quality_gate_row_ids_by_status"],
+      "quality_gate_ids_by_status" => summary["quality_gate_ids_by_status"],
+      "review_required_quality_gate_row_ids" => summary["review_required_quality_gate_row_ids"],
+      "blocked_quality_gate_row_ids" => summary["blocked_quality_gate_row_ids"],
+      "ready_quality_gate_row_ids" => summary["ready_quality_gate_row_ids"],
+      "analysis_only_quality_gate_row_ids" => summary["analysis_only_quality_gate_row_ids"],
+      "stale_or_unknown_freshness_quality_gate_row_ids" =>
+        summary["stale_or_unknown_freshness_quality_gate_row_ids"],
+      "import_preparation_quality_gate_row_ids" =>
+        summary["import_preparation_quality_gate_row_ids"],
+      "blocked_import_quality_gate_row_ids" => summary["blocked_import_quality_gate_row_ids"],
+      "import_readiness_gate_ids" => summary["import_readiness_gate_ids"]
     }
     |> compact_map()
   end
