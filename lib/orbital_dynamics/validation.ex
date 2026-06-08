@@ -9689,6 +9689,61 @@ defmodule OrbitalDynamics.Validation do
         "checks resource-projection battery handoff row aggregation only"
       ]
     },
+    "fixture.artifact.operational_import_eligibility_summary.v1" => %{
+      "id" => "fixture.artifact.operational_import_eligibility_summary.v1",
+      "model_id" => "artifact.operational_import_eligibility_summary.v1",
+      "reference_case" =>
+        "checked-in operational import eligibility summary from ready readiness evidence",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/operational_import_eligibility_summary_v1.json",
+        "source_contract" => "operational_readiness_report.v1",
+        "contract" => "operational_import_eligibility_summary.v1",
+        "source_artifact_type" => "planned_activity.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "operational_import_eligibility_summary.v1",
+        "model" => "artifact_only_import_eligibility_summary",
+        "source" => "operational_readiness_report.v1",
+        "source_artifact_type" => "planned_activity.v1",
+        "source_artifact_id" => "activity_1",
+        "readiness_level" => "import_eligible",
+        "import_classification" => "importable",
+        "status" => "passed",
+        "import_eligible" => true,
+        "gate_count" => 5,
+        "passed_gate_count" => 5,
+        "review_gate_count" => 0,
+        "analysis_gate_count" => 0,
+        "blocked_gate_count" => 0,
+        "non_passed_gate_count" => 0,
+        "row_derived_non_passed_gate_count" => 0,
+        "non_passed_gate_keys" => "",
+        "model_limit_count" => 2,
+        "execution_boundary" => "artifact_only_no_cadence_write",
+        "operator_authority" => "not_granted_by_summary",
+        "assumption_source" => "operational_readiness_report.v1"
+      },
+      "tolerances" => %{
+        "gate_count" => 0,
+        "passed_gate_count" => 0,
+        "review_gate_count" => 0,
+        "analysis_gate_count" => 0,
+        "blocked_gate_count" => 0,
+        "non_passed_gate_count" => 0,
+        "row_derived_non_passed_gate_count" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by operational_import_eligibility_summary.v1 validation tests"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not external operations validation",
+        "checks import eligibility, gate counts, and no-authority boundary only"
+      ]
+    },
     "fixture.artifact.operational_readiness_report.v1" => %{
       "id" => "fixture.artifact.operational_readiness_report.v1",
       "model_id" => "artifact.operational_readiness_report.v1",
@@ -16746,6 +16801,42 @@ defmodule OrbitalDynamics.Validation do
       "adapter_context_count" => Map.get(evidence, "adapter_context_count"),
       "adapter_trust_boundary_missing_count" =>
         Map.get(evidence, "adapter_trust_boundary_missing_count")
+    }
+  end
+
+  def artifact_observations("operational_import_eligibility_summary.v1", artifact)
+      when is_map(artifact) do
+    artifact = stringify_keys(artifact)
+    non_passed_gates = map_rows(artifact, "non_passed_gates")
+
+    %{
+      "schema_contract" => Map.get(artifact, "schema_contract"),
+      "model" => Map.get(artifact, "model"),
+      "source" => Map.get(artifact, "source"),
+      "source_artifact_type" => Map.get(artifact, "source_artifact_type"),
+      "source_artifact_id" => Map.get(artifact, "source_artifact_id"),
+      "readiness_level" => Map.get(artifact, "readiness_level"),
+      "import_classification" => Map.get(artifact, "import_classification"),
+      "status" => Map.get(artifact, "status"),
+      "import_eligible" => Map.get(artifact, "import_eligible"),
+      "gate_count" => Map.get(artifact, "gate_count"),
+      "passed_gate_count" => Map.get(artifact, "passed_gate_count"),
+      "review_gate_count" => Map.get(artifact, "review_gate_count"),
+      "analysis_gate_count" => Map.get(artifact, "analysis_gate_count"),
+      "blocked_gate_count" => Map.get(artifact, "blocked_gate_count"),
+      "non_passed_gate_count" => Map.get(artifact, "non_passed_gate_count"),
+      "row_derived_non_passed_gate_count" => length(non_passed_gates),
+      "non_passed_gate_keys" =>
+        non_passed_gates
+        |> Enum.map(& &1["id"])
+        |> Enum.filter(&is_binary/1)
+        |> Enum.uniq()
+        |> Enum.sort()
+        |> Enum.join("|"),
+      "model_limit_count" => count(artifact, "model_limits"),
+      "execution_boundary" => get_in(artifact, ["assumptions", "execution_boundary"]),
+      "operator_authority" => get_in(artifact, ["assumptions", "operator_authority"]),
+      "assumption_source" => get_in(artifact, ["assumptions", "source"])
     }
   end
 

@@ -2177,6 +2177,85 @@ defmodule OrbitalDynamics.ValidationTest do
            )
   end
 
+  test "verifies curated operational import eligibility summary reference fixtures" do
+    fixture_id = "fixture.artifact.operational_import_eligibility_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.operational_import_eligibility_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = operational_import_eligibility_summary_fixture()
+    observations = operational_import_eligibility_summary_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert observations["import_eligible"] == true
+    assert observations["import_classification"] == "importable"
+    assert observations["readiness_level"] == "import_eligible"
+    assert observations["status"] == "passed"
+    assert observations["gate_count"] == 5
+    assert observations["passed_gate_count"] == 5
+    assert observations["row_derived_non_passed_gate_count"] == 0
+    assert observations["execution_boundary"] == "artifact_only_no_cadence_write"
+    assert observations["operator_authority"] == "not_granted_by_summary"
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "operational_import_eligibility_summary.v1",
+             report
+           ) ==
+             Validation.artifact_observations(
+               "operational_import_eligibility_summary.v1",
+               report
+             )
+
+    stale_eligible_observations = Map.put(observations, "import_eligible", false)
+
+    assert {:ok, stale_eligible_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_eligible_observations)
+
+    assert stale_eligible_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_eligible_verification["checks"],
+             &(&1["field"] == "import_eligible" and &1["status"] == "fail")
+           )
+
+    stale_count_observations = Map.put(observations, "gate_count", 4)
+
+    assert {:ok, stale_count_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_count_observations)
+
+    assert stale_count_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_count_verification["checks"],
+             &(&1["field"] == "gate_count" and &1["status"] == "fail")
+           )
+
+    stale_boundary_observations =
+      Map.put(observations, "execution_boundary", "cadence_write_ready")
+
+    assert {:ok, stale_boundary_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_boundary_observations)
+
+    assert stale_boundary_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_boundary_verification["checks"],
+             &(&1["field"] == "execution_boundary" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _schema_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "operational_import_eligibility_summary.v1"
+             )
+  end
+
   test "verifies curated quality gate report reference fixtures" do
     fixture_id = "fixture.artifact.quality_gate_report.v1"
 
@@ -12653,6 +12732,8 @@ defmodule OrbitalDynamics.ValidationTest do
           operator_review_package_fixture_observations(),
         "fixture.artifact.operator_review_package.resource_projection_battery_handoff_v1" =>
           operator_review_resource_projection_battery_handoff_fixture_observations(),
+        "fixture.artifact.operational_import_eligibility_summary.v1" =>
+          operational_import_eligibility_summary_fixture_observations(),
         "fixture.artifact.operational_readiness_report.v1" =>
           operational_readiness_report_fixture_observations(),
         "fixture.artifact.operational_quality_gate_summary.v1" =>
@@ -12792,8 +12873,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 165,
-             "status_counts" => %{"pass" => 165},
+             "fixture_count" => 166,
+             "status_counts" => %{"pass" => 166},
              "reports" => reports
            } = report
 
@@ -12859,6 +12940,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.monte_carlo_reproducibility_report.v1",
              "fixture.artifact.objective_satisfaction_report.v1",
              "fixture.artifact.objective_tradeoff_report.v1",
+             "fixture.artifact.operational_import_eligibility_summary.v1",
              "fixture.artifact.operational_quality_gate_import_readiness_summary.v1",
              "fixture.artifact.operational_quality_gate_operator_training_summary.v1",
              "fixture.artifact.operational_quality_gate_schema_validation_summary.v1",
@@ -12975,7 +13057,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 165},
+             "status_counts" => %{"fail" => 166},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -15025,6 +15107,15 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp operational_readiness_report_fixture do
     read_json!("study_results/operational_readiness_report_v1.json")
+  end
+
+  defp operational_import_eligibility_summary_fixture_observations do
+    "operational_import_eligibility_summary.v1"
+    |> Validation.artifact_observations(operational_import_eligibility_summary_fixture())
+  end
+
+  defp operational_import_eligibility_summary_fixture do
+    read_json!("study_results/operational_import_eligibility_summary_v1.json")
   end
 
   defp operational_quality_gate_summary_fixture_observations do
