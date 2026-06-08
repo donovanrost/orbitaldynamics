@@ -2580,6 +2580,116 @@ defmodule OrbitalDynamics.CadenceImportTest do
              Schema.validate_artifact(manifest)
   end
 
+  test "candidate refresh import preserves wrapped timeline dependency-impact summaries" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:wrapped_dependency_impact_import",
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "timeline_dependency_impact_summary" => timeline_dependency_impact_summary()
+        }
+      ]
+    }
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:wrapped_dependency_impact_import",
+             "row_count" => 2,
+             "review_required_count" => 2,
+             "import_action_counts" => %{"review_timeline_dependency_impact" => 2},
+             "source_review_type_counts" => %{"timeline_dependency_impact_review" => 2}
+           } = manifest
+
+    assert Enum.map(manifest["rows"], &get_in(&1, ["source_review_row", "source"])) == [
+             "candidate_refresh.source_result_artifact[0].timeline_dependency_impact_summary.dependency_impact_rows",
+             "candidate_refresh.source_result_artifact[0].timeline_dependency_impact_summary.dependency_impact_rows"
+           ]
+
+    assert Enum.all?(
+             manifest["rows"],
+             &match?(
+               %{
+                 "import_action" => "review_timeline_dependency_impact",
+                 "source_review_type" => "timeline_dependency_impact_review",
+                 "source_review_action" => "review_timeline_integrity",
+                 "import_status" => "review_required_before_import",
+                 "approval_status" => "operator_review_required",
+                 "required_operator_action" => "review_timeline_integrity",
+                 "timeline_id" => "timeline:command:20.0",
+                 "activity_id" => "cmd_combo",
+                 "dependency_impact_status" => "review_required",
+                 "cadence_import_status" => "present",
+                 "has_cadence_import" => false
+               },
+               &1
+             )
+           )
+
+    assert %{
+             "dependency_impact_scope" => "source",
+             "impacted_source_activity_ids" => ["health_gate"],
+             "impacted_source_timeline_ids" => ["timeline:health_check:0.0"],
+             "dependent_activity_ids" => ["cmd_combo"],
+             "dependent_timeline_ids" => ["timeline:command:20.0"],
+             "source_dependent_activity_ids" => ["cmd_combo"],
+             "source_dependent_timeline_ids" => ["timeline:command:20.0"],
+             "replacement_dependent_activity_ids" => ["cmd_combo"],
+             "replacement_dependent_timeline_ids" => ["timeline:command:20.0"],
+             "dependency_timeline_ids" => ["timeline:health_check:0.0"],
+             "exclusive_with_activity_ids" => ["health_gate"],
+             "impacted_dependency_timeline_ids" => ["timeline:health_check:0.0"],
+             "impacted_exclusive_with_activity_ids" => ["health_gate"],
+             "source_timeline_dependency_impact" => %{
+               "id" => "dependency_impact:source:timeline:command:20.0",
+               "scope" => "source",
+               "activity_id" => "cmd_combo",
+               "dependency_impact_status" => "review_required"
+             },
+             "source_review_row" => %{
+               "source" =>
+                 "candidate_refresh.source_result_artifact[0].timeline_dependency_impact_summary.dependency_impact_rows",
+               "source_activity_count" => 2,
+               "replacement_activity_count" => 2,
+               "changed_source_activity_count" => 1,
+               "changed_source_timeline_count" => 1,
+               "source_timeline_dependency_impact" => %{
+                 "id" => "dependency_impact:source:timeline:command:20.0",
+                 "scope" => "source",
+                 "activity_id" => "cmd_combo",
+                 "dependency_impact_status" => "review_required"
+               }
+             }
+           } =
+             Enum.find(
+               manifest["rows"],
+               &(&1["dependency_impact_scope"] == "source")
+             )
+
+    assert %{
+             "dependency_impact_scope" => "replacement",
+             "source_timeline_dependency_impact" => %{
+               "id" => "dependency_impact:replacement:timeline:command:20.0",
+               "scope" => "replacement"
+             },
+             "source_review_row" => %{
+               "source_timeline_dependency_impact" => %{
+                 "id" => "dependency_impact:replacement:timeline:command:20.0",
+                 "scope" => "replacement"
+               }
+             }
+           } =
+             Enum.find(
+               manifest["rows"],
+               &(&1["dependency_impact_scope"] == "replacement")
+             )
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "candidate refresh import preserves provider-reservation request summary handoff rows" do
     artifact = %{
       "refresh_id" => "refresh:provider_reservation_handoff",
