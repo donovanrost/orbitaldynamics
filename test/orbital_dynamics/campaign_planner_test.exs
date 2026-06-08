@@ -41659,6 +41659,225 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives branch refresh from mission-state quality gate operator training summaries" do
+    operator_training_summary = fn prefix, status, classification ->
+      quality_gate_report = %{
+        "schema_contract" => "quality_gate_report.v1",
+        "model" => "artifact_only_operational_quality_gate_report",
+        "report_id" => "quality_gate:#{prefix}",
+        "source_artifact_type" => "planned_activity.v1",
+        "source_artifact_id" => "#{prefix}_activity",
+        "source_readiness_report_id" => "operational_readiness:#{prefix}",
+        "readiness_level" =>
+          case classification do
+            "blocked" -> "blocked"
+            "analysis_only" -> "analysis_only"
+            "review_only" -> "operator_review"
+          end,
+        "import_classification" => classification,
+        "status" => status,
+        "gate_count" => 1,
+        "passed_gate_count" => 0,
+        "review_gate_count" => if(status == "review_required", do: 1, else: 0),
+        "analysis_gate_count" => if(status == "analysis_only", do: 1, else: 0),
+        "blocked_gate_count" => if(status == "blocked", do: 1, else: 0),
+        "gate_status_counts" => %{status => 1},
+        "gate_classification_counts" => %{classification => 1},
+        "rows" => [
+          %{
+            "id" => "quality_gate:#{prefix}:operator_training:1",
+            "rank" => 1,
+            "gate_id" => "operator_training",
+            "status" => status,
+            "classification" => classification,
+            "reason" => "#{prefix} operator training requires review",
+            "operator_training_requirement_count" => 5,
+            "operator_training_requirement_counts" => %{
+              "operator_role" => 2,
+              "training" => 1,
+              "certification" => 1,
+              "qualification" => 1
+            },
+            "required_operator_roles" => ["contact_operator", "mission_director"],
+            "required_training_ids" => ["contact_replan_drill"],
+            "required_certification_ids" => ["cadence_import_cert"],
+            "required_qualification_ids" => ["sat_ops_current"]
+          }
+        ],
+        "assumptions" => %{"source" => "test.quality_gate_report"},
+        "model_limits" => ["artifact_only"]
+      }
+
+      quality_gate_report
+      |> OrbitalDynamics.OperationalReadiness.quality_gate_operator_training_summary()
+      |> Map.put("provenance", %{
+        "trust_boundary" => "#{prefix}_operator_training_summary_boundary"
+      })
+    end
+
+    direct_summary =
+      operator_training_summary.("direct", "review_required", "review_only")
+
+    canonical_summary = operator_training_summary.("canonical", "blocked", "blocked")
+    wrapped_summary = operator_training_summary.("wrapped", "analysis_only", "analysis_only")
+
+    assert {:ok, %{"schema_contract" => "operational_quality_gate_operator_training_summary.v1"}} =
+             Schema.validate_artifact(direct_summary)
+
+    assert {:ok, %{"schema_contract" => "operational_quality_gate_operator_training_summary.v1"}} =
+             Schema.validate_artifact(canonical_summary)
+
+    assert {:ok, %{"schema_contract" => "operational_quality_gate_operator_training_summary.v1"}} =
+             Schema.validate_artifact(wrapped_summary)
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put("source_operational_quality_gate_operator_training_summary", direct_summary)
+      |> Map.put("operational_quality_gate_operator_training_summary", canonical_summary)
+      |> Map.put("source_result_artifact", %{
+        "schema_contract" => "result_artifact.v1",
+        "artifact_type" => "mission_state_result_artifact",
+        "source_operational_quality_gate_operator_training_summary" =>
+          Map.delete(wrapped_summary, "provenance"),
+        "provenance" => %{"trust_boundary" => "wrapped_operator_training_summary_boundary"}
+      })
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    direct_branch =
+      Enum.find(artifact["branches"], fn branch ->
+        String.starts_with?(branch["branch_id"], "derived_quality_gate_pressure_") and
+          Enum.any?(
+            branch["events"] || [],
+            &(&1["type"] == "quality_gate_pressure" and
+                &1["source_artifact_id"] == "direct_activity")
+          )
+      end)
+
+    assert direct_branch
+
+    assert %{
+             "type" => "quality_gate_pressure",
+             "source_artifact_type" => "planned_activity.v1",
+             "source_artifact_id" => "direct_activity",
+             "source_readiness_report_id" => "operational_readiness:direct",
+             "readiness_level" => "operator_review",
+             "import_classification" => "review_only",
+             "quality_gate_status" => "review_required",
+             "gate_count" => 1,
+             "review_gate_count" => 1,
+             "gate_id" => "operator_training",
+             "gate_status" => "review_required",
+             "gate_classification" => "review_only",
+             "gate_reason" => "operator training summary requires review",
+             "operator_training_requirement_count" => 5,
+             "operator_training_requirement_counts" => %{
+               "operator_role" => 2,
+               "training" => 1,
+               "certification" => 1,
+               "qualification" => 1
+             },
+             "required_operator_roles" => ["contact_operator", "mission_director"],
+             "required_training_ids" => ["contact_replan_drill"],
+             "required_certification_ids" => ["cadence_import_cert"],
+             "required_qualification_ids" => ["sat_ops_current"],
+             "feedback_source" =>
+               "mission_state.source_operational_quality_gate_operator_training_summary",
+             "feedback_scope" => "quality_gate",
+             "trust_boundary" => "direct_operator_training_summary_boundary",
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_cadence_write",
+               "operator_authority" => "not_granted_by_operator_training_summary",
+               "cadence_write" => "not_performed_by_summary",
+               "command_execution" => "not_performed_by_summary",
+               "source" => "quality_gate_report.v1"
+             },
+             "source_quality_gate_row" => %{
+               "gate_id" => "operator_training",
+               "review_required_quality_gate_row_ids" => [
+                 "quality_gate:direct:operator_training:1"
+               ]
+             },
+             "source_quality_gate_report" => %{
+               "schema_contract" => "operational_quality_gate_operator_training_summary.v1"
+             }
+           } = List.first(direct_branch["events"])
+
+    assert Enum.any?(
+             direct_branch["risk_indicators"],
+             &(&1["type"] == "quality_gate_pressure" and
+                 &1["operator_training_requirement_count"] == 5 and
+                 &1["required_operator_roles"] == [
+                   "contact_operator",
+                   "mission_director"
+                 ] and
+                 &1["required_training_ids"] == ["contact_replan_drill"] and
+                 &1["required_certification_ids"] == ["cadence_import_cert"] and
+                 &1["required_qualification_ids"] == ["sat_ops_current"])
+           )
+
+    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+
+    comparison_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == direct_branch["branch_id"]))
+
+    assert "quality_gate_pressure" in comparison_row["risk_types"]
+
+    assert comparison_row["branch_feedback_sources"] == [
+             "mission_state.source_operational_quality_gate_operator_training_summary"
+           ]
+
+    canonical_branch =
+      Enum.find(artifact["branches"], fn branch ->
+        String.starts_with?(branch["branch_id"], "derived_quality_gate_pressure_") and
+          Enum.any?(
+            branch["events"] || [],
+            &(&1["type"] == "quality_gate_pressure" and
+                &1["source_artifact_id"] == "canonical_activity" and
+                &1["gate_status"] == "blocked")
+          )
+      end)
+
+    wrapped_branch =
+      Enum.find(artifact["branches"], fn branch ->
+        String.starts_with?(branch["branch_id"], "derived_quality_gate_pressure_") and
+          Enum.any?(
+            branch["events"] || [],
+            &(&1["type"] == "quality_gate_pressure" and
+                &1["source_artifact_id"] == "wrapped_activity" and
+                &1["trust_boundary"] == "wrapped_operator_training_summary_boundary" and
+                &1["gate_status"] == "analysis_only" and
+                &1["analysis_gate_count"] == 1)
+          )
+      end)
+
+    assert canonical_branch
+    assert wrapped_branch
+
+    assert MapSet.size(
+             MapSet.new([
+               direct_branch["branch_id"],
+               canonical_branch["branch_id"],
+               wrapped_branch["branch_id"]
+             ])
+           ) == 3
+
+    assert "mission_state.source_operational_quality_gate_operator_training_summary" in get_in(
+             direct_branch,
+             ["assumptions", "candidate_source", "source_report_input_paths"]
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy preserves operator-training readiness gate context in branch events" do
     readiness_report =
       %{

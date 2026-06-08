@@ -5,26 +5,26 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Make quality-gate unavailable-resource summaries branch-visible.
+Make quality-gate operator-training summaries branch-visible.
 
 Status:
 Implemented and parent-verified.
-`operational_quality_gate_unavailable_resource_summary.v1` handoffs now create
-V3 branch-local resource availability/quality-gate pressure directly.
+`operational_quality_gate_operator_training_summary.v1` handoffs now create V3
+branch-local operator-training quality-gate pressure directly.
 
 Slice-selection note:
-- Selected slice: derive branch-local quality-gate/resource pressure from
-  `operational_quality_gate_unavailable_resource_summary.v1` handoffs.
-- Why this slice: the readiness roadmap says resource-availability
-  quality-gate summaries preserve unavailable-resource reason counts and
-  blocked contact routing; live code records those summaries as
-  CandidateRefresh inputs but does not use them as direct V3 branch pressure.
-- Level 6 pillar: resource/contact readiness, approval-aware automation
-  boundaries, reproducible V3 branch trees, and Cadence-facing artifacts.
-- Current evidence gap: compact unavailable-resource quality-gate summaries can
-  carry blocked contact IDs, unavailable-resource reasons, and station/resource
-  blocking dimensions without directly affecting branch risk, `risk_penalty`,
-  or branch comparison explanations.
+- Selected slice: derive branch-local quality-gate/operator-training pressure
+  from `operational_quality_gate_operator_training_summary.v1` handoffs.
+- Why this slice: the readiness roadmap says operator-training quality-gate
+  summaries preserve required roles, training, certification, and qualification
+  IDs; live code records those summaries as CandidateRefresh inputs but does
+  not use them as direct V3 branch pressure.
+- Level 6 pillar: operator readiness, approval-aware automation boundaries,
+  reproducible V3 branch trees, and Cadence-facing artifacts.
+- Current evidence gap: compact operator-training quality-gate summaries can
+  carry required role/training/certification/qualification context without
+  directly affecting branch risk, `risk_penalty`, or branch comparison
+  explanations.
 - Docs read:
   `docs/autonomous_work_guide.md`,
   `.codex/prompts/long_running_context_efficient_product_loop.md`,
@@ -38,9 +38,9 @@ Slice-selection note:
 - Likely files: `lib/orbital_dynamics/campaign_planner.ex`,
   `test/orbital_dynamics/campaign_planner_test.exs`,
   `.codex/status/autonomous_product_loop.md`.
-- Definition of done: direct/canonical/result-artifact quality-gate summaries
-  for unavailable resources derive branch-local quality-gate/resource pressure
-  events with source paths, trust boundaries, blocked-contact/resource context,
+- Definition of done: direct/canonical/result-artifact operator-training
+  quality-gate summaries derive branch-local quality-gate pressure events with
+  source paths, trust boundaries, required role/training/certification context,
   and no-execution/import/write assumptions; those events feed
   risk/scoring/comparison output; focused strategy/schema validation passes;
   and whitespace checks are clean.
@@ -52,33 +52,34 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:41427` (1 passed, 667 excluded)
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:41136 test/orbital_dynamics/campaign_planner_test.exs:41223 test/orbital_dynamics/campaign_planner_test.exs:41427 test/orbital_dynamics/campaign_planner_test.exs:41708 test/orbital_dynamics/campaign_planner_test.exs:41785` (5 passed, 663 excluded)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:41662` (1 passed, 668 excluded)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:41136 test/orbital_dynamics/campaign_planner_test.exs:41223 test/orbital_dynamics/campaign_planner_test.exs:41427 test/orbital_dynamics/campaign_planner_test.exs:41662 test/orbital_dynamics/campaign_planner_test.exs:41940 test/orbital_dynamics/campaign_planner_test.exs:42017` (6 passed, 663 excluded)
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- None; this is runtime/test coverage for existing unavailable-resource
+- None; this is runtime/test coverage for existing operator-training
   quality-gate summary evidence.
 
 Local review:
 - Mission-state normalization now preserves direct and canonical
-  `operational_quality_gate_unavailable_resource_summary.v1` fields so they can
+  `operational_quality_gate_operator_training_summary.v1` fields so they can
   reach branch derivation alongside result-artifact-wrapped summaries.
-- Quality-gate pressure collection maps unavailable-resource summaries into one
-  branch-local pressure row per review/blocked summary, retaining source paths,
-  trust boundaries, assumptions, resource reason counts, station reason counts,
-  blocked contact ID maps, and source summary snapshots.
-- Quality-gate events, risk indicators, and recommendation pressure rows keep
-  unavailable-resource reason/contact context; branch comparison rows carry the
-  resulting risk type and feedback source.
-- Read-only reviewer Popper flagged station-only pressure undercounting,
-  analysis-only summary dropping, and overstated comparison-row wording; the
-  adapter now merges station/unavailable reason counts, emits analysis-only
-  pressure rows, and the handoff wording is narrowed to the verified surfaces.
+- Quality-gate pressure collection maps operator-training summaries into one
+  branch-local pressure row per review/blocked/analysis-only summary, retaining
+  source paths, trust boundaries, assumptions, required roles, training IDs,
+  certification IDs, qualification IDs, and source summary snapshots.
+- Quality-gate events, risk indicators, and branch comparison rows now reflect
+  operator-training summary pressure through the existing quality-gate risk
+  path.
+- Read-only reviewer Popper flagged possible combined-branch false positives
+  and thin risk-context assertions; the test now requires distinct individual
+  `derived_quality_gate_pressure_*` branches for direct/canonical/wrapped
+  summaries and verifies role/training/certification/qualification fields in
+  risk indicators.
 
 Level 6 pillar advanced:
-Unavailable-resource quality-gate summary evidence is now planner-visible in V3
+Operator-training quality-gate summary evidence is now planner-visible in V3
 branch scoring and comparison output, not only CandidateRefresh replay.
 
 Remaining maturity gaps:
@@ -89,7 +90,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`9bfadda` Derive unavailable resource quality gate pressure.
+Previous slice: `1344424` Update autonomous loop handoff.
 
 Next candidate:
 After this slice, continue specialized quality-gate summary branch-pressure gaps
