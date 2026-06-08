@@ -30268,6 +30268,81 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives timeline preservation pressure from row-local stale aggregate evidence" do
+    stale_report =
+      [
+        %{
+          id: :stale_locked,
+          type: :contact,
+          locked: true,
+          metadata: %{timeline_id: "timeline:stale:locked"}
+        },
+        %{id: :stale_bad_missing_type, status: :planned}
+      ]
+      |> Timeline.preservation_report(source: "mission.stale.timeline")
+      |> Map.put("timeline_preservation_status", "clear")
+      |> Map.put("preserve_activity_count", 0)
+      |> Map.put("review_change_activity_count", 0)
+      |> Map.put("preservation_sensitive_activity_count", 0)
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put("source_timeline_preservation_report", stale_report)
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    preserve_branch =
+      branch(artifact, "derived_timeline_preservation_pressure_stale_locked")
+
+    assert %{
+             "timeline_preservation_status" => "preservation_required",
+             "requires_preservation" => true,
+             "requires_operator_review" => false,
+             "protection_decision" => "preserve",
+             "required_operator_action" => "record_timeline_preservation",
+             "feedback_source" => "mission_state.source_timeline_preservation_report.rows[0]"
+           } = List.first(preserve_branch["events"])
+
+    review_branch =
+      branch(artifact, "derived_timeline_preservation_pressure_stale_bad_missing_type")
+
+    assert %{
+             "timeline_preservation_status" => "review_required",
+             "requires_preservation" => false,
+             "requires_operator_review" => true,
+             "protection_decision" => "review_change",
+             "invalid_activity_input" => true,
+             "required_operator_action" => "review_invalid_activity_input",
+             "feedback_source" => "mission_state.source_timeline_preservation_report.rows[1]"
+           } = List.first(review_branch["events"])
+
+    preserve_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "derived_timeline_preservation_pressure_stale_locked"))
+
+    assert preserve_row["branch_timeline_preservation_statuses"] == ["preservation_required"]
+    assert preserve_row["branch_timeline_preservation_protection_decisions"] == ["preserve"]
+
+    review_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] ==
+            "derived_timeline_preservation_pressure_stale_bad_missing_type")
+      )
+
+    assert review_row["branch_timeline_preservation_statuses"] == ["review_required"]
+    assert review_row["branch_timeline_preservation_protection_decisions"] == ["review_change"]
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy carries mission-state contact-allocation summaries into branch refresh requests" do
     direct_summary = contact_allocation_summary_fixture("direct")
     canonical_summary = contact_allocation_summary_fixture("canonical")

@@ -20609,6 +20609,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
     context = timeline_preservation_pressure_context(row)
     activity_id = row["activity_id"] || get_in(row, ["timeline_identity", "activity_id"])
     timeline_id = row["timeline_id"] || get_in(row, ["timeline_identity", "timeline_id"])
+    timeline_preservation_status = timeline_preservation_effective_status(row)
+
+    requires_preservation =
+      timeline_preservation_requires_preservation?(row, timeline_preservation_status)
+
+    requires_operator_review =
+      timeline_preservation_requires_operator_review?(row, timeline_preservation_status)
 
     if context == %{} or not timeline_preservation_pressure?(row) do
       nil
@@ -20617,15 +20624,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "type" => "timeline_preservation_pressure",
         "activity_id" => activity_id,
         "timeline_id" => timeline_id,
-        "timeline_preservation_status" => row["timeline_preservation_status"],
-        "requires_preservation" =>
-          row["requires_preservation"] == true or
-            row["timeline_preservation_status"] == "preservation_required",
-        "requires_operator_review" =>
-          row["requires_operator_review"] == true or
-            row["timeline_preservation_status"] == "review_required" or
-            row["protection_decision"] == "review_change" or
-            row["invalid_activity_input"] == true,
+        "timeline_preservation_status" => timeline_preservation_status,
+        "requires_preservation" => requires_preservation,
+        "requires_operator_review" => requires_operator_review,
         "status" => row["status"],
         "approval_status" => row["approval_status"],
         "locked" => row["locked"],
@@ -20649,7 +20650,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "feedback_scope" => "timeline_preservation",
         "feedback_key" => activity_id || timeline_id || row["source"],
         "trust_boundary" => operator_review_trust_boundary(row),
-        "required_operator_action" => timeline_preservation_required_action(row),
+        "required_operator_action" =>
+          timeline_preservation_required_action(
+            Map.merge(row, %{
+              "timeline_preservation_status" => timeline_preservation_status,
+              "requires_preservation" => requires_preservation,
+              "requires_operator_review" => requires_operator_review
+            })
+          ),
         "derivation_reasons" => ["timeline_preservation_pressure"],
         "assumptions" => %{
           "timeline_preservation_application" => "not_performed_by_strategy_branch",
@@ -20662,6 +20670,44 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Map.merge(context)
       |> compact_map()
     end
+  end
+
+  defp timeline_preservation_effective_status(%{"invalid_activity_input" => true}),
+    do: "review_required"
+
+  defp timeline_preservation_effective_status(%{"requires_operator_review" => true}),
+    do: "review_required"
+
+  defp timeline_preservation_effective_status(%{"protection_decision" => "review_change"}),
+    do: "review_required"
+
+  defp timeline_preservation_effective_status(%{
+         "timeline_preservation_status" => status
+       })
+       when status in ["review_required", "preservation_required"],
+       do: status
+
+  defp timeline_preservation_effective_status(%{"requires_preservation" => true}),
+    do: "preservation_required"
+
+  defp timeline_preservation_effective_status(%{"protection_decision" => "preserve"}),
+    do: "preservation_required"
+
+  defp timeline_preservation_effective_status(%{"timeline_preservation_status" => status}),
+    do: status
+
+  defp timeline_preservation_effective_status(_row), do: nil
+
+  defp timeline_preservation_requires_preservation?(row, timeline_preservation_status) do
+    row["requires_preservation"] == true or
+      timeline_preservation_status == "preservation_required"
+  end
+
+  defp timeline_preservation_requires_operator_review?(row, timeline_preservation_status) do
+    row["requires_operator_review"] == true or
+      timeline_preservation_status == "review_required" or
+      row["protection_decision"] == "review_change" or
+      row["invalid_activity_input"] == true
   end
 
   defp timeline_preservation_pressure?(row) do
