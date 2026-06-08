@@ -5,72 +5,67 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Typed activity aggregate station-calendar reservation-list context.
+Level 6 roadmap and capability-snapshot calibration.
 
 Status:
-Implemented, parent-verified, and committed. `MissionPlan.Activity`
-ingress/egress now preserves aggregate reservation-list evidence:
-`station_calendar_reservation_overlap_count`,
-`station_calendar_reservation_expires_at_s`,
-`station_calendar_reservation_ids`, `station_calendar_reserved_by`, and
-`station_calendar_reservation_statuses`. Operational timeline rows receive the
-same context from typed activities, with normalized reservation status lists and
-schema-valid expiration/ID arrays for review/import handoffs.
+Implemented, parent-verified, and committed. Live reassessment showed several
+roadmap "good first" surfaces are already implemented or heavily covered:
+activity lifecycle/status/approval helpers, dependency/exclusivity integrity,
+lock/approved/executed preservation, timeline diff/transition/publication
+handoffs, contact-intent direction routing, capacity-pack direction routing,
+resource/contact pressure artifacts, readiness reports, quality gates, and
+review/import handoff rows.
 
 Files changed:
-- `docs/artifacts/field_families/mission_activities.md`
-- `docs/feature_set/capability_map/08_mission_activities/typed-activity-model-and-lifecycle.md`
-- `lib/orbital_dynamics/mission_plan/activity.ex`
-- `test/orbital_dynamics/mission_plan/activity_test.exs`
-- `test/orbital_dynamics/mission_plan_test.exs`
+- `docs/feature_set/current_capability_snapshot.md`
+- `docs/feature_set/recommended_roadmap.md`
+- `docs/feature_set/capability_map/08_mission_activities/partial-and-future.md`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix format lib/orbital_dynamics/mission_plan/activity.ex test/orbital_dynamics/mission_plan/activity_test.exs test/orbital_dynamics/mission_plan_test.exs`
-- `mix test test/orbital_dynamics/mission_plan_test.exs:546 test/orbital_dynamics/mission_plan_test.exs:746 test/orbital_dynamics/mission_plan/activity_test.exs` (33 passed, 27 excluded)
-- `mix test test/orbital_dynamics/mission_plan/activity_test.exs test/orbital_dynamics/mission_plan_test.exs test/orbital_dynamics/timeline_test.exs` (187 passed)
-- `mix orbital_dynamics.schema.lint --all` (154 files, 154 artifacts, status pass)
 - `git diff --check`
-- `mix test` (3243 passed; known `:propagator_exit` test log observed and suite exited green)
+- No ExUnit planned for this docs-only calibration slice.
 
 Docs/artifacts changed:
-- Updated typed-activity capability docs and mission-activity artifact docs to
-  state that aggregate reservation-list evidence is first-class typed activity
-  handoff context.
-- No generated artifacts or schema exports changed; existing timeline schemas
-  already exposed these context fields.
+- Updated the capability snapshot to list current operational activity,
+  resource/contact, readiness/quality, and CandidateRefresh replay surfaces.
+- Updated the roadmap to separate implemented artifact/review surfaces from
+  next useful planner-visible slices.
+- Updated mission-activity near-term/later status so it no longer lists already
+  implemented timeline diff/review/identity/reconciliation surfaces as later
+  work.
+- No generated artifacts or schema exports changed.
 
 Local review:
-- Live comparison showed aggregate reservation-list fields existed in
-  downstream timeline activity context but not in `MissionPlan.Activity`.
-- Reservation overlap counts use non-negative integer parsing, expiration
-  arrays use non-negative numeric-list parsing, reservation IDs use stable-ID
-  list parsing, and owner/status arrays remain scalar-list evidence.
-- The slice preserves provider evidence only; it does not create, extend,
-  approve, import, or execute reservations.
-- CandidateRefresh contact-intent direction routing was considered as the next
-  slice, but live code/tests showed it is already implemented in this checkout.
+- CandidateRefresh contact-intent direction routing was considered, but live
+  code/tests showed it is already implemented.
+- Resource/contact allocation direction routing, selected/deferred capacity-pack
+  direction maps, provider reservation pressure, readiness gates, quality gates,
+  publication summaries, and timeline lifecycle helpers were also live in code,
+  tests, and docs.
+- This slice corrects calibration artifacts only; it does not claim Level 6
+  feature completeness.
 
 Level 6 pillar advanced:
-Fleet-level resource/contact/station-calendar allocation behavior and durable
-Cadence-facing activity handoffs. Provider reservation-list evidence can now
-enter the reusable typed activity API and reach timeline review/import context
-without granting schedule or reservation authority.
+Durable schema-versioned artifact discipline and autonomous slice selection.
+The public maturity docs now steer future work toward remaining planner-visible
+behavior and validation fixtures instead of closed artifact-only surfaces.
 
 Remaining maturity gaps:
-Typed activity station-calendar context is now substantially aligned with
-downstream timeline context. The larger remaining gaps are planner-visible
-resource/contact behavior for provider-calendar capacity, reservation pressure,
-approval/import authority during candidate selection, and readiness/quality-gate
-surfaces.
+High-fidelity dynamics, frame/time transformations, external validation
+evidence, external orbit-data ingestion, stronger schema-version migration
+discipline, provider-write/notification workflows owned outside this library,
+and deeper planner-visible use of resource/contact/readiness evidence during
+candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`3514f17` Preserve activity station reservation lists.
+`3f2f0d8` Calibrate Level 6 roadmap status.
 
 Next candidate:
-Reassess the guide after publishing. Likely next useful slices are in resource
-and communications allocation semantics or quality/readiness gates rather than
-more station-calendar typed-field preservation.
+Pick a code-bearing slice that converts one existing reviewed pressure signal
+into planner-visible behavior, such as resource/contact/readiness pressure in
+candidate ranking or V2/V3 branch score explanations, or add a focused
+stale-but-plausible compatibility/challenge fixture for one artifact family.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
