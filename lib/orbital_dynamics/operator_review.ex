@@ -16970,6 +16970,15 @@ defmodule OrbitalDynamics.OperatorReview do
       "station_reservation_ids_by_reserved_by"
     )
     |> put_contact_allocation_id_map_summary(reports, "capacity_pack_contact_ids_by_status")
+    |> put_contact_allocation_id_map_summary(reports, "capacity_pack_contact_ids_by_direction")
+    |> put_contact_allocation_id_map_summary(
+      reports,
+      "capacity_pack_selected_contact_ids_by_direction"
+    )
+    |> put_contact_allocation_id_map_summary(
+      reports,
+      "capacity_pack_deferred_contact_ids_by_direction"
+    )
     |> put_contact_allocation_id_map_summary(
       reports,
       "capacity_pack_contact_ids_by_ground_station_id"

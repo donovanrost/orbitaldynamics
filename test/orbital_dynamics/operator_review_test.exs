@@ -19403,6 +19403,13 @@ defmodule OrbitalDynamics.OperatorReviewTest do
         "capacity_pack_contact_ids_by_status" => %{
           "selected_by_reduced_station_capacity_pack" => ["dl_campaign_pack"]
         },
+        "capacity_pack_contact_ids_by_direction" => %{
+          "downlink" => ["dl_campaign_pack"]
+        },
+        "capacity_pack_selected_contact_ids_by_direction" => %{
+          "downlink" => ["dl_campaign_pack"]
+        },
+        "capacity_pack_deferred_contact_ids_by_direction" => %{},
         "required_capacity_fraction_source_counts" => %{"contact_required_capacity_fraction" => 1},
         "required_capacity_fraction_contact_ids_by_source" => %{
           "contact_required_capacity_fraction" => ["dl_campaign_pack"]
@@ -19488,6 +19495,15 @@ defmodule OrbitalDynamics.OperatorReviewTest do
         "capacity_pack_contact_ids_by_status" => %{
           "selected_by_reduced_station_capacity_pack" => ["dl_refresh_pack"],
           "deferred_by_reduced_station_capacity_pack" => ["dl_refresh_deferred"]
+        },
+        "capacity_pack_contact_ids_by_direction" => %{
+          "downlink" => ["dl_refresh_pack", "dl_refresh_deferred"]
+        },
+        "capacity_pack_selected_contact_ids_by_direction" => %{
+          "downlink" => ["dl_refresh_pack"]
+        },
+        "capacity_pack_deferred_contact_ids_by_direction" => %{
+          "downlink" => ["dl_refresh_deferred"]
         },
         "required_capacity_fraction_source_counts" => %{
           "contact_required_capacity_fraction" => 1,
@@ -19587,6 +19603,13 @@ defmodule OrbitalDynamics.OperatorReviewTest do
         "capacity_pack_contact_ids_by_status" => %{
           "deferred_by_reduced_station_capacity_pack" => ["dl_source_deferred"]
         },
+        "capacity_pack_contact_ids_by_direction" => %{
+          "downlink" => ["dl_source_deferred"]
+        },
+        "capacity_pack_selected_contact_ids_by_direction" => %{},
+        "capacity_pack_deferred_contact_ids_by_direction" => %{
+          "downlink" => ["dl_source_deferred"]
+        },
         "required_capacity_fraction_source_counts" => %{"capacity_model" => 1},
         "required_capacity_fraction_contact_ids_by_source" => %{
           "capacity_model" => ["dl_source_deferred"]
@@ -19684,6 +19707,15 @@ defmodule OrbitalDynamics.OperatorReviewTest do
         "capacity_pack_contact_ids_by_status" => %{
           "selected_by_reduced_station_capacity_pack" => ["dl_result_pack"],
           "deferred_by_reduced_station_capacity_pack" => ["dl_result_deferred"]
+        },
+        "capacity_pack_contact_ids_by_direction" => %{
+          "downlink" => ["dl_result_pack", "dl_result_deferred"]
+        },
+        "capacity_pack_selected_contact_ids_by_direction" => %{
+          "downlink" => ["dl_result_pack"]
+        },
+        "capacity_pack_deferred_contact_ids_by_direction" => %{
+          "downlink" => ["dl_result_deferred"]
         },
         "required_capacity_fraction_source_counts" => %{
           "activity_context" => 1,
@@ -19857,6 +19889,16 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              "selected_by_reduced_station_capacity_pack" => ["dl_campaign_pack"]
            }
 
+    assert campaign["capacity_pack_contact_ids_by_direction"] == %{
+             "downlink" => ["dl_campaign_pack"]
+           }
+
+    assert campaign["capacity_pack_selected_contact_ids_by_direction"] == %{
+             "downlink" => ["dl_campaign_pack"]
+           }
+
+    refute Map.has_key?(campaign, "capacity_pack_deferred_contact_ids_by_direction")
+
     assert campaign["required_capacity_fraction_source_counts"] == %{
              "contact_required_capacity_fraction" => 1
            }
@@ -19970,6 +20012,18 @@ defmodule OrbitalDynamics.OperatorReviewTest do
     assert refresh["capacity_pack_contact_ids_by_status"] == %{
              "selected_by_reduced_station_capacity_pack" => ["dl_refresh_pack"],
              "deferred_by_reduced_station_capacity_pack" => ["dl_refresh_deferred"]
+           }
+
+    assert refresh["capacity_pack_contact_ids_by_direction"] == %{
+             "downlink" => ["dl_refresh_pack", "dl_refresh_deferred"]
+           }
+
+    assert refresh["capacity_pack_selected_contact_ids_by_direction"] == %{
+             "downlink" => ["dl_refresh_pack"]
+           }
+
+    assert refresh["capacity_pack_deferred_contact_ids_by_direction"] == %{
+             "downlink" => ["dl_refresh_deferred"]
            }
 
     assert refresh["required_capacity_fraction_source_counts"] == %{
@@ -20149,6 +20203,18 @@ defmodule OrbitalDynamics.OperatorReviewTest do
                "dl_result_deferred",
                "dl_source_deferred"
              ]
+           }
+
+    assert repair["capacity_pack_contact_ids_by_direction"] == %{
+             "downlink" => ["dl_result_deferred", "dl_result_pack", "dl_source_deferred"]
+           }
+
+    assert repair["capacity_pack_selected_contact_ids_by_direction"] == %{
+             "downlink" => ["dl_result_pack"]
+           }
+
+    assert repair["capacity_pack_deferred_contact_ids_by_direction"] == %{
+             "downlink" => ["dl_result_deferred", "dl_source_deferred"]
            }
 
     assert repair["required_capacity_fraction_source_counts"] == %{
@@ -20341,6 +20407,17 @@ defmodule OrbitalDynamics.OperatorReviewTest do
                "dl_result_deferred",
                "dl_source_deferred"
              ]
+           }
+
+    assert strategy["capacity_pack_contact_ids_by_direction"] == %{
+             "downlink" => ["dl_result_deferred", "dl_result_pack", "dl_source_deferred"]
+           }
+
+    assert strategy["capacity_pack_selected_contact_ids_by_direction"] ==
+             %{"downlink" => ["dl_result_pack"]}
+
+    assert strategy["capacity_pack_deferred_contact_ids_by_direction"] == %{
+             "downlink" => ["dl_result_deferred", "dl_source_deferred"]
            }
 
     assert strategy["required_capacity_fraction_source_counts"] == %{
