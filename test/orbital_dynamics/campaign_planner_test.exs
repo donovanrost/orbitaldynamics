@@ -26834,6 +26834,214 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives relay data-path summaries as branch-local link-capacity pressure" do
+    relay_summary = fn prefix, station_id, route_id, contact_id ->
+      %{
+        "schema_contract" => "relay_data_path_summary.v1",
+        "schema_version" => 1,
+        "model" => "artifact_only_relay_data_path_summary",
+        "source" => "campaign_planner_test.#{prefix}.relay_data_path_summary",
+        "route_count" => 1,
+        "relay_route_count" => 0,
+        "direct_downlink_route_count" => 1,
+        "custody_status_counts" => %{"missing_ack" => 1},
+        "latency_status_counts" => %{"exceeds_limit" => 1},
+        "risk_status_counts" => %{"high" => 1},
+        "route_ids" => [route_id],
+        "source_spacecraft_ids" => ["sat_#{prefix}"],
+        "relay_spacecraft_ids" => ["relay_#{prefix}"],
+        "ground_station_ids" => [station_id],
+        "ground_downlink_contact_ids" => [contact_id],
+        "route_ids_by_custody_status" => %{"missing_ack" => [route_id]},
+        "route_ids_by_latency_status" => %{"exceeds_limit" => [route_id]},
+        "route_ids_by_risk_status" => %{"high" => [route_id]},
+        "route_ids_by_ground_station_id" => %{station_id => [route_id]},
+        "assumptions" => %{
+          "execution_boundary" => "artifact_only_no_relay_scheduling_or_schedule_mutation",
+          "provider_reservation" => "not_performed",
+          "operator_authority" => "not_granted_by_summary"
+        },
+        "provenance" => %{"trust_boundary" => "#{prefix}_relay_boundary"},
+        "rows" => [
+          %{
+            "route_id" => route_id,
+            "source_spacecraft_id" => "sat_#{prefix}",
+            "relay_chain_spacecraft_ids" => ["relay_#{prefix}"],
+            "relay_hop_count" => 1,
+            "ground_station_id" => station_id,
+            "ground_downlink_contact_id" => contact_id,
+            "custody_status" => "missing_ack",
+            "latency_s" => 500.0,
+            "latency_limit_s" => 300.0,
+            "latency_status" => "exceeds_limit",
+            "risk_status" => "high",
+            "risk_reasons" => ["custody_missing_ack", "latency_exceeds_limit"],
+            "product_ids" => ["product_#{prefix}"],
+            "collection_ids" => ["collection_#{prefix}"]
+          }
+        ]
+      }
+    end
+
+    direct_summary = relay_summary.("direct", "dss_14", "route_direct", "downlink_direct")
+
+    canonical_summary =
+      relay_summary.("canonical", "dss_35", "route_canonical", "downlink_canonical")
+
+    wrapped_summary = relay_summary.("wrapped", "dss_54", "route_wrapped", "downlink_wrapped")
+
+    result_wrapped_summary =
+      relay_summary.(
+        "result_wrapped",
+        "dss_63",
+        "route_result_wrapped",
+        "downlink_result_wrapped"
+      )
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put("source_relay_data_path_summary", direct_summary)
+      |> Map.put("relay_data_path_summary", canonical_summary)
+      |> Map.put(:source_result_artifact, %{
+        "schema_contract" => "result_artifact.v1",
+        "relay_data_path_summary" => wrapped_summary,
+        "provenance" => %{"trust_boundary" => "wrapped_result_artifact_boundary"}
+      })
+      |> Map.put(:result_artifact, %{
+        "schema_contract" => "result_artifact.v1",
+        "source_relay_data_path_summary" => result_wrapped_summary,
+        "provenance" => %{"trust_boundary" => "result_wrapped_artifact_boundary"}
+      })
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    direct_branch = branch(artifact, "derived_link_capacity_pressure_dss_14")
+    canonical_branch = branch(artifact, "derived_link_capacity_pressure_dss_35")
+    wrapped_branch = branch(artifact, "derived_link_capacity_pressure_dss_54")
+    result_wrapped_branch = branch(artifact, "derived_link_capacity_pressure_dss_63")
+
+    assert %{
+             "type" => "relay_data_path_pressure",
+             "ground_station_id" => "dss_14",
+             "route_id" => "route_direct",
+             "ground_downlink_contact_id" => "downlink_direct",
+             "custody_status" => "missing_ack",
+             "latency_status" => "exceeds_limit",
+             "risk_status" => "high",
+             "route_count" => 1,
+             "custody_status_counts" => %{"missing_ack" => 1},
+             "latency_status_counts" => %{"exceeds_limit" => 1},
+             "risk_status_counts" => %{"high" => 1},
+             "feedback_source" => "mission_state.source_relay_data_path_summary",
+             "feedback_scope" => "link_capacity",
+             "trust_boundary" => "direct_relay_boundary",
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_relay_scheduling_or_schedule_mutation",
+               "provider_reservation" => "not_performed",
+               "operator_authority" => "not_granted_by_summary"
+             }
+           } = List.first(direct_branch["events"])
+
+    assert "relay_data_path_custody_missing_ack" in List.first(direct_branch["events"])[
+             "derivation_reasons"
+           ]
+
+    assert "relay_data_path_latency_exceeds_limit" in List.first(direct_branch["events"])[
+             "derivation_reasons"
+           ]
+
+    assert "relay_data_path_risk_high" in List.first(direct_branch["events"])[
+             "derivation_reasons"
+           ]
+
+    assert %{
+             "type" => "relay_data_path_pressure",
+             "severity" => "high",
+             "route_id" => "route_direct",
+             "feedback_source" => "mission_state.source_relay_data_path_summary",
+             "trust_boundary" => "direct_relay_boundary"
+           } =
+             Enum.find(
+               direct_branch["risk_indicators"],
+               &(&1["type"] == "relay_data_path_pressure")
+             )
+
+    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+
+    assert List.first(canonical_branch["events"])["feedback_source"] ==
+             "mission_state.relay_data_path_summary"
+
+    assert List.first(wrapped_branch["events"])["feedback_source"] ==
+             "mission_state.source_result_artifact.relay_data_path_summary"
+
+    assert List.first(result_wrapped_branch["events"])["feedback_source"] ==
+             "mission_state.result_artifact.source_relay_data_path_summary"
+
+    assert %{"type" => "candidate_refresh.v1", "scope" => "branch_generated"} =
+             candidate_source = direct_branch["assumptions"]["candidate_source"]
+
+    for source_path <- [
+          "mission_state.source_relay_data_path_summary",
+          "mission_state.relay_data_path_summary",
+          "mission_state.source_result_artifact.relay_data_path_summary",
+          "mission_state.result_artifact.source_relay_data_path_summary"
+        ] do
+      assert source_path in candidate_source["source_report_input_paths"]
+    end
+
+    for source_path <- [
+          "mission_state.source_relay_data_path_summary",
+          "mission_state.relay_data_path_summary"
+        ] do
+      assert source_path in candidate_source[
+               "candidate_refresh_request_source_report_input_paths"
+             ]
+    end
+
+    assert %{
+             "contract" => "relay_data_path_summary.v1",
+             "source_report_count" => 2,
+             "source_report_row_count" => 2,
+             "source_report_paths" => replay_source_paths,
+             "direct_downlink_route_count" => 2,
+             "ground_downlink_contact_ids" => [
+               "downlink_canonical",
+               "downlink_direct"
+             ],
+             "trust_boundary_status" => "declared",
+             "branch_local_link_capacity_pressure" => true
+           } = CandidateRefresh.link_capacity_replay_summary(candidate_source)
+
+    for source_path <- [
+          "mission_state.source_relay_data_path_summary",
+          "mission_state.relay_data_path_summary"
+        ] do
+      assert source_path in replay_source_paths
+    end
+
+    relay_pressure_rows =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.filter(
+        &(Map.get(&1, "branch_id") in [
+            "derived_link_capacity_pressure_dss_14",
+            "derived_link_capacity_pressure_dss_35",
+            "derived_link_capacity_pressure_dss_54",
+            "derived_link_capacity_pressure_dss_63"
+          ])
+      )
+
+    assert Enum.all?(relay_pressure_rows, &("relay_data_path_pressure" in &1["risk_types"]))
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy carries mission-state timeline-diff summaries into branch refresh requests" do
     source = [
       %{

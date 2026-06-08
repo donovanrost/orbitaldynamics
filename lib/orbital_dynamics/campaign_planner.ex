@@ -3888,6 +3888,19 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ]
   end
 
+  defp event_risk_indicators(%{"type" => "relay_data_path_pressure"} = event) do
+    [
+      event
+      |> Map.take(relay_data_path_pressure_risk_fields())
+      |> Map.merge(%{
+        "type" => "relay_data_path_pressure",
+        "severity" => relay_data_path_pressure_severity(event),
+        "reason" => relay_data_path_pressure_reason(event)
+      })
+      |> compact_map()
+    ]
+  end
+
   defp event_risk_indicators(%{"type" => "fuel_preservation_mode"}) do
     [
       %{
@@ -3918,6 +3931,72 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp event_risk_indicators(_event), do: []
+
+  defp relay_data_path_pressure_risk_fields do
+    [
+      "ground_station_id",
+      "route_id",
+      "route_ids",
+      "source_spacecraft_id",
+      "source_spacecraft_ids",
+      "relay_spacecraft_ids",
+      "relay_chain_spacecraft_ids",
+      "relay_hop_count",
+      "ground_downlink_contact_id",
+      "ground_downlink_contact_ids",
+      "custody_status",
+      "latency_s",
+      "latency_limit_s",
+      "latency_status",
+      "risk_status",
+      "risk_reasons",
+      "product_ids",
+      "collection_ids",
+      "route_count",
+      "relay_route_count",
+      "direct_downlink_route_count",
+      "custody_status_counts",
+      "latency_status_counts",
+      "risk_status_counts",
+      "route_ids_by_custody_status",
+      "route_ids_by_latency_status",
+      "route_ids_by_risk_status",
+      "route_ids_by_ground_station_id",
+      "feedback_source",
+      "feedback_scope",
+      "feedback_key",
+      "trust_boundary",
+      "derivation_reasons",
+      "assumptions"
+    ]
+  end
+
+  defp relay_data_path_pressure_severity(event) do
+    if event["risk_status"] in ["high", "critical"] or
+         event["custody_status"] in ["missing_ack", "missing", "failed"] or
+         event["latency_status"] in ["exceeds_limit", "late"] do
+      "high"
+    else
+      "medium"
+    end
+  end
+
+  defp relay_data_path_pressure_reason(event) do
+    [
+      if(event["route_id"] not in [nil, ""], do: "relay route #{event["route_id"]}"),
+      if(event["ground_station_id"] not in [nil, ""],
+        do: "ground station #{event["ground_station_id"]}"
+      ),
+      if(event["custody_status"] not in [nil, ""], do: "custody #{event["custody_status"]}"),
+      if(event["latency_status"] not in [nil, ""], do: "latency #{event["latency_status"]}"),
+      if(event["risk_status"] not in [nil, ""], do: "risk #{event["risk_status"]}")
+    ]
+    |> Enum.reject(&is_nil/1)
+    |> case do
+      [] -> "relay data path pressure"
+      parts -> Enum.join(parts, "; ")
+    end
+  end
 
   defp readiness_pressure_risk_severity(event) do
     blocked_values = ["blocked", "blocked_by_policy", "review_blocked_operational_readiness"]
@@ -5340,6 +5419,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "link_capacity_report" => Map.get(state, "link_capacity_report"),
       "source_link_capacity_summary" => Map.get(state, "source_link_capacity_summary"),
       "link_capacity_summary" => Map.get(state, "link_capacity_summary"),
+      "source_relay_data_path_summary" => Map.get(state, "source_relay_data_path_summary"),
+      "relay_data_path_summary" => Map.get(state, "relay_data_path_summary"),
       "source_operator_review_package" => Map.get(state, "source_operator_review_package"),
       "operator_review_package" => Map.get(state, "operator_review_package"),
       "source_cadence_import_manifest" => Map.get(state, "source_cadence_import_manifest"),
@@ -12259,7 +12340,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     direct_reports =
       [
         {"source_link_capacity_report", "prior_plan.source_link_capacity_report"},
-        {"link_capacity_report", "prior_plan.link_capacity_report"}
+        {"link_capacity_report", "prior_plan.link_capacity_report"},
+        {"source_relay_data_path_summary", "prior_plan.source_relay_data_path_summary"},
+        {"relay_data_path_summary", "prior_plan.relay_data_path_summary"}
       ]
       |> Enum.flat_map(fn {field, source_path} ->
         case Map.get(prior_plan, field) do
@@ -12291,10 +12374,17 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     mission_state_link_capacity_reports(mission_state, [
       {"source_link_capacity_report", "mission_state.source_link_capacity_report"},
-      {"link_capacity_report", "mission_state.link_capacity_report"}
+      {"link_capacity_report", "mission_state.link_capacity_report"},
+      {"source_relay_data_path_summary", "mission_state.source_relay_data_path_summary"},
+      {"relay_data_path_summary", "mission_state.relay_data_path_summary"}
     ]) ++
       mission_state_result_artifact_embedded_reports(mission_state, "source_link_capacity_report") ++
-      mission_state_result_artifact_embedded_reports(mission_state, "link_capacity_report")
+      mission_state_result_artifact_embedded_reports(mission_state, "link_capacity_report") ++
+      mission_state_result_artifact_embedded_reports(
+        mission_state,
+        "source_relay_data_path_summary"
+      ) ++
+      mission_state_result_artifact_embedded_reports(mission_state, "relay_data_path_summary")
   end
 
   defp mission_state_source_link_capacity_reports(mission_state) do
@@ -12347,7 +12437,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
     prior_plan
     |> prior_plan_result_artifacts_with_source()
     |> Enum.flat_map(fn {artifact, source_path} ->
-      ["source_link_capacity_report", "link_capacity_report"]
+      [
+        "source_link_capacity_report",
+        "link_capacity_report",
+        "source_relay_data_path_summary",
+        "relay_data_path_summary"
+      ]
       |> Enum.flat_map(fn report_key ->
         case Map.get(artifact, report_key) do
           %{} = report ->
@@ -12366,20 +12461,95 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp link_capacity_pressure_rows(%{"rows" => rows} = report) when is_list(rows) do
-    rows =
-      rows
-      |> Enum.map(&stringify_keys/1)
-      |> Enum.map(&Map.put_new(&1, "source_report", "rows"))
+    if relay_data_path_summary_source?(report) do
+      relay_data_path_pressure_rows(report)
+    else
+      rows =
+        rows
+        |> Enum.map(&stringify_keys/1)
+        |> Enum.map(&Map.put_new(&1, "source_report", "rows"))
 
-    if Enum.any?(rows, &link_capacity_pressure_row?/1) do
-      rows
+      if Enum.any?(rows, &link_capacity_pressure_row?/1) do
+        rows
+      else
+        [Map.put(report, "source_report", "top_level")]
+      end
+    end
+  end
+
+  defp link_capacity_pressure_rows(%{} = report) do
+    if relay_data_path_summary_source?(report) do
+      relay_data_path_pressure_rows(report)
     else
       [Map.put(report, "source_report", "top_level")]
     end
   end
 
-  defp link_capacity_pressure_rows(%{} = report),
-    do: [Map.put(report, "source_report", "top_level")]
+  defp relay_data_path_pressure_rows(%{} = report) do
+    report = stringify_keys(report)
+
+    rows =
+      report
+      |> Map.get("rows", [])
+      |> List.wrap()
+      |> Enum.map(&stringify_keys/1)
+      |> Enum.filter(&relay_data_path_pressure_row?/1)
+      |> Enum.map(&relay_data_path_pressure_row(&1, report))
+
+    if rows == [] and relay_data_path_pressure_row?(report) do
+      [relay_data_path_pressure_row(report, report)]
+    else
+      rows
+    end
+  end
+
+  defp relay_data_path_pressure_row(row, report) do
+    row
+    |> Map.put_new("source_report", "relay_data_path_summary.rows")
+    |> Map.put("_relay_data_path_summary", true)
+    |> Map.put("_relay_data_path_summary_assumptions", Map.get(report, "assumptions"))
+    |> Map.put("_relay_data_path_summary_route_count", Map.get(report, "route_count"))
+    |> Map.put("_relay_data_path_summary_relay_route_count", Map.get(report, "relay_route_count"))
+    |> Map.put(
+      "_relay_data_path_summary_direct_downlink_route_count",
+      Map.get(report, "direct_downlink_route_count")
+    )
+    |> Map.put(
+      "_relay_data_path_summary_custody_status_counts",
+      Map.get(report, "custody_status_counts")
+    )
+    |> Map.put(
+      "_relay_data_path_summary_latency_status_counts",
+      Map.get(report, "latency_status_counts")
+    )
+    |> Map.put(
+      "_relay_data_path_summary_risk_status_counts",
+      Map.get(report, "risk_status_counts")
+    )
+    |> Map.put(
+      "_relay_data_path_summary_route_ids_by_custody_status",
+      Map.get(report, "route_ids_by_custody_status")
+    )
+    |> Map.put(
+      "_relay_data_path_summary_route_ids_by_latency_status",
+      Map.get(report, "route_ids_by_latency_status")
+    )
+    |> Map.put(
+      "_relay_data_path_summary_route_ids_by_risk_status",
+      Map.get(report, "route_ids_by_risk_status")
+    )
+    |> Map.put(
+      "_relay_data_path_summary_route_ids_by_ground_station_id",
+      Map.get(report, "route_ids_by_ground_station_id")
+    )
+  end
+
+  defp relay_data_path_summary_source?(%{} = report) do
+    Map.get(report, "schema_contract") == "relay_data_path_summary.v1" or
+      Map.get(report, "source_summary_schema_contract") == "relay_data_path_summary.v1" or
+      Map.get(report, "model") == "artifact_only_relay_data_path_summary" or
+      Map.get(report, "source_summary_model") == "artifact_only_relay_data_path_summary"
+  end
 
   defp link_capacity_pressure_branch(row, source_path) do
     event = link_capacity_pressure_event(row, source_path)
@@ -12442,6 +12612,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       event["source_window_id"],
       event["source_window_ids"],
       event["source_activity_ids"],
+      event["route_id"],
+      event["ground_downlink_contact_id"],
       event["downlink_completion_source"],
       event["downlink_completion_sources"],
       event["required_downlink_mb"],
@@ -12450,6 +12622,52 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> List.flatten()
     |> Enum.map(&encode_value/1)
     |> Enum.find(&stable_id_string?/1)
+  end
+
+  defp link_capacity_pressure_event(%{"_relay_data_path_summary" => true} = row, source_path) do
+    %{
+      "type" => "relay_data_path_pressure",
+      "ground_station_id" => link_capacity_pressure_ground_station_id(row),
+      "route_id" => row["route_id"],
+      "route_ids" => relay_data_path_pressure_route_ids(row),
+      "source_spacecraft_id" => row["source_spacecraft_id"],
+      "source_spacecraft_ids" => relay_data_path_pressure_source_spacecraft_ids(row),
+      "relay_spacecraft_ids" => relay_data_path_pressure_relay_spacecraft_ids(row),
+      "relay_chain_spacecraft_ids" => relay_data_path_pressure_relay_chain_spacecraft_ids(row),
+      "relay_hop_count" => numeric_or_nil(row["relay_hop_count"]),
+      "ground_downlink_contact_id" => row["ground_downlink_contact_id"],
+      "ground_downlink_contact_ids" => relay_data_path_pressure_ground_downlink_contact_ids(row),
+      "custody_status" => row["custody_status"],
+      "latency_s" => numeric_or_nil(row["latency_s"]),
+      "latency_limit_s" => numeric_or_nil(row["latency_limit_s"]),
+      "latency_status" => row["latency_status"],
+      "risk_status" => row["risk_status"],
+      "risk_reasons" => relay_data_path_pressure_risk_reasons(row),
+      "product_ids" => relay_data_path_pressure_values(row, ["product_id", "product_ids"]),
+      "collection_ids" =>
+        relay_data_path_pressure_values(row, ["collection_id", "collection_ids"]),
+      "route_count" => numeric_or_nil(row["_relay_data_path_summary_route_count"]),
+      "relay_route_count" => numeric_or_nil(row["_relay_data_path_summary_relay_route_count"]),
+      "direct_downlink_route_count" =>
+        numeric_or_nil(row["_relay_data_path_summary_direct_downlink_route_count"]),
+      "custody_status_counts" => row["_relay_data_path_summary_custody_status_counts"],
+      "latency_status_counts" => row["_relay_data_path_summary_latency_status_counts"],
+      "risk_status_counts" => row["_relay_data_path_summary_risk_status_counts"],
+      "route_ids_by_custody_status" =>
+        row["_relay_data_path_summary_route_ids_by_custody_status"],
+      "route_ids_by_latency_status" =>
+        row["_relay_data_path_summary_route_ids_by_latency_status"],
+      "route_ids_by_risk_status" => row["_relay_data_path_summary_route_ids_by_risk_status"],
+      "route_ids_by_ground_station_id" =>
+        row["_relay_data_path_summary_route_ids_by_ground_station_id"],
+      "derivation_reasons" => relay_data_path_pressure_reasons(row),
+      "feedback_source" => source_path,
+      "feedback_scope" => "link_capacity",
+      "feedback_key" => row["route_id"] || row["ground_downlink_contact_id"],
+      "trust_boundary" => link_capacity_pressure_trust_boundary(row),
+      "assumptions" => row["_relay_data_path_summary_assumptions"]
+    }
+    |> compact_map()
   end
 
   defp link_capacity_pressure_event(row, source_path) do
@@ -12508,6 +12726,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
     row
     |> link_capacity_pressure_shortfall_mb()
     |> positive_number?()
+  end
+
+  defp relay_data_path_pressure_row?(row) do
+    custody_status = row["custody_status"]
+    latency_status = row["latency_status"]
+    risk_status = row["risk_status"]
+
+    Enum.any?([
+      custody_status not in [nil, "", "confirmed", "acknowledged", "delivered", "nominal"],
+      latency_status not in [nil, "", "within_limit", "nominal", "on_time"],
+      risk_status not in [nil, "", "nominal", "low"]
+    ])
   end
 
   defp link_capacity_pressure_shortfall_mb(row) do
@@ -12711,6 +12941,66 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "link_capacity_actual_downlink_shortfall"
     )
     |> Enum.reverse()
+  end
+
+  defp relay_data_path_pressure_reasons(row) do
+    []
+    |> maybe_append_reason(
+      row["custody_status"] not in [nil, "", "confirmed", "acknowledged", "delivered", "nominal"],
+      "relay_data_path_custody_#{row["custody_status"]}"
+    )
+    |> maybe_append_reason(
+      row["latency_status"] not in [nil, "", "within_limit", "nominal", "on_time"],
+      "relay_data_path_latency_#{row["latency_status"]}"
+    )
+    |> maybe_append_reason(
+      row["risk_status"] not in [nil, "", "nominal", "low"],
+      "relay_data_path_risk_#{row["risk_status"]}"
+    )
+    |> Enum.reverse()
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Kernel.++(relay_data_path_pressure_risk_reasons(row) || [])
+    |> Enum.uniq()
+  end
+
+  defp relay_data_path_pressure_route_ids(row),
+    do: relay_data_path_pressure_values(row, ["route_id", "route_ids"])
+
+  defp relay_data_path_pressure_source_spacecraft_ids(row),
+    do: relay_data_path_pressure_values(row, ["source_spacecraft_id", "source_spacecraft_ids"])
+
+  defp relay_data_path_pressure_relay_spacecraft_ids(row) do
+    relay_data_path_pressure_values(row, [
+      "relay_spacecraft_id",
+      "relay_spacecraft_ids",
+      "relay_chain_spacecraft_ids"
+    ])
+  end
+
+  defp relay_data_path_pressure_relay_chain_spacecraft_ids(row),
+    do: relay_data_path_pressure_values(row, ["relay_chain_spacecraft_ids"])
+
+  defp relay_data_path_pressure_ground_downlink_contact_ids(row) do
+    relay_data_path_pressure_values(row, [
+      "ground_downlink_contact_id",
+      "ground_downlink_contact_ids"
+    ])
+  end
+
+  defp relay_data_path_pressure_risk_reasons(row),
+    do: relay_data_path_pressure_values(row, ["risk_reason", "risk_reasons"])
+
+  defp relay_data_path_pressure_values(row, fields) do
+    fields
+    |> Enum.flat_map(fn field -> row |> Map.get(field) |> List.wrap() end)
+    |> Enum.map(&encode_value/1)
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.uniq()
+    |> Enum.sort()
+    |> case do
+      [] -> nil
+      values -> values
+    end
   end
 
   defp link_capacity_pressure_trust_boundary(row) do

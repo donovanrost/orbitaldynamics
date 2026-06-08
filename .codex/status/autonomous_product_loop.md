@@ -5,48 +5,41 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Make operational readiness gate summaries branch-visible.
+Make relay data-path summaries branch-visible as link-capacity pressure.
 
 Status:
-Implemented and parent-verified.
-`operational_readiness_gate_summary.v1` handoffs now derive planner-visible
-operational-readiness pressure with risk indicators, score penalties, branch
-comparison fields, source paths, trust boundaries, readiness/import/status
-evidence, gate counts, non-passed/review/analysis/blocked gate IDs, and
-artifact-only no-authority assumptions.
+Selected; implementation pending.
+`relay_data_path_summary.v1` handoffs are CandidateRefresh-visible as compact
+link-capacity provenance, but CampaignPlanner currently derives branch pressure
+from link-capacity reports/summaries only.
 
 Slice-selection note:
-- Selected slice: derive branch-local pressure from
-  `operational_readiness_gate_summary.v1` handoffs.
-- Why this slice: gate summaries are the compact Cadence-facing readiness
-  contract for non-passed gates; CandidateRefresh already replays their
-  status/classification counts, gate IDs, and trust boundaries, but strategy
-  branch scoring still requires the full readiness report path.
-- Level 6 pillar: approval-aware automation boundaries, import readiness, and
-  reproducible branch trees from compact operational artifacts.
-- Current evidence gap: compact readiness gate summaries carry review,
-  analysis-only, blocked, and non-passed gate IDs but remain replay-only for
-  CampaignPlanner branch scoring.
+- Selected slice: derive branch-local link-capacity pressure from
+  `relay_data_path_summary.v1` handoffs.
+- Why this slice: relay summaries are the compact Cadence-facing contract for
+  relay/direct downlink route status; CandidateRefresh already replays route,
+  custody, latency, risk, station, contact, and trust-boundary evidence, but
+  strategy branch scoring still ignores those compact summaries.
+- Level 6 pillar: fleet-level communications planning, artifact-only relay
+  handoffs, and reproducible branch trees from compact operational evidence.
+- Current evidence gap: CampaignPlanner source-report plumbing carries
+  `source_relay_data_path_summary` and `relay_data_path_summary`, but derived
+  link-capacity pressure reads only link-capacity report/summary inputs.
 - Docs read:
   `docs/autonomous_work_guide.md`,
   `.codex/prompts/long_running_context_efficient_product_loop.md`,
-  `docs/feature_set/completeness_levels/06_mature_operational_platform.md`,
-  `docs/feature_set/definition_of_feature_complete.md`,
-  `docs/feature_set/current_capability_snapshot.md`,
-  `docs/feature_set/recommended_roadmap.md`,
-  `docs/feature_set/capability_map/17_reproducibility_artifacts_and_audit.md`,
-  `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`,
-  `docs/mission_planning/high_fidelity/12_operational_readiness.md`.
+  `docs/feature_set/capability_map/07_ground_network_and_communications_planning.md`,
+  `docs/artifacts/field_families/candidate_refresh_artifact.md`.
 - Likely files: `lib/orbital_dynamics/campaign_planner.ex`,
   `test/orbital_dynamics/campaign_planner_test.exs`,
   `.codex/status/autonomous_product_loop.md`.
-- Definition of done: direct/canonical/result-artifact gate summaries create
-  branch-local operational-readiness pressure events retaining source paths,
-  trust boundaries, readiness level, import classification, status, gate counts,
-  non-passed/review/analysis/blocked gate IDs, and no-approval/no-import
-  assumptions; events affect risk/scoring/comparison without granting operator
-  authority, approving import, writing Cadence state, or executing commands;
-  focused tests, compile, and whitespace checks pass.
+- Definition of done: direct/canonical/result-artifact relay summaries create
+  branch-local link-capacity pressure retaining source paths, trust boundaries,
+  route IDs, route/status counts, ground-station and ground-downlink contact
+  evidence, relay assumptions, and no-scheduling/no-provider-write boundaries;
+  events affect risk/scoring/comparison without mutating schedules or granting
+  operator/provider authority; focused tests, compile, and whitespace checks
+  pass.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
