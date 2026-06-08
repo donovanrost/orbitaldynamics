@@ -86,7 +86,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Previous slice: `1b5bbb8` Derive provider reservation request pressure branches.
+`482bcf2` Derive counteroffer plan impact pressure branches.
 
 Next candidate:
 After this slice, continue resource/contact challenge fixture coverage or move
@@ -97,6 +97,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `482bcf2` derived counteroffer plan-impact pressure branches.
 - `1b5bbb8` derived provider reservation request pressure branches.
 - `4796e0e` rejected stale lifecycle-state protection evidence.
 - `9fdfb3a` derived timeline publication summary pressure branches.
