@@ -85,7 +85,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Pending commit/push for contact-allocation capacity-pack direction handoffs.
+`0c7c0e2` Flatten capacity pack direction handoffs.
 
 Next candidate:
 Continue guide-priority resource/contact semantics or candidate-refresh depth
@@ -96,6 +96,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `0c7c0e2` flattened capacity-pack direction handoffs.
 - `6cd75e3` updated autonomous loop handoff.
 - `7172c7c` flattened preservation protection-category handoffs.
 - `72ade0b` flattened dependency-impact aggregate ID handoffs.
