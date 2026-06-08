@@ -38996,6 +38996,137 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives branch refresh from prior-plan contact allocation summary pressure" do
+    station_summary =
+      "prior_station"
+      |> contact_allocation_station_pressure_summary_fixture()
+      |> put_in(["rows", Access.at(1), "starts_at_s"], 520.0)
+      |> put_in(["rows", Access.at(1), "ends_at_s"], 580.0)
+      |> put_in(["rows", Access.at(1), "required_downlink_mb"], 41.0)
+      |> put_in(["review_rows", Access.at(0), "starts_at_s"], 520.0)
+      |> put_in(["review_rows", Access.at(0), "ends_at_s"], 580.0)
+      |> put_in(["review_rows", Access.at(0), "required_downlink_mb"], 41.0)
+
+    reservation_summary =
+      "prior_reservation"
+      |> contact_allocation_reservation_conflict_summary_fixture()
+      |> put_in(["rows", Access.at(1), "starts_at_s"], 620.0)
+      |> put_in(["rows", Access.at(1), "ends_at_s"], 680.0)
+      |> put_in(["rows", Access.at(1), "required_downlink_mb"], 43.0)
+      |> put_in(["reservation_conflict_rows", Access.at(0), "starts_at_s"], 620.0)
+      |> put_in(["reservation_conflict_rows", Access.at(0), "ends_at_s"], 680.0)
+      |> put_in(["reservation_conflict_rows", Access.at(0), "required_downlink_mb"], 43.0)
+      |> put_in(["reservation_review_rows", Access.at(0), "starts_at_s"], 620.0)
+      |> put_in(["reservation_review_rows", Access.at(0), "ends_at_s"], 680.0)
+      |> put_in(["reservation_review_rows", Access.at(0), "required_downlink_mb"], 43.0)
+
+    capacity_summary =
+      "prior_capacity"
+      |> contact_allocation_capacity_pack_summary_fixture()
+      |> put_in(["rows", Access.at(2), "starts_at_s"], 720.0)
+      |> put_in(["rows", Access.at(2), "ends_at_s"], 780.0)
+      |> put_in(["rows", Access.at(2), "required_downlink_mb"], 47.0)
+      |> put_in(
+        ["rows", Access.at(2), "capacity_pack_group_id"],
+        "prior_capacity_pack_equator_prime"
+      )
+      |> put_in(["review_rows", Access.at(2), "starts_at_s"], 720.0)
+      |> put_in(["review_rows", Access.at(2), "ends_at_s"], 780.0)
+      |> put_in(["review_rows", Access.at(2), "required_downlink_mb"], 47.0)
+      |> put_in(
+        ["review_rows", Access.at(2), "capacity_pack_group_id"],
+        "prior_capacity_pack_equator_prime"
+      )
+      |> Map.delete("provenance")
+
+    prior_plan =
+      base_plan(%{
+        "source_contact_allocation_station_pressure_summary" => station_summary,
+        "source_result_artifact" => %{
+          "schema_contract" => "result_artifact.v1",
+          "study_id" => "prior_summary_pressure",
+          "provenance" => %{"trust_boundary" => "prior_result_artifact_boundary"},
+          "source_contact_allocation_reservation_conflict_summary" => reservation_summary,
+          "source_contact_allocation_capacity_pack_summary" => capacity_summary
+        }
+      })
+
+    artifact =
+      strategy(prior_plan,
+        mission_state: mission_state_with_refresh_inputs(),
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    station_branch =
+      branch(
+        artifact,
+        "derived_contact_allocation_pressure_deferred_prior_station_dl_station_pressure"
+      )
+
+    assert %{
+             "type" => "downlink_completion_gap",
+             "contact_id" => "prior_station_dl_station_pressure",
+             "required_downlink_mb" => 41.0,
+             "feedback_source" => "prior_plan.source_contact_allocation_station_pressure_summary",
+             "trust_boundary" => "prior_station_station_pressure_fixture"
+           } = List.first(station_branch["events"])
+
+    reservation_branch =
+      branch(
+        artifact,
+        "derived_contact_allocation_pressure_deferred_prior_reservation_dl_reserved_intruder"
+      )
+
+    assert %{
+             "type" => "downlink_completion_gap",
+             "contact_id" => "prior_reservation_dl_reserved_intruder",
+             "station_reservation_id" => "prior_reservation_reservation_1",
+             "station_reservation_match_status" => "overlap",
+             "feedback_source" =>
+               "prior_plan.source_result_artifact.source_contact_allocation_reservation_conflict_summary",
+             "trust_boundary" => "prior_reservation_reservation_conflict_fixture"
+           } = List.first(reservation_branch["events"])
+
+    capacity_branch =
+      branch(
+        artifact,
+        "derived_contact_allocation_pressure_deferred_prior_capacity_dl_capacity_overflow"
+      )
+
+    assert %{
+             "type" => "downlink_completion_gap",
+             "contact_id" => "prior_capacity_dl_capacity_overflow",
+             "required_downlink_mb" => 47.0,
+             "capacity_pack_group_id" => "prior_capacity_pack_equator_prime",
+             "capacity_pack_status" => "deferred_by_reduced_station_capacity_pack",
+             "feedback_source" =>
+               "prior_plan.source_result_artifact.source_contact_allocation_capacity_pack_summary",
+             "trust_boundary" => "prior_result_artifact_boundary"
+           } = List.first(capacity_branch["events"])
+
+    assert Enum.any?(
+             capacity_branch["risk_indicators"],
+             &(&1["type"] == "downlink_completion_gap" and &1["reason"] =~ "47.0 MB")
+           )
+
+    assert capacity_branch["score_terms"]["risk_penalty"] < 0.0
+
+    capacity_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] ==
+            "derived_contact_allocation_pressure_deferred_prior_capacity_dl_capacity_overflow")
+      )
+
+    assert "downlink_completion_gap" in capacity_row["risk_types"]
+    assert capacity_row["capacity_pack_group_ids"] == ["prior_capacity_pack_equator_prime"]
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy derives contact allocation pressure from result artifact reports" do
     prior_plan =
       base_plan(%{

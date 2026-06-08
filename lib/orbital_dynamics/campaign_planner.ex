@@ -5252,6 +5252,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         derived_mission_state_contact_contention_resolution_pressure_branches(mission_state)
       )
       |> Kernel.++(derived_contact_allocation_pressure_branches(prior_plan))
+      |> Kernel.++(derived_contact_allocation_summary_pressure_branches(prior_plan))
       |> Kernel.++(derived_mission_state_contact_allocation_pressure_branches(mission_state))
       |> Kernel.++(
         derived_mission_state_contact_allocation_summary_pressure_branches(mission_state)
@@ -9678,6 +9679,21 @@ defmodule OrbitalDynamics.CampaignPlanner do
     end)
   end
 
+  defp derived_contact_allocation_summary_pressure_branches(prior_plan) do
+    prior_plan
+    |> prior_plan_contact_allocation_pressure_summaries()
+    |> Enum.flat_map(fn {summary, source_path} ->
+      trust_boundary =
+        Map.get(summary, "trust_boundary") || get_in(summary, ["provenance", "trust_boundary"])
+
+      summary
+      |> contact_allocation_summary_pressure_rows()
+      |> Enum.map(&stringify_keys/1)
+      |> Enum.map(&Map.put(&1, "_source_report_trust_boundary", trust_boundary))
+      |> Enum.flat_map(&contact_allocation_pressure_branch(&1, source_path))
+    end)
+  end
+
   defp derived_mission_state_contact_allocation_pressure_branches(mission_state) do
     mission_state
     |> mission_state_contact_allocation_reports()
@@ -9929,6 +9945,40 @@ defmodule OrbitalDynamics.CampaignPlanner do
       end)
 
     direct_reports ++ prior_plan_result_artifact_contact_allocation_reports(prior_plan)
+  end
+
+  defp prior_plan_contact_allocation_pressure_summaries(prior_plan) do
+    direct_summaries =
+      contact_allocation_pressure_summary_fields()
+      |> Enum.flat_map(fn field ->
+        case Map.get(prior_plan, field) do
+          %{} = summary -> [{stringify_keys(summary), "prior_plan.#{field}"}]
+          _summary -> []
+        end
+      end)
+
+    direct_summaries ++
+      prior_plan_result_artifact_contact_allocation_pressure_summaries(prior_plan)
+  end
+
+  defp prior_plan_result_artifact_contact_allocation_pressure_summaries(prior_plan) do
+    prior_plan_result_artifact_embedded_reports(
+      prior_plan,
+      contact_allocation_pressure_summary_fields()
+    )
+  end
+
+  defp contact_allocation_pressure_summary_fields do
+    [
+      "source_contact_allocation_summary",
+      "contact_allocation_summary",
+      "source_contact_allocation_station_pressure_summary",
+      "contact_allocation_station_pressure_summary",
+      "source_contact_allocation_reservation_conflict_summary",
+      "contact_allocation_reservation_conflict_summary",
+      "source_contact_allocation_capacity_pack_summary",
+      "contact_allocation_capacity_pack_summary"
+    ]
   end
 
   defp prior_plan_result_artifact_contact_allocation_reports(prior_plan) do
