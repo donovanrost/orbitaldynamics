@@ -7544,6 +7544,42 @@ defmodule OrbitalDynamics.TimelineTest do
                  &1["message"] == "must equal lifecycle-derived required_operator_actions")
            )
 
+    stale_realized_protection_decision =
+      put_in(state, ["realized_protection_decision", "protection_decision"], "mutable")
+
+    assert {:error, stale_realized_protection_decision_validation} =
+             Schema.validate_artifact(stale_realized_protection_decision)
+
+    assert Enum.any?(
+             stale_realized_protection_decision_validation["errors"],
+             &(&1["path"] == "$.realized_protection_decision.protection_decision" and
+                 &1["message"] == "must preserve executed lifecycle-state protection")
+           )
+
+    stale_realized_protection_category =
+      put_in(state, ["realized_protection_decision", "protection_category"], "none")
+
+    assert {:error, stale_realized_protection_category_validation} =
+             Schema.validate_artifact(stale_realized_protection_category)
+
+    assert Enum.any?(
+             stale_realized_protection_category_validation["errors"],
+             &(&1["path"] == "$.realized_protection_decision.protection_category" and
+                 &1["message"] == "must classify executed lifecycle-state protection")
+           )
+
+    stale_realized_protection_approval =
+      put_in(state, ["realized_protection_decision", "approved"], false)
+
+    assert {:error, stale_realized_protection_approval_validation} =
+             Schema.validate_artifact(stale_realized_protection_approval)
+
+    assert Enum.any?(
+             stale_realized_protection_approval_validation["errors"],
+             &(&1["path"] == "$.realized_protection_decision.approved" and
+                 &1["message"] == "must equal lifecycle-state realized_approval_category")
+           )
+
     assert %{
              "realized_status" => "blocked_by_policy",
              "realized_approval_status" => "blocked_by_policy",
@@ -7587,6 +7623,7 @@ defmodule OrbitalDynamics.TimelineTest do
                "protection_category" => "executed"
              }
            } =
+             done_state =
              Timeline.activity_lifecycle_state(
                %{
                  id: :done_cmd,
@@ -7602,6 +7639,48 @@ defmodule OrbitalDynamics.TimelineTest do
                  approval_status: :rejected
                }
              )
+
+    assert {:ok, %{"schema_contract" => "timeline_activity_lifecycle_state.v1"}} =
+             Schema.validate_artifact(done_state)
+
+    stale_planned_protection_decision =
+      put_in(done_state, ["planned_protection_decision", "protection_decision"], "mutable")
+
+    assert {:error, stale_planned_protection_decision_validation} =
+             Schema.validate_artifact(stale_planned_protection_decision)
+
+    assert Enum.any?(
+             stale_planned_protection_decision_validation["errors"],
+             &(&1["path"] == "$.planned_protection_decision.protection_decision" and
+                 &1["message"] == "must preserve executed lifecycle-state protection")
+           )
+
+    assert %{
+             "realized_executed" => false,
+             "realized_approval_category" => "protected",
+             "realized_protection_decision" => %{
+               "protection_decision" => "review_change",
+               "protection_category" => "locked_or_approved"
+             }
+           } =
+             locked_review_state =
+             Timeline.activity_lifecycle_state(
+               %{
+                 id: :locked_cmd,
+                 type: :command,
+                 status: :planned,
+                 approval_status: :approved
+               },
+               %{
+                 id: :locked_cmd,
+                 type: :command,
+                 status: :failed,
+                 approval_status: :approved
+               }
+             )
+
+    assert {:ok, %{"schema_contract" => "timeline_activity_lifecycle_state.v1"}} =
+             Schema.validate_artifact(locked_review_state)
 
     assert %{
              "activity_id" => "cmd_missing_type",
