@@ -5,48 +5,49 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Publication replay review/import handoff evidence coverage.
+Compact transition-application V3 branch replay coverage.
 
 Status:
-Implemented and parent-verified. Candidate-refresh publication replay tests now
-prove `timeline_publication_summary.v1` evidence survives operator-review and
-Cadence-import handoff wrappers, including publication IDs, invalidated
-downstream products, dependency-impact rollups, timeline-diff review counts, and
-review timeline IDs.
+Implemented and parent-verified. Candidate-refresh transition-application
+replay tests now prove V3 candidate-source branch metadata can carry compact
+`timeline_transition_application_summary.v1` evidence, including selected
+activity counts, selected integrity review/issue counters, review activity IDs,
+preserved/withheld counts, and trust-boundary evidence while ignoring stale
+provenance.
 
 Files changed:
 - `test/orbital_dynamics/candidate_refresh_test.exs`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:26347`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:40122`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 
 Docs/artifacts changed:
-- No public docs/artifacts changed; this hardens existing publication replay
-  handoff coverage.
+- No public docs/artifacts changed; this hardens existing compact transition
+  replay coverage.
 
 Level 6 pillar advanced:
-Approval-aware automation boundaries, publication/invalidation metadata, and
-typed dependency-impact evidence. Publication replay can no longer drop
-dependency, invalidation, or changed-field review evidence when source reports
-arrive through operator-review or Cadence-import handoff rows.
+Branch-local replay, compact transition-application summaries, selected
+integrity gates, and no-mutation/no-authority boundaries. V3 branch replay can
+now prove compact summary metadata wins over stale provenance without applying
+timeline transitions.
 
 Remaining maturity gaps:
 Typed timeline transition helpers still need broader coverage for dependency
 impact and transition summaries across V2/V3 replay paths. Continue reassessing
-Level 6 gaps from the guide after this publication replay handoff slice is
+Level 6 gaps from the guide after this compact transition replay slice is
 reviewed and published.
 
 Last commit:
-`2d0c0c533c5b9e5c85a8be03afe78a3b3feeb251` (`Test publication replay handoff
-evidence`).
+`cb4f6626a6feca4fdd6fb3c480dad90b64cfdc30` (`Test compact transition branch
+replay`).
 
 Next candidate:
 After publishing this slice, reassess Level 6 gaps from the guide/ledger.
-Likely next candidates include V2/V3 transition-summary replay or another small
-approval-boundary challenge.
+Likely next candidates include another small approval-boundary challenge or a
+non-test implementation slice from the Level 6 roadmap.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
