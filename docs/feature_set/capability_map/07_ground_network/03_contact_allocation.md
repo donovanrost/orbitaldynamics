@@ -121,6 +121,10 @@ contact-allocation summaries, so adapter queues can split reduced-capacity pack
 work by contact direction without reopening the summary artifact.
 
 `ContactAllocation.station_pressure_summary/1`/`2`/`3` and `OrbitalDynamics.contact_allocation_station_pressure_summary/1`/`2`/`3` expose the validated `contact_allocation_station_pressure_summary.v1` station-pressure routing contract without reopening the full allocation report. The schema derives input/station-pressure/review counts, contact IDs, station/availability/precedence/status routing maps, count maps, review rows, and explicit no-provider-reservation / no-schedule-mutation assumptions from included `contact_allocation_report.v1` rows. Its assumptions carry the capability-declared unavailable aliases, blocking availability values, availability precedence, and provider direction aliases used by station-pressure routing, with schema validation rejecting stale present values while preserving older artifacts that omit the optional metadata.
+Operator-review packages and Cadence-import manifests also lift branch-local
+`station_pressure_contact_ids_by_direction` replay maps when embedded
+contact-allocation summaries provide them, so direction-scoped station-pressure
+queues do not need to reopen candidate-refresh provenance.
 
 ## Capability advertisement
 

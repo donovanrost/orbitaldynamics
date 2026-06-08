@@ -2187,6 +2187,8 @@ defmodule OrbitalDynamics.CadenceImport do
         context["station_pressure_contact_counts_by_status"],
       "station_pressure_contact_ids_by_status" =>
         context["station_pressure_contact_ids_by_status"],
+      "station_pressure_contact_ids_by_direction" =>
+        context["station_pressure_contact_ids_by_direction"],
       "station_pressure_contact_ids_by_direction_and_ground_station_id" =>
         context["station_pressure_contact_ids_by_direction_and_ground_station_id"],
       "capacity_pack_required_capacity_fraction" =>
@@ -2346,6 +2348,7 @@ defmodule OrbitalDynamics.CadenceImport do
       "station_pressure_contact_ids_by_precedence_rank",
       "station_pressure_contact_counts_by_status",
       "station_pressure_contact_ids_by_status",
+      "station_pressure_contact_ids_by_direction",
       "station_pressure_contact_ids_by_direction_and_ground_station_id",
       "capacity_pack_required_capacity_fraction",
       "capacity_pack_selected_required_capacity_fraction",

@@ -13102,6 +13102,8 @@ defmodule OrbitalDynamics.OperatorReview do
       "station_pressure_review_contact_ids" => summary["station_pressure_review_contact_ids"],
       "station_pressure_contact_ids_by_status" =>
         summary["station_pressure_contact_ids_by_status"],
+      "station_pressure_contact_ids_by_direction" =>
+        summary["station_pressure_contact_ids_by_direction"],
       "station_pressure_contact_ids_by_direction_and_ground_station_id" =>
         summary["station_pressure_contact_ids_by_direction_and_ground_station_id"],
       "reservation_review_contact_ids" => summary["reservation_review_contact_ids"],
@@ -16968,6 +16970,10 @@ defmodule OrbitalDynamics.OperatorReview do
     |> put_contact_allocation_id_map_summary(
       reports,
       "station_reservation_ids_by_reserved_by"
+    )
+    |> put_contact_allocation_id_map_summary(
+      reports,
+      "station_pressure_contact_ids_by_direction"
     )
     |> put_contact_allocation_id_map_summary(reports, "capacity_pack_contact_ids_by_status")
     |> put_contact_allocation_id_map_summary(reports, "capacity_pack_contact_ids_by_direction")

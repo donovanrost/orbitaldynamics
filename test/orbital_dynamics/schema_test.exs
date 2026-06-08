@@ -21648,7 +21648,8 @@ defmodule OrbitalDynamics.SchemaTest do
         "station_pressure_contact_ids_by_ground_station_id",
         "station_pressure_contact_ids_by_availability",
         "station_pressure_contact_ids_by_precedence_availability",
-        "station_pressure_contact_ids_by_precedence_rank"
+        "station_pressure_contact_ids_by_precedence_rank",
+        "station_pressure_contact_ids_by_direction"
       ],
       fn field ->
         assert get_in(cadence_schema, [

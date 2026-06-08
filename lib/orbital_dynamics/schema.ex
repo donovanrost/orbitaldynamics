@@ -5343,6 +5343,7 @@ defmodule OrbitalDynamics.Schema do
         "station_pressure_contact_ids_by_precedence_availability",
         "station_pressure_contact_counts_by_precedence_rank",
         "station_pressure_contact_ids_by_precedence_rank",
+        "station_pressure_contact_ids_by_direction",
         "capacity_pack_required_capacity_fraction",
         "capacity_pack_selected_required_capacity_fraction",
         "capacity_pack_deferred_required_capacity_fraction",
@@ -6667,6 +6668,7 @@ defmodule OrbitalDynamics.Schema do
         "station_pressure_contact_ids_by_precedence_availability",
         "station_pressure_contact_counts_by_precedence_rank",
         "station_pressure_contact_ids_by_precedence_rank",
+        "station_pressure_contact_ids_by_direction",
         "capacity_pack_required_capacity_fraction",
         "capacity_pack_selected_required_capacity_fraction",
         "capacity_pack_deferred_required_capacity_fraction",
@@ -17388,6 +17390,7 @@ defmodule OrbitalDynamics.Schema do
                 "station_pressure_contact_ids_by_availability",
                 "station_pressure_contact_ids_by_precedence_availability",
                 "station_pressure_contact_ids_by_precedence_rank",
+                "station_pressure_contact_ids_by_direction",
                 "reduced_capacity_packed_contact_ids",
                 "reduced_capacity_deferred_contact_ids",
                 "station_reserved_bys",
@@ -17445,7 +17448,8 @@ defmodule OrbitalDynamics.Schema do
              "station_pressure_contact_ids_by_ground_station_id",
              "station_pressure_contact_ids_by_availability",
              "station_pressure_contact_ids_by_precedence_availability",
-             "station_pressure_contact_ids_by_precedence_rank"
+             "station_pressure_contact_ids_by_precedence_rank",
+             "station_pressure_contact_ids_by_direction"
            ] ->
         %{"type" => "object", "additionalProperties" => stable_id_array_schema()}
 

@@ -19384,6 +19384,9 @@ defmodule OrbitalDynamics.OperatorReviewTest do
         "station_pressure_contact_ids_by_status" => %{
           "maintenance_window" => ["dl_campaign_station"]
         },
+        "station_pressure_contact_ids_by_direction" => %{
+          "downlink" => ["dl_campaign_station"]
+        },
         "station_pressure_contact_ids_by_direction_and_ground_station_id" => %{
           "downlink" => %{"gs_campaign" => ["dl_campaign_station"]}
         },
@@ -19472,6 +19475,9 @@ defmodule OrbitalDynamics.OperatorReviewTest do
         "station_pressure_contact_counts_by_status" => %{"reservation_hold" => 2},
         "station_pressure_contact_ids_by_status" => %{
           "reservation_hold" => ["dl_refresh_station_a", "dl_refresh_station_b"]
+        },
+        "station_pressure_contact_ids_by_direction" => %{
+          "downlink" => ["dl_refresh_station_a", "dl_refresh_station_b"]
         },
         "station_pressure_contact_ids_by_direction_and_ground_station_id" => %{
           "downlink" => %{"gs_refresh" => ["dl_refresh_station_a", "dl_refresh_station_b"]}
@@ -19587,6 +19593,9 @@ defmodule OrbitalDynamics.OperatorReviewTest do
         "station_pressure_contact_ids_by_precedence_availability" => %{},
         "station_pressure_contact_counts_by_precedence_rank" => %{},
         "station_pressure_contact_ids_by_precedence_rank" => %{},
+        "station_pressure_contact_ids_by_direction" => %{
+          "downlink" => ["dl_source_station"]
+        },
         "capacity_pack_required_capacity_fraction" => 0.35,
         "capacity_pack_selected_required_capacity_fraction" => 0.0,
         "capacity_pack_deferred_required_capacity_fraction" => 0.35,
@@ -19687,6 +19696,9 @@ defmodule OrbitalDynamics.OperatorReviewTest do
         "station_pressure_contact_counts_by_precedence_rank" => %{"2" => 2},
         "station_pressure_contact_ids_by_precedence_rank" => %{
           "2" => ["dl_result_station_a", "dl_result_station_b"]
+        },
+        "station_pressure_contact_ids_by_direction" => %{
+          "downlink" => ["dl_result_station_a", "dl_result_station_b"]
         },
         "capacity_pack_required_capacity_fraction" => 0.6,
         "capacity_pack_selected_required_capacity_fraction" => 0.4,
@@ -19859,6 +19871,10 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              "maintenance_window" => ["dl_campaign_station"]
            }
 
+    assert campaign["station_pressure_contact_ids_by_direction"] == %{
+             "downlink" => ["dl_campaign_station"]
+           }
+
     assert campaign["station_pressure_contact_ids_by_direction_and_ground_station_id"] == %{
              "downlink" => %{"gs_campaign" => ["dl_campaign_station"]}
            }
@@ -19980,6 +19996,10 @@ defmodule OrbitalDynamics.OperatorReviewTest do
 
     assert refresh["station_pressure_contact_ids_by_status"] == %{
              "reservation_hold" => ["dl_refresh_station_a", "dl_refresh_station_b"]
+           }
+
+    assert refresh["station_pressure_contact_ids_by_direction"] == %{
+             "downlink" => ["dl_refresh_station_a", "dl_refresh_station_b"]
            }
 
     assert refresh["station_pressure_contact_ids_by_direction_and_ground_station_id"] == %{
@@ -20161,6 +20181,14 @@ defmodule OrbitalDynamics.OperatorReviewTest do
 
     assert repair["station_pressure_contact_ids_by_precedence_rank"] == %{
              "2" => ["dl_result_station_a", "dl_result_station_b"]
+           }
+
+    assert repair["station_pressure_contact_ids_by_direction"] == %{
+             "downlink" => [
+               "dl_result_station_a",
+               "dl_result_station_b",
+               "dl_source_station"
+             ]
            }
 
     assert_in_delta repair["capacity_pack_required_capacity_fraction"], 0.95, 1.0e-9
@@ -20366,6 +20394,14 @@ defmodule OrbitalDynamics.OperatorReviewTest do
 
     assert strategy["station_pressure_contact_ids_by_precedence_rank"] == %{
              "2" => ["dl_result_station_a", "dl_result_station_b"]
+           }
+
+    assert strategy["station_pressure_contact_ids_by_direction"] == %{
+             "downlink" => [
+               "dl_result_station_a",
+               "dl_result_station_b",
+               "dl_source_station"
+             ]
            }
 
     assert_in_delta strategy["capacity_pack_required_capacity_fraction"], 0.95, 1.0e-9

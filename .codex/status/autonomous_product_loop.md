@@ -5,77 +5,83 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Flatten contact-allocation capacity-pack direction routing into review/import
+Flatten branch-local station-pressure direction routing into review/import
 handoffs.
 
 Status:
 Implemented and parent-verified. Operator-review packages and Cadence import
-manifests now lift capacity-pack all/selected/deferred contact ID maps by
-direction from embedded contact-allocation summaries.
+manifests now lift branch-local
+`station_pressure_contact_ids_by_direction` maps from embedded
+contact-allocation replay summaries and expose them as named stable-ID schema
+properties.
 
 Slice-selection note:
-- Selected slice: contact-allocation capacity-pack direction handoff
+- Selected slice: station-pressure direction-only contact-ID handoff
   flattening.
-- Why this slice: it moves from the typed timeline queue into the guide's
-  resource/communications allocation queue and closes a documented compact
-  routing gap for reduced-capacity pack work.
+- Why this slice: it continues the guide's resource/communications allocation
+  queue after capacity-pack routing and closes a compact branch-local replay
+  gap for adapter queues that split station-pressure work by contact direction.
 - Level 6 pillar: durable schema-versioned artifacts and compatibility checks;
   fleet-level resource, contact, station-calendar, and allocation behavior;
   clear Cadence integration artifacts.
-- Current evidence gap: capacity-pack summaries emit
-  `capacity_pack_contact_ids_by_direction`,
-  `capacity_pack_selected_contact_ids_by_direction`, and
-  `capacity_pack_deferred_contact_ids_by_direction`, but the aggregate
-  operator-review/Cadence summary lifts only expose status and ground-station
-  maps.
+- Current evidence gap: candidate-refresh replay summaries preserve
+  `station_pressure_contact_ids_by_direction` when present, but aggregate
+  review/import packages do not lift that direction-only map or expose it as a
+  named review/import schema property.
 - Docs read:
   `docs/autonomous_work_guide.md`,
   `docs/feature_set/capability_map/07_ground_network_and_communications_planning.md`,
   `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`.
-- Files: `lib/orbital_dynamics/operator_review.ex`,
+- Likely files: `lib/orbital_dynamics/operator_review.ex`,
   `lib/orbital_dynamics/cadence_import.ex`,
+  `lib/orbital_dynamics/schema.ex`,
   `test/orbital_dynamics/operator_review_test.exs`,
   `test/orbital_dynamics/cadence_import_test.exs`,
+  `test/orbital_dynamics/schema_test.exs`,
+  `schemas/`,
   `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`,
   `.codex/status/autonomous_product_loop.md`.
 - Definition of done: operator-review packages and Cadence import manifests
-  lift capacity-pack all/selected/deferred contact ID maps by direction from
-  contact-allocation summaries; focused tests and schema lint/whitespace checks
-  pass.
+  lift `station_pressure_contact_ids_by_direction` from embedded allocation
+  replay summaries, the review/import schemas expose it as a stable-ID map, and
+  focused tests plus schema export/lint/whitespace checks pass.
 
 Files changed:
+- `.codex/status/autonomous_product_loop.md`
+- `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
 - `lib/orbital_dynamics/operator_review.ex`
 - `lib/orbital_dynamics/cadence_import.ex`
+- `lib/orbital_dynamics/schema.ex`
 - `test/orbital_dynamics/operator_review_test.exs`
 - `test/orbital_dynamics/cadence_import_test.exs`
-- `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
-- `.codex/status/autonomous_product_loop.md`
+- `test/orbital_dynamics/schema_test.exs`
+- `schemas/` review/import schema exports and bundle/nested consumers
 
 Tests run:
-- `mix format lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/operator_review_test.exs test/orbital_dynamics/cadence_import_test.exs`
-- `mix test test/orbital_dynamics/operator_review_test.exs:19390 test/orbital_dynamics/cadence_import_test.exs:12242` (2 passed, 312 excluded)
+- `mix format lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/operator_review_test.exs test/orbital_dynamics/cadence_import_test.exs test/orbital_dynamics/schema_test.exs`
+- `mix test test/orbital_dynamics/operator_review_test.exs:19340 test/orbital_dynamics/cadence_import_test.exs:12192 test/orbital_dynamics/schema_test.exs:21576` (3 passed, 479 excluded)
+- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - `mix orbital_dynamics.schema.lint --all` (154 files, 154 artifacts, status pass)
-- `git diff --check`
 
 Docs/artifacts changed:
-- Documented that contact-allocation capacity-pack direction maps are lifted
-  into operator-review and Cadence-import handoffs for adapter routing.
-- No schema export was refreshed in this slice; the review/import rows use
-  existing passthrough artifact surfaces and schema lint remains green.
+- Documented review/import lifting for branch-local station-pressure direction
+  maps.
+- Refreshed schema exports after adding the optional review/import stable-ID
+  map property.
 
 Local review:
-- `OperatorReview.put_contact_allocation_summaries/2` now merges
-  `capacity_pack_contact_ids_by_direction`,
-  `capacity_pack_selected_contact_ids_by_direction`, and
-  `capacity_pack_deferred_contact_ids_by_direction` from embedded allocation
-  summaries.
-- `CadenceImport` now carries those same maps through aggregate manifest
-  context and generic review passthrough fields.
+- `OperatorReview.contact_allocation_summary_context/1` preserves the
+  direction map in row-local source summary context, and
+  `put_contact_allocation_summaries/2` merges it at package level.
+- `CadenceImport` carries the same map through aggregate manifest context and
+  generic review passthrough fields.
+- Tests cover campaign, refresh, repair, and strategy aggregate lifts plus
+  schema stable-ID hints.
 
 Level 6 pillar advanced:
-Fleet-level resource/contact allocation behavior, durable handoff artifacts,
-and clear Cadence integration surfaces. Reduced-capacity pack queues can now
-route all/selected/deferred contacts by direction without reopening summaries.
+Fleet-level station-pressure routing, durable schema-visible handoff
+artifacts, and clear Cadence adapter surfaces for direction-scoped allocation
+queues.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -85,7 +91,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`0c7c0e2` Flatten capacity pack direction handoffs.
+`a0ceba4` Update autonomous loop handoff.
 
 Next candidate:
 Continue guide-priority resource/contact semantics or candidate-refresh depth
@@ -109,8 +115,6 @@ Previous published slices:
 - `86d4687` refreshed operational timeline fixture regeneration.
 - `2dc42cb` pinned timeline publication fixture regeneration.
 - `3f2f0d8` calibrated Level 6 roadmap status.
-- `3514f17` preserved typed activity aggregate station-calendar reservation
-  lists.
 
 Blocked:
 No.
