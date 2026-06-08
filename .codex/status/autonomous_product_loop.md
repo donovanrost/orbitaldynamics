@@ -5,46 +5,78 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Selected-recommendation explanation rows for readiness and quality-gate
-pressure events.
+Flatten readiness and quality-gate pressure recommendation context into
+strategy recommendation review/import handoff rows.
 
 Status:
-Implemented, parent-verified, and committed. Selected strategy recommendations
-now emit compact `operational_readiness_pressure` and `quality_gate_pressure`
-explanation rows when the recommended branch contains those pressure events,
-so downstream planner/review surfaces can show report, gate, status, action,
-feedback, and trust-boundary context without reopening branch events.
+Implemented and parent-verified. Strategy recommendation operator-review rows,
+direct selected strategy import rows, and review-package import rows now flatten
+selected recommendation readiness/quality-gate pressure context from
+`recommendation.explanation`: report IDs, source artifact IDs, readiness/import
+status values, gate IDs/status/classifications, required actions, feedback
+source/scope/key lists, trust boundaries, and quality-gate resource-availability
+reason IDs.
+
+Slice-selection note:
+- Selected slice: strategy recommendation readiness/quality-gate handoff
+  flattening.
+- Why this slice: it is the immediate follow-on gap from the completed
+  recommendation explanation work.
+- Level 6 pillar: clear Cadence integration artifacts and approval-aware
+  quality-gate/import-readiness boundaries.
+- Current evidence gap: selected pressure rows exist in recommendation
+  explanation, but review/import handoff rows do not yet expose compact report,
+  gate, status, action, feedback, and trust-boundary lists for routing.
+- Docs to read: `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`.
+- Likely files: `lib/orbital_dynamics/operator_review.ex`,
+  `lib/orbital_dynamics/cadence_import.ex`,
+  `test/orbital_dynamics/campaign_planner_test.exs`,
+  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
+  `.codex/status/autonomous_product_loop.md`.
+- Likely tests:
+  `mix test test/orbital_dynamics/campaign_planner_test.exs:18282`.
+- Definition of done: strategy recommendation review rows, direct selected
+  strategy import rows, and review-package import rows flatten the new
+  readiness/quality-gate pressure context; focused tests and schema lint pass.
 
 Files changed:
-- `lib/orbital_dynamics/campaign_planner.ex`
+- `lib/orbital_dynamics/operator_review.ex`
+- `lib/orbital_dynamics/cadence_import.ex`
+- `lib/orbital_dynamics/schema.ex`
 - `test/orbital_dynamics/campaign_planner_test.exs`
 - `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
+- `schemas/*.schema.json` shared review/import row exports
+- `schemas/orbital_dynamics.schema_bundle.v1.json`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs`
+- `mix format lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/campaign_planner_test.exs`
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18282` (1 passed, 659 excluded)
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:18081 test/orbital_dynamics/campaign_planner_test.exs:18172 test/orbital_dynamics/campaign_planner_test.exs:18282` (3 passed, 657 excluded)
+- `mix test test/orbital_dynamics/operator_review_test.exs:15572 test/orbital_dynamics/campaign_planner_test.exs:18282 test/orbital_dynamics/campaign_planner_test.exs:18172` (3 passed, 859 excluded)
+- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - `mix orbital_dynamics.schema.lint --all` (154 files, 154 artifacts, status pass)
 - `git diff --check`
 
 Docs/artifacts changed:
-- Documented selected-recommendation `operational_readiness_pressure` and
-  `quality_gate_pressure` explanation rows in V3 strategy orchestration docs.
-- No schema exports or checked-in study fixtures changed.
+- Documented flattened readiness/quality-gate pressure routing fields for
+  strategy recommendation review/import handoff rows.
+- Refreshed schema exports for the shared optional review/import row property
+  additions.
 
 Local review:
-- Existing branch derivation already preserved readiness and quality-gate
-  event context, and existing recommendations already included generic
-  `branch_event_summary` rows.
-- The selected recommendation now carries purpose-built pressure rows analogous
-  to the existing `resource_pressure` and `operational_feedback_driver`
+- `OperatorReview.strategy_recommendation_rows/2` already flattens branch-event,
+  risk, resource-pressure, and operational-feedback context.
+- `CadenceImport.strategy_manifest_row/4` and
+  `strategy_recommendation_manifest_row/2` copy similar strategy recommendation
+  context into direct selected imports and review-package imports.
+- The missing piece is readiness/quality-gate pressure context from the new
   explanation rows.
 
 Level 6 pillar advanced:
-Planner-visible operational readiness. Selected strategy recommendations should
-carry readiness and quality-gate pressure context directly enough for Cadence
-review/import surfaces to explain why a branch needs review or is blocked.
+Clear Cadence integration artifacts and approval-aware quality-gate/import
+readiness boundaries. Adapter-facing review/import rows now expose selected
+readiness pressure routing fields directly instead of requiring nested
+recommendation explanation parsing.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -54,19 +86,20 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`4a5935a` Explain readiness pressure recommendations.
+`810c605` Flatten readiness pressure strategy handoffs.
 
 Next candidate:
-Continue planner-visible pressure work by checking whether operator-review and
-Cadence-import handoff rows should flatten the new readiness/quality-gate
-explanation fields, or move to candidate ranking when live tests reveal a
-concrete resource/contact/readiness pressure scoring gap.
+Continue planner-visible pressure work by checking whether candidate ranking
+should explicitly score readiness/quality-gate pressure, or return to the guide's
+higher-priority typed timeline/resource semantics if no narrow scoring gap is
+evident.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 
 Previous published slices:
+- `810c605` flattened readiness and quality-gate pressure handoff rows.
 - `4a5935a` explained readiness and quality-gate pressure recommendations.
 - `86d4687` refreshed operational timeline fixture regeneration.
 - `2dc42cb` pinned timeline publication fixture regeneration.
