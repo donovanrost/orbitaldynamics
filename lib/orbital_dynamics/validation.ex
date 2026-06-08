@@ -11501,6 +11501,84 @@ defmodule OrbitalDynamics.Validation do
         "checks unavailable-resource reason maps, row-status routing, contact ID maps, and no-authority boundary only"
       ]
     },
+    "fixture.artifact.operational_quality_gate_unavailable_resource_summary.resource_projection_v1" =>
+      %{
+        "id" =>
+          "fixture.artifact.operational_quality_gate_unavailable_resource_summary.resource_projection_v1",
+        "model_id" => "artifact.operational_quality_gate_unavailable_resource_summary.v1",
+        "reference_case" =>
+          "checked-in quality gate unavailable-resource summary from resource projection pressure",
+        "validation_level" => "artifact_contract",
+        "fixture_type" => "curated_internal_artifact_regression",
+        "inputs" => %{
+          "artifact_path" =>
+            "study_results/operational_quality_gate_unavailable_resource_summary_v1.json",
+          "contract" => "operational_quality_gate_unavailable_resource_summary.v1",
+          "source_artifact_type" => "resource_projection_report.v1"
+        },
+        "expected" => %{
+          "schema_contract" => "operational_quality_gate_unavailable_resource_summary.v1",
+          "model" => "artifact_only_quality_gate_unavailable_resource_summary",
+          "source" => "quality_gate_report.v1",
+          "source_artifact_type" => "resource_projection_report.v1",
+          "source_artifact_id" => "resource_summaries",
+          "source_quality_gate_report_id" =>
+            "quality_gate:resource_projection_report.v1:resource_summaries",
+          "source_readiness_report_id" =>
+            "operational_readiness:resource_projection_report.v1:resource_summaries",
+          "resource_availability_row_count" => 1,
+          "row_derived_resource_availability_row_count" => 1,
+          "unavailable_resource_row_count" => 1,
+          "unavailable_resource_pressure_count" => 2,
+          "row_derived_unavailable_resource_pressure_count" => 2,
+          "unavailable_resource_reason_counts" => %{
+            "antenna_unavailable" => 1,
+            "payload_unavailable" => 1
+          },
+          "unavailable_resource_reason_keys" => "antenna_unavailable|payload_unavailable",
+          "station_availability_reason_counts" => %{},
+          "station_availability_reason_keys" => "",
+          "resource_blocking_dimension_counts" => %{},
+          "blocked_contact_ids_by_blocking_dimension" => %{},
+          "blocked_contact_ids_by_spacecraft_id" => %{},
+          "blocked_contact_ids_by_status" => %{},
+          "quality_gate_row_ids_by_status" => %{
+            "review_required" => [
+              "quality_gate:resource_projection_report.v1:resource_summaries:resource_availability:4"
+            ]
+          },
+          "quality_gate_ids_by_status" => %{"review_required" => ["resource_availability"]},
+          "review_required_quality_gate_row_keys" =>
+            "quality_gate:resource_projection_report.v1:resource_summaries:resource_availability:4",
+          "blocked_quality_gate_row_keys" => "",
+          "resource_availability_gate_keys" => "resource_availability",
+          "row_derived_review_required_quality_gate_row_count" => 1,
+          "row_derived_blocked_quality_gate_row_count" => 0,
+          "execution_boundary" => "artifact_only_no_cadence_write",
+          "operator_authority" => "not_granted_by_unavailable_resource_summary",
+          "cadence_write" => "not_performed_by_summary",
+          "command_execution" => "not_performed_by_summary",
+          "model_limit_count" => 2
+        },
+        "tolerances" => %{
+          "resource_availability_row_count" => 0,
+          "row_derived_resource_availability_row_count" => 0,
+          "unavailable_resource_row_count" => 0,
+          "unavailable_resource_pressure_count" => 0,
+          "row_derived_unavailable_resource_pressure_count" => 0,
+          "row_derived_review_required_quality_gate_row_count" => 0,
+          "row_derived_blocked_quality_gate_row_count" => 0,
+          "model_limit_count" => 0
+        },
+        "evidence" => [
+          "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+          "schema-linted by mix orbital_dynamics.schema.lint"
+        ],
+        "known_limits" => [
+          "internal checked-in artifact regression, not external operations validation",
+          "checks resource-projection unavailable-resource reason maps, review routing, and no-authority boundary only"
+        ]
+      },
     "fixture.artifact.operational_quality_gate_operator_training_summary.v1" => %{
       "id" => "fixture.artifact.operational_quality_gate_operator_training_summary.v1",
       "model_id" => "artifact.operational_quality_gate_operator_training_summary.v1",

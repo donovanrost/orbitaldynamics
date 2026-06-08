@@ -2840,6 +2840,104 @@ defmodule OrbitalDynamics.ValidationTest do
              )
   end
 
+  test "verifies checked-in operational quality gate unavailable-resource summary reference fixture" do
+    fixture_id =
+      "fixture.artifact.operational_quality_gate_unavailable_resource_summary.resource_projection_v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] ==
+             "artifact.operational_quality_gate_unavailable_resource_summary.v1"
+
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    assert fixture["inputs"]["artifact_path"] ==
+             "study_results/operational_quality_gate_unavailable_resource_summary_v1.json"
+
+    report = operational_quality_gate_unavailable_resource_summary_checked_in_fixture()
+    observations = operational_quality_gate_unavailable_resource_summary_checked_in_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert observations["source_artifact_type"] == "resource_projection_report.v1"
+    assert observations["unavailable_resource_pressure_count"] == 2
+    assert observations["row_derived_unavailable_resource_pressure_count"] == 2
+
+    assert observations["unavailable_resource_reason_counts"] == %{
+             "antenna_unavailable" => 1,
+             "payload_unavailable" => 1
+           }
+
+    assert observations["unavailable_resource_reason_keys"] ==
+             "antenna_unavailable|payload_unavailable"
+
+    assert observations["blocked_contact_ids_by_blocking_dimension"] == %{}
+    assert observations["execution_boundary"] == "artifact_only_no_cadence_write"
+    assert observations["operator_authority"] == "not_granted_by_unavailable_resource_summary"
+
+    stale_pressure_observations =
+      observations
+      |> Map.put("row_derived_unavailable_resource_pressure_count", 1)
+
+    assert {:ok, stale_pressure_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_pressure_observations)
+
+    assert stale_pressure_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_pressure_verification["checks"],
+             &(&1["field"] == "row_derived_unavailable_resource_pressure_count" and
+                 &1["status"] == "fail")
+           )
+
+    stale_reason_observations =
+      observations
+      |> put_in(["unavailable_resource_reason_counts", "payload_unavailable"], 0)
+
+    assert {:ok, stale_reason_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_reason_observations)
+
+    assert stale_reason_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_reason_verification["checks"],
+             &(&1["field"] == "unavailable_resource_reason_counts" and
+                 &1["status"] == "fail")
+           )
+
+    stale_boundary_observations =
+      observations
+      |> Map.put("execution_boundary", "cadence_write_ready")
+
+    assert {:ok, stale_boundary_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_boundary_observations)
+
+    assert stale_boundary_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_boundary_verification["checks"],
+             &(&1["field"] == "execution_boundary" and &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "operational_quality_gate_unavailable_resource_summary.v1",
+             report
+           ) ==
+             Validation.artifact_observations(
+               "operational_quality_gate_unavailable_resource_summary.v1",
+               report
+             )
+
+    assert {:ok, _schema_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "operational_quality_gate_unavailable_resource_summary.v1"
+             )
+  end
+
   test "verifies curated operational quality gate schema validation summary reference fixtures" do
     fixture_id = "fixture.artifact.operational_quality_gate_schema_validation_summary.v1"
 
@@ -14010,6 +14108,8 @@ defmodule OrbitalDynamics.ValidationTest do
           operational_quality_gate_import_readiness_summary_fixture_observations(),
         "fixture.artifact.operational_quality_gate_unavailable_resource_summary.v1" =>
           operational_quality_gate_unavailable_resource_summary_fixture_observations(),
+        "fixture.artifact.operational_quality_gate_unavailable_resource_summary.resource_projection_v1" =>
+          operational_quality_gate_unavailable_resource_summary_checked_in_observations(),
         "fixture.artifact.operational_quality_gate_operator_training_summary.v1" =>
           operational_quality_gate_operator_training_summary_fixture_observations(),
         "fixture.artifact.operational_quality_gate_schema_validation_summary.v1" =>
@@ -14161,8 +14261,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 185,
-             "status_counts" => %{"pass" => 185},
+             "fixture_count" => 186,
+             "status_counts" => %{"pass" => 186},
              "reports" => reports
            } = report
 
@@ -14239,6 +14339,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.operational_quality_gate_operator_training_summary.v1",
              "fixture.artifact.operational_quality_gate_schema_validation_summary.v1",
              "fixture.artifact.operational_quality_gate_summary.v1",
+             "fixture.artifact.operational_quality_gate_unavailable_resource_summary.resource_projection_v1",
              "fixture.artifact.operational_quality_gate_unavailable_resource_summary.v1",
              "fixture.artifact.operational_readiness_gate_summary.v1",
              "fixture.artifact.operational_readiness_report.resource_pressure_v1",
@@ -14364,7 +14465,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 185},
+             "status_counts" => %{"fail" => 186},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -16616,6 +16717,17 @@ defmodule OrbitalDynamics.ValidationTest do
     |> OperationalReadiness.report()
     |> OperationalReadiness.quality_gate_report()
     |> OrbitalDynamics.operational_quality_gate_unavailable_resource_summary()
+  end
+
+  defp operational_quality_gate_unavailable_resource_summary_checked_in_observations do
+    "operational_quality_gate_unavailable_resource_summary.v1"
+    |> Validation.artifact_observations(
+      operational_quality_gate_unavailable_resource_summary_checked_in_fixture()
+    )
+  end
+
+  defp operational_quality_gate_unavailable_resource_summary_checked_in_fixture do
+    read_json!("study_results/operational_quality_gate_unavailable_resource_summary_v1.json")
   end
 
   defp operational_quality_gate_operator_training_summary_fixture_observations do
