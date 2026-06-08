@@ -5,71 +5,75 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Derive operational-readiness gate pressure classification from row-local status.
+Expose reservation-conflict identities in branch comparison rows.
 
 Status:
-Published locally in product commit `eae9483`; handoff commit pending.
+Published locally in product commit `ae950a5`; handoff commit pending.
 
 Slice-selection note:
-- Selected slice: harden V3 operational-readiness pressure so malformed or
-  stale readiness gate rows derive import classification, readiness level, and
-  required operator action from row-local gate status when classification is
-  absent or weaker than the status.
-- Why this slice: the roadmap prioritizes stale-but-plausible readiness
-  challenge fixtures and making existing readiness evidence planner-visible in
-  branch scoring.
-- Level 6 pillar: approval-aware automation boundaries and reproducible V3
-  branch trees with explainable score terms.
-- Current evidence gap: quality-gate pressure already derives summary
-  classification from row status, but operational-readiness pressure defaults a
-  blocked gate with missing classification to `review_only`, weakening branch
-  explanation and required action.
+- Selected slice: add branch-comparison fields for contact/reservation IDs whose
+  station-reservation match status indicates an overlap, conflict, unmatched, or
+  owner-mismatch condition.
+- Why this slice: the roadmap prioritizes making resource/contact pressure
+  directly visible in branch score explanations; generic reservation IDs and
+  match statuses are present, but conflict-specific routing is not separated for
+  adapter-facing review.
+- Level 6 pillar: fleet-level resource/contact behavior and reproducible V3
+  branch trees with explainable score terms and deltas.
+- Current evidence gap: `contact_allocation_reservation_conflict_summary.v1`
+  already flows into V3 pressure branches, but branch comparison rows expose
+  only generic `branch_station_reservation_*` fields, making conflict contact
+  routing less explicit than CandidateRefresh replay and quality-gate routing.
 - Docs read:
   `docs/autonomous_work_guide.md`,
   `.codex/prompts/long_running_context_efficient_product_loop.md`,
-  `docs/feature_set/current_capability_snapshot.md`,
   `docs/feature_set/recommended_roadmap.md`,
-  `docs/feature_set/completeness_levels/06_mature_operational_platform.md`,
-  `docs/feature_set/definition_of_feature_complete.md`,
-  `docs/feature_set/capability_map/17_reproducibility_artifacts_and_audit.md`,
-  `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`,
-  `docs/mission_planning/high_fidelity/12_operational_readiness.md`.
+  `docs/feature_set/capability_map/07_ground_network_and_communications_planning.md`,
+  `docs/artifacts/field_families/candidate_refresh_artifact.md`.
 - Likely files: `lib/orbital_dynamics/campaign_planner.ex`,
+  `lib/orbital_dynamics/schema.ex`,
   `test/orbital_dynamics/campaign_planner_test.exs`,
+  `test/orbital_dynamics/schema_test.exs`,
+  `schemas/*.schema.json`,
   `.codex/status/autonomous_product_loop.md`.
-- Definition of done: V3 operational-readiness pressure uses row-local
-  `blocked` and `analysis_only` statuses to derive blocked/analysis-only
-  classification, readiness level, and operator action when classification is
-  absent or stale; focused planner tests, compile, and whitespace checks pass.
+- Definition of done: branch comparison rows expose conflict contact IDs,
+  reservation IDs, and match statuses for reservation-conflict pressure; schema
+  validation/export surfaces the optional fields; focused planner/schema tests,
+  schema export/lint, compile, and whitespace checks pass.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `lib/orbital_dynamics/campaign_planner.ex`
+- `lib/orbital_dynamics/schema.ex`
 - `test/orbital_dynamics/campaign_planner_test.exs`
+- `test/orbital_dynamics/schema_test.exs`
+- `schemas/*.schema.json` branch-comparison export dependents
+- `schemas/orbital_dynamics.schema_bundle.v1.json`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:44448 test/orbital_dynamics/campaign_planner_test.exs:44530`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:40973 test/orbital_dynamics/schema_test.exs:24696`
+- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
+- `mix orbital_dynamics.schema.lint --all`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- None yet.
+- Checked-in schema exports refreshed for `branch_comparison_report.v1` and
+  top-level exports that embed the updated branch-comparison row shape.
 
 Local review:
-Operational-readiness pressure rows now derive `blocked` and `analysis_only`
-classification from row-local status before trusting missing or stale row
-classification. Report-gate and compact gate-summary paths both normalize the
-event status, readiness level, import classification, gate classification, and
-required operator action. The new challenge fixture covers a blocked gate with
-missing classification, an analysis-only gate with stale review-only
-classification, and a compact gate-summary blocked row. Read-only reviewer
-`Anscombe` reported no findings; the only suggested extra coverage was an
-optional symmetric summary `analysis_only` row, already covered through the
-shared helper by the report-gate case.
+Branch comparison rows now derive conflict-specific contact IDs, reservation
+IDs, and match statuses from events whose station-reservation match status is
+not matched/owned. Generic reservation fields remain unchanged, while conflict
+fields stay absent for matched owner rows. Focused planner coverage asserts the
+fields for a reservation-conflict summary branch, and schema coverage pins the
+new optional arrays. Read-only reviewer `Boyle` found that mixed matched plus
+conflict status aliases could leak matched values into the conflict-status
+field; the collector now filters individual status values, and the focused test
+adds a matched alias regression.
 
 Level 6 pillar advanced:
-Approval-aware readiness pressure resilience for stale or malformed handoff
-evidence.
+Planner-visible resource/contact reservation-conflict explanation.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -79,25 +83,26 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`eae9483` Derive readiness gate pressure classification.
+`ae950a5` Expose reservation conflict branch comparison fields.
 
 Next candidate:
-After this slice, inspect whether a resource/contact compatibility fixture or
-candidate-ranking pressure path is the next highest-value narrow gap.
+After this slice, inspect whether resource/contact pressure should influence
+candidate ranking more directly or whether another compatibility fixture is
+higher-value.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 
 Previous published slices:
+- `eae9483` derived operational-readiness gate pressure classification from
+  row-local status.
 - `110ba8e` hardened timeline-preservation pressure status against stale
   aggregate report status.
 - `df963da` exposed contact-allocation pressure status in branch comparison rows.
 - `d3cd30f` derived prior-plan readiness and quality-gate pressure branches.
 - `4904a47` derived station-reservation review summary pressure branches.
 - `3920603` derived relay data-path summary pressure branches.
-- `aa4cb47` derived operational-readiness gate-summary pressure branches.
-- `fe0ac70` derived timeline preservation report/status pressure branches.
 - Earlier published slices covered schema-validation, operator-training,
   unavailable-resource, provider-counteroffer/reservation, lifecycle,
   publication/dependency/integrity, contact-allocation, and direction-routing
