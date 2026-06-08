@@ -6809,6 +6809,14 @@ defmodule OrbitalDynamics.OperatorReview do
   defp candidate_refresh_freshness_rows(artifact) do
     direct_rows =
       [
+        {"candidate_refresh.accepted_planning_state.source_freshness_report",
+         get_in(artifact, ["accepted_planning_state", "source_freshness_report"])},
+        {"candidate_refresh.accepted_planning_state.freshness_report",
+         get_in(artifact, ["accepted_planning_state", "freshness_report"])},
+        {"candidate_refresh.mission_state.source_freshness_report",
+         get_in(artifact, ["mission_state", "source_freshness_report"])},
+        {"candidate_refresh.mission_state.freshness_report",
+         get_in(artifact, ["mission_state", "freshness_report"])},
         {"candidate_refresh.source_freshness_report", artifact["source_freshness_report"]},
         {"candidate_refresh.freshness_report", artifact["freshness_report"]}
       ]
@@ -6928,6 +6936,14 @@ defmodule OrbitalDynamics.OperatorReview do
   defp candidate_refresh_refresh_budget_rows(artifact) do
     direct_rows =
       [
+        {"candidate_refresh.accepted_planning_state.source_refresh_budget_report",
+         get_in(artifact, ["accepted_planning_state", "source_refresh_budget_report"])},
+        {"candidate_refresh.accepted_planning_state.refresh_budget_report",
+         get_in(artifact, ["accepted_planning_state", "refresh_budget_report"])},
+        {"candidate_refresh.mission_state.source_refresh_budget_report",
+         get_in(artifact, ["mission_state", "source_refresh_budget_report"])},
+        {"candidate_refresh.mission_state.refresh_budget_report",
+         get_in(artifact, ["mission_state", "refresh_budget_report"])},
         {"candidate_refresh.source_refresh_budget_report",
          artifact["source_refresh_budget_report"]},
         {"candidate_refresh.refresh_budget_report", artifact["refresh_budget_report"]}
