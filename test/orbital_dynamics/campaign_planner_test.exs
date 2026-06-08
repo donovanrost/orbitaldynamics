@@ -28274,6 +28274,206 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives branch pressure from timeline integrity reports" do
+    integrity_report = fn activity_id, missing_activity_id, source, trust_boundary ->
+      Timeline.integrity_report(
+        [
+          %{
+            id: activity_id,
+            type: :command,
+            starts_at_s: 10.0,
+            ends_at_s: 20.0,
+            dependency_activity_ids: [missing_activity_id],
+            metadata: %{timeline_id: :"timeline:#{activity_id}"}
+          }
+        ],
+        source: source
+      )
+      |> Map.put("provenance", %{"trust_boundary" => trust_boundary})
+    end
+
+    prior_integrity_report =
+      integrity_report.(
+        :cmd_prior_integrity,
+        :missing_prior_gate,
+        "prior.timeline_integrity",
+        "prior_integrity_boundary"
+      )
+
+    prior_wrapped_report =
+      integrity_report.(
+        :cmd_prior_wrapped_integrity,
+        :missing_prior_wrapped_gate,
+        "prior.wrapped_timeline_integrity",
+        "prior_wrapped_integrity_boundary"
+      )
+      |> Map.delete("provenance")
+
+    prior_bare_report =
+      integrity_report.(
+        :cmd_prior_bare_integrity,
+        :missing_prior_bare_gate,
+        "prior.bare_timeline_integrity",
+        "prior_bare_integrity_boundary"
+      )
+
+    duplicate_direct_report =
+      integrity_report.(
+        :cmd_duplicate_integrity,
+        :missing_duplicate_direct_gate,
+        "prior.duplicate_direct_timeline_integrity",
+        "duplicate_direct_integrity_boundary"
+      )
+
+    duplicate_wrapped_report =
+      integrity_report.(
+        :cmd_duplicate_integrity,
+        :missing_duplicate_wrapped_gate,
+        "prior.duplicate_wrapped_timeline_integrity",
+        "duplicate_wrapped_integrity_boundary"
+      )
+      |> Map.delete("provenance")
+
+    mission_integrity_report =
+      integrity_report.(
+        :cmd_live_integrity,
+        :missing_live_gate,
+        "mission.timeline_integrity",
+        "mission_integrity_boundary"
+      )
+      |> Map.delete("provenance")
+
+    prior_plan =
+      base_plan(%{
+        "source_timeline_integrity_report" => [prior_integrity_report, duplicate_direct_report],
+        "source_result_artifact" => %{
+          "schema_contract" => "result_artifact.v1",
+          "artifact_type" => "prior_plan_result_artifact",
+          "timeline_integrity_report" => [prior_wrapped_report, duplicate_wrapped_report],
+          "provenance" => %{"trust_boundary" => "prior_wrapped_integrity_artifact_boundary"}
+        },
+        "result_artifact" => prior_bare_report
+      })
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put(:source_result_artifact, %{
+        "schema_contract" => "result_artifact.v1",
+        "artifact_type" => "mission_state_result_artifact",
+        "timeline_integrity_report" => mission_integrity_report,
+        "provenance" => %{"trust_boundary" => "mission_integrity_artifact_boundary"}
+      })
+
+    artifact =
+      strategy(prior_plan,
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    prior_branch =
+      branch(artifact, "derived_timeline_integrity_pressure_cmd_prior_integrity")
+
+    assert %{
+             "type" => "timeline_integrity_feedback",
+             "activity_id" => "cmd_prior_integrity",
+             "missing_dependency_activity_ids" => ["missing_prior_gate"],
+             "feedback_source" => "prior_plan.source_timeline_integrity_report[0].rows",
+             "feedback_scope" => "timeline_integrity",
+             "trust_boundary" => "prior_integrity_boundary",
+             "derivation_reasons" => ["timeline_integrity_report_pressure"]
+           } = List.first(prior_branch["events"])
+
+    assert Enum.any?(
+             prior_branch["risk_indicators"],
+             &(&1["type"] == "timeline_integrity_issue" and
+                 &1["severity"] == "high" and
+                 &1["missing_dependency_activity_ids"] == ["missing_prior_gate"] and
+                 &1["feedback_source"] == "prior_plan.source_timeline_integrity_report[0].rows")
+           )
+
+    assert prior_branch["score_terms"]["risk_penalty"] < 0.0
+
+    prior_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] == "derived_timeline_integrity_pressure_cmd_prior_integrity")
+      )
+
+    assert prior_row["branch_timeline_integrity_activity_ids"] == ["cmd_prior_integrity"]
+    assert prior_row["branch_missing_dependency_activity_ids"] == ["missing_prior_gate"]
+    assert prior_row["branch_feedback_scopes"] == ["timeline_integrity"]
+
+    prior_wrapped_branch =
+      branch(artifact, "derived_timeline_integrity_pressure_cmd_prior_wrapped_integrity")
+
+    assert %{
+             "activity_id" => "cmd_prior_wrapped_integrity",
+             "missing_dependency_activity_ids" => ["missing_prior_wrapped_gate"],
+             "feedback_source" =>
+               "prior_plan.source_result_artifact.timeline_integrity_report[0].rows",
+             "trust_boundary" => "prior_wrapped_integrity_artifact_boundary"
+           } = List.first(prior_wrapped_branch["events"])
+
+    prior_bare_branch =
+      branch(artifact, "derived_timeline_integrity_pressure_cmd_prior_bare_integrity")
+
+    assert %{
+             "activity_id" => "cmd_prior_bare_integrity",
+             "missing_dependency_activity_ids" => ["missing_prior_bare_gate"],
+             "feedback_source" => "prior_plan.result_artifact.rows",
+             "trust_boundary" => "prior_bare_integrity_boundary"
+           } = List.first(prior_bare_branch["events"])
+
+    duplicate_branches =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.map(& &1["branch_id"])
+      |> Enum.filter(fn branch_id ->
+        String.starts_with?(
+          branch_id,
+          "derived_timeline_integrity_pressure_cmd_duplicate_integrity"
+        )
+      end)
+
+    assert length(duplicate_branches) == 2
+
+    assert duplicate_branches
+           |> Enum.uniq()
+           |> length() == 2
+
+    assert duplicate_branches
+           |> Enum.map(&(artifact |> branch(&1) |> Map.get("events") |> List.first()))
+           |> Enum.map(& &1["feedback_source"])
+           |> Enum.sort() == [
+             "prior_plan.source_result_artifact.timeline_integrity_report[1].rows",
+             "prior_plan.source_timeline_integrity_report[1].rows"
+           ]
+
+    mission_branch =
+      branch(artifact, "derived_timeline_integrity_pressure_cmd_live_integrity")
+
+    assert %{
+             "type" => "timeline_integrity_feedback",
+             "activity_id" => "cmd_live_integrity",
+             "missing_dependency_activity_ids" => ["missing_live_gate"],
+             "feedback_source" =>
+               "mission_state.source_result_artifact.timeline_integrity_report.rows",
+             "feedback_scope" => "timeline_integrity",
+             "trust_boundary" => "mission_integrity_artifact_boundary"
+           } = List.first(mission_branch["events"])
+
+    assert Enum.any?(
+             mission_branch["risk_indicators"],
+             &(&1["type"] == "timeline_integrity_issue" and
+                 &1["missing_dependency_activity_ids"] == ["missing_live_gate"] and
+                 &1["trust_boundary"] == "mission_integrity_artifact_boundary")
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy carries mission-state contact-allocation summaries into branch refresh requests" do
     direct_summary = contact_allocation_summary_fixture("direct")
     canonical_summary = contact_allocation_summary_fixture("canonical")
