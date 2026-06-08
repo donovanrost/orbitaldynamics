@@ -1473,6 +1473,95 @@ defmodule OrbitalDynamics.TimelineTest do
                  &1["message"] =~
                    "must match timeline_integrity_issues missing_dependency_activity_id values")
            )
+
+    activity_integrity_report =
+      Timeline.operational_report(
+        [
+          %{
+            id: :health_gate,
+            type: :health_check,
+            starts_at_s: 0.0,
+            ends_at_s: 15.0
+          },
+          %{
+            id: :cmd_main,
+            type: :command,
+            starts_at_s: 10.0,
+            ends_at_s: 20.0,
+            dependencies: [:health_gate, :missing_gate],
+            exclusive_with: [:dl_conflict]
+          },
+          %{
+            id: :dl_conflict,
+            type: :downlink,
+            starts_at_s: 12.0,
+            ends_at_s: 22.0
+          }
+        ],
+        validate_missing_dependencies?: true
+      )
+
+    assert_rejects_stale_timeline_integrity_evidence(
+      activity_integrity_report,
+      1,
+      "dependency_order_violation_activity_ids",
+      "other_gate",
+      "dependency_order_violation_activity_id"
+    )
+
+    assert_rejects_stale_timeline_integrity_evidence(
+      activity_integrity_report,
+      1,
+      "exclusivity_violation_activity_ids",
+      "other_conflict",
+      "exclusivity_violation_activity_id"
+    )
+
+    assert_rejects_stale_timeline_integrity_evidence(
+      activity_integrity_report,
+      1,
+      "exclusivity_violation_timeline_ids",
+      "timeline:other_conflict",
+      "exclusivity_violation_timeline_id"
+    )
+
+    timeline_integrity_report =
+      Timeline.operational_report(
+        [
+          %{
+            id: :prep,
+            timeline_id: "timeline:prep",
+            type: :health_check,
+            starts_at_s: 20.0,
+            ends_at_s: 30.0
+          },
+          %{
+            id: :cmd,
+            timeline_id: "timeline:cmd",
+            type: :command,
+            starts_at_s: 10.0,
+            ends_at_s: 15.0,
+            dependency_timeline_ids: ["timeline:prep", "timeline:missing", "timeline:cmd"]
+          }
+        ],
+        validate_missing_dependencies?: true
+      )
+
+    assert_rejects_stale_timeline_integrity_evidence(
+      timeline_integrity_report,
+      1,
+      "missing_dependency_timeline_ids",
+      "timeline:other_missing",
+      "missing_dependency_timeline_id"
+    )
+
+    assert_rejects_stale_timeline_integrity_evidence(
+      timeline_integrity_report,
+      1,
+      "dependency_order_violation_timeline_ids",
+      "timeline:other_prep",
+      "dependency_order_violation_timeline_id"
+    )
   end
 
   test "preserves unsupported operational timeline approval status for review" do
@@ -4050,6 +4139,22 @@ defmodule OrbitalDynamics.TimelineTest do
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
              Schema.validate_artifact(import)
+
+    assert_rejects_stale_timeline_integrity_evidence(
+      report,
+      0,
+      "dependency_cycle_activity_ids",
+      "other_execute",
+      "dependency_cycle_activity_id"
+    )
+
+    assert_rejects_stale_timeline_integrity_evidence(
+      report,
+      0,
+      "dependency_cycle_timeline_ids",
+      "timeline:other_execute",
+      "dependency_cycle_timeline_id"
+    )
   end
 
   test "preserves planning score and feedback evidence in activity context" do
@@ -12391,5 +12496,26 @@ defmodule OrbitalDynamics.TimelineTest do
     assert_raise ArgumentError, ~r/source and replacement activities must be lists/, fn ->
       Timeline.diff_report([], %{})
     end
+  end
+
+  defp assert_rejects_stale_timeline_integrity_evidence(
+         report,
+         row_index,
+         field,
+         replacement_id,
+         issue_field
+       ) do
+    invalid_report =
+      update_in(report, ["rows", Access.at(row_index)], fn row ->
+        Map.put(row, field, [replacement_id])
+      end)
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_report)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.rows[#{row_index}].#{field}" and
+                 &1["message"] == "must match timeline_integrity_issues #{issue_field} values")
+           )
   end
 end

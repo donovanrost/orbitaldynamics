@@ -56818,6 +56818,13 @@ defmodule OrbitalDynamics.Schema do
     |> expect_field_equals(
       path,
       row,
+      "missing_dependency_timeline_ids",
+      timeline_integrity_issue_ids(issues_list, "missing_dependency_timeline_id"),
+      "must match timeline_integrity_issues missing_dependency_timeline_id values"
+    )
+    |> expect_field_equals(
+      path,
+      row,
       "self_dependency_activity_ids",
       timeline_integrity_issue_ids(issues_list, "self_dependency_activity_id"),
       "must match timeline_integrity_issues self_dependency_activity_id values"
@@ -56857,6 +56864,48 @@ defmodule OrbitalDynamics.Schema do
       timeline_integrity_issue_ids(issues_list, "duplicate_exclusivity_timeline_id"),
       "must match timeline_integrity_issues duplicate_exclusivity_timeline_id values"
     )
+    |> expect_field_equals(
+      path,
+      row,
+      "dependency_cycle_activity_ids",
+      timeline_integrity_issue_ids(issues_list, "dependency_cycle_activity_id"),
+      "must match timeline_integrity_issues dependency_cycle_activity_id values"
+    )
+    |> expect_field_equals(
+      path,
+      row,
+      "dependency_cycle_timeline_ids",
+      timeline_integrity_issue_ids(issues_list, "dependency_cycle_timeline_id"),
+      "must match timeline_integrity_issues dependency_cycle_timeline_id values"
+    )
+    |> expect_field_equals(
+      path,
+      row,
+      "dependency_order_violation_activity_ids",
+      timeline_integrity_issue_ids(issues_list, "dependency_order_violation_activity_id"),
+      "must match timeline_integrity_issues dependency_order_violation_activity_id values"
+    )
+    |> expect_field_equals(
+      path,
+      row,
+      "dependency_order_violation_timeline_ids",
+      timeline_integrity_issue_ids(issues_list, "dependency_order_violation_timeline_id"),
+      "must match timeline_integrity_issues dependency_order_violation_timeline_id values"
+    )
+    |> expect_field_equals(
+      path,
+      row,
+      "exclusivity_violation_activity_ids",
+      timeline_integrity_issue_ids(issues_list, "exclusivity_violation_activity_id"),
+      "must match timeline_integrity_issues exclusivity_violation_activity_id values"
+    )
+    |> expect_field_equals(
+      path,
+      row,
+      "exclusivity_violation_timeline_ids",
+      timeline_integrity_issue_ids(issues_list, "exclusivity_violation_timeline_id"),
+      "must match timeline_integrity_issues exclusivity_violation_timeline_id values"
+    )
     |> then(fn acc ->
       if is_list(issue_types) do
         validate_string_list_allowed(
@@ -56884,8 +56933,10 @@ defmodule OrbitalDynamics.Schema do
         "duplicate_dependency_timeline_id",
         "duplicate_exclusivity_activity_id",
         "duplicate_exclusivity_timeline_id",
-        "dependency_activity_id",
-        "dependency_timeline_id",
+        "dependency_cycle_activity_id",
+        "dependency_cycle_timeline_id",
+        "dependency_order_violation_activity_id",
+        "dependency_order_violation_timeline_id",
         "exclusivity_violation_activity_id",
         "exclusivity_violation_timeline_id"
       ])
@@ -56921,6 +56972,7 @@ defmodule OrbitalDynamics.Schema do
     |> Enum.filter(&is_map/1)
     |> Enum.map(&Map.get(&1, field))
     |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
     |> Enum.sort()
   end
 
