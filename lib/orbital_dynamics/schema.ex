@@ -45963,6 +45963,48 @@ defmodule OrbitalDynamics.Schema do
     |> validate_optional_stable_id_list(path, row, "selected_exclusivity_violation_activity_ids")
     |> expect_optional_type(path, row, "selected_exclusivity_violation_timeline_ids", :list)
     |> validate_optional_stable_id_list(path, row, "selected_exclusivity_violation_timeline_ids")
+    |> validate_selected_timeline_integrity_handoff_matches_activity(path, row)
+  end
+
+  defp validate_selected_timeline_integrity_handoff_matches_activity(issues, path, row) do
+    case Map.get(row, "selected_activity") do
+      %{} = selected_activity ->
+        [
+          {"selected_timeline_integrity_status", "timeline_integrity_status"},
+          {"selected_timeline_integrity_issue_count", "timeline_integrity_issue_count"},
+          {"selected_timeline_integrity_issue_types", "timeline_integrity_issue_types"},
+          {"selected_timeline_integrity_issues", "timeline_integrity_issues"},
+          {"selected_missing_dependency_activity_ids", "missing_dependency_activity_ids"},
+          {"selected_missing_dependency_timeline_ids", "missing_dependency_timeline_ids"},
+          {"selected_self_dependency_activity_ids", "self_dependency_activity_ids"},
+          {"selected_self_dependency_timeline_ids", "self_dependency_timeline_ids"},
+          {"selected_duplicate_dependency_activity_ids", "duplicate_dependency_activity_ids"},
+          {"selected_duplicate_dependency_timeline_ids", "duplicate_dependency_timeline_ids"},
+          {"selected_duplicate_exclusivity_activity_ids", "duplicate_exclusivity_activity_ids"},
+          {"selected_duplicate_exclusivity_timeline_ids", "duplicate_exclusivity_timeline_ids"},
+          {"selected_dependency_cycle_activity_ids", "dependency_cycle_activity_ids"},
+          {"selected_dependency_cycle_timeline_ids", "dependency_cycle_timeline_ids"},
+          {"selected_dependency_order_violation_activity_ids",
+           "dependency_order_violation_activity_ids"},
+          {"selected_dependency_order_violation_timeline_ids",
+           "dependency_order_violation_timeline_ids"},
+          {"selected_exclusivity_violation_activity_ids", "exclusivity_violation_activity_ids"},
+          {"selected_exclusivity_violation_timeline_ids", "exclusivity_violation_timeline_ids"}
+        ]
+        |> Enum.reduce(issues, fn {field, selected_activity_field}, acc ->
+          expect_field_equals(
+            acc,
+            path,
+            row,
+            field,
+            Map.get(selected_activity, selected_activity_field),
+            "must match selected_activity #{selected_activity_field} values"
+          )
+        end)
+
+      _selected_activity ->
+        issues
+    end
   end
 
   defp validate_optional_timeline_transition_application_row(issues, _path, nil), do: issues

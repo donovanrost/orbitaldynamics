@@ -8707,6 +8707,14 @@ defmodule OrbitalDynamics.TimelineTest do
     assert {:ok, %{"schema_contract" => "timeline_transition_application_report.v1"}} =
              Schema.validate_artifact(gated_report)
 
+    assert_rejects_stale_transition_selected_activity_evidence(
+      gated_report,
+      "timeline:obs_waiting_on_gate",
+      "selected_missing_dependency_activity_ids",
+      ["other_gate"],
+      "missing_dependency_activity_ids"
+    )
+
     unchanged_with_self_dependency = %{
       id: :obs_waiting_on_self,
       type: :observe,
@@ -8908,6 +8916,14 @@ defmodule OrbitalDynamics.TimelineTest do
 
     assert {:ok, %{"schema_contract" => "timeline_transition_application_report.v1"}} =
              Schema.validate_artifact(report)
+
+    assert_rejects_stale_transition_selected_activity_evidence(
+      report,
+      "timeline:obs_overlap",
+      "selected_exclusivity_violation_timeline_ids",
+      ["timeline:other_overlap"],
+      "exclusivity_violation_timeline_ids"
+    )
 
     assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
              Schema.validate_artifact(review)
@@ -12516,6 +12532,30 @@ defmodule OrbitalDynamics.TimelineTest do
              validation_report["errors"],
              &(&1["path"] == "$.rows[#{row_index}].#{field}" and
                  &1["message"] == "must match timeline_integrity_issues #{issue_field} values")
+           )
+  end
+
+  defp assert_rejects_stale_transition_selected_activity_evidence(
+         report,
+         timeline_id,
+         field,
+         stale_value,
+         selected_activity_field
+       ) do
+    application_index =
+      Enum.find_index(report["applications"], &(&1["timeline_id"] == timeline_id))
+
+    invalid_report =
+      update_in(report, ["applications", Access.at(application_index)], fn application ->
+        Map.put(application, field, stale_value)
+      end)
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_report)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.applications[#{application_index}].#{field}" and
+                 &1["message"] == "must match selected_activity #{selected_activity_field} values")
            )
   end
 end
