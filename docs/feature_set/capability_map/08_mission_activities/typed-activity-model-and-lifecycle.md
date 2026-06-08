@@ -99,6 +99,17 @@ Preserved across string-keyed artifact ingress and egress:
   `station_reservation_status`, and `station_reservation_match_status` survive
   typed activity ingress/egress and operational timeline context handoff as
   provider reservation evidence, without creating or extending reservations.
+- **Station-calendar overlap evidence** — explicit
+  `source_station_calendar_overlaps`, `station_calendar_overlap_count`,
+  `station_calendar_overlap_entry_ids`,
+  `station_calendar_overlap_availabilities`,
+  `station_calendar_entry_ambiguous`,
+  `station_calendar_ambiguous_entry_count`,
+  `station_calendar_ambiguous_entry_ids`, and `station_contention_status`
+  survive typed activity ingress/egress and operational timeline context
+  handoff as provider overlap/ambiguity review evidence, without allocating
+  station capacity, creating reservations, or resolving ambiguity
+  automatically.
 
 ## Evidence and telemetry fields
 
@@ -130,6 +141,7 @@ metadata is also carried for downstream adapter preflight.
   collection-latency objective context, feedback success evidence,
   station-calendar identity/status evidence, station-calendar
   direction/source-entry evidence, station reservation evidence,
+  station-calendar overlap evidence,
   station-capacity fraction evidence, observation-quality evidence, fixed-rate
   and realized link-rate/duration telemetry, source-window and command-window
   context, Cadence import metadata, and dependency/exclusivity arrays.

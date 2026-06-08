@@ -238,6 +238,14 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     :station_calendar_status,
     :station_calendar_trust_boundary_status,
     :source_station_calendar_entry,
+    :source_station_calendar_overlaps,
+    :station_calendar_overlap_count,
+    :station_calendar_overlap_entry_ids,
+    :station_calendar_overlap_availabilities,
+    :station_calendar_entry_ambiguous,
+    :station_calendar_ambiguous_entry_count,
+    :station_calendar_ambiguous_entry_ids,
+    :station_contention_status,
     :station_reservation_id,
     :station_reservation_expires_at_s,
     :station_reserved_by,
@@ -466,6 +474,14 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
           station_calendar_status: atom() | String.t() | nil,
           station_calendar_trust_boundary_status: atom() | String.t() | nil,
           source_station_calendar_entry: map() | nil,
+          source_station_calendar_overlaps: [map()],
+          station_calendar_overlap_count: non_neg_integer() | nil,
+          station_calendar_overlap_entry_ids: [atom() | String.t()],
+          station_calendar_overlap_availabilities: [atom() | String.t()],
+          station_calendar_entry_ambiguous: boolean() | nil,
+          station_calendar_ambiguous_entry_count: non_neg_integer() | nil,
+          station_calendar_ambiguous_entry_ids: [atom() | String.t()],
+          station_contention_status: atom() | String.t() | nil,
           station_reservation_id: atom() | String.t() | nil,
           station_reservation_expires_at_s: number() | nil,
           station_reserved_by: atom() | String.t() | nil,
@@ -764,6 +780,14 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
         :station_calendar_status,
         :station_calendar_trust_boundary_status,
         :source_station_calendar_entry,
+        :source_station_calendar_overlaps,
+        :station_calendar_overlap_count,
+        :station_calendar_overlap_entry_ids,
+        :station_calendar_overlap_availabilities,
+        :station_calendar_entry_ambiguous,
+        :station_calendar_ambiguous_entry_count,
+        :station_calendar_ambiguous_entry_ids,
+        :station_contention_status,
         :station_reservation_id,
         :station_reservation_expires_at_s,
         :station_reserved_by,
@@ -1842,6 +1866,14 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       station_calendar_status: activity.station_calendar_status,
       station_calendar_trust_boundary_status: activity.station_calendar_trust_boundary_status,
       source_station_calendar_entry: activity.source_station_calendar_entry,
+      source_station_calendar_overlaps: activity.source_station_calendar_overlaps,
+      station_calendar_overlap_count: activity.station_calendar_overlap_count,
+      station_calendar_overlap_entry_ids: activity.station_calendar_overlap_entry_ids,
+      station_calendar_overlap_availabilities: activity.station_calendar_overlap_availabilities,
+      station_calendar_entry_ambiguous: activity.station_calendar_entry_ambiguous,
+      station_calendar_ambiguous_entry_count: activity.station_calendar_ambiguous_entry_count,
+      station_calendar_ambiguous_entry_ids: activity.station_calendar_ambiguous_entry_ids,
+      station_contention_status: activity.station_contention_status,
       station_reservation_id: activity.station_reservation_id,
       station_reservation_expires_at_s: activity.station_reservation_expires_at_s,
       station_reserved_by: activity.station_reserved_by,
@@ -2049,6 +2081,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       {:collection_latency_objective_ids, []} -> true
       {:collection_latency_objective_types, []} -> true
       {:station_calendar_directions, []} -> true
+      {:source_station_calendar_overlaps, []} -> true
+      {:station_calendar_overlap_entry_ids, []} -> true
+      {:station_calendar_overlap_availabilities, []} -> true
+      {:station_calendar_ambiguous_entry_ids, []} -> true
       {:downlink_completion_sources, []} -> true
       {_key, value} -> is_nil(value)
     end)
@@ -2127,6 +2163,24 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       Keyword.get(opts, :station_calendar_trust_boundary_status)
 
     source_station_calendar_entry = Keyword.get(opts, :source_station_calendar_entry)
+    source_station_calendar_overlaps = Keyword.get(opts, :source_station_calendar_overlaps, [])
+    station_calendar_overlap_count = Keyword.get(opts, :station_calendar_overlap_count)
+
+    station_calendar_overlap_entry_ids =
+      Keyword.get(opts, :station_calendar_overlap_entry_ids, [])
+
+    station_calendar_overlap_availabilities =
+      Keyword.get(opts, :station_calendar_overlap_availabilities, [])
+
+    station_calendar_entry_ambiguous = Keyword.get(opts, :station_calendar_entry_ambiguous)
+
+    station_calendar_ambiguous_entry_count =
+      Keyword.get(opts, :station_calendar_ambiguous_entry_count)
+
+    station_calendar_ambiguous_entry_ids =
+      Keyword.get(opts, :station_calendar_ambiguous_entry_ids, [])
+
+    station_contention_status = Keyword.get(opts, :station_contention_status)
     station_reservation_id = Keyword.get(opts, :station_reservation_id)
     station_reservation_expires_at_s = Keyword.get(opts, :station_reservation_expires_at_s)
     station_reserved_by = Keyword.get(opts, :station_reserved_by)
@@ -2365,6 +2419,34 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     exclusive_with_timeline_ids =
       id_list_input!(exclusive_with_timeline_ids, "exclusive_with_timeline_ids", "timeline ids")
 
+    source_station_calendar_overlaps =
+      map_list_input!(
+        source_station_calendar_overlaps,
+        "source_station_calendar_overlaps",
+        "source station-calendar overlap maps"
+      )
+
+    station_calendar_overlap_entry_ids =
+      id_list_input!(
+        station_calendar_overlap_entry_ids,
+        "station_calendar_overlap_entry_ids",
+        "station-calendar entry ids"
+      )
+
+    station_calendar_overlap_availabilities =
+      scalar_list_input!(
+        station_calendar_overlap_availabilities,
+        "station_calendar_overlap_availabilities",
+        "station-calendar availability labels"
+      )
+
+    station_calendar_ambiguous_entry_ids =
+      id_list_input!(
+        station_calendar_ambiguous_entry_ids,
+        "station_calendar_ambiguous_entry_ids",
+        "station-calendar entry ids"
+      )
+
     cond do
       status not in @activity_statuses ->
         raise ArgumentError, "status must be one of #{inspect(@activity_statuses)}"
@@ -2427,6 +2509,20 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
 
       not (is_nil(source_station_calendar_entry) or is_map(source_station_calendar_entry)) ->
         raise ArgumentError, "source_station_calendar_entry must be nil or a map"
+
+      not optional_non_negative_integer?(station_calendar_overlap_count) ->
+        raise ArgumentError,
+              "station_calendar_overlap_count must be nil or a non-negative integer"
+
+      not optional_boolean?(station_calendar_entry_ambiguous) ->
+        raise ArgumentError, "station_calendar_entry_ambiguous must be nil or a boolean"
+
+      not optional_non_negative_integer?(station_calendar_ambiguous_entry_count) ->
+        raise ArgumentError,
+              "station_calendar_ambiguous_entry_count must be nil or a non-negative integer"
+
+      not optional_scalar?(station_contention_status) ->
+        raise ArgumentError, "station_contention_status must be nil, a string, or an atom"
 
       not optional_stable_identifier?(station_reservation_id) ->
         raise ArgumentError, "station_reservation_id must be nil or a stable identifier"
@@ -3008,6 +3104,14 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
           station_calendar_status: station_calendar_status,
           station_calendar_trust_boundary_status: station_calendar_trust_boundary_status,
           source_station_calendar_entry: source_station_calendar_entry,
+          source_station_calendar_overlaps: source_station_calendar_overlaps,
+          station_calendar_overlap_count: station_calendar_overlap_count,
+          station_calendar_overlap_entry_ids: station_calendar_overlap_entry_ids,
+          station_calendar_overlap_availabilities: station_calendar_overlap_availabilities,
+          station_calendar_entry_ambiguous: station_calendar_entry_ambiguous,
+          station_calendar_ambiguous_entry_count: station_calendar_ambiguous_entry_count,
+          station_calendar_ambiguous_entry_ids: station_calendar_ambiguous_entry_ids,
+          station_contention_status: station_contention_status,
           station_reservation_id: station_reservation_id,
           station_reservation_expires_at_s: station_reservation_expires_at_s,
           station_reserved_by: station_reserved_by,
@@ -3288,6 +3392,63 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
         field(source, :source_station_calendar_entry),
         "source_station_calendar_entry"
       )
+    )
+    |> maybe_put_opt(
+      :source_station_calendar_overlaps,
+      optional_map_list!(
+        field(source, :source_station_calendar_overlaps),
+        "source_station_calendar_overlaps",
+        "source station-calendar overlap maps"
+      )
+    )
+    |> maybe_put_opt(
+      :station_calendar_overlap_count,
+      optional_non_negative_integer!(
+        field(source, :station_calendar_overlap_count),
+        "station_calendar_overlap_count"
+      )
+    )
+    |> maybe_put_opt(
+      :station_calendar_overlap_entry_ids,
+      optional_id_list!(
+        field(source, :station_calendar_overlap_entry_ids),
+        "station_calendar_overlap_entry_ids",
+        "station-calendar entry ids"
+      )
+    )
+    |> maybe_put_opt(
+      :station_calendar_overlap_availabilities,
+      optional_scalar_list!(
+        field(source, :station_calendar_overlap_availabilities),
+        "station_calendar_overlap_availabilities",
+        "station-calendar availability labels"
+      )
+    )
+    |> maybe_put_opt(
+      :station_calendar_entry_ambiguous,
+      optional_boolean!(
+        field(source, :station_calendar_entry_ambiguous),
+        "station_calendar_entry_ambiguous"
+      )
+    )
+    |> maybe_put_opt(
+      :station_calendar_ambiguous_entry_count,
+      optional_non_negative_integer!(
+        field(source, :station_calendar_ambiguous_entry_count),
+        "station_calendar_ambiguous_entry_count"
+      )
+    )
+    |> maybe_put_opt(
+      :station_calendar_ambiguous_entry_ids,
+      optional_id_list!(
+        field(source, :station_calendar_ambiguous_entry_ids),
+        "station_calendar_ambiguous_entry_ids",
+        "station-calendar entry ids"
+      )
+    )
+    |> maybe_put_opt(
+      :station_contention_status,
+      optional_scalar!(field(source, :station_contention_status), "station_contention_status")
     )
     |> maybe_put_opt(
       :station_reservation_id,
@@ -4282,6 +4443,12 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   defp optional_boolean!(value) when value in ["false", "0", 0], do: false
   defp optional_boolean!(_value), do: raise(ArgumentError, "boolean field must be a boolean")
 
+  defp optional_boolean!(nil, _field), do: nil
+  defp optional_boolean!(value, _field) when is_boolean(value), do: value
+  defp optional_boolean!(value, _field) when value in ["true", "1", 1], do: true
+  defp optional_boolean!(value, _field) when value in ["false", "0", 0], do: false
+  defp optional_boolean!(_value, field), do: raise(ArgumentError, "#{field} must be a boolean")
+
   defp optional_boolean?(nil), do: true
   defp optional_boolean?(value), do: is_boolean(value)
 
@@ -4428,6 +4595,11 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
 
   defp optional_scalar_list!(values, field, description),
     do: scalar_list_input!(values, field, description)
+
+  defp optional_map_list!(nil, _field, _description), do: nil
+
+  defp optional_map_list!(values, field, description),
+    do: map_list_input!(values, field, description)
 
   defp optional_identifier!(nil), do: nil
 
@@ -4729,6 +4901,19 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   end
 
   defp scalar_list_value(_value), do: []
+
+  defp map_list_input!(values, field, description) do
+    case map_list_values(values) do
+      {:ok, maps} -> maps
+      :error -> raise ArgumentError, "#{field} must be a list of #{description}"
+    end
+  end
+
+  defp map_list_values(values) when is_list(values) do
+    if Enum.all?(values, &is_map/1), do: {:ok, values}, else: :error
+  end
+
+  defp map_list_values(_values), do: :error
 
   defp id_list_input!(values, field, description) do
     case id_list_values(values) do

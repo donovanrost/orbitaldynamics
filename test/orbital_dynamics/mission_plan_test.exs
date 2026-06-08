@@ -435,6 +435,114 @@ defmodule OrbitalDynamics.MissionPlanTest do
              OrbitalDynamics.Schema.validate_artifact(report)
   end
 
+  test "round trips station calendar overlap evidence through typed activities" do
+    activity =
+      Activity.from_map!(%{
+        "id" => "provider_overlap_contact",
+        "activity_type" => "planned_contact",
+        "ground_station_id" => "gs_a",
+        "direction" => "downlink",
+        "starts_at_s" => 390.0,
+        "ends_at_s" => 450.0,
+        "source_station_calendar_overlaps" => [
+          %{
+            "id" => "calendar:overlap_a",
+            "availability" => "Reserved",
+            "status" => "Reserved Overlap"
+          },
+          %{
+            "id" => "calendar:overlap_b",
+            "availability" => "Reduced Capacity",
+            "station_reservation_expires_at_s" => "540.0"
+          }
+        ],
+        "station_calendar_overlap_count" => "2",
+        "station_calendar_overlap_entry_ids" => "calendar:overlap_a, calendar:overlap_b",
+        "station_calendar_overlap_availabilities" => ["Reserved", :reduced_capacity],
+        "station_calendar_entry_ambiguous" => "true",
+        "station_calendar_ambiguous_entry_count" => "1",
+        "station_calendar_ambiguous_entry_ids" => [:calendar_ambiguous_a],
+        "station_contention_status" => "Reserved Overlap"
+      })
+
+    assert %Activity{
+             source_station_calendar_overlaps: [
+               %{
+                 "id" => "calendar:overlap_a",
+                 "availability" => "Reserved",
+                 "status" => "Reserved Overlap"
+               },
+               %{
+                 "id" => "calendar:overlap_b",
+                 "availability" => "Reduced Capacity",
+                 "station_reservation_expires_at_s" => "540.0"
+               }
+             ],
+             station_calendar_overlap_count: 2,
+             station_calendar_overlap_entry_ids: ["calendar:overlap_a", "calendar:overlap_b"],
+             station_calendar_overlap_availabilities: ["Reserved", :reduced_capacity],
+             station_calendar_entry_ambiguous: true,
+             station_calendar_ambiguous_entry_count: 1,
+             station_calendar_ambiguous_entry_ids: [:calendar_ambiguous_a],
+             station_contention_status: "Reserved Overlap"
+           } = activity
+
+    assert %{
+             "source_station_calendar_overlaps" => [
+               %{
+                 "id" => "calendar:overlap_a",
+                 "availability" => "Reserved",
+                 "status" => "Reserved Overlap"
+               },
+               %{
+                 "id" => "calendar:overlap_b",
+                 "availability" => "Reduced Capacity",
+                 "station_reservation_expires_at_s" => "540.0"
+               }
+             ],
+             "station_calendar_overlap_count" => 2,
+             "station_calendar_overlap_entry_ids" => ["calendar:overlap_a", "calendar:overlap_b"],
+             "station_calendar_overlap_availabilities" => ["Reserved", "reduced_capacity"],
+             "station_calendar_entry_ambiguous" => true,
+             "station_calendar_ambiguous_entry_count" => 1,
+             "station_calendar_ambiguous_entry_ids" => ["calendar_ambiguous_a"],
+             "station_contention_status" => "Reserved Overlap"
+           } = Activity.to_artifact_map(activity)
+
+    report = OrbitalDynamics.Timeline.operational_report([activity])
+
+    assert %{
+             "activity_context" => %{
+               "source_station_calendar_overlaps" => [
+                 %{
+                   "id" => "calendar:overlap_a",
+                   "availability" => "reserved",
+                   "status" => "reserved_overlap"
+                 },
+                 %{
+                   "id" => "calendar:overlap_b",
+                   "availability" => "reduced_capacity",
+                   "station_reservation_expires_at_s" => "540.0"
+                 }
+               ],
+               "station_calendar_overlap_count" => 2,
+               "station_calendar_overlap_entry_ids" => [
+                 "calendar:overlap_a",
+                 "calendar:overlap_b"
+               ],
+               "station_calendar_overlap_availabilities" => ["reserved", "reduced_capacity"],
+               "station_calendar_entry_ambiguous" => true,
+               "station_calendar_ambiguous_entry_count" => 1,
+               "station_calendar_ambiguous_entry_ids" => ["calendar_ambiguous_a"],
+               "station_contention_status" => "reserved_overlap",
+               "station_calendar_reservation_expires_at_s" => [540.0]
+             }
+           } = List.first(report["rows"])
+
+    assert {:ok, %{"schema_contract" => "operational_timeline_report.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(report)
+  end
+
   test "rejects malformed collection latency objective context at typed ingress" do
     assert_raise ArgumentError, ~r/collection_latency_objective_count/, fn ->
       Activity.from_map!(%{
@@ -549,6 +657,31 @@ defmodule OrbitalDynamics.MissionPlanTest do
         "ends_at_s" => 40.0,
         "source_station_calendar_entry" => ["not", "a", "map"]
       })
+    end
+  end
+
+  test "rejects malformed station calendar overlap evidence at typed ingress" do
+    for {field, value} <- [
+          {"source_station_calendar_overlaps", [%{"id" => "calendar:ok"}, "not a map"]},
+          {"station_calendar_overlap_count", "-1"},
+          {"station_calendar_overlap_entry_ids", "bad calendar id"},
+          {"station_calendar_overlap_availabilities", [%{"availability" => "reserved"}]},
+          {"station_calendar_entry_ambiguous", "maybe"},
+          {"station_calendar_ambiguous_entry_count", "-1"},
+          {"station_calendar_ambiguous_entry_ids", "bad calendar id"},
+          {"station_contention_status", ""}
+        ] do
+      assert_raise ArgumentError, ~r/#{field}/, fn ->
+        Activity.from_map!(%{
+          "id" => "bad_#{field}",
+          "activity_type" => "planned_contact",
+          "ground_station_id" => "gs_a",
+          "direction" => "downlink",
+          "starts_at_s" => 10.0,
+          "ends_at_s" => 40.0,
+          field => value
+        })
+      end
     end
   end
 

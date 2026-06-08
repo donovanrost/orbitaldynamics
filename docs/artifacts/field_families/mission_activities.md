@@ -154,6 +154,16 @@ Direct station reservation evidence (`station_reservation_id`,
 preserved the same way, so provider reservation state can round trip through
 typed activities without creating, extending, approving, or importing a
 reservation.
+Typed activities also preserve station-calendar overlap review evidence:
+`source_station_calendar_overlaps`, `station_calendar_overlap_count`,
+`station_calendar_overlap_entry_ids`,
+`station_calendar_overlap_availabilities`,
+`station_calendar_entry_ambiguous`,
+`station_calendar_ambiguous_entry_count`,
+`station_calendar_ambiguous_entry_ids`, and `station_contention_status`.
+This keeps provider overlap/ambiguity provenance visible to timeline
+review/import handoffs without allocating capacity, creating reservations, or
+resolving ambiguity automatically.
 Nested source-station-calendar availability/status evidence also derives
 station unavailable and reserved rejection reasons for generated candidates.
 Reviewable rejected rows can now be lifted into `operator_review_package.v1`
