@@ -90,7 +90,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Previous slice: `c3f123f` Update autonomous loop handoff.
+`b72180e` Derive schema validation quality gate pressure.
 
 Next candidate:
 After this slice, continue specialized quality-gate summary branch-pressure gaps
@@ -101,6 +101,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `b72180e` derived schema-validation quality-gate summary pressure.
 - `fcd9a35` derived operator-training quality-gate summary pressure.
 - `9bfadda` derived unavailable-resource quality-gate summary pressure.
 - `13e927a` derived quality-gate summary pressure branches.
