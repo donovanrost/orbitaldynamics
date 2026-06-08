@@ -1275,7 +1275,7 @@ defmodule OrbitalDynamics.OperatorReviewTest do
             "required_downlink_mb" => 300.0,
             "candidate_downlink_mb" => 360.0,
             "downlink_completion_ratio" => 1.0,
-            "selected_downlink_shortfall_mb" => 0.0,
+            "selected_downlink_shortfall_mb" => +0.0,
             "downlink_requirement_status" => "satisfied",
             "downlink_completion_source" =>
               "candidate_refresh.downlink_demand.objectives_and_operational_feedback",
@@ -6239,6 +6239,134 @@ defmodule OrbitalDynamics.OperatorReviewTest do
                }
              }
            ] = package["rows"]
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+  end
+
+  test "candidate refresh accepted planning state link capacity summaries become review rows" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:accepted_link_capacity_summary:001",
+      "accepted_planning_state" => %{
+        "source_link_capacity_summary" => study_result_fixture("link_capacity_summary_v1.json")
+      }
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:accepted_link_capacity_summary:001",
+             "review_count" => 1,
+             "link_capacity_review_count" => 1,
+             "review_type_counts" => %{"link_capacity_review" => 1},
+             "required_operator_action_counts" => %{"review_link_capacity_summary" => 1}
+           } = package
+
+    assert [
+             %{
+               "review_type" => "link_capacity_review",
+               "source" =>
+                 "candidate_refresh.accepted_planning_state.source_link_capacity_summary.rows",
+               "subject_id" => "equator_prime",
+               "ground_station_id" => "equator_prime",
+               "required_operator_action" => "review_link_capacity_summary",
+               "selected_downlink_shortfall_mb" => +0.0,
+               "actual_downlink_shortfall_mb" => 10.0,
+               "selected_contact_ids" => ["science_downlink"],
+               "actual_throughput_contact_ids" => ["science_downlink"],
+               "source_link_capacity" => %{
+                 "source_summary_schema_contract" => "link_capacity_summary.v1",
+                 "source_summary_model" => "artifact_only_link_capacity_summary",
+                 "source_link_capacity_summary" => %{
+                   "schema_contract" => "link_capacity_summary.v1",
+                   "model" => "artifact_only_link_capacity_summary",
+                   "assumptions" => %{
+                     "execution_boundary" =>
+                       "artifact_only_no_provider_reservation_or_schedule_mutation",
+                     "operator_authority" => "not_granted_by_summary"
+                   }
+                 }
+               }
+             }
+           ] = package["rows"]
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:accepted_link_capacity_summary:001",
+             "row_count" => 1,
+             "source_review_type_counts" => %{"link_capacity_review" => 1},
+             "import_action_counts" => %{"review_link_capacity" => 1}
+           } = manifest
+
+    assert %{
+             "import_action" => "review_link_capacity",
+             "source_review_type" => "link_capacity_review",
+             "source_review_row" => %{
+               "source" =>
+                 "candidate_refresh.accepted_planning_state.source_link_capacity_summary.rows",
+               "source_link_capacity" => %{
+                 "source_link_capacity_summary" => %{
+                   "schema_contract" => "link_capacity_summary.v1"
+                 }
+               }
+             }
+           } = List.first(manifest["rows"])
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
+  test "candidate refresh mission state relay data path summaries become review rows" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:mission_relay_data_path_summary:001",
+      "mission_state" => %{
+        "relay_data_path_summary" => study_result_fixture("relay_data_path_summary_v1.json")
+      }
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:mission_relay_data_path_summary:001",
+             "review_count" => 2,
+             "link_capacity_review_count" => 2,
+             "review_type_counts" => %{"link_capacity_review" => 2}
+           } = package
+
+    assert Enum.map(package["rows"], & &1["source"]) == [
+             "candidate_refresh.mission_state.relay_data_path_summary.rows",
+             "candidate_refresh.mission_state.relay_data_path_summary.rows"
+           ]
+
+    assert %{
+             "review_type" => "link_capacity_review",
+             "source" => "candidate_refresh.mission_state.relay_data_path_summary.rows",
+             "subject_id" => "dss_14",
+             "ground_station_id" => "dss_14",
+             "source_link_capacity" => %{
+               "route_id" => "relay_data_path:sat_a:downlink_1:54b7e7ff594c",
+               "source_summary_schema_contract" => "relay_data_path_summary.v1",
+               "source_link_capacity_summary" => %{
+                 "schema_contract" => "relay_data_path_summary.v1",
+                 "route_count" => 2,
+                 "relay_route_count" => 1
+               }
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source_link_capacity"]["route_id"] ==
+                   "relay_data_path:sat_a:downlink_1:54b7e7ff594c")
+             )
 
     assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
              Schema.validate_artifact(package)
