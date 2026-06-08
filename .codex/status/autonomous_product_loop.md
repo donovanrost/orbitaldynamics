@@ -8,7 +8,7 @@ Current slice:
 State/wrapped candidate-diff CandidateRefresh review/import handoff.
 
 Status:
-Completed locally; CandidateRefresh OperatorReview/CadenceImport handoffs now
+Completed and pushed; CandidateRefresh OperatorReview/CadenceImport handoffs now
 lift `candidate_diff_report.v1` invalidation rows from accepted planning state,
 mission state, and `source_result_artifact` / `result_artifact` wrappers, not
 only top-level refresh fields. Rows preserve state/wrapper-qualified source
@@ -44,8 +44,8 @@ or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Pending commit; previous pushed commit
-`6cec856325c7005912d882cd70845aa78c0986d2`.
+Pushed `190f0c82834e3edcb06f1c796c473e82e0be1a16` after product commit
+`108547586521959e17cba24af8e73bdcda65bcdf`.
 
 Next candidate:
 After committing, continue branch-local CandidateRefresh depth by checking
