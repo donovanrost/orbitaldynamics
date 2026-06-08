@@ -6303,6 +6303,28 @@ defmodule OrbitalDynamics.OperatorReview do
   defp candidate_refresh_contact_contention_resolution_rows(artifact) do
     direct_rows =
       [
+        {"candidate_refresh.accepted_planning_state.source_contact_contention_resolution_report",
+         get_in(artifact, [
+           "accepted_planning_state",
+           "source_contact_contention_resolution_report"
+         ])},
+        {"candidate_refresh.accepted_planning_state.contact_contention_resolution_report",
+         get_in(artifact, ["accepted_planning_state", "contact_contention_resolution_report"])},
+        {"candidate_refresh.accepted_planning_state.source_contact_contention_resolution_summary",
+         get_in(artifact, [
+           "accepted_planning_state",
+           "source_contact_contention_resolution_summary"
+         ])},
+        {"candidate_refresh.accepted_planning_state.contact_contention_resolution_summary",
+         get_in(artifact, ["accepted_planning_state", "contact_contention_resolution_summary"])},
+        {"candidate_refresh.mission_state.source_contact_contention_resolution_report",
+         get_in(artifact, ["mission_state", "source_contact_contention_resolution_report"])},
+        {"candidate_refresh.mission_state.contact_contention_resolution_report",
+         get_in(artifact, ["mission_state", "contact_contention_resolution_report"])},
+        {"candidate_refresh.mission_state.source_contact_contention_resolution_summary",
+         get_in(artifact, ["mission_state", "source_contact_contention_resolution_summary"])},
+        {"candidate_refresh.mission_state.contact_contention_resolution_summary",
+         get_in(artifact, ["mission_state", "contact_contention_resolution_summary"])},
         {"candidate_refresh.source_contact_contention_resolution_report",
          artifact["source_contact_contention_resolution_report"]},
         {"candidate_refresh.contact_contention_resolution_report",
