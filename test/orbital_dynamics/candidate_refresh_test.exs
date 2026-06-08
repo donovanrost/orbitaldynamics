@@ -31359,6 +31359,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_quality_gate_station_availability_reason_ids" => [
                "ground_station_unavailable"
              ],
+             "source_report_quality_gate_station_availability_reason_counts" => %{
+               "ground_station_unavailable" => 3
+             },
              "source_report_quality_gate_unavailable_resource_reason_ids" => [
                "payload_unavailable"
              ],
@@ -31413,7 +31416,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "ground_station_unavailable" => 3,
                "payload_unavailable" => 3
              },
+             "resource_availability_reason_ids" => [
+               "ground_station_unavailable",
+               "payload_unavailable"
+             ],
              "station_availability_reason_ids" => ["ground_station_unavailable"],
+             "station_availability_reason_counts" => %{"ground_station_unavailable" => 3},
              "unavailable_resource_reason_ids" => ["payload_unavailable"],
              "resource_blocking_dimension_counts" => %{"payload" => 3},
              "blocked_contact_ids_by_blocking_dimension" => %{
