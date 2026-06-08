@@ -39,8 +39,8 @@ Level 6 gaps from the guide after this selected-exclusivity handoff slice is
 reviewed and published.
 
 Last commit:
-Pending for this slice. Previous pushed commit was
-`76be1fab5cd155383c53f9939562372f34b66ab9`.
+`6e4f4b2d5ac7941516c2367a5503a3173d0924f3` (`Test transition exclusivity
+handoffs`).
 
 Next candidate:
 After publishing this slice, reassess Level 6 gaps from the guide/ledger.
