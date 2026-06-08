@@ -79,7 +79,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Pending commit/push for dependency-impact aggregate ID handoff flattening.
+`72ade0b` Flatten dependency impact handoffs.
 
 Next candidate:
 Continue guide-priority typed timeline/resource semantics, likely dependency
@@ -90,6 +90,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `72ade0b` flattened dependency-impact aggregate ID handoffs.
 - `c32f339` flattened lifecycle reason handoffs.
 - `51a60b7` routed lifecycle-summary operator-action reasons.
 - `893c5d4` updated autonomous loop handoff.
