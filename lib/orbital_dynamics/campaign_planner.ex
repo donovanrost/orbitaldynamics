@@ -3533,6 +3533,28 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ]
   end
 
+  defp event_risk_indicators(%{"type" => "provider_reservation_request_pressure"} = event) do
+    [
+      %{
+        "type" => "provider_reservation_request_review",
+        "severity" => "high",
+        "reason" =>
+          "contact #{event["contact_id"] || event["source_activity_id"]} has provider reservation request evidence requiring operator review",
+        "contact_id" => event["contact_id"],
+        "ground_station_id" => event["ground_station_id"],
+        "station_reservation_id" => event["station_reservation_id"],
+        "station_reservation_match_status" => event["station_reservation_match_status"],
+        "station_reservation_status" => event["station_reservation_status"],
+        "provider_reservation_request_status" => event["provider_reservation_request_status"],
+        "provider_reservation_row_scope" => event["provider_reservation_row_scope"],
+        "feedback_source" => event["feedback_source"],
+        "feedback_scope" => event["feedback_scope"],
+        "trust_boundary" => event["trust_boundary"]
+      }
+      |> compact_map()
+    ]
+  end
+
   defp event_risk_indicators(%{"type" => "downlink_demand_feedback"} = event) do
     station = event_ground_station_id(event) || "default"
 
@@ -9794,24 +9816,60 @@ defmodule OrbitalDynamics.CampaignPlanner do
       mission_state_source_contact_allocation_reservation_conflict_summaries(mission_state) ++
       mission_state_canonical_contact_allocation_reservation_conflict_summaries(mission_state) ++
       mission_state_source_contact_allocation_capacity_pack_summaries(mission_state) ++
-      mission_state_canonical_contact_allocation_capacity_pack_summaries(mission_state)
+      mission_state_canonical_contact_allocation_capacity_pack_summaries(mission_state) ++
+      mission_state_source_contact_allocation_provider_reservation_request_summaries(
+        mission_state
+      ) ++
+      mission_state_canonical_contact_allocation_provider_reservation_request_summaries(
+        mission_state
+      )
   end
 
   defp contact_allocation_summary_pressure_rows(summary) do
+    summary_trust_boundary = contact_allocation_trust_boundary(summary)
+
     [
       "rows",
       "review_rows",
       "reservation_conflict_rows",
-      "reservation_review_rows"
+      "reservation_review_rows",
+      "provider_reservation_request_rows",
+      "provider_reservation_review_rows"
     ]
     |> Enum.flat_map(fn field ->
       summary
       |> Map.get(field, [])
       |> List.wrap()
       |> Enum.filter(&is_map/1)
+      |> Enum.map(fn row ->
+        provider_scope = contact_allocation_provider_reservation_row_scope(field)
+
+        row
+        |> Map.put_new("_source_report_trust_boundary", summary_trust_boundary)
+        |> maybe_put_provider_reservation_request_status(
+          provider_scope,
+          summary["provider_reservation_request_status"]
+        )
+      end)
     end)
     |> Enum.uniq()
   end
+
+  defp maybe_put_provider_reservation_request_status(row, nil, _request_status), do: row
+
+  defp maybe_put_provider_reservation_request_status(row, provider_scope, request_status) do
+    row
+    |> Map.put_new("_provider_reservation_request_status", request_status)
+    |> Map.put_new("_provider_reservation_row_scope", provider_scope)
+  end
+
+  defp contact_allocation_provider_reservation_row_scope("provider_reservation_request_rows"),
+    do: "request"
+
+  defp contact_allocation_provider_reservation_row_scope("provider_reservation_review_rows"),
+    do: "review"
+
+  defp contact_allocation_provider_reservation_row_scope(_field), do: nil
 
   defp mission_state_contact_allocation_reports(mission_state) do
     mission_state = stringify_keys(mission_state || %{})
@@ -10036,7 +10094,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "source_contact_allocation_reservation_conflict_summary",
       "contact_allocation_reservation_conflict_summary",
       "source_contact_allocation_capacity_pack_summary",
-      "contact_allocation_capacity_pack_summary"
+      "contact_allocation_capacity_pack_summary",
+      "source_contact_allocation_provider_reservation_request_summary",
+      "contact_allocation_provider_reservation_request_summary"
     ]
   end
 
@@ -11265,6 +11325,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     row = normalize_contact_allocation_row(row)
 
     contact_allocation_completion_pressure_branch(row, source_path) ++
+      contact_allocation_provider_reservation_pressure_branch(row, source_path) ++
       contact_allocation_contact_filter_pressure_branches(row, source_path) ++
       contact_allocation_resource_filter_pressure_branches(row, source_path)
   end
@@ -11402,6 +11463,129 @@ defmodule OrbitalDynamics.CampaignPlanner do
       [] -> index
       identifiers -> Enum.join(identifiers, "_")
     end
+  end
+
+  defp contact_allocation_provider_reservation_pressure_branch(row, source_path) do
+    event = contact_allocation_provider_reservation_pressure_event(row, source_path)
+    contact_id = Map.get(row, "contact_id")
+
+    if is_nil(event) or contact_id in [nil, ""] do
+      []
+    else
+      status =
+        event
+        |> Map.get("provider_reservation_request_status", "review_required")
+        |> branch_id_fragment()
+
+      [
+        %{
+          "id" =>
+            "derived_contact_allocation_pressure_provider_reservation_#{status}_#{branch_id_fragment(contact_id)}",
+          "label" => "Derived provider reservation request pressure #{contact_id}",
+          "events" => [event],
+          "metadata" =>
+            %{
+              "derived_source" => source_path,
+              "contact_id" => contact_id,
+              "provider_reservation_request_status" =>
+                event["provider_reservation_request_status"],
+              "provider_reservation_row_scope" => event["provider_reservation_row_scope"],
+              "station_reservation_id" => event["station_reservation_id"],
+              "station_reservation_match_status" => event["station_reservation_match_status"]
+            }
+            |> compact_map()
+        }
+      ]
+    end
+  end
+
+  defp contact_allocation_provider_reservation_pressure_event(row, source_path) do
+    row_scope = row["_provider_reservation_row_scope"]
+    request_status = normalized_status_token(row["_provider_reservation_request_status"])
+    match_status = normalized_status_token(row["station_reservation_match_status"])
+
+    cond do
+      row_scope not in ["request", "review"] ->
+        nil
+
+      not contact_allocation_provider_reservation_pressure?(
+        row_scope,
+        request_status,
+        match_status
+      ) ->
+        nil
+
+      true ->
+        contact_id = row["contact_id"]
+
+        %{
+          "type" => "provider_reservation_request_pressure",
+          "contact_id" => contact_id,
+          "source_activity_id" => contact_id,
+          "source_activity_ids" => List.wrap(contact_id),
+          "ground_station_id" => row["ground_station_id"] || row["station_id"],
+          "direction" => row["direction"],
+          "station_reservation_id" => row["station_reservation_id"],
+          "station_reserved_by" => row["station_reserved_by"],
+          "station_reservation_status" =>
+            normalized_status_token(row["station_reservation_status"]),
+          "station_reservation_match_status" => match_status,
+          "provider_reservation_request_status" => request_status,
+          "provider_reservation_row_scope" => row_scope,
+          "required_operator_action" =>
+            row["required_operator_action"] || "review_provider_reservation_request",
+          "derivation_reasons" =>
+            contact_allocation_provider_reservation_pressure_reasons(
+              row_scope,
+              request_status,
+              match_status
+            ),
+          "feedback_source" => source_path,
+          "feedback_scope" => "contact_allocation_provider_reservation_request",
+          "trust_boundary" => contact_allocation_trust_boundary(row),
+          "assumptions" => %{
+            "provider_reservation_execution" => "not_performed_by_strategy_branch",
+            "schedule_mutation" => "not_performed_by_strategy_branch",
+            "operator_authority" => "not_granted_by_strategy_branch"
+          }
+        }
+        |> compact_map()
+    end
+  end
+
+  defp contact_allocation_provider_reservation_pressure?(
+         "review",
+         _request_status,
+         _match_status
+       ),
+       do: true
+
+  defp contact_allocation_provider_reservation_pressure?(
+         "request",
+         _request_status,
+         match_status
+       ),
+       do: match_status in ["overlap", "conflict", "unmatched", "owner_mismatch"]
+
+  defp contact_allocation_provider_reservation_pressure?(
+         _row_scope,
+         _request_status,
+         _match_status
+       ),
+       do: false
+
+  defp contact_allocation_provider_reservation_pressure_reasons(
+         row_scope,
+         request_status,
+         match_status
+       ) do
+    [
+      "provider_reservation_#{row_scope}",
+      request_status && "provider_reservation_#{request_status}",
+      match_status && "provider_reservation_match_#{match_status}"
+    ]
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.uniq()
   end
 
   defp contact_allocation_resource_filter_pressure_branches(

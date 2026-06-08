@@ -5,26 +5,27 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject stale lifecycle-state protection decisions.
+Make provider reservation request summaries branch-visible.
 
 Status:
-Implemented and parent-verified. `timeline_activity_lifecycle_state.v1`
-validation now rejects stale nested planned/realized protection decisions that
-conflict with copied executed, locked, or approval-category evidence.
+Implemented and parent-verified. Provider reservation request summary review
+rows now derive V3 branch-local pressure events that feed branch risk,
+`risk_penalty`, and comparison rows, while matched request-ready rows remain
+non-pressure.
 
 Slice-selection note:
-- Selected slice: reject stale `planned_protection_decision` /
-  `realized_protection_decision` evidence in `timeline_activity_lifecycle_state.v1`.
-- Why this slice: after timeline pressure reached branch scoring, the top
-  typed-timeline queue points at malformed/stale lifecycle/protection challenge
-  coverage; live validation accepts an executed realized activity whose nested
-  protection decision was copied as mutable.
-- Level 6 pillar: durable schema-versioned artifacts, approval-aware
-  automation boundaries, reusable typed timeline semantics, and Cadence-facing
-  adapter preflight evidence.
-- Current evidence gap: lifecycle-state artifacts can preserve stale nested
-  protection decisions that disagree with copied executed/locked/approval
-  fields, weakening review/import preflight trust.
+- Selected slice: derive contact-allocation branch pressure from
+  `contact_allocation_provider_reservation_request_summary.v1` rows.
+- Why this slice: the resource/contact roadmap asks for selected pressure in
+  branch score explanations; provider reservation request summaries already
+  flow through CandidateRefresh but are omitted from direct branch-pressure
+  summary derivation.
+- Level 6 pillar: fleet-level contact/station allocation behavior,
+  reproducible V3 branch trees, approval-aware automation boundaries, and
+  Cadence-facing artifacts.
+- Current evidence gap: provider reservation request rows can be replayed into
+  CandidateRefresh/review surfaces without affecting V3 branch risk,
+  `risk_penalty`, or branch comparison rows.
 - Docs read:
   `docs/autonomous_work_guide.md`,
   `.codex/prompts/long_running_context_efficient_product_loop.md`,
@@ -32,49 +33,49 @@ Slice-selection note:
   `docs/feature_set/definition_of_feature_complete.md`,
   `docs/feature_set/current_capability_snapshot.md`,
   `docs/feature_set/recommended_roadmap.md`,
-  `docs/feature_set/capability_map/08_mission_activities_and_timelines.md`,
-  `docs/mission_planning/high_fidelity/04_plan_structure_and_lifecycle.md`,
-  `docs/artifacts/field_families/mission_activities.md`.
-- Likely files: `lib/orbital_dynamics/schema.ex`,
-  `test/orbital_dynamics/timeline_test.exs`,
+  `docs/feature_set/capability_map/07_ground_network_and_communications_planning.md`,
+  `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`,
+  `docs/mission_planning/high_fidelity/06_operational_concerns.md`.
+- Likely files: `lib/orbital_dynamics/campaign_planner.ex`,
+  `test/orbital_dynamics/campaign_planner_test.exs`,
   `.codex/status/autonomous_product_loop.md`.
-- Definition of done: executable validation rejects stale planned/realized
-  protection decisions that conflict with lifecycle-state booleans/categories,
-  focused stale-evidence tests pass, schema export/lint impact is checked, and
-  whitespace checks are clean.
+- Definition of done: provider reservation request summary rows derive
+  branch-local pressure events with source paths/trust boundaries, those events
+  feed risk/scoring/comparison output, focused strategy/schema validation
+  passes, and whitespace checks are clean.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/schema.ex`
-- `test/orbital_dynamics/timeline_test.exs`
+- `lib/orbital_dynamics/campaign_planner.ex`
+- `test/orbital_dynamics/campaign_planner_test.exs`
 
 Tests run:
-- `mix run -e ... Schema.validate_artifact(stale lifecycle state)` showed stale
-  realized protection decision was previously accepted.
-- `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/timeline_test.exs`
-- `mix test test/orbital_dynamics/timeline_test.exs:7432` (1 passed, 126 excluded)
+- `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:39412` (1 passed, 665 excluded)
 - `mix compile --warnings-as-errors`
-- `mix test test/orbital_dynamics/timeline_test.exs:7432 test/orbital_dynamics/timeline_test.exs:7725` (2 passed, 125 excluded)
-- `mix orbital_dynamics.schema.lint --all` (154 artifacts, status pass)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:39412 test/orbital_dynamics/campaign_planner_test.exs:39602 test/orbital_dynamics/campaign_planner_test.exs:39733` (3 passed, 663 excluded)
 - `git diff --check`
 
 Docs/artifacts changed:
-- None; this is executable validation and challenge-test coverage for the
-  documented lifecycle-state contract.
+- None; this is runtime/test coverage for documented provider-reservation
+  request summary pressure behavior.
 
 Local review:
-- Planned/realized lifecycle-state validation now pins nested protection
-  decisions back to copied `*_executed`, `*_locked`, and
-  `*_approval_category` evidence when those fields are present.
-- Focused tests cover stale executed protection decision, stale executed
-  protection category, stale approval flag evidence, planned-side stale
-  protection, and the allowed locked/approved `review_change` case.
-- Read-only reviewer found no required fixes; suggested positive planned-side
-  and `review_change` hardening assertions were added and verified.
+- Provider reservation request summaries now flow through prior-plan,
+  mission-state, and result-artifact contact-allocation summary pressure
+  collectors.
+- Provider review rows derive explicit provider reservation request pressure
+  events with source paths, trust boundaries, reservation match/status context,
+  and artifact-only no-provider-reservation/no-mutation assumptions.
+- Matched request rows remain non-pressure unless their row-level reservation
+  match status is conflicting.
+- Read-only reviewer Harvey found no required fixes. A small parent cleanup kept
+  provider-only private row markers off ordinary contact-allocation rows, then
+  the focused test cluster, compile, and whitespace checks were rerun.
 
 Level 6 pillar advanced:
-Lifecycle-state artifacts now reject stale protection evidence before
-Cadence-facing review/import preflight uses it as adapter evidence.
+Provider reservation request review evidence is now planner-visible in V3 branch
+scoring, not only CandidateRefresh/review replay.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -84,11 +85,11 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`4796e0e` Reject stale lifecycle protection evidence.
+Previous slice: `4796e0e` Reject stale lifecycle protection evidence.
 
 Next candidate:
-After this slice, continue guide-priority lifecycle challenge coverage or move
-to external validation/schema-versioning gaps after live-state inspection.
+After this slice, continue resource/contact challenge coverage or move to
+external validation/schema-versioning gaps after live-state inspection.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is

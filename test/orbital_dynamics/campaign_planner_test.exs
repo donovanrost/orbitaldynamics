@@ -39451,11 +39451,18 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         "summary_capacity_pack_equator_prime"
       )
 
+    provider_summary =
+      contact_allocation_provider_reservation_request_summary_fixture("summary_provider")
+
     mission_state =
       mission_state_with_refresh_inputs()
       |> Map.put(:source_contact_allocation_station_pressure_summary, station_summary)
       |> Map.put(:source_contact_allocation_reservation_conflict_summary, reservation_summary)
       |> Map.put(:source_contact_allocation_capacity_pack_summary, capacity_summary)
+      |> Map.put(
+        :source_contact_allocation_provider_reservation_request_summary,
+        provider_summary
+      )
 
     artifact =
       strategy(base_plan(%{}),
@@ -39535,6 +39542,58 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert capacity_row["capacity_pack_statuses"] == [
              "deferred_by_reduced_station_capacity_pack"
            ]
+
+    provider_branch =
+      branch(
+        artifact,
+        "derived_contact_allocation_pressure_provider_reservation_review_required_summary_provider_dl_review_overlap"
+      )
+
+    assert %{
+             "type" => "provider_reservation_request_pressure",
+             "contact_id" => "summary_provider_dl_review_overlap",
+             "ground_station_id" => "equator_prime",
+             "station_reservation_id" => "summary_provider_reservation_review",
+             "station_reservation_match_status" => "overlap",
+             "provider_reservation_request_status" => "review_required",
+             "provider_reservation_row_scope" => "review",
+             "feedback_source" =>
+               "mission_state.source_contact_allocation_provider_reservation_request_summary",
+             "feedback_scope" => "contact_allocation_provider_reservation_request",
+             "trust_boundary" => "summary_provider_provider_reservation_request_fixture",
+             "assumptions" => %{
+               "provider_reservation_execution" => "not_performed_by_strategy_branch",
+               "schedule_mutation" => "not_performed_by_strategy_branch",
+               "operator_authority" => "not_granted_by_strategy_branch"
+             }
+           } = List.first(provider_branch["events"])
+
+    assert Enum.any?(
+             provider_branch["risk_indicators"],
+             &(&1["type"] == "provider_reservation_request_review" and
+                 &1["station_reservation_match_status"] == "overlap")
+           )
+
+    assert provider_branch["score_terms"]["risk_penalty"] < 0.0
+
+    provider_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] ==
+            "derived_contact_allocation_pressure_provider_reservation_review_required_summary_provider_dl_review_overlap")
+      )
+
+    assert "provider_reservation_request_review" in provider_row["risk_types"]
+
+    assert provider_row["branch_station_reservation_ids"] == [
+             "summary_provider_reservation_review"
+           ]
+
+    refute Enum.any?(
+             artifact["branch_comparison_report"]["rows"],
+             &(&1["branch_id"] ==
+                 "derived_contact_allocation_pressure_provider_reservation_review_required_summary_provider_dl_reserved_owner")
+           )
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
