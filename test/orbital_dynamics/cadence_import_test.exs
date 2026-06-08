@@ -2935,6 +2935,104 @@ defmodule OrbitalDynamics.CadenceImportTest do
              Schema.validate_artifact(manifest)
   end
 
+  test "candidate refresh import preserves wrapped timeline integrity reports" do
+    report = timeline_integrity_report()
+    exclusivity_integrity = hd(report["rows"])
+    dependency_integrity = Enum.at(report["rows"], 1)
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:wrapped_integrity_report_import",
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "timeline_integrity_report" => report
+        }
+      ]
+    }
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:wrapped_integrity_report_import",
+             "row_count" => 2,
+             "ready_count" => 0,
+             "review_required_count" => 2,
+             "import_action_counts" => %{"review_timeline_integrity" => 2},
+             "source_review_type_counts" => %{"timeline_integrity_review" => 2}
+           } = manifest
+
+    assert Enum.map(manifest["rows"], & &1["source"]) == [
+             "candidate_refresh.source_result_artifact[0].timeline_integrity_report.rows",
+             "candidate_refresh.source_result_artifact[0].timeline_integrity_report.rows"
+           ]
+
+    assert [
+             %{
+               "import_action" => "review_timeline_integrity",
+               "import_status" => "review_required_before_import",
+               "source_review_type" => "timeline_integrity_review",
+               "source_review_action" => "review_timeline_integrity",
+               "approval_status" => "operator_review_required",
+               "activity_id" => "dl_conflict",
+               "timeline_id" => "timeline:downlink:12.0",
+               "timeline_integrity_status" => "review_required",
+               "timeline_integrity_issue_types" => [
+                 "duplicate_exclusivity_timeline",
+                 "exclusivity_overlap"
+               ],
+               "exclusivity_violation_activity_ids" => ["cmd_main"],
+               "exclusivity_violation_timeline_ids" => ["timeline:command:dss_14:10.0"],
+               "duplicate_exclusivity_timeline_ids" => ["timeline:command:dss_14:10.0"],
+               "source_timeline_integrity_issue_count" => 11,
+               "source_exclusivity_issue_count" => 5,
+               "has_cadence_import" => false,
+               "source_timeline_integrity" => ^exclusivity_integrity,
+               "source_review_row" => %{
+                 "source" =>
+                   "candidate_refresh.source_result_artifact[0].timeline_integrity_report.rows",
+                 "review_type" => "timeline_integrity_review",
+                 "source_timeline_integrity" => ^exclusivity_integrity
+               }
+             },
+             %{
+               "import_action" => "review_timeline_integrity",
+               "import_status" => "review_required_before_import",
+               "source_review_type" => "timeline_integrity_review",
+               "source_review_action" => "review_timeline_integrity",
+               "approval_status" => "operator_review_required",
+               "activity_id" => "cmd_main",
+               "timeline_id" => "timeline:command:dss_14:10.0",
+               "timeline_integrity_status" => "review_required",
+               "missing_dependency_activity_ids" => ["missing_gate"],
+               "missing_dependency_timeline_ids" => [
+                 "timeline:health_gate",
+                 "timeline:missing_gate"
+               ],
+               "duplicate_dependency_activity_ids" => ["health_gate"],
+               "duplicate_dependency_timeline_ids" => ["timeline:health_gate"],
+               "dependency_order_violation_activity_ids" => ["health_gate"],
+               "exclusivity_violation_activity_ids" => ["dl_conflict"],
+               "exclusivity_violation_timeline_ids" => ["timeline:downlink:12.0"],
+               "dependency_review_activity_ids" => ["cmd_main"],
+               "dependency_review_timeline_ids" => ["timeline:command:dss_14:10.0"],
+               "exclusivity_review_activity_ids" => ["cmd_main", "dl_conflict"],
+               "source_dependency_issue_count" => 6,
+               "source_timeline_integrity" => ^dependency_integrity,
+               "source_review_row" => %{
+                 "source" =>
+                   "candidate_refresh.source_result_artifact[0].timeline_integrity_report.rows",
+                 "review_type" => "timeline_integrity_review",
+                 "source_timeline_integrity" => ^dependency_integrity
+               }
+             }
+           ] = manifest["rows"]
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "candidate refresh import preserves wrapped contact-allocation reports" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
