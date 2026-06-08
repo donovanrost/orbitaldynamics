@@ -87,18 +87,21 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Pending for this slice. Previous product commit:
-`157220f` Add contradictory reservation allocation challenge.
+`e22b772` Derive timeline lifecycle state pressure.
 
 Next candidate:
-After this slice, reinspect live code for the next planner-visible readiness or
-lifecycle evidence gap.
+Reinspect live code for the next planner-visible readiness or lifecycle evidence
+gap. A likely narrow follow-up is to check whether timeline precondition,
+preservation, or transition-application summaries are still replay-only for
+branch scoring after the lifecycle-state pressure slice.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 
 Previous published slices:
+- `e22b772` derived timeline lifecycle-state and activity lifecycle-state
+  pressure branches.
 - `157220f` added contradictory reservation/contact-allocation challenge coverage.
 - `a0d04e3` derived import-readiness quality-gate summary pressure.
 - `b72180e` derived schema-validation quality-gate summary pressure.
