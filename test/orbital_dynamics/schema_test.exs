@@ -24403,6 +24403,36 @@ defmodule OrbitalDynamics.SchemaTest do
                    "must equal row-derived station_pressure_contact_ids_by_availability")
            )
 
+    invalid_station_pressure_status_routing =
+      Map.put(report, "station_pressure_contact_ids_by_status", %{
+        "reserved" => ["dl_1"]
+      })
+
+    assert {:error, invalid_station_pressure_status_routing_report} =
+             Schema.validate_artifact(invalid_station_pressure_status_routing)
+
+    assert Enum.any?(
+             invalid_station_pressure_status_routing_report["errors"],
+             &(&1["path"] == "$.station_pressure_contact_ids_by_status" and
+                 &1["message"] == "must equal row-derived station_pressure_contact_ids_by_status")
+           )
+
+    invalid_station_pressure_status_count =
+      Map.put(report, "station_pressure_contact_counts_by_status", %{
+        "reserved" => 99,
+        "unavailable" => 1
+      })
+
+    assert {:error, invalid_station_pressure_status_count_report} =
+             Schema.validate_artifact(invalid_station_pressure_status_count)
+
+    assert Enum.any?(
+             invalid_station_pressure_status_count_report["errors"],
+             &(&1["path"] == "$.station_pressure_contact_counts_by_status" and
+                 &1["message"] ==
+                   "must equal row-derived station_pressure_contact_counts_by_status")
+           )
+
     invalid_resource_blocking_dimension_id =
       Map.put(report, "resource_blocked_contact_ids_by_blocking_dimension", %{
         "antenna" => ["bad id"]
