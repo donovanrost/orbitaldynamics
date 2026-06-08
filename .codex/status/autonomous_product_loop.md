@@ -93,17 +93,19 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Previous slice: `5ac6fba` Update autonomous loop handoff.
+`a0d04e3` Derive import readiness quality gate pressure.
 
 Next candidate:
-After this slice, continue specialized quality-gate summary branch-pressure gaps
-or move to resource/contact challenge fixtures after live-state inspection.
+Reinspect the readiness roadmap and live code before selecting the next slice;
+likely candidates are resource/contact challenge fixtures or the next
+planner-visible readiness evidence gap.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 
 Previous published slices:
+- `a0d04e3` derived import-readiness quality-gate summary pressure.
 - `b72180e` derived schema-validation quality-gate summary pressure.
 - `fcd9a35` derived operator-training quality-gate summary pressure.
 - `9bfadda` derived unavailable-resource quality-gate summary pressure.
