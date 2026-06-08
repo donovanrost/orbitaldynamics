@@ -7849,6 +7849,138 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(package)
   end
 
+  test "candidate refresh operational readiness summaries become operator review rows" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:operational_readiness_summaries:001",
+      "source_operational_import_eligibility_summary" =>
+        study_result_fixture("operational_import_eligibility_summary_v1.json"),
+      "source_operational_readiness_gate_summary" =>
+        study_result_fixture("operational_readiness_gate_summary_v1.json"),
+      "source_operational_execution_boundary_summary" =>
+        study_result_fixture("operational_execution_boundary_summary_v1.json")
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:operational_readiness_summaries:001",
+             "review_count" => 3,
+             "operational_readiness_review_count" => 3
+           } = package
+
+    assert %{
+             "review_type" => "operational_readiness_review",
+             "source" => "candidate_refresh.source_operational_import_eligibility_summary",
+             "subject_id" => "activity_1",
+             "required_operator_action" => "record_operational_readiness_importable",
+             "cadence_import_status" => "present",
+             "source_operational_readiness_report" => %{
+               "schema_contract" => "operational_import_eligibility_summary.v1",
+               "source_summary_schema_contract" => "operational_import_eligibility_summary.v1",
+               "source_summary_model" => "artifact_only_import_eligibility_summary"
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source"] == "candidate_refresh.source_operational_import_eligibility_summary")
+             )
+
+    assert %{
+             "review_type" => "operational_readiness_review",
+             "source" => "candidate_refresh.source_operational_readiness_gate_summary",
+             "gate_count" => 5,
+             "passed_gate_count" => 5,
+             "source_operational_readiness_report" => %{
+               "schema_contract" => "operational_readiness_gate_summary.v1",
+               "source_summary_schema_contract" => "operational_readiness_gate_summary.v1",
+               "gates" => [%{"id" => "source_contract"} | _]
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source"] == "candidate_refresh.source_operational_readiness_gate_summary")
+             )
+
+    assert %{
+             "review_type" => "operational_readiness_review",
+             "source" => "candidate_refresh.source_operational_execution_boundary_summary",
+             "source_operational_readiness_report" => %{
+               "schema_contract" => "operational_execution_boundary_summary.v1",
+               "source_summary_schema_contract" => "operational_execution_boundary_summary.v1",
+               "assumptions" => %{
+                 "command_execution" => "not_performed_by_summary"
+               }
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source"] ==
+                   "candidate_refresh.source_operational_execution_boundary_summary")
+             )
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+  end
+
+  test "candidate refresh result artifact operational readiness summaries become review rows" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:wrapped_operational_readiness_summaries:001",
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "source_operational_readiness_gate_summary" =>
+            study_result_fixture("operational_readiness_gate_summary_v1.json"),
+          "operational_execution_boundary_summary" =>
+            study_result_fixture("operational_execution_boundary_summary_v1.json")
+        }
+      ]
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" =>
+               "candidate_refresh:wrapped_operational_readiness_summaries:001",
+             "review_count" => 2,
+             "operational_readiness_review_count" => 2
+           } = package
+
+    assert %{
+             "review_type" => "operational_readiness_review",
+             "source" =>
+               "candidate_refresh.source_result_artifact[0].source_operational_readiness_gate_summary",
+             "source_operational_readiness_report" => %{
+               "source_summary_schema_contract" => "operational_readiness_gate_summary.v1"
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source"] ==
+                   "candidate_refresh.source_result_artifact[0].source_operational_readiness_gate_summary")
+             )
+
+    assert %{
+             "review_type" => "operational_readiness_review",
+             "source" =>
+               "candidate_refresh.source_result_artifact[0].operational_execution_boundary_summary",
+             "source_operational_readiness_report" => %{
+               "source_summary_schema_contract" => "operational_execution_boundary_summary.v1"
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source"] ==
+                   "candidate_refresh.source_result_artifact[0].operational_execution_boundary_summary")
+             )
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+  end
+
   test "candidate refresh source quality gate reports become operator review rows" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
@@ -18093,6 +18225,10 @@ defmodule OrbitalDynamics.OperatorReviewTest do
   end
 
   defp station_reservation_summary_fixture(filename) do
+    study_result_fixture(filename)
+  end
+
+  defp study_result_fixture(filename) do
     ["study_results", filename]
     |> Path.join()
     |> File.read!()

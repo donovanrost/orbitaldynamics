@@ -14307,7 +14307,19 @@ defmodule OrbitalDynamics.OperatorReview do
         {"candidate_refresh.source_operational_readiness_report",
          artifact["source_operational_readiness_report"]},
         {"candidate_refresh.operational_readiness_report",
-         artifact["operational_readiness_report"]}
+         artifact["operational_readiness_report"]},
+        {"candidate_refresh.source_operational_import_eligibility_summary",
+         artifact["source_operational_import_eligibility_summary"]},
+        {"candidate_refresh.operational_import_eligibility_summary",
+         artifact["operational_import_eligibility_summary"]},
+        {"candidate_refresh.source_operational_readiness_gate_summary",
+         artifact["source_operational_readiness_gate_summary"]},
+        {"candidate_refresh.operational_readiness_gate_summary",
+         artifact["operational_readiness_gate_summary"]},
+        {"candidate_refresh.source_operational_execution_boundary_summary",
+         artifact["source_operational_execution_boundary_summary"]},
+        {"candidate_refresh.operational_execution_boundary_summary",
+         artifact["operational_execution_boundary_summary"]}
       ]
       |> Enum.flat_map(fn {source, report_or_reports} ->
         source_operational_readiness_report_rows(report_or_reports, source)
@@ -14329,10 +14341,60 @@ defmodule OrbitalDynamics.OperatorReview do
   defp source_operational_readiness_report_rows(%{} = report, source) do
     report
     |> stringify_keys()
+    |> operational_readiness_report_from_source()
     |> operational_readiness_rows(source)
   end
 
   defp source_operational_readiness_report_rows(_report, _source), do: []
+
+  defp operational_readiness_report_from_source(%{} = report) do
+    cond do
+      operational_import_eligibility_summary?(report) ->
+        operational_readiness_report_from_summary(report)
+
+      operational_readiness_gate_summary?(report) ->
+        operational_readiness_report_from_summary(report)
+
+      operational_execution_boundary_summary?(report) ->
+        operational_readiness_report_from_summary(report)
+
+      true ->
+        report
+    end
+  end
+
+  defp operational_readiness_report_from_summary(%{} = summary) do
+    summary = stringify_keys(summary)
+
+    summary
+    |> Map.put("source_summary_schema_contract", summary["schema_contract"])
+    |> Map.put("source_summary_model", summary["model"])
+    |> Map.put("source_artifact_type", summary["source_artifact_type"])
+  end
+
+  defp operational_import_eligibility_summary?(%{} = summary) do
+    summary = stringify_keys(summary)
+
+    is_number(summary["gate_count"]) and
+      (summary["model"] == "artifact_only_import_eligibility_summary" or
+         summary["schema_contract"] == "operational_import_eligibility_summary.v1")
+  end
+
+  defp operational_readiness_gate_summary?(%{} = summary) do
+    summary = stringify_keys(summary)
+
+    is_number(summary["gate_count"]) and
+      (summary["model"] == "artifact_only_operational_readiness_gate_summary" or
+         summary["schema_contract"] == "operational_readiness_gate_summary.v1")
+  end
+
+  defp operational_execution_boundary_summary?(%{} = summary) do
+    summary = stringify_keys(summary)
+
+    is_number(summary["gate_count"]) and
+      (summary["model"] == "artifact_only_operational_execution_boundary_summary" or
+         summary["schema_contract"] == "operational_execution_boundary_summary.v1")
+  end
 
   defp candidate_refresh_result_artifact_operational_readiness_rows(artifact) do
     [
@@ -14365,7 +14427,19 @@ defmodule OrbitalDynamics.OperatorReview do
     [
       {"#{source}.source_operational_readiness_report",
        artifact["source_operational_readiness_report"]},
-      {"#{source}.operational_readiness_report", artifact["operational_readiness_report"]}
+      {"#{source}.operational_readiness_report", artifact["operational_readiness_report"]},
+      {"#{source}.source_operational_import_eligibility_summary",
+       artifact["source_operational_import_eligibility_summary"]},
+      {"#{source}.operational_import_eligibility_summary",
+       artifact["operational_import_eligibility_summary"]},
+      {"#{source}.source_operational_readiness_gate_summary",
+       artifact["source_operational_readiness_gate_summary"]},
+      {"#{source}.operational_readiness_gate_summary",
+       artifact["operational_readiness_gate_summary"]},
+      {"#{source}.source_operational_execution_boundary_summary",
+       artifact["source_operational_execution_boundary_summary"]},
+      {"#{source}.operational_execution_boundary_summary",
+       artifact["operational_execution_boundary_summary"]}
     ]
     |> Enum.flat_map(fn {report_source, report_or_reports} ->
       source_operational_readiness_report_rows(report_or_reports, report_source)
@@ -14551,6 +14625,8 @@ defmodule OrbitalDynamics.OperatorReview do
     Map.take(report, [
       "schema_contract",
       "report_id",
+      "source_summary_model",
+      "source_summary_schema_contract",
       "source_artifact_type",
       "source_artifact_id",
       "readiness_level",
