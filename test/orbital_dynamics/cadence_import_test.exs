@@ -2762,6 +2762,91 @@ defmodule OrbitalDynamics.CadenceImportTest do
              Schema.validate_artifact(manifest)
   end
 
+  test "candidate refresh import preserves wrapped timeline lifecycle-state summaries" do
+    summary = timeline_lifecycle_state_summary()
+    source_lifecycle_state = hd(summary["review_rows"])
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:wrapped_lifecycle_state_import",
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "timeline_lifecycle_state_summary" => summary
+        }
+      ]
+    }
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:wrapped_lifecycle_state_import",
+             "row_count" => 1,
+             "review_required_count" => 1,
+             "import_action_counts" => %{"review_timeline_lifecycle_state" => 1},
+             "source_review_type_counts" => %{"timeline_lifecycle_state_review" => 1}
+           } = manifest
+
+    assert [
+             %{
+               "import_action" => "review_timeline_lifecycle_state",
+               "import_status" => "review_required_before_import",
+               "source_review_type" => "timeline_lifecycle_state_review",
+               "source_review_action" => "review_activity_approval",
+               "approval_status" => "operator_review_required",
+               "timeline_id" => "timeline:cmd_provider",
+               "activity_id" => "cmd_provider",
+               "planned_activity_id" => "cmd_provider",
+               "realized_activity_id" => "cmd_provider",
+               "timeline_lifecycle_state_status" => "review_required",
+               "transition_decision" => "review",
+               "status_transition_decision" => "record",
+               "approval_transition_decision" => "review",
+               "required_operator_action" => "review_activity_approval",
+               "required_operator_actions" => [
+                 "record_timeline_change",
+                 "review_activity_approval"
+               ],
+               "operator_action_reasons" => [
+                 "activity_execution_recorded",
+                 "approval_grant_requires_operator_authority"
+               ],
+               "status_transition" => %{
+                 "transition_category" => "execution_recorded",
+                 "transition_type" => "changed"
+               },
+               "approval_transition" => %{
+                 "transition_category" => "approval_granted",
+                 "transition_type" => "changed"
+               },
+               "planned_status" => "planned",
+               "realized_status" => "executed",
+               "planned_approval_status" => "pending",
+               "realized_approval_status" => "approved",
+               "planned_protection_decision" => "mutable",
+               "realized_protection_decision" => "preserve",
+               "source_planned_activity_count" => 1,
+               "source_realized_activity_count" => 1,
+               "source_lifecycle_state_review_required_count" => 1,
+               "has_cadence_import" => false,
+               "source_review_row" => %{
+                 "source" =>
+                   "candidate_refresh.source_result_artifact[0].timeline_lifecycle_state_summary.review_rows",
+                 "review_type" => "timeline_lifecycle_state_review"
+               }
+             } = row
+           ] = manifest["rows"]
+
+    assert row["source_timeline_lifecycle_state"] == source_lifecycle_state
+
+    assert get_in(row, ["source_review_row", "source_timeline_lifecycle_state"]) ==
+             source_lifecycle_state
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "candidate refresh import preserves wrapped contact-allocation reports" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
