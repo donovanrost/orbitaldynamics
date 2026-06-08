@@ -8,9 +8,9 @@ Current slice:
 Wrapped import-readiness quality-gate summary Cadence import coverage.
 
 Status:
-Implementation, focused verification, and read-only `slice_reviewer` handoff
-are complete. CandidateRefresh Cadence-import regression coverage now pins
-result-artifact-wrapped
+Product commit complete. Implementation, focused verification, read-only
+`slice_reviewer` handoff, and push are complete. CandidateRefresh
+Cadence-import regression coverage now pins result-artifact-wrapped
 `operational_quality_gate_import_readiness_summary.v1` handoffs. The test
 asserts exact wrapper-qualified source paths, review-only import actions,
 quality-gate source review types, stale freshness/import-preparation routing,
@@ -44,11 +44,11 @@ preserve routing evidence that review/import or CandidateRefresh replay still
 does not consume.
 
 Last commit:
-Pending commit for this slice.
+Product commit `9e365c923f5bef7c0e3dd58d6c12173dec436110`.
 
 Next candidate:
-After review and push, reassess the next weak resource/contact,
-readiness/quality-gate, or CandidateRefresh handoff.
+Reassess the next weak resource/contact, readiness/quality-gate, or
+CandidateRefresh handoff.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
