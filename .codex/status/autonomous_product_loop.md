@@ -5,48 +5,50 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Cadence-import link-capacity source-window lineage replay coverage.
+Typed activity transition facade challenge coverage.
 
 Status:
-Implemented and parent-verified. Candidate-refresh replay tests now assert that
-`CadenceImport.from_link_capacity_report/1` preserves link-capacity source-window
-lineage through import-row reconstruction, including source-report paths and
-source-window routing maps by direction, ground station, spacecraft, and
-requirement status while still deriving the downlink shortfall candidate.
+Implemented and parent-verified. Public mission-plan activity transition facade
+tests now preflight provider-shaped lifecycle and approval labels through
+`mission_plan_activity_status_transition/2`,
+`mission_plan_activity_transition_status/2`,
+`mission_plan_activity_approval_transition/2`, and
+`mission_plan_activity_transition_approval_status/2`. The coverage proves
+terminal lifecycle regressions and approval grants remain review-required while
+safe provider aliases still apply through the typed activity boundary.
 
 Files changed:
-- `test/orbital_dynamics/candidate_refresh_test.exs`
+- `test/orbital_dynamics/mission_plan_test.exs`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:51129`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs`
+- `mix test test/orbital_dynamics/mission_plan_test.exs:137`
+- `mix test test/orbital_dynamics/mission_plan_test.exs`
 - `git diff --check`
 
 Docs/artifacts changed:
-- No public docs/artifacts changed; this is Cadence-import replay lineage test
-  hardening for an existing link-capacity adapter path.
+- No public docs/artifacts changed; this hardens existing typed activity public
+  facade coverage.
 
 Level 6 pillar advanced:
-Branch-local candidate refresh depth plus adapter-facing validation/challenge
-coverage. Link-capacity source-window routing can no longer disappear at the
-Cadence-import boundary while shortfall replay still appears to work.
+Approval-aware automation boundaries and typed operational activity semantics.
+Provider labels now have direct public-facade coverage for review-only
+transition preflight versus safe typed state updates.
 
 Remaining maturity gaps:
-Compact adapter-facing handoffs still need more stale-observation coverage
-across other source-report families where schema lint alone is weaker. Continue
-reassessing Level 6 gaps from the guide after this link-capacity lineage slice
-is reviewed and published.
+Typed timeline transition helpers still need broader dependency/exclusivity
+coverage across batch transition-application paths. Continue reassessing Level
+6 gaps from the guide after this typed transition facade slice is reviewed and
+published.
 
 Last commit:
-`23e0566800962450ac834a0524d199e72e1947fa` (`Test Cadence import link
-capacity lineage`).
+Pending for this slice. Previous pushed commit was
+`a29aa1bcd1f3c90d5a6f8e1f1ec0f8d3c4a33041`.
 
 Next candidate:
 After publishing this slice, reassess Level 6 gaps from the guide/ledger.
-Likely next candidates remain another stale-observation challenge around
-compact adapter handoffs or a small source-report replay hardening slice in a
-different family.
+Likely next candidates include dependency/exclusivity validation hardening in
+timeline transition application, or another small approval-boundary challenge.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is

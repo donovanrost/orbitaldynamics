@@ -134,6 +134,88 @@ defmodule OrbitalDynamics.MissionPlanTest do
     refute Enum.any?(preconditions, &(&1["type"] == "subsystem_state_produced"))
   end
 
+  test "preflights typed activity transitions through public facades" do
+    completed_activity = %{
+      "id" => "obs_alias",
+      "activity_type" => "observe",
+      "starts_at_s" => 0.0,
+      "ends_at_s" => 10.0,
+      "target_id" => "target_a",
+      "status" => "succeeded",
+      "approval_status" => "Review Required"
+    }
+
+    assert %{
+             "model" => "typed_activity_status_transition_validation",
+             "field" => "status",
+             "from" => "completed",
+             "to" => "partial",
+             "from_category" => "terminal_or_executed",
+             "to_category" => "terminal_or_executed",
+             "safe_to_apply" => false,
+             "requires_operator_review" => true,
+             "operator_action_reason" => "terminal_or_executed_status_change_requires_review",
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_schedule_mutation",
+               "operator_authority" => "not_granted_by_transition_validation"
+             }
+           } =
+             OrbitalDynamics.mission_plan_activity_status_transition(
+               completed_activity,
+               "partially executed"
+             )
+
+    assert_raise ArgumentError,
+                 ~r/unsafe lifecycle status transition completed -> partial/,
+                 fn ->
+                   OrbitalDynamics.mission_plan_activity_transition_status(
+                     completed_activity,
+                     "partially executed"
+                   )
+                 end
+
+    executing_activity = %{completed_activity | "status" => "In Progress"}
+
+    assert %Activity{status: :failed} =
+             OrbitalDynamics.mission_plan_activity_transition_status(
+               executing_activity,
+               "timed-out"
+             )
+
+    assert %{
+             "model" => "typed_activity_approval_transition_validation",
+             "field" => "approval_status",
+             "from" => "operator_review_required",
+             "to" => "approved",
+             "from_category" => "review_required",
+             "to_category" => "approval_granted",
+             "safe_to_apply" => false,
+             "requires_operator_review" => true,
+             "operator_action_reason" => "approval_grant_requires_operator_authority"
+           } =
+             OrbitalDynamics.mission_plan_activity_approval_transition(
+               completed_activity,
+               "approved"
+             )
+
+    assert_raise ArgumentError,
+                 ~r/unsafe approval status transition operator_review_required -> approved/,
+                 fn ->
+                   OrbitalDynamics.mission_plan_activity_transition_approval_status(
+                     completed_activity,
+                     "approved"
+                   )
+                 end
+
+    review_activity = %{completed_activity | "approval_status" => "No Review Required"}
+
+    assert %Activity{approval_status: :operator_review_required} =
+             OrbitalDynamics.mission_plan_activity_transition_approval_status(
+               review_activity,
+               "under review"
+             )
+  end
+
   test "compiles timeline burns into scenario maneuvers and preserves activity metadata" do
     plan =
       MissionPlan.new!(:ops_plan, spacecraft(), initial_state(),
