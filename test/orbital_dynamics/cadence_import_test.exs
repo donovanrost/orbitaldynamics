@@ -2690,6 +2690,78 @@ defmodule OrbitalDynamics.CadenceImportTest do
              Schema.validate_artifact(manifest)
   end
 
+  test "candidate refresh import preserves wrapped timeline publication summaries" do
+    summary = timeline_publication_summary()
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:wrapped_publication_summary_import",
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "timeline_publication_summary" => summary
+        }
+      ]
+    }
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:wrapped_publication_summary_import",
+             "row_count" => 1,
+             "review_required_count" => 1,
+             "import_action_counts" => %{"review_timeline_publication" => 1},
+             "source_review_type_counts" => %{"timeline_publication_review" => 1}
+           } = manifest
+
+    assert [
+             %{
+               "import_action" => "review_timeline_publication",
+               "import_status" => "review_required_before_import",
+               "source_review_type" => "timeline_publication_review",
+               "source_review_action" => "review_timeline_publication",
+               "approval_status" => "operator_review_required",
+               "publication_id" =>
+                 "timeline_publication:7:timeline:published_plan:v2:timeline:published_plan:v1",
+               "publication_sequence" => 7,
+               "publication_status" => "published_with_downstream_invalidations",
+               "publication_authority" => "mission_operations",
+               "source_artifact_id" => "timeline:published_plan:v2",
+               "source_artifact_type" => "operational_timeline_report.v1",
+               "supersedes_artifact_ids" => ["timeline:published_plan:v1"],
+               "downstream_product_ids" => [
+                 "cadence_import:plan:v1",
+                 "operator_review:plan:v1"
+               ],
+               "invalidated_downstream_product_ids" => [
+                 "cadence_import:plan:v1",
+                 "operator_review:plan:v1"
+               ],
+               "dependency_impact_status" => "review_required",
+               "dependency_impact_row_count" => 2,
+               "timeline_diff_row_count" => 3,
+               "timeline_diff_review_required_count" => 2,
+               "changed_field_counts" => %{"timeline_presence" => 2},
+               "changed_timeline_ids" => [],
+               "review_timeline_ids" => ["timeline:health_check:0.0", "timeline:health_check:5.0"],
+               "timeline_ids_by_changed_field" => %{
+                 "timeline_presence" => ["timeline:health_check:0.0", "timeline:health_check:5.0"]
+               },
+               "source_timeline_publication_summary" => ^summary,
+               "source_review_row" => %{
+                 "source" =>
+                   "candidate_refresh.source_result_artifact[0].timeline_publication_summary",
+                 "review_type" => "timeline_publication_review",
+                 "source_timeline_publication_summary" => ^summary
+               }
+             }
+           ] = manifest["rows"]
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "candidate refresh import preserves wrapped contact-allocation reports" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
