@@ -5,49 +5,48 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Compact transition-application V3 branch replay coverage.
+Contact-allocation station-pressure V3 replay coverage.
 
 Status:
-Implemented and parent-verified. Candidate-refresh transition-application
-replay tests now prove V3 candidate-source branch metadata can carry compact
-`timeline_transition_application_summary.v1` evidence, including selected
-activity counts, selected integrity review/issue counters, review activity IDs,
-preserved/withheld counts, and trust-boundary evidence while ignoring stale
-provenance.
+Implemented and parent-verified. Candidate-refresh contact-allocation replay
+tests now prove V3 candidate-source branch metadata preserves station-pressure
+contact routing by station availability, precedence availability, precedence
+rank, and station-calendar status while ignoring stale provenance.
 
 Files changed:
 - `test/orbital_dynamics/candidate_refresh_test.exs`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:40122`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:9180`
 - `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 - `git diff --check`
 
 Docs/artifacts changed:
-- No public docs/artifacts changed; this hardens existing compact transition
-  replay coverage.
+- No public docs/artifacts changed; this hardens existing contact-allocation
+  station-pressure replay coverage.
 
 Level 6 pillar advanced:
-Branch-local replay, compact transition-application summaries, selected
-integrity gates, and no-mutation/no-authority boundaries. V3 branch replay can
-now prove compact summary metadata wins over stale provenance without applying
-timeline transitions.
+Fleet-level resource/contact/station-calendar allocation behavior and
+branch-local replay boundaries. V3 contact-allocation replay can now prove
+reserved/unavailable precedence-routing evidence is preserved without provider
+reservation, schedule mutation, or Cadence write authority.
 
 Remaining maturity gaps:
-Typed timeline transition helpers still need broader coverage for dependency
-impact and transition summaries across V2/V3 replay paths. Continue reassessing
-Level 6 gaps from the guide after this compact transition replay slice is
-reviewed and published.
+Resource/contact allocation behavior still needs deeper operational slices
+beyond replay evidence, especially around quality gates and planner use of
+station pressure. Continue reassessing Level 6 gaps from the guide after this
+station-pressure replay slice is reviewed and published.
 
 Last commit:
-`cb4f6626a6feca4fdd6fb3c480dad90b64cfdc30` (`Test compact transition branch
-replay`).
+`ffd306c36ba8aae09060452bc0591af4c2ee3f5a` (`Test contact allocation station
+pressure replay`).
 
 Next candidate:
 After publishing this slice, reassess Level 6 gaps from the guide/ledger.
-Likely next candidates include another small approval-boundary challenge or a
-non-test implementation slice from the Level 6 roadmap.
+Likely next candidates include a quality-gate/import-readiness resource
+availability slice or another non-test resource/contact implementation slice
+from the Level 6 roadmap.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
