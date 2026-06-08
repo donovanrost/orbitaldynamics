@@ -72,6 +72,8 @@ defmodule OrbitalDynamics.TimelineTest do
              publication_dependency_impact_statuses: publication_dependency_impact_statuses,
              publication_downstream_invalidation_statuses:
                publication_downstream_invalidation_statuses,
+             publication_downstream_invalidation_reasons:
+               publication_downstream_invalidation_reasons,
              publication_statuses: publication_statuses,
              candidate_rejection_reasons: candidate_rejection_reasons,
              candidate_rejection_station_capacity_fraction_paths:
@@ -288,11 +290,19 @@ defmodule OrbitalDynamics.TimelineTest do
     assert "publication_sequence" in publication_summary_fields
     assert "invalidated_downstream_product_ids" in publication_summary_fields
     assert "downstream_invalidation_status" in publication_summary_fields
+    assert "downstream_invalidation_reason_counts" in publication_summary_fields
+    assert "invalidated_downstream_product_ids_by_reason" in publication_summary_fields
     assert "dependency_impact_row_count" in publication_summary_fields
     assert "changed_field_counts" in publication_summary_fields
     assert "timeline_ids_by_changed_field" in publication_summary_fields
     assert publication_dependency_impact_statuses == ["clear", "not_evaluated", "review_required"]
     assert publication_downstream_invalidation_statuses == ["clear", "invalidated"]
+
+    assert publication_downstream_invalidation_reasons == [
+             "dependency_impact_review_required",
+             "explicit_downstream_invalidation",
+             "superseded_publication"
+           ]
 
     assert publication_statuses == [
              "published",
@@ -642,6 +652,21 @@ defmodule OrbitalDynamics.TimelineTest do
              "downstream_invalidation_status",
              "enum"
            ]) == publication_downstream_invalidation_statuses
+
+    assert get_in(publication_schema, [
+             "properties",
+             "downstream_invalidation_reason_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(publication_schema, [
+             "properties",
+             "invalidated_downstream_product_ids_by_reason",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
   end
 
   test "advertised activity-state facade preserves feedback artifact semantics" do
@@ -3722,6 +3747,15 @@ defmodule OrbitalDynamics.TimelineTest do
                "cadence_import:plan:v1",
                "operator_review:plan:v1"
              ],
+             "downstream_invalidation_reason_counts" => %{
+               "dependency_impact_review_required" => 2
+             },
+             "invalidated_downstream_product_ids_by_reason" => %{
+               "dependency_impact_review_required" => [
+                 "cadence_import:plan:v1",
+                 "operator_review:plan:v1"
+               ]
+             },
              "dependency_impact_status" => "review_required",
              "dependency_impact_row_count" => 2,
              "source_timeline_dependency_impact_summary" => ^dependency_impact,
@@ -3822,6 +3856,35 @@ defmodule OrbitalDynamics.TimelineTest do
              stale_downstream_invalidation_status_report["errors"],
              &(&1["path"] == "$.downstream_invalidation_status" and
                  &1["message"] == "must equal invalidated_downstream_product_ids state")
+           )
+
+    stale_invalidation_reason_counts =
+      Map.put(summary, "downstream_invalidation_reason_counts", %{
+        "superseded_publication" => 2
+      })
+
+    assert {:error, stale_invalidation_reason_counts_report} =
+             Schema.validate_artifact(stale_invalidation_reason_counts)
+
+    assert Enum.any?(
+             stale_invalidation_reason_counts_report["errors"],
+             &(&1["path"] == "$.downstream_invalidation_reason_counts" and
+                 &1["message"] == "must equal invalidated downstream product reason counts")
+           )
+
+    stale_invalidation_ids_by_reason =
+      Map.put(summary, "invalidated_downstream_product_ids_by_reason", %{
+        "dependency_impact_review_required" => ["operator_review:plan:v1"]
+      })
+
+    assert {:error, stale_invalidation_ids_by_reason_report} =
+             Schema.validate_artifact(stale_invalidation_ids_by_reason)
+
+    assert Enum.any?(
+             stale_invalidation_ids_by_reason_report["errors"],
+             &(&1["path"] == "$.invalidated_downstream_product_ids_by_reason" and
+                 &1["message"] ==
+                   "must equal invalidated downstream product IDs grouped by reason")
            )
 
     assert %{

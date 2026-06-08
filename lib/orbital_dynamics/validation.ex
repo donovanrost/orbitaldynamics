@@ -6721,6 +6721,15 @@ defmodule OrbitalDynamics.Validation do
         "supersedes_artifact_ids" => "timeline:published_plan:v1",
         "downstream_product_ids" => "cadence_import:plan:v1|operator_review:plan:v1",
         "invalidated_downstream_product_ids" => "cadence_import:plan:v1|operator_review:plan:v1",
+        "downstream_invalidation_reason_counts" => %{
+          "dependency_impact_review_required" => 2
+        },
+        "invalidated_downstream_product_ids_by_reason" => %{
+          "dependency_impact_review_required" => [
+            "cadence_import:plan:v1",
+            "operator_review:plan:v1"
+          ]
+        },
         "dependency_impact_status" => "review_required",
         "dependency_impact_row_count" => 2,
         "impacted_source_activity_ids" => "health_gate",
@@ -16051,6 +16060,10 @@ defmodule OrbitalDynamics.Validation do
         artifact
         |> list_values("invalidated_downstream_product_ids")
         |> Enum.join("|"),
+      "downstream_invalidation_reason_counts" =>
+        Map.get(artifact, "downstream_invalidation_reason_counts"),
+      "invalidated_downstream_product_ids_by_reason" =>
+        Map.get(artifact, "invalidated_downstream_product_ids_by_reason"),
       "dependency_impact_status" => Map.get(artifact, "dependency_impact_status"),
       "dependency_impact_row_count" => Map.get(artifact, "dependency_impact_row_count"),
       "impacted_source_activity_ids" =>

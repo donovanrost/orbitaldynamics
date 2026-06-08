@@ -26496,6 +26496,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_timeline_publication_dependent_timeline_ids" => [
                "timeline:command:20.0"
              ],
+             "source_report_timeline_publication_downstream_invalidation_reason_counts" => %{
+               "dependency_impact_review_required" => 2
+             },
+             "source_report_timeline_publication_invalidated_downstream_product_ids_by_reason" =>
+               %{
+                 "dependency_impact_review_required" => [
+                   "cadence_import:plan:v1",
+                   "operator_review:plan:v1"
+                 ]
+               },
              "source_report_timeline_publication_source_dependent_activity_ids" => ["cmd_main"],
              "source_report_timeline_publication_source_dependent_timeline_ids" => [
                "timeline:command:20.0"
@@ -26537,6 +26547,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "published_with_downstream_invalidations" => 1
              },
              "downstream_invalidation_status_counts" => %{"invalidated" => 1},
+             "downstream_invalidation_reason_counts" => %{
+               "dependency_impact_review_required" => 2
+             },
              "dependency_impact_status_counts" => %{"review_required" => 1},
              "publication_authority_counts" => %{"mission_operations" => 1},
              "source_artifact_type_counts" => %{"operational_timeline_report.v1" => 1},
@@ -26553,6 +26566,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "cadence_import:plan:v1",
                "operator_review:plan:v1"
              ],
+             "invalidated_downstream_product_ids_by_reason" => %{
+               "dependency_impact_review_required" => [
+                 "cadence_import:plan:v1",
+                 "operator_review:plan:v1"
+               ]
+             },
              "dependency_impact_row_count" => 2,
              "impacted_source_activity_ids" => ["health_gate"],
              "impacted_source_timeline_ids" => ["timeline:health_check:0.0"],
@@ -26702,6 +26721,16 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_timeline_publication_dependent_timeline_ids" => [
                "timeline:command:20.0"
              ],
+             "source_report_timeline_publication_downstream_invalidation_reason_counts" => %{
+               "dependency_impact_review_required" => 4
+             },
+             "source_report_timeline_publication_invalidated_downstream_product_ids_by_reason" =>
+               %{
+                 "dependency_impact_review_required" => [
+                   "cadence_import:plan:v1",
+                   "operator_review:plan:v1"
+                 ]
+               },
              "source_report_timeline_publication_source_dependent_activity_ids" => ["cmd_main"],
              "source_report_timeline_publication_replacement_dependent_activity_ids" => [
                "cmd_main"
@@ -26718,11 +26747,56 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "impacted_source_timeline_ids" => ["timeline:health_check:0.0"],
              "dependent_activity_ids" => ["cmd_main"],
              "dependent_timeline_ids" => ["timeline:command:20.0"],
+             "downstream_invalidation_reason_counts" => %{
+               "dependency_impact_review_required" => 4
+             },
+             "invalidated_downstream_product_ids_by_reason" => %{
+               "dependency_impact_review_required" => [
+                 "cadence_import:plan:v1",
+                 "operator_review:plan:v1"
+               ]
+             },
              "source_dependent_activity_ids" => ["cmd_main"],
              "replacement_dependent_activity_ids" => ["cmd_main"],
              "impacted_dependency_activity_ids" => ["health_gate"],
              "branch_local_timeline_publication_dependency_pressure" => true
            } = CandidateRefresh.timeline_publication_replay_summary(refresh)
+
+    strip_invalidation_reasons = fn artifact ->
+      Map.update!(artifact, "rows", fn rows ->
+        Enum.map(rows, fn row ->
+          row =
+            row
+            |> Map.delete("downstream_invalidation_reason_counts")
+            |> Map.delete("invalidated_downstream_product_ids_by_reason")
+
+          Map.update(row, "source_review_row", nil, fn
+            %{} = source_review_row ->
+              source_review_row
+              |> Map.delete("downstream_invalidation_reason_counts")
+              |> Map.delete("invalidated_downstream_product_ids_by_reason")
+
+            source_review_row ->
+              source_review_row
+          end)
+        end)
+      end)
+    end
+
+    legacy_refresh = %{
+      "source_operator_review_package" =>
+        refresh["source_operator_review_package"]
+        |> strip_invalidation_reasons.(),
+      "source_cadence_import_manifest" =>
+        refresh["source_cadence_import_manifest"]
+        |> strip_invalidation_reasons.()
+    }
+
+    assert %{
+             "downstream_invalidation_reason_counts" => %{},
+             "invalidated_downstream_product_ids_by_reason" => %{},
+             "branch_local_timeline_publication_invalidation_pressure" => true
+           } = CandidateRefresh.timeline_publication_replay_summary(legacy_refresh)
   end
 
   test "timeline publication replay reads strategy branch candidate-source summary metadata" do

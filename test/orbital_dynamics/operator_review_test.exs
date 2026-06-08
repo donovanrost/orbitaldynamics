@@ -2552,6 +2552,15 @@ defmodule OrbitalDynamics.OperatorReviewTest do
                  "cadence_import:plan:v1",
                  "operator_review:plan:v1"
                ],
+               "downstream_invalidation_reason_counts" => %{
+                 "dependency_impact_review_required" => 2
+               },
+               "invalidated_downstream_product_ids_by_reason" => %{
+                 "dependency_impact_review_required" => [
+                   "cadence_import:plan:v1",
+                   "operator_review:plan:v1"
+                 ]
+               },
                "dependency_impact_status" => "review_required",
                "dependency_impact_row_count" => 2,
                "impacted_source_activity_ids" => ["health_gate"],

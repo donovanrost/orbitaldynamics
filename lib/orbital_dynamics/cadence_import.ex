@@ -7395,6 +7395,8 @@ defmodule OrbitalDynamics.CadenceImport do
       "supersedes_artifact_ids",
       "downstream_product_ids",
       "invalidated_downstream_product_ids",
+      "downstream_invalidation_reason_counts",
+      "invalidated_downstream_product_ids_by_reason",
       "dependency_impact_row_count",
       "timeline_diff_row_count",
       "timeline_diff_changed_count",

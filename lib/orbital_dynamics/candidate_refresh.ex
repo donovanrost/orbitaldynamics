@@ -6434,6 +6434,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "timeline_publication_summary",
           "downstream_invalidation_status_counts"
         ),
+      "source_report_timeline_publication_downstream_invalidation_reason_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "timeline_publication_summary",
+          "downstream_invalidation_reason_counts"
+        ),
       "source_report_timeline_publication_dependency_impact_status_counts" =>
         source_report_summary_family_merge_count_maps(
           source_reports,
@@ -6481,6 +6487,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
           source_reports,
           "timeline_publication_summary",
           "invalidated_downstream_product_ids"
+        ),
+      "source_report_timeline_publication_invalidated_downstream_product_ids_by_reason" =>
+        source_report_summary_family_merge_string_list_maps(
+          source_reports,
+          "timeline_publication_summary",
+          "invalidated_downstream_product_ids_by_reason"
         ),
       "source_report_timeline_publication_dependency_impact_row_count" =>
         source_report_summary_family_count(
@@ -14513,6 +14525,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
     invalidated_downstream_product_ids =
       Map.get(publication_summary, "invalidated_downstream_product_ids", [])
 
+    downstream_invalidation_reason_counts =
+      publication_summary
+      |> Map.get("downstream_invalidation_reason_counts")
+      |> map_value()
+
+    invalidated_downstream_product_ids_by_reason =
+      publication_summary
+      |> Map.get("invalidated_downstream_product_ids_by_reason")
+      |> map_value()
+
     impacted_source_activity_ids =
       Map.get(publication_summary, "impacted_source_activity_ids", [])
 
@@ -14570,6 +14592,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     invalidation_pressure =
       invalidated_downstream_product_ids != [] or
+        map_size(downstream_invalidation_reason_counts) > 0 or
+        map_size(invalidated_downstream_product_ids_by_reason) > 0 or
         summary_integer(downstream_invalidation_status_counts, "invalidated") > 0 or
         summary_integer(publication_status_counts, "published_with_downstream_invalidations") > 0
 
@@ -14608,6 +14632,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "supersedes_artifact_ids" => supersedes_artifact_ids,
       "downstream_product_ids" => downstream_product_ids,
       "invalidated_downstream_product_ids" => invalidated_downstream_product_ids,
+      "downstream_invalidation_reason_counts" => downstream_invalidation_reason_counts,
+      "invalidated_downstream_product_ids_by_reason" =>
+        invalidated_downstream_product_ids_by_reason,
       "dependency_impact_row_count" => dependency_impact_row_count,
       "impacted_source_activity_ids" => impacted_source_activity_ids,
       "impacted_source_timeline_ids" => impacted_source_timeline_ids,
@@ -21339,6 +21366,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
           family,
           "invalidated_downstream_product_ids"
         ),
+      "#{prefix}_downstream_invalidation_reason_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          family,
+          "downstream_invalidation_reason_counts"
+        ),
+      "#{prefix}_invalidated_downstream_product_ids_by_reason" =>
+        source_report_summary_family_merge_string_list_maps(
+          source_reports,
+          family,
+          "invalidated_downstream_product_ids_by_reason"
+        ),
       "#{prefix}_dependency_impact_row_count" =>
         source_report_summary_family_count(source_reports, family, "dependency_impact_row_count"),
       "#{prefix}_impacted_dependency_activity_ids" =>
@@ -23471,6 +23510,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
         summaries
         |> Enum.flat_map(&Map.get(&1, "invalidated_downstream_product_ids", []))
         |> sorted_string_values(),
+      "downstream_invalidation_reason_counts" =>
+        summaries
+        |> Enum.map(&Map.get(&1, "downstream_invalidation_reason_counts"))
+        |> merge_count_maps(),
+      "invalidated_downstream_product_ids_by_reason" =>
+        summaries
+        |> Enum.map(&Map.get(&1, "invalidated_downstream_product_ids_by_reason"))
+        |> merge_string_list_maps(),
       "dependency_impact_row_count" =>
         sum_report_count(summaries, &numeric_report_count(&1, "dependency_impact_row_count")),
       "impacted_source_activity_ids" =>
@@ -27869,6 +27916,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp map_value_lists(_value), do: nil
+
+  defp map_value(%{} = value), do: value
+  defp map_value(_value), do: %{}
 
   defp grouped_source_report_ids(pairs) do
     pairs
@@ -48108,6 +48158,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "supersedes_artifact_ids" => source_row["supersedes_artifact_ids"],
       "downstream_product_ids" => source_row["downstream_product_ids"],
       "invalidated_downstream_product_ids" => source_row["invalidated_downstream_product_ids"],
+      "downstream_invalidation_reason_counts" =>
+        source_row["downstream_invalidation_reason_counts"],
+      "invalidated_downstream_product_ids_by_reason" =>
+        source_row["invalidated_downstream_product_ids_by_reason"],
       "dependency_impact_status" => source_row["dependency_impact_status"],
       "dependency_impact_row_count" => source_row["dependency_impact_row_count"],
       "impacted_source_activity_ids" => source_row["impacted_source_activity_ids"],

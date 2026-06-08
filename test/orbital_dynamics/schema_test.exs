@@ -26157,6 +26157,21 @@ defmodule OrbitalDynamics.SchemaTest do
                Schema.identity_policy()["stable_id_pattern"]
     end
 
+    assert get_in(schema, [
+             "properties",
+             "source_report_timeline_publication_downstream_invalidation_reason_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    assert get_in(schema, [
+             "properties",
+             "source_report_timeline_publication_invalidated_downstream_product_ids_by_reason",
+             "additionalProperties",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
     named_freshness_schema =
       get_in(schema, [
         "properties",

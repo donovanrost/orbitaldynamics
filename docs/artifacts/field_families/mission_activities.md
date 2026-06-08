@@ -539,7 +539,8 @@ and model-only inputs.
 `timeline_publication_summary.v1` as an artifact-only publication metadata
 handoff. It preserves deterministic publication ID/sequence, source artifact
 identity/type, superseded artifact IDs, downstream product IDs, invalidated
-downstream product IDs, an explicit downstream invalidation status, optional
+downstream product IDs, an explicit downstream invalidation status, reason
+counts plus reason-keyed downstream product ID routing, optional
 dependency-impact status, nested dependency-impact source evidence,
 changed-source/dependent activity and timeline ID sets, and impacted
 dependency/exclusivity ID sets,
@@ -557,7 +558,7 @@ Publication summaries can now route through
 facades as `timeline_publication_review` / `review_timeline_publication`
 handoff rows. Those rows preserve publication identity, sequence, status,
 explicit downstream invalidation status, authority, supersession, downstream
-invalidation, dependency-impact changed-source/dependent ID sets and rollups,
+invalidation reasons, dependency-impact changed-source/dependent ID sets and rollups,
 changed-field audit counts and routing, and the nested source publication
 summary while leaving publication execution, notification delivery, and import
 authorization to downstream operators or host systems.
@@ -574,7 +575,7 @@ Replay accepts direct publication summaries, result-artifact wrapped summaries,
 and review/import handoff rows, including row-only handoffs where embedded
 publication summaries have been stripped, then emits artifact-only branch-local
 publication, dependency source/dependent ID sets, changed-field, invalidation,
-and review pressure without publishing, notifying, importing, mutating
+invalidation reason, and review pressure without publishing, notifying, importing, mutating
 schedules, or granting authority.
 Operational-timeline report activity/row/contact/command/protection/execution
 totals and optional dependency, exclusivity, uncertainty, integrity, duplicate,

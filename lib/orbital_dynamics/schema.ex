@@ -99,9 +99,13 @@ defmodule OrbitalDynamics.Schema do
     "source_report_quality_gate_invalidated_downstream_product_ids"
   ]
   @candidate_refresh_publication_lineage_count_map_fields [
+    "source_report_timeline_publication_downstream_invalidation_reason_counts",
     "source_report_timeline_publication_source_artifact_type_counts",
     "source_report_operational_readiness_timeline_publication_source_artifact_type_counts",
     "source_report_quality_gate_timeline_publication_source_artifact_type_counts"
+  ]
+  @candidate_refresh_publication_lineage_stable_id_array_map_fields [
+    "source_report_timeline_publication_invalidated_downstream_product_ids_by_reason"
   ]
   @candidate_refresh_resource_availability_count_fields [
     "source_report_operational_readiness_resource_availability_pressure_count",
@@ -5647,6 +5651,7 @@ defmodule OrbitalDynamics.Schema do
         "analysis_only_quality_gate_row_ids",
         "publication_status_counts",
         "downstream_invalidation_status_counts",
+        "downstream_invalidation_reason_counts",
         "dependency_impact_status_counts",
         "publication_authority_counts",
         "source_artifact_type_counts",
@@ -5655,6 +5660,7 @@ defmodule OrbitalDynamics.Schema do
         "supersedes_artifact_ids",
         "downstream_product_ids",
         "invalidated_downstream_product_ids",
+        "invalidated_downstream_product_ids_by_reason",
         "dependency_impact_row_count",
         "impacted_dependency_activity_ids",
         "impacted_dependency_timeline_ids",
@@ -7112,6 +7118,8 @@ defmodule OrbitalDynamics.Schema do
         "impacted_exclusive_with_timeline_ids",
         "source_timeline_diff_summary",
         "downstream_invalidation_status",
+        "downstream_invalidation_reason_counts",
+        "invalidated_downstream_product_ids_by_reason",
         "timeline_diff_row_count",
         "timeline_diff_changed_count",
         "timeline_diff_review_required_count",
@@ -7682,6 +7690,7 @@ defmodule OrbitalDynamics.Schema do
         ] ++
           @candidate_refresh_publication_lineage_id_array_fields ++
           @candidate_refresh_publication_lineage_count_map_fields ++
+          @candidate_refresh_publication_lineage_stable_id_array_map_fields ++
           @candidate_refresh_resource_availability_count_fields ++
           @candidate_refresh_resource_availability_count_map_fields ++
           @candidate_refresh_resource_availability_string_array_fields
@@ -10586,6 +10595,14 @@ defmodule OrbitalDynamics.Schema do
     non_negative_integer_count_map_json_schema()
   end
 
+  defp json_schema_property(
+         "downstream_invalidation_reason_counts",
+         @timeline_publication_summary,
+         _contract
+       ) do
+    non_negative_integer_count_map_json_schema()
+  end
+
   defp json_schema_property(field, @timeline_publication_summary, _contract)
        when field in [
               "supersedes_artifact_ids",
@@ -10611,6 +10628,14 @@ defmodule OrbitalDynamics.Schema do
 
   defp json_schema_property(
          "timeline_ids_by_changed_field",
+         @timeline_publication_summary,
+         _contract
+       ) do
+    stable_id_array_map_schema()
+  end
+
+  defp json_schema_property(
+         "invalidated_downstream_product_ids_by_reason",
          @timeline_publication_summary,
          _contract
        ) do
@@ -16936,6 +16961,7 @@ defmodule OrbitalDynamics.Schema do
               "cadence_import_status_counts",
               "publication_status_counts",
               "downstream_invalidation_status_counts",
+              "downstream_invalidation_reason_counts",
               "dependency_impact_status_counts",
               "publication_authority_counts",
               "source_artifact_type_counts",
@@ -16988,11 +17014,11 @@ defmodule OrbitalDynamics.Schema do
     string_array_schema()
   end
 
-  defp json_schema_property(
-         "timeline_ids_by_changed_field",
-         @operational_quality_gate_import_readiness_summary,
-         _contract
-       ) do
+  defp json_schema_property(field, @operational_quality_gate_import_readiness_summary, _contract)
+       when field in [
+              "timeline_ids_by_changed_field",
+              "invalidated_downstream_product_ids_by_reason"
+            ] do
     stable_id_array_map_schema()
   end
 
@@ -17639,6 +17665,11 @@ defmodule OrbitalDynamics.Schema do
   defp json_schema_property(field, @candidate_refresh, _contract)
        when field in @candidate_refresh_publication_lineage_count_map_fields do
     non_negative_integer_count_map_json_schema()
+  end
+
+  defp json_schema_property(field, @candidate_refresh, _contract)
+       when field in @candidate_refresh_publication_lineage_stable_id_array_map_fields do
+    stable_id_array_map_schema()
   end
 
   defp json_schema_property(field, @candidate_refresh, _contract)
@@ -24985,6 +25016,7 @@ defmodule OrbitalDynamics.Schema do
     %{
       "publication_status_counts" => non_negative_integer_count_map_json_schema(),
       "downstream_invalidation_status_counts" => non_negative_integer_count_map_json_schema(),
+      "downstream_invalidation_reason_counts" => non_negative_integer_count_map_json_schema(),
       "dependency_impact_status_counts" => non_negative_integer_count_map_json_schema(),
       "publication_authority_counts" => non_negative_integer_count_map_json_schema(),
       "source_artifact_type_counts" => non_negative_integer_count_map_json_schema(),
@@ -24995,6 +25027,7 @@ defmodule OrbitalDynamics.Schema do
       "supersedes_artifact_ids" => stable_id_array_schema(),
       "downstream_product_ids" => stable_id_array_schema(),
       "invalidated_downstream_product_ids" => stable_id_array_schema(),
+      "invalidated_downstream_product_ids_by_reason" => stable_id_array_map_schema(),
       "dependency_impact_row_count" => %{"type" => "integer", "minimum" => 0},
       "impacted_source_activity_ids" => stable_id_array_schema(),
       "impacted_source_timeline_ids" => stable_id_array_schema(),
@@ -30832,11 +30865,13 @@ defmodule OrbitalDynamics.Schema do
         fn field, acc -> validate_optional_stable_id_list(acc, path, summary, field) end
       )
 
-    validate_stable_id_array_map(
-      issues,
-      path <> ".timeline_ids_by_changed_field",
-      Map.get(summary, "timeline_ids_by_changed_field")
-    )
+    [
+      "timeline_ids_by_changed_field",
+      "invalidated_downstream_product_ids_by_reason"
+    ]
+    |> Enum.reduce(issues, fn field, acc ->
+      validate_stable_id_array_map(acc, path <> ".#{field}", Map.get(summary, field))
+    end)
   end
 
   defp validate_candidate_refresh_validation_safety_case_context(issues, path, summary) do
@@ -32165,7 +32200,7 @@ defmodule OrbitalDynamics.Schema do
     |> expect_type("$", artifact, "provenance", :map)
     |> expect_optional_type("$", artifact, "model_limits", :list)
     |> validate_string_list_items("$", artifact, "model_limits")
-    |> validate_candidate_refresh_publication_lineage_id_arrays(artifact)
+    |> validate_candidate_refresh_publication_lineage_fields(artifact)
     |> validate_optional_exact_model_limits(
       "$",
       artifact,
@@ -32561,11 +32596,27 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
   end
 
-  defp validate_candidate_refresh_publication_lineage_id_arrays(issues, artifact) do
-    Enum.reduce(@candidate_refresh_publication_lineage_id_array_fields, issues, fn field, acc ->
-      acc
-      |> expect_optional_type("$", artifact, field, :list)
-      |> validate_optional_stable_id_list("$", artifact, field)
+  defp validate_candidate_refresh_publication_lineage_fields(issues, artifact) do
+    issues =
+      Enum.reduce(@candidate_refresh_publication_lineage_id_array_fields, issues, fn field, acc ->
+        acc
+        |> expect_optional_type("$", artifact, field, :list)
+        |> validate_optional_stable_id_list("$", artifact, field)
+      end)
+
+    issues =
+      Enum.reduce(@candidate_refresh_publication_lineage_count_map_fields, issues, fn field,
+                                                                                      acc ->
+        acc
+        |> expect_optional_type("$", artifact, field, :map)
+        |> validate_non_negative_integer_count_map("$.#{field}", Map.get(artifact, field))
+      end)
+
+    Enum.reduce(@candidate_refresh_publication_lineage_stable_id_array_map_fields, issues, fn
+      field, acc ->
+        acc
+        |> expect_optional_type("$", artifact, field, :map)
+        |> validate_stable_id_array_map("$.#{field}", Map.get(artifact, field))
     end)
   end
 
@@ -42335,6 +42386,8 @@ defmodule OrbitalDynamics.Schema do
       "supersedes_artifact_ids",
       "downstream_product_ids",
       "invalidated_downstream_product_ids",
+      "downstream_invalidation_reason_counts",
+      "invalidated_downstream_product_ids_by_reason",
       "dependency_impact_status",
       "dependency_impact_row_count",
       "impacted_source_activity_ids",
@@ -42369,6 +42422,8 @@ defmodule OrbitalDynamics.Schema do
       "supersedes_artifact_ids",
       "downstream_product_ids",
       "invalidated_downstream_product_ids",
+      "downstream_invalidation_reason_counts",
+      "invalidated_downstream_product_ids_by_reason",
       "timeline_diff_row_count",
       "timeline_diff_changed_count",
       "timeline_diff_review_required_count",
@@ -43276,6 +43331,7 @@ defmodule OrbitalDynamics.Schema do
     |> validate_timeline_publication_summary_dependency_count(path, summary)
     |> validate_timeline_publication_summary_no_impact_without_review(path, summary)
     |> validate_timeline_publication_summary_invalidation_subset(path, summary)
+    |> validate_timeline_publication_summary_invalidation_reasons(path, summary)
   end
 
   defp validate_timeline_publication_summary_diff_audit(issues, path, summary) do
@@ -43635,6 +43691,63 @@ defmodule OrbitalDynamics.Schema do
       _ids ->
         issues
     end
+  end
+
+  defp validate_timeline_publication_summary_invalidation_reasons(issues, path, summary) do
+    expected_ids_by_reason = timeline_publication_expected_invalidation_ids_by_reason(summary)
+
+    expected_reason_counts =
+      timeline_publication_invalidation_reason_counts(expected_ids_by_reason)
+
+    issues
+    |> expect_optional_type(path, summary, "downstream_invalidation_reason_counts", :map)
+    |> validate_non_negative_integer_count_map(
+      path <> ".downstream_invalidation_reason_counts",
+      Map.get(summary, "downstream_invalidation_reason_counts")
+    )
+    |> expect_optional_type(path, summary, "invalidated_downstream_product_ids_by_reason", :map)
+    |> validate_stable_id_array_map(
+      path <> ".invalidated_downstream_product_ids_by_reason",
+      Map.get(summary, "invalidated_downstream_product_ids_by_reason")
+    )
+    |> expect_optional_field_equals(
+      path,
+      summary,
+      "downstream_invalidation_reason_counts",
+      expected_reason_counts,
+      "must equal invalidated downstream product reason counts"
+    )
+    |> expect_optional_field_equals(
+      path,
+      summary,
+      "invalidated_downstream_product_ids_by_reason",
+      expected_ids_by_reason,
+      "must equal invalidated downstream product IDs grouped by reason"
+    )
+  end
+
+  defp timeline_publication_expected_invalidation_ids_by_reason(summary) do
+    invalidated_ids = list_value(summary, "invalidated_downstream_product_ids")
+
+    cond do
+      invalidated_ids == [] ->
+        %{}
+
+      summary["dependency_impact_status"] == "review_required" ->
+        %{"dependency_impact_review_required" => invalidated_ids}
+
+      list_value(summary, "supersedes_artifact_ids") != [] ->
+        %{"superseded_publication" => invalidated_ids}
+
+      true ->
+        %{"explicit_downstream_invalidation" => invalidated_ids}
+    end
+  end
+
+  defp timeline_publication_invalidation_reason_counts(ids_by_reason) do
+    ids_by_reason
+    |> Enum.map(fn {reason, ids} -> {reason, length(ids)} end)
+    |> Map.new()
   end
 
   defp validate_timeline_activity_state(issues, path, state) do
@@ -58286,6 +58399,7 @@ defmodule OrbitalDynamics.Schema do
       "resource_trust_boundary_status_counts",
       "publication_status_counts",
       "downstream_invalidation_status_counts",
+      "downstream_invalidation_reason_counts",
       "dependency_impact_status_counts",
       "publication_authority_counts",
       "source_artifact_type_counts",
@@ -58295,7 +58409,8 @@ defmodule OrbitalDynamics.Schema do
     stable_id_array_map_fields = [
       "resource_blocked_contact_ids_by_blocking_dimension",
       "resource_blocked_contact_ids_by_spacecraft_id",
-      "timeline_ids_by_changed_field"
+      "timeline_ids_by_changed_field",
+      "invalidated_downstream_product_ids_by_reason"
     ]
 
     stable_id_array_fields = [
@@ -58556,6 +58671,7 @@ defmodule OrbitalDynamics.Schema do
       "resource_trust_boundary_status_counts",
       "publication_status_counts",
       "downstream_invalidation_status_counts",
+      "downstream_invalidation_reason_counts",
       "dependency_impact_status_counts",
       "publication_authority_counts",
       "source_artifact_type_counts",

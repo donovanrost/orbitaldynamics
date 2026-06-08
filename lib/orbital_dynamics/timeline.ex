@@ -169,6 +169,8 @@ defmodule OrbitalDynamics.Timeline do
     supersedes_artifact_ids
     downstream_product_ids
     invalidated_downstream_product_ids
+    downstream_invalidation_reason_counts
+    invalidated_downstream_product_ids_by_reason
     dependency_impact_status
     dependency_impact_row_count
     source_timeline_dependency_impact_summary
@@ -196,6 +198,11 @@ defmodule OrbitalDynamics.Timeline do
   @dependency_impact_statuses ~w(clear review_required)
   @publication_dependency_impact_statuses ~w(clear not_evaluated review_required)
   @publication_downstream_invalidation_statuses ~w(clear invalidated)
+  @publication_downstream_invalidation_reasons ~w(
+    dependency_impact_review_required
+    explicit_downstream_invalidation
+    superseded_publication
+  )
   @publication_statuses ~w(published published_with_downstream_invalidations review_required)
   @candidate_rejection_reasons ~w(
     no_access_window
@@ -1021,6 +1028,7 @@ defmodule OrbitalDynamics.Timeline do
       publication_summary_fields: @publication_summary_fields,
       publication_dependency_impact_statuses: @publication_dependency_impact_statuses,
       publication_downstream_invalidation_statuses: @publication_downstream_invalidation_statuses,
+      publication_downstream_invalidation_reasons: @publication_downstream_invalidation_reasons,
       publication_statuses: @publication_statuses,
       candidate_rejection_reasons: @candidate_rejection_reasons,
       candidate_rejection_station_capacity_fraction_paths:
@@ -1815,6 +1823,19 @@ defmodule OrbitalDynamics.Timeline do
         supersedes_artifact_ids
       )
 
+    invalidation_reason =
+      publication_invalidation_reason(
+        invalidated_downstream_product_ids,
+        dependency_impact_summary,
+        supersedes_artifact_ids
+      )
+
+    invalidated_downstream_product_ids_by_reason =
+      publication_invalidation_ids_by_reason(
+        invalidated_downstream_product_ids,
+        invalidation_reason
+      )
+
     publication_authority =
       opts
       |> Keyword.get(:publication_authority, "not_granted_by_summary")
@@ -1838,6 +1859,10 @@ defmodule OrbitalDynamics.Timeline do
       "supersedes_artifact_ids" => supersedes_artifact_ids,
       "downstream_product_ids" => downstream_product_ids,
       "invalidated_downstream_product_ids" => invalidated_downstream_product_ids,
+      "downstream_invalidation_reason_counts" =>
+        publication_invalidation_reason_counts(invalidated_downstream_product_ids_by_reason),
+      "invalidated_downstream_product_ids_by_reason" =>
+        invalidated_downstream_product_ids_by_reason,
       "dependency_impact_status" =>
         Map.get(dependency_impact_summary, "dependency_impact_status", "not_evaluated"),
       "dependency_impact_row_count" =>
@@ -2035,6 +2060,34 @@ defmodule OrbitalDynamics.Timeline do
       raise ArgumentError,
             "invalidated_downstream_product_ids must be included in downstream_product_ids"
     end
+  end
+
+  defp publication_invalidation_reason([], _dependency_impact_summary, _supersedes), do: nil
+
+  defp publication_invalidation_reason(invalidated, dependency_impact_summary, supersedes)
+       when invalidated != [] do
+    cond do
+      publication_dependency_impact_review_required?(dependency_impact_summary) ->
+        "dependency_impact_review_required"
+
+      supersedes != [] ->
+        "superseded_publication"
+
+      true ->
+        "explicit_downstream_invalidation"
+    end
+  end
+
+  defp publication_invalidation_ids_by_reason(_invalidated, nil), do: %{}
+
+  defp publication_invalidation_ids_by_reason(invalidated, reason) do
+    %{reason => invalidated}
+  end
+
+  defp publication_invalidation_reason_counts(ids_by_reason) do
+    ids_by_reason
+    |> Enum.map(fn {reason, ids} -> {reason, length(ids)} end)
+    |> Map.new()
   end
 
   defp publication_dependency_impact_review_required?(%{

@@ -10195,6 +10195,10 @@ defmodule OrbitalDynamics.OperatorReview do
         "supersedes_artifact_ids" => summary["supersedes_artifact_ids"],
         "downstream_product_ids" => summary["downstream_product_ids"],
         "invalidated_downstream_product_ids" => summary["invalidated_downstream_product_ids"],
+        "downstream_invalidation_reason_counts" =>
+          summary["downstream_invalidation_reason_counts"],
+        "invalidated_downstream_product_ids_by_reason" =>
+          summary["invalidated_downstream_product_ids_by_reason"],
         "dependency_impact_status" => summary["dependency_impact_status"],
         "dependency_impact_row_count" => summary["dependency_impact_row_count"],
         "impacted_source_activity_ids" => summary["impacted_source_activity_ids"],
