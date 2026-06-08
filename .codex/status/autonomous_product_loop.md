@@ -8,7 +8,7 @@ Current slice:
 Expose contact-allocation pressure status in branch comparison rows.
 
 Status:
-Implemented; verification passed locally; commit pending.
+Published locally in product commit `df963da`; handoff commit pending.
 Contact-allocation pressure events already penalize V3 branches, but branch
 comparison rows flatten only generic contact/downlink, reservation, and
 capacity-pack fields. They do not expose allocation-specific status/reason,
@@ -85,7 +85,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`b0e861b` Update autonomous loop handoff.
+`df963da` Expose contact allocation branch comparison status.
 
 Next candidate:
 Reinspect live code for another resource/contact/readiness signal that affects
