@@ -8,7 +8,7 @@ Current slice:
 Harden import-readiness summary routing against stale top-level fields.
 
 Status:
-Implemented; verification passed locally; commit pending.
+Published locally in product commit `63be127`; handoff commit pending.
 Compact `operational_quality_gate_import_readiness_summary.v1` handoffs should
 use `quality_gate_row_ids_by_status` as authoritative row routing when present,
 but CampaignPlanner currently still lets stale top-level blocked arrays steer
@@ -77,7 +77,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`6c20214` Update autonomous loop handoff.
+`63be127` Harden import readiness summary pressure.
 
 Next candidate:
 Reinspect live code for the next planner-visible readiness/resource signal or
