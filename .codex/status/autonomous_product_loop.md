@@ -5,50 +5,51 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-List-wrapped provider-counteroffer report Cadence import coverage.
+Warnings-as-errors cleanup for current helper surface.
 
 Status:
-Implementation, focused verification, and read-only `slice_reviewer` handoff
-are complete. CadenceImport regression coverage now pins a valid
-CandidateRefresh list-wrapped `source_result_artifact[0]`
-`provider_counteroffer_report.v1` handoff. The test asserts indexed
-wrapper-qualified row and source-review lineage, review-only provider
-counteroffer import action/status, counteroffer timing and cost evidence, exact
-source counteroffer row nesting, and schema validation.
+Implementation and focused verification are complete. The slice removes seven
+compiler-reported unreachable private-helper fallback clauses across
+CandidateRefresh, OperatorReview, CommandWindow, Environment, and
+ContactContention. No artifact schema, public facade, or runtime data shape was
+changed; the removed clauses were unreachable from the guarded call sites that
+already normalize inputs before dispatch.
 
 Files changed:
-- `test/orbital_dynamics/cadence_import_test.exs`
+- `lib/orbital_dynamics/candidate_refresh.ex`
+- `lib/orbital_dynamics/operator_review.ex`
+- `lib/orbital_dynamics/communications/command_window.ex`
+- `lib/orbital_dynamics/communications/contact_contention.ex`
+- `lib/orbital_dynamics/environment.ex`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/cadence_import_test.exs:3990` (1 passed)
-- `mix test test/orbital_dynamics/cadence_import_test.exs` (112 passed)
-- `mix test test/orbital_dynamics/operator_review_test.exs` (202 passed)
-- `slice_reviewer` read-only review found no blocking findings.
-- `git diff --check`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/communications/command_window_test.exs test/orbital_dynamics/communications/contact_contention_test.exs test/orbital_dynamics/environment_test.exs` (79 passed)
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:2878 test/orbital_dynamics/candidate_refresh_test.exs:28188 test/orbital_dynamics/candidate_refresh_test.exs:35846 test/orbital_dynamics/operator_review_test.exs:18928 test/orbital_dynamics/operator_review_test.exs:10641` (5 passed)
 
 Docs/artifacts changed:
-None; this slice pins already supported list-wrapped provider-counteroffer
-review/import handoffs without changing public artifact shape.
+None.
 
 Level 6 pillar advanced:
-Fleet-level contact/station allocation behavior and approval-aware Cadence
-import readiness: result-artifact-list-wrapped provider counteroffers now have
-executable Cadence import compatibility coverage for negotiation timing and
-cost-delta review routing.
+Quality gates and readiness for the codebase itself: the current helper surface
+now compiles cleanly under warnings-as-errors, making future focused product
+verification less dependent on known warning noise.
 
 Remaining maturity gaps:
-Continue closing thin artifact-only replay gaps where checked-in summaries
-preserve routing evidence that review/import or CandidateRefresh replay still
-does not consume.
+Continue reassessing the guide queue from live evidence. Recent checks found
+contact-intent replay, contact-allocation capacity-pack replay,
+timeline-activity precondition replay, storage/downlink pressure replay, and
+quality-gate/readiness analysis-only handoffs already covered in the current
+checkout.
 
 Last commit:
-Product commit `4dca66fa21e9c1f9f2e5de8eb47f3d1742f7d7b9`.
+Product commit `6873bf0899da4eb9d0d3e3f003cd59af2f648fc3`.
 
 Next candidate:
-Reassess remaining resource/contact allocation summaries, quality-gate/readiness
-compatibility fixtures, or CandidateRefresh replay families after publishing
-this slice.
+After publishing, continue from the guide queue and favor gaps that fail a
+current verification command or show clear doc/code/test drift over duplicate
+coverage for already-pinned replay families.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
@@ -58,6 +59,5 @@ Blocked:
 No.
 
 Notes:
-Known compile warnings from existing modules remain unchanged in the focused
-test runs. The OperatorReview suite printed a transient build-directory lock
-wait while the CadenceImport suite was running in parallel, then passed.
+The original product-family candidates were skipped after live inspection showed
+the relevant behavior already implemented and tested.
