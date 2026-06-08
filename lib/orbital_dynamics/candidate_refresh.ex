@@ -2150,69 +2150,6 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "contact_allocation_report",
           "review_contact_ids"
         ),
-      "source_report_contact_allocation_station_pressure_contact_count" =>
-        source_report_summary_contact_allocation_station_pressure_contact_count(source_reports),
-      "source_report_contact_allocation_station_pressure_ground_station_counts" =>
-        source_report_summary_family_merge_count_maps(
-          source_reports,
-          "contact_allocation_report",
-          "station_pressure_ground_station_counts"
-        ),
-      "source_report_contact_allocation_station_pressure_contact_ids_by_ground_station" =>
-        source_report_summary_family_merge_string_list_map_fields(
-          source_reports,
-          "contact_allocation_report",
-          [
-            "station_pressure_contact_ids_by_ground_station_id",
-            "station_pressure_contact_ids_by_ground_station"
-          ]
-        ),
-      "source_report_contact_allocation_station_pressure_availability_counts" =>
-        source_report_summary_family_merge_count_maps(
-          source_reports,
-          "contact_allocation_report",
-          "station_pressure_availability_counts"
-        ),
-      "source_report_contact_allocation_station_pressure_contact_ids_by_availability" =>
-        source_report_summary_family_merge_string_list_maps(
-          source_reports,
-          "contact_allocation_report",
-          "station_pressure_contact_ids_by_availability"
-        ),
-      "source_report_contact_allocation_station_pressure_precedence_availability_counts" =>
-        source_report_summary_family_merge_count_maps(
-          source_reports,
-          "contact_allocation_report",
-          "station_pressure_precedence_availability_counts"
-        ),
-      "source_report_contact_allocation_station_pressure_contact_ids_by_precedence_availability" =>
-        source_report_summary_family_merge_string_list_maps(
-          source_reports,
-          "contact_allocation_report",
-          "station_pressure_contact_ids_by_precedence_availability"
-        ),
-      "source_report_contact_allocation_station_pressure_precedence_rank_counts" =>
-        source_report_summary_family_merge_count_maps(
-          source_reports,
-          "contact_allocation_report",
-          "station_pressure_precedence_rank_counts"
-        ),
-      "source_report_contact_allocation_station_pressure_contact_ids_by_precedence_rank" =>
-        source_report_summary_family_merge_string_list_maps(
-          source_reports,
-          "contact_allocation_report",
-          "station_pressure_contact_ids_by_precedence_rank"
-        ),
-      "source_report_contact_allocation_station_pressure_review_contact_count" =>
-        source_report_summary_contact_allocation_station_pressure_review_contact_count(
-          source_reports
-        ),
-      "source_report_contact_allocation_station_pressure_review_contact_ids" =>
-        source_report_summary_family_merge_string_lists(
-          source_reports,
-          "contact_allocation_report",
-          "station_pressure_review_contact_ids"
-        ),
       "source_report_contact_allocation_reservation_conflict_contact_count" =>
         source_report_summary_contact_allocation_reservation_conflict_contact_count(
           source_reports
@@ -6952,6 +6889,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         source_reports
       )
     )
+    |> Map.merge(source_report_contact_allocation_station_pressure_summary_fields(source_reports))
     |> Map.merge(source_report_contact_allocation_replay_summary_fields(source_reports))
     |> Map.merge(source_report_contact_intent_replay_summary_fields(source_reports))
     |> Map.merge(source_report_link_capacity_replay_summary_fields(source_reports))
@@ -7888,15 +7826,6 @@ defmodule OrbitalDynamics.CandidateRefresh do
     blocked_row_count = summary_integer(allocation_summary, "blocked_row_count")
     deferred_row_count = summary_integer(allocation_summary, "deferred_row_count")
 
-    station_pressure_contact_count =
-      contact_allocation_station_pressure_contact_count(allocation_summary)
-
-    station_pressure_review_contact_count =
-      contact_allocation_station_pressure_review_contact_count(allocation_summary)
-
-    station_pressure_review_contact_ids =
-      Map.get(allocation_summary, "station_pressure_review_contact_ids", [])
-
     review_contact_ids = Map.get(allocation_summary, "review_contact_ids")
 
     allocation_status_counts = Map.get(allocation_summary, "allocation_status_counts", %{})
@@ -8139,45 +8068,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
     contact_ids_by_allocation_reason =
       Map.get(allocation_summary, "contact_ids_by_allocation_reason")
 
-    station_pressure_ground_station_counts =
-      Map.get(allocation_summary, "station_pressure_ground_station_counts", %{})
-
-    station_pressure_contact_ids_by_ground_station =
-      Map.get(allocation_summary, "station_pressure_contact_ids_by_ground_station", %{})
-
-    station_pressure_availability_counts =
-      Map.get(allocation_summary, "station_pressure_availability_counts", %{})
-
-    station_pressure_contact_ids_by_availability =
-      Map.get(allocation_summary, "station_pressure_contact_ids_by_availability", %{})
-
-    station_pressure_precedence_availability_counts =
-      Map.get(allocation_summary, "station_pressure_precedence_availability_counts", %{})
-
-    station_pressure_contact_ids_by_precedence_availability =
-      Map.get(
-        allocation_summary,
-        "station_pressure_contact_ids_by_precedence_availability",
-        %{}
-      )
-
-    station_pressure_precedence_rank_counts =
-      Map.get(allocation_summary, "station_pressure_precedence_rank_counts", %{})
-
-    station_pressure_contact_ids_by_precedence_rank =
-      Map.get(allocation_summary, "station_pressure_contact_ids_by_precedence_rank", %{})
-
-    station_pressure_direction_counts =
-      Map.get(allocation_summary, "station_pressure_direction_counts")
-
-    station_pressure_contact_ids_by_direction =
-      Map.get(allocation_summary, "station_pressure_contact_ids_by_direction")
-
-    station_pressure_contact_ids_by_direction_and_station =
-      Map.get(
-        allocation_summary,
-        "station_pressure_contact_ids_by_direction_and_ground_station"
-      )
+    station_pressure_replay =
+      contact_allocation_station_pressure_replay_fields(allocation_summary)
 
     reservation_conflict_contact_count =
       case contact_allocation_reservation_conflict_contact_count(allocation_summary) do
@@ -8521,26 +8413,6 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "resource_blocked_contact_ids_by_spacecraft" => resource_blocked_contact_ids_by_spacecraft,
       "contact_ids_by_allocation_reason" => contact_ids_by_allocation_reason,
       "review_contact_ids" => review_contact_ids,
-      "station_pressure_contact_count" => station_pressure_contact_count,
-      "station_pressure_review_contact_count" => station_pressure_review_contact_count,
-      "station_pressure_review_contact_ids" => station_pressure_review_contact_ids,
-      "station_pressure_ground_station_counts" => station_pressure_ground_station_counts,
-      "station_pressure_contact_ids_by_ground_station" =>
-        station_pressure_contact_ids_by_ground_station,
-      "station_pressure_availability_counts" => station_pressure_availability_counts,
-      "station_pressure_contact_ids_by_availability" =>
-        station_pressure_contact_ids_by_availability,
-      "station_pressure_precedence_availability_counts" =>
-        station_pressure_precedence_availability_counts,
-      "station_pressure_contact_ids_by_precedence_availability" =>
-        station_pressure_contact_ids_by_precedence_availability,
-      "station_pressure_precedence_rank_counts" => station_pressure_precedence_rank_counts,
-      "station_pressure_contact_ids_by_precedence_rank" =>
-        station_pressure_contact_ids_by_precedence_rank,
-      "station_pressure_direction_counts" => station_pressure_direction_counts,
-      "station_pressure_contact_ids_by_direction" => station_pressure_contact_ids_by_direction,
-      "station_pressure_contact_ids_by_direction_and_ground_station" =>
-        station_pressure_contact_ids_by_direction_and_station,
       "reservation_conflict_contact_count" => reservation_conflict_contact_count,
       "reservation_conflict_contact_ids" => reservation_conflict_contact_ids,
       "reservation_conflict_match_status_counts" => reservation_conflict_match_status_counts,
@@ -8628,7 +8500,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "trust_boundary_status" => Map.get(allocation_summary, "trust_boundary_status"),
       "trust_boundaries" => Map.get(allocation_summary, "trust_boundaries", []),
       "branch_local_contact_allocation_pressure" =>
-        blocked_row_count + deferred_row_count + station_pressure_contact_count > 0 or
+        blocked_row_count + deferred_row_count +
+            (station_pressure_replay["station_pressure_contact_count"] || 0) > 0 or
           map_size(allocation_status_counts) > 0 or map_size(allocation_reason_counts) > 0 or
           map_size(effective_allocation_status_counts) > 0 or
           map_size(capacity_pack_status_counts) > 0 or
@@ -8672,19 +8545,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
           map_size(deferred_contact_ids_by_direction) > 0 or
           (reduced_capacity_deferred_contact_ids || []) != [],
       "branch_local_station_pressure" =>
-        station_pressure_contact_count > 0 or map_size(station_pressure_ground_station_counts) > 0 or
-          map_size(station_pressure_contact_ids_by_ground_station) > 0 or
-          map_size(station_pressure_availability_counts) > 0 or
-          map_size(station_pressure_contact_ids_by_availability) > 0 or
-          map_size(station_pressure_precedence_availability_counts) > 0 or
-          map_size(station_pressure_contact_ids_by_precedence_availability) > 0 or
-          map_size(station_pressure_precedence_rank_counts) > 0 or
-          map_size(station_pressure_contact_ids_by_precedence_rank) > 0 or
-          (station_pressure_review_contact_ids || []) != [] or
-          station_pressure_review_contact_count > 0 or
-          map_size(station_pressure_direction_counts || %{}) > 0 or
-          map_size(station_pressure_contact_ids_by_direction || %{}) > 0 or
-          map_size(station_pressure_contact_ids_by_direction_and_station || %{}) > 0,
+        contact_allocation_station_pressure_replay_pressure?(station_pressure_replay),
       "branch_local_capacity_pack_pressure" => capacity_pack_pressure,
       "branch_local_reservation_conflict_pressure" =>
         if(
@@ -8735,7 +8596,73 @@ defmodule OrbitalDynamics.CandidateRefresh do
         "candidate_generation" => "not_performed_by_summary"
       }
     }
+    |> Map.merge(station_pressure_replay)
     |> compact_map()
+  end
+
+  defp contact_allocation_station_pressure_replay_fields(allocation_summary) do
+    %{
+      "station_pressure_contact_count" =>
+        contact_allocation_station_pressure_contact_count(allocation_summary),
+      "station_pressure_review_contact_count" =>
+        contact_allocation_station_pressure_review_contact_count(allocation_summary),
+      "station_pressure_review_contact_ids" =>
+        Map.get(allocation_summary, "station_pressure_review_contact_ids"),
+      "station_pressure_ground_station_counts" =>
+        Map.get(allocation_summary, "station_pressure_ground_station_counts", %{}),
+      "station_pressure_contact_ids_by_ground_station" =>
+        Map.get(allocation_summary, "station_pressure_contact_ids_by_ground_station", %{}),
+      "station_pressure_availability_counts" =>
+        Map.get(allocation_summary, "station_pressure_availability_counts", %{}),
+      "station_pressure_contact_ids_by_availability" =>
+        Map.get(allocation_summary, "station_pressure_contact_ids_by_availability", %{}),
+      "station_pressure_precedence_availability_counts" =>
+        Map.get(allocation_summary, "station_pressure_precedence_availability_counts", %{}),
+      "station_pressure_contact_ids_by_precedence_availability" =>
+        Map.get(
+          allocation_summary,
+          "station_pressure_contact_ids_by_precedence_availability",
+          %{}
+        ),
+      "station_pressure_precedence_rank_counts" =>
+        Map.get(allocation_summary, "station_pressure_precedence_rank_counts", %{}),
+      "station_pressure_contact_ids_by_precedence_rank" =>
+        Map.get(allocation_summary, "station_pressure_contact_ids_by_precedence_rank", %{}),
+      "station_pressure_status_counts" =>
+        Map.get(allocation_summary, "station_pressure_status_counts", %{}),
+      "station_pressure_contact_ids_by_status" =>
+        Map.get(allocation_summary, "station_pressure_contact_ids_by_status", %{}),
+      "station_pressure_direction_counts" =>
+        Map.get(allocation_summary, "station_pressure_direction_counts"),
+      "station_pressure_contact_ids_by_direction" =>
+        Map.get(allocation_summary, "station_pressure_contact_ids_by_direction"),
+      "station_pressure_contact_ids_by_direction_and_ground_station" =>
+        Map.get(allocation_summary, "station_pressure_contact_ids_by_direction_and_ground_station")
+    }
+  end
+
+  defp contact_allocation_station_pressure_replay_pressure?(replay) do
+    (replay["station_pressure_contact_count"] || 0) > 0 or
+      (replay["station_pressure_review_contact_count"] || 0) > 0 or
+      (replay["station_pressure_review_contact_ids"] || []) != [] or
+      Enum.any?(
+        [
+          "station_pressure_ground_station_counts",
+          "station_pressure_contact_ids_by_ground_station",
+          "station_pressure_availability_counts",
+          "station_pressure_contact_ids_by_availability",
+          "station_pressure_precedence_availability_counts",
+          "station_pressure_contact_ids_by_precedence_availability",
+          "station_pressure_precedence_rank_counts",
+          "station_pressure_contact_ids_by_precedence_rank",
+          "station_pressure_status_counts",
+          "station_pressure_contact_ids_by_status",
+          "station_pressure_direction_counts",
+          "station_pressure_contact_ids_by_direction",
+          "station_pressure_contact_ids_by_direction_and_ground_station"
+        ],
+        &(map_size(replay[&1] || %{}) > 0)
+      )
   end
 
   @doc """
@@ -10200,6 +10127,86 @@ defmodule OrbitalDynamics.CandidateRefresh do
         Map.get(summary, "branch_local_station_reservation_pressure"),
       "source_report_contact_allocation_branch_local_provider_reservation_request_pressure" =>
         Map.get(summary, "branch_local_provider_reservation_request_pressure")
+    }
+  end
+
+  defp source_report_contact_allocation_station_pressure_summary_fields(source_reports) do
+    %{
+      "source_report_contact_allocation_station_pressure_contact_count" =>
+        source_report_summary_contact_allocation_station_pressure_contact_count(source_reports),
+      "source_report_contact_allocation_station_pressure_ground_station_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "contact_allocation_report",
+          "station_pressure_ground_station_counts"
+        ),
+      "source_report_contact_allocation_station_pressure_contact_ids_by_ground_station" =>
+        source_report_summary_family_merge_string_list_map_fields(
+          source_reports,
+          "contact_allocation_report",
+          [
+            "station_pressure_contact_ids_by_ground_station_id",
+            "station_pressure_contact_ids_by_ground_station"
+          ]
+        ),
+      "source_report_contact_allocation_station_pressure_availability_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "contact_allocation_report",
+          "station_pressure_availability_counts"
+        ),
+      "source_report_contact_allocation_station_pressure_contact_ids_by_availability" =>
+        source_report_summary_family_merge_string_list_maps(
+          source_reports,
+          "contact_allocation_report",
+          "station_pressure_contact_ids_by_availability"
+        ),
+      "source_report_contact_allocation_station_pressure_precedence_availability_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "contact_allocation_report",
+          "station_pressure_precedence_availability_counts"
+        ),
+      "source_report_contact_allocation_station_pressure_contact_ids_by_precedence_availability" =>
+        source_report_summary_family_merge_string_list_maps(
+          source_reports,
+          "contact_allocation_report",
+          "station_pressure_contact_ids_by_precedence_availability"
+        ),
+      "source_report_contact_allocation_station_pressure_precedence_rank_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "contact_allocation_report",
+          "station_pressure_precedence_rank_counts"
+        ),
+      "source_report_contact_allocation_station_pressure_contact_ids_by_precedence_rank" =>
+        source_report_summary_family_merge_string_list_maps(
+          source_reports,
+          "contact_allocation_report",
+          "station_pressure_contact_ids_by_precedence_rank"
+        ),
+      "source_report_contact_allocation_station_pressure_status_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "contact_allocation_report",
+          "station_pressure_status_counts"
+        ),
+      "source_report_contact_allocation_station_pressure_contact_ids_by_status" =>
+        source_report_summary_family_merge_string_list_maps(
+          source_reports,
+          "contact_allocation_report",
+          "station_pressure_contact_ids_by_status"
+        ),
+      "source_report_contact_allocation_station_pressure_review_contact_count" =>
+        source_report_summary_contact_allocation_station_pressure_review_contact_count(
+          source_reports
+        ),
+      "source_report_contact_allocation_station_pressure_review_contact_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "contact_allocation_report",
+          "station_pressure_review_contact_ids"
+        )
     }
   end
 
@@ -25821,6 +25828,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
         "station_pressure_contact_ids_by_availability",
         "station_pressure_contact_ids_by_precedence_availability",
         "station_pressure_contact_ids_by_precedence_rank",
+        "station_pressure_contact_ids_by_status",
         "station_pressure_contact_ids_by_direction"
       ],
       [
@@ -26950,6 +26958,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "station_pressure_contact_ids_by_precedence_rank" =>
         reports
         |> Enum.map(&contact_allocation_report_station_pressure_contact_ids_by_precedence_rank/1)
+        |> merge_string_list_maps(),
+      "station_pressure_status_counts" =>
+        reports
+        |> Enum.map(&contact_allocation_report_station_pressure_status_counts/1)
+        |> merge_count_maps(),
+      "station_pressure_contact_ids_by_status" =>
+        reports
+        |> Enum.map(&contact_allocation_report_station_pressure_contact_ids_by_status/1)
         |> merge_string_list_maps(),
       "station_pressure_direction_counts" =>
         reports
@@ -37342,6 +37358,36 @@ defmodule OrbitalDynamics.CandidateRefresh do
              Map.update(row, "station_calendar_precedence_rank", nil, &to_string/1),
              "station_calendar_precedence_rank"
            ), contact_allocation_summary_contact_id(row)}
+        end)
+        |> contact_allocation_grouped_contact_ids()
+    end
+  end
+
+  defp contact_allocation_report_station_pressure_status_counts(report) do
+    case contact_allocation_report_station_pressure_rows(report) do
+      [] ->
+        report
+        |> Map.get("station_pressure_contact_ids_by_status")
+        |> contact_allocation_id_map_counts()
+
+      rows ->
+        rows
+        |> count_contact_allocation_rows("station_calendar_status")
+    end
+  end
+
+  defp contact_allocation_report_station_pressure_contact_ids_by_status(report) do
+    case contact_allocation_report_station_pressure_rows(report) do
+      [] ->
+        report
+        |> Map.get("station_pressure_contact_ids_by_status")
+        |> map_value_lists()
+
+      rows ->
+        rows
+        |> Enum.map(fn row ->
+          {contact_allocation_capacity_pack_group_key(row, "station_calendar_status"),
+           contact_allocation_summary_contact_id(row)}
         end)
         |> contact_allocation_grouped_contact_ids()
     end
@@ -50575,6 +50621,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
         ),
       "station_pressure_contact_ids_by_precedence_rank" =>
         summary_string_list_map(summary, "station_pressure_contact_ids_by_precedence_rank"),
+      "station_pressure_contact_ids_by_status" =>
+        summary_string_list_map(summary, "station_pressure_contact_ids_by_status"),
       "station_pressure_contact_ids_by_direction" =>
         summary_string_list_map(summary, "station_pressure_contact_ids_by_direction"),
       "station_pressure_contact_ids_by_direction_and_ground_station" =>

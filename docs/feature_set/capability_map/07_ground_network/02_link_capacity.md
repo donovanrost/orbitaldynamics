@@ -314,7 +314,8 @@ does not reserve provider time, mutate schedules, or grant operator authority.
 reduced-capacity pack status count map, row-derived capacity-pack status count
 map, capacity-pack contact IDs by status, required-capacity source count and
 contact-ID maps, and station-pressure contact ID maps by ground station,
-availability, precedence availability, and precedence rank, so those routing
+availability, precedence availability, precedence rank, and station-calendar
+status, so those routing
 summaries remain visible in checked-in artifacts and schema bundles.
 
 ## Actual throughput derivation

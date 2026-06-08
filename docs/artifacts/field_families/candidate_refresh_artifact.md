@@ -451,8 +451,8 @@ It preserves the following for audit **without changing refresh selection**:
 - objective/score-term station, target, collection, and source-activity routing
   maps
 - contact-allocation station-pressure count/contact-ID maps by ground station,
-  availability, precedence availability, precedence rank, and review contact ID
-  set
+  availability, precedence availability, precedence rank, station-calendar
+  status, and review contact ID set
 - contact-allocation blocked/deferred row counts
 - contact-allocation reservation-conflict count/contact-ID maps, direction
   routing maps, and reservation IDs by match status
@@ -904,7 +904,7 @@ allocated/returned/deferred/blocked/policy-blocked contact
 	contact-ID maps, invalid-input, duplicate-contact-ID,
 	status-blocked, and resource-blocked counts and contact IDs, and
 	resource-blocked maps by dimension/spacecraft, station-pressure count/contact-ID maps by ground station, availability,
-	precedence availability, precedence rank, generic allocation-review contact IDs,
+	precedence availability, precedence rank, station-calendar status, generic allocation-review contact IDs,
 	direction counts/contact-ID maps, and station-pressure review contact IDs,
 	reservation-conflict contact IDs and reservation IDs by match status,
 	reservation-conflict direction counts/contact-ID maps,
@@ -1000,7 +1000,8 @@ Direct or result-artifact-wrapped
 family, preserving the validated
 `contact_allocation_station_pressure_summary.v1` contract, source paths, trust
 boundary, row counts, station-pressure review contact IDs, precedence
-availability/rank maps, direction maps, direction/ground-station maps, and
+availability/rank maps, station-calendar status maps, direction maps,
+direction/ground-station maps, and
 station-pressure count/contact-ID maps even when replay uses compact summary
 maps rather than reopening raw rows. This remains an artifact-only
 no-allocation/no candidate-selection boundary.
@@ -1040,8 +1041,8 @@ The public contact-allocation report publishes the validated
 `contact_allocation_report.v1` contract with exact contact-allocation
 `model_limits` pinned by executable validation and schema export.
 Flattened source-report summaries expose station-pressure contact counts and
-count maps by ground station, availability, precedence availability, and
-precedence rank alongside the corresponding contact-ID maps, preserve
+count maps by ground station, availability, precedence availability,
+precedence rank, and station-calendar status alongside the corresponding contact-ID maps, preserve
 station-pressure and reservation-conflict direction/ground-station routing, and
 they expose capacity-pack status and contact-status count maps alongside the
 capacity-pack contact-ID status maps. The public contact-allocation summary publishes the
@@ -1051,8 +1052,8 @@ fields derived from the included allocation rows and reduced-capacity pack
 groups, plus exact contact-allocation `model_limits` pinned by executable
 validation and schema export. The public station-pressure summary publishes the
 validated `contact_allocation_station_pressure_summary.v1` contract, with
-input/station-pressure/review counts, contact-ID routing, count maps, and
-review rows derived from the included allocation rows, plus exact
+input/station-pressure/review counts, contact-ID routing, status/availability
+count maps, and review rows derived from the included allocation rows, plus exact
 contact-allocation `model_limits` pinned by executable validation and schema
 export. The public
 reservation-conflict summary publishes the validated

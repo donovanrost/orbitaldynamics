@@ -570,6 +570,9 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     station_pressure_contact_ids_by_precedence_rank =
       contact_ids_by_string_field(station_pressure_rows, "station_calendar_precedence_rank")
 
+    station_pressure_contact_ids_by_status =
+      contact_ids_by_field(station_pressure_rows, "station_calendar_status")
+
     station_pressure_contact_ids_by_direction_and_ground_station_id =
       contact_ids_by_direction_and_ground_station_id(station_pressure_rows)
 
@@ -645,6 +648,9 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
           station_pressure_contact_ids_by_precedence_rank,
         "station_pressure_contact_counts_by_precedence_rank" =>
           id_set_count_map(station_pressure_contact_ids_by_precedence_rank),
+        "station_pressure_contact_ids_by_status" => station_pressure_contact_ids_by_status,
+        "station_pressure_contact_counts_by_status" =>
+          id_set_count_map(station_pressure_contact_ids_by_status),
         "station_pressure_contact_ids_by_direction_and_ground_station_id" =>
           station_pressure_contact_ids_by_direction_and_ground_station_id,
         "invalid_contact_input_count" => length(invalid_contact_inputs),
@@ -1162,6 +1168,9 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     station_pressure_contact_ids_by_precedence_rank =
       contact_ids_by_string_field(station_pressure_rows, "station_calendar_precedence_rank")
 
+    station_pressure_contact_ids_by_status =
+      contact_ids_by_field(station_pressure_rows, "station_calendar_status")
+
     station_pressure_contact_ids_by_direction_and_ground_station_id =
       contact_ids_by_direction_and_ground_station_id(station_pressure_rows)
 
@@ -1284,6 +1293,9 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
         station_pressure_contact_ids_by_precedence_rank,
       "station_pressure_contact_counts_by_precedence_rank" =>
         id_set_count_map(station_pressure_contact_ids_by_precedence_rank),
+      "station_pressure_contact_ids_by_status" => station_pressure_contact_ids_by_status,
+      "station_pressure_contact_counts_by_status" =>
+        id_set_count_map(station_pressure_contact_ids_by_status),
       "station_pressure_contact_ids_by_direction_and_ground_station_id" =>
         station_pressure_contact_ids_by_direction_and_ground_station_id,
       "station_reservation_contact_ids_by_match_status" =>
@@ -1371,6 +1383,9 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     contact_ids_by_precedence_rank =
       contact_ids_by_string_field(station_pressure_rows, "station_calendar_precedence_rank")
 
+    contact_ids_by_status =
+      contact_ids_by_field(station_pressure_rows, "station_calendar_status")
+
     contact_ids_by_direction_and_ground_station_id =
       contact_ids_by_direction_and_ground_station_id(station_pressure_rows)
 
@@ -1399,6 +1414,8 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
       "station_pressure_contact_ids_by_precedence_rank" => contact_ids_by_precedence_rank,
       "station_pressure_contact_counts_by_precedence_rank" =>
         id_set_count_map(contact_ids_by_precedence_rank),
+      "station_pressure_contact_ids_by_status" => contact_ids_by_status,
+      "station_pressure_contact_counts_by_status" => id_set_count_map(contact_ids_by_status),
       "station_pressure_contact_ids_by_direction_and_ground_station_id" =>
         contact_ids_by_direction_and_ground_station_id,
       "rows" => rows,

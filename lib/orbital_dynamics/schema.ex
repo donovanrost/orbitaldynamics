@@ -4456,6 +4456,8 @@ defmodule OrbitalDynamics.Schema do
         "station_pressure_contact_counts_by_precedence_availability",
         "station_pressure_contact_ids_by_precedence_rank",
         "station_pressure_contact_counts_by_precedence_rank",
+        "station_pressure_contact_ids_by_status",
+        "station_pressure_contact_counts_by_status",
         "station_pressure_contact_ids_by_direction_and_ground_station_id",
         "allocation_status_counts",
         "effective_allocation_status_counts",
@@ -4585,6 +4587,8 @@ defmodule OrbitalDynamics.Schema do
         "source",
         "station_reservation_expiration_now_s",
         "earliest_station_reservation_expires_at_s",
+        "station_pressure_contact_ids_by_status",
+        "station_pressure_contact_counts_by_status",
         "station_pressure_contact_ids_by_direction_and_ground_station_id",
         "model_limits"
       ],
@@ -4662,6 +4666,8 @@ defmodule OrbitalDynamics.Schema do
       ],
       "optional_fields" => [
         "source",
+        "station_pressure_contact_ids_by_status",
+        "station_pressure_contact_counts_by_status",
         "station_pressure_contact_ids_by_direction_and_ground_station_id",
         "model_limits"
       ],
@@ -14348,6 +14354,7 @@ defmodule OrbitalDynamics.Schema do
               "station_pressure_contact_ids_by_availability",
               "station_pressure_contact_ids_by_precedence_availability",
               "station_pressure_contact_ids_by_precedence_rank",
+              "station_pressure_contact_ids_by_status",
               "resource_blocked_contact_ids_by_blocking_dimension",
               "resource_blocked_contact_ids_by_spacecraft_id",
               "station_reservation_contact_ids_by_expiration_status",
@@ -14409,7 +14416,8 @@ defmodule OrbitalDynamics.Schema do
               "station_pressure_contact_counts_by_ground_station_id",
               "station_pressure_contact_counts_by_availability",
               "station_pressure_contact_counts_by_precedence_availability",
-              "station_pressure_contact_counts_by_precedence_rank"
+              "station_pressure_contact_counts_by_precedence_rank",
+              "station_pressure_contact_counts_by_status"
             ] do
     non_negative_integer_count_map_json_schema()
   end
@@ -14579,7 +14587,8 @@ defmodule OrbitalDynamics.Schema do
               "station_pressure_contact_counts_by_ground_station_id",
               "station_pressure_contact_counts_by_availability",
               "station_pressure_contact_counts_by_precedence_availability",
-              "station_pressure_contact_counts_by_precedence_rank"
+              "station_pressure_contact_counts_by_precedence_rank",
+              "station_pressure_contact_counts_by_status"
             ] do
     non_negative_integer_count_map_json_schema()
   end
@@ -14655,6 +14664,7 @@ defmodule OrbitalDynamics.Schema do
               "station_pressure_contact_ids_by_availability",
               "station_pressure_contact_ids_by_precedence_availability",
               "station_pressure_contact_ids_by_precedence_rank",
+              "station_pressure_contact_ids_by_status",
               "station_reservation_contact_ids_by_match_status",
               "station_reservation_contact_ids_by_status",
               "station_reservation_contact_ids_by_reserved_by",
@@ -14913,7 +14923,8 @@ defmodule OrbitalDynamics.Schema do
               "station_pressure_contact_ids_by_ground_station_id",
               "station_pressure_contact_ids_by_availability",
               "station_pressure_contact_ids_by_precedence_availability",
-              "station_pressure_contact_ids_by_precedence_rank"
+              "station_pressure_contact_ids_by_precedence_rank",
+              "station_pressure_contact_ids_by_status"
             ] do
     stable_id_array_map_schema()
   end
@@ -14930,7 +14941,8 @@ defmodule OrbitalDynamics.Schema do
               "station_pressure_contact_counts_by_ground_station_id",
               "station_pressure_contact_counts_by_availability",
               "station_pressure_contact_counts_by_precedence_availability",
-              "station_pressure_contact_counts_by_precedence_rank"
+              "station_pressure_contact_counts_by_precedence_rank",
+              "station_pressure_contact_counts_by_status"
             ] do
     non_negative_integer_count_map_json_schema()
   end
@@ -35475,6 +35487,15 @@ defmodule OrbitalDynamics.Schema do
     |> validate_optional_stable_id_array_map(
       path,
       report,
+      "station_pressure_contact_ids_by_status"
+    )
+    |> validate_non_negative_integer_count_map(
+      path <> ".station_pressure_contact_counts_by_status",
+      Map.get(report, "station_pressure_contact_counts_by_status")
+    )
+    |> validate_optional_stable_id_array_map(
+      path,
+      report,
       "resource_blocked_contact_ids_by_blocking_dimension"
     )
     |> validate_optional_stable_id_array_map(
@@ -50601,6 +50622,22 @@ defmodule OrbitalDynamics.Schema do
       |> id_array_count_map(),
       "must equal row-derived station_pressure_contact_counts_by_precedence_rank"
     )
+    |> expect_field_equals(
+      path,
+      report,
+      "station_pressure_contact_ids_by_status",
+      row_ids_by_field(station_pressure_rows, "station_calendar_status", "contact_id"),
+      "must equal row-derived station_pressure_contact_ids_by_status"
+    )
+    |> expect_field_equals(
+      path,
+      report,
+      "station_pressure_contact_counts_by_status",
+      station_pressure_rows
+      |> row_ids_by_field("station_calendar_status", "contact_id")
+      |> id_array_count_map(),
+      "must equal row-derived station_pressure_contact_counts_by_status"
+    )
     |> expect_optional_field_equals(
       path,
       report,
@@ -50789,6 +50826,16 @@ defmodule OrbitalDynamics.Schema do
     |> validate_nested_stable_id_array_map(
       path <> ".station_pressure_contact_ids_by_direction_and_ground_station_id",
       Map.get(summary, "station_pressure_contact_ids_by_direction_and_ground_station_id")
+    )
+    |> expect_optional_type(path, summary, "station_pressure_contact_ids_by_status", :map)
+    |> validate_stable_id_array_map(
+      path <> ".station_pressure_contact_ids_by_status",
+      Map.get(summary, "station_pressure_contact_ids_by_status")
+    )
+    |> expect_optional_type(path, summary, "station_pressure_contact_counts_by_status", :map)
+    |> validate_non_negative_integer_count_map(
+      path <> ".station_pressure_contact_counts_by_status",
+      Map.get(summary, "station_pressure_contact_counts_by_status")
     )
     |> expect_type(path, summary, "station_reservation_expires_at_s", :list)
     |> validate_number_list_items(path, summary, "station_reservation_expires_at_s")
@@ -51519,6 +51566,22 @@ defmodule OrbitalDynamics.Schema do
       |> row_ids_by_string_field("station_calendar_precedence_rank", "contact_id")
       |> id_array_count_map(),
       "must equal row-derived station_pressure_contact_counts_by_precedence_rank"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "station_pressure_contact_ids_by_status",
+      row_ids_by_field(station_pressure_rows, "station_calendar_status", "contact_id"),
+      "must equal row-derived station_pressure_contact_ids_by_status"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "station_pressure_contact_counts_by_status",
+      station_pressure_rows
+      |> row_ids_by_field("station_calendar_status", "contact_id")
+      |> id_array_count_map(),
+      "must equal row-derived station_pressure_contact_counts_by_status"
     )
     |> expect_optional_field_equals(
       path,
@@ -52330,6 +52393,9 @@ defmodule OrbitalDynamics.Schema do
         "contact_id"
       )
 
+    ids_by_status =
+      row_ids_by_field(station_pressure_rows, "station_calendar_status", "contact_id")
+
     issues
     |> expect_field_equals(path, summary, "input_contact_count", length(rows))
     |> expect_field_equals(
@@ -52415,6 +52481,20 @@ defmodule OrbitalDynamics.Schema do
       "station_pressure_contact_counts_by_precedence_rank",
       id_array_count_map(ids_by_precedence_rank),
       "must equal row-derived station_pressure_contact_counts_by_precedence_rank"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "station_pressure_contact_ids_by_status",
+      ids_by_status,
+      "must equal row-derived station_pressure_contact_ids_by_status"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "station_pressure_contact_counts_by_status",
+      id_array_count_map(ids_by_status),
+      "must equal row-derived station_pressure_contact_counts_by_status"
     )
     |> expect_optional_field_equals(
       path,

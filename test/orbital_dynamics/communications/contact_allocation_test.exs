@@ -6803,6 +6803,12 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              "station_pressure_contact_counts_by_precedence_rank" => %{
                "0" => 1
              },
+             "station_pressure_contact_ids_by_status" => %{
+               "maintenance_window" => ["dl_direct_unavailable"]
+             },
+             "station_pressure_contact_counts_by_status" => %{
+               "maintenance_window" => 1
+             },
              "station_pressure_contact_ids_by_direction_and_ground_station_id" => %{
                "downlink" => %{
                  "equator_prime" => [
@@ -6828,6 +6834,12 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              "station_pressure_contact_ids_by_precedence_rank" => %{
                "0" => ["dl_direct_unavailable"]
              },
+             "station_pressure_contact_ids_by_status" => %{
+               "maintenance_window" => ["dl_direct_unavailable"]
+             },
+             "station_pressure_contact_counts_by_status" => %{
+               "maintenance_window" => 1
+             },
              "station_pressure_contact_ids_by_direction_and_ground_station_id" => %{
                "downlink" => %{
                  "equator_prime" => [
@@ -6841,6 +6853,19 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
 
     assert {:ok, %{"schema_contract" => "contact_allocation_report.v1"}} =
              Schema.validate_artifact(report)
+
+    assert %{
+             "schema_contract" => "contact_allocation_station_pressure_summary.v1",
+             "station_pressure_contact_ids_by_status" => %{
+               "maintenance_window" => ["dl_direct_unavailable"]
+             },
+             "station_pressure_contact_counts_by_status" => %{
+               "maintenance_window" => 1
+             }
+           } = station_pressure_summary = ContactAllocation.station_pressure_summary(report)
+
+    assert {:ok, %{"schema_contract" => "contact_allocation_station_pressure_summary.v1"}} =
+             Schema.validate_artifact(station_pressure_summary)
 
     stale_precedence_rank_report =
       Map.put(report, "station_pressure_contact_ids_by_precedence_rank", %{
@@ -6886,6 +6911,21 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
                  "$.station_pressure_contact_ids_by_direction_and_ground_station_id" and
                  &1["message"] ==
                    "must equal row-derived station_pressure_contact_ids_by_direction_and_ground_station_id")
+           )
+
+    stale_status_report =
+      Map.put(report, "station_pressure_contact_ids_by_status", %{
+        "maintenance_window" => ["dl_direct_reserved"]
+      })
+
+    assert {:error, stale_status_validation} =
+             Schema.validate_artifact(stale_status_report)
+
+    assert Enum.any?(
+             stale_status_validation["errors"],
+             &(&1["path"] == "$.station_pressure_contact_ids_by_status" and
+                 &1["message"] ==
+                   "must equal row-derived station_pressure_contact_ids_by_status")
            )
   end
 

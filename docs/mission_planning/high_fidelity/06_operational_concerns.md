@@ -175,7 +175,7 @@ summary, plus reservation-conflict and provider-reservation request summary
 selected/deferred demand and
 all-contact plus selected/deferred contact IDs by station for candidate-refresh replay queues, plus station-pressure contact IDs by
 ground station, availability, precedence availability, precedence rank, and
-review requirement, plus generic allocation-review contact IDs for
+station-calendar status, and review requirement, plus generic allocation-review contact IDs for
 candidate-refresh replay queues, plus
 station-reservation status and reservation owner, plus reservation ID sets by
 match status, status, and owner, with reservation-conflict contact IDs and

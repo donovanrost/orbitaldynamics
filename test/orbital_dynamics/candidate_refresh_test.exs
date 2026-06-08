@@ -6089,7 +6089,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
             "station_calendar_overlap_count" => 1,
             "station_calendar_overlap_availabilities" => ["reserved"],
             "station_calendar_precedence_availability" => "reduced_capacity",
-            "station_calendar_precedence_rank" => 2
+            "station_calendar_precedence_rank" => 2,
+            "station_calendar_status" => "maintenance_window"
           },
           %{
             "contact_id" => "blocked_contact",
@@ -6208,6 +6209,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         },
         "station_pressure_contact_ids_by_precedence_rank" => %{
           "99" => ["stale_station_pressure_contact"]
+        },
+        "station_pressure_contact_ids_by_status" => %{
+          "stale_status" => ["stale_station_pressure_contact"]
         },
         "station_pressure_review_contact_count" => 99,
         "station_pressure_review_contact_ids" => ["stale_station_pressure_review_contact"],
@@ -6426,6 +6430,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              },
              "source_report_contact_allocation_station_pressure_contact_ids_by_precedence_rank" =>
                %{"2" => ["station_pressure_contact"]},
+             "source_report_contact_allocation_station_pressure_status_counts" => %{
+               "maintenance_window" => 1
+             },
+             "source_report_contact_allocation_station_pressure_contact_ids_by_status" => %{
+               "maintenance_window" => ["station_pressure_contact"]
+             },
              "source_report_contact_allocation_station_pressure_direction_counts" => %{
                "command" => 1
              },
@@ -6579,6 +6589,12 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  },
                  "station_pressure_contact_ids_by_precedence_rank" => %{
                    "2" => ["station_pressure_contact"]
+                 },
+                 "station_pressure_status_counts" => %{
+                   "maintenance_window" => 1
+                 },
+                 "station_pressure_contact_ids_by_status" => %{
+                   "maintenance_window" => ["station_pressure_contact"]
                  },
                  "station_pressure_direction_counts" => %{
                    "command" => 1
@@ -6759,6 +6775,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "station_pressure_contact_ids_by_precedence_rank" => %{
         "2" => ["station_pressure_contact"]
       },
+      "station_pressure_status_counts" => %{"maintenance_window" => 1},
+      "station_pressure_contact_ids_by_status" => %{
+        "maintenance_window" => ["station_pressure_contact"]
+      },
       "station_pressure_direction_counts" => %{"command" => 1},
       "station_pressure_contact_ids_by_direction" => %{
         "command" => ["station_pressure_contact"]
@@ -6913,6 +6933,9 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                %{"reduced_capacity" => ["station_pressure_contact"]},
              "source_report_contact_allocation_station_pressure_contact_ids_by_precedence_rank" =>
                %{"2" => ["station_pressure_contact"]},
+             "source_report_contact_allocation_station_pressure_contact_ids_by_status" => %{
+               "maintenance_window" => ["station_pressure_contact"]
+             },
              "source_report_contact_allocation_station_pressure_review_contact_count" => 1,
              "source_report_contact_allocation_station_pressure_review_contact_ids" => [
                "station_pressure_contact"
@@ -57478,7 +57501,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "station_calendar_entry_id" => "station_reserved_1",
       "station_calendar_overlap_availabilities" => ["reserved"],
       "station_calendar_precedence_availability" => "reserved",
-      "station_calendar_precedence_rank" => 2
+      "station_calendar_precedence_rank" => 2,
+      "station_calendar_status" => "reserved"
     }
 
     %{
@@ -57503,6 +57527,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       "station_pressure_contact_counts_by_precedence_availability" => %{"reserved" => 1},
       "station_pressure_contact_ids_by_precedence_rank" => %{"2" => ["dl_station_pressure"]},
       "station_pressure_contact_counts_by_precedence_rank" => %{"2" => 1},
+      "station_pressure_contact_ids_by_status" => %{"reserved" => ["dl_station_pressure"]},
+      "station_pressure_contact_counts_by_status" => %{"reserved" => 1},
       "station_pressure_contact_ids_by_direction" => %{
         "downlink" => ["dl_station_pressure"]
       },
