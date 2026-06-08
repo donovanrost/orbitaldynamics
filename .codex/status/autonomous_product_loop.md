@@ -5,46 +5,46 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Make station-reservation review summaries branch-visible.
+Make prior-plan readiness and quality gates branch-visible.
 
 Status:
 Implemented and parent-verified.
-`station_reservation_review_summary.v1` handoffs now derive planner-visible
-station-reservation and provider-contention pressure with reservation owner,
-status, expiration, contact, station, trust-boundary, and artifact-only
-no-authority evidence.
+V1 campaign artifacts attach `operational_readiness_report.v1` and
+`quality_gate_report.v1`; those prior-plan reports now derive V3
+operational-readiness and quality-gate pressure branches with source-path and
+trust-boundary provenance.
 
 Slice-selection note:
-- Selected slice: derive branch-local station-reservation pressure from
-  `station_reservation_review_summary.v1` handoffs.
-- Why this slice: review summaries are the compact Cadence-facing contract for
-  reservation overlap, owner, status, expiration, and provider-contention triage;
-  CandidateRefresh replays the evidence, but strategy branch scoring still
-  requires raw station-calendar/reservation rows or only carries source paths.
-- Level 6 pillar: fleet-level station-calendar and allocation behavior,
-  approval-aware provider boundaries, and reproducible branch trees from compact
-  operational evidence.
-- Current evidence gap: direct/canonical station-reservation review summaries
-  are not preserved by strategy mission-state normalization, and compact review
-  rows do not generate derived station-reservation pressure branches.
+- Selected slice: derive branch-local operational-readiness and quality-gate
+  pressure from prior-plan artifacts.
+- Why this slice: the maturity roadmap now prioritizes making existing
+  readiness/quality evidence planner-visible; V1 already attaches the reports,
+  and mission-state copies already score, but a prior V1/V2 artifact can carry
+  readiness blocks into V3 without affecting branch recommendations.
+- Level 6 pillar: approval-aware automation boundaries, import readiness, and
+  reproducible branch trees with explainable score terms.
+- Current evidence gap: strategy derives mission-state readiness/quality-gate
+  branches but not prior-plan readiness/quality-gate branches from attached V1
+  reports.
 - Docs read:
   `docs/autonomous_work_guide.md`,
   `.codex/prompts/long_running_context_efficient_product_loop.md`,
-  `docs/feature_set/capability_map/07_ground_network_and_communications_planning.md`,
-  `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`,
-  `docs/feature_set/capability_map/07_ground_network/06_status_summary.md`,
-  `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`,
-  `docs/artifacts/field_families/candidate_refresh_artifact.md`.
+  `docs/feature_set/completeness_levels/06_mature_operational_platform.md`,
+  `docs/feature_set/definition_of_feature_complete.md`,
+  `docs/feature_set/current_capability_snapshot.md`,
+  `docs/feature_set/recommended_roadmap.md`,
+  `docs/feature_set/capability_map/17_reproducibility_artifacts_and_audit.md`,
+  `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`,
+  `docs/mission_planning/high_fidelity/12_operational_readiness.md`.
 - Likely files: `lib/orbital_dynamics/campaign_planner.ex`,
   `test/orbital_dynamics/campaign_planner_test.exs`,
   `.codex/status/autonomous_product_loop.md`.
-- Definition of done: direct/canonical/result-artifact review summaries create
-  branch-local reservation/provider-contention pressure retaining source paths,
-  trust boundaries, reservation IDs, contact IDs, station IDs, owner/status and
-  expiration evidence, and no-provider-write/no-schedule-mutation boundaries;
-  events affect risk/scoring/comparison without reserving provider time,
-  mutating station calendars, or granting operator/provider authority; focused
-  tests, compile, and whitespace checks pass.
+- Definition of done: prior-plan direct and result-artifact readiness and
+  quality-gate reports create branch-local pressure retaining source paths,
+  gate IDs, readiness levels, gate status/classification/reasons, trust
+  boundaries, no-Cadence-write/no-authority assumptions, risk indicators, score
+  penalties, branch comparison rows, and CandidateRefresh source-report
+  provenance; focused tests, compile, and whitespace checks pass.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -53,33 +53,31 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs .codex/status/autonomous_product_loop.md`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:20667` (1 passed, 678 excluded)
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:20667 test/orbital_dynamics/candidate_refresh_test.exs:34975` (2 passed, 1418 excluded)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:43944` (1 passed, 679 excluded)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:43671 test/orbital_dynamics/campaign_planner_test.exs:43944 test/orbital_dynamics/campaign_planner_test.exs:44192 test/orbital_dynamics/campaign_planner_test.exs:44274` (4 passed, 676 excluded)
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- None expected; this is a planner/test slice for an existing
-  station-reservation review summary artifact.
+None expected; this is a planner/test slice for existing operational-readiness
+and quality-gate artifacts.
 
 Local review:
-- Direct, canonical, and result-artifact
-  `station_reservation_review_summary.v1` inputs now feed derived
-  station-reservation and provider-contention pressure.
-- Summary-derived reservation pressure events carry reservation IDs,
-  contact/station IDs, owner/status, expiration status/deadline, required
-  operator action, source paths, and trust boundaries.
-- Strategy mission-state normalization now preserves direct and canonical review
-  summary fields alongside existing result-artifact wrappers.
-- Branch comparison rows expose `ground_station_reserved` risk types and score
-  penalties without reserving provider time, mutating station calendars, or
-  granting operator/provider authority.
+- Prior-plan direct and result-artifact-wrapped readiness reports now feed the
+  same branch pressure event builder as mission-state readiness reports.
+- Prior-plan direct and result-artifact-wrapped quality-gate reports and compact
+  summaries now feed quality-gate pressure branches.
+- Branch candidate-source path collection now accepts `prior_plan.*` feedback
+  paths alongside `mission_state.*`, so generated branch provenance records the
+  prior-plan report root without opening Cadence write/import authority.
+- Regression coverage verifies readiness/quality events, risk penalties,
+  comparison risk types, source paths, inherited result-artifact trust
+  boundaries, and schema validation.
 
 Level 6 pillar advanced:
-Compact Cadence-facing reservation review summaries now affect V2/V3 branch
-scoring and comparison without reopening full station-reservation reports,
-mutating schedules, writing provider reservations, or granting operator/provider
-authority.
+Attached V1/V2 readiness and quality-gate evidence now affects V3 branch
+scoring and comparison directly, preserving artifact-only no-execution,
+no-Cadence-write, and no-operator-authority boundaries.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -89,10 +87,11 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`4904a47` Derive reservation review summary pressure.
+Pending product commit for prior-plan readiness and quality-gate pressure.
 
 Next candidate:
-Reinspect live code for the next planner-visible resource/contact evidence gap.
+Reinspect live code for the next planner-visible readiness/resource signal or
+challenge fixture gap.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
@@ -108,22 +107,10 @@ Previous published slices:
   pressure branches.
 - `157220f` added contradictory reservation/contact-allocation challenge coverage.
 - `a0d04e3` derived import-readiness quality-gate summary pressure.
-- `b72180e` derived schema-validation quality-gate summary pressure.
-- `fcd9a35` derived operator-training quality-gate summary pressure.
-- `9bfadda` derived unavailable-resource quality-gate summary pressure.
-- `13e927a` derived quality-gate summary pressure branches.
-- `482bcf2` derived counteroffer plan-impact pressure branches.
-- `1b5bbb8` derived provider reservation request pressure branches.
-- `4796e0e` rejected stale lifecycle-state protection evidence.
-- `9fdfb3a` derived timeline publication summary pressure branches.
-- `9c45b20` derived timeline dependency-impact summary pressure branches.
-- `b9fed8e` derived timeline-integrity report pressure branches.
-- `7ebe694` derived prior-plan contact-allocation summary pressure branches.
-- `a97d1ca` derived mission-state contact-allocation summary pressure branches.
-- `27ab76f` added hold import-readiness direction routing.
-- `cb62212` flattened reservation-conflict direction handoffs.
-- `cd331cf` flattened station-pressure direction handoffs.
-- `0c7c0e2` flattened capacity-pack direction handoffs.
+- Earlier published slices covered schema-validation, operator-training,
+  unavailable-resource, provider-counteroffer/reservation, lifecycle,
+  publication/dependency/integrity, contact-allocation, and direction-routing
+  pressure paths.
 
 Blocked:
 No.

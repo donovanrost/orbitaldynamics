@@ -43941,6 +43941,254 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives prior-plan readiness and quality gates as branch pressure" do
+    readiness_report = fn prefix, classification, status, trust_boundary ->
+      %{
+        "schema_contract" => "operational_readiness_report.v1",
+        "schema_version" => 1,
+        "model" => "artifact_only_operational_readiness_classifier",
+        "report_id" => "operational_readiness:planned_activity.v1:#{prefix}",
+        "source_artifact_type" => "planned_activity.v1",
+        "source_artifact_id" => "#{prefix}_activity",
+        "readiness_level" =>
+          case classification do
+            "blocked" -> "blocked"
+            "analysis_only" -> "analysis_only"
+            "review_only" -> "operator_review"
+          end,
+        "import_classification" => classification,
+        "status" => status,
+        "gate_count" => 1,
+        "passed_gate_count" => 0,
+        "review_gate_count" => if(status == "review_required", do: 1, else: 0),
+        "analysis_gate_count" => if(status == "analysis_only", do: 1, else: 0),
+        "blocked_gate_count" => if(status == "blocked", do: 1, else: 0),
+        "gates" => [
+          %{
+            "id" => "operator_training",
+            "status" => status,
+            "classification" => classification,
+            "reason" => "#{prefix} operator training requires review",
+            "operator_training_requirement_count" => 1,
+            "operator_training_requirement_counts" => %{"training" => 1},
+            "required_training_ids" => ["#{prefix}_training"]
+          }
+        ],
+        "evidence" => %{},
+        "assumptions" => %{"execution_boundary" => "artifact_only_no_cadence_write"},
+        "model_limits" => ["artifact_only"],
+        "provenance" => %{"trust_boundary" => trust_boundary}
+      }
+    end
+
+    quality_gate_report = fn prefix, classification, status, trust_boundary ->
+      passive_quality_gate_report()
+      |> Map.merge(%{
+        "report_id" => "quality_gate:resource_projection_report.v1:#{prefix}",
+        "source_artifact_type" => "resource_projection_report.v1",
+        "source_artifact_id" => "#{prefix}_resource_projection",
+        "source_readiness_report_id" =>
+          "operational_readiness:resource_projection_report.v1:#{prefix}",
+        "readiness_level" =>
+          case classification do
+            "blocked" -> "blocked"
+            "analysis_only" -> "analysis_only"
+            "review_only" -> "operator_review"
+          end,
+        "import_classification" => classification,
+        "status" => status,
+        "gate_count" => 1,
+        "passed_gate_count" => 0,
+        "review_gate_count" => if(status == "review_required", do: 1, else: 0),
+        "analysis_gate_count" => if(status == "analysis_only", do: 1, else: 0),
+        "blocked_gate_count" => if(status == "blocked", do: 1, else: 0),
+        "provenance" => %{"trust_boundary" => trust_boundary},
+        "rows" => [
+          %{
+            "id" => "quality_gate:#{prefix}:resource_availability:1",
+            "rank" => 1,
+            "gate_id" => "resource_availability",
+            "status" => status,
+            "classification" => classification,
+            "reason" => "#{prefix} resource availability requires review",
+            "resource_availability_pressure_count" => 1,
+            "resource_availability_reason_counts" => %{"payload_unavailable" => 1},
+            "resource_availability_reason_ids" => ["payload_unavailable"],
+            "unavailable_resource_reason_ids" => ["payload_unavailable"]
+          }
+        ]
+      })
+    end
+
+    direct_readiness =
+      readiness_report.(
+        "prior_direct",
+        "review_only",
+        "review_required",
+        "prior_plan_readiness_boundary"
+      )
+
+    wrapped_readiness =
+      readiness_report.(
+        "prior_wrapped",
+        "analysis_only",
+        "analysis_only",
+        "wrapped_readiness_boundary"
+      )
+
+    direct_quality_gate =
+      quality_gate_report.(
+        "prior_direct",
+        "blocked",
+        "blocked",
+        "prior_plan_quality_boundary"
+      )
+
+    wrapped_quality_gate =
+      quality_gate_report.(
+        "prior_wrapped",
+        "review_only",
+        "review_required",
+        "wrapped_quality_boundary"
+      )
+
+    prior_plan =
+      base_plan(%{})
+      |> Map.put("source_operational_readiness_report", direct_readiness)
+      |> Map.put("quality_gate_report", direct_quality_gate)
+      |> Map.put("result_artifact", %{
+        "schema_contract" => "result_artifact.v1",
+        "artifact_type" => "prior_plan_readiness_quality_wrapper",
+        "source_operational_readiness_report" => Map.delete(wrapped_readiness, "provenance"),
+        "source_quality_gate_report" => Map.delete(wrapped_quality_gate, "provenance"),
+        "provenance" => %{"trust_boundary" => "prior_plan_result_artifact_boundary"}
+      })
+
+    artifact =
+      strategy(prior_plan,
+        mission_state: mission_state_with_refresh_inputs(),
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    direct_readiness_branch =
+      Enum.find(artifact["branches"], fn branch ->
+        String.starts_with?(branch["branch_id"], "derived_operational_readiness_pressure_") and
+          Enum.any?(
+            branch["events"] || [],
+            &(&1["type"] == "operational_readiness_pressure" and
+                &1["source_artifact_id"] == "prior_direct_activity" and
+                &1["feedback_source"] == "prior_plan.source_operational_readiness_report.gates")
+          )
+      end)
+
+    wrapped_readiness_branch =
+      Enum.find(artifact["branches"], fn branch ->
+        String.starts_with?(branch["branch_id"], "derived_operational_readiness_pressure_") and
+          Enum.any?(
+            branch["events"] || [],
+            &(&1["type"] == "operational_readiness_pressure" and
+                &1["source_artifact_id"] == "prior_wrapped_activity" and
+                &1["feedback_source"] ==
+                  "prior_plan.result_artifact.source_operational_readiness_report.gates")
+          )
+      end)
+
+    direct_quality_branch =
+      Enum.find(artifact["branches"], fn branch ->
+        String.starts_with?(branch["branch_id"], "derived_quality_gate_pressure_") and
+          Enum.any?(
+            branch["events"] || [],
+            &(&1["type"] == "quality_gate_pressure" and
+                &1["source_artifact_id"] == "prior_direct_resource_projection")
+          )
+      end)
+
+    wrapped_quality_branch =
+      Enum.find(artifact["branches"], fn branch ->
+        String.starts_with?(branch["branch_id"], "derived_quality_gate_pressure_") and
+          Enum.any?(
+            branch["events"] || [],
+            &(&1["type"] == "quality_gate_pressure" and
+                &1["source_artifact_id"] == "prior_wrapped_resource_projection")
+          )
+      end)
+
+    assert direct_readiness_branch
+    assert wrapped_readiness_branch
+    assert direct_quality_branch
+    assert wrapped_quality_branch
+
+    assert %{
+             "type" => "operational_readiness_pressure",
+             "readiness_gate_id" => "operator_training",
+             "readiness_gate_status" => "review_required",
+             "feedback_source" => "prior_plan.source_operational_readiness_report.gates",
+             "trust_boundary" => "prior_plan_readiness_boundary",
+             "required_training_ids" => ["prior_direct_training"]
+           } = List.first(direct_readiness_branch["events"])
+
+    assert %{
+             "type" => "operational_readiness_pressure",
+             "readiness_gate_status" => "analysis_only",
+             "feedback_source" =>
+               "prior_plan.result_artifact.source_operational_readiness_report.gates",
+             "trust_boundary" => "prior_plan_result_artifact_boundary"
+           } = List.first(wrapped_readiness_branch["events"])
+
+    assert %{
+             "type" => "quality_gate_pressure",
+             "gate_id" => "resource_availability",
+             "gate_status" => "blocked",
+             "feedback_source" => "prior_plan.quality_gate_report.rows",
+             "trust_boundary" => "prior_plan_quality_boundary",
+             "resource_availability_reason_counts" => %{"payload_unavailable" => 1}
+           } = List.first(direct_quality_branch["events"])
+
+    assert %{
+             "type" => "quality_gate_pressure",
+             "gate_id" => "resource_availability",
+             "gate_status" => "review_required",
+             "feedback_source" => "prior_plan.result_artifact.source_quality_gate_report.rows",
+             "trust_boundary" => "prior_plan_result_artifact_boundary"
+           } = List.first(wrapped_quality_branch["events"])
+
+    assert direct_readiness_branch["score_terms"]["risk_penalty"] < 0.0
+    assert direct_quality_branch["score_terms"]["risk_penalty"] < 0.0
+
+    comparison_rows =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.filter(
+        &(Map.get(&1, "branch_id") in [
+            direct_readiness_branch["branch_id"],
+            wrapped_readiness_branch["branch_id"],
+            direct_quality_branch["branch_id"],
+            wrapped_quality_branch["branch_id"]
+          ])
+      )
+
+    assert Enum.any?(
+             comparison_rows,
+             &("operational_readiness_pressure" in &1["risk_types"])
+           )
+
+    assert Enum.any?(comparison_rows, &("quality_gate_pressure" in &1["risk_types"]))
+
+    assert "prior_plan.source_operational_readiness_report" in get_in(
+             direct_readiness_branch,
+             ["assumptions", "candidate_source", "source_report_input_paths"]
+           )
+
+    assert "prior_plan.quality_gate_report" in get_in(
+             direct_quality_branch,
+             ["assumptions", "candidate_source", "source_report_input_paths"]
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy preserves operator-training readiness gate context in branch events" do
     readiness_report =
       %{

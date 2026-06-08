@@ -5675,7 +5675,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Kernel.++(derived_mission_state_candidate_rejection_pressure_branches(mission_state))
       |> Kernel.++(derived_mission_state_provider_counteroffer_pressure_branches(mission_state))
       |> Kernel.++(derived_mission_state_schema_validation_pressure_branches(mission_state))
+      |> Kernel.++(derived_operational_readiness_pressure_branches(prior_plan))
       |> Kernel.++(derived_mission_state_operational_readiness_pressure_branches(mission_state))
+      |> Kernel.++(derived_quality_gate_pressure_branches(prior_plan))
       |> Kernel.++(derived_mission_state_quality_gate_pressure_branches(mission_state))
       |> Kernel.++(derived_mission_state_model_acceptance_pressure_branches(mission_state))
       |> Kernel.++(derived_mission_state_validation_safety_case_pressure_branches(mission_state))
@@ -28914,9 +28916,20 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> branch_id_fragment()
   end
 
+  defp derived_operational_readiness_pressure_branches(prior_plan) do
+    prior_plan
+    |> prior_plan_operational_readiness_pressure_sources()
+    |> operational_readiness_pressure_branches_from_sources()
+  end
+
   defp derived_mission_state_operational_readiness_pressure_branches(mission_state) do
     mission_state
     |> mission_state_operational_readiness_pressure_sources()
+    |> operational_readiness_pressure_branches_from_sources()
+  end
+
+  defp operational_readiness_pressure_branches_from_sources(sources) do
+    sources
     |> Enum.flat_map(fn {report, source_path} ->
       trust_boundary =
         Map.get(report, "trust_boundary") || get_in(report, ["provenance", "trust_boundary"])
@@ -28953,6 +28966,81 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp mission_state_operational_readiness_pressure_sources(mission_state) do
     mission_state_operational_readiness_reports(mission_state) ++
       mission_state_operational_readiness_gate_summaries(mission_state)
+  end
+
+  defp prior_plan_operational_readiness_pressure_sources(prior_plan) do
+    prior_plan_operational_readiness_reports(prior_plan) ++
+      prior_plan_operational_readiness_gate_summaries(prior_plan)
+  end
+
+  defp prior_plan_operational_readiness_reports(prior_plan) do
+    prior_plan = stringify_keys(prior_plan || %{})
+
+    direct_reports =
+      [
+        {"source_operational_readiness_report", "prior_plan.source_operational_readiness_report"},
+        {"operational_readiness_report", "prior_plan.operational_readiness_report"}
+      ]
+      |> Enum.flat_map(fn {field, source_path} ->
+        prior_plan
+        |> Map.get(field)
+        |> mission_state_source_report_entries(source_path)
+      end)
+
+    direct_reports ++
+      prior_plan_result_artifact_operational_readiness_reports(prior_plan)
+  end
+
+  defp prior_plan_operational_readiness_gate_summaries(prior_plan) do
+    prior_plan = stringify_keys(prior_plan || %{})
+
+    direct_summaries =
+      [
+        {"source_operational_readiness_gate_summary",
+         "prior_plan.source_operational_readiness_gate_summary"},
+        {"operational_readiness_gate_summary", "prior_plan.operational_readiness_gate_summary"}
+      ]
+      |> Enum.flat_map(fn {field, source_path} ->
+        prior_plan
+        |> Map.get(field)
+        |> mission_state_source_report_entries(source_path)
+      end)
+
+    direct_summaries ++
+      prior_plan_result_artifact_operational_readiness_gate_summaries(prior_plan)
+  end
+
+  defp prior_plan_result_artifact_operational_readiness_gate_summaries(prior_plan) do
+    prior_plan
+    |> prior_plan_result_artifacts_with_source()
+    |> Enum.flat_map(fn {artifact, source_path} ->
+      result_artifact_operational_readiness_gate_summaries(artifact, source_path)
+    end)
+  end
+
+  defp prior_plan_result_artifact_operational_readiness_reports(prior_plan) do
+    prior_plan
+    |> prior_plan_result_artifacts_with_source()
+    |> Enum.flat_map(fn {artifact, source_path} ->
+      result_artifact_operational_readiness_reports(artifact, source_path)
+    end)
+  end
+
+  defp result_artifact_operational_readiness_reports(artifact, source_path) do
+    artifact = stringify_keys(artifact)
+
+    if artifact["schema_contract"] == "operational_readiness_report.v1" do
+      [{put_inherited_result_artifact_trust_boundary(artifact, artifact), source_path}]
+    else
+      ["source_operational_readiness_report", "operational_readiness_report"]
+      |> Enum.flat_map(fn report_key ->
+        result_artifact_embedded_report_entries(
+          Map.get(artifact, report_key),
+          artifact,
+          "#{source_path}.#{report_key}"
+        )
+      end)
+    end
   end
 
   defp operational_readiness_pressure_rows(report) do
@@ -29205,6 +29293,102 @@ defmodule OrbitalDynamics.CampaignPlanner do
       mission_state_quality_gate_summary_reports(mission_state)
   end
 
+  defp prior_plan_quality_gate_pressure_sources(prior_plan) do
+    prior_plan_quality_gate_reports(prior_plan) ++
+      prior_plan_quality_gate_summary_reports(prior_plan)
+  end
+
+  defp prior_plan_quality_gate_reports(prior_plan) do
+    prior_plan = stringify_keys(prior_plan || %{})
+
+    direct_reports =
+      [
+        {"source_quality_gate_report", "prior_plan.source_quality_gate_report"},
+        {"quality_gate_report", "prior_plan.quality_gate_report"}
+      ]
+      |> Enum.flat_map(fn {field, source_path} ->
+        prior_plan
+        |> Map.get(field)
+        |> mission_state_source_report_entries(source_path)
+      end)
+
+    direct_reports ++ prior_plan_result_artifact_quality_gate_reports(prior_plan)
+  end
+
+  defp prior_plan_quality_gate_summary_reports(prior_plan) do
+    prior_plan = stringify_keys(prior_plan || %{})
+
+    direct_reports =
+      [
+        {"source_operational_quality_gate_summary",
+         "prior_plan.source_operational_quality_gate_summary"},
+        {"operational_quality_gate_summary", "prior_plan.operational_quality_gate_summary"},
+        {"source_operational_quality_gate_unavailable_resource_summary",
+         "prior_plan.source_operational_quality_gate_unavailable_resource_summary"},
+        {"operational_quality_gate_unavailable_resource_summary",
+         "prior_plan.operational_quality_gate_unavailable_resource_summary"},
+        {"source_operational_quality_gate_operator_training_summary",
+         "prior_plan.source_operational_quality_gate_operator_training_summary"},
+        {"operational_quality_gate_operator_training_summary",
+         "prior_plan.operational_quality_gate_operator_training_summary"},
+        {"source_operational_quality_gate_schema_validation_summary",
+         "prior_plan.source_operational_quality_gate_schema_validation_summary"},
+        {"operational_quality_gate_schema_validation_summary",
+         "prior_plan.operational_quality_gate_schema_validation_summary"},
+        {"source_operational_quality_gate_import_readiness_summary",
+         "prior_plan.source_operational_quality_gate_import_readiness_summary"},
+        {"operational_quality_gate_import_readiness_summary",
+         "prior_plan.operational_quality_gate_import_readiness_summary"}
+      ]
+      |> Enum.flat_map(fn {field, source_path} ->
+        prior_plan
+        |> Map.get(field)
+        |> mission_state_source_report_entries(source_path)
+      end)
+
+    direct_reports ++ prior_plan_result_artifact_quality_gate_summary_reports(prior_plan)
+  end
+
+  defp prior_plan_result_artifact_quality_gate_reports(prior_plan) do
+    prior_plan
+    |> prior_plan_result_artifacts_with_source()
+    |> Enum.flat_map(fn {artifact, source_path} ->
+      result_artifact_quality_gate_reports(artifact, source_path)
+    end)
+  end
+
+  defp result_artifact_quality_gate_reports(artifact, source_path) do
+    artifact = stringify_keys(artifact)
+
+    if artifact["schema_contract"] == "quality_gate_report.v1" do
+      [{put_inherited_result_artifact_trust_boundary(artifact, artifact), source_path}]
+    else
+      ["source_quality_gate_report", "quality_gate_report"]
+      |> Enum.flat_map(fn report_key ->
+        result_artifact_embedded_report_entries(
+          Map.get(artifact, report_key),
+          artifact,
+          "#{source_path}.#{report_key}"
+        )
+      end)
+    end
+  end
+
+  defp prior_plan_result_artifact_quality_gate_summary_reports(prior_plan) do
+    prior_plan_result_artifact_embedded_reports(prior_plan, [
+      "source_operational_quality_gate_summary",
+      "operational_quality_gate_summary",
+      "source_operational_quality_gate_unavailable_resource_summary",
+      "operational_quality_gate_unavailable_resource_summary",
+      "source_operational_quality_gate_operator_training_summary",
+      "operational_quality_gate_operator_training_summary",
+      "source_operational_quality_gate_schema_validation_summary",
+      "operational_quality_gate_schema_validation_summary",
+      "source_operational_quality_gate_import_readiness_summary",
+      "operational_quality_gate_import_readiness_summary"
+    ])
+  end
+
   defp mission_state_source_quality_gate_reports(mission_state) do
     mission_state_quality_gate_reports(mission_state, [
       {"source_quality_gate_report", "mission_state.source_quality_gate_report"}
@@ -29301,9 +29485,20 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> branch_id_fragment()
   end
 
+  defp derived_quality_gate_pressure_branches(prior_plan) do
+    prior_plan
+    |> prior_plan_quality_gate_pressure_sources()
+    |> quality_gate_pressure_branches_from_sources()
+  end
+
   defp derived_mission_state_quality_gate_pressure_branches(mission_state) do
     mission_state
     |> mission_state_quality_gate_pressure_sources()
+    |> quality_gate_pressure_branches_from_sources()
+  end
+
+  defp quality_gate_pressure_branches_from_sources(sources) do
+    sources
     |> Enum.flat_map(fn {report, source_path} ->
       trust_boundary =
         Map.get(report, "trust_boundary") || get_in(report, ["provenance", "trust_boundary"])
@@ -50453,31 +50648,39 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Map.get("events", [])
       |> List.wrap()
       |> Enum.map(&Map.get(&1, "feedback_source"))
-      |> Enum.flat_map(&mission_state_source_report_feedback_paths/1)
+      |> Enum.flat_map(&candidate_source_report_feedback_paths/1)
       |> Enum.uniq()
 
     put_candidate_source_report_input_paths(source, paths)
   end
 
-  defp mission_state_source_report_feedback_paths("mission_state." <> _rest = source) do
+  defp candidate_source_report_feedback_paths("mission_state." <> _rest = source) do
+    source_report_feedback_paths(source)
+  end
+
+  defp candidate_source_report_feedback_paths("prior_plan." <> _rest = source) do
+    source_report_feedback_paths(source)
+  end
+
+  defp candidate_source_report_feedback_paths(_source), do: []
+
+  defp source_report_feedback_paths(source) do
     segments = String.split(source, ".")
 
     segments
-    |> Enum.find_index(&mission_state_source_report_segment?/1)
+    |> Enum.find_index(&source_report_feedback_segment?/1)
     |> case do
       nil -> []
       report_index -> [segments |> Enum.take(report_index + 1) |> Enum.join(".")]
     end
   end
 
-  defp mission_state_source_report_feedback_paths(_source), do: []
-
-  defp mission_state_source_report_segment?(segment) when is_binary(segment) do
+  defp source_report_feedback_segment?(segment) when is_binary(segment) do
     String.ends_with?(segment, "_report") or String.ends_with?(segment, "_summary") or
       Regex.match?(~r/_(report|summary)\[\d+\]$/, segment)
   end
 
-  defp mission_state_source_report_segment?(_segment), do: false
+  defp source_report_feedback_segment?(_segment), do: false
 
   defp put_candidate_source_report_input_paths(source, []), do: source
 
