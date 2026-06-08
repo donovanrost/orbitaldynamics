@@ -5,23 +5,24 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-State/wrapped candidate-diff CandidateRefresh review/import handoff.
+State-scoped model-acceptance CandidateRefresh operator-review handoff.
 
 Status:
-Completed and pushed; CandidateRefresh OperatorReview/CadenceImport handoffs now
-lift `candidate_diff_report.v1` invalidation rows from accepted planning state,
-mission state, and `source_result_artifact` / `result_artifact` wrappers, not
-only top-level refresh fields. Rows preserve state/wrapper-qualified source
-paths, semantic change reasons, replacement candidate identity, and
-source-window lineage without selecting candidates or mutating refresh state.
+Completed locally; CandidateRefresh OperatorReview handoffs now lift
+`model_acceptance_report.v1` review/blocking rows from accepted planning state
+and mission state, matching the existing top-level and result-artifact wrapped
+paths. Rows preserve state-qualified source paths, intended-use/status/
+validation-level evidence, and artifact-only no-certification/no-approval
+boundaries. Cadence import remains unchanged for this family; it currently emits
+no rows for model-acceptance review rows even from top-level inputs.
 
 Files changed:
 - `lib/orbital_dynamics/operator_review.ex`
 - `test/orbital_dynamics/operator_review_test.exs`
 
 Tests run:
-- `mix run -e '<state/wrapped candidate-diff CandidateRefresh smoke>'`
-- `mix test test/orbital_dynamics/operator_review_test.exs:1826`
+- `mix run -e '<state-scoped model-acceptance CandidateRefresh smoke>'`
+- `mix test test/orbital_dynamics/operator_review_test.exs:4730`
 - `mix test test/orbital_dynamics/operator_review_test.exs`
 - `git diff --check`
 - Caveat: `mix test test/orbital_dynamics/cadence_import_test.exs` and focused
@@ -30,13 +31,12 @@ Tests run:
   policy-rule row shape for `cmd_unavailable`.
 
 Docs/artifacts changed:
-- No schema/artifact shape changes; this wires existing state/wrapped
-  candidate-diff evidence into existing review/import rows.
+- No schema/artifact shape changes; this wires existing state-scoped
+  model-acceptance evidence into existing operator-review rows.
 
 Level 6 pillar advanced:
-Branch-local CandidateRefresh depth and deterministic candidate-diff replay from
-accepted/mission-state and result-artifact source reports into operator-review
-and Cadence-import rows.
+Branch-local CandidateRefresh depth and deterministic model-acceptance replay
+from accepted/mission-state source reports into operator-review rows.
 
 Remaining maturity gaps:
 Continue closing thin artifact-only replay gaps where compact source summaries
@@ -44,13 +44,13 @@ or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Pushed `190f0c82834e3edcb06f1c796c473e82e0be1a16` after product commit
-`108547586521959e17cba24af8e73bdcda65bcdf`.
+Pending commit; previous pushed commit
+`1c234714853a2793dc5d79164da07be6e23e9c47`.
 
 Next candidate:
 After committing, continue branch-local CandidateRefresh depth by checking
-accepted/mission-state replay parity for one more source-report family, with
-model-acceptance as the next likely candidate.
+accepted/mission-state replay parity for validation-safety-case or freshness /
+refresh-budget source-report families.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
