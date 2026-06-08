@@ -124,6 +124,9 @@ defmodule OrbitalDynamics.MissionPlan.ActivityTest do
     assert :resource_trust_boundary_status in preserved_fields
     assert :resource_provenance in preserved_fields
     assert :resource_blocking_dimension in preserved_fields
+    assert :capacity_fraction in preserved_fields
+    assert :station_capacity_fraction in preserved_fields
+    assert :capacity_pack_capacity_fraction in preserved_fields
     assert :fuel_margin in preserved_fields
     assert :power_margin in preserved_fields
     assert :storage_margin in preserved_fields

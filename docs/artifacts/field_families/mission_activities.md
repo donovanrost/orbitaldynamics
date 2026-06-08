@@ -133,6 +133,11 @@ handoffs, including nested `source_station_calendar_entry` and overlap evidence
 on generated candidates. Nested source-station-calendar `status` or
 `availability` values of `reduced_capacity` or `degraded_capacity` derive the
 same canonical `station_capacity_reduced` reason.
+Typed activities preserve top-level `capacity_fraction`,
+`station_capacity_fraction`, and `capacity_pack_capacity_fraction` as bounded
+station-capacity evidence, so provider-authored reduced-capacity context can
+round trip through `MissionPlan.Activity` and operational timeline activity
+contexts without becoming a station reservation or execution authority.
 Nested source-station-calendar availability/status evidence also derives
 station unavailable and reserved rejection reasons for generated candidates.
 Reviewable rejected rows can now be lifted into `operator_review_package.v1`

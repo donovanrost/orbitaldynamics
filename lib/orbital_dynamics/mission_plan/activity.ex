@@ -230,6 +230,9 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     :resource_trust_boundary_status,
     :resource_provenance,
     :resource_blocking_dimension,
+    :capacity_fraction,
+    :station_capacity_fraction,
+    :capacity_pack_capacity_fraction,
     :fuel_margin,
     :power_margin,
     :storage_margin,
@@ -442,6 +445,9 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
           resource_trust_boundary_status: atom() | String.t() | nil,
           resource_provenance: map() | nil,
           resource_blocking_dimension: atom() | String.t() | nil,
+          capacity_fraction: number() | nil,
+          station_capacity_fraction: number() | nil,
+          capacity_pack_capacity_fraction: number() | nil,
           fuel_margin: number() | nil,
           power_margin: number() | nil,
           storage_margin: number() | nil,
@@ -724,6 +730,9 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
         :resource_trust_boundary_status,
         :resource_provenance,
         :resource_blocking_dimension,
+        :capacity_fraction,
+        :station_capacity_fraction,
+        :capacity_pack_capacity_fraction,
         :fuel_margin,
         :power_margin,
         :storage_margin,
@@ -1786,6 +1795,9 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
       resource_trust_boundary_status: activity.resource_trust_boundary_status,
       resource_provenance: activity.resource_provenance,
       resource_blocking_dimension: activity.resource_blocking_dimension,
+      capacity_fraction: activity.capacity_fraction,
+      station_capacity_fraction: activity.station_capacity_fraction,
+      capacity_pack_capacity_fraction: activity.capacity_pack_capacity_fraction,
       fuel_margin: activity.fuel_margin,
       power_margin: activity.power_margin,
       storage_margin: activity.storage_margin,
@@ -2051,6 +2063,9 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     resource_trust_boundary_status = Keyword.get(opts, :resource_trust_boundary_status)
     resource_provenance = Keyword.get(opts, :resource_provenance)
     resource_blocking_dimension = Keyword.get(opts, :resource_blocking_dimension)
+    capacity_fraction = Keyword.get(opts, :capacity_fraction)
+    station_capacity_fraction = Keyword.get(opts, :station_capacity_fraction)
+    capacity_pack_capacity_fraction = Keyword.get(opts, :capacity_pack_capacity_fraction)
     fuel_margin = Keyword.get(opts, :fuel_margin)
     power_margin = Keyword.get(opts, :power_margin)
     storage_margin = Keyword.get(opts, :storage_margin)
@@ -2317,6 +2332,15 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
 
       not optional_scalar?(resource_blocking_dimension) ->
         raise ArgumentError, "resource_blocking_dimension must be nil, a string, or an atom"
+
+      not optional_unit_interval?(capacity_fraction) ->
+        raise ArgumentError, "capacity_fraction must be nil or between 0.0 and 1.0"
+
+      not optional_unit_interval?(station_capacity_fraction) ->
+        raise ArgumentError, "station_capacity_fraction must be nil or between 0.0 and 1.0"
+
+      not optional_unit_interval?(capacity_pack_capacity_fraction) ->
+        raise ArgumentError, "capacity_pack_capacity_fraction must be nil or between 0.0 and 1.0"
 
       not optional_unit_interval?(fuel_margin) ->
         raise ArgumentError, "fuel_margin must be nil or between 0.0 and 1.0"
@@ -2864,6 +2888,9 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
           resource_trust_boundary_status: resource_trust_boundary_status,
           resource_provenance: resource_provenance,
           resource_blocking_dimension: resource_blocking_dimension,
+          capacity_fraction: capacity_fraction,
+          station_capacity_fraction: station_capacity_fraction,
+          capacity_pack_capacity_fraction: capacity_pack_capacity_fraction,
           fuel_margin: fuel_margin,
           power_margin: power_margin,
           storage_margin: storage_margin,
@@ -3085,6 +3112,24 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     |> maybe_put_opt(
       :resource_blocking_dimension,
       optional_scalar!(field(source, :resource_blocking_dimension))
+    )
+    |> maybe_put_opt(
+      :capacity_fraction,
+      optional_unit_interval!(field(source, :capacity_fraction), "capacity_fraction")
+    )
+    |> maybe_put_opt(
+      :station_capacity_fraction,
+      optional_unit_interval!(
+        field(source, :station_capacity_fraction),
+        "station_capacity_fraction"
+      )
+    )
+    |> maybe_put_opt(
+      :capacity_pack_capacity_fraction,
+      optional_unit_interval!(
+        field(source, :capacity_pack_capacity_fraction),
+        "capacity_pack_capacity_fraction"
+      )
     )
     |> maybe_put_opt(
       :fuel_margin,

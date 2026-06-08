@@ -238,6 +238,46 @@ defmodule OrbitalDynamics.MissionPlanTest do
              OrbitalDynamics.Schema.validate_artifact(report)
   end
 
+  test "round trips station capacity fraction context through typed activities" do
+    activity =
+      Activity.from_map!(%{
+        "id" => "reduced_capacity_contact",
+        "activity_type" => "planned_contact",
+        "ground_station_id" => "gs_a",
+        "direction" => "downlink",
+        "starts_at_s" => 100.0,
+        "ends_at_s" => 160.0,
+        "capacity_fraction" => "0.75",
+        "station_capacity_fraction" => 0.5,
+        "capacity_pack_capacity_fraction" => "0.4"
+      })
+
+    assert %Activity{
+             capacity_fraction: 0.75,
+             station_capacity_fraction: 0.5,
+             capacity_pack_capacity_fraction: 0.4
+           } = activity
+
+    assert %{
+             "capacity_fraction" => 0.75,
+             "station_capacity_fraction" => 0.5,
+             "capacity_pack_capacity_fraction" => 0.4
+           } = Activity.to_artifact_map(activity)
+
+    report = OrbitalDynamics.Timeline.operational_report([activity])
+
+    assert %{
+             "activity_context" => %{
+               "capacity_fraction" => 0.75,
+               "station_capacity_fraction" => 0.5,
+               "capacity_pack_capacity_fraction" => 0.4
+             }
+           } = List.first(report["rows"])
+
+    assert {:ok, %{"schema_contract" => "operational_timeline_report.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(report)
+  end
+
   test "rejects malformed collection latency objective context at typed ingress" do
     assert_raise ArgumentError, ~r/collection_latency_objective_count/, fn ->
       Activity.from_map!(%{
@@ -283,6 +323,26 @@ defmodule OrbitalDynamics.MissionPlanTest do
         "ends_at_s" => 40.0,
         "observation_objective_ids" => ["bad objective id"]
       })
+    end
+  end
+
+  test "rejects malformed station capacity fraction context at typed ingress" do
+    for {field, value} <- [
+          {"capacity_fraction", "1.1"},
+          {"station_capacity_fraction", -0.1},
+          {"capacity_pack_capacity_fraction", "not-a-number"}
+        ] do
+      assert_raise ArgumentError, ~r/#{field}/, fn ->
+        Activity.from_map!(%{
+          "id" => "bad_#{field}",
+          "activity_type" => "planned_contact",
+          "ground_station_id" => "gs_a",
+          "direction" => "downlink",
+          "starts_at_s" => 10.0,
+          "ends_at_s" => 40.0,
+          field => value
+        })
+      end
     end
   end
 
