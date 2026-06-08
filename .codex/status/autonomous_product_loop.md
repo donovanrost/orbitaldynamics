@@ -79,7 +79,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Pending.
+`51a60b7` Route lifecycle summary reasons.
 
 Next candidate:
 Continue guide-priority typed timeline/resource semantics, likely dependency
@@ -90,6 +90,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `51a60b7` routed lifecycle-summary operator-action reasons.
 - `893c5d4` updated autonomous loop handoff.
 - `74a5b4d` scored readiness and quality-gate pressure branch risks.
 - `810c605` flattened readiness and quality-gate pressure handoff rows.
