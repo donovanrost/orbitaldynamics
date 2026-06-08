@@ -114,7 +114,7 @@ Models availability/capacity intervals.
 ## Precedence and affected-contact rows
 
 - Affected-contact rows expose the applied precedence rank and availability token, so review queues can route unavailable-over-reserved conflicts without replaying provider-calendar ordering.
-- `StationCalendar.precedence_summary/1`/`3` and `OrbitalDynamics.station_calendar_precedence_summary/1`/`3` publish the validated `station_calendar_precedence_summary.v1` contract with applied/overlap availability counts, contact ID maps, and reserved-under-higher-precedence routing from `station_calendar_report.v1` affected rows without provider reservation or schedule mutation.
+- `StationCalendar.precedence_summary/1`/`3` and `OrbitalDynamics.station_calendar_precedence_summary/1`/`3` publish the validated `station_calendar_precedence_summary.v1` contract with applied/overlap availability counts, applied-status counts, contact ID maps, and reserved-under-higher-precedence availability/status routing from `station_calendar_report.v1` affected rows without provider reservation or schedule mutation.
 - Station calendar reports can be normalized into `operator_review_package.v1` `station_calendar_review` rows for affected contact review/import queues, and now preserve the full overlapping calendar entry IDs/availability set while applying the highest-priority event to each contact.
 - Candidate-refresh-generated downlink candidates classify reserved station overlaps with `station_reservation_match_status` before contact/resource filtering, allocation, review, or import handoff.
 

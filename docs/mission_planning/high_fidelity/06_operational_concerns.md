@@ -136,8 +136,9 @@ Feature areas:
 Station-calendar precedence summaries expose unavailable/maintenance-over-
 reserved and reduced-capacity overlap routing from declared calendar evidence
 without making provider reservations or mutating schedules. Their exported
-schema pins the artifact-only precedence-summary model and exact
-`model_limits`, matching runtime validation for schema-only handoff checks.
+schema pins the artifact-only precedence-summary model, applied-status routing
+for maintenance/outage triage, and exact `model_limits`, matching runtime
+validation for schema-only handoff checks.
 Station-calendar report schema export also pins the artifact-only overlay model,
 matching runtime validation before provider-reservation or contention rows are
 trusted.

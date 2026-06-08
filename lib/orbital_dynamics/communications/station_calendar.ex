@@ -842,9 +842,12 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
       "affected_contact_count" => length(rows),
       "precedence_review_status" => if(rows == [], do: "clear", else: "review_required"),
       "applied_availability_counts" => count_by(rows, "station_availability"),
+      "applied_status_counts" => count_by(rows, "status"),
       "overlap_availability_counts" => overlap_availability_counts(rows),
       "affected_contact_ids_by_applied_availability" =>
         affected_contact_ids_by_field(rows, "station_availability"),
+      "affected_contact_ids_by_applied_status" =>
+        affected_contact_ids_by_field(rows, "status"),
       "affected_contact_ids_by_overlap_availability" =>
         affected_contact_ids_by_overlap_availability(rows),
       "reserved_under_higher_precedence_contact_count" =>
@@ -856,6 +859,8 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
           reserved_under_higher_precedence_rows,
           "station_availability"
         ),
+      "reserved_under_higher_precedence_contact_ids_by_applied_status" =>
+        affected_contact_ids_by_field(reserved_under_higher_precedence_rows, "status"),
       "unavailable_contact_ids" =>
         affected_contact_ids_by_applied_availability(rows, ["unavailable", "maintenance"]),
       "reserved_overlap_contact_ids" => affected_contact_ids_by_overlap_value(rows, "reserved"),

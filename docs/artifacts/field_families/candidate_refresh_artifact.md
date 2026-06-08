@@ -461,6 +461,8 @@ It preserves the following for audit **without changing refresh selection**:
   selected/deferred per-station demand maps
 - station-calendar affected-contact count maps by ground station and
   availability
+- station-calendar precedence-summary applied-status and
+  reserved-under-higher-precedence status routing maps
 - station-calendar provider-contention count maps by provider and ground
   station
 - contact-filter suppression-reason contact-ID maps plus station-suppression

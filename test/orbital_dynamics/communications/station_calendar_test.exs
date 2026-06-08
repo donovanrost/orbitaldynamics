@@ -2058,6 +2058,26 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
 
     assert {:ok, %{"schema_contract" => "station_calendar_report.v1"}} =
              Schema.validate_artifact(report)
+
+    assert %{
+             "applied_availability_counts" => %{"unavailable" => 1},
+             "applied_status_counts" => %{"maintenance" => 1},
+             "affected_contact_ids_by_applied_availability" => %{
+               "unavailable" => ["dl_1"]
+             },
+             "affected_contact_ids_by_applied_status" => %{
+               "maintenance" => ["dl_1"]
+             },
+             "reserved_under_higher_precedence_contact_ids_by_applied_availability" => %{
+               "unavailable" => ["dl_1"]
+             },
+             "reserved_under_higher_precedence_contact_ids_by_applied_status" => %{
+               "maintenance" => ["dl_1"]
+             }
+           } = precedence_summary = StationCalendar.precedence_summary(report)
+
+    assert {:ok, %{"schema_contract" => "station_calendar_precedence_summary.v1"}} =
+             Schema.validate_artifact(precedence_summary)
   end
 
   test "marks same-priority station calendar ambiguity without choosing capacity metadata" do
@@ -2874,6 +2894,17 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
              stale_overlap_routing_report["errors"],
              &(&1["path"] == "$.reserved_overlap_contact_ids" and
                  &1["message"] == "must equal reserved overlap contact IDs")
+           )
+
+    stale_status_count = Map.put(precedence_summary, "applied_status_counts", %{})
+
+    assert {:error, stale_status_count_report} =
+             Schema.validate_artifact(stale_status_count)
+
+    assert Enum.any?(
+             stale_status_count_report["errors"],
+             &(&1["path"] == "$.applied_status_counts" and
+                 &1["message"] == "must equal contact IDs by applied status")
            )
 
     assert_summary_handoff(

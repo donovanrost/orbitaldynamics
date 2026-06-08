@@ -2620,14 +2620,21 @@ defmodule OrbitalDynamics.SchemaTest do
              "affected_contact_ids_by_applied_availability" => %{
                "unavailable" => ["dl_1"]
              },
+             "affected_contact_ids_by_applied_status" => %{
+               "unavailable" => ["dl_1"]
+             },
              "affected_contact_ids_by_overlap_availability" => %{
                "reduced_capacity" => ["dl_1"],
                "reserved" => ["dl_1"],
                "unavailable" => ["dl_1"]
              },
+             "applied_status_counts" => %{"unavailable" => 1},
              "reserved_under_higher_precedence_contact_count" => 1,
              "reserved_under_higher_precedence_contact_ids" => ["dl_1"],
              "reserved_under_higher_precedence_contact_ids_by_applied_availability" => %{
+               "unavailable" => ["dl_1"]
+             },
+             "reserved_under_higher_precedence_contact_ids_by_applied_status" => %{
                "unavailable" => ["dl_1"]
              },
              "unavailable_contact_ids" => ["dl_1"],

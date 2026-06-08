@@ -4905,7 +4905,10 @@ defmodule OrbitalDynamics.Schema do
       ],
       "optional_fields" => [
         "source",
-        "model_limits"
+        "model_limits",
+        "applied_status_counts",
+        "affected_contact_ids_by_applied_status",
+        "reserved_under_higher_precedence_contact_ids_by_applied_status"
       ],
       "nested_contracts" => ["station_calendar_report.v1"]
     },
@@ -13418,6 +13421,7 @@ defmodule OrbitalDynamics.Schema do
   defp json_schema_property(field, @station_calendar_precedence_summary, _contract)
        when field in [
               "applied_availability_counts",
+              "applied_status_counts",
               "overlap_availability_counts"
             ] do
     non_negative_integer_count_map_json_schema()
@@ -13426,8 +13430,10 @@ defmodule OrbitalDynamics.Schema do
   defp json_schema_property(field, @station_calendar_precedence_summary, _contract)
        when field in [
               "affected_contact_ids_by_applied_availability",
+              "affected_contact_ids_by_applied_status",
               "affected_contact_ids_by_overlap_availability",
-              "reserved_under_higher_precedence_contact_ids_by_applied_availability"
+              "reserved_under_higher_precedence_contact_ids_by_applied_availability",
+              "reserved_under_higher_precedence_contact_ids_by_applied_status"
             ] do
     stable_id_array_map_schema()
   end
@@ -37242,6 +37248,11 @@ defmodule OrbitalDynamics.Schema do
       path <> ".applied_availability_counts",
       Map.get(summary, "applied_availability_counts")
     )
+    |> expect_optional_type(path, summary, "applied_status_counts", :map)
+    |> validate_non_negative_integer_count_map(
+      path <> ".applied_status_counts",
+      Map.get(summary, "applied_status_counts")
+    )
     |> expect_type(path, summary, "overlap_availability_counts", :map)
     |> validate_non_negative_integer_count_map(
       path <> ".overlap_availability_counts",
@@ -37251,6 +37262,11 @@ defmodule OrbitalDynamics.Schema do
     |> validate_stable_id_array_map(
       path <> ".affected_contact_ids_by_applied_availability",
       Map.get(summary, "affected_contact_ids_by_applied_availability")
+    )
+    |> expect_optional_type(path, summary, "affected_contact_ids_by_applied_status", :map)
+    |> validate_stable_id_array_map(
+      path <> ".affected_contact_ids_by_applied_status",
+      Map.get(summary, "affected_contact_ids_by_applied_status")
     )
     |> expect_type(path, summary, "affected_contact_ids_by_overlap_availability", :map)
     |> validate_stable_id_array_map(
@@ -37276,6 +37292,16 @@ defmodule OrbitalDynamics.Schema do
     |> validate_stable_id_array_map(
       path <> ".reserved_under_higher_precedence_contact_ids_by_applied_availability",
       Map.get(summary, "reserved_under_higher_precedence_contact_ids_by_applied_availability")
+    )
+    |> expect_optional_type(
+      path,
+      summary,
+      "reserved_under_higher_precedence_contact_ids_by_applied_status",
+      :map
+    )
+    |> validate_stable_id_array_map(
+      path <> ".reserved_under_higher_precedence_contact_ids_by_applied_status",
+      Map.get(summary, "reserved_under_higher_precedence_contact_ids_by_applied_status")
     )
     |> expect_type(path, summary, "unavailable_contact_ids", :list)
     |> validate_stable_id_list(
@@ -37327,10 +37353,14 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_station_calendar_precedence_summary_counts(issues, path, summary) do
     applied_id_map = Map.get(summary, "affected_contact_ids_by_applied_availability")
+    applied_status_id_map = Map.get(summary, "affected_contact_ids_by_applied_status")
     overlap_id_map = Map.get(summary, "affected_contact_ids_by_overlap_availability")
 
     reserved_under_higher_precedence_id_map =
       Map.get(summary, "reserved_under_higher_precedence_contact_ids_by_applied_availability")
+
+    reserved_under_higher_precedence_status_id_map =
+      Map.get(summary, "reserved_under_higher_precedence_contact_ids_by_applied_status")
 
     affected_contact_count = stable_id_array_map_value_count(applied_id_map)
 
@@ -37355,6 +37385,13 @@ defmodule OrbitalDynamics.Schema do
       id_array_count_map(applied_id_map),
       "must equal contact IDs by applied availability"
     )
+    |> expect_optional_field_equals(
+      path,
+      summary,
+      "applied_status_counts",
+      id_array_count_map(applied_status_id_map),
+      "must equal contact IDs by applied status"
+    )
     |> expect_field_equals(
       path,
       summary,
@@ -37375,6 +37412,13 @@ defmodule OrbitalDynamics.Schema do
       "reserved_under_higher_precedence_contact_ids",
       stable_id_array_map_ids(reserved_under_higher_precedence_id_map),
       "must equal reserved-under-higher-precedence IDs by applied availability"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "reserved_under_higher_precedence_contact_ids",
+      stable_id_array_map_ids(reserved_under_higher_precedence_status_id_map),
+      "must equal reserved-under-higher-precedence IDs by applied status"
     )
     |> expect_field_equals(
       path,
