@@ -89,7 +89,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Previous slice: `feac1b5` Update autonomous loop handoff.
+`157220f` Add contradictory reservation allocation challenge.
 
 Next candidate:
 After this slice, reinspect live code for the next planner-visible readiness
@@ -100,6 +100,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `157220f` added contradictory reservation/contact-allocation challenge coverage.
 - `a0d04e3` derived import-readiness quality-gate summary pressure.
 - `b72180e` derived schema-validation quality-gate summary pressure.
 - `fcd9a35` derived operator-training quality-gate summary pressure.
