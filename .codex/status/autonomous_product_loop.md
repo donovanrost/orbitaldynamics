@@ -45,8 +45,8 @@ schema lint alone is weaker. Continue reassessing Level 6 gaps from the guide
 after this fixture-normalization slice is reviewed and published.
 
 Last commit:
-Pending for this slice. Previous pushed commit was
-`bde23793f0ba89edb7e1bdb0267e73979b50652f`.
+`ee720eb4d8939a7edf04d6fb9bbc8c86a4694a94` (`Refresh contact allocation
+fixtures`).
 
 Next candidate:
 After publishing this slice, reassess Level 6 gaps from the guide/ledger.
