@@ -78,8 +78,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Pending commit for this slice. Previous: `a97d1ca` Derive contact allocation
-summary pressure branches.
+`7ebe694` Derive prior plan contact allocation summary pressure.
 
 Next candidate:
 Continue guide-priority resource/contact branch-scoring depth or external
@@ -90,6 +89,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `7ebe694` derived prior-plan contact-allocation summary pressure branches.
 - `a97d1ca` derived mission-state contact-allocation summary pressure branches.
 - `27ab76f` added hold import-readiness direction routing.
 - `cb62212` flattened reservation-conflict direction handoffs.
