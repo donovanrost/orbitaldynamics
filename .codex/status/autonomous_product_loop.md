@@ -43,7 +43,7 @@ preserve routing evidence that review/import or CandidateRefresh replay still
 does not consume.
 
 Last commit:
-Pending.
+Product commit `4dca66fa21e9c1f9f2e5de8eb47f3d1742f7d7b9`.
 
 Next candidate:
 Reassess remaining resource/contact allocation summaries, quality-gate/readiness
