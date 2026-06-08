@@ -7204,6 +7204,17 @@ defmodule OrbitalDynamics.OperatorReview do
   defp candidate_refresh_validation_safety_case_rows(artifact) do
     direct_rows =
       [
+        {"candidate_refresh.accepted_planning_state.source_validation_safety_case_summary",
+         get_in(artifact, [
+           "accepted_planning_state",
+           "source_validation_safety_case_summary"
+         ])},
+        {"candidate_refresh.accepted_planning_state.validation_safety_case_summary",
+         get_in(artifact, ["accepted_planning_state", "validation_safety_case_summary"])},
+        {"candidate_refresh.mission_state.source_validation_safety_case_summary",
+         get_in(artifact, ["mission_state", "source_validation_safety_case_summary"])},
+        {"candidate_refresh.mission_state.validation_safety_case_summary",
+         get_in(artifact, ["mission_state", "validation_safety_case_summary"])},
         {"candidate_refresh.source_validation_safety_case_summary",
          artifact["source_validation_safety_case_summary"]},
         {"candidate_refresh.validation_safety_case_summary",

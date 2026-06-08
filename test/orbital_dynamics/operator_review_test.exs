@@ -4916,6 +4916,72 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(package)
   end
 
+  test "candidate refresh state-scoped validation safety-case summaries become operator review rows" do
+    model_acceptance_report =
+      OrbitalDynamics.validation_model_acceptance_report(["missing.model"],
+        intended_use: :operational_import
+      )
+
+    quality_gate_report = %{
+      "schema_contract" => "quality_gate_report.v1",
+      "status" => "review_required",
+      "readiness_level" => "operator_review",
+      "import_classification" => "review_only",
+      "review_gate_count" => 1,
+      "blocked_gate_count" => 0
+    }
+
+    summary =
+      OrbitalDynamics.validation_safety_case_summary(
+        [model_acceptance_report, quality_gate_report],
+        case_id: "case:state-refresh"
+      )
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:state_validation_safety_review:001",
+      "accepted_planning_state" => %{"source_validation_safety_case_summary" => summary},
+      "mission_state" => %{"validation_safety_case_summary" => summary}
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:state_validation_safety_review:001",
+             "review_count" => 4,
+             "validation_safety_case_review_count" => 4
+           } = package
+
+    assert Enum.map(package["rows"], & &1["source"]) == [
+             "candidate_refresh.accepted_planning_state.source_validation_safety_case_summary.evidence",
+             "candidate_refresh.accepted_planning_state.source_validation_safety_case_summary.evidence",
+             "candidate_refresh.mission_state.validation_safety_case_summary.evidence",
+             "candidate_refresh.mission_state.validation_safety_case_summary.evidence"
+           ]
+
+    assert %{
+             "review_type" => "validation_safety_case_review",
+             "required_operator_action" => "review_blocked_validation_safety_case",
+             "approval_status" => "blocked_by_policy",
+             "validation_safety_case_evidence_status" => "blocked",
+             "validation_safety_case_input_contract" => "model_acceptance_report.v1",
+             "source_validation_safety_case_summary" => %{
+               "schema_contract" => "validation_safety_case_summary.v1",
+               "case_id" => "case:state-refresh",
+               "status" => "blocked"
+             }
+           } = List.first(package["rows"])
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert manifest["row_count"] == 0
+    assert manifest["rows"] == []
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+  end
+
   test "candidate refresh source candidate rejection reports become operator review rows" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
