@@ -5,41 +5,41 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Contact-allocation station-pressure fixture guards station-calendar status maps.
+Contact-allocation summary fixture guards station-pressure status maps.
 
 Status:
 Implementation and verification are complete. The checked-in
-`contact_allocation_station_pressure_summary.v1` fixture now exercises
-row-derived station-pressure contact-ID/count maps by `station_calendar_status`,
-and the validation-reference fixture observations fail if those status maps
-drift from the included rows.
+`contact_allocation_summary.v1` fixture now exercises row-derived
+station-pressure contact-ID/count maps by `station_calendar_status`, and the
+validation-reference fixture observations fail if those compact-summary status
+maps drift from included allocation rows.
 
 Files changed:
 - `lib/orbital_dynamics/validation.ex`
 - `test/orbital_dynamics/schema_test.exs`
 - `test/orbital_dynamics/validation_test.exs`
-- `study_results/contact_allocation_station_pressure_summary_v1.json`
+- `study_results/contact_allocation_summary_v1.json`
 - `docs/artifacts/compatibility_checks.md`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/schema_test.exs:20782 test/orbital_dynamics/validation_test.exs:9419` (2 passed)
+- `mix test test/orbital_dynamics/schema_test.exs:20705 test/orbital_dynamics/validation_test.exs:9582` (2 passed)
 - `mix test test/orbital_dynamics/validation_test.exs:11903` (1 passed)
-- `mix orbital_dynamics.schema.lint --all` (pass; 152 artifacts)
 - `mix compile --warnings-as-errors`
 - `git diff --check`
+- `mix orbital_dynamics.schema.lint --all` (pass; 152 artifacts)
 
 Docs/artifacts changed:
-- Refreshed `study_results/contact_allocation_station_pressure_summary_v1.json`
-  through the public station-pressure summary facade.
-- Updated compatibility docs to name station-calendar status routing as part of
-  the curated station-pressure fixture guard.
+- Refreshed `study_results/contact_allocation_summary_v1.json` through the
+  public allocation summary facade.
+- Updated compatibility docs to name station-pressure status routing as part of
+  the curated compact allocation-summary fixture guard.
 
 Level 6 pillar advanced:
-Durable schema-versioned artifacts and compatibility checks: the
-station-pressure handoff now has checked-in exact-regeneration and
-validation-reference coverage for status-level triage evidence, not only schema
-acceptance of optional fields.
+Durable schema-versioned artifacts and compatibility checks: the compact
+allocation handoff now has checked-in exact-regeneration and
+validation-reference coverage for station-pressure status-level triage evidence,
+matching the standalone station-pressure summary guard.
 
 Remaining maturity gaps:
 Continue reassessing from the guide and live checkout. The current top guide
@@ -49,7 +49,7 @@ typed timeline semantics, quality gates/readiness, or branch-local refresh
 surfaces.
 
 Last commit:
-Product commit `2892e895119a8fb0cce4dfaf691a2964486a8bc3`.
+Product commit `b1596948e9aadf602937d3de122dea237ae7ac7e`.
 
 Next candidate:
 Re-read the guide queue and current checkout before editing. Good candidates
