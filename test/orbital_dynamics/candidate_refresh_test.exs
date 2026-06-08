@@ -7230,6 +7230,236 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
            } = CandidateRefresh.contact_allocation_replay_summary(refresh)
   end
 
+  test "source report summary derives provider reservation request replay from effective row status" do
+    refresh = %{
+      "source_contact_allocation_provider_reservation_request_summary" => %{
+        "schema_contract" => "contact_allocation_provider_reservation_request_summary.v1",
+        "model" => "artifact_only_contact_allocation_provider_reservation_request_summary",
+        "source_artifact_type" => "contact_allocation_report.v1",
+        "source" => "unit_test.provider_reservation_effective_status_summary",
+        "provider_reservation_candidate_contact_count" => 3,
+        "provider_reservation_request_contact_count" => 3,
+        "provider_reservation_review_contact_count" => 0,
+        "provider_reservation_no_request_contact_count" => 0,
+        "provider_reservation_request_status" => "request_ready",
+        "provider_reservation_request_contact_ids" => [
+          "dl_legacy_allocated",
+          "dl_policy_blocked",
+          "dl_ready"
+        ],
+        "provider_reservation_no_request_contact_ids" => [],
+        "provider_reservation_request_contact_ids_by_match_status" => %{
+          "matched" => ["dl_policy_blocked", "dl_ready"],
+          "owner_matched" => ["dl_legacy_allocated"]
+        },
+        "provider_reservation_request_ids_by_match_status" => %{
+          "matched" => ["reservation_policy", "reservation_ready"],
+          "owner_matched" => ["reservation_legacy"]
+        },
+        "rows" => [
+          %{
+            "contact_id" => "dl_ready",
+            "allocation_status" => "allocated",
+            "effective_allocation_status" => "allocated",
+            "ground_station_id" => "equator_prime",
+            "direction" => "Down Link",
+            "station_reservation_id" => "reservation_ready",
+            "station_reservation_match_status" => "matched",
+            "station_reservation_status" => "confirmed"
+          },
+          %{
+            "contact_id" => "dl_policy_blocked",
+            "allocation_status" => "allocated",
+            "approval_status" => "blocked_by_policy",
+            "ground_station_id" => "equator_prime",
+            "direction" => "Down Link",
+            "station_reservation_id" => "reservation_policy",
+            "station_reservation_match_status" => "matched",
+            "station_reservation_status" => "confirmed"
+          },
+          %{
+            "contact_id" => "dl_legacy_allocated",
+            "allocation_status" => "allocated",
+            "ground_station_id" => "polar_prime",
+            "direction" => "uplink",
+            "station_reservation_id" => "reservation_legacy",
+            "station_reservation_match_status" => "owner_matched",
+            "station_reservation_status" => "confirmed"
+          }
+        ],
+        "assumptions" => %{
+          "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
+          "provider_reservation_execution" => "not_performed_by_summary"
+        }
+      }
+    }
+
+    assert %{
+             "source_report_contact_allocation_provider_reservation_candidate_contact_count" => 2,
+             "source_report_contact_allocation_provider_reservation_request_contact_count" => 2,
+             "source_report_contact_allocation_provider_reservation_review_contact_count" => 0,
+             "source_report_contact_allocation_provider_reservation_no_request_contact_count" =>
+               1,
+             "source_report_contact_allocation_provider_reservation_request_status_counts" => %{
+               "request_ready" => 1
+             },
+             "source_report_contact_allocation_provider_reservation_request_contact_ids" => [
+               "dl_legacy_allocated",
+               "dl_ready"
+             ],
+             "source_report_contact_allocation_provider_reservation_no_request_contact_ids" => [
+               "dl_policy_blocked"
+             ],
+             "source_report_contact_allocation_provider_reservation_request_contact_ids_by_ground_station" =>
+               %{
+                 "equator_prime" => ["dl_ready"],
+                 "polar_prime" => ["dl_legacy_allocated"]
+               },
+             "source_report_contact_allocation_provider_reservation_no_request_contact_ids_by_direction" =>
+               %{"downlink" => ["dl_policy_blocked"]},
+             "source_report_contact_allocation_provider_reservation_request_contact_ids_by_direction" =>
+               %{"downlink" => ["dl_ready"], "uplink" => ["dl_legacy_allocated"]},
+             "source_report_contact_allocation_provider_reservation_no_request_contact_ids_by_direction_and_ground_station" =>
+               %{"downlink" => %{"equator_prime" => ["dl_policy_blocked"]}},
+             "source_report_contact_allocation_provider_reservation_request_contact_ids_by_direction_and_ground_station" =>
+               %{
+                 "downlink" => %{"equator_prime" => ["dl_ready"]},
+                 "uplink" => %{"polar_prime" => ["dl_legacy_allocated"]}
+               },
+             "source_report_contact_allocation_provider_reservation_request_contact_ids_by_match_status" =>
+               %{"matched" => ["dl_ready"], "owner_matched" => ["dl_legacy_allocated"]},
+             "source_report_contact_allocation_provider_reservation_request_ids_by_match_status" =>
+               %{"matched" => ["reservation_ready"], "owner_matched" => ["reservation_legacy"]},
+             "source_reports" => %{
+               "contact_allocation_report" => %{
+                 "paths" => ["source_contact_allocation_provider_reservation_request_summary"],
+                 "row_count" => 3,
+                 "provider_reservation_request_summary_schema_contract" =>
+                   "contact_allocation_provider_reservation_request_summary.v1"
+               }
+             }
+           } = CandidateRefresh.source_report_summary(refresh)
+
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(refresh)
+
+    assert %{
+             "provider_reservation_candidate_contact_count" => 2,
+             "provider_reservation_request_contact_count" => 2,
+             "provider_reservation_no_request_contact_count" => 1,
+             "provider_reservation_request_status_counts" => %{"request_ready" => 1},
+             "provider_reservation_request_contact_ids" => [
+               "dl_legacy_allocated",
+               "dl_ready"
+             ],
+             "provider_reservation_no_request_contact_ids" => ["dl_policy_blocked"],
+             "provider_reservation_request_contact_ids_by_match_status" => %{
+               "matched" => ["dl_ready"],
+               "owner_matched" => ["dl_legacy_allocated"]
+             },
+             "provider_reservation_request_ids_by_match_status" => %{
+               "matched" => ["reservation_ready"],
+               "owner_matched" => ["reservation_legacy"]
+             },
+             "branch_local_provider_reservation_request_pressure" => true,
+             "branch_local_contact_allocation_pressure" => true
+           } = replay_summary
+
+    assert Map.get(replay_summary, "provider_reservation_review_contact_count", 0) == 0
+  end
+
+  test "source report summary replays aggregate-only provider reservation request summaries" do
+    refresh = %{
+      "source_contact_allocation_provider_reservation_request_summary" => %{
+        "schema_contract" => "contact_allocation_provider_reservation_request_summary.v1",
+        "model" => "artifact_only_contact_allocation_provider_reservation_request_summary",
+        "source_artifact_type" => "contact_allocation_report.v1",
+        "source" => "unit_test.provider_reservation_aggregate_summary",
+        "provider_reservation_candidate_contact_count" => 2,
+        "provider_reservation_request_contact_count" => 1,
+        "provider_reservation_review_contact_count" => 1,
+        "provider_reservation_no_request_contact_count" => 3,
+        "provider_reservation_request_status" => "review_required",
+        "provider_reservation_request_contact_ids" => ["aggregate_request_contact"],
+        "provider_reservation_review_contact_ids" => ["aggregate_review_contact"],
+        "provider_reservation_no_request_contact_ids" => [
+          "aggregate_no_request_contact"
+        ],
+        "provider_reservation_request_contact_ids_by_ground_station_id" => %{
+          "equator_prime" => ["aggregate_request_contact"]
+        },
+        "provider_reservation_request_contact_ids_by_direction" => %{
+          "downlink" => ["aggregate_request_contact"]
+        },
+        "provider_reservation_no_request_contact_ids_by_direction" => %{
+          "tracking" => ["aggregate_no_request_contact"]
+        },
+        "provider_reservation_request_contact_ids_by_match_status" => %{
+          "matched" => ["aggregate_request_contact"]
+        },
+        "provider_reservation_request_ids_by_match_status" => %{
+          "matched" => ["aggregate_reservation"]
+        }
+      }
+    }
+
+    assert %{
+             "source_report_count" => 1,
+             "source_report_contact_allocation_provider_reservation_candidate_contact_count" => 2,
+             "source_report_contact_allocation_provider_reservation_request_contact_count" => 1,
+             "source_report_contact_allocation_provider_reservation_review_contact_count" => 1,
+             "source_report_contact_allocation_provider_reservation_no_request_contact_count" =>
+               3,
+             "source_report_contact_allocation_provider_reservation_request_status_counts" => %{
+               "review_required" => 1
+             },
+             "source_report_contact_allocation_provider_reservation_request_contact_ids" => [
+               "aggregate_request_contact"
+             ],
+             "source_report_contact_allocation_provider_reservation_review_contact_ids" => [
+               "aggregate_review_contact"
+             ],
+             "source_report_contact_allocation_provider_reservation_no_request_contact_ids" => [
+               "aggregate_no_request_contact"
+             ],
+             "source_report_contact_allocation_provider_reservation_request_contact_ids_by_ground_station" =>
+               %{"equator_prime" => ["aggregate_request_contact"]},
+             "source_report_contact_allocation_provider_reservation_request_contact_ids_by_direction" =>
+               %{"downlink" => ["aggregate_request_contact"]},
+             "source_report_contact_allocation_provider_reservation_no_request_contact_ids_by_direction" =>
+               %{"tracking" => ["aggregate_no_request_contact"]},
+             "source_report_contact_allocation_provider_reservation_request_contact_ids_by_match_status" =>
+               %{"matched" => ["aggregate_request_contact"]},
+             "source_report_contact_allocation_provider_reservation_request_ids_by_match_status" =>
+               %{"matched" => ["aggregate_reservation"]},
+             "source_reports" => %{
+               "contact_allocation_report" => %{
+                 "paths" => ["source_contact_allocation_provider_reservation_request_summary"],
+                 "provider_reservation_request_summary_schema_contract" =>
+                   "contact_allocation_provider_reservation_request_summary.v1"
+               }
+             }
+           } = CandidateRefresh.source_report_summary(refresh)
+
+    assert %{
+             "provider_reservation_candidate_contact_count" => 2,
+             "provider_reservation_request_contact_count" => 1,
+             "provider_reservation_review_contact_count" => 1,
+             "provider_reservation_no_request_contact_count" => 3,
+             "provider_reservation_request_status_counts" => %{"review_required" => 1},
+             "provider_reservation_request_contact_ids" => ["aggregate_request_contact"],
+             "provider_reservation_review_contact_ids" => ["aggregate_review_contact"],
+             "provider_reservation_no_request_contact_ids" => ["aggregate_no_request_contact"],
+             "provider_reservation_request_contact_ids_by_match_status" => %{
+               "matched" => ["aggregate_request_contact"]
+             },
+             "provider_reservation_request_ids_by_match_status" => %{
+               "matched" => ["aggregate_reservation"]
+             },
+             "branch_local_provider_reservation_request_pressure" => true,
+             "branch_local_contact_allocation_pressure" => true
+           } = CandidateRefresh.contact_allocation_replay_summary(refresh)
+  end
+
   test "source report summary replays provider reservation request summaries from result artifacts" do
     summary = %{
       "schema_contract" => "contact_allocation_provider_reservation_request_summary.v1",
