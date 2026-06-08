@@ -1895,7 +1895,20 @@ defmodule OrbitalDynamics.Schema do
     {"readiness_gate_reason", "reason"},
     {"quality_gate_reason", "reason"},
     {"analysis_mode", "analysis_mode"},
-    {"analysis_mode_source", "analysis_mode_source"}
+    {"analysis_mode_source", "analysis_mode_source"},
+    {"resource_availability_pressure_count", "resource_availability_pressure_count"},
+    {"resource_availability_reason_counts", "resource_availability_reason_counts"},
+    {"resource_availability_reason_ids", "resource_availability_reason_ids"},
+    {"station_availability_reason_ids", "station_availability_reason_ids"},
+    {"station_availability_reason_counts", "station_availability_reason_counts"},
+    {"unavailable_resource_reason_ids", "unavailable_resource_reason_ids"},
+    {"resource_blocking_dimension_counts", "resource_blocking_dimension_counts"},
+    {"resource_blocked_contact_ids_by_blocking_dimension",
+     "resource_blocked_contact_ids_by_blocking_dimension"},
+    {"resource_blocked_contact_ids_by_spacecraft_id",
+     "resource_blocked_contact_ids_by_spacecraft_id"},
+    {"resource_source_quality_counts", "resource_source_quality_counts"},
+    {"resource_trust_boundary_status_counts", "resource_trust_boundary_status_counts"}
   ]
   @risk_explanation_handoff_source_field_pairs [
     {"subject_id", "type"},

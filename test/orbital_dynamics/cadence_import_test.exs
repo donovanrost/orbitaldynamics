@@ -673,6 +673,32 @@ defmodule OrbitalDynamics.CadenceImportTest do
              &(&1["path"] == "$.rows[0].source_quality_gate_row.status" and
                  &1["message"] == "must match quality_gate_status on handoff row")
            )
+
+    stale_source_quality_gate_resource_context =
+      update_in(manifest, ["rows", Access.at(0), "source_quality_gate_row"], fn row ->
+        row
+        |> Map.put("resource_availability_reason_counts", %{"ground_station_unavailable" => 1})
+        |> Map.put("station_availability_reason_ids", ["ground_station_unavailable"])
+        |> Map.put("unavailable_resource_reason_ids", [])
+      end)
+
+    assert {:error, stale_source_quality_gate_resource_context_report} =
+             Schema.validate_artifact(stale_source_quality_gate_resource_context)
+
+    assert Enum.any?(
+             stale_source_quality_gate_resource_context_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_quality_gate_row.resource_availability_reason_counts" and
+                 &1["message"] ==
+                   "must match resource_availability_reason_counts on handoff row")
+           )
+
+    assert Enum.any?(
+             stale_source_quality_gate_resource_context_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_quality_gate_row.station_availability_reason_ids" and
+                 &1["message"] == "must match station_availability_reason_ids on handoff row")
+           )
   end
 
   test "quality gate import rows preserve import readiness context" do
