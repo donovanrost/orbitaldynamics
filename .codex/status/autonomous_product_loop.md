@@ -5,43 +5,41 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Nested CandidateRefresh timeline-transition-application review/import handoff.
+Result-artifact contact-intent summary review/import compatibility coverage.
 
 Status:
-Product commit complete. CandidateRefresh accepted-planning-state and
-mission-state nested transition-application report/summary artifacts now
-project into OperatorReview `timeline_diff_review` rows and CadenceImport
-review rows. The result-artifact handoff also accepts exact and wrapped
-transition-application reports. Covered nested families:
-`source_timeline_transition_application_report`,
-`timeline_transition_application_report`,
-`source_timeline_transition_application_summary`, and
-`timeline_transition_application_summary`.
+Product commit complete. Implementation, focused verification, and read-only
+`slice_reviewer` handoff are complete. Exact `source_result_artifact`
+contact-intent summaries and wrapped `result_artifact.contact_intent_summary`
+payloads are now pinned by OperatorReview/CadenceImport regression coverage.
+The reviewer found the first test version only inspected the downlink row; the
+test now asserts both command and downlink review/import rows, summary-qualified
+`candidate_refresh.*.summary_contacts` source paths, activity ids, contact ids,
+capacity-pack evidence, `review_contact_intent` import rows, and embedded
+`source_contact_intent_summary` evidence without generating contacts,
+allocating station time, selecting candidates, approving imports, or mutating
+schedules.
 
 Files changed:
-- `docs/artifacts/field_families/candidate_refresh_artifact.md`
-- `lib/orbital_dynamics/operator_review.ex`
 - `test/orbital_dynamics/operator_review_test.exs`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/operator_review_test.exs:16361` (1 passed)
-- `mix test test/orbital_dynamics/operator_review_test.exs` (201 passed)
+- `mix test test/orbital_dynamics/operator_review_test.exs:11378` (1 passed)
+- `mix test test/orbital_dynamics/operator_review_test.exs` (202 passed)
 - `mix test test/orbital_dynamics/cadence_import_test.exs` (92 passed)
 - `git diff --check`
-- `slice_reviewer` read-only review found wrapped report docs/runtime mismatch;
-  fixed by routing exact/wrapped result-artifact transition-application reports
-  and extending the all-path test.
+- `slice_reviewer` read-only review found missing all-directions assertions;
+  fixed in the regression test.
 
 Docs/artifacts changed:
-- CandidateRefresh transition-application docs now name accepted-state and
-  mission-state nested report/summary review/import handoffs.
+- None; this slice pins already documented/runtime-supported result-artifact
+  compact contact-intent summary handoffs.
 
 Level 6 pillar advanced:
-Approval-aware automation boundaries and Cadence-facing import readiness:
-nested CandidateRefresh transition-application evidence reaches review and
-import manifests without applying transitions, mutating timelines, selecting
-candidates, executing commands, or writing to Cadence.
+Fleet-level contact planning and Cadence-facing import readiness: compact
+contact-intent summary handoffs from result artifacts now have executable
+review/import compatibility coverage for direction-scoped routing.
 
 Remaining maturity gaps:
 Continue closing thin artifact-only replay gaps where checked-in summaries
@@ -49,11 +47,10 @@ preserve routing evidence that review/import or CandidateRefresh replay still
 does not consume.
 
 Last commit:
-Product commit `f0daa7afe9922384d19913fcacd413e16ba5381b`.
+Product commit `21cdedf6ffe41275c397fec7e566abbd1cd93595`.
 
 Next candidate:
-Reassess the remaining summary-contract coverage map after nested
-transition-application projection and pick the next weak
+After pushing this handoff, reassess the next weak resource/contact or
 CandidateRefresh/OperatorReview/CadenceImport handoff.
 
 Unrelated local changes:
@@ -64,5 +61,5 @@ Blocked:
 No.
 
 Notes:
-Known compile warnings from existing dependencies/modules remain unchanged in
-the focused test runs.
+Known compile warnings from existing modules remain unchanged in the focused
+test runs.
