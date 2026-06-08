@@ -1233,6 +1233,14 @@
     "no_approval_workflow",
     "no_link_budget_model"
   ],
+  "station_pressure_contact_ids_by_status": {
+    "reserved": [
+      "dl_3"
+    ],
+    "unavailable": [
+      "cmd_unavailable"
+    ]
+  },
   "policy_blocked_allocated_contact_count": 0,
   "allocation_status_counts": {
     "allocated": 1,
@@ -1245,6 +1253,10 @@
     ]
   },
   "status_blocked_contact_ids": [],
+  "station_pressure_contact_counts_by_status": {
+    "reserved": 1,
+    "unavailable": 1
+  },
   "station_pressure_contact_counts_by_ground_station_id": {
     "equator_prime": 2
   },

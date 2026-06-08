@@ -1218,9 +1218,10 @@ allocation/effective status and allocation-reason maps, row-derived scalar
 allocation/contact counters, station-reservation and station-calendar trust
 routing maps, row-derived reservation ID/owner/status evidence, executable
 stale top-level reservation-list checks, station-reservation expiration
-evidence, station-pressure precedence and direction/station maps, capacity-pack
-zero/default fields, nested contact-filter assumption metadata, and model-limit
-boundaries. Focused schema-reference coverage also exact-regenerates the fixture
+evidence, station-pressure status, precedence, and direction/station maps,
+capacity-pack zero/default fields, nested contact-filter assumption metadata,
+and model-limit boundaries. Focused schema-reference coverage also
+exact-regenerates the fixture
 through
 `OrbitalDynamics.contact_allocation_report/3` from deterministic contact,
 declared ground-network, and resource-summary inputs, preserving the
@@ -1239,10 +1240,11 @@ reservation-conflict handoff summaries.
 `study_results/contact_allocation_capacity_pack_report_v1.json` is also
 observed as a `contact_allocation_report.v1` reduced-capacity pack fixture. It
 checks capacity-pack group counts, capacity fraction totals, selected/packed
-and deferred contact routing, allocation reason maps, schema-visible
-reported capacity-pack status count maps, reported capacity-pack contact IDs
-by status, required-capacity source maps, packed/deferred ID sets, and declared
-station-calendar trust boundaries, including nested contact-filter assumption
+and deferred contact routing, allocation reason maps, station-pressure status
+maps, schema-visible reported capacity-pack status count maps, reported
+capacity-pack contact IDs by status, required-capacity source maps,
+packed/deferred ID sets, and declared station-calendar trust boundaries,
+including nested contact-filter assumption
 metadata. Focused schema-reference coverage exact-regenerates the full report
 fixture through
 `OrbitalDynamics.contact_allocation_report/3` from deterministic
