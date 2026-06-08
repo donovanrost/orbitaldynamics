@@ -10284,6 +10284,87 @@ defmodule OrbitalDynamics.Validation do
         "does not call provider APIs, reserve station time, or mutate schedules"
       ]
     },
+    "fixture.artifact.station_reservation_review_summary.v1" => %{
+      "id" => "fixture.artifact.station_reservation_review_summary.v1",
+      "model_id" => "artifact.station_reservation_review_summary.v1",
+      "reference_case" => "checked-in station reservation review summary",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/station_reservation_review_summary_v1.json",
+        "source_contract" => "station_reservation_report.v1",
+        "contract" => "station_reservation_review_summary.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "station_reservation_review_summary.v1",
+        "model" => "artifact_only_station_reservation_review_summary",
+        "source_artifact_type" => "station_reservation_report.v1",
+        "source" => "station_calendar_report.reservation_evidence",
+        "reservation_count" => 3,
+        "affected_contact_reservation_count" => 1,
+        "provider_calendar_contention_group_count" => 2,
+        "reservation_review_status" => "review_required",
+        "reservation_expiration_count" => 2,
+        "earliest_reservation_expires_at_s" => 240.0,
+        "expired_reservation_count" => 1,
+        "active_reservation_count" => 1,
+        "missing_reservation_expiration_count" => 1,
+        "reservation_expiration_status_counts" => %{"active" => 1, "expired" => 1, "missing" => 1},
+        "row_derived_reservation_expiration_status_counts" => %{
+          "active" => 1,
+          "expired" => 1,
+          "missing" => 1
+        },
+        "review_reservation_id_keys" =>
+          "reservation_active|reservation_expired|reservation_missing",
+        "row_derived_review_reservation_id_keys" =>
+          "reservation_active|reservation_expired|reservation_missing",
+        "reservation_ids_by_expiration_status" => %{
+          "active" => ["reservation_active"],
+          "expired" => ["reservation_expired"],
+          "missing" => ["reservation_missing"]
+        },
+        "row_derived_reservation_ids_by_expiration_status" => %{
+          "active" => ["reservation_active"],
+          "expired" => ["reservation_expired"],
+          "missing" => ["reservation_missing"]
+        },
+        "row_derived_reservation_ids_by_row_type" => %{
+          "affected_contact" => ["reservation_expired"],
+          "provider_calendar_contention_group" => ["reservation_active", "reservation_missing"]
+        },
+        "row_derived_required_operator_action_counts" => %{
+          "review_station_provider_contention" => 2,
+          "review_station_reservation_overlap" => 1
+        },
+        "row_derived_review_contact_ids_by_expiration_status" => %{
+          "expired" => ["dl_source_reserved"]
+        },
+        "execution_boundary" => "artifact_only_no_provider_reservation",
+        "operator_authority" => "not_granted_by_summary",
+        "model_limit_count" => 5
+      },
+      "tolerances" => %{
+        "reservation_count" => 0,
+        "affected_contact_reservation_count" => 0,
+        "provider_calendar_contention_group_count" => 0,
+        "reservation_expiration_count" => 0,
+        "earliest_reservation_expires_at_s" => 0,
+        "expired_reservation_count" => 0,
+        "active_reservation_count" => 0,
+        "missing_reservation_expiration_count" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by station_reservation_review_summary.v1 validation tests"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not external provider validation",
+        "checks review summary routing and no-provider-write boundary only",
+        "does not call provider APIs, accept reservations, or mutate schedules"
+      ]
+    },
     "fixture.artifact.station_reservation_hold_summary.v1" => %{
       "id" => "fixture.artifact.station_reservation_hold_summary.v1",
       "model_id" => "artifact.station_reservation_hold_summary.v1",
@@ -16995,6 +17076,64 @@ defmodule OrbitalDynamics.Validation do
         |> sort_grouped_values(),
       "provider_reservation_execution_boundary" =>
         get_in(artifact, ["assumptions", "execution_boundary"])
+    }
+  end
+
+  def artifact_observations("station_reservation_review_summary.v1", artifact)
+      when is_map(artifact) do
+    artifact = stringify_keys(artifact)
+    rows = map_rows(artifact, "review_rows")
+
+    %{
+      "schema_contract" => Map.get(artifact, "schema_contract"),
+      "model" => Map.get(artifact, "model"),
+      "source_artifact_type" => Map.get(artifact, "source_artifact_type"),
+      "source" => Map.get(artifact, "source"),
+      "reservation_count" => Map.get(artifact, "reservation_count"),
+      "affected_contact_reservation_count" =>
+        Map.get(artifact, "affected_contact_reservation_count"),
+      "provider_calendar_contention_group_count" =>
+        Map.get(artifact, "provider_calendar_contention_group_count"),
+      "reservation_review_status" => Map.get(artifact, "reservation_review_status"),
+      "reservation_expiration_count" => Map.get(artifact, "reservation_expiration_count"),
+      "earliest_reservation_expires_at_s" =>
+        Map.get(artifact, "earliest_reservation_expires_at_s"),
+      "expired_reservation_count" => Map.get(artifact, "expired_reservation_count"),
+      "active_reservation_count" => Map.get(artifact, "active_reservation_count"),
+      "missing_reservation_expiration_count" =>
+        Map.get(artifact, "missing_reservation_expiration_count"),
+      "reservation_expiration_status_counts" =>
+        Map.get(artifact, "reservation_expiration_status_counts") || %{},
+      "row_derived_reservation_expiration_status_counts" =>
+        count_rows_by_value(rows, "station_reservation_expiration_status"),
+      "review_reservation_id_keys" =>
+        artifact
+        |> list_values("review_reservation_ids")
+        |> stable_id_keys(),
+      "row_derived_review_reservation_id_keys" =>
+        rows
+        |> Enum.flat_map(&list_values(&1, "reservation_ids"))
+        |> stable_id_keys(),
+      "reservation_ids_by_expiration_status" =>
+        Map.get(artifact, "reservation_ids_by_expiration_status") || %{},
+      "row_derived_reservation_ids_by_expiration_status" =>
+        group_row_list_ids_by_value(
+          rows,
+          "station_reservation_expiration_status",
+          "reservation_ids"
+        ),
+      "row_derived_reservation_ids_by_row_type" =>
+        group_row_list_ids_by_value(rows, "reservation_review_row_type", "reservation_ids"),
+      "row_derived_required_operator_action_counts" =>
+        count_rows_by_value(rows, "required_operator_action"),
+      "row_derived_review_contact_ids_by_expiration_status" =>
+        rows
+        |> group_row_ids_by_present_value("station_reservation_expiration_status", "contact_id")
+        |> reject_empty_grouped_values()
+        |> sort_grouped_values(),
+      "execution_boundary" => get_in(artifact, ["assumptions", "execution_boundary"]),
+      "operator_authority" => get_in(artifact, ["assumptions", "operator_authority"]),
+      "model_limit_count" => count(artifact, "model_limits")
     }
   end
 
