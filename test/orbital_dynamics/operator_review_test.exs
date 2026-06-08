@@ -11371,6 +11371,211 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(manifest)
   end
 
+  test "candidate refresh result-artifact contact intent summaries become review rows" do
+    summary = %{
+      "schema_contract" => "contact_intent_summary.v1",
+      "model" => "artifact_only_contact_intent_summary",
+      "source_artifact_type" => "contact_intent.v1",
+      "source" => "operator_review_test.result_contact_intent_summary",
+      "contact_intent_count" => 2,
+      "capacity_pack_required_contact_count" => 1,
+      "contact_ids_by_ground_station_id" => %{
+        "dss_43" => ["result_downlink_intent", "result_command_intent"]
+      },
+      "contact_ids_by_direction" => %{
+        "command" => ["result_command_intent"],
+        "downlink" => ["result_downlink_intent"]
+      },
+      "capacity_pack_contact_ids_by_direction" => %{
+        "downlink" => ["result_downlink_intent"]
+      },
+      "direction_routing" => %{
+        "command" => %{
+          "contact_count" => 1,
+          "contact_ids" => ["result_command_intent"],
+          "capacity_pack_contact_ids" => []
+        },
+        "downlink" => %{
+          "contact_count" => 1,
+          "contact_ids" => ["result_downlink_intent"],
+          "capacity_pack_required_capacity_fraction" => 0.45,
+          "capacity_pack_contact_ids" => ["result_downlink_intent"]
+        }
+      },
+      "assumptions" => %{
+        "execution_boundary" => "artifact_only_no_contact_generation_or_schedule_mutation"
+      }
+    }
+
+    cases = [
+      {%{"source_result_artifact" => [summary]},
+       "candidate_refresh.source_result_artifact[0].summary_contacts",
+       "candidate_refresh.source_result_artifact_0"},
+      {%{
+         "result_artifact" => %{
+           "schema_contract" => "result_artifact.v1",
+           "contact_intent_summary" => summary
+         }
+       }, "candidate_refresh.result_artifact.contact_intent_summary.summary_contacts",
+       "candidate_refresh.result_artifact.contact_intent_summary"}
+    ]
+
+    expected_rows = %{
+      "command" => %{
+        contact_id: "result_command_intent",
+        contact_ids: ["result_command_intent"],
+        capacity_pack_contact_ids: []
+      },
+      "downlink" => %{
+        contact_id: "result_downlink_intent",
+        contact_ids: ["result_downlink_intent"],
+        capacity_pack_contact_ids: ["result_downlink_intent"],
+        required_capacity_fraction: 0.45
+      }
+    }
+
+    Enum.each(cases, fn {artifact_fields, source, activity_source} ->
+      artifact =
+        Map.merge(
+          %{
+            "schema_contract" => "candidate_refresh.v1",
+            "refresh_id" => "candidate_refresh:result_contact_intent_summary_review"
+          },
+          artifact_fields
+        )
+
+      package = OperatorReview.from_candidate_refresh_artifact(artifact)
+      manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+      assert %{
+               "review_count" => 2,
+               "contact_intent_review_count" => 2,
+               "review_type_counts" => %{"contact_intent_review" => 2}
+             } = package
+
+      assert %{
+               "row_count" => 2,
+               "import_action_counts" => %{"review_contact_intent" => 2},
+               "source_review_type_counts" => %{"contact_intent_review" => 2}
+             } = manifest
+
+      package_rows_by_direction = Map.new(package["rows"], &{&1["direction"], &1})
+      manifest_rows_by_direction = Map.new(manifest["rows"], &{&1["direction"], &1})
+
+      assert Map.keys(package_rows_by_direction) |> Enum.sort() == ["command", "downlink"]
+      assert Map.keys(manifest_rows_by_direction) |> Enum.sort() == ["command", "downlink"]
+
+      Enum.each(expected_rows, fn {direction, expected} ->
+        contact_id = expected.contact_id
+        contact_ids = expected.contact_ids
+        capacity_pack_contact_ids = expected.capacity_pack_contact_ids
+        activity_id = "contact_intent_summary:#{activity_source}:#{direction}"
+
+        assert %{
+                 "source" => ^source,
+                 "activity_id" => ^activity_id,
+                 "direction" => ^direction,
+                 "contact_id" => ^contact_id,
+                 "contact_ids" => ^contact_ids,
+                 "capacity_pack_contact_ids" => ^capacity_pack_contact_ids,
+                 "required_operator_action" => "review_contact_intent",
+                 "source_contact_intent_summary" => %{
+                   "schema_contract" => "contact_intent_summary.v1",
+                   "direction_routing" => %{
+                     ^direction => %{
+                       "contact_ids" => ^contact_ids,
+                       "capacity_pack_contact_ids" => ^capacity_pack_contact_ids
+                     }
+                   }
+                 },
+                 "source_contact_intent" => %{
+                   "direction" => ^direction,
+                   "source_contact_intent_summary" => %{
+                     "schema_contract" => "contact_intent_summary.v1"
+                   }
+                 }
+               } = package_rows_by_direction[direction]
+
+        assert %{
+                 "import_action" => "review_contact_intent",
+                 "source_review_type" => "contact_intent_review",
+                 "activity_id" => ^activity_id,
+                 "direction" => ^direction,
+                 "contact_id" => ^contact_id,
+                 "contact_ids" => ^contact_ids,
+                 "capacity_pack_contact_ids" => ^capacity_pack_contact_ids,
+                 "source_contact_intent_summary" => %{
+                   "schema_contract" => "contact_intent_summary.v1",
+                   "direction_routing" => %{
+                     ^direction => %{
+                       "contact_ids" => ^contact_ids,
+                       "capacity_pack_contact_ids" => ^capacity_pack_contact_ids
+                     }
+                   }
+                 },
+                 "source_contact_intent" => %{
+                   "direction" => ^direction,
+                   "source_contact_intent_summary" => %{
+                     "schema_contract" => "contact_intent_summary.v1"
+                   }
+                 },
+                 "source_review_row" => %{
+                   "source" => ^source,
+                   "activity_id" => ^activity_id,
+                   "direction" => ^direction,
+                   "contact_id" => ^contact_id,
+                   "contact_ids" => ^contact_ids,
+                   "capacity_pack_contact_ids" => ^capacity_pack_contact_ids,
+                   "source_contact_intent_summary" => %{
+                     "schema_contract" => "contact_intent_summary.v1",
+                     "direction_routing" => %{
+                       ^direction => %{
+                         "contact_ids" => ^contact_ids,
+                         "capacity_pack_contact_ids" => ^capacity_pack_contact_ids
+                       }
+                     }
+                   }
+                 }
+               } = manifest_rows_by_direction[direction]
+
+        case expected do
+          %{required_capacity_fraction: required_capacity_fraction} ->
+            assert package_rows_by_direction[direction]["required_capacity_fraction"] ==
+                     required_capacity_fraction
+
+            assert manifest_rows_by_direction[direction]["required_capacity_fraction"] ==
+                     required_capacity_fraction
+
+            assert manifest_rows_by_direction[direction]["source_review_row"][
+                     "required_capacity_fraction"
+                   ] == required_capacity_fraction
+
+          _ ->
+            refute Map.has_key?(
+                     package_rows_by_direction[direction],
+                     "required_capacity_fraction"
+                   )
+
+            refute Map.has_key?(
+                     manifest_rows_by_direction[direction],
+                     "required_capacity_fraction"
+                   )
+
+            refute Map.has_key?(
+                     manifest_rows_by_direction[direction]["source_review_row"],
+                     "required_capacity_fraction"
+                   )
+        end
+      end)
+
+      assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+               Schema.validate_artifact(package)
+
+      assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+               Schema.validate_artifact(manifest)
+    end)
+  end
+
   test "builds standalone freshness and refresh-budget review packages" do
     stale_freshness = %{
       "schema_contract" => "freshness_report.v1",
