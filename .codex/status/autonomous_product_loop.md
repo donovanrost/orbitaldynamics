@@ -5,39 +5,44 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-CandidateRefresh quality-gate provenance station-reason validation challenge.
+Station-pressure status and direction handoff for review/import artifacts.
 
 Status:
-Implemented and parent-verified. Candidate-refresh schema validation now has
-direct challenge coverage proving stale embedded
-`provenance.source_reports.quality_gate_report` station availability reason IDs
-and counts are rejected when they no longer derive from
-`resource_availability_reason_counts`.
+Implemented and parent-verified. Operator-review packages and Cadence import
+manifests now preserve contact-allocation station-pressure contact IDs/counts
+by station-calendar status plus nested direction/ground-station routing maps
+from compact contact-allocation summaries.
 
 Files changed:
-- `test/orbital_dynamics/candidate_refresh_test.exs`
+- `lib/orbital_dynamics/operator_review.ex`
+- `lib/orbital_dynamics/cadence_import.ex`
+- `lib/orbital_dynamics/schema.ex`
+- `test/orbital_dynamics/operator_review_test.exs`
+- `test/orbital_dynamics/cadence_import_test.exs`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:41293`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs`
+- `mix test test/orbital_dynamics/operator_review_test.exs:19230`
+- `mix test test/orbital_dynamics/cadence_import_test.exs:12135`
+- `mix test test/orbital_dynamics/operator_review_test.exs`
+- `mix test test/orbital_dynamics/cadence_import_test.exs`
 - `git diff --check`
 
 Docs/artifacts changed:
-- No public docs/artifacts changed; this hardens an existing CandidateRefresh
-  provenance validation contract with executable challenge evidence.
+- No public docs/artifacts changed; this extends existing review/import
+  contact-allocation handoff fields and schema validation.
 
 Level 6 pillar advanced:
-Approval-aware quality gates/import readiness and resource/station availability
-routing. CandidateRefresh quality-gate provenance now has an executable
-compatibility guard against stale Cadence-facing station/resource availability
-handoffs without granting import, Cadence write, or operator authority.
+Resource/contact allocation semantics and Cadence-facing operational handoff.
+Station-pressure status and direction/station routing now survive from compact
+allocation summaries into operator-review and Cadence-import artifacts without
+provider reservation, schedule mutation, Cadence write, or operator authority.
 
 Remaining maturity gaps:
 Resource/contact allocation behavior still needs deeper operational slices
 beyond replay evidence, especially around quality gates and planner use of
 station pressure. Continue reassessing Level 6 gaps from the guide after this
-validation-challenge slice is reviewed and published.
+review/import handoff slice is reviewed and published.
 
 Last commit:
 Pending commit for this slice.
@@ -45,8 +50,8 @@ Pending commit for this slice.
 Next candidate:
 After publishing this slice, reassess Level 6 gaps from the guide/ledger.
 Likely next candidates include a non-test resource/contact implementation slice
-from the Level 6 roadmap, especially planner or quality-gate use of station
-pressure beyond replay evidence.
+from the Level 6 roadmap, especially planner or quality-gate use of the
+station-pressure status/direction maps beyond review/import routing.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
