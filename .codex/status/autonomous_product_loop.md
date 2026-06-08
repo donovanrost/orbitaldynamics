@@ -89,7 +89,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Previous slice: `b2942b9` Update autonomous loop handoff.
+`9bfadda` Derive unavailable resource quality gate pressure.
 
 Next candidate:
 After this slice, continue specialized quality-gate summary branch-pressure gaps
@@ -100,6 +100,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `9bfadda` derived unavailable-resource quality-gate summary pressure.
 - `13e927a` derived quality-gate summary pressure branches.
 - `482bcf2` derived counteroffer plan-impact pressure branches.
 - `1b5bbb8` derived provider reservation request pressure branches.
