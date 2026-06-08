@@ -2250,6 +2250,74 @@ defmodule OrbitalDynamics.CadenceImportTest do
              Schema.validate_artifact(manifest)
   end
 
+  test "candidate refresh import preserves wrapped operational import eligibility summaries" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:wrapped_import_eligibility_import",
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "operational_import_eligibility_summary" => operational_import_eligibility_summary()
+        }
+      ]
+    }
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:wrapped_import_eligibility_import",
+             "row_count" => 1,
+             "review_required_count" => 1,
+             "import_action_counts" => %{"review_operational_readiness" => 1},
+             "source_review_type_counts" => %{"operational_readiness_review" => 1}
+           } = manifest
+
+    assert [
+             %{
+               "source" =>
+                 "candidate_refresh.source_result_artifact[0].operational_import_eligibility_summary",
+               "import_action" => "review_operational_readiness",
+               "source_review_type" => "operational_readiness_review",
+               "source_review_action" => "review_operational_readiness",
+               "import_status" => "review_required_before_import",
+               "approval_status" => "operator_review_required",
+               "required_operator_action" => "review_operational_readiness",
+               "subject_id" => "activity_1",
+               "cadence_import_status" => "present",
+               "has_cadence_import" => false,
+               "readiness_level" => "operator_review",
+               "import_classification" => "review_only",
+               "operational_readiness_status" => "review_required",
+               "gate_count" => 5,
+               "passed_gate_count" => 2,
+               "review_gate_count" => 1,
+               "analysis_gate_count" => 1,
+               "blocked_gate_count" => 1,
+               "source_operational_readiness_report" => %{
+                 "schema_contract" => "operational_import_eligibility_summary.v1",
+                 "source_summary_schema_contract" => "operational_import_eligibility_summary.v1",
+                 "source_summary_model" => "artifact_only_import_eligibility_summary",
+                 "assumptions" => %{
+                   "operator_authority" => "not_granted_by_summary",
+                   "cadence_write" => "not_performed_by_summary",
+                   "command_execution" => "not_performed_by_summary"
+                 }
+               },
+               "source_review_row" => %{
+                 "source" =>
+                   "candidate_refresh.source_result_artifact[0].operational_import_eligibility_summary",
+                 "source_operational_readiness_report" => %{
+                   "source_summary_schema_contract" => "operational_import_eligibility_summary.v1"
+                 }
+               }
+             }
+           ] = manifest["rows"]
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "candidate refresh import preserves wrapped specialized quality gate summaries" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
@@ -13491,6 +13559,43 @@ defmodule OrbitalDynamics.CadenceImportTest do
   defp operational_execution_boundary_summary do
     operational_readiness_resource_report()
     |> OrbitalDynamics.operational_execution_boundary_summary()
+  end
+
+  defp operational_import_eligibility_summary do
+    %{
+      "schema_contract" => "operational_import_eligibility_summary.v1",
+      "model" => "artifact_only_import_eligibility_summary",
+      "source" => "operational_readiness_report.v1",
+      "source_artifact_type" => "planned_activity.v1",
+      "source_artifact_id" => "activity_1",
+      "readiness_level" => "operator_review",
+      "import_classification" => "review_only",
+      "status" => "review_required",
+      "import_eligible" => false,
+      "gate_count" => 5,
+      "passed_gate_count" => 2,
+      "review_gate_count" => 1,
+      "analysis_gate_count" => 1,
+      "blocked_gate_count" => 1,
+      "non_passed_gate_count" => 3,
+      "non_passed_gates" => [
+        %{"id" => "operational_mode"},
+        %{"id" => "operator_review"},
+        %{"id" => "cadence_import"}
+      ],
+      "assumptions" => %{
+        "execution_boundary" => "artifact_only_no_cadence_write",
+        "source" => "operational_readiness_report.v1",
+        "operator_authority" => "not_granted_by_summary",
+        "cadence_write" => "not_performed_by_summary",
+        "command_execution" => "not_performed_by_summary"
+      },
+      "model_limits" => [
+        "operational_import_eligibility_summary_routes_only",
+        "operational_import_eligibility_summary_does_not_approve_or_import"
+      ],
+      "provenance" => %{"trust_boundary" => "ops_import_eligibility_summary"}
+    }
   end
 
   defp operational_quality_gate_summary do
