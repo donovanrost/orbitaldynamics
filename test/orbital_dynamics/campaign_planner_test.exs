@@ -41878,6 +41878,231 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives branch refresh from mission-state quality gate schema validation summaries" do
+    schema_validation_summary = fn prefix, status, classification, validation_status ->
+      counts =
+        case validation_status do
+          "fail" -> %{"fail" => 1}
+          "warning" -> %{"warning" => 1}
+          "pass" -> %{"pass" => 1}
+        end
+
+      quality_gate_report = %{
+        "schema_contract" => "quality_gate_report.v1",
+        "model" => "artifact_only_operational_quality_gate_report",
+        "report_id" => "quality_gate:#{prefix}",
+        "source_artifact_type" => "planned_activity.v1",
+        "source_artifact_id" => "#{prefix}_schema_payload",
+        "source_readiness_report_id" => "operational_readiness:#{prefix}",
+        "readiness_level" =>
+          case classification do
+            "blocked" -> "blocked"
+            "analysis_only" -> "analysis_only"
+            "review_only" -> "operator_review"
+          end,
+        "import_classification" => classification,
+        "status" => status,
+        "gate_count" => 1,
+        "passed_gate_count" => 0,
+        "review_gate_count" => if(status == "review_required", do: 1, else: 0),
+        "analysis_gate_count" => if(status == "analysis_only", do: 1, else: 0),
+        "blocked_gate_count" => if(status == "blocked", do: 1, else: 0),
+        "gate_status_counts" => %{status => 1},
+        "gate_classification_counts" => %{classification => 1},
+        "rows" => [
+          %{
+            "id" => "quality_gate:#{prefix}:cadence_import:1",
+            "rank" => 1,
+            "gate_id" => "cadence_import",
+            "status" => status,
+            "classification" => classification,
+            "reason" => "#{prefix} schema validation requires review",
+            "schema_validation_pass_count" => if(validation_status == "pass", do: 1, else: 0),
+            "schema_validation_fail_count" => if(validation_status == "fail", do: 1, else: 0),
+            "schema_validation_error_count" => if(validation_status == "fail", do: 1, else: 0),
+            "schema_validation_warning_count" =>
+              if(validation_status == "warning", do: 1, else: 0),
+            "schema_validation_remediation_count" =>
+              if(validation_status == "fail", do: 1, else: 0),
+            "schema_validation_status_counts" => counts
+          }
+        ],
+        "assumptions" => %{"source" => "test.quality_gate_report"},
+        "model_limits" => ["artifact_only"]
+      }
+
+      quality_gate_report
+      |> OrbitalDynamics.OperationalReadiness.quality_gate_schema_validation_summary()
+      |> Map.put("provenance", %{
+        "trust_boundary" => "#{prefix}_schema_validation_summary_boundary"
+      })
+    end
+
+    direct_summary =
+      schema_validation_summary.("direct", "blocked", "blocked", "fail")
+
+    canonical_summary =
+      schema_validation_summary.("canonical", "review_required", "review_only", "warning")
+
+    wrapped_summary =
+      schema_validation_summary.("wrapped", "analysis_only", "analysis_only", "pass")
+
+    assert {:ok, %{"schema_contract" => "operational_quality_gate_schema_validation_summary.v1"}} =
+             Schema.validate_artifact(direct_summary)
+
+    assert {:ok, %{"schema_contract" => "operational_quality_gate_schema_validation_summary.v1"}} =
+             Schema.validate_artifact(canonical_summary)
+
+    assert {:ok, %{"schema_contract" => "operational_quality_gate_schema_validation_summary.v1"}} =
+             Schema.validate_artifact(wrapped_summary)
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put("source_operational_quality_gate_schema_validation_summary", direct_summary)
+      |> Map.put("operational_quality_gate_schema_validation_summary", canonical_summary)
+      |> Map.put("source_result_artifact", %{
+        "schema_contract" => "result_artifact.v1",
+        "artifact_type" => "mission_state_result_artifact",
+        "source_operational_quality_gate_schema_validation_summary" =>
+          Map.delete(wrapped_summary, "provenance"),
+        "provenance" => %{"trust_boundary" => "wrapped_schema_validation_summary_boundary"}
+      })
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    direct_branch =
+      Enum.find(artifact["branches"], fn branch ->
+        String.starts_with?(branch["branch_id"], "derived_quality_gate_pressure_") and
+          Enum.any?(
+            branch["events"] || [],
+            &(&1["type"] == "quality_gate_pressure" and
+                &1["source_artifact_id"] == "direct_schema_payload")
+          )
+      end)
+
+    assert direct_branch
+
+    assert %{
+             "type" => "quality_gate_pressure",
+             "source_artifact_type" => "planned_activity.v1",
+             "source_artifact_id" => "direct_schema_payload",
+             "source_readiness_report_id" => "operational_readiness:direct",
+             "readiness_level" => "blocked",
+             "import_classification" => "blocked",
+             "quality_gate_status" => "blocked",
+             "gate_count" => 1,
+             "blocked_gate_count" => 1,
+             "gate_id" => "cadence_import",
+             "gate_status" => "blocked",
+             "gate_classification" => "blocked",
+             "gate_reason" => "schema validation summary blocks import",
+             "schema_validation_row_count" => 1,
+             "schema_validation_pass_count" => 0,
+             "schema_validation_fail_count" => 1,
+             "schema_validation_error_count" => 1,
+             "schema_validation_warning_count" => 0,
+             "schema_validation_remediation_count" => 1,
+             "schema_validation_status_counts" => %{"fail" => 1},
+             "schema_validation_status_ids" => ["fail"],
+             "schema_validation_import_blocked" => true,
+             "failed_schema_validation_quality_gate_row_ids" => [
+               "quality_gate:direct:cadence_import:1"
+             ],
+             "feedback_source" =>
+               "mission_state.source_operational_quality_gate_schema_validation_summary",
+             "feedback_scope" => "quality_gate",
+             "trust_boundary" => "direct_schema_validation_summary_boundary",
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_cadence_write",
+               "operator_authority" => "not_granted_by_schema_validation_summary",
+               "cadence_write" => "not_performed_by_summary",
+               "command_execution" => "not_performed_by_summary",
+               "source" => "quality_gate_report.v1"
+             },
+             "source_quality_gate_row" => %{
+               "gate_id" => "cadence_import",
+               "blocked_quality_gate_row_ids" => [
+                 "quality_gate:direct:cadence_import:1"
+               ]
+             },
+             "source_quality_gate_report" => %{
+               "schema_contract" => "operational_quality_gate_schema_validation_summary.v1"
+             }
+           } = List.first(direct_branch["events"])
+
+    assert Enum.any?(
+             direct_branch["risk_indicators"],
+             &(&1["type"] == "quality_gate_pressure" and
+                 &1["schema_validation_import_blocked"] == true and
+                 &1["schema_validation_status_counts"] == %{"fail" => 1} and
+                 &1["failed_schema_validation_quality_gate_row_ids"] == [
+                   "quality_gate:direct:cadence_import:1"
+                 ])
+           )
+
+    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+
+    comparison_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == direct_branch["branch_id"]))
+
+    assert "quality_gate_pressure" in comparison_row["risk_types"]
+
+    assert comparison_row["branch_feedback_sources"] == [
+             "mission_state.source_operational_quality_gate_schema_validation_summary"
+           ]
+
+    canonical_branch =
+      Enum.find(artifact["branches"], fn branch ->
+        String.starts_with?(branch["branch_id"], "derived_quality_gate_pressure_") and
+          Enum.any?(
+            branch["events"] || [],
+            &(&1["type"] == "quality_gate_pressure" and
+                &1["source_artifact_id"] == "canonical_schema_payload" and
+                &1["gate_status"] == "review_required" and
+                &1["schema_validation_status_counts"] == %{"warning" => 1})
+          )
+      end)
+
+    wrapped_branch =
+      Enum.find(artifact["branches"], fn branch ->
+        String.starts_with?(branch["branch_id"], "derived_quality_gate_pressure_") and
+          Enum.any?(
+            branch["events"] || [],
+            &(&1["type"] == "quality_gate_pressure" and
+                &1["source_artifact_id"] == "wrapped_schema_payload" and
+                &1["trust_boundary"] == "wrapped_schema_validation_summary_boundary" and
+                &1["gate_status"] == "analysis_only" and
+                &1["analysis_gate_count"] == 1)
+          )
+      end)
+
+    assert canonical_branch
+    assert wrapped_branch
+
+    assert MapSet.size(
+             MapSet.new([
+               direct_branch["branch_id"],
+               canonical_branch["branch_id"],
+               wrapped_branch["branch_id"]
+             ])
+           ) == 3
+
+    assert "mission_state.source_operational_quality_gate_schema_validation_summary" in get_in(
+             direct_branch,
+             ["assumptions", "candidate_source", "source_report_input_paths"]
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy preserves operator-training readiness gate context in branch events" do
     readiness_report =
       %{

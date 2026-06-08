@@ -5,24 +5,25 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Make quality-gate operator-training summaries branch-visible.
+Make quality-gate schema-validation summaries branch-visible.
 
 Status:
 Implemented and parent-verified.
-`operational_quality_gate_operator_training_summary.v1` handoffs now create V3
-branch-local operator-training quality-gate pressure directly.
+`operational_quality_gate_schema_validation_summary.v1` handoffs now create V3
+branch-local schema-validation quality-gate pressure directly.
 
 Slice-selection note:
-- Selected slice: derive branch-local quality-gate/operator-training pressure
-  from `operational_quality_gate_operator_training_summary.v1` handoffs.
-- Why this slice: the readiness roadmap says operator-training quality-gate
-  summaries preserve required roles, training, certification, and qualification
-  IDs; live code records those summaries as CandidateRefresh inputs but does
-  not use them as direct V3 branch pressure.
-- Level 6 pillar: operator readiness, approval-aware automation boundaries,
-  reproducible V3 branch trees, and Cadence-facing artifacts.
-- Current evidence gap: compact operator-training quality-gate summaries can
-  carry required role/training/certification/qualification context without
+- Selected slice: derive branch-local quality-gate/schema-validation pressure
+  from `operational_quality_gate_schema_validation_summary.v1` handoffs.
+- Why this slice: the readiness roadmap says schema-validation quality-gate
+  summaries preserve pass/fail status counts, blocked rows, failed
+  schema-validation row IDs, and no-authority assumptions; live code records
+  those summaries as CandidateRefresh inputs but does not use them as direct V3
+  branch pressure.
+- Level 6 pillar: schema-versioned artifacts, approval-aware automation
+  boundaries, reproducible V3 branch trees, and Cadence-facing artifacts.
+- Current evidence gap: compact schema-validation quality-gate summaries can
+  carry failed/error validation context and import-blocking state without
   directly affecting branch risk, `risk_penalty`, or branch comparison
   explanations.
 - Docs read:
@@ -38,10 +39,10 @@ Slice-selection note:
 - Likely files: `lib/orbital_dynamics/campaign_planner.ex`,
   `test/orbital_dynamics/campaign_planner_test.exs`,
   `.codex/status/autonomous_product_loop.md`.
-- Definition of done: direct/canonical/result-artifact operator-training
+- Definition of done: direct/canonical/result-artifact schema-validation
   quality-gate summaries derive branch-local quality-gate pressure events with
-  source paths, trust boundaries, required role/training/certification context,
-  and no-execution/import/write assumptions; those events feed
+  source paths, trust boundaries, status counts, failed-row/import-blocking
+  context, and no-execution/import/write assumptions; those events feed
   risk/scoring/comparison output; focused strategy/schema validation passes;
   and whitespace checks are clean.
 
@@ -52,34 +53,33 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:41662` (1 passed, 668 excluded)
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:41136 test/orbital_dynamics/campaign_planner_test.exs:41223 test/orbital_dynamics/campaign_planner_test.exs:41427 test/orbital_dynamics/campaign_planner_test.exs:41662 test/orbital_dynamics/campaign_planner_test.exs:41940 test/orbital_dynamics/campaign_planner_test.exs:42017` (6 passed, 663 excluded)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:41881` (1 passed, 669 excluded)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:41136 test/orbital_dynamics/campaign_planner_test.exs:41223 test/orbital_dynamics/campaign_planner_test.exs:41427 test/orbital_dynamics/campaign_planner_test.exs:41662 test/orbital_dynamics/campaign_planner_test.exs:41881 test/orbital_dynamics/campaign_planner_test.exs:42185 test/orbital_dynamics/campaign_planner_test.exs:42262` (7 passed, 663 excluded)
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- None; this is runtime/test coverage for existing operator-training
+- None; this is runtime/test coverage for existing schema-validation
   quality-gate summary evidence.
 
 Local review:
 - Mission-state normalization now preserves direct and canonical
-  `operational_quality_gate_operator_training_summary.v1` fields so they can
+  `operational_quality_gate_schema_validation_summary.v1` fields so they can
   reach branch derivation alongside result-artifact-wrapped summaries.
-- Quality-gate pressure collection maps operator-training summaries into one
+- Quality-gate pressure collection maps schema-validation summaries into one
   branch-local pressure row per review/blocked/analysis-only summary, retaining
-  source paths, trust boundaries, assumptions, required roles, training IDs,
-  certification IDs, qualification IDs, and source summary snapshots.
-- Quality-gate events, risk indicators, and branch comparison rows now reflect
-  operator-training summary pressure through the existing quality-gate risk
-  path.
-- Read-only reviewer Popper flagged possible combined-branch false positives
-  and thin risk-context assertions; the test now requires distinct individual
-  `derived_quality_gate_pressure_*` branches for direct/canonical/wrapped
-  summaries and verifies role/training/certification/qualification fields in
-  risk indicators.
+  source paths, trust boundaries, assumptions, schema validation counts,
+  status IDs, failed quality-gate row IDs, import-blocking state, and source
+  summary snapshots.
+- Quality-gate events, risk indicators, and recommendation pressure rows carry
+  schema-validation counts, failed-row IDs, and import-blocking context; branch
+  comparison rows carry the resulting risk type and feedback source.
+- Read-only sidecar review requests to Popper and Lovelace did not return
+  findings before timeout; local review checked source paths, trust boundaries,
+  schema-valid fixtures, duplicate branch IDs, and risk/context propagation.
 
 Level 6 pillar advanced:
-Operator-training quality-gate summary evidence is now planner-visible in V3
+Schema-validation quality-gate summary evidence is now planner-visible in V3
 branch scoring and comparison output, not only CandidateRefresh replay.
 
 Remaining maturity gaps:
@@ -90,7 +90,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`fcd9a35` Derive operator training quality gate pressure.
+Previous slice: `c3f123f` Update autonomous loop handoff.
 
 Next candidate:
 After this slice, continue specialized quality-gate summary branch-pressure gaps

@@ -3894,6 +3894,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "required_training_ids",
       "required_certification_ids",
       "required_qualification_ids",
+      "schema_validation_row_count",
+      "schema_validation_pass_count",
+      "schema_validation_fail_count",
+      "schema_validation_error_count",
+      "schema_validation_warning_count",
+      "schema_validation_remediation_count",
+      "schema_validation_status_counts",
+      "schema_validation_status_ids",
+      "schema_validation_import_blocked",
+      "failed_schema_validation_quality_gate_row_ids",
       "resource_availability_pressure_count",
       "resource_availability_reason_counts",
       "resource_availability_reason_ids",
@@ -4705,6 +4715,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "required_training_ids",
         "required_certification_ids",
         "required_qualification_ids",
+        "schema_validation_row_count",
+        "schema_validation_pass_count",
+        "schema_validation_fail_count",
+        "schema_validation_error_count",
+        "schema_validation_warning_count",
+        "schema_validation_remediation_count",
+        "schema_validation_status_counts",
+        "schema_validation_status_ids",
+        "schema_validation_import_blocked",
+        "failed_schema_validation_quality_gate_row_ids",
         "resource_availability_pressure_count",
         "resource_availability_reason_counts",
         "resource_availability_reason_ids",
@@ -5090,6 +5110,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
         Map.get(state, "source_operational_quality_gate_operator_training_summary"),
       "operational_quality_gate_operator_training_summary" =>
         Map.get(state, "operational_quality_gate_operator_training_summary"),
+      "source_operational_quality_gate_schema_validation_summary" =>
+        Map.get(state, "source_operational_quality_gate_schema_validation_summary"),
+      "operational_quality_gate_schema_validation_summary" =>
+        Map.get(state, "operational_quality_gate_schema_validation_summary"),
       "source_model_acceptance_report" => Map.get(state, "source_model_acceptance_report"),
       "model_acceptance_report" => Map.get(state, "model_acceptance_report"),
       "source_validation_safety_case_summary" =>
@@ -26853,7 +26877,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"source_operational_quality_gate_operator_training_summary",
          "mission_state.source_operational_quality_gate_operator_training_summary"},
         {"operational_quality_gate_operator_training_summary",
-         "mission_state.operational_quality_gate_operator_training_summary"}
+         "mission_state.operational_quality_gate_operator_training_summary"},
+        {"source_operational_quality_gate_schema_validation_summary",
+         "mission_state.source_operational_quality_gate_schema_validation_summary"},
+        {"operational_quality_gate_schema_validation_summary",
+         "mission_state.operational_quality_gate_schema_validation_summary"}
       ]
       |> Enum.flat_map(fn {field, source_path} ->
         mission_state
@@ -26885,6 +26913,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
       mission_state_result_artifact_embedded_reports(
         mission_state,
         "operational_quality_gate_operator_training_summary"
+      ) ++
+      mission_state_result_artifact_embedded_reports(
+        mission_state,
+        "source_operational_quality_gate_schema_validation_summary"
+      ) ++
+      mission_state_result_artifact_embedded_reports(
+        mission_state,
+        "operational_quality_gate_schema_validation_summary"
       )
   end
 
@@ -26968,6 +27004,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "source_quality_gate_report" => row["source_quality_gate_report"]
       }
       |> Map.merge(operational_readiness_operator_training_context(row))
+      |> Map.merge(quality_gate_schema_validation_context(row))
       |> Map.merge(quality_gate_resource_context(row))
       |> compact_map()
     end
@@ -27029,8 +27066,68 @@ defmodule OrbitalDynamics.CampaignPlanner do
           source_path
         )
 
+      String.starts_with?(row_source, "operational_quality_gate_schema_validation_summary") ->
+        String.replace_prefix(
+          row_source,
+          "operational_quality_gate_schema_validation_summary",
+          source_path
+        )
+
       true ->
         source_path
+    end
+  end
+
+  defp quality_gate_pressure_rows(
+         %{"schema_contract" => "operational_quality_gate_schema_validation_summary.v1"} =
+           summary
+       ) do
+    summary = stringify_keys(summary)
+
+    case schema_validation_summary_gate_status(summary) do
+      nil ->
+        []
+
+      gate_status ->
+        gate_classification = quality_gate_status_classification(gate_status)
+
+        [
+          %{
+            "source" => "operational_quality_gate_schema_validation_summary",
+            "report_id" => summary["source_quality_gate_report_id"],
+            "source_artifact_type" => summary["source_artifact_type"],
+            "source_artifact_id" => summary["source_artifact_id"],
+            "source_readiness_report_id" => summary["source_readiness_report_id"],
+            "readiness_level" => quality_gate_status_readiness_level(gate_status),
+            "import_classification" => gate_classification,
+            "quality_gate_status" => gate_status,
+            "gate_count" => summary["schema_validation_row_count"],
+            "review_gate_count" => length(summary["review_required_quality_gate_row_ids"] || []),
+            "analysis_gate_count" =>
+              length(get_in(summary, ["quality_gate_row_ids_by_status", "analysis_only"]) || []),
+            "blocked_gate_count" => length(summary["blocked_quality_gate_row_ids"] || []),
+            "gate_id" => single_schema_validation_gate_id(summary["schema_validation_gate_ids"]),
+            "gate_status" => gate_status,
+            "gate_classification" => gate_classification,
+            "gate_reason" => schema_validation_summary_gate_reason(gate_status),
+            "schema_validation_row_count" => summary["schema_validation_row_count"],
+            "schema_validation_pass_count" => summary["schema_validation_pass_count"],
+            "schema_validation_fail_count" => summary["schema_validation_fail_count"],
+            "schema_validation_error_count" => summary["schema_validation_error_count"],
+            "schema_validation_warning_count" => summary["schema_validation_warning_count"],
+            "schema_validation_remediation_count" =>
+              summary["schema_validation_remediation_count"],
+            "schema_validation_status_counts" => summary["schema_validation_status_counts"],
+            "schema_validation_status_ids" => summary["schema_validation_status_ids"],
+            "schema_validation_import_blocked" => summary["schema_validation_import_blocked"],
+            "failed_schema_validation_quality_gate_row_ids" =>
+              summary["failed_schema_validation_quality_gate_row_ids"],
+            "assumptions" => summary["assumptions"],
+            "source_quality_gate_row" => schema_validation_summary_source_row(summary),
+            "source_quality_gate_report" => summary
+          }
+          |> compact_map()
+        ]
     end
   end
 
@@ -27315,6 +27412,22 @@ defmodule OrbitalDynamics.CampaignPlanner do
     }
   end
 
+  defp quality_gate_schema_validation_context(%{} = row) do
+    %{
+      "schema_validation_row_count" => row["schema_validation_row_count"],
+      "schema_validation_pass_count" => row["schema_validation_pass_count"],
+      "schema_validation_fail_count" => row["schema_validation_fail_count"],
+      "schema_validation_error_count" => row["schema_validation_error_count"],
+      "schema_validation_warning_count" => row["schema_validation_warning_count"],
+      "schema_validation_remediation_count" => row["schema_validation_remediation_count"],
+      "schema_validation_status_counts" => row["schema_validation_status_counts"],
+      "schema_validation_status_ids" => row["schema_validation_status_ids"],
+      "schema_validation_import_blocked" => row["schema_validation_import_blocked"],
+      "failed_schema_validation_quality_gate_row_ids" =>
+        row["failed_schema_validation_quality_gate_row_ids"]
+    }
+  end
+
   defp unavailable_resource_summary_gate_status(summary) do
     cond do
       length(summary["blocked_quality_gate_row_ids"] || []) > 0 ->
@@ -27332,6 +27445,22 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp operator_training_summary_gate_status(summary) do
+    cond do
+      length(summary["blocked_quality_gate_row_ids"] || []) > 0 ->
+        "blocked"
+
+      length(get_in(summary, ["quality_gate_row_ids_by_status", "analysis_only"]) || []) > 0 ->
+        "analysis_only"
+
+      length(summary["review_required_quality_gate_row_ids"] || []) > 0 ->
+        "review_required"
+
+      true ->
+        nil
+    end
+  end
+
+  defp schema_validation_summary_gate_status(summary) do
     cond do
       length(summary["blocked_quality_gate_row_ids"] || []) > 0 ->
         "blocked"
@@ -27373,11 +27502,23 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp operator_training_summary_gate_reason(_status),
     do: "operator training summary requires review"
 
+  defp schema_validation_summary_gate_reason("blocked"),
+    do: "schema validation summary blocks import"
+
+  defp schema_validation_summary_gate_reason("analysis_only"),
+    do: "schema validation summary requires analysis"
+
+  defp schema_validation_summary_gate_reason(_status),
+    do: "schema validation summary requires review"
+
   defp single_quality_gate_id([id | _rest]) when id not in [nil, ""], do: id
   defp single_quality_gate_id(_ids), do: "resource_availability"
 
   defp single_operator_training_gate_id([id | _rest]) when id not in [nil, ""], do: id
   defp single_operator_training_gate_id(_ids), do: "operator_training"
+
+  defp single_schema_validation_gate_id([id | _rest]) when id not in [nil, ""], do: id
+  defp single_schema_validation_gate_id(_ids), do: "cadence_import"
 
   defp unavailable_resource_summary_source_row(summary) do
     %{
@@ -27403,6 +27544,20 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "blocked_quality_gate_row_ids" => summary["blocked_quality_gate_row_ids"],
       "review_only_quality_gate_row_ids" => summary["review_only_quality_gate_row_ids"],
       "operator_training_gate_ids" => summary["operator_training_gate_ids"]
+    }
+    |> compact_map()
+  end
+
+  defp schema_validation_summary_source_row(summary) do
+    %{
+      "gate_id" => single_schema_validation_gate_id(summary["schema_validation_gate_ids"]),
+      "quality_gate_row_ids_by_status" => summary["quality_gate_row_ids_by_status"],
+      "quality_gate_ids_by_status" => summary["quality_gate_ids_by_status"],
+      "blocked_quality_gate_row_ids" => summary["blocked_quality_gate_row_ids"],
+      "review_required_quality_gate_row_ids" => summary["review_required_quality_gate_row_ids"],
+      "failed_schema_validation_quality_gate_row_ids" =>
+        summary["failed_schema_validation_quality_gate_row_ids"],
+      "schema_validation_gate_ids" => summary["schema_validation_gate_ids"]
     }
     |> compact_map()
   end
