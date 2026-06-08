@@ -29473,6 +29473,206 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives branch pressure from timeline activity precondition summaries" do
+    precondition_summary = fn prefix, trust_boundary ->
+      Timeline.activity_precondition_summary(%{
+        id: :"#{prefix}_cmd_precondition",
+        type: :command,
+        scenario_id: :leo_1,
+        subject_id: :dss_14,
+        payload_available: false,
+        degraded: true,
+        command_authorized: false,
+        command_safety_status: :failed,
+        command_safety_checked: false,
+        resource_blocking_dimension: :battery,
+        dependency_activity_ids: [:health_check, :health_check],
+        dependency_timeline_ids: [:"timeline:health_check"],
+        exclusive_with: [:downlink_conflict, :downlink_conflict],
+        exclusive_with_timeline_ids: [:"timeline:downlink_conflict"],
+        allow_overlap: true,
+        metadata: %{timeline_id: "timeline:#{prefix}:cmd_precondition"},
+        activity_context: %{
+          activity_template: %{
+            schema_contract: "activity_template.v1",
+            id: "#{prefix}_command_template",
+            activity_type: "command",
+            subsystem_state_hints: %{
+              required_states: [
+                %{
+                  subsystem: "commanding",
+                  state: "armed",
+                  reason: "template requires armed commanding state"
+                }
+              ]
+            }
+          }
+        }
+      })
+      |> Map.put("provenance", %{"trust_boundary" => trust_boundary})
+    end
+
+    direct_summary =
+      precondition_summary.("direct_precondition", "direct_precondition_boundary")
+
+    canonical_summary =
+      precondition_summary.("canonical_precondition", "canonical_precondition_boundary")
+
+    wrapped_invalid_summary =
+      Timeline.activity_precondition_summary(%{id: :wrapped_bad_missing_type})
+      |> Map.delete("provenance")
+
+    assert {:ok, %{"schema_contract" => "timeline_activity_precondition_summary.v1"}} =
+             Schema.validate_artifact(direct_summary)
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put("source_timeline_activity_precondition_summary", direct_summary)
+      |> Map.put("timeline_activity_precondition_summary", canonical_summary)
+      |> Map.put(:source_result_artifact, %{
+        "schema_contract" => "result_artifact.v1",
+        "artifact_type" => "mission_state_result_artifact",
+        "timeline_activity_precondition_summary" => wrapped_invalid_summary,
+        "provenance" => %{"trust_boundary" => "wrapped_precondition_artifact_boundary"}
+      })
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    direct_branch =
+      branch(
+        artifact,
+        "derived_timeline_activity_precondition_pressure_direct_precondition_cmd_precondition"
+      )
+
+    assert %{
+             "type" => "timeline_activity_precondition_pressure",
+             "activity_id" => "direct_precondition_cmd_precondition",
+             "timeline_id" => "timeline:direct_precondition:cmd_precondition",
+             "activity_type" => "command",
+             "precondition_status" => "blocked",
+             "blocked_precondition_count" => 3,
+             "review_precondition_count" => 4,
+             "blocked_precondition_types" => [
+               "command_safety_failed",
+               "payload_unavailable",
+               "resource_block_declared"
+             ],
+             "review_precondition_types" => [
+               "command_authority_missing",
+               "command_safety_unchecked",
+               "degraded_mode",
+               "subsystem_state_required"
+             ],
+             "dependency_activity_ids" => ["health_check"],
+             "dependency_timeline_ids" => ["timeline:health_check"],
+             "exclusive_with_activity_ids" => ["downlink_conflict"],
+             "exclusive_with_timeline_ids" => ["timeline:downlink_conflict"],
+             "duplicate_dependency_activity_ids" => ["health_check"],
+             "duplicate_exclusivity_activity_ids" => ["downlink_conflict"],
+             "allow_overlap" => true,
+             "feedback_source" => "mission_state.source_timeline_activity_precondition_summary",
+             "feedback_scope" => "timeline_activity_precondition",
+             "trust_boundary" => "direct_precondition_boundary",
+             "requires_operator_review" => true,
+             "required_operator_action" => "review_blocked_activity_precondition",
+             "derivation_reasons" => ["timeline_activity_precondition_summary_pressure"]
+           } = List.first(direct_branch["events"])
+
+    assert Enum.any?(
+             direct_branch["risk_indicators"],
+             &(&1["type"] == "timeline_activity_precondition_review" and
+                 &1["precondition_status"] == "blocked" and
+                 &1["dependency_activity_ids"] == ["health_check"] and
+                 &1["feedback_source"] ==
+                   "mission_state.source_timeline_activity_precondition_summary")
+           )
+
+    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+
+    direct_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] ==
+            "derived_timeline_activity_precondition_pressure_direct_precondition_cmd_precondition")
+      )
+
+    assert direct_row["branch_timeline_activity_precondition_activity_ids"] == [
+             "direct_precondition_cmd_precondition"
+           ]
+
+    assert direct_row["branch_timeline_activity_precondition_timeline_ids"] == [
+             "timeline:direct_precondition:cmd_precondition"
+           ]
+
+    assert direct_row["branch_timeline_activity_precondition_statuses"] == ["blocked"]
+
+    assert direct_row["branch_timeline_activity_precondition_blocked_types"] == [
+             "command_safety_failed",
+             "payload_unavailable",
+             "resource_block_declared"
+           ]
+
+    assert direct_row["branch_timeline_activity_precondition_review_types"] == [
+             "command_authority_missing",
+             "command_safety_unchecked",
+             "degraded_mode",
+             "subsystem_state_required"
+           ]
+
+    assert direct_row["branch_timeline_activity_precondition_dependency_activity_ids"] == [
+             "health_check"
+           ]
+
+    assert direct_row["branch_timeline_activity_precondition_exclusive_with_activity_ids"] == [
+             "downlink_conflict"
+           ]
+
+    assert direct_row[
+             "branch_timeline_activity_precondition_duplicate_dependency_activity_ids"
+           ] == ["health_check"]
+
+    assert direct_row[
+             "branch_timeline_activity_precondition_duplicate_exclusivity_activity_ids"
+           ] == ["downlink_conflict"]
+
+    wrapped_branch =
+      branch(
+        artifact,
+        "derived_timeline_activity_precondition_pressure_wrapped_bad_missing_type"
+      )
+
+    assert %{
+             "activity_id" => "wrapped_bad_missing_type",
+             "precondition_status" => "review_required",
+             "invalid_activity_input" => true,
+             "invalid_activity_input_reason" => "missing_activity_type",
+             "feedback_source" =>
+               "mission_state.source_result_artifact.timeline_activity_precondition_summary",
+             "trust_boundary" => "wrapped_precondition_artifact_boundary",
+             "required_operator_action" => "review_invalid_activity_input"
+           } = List.first(wrapped_branch["events"])
+
+    wrapped_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] ==
+            "derived_timeline_activity_precondition_pressure_wrapped_bad_missing_type")
+      )
+
+    assert wrapped_row[
+             "branch_timeline_activity_precondition_invalid_activity_input_reasons"
+           ] == ["missing_activity_type"]
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy carries mission-state contact-allocation summaries into branch refresh requests" do
     direct_summary = contact_allocation_summary_fixture("direct")
     canonical_summary = contact_allocation_summary_fixture("canonical")

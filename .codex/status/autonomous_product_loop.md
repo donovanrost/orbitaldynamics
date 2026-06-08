@@ -5,31 +5,30 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Make timeline lifecycle-state summaries branch-visible.
+Make timeline activity-precondition summaries branch-visible.
 
 Status:
 Implemented and parent-verified.
-Timeline lifecycle-state and activity lifecycle-state artifacts now derive
-planner-visible branch pressure with risk indicators, score penalties, branch
-comparison fields, source paths, trust boundaries, review counts, invalid input
-IDs, duplicate identity context, transition decisions, required actions, and
-import actions.
+`timeline_activity_precondition_summary.v1` handoffs now derive planner-visible
+branch pressure with risk indicators, score penalties, branch comparison fields,
+source paths, trust boundaries, blocked/review status, typed preconditions,
+dependency/exclusivity routing, duplicate relationship IDs, allow-overlap, and
+invalid input evidence.
 
 Slice-selection note:
 - Selected slice: derive branch-local pressure from
-  `timeline_lifecycle_state_summary.v1` and
-  `timeline_activity_lifecycle_state.v1` handoffs.
-- Why this slice: the roadmap calls for existing timeline lifecycle evidence to
-  affect V2/V3 branch scoring; live tests prove CandidateRefresh replay
-  coverage, but the planner only derives branch pressure from timeline integrity
-  and publication families today.
+  `timeline_activity_precondition_summary.v1` handoffs.
+- Why this slice: the roadmap asks for existing timeline review evidence to
+  affect V2/V3 branch scoring; CandidateRefresh already replays blocked/review,
+  dependency, exclusivity, duplicate, and invalid-input precondition evidence,
+  but the planner has no derived precondition-pressure branches.
 - Level 6 pillar: typed operational activity/timeline semantics, reproducible
-  branch trees, approval-aware automation boundaries, and timeline import
-  review handoffs.
-- Current evidence gap: lifecycle-state handoffs carry review-required
-  transitions, invalid activity inputs, duplicate timeline identity, required
-  operator actions, and import actions but remain replay-only for branch
-  scoring.
+  branch trees, approval-aware automation boundaries, and resource/command
+  readiness review handoffs.
+- Current evidence gap: activity precondition summaries carry blocked payload,
+  command authority/safety, degraded mode, required subsystem state,
+  dependency/exclusivity routing, duplicate relationship IDs, and invalid
+  activity input evidence but remain replay-only for branch scoring.
 - Docs read:
   `docs/autonomous_work_guide.md`,
   `.codex/prompts/long_running_context_efficient_product_loop.md`,
@@ -42,12 +41,13 @@ Slice-selection note:
 - Likely files: `lib/orbital_dynamics/campaign_planner.ex`,
   `test/orbital_dynamics/campaign_planner_test.exs`,
   `.codex/status/autonomous_product_loop.md`.
-- Definition of done: direct/canonical/result-artifact lifecycle summaries and
-  activity lifecycle states create branch-local pressure events that retain
-  source paths, trust boundaries, review counts, transition decisions, required
-  actions, invalid/duplicate identity context, and import actions; derived
-  events affect risk/scoring/comparison without granting schedule, import, or
-  execution authority; focused tests, compile, and whitespace checks pass.
+- Definition of done: direct/canonical/result-artifact precondition summaries
+  create branch-local pressure events retaining source paths, trust boundaries,
+  status, typed blocked/review preconditions, dependency/exclusivity IDs,
+  duplicate relationship IDs, allow-overlap, invalid input evidence, and no
+  authority/resource/schedule assumptions; events affect risk/scoring/comparison
+  without granting schedule, resource, operator, import, or execution authority;
+  focused tests, compile, and whitespace checks pass.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -56,28 +56,32 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs .codex/status/autonomous_product_loop.md`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:29149 test/orbital_dynamics/campaign_planner_test.exs:29328` (2 passed, 672 excluded)
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:27003 test/orbital_dynamics/campaign_planner_test.exs:27639 test/orbital_dynamics/campaign_planner_test.exs:28949 test/orbital_dynamics/campaign_planner_test.exs:29149 test/orbital_dynamics/campaign_planner_test.exs:29328` (5 passed, 669 excluded)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:29476` (1 passed, 674 excluded)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:29476 test/orbital_dynamics/candidate_refresh_test.exs:25047` (2 passed, 1414 excluded)
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- None; this is a planner/test slice for existing timeline lifecycle artifacts.
+- None expected; this is a planner/test slice for an existing timeline
+  precondition artifact.
 
 Local review:
-- Direct, canonical, and result-artifact `timeline_lifecycle_state_summary.v1`
-  and `timeline_activity_lifecycle_state.v1` inputs now feed derived branch
+- Direct, canonical, and result-artifact
+  `timeline_activity_precondition_summary.v1` inputs now feed derived branch
   pressure for prior plans and mission state.
-- New events are artifact-only review pressure: they carry explicit assumptions
-  that strategy branches do not mutate timelines, grant operator authority,
-  import to Cadence, or execute commands.
-- Branch comparison rows now expose lifecycle review timeline/activity IDs,
-  invalid activity input IDs, required operator actions, import actions,
-  activity lifecycle transition decisions, and activity lifecycle IDs.
+- Strategy mission-state normalization now preserves direct and canonical
+  precondition summary fields before derived branch extraction; previously only
+  wrapped result-artifact precondition summaries survived that path.
+- New events are artifact-only review pressure and explicitly do not mutate
+  timelines, reserve resources, grant operator authority, import to Cadence, or
+  execute commands.
+- Branch comparison rows expose precondition activity/timeline IDs, status,
+  blocked/review types, dependency/exclusivity IDs, duplicate relationship IDs,
+  and invalid input reasons.
 
 Level 6 pillar advanced:
-Typed timeline lifecycle evidence now affects V2/V3 branch scoring and
-comparison while preserving artifact-only approval boundaries.
+Timeline activity precondition evidence now affects V2/V3 branch scoring and
+comparison while preserving artifact-only resource and approval boundaries.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -87,13 +91,14 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
+Pending for this slice. Previous product commit:
 `e22b772` Derive timeline lifecycle state pressure.
 
 Next candidate:
-Reinspect live code for the next planner-visible readiness or lifecycle evidence
-gap. A likely narrow follow-up is to check whether timeline precondition,
-preservation, or transition-application summaries are still replay-only for
-branch scoring after the lifecycle-state pressure slice.
+After this slice, reinspect live code for the next planner-visible readiness,
+resource/contact, or preservation evidence gap. A likely narrow follow-up is to
+check whether timeline preservation summaries remain replay-only for branch
+scoring after the precondition-pressure slice.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
