@@ -3555,6 +3555,37 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ]
   end
 
+  defp event_risk_indicators(%{"type" => "provider_counteroffer_pressure"} = event) do
+    [
+      %{
+        "type" => "provider_counteroffer_review",
+        "severity" => "high",
+        "reason" =>
+          "provider counteroffer #{event["provider_counteroffer_id"]} requires operator review before plan impact can be accepted",
+        "provider_counteroffer_id" => event["provider_counteroffer_id"],
+        "provider_counteroffer_status" => event["provider_counteroffer_status"],
+        "provider_counteroffer_negotiation_state" =>
+          event["provider_counteroffer_negotiation_state"],
+        "provider_counteroffer_reason_code" => event["provider_counteroffer_reason_code"],
+        "provider_counteroffer_cost_delta" => event["provider_counteroffer_cost_delta"],
+        "provider_counteroffer_lock_deadline_s" => event["provider_counteroffer_lock_deadline_s"],
+        "provider_counteroffer_start_delta_s" => event["provider_counteroffer_start_delta_s"],
+        "provider_counteroffer_end_delta_s" => event["provider_counteroffer_end_delta_s"],
+        "provider_counteroffer_duration_delta_s" =>
+          event["provider_counteroffer_duration_delta_s"],
+        "plan_impact_status" => event["plan_impact_status"],
+        "ground_station_id" => event["ground_station_id"],
+        "station_calendar_entry_id" => event["station_calendar_entry_id"],
+        "station_calendar_provider_id" => event["station_calendar_provider_id"],
+        "station_calendar_provider_entry_id" => event["station_calendar_provider_entry_id"],
+        "feedback_source" => event["feedback_source"],
+        "feedback_scope" => event["feedback_scope"],
+        "trust_boundary" => event["trust_boundary"]
+      }
+      |> compact_map()
+    ]
+  end
+
   defp event_risk_indicators(%{"type" => "downlink_demand_feedback"} = event) do
     station = event_ground_station_id(event) || "default"
 
@@ -26242,6 +26273,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "provider_counteroffer_start_delta_s" => row["provider_counteroffer_start_delta_s"],
         "provider_counteroffer_end_delta_s" => row["provider_counteroffer_end_delta_s"],
         "provider_counteroffer_duration_delta_s" => row["provider_counteroffer_duration_delta_s"],
+        "plan_impact_status" => row["plan_impact_status"],
+        "affected_station_calendar_entry_ids" => row["affected_station_calendar_entry_ids"],
+        "affected_provider_entry_ids" => row["affected_provider_entry_ids"],
+        "impact_counteroffer_ids" => row["impact_counteroffer_ids"],
         "ground_station_id" => row["ground_station_id"],
         "starts_at_s" => row["starts_at_s"],
         "ends_at_s" => row["ends_at_s"],
@@ -26250,15 +26285,50 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "station_calendar_provider_entry_id" => row["station_calendar_provider_entry_id"],
         "station_availability" => row["station_availability"],
         "required_operator_action" => row["required_operator_action"],
-        "derivation_reasons" => ["provider_counteroffer_review"],
+        "derivation_reasons" => provider_counteroffer_pressure_reasons(row),
         "feedback_source" => source_path,
         "feedback_scope" => "provider_counteroffer",
         "feedback_key" => counteroffer_id,
         "trust_boundary" => operator_review_trust_boundary(row),
-        "source_provider_counteroffer" => Map.get(row, "source_provider_counteroffer", row)
+        "source_provider_counteroffer" => Map.get(row, "source_provider_counteroffer", row),
+        "assumptions" => %{
+          "provider_write" => "not_performed_by_strategy_branch",
+          "schedule_mutation" => "not_performed_by_strategy_branch",
+          "operator_authority" => "not_granted_by_strategy_branch"
+        }
       }
       |> compact_map()
     end
+  end
+
+  defp provider_counteroffer_pressure_reasons(row) do
+    [
+      "provider_counteroffer_review",
+      row["plan_impact_status"] && "provider_counteroffer_plan_impact",
+      numeric_or_nil(row["provider_counteroffer_cost_delta"]) &&
+        "provider_counteroffer_cost_delta",
+      provider_counteroffer_timing_shift?(row) && "provider_counteroffer_timing_shift",
+      numeric_or_nil(row["provider_counteroffer_lock_deadline_s"]) &&
+        "provider_counteroffer_lock_deadline"
+    ]
+    |> Enum.reject(&(&1 in [nil, false, ""]))
+    |> Enum.uniq()
+  end
+
+  defp provider_counteroffer_timing_shift?(row) do
+    Enum.any?(
+      [
+        row["provider_counteroffer_start_delta_s"],
+        row["provider_counteroffer_end_delta_s"],
+        row["provider_counteroffer_duration_delta_s"]
+      ],
+      fn value ->
+        case numeric_or_nil(value) do
+          nil -> false
+          number -> number != 0
+        end
+      end
+    )
   end
 
   defp provider_counteroffer_reviewable?(row) do
@@ -26285,24 +26355,56 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp derived_mission_state_provider_counteroffer_pressure_branches(mission_state) do
-    mission_state
-    |> mission_state_provider_counteroffer_reports()
+    mission_state_provider_counteroffer_pressure_sources(mission_state)
     |> Enum.flat_map(fn {report, source_path} ->
       trust_boundary =
         Map.get(report, "trust_boundary") || get_in(report, ["provenance", "trust_boundary"])
 
-      report
-      |> Map.get("rows", [])
+      {rows, row_source_path} = provider_counteroffer_pressure_rows(report, source_path)
+
+      rows
       |> List.wrap()
       |> Enum.map(&stringify_keys/1)
       |> Enum.with_index(1)
       |> Enum.flat_map(fn {row, index} ->
         row
         |> Map.put("_source_report_trust_boundary", trust_boundary)
-        |> provider_counteroffer_pressure_branch("#{source_path}.rows", index)
+        |> provider_counteroffer_pressure_branch(row_source_path, index)
       end)
     end)
   end
+
+  defp mission_state_provider_counteroffer_pressure_sources(mission_state) do
+    mission_state_provider_counteroffer_reports(mission_state) ++
+      mission_state_provider_counteroffer_plan_impact_pressure_summaries(mission_state)
+  end
+
+  defp mission_state_provider_counteroffer_plan_impact_pressure_summaries(mission_state) do
+    mission_state = stringify_keys(mission_state || %{})
+
+    mission_state_provider_counteroffer_plan_impact_summaries(mission_state, [
+      {"source_provider_counteroffer_plan_impact_summary",
+       "mission_state.source_provider_counteroffer_plan_impact_summary"},
+      {"provider_counteroffer_plan_impact_summary",
+       "mission_state.provider_counteroffer_plan_impact_summary"}
+    ]) ++
+      mission_state_result_artifact_embedded_reports(
+        mission_state,
+        "source_provider_counteroffer_plan_impact_summary"
+      ) ++
+      mission_state_result_artifact_embedded_reports(
+        mission_state,
+        "provider_counteroffer_plan_impact_summary"
+      )
+  end
+
+  defp provider_counteroffer_pressure_rows(%{"impact_rows" => rows}, source_path),
+    do: {rows, "#{source_path}.impact_rows"}
+
+  defp provider_counteroffer_pressure_rows(%{"rows" => rows}, source_path),
+    do: {rows, "#{source_path}.rows"}
+
+  defp provider_counteroffer_pressure_rows(_report, source_path), do: {[], source_path}
 
   defp refresh_budget_review_source(%{"source_refresh_budget_report" => %{} = source} = row)
        when map_size(source) > 0,

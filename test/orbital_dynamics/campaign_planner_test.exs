@@ -21240,6 +21240,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     artifact =
       strategy(base_plan(%{}),
         mission_state: mission_state,
+        derive_branches?: true,
         branches: [
           %{id: "baseline"},
           %{
@@ -21379,6 +21380,59 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "wrapped_counteroffer_plan_impact_boundary",
              "wrapped_provider_calendar_feed"
            ]
+
+    direct_branch = branch(artifact, "derived_provider_counteroffer_pressure_direct_counteroffer")
+
+    assert %{
+             "type" => "provider_counteroffer_pressure",
+             "provider_counteroffer_id" => "direct_counteroffer",
+             "provider_counteroffer_status" => "proposed",
+             "provider_counteroffer_cost_delta" => 50.0,
+             "provider_counteroffer_lock_deadline_s" => 240.0,
+             "provider_counteroffer_start_delta_s" => 30.0,
+             "provider_counteroffer_end_delta_s" => 20.0,
+             "provider_counteroffer_duration_delta_s" => -10.0,
+             "plan_impact_status" => "review_required",
+             "station_calendar_entry_id" => "direct_contact_original",
+             "station_calendar_provider_entry_id" => "direct_provider_offer",
+             "affected_station_calendar_entry_ids" => ["direct_contact_original"],
+             "affected_provider_entry_ids" => ["direct_provider_offer"],
+             "feedback_source" =>
+               "mission_state.source_provider_counteroffer_plan_impact_summary.impact_rows",
+             "feedback_scope" => "provider_counteroffer",
+             "trust_boundary" => "direct_provider_calendar_feed",
+             "assumptions" => %{
+               "provider_write" => "not_performed_by_strategy_branch",
+               "schedule_mutation" => "not_performed_by_strategy_branch",
+               "operator_authority" => "not_granted_by_strategy_branch"
+             }
+           } = List.first(direct_branch["events"])
+
+    assert Enum.any?(
+             direct_branch["risk_indicators"],
+             &(&1["type"] == "provider_counteroffer_review" and
+                 &1["plan_impact_status"] == "review_required")
+           )
+
+    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+
+    comparison_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] == "derived_provider_counteroffer_pressure_direct_counteroffer")
+      )
+
+    assert "provider_counteroffer_review" in comparison_row["risk_types"]
+
+    assert comparison_row["branch_station_calendar_provider_entry_ids"] == [
+             "direct_provider_offer"
+           ]
+
+    assert branch(artifact, "derived_provider_counteroffer_pressure_canonical_counteroffer")
+    assert branch(artifact, "derived_provider_counteroffer_pressure_wrapped_counteroffer")
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
   end
 
   test "strategy carries mission-state provider-counteroffer import-readiness summaries into branch refresh requests" do
@@ -40862,6 +40916,11 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "feedback_source" => "mission_state.source_provider_counteroffer_report.rows",
              "feedback_scope" => "provider_counteroffer",
              "trust_boundary" => "mission_state_provider_counteroffer_report",
+             "assumptions" => %{
+               "provider_write" => "not_performed_by_strategy_branch",
+               "schedule_mutation" => "not_performed_by_strategy_branch",
+               "operator_authority" => "not_granted_by_strategy_branch"
+             },
              "source_provider_counteroffer" => %{
                "provider_counteroffer_id" => "provider_offer_1",
                "required_operator_action" => "review_provider_counteroffer"
@@ -40871,6 +40930,12 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert List.first(counteroffer_branch["events"])[
              "provider_counteroffer_duration_delta_s"
            ] == 0.0
+
+    assert Enum.any?(
+             counteroffer_branch["risk_indicators"],
+             &(&1["type"] == "provider_counteroffer_review" and
+                 &1["provider_counteroffer_id"] == "provider_offer_1")
+           )
 
     assert %{
              "type" => "candidate_refresh.v1",
