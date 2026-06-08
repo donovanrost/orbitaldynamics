@@ -81,7 +81,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`e42f221` Derive contact allocation summary pressure branches.
+`a97d1ca` Derive contact allocation summary pressure branches.
 
 Next candidate:
 After this slice, continue guide-priority resource/contact branch-scoring depth
