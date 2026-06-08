@@ -13613,6 +13613,88 @@ defmodule OrbitalDynamics.CadenceImportTest do
              Schema.validate_artifact(manifest)
   end
 
+  test "candidate refresh import preserves wrapped timeline activity precondition summaries" do
+    summary =
+      Timeline.activity_precondition_summary(%{
+        id: :cmd_wrapped_preflight,
+        type: :command,
+        payload_available: false,
+        degraded: true,
+        resource_blocking_dimension: :power,
+        dependency_activity_ids: [:health_check_1, :obs_1],
+        dependency_timeline_ids: [:"timeline:health_check_1"],
+        exclusive_with_activity_ids: [:dl_conflict],
+        exclusive_with_timeline_ids: [:"timeline:dl_conflict"],
+        allow_overlap: true,
+        metadata: %{timeline_id: :"timeline:cmd_wrapped_preflight"}
+      })
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:wrapped_precondition_import",
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "timeline_activity_precondition_summary" => summary
+        }
+      ]
+    }
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:wrapped_precondition_import",
+             "row_count" => 1,
+             "review_required_count" => 1,
+             "import_action_counts" => %{"review_timeline_precondition" => 1},
+             "source_review_type_counts" => %{"timeline_activity_precondition_review" => 1}
+           } = manifest
+
+    assert [
+             %{
+               "import_action" => "review_timeline_precondition",
+               "import_status" => "review_required_before_import",
+               "source_review_type" => "timeline_activity_precondition_review",
+               "source_review_action" => "review_blocked_activity_precondition",
+               "approval_status" => "operator_review_required",
+               "timeline_id" => "timeline:cmd_wrapped_preflight",
+               "activity_id" => "cmd_wrapped_preflight",
+               "activity_type" => "command",
+               "precondition_status" => "blocked",
+               "blocked_precondition_count" => 2,
+               "review_precondition_count" => 1,
+               "blocked_precondition_types" => [
+                 "payload_unavailable",
+                 "resource_block_declared"
+               ],
+               "review_precondition_types" => ["degraded_mode"],
+               "dependency_activity_ids" => ["health_check_1", "obs_1"],
+               "dependency_timeline_ids" => ["timeline:health_check_1"],
+               "exclusive_with_activity_ids" => ["dl_conflict"],
+               "exclusive_with_timeline_ids" => ["timeline:dl_conflict"],
+               "allow_overlap" => true,
+               "has_cadence_import" => false,
+               "source_review_row" => %{
+                 "source" =>
+                   "candidate_refresh.source_result_artifact[0].timeline_activity_precondition_summary.summary",
+                 "review_type" => "timeline_activity_precondition_review"
+               }
+             } = row
+           ] = manifest["rows"]
+
+    assert row["source"] ==
+             "candidate_refresh.source_result_artifact[0].timeline_activity_precondition_summary.summary"
+
+    assert row["source_timeline_activity_precondition_summary"] == summary
+
+    assert get_in(row, ["source_review_row", "source_timeline_activity_precondition_summary"]) ==
+             summary
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "single activity timeline states become import manifest rows" do
     planned = %{
       id: :cmd_provider,
