@@ -5818,6 +5818,22 @@ defmodule OrbitalDynamics.OperatorReview do
 
   defp candidate_refresh_timeline_preservation_sources(artifact) do
     [
+      {"candidate_refresh.accepted_planning_state.source_timeline_preservation_report",
+       get_in(artifact, ["accepted_planning_state", "source_timeline_preservation_report"])},
+      {"candidate_refresh.accepted_planning_state.timeline_preservation_report",
+       get_in(artifact, ["accepted_planning_state", "timeline_preservation_report"])},
+      {"candidate_refresh.accepted_planning_state.source_timeline_preservation_status",
+       get_in(artifact, ["accepted_planning_state", "source_timeline_preservation_status"])},
+      {"candidate_refresh.accepted_planning_state.timeline_preservation_status",
+       get_in(artifact, ["accepted_planning_state", "timeline_preservation_status"])},
+      {"candidate_refresh.mission_state.source_timeline_preservation_report",
+       get_in(artifact, ["mission_state", "source_timeline_preservation_report"])},
+      {"candidate_refresh.mission_state.timeline_preservation_report",
+       get_in(artifact, ["mission_state", "timeline_preservation_report"])},
+      {"candidate_refresh.mission_state.source_timeline_preservation_status",
+       get_in(artifact, ["mission_state", "source_timeline_preservation_status"])},
+      {"candidate_refresh.mission_state.timeline_preservation_status",
+       get_in(artifact, ["mission_state", "timeline_preservation_status"])},
       {"candidate_refresh.source_timeline_preservation_report",
        artifact["source_timeline_preservation_report"]},
       {"candidate_refresh.timeline_preservation_report",

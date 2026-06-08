@@ -1860,8 +1860,9 @@ single `contract` when the family summary declares one, for compact consumers;
 partial activity-state source-report family placeholders can preserve the
 declared contract, but omit flattened count, row-count, and path fields until
 both identity counts are present.
-CandidateRefresh review/import handoff also accepts direct/list-valued and
-wrapped `source_timeline_preservation_report` /
+CandidateRefresh review/import handoff also accepts direct/list-valued,
+accepted-state, mission-state, and wrapped
+`source_timeline_preservation_report` /
 `timeline_preservation_report` and `source_timeline_preservation_status` /
 `timeline_preservation_status` artifacts. Those inputs lift lock, approved,
 executed, invalid-input, preservation-required, and review-required evidence

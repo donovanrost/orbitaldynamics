@@ -5,19 +5,17 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Nested CandidateRefresh single-activity lifecycle-state review/import handoff.
+Nested CandidateRefresh timeline-preservation review/import handoff.
 
 Status:
-Product commit complete. CandidateRefresh accepted-planning-state and
-mission-state nested single-activity state artifacts now project into OperatorReview
-`timeline_lifecycle_state_review` rows and CadenceImport
-`review_timeline_lifecycle_state` rows. Covered nested families:
-`source_timeline_activity_state`, `timeline_activity_state`,
-`source_timeline_activity_status_state`, `timeline_activity_status_state`,
-`source_timeline_activity_approval_state`,
-`timeline_activity_approval_state`,
-`source_timeline_activity_lifecycle_state`, and
-`timeline_activity_lifecycle_state`.
+Implementation, focused verification, and read-only `slice_reviewer` handoff
+complete. CandidateRefresh accepted-planning-state and mission-state nested
+timeline-preservation report/status artifacts now project into OperatorReview
+`timeline_preservation_review` rows and CadenceImport
+`review_timeline_preservation` rows. Covered nested families:
+`source_timeline_preservation_report`, `timeline_preservation_report`,
+`source_timeline_preservation_status`, and
+`timeline_preservation_status`.
 
 Files changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
@@ -26,34 +24,34 @@ Files changed:
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/operator_review_test.exs:3557 test/orbital_dynamics/operator_review_test.exs:3641 test/orbital_dynamics/operator_review_test.exs:3724 test/orbital_dynamics/operator_review_test.exs:3808` (4 passed)
-- `mix test test/orbital_dynamics/operator_review_test.exs` (197 passed)
+- `mix test test/orbital_dynamics/operator_review_test.exs:4028 test/orbital_dynamics/operator_review_test.exs:4109 test/orbital_dynamics/operator_review_test.exs:4182` (3 passed)
+- `mix test test/orbital_dynamics/operator_review_test.exs` (200 passed)
 - `mix test test/orbital_dynamics/cadence_import_test.exs` (92 passed)
 - `git diff --check`
-- `slice_reviewer` read-only review (no must-fix findings)
+- `slice_reviewer` read-only review found missing all-path coverage; fixed with
+  a table-driven test over all eight nested preservation source paths.
 
 Docs/artifacts changed:
-- CandidateRefresh activity-state docs now name accepted-state and
-  mission-state nested single-activity lifecycle-state review/import handoffs.
+- CandidateRefresh preservation docs now name accepted-state and mission-state
+  nested report/status review/import handoffs.
 
 Level 6 pillar advanced:
 Approval-aware automation boundaries and Cadence-facing import readiness:
-nested CandidateRefresh single-activity lifecycle evidence reaches review and
-import manifests without granting authority, mutating schedules, applying
-transitions, or selecting candidates.
+nested CandidateRefresh preservation evidence reaches review and import
+manifests without granting authority, recording preservation, mutating
+timelines, executing commands, or writing to Cadence.
 
 Remaining maturity gaps:
 Continue closing thin artifact-only replay gaps where checked-in summaries
 preserve routing evidence that review/import or CandidateRefresh replay still
-does not consume. Reassess remaining CandidateRefresh/OperatorReview/
-CadenceImport handoff gaps after this reviewer-confirmed slice.
+does not consume.
 
 Last commit:
-Product commit `4ae1817c5fa4cc37e94cd2680768410f4c8d7c8f`.
+Previous committed handoff `a06f12d Record nested activity state review slice`.
+Current slice is not committed yet.
 
 Next candidate:
-Reassess the remaining summary-contract coverage map after nested
-single-activity state projection and pick the next weak
+Commit the current slice, then reassess the next weak
 CandidateRefresh/OperatorReview/CadenceImport handoff.
 
 Unrelated local changes:

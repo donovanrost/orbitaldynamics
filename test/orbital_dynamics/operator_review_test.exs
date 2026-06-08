@@ -4025,6 +4025,309 @@ defmodule OrbitalDynamics.OperatorReviewTest do
            )
   end
 
+  test "CandidateRefresh lifts accepted planning state preservation reports" do
+    report =
+      Timeline.preservation_report(
+        [
+          %{
+            id: :cmd_accepted_preserve,
+            type: :command,
+            status: :planned,
+            approval_status: :approved,
+            metadata: %{timeline_id: :"timeline:cmd_accepted_preserve"}
+          }
+        ],
+        source: "accepted_state.timeline_preservation_report"
+      )
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "refresh:accepted_preservation_handoff",
+      "accepted_planning_state" => %{
+        "source_timeline_preservation_report" => report
+      }
+    }
+
+    review = OperatorReview.from_candidate_refresh_artifact(artifact)
+    import = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "refresh:accepted_preservation_handoff",
+             "review_count" => 1,
+             "timeline_preservation_review_count" => 1,
+             "review_type_counts" => %{"timeline_preservation_review" => 1},
+             "required_operator_action_counts" => %{"record_timeline_preservation" => 1}
+           } = review
+
+    assert [
+             %{
+               "review_type" => "timeline_preservation_review",
+               "source" =>
+                 "candidate_refresh.accepted_planning_state.source_timeline_preservation_report.rows",
+               "timeline_id" => "timeline:cmd_accepted_preserve",
+               "activity_id" => "cmd_accepted_preserve",
+               "timeline_preservation_status" => "preservation_required",
+               "required_operator_action" => "record_timeline_preservation",
+               "approval_status" => "not_required",
+               "source_timeline_preservation" => %{
+                 "activity_id" => "cmd_accepted_preserve",
+                 "protection_decision" => "preserve"
+               }
+             }
+           ] = review["rows"]
+
+    assert %{
+             "row_count" => 1,
+             "import_action_counts" => %{"review_timeline_preservation" => 1},
+             "source_review_type_counts" => %{"timeline_preservation_review" => 1}
+           } = import
+
+    assert [
+             %{
+               "import_action" => "review_timeline_preservation",
+               "source_review_type" => "timeline_preservation_review",
+               "timeline_id" => "timeline:cmd_accepted_preserve",
+               "source_review_row" => %{
+                 "source" =>
+                   "candidate_refresh.accepted_planning_state.source_timeline_preservation_report.rows",
+                 "source_timeline_preservation" => %{
+                   "activity_id" => "cmd_accepted_preserve",
+                   "protection_decision" => "preserve"
+                 }
+               }
+             }
+           ] = import["rows"]
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(import)
+  end
+
+  test "CandidateRefresh lifts mission state preservation statuses" do
+    status =
+      Timeline.preservation_status(%{
+        id: :cmd_mission_preservation_review,
+        status: :planned
+      })
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "refresh:mission_preservation_status_handoff",
+      "mission_state" => %{
+        "timeline_preservation_status" => status
+      }
+    }
+
+    review = OperatorReview.from_candidate_refresh_artifact(artifact)
+    import = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "refresh:mission_preservation_status_handoff",
+             "review_count" => 1,
+             "timeline_preservation_review_count" => 1,
+             "review_type_counts" => %{"timeline_preservation_review" => 1},
+             "required_operator_action_counts" => %{"review_timeline_preservation" => 1}
+           } = review
+
+    assert [
+             %{
+               "review_type" => "timeline_preservation_review",
+               "source" => "candidate_refresh.mission_state.timeline_preservation_status.status",
+               "timeline_id" => "timeline:invalid_activity_input:cmd_mission_preservation_review",
+               "activity_id" => "cmd_mission_preservation_review",
+               "timeline_preservation_status" => "review_required",
+               "required_operator_action" => "review_timeline_preservation",
+               "approval_status" => "operator_review_required",
+               "invalid_activity_input" => true,
+               "source_timeline_preservation" => %{
+                 "schema_contract" => "timeline_preservation_status.v1",
+                 "invalid_activity_input" => true
+               }
+             }
+           ] = review["rows"]
+
+    assert %{
+             "row_count" => 1,
+             "import_action_counts" => %{"review_timeline_preservation" => 1},
+             "source_review_type_counts" => %{"timeline_preservation_review" => 1}
+           } = import
+
+    assert [
+             %{
+               "import_action" => "review_timeline_preservation",
+               "source_review_type" => "timeline_preservation_review",
+               "timeline_id" => "timeline:invalid_activity_input:cmd_mission_preservation_review",
+               "source_review_row" => %{
+                 "source" =>
+                   "candidate_refresh.mission_state.timeline_preservation_status.status",
+                 "source_timeline_preservation" => %{
+                   "schema_contract" => "timeline_preservation_status.v1",
+                   "invalid_activity_input" => true
+                 }
+               }
+             }
+           ] = import["rows"]
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(import)
+  end
+
+  test "CandidateRefresh lifts all nested preservation source paths" do
+    report =
+      Timeline.preservation_report(
+        [
+          %{
+            id: :cmd_nested_preserve,
+            type: :command,
+            status: :planned,
+            approval_status: :approved,
+            metadata: %{timeline_id: :"timeline:cmd_nested_preserve"}
+          }
+        ],
+        source: "nested.timeline_preservation_report"
+      )
+
+    status =
+      Timeline.preservation_status(%{
+        id: :cmd_nested_preservation_review,
+        status: :planned
+      })
+
+    cases = [
+      {"accepted_planning_state", "source_timeline_preservation_report", report, ".rows",
+       %{
+         "activity_id" => "cmd_nested_preserve",
+         "timeline_id" => "timeline:cmd_nested_preserve",
+         "operator_action" => "record_timeline_preservation",
+         "evidence" => %{"activity_id" => "cmd_nested_preserve"}
+       }},
+      {"accepted_planning_state", "timeline_preservation_report", report, ".rows",
+       %{
+         "activity_id" => "cmd_nested_preserve",
+         "timeline_id" => "timeline:cmd_nested_preserve",
+         "operator_action" => "record_timeline_preservation",
+         "evidence" => %{"activity_id" => "cmd_nested_preserve"}
+       }},
+      {"accepted_planning_state", "source_timeline_preservation_status", status, ".status",
+       %{
+         "activity_id" => "cmd_nested_preservation_review",
+         "timeline_id" => "timeline:invalid_activity_input:cmd_nested_preservation_review",
+         "operator_action" => "review_timeline_preservation",
+         "evidence" => %{
+           "schema_contract" => "timeline_preservation_status.v1",
+           "invalid_activity_input" => true
+         }
+       }},
+      {"accepted_planning_state", "timeline_preservation_status", status, ".status",
+       %{
+         "activity_id" => "cmd_nested_preservation_review",
+         "timeline_id" => "timeline:invalid_activity_input:cmd_nested_preservation_review",
+         "operator_action" => "review_timeline_preservation",
+         "evidence" => %{
+           "schema_contract" => "timeline_preservation_status.v1",
+           "invalid_activity_input" => true
+         }
+       }},
+      {"mission_state", "source_timeline_preservation_report", report, ".rows",
+       %{
+         "activity_id" => "cmd_nested_preserve",
+         "timeline_id" => "timeline:cmd_nested_preserve",
+         "operator_action" => "record_timeline_preservation",
+         "evidence" => %{"activity_id" => "cmd_nested_preserve"}
+       }},
+      {"mission_state", "timeline_preservation_report", report, ".rows",
+       %{
+         "activity_id" => "cmd_nested_preserve",
+         "timeline_id" => "timeline:cmd_nested_preserve",
+         "operator_action" => "record_timeline_preservation",
+         "evidence" => %{"activity_id" => "cmd_nested_preserve"}
+       }},
+      {"mission_state", "source_timeline_preservation_status", status, ".status",
+       %{
+         "activity_id" => "cmd_nested_preservation_review",
+         "timeline_id" => "timeline:invalid_activity_input:cmd_nested_preservation_review",
+         "operator_action" => "review_timeline_preservation",
+         "evidence" => %{
+           "schema_contract" => "timeline_preservation_status.v1",
+           "invalid_activity_input" => true
+         }
+       }},
+      {"mission_state", "timeline_preservation_status", status, ".status",
+       %{
+         "activity_id" => "cmd_nested_preservation_review",
+         "timeline_id" => "timeline:invalid_activity_input:cmd_nested_preservation_review",
+         "operator_action" => "review_timeline_preservation",
+         "evidence" => %{
+           "schema_contract" => "timeline_preservation_status.v1",
+           "invalid_activity_input" => true
+         }
+       }}
+    ]
+
+    Enum.each(cases, fn {state_key, field, payload, source_suffix, expected} ->
+      source = "candidate_refresh.#{state_key}.#{field}#{source_suffix}"
+
+      artifact = %{
+        "schema_contract" => "candidate_refresh.v1",
+        "refresh_id" => "refresh:#{state_key}:#{field}",
+        state_key => %{field => payload}
+      }
+
+      review = OperatorReview.from_candidate_refresh_artifact(artifact)
+      import = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+      assert %{
+               "review_count" => 1,
+               "timeline_preservation_review_count" => 1,
+               "review_type_counts" => %{"timeline_preservation_review" => 1}
+             } = review
+
+      assert [
+               %{
+                 "review_type" => "timeline_preservation_review",
+                 "source" => ^source,
+                 "timeline_id" => expected_timeline_id,
+                 "activity_id" => expected_activity_id,
+                 "required_operator_action" => expected_operator_action,
+                 "source_timeline_preservation" => source_evidence
+               }
+             ] = review["rows"]
+
+      assert expected_timeline_id == expected["timeline_id"]
+      assert expected_activity_id == expected["activity_id"]
+      assert expected_operator_action == expected["operator_action"]
+      assert Map.take(source_evidence, Map.keys(expected["evidence"])) == expected["evidence"]
+
+      assert %{
+               "row_count" => 1,
+               "import_action_counts" => %{"review_timeline_preservation" => 1},
+               "source_review_type_counts" => %{"timeline_preservation_review" => 1}
+             } = import
+
+      assert [
+               %{
+                 "import_action" => "review_timeline_preservation",
+                 "source_review_type" => "timeline_preservation_review",
+                 "timeline_id" => ^expected_timeline_id,
+                 "source_review_row" => %{
+                   "source" => ^source,
+                   "source_timeline_preservation" => import_source_evidence
+                 }
+               }
+             ] = import["rows"]
+
+      assert Map.take(import_source_evidence, Map.keys(expected["evidence"])) ==
+               expected["evidence"]
+    end)
+  end
+
   test "timeline integrity reports become operator review rows" do
     report = timeline_integrity_report()
     package = OperatorReview.from_timeline_integrity_report(report)
