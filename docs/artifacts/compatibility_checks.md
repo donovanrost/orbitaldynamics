@@ -990,6 +990,13 @@ check publication identity/status, supersession, downstream invalidation IDs,
 explicit downstream invalidation status, dependency-impact review routing,
 nested timeline-diff counts, changed-field maps, review timeline IDs, and
 no-schedule-mutation/no-authority assumptions.
+Focused schema-reference coverage also regenerates the checked-in fixture
+exactly through `OrbitalDynamics.timeline_publication_summary/2` from
+deterministic source/replacement timeline evidence, dependency-impact summary,
+and timeline-diff summary before schema validation, pinning publication status,
+downstream invalidation routing, nested impact/diff evidence, model limits, and
+the no-notification/no-schedule-mutation/no-authority boundary to the public
+facade output.
 `study_results/operational_timeline_report_v1.json` is also observed with
 row-derived operational-kind, activity-status, approval-status,
 Cadence-import-status, required-action, timeline-integrity issue, and row-ID

@@ -9751,6 +9751,8 @@ defmodule OrbitalDynamics.ValidationTest do
 
     report = timeline_publication_summary_fixture()
 
+    assert generated_timeline_publication_summary_fixture() == report
+
     assert {:ok, verification} =
              Validation.verify_reference_fixture(
                fixture_id,
@@ -16072,6 +16074,45 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp timeline_publication_summary_fixture do
     read_json!("study_results/timeline_publication_summary_v1.json")
+  end
+
+  defp generated_timeline_publication_summary_fixture do
+    source = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 0.0, ends_at_s: 10.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    replacement = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 5.0, ends_at_s: 15.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    source_artifact = %{
+      "schema_contract" => "operational_timeline_report.v1",
+      "id" => "timeline:published_plan:v2"
+    }
+
+    OrbitalDynamics.timeline_publication_summary(source_artifact,
+      publication_sequence: 7,
+      publication_authority: :mission_operations,
+      supersedes_artifact_ids: ["timeline:published_plan:v1"],
+      downstream_product_ids: ["operator_review:plan:v1", "cadence_import:plan:v1"],
+      dependency_impact_summary:
+        OrbitalDynamics.timeline_dependency_impact_summary(source, replacement),
+      timeline_diff_summary: OrbitalDynamics.timeline_diff_summary(source, replacement)
+    )
   end
 
   defp timeline_activity_precondition_summary_fixture_observations do

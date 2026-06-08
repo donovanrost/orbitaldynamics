@@ -125,6 +125,14 @@ IDs, row-derived review application maps, withheld-review routing, and
 no-schedule-mutation/no-authority assumptions. Fixture verification rejects
 stale review counts and row-derived required-action maps before compact
 transition summaries can steer review/import routing.
+The `timeline_publication_summary.v1` fixture observes publication identity,
+publication status, supersession, downstream invalidation routing,
+dependency-impact review routing, nested timeline-diff counts, changed-field
+maps, review timeline IDs, and no-notification/no-schedule-mutation/no-authority
+assumptions. Focused fixture coverage exact-regenerates the checked-in
+publication summary through the public facade from deterministic
+source/replacement activities before schema validation, so checked-in
+publication handoff evidence cannot drift from the public adapter contract.
 
 ## Station-calendar and reservation fixture integrity
 
