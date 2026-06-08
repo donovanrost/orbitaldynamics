@@ -7904,6 +7904,99 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(manifest)
   end
 
+  test "candidate refresh compact schema-validation quality gate summaries become review and import rows" do
+    summary = quality_gate_schema_validation_summary()
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:quality_gate_schema_validation:001",
+      "source_operational_quality_gate_schema_validation_summary" =>
+        Map.put(summary, "schema_validation_row_count", 99),
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "source_operational_quality_gate_schema_validation_summary" => summary
+        }
+      ],
+      "result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "operational_quality_gate_schema_validation_summary" => summary
+        }
+      ]
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:quality_gate_schema_validation:001",
+             "review_count" => 3,
+             "quality_gate_review_count" => 3
+           } = package
+
+    assert Enum.map(package["rows"], & &1["source"]) == [
+             "candidate_refresh.source_operational_quality_gate_schema_validation_summary",
+             "candidate_refresh.source_result_artifact[0].source_operational_quality_gate_schema_validation_summary",
+             "candidate_refresh.result_artifact[0].operational_quality_gate_schema_validation_summary"
+           ]
+
+    assert %{
+             "review_type" => "quality_gate_review",
+             "required_operator_action" => "review_blocked_quality_gate",
+             "approval_status" => "blocked_by_policy",
+             "quality_gate_id" => "cadence_import",
+             "quality_gate_status" => "blocked",
+             "quality_gate_classification" => "blocked",
+             "readiness_level" => "blocked",
+             "schema_validation_pass_count" => 0,
+             "schema_validation_fail_count" => 1,
+             "schema_validation_error_count" => 1,
+             "schema_validation_warning_count" => 0,
+             "schema_validation_remediation_count" => 1,
+             "schema_validation_status_counts" => %{"fail" => 1},
+             "source_quality_gate_row" => %{
+               "id" => "quality_gate:activity_1:schema_validation",
+               "gate_id" => "cadence_import",
+               "status" => "blocked",
+               "schema_validation_status_counts" => %{"fail" => 1}
+             },
+             "source_quality_gate_report" => %{
+               "schema_contract" => "quality_gate_report.v1",
+               "report_id" => "quality_gate:planned_activity.v1:activity_1",
+               "quality_gate_row_ids_by_status" => %{
+                 "blocked" => ["quality_gate:activity_1:schema_validation"]
+               }
+             }
+           } = List.first(package["rows"])
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:quality_gate_schema_validation:001",
+             "row_count" => 3,
+             "source_review_type_counts" => %{"quality_gate_review" => 3},
+             "import_action_counts" => %{"review_quality_gate" => 3}
+           } = manifest
+
+    assert %{
+             "import_action" => "review_quality_gate",
+             "import_status" => "review_required_before_import",
+             "source_review_row" => %{
+               "source" =>
+                 "candidate_refresh.source_operational_quality_gate_schema_validation_summary",
+               "schema_validation_status_counts" => %{"fail" => 1}
+             }
+           } = List.first(manifest["rows"])
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "candidate refresh source schema validation reports become operator review rows" do
     source_schema_validation_report = %{
       "schema_contract" => "schema_validation_report.v1",
@@ -17213,6 +17306,45 @@ defmodule OrbitalDynamics.OperatorReviewTest do
         "command_execution" => "not_performed_by_summary"
       },
       "provenance" => %{"trust_boundary" => "operator_training_summary_fixture"}
+    }
+  end
+
+  defp quality_gate_schema_validation_summary do
+    %{
+      "schema_contract" => "operational_quality_gate_schema_validation_summary.v1",
+      "model" => "artifact_only_quality_gate_schema_validation_summary",
+      "source" => "quality_gate_report.v1",
+      "source_artifact_type" => "planned_activity.v1",
+      "source_artifact_id" => "activity_1",
+      "source_quality_gate_report_id" => "quality_gate:planned_activity.v1:activity_1",
+      "source_readiness_report_id" => "operational_readiness:planned_activity.v1:activity_1",
+      "schema_validation_row_count" => 1,
+      "schema_validation_pass_count" => 0,
+      "schema_validation_fail_count" => 1,
+      "schema_validation_error_count" => 1,
+      "schema_validation_warning_count" => 0,
+      "schema_validation_remediation_count" => 1,
+      "schema_validation_status_counts" => %{"fail" => 1},
+      "schema_validation_status_ids" => ["fail"],
+      "schema_validation_import_blocked" => true,
+      "quality_gate_row_ids_by_status" => %{
+        "blocked" => ["quality_gate:activity_1:schema_validation"]
+      },
+      "quality_gate_ids_by_status" => %{"blocked" => ["cadence_import"]},
+      "blocked_quality_gate_row_ids" => ["quality_gate:activity_1:schema_validation"],
+      "review_required_quality_gate_row_ids" => [],
+      "failed_schema_validation_quality_gate_row_ids" => [
+        "quality_gate:activity_1:schema_validation"
+      ],
+      "schema_validation_gate_ids" => ["cadence_import"],
+      "assumptions" => %{
+        "execution_boundary" => "artifact_only_no_cadence_write",
+        "source" => "quality_gate_report.v1",
+        "operator_authority" => "not_granted_by_schema_validation_summary",
+        "cadence_write" => "not_performed_by_summary",
+        "command_execution" => "not_performed_by_summary"
+      },
+      "provenance" => %{"trust_boundary" => "schema_validation_summary_fixture"}
     }
   end
 
