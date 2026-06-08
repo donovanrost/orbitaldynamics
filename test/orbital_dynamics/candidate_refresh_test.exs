@@ -7754,6 +7754,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       |> Map.put("station_pressure_contact_count", 99)
       |> Map.put("station_pressure_contact_ids_by_ground_station_id", %{})
       |> Map.delete("station_pressure_contact_ids_by_availability")
+      |> Map.delete("station_pressure_contact_ids_by_status")
+      |> Map.delete("station_pressure_contact_counts_by_status")
       |> Map.delete("station_pressure_contact_ids_by_precedence_availability")
       |> Map.delete("station_pressure_contact_ids_by_precedence_rank")
       |> Map.delete("station_pressure_contact_ids_by_direction")
@@ -7789,6 +7791,8 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
       |> Map.delete("station_pressure_review_contact_ids")
       |> Map.delete("station_pressure_contact_ids_by_ground_station_id")
       |> Map.delete("station_pressure_contact_ids_by_availability")
+      |> Map.delete("station_pressure_contact_ids_by_status")
+      |> Map.delete("station_pressure_contact_counts_by_status")
       |> Map.delete("station_pressure_contact_ids_by_precedence_availability")
       |> Map.delete("station_pressure_contact_ids_by_precedence_rank")
       |> Map.delete("station_pressure_contact_ids_by_direction")
@@ -51315,6 +51319,66 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert summary["battery_state_of_charge"] == 0.05
     refute Map.has_key?(summary, "battery_capacity_wh")
     refute Map.has_key?(summary, "battery_energy_used_wh")
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
+  test "Cadence-import battery margin replay supersedes stale base battery derivation inputs" do
+    report = %{
+      "schema_contract" => "resource_projection_report.v1",
+      "projected_resources" => [
+        %{
+          "spacecraft_id" => "leo_1",
+          "resource_pressure_status" => "power_margin",
+          "resource_pressure_types" => ["power_margin"],
+          "projected_battery_state_of_charge" => 0.05,
+          "resource_trust_boundary" => "cadence_ops"
+        }
+      ]
+    }
+
+    manifest = CadenceImport.from_resource_projection_report(report)
+
+    artifact =
+      result_set()
+      |> CandidateRefresh.build(
+        candidate_refresh:
+          refresh_request()
+          |> put_in(["resource_filter_policy"], %{"min_observe_power_margin" => 0.2})
+          |> put_in(["resource_summaries", Access.at(0), "battery_capacity_wh"], 100.0)
+          |> put_in(["resource_summaries", Access.at(0), "battery_energy_used_wh"], 20.0)
+          |> put_in(["resource_summaries", Access.at(0), "battery_state_of_charge"], 0.8)
+          |> Map.put("source_cadence_import_manifest", manifest),
+        generated_at: ~U[2026-05-14 00:00:00Z]
+      )
+
+    assert [
+             %{
+               "id" => "leo_1_observe_target_a_1",
+               "spacecraft_id" => "leo_1",
+               "suppressed_reason" => "power_margin_below_observe_policy",
+               "resource_blocking_dimension" => "power",
+               "battery_state_of_charge" => 0.05,
+               "power_margin" => 0.05
+             }
+           ] = artifact["resource_filter_report"]["suppressed_candidates"]
+
+    summary = Enum.find(artifact["resource_summaries"], &(&1["spacecraft_id"] == "leo_1"))
+    assert summary["battery_state_of_charge"] == 0.05
+    refute Map.has_key?(summary, "battery_capacity_wh")
+    refute Map.has_key?(summary, "battery_energy_used_wh")
+
+    assert %{
+             "paths" => ["source_cadence_import_manifest.rows.source_resource_projection"],
+             "contract" => "resource_projection_report.v1",
+             "count" => 1,
+             "row_count" => 1,
+             "projected_resource_count" => 1,
+             "resource_pressure_status_counts" => %{"power_margin" => 1},
+             "trust_boundary_status" => "declared",
+             "trust_boundaries" => ["cadence_ops"]
+           } = get_in(artifact, ["provenance", "source_reports", "resource_projection_report"])
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
