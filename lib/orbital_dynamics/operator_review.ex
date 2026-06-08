@@ -9217,6 +9217,85 @@ defmodule OrbitalDynamics.OperatorReview do
     "review overlapping provider calendar entries"
   end
 
+  defp station_calendar_precedence_summary?(%{} = summary) do
+    model = summary["model"] || summary[:model]
+    schema_contract = summary["schema_contract"] || summary[:schema_contract]
+
+    model == "artifact_only_station_calendar_precedence_summary" or
+      schema_contract == "station_calendar_precedence_summary.v1"
+  end
+
+  defp station_calendar_precedence_summary?(_summary), do: false
+
+  defp station_calendar_precedence_summary_rows(summary, source) do
+    summary = stringify_keys(summary)
+    context = station_calendar_precedence_summary_context(summary)
+
+    if station_calendar_precedence_reviewable_summary?(summary) do
+      [
+        %{
+          "id" =>
+            review_id([
+              "station_calendar_precedence_summary",
+              stable_id_fragment(source),
+              summary["source"] || summary["source_artifact_type"]
+            ]),
+          "review_type" => "station_calendar_review",
+          "source" => source,
+          "subject_id" =>
+            summary["source"] ||
+              summary["source_artifact_type"] ||
+              "station_calendar_precedence_summary",
+          "source_artifact_type" => summary["source_artifact_type"],
+          "action" => "review_station_calendar",
+          "required_operator_action" => "review_station_calendar",
+          "approval_status" => "operator_review_required",
+          "reason" => "review station calendar precedence summary",
+          "station_calendar_precedence_review_status" => summary["precedence_review_status"],
+          "station_calendar_precedence_affected_contact_count" =>
+            summary["affected_contact_count"],
+          "station_calendar_precedence_applied_availability_counts" =>
+            summary["applied_availability_counts"],
+          "station_calendar_precedence_overlap_availability_counts" =>
+            summary["overlap_availability_counts"],
+          "station_calendar_precedence_affected_contact_ids_by_applied_availability" =>
+            summary["affected_contact_ids_by_applied_availability"],
+          "station_calendar_precedence_affected_contact_ids_by_overlap_availability" =>
+            summary["affected_contact_ids_by_overlap_availability"],
+          "station_calendar_precedence_reserved_under_higher_precedence_contact_count" =>
+            summary["reserved_under_higher_precedence_contact_count"],
+          "station_calendar_precedence_reserved_under_higher_precedence_contact_ids" =>
+            summary["reserved_under_higher_precedence_contact_ids"],
+          "station_calendar_precedence_reserved_under_higher_precedence_contact_ids_by_applied_availability" =>
+            summary["reserved_under_higher_precedence_contact_ids_by_applied_availability"],
+          "station_calendar_precedence_reserved_overlap_contact_ids" =>
+            summary["reserved_overlap_contact_ids"],
+          "station_calendar_precedence_reduced_capacity_contact_ids" =>
+            summary["reduced_capacity_contact_ids"],
+          "station_calendar_precedence_unavailable_contact_ids" =>
+            summary["unavailable_contact_ids"],
+          "station_calendar_precedence_model_limits" => summary["model_limits"],
+          "source_station_calendar_precedence_summary" => context
+        }
+        |> compact_map()
+      ]
+    else
+      []
+    end
+  end
+
+  defp station_calendar_precedence_reviewable_summary?(summary) do
+    summary["precedence_review_status"] not in [nil, "passed", "importable"] or
+      positive_report_count?(summary, "affected_contact_count") or
+      positive_report_count?(summary, "reserved_under_higher_precedence_contact_count")
+  end
+
+  defp station_calendar_precedence_summary_context(summary) do
+    summary
+    |> Map.put_new("source_summary_schema_contract", summary["schema_contract"])
+    |> Map.put_new("source_summary_model", summary["model"])
+  end
+
   defp station_reservation_rows(
          rows,
          source \\ "station_reservation_report.affected_contacts"
@@ -13691,7 +13770,31 @@ defmodule OrbitalDynamics.OperatorReview do
       [
         {"candidate_refresh.source_station_calendar_report",
          artifact["source_station_calendar_report"]},
-        {"candidate_refresh.station_calendar_report", artifact["station_calendar_report"]}
+        {"candidate_refresh.station_calendar_report", artifact["station_calendar_report"]},
+        {"candidate_refresh.accepted_planning_state.source_station_calendar_precedence_summary",
+         get_in(artifact, [
+           "accepted_planning_state",
+           "source_station_calendar_precedence_summary"
+         ])},
+        {"candidate_refresh.accepted_planning_state.station_calendar_precedence_summary",
+         get_in(artifact, [
+           "accepted_planning_state",
+           "station_calendar_precedence_summary"
+         ])},
+        {"candidate_refresh.mission_state.source_station_calendar_precedence_summary",
+         get_in(artifact, [
+           "mission_state",
+           "source_station_calendar_precedence_summary"
+         ])},
+        {"candidate_refresh.mission_state.station_calendar_precedence_summary",
+         get_in(artifact, [
+           "mission_state",
+           "station_calendar_precedence_summary"
+         ])},
+        {"candidate_refresh.source_station_calendar_precedence_summary",
+         artifact["source_station_calendar_precedence_summary"]},
+        {"candidate_refresh.station_calendar_precedence_summary",
+         artifact["station_calendar_precedence_summary"]}
       ]
       |> Enum.flat_map(fn {source, report_or_reports} ->
         source_station_calendar_report_rows(report_or_reports, source)
@@ -13711,14 +13814,18 @@ defmodule OrbitalDynamics.OperatorReview do
   defp source_station_calendar_report_rows(%{} = report, source) do
     report = stringify_keys(report)
 
-    station_calendar_rows(
-      Map.get(report, "affected_contacts", []),
-      "#{source}.affected_contacts"
-    ) ++
-      station_calendar_provider_contention_rows(
-        Map.get(report, "provider_calendar_contention_groups", []),
-        "#{source}.provider_calendar_contention_groups"
-      )
+    if station_calendar_precedence_summary?(report) do
+      station_calendar_precedence_summary_rows(report, source)
+    else
+      station_calendar_rows(
+        Map.get(report, "affected_contacts", []),
+        "#{source}.affected_contacts"
+      ) ++
+        station_calendar_provider_contention_rows(
+          Map.get(report, "provider_calendar_contention_groups", []),
+          "#{source}.provider_calendar_contention_groups"
+        )
+    end
   end
 
   defp source_station_calendar_report_rows(_report, _source), do: []
@@ -13753,7 +13860,11 @@ defmodule OrbitalDynamics.OperatorReview do
 
     [
       {"#{source}.source_station_calendar_report", artifact["source_station_calendar_report"]},
-      {"#{source}.station_calendar_report", artifact["station_calendar_report"]}
+      {"#{source}.station_calendar_report", artifact["station_calendar_report"]},
+      {"#{source}.source_station_calendar_precedence_summary",
+       artifact["source_station_calendar_precedence_summary"]},
+      {"#{source}.station_calendar_precedence_summary",
+       artifact["station_calendar_precedence_summary"]}
     ]
     |> Enum.flat_map(fn {report_source, report_or_reports} ->
       source_station_calendar_report_rows(report_or_reports, report_source)

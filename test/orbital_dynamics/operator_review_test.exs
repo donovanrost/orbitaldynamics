@@ -7420,6 +7420,149 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(package)
   end
 
+  test "candidate refresh station calendar precedence summaries become operator review rows" do
+    summary = study_result_fixture("station_calendar_precedence_summary_v1.json")
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:station_calendar_precedence_summary:001",
+      "source_station_calendar_precedence_summary" => summary
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:station_calendar_precedence_summary:001",
+             "review_count" => 1,
+             "station_calendar_review_count" => 1
+           } = package
+
+    assert [
+             %{
+               "review_type" => "station_calendar_review",
+               "source" => "candidate_refresh.source_station_calendar_precedence_summary",
+               "subject_id" => "ops_calendar",
+               "required_operator_action" => "review_station_calendar",
+               "station_calendar_precedence_review_status" => "review_required",
+               "station_calendar_precedence_affected_contact_count" => 1,
+               "station_calendar_precedence_applied_availability_counts" => %{
+                 "unavailable" => 1
+               },
+               "station_calendar_precedence_overlap_availability_counts" => %{
+                 "reduced_capacity" => 1,
+                 "reserved" => 1,
+                 "unavailable" => 1
+               },
+               "station_calendar_precedence_reserved_under_higher_precedence_contact_ids" => [
+                 "dl_1"
+               ],
+               "station_calendar_precedence_model_limits" => [
+                 "declared_data_only",
+                 "no_network_calls",
+                 "no_provider_reservation",
+                 "no_schedule_mutation",
+                 "no_conflict_resolution"
+               ],
+               "source_station_calendar_precedence_summary" => %{
+                 "schema_contract" => "station_calendar_precedence_summary.v1",
+                 "source_summary_schema_contract" => "station_calendar_precedence_summary.v1",
+                 "source_summary_model" => "artifact_only_station_calendar_precedence_summary",
+                 "assumptions" => %{
+                   "execution_boundary" => "artifact_only_no_provider_reservation",
+                   "operator_authority" => "not_granted_by_summary"
+                 }
+               }
+             }
+           ] = package["rows"]
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:station_calendar_precedence_summary:001",
+             "row_count" => 1,
+             "source_review_type_counts" => %{"station_calendar_review" => 1},
+             "import_action_counts" => %{"review_station_calendar" => 1}
+           } = manifest
+
+    assert [
+             %{
+               "import_action" => "review_station_calendar",
+               "source_review_type" => "station_calendar_review",
+               "source_review_row" => %{
+                 "source" => "candidate_refresh.source_station_calendar_precedence_summary",
+                 "station_calendar_precedence_review_status" => "review_required",
+                 "source_station_calendar_precedence_summary" => %{
+                   "schema_contract" => "station_calendar_precedence_summary.v1"
+                 }
+               }
+             }
+           ] = manifest["rows"]
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
+  test "candidate refresh result artifact station calendar precedence summaries become review rows" do
+    summary = study_result_fixture("station_calendar_precedence_summary_v1.json")
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:wrapped_station_calendar_precedence_summary:001",
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "source_station_calendar_precedence_summary" => summary,
+          "station_calendar_precedence_summary" => summary
+        }
+      ]
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" =>
+               "candidate_refresh:wrapped_station_calendar_precedence_summary:001",
+             "review_count" => 2,
+             "station_calendar_review_count" => 2
+           } = package
+
+    assert Enum.map(package["rows"], & &1["source"]) == [
+             "candidate_refresh.source_result_artifact[0].source_station_calendar_precedence_summary",
+             "candidate_refresh.source_result_artifact[0].station_calendar_precedence_summary"
+           ]
+
+    assert %{
+             "review_type" => "station_calendar_review",
+             "source" =>
+               "candidate_refresh.source_result_artifact[0].station_calendar_precedence_summary",
+             "station_calendar_precedence_reserved_under_higher_precedence_contact_count" => 1,
+             "source_station_calendar_precedence_summary" => %{
+               "source_summary_schema_contract" => "station_calendar_precedence_summary.v1",
+               "model_limits" => [
+                 "declared_data_only",
+                 "no_network_calls",
+                 "no_provider_reservation",
+                 "no_schedule_mutation",
+                 "no_conflict_resolution"
+               ]
+             }
+           } =
+             Enum.find(
+               package["rows"],
+               &(&1["source"] ==
+                   "candidate_refresh.source_result_artifact[0].station_calendar_precedence_summary")
+             )
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+  end
+
   test "candidate refresh result artifact station calendar reports become operator review rows" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
