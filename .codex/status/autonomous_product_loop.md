@@ -8,7 +8,7 @@ Current slice:
 Quality-gate operator-training CandidateRefresh review/import handoff.
 
 Status:
-Completed locally; CandidateRefresh OperatorReview/CadenceImport handoffs now
+Completed and pushed; CandidateRefresh OperatorReview/CadenceImport handoffs now
 lift compact `operational_quality_gate_operator_training_summary.v1` inputs from
 top-level refresh fields, accepted/mission state, `source_result_artifact`, and
 `result_artifact` wrappers. Compact summaries reconstruct non-passed
@@ -46,8 +46,8 @@ or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Pending commit; previous pushed commit
-`ae3dc787a276c2381f206c21fd2aef5f72a3edc9`.
+Pushed `16d2c8c60deffec88ea6e3c8bcb143b186310700` after product commit
+`17607daaa5769949a3fc0b85e2449f067798f597`.
 
 Next candidate:
 Continue the quality-gates/import-eligibility queue by reassessing compact
