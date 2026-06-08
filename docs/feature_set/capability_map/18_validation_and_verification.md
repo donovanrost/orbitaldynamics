@@ -133,6 +133,13 @@ assumptions. Focused fixture coverage exact-regenerates the checked-in
 publication summary through the public facade from deterministic
 source/replacement activities before schema validation, so checked-in
 publication handoff evidence cannot drift from the public adapter contract.
+The `operational_timeline_report.v1` fixture observes row-derived operational
+kind, activity status, approval status, Cadence import status, required action,
+timeline-integrity issue, and row-ID routing maps. Focused fixture coverage
+refreshes and exact-regenerates the checked-in report through the public facade
+from deterministic mission-plan activities, pinning current precondition,
+invalid-activity, command-window, integrity, import/action, and no-execution
+boundary fields before schema validation.
 
 ## Station-calendar and reservation fixture integrity
 

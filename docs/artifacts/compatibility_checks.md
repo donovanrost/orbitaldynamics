@@ -1001,6 +1001,13 @@ facade output.
 row-derived operational-kind, activity-status, approval-status,
 Cadence-import-status, required-action, timeline-integrity issue, and row-ID
 routing maps so stale timeline handoff summaries fail compatibility checks.
+Focused schema-reference coverage refreshes and exact-regenerates that checked-in
+fixture through `OrbitalDynamics.operational_timeline_report/2` from
+deterministic mission-plan activities before schema validation, pinning
+precondition status/counts, invalid-activity counters, command-window context,
+timeline-integrity routing, operational-kind/import/action maps, and the
+planned-not-commanded/no-schedule-mutation/no-command-execution boundary to the
+public facade output.
 Candidate-refresh operational-timeline replay summaries use those row-derived
 maps and row-derived integrity counts, so stale top-level operational-timeline
 aggregate maps or issue-count fields cannot steer branch-local replay pressure.
