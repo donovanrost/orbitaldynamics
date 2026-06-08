@@ -84,7 +84,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Previous slice: `9fdfb3a` Derive timeline publication pressure branches.
+`4796e0e` Reject stale lifecycle protection evidence.
 
 Next candidate:
 After this slice, continue guide-priority lifecycle challenge coverage or move
@@ -95,6 +95,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `4796e0e` rejected stale lifecycle-state protection evidence.
 - `9fdfb3a` derived timeline publication summary pressure branches.
 - `9c45b20` derived timeline dependency-impact summary pressure branches.
 - `b9fed8e` derived timeline-integrity report pressure branches.
