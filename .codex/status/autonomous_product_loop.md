@@ -101,7 +101,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`49cb7b9` Update autonomous loop handoff.
+`cb62212` Flatten reservation conflict direction handoffs.
 
 Next candidate:
 Continue guide-priority resource/contact semantics or candidate-refresh depth
@@ -112,9 +112,9 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `cb62212` flattened reservation-conflict direction handoffs.
 - `cd331cf` flattened station-pressure direction handoffs.
 - `0c7c0e2` flattened capacity-pack direction handoffs.
-- `6cd75e3` updated autonomous loop handoff.
 
 Blocked:
 No.
