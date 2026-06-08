@@ -3616,6 +3616,35 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ]
   end
 
+  defp event_risk_indicators(%{"type" => "timeline_preservation_pressure"} = event) do
+    [
+      %{
+        "type" => "timeline_preservation_review",
+        "severity" => "high",
+        "reason" =>
+          "activity #{event["activity_id"] || event["timeline_id"]} carries lifecycle preservation, review-change, or invalid-input pressure",
+        "activity_id" => event["activity_id"],
+        "timeline_id" => event["timeline_id"],
+        "timeline_preservation_status" => event["timeline_preservation_status"],
+        "requires_preservation" => event["requires_preservation"],
+        "requires_operator_review" => event["requires_operator_review"],
+        "protection_decision" => event["protection_decision"],
+        "protection_category" => event["protection_category"],
+        "protection_reason" => event["protection_reason"],
+        "preserve_activity_ids" => event["preserve_activity_ids"],
+        "preserve_timeline_ids" => event["preserve_timeline_ids"],
+        "review_change_activity_ids" => event["review_change_activity_ids"],
+        "review_change_timeline_ids" => event["review_change_timeline_ids"],
+        "invalid_activity_input" => event["invalid_activity_input"],
+        "invalid_activity_input_reason" => event["invalid_activity_input_reason"],
+        "feedback_source" => event["feedback_source"],
+        "feedback_scope" => event["feedback_scope"],
+        "trust_boundary" => event["trust_boundary"]
+      }
+      |> compact_map()
+    ]
+  end
+
   defp event_risk_indicators(%{"type" => "provider_reservation_request_pressure"} = event) do
     [
       %{
@@ -5278,6 +5307,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
         Map.get(state, "source_timeline_activity_precondition_summary"),
       "timeline_activity_precondition_summary" =>
         Map.get(state, "timeline_activity_precondition_summary"),
+      "source_timeline_preservation_report" =>
+        Map.get(state, "source_timeline_preservation_report"),
+      "timeline_preservation_report" => Map.get(state, "timeline_preservation_report"),
+      "source_timeline_preservation_status" =>
+        Map.get(state, "source_timeline_preservation_status"),
+      "timeline_preservation_status" => Map.get(state, "timeline_preservation_status"),
       "source_timeline_lifecycle_state_summary" =>
         Map.get(state, "source_timeline_lifecycle_state_summary"),
       "timeline_lifecycle_state_summary" => Map.get(state, "timeline_lifecycle_state_summary"),
@@ -5578,6 +5613,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Kernel.++(
         derived_mission_state_timeline_activity_precondition_pressure_branches(mission_state)
       )
+      |> Kernel.++(derived_timeline_preservation_pressure_branches(prior_plan))
+      |> Kernel.++(derived_mission_state_timeline_preservation_pressure_branches(mission_state))
       |> Kernel.++(derived_timeline_diff_pressure_branches(prior_plan, policy))
       |> Kernel.++(derived_mission_state_timeline_diff_pressure_branches(mission_state, policy))
       |> Kernel.++(derived_planned_activity_pressure_branches(prior_plan))
@@ -5627,6 +5664,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> disambiguate_timeline_lifecycle_state_pressure_branch_ids()
       |> disambiguate_timeline_activity_lifecycle_state_pressure_branch_ids()
       |> disambiguate_timeline_activity_precondition_pressure_branch_ids()
+      |> disambiguate_timeline_preservation_pressure_branch_ids()
       |> disambiguate_timeline_diff_pressure_branch_ids()
       |> disambiguate_review_replay_pressure_branch_ids()
       |> disambiguate_degraded_spacecraft_branch_ids()
@@ -18048,6 +18086,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
     end)
   end
 
+  defp derived_timeline_preservation_pressure_branches(prior_plan) do
+    prior_plan
+    |> prior_plan_timeline_preservation_pressure_rows()
+    |> Enum.flat_map(fn {row, source_path, index} ->
+      timeline_preservation_pressure_branch(row, source_path, index)
+    end)
+  end
+
   defp prior_plan_timeline_dependency_impact_pressure_rows(prior_plan) do
     prior_plan
     |> prior_plan_timeline_dependency_impact_summaries()
@@ -18080,6 +18126,20 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> prior_plan_timeline_activity_precondition_summaries()
     |> Enum.with_index(1)
     |> Enum.map(fn {{summary, source_path}, index} -> {summary, source_path, index} end)
+  end
+
+  defp prior_plan_timeline_preservation_pressure_rows(prior_plan) do
+    report_rows =
+      prior_plan
+      |> prior_plan_timeline_preservation_reports()
+      |> timeline_preservation_report_pressure_rows()
+
+    status_rows =
+      prior_plan
+      |> prior_plan_timeline_preservation_statuses()
+      |> timeline_preservation_status_pressure_rows()
+
+    report_rows ++ status_rows
   end
 
   defp prior_plan_timeline_publication_summaries(prior_plan) do
@@ -18145,6 +18205,36 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     direct_summaries ++
       prior_plan_result_artifact_timeline_activity_precondition_summaries(prior_plan)
+  end
+
+  defp prior_plan_timeline_preservation_reports(prior_plan) do
+    direct_reports =
+      [
+        {"source_timeline_preservation_report", "prior_plan.source_timeline_preservation_report"},
+        {"timeline_preservation_report", "prior_plan.timeline_preservation_report"}
+      ]
+      |> Enum.flat_map(fn {field, source_path} ->
+        prior_plan
+        |> Map.get(field)
+        |> mission_state_source_report_entries(source_path)
+      end)
+
+    direct_reports ++ prior_plan_result_artifact_timeline_preservation_reports(prior_plan)
+  end
+
+  defp prior_plan_timeline_preservation_statuses(prior_plan) do
+    direct_statuses =
+      [
+        {"source_timeline_preservation_status", "prior_plan.source_timeline_preservation_status"},
+        {"timeline_preservation_status", "prior_plan.timeline_preservation_status"}
+      ]
+      |> Enum.flat_map(fn {field, source_path} ->
+        prior_plan
+        |> Map.get(field)
+        |> mission_state_source_report_entries(source_path)
+      end)
+
+    direct_statuses ++ prior_plan_result_artifact_timeline_preservation_statuses(prior_plan)
   end
 
   defp timeline_publication_summary_entries(nil, _source_path), do: []
@@ -18339,6 +18429,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
     end)
   end
 
+  defp derived_mission_state_timeline_preservation_pressure_branches(mission_state) do
+    mission_state
+    |> mission_state_timeline_preservation_pressure_rows()
+    |> Enum.flat_map(fn {row, source_path, index} ->
+      timeline_preservation_pressure_branch(row, source_path, index)
+    end)
+  end
+
   defp mission_state_timeline_dependency_impact_pressure_rows(mission_state) do
     mission_state
     |> mission_state_timeline_dependency_impact_pressure_summaries()
@@ -18373,6 +18471,20 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> Enum.map(fn {{summary, source_path}, index} -> {summary, source_path, index} end)
   end
 
+  defp mission_state_timeline_preservation_pressure_rows(mission_state) do
+    report_rows =
+      mission_state
+      |> mission_state_timeline_preservation_reports()
+      |> timeline_preservation_report_pressure_rows()
+
+    status_rows =
+      mission_state
+      |> mission_state_timeline_preservation_statuses()
+      |> timeline_preservation_status_pressure_rows()
+
+    report_rows ++ status_rows
+  end
+
   defp mission_state_timeline_publication_summaries(mission_state) do
     mission_state_source_timeline_publication_summaries(mission_state) ++
       mission_state_canonical_timeline_publication_summaries(mission_state) ++
@@ -18395,6 +18507,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
     mission_state_source_timeline_activity_precondition_summaries(mission_state) ++
       mission_state_canonical_timeline_activity_precondition_summaries(mission_state) ++
       mission_state_result_artifact_timeline_activity_precondition_summaries(mission_state)
+  end
+
+  defp mission_state_timeline_preservation_reports(mission_state) do
+    mission_state_source_timeline_preservation_reports(mission_state) ++
+      mission_state_canonical_timeline_preservation_reports(mission_state) ++
+      mission_state_result_artifact_timeline_preservation_reports(mission_state)
+  end
+
+  defp mission_state_timeline_preservation_statuses(mission_state) do
+    mission_state_source_timeline_preservation_statuses(mission_state) ++
+      mission_state_canonical_timeline_preservation_statuses(mission_state) ++
+      mission_state_result_artifact_timeline_preservation_statuses(mission_state)
   end
 
   defp mission_state_timeline_dependency_impact_pressure_summaries(mission_state) do
@@ -18689,6 +18813,52 @@ defmodule OrbitalDynamics.CampaignPlanner do
     end)
   end
 
+  defp mission_state_source_timeline_preservation_reports(mission_state) do
+    mission_state_timeline_preservation_reports(mission_state, [
+      {"source_timeline_preservation_report", "mission_state.source_timeline_preservation_report"}
+    ])
+  end
+
+  defp mission_state_canonical_timeline_preservation_reports(mission_state) do
+    mission_state_timeline_preservation_reports(mission_state, [
+      {"timeline_preservation_report", "mission_state.timeline_preservation_report"}
+    ])
+  end
+
+  defp mission_state_timeline_preservation_reports(mission_state, fields) do
+    mission_state = stringify_keys(mission_state || %{})
+
+    fields
+    |> Enum.flat_map(fn {field, source_path} ->
+      mission_state
+      |> Map.get(field)
+      |> mission_state_source_report_entries(source_path)
+    end)
+  end
+
+  defp mission_state_source_timeline_preservation_statuses(mission_state) do
+    mission_state_timeline_preservation_statuses(mission_state, [
+      {"source_timeline_preservation_status", "mission_state.source_timeline_preservation_status"}
+    ])
+  end
+
+  defp mission_state_canonical_timeline_preservation_statuses(mission_state) do
+    mission_state_timeline_preservation_statuses(mission_state, [
+      {"timeline_preservation_status", "mission_state.timeline_preservation_status"}
+    ])
+  end
+
+  defp mission_state_timeline_preservation_statuses(mission_state, fields) do
+    mission_state = stringify_keys(mission_state || %{})
+
+    fields
+    |> Enum.flat_map(fn {field, source_path} ->
+      mission_state
+      |> Map.get(field)
+      |> mission_state_source_report_entries(source_path)
+    end)
+  end
+
   defp mission_state_source_timeline_activity_lifecycle_states(mission_state) do
     mission_state_timeline_activity_lifecycle_states(mission_state, [
       {"source_timeline_activity_lifecycle_state",
@@ -18928,6 +19098,22 @@ defmodule OrbitalDynamics.CampaignPlanner do
     end)
   end
 
+  defp mission_state_result_artifact_timeline_preservation_reports(mission_state) do
+    mission_state
+    |> mission_state_result_artifacts_with_source()
+    |> Enum.flat_map(fn {artifact, source_path} ->
+      result_artifact_timeline_preservation_reports(artifact, source_path)
+    end)
+  end
+
+  defp mission_state_result_artifact_timeline_preservation_statuses(mission_state) do
+    mission_state
+    |> mission_state_result_artifacts_with_source()
+    |> Enum.flat_map(fn {artifact, source_path} ->
+      result_artifact_timeline_preservation_statuses(artifact, source_path)
+    end)
+  end
+
   defp prior_plan_result_artifact_timeline_publication_summaries(prior_plan) do
     prior_plan
     |> prior_plan_result_artifacts_with_source()
@@ -18957,6 +19143,22 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> prior_plan_result_artifacts_with_source()
     |> Enum.flat_map(fn {artifact, source_path} ->
       result_artifact_timeline_activity_precondition_summaries(artifact, source_path)
+    end)
+  end
+
+  defp prior_plan_result_artifact_timeline_preservation_reports(prior_plan) do
+    prior_plan
+    |> prior_plan_result_artifacts_with_source()
+    |> Enum.flat_map(fn {artifact, source_path} ->
+      result_artifact_timeline_preservation_reports(artifact, source_path)
+    end)
+  end
+
+  defp prior_plan_result_artifact_timeline_preservation_statuses(prior_plan) do
+    prior_plan
+    |> prior_plan_result_artifacts_with_source()
+    |> Enum.flat_map(fn {artifact, source_path} ->
+      result_artifact_timeline_preservation_statuses(artifact, source_path)
     end)
   end
 
@@ -19029,6 +19231,107 @@ defmodule OrbitalDynamics.CampaignPlanner do
         )
       end)
     end
+  end
+
+  defp result_artifact_timeline_preservation_reports(artifact, source_path) do
+    artifact = stringify_keys(artifact)
+
+    if artifact["schema_contract"] == "timeline_preservation_report.v1" do
+      [{put_inherited_result_artifact_trust_boundary(artifact, artifact), source_path}]
+    else
+      ["source_timeline_preservation_report", "timeline_preservation_report"]
+      |> Enum.flat_map(fn report_key ->
+        result_artifact_embedded_report_entries(
+          Map.get(artifact, report_key),
+          artifact,
+          "#{source_path}.#{report_key}"
+        )
+      end)
+    end
+  end
+
+  defp result_artifact_timeline_preservation_statuses(artifact, source_path) do
+    artifact = stringify_keys(artifact)
+
+    if artifact["schema_contract"] == "timeline_preservation_status.v1" do
+      [{put_inherited_result_artifact_trust_boundary(artifact, artifact), source_path}]
+    else
+      ["source_timeline_preservation_status", "timeline_preservation_status"]
+      |> Enum.flat_map(fn status_key ->
+        result_artifact_embedded_report_entries(
+          Map.get(artifact, status_key),
+          artifact,
+          "#{source_path}.#{status_key}"
+        )
+      end)
+    end
+  end
+
+  defp timeline_preservation_report_pressure_rows(reports) do
+    reports
+    |> Enum.flat_map(fn {report, source_path} ->
+      report = stringify_keys(report)
+
+      trust_boundary =
+        Map.get(report, "trust_boundary") || get_in(report, ["provenance", "trust_boundary"])
+
+      report_context = timeline_preservation_report_pressure_context(report)
+
+      report
+      |> Map.get("rows", [])
+      |> List.wrap()
+      |> Enum.map(&stringify_keys/1)
+      |> Enum.with_index(1)
+      |> Enum.map(fn {row, index} ->
+        row =
+          report_context
+          |> Map.merge(row)
+          |> Map.put("_source_report_trust_boundary", trust_boundary)
+
+        {row, "#{source_path}.rows[#{index - 1}]", index}
+      end)
+    end)
+  end
+
+  defp timeline_preservation_status_pressure_rows(statuses) do
+    statuses
+    |> Enum.with_index(1)
+    |> Enum.map(fn {{status, source_path}, index} ->
+      {stringify_keys(status), source_path, index}
+    end)
+  end
+
+  defp timeline_preservation_report_pressure_context(report) do
+    %{
+      "timeline_preservation_status" => report["timeline_preservation_status"],
+      "activity_count" => report["activity_count"],
+      "mutable_activity_count" => report["mutable_activity_count"],
+      "preserve_activity_count" => report["preserve_activity_count"],
+      "review_change_activity_count" => report["review_change_activity_count"],
+      "preservation_sensitive_activity_count" => report["preservation_sensitive_activity_count"],
+      "protection_decision_counts" => report["protection_decision_counts"],
+      "protection_category_counts" => report["protection_category_counts"],
+      "protection_reason_counts" => report["protection_reason_counts"],
+      "preserve_activity_ids" => report["preserve_activity_ids"],
+      "preserve_timeline_ids" => report["preserve_timeline_ids"],
+      "review_change_activity_ids" => report["review_change_activity_ids"],
+      "review_change_timeline_ids" => report["review_change_timeline_ids"],
+      "preservation_sensitive_activity_ids" => report["preservation_sensitive_activity_ids"],
+      "preservation_sensitive_timeline_ids" => report["preservation_sensitive_timeline_ids"],
+      "activity_id_sets_by_protection_decision" =>
+        report["activity_id_sets_by_protection_decision"],
+      "timeline_id_sets_by_protection_decision" =>
+        report["timeline_id_sets_by_protection_decision"],
+      "activity_id_sets_by_protection_category" =>
+        report["activity_id_sets_by_protection_category"],
+      "timeline_id_sets_by_protection_category" =>
+        report["timeline_id_sets_by_protection_category"],
+      "activity_id_sets_by_protection_reason" => report["activity_id_sets_by_protection_reason"],
+      "timeline_id_sets_by_protection_reason" => report["timeline_id_sets_by_protection_reason"],
+      "assumptions" => report["assumptions"],
+      "source" => report["source"]
+    }
+    |> reject_empty_values()
   end
 
   defp prior_plan_result_artifact_timeline_diff_reports(prior_plan) do
@@ -19779,6 +20082,147 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> reject_empty_values()
   end
 
+  defp timeline_preservation_pressure_branch(row, source_path, index) do
+    case timeline_preservation_pressure_event(row, source_path) do
+      nil ->
+        []
+
+      event ->
+        identity = row["activity_id"] || row["timeline_id"] || event["feedback_key"] || index
+
+        [
+          %{
+            "id" => "derived_timeline_preservation_pressure_#{branch_id_fragment(identity)}",
+            "label" => "Derived timeline preservation pressure #{identity}",
+            "events" => [event],
+            "metadata" =>
+              %{
+                "derived_source" => source_path,
+                "activity_id" => event["activity_id"],
+                "timeline_id" => event["timeline_id"],
+                "timeline_preservation_status" => event["timeline_preservation_status"],
+                "protection_decision" => event["protection_decision"],
+                "protection_category" => event["protection_category"],
+                "protection_reason" => event["protection_reason"]
+              }
+              |> compact_map()
+          }
+        ]
+    end
+  end
+
+  defp timeline_preservation_pressure_event(row, source_path) do
+    row = stringify_keys(row)
+    context = timeline_preservation_pressure_context(row)
+    activity_id = row["activity_id"] || get_in(row, ["timeline_identity", "activity_id"])
+    timeline_id = row["timeline_id"] || get_in(row, ["timeline_identity", "timeline_id"])
+
+    if context == %{} or not timeline_preservation_pressure?(row) do
+      nil
+    else
+      %{
+        "type" => "timeline_preservation_pressure",
+        "activity_id" => activity_id,
+        "timeline_id" => timeline_id,
+        "timeline_preservation_status" => row["timeline_preservation_status"],
+        "requires_preservation" =>
+          row["requires_preservation"] == true or
+            row["timeline_preservation_status"] == "preservation_required",
+        "requires_operator_review" =>
+          row["requires_operator_review"] == true or
+            row["timeline_preservation_status"] == "review_required" or
+            row["protection_decision"] == "review_change" or
+            row["invalid_activity_input"] == true,
+        "status" => row["status"],
+        "approval_status" => row["approval_status"],
+        "locked" => row["locked"],
+        "approved" => row["approved"],
+        "protection_decision" => row["protection_decision"],
+        "protection_category" => row["protection_category"],
+        "protection_reason" => row["protection_reason"] || row["reason"],
+        "activity_count" => row["activity_count"],
+        "preserve_activity_count" => row["preserve_activity_count"],
+        "review_change_activity_count" => row["review_change_activity_count"],
+        "preservation_sensitive_activity_count" => row["preservation_sensitive_activity_count"],
+        "preserve_activity_ids" => row["preserve_activity_ids"],
+        "preserve_timeline_ids" => row["preserve_timeline_ids"],
+        "review_change_activity_ids" => row["review_change_activity_ids"],
+        "review_change_timeline_ids" => row["review_change_timeline_ids"],
+        "preservation_sensitive_activity_ids" => row["preservation_sensitive_activity_ids"],
+        "preservation_sensitive_timeline_ids" => row["preservation_sensitive_timeline_ids"],
+        "invalid_activity_input" => row["invalid_activity_input"],
+        "invalid_activity_input_reason" => row["invalid_activity_input_reason"],
+        "feedback_source" => source_path,
+        "feedback_scope" => "timeline_preservation",
+        "feedback_key" => activity_id || timeline_id || row["source"],
+        "trust_boundary" => operator_review_trust_boundary(row),
+        "required_operator_action" => timeline_preservation_required_action(row),
+        "derivation_reasons" => ["timeline_preservation_pressure"],
+        "assumptions" => %{
+          "timeline_preservation_application" => "not_performed_by_strategy_branch",
+          "timeline_mutation" => "not_performed_by_strategy_branch",
+          "operator_authority" => "not_granted_by_strategy_branch",
+          "cadence_import" => "not_performed_by_strategy_branch",
+          "command_execution" => "not_performed_by_strategy_branch"
+        }
+      }
+      |> Map.merge(context)
+      |> compact_map()
+    end
+  end
+
+  defp timeline_preservation_pressure?(row) do
+    row["timeline_preservation_status"] in ["review_required", "preservation_required"] or
+      row["requires_preservation"] == true or
+      row["requires_operator_review"] == true or
+      row["protection_decision"] in ["preserve", "review_change"] or
+      row["invalid_activity_input"] == true or
+      positive_count?(row["preserve_activity_count"]) or
+      positive_count?(row["review_change_activity_count"]) or
+      positive_count?(row["preservation_sensitive_activity_count"]) or
+      pressure_count_map?(row["protection_decision_counts"], ["mutable"]) or
+      nonempty_pressure_value?(row["preserve_activity_ids"]) or
+      nonempty_pressure_value?(row["preserve_timeline_ids"]) or
+      nonempty_pressure_value?(row["review_change_activity_ids"]) or
+      nonempty_pressure_value?(row["review_change_timeline_ids"]) or
+      nonempty_pressure_value?(row["preservation_sensitive_activity_ids"]) or
+      nonempty_pressure_value?(row["preservation_sensitive_timeline_ids"])
+  end
+
+  defp timeline_preservation_required_action(%{"invalid_activity_input" => true}),
+    do: "review_invalid_activity_input"
+
+  defp timeline_preservation_required_action(%{"requires_operator_review" => true}),
+    do: "review_timeline_preservation"
+
+  defp timeline_preservation_required_action(%{
+         "timeline_preservation_status" => "review_required"
+       }),
+       do: "review_timeline_preservation"
+
+  defp timeline_preservation_required_action(%{"protection_decision" => "review_change"}),
+    do: "review_timeline_preservation"
+
+  defp timeline_preservation_required_action(_row), do: "record_timeline_preservation"
+
+  defp timeline_preservation_pressure_context(row) do
+    %{
+      "timeline_identity" => row["timeline_identity"],
+      "protection_decision_counts" => stringify_keys(row["protection_decision_counts"] || %{}),
+      "protection_category_counts" => stringify_keys(row["protection_category_counts"] || %{}),
+      "protection_reason_counts" => stringify_keys(row["protection_reason_counts"] || %{}),
+      "activity_id_sets_by_protection_decision" => row["activity_id_sets_by_protection_decision"],
+      "timeline_id_sets_by_protection_decision" => row["timeline_id_sets_by_protection_decision"],
+      "activity_id_sets_by_protection_category" => row["activity_id_sets_by_protection_category"],
+      "timeline_id_sets_by_protection_category" => row["timeline_id_sets_by_protection_category"],
+      "activity_id_sets_by_protection_reason" => row["activity_id_sets_by_protection_reason"],
+      "timeline_id_sets_by_protection_reason" => row["timeline_id_sets_by_protection_reason"],
+      "assumptions" => row["assumptions"],
+      "source" => row["source"]
+    }
+    |> reject_empty_values()
+  end
+
   defp pressure_count_map?(counts, ignored_keys) do
     (counts || %{})
     |> stringify_keys()
@@ -20070,6 +20514,40 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp timeline_activity_precondition_pressure_branch_id?(_id), do: false
 
+  defp disambiguate_timeline_preservation_pressure_branch_ids(branches) do
+    id_counts = Enum.frequencies_by(branches, & &1["id"])
+
+    branches
+    |> Enum.with_index(1)
+    |> Enum.map(fn {branch, index} ->
+      branch_id = branch["id"]
+
+      if timeline_preservation_pressure_branch_id?(branch_id) and
+           Map.get(id_counts, branch_id, 0) > 1 do
+        suffix =
+          branch
+          |> timeline_preservation_pressure_branch_identity(index)
+          |> branch_id_fragment()
+
+        branch
+        |> Map.put("id", "#{branch_id}_#{suffix}")
+        |> Map.update("metadata", %{}, fn metadata ->
+          metadata
+          |> Map.put("timeline_preservation_branch_base_id", branch_id)
+          |> Map.put("timeline_preservation_branch_identity", suffix)
+        end)
+      else
+        branch
+      end
+    end)
+    |> disambiguate_duplicate_timeline_preservation_suffixes()
+  end
+
+  defp timeline_preservation_pressure_branch_id?(id) when is_binary(id),
+    do: String.starts_with?(id, "derived_timeline_preservation_pressure_")
+
+  defp timeline_preservation_pressure_branch_id?(_id), do: false
+
   defp disambiguate_duplicate_timeline_publication_suffixes(branches) do
     id_counts = Enum.frequencies_by(branches, & &1["id"])
 
@@ -20274,6 +20752,61 @@ defmodule OrbitalDynamics.CampaignPlanner do
         event["duplicate_dependency_timeline_ids"],
         event["duplicate_exclusivity_activity_ids"],
         event["duplicate_exclusivity_timeline_ids"],
+        event["invalid_activity_input_reason"]
+      ]
+    end)
+    |> List.flatten()
+    |> Enum.map(&encode_value/1)
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.uniq()
+    |> case do
+      [] -> index
+      identifiers -> Enum.join(identifiers, "_")
+    end
+  end
+
+  defp disambiguate_duplicate_timeline_preservation_suffixes(branches) do
+    id_counts = Enum.frequencies_by(branches, & &1["id"])
+
+    branches
+    |> Enum.with_index(1)
+    |> Enum.map(fn {branch, index} ->
+      metadata = Map.get(branch, "metadata", %{})
+
+      if Map.has_key?(metadata, "timeline_preservation_branch_base_id") and
+           Map.get(id_counts, branch["id"], 0) > 1 do
+        suffix = "#{metadata["timeline_preservation_branch_identity"]}_#{index}"
+
+        branch
+        |> Map.put("id", "#{metadata["timeline_preservation_branch_base_id"]}_#{suffix}")
+        |> Map.update(
+          "metadata",
+          %{},
+          &Map.put(&1, "timeline_preservation_branch_identity", suffix)
+        )
+      else
+        branch
+      end
+    end)
+  end
+
+  defp timeline_preservation_pressure_branch_identity(branch, index) do
+    branch
+    |> Map.get("events", [])
+    |> List.wrap()
+    |> Enum.flat_map(fn event ->
+      [
+        event["activity_id"],
+        event["timeline_id"],
+        event["feedback_source"],
+        event["timeline_preservation_status"],
+        event["protection_decision"],
+        event["protection_category"],
+        event["protection_reason"],
+        event["preserve_activity_ids"],
+        event["preserve_timeline_ids"],
+        event["review_change_activity_ids"],
+        event["review_change_timeline_ids"],
         event["invalid_activity_input_reason"]
       ]
     end)
@@ -37936,6 +38469,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
         |> mission_state_source_reports_or_reports(
           &mission_state_source_report_key_entries(&1, "timeline_preservation_report")
         ),
+      "source_timeline_preservation_status" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(&1, "source_timeline_preservation_status")
+        ),
+      "timeline_preservation_status" =>
+        mission_state
+        |> mission_state_source_reports_or_reports(
+          &mission_state_source_report_key_entries(&1, "timeline_preservation_status")
+        ),
       "source_timeline_publication_summary" =>
         mission_state
         |> mission_state_source_reports_or_reports(
@@ -41468,6 +42011,28 @@ defmodule OrbitalDynamics.CampaignPlanner do
           events,
           "invalid_activity_input_reason"
         ),
+      "branch_timeline_preservation_activity_ids" =>
+        branch_timeline_preservation_unique_values(events, "activity_id"),
+      "branch_timeline_preservation_timeline_ids" =>
+        branch_timeline_preservation_unique_values(events, "timeline_id"),
+      "branch_timeline_preservation_statuses" =>
+        branch_timeline_preservation_unique_values(events, "timeline_preservation_status"),
+      "branch_timeline_preservation_protection_decisions" =>
+        branch_timeline_preservation_unique_values(events, "protection_decision"),
+      "branch_timeline_preservation_protection_categories" =>
+        branch_timeline_preservation_unique_values(events, "protection_category"),
+      "branch_timeline_preservation_protection_reasons" =>
+        branch_timeline_preservation_unique_values(events, "protection_reason"),
+      "branch_timeline_preservation_preserve_activity_ids" =>
+        branch_timeline_preservation_unique_values(events, "preserve_activity_ids"),
+      "branch_timeline_preservation_preserve_timeline_ids" =>
+        branch_timeline_preservation_unique_values(events, "preserve_timeline_ids"),
+      "branch_timeline_preservation_review_change_activity_ids" =>
+        branch_timeline_preservation_unique_values(events, "review_change_activity_ids"),
+      "branch_timeline_preservation_review_change_timeline_ids" =>
+        branch_timeline_preservation_unique_values(events, "review_change_timeline_ids"),
+      "branch_timeline_preservation_invalid_activity_input_reasons" =>
+        branch_timeline_preservation_unique_values(events, "invalid_activity_input_reason"),
       "branch_source_activity_ids" =>
         branch_event_unique_values(events, ["source_activity_id", "source_activity_ids"]),
       "branch_directions" => branch_event_unique_values(events, "direction"),
@@ -41637,6 +42202,17 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "branch_timeline_activity_precondition_duplicate_exclusivity_timeline_ids"
     )
     |> maybe_put_nonempty("branch_timeline_activity_precondition_invalid_activity_input_reasons")
+    |> maybe_put_nonempty("branch_timeline_preservation_activity_ids")
+    |> maybe_put_nonempty("branch_timeline_preservation_timeline_ids")
+    |> maybe_put_nonempty("branch_timeline_preservation_statuses")
+    |> maybe_put_nonempty("branch_timeline_preservation_protection_decisions")
+    |> maybe_put_nonempty("branch_timeline_preservation_protection_categories")
+    |> maybe_put_nonempty("branch_timeline_preservation_protection_reasons")
+    |> maybe_put_nonempty("branch_timeline_preservation_preserve_activity_ids")
+    |> maybe_put_nonempty("branch_timeline_preservation_preserve_timeline_ids")
+    |> maybe_put_nonempty("branch_timeline_preservation_review_change_activity_ids")
+    |> maybe_put_nonempty("branch_timeline_preservation_review_change_timeline_ids")
+    |> maybe_put_nonempty("branch_timeline_preservation_invalid_activity_input_reasons")
     |> maybe_put_nonempty("branch_source_activity_ids")
     |> maybe_put_nonempty("branch_directions")
     |> maybe_put_nonempty("branch_station_calendar_entry_ids")
@@ -41754,6 +42330,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp branch_timeline_activity_precondition_unique_values(events, fields) do
     events
     |> Enum.filter(&(&1["type"] == "timeline_activity_precondition_pressure"))
+    |> branch_event_unique_values(fields)
+  end
+
+  defp branch_timeline_preservation_unique_values(events, fields) do
+    events
+    |> Enum.filter(&(&1["type"] == "timeline_preservation_pressure"))
     |> branch_event_unique_values(fields)
   end
 
@@ -49342,6 +49924,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       {"source_timeline_dependency_impact_summary", "timeline_dependency_impact_summary"},
       {"source_timeline_activity_precondition_summary", "timeline_activity_precondition_summary"},
       {"source_timeline_preservation_report", "timeline_preservation_report"},
+      {"source_timeline_preservation_status", "timeline_preservation_status"},
       {"source_timeline_publication_summary", "timeline_publication_summary"},
       {"source_timeline_transition_application_summary",
        "timeline_transition_application_summary"},

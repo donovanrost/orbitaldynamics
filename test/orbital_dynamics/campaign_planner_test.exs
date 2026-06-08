@@ -29673,6 +29673,188 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives branch pressure from timeline preservation reports and statuses" do
+    preservation_report = fn prefix, trust_boundary ->
+      [
+        %{
+          id: :"#{prefix}_contact_locked",
+          type: :contact,
+          locked: true,
+          approval_status: :pending,
+          metadata: %{timeline_id: "timeline:#{prefix}:contact_locked"}
+        },
+        %{
+          id: :"#{prefix}_obs_done",
+          type: :observe,
+          status: :completed,
+          metadata: %{timeline_id: "timeline:#{prefix}:obs_done"}
+        },
+        %{id: :"#{prefix}_bad_missing_type", status: :planned}
+      ]
+      |> Timeline.preservation_report(source: "mission.#{prefix}.timeline")
+      |> Map.put("provenance", %{"trust_boundary" => trust_boundary})
+    end
+
+    direct_report = preservation_report.("direct_preservation", "direct_preservation_boundary")
+    canonical_report = preservation_report.("canonical_preservation", "canonical_boundary")
+
+    wrapped_status =
+      Timeline.preservation_status(%{
+        id: :wrapped_cmd_approved,
+        type: :command,
+        approval_status: :approved,
+        metadata: %{timeline_id: "timeline:wrapped:cmd_approved"}
+      })
+      |> Map.delete("provenance")
+
+    assert {:ok, %{"schema_contract" => "timeline_preservation_report.v1"}} =
+             Schema.validate_artifact(direct_report)
+
+    assert {:ok, %{"schema_contract" => "timeline_preservation_status.v1"}} =
+             Schema.validate_artifact(wrapped_status)
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put("source_timeline_preservation_report", direct_report)
+      |> Map.put("timeline_preservation_report", canonical_report)
+      |> Map.put(:source_result_artifact, %{
+        "schema_contract" => "result_artifact.v1",
+        "artifact_type" => "mission_state_result_artifact",
+        "timeline_preservation_status" => wrapped_status,
+        "provenance" => %{"trust_boundary" => "wrapped_preservation_artifact_boundary"}
+      })
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    direct_branch =
+      branch(
+        artifact,
+        "derived_timeline_preservation_pressure_direct_preservation_contact_locked"
+      )
+
+    assert %{
+             "type" => "timeline_preservation_pressure",
+             "activity_id" => "direct_preservation_contact_locked",
+             "timeline_id" => "timeline:direct_preservation:contact_locked",
+             "timeline_preservation_status" => "review_required",
+             "requires_preservation" => false,
+             "requires_operator_review" => true,
+             "protection_decision" => "preserve",
+             "protection_category" => "locked_or_approved",
+             "protection_reason" => "activity_locked_or_approved",
+             "preserve_activity_count" => 2,
+             "review_change_activity_count" => 1,
+             "preserve_activity_ids" => [
+               "direct_preservation_contact_locked",
+               "direct_preservation_obs_done"
+             ],
+             "review_change_activity_ids" => ["direct_preservation_bad_missing_type"],
+             "feedback_source" => "mission_state.source_timeline_preservation_report.rows[0]",
+             "feedback_scope" => "timeline_preservation",
+             "trust_boundary" => "direct_preservation_boundary",
+             "required_operator_action" => "review_timeline_preservation",
+             "derivation_reasons" => ["timeline_preservation_pressure"]
+           } = List.first(direct_branch["events"])
+
+    assert Enum.any?(
+             direct_branch["risk_indicators"],
+             &(&1["type"] == "timeline_preservation_review" and
+                 &1["protection_decision"] == "preserve" and
+                 &1["feedback_source"] ==
+                   "mission_state.source_timeline_preservation_report.rows[0]")
+           )
+
+    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+
+    direct_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] ==
+            "derived_timeline_preservation_pressure_direct_preservation_contact_locked")
+      )
+
+    assert direct_row["branch_timeline_preservation_activity_ids"] == [
+             "direct_preservation_contact_locked"
+           ]
+
+    assert direct_row["branch_timeline_preservation_timeline_ids"] == [
+             "timeline:direct_preservation:contact_locked"
+           ]
+
+    assert direct_row["branch_timeline_preservation_statuses"] == ["review_required"]
+    assert direct_row["branch_timeline_preservation_protection_decisions"] == ["preserve"]
+
+    assert direct_row["branch_timeline_preservation_protection_categories"] == [
+             "locked_or_approved"
+           ]
+
+    assert direct_row["branch_timeline_preservation_preserve_activity_ids"] == [
+             "direct_preservation_contact_locked",
+             "direct_preservation_obs_done"
+           ]
+
+    assert direct_row["branch_timeline_preservation_review_change_activity_ids"] == [
+             "direct_preservation_bad_missing_type"
+           ]
+
+    invalid_branch =
+      branch(
+        artifact,
+        "derived_timeline_preservation_pressure_direct_preservation_bad_missing_type"
+      )
+
+    assert %{
+             "activity_id" => "direct_preservation_bad_missing_type",
+             "timeline_preservation_status" => "review_required",
+             "requires_operator_review" => true,
+             "protection_decision" => "review_change",
+             "protection_category" => "invalid_activity_input",
+             "protection_reason" => "missing_activity_type",
+             "invalid_activity_input" => true,
+             "invalid_activity_input_reason" => "missing_activity_type",
+             "required_operator_action" => "review_invalid_activity_input"
+           } = List.first(invalid_branch["events"])
+
+    wrapped_branch =
+      branch(
+        artifact,
+        "derived_timeline_preservation_pressure_wrapped_cmd_approved"
+      )
+
+    assert %{
+             "activity_id" => "wrapped_cmd_approved",
+             "timeline_id" => "timeline:wrapped:cmd_approved",
+             "timeline_preservation_status" => "preservation_required",
+             "requires_preservation" => true,
+             "requires_operator_review" => false,
+             "protection_decision" => "preserve",
+             "protection_category" => "locked_or_approved",
+             "feedback_source" =>
+               "mission_state.source_result_artifact.timeline_preservation_status",
+             "trust_boundary" => "wrapped_preservation_artifact_boundary"
+           } = List.first(wrapped_branch["events"])
+
+    invalid_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] ==
+            "derived_timeline_preservation_pressure_direct_preservation_bad_missing_type")
+      )
+
+    assert invalid_row["branch_timeline_preservation_invalid_activity_input_reasons"] == [
+             "missing_activity_type"
+           ]
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy carries mission-state contact-allocation summaries into branch refresh requests" do
     direct_summary = contact_allocation_summary_fixture("direct")
     canonical_summary = contact_allocation_summary_fixture("canonical")
