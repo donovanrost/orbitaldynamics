@@ -1540,6 +1540,10 @@ Selected recommendations also include:
   provider-entry, and availability-pressure status/type evidence so
   resource-pressure recommendations can be routed without reopening nested
   projection flow rows.
+- **Contact-allocation pressure score terms** — split contact-allocation
+  pressure risks into `contact_allocation_pressure_penalty`, leaving
+  `risk_penalty` for non-contact-allocation risks so total branch score remains
+  compatible while score-term reports expose contact pressure directly.
 - **`operational_readiness_pressure` explanation rows** — preserve the selected
   branch's readiness report, source artifact, readiness/import/status counts,
   gate ID/status/classification/reason, required operator action, feedback

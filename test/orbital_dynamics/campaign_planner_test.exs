@@ -18072,6 +18072,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "asset_balance",
              "resource_score",
              "feedback_adjustment",
+             "contact_allocation_pressure",
              "risk_count",
              "approval_count",
              "schedule_stability"
@@ -18670,7 +18671,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     clean_branch = branch(artifact, "urgent_clean")
     pressure_branch = branch(artifact, "urgent_pressure")
 
+    assert clean_branch["score_terms"]["contact_allocation_pressure_penalty"] == 0.0
     assert clean_branch["score_terms"]["risk_penalty"] == -5.0
+    assert pressure_branch["score_terms"]["contact_allocation_pressure_penalty"] == 0.0
     assert pressure_branch["score_terms"]["risk_penalty"] == -15.0
     assert pressure_branch["score"] < clean_branch["score"]
 
@@ -40959,6 +40962,37 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["reason"] =~ "42.0 MB")
            )
 
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    contact_pressure_risk_count =
+      Enum.count(
+        pressure_branch["risk_indicators"],
+        &(&1["type"] == "downlink_completion_gap" and
+            &1["feedback_scope"] == "contact_allocation")
+      )
+
+    assert contact_pressure_risk_count == 1
+    assert pressure_branch["score_terms"]["contact_allocation_pressure_penalty"] < 0.0
+
+    assert pressure_branch["score_terms"]["contact_allocation_pressure_penalty"] ==
+             -contact_pressure_risk_count * risk_weight
+
+    assert pressure_branch["score_terms"]["risk_penalty"] ==
+             -(length(pressure_branch["risk_indicators"]) - contact_pressure_risk_count) *
+               risk_weight
+
+    assert "contact_allocation_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] ==
+                 "derived_contact_allocation_pressure_deferred_dl_live_deferred" and
+                 &1["term_key"] == "contact_allocation_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
@@ -41106,7 +41140,24 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              &(&1["type"] == "downlink_completion_gap" and &1["reason"] =~ "47.0 MB")
            )
 
-    assert capacity_branch["score_terms"]["risk_penalty"] < 0.0
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    contact_pressure_risk_count =
+      Enum.count(
+        capacity_branch["risk_indicators"],
+        &(&1["type"] == "downlink_completion_gap" and
+            &1["feedback_scope"] == "contact_allocation")
+      )
+
+    assert contact_pressure_risk_count == 1
+    assert capacity_branch["score_terms"]["contact_allocation_pressure_penalty"] < 0.0
+
+    assert capacity_branch["score_terms"]["contact_allocation_pressure_penalty"] ==
+             -contact_pressure_risk_count * risk_weight
+
+    assert capacity_branch["score_terms"]["risk_penalty"] ==
+             -(length(capacity_branch["risk_indicators"]) - contact_pressure_risk_count) *
+               risk_weight
 
     capacity_branch_id =
       "derived_contact_allocation_pressure_deferred_summary_capacity_dl_capacity_overflow"
@@ -41153,7 +41204,22 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["station_reservation_match_status"] == "overlap")
            )
 
-    assert provider_branch["score_terms"]["risk_penalty"] < 0.0
+    contact_pressure_risk_count =
+      Enum.count(
+        provider_branch["risk_indicators"],
+        &(&1["type"] == "provider_reservation_request_review" and
+            &1["feedback_scope"] == "contact_allocation_provider_reservation_request")
+      )
+
+    assert contact_pressure_risk_count == 1
+    assert provider_branch["score_terms"]["contact_allocation_pressure_penalty"] < 0.0
+
+    assert provider_branch["score_terms"]["contact_allocation_pressure_penalty"] ==
+             -contact_pressure_risk_count * risk_weight
+
+    assert provider_branch["score_terms"]["risk_penalty"] ==
+             -(length(provider_branch["risk_indicators"]) - contact_pressure_risk_count) *
+               risk_weight
 
     provider_row =
       artifact["branch_comparison_report"]["rows"]
@@ -41293,7 +41359,24 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              &(&1["type"] == "downlink_completion_gap" and &1["reason"] =~ "47.0 MB")
            )
 
-    assert capacity_branch["score_terms"]["risk_penalty"] < 0.0
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    contact_pressure_risk_count =
+      Enum.count(
+        capacity_branch["risk_indicators"],
+        &(&1["type"] == "downlink_completion_gap" and
+            &1["feedback_scope"] == "contact_allocation")
+      )
+
+    assert contact_pressure_risk_count == 1
+    assert capacity_branch["score_terms"]["contact_allocation_pressure_penalty"] < 0.0
+
+    assert capacity_branch["score_terms"]["contact_allocation_pressure_penalty"] ==
+             -contact_pressure_risk_count * risk_weight
+
+    assert capacity_branch["score_terms"]["risk_penalty"] ==
+             -(length(capacity_branch["risk_indicators"]) - contact_pressure_risk_count) *
+               risk_weight
 
     capacity_row =
       artifact["branch_comparison_report"]["rows"]
