@@ -117,6 +117,10 @@ emit `timeline_diff_summary.v1`, a compact artifact-only triage surface over
 - They preserve review-required diff rows, changed-field counts, transition
   decision counts, and review timeline ID maps by required action, transition
   category, and changed field.
+- Lifecycle-state summaries also preserve row-derived operator-action reason
+  counts and review timeline ID maps by operator-action reason, so compact
+  handoffs can route approval grants, recorded executions, duplicate timeline
+  identities, and invalid inputs without reopening every lifecycle row.
 - Executable validation checks review-row-derived review counts and timeline ID
   maps while preserving the full-report count fields as source evidence.
 - Runtime validation and JSON Schema export pin the same timeline model-limit

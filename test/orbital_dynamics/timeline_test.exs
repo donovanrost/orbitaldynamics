@@ -7728,6 +7728,11 @@ defmodule OrbitalDynamics.TimelineTest do
                "review_activity_approval" => 1,
                "review_duplicate_timeline_identity" => 1
              },
+             "operator_action_reason_counts" => %{
+               "activity_execution_recorded" => 2,
+               "approval_grant_requires_operator_authority" => 1,
+               "duplicate_timeline_identity" => 1
+             },
              "import_action_counts" => %{
                "import_replacement_activity" => 1,
                "record_preserved_activity" => 1,
@@ -7745,6 +7750,11 @@ defmodule OrbitalDynamics.TimelineTest do
              "review_timeline_ids_by_required_operator_action" => %{
                "review_activity_approval" => ["timeline:cmd_provider"],
                "review_duplicate_timeline_identity" => ["timeline:dup"]
+             },
+             "review_timeline_ids_by_operator_action_reason" => %{
+               "activity_execution_recorded" => ["timeline:cmd_provider"],
+               "approval_grant_requires_operator_authority" => ["timeline:cmd_provider"],
+               "duplicate_timeline_identity" => ["timeline:dup"]
              },
              "review_timeline_ids_by_approval_transition_category" => %{
                "approval_granted" => ["timeline:cmd_provider"]
@@ -7781,6 +7791,35 @@ defmodule OrbitalDynamics.TimelineTest do
              stale_review_count_report["errors"],
              &(&1["path"] == "$.review_required_count" and
                  &1["message"] == "must equal 2")
+           )
+
+    stale_reason_counts =
+      Map.put(summary, "operator_action_reason_counts", %{
+        "activity_execution_recorded" => 1
+      })
+
+    assert {:error, stale_reason_counts_report} = Schema.validate_artifact(stale_reason_counts)
+
+    assert Enum.any?(
+             stale_reason_counts_report["errors"],
+             &(&1["path"] == "$.operator_action_reason_counts" and
+                 &1["message"] == "must equal row-derived operator_action_reason_counts")
+           )
+
+    stale_reason_ids =
+      put_in(
+        summary,
+        ["review_timeline_ids_by_operator_action_reason", "activity_execution_recorded"],
+        []
+      )
+
+    assert {:error, stale_reason_ids_report} = Schema.validate_artifact(stale_reason_ids)
+
+    assert Enum.any?(
+             stale_reason_ids_report["errors"],
+             &(&1["path"] == "$.review_timeline_ids_by_operator_action_reason" and
+                 &1["message"] ==
+                   "must equal row-derived review_timeline_ids_by_operator_action_reason")
            )
 
     stale_review_rows = Map.put(summary, "review_rows", [])

@@ -7428,6 +7428,8 @@ defmodule OrbitalDynamics.Schema do
         "review_activity_ids",
         "invalid_activity_input_ids",
         "review_timeline_ids_by_required_operator_action",
+        "operator_action_reason_counts",
+        "review_timeline_ids_by_operator_action_reason",
         "review_timeline_ids_by_status_transition_category",
         "review_timeline_ids_by_approval_transition_category"
       ],
@@ -13217,6 +13219,7 @@ defmodule OrbitalDynamics.Schema do
        when field in [
               "transition_decision_counts",
               "required_operator_action_counts",
+              "operator_action_reason_counts",
               "import_action_counts",
               "planned_status_category_counts",
               "realized_status_category_counts",
@@ -13242,6 +13245,7 @@ defmodule OrbitalDynamics.Schema do
   defp json_schema_property(field, @timeline_lifecycle_state_summary, _contract)
        when field in [
               "review_timeline_ids_by_required_operator_action",
+              "review_timeline_ids_by_operator_action_reason",
               "review_timeline_ids_by_status_transition_category",
               "review_timeline_ids_by_approval_transition_category"
             ] do
@@ -45304,6 +45308,7 @@ defmodule OrbitalDynamics.Schema do
     |> expect_type(path, summary, "transition_decision_counts", :map)
     |> expect_type(path, summary, "required_operator_action_counts", :map)
     |> expect_type(path, summary, "import_action_counts", :map)
+    |> expect_optional_type(path, summary, "operator_action_reason_counts", :map)
     |> expect_optional_type(path, summary, "planned_status_category_counts", :map)
     |> expect_optional_type(path, summary, "realized_status_category_counts", :map)
     |> expect_optional_type(path, summary, "planned_approval_category_counts", :map)
@@ -45329,6 +45334,12 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(
       path,
       summary,
+      "review_timeline_ids_by_operator_action_reason",
+      :map
+    )
+    |> expect_optional_type(
+      path,
+      summary,
       "review_timeline_ids_by_status_transition_category",
       :map
     )
@@ -45341,6 +45352,10 @@ defmodule OrbitalDynamics.Schema do
     |> validate_stable_id_array_map(
       path <> ".review_timeline_ids_by_required_operator_action",
       Map.get(summary, "review_timeline_ids_by_required_operator_action")
+    )
+    |> validate_stable_id_array_map(
+      path <> ".review_timeline_ids_by_operator_action_reason",
+      Map.get(summary, "review_timeline_ids_by_operator_action_reason")
     )
     |> validate_stable_id_array_map(
       path <> ".review_timeline_ids_by_status_transition_category",
@@ -45382,6 +45397,10 @@ defmodule OrbitalDynamics.Schema do
     |> validate_non_negative_integer_count_map(
       path <> ".required_operator_action_counts",
       Map.get(summary, "required_operator_action_counts")
+    )
+    |> validate_non_negative_integer_count_map(
+      path <> ".operator_action_reason_counts",
+      Map.get(summary, "operator_action_reason_counts")
     )
     |> validate_non_negative_integer_count_map(
       path <> ".import_action_counts",
@@ -45450,6 +45469,13 @@ defmodule OrbitalDynamics.Schema do
       "required_operator_action_counts",
       frequency_map(rows, "required_operator_action"),
       "must equal row-derived required_operator_action_counts"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "operator_action_reason_counts",
+      lifecycle_state_operator_action_reason_counts(rows),
+      "must equal row-derived operator_action_reason_counts"
     )
     |> expect_field_equals(
       path,
@@ -45550,6 +45576,16 @@ defmodule OrbitalDynamics.Schema do
       "review_timeline_ids_by_required_operator_action",
       lifecycle_state_timeline_ids_by(review_rows, & &1["required_operator_action"]),
       "must equal row-derived review_timeline_ids_by_required_operator_action"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "review_timeline_ids_by_operator_action_reason",
+      lifecycle_state_timeline_ids_by_each(
+        review_rows,
+        &list_value(&1, "operator_action_reasons")
+      ),
+      "must equal row-derived review_timeline_ids_by_operator_action_reason"
     )
     |> expect_field_equals(
       path,
@@ -45771,6 +45807,32 @@ defmodule OrbitalDynamics.Schema do
       end
     end)
     |> Map.new(fn {key, ids} -> {key, sorted_unique_binary_values(ids)} end)
+  end
+
+  defp lifecycle_state_timeline_ids_by_each(rows, values_fun) do
+    rows
+    |> Enum.reduce(%{}, fn row, acc ->
+      timeline_id = Map.get(row, "timeline_id")
+
+      if is_binary(timeline_id) do
+        row
+        |> values_fun.()
+        |> List.wrap()
+        |> Enum.reject(&(&1 in [nil, ""]))
+        |> Enum.reduce(acc, fn key, inner_acc ->
+          Map.update(inner_acc, key, [timeline_id], &[timeline_id | &1])
+        end)
+      else
+        acc
+      end
+    end)
+    |> Map.new(fn {key, ids} -> {key, sorted_unique_binary_values(ids)} end)
+  end
+
+  defp lifecycle_state_operator_action_reason_counts(rows) do
+    rows
+    |> Enum.flat_map(&list_value(&1, "operator_action_reasons"))
+    |> Enum.frequencies()
   end
 
   defp validate_timeline_transition_application_report(issues, path, report) do

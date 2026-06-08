@@ -5085,6 +5085,7 @@ defmodule OrbitalDynamics.Timeline do
       "invalid_activity_input_count" => Enum.count(rows, &(&1["invalid_activity_input"] == true)),
       "transition_decision_counts" => count_by(rows, "transition_decision"),
       "required_operator_action_counts" => count_by(rows, "required_operator_action"),
+      "operator_action_reason_counts" => lifecycle_state_operator_action_reason_counts(rows),
       "import_action_counts" => count_by(rows, "import_action"),
       "planned_status_category_counts" => count_by(rows, "planned_status_category"),
       "realized_status_category_counts" => count_by(rows, "realized_status_category"),
@@ -5106,6 +5107,12 @@ defmodule OrbitalDynamics.Timeline do
         timeline_ids_by(
           review_rows,
           & &1["required_operator_action"],
+          &(&1["review_required"] == true)
+        ),
+      "review_timeline_ids_by_operator_action_reason" =>
+        timeline_ids_by_each(
+          review_rows,
+          &list_value(&1, "operator_action_reasons"),
           &(&1["review_required"] == true)
         ),
       "review_timeline_ids_by_status_transition_category" =>
@@ -5253,6 +5260,13 @@ defmodule OrbitalDynamics.Timeline do
     matches
     |> Enum.map(&(Map.get(&1, "id") || Map.get(&1, "activity_id")))
     |> sorted_uniq()
+  end
+
+  defp lifecycle_state_operator_action_reason_counts(rows) do
+    rows
+    |> Enum.flat_map(&list_value(&1, "operator_action_reasons"))
+    |> Enum.frequencies()
+    |> sort_count_map()
   end
 
   defp lifecycle_state_timeline_ids(rows, predicate) do
