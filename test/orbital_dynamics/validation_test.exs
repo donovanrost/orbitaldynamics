@@ -9651,6 +9651,27 @@ defmodule OrbitalDynamics.ValidationTest do
                  &1["status"] == "fail")
            )
 
+    stale_station_pressure_status_observations =
+      put_in(
+        observations,
+        ["row_derived_station_pressure_contact_ids_by_status", "reserved"],
+        []
+      )
+
+    assert {:ok, stale_station_pressure_status_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_station_pressure_status_observations
+             )
+
+    assert stale_station_pressure_status_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_station_pressure_status_verification["checks"],
+             &(&1["field"] == "row_derived_station_pressure_contact_ids_by_status" and
+                 &1["status"] == "fail")
+           )
+
     assert OrbitalDynamics.validation_artifact_observations(
              "contact_allocation_summary.v1",
              summary

@@ -7150,6 +7150,12 @@ defmodule OrbitalDynamics.Validation do
         "row_derived_station_pressure_contact_ids_by_availability" => %{
           "reserved" => ["dl_3"]
         },
+        "station_pressure_contact_ids_by_status" => %{"reserved" => ["dl_3"]},
+        "row_derived_station_pressure_contact_ids_by_status" => %{
+          "reserved" => ["dl_3"]
+        },
+        "station_pressure_contact_counts_by_status" => %{"reserved" => 1},
+        "row_derived_station_pressure_contact_counts_by_status" => %{"reserved" => 1},
         "model_limit_count" => 8
       },
       "tolerances" => %{
@@ -15260,6 +15266,16 @@ defmodule OrbitalDynamics.Validation do
         station_pressure_rows
         |> group_row_ids_by_value("station_availability", "contact_id")
         |> sort_grouped_values(),
+      "station_pressure_contact_ids_by_status" =>
+        Map.get(artifact, "station_pressure_contact_ids_by_status"),
+      "row_derived_station_pressure_contact_ids_by_status" =>
+        station_pressure_rows
+        |> group_row_ids_by_value("station_calendar_status", "contact_id")
+        |> sort_grouped_values(),
+      "station_pressure_contact_counts_by_status" =>
+        Map.get(artifact, "station_pressure_contact_counts_by_status"),
+      "row_derived_station_pressure_contact_counts_by_status" =>
+        row_value_counts(station_pressure_rows, "station_calendar_status"),
       "model_limit_count" => count(artifact, "model_limits")
     }
   end

@@ -20748,6 +20748,8 @@ defmodule OrbitalDynamics.SchemaTest do
                "equator_prime" => ["dl_3"]
              },
              "station_pressure_contact_ids_by_availability" => %{"reserved" => ["dl_3"]},
+             "station_pressure_contact_ids_by_status" => %{"reserved" => ["dl_3"]},
+             "station_pressure_contact_counts_by_status" => %{"reserved" => 1},
              "station_reservation_ids" => ["reservation_1"],
              "station_reservation_expires_at_s" => [420.0],
              "station_reservation_expiration_status_counts" => %{"declared" => 1},
