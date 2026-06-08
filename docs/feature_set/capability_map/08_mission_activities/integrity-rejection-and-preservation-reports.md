@@ -137,6 +137,12 @@ Operator-review packages and Cadence-import manifests preserve source/replacemen
 
 This is done without mutating schedules or approving work.
 
+Operator-review packages and Cadence-import manifests flatten the
+summary-derived impacted dependency and exclusivity ID sets into
+dependency-impact review rows, while retaining row-local dependency/exclusivity
+evidence. Adapter queues can route compact handoffs by aggregate dependency
+impact without reopening the summary artifact.
+
 ## Operational timeline and realized-activity contracts
 
 Operational timeline and realized-activity contracts now type planned fixed-rate aliases plus realized actual data-rate and duration telemetry fields used by timeline-feedback throughput derivation and branch-local refresh, so provider handoff artifacts can lint those data-rate rows before planner consumption.

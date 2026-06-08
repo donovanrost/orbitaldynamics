@@ -2441,6 +2441,14 @@ defmodule OrbitalDynamics.OperatorReviewTest do
                "source_dependent_timeline_ids" => ["timeline:command:20.0"],
                "replacement_dependent_activity_ids" => ["cmd_combo"],
                "replacement_dependent_timeline_ids" => ["timeline:command:20.0"],
+               "source_dependency_impact_impacted_dependency_activity_ids" => [],
+               "source_dependency_impact_impacted_dependency_timeline_ids" => [
+                 "timeline:health_check:0.0"
+               ],
+               "source_dependency_impact_impacted_exclusive_with_activity_ids" => [
+                 "health_gate"
+               ],
+               "source_dependency_impact_impacted_exclusive_with_timeline_ids" => [],
                "dependency_timeline_ids" => ["timeline:health_check:0.0"],
                "exclusive_with_activity_ids" => ["health_gate"],
                "impacted_dependency_timeline_ids" => ["timeline:health_check:0.0"],

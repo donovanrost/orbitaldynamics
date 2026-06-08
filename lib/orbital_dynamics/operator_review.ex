@@ -10157,6 +10157,14 @@ defmodule OrbitalDynamics.OperatorReview do
       "source_dependent_timeline_ids" => summary["source_dependent_timeline_ids"],
       "replacement_dependent_activity_ids" => summary["replacement_dependent_activity_ids"],
       "replacement_dependent_timeline_ids" => summary["replacement_dependent_timeline_ids"],
+      "source_dependency_impact_impacted_dependency_activity_ids" =>
+        summary["impacted_dependency_activity_ids"],
+      "source_dependency_impact_impacted_dependency_timeline_ids" =>
+        summary["impacted_dependency_timeline_ids"],
+      "source_dependency_impact_impacted_exclusive_with_activity_ids" =>
+        summary["impacted_exclusive_with_activity_ids"],
+      "source_dependency_impact_impacted_exclusive_with_timeline_ids" =>
+        summary["impacted_exclusive_with_timeline_ids"],
       "dependency_activity_ids" => row["dependency_activity_ids"],
       "dependency_timeline_ids" => row["dependency_timeline_ids"],
       "exclusive_with_activity_ids" => row["exclusive_with_activity_ids"],
