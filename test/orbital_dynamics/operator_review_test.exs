@@ -14718,7 +14718,7 @@ defmodule OrbitalDynamics.OperatorReviewTest do
 
     assert %{
              "contact_id" => "cmd_unavailable",
-             "activity_type" => "planned_contact",
+             "activity_type" => "command",
              "direction" => "command",
              "allocation_status" => "blocked",
              "allocation_reason" => "ground_station_unavailable",
@@ -14956,6 +14956,94 @@ defmodule OrbitalDynamics.OperatorReviewTest do
 
     assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
              Schema.validate_artifact(package)
+  end
+
+  test "lifts standalone provider-reservation request summaries from CandidateRefresh result artifacts" do
+    source_result_summary =
+      provider_reservation_request_summary()
+      |> Map.put("source", "unit_test.provider_reservation.source_result")
+
+    nested_summary =
+      provider_reservation_request_summary()
+      |> Map.put("source", "unit_test.provider_reservation.nested_result")
+
+    result_summary =
+      provider_reservation_request_summary()
+      |> Map.put("source", "unit_test.provider_reservation.result")
+
+    artifact = %{
+      "refresh_id" => "refresh:provider_reservation_result_artifact_handoff",
+      "source_result_artifact" => [
+        source_result_summary,
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "contact_allocation_provider_reservation_request_summary" => nested_summary
+        }
+      ],
+      "result_artifact" => result_summary
+    }
+
+    review = OperatorReview.from_candidate_refresh_artifact(artifact)
+    import = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    provider_rows =
+      Enum.filter(
+        review["rows"],
+        &(&1["source_provider_reservation_request_summary"]["schema_contract"] ==
+            "contact_allocation_provider_reservation_request_summary.v1")
+      )
+
+    assert length(provider_rows) == 6
+
+    assert Enum.sort(Enum.map(provider_rows, & &1["source"])) == [
+             "candidate_refresh.result_artifact.provider_reservation_request_rows",
+             "candidate_refresh.result_artifact.provider_reservation_request_rows",
+             "candidate_refresh.source_result_artifact[0].provider_reservation_request_rows",
+             "candidate_refresh.source_result_artifact[0].provider_reservation_request_rows",
+             "candidate_refresh.source_result_artifact[1].contact_allocation_provider_reservation_request_summary.provider_reservation_request_rows",
+             "candidate_refresh.source_result_artifact[1].contact_allocation_provider_reservation_request_summary.provider_reservation_request_rows"
+           ]
+
+    assert %{
+             "contact_allocation_review_count" => 6,
+             "provider_reservation_candidate_contact_count" => 6,
+             "provider_reservation_request_contact_count" => 3,
+             "provider_reservation_review_contact_count" => 3,
+             "provider_reservation_no_request_contact_count" => 3,
+             "provider_reservation_request_status_counts" => %{"review_required" => 3},
+             "provider_reservation_request_contact_ids" => ["dl_reserved_owner"],
+             "provider_reservation_review_contact_ids" => ["dl_review_overlap"],
+             "provider_reservation_no_request_contact_ids" => ["dl_unreserved"]
+           } = review
+
+    assert Enum.frequencies_by(provider_rows, & &1["required_operator_action"]) == %{
+             "review_contact_allocation" => 3,
+             "review_provider_reservation_request" => 3
+           }
+
+    import_rows =
+      Enum.filter(
+        import["rows"],
+        &(get_in(&1, [
+            "source_review_row",
+            "source_provider_reservation_request_summary",
+            "schema_contract"
+          ]) == "contact_allocation_provider_reservation_request_summary.v1")
+      )
+
+    assert length(import_rows) == 6
+
+    assert Enum.all?(
+             import_rows,
+             &(&1["source_review_row"]["provider_reservation_execution"] ==
+                 "not_performed_by_summary")
+           )
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(import)
   end
 
   test "builds review package from standalone reduced-capacity contact allocation pack fixture" do

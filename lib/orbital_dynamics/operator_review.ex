@@ -1432,12 +1432,7 @@ defmodule OrbitalDynamics.OperatorReview do
       Map.get(artifact, "refresh_id"),
       Map.get(artifact, "provenance", %{})
     )
-    |> put_contact_allocation_count_map(artifact, [
-      ["source_contact_allocation_report"],
-      ["contact_allocation_report"],
-      ["source_contact_allocation_provider_reservation_request_summary"],
-      ["contact_allocation_provider_reservation_request_summary"]
-    ])
+    |> put_candidate_refresh_contact_allocation_count_map(artifact)
   end
 
   @doc """
@@ -11737,7 +11732,8 @@ defmodule OrbitalDynamics.OperatorReview do
               "contact_allocation_summary.v1",
               "contact_allocation_station_pressure_summary.v1",
               "contact_allocation_reservation_conflict_summary.v1",
-              "contact_allocation_capacity_pack_summary.v1"
+              "contact_allocation_capacity_pack_summary.v1",
+              "contact_allocation_provider_reservation_request_summary.v1"
             ] do
     source_contact_allocation_report_rows(summary, source)
   end
@@ -11763,7 +11759,11 @@ defmodule OrbitalDynamics.OperatorReview do
       {"#{source}.source_contact_allocation_capacity_pack_summary",
        artifact["source_contact_allocation_capacity_pack_summary"]},
       {"#{source}.contact_allocation_capacity_pack_summary",
-       artifact["contact_allocation_capacity_pack_summary"]}
+       artifact["contact_allocation_capacity_pack_summary"]},
+      {"#{source}.source_contact_allocation_provider_reservation_request_summary",
+       artifact["source_contact_allocation_provider_reservation_request_summary"]},
+      {"#{source}.contact_allocation_provider_reservation_request_summary",
+       artifact["contact_allocation_provider_reservation_request_summary"]}
     ]
     |> Enum.flat_map(fn {report_source, report_or_reports} ->
       source_contact_allocation_report_rows(report_or_reports, report_source)
@@ -14600,6 +14600,72 @@ defmodule OrbitalDynamics.OperatorReview do
 
     put_contact_allocation_summaries(package, reports)
   end
+
+  defp put_candidate_refresh_contact_allocation_count_map(package, artifact) do
+    reports =
+      [
+        artifact["source_contact_allocation_report"],
+        artifact["contact_allocation_report"],
+        artifact["source_contact_allocation_summary"],
+        artifact["contact_allocation_summary"],
+        artifact["source_contact_allocation_station_pressure_summary"],
+        artifact["contact_allocation_station_pressure_summary"],
+        artifact["source_contact_allocation_reservation_conflict_summary"],
+        artifact["contact_allocation_reservation_conflict_summary"],
+        artifact["source_contact_allocation_capacity_pack_summary"],
+        artifact["contact_allocation_capacity_pack_summary"],
+        artifact["source_contact_allocation_provider_reservation_request_summary"],
+        artifact["contact_allocation_provider_reservation_request_summary"]
+      ] ++
+        result_artifact_contact_allocation_summary_reports(artifact["source_result_artifact"]) ++
+        result_artifact_contact_allocation_summary_reports(artifact["result_artifact"])
+
+    put_contact_allocation_summaries(package, reports)
+  end
+
+  defp result_artifact_contact_allocation_summary_reports(artifacts) when is_list(artifacts) do
+    Enum.flat_map(artifacts, &result_artifact_contact_allocation_summary_reports/1)
+  end
+
+  defp result_artifact_contact_allocation_summary_reports(%{} = artifact) do
+    artifact = stringify_keys(artifact)
+
+    direct_reports =
+      if result_artifact_contact_allocation_summary?(artifact), do: [artifact], else: []
+
+    nested_reports =
+      [
+        artifact["source_contact_allocation_report"],
+        artifact["contact_allocation_report"],
+        artifact["source_contact_allocation_summary"],
+        artifact["contact_allocation_summary"],
+        artifact["source_contact_allocation_station_pressure_summary"],
+        artifact["contact_allocation_station_pressure_summary"],
+        artifact["source_contact_allocation_reservation_conflict_summary"],
+        artifact["contact_allocation_reservation_conflict_summary"],
+        artifact["source_contact_allocation_capacity_pack_summary"],
+        artifact["contact_allocation_capacity_pack_summary"],
+        artifact["source_contact_allocation_provider_reservation_request_summary"],
+        artifact["contact_allocation_provider_reservation_request_summary"]
+      ]
+
+    direct_reports ++ nested_reports
+  end
+
+  defp result_artifact_contact_allocation_summary_reports(_artifact), do: []
+
+  defp result_artifact_contact_allocation_summary?(%{"schema_contract" => schema_contract})
+       when schema_contract in [
+              "contact_allocation_report.v1",
+              "contact_allocation_summary.v1",
+              "contact_allocation_station_pressure_summary.v1",
+              "contact_allocation_reservation_conflict_summary.v1",
+              "contact_allocation_capacity_pack_summary.v1",
+              "contact_allocation_provider_reservation_request_summary.v1"
+            ],
+       do: true
+
+  defp result_artifact_contact_allocation_summary?(_artifact), do: false
 
   defp put_strategy_contact_allocation_count_map(package, artifact) do
     reports =
