@@ -5,32 +5,39 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Timeline diff summary CandidateRefresh review/import handoff.
+Quality-gate import-readiness CandidateRefresh review/import handoff.
 
 Status:
 Completed locally; CandidateRefresh OperatorReview/CadenceImport handoffs now
-lift direct, standalone result-artifact, and nested result-artifact
-`timeline_diff_summary.v1` inputs, preserving compact diff review rows,
-wrapper-qualified source paths, source summary counts/maps, and the
-artifact-only no-schedule-mutation/no-authority boundary.
+lift compact `operational_quality_gate_import_readiness_summary.v1` inputs from
+top-level refresh fields, accepted/mission state, `source_result_artifact`, and
+`result_artifact` wrappers. Compact summaries reconstruct only non-passed
+quality-gate review rows from status maps, preserving wrapper-qualified source
+paths, import-readiness counts/maps, blocked/review routing, and artifact-only
+no-write/no-authority assumptions.
 
 Files changed:
 - `lib/orbital_dynamics/operator_review.ex`
 - `test/orbital_dynamics/operator_review_test.exs`
 
 Tests run:
-- `mix run -e '<typed timeline handoff smoke inventory>'`
-- `mix test test/orbital_dynamics/operator_review_test.exs:13153`
+- `mix run -e '<quality-gate import-readiness CandidateRefresh smoke>'`
+- `mix test test/orbital_dynamics/operator_review_test.exs:7563`
 - `mix test test/orbital_dynamics/operator_review_test.exs`
 - `git diff --check`
+- Caveat: `mix test test/orbital_dynamics/cadence_import_test.exs` and focused
+  `mix test test/orbital_dynamics/cadence_import_test.exs:9451` currently fail
+  in the unrelated standalone contact-allocation test expecting an older
+  policy-rule row shape for `cmd_unavailable`.
 
 Docs/artifacts changed:
-- No artifact shape changes; existing mission-activity docs already describe
-  CandidateRefresh diff summary result-artifact handoffs.
+- No schema/artifact shape changes; this wires existing quality-gate
+  import-readiness summary evidence into existing review/import rows.
 
 Level 6 pillar advanced:
-Typed operational activity/timeline semantics and durable OperatorReview /
-CadenceImport replay from schema-versioned transition artifacts.
+Quality gates, readiness, and import eligibility replay from compact
+schema-versioned handoff artifacts into deterministic operator-review and
+Cadence-import rows.
 
 Remaining maturity gaps:
 Continue closing thin artifact-only replay gaps where compact source summaries
@@ -39,12 +46,12 @@ or operator-review replay does not yet preserve.
 
 Last commit:
 Pending commit; previous pushed commit
-`179629f22e56bb8129c94341861a2e93930979c6`.
+`ce9263bc88282162f797409a34afeaf4d06d9f92`.
 
 Next candidate:
-After committing this slice, continue the typed operational activity/timeline
-queue by reassessing lifecycle-state, dependency-impact, activity-state,
-integrity, and preservation replay surfaces against the live worktree.
+After committing this slice, continue the quality-gates/import-eligibility queue
+by reassessing compact quality-gate operator-training, schema-validation, and
+unavailable-resource summaries for the same review/import handoff depth.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
