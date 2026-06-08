@@ -5,42 +5,46 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Make relay data-path summaries branch-visible as link-capacity pressure.
+Make station-reservation review summaries branch-visible.
 
 Status:
 Implemented and parent-verified.
-`relay_data_path_summary.v1` handoffs now derive planner-visible
-link-capacity pressure with relay-route, custody, latency, risk, station,
-ground-downlink contact, trust-boundary, and artifact-only no-authority
-evidence.
+`station_reservation_review_summary.v1` handoffs now derive planner-visible
+station-reservation and provider-contention pressure with reservation owner,
+status, expiration, contact, station, trust-boundary, and artifact-only
+no-authority evidence.
 
 Slice-selection note:
-- Selected slice: derive branch-local link-capacity pressure from
-  `relay_data_path_summary.v1` handoffs.
-- Why this slice: relay summaries are the compact Cadence-facing contract for
-  relay/direct downlink route status; CandidateRefresh already replays route,
-  custody, latency, risk, station, contact, and trust-boundary evidence, but
-  strategy branch scoring still ignores those compact summaries.
-- Level 6 pillar: fleet-level communications planning, artifact-only relay
-  handoffs, and reproducible branch trees from compact operational evidence.
-- Current evidence gap: CampaignPlanner source-report plumbing carries
-  `source_relay_data_path_summary` and `relay_data_path_summary`, but derived
-  link-capacity pressure reads only link-capacity report/summary inputs.
+- Selected slice: derive branch-local station-reservation pressure from
+  `station_reservation_review_summary.v1` handoffs.
+- Why this slice: review summaries are the compact Cadence-facing contract for
+  reservation overlap, owner, status, expiration, and provider-contention triage;
+  CandidateRefresh replays the evidence, but strategy branch scoring still
+  requires raw station-calendar/reservation rows or only carries source paths.
+- Level 6 pillar: fleet-level station-calendar and allocation behavior,
+  approval-aware provider boundaries, and reproducible branch trees from compact
+  operational evidence.
+- Current evidence gap: direct/canonical station-reservation review summaries
+  are not preserved by strategy mission-state normalization, and compact review
+  rows do not generate derived station-reservation pressure branches.
 - Docs read:
   `docs/autonomous_work_guide.md`,
   `.codex/prompts/long_running_context_efficient_product_loop.md`,
   `docs/feature_set/capability_map/07_ground_network_and_communications_planning.md`,
+  `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`,
+  `docs/feature_set/capability_map/07_ground_network/06_status_summary.md`,
+  `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`,
   `docs/artifacts/field_families/candidate_refresh_artifact.md`.
 - Likely files: `lib/orbital_dynamics/campaign_planner.ex`,
   `test/orbital_dynamics/campaign_planner_test.exs`,
   `.codex/status/autonomous_product_loop.md`.
-- Definition of done: direct/canonical/result-artifact relay summaries create
-  branch-local link-capacity pressure retaining source paths, trust boundaries,
-  route IDs, route/status counts, ground-station and ground-downlink contact
-  evidence, relay assumptions, and no-scheduling/no-provider-write boundaries;
-  events affect risk/scoring/comparison without mutating schedules or granting
-  operator/provider authority; focused tests, compile, and whitespace checks
-  pass.
+- Definition of done: direct/canonical/result-artifact review summaries create
+  branch-local reservation/provider-contention pressure retaining source paths,
+  trust boundaries, reservation IDs, contact IDs, station IDs, owner/status and
+  expiration evidence, and no-provider-write/no-schedule-mutation boundaries;
+  events affect risk/scoring/comparison without reserving provider time,
+  mutating station calendars, or granting operator/provider authority; focused
+  tests, compile, and whitespace checks pass.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -49,31 +53,33 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs .codex/status/autonomous_product_loop.md`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:26837` (1 passed, 677 excluded)
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:26837 test/orbital_dynamics/candidate_refresh_test.exs:11844` (2 passed, 1417 excluded)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:20667` (1 passed, 678 excluded)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:20667 test/orbital_dynamics/candidate_refresh_test.exs:34975` (2 passed, 1418 excluded)
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- None expected; this is a planner/test slice for an existing relay data-path
-  summary artifact.
+- None expected; this is a planner/test slice for an existing
+  station-reservation review summary artifact.
 
 Local review:
 - Direct, canonical, and result-artifact
-  `relay_data_path_summary.v1` inputs now feed derived link-capacity pressure.
-- Summary-derived relay pressure events carry route IDs, source/relay
-  spacecraft IDs, custody/latency/risk statuses and counts, ground-station and
-  ground-downlink contact evidence, trust boundaries, and no-scheduling /
-  no-provider-write assumptions.
-- Strategy mission-state normalization now preserves direct relay summary fields
-  alongside existing result-artifact wrappers.
-- Branch comparison rows expose `relay_data_path_pressure` risk types and score
-  penalties without inventing downlink volume demand or mutating schedules.
+  `station_reservation_review_summary.v1` inputs now feed derived
+  station-reservation and provider-contention pressure.
+- Summary-derived reservation pressure events carry reservation IDs,
+  contact/station IDs, owner/status, expiration status/deadline, required
+  operator action, source paths, and trust boundaries.
+- Strategy mission-state normalization now preserves direct and canonical review
+  summary fields alongside existing result-artifact wrappers.
+- Branch comparison rows expose `ground_station_reserved` risk types and score
+  penalties without reserving provider time, mutating station calendars, or
+  granting operator/provider authority.
 
 Level 6 pillar advanced:
-Compact Cadence-facing relay route summaries now affect V2/V3 branch scoring and
-comparison without reopening full relay reports, mutating schedules, writing
-provider reservations, or granting operator/provider authority.
+Compact Cadence-facing reservation review summaries now affect V2/V3 branch
+scoring and comparison without reopening full station-reservation reports,
+mutating schedules, writing provider reservations, or granting operator/provider
+authority.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -83,7 +89,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`3920603` Derive relay data path pressure.
+Pending product commit for station-reservation review summary pressure.
 
 Next candidate:
 Reinspect live code for the next planner-visible resource/contact evidence gap.
