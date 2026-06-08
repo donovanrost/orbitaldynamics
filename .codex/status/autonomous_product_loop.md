@@ -5,39 +5,40 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Operator-review projection for accepted/mission timeline-diff summaries.
+Operator-review projection for accepted/mission timeline-integrity reports.
 
 Status:
 Product commit complete; CandidateRefresh accepted-planning-state and
-mission-state compact timeline-diff summaries now project into OperatorReview
-timeline-diff review rows and CadenceImport review-timeline-diff rows. Nested
-summary inputs reuse the existing summary row builder, preserving
-`candidate_refresh.*` source paths, source-summary context, row-derived review
-evidence, transition decisions, and timeline IDs without applying timeline
-changes, granting authority, or selecting candidates.
+mission-state timeline-integrity reports now project into OperatorReview
+timeline-integrity review rows and CadenceImport review-timeline-integrity
+rows. Nested reports reuse the existing report row builder, preserving
+`candidate_refresh.*` source paths, dependency/exclusivity/review evidence,
+source row payloads, and timeline IDs without applying timeline changes or
+granting import authority.
 
 Files changed:
 - `lib/orbital_dynamics/operator_review.ex`
 - `test/orbital_dynamics/operator_review_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/operator_review_test.exs:15419 test/orbital_dynamics/operator_review_test.exs:15513`
-- `mix test test/orbital_dynamics/operator_review_test.exs` (187 passed)
+- `mix test test/orbital_dynamics/operator_review_test.exs:3476 test/orbital_dynamics/operator_review_test.exs:3553`
+- `mix test test/orbital_dynamics/operator_review_test.exs` (189 passed)
 - `mix test test/orbital_dynamics/cadence_import_test.exs` (92 passed)
 - `git diff --check`
-- `mix test` (3159 passed; expected `:propagator_exit` log appeared from
+- `mix test` (3161 passed; expected `:propagator_exit` log appeared from
   `scenario_runner_test`)
 - Full-suite caveat: none beyond the known `:propagator_exit` log noise; the
   suite exits green.
 
 Docs/artifacts changed:
 - No docs or checked-in schema/study-result artifacts changed; existing
-  timeline-diff docs already described accepted-state and mission-state summary
+  timeline-integrity docs already described accepted-state and mission-state
   handoffs.
 
 Level 6 pillar advanced:
-Typed operational timeline semantics and Cadence-facing import handoff:
-accepted-planning-state and mission-state timeline-diff summaries now reach
+Typed operational timeline integrity semantics and Cadence-facing import
+handoff: accepted-planning-state and mission-state timeline-integrity reports
+now reach
 OperatorReview and CadenceImport without requiring top-level or
 result-artifact duplication.
 
@@ -47,11 +48,11 @@ preserve routing evidence that review/import or CandidateRefresh replay still
 does not consume.
 
 Last commit:
-Product commit `6bad6d9dcf3937346bc1428c69b9d7d1cbf36c17`.
+Product commit `dc288def50326a171d7916e083212020374b9209`.
 
 Next candidate:
 Reassess the remaining summary-contract coverage map after nested
-timeline-diff projection and pick the next weak
+timeline-integrity projection and pick the next weak
 CandidateRefresh/OperatorReview/CadenceImport handoff.
 
 Unrelated local changes:
