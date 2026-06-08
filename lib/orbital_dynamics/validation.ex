@@ -7187,7 +7187,8 @@ defmodule OrbitalDynamics.Validation do
       "validation_level" => "artifact_contract",
       "fixture_type" => "curated_internal_artifact_regression",
       "inputs" => %{
-        "source" => "study_results/contact_allocation_provider_reservation_request_summary_v1.json",
+        "source" =>
+          "study_results/contact_allocation_provider_reservation_request_summary_v1.json",
         "contract" => "contact_allocation_provider_reservation_request_summary.v1"
       },
       "expected" => %{
@@ -10281,6 +10282,79 @@ defmodule OrbitalDynamics.Validation do
         "internal artifact regression, not external provider validation",
         "checks reservation summary routing and no-provider-write boundary only",
         "does not call provider APIs, reserve station time, or mutate schedules"
+      ]
+    },
+    "fixture.artifact.station_reservation_hold_summary.v1" => %{
+      "id" => "fixture.artifact.station_reservation_hold_summary.v1",
+      "model_id" => "artifact.station_reservation_hold_summary.v1",
+      "reference_case" => "checked-in station reservation hold summary",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/station_reservation_hold_summary_v1.json",
+        "source_contract" => "station_reservation_report.v1",
+        "contract" => "station_reservation_hold_summary.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "station_reservation_hold_summary.v1",
+        "model" => "artifact_only_station_reservation_hold_summary",
+        "source_artifact_type" => "station_reservation_report.v1",
+        "source" => "station_calendar_report.reservation_evidence",
+        "reservation_hold_count" => 2,
+        "affected_contact_reservation_hold_count" => 1,
+        "provider_calendar_contention_hold_count" => 1,
+        "reservation_hold_review_status" => "review_required",
+        "reservation_hold_status_counts" => %{"held" => 2},
+        "row_derived_reservation_hold_status_counts" => %{"held" => 2},
+        "reservation_hold_expiration_status_counts" => %{"expired" => 1, "missing" => 1},
+        "row_derived_reservation_hold_expiration_status_counts" => %{
+          "expired" => 1,
+          "missing" => 1
+        },
+        "reservation_hold_id_keys" => "reservation_expired|reservation_missing",
+        "row_derived_reservation_hold_id_keys" => "reservation_expired|reservation_missing",
+        "reservation_hold_ids_by_reserved_by" => %{
+          "ops_calendar" => ["reservation_expired"],
+          "partner_calendar" => ["reservation_missing"]
+        },
+        "row_derived_reservation_hold_ids_by_reserved_by" => %{
+          "ops_calendar" => ["reservation_expired"],
+          "partner_calendar" => ["reservation_missing"]
+        },
+        "reservation_hold_ids_by_row_type" => %{
+          "affected_contact" => ["reservation_expired"],
+          "provider_calendar_contention_group" => ["reservation_missing"]
+        },
+        "row_derived_reservation_hold_ids_by_row_type" => %{
+          "affected_contact" => ["reservation_expired"],
+          "provider_calendar_contention_group" => ["reservation_missing"]
+        },
+        "reservation_hold_contact_ids_by_expiration_status" => %{
+          "expired" => ["dl_source_reserved"]
+        },
+        "row_derived_reservation_hold_contact_ids_by_expiration_status" => %{
+          "expired" => ["dl_source_reserved"]
+        },
+        "earliest_reservation_hold_expires_at_s" => 240.0,
+        "execution_boundary" => "artifact_only_no_provider_reservation",
+        "operator_authority" => "not_granted_by_summary",
+        "model_limit_count" => 5
+      },
+      "tolerances" => %{
+        "reservation_hold_count" => 0,
+        "affected_contact_reservation_hold_count" => 0,
+        "provider_calendar_contention_hold_count" => 0,
+        "earliest_reservation_hold_expires_at_s" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by station_reservation_hold_summary.v1 validation tests"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not external provider validation",
+        "checks hold summary routing and no-provider-write boundary only",
+        "does not call provider APIs, accept reservations, or mutate schedules"
       ]
     },
     "fixture.artifact.station_reservation_hold_import_readiness_summary.v1" => %{
@@ -16924,6 +16998,63 @@ defmodule OrbitalDynamics.Validation do
     }
   end
 
+  def artifact_observations("station_reservation_hold_summary.v1", artifact)
+      when is_map(artifact) do
+    artifact = stringify_keys(artifact)
+    rows = map_rows(artifact, "review_rows")
+
+    %{
+      "schema_contract" => Map.get(artifact, "schema_contract"),
+      "model" => Map.get(artifact, "model"),
+      "source_artifact_type" => Map.get(artifact, "source_artifact_type"),
+      "source" => Map.get(artifact, "source"),
+      "reservation_hold_count" => Map.get(artifact, "reservation_hold_count"),
+      "affected_contact_reservation_hold_count" =>
+        Map.get(artifact, "affected_contact_reservation_hold_count"),
+      "provider_calendar_contention_hold_count" =>
+        Map.get(artifact, "provider_calendar_contention_hold_count"),
+      "reservation_hold_review_status" => Map.get(artifact, "reservation_hold_review_status"),
+      "reservation_hold_status_counts" =>
+        Map.get(artifact, "reservation_hold_status_counts") || %{},
+      "row_derived_reservation_hold_status_counts" =>
+        rows
+        |> Enum.flat_map(&list_values(&1, "reservation_statuses"))
+        |> list_value_counts(),
+      "reservation_hold_expiration_status_counts" =>
+        Map.get(artifact, "reservation_hold_expiration_status_counts") || %{},
+      "row_derived_reservation_hold_expiration_status_counts" =>
+        count_rows_by_value(rows, "station_reservation_expiration_status"),
+      "reservation_hold_id_keys" =>
+        artifact
+        |> list_values("reservation_hold_ids")
+        |> stable_id_keys(),
+      "row_derived_reservation_hold_id_keys" =>
+        rows
+        |> Enum.flat_map(&list_values(&1, "reservation_ids"))
+        |> stable_id_keys(),
+      "reservation_hold_ids_by_reserved_by" =>
+        Map.get(artifact, "reservation_hold_ids_by_reserved_by") || %{},
+      "row_derived_reservation_hold_ids_by_reserved_by" =>
+        group_row_list_ids_by_list_value(rows, "reserved_by", "reservation_ids"),
+      "reservation_hold_ids_by_row_type" =>
+        Map.get(artifact, "reservation_hold_ids_by_row_type") || %{},
+      "row_derived_reservation_hold_ids_by_row_type" =>
+        group_row_list_ids_by_value(rows, "reservation_review_row_type", "reservation_ids"),
+      "reservation_hold_contact_ids_by_expiration_status" =>
+        Map.get(artifact, "reservation_hold_contact_ids_by_expiration_status") || %{},
+      "row_derived_reservation_hold_contact_ids_by_expiration_status" =>
+        rows
+        |> group_row_ids_by_present_value("station_reservation_expiration_status", "contact_id")
+        |> reject_empty_grouped_values()
+        |> sort_grouped_values(),
+      "earliest_reservation_hold_expires_at_s" =>
+        Map.get(artifact, "earliest_reservation_hold_expires_at_s"),
+      "execution_boundary" => get_in(artifact, ["assumptions", "execution_boundary"]),
+      "operator_authority" => get_in(artifact, ["assumptions", "operator_authority"]),
+      "model_limit_count" => count(artifact, "model_limits")
+    }
+  end
+
   def artifact_observations("station_reservation_hold_import_readiness_summary.v1", artifact)
       when is_map(artifact) do
     artifact = stringify_keys(artifact)
@@ -16945,7 +17076,8 @@ defmodule OrbitalDynamics.Validation do
         Map.get(artifact, "reservation_hold_import_status_counts") || %{},
       "row_derived_reservation_hold_import_status_counts" =>
         count_rows_by_value(rows, "station_reservation_hold_import_status"),
-      "required_import_action_counts" => Map.get(artifact, "required_import_action_counts") || %{},
+      "required_import_action_counts" =>
+        Map.get(artifact, "required_import_action_counts") || %{},
       "row_derived_required_import_action_counts" =>
         count_rows_by_value(rows, "required_operator_action"),
       "reservation_hold_ids_by_import_status" =>
@@ -17337,6 +17469,20 @@ defmodule OrbitalDynamics.Validation do
     end)
   end
 
+  defp group_row_list_ids_by_list_value(rows, value_key, id_key) do
+    rows
+    |> Enum.flat_map(fn row ->
+      values = list_values(row, value_key)
+      ids = list_values(row, id_key)
+
+      for value <- values, id <- ids, do: {to_string(value), to_string(id)}
+    end)
+    |> Enum.group_by(fn {value, _id} -> value end, fn {_value, id} -> id end)
+    |> Map.new(fn {value, ids} ->
+      {value, ids |> Enum.uniq() |> Enum.sort()}
+    end)
+  end
+
   defp group_row_ids_by_nested_value(rows, value_path, id_key) do
     rows
     |> Enum.reject(&(get_in(&1, value_path) == nil))
@@ -17470,6 +17616,12 @@ defmodule OrbitalDynamics.Validation do
 
   defp sort_grouped_values(grouped_values) do
     Map.new(grouped_values, fn {key, values} -> {key, Enum.sort(values)} end)
+  end
+
+  defp reject_empty_grouped_values(grouped_values) do
+    grouped_values
+    |> Enum.reject(fn {_key, values} -> values == [] end)
+    |> Map.new()
   end
 
   defp pareto_ids_by_frontier_status(rows) do
