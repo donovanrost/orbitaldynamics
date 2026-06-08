@@ -5,18 +5,19 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Publication dependency-impact source/dependent ID preservation.
+Publication downstream invalidation reason routing.
 
 Status:
-Implemented, reviewed, parent-verified, and committed. Timeline publication
-summaries now preserve the dependency-impact source summary and flattened
-changed-source/dependent ID sets. Operator review rows, Cadence import rows,
-CandidateRefresh source reports, and CandidateRefresh replay summaries carry the
-same lineage fields, including row-only review/import handoffs where embedded
-source summaries are stripped.
+Implemented, locally reviewed, parent-verified, and committed. Timeline
+publication summaries now distinguish downstream invalidation reasons as
+dependency-impact review, explicit downstream invalidation, or superseded
+publication. Operator review rows, Cadence import rows, CandidateRefresh source
+reports, and CandidateRefresh replay summaries preserve the reason counts and
+reason-keyed invalidated downstream product IDs, including row-only handoffs.
 
 Files changed:
 - `docs/artifacts/field_families/mission_activities.md`
+- `lib/orbital_dynamics/cadence_import.ex`
 - `lib/orbital_dynamics/candidate_refresh.ex`
 - `lib/orbital_dynamics/operator_review.ex`
 - `lib/orbital_dynamics/schema.ex`
@@ -56,9 +57,11 @@ Files changed:
 
 Tests run:
 - `mix compile`
-- `mix test test/orbital_dynamics/cadence_import_test.exs:13609 test/orbital_dynamics/candidate_refresh_test.exs:26628 test/orbital_dynamics/schema_test.exs:26046`
+- `mix test test/orbital_dynamics/timeline_test.exs:3675 test/orbital_dynamics/operator_review_test.exs:2477 test/orbital_dynamics/cadence_import_test.exs:13610 test/orbital_dynamics/candidate_refresh_test.exs:26442 test/orbital_dynamics/candidate_refresh_test.exs:26644 test/orbital_dynamics/schema_test.exs:26046 test/orbital_dynamics/validation_test.exs:9745` (7 passed)
 - `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `mix test test/orbital_dynamics/timeline_test.exs:3698 test/orbital_dynamics/operator_review_test.exs:2477 test/orbital_dynamics/cadence_import_test.exs:13609 test/orbital_dynamics/candidate_refresh_test.exs:26442 test/orbital_dynamics/candidate_refresh_test.exs:26628 test/orbital_dynamics/validation_test.exs:9744 test/orbital_dynamics/schema_test.exs:26046` (7 passed)
+- `mix orbital_dynamics.manifest.schema.export --output schemas/study_manifest.v1.schema.json`
+- `mix test test/orbital_dynamics/study/manifest_test.exs:730` (1 passed)
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:26644` (1 passed)
 - `mix test test/orbital_dynamics/timeline_test.exs test/orbital_dynamics/operator_review_test.exs test/orbital_dynamics/cadence_import_test.exs test/orbital_dynamics/candidate_refresh_test.exs test/orbital_dynamics/schema_test.exs test/orbital_dynamics/validation_test.exs` (1522 passed)
 - `git diff --check`
 - `mix orbital_dynamics.schema.lint --all` (154 files, 154 artifacts, status pass)
@@ -66,55 +69,53 @@ Tests run:
 
 Docs/artifacts changed:
 - Updated mission-activity artifact-family docs to state publication summaries
-  preserve dependency-impact source/dependent lineage through review/import and
+  preserve downstream invalidation reasons through review/import and
   CandidateRefresh handoffs.
 - Regenerated timeline publication summary and validation reference fixtures.
 - Regenerated full schema exports and the study manifest schema export touched by
   embedded publication-summary schema drift.
 
-Read-only review:
-- Reviewer found two must-fix gaps: CandidateRefresh top-level
-  `source_report_timeline_publication_*` lineage arrays were emitted but not
-  schema-visible, and Cadence import row preservation was only indirectly proven.
-- Both gaps were fixed with top-level schema/runtime stable-ID validation,
-  exported-schema coverage, direct Cadence import row assertions, and row-only
-  CandidateRefresh replay regression coverage.
+Local review:
+- Found and fixed one compatibility edge: older row-only review/import handoffs
+  without the new reason fields could reconstruct nil reason maps before replay
+  pressure checks. CandidateRefresh now normalizes those maps to `%{}` and has a
+  regression asserting legacy row-only replay stays importable while preserving
+  invalidation pressure from invalidated IDs.
+- No subagent reviewer was spawned in this continuation because the available
+  delegation tool requires an explicit user request for subagents in the current
+  turn.
 
 Level 6 pillar advanced:
-Typed timeline publication semantics and approval-aware Cadence handoff
-artifacts. Publication, review, import, and replay artifacts now preserve
-changed-source and dependent timeline IDs instead of reducing dependency impact
-to dependency/exclusivity IDs alone.
+Durable schema-versioned publication semantics and approval-aware Cadence
+handoff artifacts. Downstream products can now route invalidation by reason
+instead of inferring from status and IDs alone, and stale reason fields are
+rejected by runtime validation when present.
 
 Remaining maturity gaps:
 Resource/contact allocation still needs deeper planner-visible behavior for
 provider-calendar capacity and reservation pressure during candidate selection.
 Typed timeline lifecycle/publication semantics still need broader publication
-hardening beyond this dependency-impact lineage slice.
+hardening beyond this downstream invalidation reason slice.
 
 Last commit:
-`f433cbf` Preserve publication dependency lineage.
+`7b02d2b` Route publication invalidation reasons.
 
 Next candidate:
 Reassess Level 6 gaps from the guide/ledger. Likely candidates include
-publication/lifecycle hardening for downstream invalidation semantics, or
 planner-visible reduced-capacity/contact-allocation behavior in branch-local
-candidate refresh.
+candidate refresh, or continued publication/lifecycle hardening around explicit
+operator approval and downstream import authority.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 
 Previous published slice:
+- `7b02d2b` routed publication invalidation reasons.
+- `f433cbf` preserved publication dependency lineage.
 - `05a0f69` updated the precondition evidence handoff.
 - `3818b51` preserved duplicate precondition evidence.
 - `7dfb84a` updated the provider replay handoff.
-- `54fd7ed` replayed provider reservation requests from rows.
-- `e74d003` honored effective status in provider-reservation request summaries.
 
 Blocked:
 No.
-
-Notes:
-- Read-only reviewer completed for this slice; findings were fixed and
-  reverified before commit.
