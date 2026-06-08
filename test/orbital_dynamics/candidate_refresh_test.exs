@@ -9211,6 +9211,18 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
               "station_pressure_contact_ids_by_ground_station" => %{
                 "polar_prime" => ["branch_deferred_contact"]
               },
+              "station_pressure_contact_ids_by_availability" => %{
+                "reserved" => ["branch_deferred_contact"]
+              },
+              "station_pressure_contact_ids_by_precedence_availability" => %{
+                "unavailable" => ["branch_deferred_contact"]
+              },
+              "station_pressure_contact_ids_by_precedence_rank" => %{
+                "0" => ["branch_deferred_contact"]
+              },
+              "station_pressure_contact_ids_by_status" => %{
+                "maintenance_window" => ["branch_deferred_contact"]
+              },
               "station_pressure_review_contact_ids" => ["branch_deferred_contact"],
               "reservation_conflict_contact_ids" => ["branch_reservation_conflict"],
               "invalid_contact_input_ids" => ["branch_invalid_contact"],
@@ -9283,6 +9295,22 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert summary["station_pressure_contact_ids_by_ground_station"] == %{
              "polar_prime" => ["branch_deferred_contact"]
+           }
+
+    assert summary["station_pressure_contact_ids_by_availability"] == %{
+             "reserved" => ["branch_deferred_contact"]
+           }
+
+    assert summary["station_pressure_contact_ids_by_precedence_availability"] == %{
+             "unavailable" => ["branch_deferred_contact"]
+           }
+
+    assert summary["station_pressure_contact_ids_by_precedence_rank"] == %{
+             "0" => ["branch_deferred_contact"]
+           }
+
+    assert summary["station_pressure_contact_ids_by_status"] == %{
+             "maintenance_window" => ["branch_deferred_contact"]
            }
 
     assert summary["station_pressure_review_contact_ids"] == ["branch_deferred_contact"]
