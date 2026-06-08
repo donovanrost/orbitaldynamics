@@ -5223,6 +5223,14 @@ defmodule OrbitalDynamics.OperatorReview do
   defp candidate_refresh_timeline_integrity_rows(artifact) do
     direct_rows =
       [
+        {"candidate_refresh.accepted_planning_state.source_timeline_integrity_report",
+         get_in(artifact, ["accepted_planning_state", "source_timeline_integrity_report"])},
+        {"candidate_refresh.accepted_planning_state.timeline_integrity_report",
+         get_in(artifact, ["accepted_planning_state", "timeline_integrity_report"])},
+        {"candidate_refresh.mission_state.source_timeline_integrity_report",
+         get_in(artifact, ["mission_state", "source_timeline_integrity_report"])},
+        {"candidate_refresh.mission_state.timeline_integrity_report",
+         get_in(artifact, ["mission_state", "timeline_integrity_report"])},
         {"candidate_refresh.source_timeline_integrity_report",
          artifact["source_timeline_integrity_report"]},
         {"candidate_refresh.timeline_integrity_report", artifact["timeline_integrity_report"]}
