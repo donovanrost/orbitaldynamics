@@ -43941,6 +43941,158 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives import readiness pressure from row-status map before stale top-level arrays" do
+    quality_gate_report = %{
+      "schema_contract" => "quality_gate_report.v1",
+      "model" => "artifact_only_operational_quality_gate_report",
+      "report_id" => "quality_gate:stale_import",
+      "source_artifact_type" => "planned_activity.v1",
+      "source_artifact_id" => "stale_import_payload",
+      "source_readiness_report_id" => "operational_readiness:stale_import",
+      "readiness_level" => "operator_review",
+      "import_classification" => "review_only",
+      "status" => "review_required",
+      "gate_count" => 1,
+      "passed_gate_count" => 0,
+      "review_gate_count" => 1,
+      "analysis_gate_count" => 0,
+      "blocked_gate_count" => 0,
+      "gate_status_counts" => %{"review_required" => 1},
+      "gate_classification_counts" => %{"review_only" => 1},
+      "rows" => [
+        %{
+          "id" => "quality_gate:stale:cadence_import:review",
+          "rank" => 1,
+          "gate_id" => "cadence_import",
+          "status" => "review_required",
+          "classification" => "review_only",
+          "reason" => "stale import readiness requires review",
+          "ready_for_import_count" => 0,
+          "manifest_review_required_count" => 1,
+          "blocked_import_count" => 0,
+          "missing_import_count" => 0,
+          "invalid_cadence_import_count" => 0,
+          "current_freshness_count" => 0,
+          "stale_freshness_count" => 0,
+          "unknown_freshness_count" => 1,
+          "freshness_status_counts" => %{"unknown" => 1},
+          "import_status_counts" => %{"review_required_before_import" => 1},
+          "cadence_import_status_counts" => %{"present" => 1}
+        }
+      ],
+      "assumptions" => %{"source" => "test.quality_gate_report"},
+      "model_limits" => ["artifact_only"]
+    }
+
+    stale_summary =
+      quality_gate_report
+      |> OrbitalDynamics.OperationalReadiness.quality_gate_import_readiness_summary()
+      |> Map.merge(%{
+        "review_required_quality_gate_row_ids" => [],
+        "blocked_quality_gate_row_ids" => ["quality_gate:stale:cadence_import:blocked"],
+        "blocked_import_quality_gate_row_ids" => [
+          "quality_gate:stale:cadence_import:blocked"
+        ],
+        "stale_or_unknown_freshness_quality_gate_row_ids" => [
+          "quality_gate:stale:cadence_import:review"
+        ],
+        "import_preparation_quality_gate_row_ids" => [
+          "quality_gate:stale:cadence_import:review"
+        ],
+        "import_blocked" => true,
+        "freshness_review_required" => true,
+        "import_preparation_required" => true,
+        "provenance" => %{"trust_boundary" => "stale_import_summary_boundary"}
+      })
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put("source_operational_quality_gate_import_readiness_summary", stale_summary)
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    stale_branch =
+      Enum.find(artifact["branches"], fn branch ->
+        String.starts_with?(branch["branch_id"], "derived_quality_gate_pressure_") and
+          Enum.any?(
+            branch["events"] || [],
+            &(&1["type"] == "quality_gate_pressure" and
+                &1["source_artifact_id"] == "stale_import_payload")
+          )
+      end)
+
+    assert stale_branch
+
+    assert %{
+             "type" => "quality_gate_pressure",
+             "source_artifact_type" => "planned_activity.v1",
+             "source_artifact_id" => "stale_import_payload",
+             "readiness_level" => "operator_review",
+             "import_classification" => "review_only",
+             "quality_gate_status" => "review_required",
+             "review_gate_count" => 1,
+             "analysis_gate_count" => 0,
+             "blocked_gate_count" => 0,
+             "gate_status" => "review_required",
+             "gate_classification" => "review_only",
+             "gate_reason" => "import readiness summary requires review",
+             "freshness_review_required" => true,
+             "import_preparation_required" => true,
+             "import_blocked" => false,
+             "stale_or_unknown_freshness_quality_gate_row_ids" => [
+               "quality_gate:stale:cadence_import:review"
+             ],
+             "import_preparation_quality_gate_row_ids" => [
+               "quality_gate:stale:cadence_import:review"
+             ],
+             "blocked_import_quality_gate_row_ids" => [],
+             "feedback_source" =>
+               "mission_state.source_operational_quality_gate_import_readiness_summary",
+             "trust_boundary" => "stale_import_summary_boundary",
+             "source_quality_gate_row" => %{
+               "review_required_quality_gate_row_ids" => [
+                 "quality_gate:stale:cadence_import:review"
+               ],
+               "blocked_quality_gate_row_ids" => [],
+               "blocked_import_quality_gate_row_ids" => []
+             }
+           } = List.first(stale_branch["events"])
+
+    refute Enum.any?(
+             stale_branch["risk_indicators"],
+             &(&1["type"] == "quality_gate_pressure" and &1["import_blocked"] == true)
+           )
+
+    assert Enum.any?(
+             stale_branch["risk_indicators"],
+             &(&1["type"] == "quality_gate_pressure" and
+                 &1["import_blocked"] == false and
+                 &1["blocked_import_quality_gate_row_ids"] == [] and
+                 &1["freshness_review_required"] == true)
+           )
+
+    assert stale_branch["score_terms"]["risk_penalty"] < 0.0
+
+    comparison_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == stale_branch["branch_id"]))
+
+    assert "quality_gate_pressure" in comparison_row["risk_types"]
+
+    assert comparison_row["branch_feedback_sources"] == [
+             "mission_state.source_operational_quality_gate_import_readiness_summary"
+           ]
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy derives prior-plan readiness and quality gates as branch pressure" do
     readiness_report = fn prefix, classification, status, trust_boundary ->
       %{
