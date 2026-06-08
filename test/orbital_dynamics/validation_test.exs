@@ -9241,6 +9241,90 @@ defmodule OrbitalDynamics.ValidationTest do
            ) == Validation.artifact_observations("timeline_diff_summary.v1", report)
   end
 
+  test "verifies curated timeline publication summary reference fixtures" do
+    fixture_id = "fixture.artifact.timeline_publication_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.timeline_publication_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = timeline_publication_summary_fixture()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               timeline_publication_summary_fixture_observations()
+             )
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    stale_observations =
+      timeline_publication_summary_fixture_observations()
+      |> Map.put("publication_status", "published")
+
+    assert {:ok, stale_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_verification["checks"],
+             &(&1["field"] == "publication_status" and &1["status"] == "fail")
+           )
+
+    stale_routing_observations =
+      timeline_publication_summary_fixture_observations()
+      |> put_in(
+        [
+          "source_timeline_diff_review_timeline_ids_by_required_operator_action",
+          "review_added_activity"
+        ],
+        []
+      )
+
+    assert {:ok, stale_routing_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_routing_observations)
+
+    assert stale_routing_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_routing_verification["checks"],
+             &(&1["field"] ==
+                 "source_timeline_diff_review_timeline_ids_by_required_operator_action" and
+                 &1["status"] == "fail")
+           )
+
+    stale_boundary_observations =
+      timeline_publication_summary_fixture_observations()
+      |> Map.put("execution_boundary", "schedule_mutation_ready")
+
+    assert {:ok, stale_boundary_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_boundary_observations)
+
+    assert stale_boundary_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_boundary_verification["checks"],
+             &(&1["field"] == "execution_boundary" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _valid_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "timeline_publication_summary.v1"
+             )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "timeline_publication_summary.v1",
+             report
+           ) ==
+             Validation.artifact_observations(
+               "timeline_publication_summary.v1",
+               report
+             )
+  end
+
   test "verifies curated timeline transition application summary reference fixtures" do
     fixture_id = "fixture.artifact.timeline_transition_application_summary.v1"
 
@@ -13520,6 +13604,8 @@ defmodule OrbitalDynamics.ValidationTest do
           timeline_lifecycle_state_summary_fixture_observations(),
         "fixture.artifact.timeline_preservation_report.v1" =>
           timeline_preservation_report_fixture_observations(),
+        "fixture.artifact.timeline_publication_summary.v1" =>
+          timeline_publication_summary_fixture_observations(),
         "fixture.artifact.timeline_transition_application_report.v1" =>
           timeline_transition_application_report_fixture_observations(),
         "fixture.artifact.timeline_transition_application_selected_integrity.v1" =>
@@ -13541,8 +13627,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 173,
-             "status_counts" => %{"pass" => 173},
+             "fixture_count" => 174,
+             "status_counts" => %{"pass" => 174},
              "reports" => reports
            } = report
 
@@ -13705,6 +13791,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.timeline_integrity_report.v1",
              "fixture.artifact.timeline_lifecycle_state_summary.v1",
              "fixture.artifact.timeline_preservation_report.v1",
+             "fixture.artifact.timeline_publication_summary.v1",
              "fixture.artifact.timeline_transition_application_report.v1",
              "fixture.artifact.timeline_transition_application_selected_integrity.v1",
              "fixture.artifact.timeline_transition_application_selected_integrity_summary.v1",
@@ -13732,7 +13819,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 173},
+             "status_counts" => %{"fail" => 174},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -15209,6 +15296,15 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp timeline_diff_summary_fixture do
     read_json!("study_results/timeline_diff_summary_v1.json")
+  end
+
+  defp timeline_publication_summary_fixture_observations do
+    "timeline_publication_summary.v1"
+    |> Validation.artifact_observations(timeline_publication_summary_fixture())
+  end
+
+  defp timeline_publication_summary_fixture do
+    read_json!("study_results/timeline_publication_summary_v1.json")
   end
 
   defp timeline_activity_precondition_summary_fixture_observations do
