@@ -199,13 +199,19 @@ It advertises those identity objects in the exported `realized_activity.v1` JSON
 
 Status: **near-term**.
 
-- Continue broadening typed activity context into richer feedback import packages beyond the current product/data-volume, latency, link profile/quality, observation-quality, lighting/eclipsing, pointing/attitude, thermal, command authority/safety, and resource/availability evidence.
+- Continue broadening typed activity context only where live code still lacks a
+  needed provider or planner evidence family.
+- Prefer making existing lifecycle, integrity, publication, protection,
+  feedback, and station-calendar artifacts planner-visible in candidate
+  selection, branch scoring, compatibility fixtures, or challenge fixtures.
 
 ## Later
 
 Status: **later**.
 
-- Timeline diffing, operator review products, persistent timeline identity, source-window traceability across replans, and execution feedback reconciliation.
+- Persistent operations timeline services, host-system publication delivery,
+  notification workflows, Cadence-owned approval/import execution, and final
+  schedule mutation.
 
 ## Out of Scope
 

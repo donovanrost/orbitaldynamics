@@ -43,12 +43,40 @@ Implemented or partially implemented modules and artifacts include:
   planning-grade battery energy storage and data-recorder storage buffering,
   giving resource-flow evidence an explicit model identity/provenance boundary
   before full spacecraft configuration exists.
+- Operational activity and timeline artifacts: typed activity context,
+  lifecycle state helpers, transition-application reports and summaries,
+  dependency/exclusivity integrity reports, timeline diffs, publication
+  summaries, operational timeline reports, timeline feedback reports, and
+  Cadence-facing review/import handoffs preserve status, approval, lock,
+  execution, source-window, station-calendar, resource, command, contact,
+  observation, maneuver, and feedback evidence without granting schedule,
+  approval, import, or execution authority.
+- Resource and communications planning artifacts: contact allocation,
+  link-capacity, station-calendar, provider-reservation, reservation-hold,
+  provider-counteroffer, resource-summary, resource-projection, unavailable
+  resource, contention, contact-suppression, and resource-suppression reports
+  expose schema-validated operator-review evidence for directionality,
+  reservation pressure, station availability, capacity effects, storage/downlink
+  roll-forward, and ignored terminal or approval-rejected activity effects.
+- Operational readiness and quality artifacts: readiness, import-eligibility,
+  execution-boundary, quality-gate, safety-case, model-acceptance,
+  schema-validation, validation-fixture, operator-training, and unavailable
+  resource summaries classify review-only, analysis-only, importable, and
+  blocked handoffs with explicit no-Cadence-execution boundaries.
+- Candidate refresh replays a broad set of mission-state, realized-feedback,
+  source-report, timeline-diff, transition-application, integrity, publication,
+  readiness, quality, contact-allocation, link-capacity, station-calendar,
+  resource, policy, and validation evidence as branch-local provenance for V2/V3
+  repair and strategy paths.
 - Example manifests and outputs in `studies/`, `study_results/`, and
   `benchmark_results/`.
 
 The current implementation is strongest as a transparent LEO planning prototype.
-Its weakest areas are high-fidelity dynamics, frame/time transformations,
-resource simulation beyond declarative planning-grade subsystem contracts, event
-precision guarantees, optimizer breadth, schema versioning discipline, external
-validation evidence, external orbit-data ingestion, and deeper
-candidate-refresh integration across V2/V3 repair.
+Its strongest Cadence-facing surfaces are artifact-only review/import contracts
+and branch-local refresh provenance. Its weakest areas are high-fidelity
+dynamics, frame/time transformations, resource simulation beyond declarative
+planning-grade subsystem contracts, event precision guarantees, optimizer
+breadth, schema versioning discipline, external validation evidence, external
+orbit-data ingestion, provider-write/notification workflows, and deeper
+planner-visible use of resource/contact/readiness evidence during candidate
+selection and branch scoring.

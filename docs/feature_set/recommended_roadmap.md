@@ -10,14 +10,16 @@ For slice selection, also read
 ## Current Product Direction
 
 OrbitalDynamics already has useful V1 campaign planning, V2 repair, V3 strategy
-comparison, candidate refresh, schema exports, validation artifacts,
-station-calendar overlays, policy decisions, resource summaries, and
-operator-review artifacts.
+comparison, candidate refresh, schema exports, validation artifacts, typed
+timeline lifecycle/integrity/publication surfaces, station-calendar overlays,
+contact-allocation and link-capacity artifacts, resource summaries, readiness
+and quality-gate summaries, policy decisions, and operator-review/import
+artifacts.
 
-The next work should convert thin artifact surfaces into reusable operational
-behavior. Prefer small vertical slices that make future planner work safer:
-typed timeline semantics, resource/contact allocation semantics, quality gates,
-branch-local refresh depth, and validation/compatibility fixtures.
+The next work should make those artifact surfaces more planner-visible. Prefer
+small vertical slices that convert existing review evidence into candidate
+selection, branch scoring, compatibility checks, and challenge fixtures while
+preserving OrbitalDynamics' no Cadence database/API/execution boundary.
 
 ## Next Implementation Queue
 
@@ -28,14 +30,21 @@ Activities, timeline rows, deltas, locks, approvals, execution status,
 dependencies, and exclusivity should move from map conventions toward reusable
 APIs and validated artifacts.
 
-Good first slices:
+Already implemented or heavily covered:
 
 - status and approval transition helpers
-- dependency and exclusivity validation
-- lock/executed preservation helpers
-- candidate rejection or timeline transition reports (`candidate_rejection_report.v1`
-  now covers artifact-only "why rejected" rows; continue hardening downstream
-  review/import use if needed)
+- dependency and exclusivity validation and integrity summaries
+- lock/approved/executed preservation helpers
+- candidate rejection reports, timeline diffs, transition-application reports
+  and summaries, publication summaries, and their review/import handoffs
+
+Good next slices:
+
+- feed one existing timeline integrity or publication pressure signal into V2/V3
+  branch scoring or candidate selection
+- add a challenge fixture for malformed or stale lifecycle/protection evidence
+- harden one remaining downstream review/import path only when live code shows
+  the artifact is not already routed
 
 Key docs:
 
@@ -49,19 +58,25 @@ Resource summaries, station calendars, contact filters, contention reports, and
 provider reservations should become explicit enough for operator review and
 quality gates.
 
-Good first slices:
+Already implemented or heavily covered:
 
-- reserved/unavailable/reduced-capacity precedence
-- same-station allocation or reservation conflict report
-- storage/downlink roll-forward for selected activities
-- provider counteroffer or reservation-hold artifact (station-calendar
-  counteroffer evidence, standalone `provider_counteroffer_report.v1`, and
-  reservation-hold expiration are artifact-only report/review/import surfaces
-  today, including row-derived counteroffer negotiation-state, cost, and
-  lock-deadline summaries, compact counteroffer review summaries with
-  active/expired/missing deadline status, and artifact-only plan-impact
-  summaries for timing-shift/cost-delta rows; provider writes and full negotiation
-  workflows remain future work)
+- reserved/unavailable/reduced-capacity evidence and precedence reports
+- same-station contention, allocation, and reservation pressure summaries
+- storage/downlink roll-forward and zero-effect audit rows for terminal or
+  approval-rejected selected activities
+- provider counteroffer, reservation-hold, reservation-expiration, plan-impact,
+  and review/import handoff artifacts
+- contact-intent and capacity-pack direction routing in allocation and
+  CandidateRefresh replay
+
+Good next slices:
+
+- use selected resource/contact pressure directly in candidate ranking or branch
+  score explanations
+- add a challenge fixture for contradictory provider calendar, reservation, and
+  contact-allocation evidence
+- add one compatibility fixture for a resource/contact artifact family that does
+  not already have a curated reference check
 
 Key docs:
 
@@ -75,12 +90,21 @@ Primary outcome:
 Cadence-facing outputs should clearly say whether they are importable,
 review-only, analysis-only, or blocked, and why.
 
-Good first slices:
+Already implemented or heavily covered:
 
 - `quality_gate_report.v1`
 - `operational_readiness_report.v1`
-- not-for-execution markings for trade studies
-- quality-gate rows in operator-review packages
+- not-for-execution, analysis-only, review-only, import-eligibility, and
+  execution-boundary summaries
+- quality-gate and readiness rows in operator-review and Cadence-import packages
+
+Good next slices:
+
+- make one existing readiness or quality-gate block affect candidate selection
+  or branch recommendations before review/import handoff
+- add stale-but-plausible readiness/input challenge fixtures
+- harden schema-validation or compatibility checks for one readiness/quality
+  family that lacks exact reference evidence
 
 Key docs:
 
@@ -95,12 +119,16 @@ More mission-state, realized-feedback, source-report, and branch-assumption
 changes should produce executable `candidate_refresh.v1` requests and preserve
 their explanations through repair, strategy, and operator review.
 
-Good first slices:
+Good next slices:
 
-- add one new source-report replay path
-- preserve one more candidate-diff reason through V2/V3
-- add refresh provenance for one new resource/contact feedback source
-- consolidate repeated branch-refresh helper logic
+- add one new source-report replay path only after verifying it is missing in
+  live code
+- preserve one more candidate-diff reason through V2/V3 when the current
+  operator-review/import path drops it
+- convert an existing replayed resource/contact/readiness pressure signal into
+  planner-visible branch scoring
+- consolidate repeated branch-refresh helper logic after a focused duplication
+  map identifies a small safe extraction
 
 Key docs:
 
