@@ -5067,6 +5067,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "operational_readiness_report" => Map.get(state, "operational_readiness_report"),
       "source_quality_gate_report" => Map.get(state, "source_quality_gate_report"),
       "quality_gate_report" => Map.get(state, "quality_gate_report"),
+      "source_operational_quality_gate_summary" =>
+        Map.get(state, "source_operational_quality_gate_summary"),
+      "operational_quality_gate_summary" => Map.get(state, "operational_quality_gate_summary"),
       "source_model_acceptance_report" => Map.get(state, "source_model_acceptance_report"),
       "model_acceptance_report" => Map.get(state, "model_acceptance_report"),
       "source_validation_safety_case_summary" =>
@@ -26815,6 +26818,37 @@ defmodule OrbitalDynamics.CampaignPlanner do
       mission_state_result_artifact_embedded_reports(mission_state, "quality_gate_report")
   end
 
+  defp mission_state_quality_gate_summary_reports(mission_state) do
+    mission_state = stringify_keys(mission_state || %{})
+
+    direct_reports =
+      [
+        {"source_operational_quality_gate_summary",
+         "mission_state.source_operational_quality_gate_summary"},
+        {"operational_quality_gate_summary", "mission_state.operational_quality_gate_summary"}
+      ]
+      |> Enum.flat_map(fn {field, source_path} ->
+        mission_state
+        |> Map.get(field)
+        |> mission_state_source_report_entries(source_path)
+      end)
+
+    direct_reports ++
+      mission_state_result_artifact_embedded_reports(
+        mission_state,
+        "source_operational_quality_gate_summary"
+      ) ++
+      mission_state_result_artifact_embedded_reports(
+        mission_state,
+        "operational_quality_gate_summary"
+      )
+  end
+
+  defp mission_state_quality_gate_pressure_sources(mission_state) do
+    mission_state_quality_gate_reports(mission_state) ++
+      mission_state_quality_gate_summary_reports(mission_state)
+  end
+
   defp mission_state_source_quality_gate_reports(mission_state) do
     mission_state_quality_gate_reports(mission_state, [
       {"source_quality_gate_report", "mission_state.source_quality_gate_report"}
@@ -26885,6 +26919,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "feedback_scope" => "quality_gate",
         "feedback_key" => row["gate_id"] || row["report_id"] || "quality_gate",
         "trust_boundary" => operator_review_trust_boundary(row),
+        "assumptions" => row["assumptions"],
         "source_quality_gate_row" => row["source_quality_gate_row"],
         "source_quality_gate_report" => row["source_quality_gate_report"]
       }
@@ -26910,7 +26945,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp derived_mission_state_quality_gate_pressure_branches(mission_state) do
     mission_state
-    |> mission_state_quality_gate_reports()
+    |> mission_state_quality_gate_pressure_sources()
     |> Enum.flat_map(fn {report, source_path} ->
       trust_boundary =
         Map.get(report, "trust_boundary") || get_in(report, ["provenance", "trust_boundary"])
@@ -26919,15 +26954,67 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> quality_gate_pressure_rows()
       |> Enum.with_index(1)
       |> Enum.flat_map(fn {row, index} ->
-        row_source =
-          row
-          |> Map.get("source", "quality_gate_report")
-          |> String.replace_prefix("quality_gate_report", source_path)
-
         row
         |> Map.put("_source_report_trust_boundary", trust_boundary)
-        |> quality_gate_pressure_branch(row_source, index)
+        |> quality_gate_pressure_branch(quality_gate_pressure_row_source(row, source_path), index)
       end)
+    end)
+  end
+
+  defp quality_gate_pressure_row_source(row, source_path) do
+    row_source = Map.get(row, "source", "quality_gate_report")
+
+    cond do
+      String.starts_with?(row_source, "quality_gate_report") ->
+        String.replace_prefix(row_source, "quality_gate_report", source_path)
+
+      String.starts_with?(row_source, "operational_quality_gate_summary") ->
+        String.replace_prefix(row_source, "operational_quality_gate_summary", source_path)
+
+      true ->
+        source_path
+    end
+  end
+
+  defp quality_gate_pressure_rows(
+         %{"schema_contract" => "operational_quality_gate_summary.v1"} = summary
+       ) do
+    summary = stringify_keys(summary)
+
+    rows =
+      (Map.get(summary, "non_passed_rows") || Map.get(summary, "rows", []))
+      |> List.wrap()
+      |> Enum.map(&stringify_keys/1)
+
+    rows
+    |> Enum.map(fn row ->
+      %{
+        "source" => "operational_quality_gate_summary.non_passed_rows",
+        "report_id" => summary["source_quality_gate_report_id"],
+        "source_artifact_type" => summary["source_artifact_type"],
+        "source_artifact_id" => summary["source_artifact_id"],
+        "source_readiness_report_id" => summary["source_readiness_report_id"],
+        "readiness_level" => summary["readiness_level"],
+        "import_classification" => summary["import_classification"],
+        "quality_gate_status" => summary["status"],
+        "gate_count" => summary["gate_count"],
+        "passed_gate_count" => summary["passed_gate_count"],
+        "review_gate_count" => summary["review_gate_count"],
+        "analysis_gate_count" => summary["analysis_gate_count"],
+        "blocked_gate_count" => summary["blocked_gate_count"],
+        "gate_id" => row["gate_id"],
+        "gate_status" => row["status"],
+        "gate_classification" => row["classification"],
+        "gate_reason" => row["reason"],
+        "analysis_mode" => row["analysis_mode"],
+        "analysis_mode_source" => row["analysis_mode_source"],
+        "assumptions" => summary["assumptions"],
+        "source_quality_gate_row" => row,
+        "source_quality_gate_report" => summary
+      }
+      |> Map.merge(operational_readiness_operator_training_context(row))
+      |> Map.merge(quality_gate_resource_context(row))
+      |> compact_map()
     end)
   end
 

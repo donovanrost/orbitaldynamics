@@ -41220,6 +41220,210 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives branch refresh from mission-state quality gate summaries" do
+    quality_gate_summary = fn prefix, status, classification ->
+      gate_row_id = "quality_gate:#{prefix}:resource_availability:1"
+      gate_id = "resource_availability"
+
+      non_passed_row = %{
+        "id" => gate_row_id,
+        "rank" => 1,
+        "gate_id" => gate_id,
+        "status" => status,
+        "classification" => classification,
+        "reason" => "#{prefix} resource availability requires review",
+        "resource_availability_pressure_count" => 1,
+        "resource_availability_reason_counts" => %{"payload_unavailable" => 1},
+        "resource_availability_reason_ids" => ["payload_unavailable"],
+        "unavailable_resource_reason_ids" => ["payload_unavailable"],
+        "resource_blocking_dimension_counts" => %{"payload" => 1}
+      }
+
+      execution_boundary =
+        case classification do
+          "blocked" -> "blocked_not_for_import_or_execution"
+          "analysis_only" -> "analysis_only_not_for_execution"
+          "review_only" -> "operator_review_required_before_import"
+        end
+
+      %{
+        "schema_contract" => "operational_quality_gate_summary.v1",
+        "model" => "artifact_only_quality_gate_summary",
+        "source" => "quality_gate_report.v1",
+        "source_artifact_type" => "resource_projection_report.v1",
+        "source_artifact_id" => "#{prefix}_resource_projection",
+        "source_quality_gate_report_id" => "quality_gate:#{prefix}",
+        "source_readiness_report_id" => "operational_readiness:#{prefix}",
+        "readiness_level" =>
+          case classification do
+            "blocked" -> "blocked"
+            "analysis_only" -> "analysis_only"
+            "review_only" -> "operator_review"
+          end,
+        "import_classification" => classification,
+        "status" => status,
+        "handoff_only" => true,
+        "gate_count" => 1,
+        "passed_gate_count" => 0,
+        "review_gate_count" => if(status == "review_required", do: 1, else: 0),
+        "analysis_gate_count" => if(status == "analysis_only", do: 1, else: 0),
+        "blocked_gate_count" => if(status == "blocked", do: 1, else: 0),
+        "non_passed_gate_count" => 1,
+        "gate_status_counts" => %{status => 1},
+        "gate_classification_counts" => %{classification => 1},
+        "gate_ids_by_status" => %{status => [gate_id]},
+        "gate_ids_by_classification" => %{classification => [gate_id]},
+        "quality_gate_row_ids_by_status" => %{status => [gate_row_id]},
+        "quality_gate_row_ids_by_classification" => %{classification => [gate_row_id]},
+        "passed_gate_ids" => [],
+        "review_required_gate_ids" => if(status == "review_required", do: [gate_id], else: []),
+        "analysis_only_gate_ids" => if(status == "analysis_only", do: [gate_id], else: []),
+        "blocked_gate_ids" => if(status == "blocked", do: [gate_id], else: []),
+        "non_passed_gate_ids" => [gate_id],
+        "non_passed_quality_gate_row_ids" => [gate_row_id],
+        "non_passed_rows" => [non_passed_row],
+        "rows" => [non_passed_row],
+        "execution_boundary" => execution_boundary,
+        "execution_allowed" => false,
+        "cadence_write_allowed" => false,
+        "operator_authority_granted" => false,
+        "assumptions" => %{
+          "execution_boundary" => "artifact_only_no_cadence_write",
+          "operator_authority" => "not_granted_by_quality_gate_summary",
+          "cadence_write" => "not_performed_by_summary",
+          "command_execution" => "not_performed_by_summary",
+          "source" => "quality_gate_report.v1"
+        },
+        "model_limits" => [
+          "quality_gate_summary_derives_classification_from_gate_rows",
+          "quality_gate_summary_does_not_approve_or_import"
+        ],
+        "provenance" => %{"trust_boundary" => "#{prefix}_quality_gate_summary_boundary"}
+      }
+    end
+
+    direct_summary = quality_gate_summary.("direct", "review_required", "review_only")
+    canonical_summary = quality_gate_summary.("canonical", "blocked", "blocked")
+    wrapped_summary = quality_gate_summary.("wrapped", "analysis_only", "analysis_only")
+
+    assert {:ok, %{"schema_contract" => "operational_quality_gate_summary.v1"}} =
+             Schema.validate_artifact(direct_summary)
+
+    assert {:ok, %{"schema_contract" => "operational_quality_gate_summary.v1"}} =
+             Schema.validate_artifact(canonical_summary)
+
+    assert {:ok, %{"schema_contract" => "operational_quality_gate_summary.v1"}} =
+             Schema.validate_artifact(wrapped_summary)
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put("source_operational_quality_gate_summary", direct_summary)
+      |> Map.put("operational_quality_gate_summary", canonical_summary)
+      |> Map.put("source_result_artifact", %{
+        "schema_contract" => "result_artifact.v1",
+        "artifact_type" => "mission_state_result_artifact",
+        "source_operational_quality_gate_summary" => Map.delete(wrapped_summary, "provenance"),
+        "provenance" => %{"trust_boundary" => "wrapped_quality_gate_summary_boundary"}
+      })
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    direct_branch =
+      Enum.find(artifact["branches"], fn branch ->
+        Enum.any?(
+          branch["events"] || [],
+          &(&1["type"] == "quality_gate_pressure" and
+              &1["source_artifact_id"] == "direct_resource_projection")
+        )
+      end)
+
+    assert direct_branch
+
+    assert %{
+             "type" => "quality_gate_pressure",
+             "source_artifact_type" => "resource_projection_report.v1",
+             "source_artifact_id" => "direct_resource_projection",
+             "source_readiness_report_id" => "operational_readiness:direct",
+             "readiness_level" => "operator_review",
+             "import_classification" => "review_only",
+             "quality_gate_status" => "review_required",
+             "gate_count" => 1,
+             "review_gate_count" => 1,
+             "gate_id" => "resource_availability",
+             "gate_status" => "review_required",
+             "gate_classification" => "review_only",
+             "gate_reason" => "direct resource availability requires review",
+             "resource_availability_pressure_count" => 1,
+             "resource_availability_reason_counts" => %{"payload_unavailable" => 1},
+             "resource_availability_reason_ids" => ["payload_unavailable"],
+             "unavailable_resource_reason_ids" => ["payload_unavailable"],
+             "resource_blocking_dimension_counts" => %{"payload" => 1},
+             "feedback_source" =>
+               "mission_state.source_operational_quality_gate_summary.non_passed_rows",
+             "feedback_scope" => "quality_gate",
+             "trust_boundary" => "direct_quality_gate_summary_boundary",
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_cadence_write",
+               "operator_authority" => "not_granted_by_quality_gate_summary",
+               "cadence_write" => "not_performed_by_summary",
+               "command_execution" => "not_performed_by_summary",
+               "source" => "quality_gate_report.v1"
+             },
+             "source_quality_gate_row" => %{"gate_id" => "resource_availability"},
+             "source_quality_gate_report" => %{
+               "schema_contract" => "operational_quality_gate_summary.v1"
+             }
+           } = List.first(direct_branch["events"])
+
+    assert Enum.any?(
+             direct_branch["risk_indicators"],
+             &(&1["type"] == "quality_gate_pressure" and
+                 &1["source_artifact_id"] == "direct_resource_projection")
+           )
+
+    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+
+    comparison_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == direct_branch["branch_id"]))
+
+    assert "quality_gate_pressure" in comparison_row["risk_types"]
+
+    assert comparison_row["branch_feedback_sources"] == [
+             "mission_state.source_operational_quality_gate_summary.non_passed_rows"
+           ]
+
+    assert Enum.any?(artifact["branches"], fn branch ->
+             Enum.any?(
+               branch["events"] || [],
+               &(&1["type"] == "quality_gate_pressure" and
+                   &1["source_artifact_id"] == "canonical_resource_projection")
+             )
+           end)
+
+    assert Enum.any?(artifact["branches"], fn branch ->
+             Enum.any?(
+               branch["events"] || [],
+               &(&1["type"] == "quality_gate_pressure" and
+                   &1["source_artifact_id"] == "wrapped_resource_projection")
+             )
+           end)
+
+    assert "mission_state.source_operational_quality_gate_summary" in get_in(
+             direct_branch,
+             ["assumptions", "candidate_source", "source_report_input_paths"]
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy preserves operator-training readiness gate context in branch events" do
     readiness_report =
       %{
