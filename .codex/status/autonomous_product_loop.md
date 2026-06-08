@@ -5,60 +5,63 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Transition application selected-activity evidence drift guard.
+Quality-gate resource availability source-row drift guard.
 
 Status:
-Implemented and parent-verified. Timeline transition-application schema
-validation now rejects stale copied `selected_*` timeline-integrity fields on
-application rows when they diverge from the embedded `selected_activity`
-evidence that will be routed to review/import handoffs.
+Implemented and parent-verified. Schema validation now rejects stale embedded
+`source_quality_gate_row` resource/station availability evidence on
+quality-gate review/import handoff rows when it diverges from the copied
+handoff fields. This closes a handoff gap where unavailable resource and
+station-availability routing summaries could drift after quality-gate rows were
+lifted into operator-review or Cadence-import artifacts.
 
 Files changed:
 - `lib/orbital_dynamics/schema.ex`
-- `test/orbital_dynamics/timeline_test.exs`
+- `test/orbital_dynamics/operator_review_test.exs`
+- `test/orbital_dynamics/cadence_import_test.exs`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/timeline_test.exs:8565 test/orbital_dynamics/timeline_test.exs:8845`
-- `mix test test/orbital_dynamics/timeline_test.exs`
+- `mix test test/orbital_dynamics/operator_review_test.exs test/orbital_dynamics/cadence_import_test.exs`
+- `mix test test/orbital_dynamics/schema_test.exs`
 - `git diff --check`
-- `mix test` (3222 passed)
+- `mix test` (3222 passed; known `:propagator_exit` test log observed and suite exited green)
 
 Docs/artifacts changed:
-- No public docs/artifacts changed; this tightens executable schema validation
-  for existing transition-application handoff fields.
+- No public docs or schema exports changed; this tightens executable validation
+  for existing quality-gate resource/station handoff fields.
 
 Level 6 pillar advanced:
-Typed operational timeline semantics and approval-aware automation boundaries.
-Transition-application review/import rows can no longer carry stale selected
-dependency/exclusivity integrity evidence that disagrees with the embedded
-selected activity.
+Fleet-level resource/contact allocation and approval-aware quality-gate import
+readiness. Operator-review and Cadence-import rows can no longer carry stale
+unavailable-resource or station-availability summaries that disagree with the
+embedded source quality-gate row.
 
 Remaining maturity gaps:
-Typed activity/timeline semantics still need deeper Level 6 slices around
-dependency/exclusivity enforcement surfaces and lifecycle transition reporting.
-Resource/contact allocation behavior still needs deeper planner and
-quality-gate use beyond artifact handoff surfaces.
+Resource/contact allocation behavior still needs deeper planner use beyond
+artifact handoff validation, especially provider-calendar reservation and
+capacity pressure applied to candidate selection. Typed timeline lifecycle and
+publication semantics still need additional Level 6 hardening.
 
 Last commit:
-`6f3b981` Validate transition selected activity evidence.
+`003073f` Validate quality gate resource handoff evidence.
 
 Next candidate:
-After publishing this handoff, reassess Level 6 gaps from the guide/ledger.
-Likely next candidates include the next typed timeline lifecycle hardening
-slice or a resource/contact allocation behavior slice from the guide.
+Reassess Level 6 gaps from the guide/ledger. Likely next candidates include a
+planner-visible contact-allocation/provider-calendar behavior slice or another
+typed timeline lifecycle/publication hardening slice.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 
 Previous published slice:
-- `efd2aa9` refreshed study schema validation artifacts.
+- `f9c215e` updated the transition evidence handoff.
+- `6f3b981` validated transition selected activity evidence.
 - `e135525` updated the study artifact freshness handoff.
-- `0a485e9` validated timeline-integrity evidence lists.
+- `efd2aa9` refreshed study schema validation artifacts.
 - `f64e377` updated the timeline-integrity validation handoff.
-- `1a756c1` preserved station-pressure routing in review/import artifacts.
-- `5af0b37` updated the station-pressure handoff status.
+- `0a485e9` validated timeline-integrity evidence lists.
 
 Blocked:
 No.
