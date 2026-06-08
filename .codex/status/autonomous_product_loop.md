@@ -8,10 +8,9 @@ Current slice:
 Nested CandidateRefresh timeline-preservation review/import handoff.
 
 Status:
-Implementation, focused verification, and read-only `slice_reviewer` handoff
-complete. CandidateRefresh accepted-planning-state and mission-state nested
-timeline-preservation report/status artifacts now project into OperatorReview
-`timeline_preservation_review` rows and CadenceImport
+Product commit complete. CandidateRefresh accepted-planning-state and
+mission-state nested timeline-preservation report/status artifacts now project
+into OperatorReview `timeline_preservation_review` rows and CadenceImport
 `review_timeline_preservation` rows. Covered nested families:
 `source_timeline_preservation_report`, `timeline_preservation_report`,
 `source_timeline_preservation_status`, and
@@ -47,12 +46,12 @@ preserve routing evidence that review/import or CandidateRefresh replay still
 does not consume.
 
 Last commit:
-Previous committed handoff `a06f12d Record nested activity state review slice`.
-Current slice is not committed yet.
+Product commit `0d8c25355ff5b4f2f02adff8c79e1335b85435ab`.
 
 Next candidate:
-Commit the current slice, then reassess the next weak
-CandidateRefresh/OperatorReview/CadenceImport handoff.
+Reassess the remaining summary-contract coverage map after nested preservation
+projection and pick the next weak CandidateRefresh/OperatorReview/CadenceImport
+handoff.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
