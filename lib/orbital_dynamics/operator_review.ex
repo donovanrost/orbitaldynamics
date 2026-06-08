@@ -10904,6 +10904,270 @@ defmodule OrbitalDynamics.OperatorReview do
     end)
   end
 
+  defp quality_gate_import_readiness_summary?(%{} = summary) do
+    schema_contract = summary["schema_contract"] || summary[:schema_contract]
+    model = summary["model"] || summary[:model]
+
+    schema_contract in [nil, "operational_quality_gate_import_readiness_summary.v1"] and
+      model == "artifact_only_quality_gate_import_readiness_summary"
+  end
+
+  defp quality_gate_import_readiness_summary?(_summary), do: false
+
+  defp quality_gate_report_from_import_readiness_summary(%{} = summary) do
+    summary = stringify_keys(summary)
+    row_ids_by_status = Map.get(summary, "quality_gate_row_ids_by_status") || %{}
+    status = quality_gate_import_readiness_status(summary)
+    classification = quality_gate_import_readiness_classification(status)
+
+    %{
+      "schema_contract" => "quality_gate_report.v1",
+      "model" => "preserved_operational_quality_gate_import_readiness_summary",
+      "report_id" =>
+        summary["source_quality_gate_report_id"] ||
+          summary["source_artifact_id"] ||
+          "quality_gate:import_readiness_summary",
+      "source" => summary["source"],
+      "source_summary_model" => summary["model"],
+      "source_summary_schema_contract" => summary["schema_contract"],
+      "source_artifact_type" => summary["source_artifact_type"],
+      "source_artifact_id" => summary["source_artifact_id"],
+      "source_readiness_report_id" => summary["source_readiness_report_id"],
+      "readiness_level" => quality_gate_import_readiness_level(classification),
+      "import_classification" => classification,
+      "status" => status,
+      "gate_count" => quality_gate_import_readiness_row_count(summary, row_ids_by_status),
+      "passed_gate_count" =>
+        length(quality_gate_import_readiness_row_ids(row_ids_by_status, summary, "passed")),
+      "review_gate_count" =>
+        length(
+          quality_gate_import_readiness_row_ids(row_ids_by_status, summary, "review_required")
+        ),
+      "analysis_gate_count" =>
+        length(quality_gate_import_readiness_row_ids(row_ids_by_status, summary, "analysis_only")),
+      "blocked_gate_count" =>
+        length(quality_gate_import_readiness_row_ids(row_ids_by_status, summary, "blocked")),
+      "gate_status_counts" => quality_gate_import_readiness_status_counts(row_ids_by_status),
+      "gate_classification_counts" =>
+        quality_gate_import_readiness_classification_counts(row_ids_by_status),
+      "gate_ids_by_status" => summary["quality_gate_ids_by_status"],
+      "quality_gate_row_ids_by_status" => row_ids_by_status,
+      "passed_gate_ids" => quality_gate_import_readiness_gate_ids(summary, "passed"),
+      "review_required_gate_ids" =>
+        quality_gate_import_readiness_gate_ids(summary, "review_required"),
+      "analysis_only_gate_ids" =>
+        quality_gate_import_readiness_gate_ids(summary, "analysis_only"),
+      "blocked_gate_ids" => quality_gate_import_readiness_gate_ids(summary, "blocked"),
+      "assumptions" => summary["assumptions"],
+      "rows" => quality_gate_import_readiness_rows(summary, row_ids_by_status)
+    }
+    |> compact_map()
+  end
+
+  defp quality_gate_import_readiness_rows(summary, row_ids_by_status) do
+    ["review_required", "analysis_only", "blocked"]
+    |> Enum.flat_map(fn status ->
+      row_ids = quality_gate_import_readiness_row_ids(row_ids_by_status, summary, status)
+      gate_ids = quality_gate_import_readiness_gate_ids(summary, status)
+
+      row_ids
+      |> Enum.with_index()
+      |> Enum.map(fn {row_id, index} ->
+        gate_id =
+          Enum.at(gate_ids, index) || List.first(summary["import_readiness_gate_ids"] || [])
+
+        gate_id = gate_id || "cadence_import"
+
+        %{
+          "id" => row_id,
+          "gate_id" => gate_id,
+          "status" => status,
+          "classification" => quality_gate_import_readiness_classification(status),
+          "reason" => quality_gate_import_readiness_reason(status),
+          "source_summary_schema_contract" => summary["schema_contract"],
+          "source_summary_model" => summary["model"]
+        }
+        |> Map.merge(quality_gate_import_readiness_row_context(summary, gate_id))
+        |> compact_map()
+      end)
+    end)
+  end
+
+  defp quality_gate_import_readiness_row_context(summary, "cadence_import") do
+    Map.take(summary, [
+      "ready_for_import_count",
+      "manifest_review_required_count",
+      "blocked_import_count",
+      "missing_import_count",
+      "invalid_cadence_import_count",
+      "current_freshness_count",
+      "stale_freshness_count",
+      "unknown_freshness_count",
+      "freshness_status_counts",
+      "schema_validation_pass_count",
+      "schema_validation_fail_count",
+      "schema_validation_error_count",
+      "schema_validation_warning_count",
+      "schema_validation_remediation_count",
+      "schema_validation_status_counts",
+      "import_status_counts",
+      "cadence_import_status_counts"
+    ])
+  end
+
+  defp quality_gate_import_readiness_row_context(_summary, _gate_id), do: %{}
+
+  defp quality_gate_import_readiness_status(%{} = summary) do
+    case quality_gate_import_readiness_status_from_row_ids(
+           summary["quality_gate_row_ids_by_status"]
+         ) do
+      nil -> quality_gate_import_readiness_status_from_summary(summary)
+      status -> status
+    end
+  end
+
+  defp quality_gate_import_readiness_status_from_summary(%{} = summary) do
+    cond do
+      quality_gate_import_readiness_values(summary["blocked_quality_gate_row_ids"]) != [] or
+        positive_report_count?(summary, "blocked_import_count") or
+          positive_report_count?(summary, "invalid_cadence_import_count") ->
+        "blocked"
+
+      quality_gate_import_readiness_values(summary["analysis_only_quality_gate_row_ids"]) != [] ->
+        "analysis_only"
+
+      quality_gate_import_readiness_values(summary["review_required_quality_gate_row_ids"]) != [] or
+        quality_gate_import_readiness_values(
+          summary["stale_or_unknown_freshness_quality_gate_row_ids"]
+        ) != [] or
+        quality_gate_import_readiness_values(summary["import_preparation_quality_gate_row_ids"]) !=
+          [] or
+        positive_report_count?(summary, "manifest_review_required_count") or
+        positive_report_count?(summary, "stale_freshness_count") or
+          positive_report_count?(summary, "unknown_freshness_count") ->
+        "review_required"
+
+      true ->
+        "passed"
+    end
+  end
+
+  defp quality_gate_import_readiness_status_from_row_ids(%{} = row_ids_by_status) do
+    cond do
+      quality_gate_summary_values(row_ids_by_status, "blocked") != [] -> "blocked"
+      quality_gate_summary_values(row_ids_by_status, "analysis_only") != [] -> "analysis_only"
+      quality_gate_summary_values(row_ids_by_status, "review_required") != [] -> "review_required"
+      true -> "passed"
+    end
+  end
+
+  defp quality_gate_import_readiness_status_from_row_ids(_row_ids_by_status), do: nil
+
+  defp quality_gate_import_readiness_row_ids(%{} = row_ids_by_status, _summary, status) do
+    quality_gate_summary_values(row_ids_by_status, status)
+  end
+
+  defp quality_gate_import_readiness_row_ids(_row_ids_by_status, summary, "passed"),
+    do: quality_gate_import_readiness_values(summary["ready_quality_gate_row_ids"])
+
+  defp quality_gate_import_readiness_row_ids(_row_ids_by_status, summary, "review_required"),
+    do: quality_gate_import_readiness_values(summary["review_required_quality_gate_row_ids"])
+
+  defp quality_gate_import_readiness_row_ids(_row_ids_by_status, summary, "analysis_only"),
+    do: quality_gate_import_readiness_values(summary["analysis_only_quality_gate_row_ids"])
+
+  defp quality_gate_import_readiness_row_ids(_row_ids_by_status, summary, "blocked"),
+    do: quality_gate_import_readiness_values(summary["blocked_quality_gate_row_ids"])
+
+  defp quality_gate_import_readiness_row_count(_summary, %{} = row_ids_by_status) do
+    row_ids_by_status
+    |> Map.values()
+    |> Enum.flat_map(&quality_gate_import_readiness_values/1)
+    |> length()
+  end
+
+  defp quality_gate_import_readiness_row_count(summary, _row_ids_by_status),
+    do: summary["import_readiness_row_count"] || summary["gate_count"]
+
+  defp quality_gate_import_readiness_gate_ids(summary, status) do
+    case quality_gate_summary_values(summary["quality_gate_ids_by_status"], status) do
+      [] ->
+        if quality_gate_import_readiness_row_ids(
+             summary["quality_gate_row_ids_by_status"],
+             summary,
+             status
+           ) == [] do
+          []
+        else
+          summary["import_readiness_gate_ids"] || []
+        end
+
+      gate_ids ->
+        gate_ids
+    end
+  end
+
+  defp quality_gate_import_readiness_status_counts(%{} = row_ids_by_status) do
+    row_ids_by_status
+    |> Enum.map(fn {status, row_ids} ->
+      {to_string(status), length(quality_gate_import_readiness_values(row_ids))}
+    end)
+    |> Enum.reject(fn {_status, count} -> count == 0 end)
+    |> Map.new()
+  end
+
+  defp quality_gate_import_readiness_status_counts(_row_ids_by_status), do: %{}
+
+  defp quality_gate_import_readiness_classification_counts(%{} = row_ids_by_status) do
+    row_ids_by_status
+    |> Enum.reduce(%{}, fn {status, row_ids}, counts ->
+      classification = quality_gate_import_readiness_classification(to_string(status))
+      count = length(quality_gate_import_readiness_values(row_ids))
+      Map.update(counts, classification, count, &(&1 + count))
+    end)
+    |> Enum.reject(fn {_classification, count} -> count == 0 end)
+    |> Map.new()
+  end
+
+  defp quality_gate_import_readiness_classification_counts(_row_ids_by_status), do: %{}
+
+  defp quality_gate_import_readiness_classification("blocked"), do: "blocked"
+  defp quality_gate_import_readiness_classification("analysis_only"), do: "analysis_only"
+  defp quality_gate_import_readiness_classification("review_required"), do: "review_only"
+  defp quality_gate_import_readiness_classification(_status), do: "importable"
+
+  defp quality_gate_import_readiness_level("blocked"), do: "blocked"
+  defp quality_gate_import_readiness_level("analysis_only"), do: "analysis_only"
+  defp quality_gate_import_readiness_level("review_only"), do: "operator_review"
+  defp quality_gate_import_readiness_level(_classification), do: "import_eligible"
+
+  defp quality_gate_import_readiness_reason("blocked"),
+    do: "quality gate import readiness is blocked"
+
+  defp quality_gate_import_readiness_reason("analysis_only"),
+    do: "quality gate import readiness is analysis-only"
+
+  defp quality_gate_import_readiness_reason(_status),
+    do: "quality gate import readiness requires review"
+
+  defp quality_gate_summary_values(%{} = values_by_key, key) do
+    values_by_key
+    |> Map.get(key, Map.get(values_by_key, String.to_atom(key), []))
+    |> quality_gate_import_readiness_values()
+  end
+
+  defp quality_gate_summary_values(_values_by_key, _key), do: []
+
+  defp quality_gate_import_readiness_values(values) when is_list(values), do: values
+  defp quality_gate_import_readiness_values(_values), do: []
+
+  defp positive_report_count?(summary, field) do
+    case numeric_or_nil(summary[field]) do
+      nil -> false
+      value -> value > 0
+    end
+  end
+
   defp quality_gate_reviewable_row?(%{} = row),
     do: (row["status"] || row["classification"]) not in [nil, "passed", "importable"]
 
@@ -12992,8 +13256,40 @@ defmodule OrbitalDynamics.OperatorReview do
   defp candidate_refresh_quality_gate_rows(artifact) do
     direct_rows =
       [
+        {"candidate_refresh.accepted_planning_state.source_quality_gate_report",
+         get_in(artifact, ["accepted_planning_state", "source_quality_gate_report"])},
+        {"candidate_refresh.accepted_planning_state.quality_gate_report",
+         get_in(artifact, ["accepted_planning_state", "quality_gate_report"])},
+        {"candidate_refresh.accepted_planning_state.source_operational_quality_gate_import_readiness_summary",
+         get_in(artifact, [
+           "accepted_planning_state",
+           "source_operational_quality_gate_import_readiness_summary"
+         ])},
+        {"candidate_refresh.accepted_planning_state.operational_quality_gate_import_readiness_summary",
+         get_in(artifact, [
+           "accepted_planning_state",
+           "operational_quality_gate_import_readiness_summary"
+         ])},
+        {"candidate_refresh.mission_state.source_quality_gate_report",
+         get_in(artifact, ["mission_state", "source_quality_gate_report"])},
+        {"candidate_refresh.mission_state.quality_gate_report",
+         get_in(artifact, ["mission_state", "quality_gate_report"])},
+        {"candidate_refresh.mission_state.source_operational_quality_gate_import_readiness_summary",
+         get_in(artifact, [
+           "mission_state",
+           "source_operational_quality_gate_import_readiness_summary"
+         ])},
+        {"candidate_refresh.mission_state.operational_quality_gate_import_readiness_summary",
+         get_in(artifact, [
+           "mission_state",
+           "operational_quality_gate_import_readiness_summary"
+         ])},
         {"candidate_refresh.source_quality_gate_report", artifact["source_quality_gate_report"]},
-        {"candidate_refresh.quality_gate_report", artifact["quality_gate_report"]}
+        {"candidate_refresh.quality_gate_report", artifact["quality_gate_report"]},
+        {"candidate_refresh.source_operational_quality_gate_import_readiness_summary",
+         artifact["source_operational_quality_gate_import_readiness_summary"]},
+        {"candidate_refresh.operational_quality_gate_import_readiness_summary",
+         artifact["operational_quality_gate_import_readiness_summary"]}
       ]
       |> Enum.flat_map(fn {source, report_or_reports} ->
         source_quality_gate_report_rows(report_or_reports, source)
@@ -13011,9 +13307,15 @@ defmodule OrbitalDynamics.OperatorReview do
   end
 
   defp source_quality_gate_report_rows(%{} = report, source) do
-    report
-    |> stringify_keys()
-    |> quality_gate_rows("#{source}.rows")
+    report = stringify_keys(report)
+
+    if quality_gate_import_readiness_summary?(report) do
+      report
+      |> quality_gate_report_from_import_readiness_summary()
+      |> quality_gate_rows(source)
+    else
+      quality_gate_rows(report, "#{source}.rows")
+    end
   end
 
   defp source_quality_gate_report_rows(_report, _source), do: []
@@ -13048,7 +13350,11 @@ defmodule OrbitalDynamics.OperatorReview do
 
     [
       {"#{source}.source_quality_gate_report", artifact["source_quality_gate_report"]},
-      {"#{source}.quality_gate_report", artifact["quality_gate_report"]}
+      {"#{source}.quality_gate_report", artifact["quality_gate_report"]},
+      {"#{source}.source_operational_quality_gate_import_readiness_summary",
+       artifact["source_operational_quality_gate_import_readiness_summary"]},
+      {"#{source}.operational_quality_gate_import_readiness_summary",
+       artifact["operational_quality_gate_import_readiness_summary"]}
     ]
     |> Enum.flat_map(fn {report_source, report_or_reports} ->
       source_quality_gate_report_rows(report_or_reports, report_source)
