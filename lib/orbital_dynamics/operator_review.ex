@@ -1397,6 +1397,7 @@ defmodule OrbitalDynamics.OperatorReview do
          candidate_refresh_timeline_diff_rows(artifact) ++
          candidate_refresh_timeline_integrity_rows(artifact) ++
          candidate_refresh_timeline_dependency_impact_rows(artifact) ++
+         candidate_refresh_timeline_publication_rows(artifact) ++
          candidate_refresh_timeline_activity_precondition_rows(artifact) ++
          candidate_refresh_timeline_lifecycle_state_rows(artifact) ++
          candidate_refresh_timeline_activity_state_rows(artifact) ++
@@ -5224,6 +5225,77 @@ defmodule OrbitalDynamics.OperatorReview do
   end
 
   defp result_artifact_timeline_dependency_impact_rows(_artifact, _source), do: []
+
+  defp candidate_refresh_timeline_publication_rows(artifact) do
+    direct_rows =
+      [
+        {"candidate_refresh.source_timeline_publication_summary",
+         artifact["source_timeline_publication_summary"]},
+        {"candidate_refresh.timeline_publication_summary",
+         artifact["timeline_publication_summary"]}
+      ]
+      |> Enum.flat_map(fn {source, summary_or_summaries} ->
+        source_timeline_publication_summary_rows(summary_or_summaries, source)
+      end)
+
+    direct_rows ++ candidate_refresh_result_artifact_timeline_publication_rows(artifact)
+  end
+
+  defp source_timeline_publication_summary_rows(summaries, source) when is_list(summaries) do
+    summaries
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {summary, index} ->
+      source_timeline_publication_summary_rows(summary, "#{source}[#{index}]")
+    end)
+  end
+
+  defp source_timeline_publication_summary_rows(%{} = summary, source) do
+    summary
+    |> stringify_keys()
+    |> timeline_publication_rows(source)
+  end
+
+  defp source_timeline_publication_summary_rows(_summary, _source), do: []
+
+  defp candidate_refresh_result_artifact_timeline_publication_rows(artifact) do
+    [
+      {"candidate_refresh.source_result_artifact", artifact["source_result_artifact"]},
+      {"candidate_refresh.result_artifact", artifact["result_artifact"]}
+    ]
+    |> Enum.flat_map(fn {source, artifact_or_artifacts} ->
+      result_artifact_timeline_publication_rows(artifact_or_artifacts, source)
+    end)
+  end
+
+  defp result_artifact_timeline_publication_rows(artifacts, source) when is_list(artifacts) do
+    artifacts
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {artifact, index} ->
+      result_artifact_timeline_publication_rows(artifact, "#{source}[#{index}]")
+    end)
+  end
+
+  defp result_artifact_timeline_publication_rows(
+         %{"schema_contract" => "timeline_publication_summary.v1"} = summary,
+         source
+       ) do
+    source_timeline_publication_summary_rows(summary, source)
+  end
+
+  defp result_artifact_timeline_publication_rows(%{} = artifact, source) do
+    artifact = stringify_keys(artifact)
+
+    [
+      {"#{source}.source_timeline_publication_summary",
+       artifact["source_timeline_publication_summary"]},
+      {"#{source}.timeline_publication_summary", artifact["timeline_publication_summary"]}
+    ]
+    |> Enum.flat_map(fn {summary_source, summary_or_summaries} ->
+      source_timeline_publication_summary_rows(summary_or_summaries, summary_source)
+    end)
+  end
+
+  defp result_artifact_timeline_publication_rows(_artifact, _source), do: []
 
   defp candidate_refresh_timeline_activity_precondition_rows(artifact) do
     direct_rows =
