@@ -24934,6 +24934,10 @@ defmodule OrbitalDynamics.Schema do
           "dependency_timeline_id_counts",
           "exclusive_with_activity_id_counts",
           "exclusive_with_timeline_id_counts",
+          "duplicate_dependency_activity_id_counts",
+          "duplicate_dependency_timeline_id_counts",
+          "duplicate_exclusivity_activity_id_counts",
+          "duplicate_exclusivity_timeline_id_counts",
           "allow_overlap_counts"
         ],
         &{&1, non_negative_integer_count_map_json_schema()}
@@ -30564,6 +30568,10 @@ defmodule OrbitalDynamics.Schema do
           "dependency_timeline_id_counts",
           "exclusive_with_activity_id_counts",
           "exclusive_with_timeline_id_counts",
+          "duplicate_dependency_activity_id_counts",
+          "duplicate_dependency_timeline_id_counts",
+          "duplicate_exclusivity_activity_id_counts",
+          "duplicate_exclusivity_timeline_id_counts",
           "allow_overlap_counts"
         ],
         issues,
@@ -43736,6 +43744,14 @@ defmodule OrbitalDynamics.Schema do
     |> validate_optional_stable_id_list(path, summary, "exclusive_with_activity_ids")
     |> expect_optional_type(path, summary, "exclusive_with_timeline_ids", :list)
     |> validate_optional_stable_id_list(path, summary, "exclusive_with_timeline_ids")
+    |> expect_optional_type(path, summary, "duplicate_dependency_activity_ids", :list)
+    |> validate_optional_stable_id_list(path, summary, "duplicate_dependency_activity_ids")
+    |> expect_optional_type(path, summary, "duplicate_dependency_timeline_ids", :list)
+    |> validate_optional_stable_id_list(path, summary, "duplicate_dependency_timeline_ids")
+    |> expect_optional_type(path, summary, "duplicate_exclusivity_activity_ids", :list)
+    |> validate_optional_stable_id_list(path, summary, "duplicate_exclusivity_activity_ids")
+    |> expect_optional_type(path, summary, "duplicate_exclusivity_timeline_ids", :list)
+    |> validate_optional_stable_id_list(path, summary, "duplicate_exclusivity_timeline_ids")
     |> expect_optional_type(path, summary, "allow_overlap", :boolean)
     |> expect_optional_type(path, summary, "timeline_identity", :map)
     |> validate_optional_timeline_identity(path, summary, "timeline_identity")

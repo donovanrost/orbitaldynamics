@@ -1970,6 +1970,18 @@ defmodule OrbitalDynamics.Validation do
         "source_timeline_activity_precondition_exclusive_with_timeline_id_counts" => %{
           "timeline:dl_conflict" => 1
         },
+        "source_timeline_activity_precondition_duplicate_dependency_activity_id_counts" => %{
+          "obs_1" => 1
+        },
+        "source_timeline_activity_precondition_duplicate_dependency_timeline_id_counts" => %{
+          "timeline:health_check_1" => 1
+        },
+        "source_timeline_activity_precondition_duplicate_exclusivity_activity_id_counts" => %{
+          "dl_conflict" => 1
+        },
+        "source_timeline_activity_precondition_duplicate_exclusivity_timeline_id_counts" => %{
+          "timeline:dl_conflict" => 1
+        },
         "source_timeline_activity_precondition_allow_overlap_counts" => %{"true" => 1},
         "source_timeline_activity_precondition_trust_boundary_status" => "declared"
       },
@@ -14366,6 +14378,26 @@ defmodule OrbitalDynamics.Validation do
       "source_timeline_activity_precondition_exclusive_with_timeline_id_counts" =>
         Map.get(timeline_activity_precondition_summary, "exclusive_with_timeline_id_counts") ||
           %{},
+      "source_timeline_activity_precondition_duplicate_dependency_activity_id_counts" =>
+        Map.get(
+          timeline_activity_precondition_summary,
+          "duplicate_dependency_activity_id_counts"
+        ) || %{},
+      "source_timeline_activity_precondition_duplicate_dependency_timeline_id_counts" =>
+        Map.get(
+          timeline_activity_precondition_summary,
+          "duplicate_dependency_timeline_id_counts"
+        ) || %{},
+      "source_timeline_activity_precondition_duplicate_exclusivity_activity_id_counts" =>
+        Map.get(
+          timeline_activity_precondition_summary,
+          "duplicate_exclusivity_activity_id_counts"
+        ) || %{},
+      "source_timeline_activity_precondition_duplicate_exclusivity_timeline_id_counts" =>
+        Map.get(
+          timeline_activity_precondition_summary,
+          "duplicate_exclusivity_timeline_id_counts"
+        ) || %{},
       "source_timeline_activity_precondition_allow_overlap_counts" =>
         Map.get(timeline_activity_precondition_summary, "allow_overlap_counts") || %{},
       "source_timeline_activity_precondition_trust_boundary_status" =>

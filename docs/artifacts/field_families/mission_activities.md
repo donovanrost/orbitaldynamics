@@ -95,9 +95,9 @@ Those compact precondition summaries now route through
 `OrbitalDynamics.cadence_import_manifest/1` as
 `timeline_activity_precondition_review` handoffs. Review/import rows preserve
 the summary precondition status, counts, typed rows, dependency/exclusivity
-arrays, `allow_overlap`, invalid-input evidence, and the source summary whether
-the artifact is accepted directly or through CandidateRefresh direct/result
-artifact wrappers.
+arrays, duplicate dependency/exclusivity evidence, `allow_overlap`,
+invalid-input evidence, and the source summary whether the artifact is accepted
+directly or through CandidateRefresh direct/result artifact wrappers.
 Operational timeline review/import handoffs also preserve row-derived
 precondition status, counts, type arrays, and typed precondition rows from the
 source operational timeline row; schema validation rejects stale copied

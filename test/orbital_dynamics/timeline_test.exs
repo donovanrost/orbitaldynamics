@@ -5901,13 +5901,17 @@ defmodule OrbitalDynamics.TimelineTest do
       },
       dependencies: [
         :obs_1,
+        :obs_1,
         %{activity_id: :health_check_1, timeline_id: :"timeline:health_check_1"}
       ],
       allow_overlap: true,
       metadata: %{
         antenna_available: 1,
         timeline_id: :"timeline:cmd_source",
-        exclusive_with: [%{id: :dl_conflict, timeline_id: :"timeline:dl_conflict"}]
+        exclusive_with: [
+          %{id: :dl_conflict, timeline_id: :"timeline:dl_conflict"},
+          %{id: :dl_conflict, timeline_id: :"timeline:dl_conflict"}
+        ]
       }
     }
 
@@ -5973,6 +5977,7 @@ defmodule OrbitalDynamics.TimelineTest do
              },
              "dependencies" => [
                "obs_1",
+               "obs_1",
                %{
                  "activity_id" => "health_check_1",
                  "timeline_id" => "timeline:health_check_1"
@@ -5982,6 +5987,9 @@ defmodule OrbitalDynamics.TimelineTest do
              "dependency_timeline_ids" => ["timeline:health_check_1"],
              "exclusive_with_activity_ids" => ["dl_conflict"],
              "exclusive_with_timeline_ids" => ["timeline:dl_conflict"],
+             "duplicate_dependency_activity_ids" => ["obs_1"],
+             "duplicate_exclusivity_activity_ids" => ["dl_conflict"],
+             "duplicate_exclusivity_timeline_ids" => ["timeline:dl_conflict"],
              "allow_overlap" => true,
              "timeline_identity" => %{
                "timeline_id" => "timeline:cmd_source",
@@ -6085,6 +6093,9 @@ defmodule OrbitalDynamics.TimelineTest do
              "dependency_timeline_ids" => ["timeline:health_check_1"],
              "exclusive_with_activity_ids" => ["dl_conflict"],
              "exclusive_with_timeline_ids" => ["timeline:dl_conflict"],
+             "duplicate_dependency_activity_ids" => ["obs_1"],
+             "duplicate_exclusivity_activity_ids" => ["dl_conflict"],
+             "duplicate_exclusivity_timeline_ids" => ["timeline:dl_conflict"],
              "allow_overlap" => true,
              "timeline_identity" => %{
                "timeline_id" => "timeline:cmd_source",
@@ -6106,6 +6117,17 @@ defmodule OrbitalDynamics.TimelineTest do
 
     assert {:ok, %{"schema_contract" => "timeline_activity_precondition_summary.v1"}} =
              Schema.validate_artifact(precondition_summary)
+
+    invalid_duplicate_id =
+      Map.put(precondition_summary, "duplicate_dependency_activity_ids", ["bad dependency id"])
+
+    assert {:error, invalid_duplicate_id_validation} =
+             Schema.validate_artifact(invalid_duplicate_id)
+
+    assert Enum.any?(
+             invalid_duplicate_id_validation["errors"],
+             &(&1["path"] == "$.duplicate_dependency_activity_ids[0]")
+           )
 
     assert %{
              "schema_contract" => "timeline_activity_precondition_summary.v1",

@@ -2988,10 +2988,10 @@ defmodule OrbitalDynamics.OperatorReviewTest do
       payload_available: false,
       degraded: true,
       resource_blocking_dimension: :power,
-      dependency_activity_ids: [:health_check_1, :obs_1],
-      dependency_timeline_ids: [:"timeline:health_check_1"],
-      exclusive_with_activity_ids: [:dl_conflict],
-      exclusive_with_timeline_ids: [:"timeline:dl_conflict"],
+      dependency_activity_ids: [:health_check_1, :obs_1, :obs_1],
+      dependency_timeline_ids: [:"timeline:health_check_1", :"timeline:health_check_1"],
+      exclusive_with_activity_ids: [:dl_conflict, :dl_conflict],
+      exclusive_with_timeline_ids: [:"timeline:dl_conflict", :"timeline:dl_conflict"],
       allow_overlap: true,
       metadata: %{timeline_id: :"timeline:cmd_preflight"}
     }
@@ -3033,6 +3033,10 @@ defmodule OrbitalDynamics.OperatorReviewTest do
                "dependency_timeline_ids" => ["timeline:health_check_1"],
                "exclusive_with_activity_ids" => ["dl_conflict"],
                "exclusive_with_timeline_ids" => ["timeline:dl_conflict"],
+               "duplicate_dependency_activity_ids" => ["obs_1"],
+               "duplicate_dependency_timeline_ids" => ["timeline:health_check_1"],
+               "duplicate_exclusivity_activity_ids" => ["dl_conflict"],
+               "duplicate_exclusivity_timeline_ids" => ["timeline:dl_conflict"],
                "allow_overlap" => true,
                "required_operator_action" => "review_blocked_activity_precondition",
                "approval_status" => "operator_review_required",
@@ -3040,6 +3044,8 @@ defmodule OrbitalDynamics.OperatorReviewTest do
                "source_timeline_activity_precondition_summary" => %{
                  "schema_contract" => "timeline_activity_precondition_summary.v1",
                  "precondition_status" => "blocked",
+                 "duplicate_dependency_activity_ids" => ["obs_1"],
+                 "duplicate_exclusivity_activity_ids" => ["dl_conflict"],
                  "allow_overlap" => true
                }
              }

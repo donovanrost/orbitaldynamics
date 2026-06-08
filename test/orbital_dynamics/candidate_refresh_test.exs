@@ -25052,10 +25052,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
         payload_available: false,
         degraded: true,
         resource_blocking_dimension: :power,
-        dependency_activity_ids: [:health_check_1, :obs_1],
-        dependency_timeline_ids: [:"timeline:health_check_1"],
-        exclusive_with_activity_ids: [:dl_conflict],
-        exclusive_with_timeline_ids: [:"timeline:dl_conflict"],
+        dependency_activity_ids: [:health_check_1, :obs_1, :obs_1],
+        dependency_timeline_ids: [:"timeline:health_check_1", :"timeline:health_check_1"],
+        exclusive_with_activity_ids: [:dl_conflict, :dl_conflict],
+        exclusive_with_timeline_ids: [:"timeline:dl_conflict", :"timeline:dl_conflict"],
         allow_overlap: true,
         metadata: %{timeline_id: :"timeline:cmd_preflight"}
       })
@@ -25147,6 +25147,22 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                %{
                  "timeline:dl_conflict" => 3
                },
+             "source_report_timeline_activity_precondition_duplicate_dependency_activity_id_counts" =>
+               %{
+                 "obs_1" => 3
+               },
+             "source_report_timeline_activity_precondition_duplicate_dependency_timeline_id_counts" =>
+               %{
+                 "timeline:health_check_1" => 3
+               },
+             "source_report_timeline_activity_precondition_duplicate_exclusivity_activity_id_counts" =>
+               %{
+                 "dl_conflict" => 3
+               },
+             "source_report_timeline_activity_precondition_duplicate_exclusivity_timeline_id_counts" =>
+               %{
+                 "timeline:dl_conflict" => 3
+               },
              "source_report_timeline_activity_precondition_allow_overlap_counts" => %{"true" => 3},
              "source_report_timeline_activity_precondition_branch_local_timeline_activity_precondition_pressure" =>
                true,
@@ -25185,6 +25201,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                  "dependency_timeline_id_counts" => %{"timeline:health_check_1" => 3},
                  "exclusive_with_activity_id_counts" => %{"dl_conflict" => 3},
                  "exclusive_with_timeline_id_counts" => %{"timeline:dl_conflict" => 3},
+                 "duplicate_dependency_activity_id_counts" => %{"obs_1" => 3},
+                 "duplicate_dependency_timeline_id_counts" => %{"timeline:health_check_1" => 3},
+                 "duplicate_exclusivity_activity_id_counts" => %{"dl_conflict" => 3},
+                 "duplicate_exclusivity_timeline_id_counts" => %{"timeline:dl_conflict" => 3},
                  "allow_overlap_counts" => %{"true" => 3},
                  "source_summary_model_counts" => %{
                    "artifact_only_timeline_activity_precondition_summary" => 4
@@ -25234,6 +25254,10 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "dependency_timeline_id_counts" => %{"timeline:health_check_1" => 3},
              "exclusive_with_activity_id_counts" => %{"dl_conflict" => 3},
              "exclusive_with_timeline_id_counts" => %{"timeline:dl_conflict" => 3},
+             "duplicate_dependency_activity_id_counts" => %{"obs_1" => 3},
+             "duplicate_dependency_timeline_id_counts" => %{"timeline:health_check_1" => 3},
+             "duplicate_exclusivity_activity_id_counts" => %{"dl_conflict" => 3},
+             "duplicate_exclusivity_timeline_id_counts" => %{"timeline:dl_conflict" => 3},
              "allow_overlap_counts" => %{"true" => 3},
              "trust_boundary_status" => "declared",
              "trust_boundaries" => ["ops_activity_precondition"],
@@ -25264,6 +25288,49 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert OrbitalDynamics.candidate_refresh_timeline_activity_precondition_replay_summary(
              refresh
            ) == replay_summary
+
+    row_only_review =
+      refresh["source_operator_review_package"]
+      |> Map.update!("rows", fn rows ->
+        Enum.map(rows, &Map.delete(&1, "source_timeline_activity_precondition_summary"))
+      end)
+
+    row_only_import =
+      refresh["source_cadence_import_manifest"]
+      |> Map.update!("rows", fn rows ->
+        Enum.map(rows, fn row ->
+          row
+          |> Map.delete("source_timeline_activity_precondition_summary")
+          |> Map.update("source_review_row", %{}, fn source_review_row ->
+            Map.delete(source_review_row, "source_timeline_activity_precondition_summary")
+          end)
+        end)
+      end)
+
+    row_only_refresh = %{
+      "source_operator_review_package" => row_only_review,
+      "source_cadence_import_manifest" => row_only_import
+    }
+
+    assert %{
+             "source_report_timeline_activity_precondition_count" => 2,
+             "source_report_timeline_activity_precondition_duplicate_dependency_activity_id_counts" =>
+               %{"obs_1" => 2},
+             "source_report_timeline_activity_precondition_duplicate_dependency_timeline_id_counts" =>
+               %{"timeline:health_check_1" => 2},
+             "source_report_timeline_activity_precondition_duplicate_exclusivity_activity_id_counts" =>
+               %{"dl_conflict" => 2},
+             "source_report_timeline_activity_precondition_duplicate_exclusivity_timeline_id_counts" =>
+               %{"timeline:dl_conflict" => 2}
+           } = CandidateRefresh.source_report_summary(row_only_refresh)
+
+    assert %{
+             "source_report_count" => 2,
+             "duplicate_dependency_activity_id_counts" => %{"obs_1" => 2},
+             "duplicate_dependency_timeline_id_counts" => %{"timeline:health_check_1" => 2},
+             "duplicate_exclusivity_activity_id_counts" => %{"dl_conflict" => 2},
+             "duplicate_exclusivity_timeline_id_counts" => %{"timeline:dl_conflict" => 2}
+           } = CandidateRefresh.timeline_activity_precondition_replay_summary(row_only_refresh)
 
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",

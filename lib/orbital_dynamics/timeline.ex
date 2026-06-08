@@ -3390,6 +3390,10 @@ defmodule OrbitalDynamics.Timeline do
       "dependency_timeline_ids" => dependency_timeline_ids(activity),
       "exclusive_with_activity_ids" => exclusive_with_activity_ids(activity),
       "exclusive_with_timeline_ids" => exclusive_with_timeline_ids(activity),
+      "duplicate_dependency_activity_ids" => duplicate_dependency_activity_ids(activity),
+      "duplicate_dependency_timeline_ids" => duplicate_dependency_timeline_ids(activity),
+      "duplicate_exclusivity_activity_ids" => duplicate_exclusivity_activity_ids(activity),
+      "duplicate_exclusivity_timeline_ids" => duplicate_exclusivity_timeline_ids(activity),
       "allow_overlap" => activity_allow_overlap(activity)
     }
     |> compact_map()

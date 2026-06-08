@@ -6014,6 +6014,30 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "timeline_activity_precondition_summary",
           "exclusive_with_timeline_id_counts"
         ),
+      "source_report_timeline_activity_precondition_duplicate_dependency_activity_id_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "timeline_activity_precondition_summary",
+          "duplicate_dependency_activity_id_counts"
+        ),
+      "source_report_timeline_activity_precondition_duplicate_dependency_timeline_id_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "timeline_activity_precondition_summary",
+          "duplicate_dependency_timeline_id_counts"
+        ),
+      "source_report_timeline_activity_precondition_duplicate_exclusivity_activity_id_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "timeline_activity_precondition_summary",
+          "duplicate_exclusivity_activity_id_counts"
+        ),
+      "source_report_timeline_activity_precondition_duplicate_exclusivity_timeline_id_counts" =>
+        source_report_summary_family_merge_count_maps(
+          source_reports,
+          "timeline_activity_precondition_summary",
+          "duplicate_exclusivity_timeline_id_counts"
+        ),
       "source_report_timeline_activity_precondition_allow_overlap_counts" =>
         source_report_summary_family_merge_count_maps(
           source_reports,
@@ -13246,6 +13270,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
     exclusive_with_timeline_id_counts =
       Map.get(precondition_summary, "exclusive_with_timeline_id_counts", %{})
 
+    duplicate_dependency_activity_id_counts =
+      Map.get(precondition_summary, "duplicate_dependency_activity_id_counts", %{})
+
+    duplicate_dependency_timeline_id_counts =
+      Map.get(precondition_summary, "duplicate_dependency_timeline_id_counts", %{})
+
+    duplicate_exclusivity_activity_id_counts =
+      Map.get(precondition_summary, "duplicate_exclusivity_activity_id_counts", %{})
+
+    duplicate_exclusivity_timeline_id_counts =
+      Map.get(precondition_summary, "duplicate_exclusivity_timeline_id_counts", %{})
+
     allow_overlap_counts = Map.get(precondition_summary, "allow_overlap_counts", %{})
 
     source_summary_model_counts =
@@ -13256,11 +13292,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
       |> non_empty_map()
 
     dependency_pressure =
-      map_size(dependency_activity_id_counts) > 0 or map_size(dependency_timeline_id_counts) > 0
+      map_size(dependency_activity_id_counts) > 0 or map_size(dependency_timeline_id_counts) > 0 or
+        map_size(duplicate_dependency_activity_id_counts) > 0 or
+        map_size(duplicate_dependency_timeline_id_counts) > 0
 
     exclusivity_pressure =
       map_size(exclusive_with_activity_id_counts) > 0 or
-        map_size(exclusive_with_timeline_id_counts) > 0 or map_size(allow_overlap_counts) > 0
+        map_size(exclusive_with_timeline_id_counts) > 0 or
+        map_size(duplicate_exclusivity_activity_id_counts) > 0 or
+        map_size(duplicate_exclusivity_timeline_id_counts) > 0 or
+        map_size(allow_overlap_counts) > 0
 
     review_pressure =
       review_precondition_count > 0 or
@@ -13299,6 +13340,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "dependency_timeline_id_counts" => dependency_timeline_id_counts,
       "exclusive_with_activity_id_counts" => exclusive_with_activity_id_counts,
       "exclusive_with_timeline_id_counts" => exclusive_with_timeline_id_counts,
+      "duplicate_dependency_activity_id_counts" => duplicate_dependency_activity_id_counts,
+      "duplicate_dependency_timeline_id_counts" => duplicate_dependency_timeline_id_counts,
+      "duplicate_exclusivity_activity_id_counts" => duplicate_exclusivity_activity_id_counts,
+      "duplicate_exclusivity_timeline_id_counts" => duplicate_exclusivity_timeline_id_counts,
       "allow_overlap_counts" => allow_overlap_counts,
       "trust_boundary_status" => Map.get(precondition_summary, "trust_boundary_status"),
       "trust_boundaries" => Map.get(precondition_summary, "trust_boundaries", []),
@@ -22788,6 +22833,42 @@ defmodule OrbitalDynamics.CandidateRefresh do
         summaries
         |> Enum.map(
           &timeline_activity_precondition_summary_list_counts(&1, "exclusive_with_timeline_ids")
+        )
+        |> merge_count_maps(),
+      "duplicate_dependency_activity_id_counts" =>
+        summaries
+        |> Enum.map(
+          &timeline_activity_precondition_summary_list_counts(
+            &1,
+            "duplicate_dependency_activity_ids"
+          )
+        )
+        |> merge_count_maps(),
+      "duplicate_dependency_timeline_id_counts" =>
+        summaries
+        |> Enum.map(
+          &timeline_activity_precondition_summary_list_counts(
+            &1,
+            "duplicate_dependency_timeline_ids"
+          )
+        )
+        |> merge_count_maps(),
+      "duplicate_exclusivity_activity_id_counts" =>
+        summaries
+        |> Enum.map(
+          &timeline_activity_precondition_summary_list_counts(
+            &1,
+            "duplicate_exclusivity_activity_ids"
+          )
+        )
+        |> merge_count_maps(),
+      "duplicate_exclusivity_timeline_id_counts" =>
+        summaries
+        |> Enum.map(
+          &timeline_activity_precondition_summary_list_counts(
+            &1,
+            "duplicate_exclusivity_timeline_ids"
+          )
         )
         |> merge_count_maps(),
       "allow_overlap_counts" =>
@@ -49103,6 +49184,16 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.put_new("dependency_timeline_ids", row["dependency_timeline_ids"])
     |> Map.put_new("exclusive_with_activity_ids", row["exclusive_with_activity_ids"])
     |> Map.put_new("exclusive_with_timeline_ids", row["exclusive_with_timeline_ids"])
+    |> Map.put_new("duplicate_dependency_activity_ids", row["duplicate_dependency_activity_ids"])
+    |> Map.put_new("duplicate_dependency_timeline_ids", row["duplicate_dependency_timeline_ids"])
+    |> Map.put_new(
+      "duplicate_exclusivity_activity_ids",
+      row["duplicate_exclusivity_activity_ids"]
+    )
+    |> Map.put_new(
+      "duplicate_exclusivity_timeline_ids",
+      row["duplicate_exclusivity_timeline_ids"]
+    )
     |> Map.put_new("allow_overlap", row["allow_overlap"])
     |> Map.put_new("invalid_activity_input", row["invalid_activity_input"])
     |> Map.put_new("invalid_activity_input_reason", row["invalid_activity_input_reason"])
@@ -49179,6 +49270,22 @@ defmodule OrbitalDynamics.CandidateRefresh do
         "exclusive_with_timeline_ids" =>
           rows
           |> Enum.flat_map(&Map.get(&1, "exclusive_with_timeline_ids", []))
+          |> sorted_string_values(),
+        "duplicate_dependency_activity_ids" =>
+          rows
+          |> Enum.flat_map(&Map.get(&1, "duplicate_dependency_activity_ids", []))
+          |> sorted_string_values(),
+        "duplicate_dependency_timeline_ids" =>
+          rows
+          |> Enum.flat_map(&Map.get(&1, "duplicate_dependency_timeline_ids", []))
+          |> sorted_string_values(),
+        "duplicate_exclusivity_activity_ids" =>
+          rows
+          |> Enum.flat_map(&Map.get(&1, "duplicate_exclusivity_activity_ids", []))
+          |> sorted_string_values(),
+        "duplicate_exclusivity_timeline_ids" =>
+          rows
+          |> Enum.flat_map(&Map.get(&1, "duplicate_exclusivity_timeline_ids", []))
           |> sorted_string_values(),
         "allow_overlap" => if(Enum.any?(rows, &(&1["allow_overlap"] == true)), do: true),
         "invalid_activity_input" => Enum.any?(rows, &(&1["invalid_activity_input"] == true)),

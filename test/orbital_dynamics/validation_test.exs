@@ -4976,6 +4976,20 @@ defmodule OrbitalDynamics.ValidationTest do
              "source_timeline_activity_precondition_exclusive_with_timeline_id_counts" => %{
                "timeline:dl_conflict" => 1
              },
+             "source_timeline_activity_precondition_duplicate_dependency_activity_id_counts" => %{
+               "obs_1" => 1
+             },
+             "source_timeline_activity_precondition_duplicate_dependency_timeline_id_counts" => %{
+               "timeline:health_check_1" => 1
+             },
+             "source_timeline_activity_precondition_duplicate_exclusivity_activity_id_counts" =>
+               %{
+                 "dl_conflict" => 1
+               },
+             "source_timeline_activity_precondition_duplicate_exclusivity_timeline_id_counts" =>
+               %{
+                 "timeline:dl_conflict" => 1
+               },
              "source_timeline_activity_precondition_allow_overlap_counts" => %{"true" => 1},
              "source_timeline_activity_precondition_trust_boundary_status" => "declared"
            } = observations
@@ -4995,6 +5009,25 @@ defmodule OrbitalDynamics.ValidationTest do
              stale_dependency_verification["checks"],
              &(&1["field"] ==
                  "source_timeline_activity_precondition_dependency_activity_id_counts" and
+                 &1["status"] == "fail")
+           )
+
+    stale_duplicate_observations =
+      observations
+      |> Map.put(
+        "source_timeline_activity_precondition_duplicate_dependency_activity_id_counts",
+        %{"stale_duplicate_dependency" => 1}
+      )
+
+    assert {:ok, stale_duplicate_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_duplicate_observations)
+
+    assert stale_duplicate_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_duplicate_verification["checks"],
+             &(&1["field"] ==
+                 "source_timeline_activity_precondition_duplicate_dependency_activity_id_counts" and
                  &1["status"] == "fail")
            )
 
@@ -15099,10 +15132,10 @@ defmodule OrbitalDynamics.ValidationTest do
         payload_available: false,
         degraded: true,
         resource_blocking_dimension: :power,
-        dependency_activity_ids: [:health_check_1, :obs_1],
-        dependency_timeline_ids: [:"timeline:health_check_1"],
-        exclusive_with_activity_ids: [:dl_conflict],
-        exclusive_with_timeline_ids: [:"timeline:dl_conflict"],
+        dependency_activity_ids: [:health_check_1, :obs_1, :obs_1],
+        dependency_timeline_ids: [:"timeline:health_check_1", :"timeline:health_check_1"],
+        exclusive_with_activity_ids: [:dl_conflict, :dl_conflict],
+        exclusive_with_timeline_ids: [:"timeline:dl_conflict", :"timeline:dl_conflict"],
         allow_overlap: true,
         metadata: %{timeline_id: :"timeline:cmd_preflight"}
       }
