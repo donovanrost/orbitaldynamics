@@ -5,58 +5,59 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-State-scoped freshness and refresh-budget CandidateRefresh review/import handoff.
+Status-aware contact-allocation approval-rule review/import projection.
 
 Status:
-Completed and pushed; CandidateRefresh OperatorReview/CadenceImport handoffs now
-lift `freshness_report.v1` and `refresh_budget_report.v1` review rows from
-accepted planning state and mission state, matching existing top-level and
-result-artifact wrapped paths. Rows preserve state-qualified source paths,
-staleness reasons, snapshot-age evidence, candidate limit/dropped-candidate
-evidence, and artifact-only no-write/no-approval boundaries.
+Product commit complete; standalone contact-allocation review/import rows now
+flatten the approval rule whose classification matches the row approval status
+before falling back to the first rule. This keeps `blocked_by_policy` rows such
+as `cmd_unavailable` routed to `unavailable_station_contact_block` while
+preserving the original ordered `approval_rule_matches` evidence array.
 
 Files changed:
+- `lib/orbital_dynamics/cadence_import.ex`
 - `lib/orbital_dynamics/operator_review.ex`
-- `test/orbital_dynamics/operator_review_test.exs`
+- `test/orbital_dynamics/cadence_import_test.exs`
 
 Tests run:
-- `mix run -e '<state-scoped freshness/refresh-budget CandidateRefresh smoke>'`
-- `mix test test/orbital_dynamics/operator_review_test.exs:4622`
+- `mix run -e '<cmd_unavailable contact-allocation rule projection smoke>'`
+- `mix test test/orbital_dynamics/cadence_import_test.exs:9451`
+- `mix test test/orbital_dynamics/cadence_import_test.exs`
 - `mix test test/orbital_dynamics/operator_review_test.exs`
 - `git diff --check`
-- Caveat: `mix test test/orbital_dynamics/cadence_import_test.exs` and focused
-  `mix test test/orbital_dynamics/cadence_import_test.exs:9451` currently fail
-  in the unrelated standalone contact-allocation test expecting an older
-  policy-rule row shape for `cmd_unavailable`.
+- Broader caveat: full `mix test` currently reports 10 unrelated failures in
+  checked-in schema/validation fixture freshness and CandidateRefresh /
+  CampaignPlanner source-summary assertion drift. The known
+  `:propagator_exit` log from `scenario_runner_test` also appears during the
+  full run.
 
 Docs/artifacts changed:
-- No schema/artifact shape changes; this wires existing state-scoped
-  freshness and refresh-budget evidence into existing review/import rows.
+- No schema/artifact shape changes; this only changes which existing approval
+  rule is projected as the primary flattened routing context.
 
 Level 6 pillar advanced:
-Branch-local CandidateRefresh depth and deterministic refresh-health replay from
-accepted/mission-state source reports into operator-review and Cadence-import
-rows.
+Cadence-facing operational handoff consistency: blocked contact-allocation rows
+now expose their blocking policy rule consistently across OperatorReview and
+CadenceImport projections.
 
 Remaining maturity gaps:
-Continue closing thin artifact-only replay gaps where compact source summaries
-or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
-or operator-review replay does not yet preserve.
+Resolve the unrelated schema fixture/export drift and source-summary assertion
+drift shown by full `mix test`, then continue closing thin artifact-only replay
+gaps where compact source summaries or review/import handoffs expose routing
+evidence that CandidateRefresh, V2/V3, or operator-review replay does not yet
+preserve.
 
 Last commit:
-Pushed `40991f15dcd0b1c52612056d0f65a84af30fcfd6` after product commit
-`0a75cbae81b76302325be2e5a313e30a65efb3c5`.
+Product commit `9f7da8e85f5f21cdd0374c3c7e8e66d3871c54f6`.
 
 Next candidate:
-After committing, reassess branch-local CandidateRefresh parity; many
-state-scoped source-report review gaps have been closed, so the next slice may
-be validation/compatibility fixture hardening or another source family found by
-smoke inventory.
+Narrowly address the full-suite fixture/assertion drift, starting with the
+checked-in schema validation batch freshness or the CandidateRefresh
+provider-counteroffer source-summary assertion drift.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
-- Full `mix test test/orbital_dynamics/schema_test.exs` is green locally.
 
 Blocked:
 No.
