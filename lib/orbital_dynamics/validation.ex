@@ -7183,11 +7183,11 @@ defmodule OrbitalDynamics.Validation do
     "fixture.artifact.contact_allocation_provider_reservation_request_summary.v1" => %{
       "id" => "fixture.artifact.contact_allocation_provider_reservation_request_summary.v1",
       "model_id" => "artifact.contact_allocation_provider_reservation_request_summary.v1",
-      "reference_case" => "generated provider reservation request summary fixture",
+      "reference_case" => "checked-in provider reservation request summary fixture",
       "validation_level" => "artifact_contract",
       "fixture_type" => "curated_internal_artifact_regression",
       "inputs" => %{
-        "source" => "generated_provider_reservation_request_summary_fixture",
+        "source" => "study_results/contact_allocation_provider_reservation_request_summary_v1.json",
         "contract" => "contact_allocation_provider_reservation_request_summary.v1"
       },
       "expected" => %{

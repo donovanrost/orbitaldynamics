@@ -1277,12 +1277,14 @@ direction-and-station conflict maps, row subsets, model limits, and
 no-provider-reservation/no-schedule-mutation assumptions.
 The validation-reference registry and checked-in
 `study_results/contact_allocation_provider_reservation_request_summary_v1.json`
-fixture also include a generated
-`contact_allocation_provider_reservation_request_summary.v1` case that
+fixture also feed the
+`contact_allocation_provider_reservation_request_summary.v1` case directly from
+the checked-in artifact. The case
 observes provider-reservation request, review, and no-request counts plus
 direction routing maps. Fixture verification rejects stale row-derived
 request/review/no-request direction maps, including request, review, and
-no-request direction/ground-station maps, and schema export pins the
+no-request direction/ground-station maps, and it rejects stale reported request
+direction maps from the checked-in summary. Schema export pins the
 artifact-only model constant, string source boundary, and exact `model_limits`,
 so provider-reservation handoff summaries are not treated as provider-write,
 schedule-mutation, or operator-authority artifacts.

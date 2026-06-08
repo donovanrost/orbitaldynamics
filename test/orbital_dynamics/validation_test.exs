@@ -8,7 +8,7 @@ defmodule OrbitalDynamics.ValidationTest do
     TargetVisibility
   }
 
-  alias OrbitalDynamics.Communications.{ContactAllocation, ContactContention, StationCalendar}
+  alias OrbitalDynamics.Communications.{ContactContention, StationCalendar}
   alias OrbitalDynamics.Propagators.{J2, TwoBody, TwoBodyNxCompiled}
 
   alias OrbitalDynamics.{
@@ -9703,6 +9703,30 @@ defmodule OrbitalDynamics.ValidationTest do
     assert verification["status"] == "pass"
     assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
 
+    stale_checked_in_summary =
+      summary
+      |> put_in(
+        ["provider_reservation_request_contact_ids_by_direction", "downlink"],
+        ["stale_contact"]
+      )
+
+    assert {:ok, stale_checked_in_summary_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               Validation.artifact_observations(
+                 "contact_allocation_provider_reservation_request_summary.v1",
+                 stale_checked_in_summary
+               )
+             )
+
+    assert stale_checked_in_summary_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_checked_in_summary_verification["checks"],
+             &(&1["field"] == "provider_reservation_request_contact_ids_by_direction" and
+                 &1["status"] == "fail")
+           )
+
     stale_request_direction_observations =
       observations
       |> put_in(
@@ -14085,74 +14109,7 @@ defmodule OrbitalDynamics.ValidationTest do
   end
 
   defp contact_allocation_provider_reservation_request_summary_fixture do
-    contacts = [
-      provider_reservation_contact(:dl_reserved_owner,
-        direction: :downlink,
-        starts_at_s: 100.0,
-        ends_at_s: 160.0,
-        station_reservation_id: :reservation_1,
-        score: 5
-      ),
-      provider_reservation_contact(:dl_review_overlap,
-        direction: :command,
-        starts_at_s: 210.0,
-        ends_at_s: 240.0,
-        station_reservation_id: :reservation_review,
-        station_reservation_match_status: :overlap,
-        station_reservation_status: :confirmed,
-        score: 4
-      ),
-      provider_reservation_contact(:dl_reserved_intruder,
-        direction: :tracking,
-        starts_at_s: 100.0,
-        ends_at_s: 160.0,
-        score: 3
-      ),
-      provider_reservation_contact(:dl_unreserved,
-        direction: :uplink,
-        starts_at_s: 320.0,
-        ends_at_s: 360.0,
-        score: 2
-      )
-    ]
-
-    ground_network = [
-      %{
-        ground_station_id: :equator_prime,
-        status: :reserved,
-        starts_at_s: 90.0,
-        ends_at_s: 170.0,
-        reservation_id: :reservation_1,
-        reserved_by: "ops_team_b",
-        reservation_status: :confirmed,
-        reservation_expires_at_s: 360.0
-      }
-    ]
-
-    {_allocated_contacts, report} =
-      ContactAllocation.allocate_contacts(contacts, ground_network,
-        source: "validation.provider_reservation_request_summary"
-      )
-
-    OrbitalDynamics.contact_allocation_provider_reservation_request_summary(report)
-  end
-
-  defp provider_reservation_contact(id, opts) do
-    direction = Keyword.fetch!(opts, :direction)
-
-    %{
-      id: id,
-      type: direction,
-      direction: direction,
-      scenario_id: :leo_1,
-      spacecraft_id: :sat_ready,
-      ground_station_id: :equator_prime,
-      source_window_id: :"window_#{id}",
-      starts_at_s: Keyword.fetch!(opts, :starts_at_s),
-      ends_at_s: Keyword.fetch!(opts, :ends_at_s),
-      score: Keyword.fetch!(opts, :score)
-    }
-    |> Map.merge(Map.new(Keyword.drop(opts, [:direction, :starts_at_s, :ends_at_s, :score])))
+    read_json!("study_results/contact_allocation_provider_reservation_request_summary_v1.json")
   end
 
   defp contact_allocation_capacity_pack_report_fixture_observations do
