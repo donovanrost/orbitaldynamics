@@ -5,62 +5,50 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Transition application selected-integrity summary gets validation-reference
-fixture coverage.
+Operational import-eligibility summary validation-reference fixture coverage.
 
 Status:
-Implementation and verification are complete. A new checked-in
-`study_results/timeline_transition_application_selected_integrity_summary_v1.json`
-artifact exact-regenerates through
-`OrbitalDynamics.timeline_transition_application_summary/3` for the same
-selected missing-dependency review-gate case as the detailed report fixture.
-The validation-reference registry now pins compact summary selected-integrity
-issue counts, issue-type routing, selected required-action routing, selected
-review timeline IDs, and missing dependency IDs. The checked-in
-`validation_reference_fixtures.json` rollup now includes the new fixture and
-reports 165 passing fixtures.
+Implemented and verified. The checked-in
+`operational_import_eligibility_summary.v1` handoff now has a curated
+validation-reference fixture, stale-observation test coverage, and rollup
+coverage at 166 passing fixtures.
 
 Files changed:
 - `lib/orbital_dynamics/validation.ex`
 - `test/orbital_dynamics/validation_test.exs`
-- `test/orbital_dynamics/schema_test.exs`
-- `study_results/timeline_transition_application_selected_integrity_summary_v1.json`
 - `study_results/validation_reference_fixtures.json`
-- `docs/artifacts/compatibility_checks.md`
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/validation_test.exs:8861 test/orbital_dynamics/schema_test.exs:12790 test/orbital_dynamics/validation_test.exs:12795` (3 passed)
+- `mix test test/orbital_dynamics/validation_test.exs:2180 test/orbital_dynamics/schema_test.exs:1830`
+- `mix test test/orbital_dynamics/validation_test.exs:12569`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
-- `mix orbital_dynamics.schema.lint --all` (pass; 154 artifacts)
+- `mix orbital_dynamics.schema.lint --all`
 
 Docs/artifacts changed:
-- Added selected-integrity transition application summary fixture JSON generated
-  through the public facade.
-- Refreshed `study_results/validation_reference_fixtures.json` from the current
-  validation-reference registry with 165 passing fixtures.
-- Updated compatibility docs to name the compact selected-integrity summary
-  guard alongside the detailed transition application report guard.
+- `study_results/validation_reference_fixtures.json` now includes
+  `fixture.artifact.operational_import_eligibility_summary.v1`.
+- Existing compatibility docs already named this guard; no doc text changed.
 
 Level 6 pillar advanced:
-Durable schema-versioned artifacts and compatibility checks: compact typed
-timeline transition summaries now preserve selected-activity review-gate
-evidence with exact-regeneration and validation-reference stale-input coverage.
+Approval-aware automation boundaries, quality gates, import readiness, and
+durable schema-versioned compatibility checks.
 
 Remaining maturity gaps:
-Continue reassessing from the guide and live checkout. Useful next slices should
-move beyond this adjacent transition-summary fixture lane unless fresh evidence
-shows another unchecked selected-integrity boundary.
+- `operational_readiness_gate_summary.v1` has schema exact-regeneration and
+  checked-in artifact coverage; reassess whether it should get the adjacent
+  validation-reference fixture next.
+- Continue broadening compact adapter-facing readiness/resource handoffs with
+  stale-observation coverage where schema lint alone is weaker.
 
 Last commit:
-Product commit 8921fc8cb3791efce88592f91b46d2d1888d035f.
+Pending commit/push for this slice. Previous pushed commit
+`a5f6466ad4d02b859f9905a8b65f279b2661287e`.
 
 Next candidate:
-Re-read the guide queue and current checkout before editing. Candidate areas:
-typed timeline readiness/import eligibility, resource/readiness quality gates,
-or another checked-in artifact with missing stale-but-plausible fixture
-coverage.
+Add validation-reference coverage for `operational_readiness_gate_summary.v1`,
+or return to resource/readiness gates if that fixture is already covered.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
