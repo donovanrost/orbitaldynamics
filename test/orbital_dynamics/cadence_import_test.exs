@@ -2391,6 +2391,127 @@ defmodule OrbitalDynamics.CadenceImportTest do
              Schema.validate_artifact(manifest)
   end
 
+  test "candidate refresh import preserves wrapped import-readiness quality gate summaries" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:wrapped_import_readiness_quality_gate_import",
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "source_operational_quality_gate_import_readiness_summary" =>
+            operational_quality_gate_import_readiness_summary()
+        }
+      ]
+    }
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" =>
+               "candidate_refresh:wrapped_import_readiness_quality_gate_import",
+             "row_count" => 2,
+             "review_required_count" => 2,
+             "import_action_counts" => %{"review_quality_gate" => 2},
+             "source_review_type_counts" => %{"quality_gate_review" => 2}
+           } = manifest
+
+    assert Enum.map(manifest["rows"], & &1["source"]) == [
+             "candidate_refresh.source_result_artifact[0].source_operational_quality_gate_import_readiness_summary",
+             "candidate_refresh.source_result_artifact[0].source_operational_quality_gate_import_readiness_summary"
+           ]
+
+    assert Enum.all?(
+             manifest["rows"],
+             &match?(
+               %{
+                 "import_action" => "review_quality_gate",
+                 "source_review_type" => "quality_gate_review",
+                 "import_status" => "review_required_before_import",
+                 "quality_gate_id" => "cadence_import"
+               },
+               &1
+             )
+           )
+
+    assert Enum.all?(manifest["rows"], &(Map.get(&1, "has_cadence_import", false) == false))
+
+    assert %{
+             "approval_status" => "operator_review_required",
+             "quality_gate_status" => "review_required",
+             "quality_gate_classification" => "review_only",
+             "readiness_level" => "blocked",
+             "ready_for_import_count" => 1,
+             "manifest_review_required_count" => 1,
+             "blocked_import_count" => 1,
+             "missing_import_count" => 1,
+             "invalid_cadence_import_count" => 1,
+             "freshness_status_counts" => %{"stale" => 1, "unknown" => 1},
+             "import_status_counts" => %{
+               "ready_for_import" => 1,
+               "review_required_before_import" => 1
+             },
+             "cadence_import_status_counts" => %{
+               "invalid" => 1,
+               "missing" => 1,
+               "present" => 1
+             },
+             "source_quality_gate_report" => %{
+               "schema_contract" => "quality_gate_report.v1",
+               "source_summary_schema_contract" =>
+                 "operational_quality_gate_import_readiness_summary.v1",
+               "source_summary_model" => "artifact_only_quality_gate_import_readiness_summary",
+               "quality_gate_row_ids_by_status" => %{
+                 "blocked" => ["quality_gate:cadence_import:blocked"],
+                 "review_required" => ["quality_gate:cadence_import:stale"]
+               },
+               "assumptions" => %{
+                 "operator_authority" => "not_granted_by_quality_gate_import_readiness_summary",
+                 "cadence_write" => "not_performed_by_summary",
+                 "command_execution" => "not_performed_by_summary"
+               }
+             },
+             "source_review_row" => %{
+               "source" =>
+                 "candidate_refresh.source_result_artifact[0].source_operational_quality_gate_import_readiness_summary",
+               "source_quality_gate_row" => %{
+                 "id" => "quality_gate:cadence_import:stale",
+                 "status" => "review_required",
+                 "classification" => "review_only",
+                 "source_summary_schema_contract" =>
+                   "operational_quality_gate_import_readiness_summary.v1"
+               }
+             }
+           } =
+             Enum.find(
+               manifest["rows"],
+               &(&1["subject_id"] == "quality_gate:cadence_import:stale")
+             )
+
+    assert %{
+             "source_review_action" => "review_blocked_quality_gate",
+             "approval_status" => "blocked_by_policy",
+             "quality_gate_status" => "blocked",
+             "quality_gate_classification" => "blocked",
+             "source_review_row" => %{
+               "source" =>
+                 "candidate_refresh.source_result_artifact[0].source_operational_quality_gate_import_readiness_summary",
+               "source_quality_gate_row" => %{
+                 "id" => "quality_gate:cadence_import:blocked",
+                 "status" => "blocked",
+                 "classification" => "blocked"
+               }
+             }
+           } =
+             Enum.find(
+               manifest["rows"],
+               &(&1["subject_id"] == "quality_gate:cadence_import:blocked")
+             )
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "candidate refresh import preserves provider-reservation request summary handoff rows" do
     artifact = %{
       "refresh_id" => "refresh:provider_reservation_handoff",
@@ -13376,6 +13497,72 @@ defmodule OrbitalDynamics.CadenceImportTest do
     operational_readiness_resource_report()
     |> OrbitalDynamics.operational_quality_gate_report()
     |> OrbitalDynamics.operational_quality_gate_summary()
+  end
+
+  defp operational_quality_gate_import_readiness_summary do
+    %{
+      "schema_contract" => "operational_quality_gate_import_readiness_summary.v1",
+      "model" => "artifact_only_quality_gate_import_readiness_summary",
+      "source" => "quality_gate_report.v1",
+      "source_artifact_type" => "quality_gate_report.v1",
+      "source_artifact_id" => "operational_timeline:import_ready",
+      "source_quality_gate_report_id" => "quality_gate:ops_import_readiness",
+      "source_readiness_report_id" => "operational_readiness:ops_import_readiness",
+      "import_readiness_row_count" => 2,
+      "ready_for_import_count" => 1,
+      "manifest_review_required_count" => 1,
+      "blocked_import_count" => 1,
+      "missing_import_count" => 1,
+      "invalid_cadence_import_count" => 1,
+      "current_freshness_count" => 0,
+      "stale_freshness_count" => 1,
+      "unknown_freshness_count" => 1,
+      "freshness_status_counts" => %{"stale" => 1, "unknown" => 1},
+      "freshness_status_ids" => ["stale", "unknown"],
+      "schema_validation_pass_count" => 0,
+      "schema_validation_fail_count" => 1,
+      "schema_validation_error_count" => 1,
+      "schema_validation_warning_count" => 0,
+      "schema_validation_remediation_count" => 1,
+      "schema_validation_status_counts" => %{"fail" => 1},
+      "import_status_counts" => %{
+        "ready_for_import" => 1,
+        "review_required_before_import" => 1
+      },
+      "import_status_ids" => ["ready_for_import", "review_required_before_import"],
+      "cadence_import_status_counts" => %{
+        "invalid" => 1,
+        "missing" => 1,
+        "present" => 1
+      },
+      "cadence_import_status_ids" => ["invalid", "missing", "present"],
+      "quality_gate_row_ids_by_status" => %{
+        "blocked" => ["quality_gate:cadence_import:blocked"],
+        "review_required" => ["quality_gate:cadence_import:stale"]
+      },
+      "quality_gate_ids_by_status" => %{
+        "blocked" => ["cadence_import"],
+        "review_required" => ["cadence_import"]
+      },
+      "review_required_quality_gate_row_ids" => ["quality_gate:cadence_import:stale"],
+      "blocked_quality_gate_row_ids" => ["quality_gate:cadence_import:blocked"],
+      "ready_quality_gate_row_ids" => [],
+      "analysis_only_quality_gate_row_ids" => [],
+      "stale_or_unknown_freshness_quality_gate_row_ids" => [
+        "quality_gate:cadence_import:stale"
+      ],
+      "import_preparation_quality_gate_row_ids" => ["quality_gate:cadence_import:stale"],
+      "blocked_import_quality_gate_row_ids" => ["quality_gate:cadence_import:blocked"],
+      "import_readiness_gate_ids" => ["cadence_import"],
+      "assumptions" => %{
+        "source" => "quality_gate_report.v1",
+        "execution_boundary" => "artifact_only_no_cadence_write",
+        "operator_authority" => "not_granted_by_quality_gate_import_readiness_summary",
+        "cadence_write" => "not_performed_by_summary",
+        "command_execution" => "not_performed_by_summary"
+      },
+      "provenance" => %{"trust_boundary" => "import_readiness_summary_fixture"}
+    }
   end
 
   defp operational_quality_gate_operator_training_summary do
