@@ -37,8 +37,8 @@ schema lint alone is weaker. Continue reassessing Level 6 gaps from the guide
 after this challenge-coverage slice is reviewed and published.
 
 Last commit:
-Pending for this slice. Previous pushed commit was
-`818df39931bb46e393d297d7fb0cef6bf36a47e3`.
+`9f05144b9095f86b663778fd204e95f68244e642` (`Test contact allocation status
+map drift`).
 
 Next candidate:
 After publishing this slice, reassess Level 6 gaps from the guide/ledger.
