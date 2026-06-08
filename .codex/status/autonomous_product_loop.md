@@ -87,7 +87,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-Pending product commit for prior-plan readiness and quality-gate pressure.
+`d3cd30f` Derive prior-plan readiness pressure.
 
 Next candidate:
 Reinspect live code for the next planner-visible readiness/resource signal or
@@ -98,6 +98,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `d3cd30f` derived prior-plan readiness and quality-gate pressure branches.
 - `4904a47` derived station-reservation review summary pressure branches.
 - `3920603` derived relay data-path summary pressure branches.
 - `aa4cb47` derived operational-readiness gate-summary pressure branches.
