@@ -6963,6 +6963,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Map.merge(source_report_timeline_dependency_impact_replay_summary_fields(source_reports))
     |> Map.merge(source_report_timeline_diff_replay_summary_fields(source_reports))
     |> Map.merge(source_report_timeline_integrity_replay_summary_fields(source_reports))
+    |> Map.merge(source_report_timeline_publication_dependency_id_fields(source_reports))
     |> Map.merge(source_report_timeline_publication_replay_summary_fields(source_reports))
     |> Map.merge(
       source_report_timeline_transition_application_replay_summary_fields(source_reports)
@@ -10804,6 +10805,59 @@ defmodule OrbitalDynamics.CandidateRefresh do
     }
   end
 
+  defp source_report_timeline_publication_dependency_id_fields(source_reports) do
+    %{
+      "source_report_timeline_publication_impacted_source_activity_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "timeline_publication_summary",
+          "impacted_source_activity_ids"
+        ),
+      "source_report_timeline_publication_impacted_source_timeline_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "timeline_publication_summary",
+          "impacted_source_timeline_ids"
+        ),
+      "source_report_timeline_publication_dependent_activity_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "timeline_publication_summary",
+          "dependent_activity_ids"
+        ),
+      "source_report_timeline_publication_dependent_timeline_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "timeline_publication_summary",
+          "dependent_timeline_ids"
+        ),
+      "source_report_timeline_publication_source_dependent_activity_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "timeline_publication_summary",
+          "source_dependent_activity_ids"
+        ),
+      "source_report_timeline_publication_source_dependent_timeline_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "timeline_publication_summary",
+          "source_dependent_timeline_ids"
+        ),
+      "source_report_timeline_publication_replacement_dependent_activity_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "timeline_publication_summary",
+          "replacement_dependent_activity_ids"
+        ),
+      "source_report_timeline_publication_replacement_dependent_timeline_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "timeline_publication_summary",
+          "replacement_dependent_timeline_ids"
+        )
+    }
+  end
+
   defp source_report_timeline_transition_application_replay_summary_fields(source_reports) do
     summary =
       source_reports
@@ -14459,6 +14513,27 @@ defmodule OrbitalDynamics.CandidateRefresh do
     invalidated_downstream_product_ids =
       Map.get(publication_summary, "invalidated_downstream_product_ids", [])
 
+    impacted_source_activity_ids =
+      Map.get(publication_summary, "impacted_source_activity_ids", [])
+
+    impacted_source_timeline_ids =
+      Map.get(publication_summary, "impacted_source_timeline_ids", [])
+
+    dependent_activity_ids = Map.get(publication_summary, "dependent_activity_ids", [])
+    dependent_timeline_ids = Map.get(publication_summary, "dependent_timeline_ids", [])
+
+    source_dependent_activity_ids =
+      Map.get(publication_summary, "source_dependent_activity_ids", [])
+
+    source_dependent_timeline_ids =
+      Map.get(publication_summary, "source_dependent_timeline_ids", [])
+
+    replacement_dependent_activity_ids =
+      Map.get(publication_summary, "replacement_dependent_activity_ids", [])
+
+    replacement_dependent_timeline_ids =
+      Map.get(publication_summary, "replacement_dependent_timeline_ids", [])
+
     impacted_dependency_activity_ids =
       Map.get(publication_summary, "impacted_dependency_activity_ids", [])
 
@@ -14479,7 +14554,11 @@ defmodule OrbitalDynamics.CandidateRefresh do
       Map.get(publication_summary, "timeline_ids_by_changed_field", %{})
 
     dependency_pressure =
-      dependency_impact_row_count > 0 or impacted_dependency_activity_ids != [] or
+      dependency_impact_row_count > 0 or impacted_source_activity_ids != [] or
+        impacted_source_timeline_ids != [] or dependent_activity_ids != [] or
+        dependent_timeline_ids != [] or source_dependent_activity_ids != [] or
+        source_dependent_timeline_ids != [] or replacement_dependent_activity_ids != [] or
+        replacement_dependent_timeline_ids != [] or impacted_dependency_activity_ids != [] or
         impacted_dependency_timeline_ids != [] or impacted_exclusive_with_activity_ids != [] or
         impacted_exclusive_with_timeline_ids != [] or
         summary_integer(dependency_impact_status_counts, "review_required") > 0
@@ -14530,6 +14609,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "downstream_product_ids" => downstream_product_ids,
       "invalidated_downstream_product_ids" => invalidated_downstream_product_ids,
       "dependency_impact_row_count" => dependency_impact_row_count,
+      "impacted_source_activity_ids" => impacted_source_activity_ids,
+      "impacted_source_timeline_ids" => impacted_source_timeline_ids,
+      "dependent_activity_ids" => dependent_activity_ids,
+      "dependent_timeline_ids" => dependent_timeline_ids,
+      "source_dependent_activity_ids" => source_dependent_activity_ids,
+      "source_dependent_timeline_ids" => source_dependent_timeline_ids,
+      "replacement_dependent_activity_ids" => replacement_dependent_activity_ids,
+      "replacement_dependent_timeline_ids" => replacement_dependent_timeline_ids,
       "impacted_dependency_activity_ids" => impacted_dependency_activity_ids,
       "impacted_dependency_timeline_ids" => impacted_dependency_timeline_ids,
       "impacted_exclusive_with_activity_ids" => impacted_exclusive_with_activity_ids,
@@ -23386,6 +23473,38 @@ defmodule OrbitalDynamics.CandidateRefresh do
         |> sorted_string_values(),
       "dependency_impact_row_count" =>
         sum_report_count(summaries, &numeric_report_count(&1, "dependency_impact_row_count")),
+      "impacted_source_activity_ids" =>
+        summaries
+        |> Enum.flat_map(&Map.get(&1, "impacted_source_activity_ids", []))
+        |> sorted_string_values(),
+      "impacted_source_timeline_ids" =>
+        summaries
+        |> Enum.flat_map(&Map.get(&1, "impacted_source_timeline_ids", []))
+        |> sorted_string_values(),
+      "dependent_activity_ids" =>
+        summaries
+        |> Enum.flat_map(&Map.get(&1, "dependent_activity_ids", []))
+        |> sorted_string_values(),
+      "dependent_timeline_ids" =>
+        summaries
+        |> Enum.flat_map(&Map.get(&1, "dependent_timeline_ids", []))
+        |> sorted_string_values(),
+      "source_dependent_activity_ids" =>
+        summaries
+        |> Enum.flat_map(&Map.get(&1, "source_dependent_activity_ids", []))
+        |> sorted_string_values(),
+      "source_dependent_timeline_ids" =>
+        summaries
+        |> Enum.flat_map(&Map.get(&1, "source_dependent_timeline_ids", []))
+        |> sorted_string_values(),
+      "replacement_dependent_activity_ids" =>
+        summaries
+        |> Enum.flat_map(&Map.get(&1, "replacement_dependent_activity_ids", []))
+        |> sorted_string_values(),
+      "replacement_dependent_timeline_ids" =>
+        summaries
+        |> Enum.flat_map(&Map.get(&1, "replacement_dependent_timeline_ids", []))
+        |> sorted_string_values(),
       "impacted_dependency_activity_ids" =>
         summaries
         |> Enum.flat_map(&Map.get(&1, "impacted_dependency_activity_ids", []))
@@ -29333,6 +29452,19 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
     dependency_impact_row_count = summary_integer(summary, "dependency_impact_row_count")
 
+    impacted_source_activity_ids = Map.get(summary, "impacted_source_activity_ids", [])
+    impacted_source_timeline_ids = Map.get(summary, "impacted_source_timeline_ids", [])
+    dependent_activity_ids = Map.get(summary, "dependent_activity_ids", [])
+    dependent_timeline_ids = Map.get(summary, "dependent_timeline_ids", [])
+    source_dependent_activity_ids = Map.get(summary, "source_dependent_activity_ids", [])
+    source_dependent_timeline_ids = Map.get(summary, "source_dependent_timeline_ids", [])
+
+    replacement_dependent_activity_ids =
+      Map.get(summary, "replacement_dependent_activity_ids", [])
+
+    replacement_dependent_timeline_ids =
+      Map.get(summary, "replacement_dependent_timeline_ids", [])
+
     impacted_dependency_activity_ids =
       Map.get(summary, "impacted_dependency_activity_ids", [])
 
@@ -29359,7 +29491,11 @@ defmodule OrbitalDynamics.CandidateRefresh do
       Map.get(summary, "timeline_ids_by_changed_field", %{})
 
     dependency_pressure =
-      dependency_impact_row_count > 0 or impacted_dependency_activity_ids != [] or
+      dependency_impact_row_count > 0 or impacted_source_activity_ids != [] or
+        impacted_source_timeline_ids != [] or dependent_activity_ids != [] or
+        dependent_timeline_ids != [] or source_dependent_activity_ids != [] or
+        source_dependent_timeline_ids != [] or replacement_dependent_activity_ids != [] or
+        replacement_dependent_timeline_ids != [] or impacted_dependency_activity_ids != [] or
         impacted_dependency_timeline_ids != [] or impacted_exclusive_with_activity_ids != [] or
         impacted_exclusive_with_timeline_ids != [] or
         summary_integer(dependency_impact_status_counts, "review_required") > 0
@@ -29394,6 +29530,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "downstream_product_ids" => downstream_product_ids,
       "invalidated_downstream_product_ids" => invalidated_downstream_product_ids,
       "dependency_impact_row_count" => dependency_impact_row_count,
+      "impacted_source_activity_ids" => impacted_source_activity_ids,
+      "impacted_source_timeline_ids" => impacted_source_timeline_ids,
+      "dependent_activity_ids" => dependent_activity_ids,
+      "dependent_timeline_ids" => dependent_timeline_ids,
+      "source_dependent_activity_ids" => source_dependent_activity_ids,
+      "source_dependent_timeline_ids" => source_dependent_timeline_ids,
+      "replacement_dependent_activity_ids" => replacement_dependent_activity_ids,
+      "replacement_dependent_timeline_ids" => replacement_dependent_timeline_ids,
       "impacted_dependency_activity_ids" => impacted_dependency_activity_ids,
       "impacted_dependency_timeline_ids" => impacted_dependency_timeline_ids,
       "impacted_exclusive_with_activity_ids" => impacted_exclusive_with_activity_ids,
@@ -47930,10 +48074,76 @@ defmodule OrbitalDynamics.CandidateRefresh do
             {path, inherit_result_artifact_trust_boundary(summary, artifact)}
 
           _summary ->
-            nil
+            row
+            |> timeline_publication_summary_from_review_or_import_row()
+            |> case do
+              %{} = summary -> {path, inherit_result_artifact_trust_boundary(summary, artifact)}
+              _summary -> nil
+            end
         end
       end
     end)
+  end
+
+  defp timeline_publication_summary_from_review_or_import_row(%{} = row) do
+    source_row =
+      case Map.get(row, "source_review_row") do
+        %{} = source_review_row -> source_review_row
+        _source_review_row -> row
+      end
+      |> stringify_keys()
+
+    %{
+      "schema_contract" => "timeline_publication_summary.v1",
+      "model" => "artifact_only_timeline_publication_summary",
+      "validation_level" => "artifact_contract",
+      "source" => source_row["source_artifact_type"],
+      "publication_id" => source_row["publication_id"],
+      "publication_sequence" => source_row["publication_sequence"],
+      "publication_status" => source_row["publication_status"],
+      "downstream_invalidation_status" => source_row["downstream_invalidation_status"],
+      "publication_authority" => source_row["publication_authority"],
+      "source_artifact_id" => source_row["source_artifact_id"],
+      "source_artifact_type" => source_row["source_artifact_type"],
+      "supersedes_artifact_ids" => source_row["supersedes_artifact_ids"],
+      "downstream_product_ids" => source_row["downstream_product_ids"],
+      "invalidated_downstream_product_ids" => source_row["invalidated_downstream_product_ids"],
+      "dependency_impact_status" => source_row["dependency_impact_status"],
+      "dependency_impact_row_count" => source_row["dependency_impact_row_count"],
+      "impacted_source_activity_ids" => source_row["impacted_source_activity_ids"],
+      "impacted_source_timeline_ids" => source_row["impacted_source_timeline_ids"],
+      "dependent_activity_ids" => source_row["dependent_activity_ids"],
+      "dependent_timeline_ids" => source_row["dependent_timeline_ids"],
+      "source_dependent_activity_ids" => source_row["source_dependent_activity_ids"],
+      "source_dependent_timeline_ids" => source_row["source_dependent_timeline_ids"],
+      "replacement_dependent_activity_ids" => source_row["replacement_dependent_activity_ids"],
+      "replacement_dependent_timeline_ids" => source_row["replacement_dependent_timeline_ids"],
+      "impacted_dependency_activity_ids" => source_row["impacted_dependency_activity_ids"],
+      "impacted_dependency_timeline_ids" => source_row["impacted_dependency_timeline_ids"],
+      "impacted_exclusive_with_activity_ids" =>
+        source_row["impacted_exclusive_with_activity_ids"],
+      "impacted_exclusive_with_timeline_ids" =>
+        source_row["impacted_exclusive_with_timeline_ids"],
+      "timeline_diff_row_count" => source_row["timeline_diff_row_count"],
+      "timeline_diff_changed_count" => source_row["timeline_diff_changed_count"],
+      "timeline_diff_review_required_count" => source_row["timeline_diff_review_required_count"],
+      "changed_field_counts" => source_row["changed_field_counts"],
+      "changed_timeline_ids" => source_row["changed_timeline_ids"],
+      "review_timeline_ids" => source_row["review_timeline_ids"],
+      "timeline_ids_by_changed_field" => source_row["timeline_ids_by_changed_field"],
+      "assumptions" => %{
+        "execution_boundary" => "artifact_only_no_schedule_mutation",
+        "notification_delivery" => "host_system_owned",
+        "publication_authority" => source_row["publication_authority"],
+        "operator_authority" => "not_granted_by_summary"
+      },
+      "model_limits" => OrbitalDynamics.Timeline.model_limits()
+    }
+    |> compact_map()
+    |> case do
+      %{"publication_id" => _publication_id} = summary -> summary
+      _summary -> nil
+    end
   end
 
   defp timeline_publication_handoff_row?(%{"review_type" => row_type}, row_type), do: true

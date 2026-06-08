@@ -540,22 +540,24 @@ and model-only inputs.
 handoff. It preserves deterministic publication ID/sequence, source artifact
 identity/type, superseded artifact IDs, downstream product IDs, invalidated
 downstream product IDs, an explicit downstream invalidation status, optional
-dependency-impact status and impact ID sets,
+dependency-impact status, nested dependency-impact source evidence,
+changed-source/dependent activity and timeline ID sets, and impacted
+dependency/exclusivity ID sets,
 optional nested `timeline_diff_summary.v1` changed-field audit evidence,
 row/changed/review diff counts, changed-field counts, changed/review timeline
 IDs, changed-field timeline routing, publication authority, host-owned
 notification delivery assumptions, and the same timeline model-limit boundary in
 runtime validation and JSON Schema export. Executable validation rejects stale
-copied audit projections that no longer match the nested diff summary. The
-summary does not mutate schedules, deliver notifications, approve imports, or
-grant operator authority.
+copied audit projections that no longer match the nested dependency-impact or
+diff summaries. The summary does not mutate schedules, deliver notifications,
+approve imports, or grant operator authority.
 Publication summaries can now route through
 `OperatorReview.from_timeline_publication_summary/1`,
 `CadenceImport.from_timeline_publication_summary/2`, and the matching public
 facades as `timeline_publication_review` / `review_timeline_publication`
 handoff rows. Those rows preserve publication identity, sequence, status,
 explicit downstream invalidation status, authority, supersession, downstream
-invalidation, dependency-impact rollups,
+invalidation, dependency-impact changed-source/dependent ID sets and rollups,
 changed-field audit counts and routing, and the nested source publication
 summary while leaving publication execution, notification delivery, and import
 authorization to downstream operators or host systems.
@@ -569,10 +571,11 @@ CandidateRefresh publication replay now preserves the same publication summary
 evidence through `CandidateRefresh.timeline_publication_replay_summary/1` and
 `OrbitalDynamics.candidate_refresh_timeline_publication_replay_summary/1`.
 Replay accepts direct publication summaries, result-artifact wrapped summaries,
-and review/import handoff rows, then emits artifact-only branch-local
-publication, dependency, changed-field, invalidation, and review pressure
-without publishing, notifying, importing, mutating schedules, or granting
-authority.
+and review/import handoff rows, including row-only handoffs where embedded
+publication summaries have been stripped, then emits artifact-only branch-local
+publication, dependency source/dependent ID sets, changed-field, invalidation,
+and review pressure without publishing, notifying, importing, mutating
+schedules, or granting authority.
 Operational-timeline report activity/row/contact/command/protection/execution
 totals and optional dependency, exclusivity, uncertainty, integrity, duplicate,
 valid, invalid, and terminal-exception counters are non-negative integers in

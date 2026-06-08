@@ -171,6 +171,15 @@ defmodule OrbitalDynamics.Timeline do
     invalidated_downstream_product_ids
     dependency_impact_status
     dependency_impact_row_count
+    source_timeline_dependency_impact_summary
+    impacted_source_activity_ids
+    impacted_source_timeline_ids
+    dependent_activity_ids
+    dependent_timeline_ids
+    source_dependent_activity_ids
+    source_dependent_timeline_ids
+    replacement_dependent_activity_ids
+    replacement_dependent_timeline_ids
     impacted_dependency_activity_ids
     impacted_dependency_timeline_ids
     impacted_exclusive_with_activity_ids
@@ -1833,6 +1842,24 @@ defmodule OrbitalDynamics.Timeline do
         Map.get(dependency_impact_summary, "dependency_impact_status", "not_evaluated"),
       "dependency_impact_row_count" =>
         dependency_impact_summary |> Map.get("dependency_impact_rows", []) |> length(),
+      "source_timeline_dependency_impact_summary" =>
+        publication_optional_source_timeline_dependency_impact_summary(dependency_impact_summary),
+      "impacted_source_activity_ids" =>
+        Map.get(dependency_impact_summary, "impacted_source_activity_ids", []),
+      "impacted_source_timeline_ids" =>
+        Map.get(dependency_impact_summary, "impacted_source_timeline_ids", []),
+      "dependent_activity_ids" =>
+        Map.get(dependency_impact_summary, "dependent_activity_ids", []),
+      "dependent_timeline_ids" =>
+        Map.get(dependency_impact_summary, "dependent_timeline_ids", []),
+      "source_dependent_activity_ids" =>
+        Map.get(dependency_impact_summary, "source_dependent_activity_ids", []),
+      "source_dependent_timeline_ids" =>
+        Map.get(dependency_impact_summary, "source_dependent_timeline_ids", []),
+      "replacement_dependent_activity_ids" =>
+        Map.get(dependency_impact_summary, "replacement_dependent_activity_ids", []),
+      "replacement_dependent_timeline_ids" =>
+        Map.get(dependency_impact_summary, "replacement_dependent_timeline_ids", []),
       "impacted_dependency_activity_ids" =>
         Map.get(dependency_impact_summary, "impacted_dependency_activity_ids", []),
       "impacted_dependency_timeline_ids" =>
@@ -1936,6 +1963,12 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp publication_dependency_impact_summary(_summary), do: %{}
+
+  defp publication_optional_source_timeline_dependency_impact_summary(%{} = summary)
+       when map_size(summary) > 0,
+       do: summary
+
+  defp publication_optional_source_timeline_dependency_impact_summary(_summary), do: nil
 
   defp publication_timeline_diff_summary(%{} = summary) do
     summary

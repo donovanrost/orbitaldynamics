@@ -9791,6 +9791,20 @@ defmodule OrbitalDynamics.ValidationTest do
              &(&1["field"] == "downstream_invalidation_status" and &1["status"] == "fail")
            )
 
+    stale_dependent_observations =
+      timeline_publication_summary_fixture_observations()
+      |> Map.put("dependent_activity_ids", "wrong_dependent")
+
+    assert {:ok, stale_dependent_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_dependent_observations)
+
+    assert stale_dependent_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_dependent_verification["checks"],
+             &(&1["field"] == "dependent_activity_ids" and &1["status"] == "fail")
+           )
+
     stale_routing_observations =
       timeline_publication_summary_fixture_observations()
       |> put_in(

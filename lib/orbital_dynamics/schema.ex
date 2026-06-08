@@ -79,6 +79,14 @@ defmodule OrbitalDynamics.Schema do
     "source_report_timeline_publication_supersedes_artifact_ids",
     "source_report_timeline_publication_downstream_product_ids",
     "source_report_timeline_publication_invalidated_downstream_product_ids",
+    "source_report_timeline_publication_impacted_source_activity_ids",
+    "source_report_timeline_publication_impacted_source_timeline_ids",
+    "source_report_timeline_publication_dependent_activity_ids",
+    "source_report_timeline_publication_dependent_timeline_ids",
+    "source_report_timeline_publication_source_dependent_activity_ids",
+    "source_report_timeline_publication_source_dependent_timeline_ids",
+    "source_report_timeline_publication_replacement_dependent_activity_ids",
+    "source_report_timeline_publication_replacement_dependent_timeline_ids",
     "source_report_operational_readiness_publication_ids",
     "source_report_operational_readiness_source_artifact_ids",
     "source_report_operational_readiness_supersedes_artifact_ids",
@@ -7085,14 +7093,23 @@ defmodule OrbitalDynamics.Schema do
         "invalidated_downstream_product_ids",
         "dependency_impact_status",
         "dependency_impact_row_count",
-        "impacted_dependency_activity_ids",
-        "impacted_dependency_timeline_ids",
-        "impacted_exclusive_with_activity_ids",
-        "impacted_exclusive_with_timeline_ids",
         "assumptions",
         "model_limits"
       ],
       "optional_fields" => [
+        "source_timeline_dependency_impact_summary",
+        "impacted_source_activity_ids",
+        "impacted_source_timeline_ids",
+        "dependent_activity_ids",
+        "dependent_timeline_ids",
+        "source_dependent_activity_ids",
+        "source_dependent_timeline_ids",
+        "replacement_dependent_activity_ids",
+        "replacement_dependent_timeline_ids",
+        "impacted_dependency_activity_ids",
+        "impacted_dependency_timeline_ids",
+        "impacted_exclusive_with_activity_ids",
+        "impacted_exclusive_with_timeline_ids",
         "source_timeline_diff_summary",
         "downstream_invalidation_status",
         "timeline_diff_row_count",
@@ -10541,6 +10558,14 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(
+         "source_timeline_dependency_impact_summary",
+         @timeline_publication_summary,
+         _contract
+       ) do
+    timeline_dependency_impact_summary_source_json_schema()
+  end
+
+  defp json_schema_property(
          "dependency_impact_row_count",
          @timeline_publication_summary,
          _contract
@@ -10566,6 +10591,14 @@ defmodule OrbitalDynamics.Schema do
               "supersedes_artifact_ids",
               "downstream_product_ids",
               "invalidated_downstream_product_ids",
+              "impacted_source_activity_ids",
+              "impacted_source_timeline_ids",
+              "dependent_activity_ids",
+              "dependent_timeline_ids",
+              "source_dependent_activity_ids",
+              "source_dependent_timeline_ids",
+              "replacement_dependent_activity_ids",
+              "replacement_dependent_timeline_ids",
               "impacted_dependency_activity_ids",
               "impacted_dependency_timeline_ids",
               "impacted_exclusive_with_activity_ids",
@@ -24963,6 +24996,14 @@ defmodule OrbitalDynamics.Schema do
       "downstream_product_ids" => stable_id_array_schema(),
       "invalidated_downstream_product_ids" => stable_id_array_schema(),
       "dependency_impact_row_count" => %{"type" => "integer", "minimum" => 0},
+      "impacted_source_activity_ids" => stable_id_array_schema(),
+      "impacted_source_timeline_ids" => stable_id_array_schema(),
+      "dependent_activity_ids" => stable_id_array_schema(),
+      "dependent_timeline_ids" => stable_id_array_schema(),
+      "source_dependent_activity_ids" => stable_id_array_schema(),
+      "source_dependent_timeline_ids" => stable_id_array_schema(),
+      "replacement_dependent_activity_ids" => stable_id_array_schema(),
+      "replacement_dependent_timeline_ids" => stable_id_array_schema(),
       "impacted_dependency_activity_ids" => stable_id_array_schema(),
       "impacted_dependency_timeline_ids" => stable_id_array_schema(),
       "impacted_exclusive_with_activity_ids" => stable_id_array_schema(),
@@ -26394,6 +26435,26 @@ defmodule OrbitalDynamics.Schema do
       |> Enum.sort()
       |> Map.new(fn field ->
         {field, json_schema_property(field, @timeline_diff_summary, contract)}
+      end)
+
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => required_fields,
+      "properties" => properties
+    }
+  end
+
+  defp timeline_dependency_impact_summary_source_json_schema do
+    contract = Map.fetch!(@contracts, @timeline_dependency_impact_summary)
+    required_fields = contract["required_fields"]
+
+    properties =
+      (required_fields ++ Map.get(contract, "optional_fields", []))
+      |> Enum.uniq()
+      |> Enum.sort()
+      |> Map.new(fn field ->
+        {field, json_schema_property(field, @timeline_dependency_impact_summary, contract)}
       end)
 
     %{
@@ -30752,6 +30813,14 @@ defmodule OrbitalDynamics.Schema do
           "supersedes_artifact_ids",
           "downstream_product_ids",
           "invalidated_downstream_product_ids",
+          "impacted_source_activity_ids",
+          "impacted_source_timeline_ids",
+          "dependent_activity_ids",
+          "dependent_timeline_ids",
+          "source_dependent_activity_ids",
+          "source_dependent_timeline_ids",
+          "replacement_dependent_activity_ids",
+          "replacement_dependent_timeline_ids",
           "impacted_dependency_activity_ids",
           "impacted_dependency_timeline_ids",
           "impacted_exclusive_with_activity_ids",
@@ -32096,6 +32165,7 @@ defmodule OrbitalDynamics.Schema do
     |> expect_type("$", artifact, "provenance", :map)
     |> expect_optional_type("$", artifact, "model_limits", :list)
     |> validate_string_list_items("$", artifact, "model_limits")
+    |> validate_candidate_refresh_publication_lineage_id_arrays(artifact)
     |> validate_optional_exact_model_limits(
       "$",
       artifact,
@@ -32489,6 +32559,14 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(_name, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
+  end
+
+  defp validate_candidate_refresh_publication_lineage_id_arrays(issues, artifact) do
+    Enum.reduce(@candidate_refresh_publication_lineage_id_array_fields, issues, fn field, acc ->
+      acc
+      |> expect_optional_type("$", artifact, field, :list)
+      |> validate_optional_stable_id_list("$", artifact, field)
+    end)
   end
 
   defp validate_validation_tolerance_policy_levels(issues, artifact) do
@@ -42259,6 +42337,14 @@ defmodule OrbitalDynamics.Schema do
       "invalidated_downstream_product_ids",
       "dependency_impact_status",
       "dependency_impact_row_count",
+      "impacted_source_activity_ids",
+      "impacted_source_timeline_ids",
+      "dependent_activity_ids",
+      "dependent_timeline_ids",
+      "source_dependent_activity_ids",
+      "source_dependent_timeline_ids",
+      "replacement_dependent_activity_ids",
+      "replacement_dependent_timeline_ids",
       "impacted_dependency_activity_ids",
       "impacted_dependency_timeline_ids",
       "impacted_exclusive_with_activity_ids",
@@ -43112,6 +43198,7 @@ defmodule OrbitalDynamics.Schema do
       "must match timeline report model limits"
     )
     |> validate_timeline_publication_summary_diff_audit(path, summary)
+    |> validate_timeline_publication_summary_dependency_impact_source(path, summary)
     |> validate_timeline_publication_summary_derived_fields(path, summary)
   end
 
@@ -43119,7 +43206,26 @@ defmodule OrbitalDynamics.Schema do
     [
       "supersedes_artifact_ids",
       "downstream_product_ids",
-      "invalidated_downstream_product_ids",
+      "invalidated_downstream_product_ids"
+    ]
+    |> Enum.reduce(issues, fn field, acc ->
+      acc
+      |> expect_type(path, summary, field, :list)
+      |> validate_optional_stable_id_list(path, summary, field)
+    end)
+    |> validate_timeline_publication_optional_dependency_impact_id_fields(path, summary)
+  end
+
+  defp validate_timeline_publication_optional_dependency_impact_id_fields(issues, path, summary) do
+    [
+      "impacted_source_activity_ids",
+      "impacted_source_timeline_ids",
+      "dependent_activity_ids",
+      "dependent_timeline_ids",
+      "source_dependent_activity_ids",
+      "source_dependent_timeline_ids",
+      "replacement_dependent_activity_ids",
+      "replacement_dependent_timeline_ids",
       "impacted_dependency_activity_ids",
       "impacted_dependency_timeline_ids",
       "impacted_exclusive_with_activity_ids",
@@ -43127,7 +43233,7 @@ defmodule OrbitalDynamics.Schema do
     ]
     |> Enum.reduce(issues, fn field, acc ->
       acc
-      |> expect_type(path, summary, field, :list)
+      |> expect_optional_type(path, summary, field, :list)
       |> validate_optional_stable_id_list(path, summary, field)
     end)
   end
@@ -43335,6 +43441,122 @@ defmodule OrbitalDynamics.Schema do
     end)
   end
 
+  defp validate_timeline_publication_summary_dependency_impact_source(issues, path, summary) do
+    source_summary = Map.get(summary, "source_timeline_dependency_impact_summary")
+
+    issues
+    |> expect_optional_type(path, summary, "source_timeline_dependency_impact_summary", :map)
+    |> validate_optional_timeline_dependency_impact_summary_source(
+      path <> ".source_timeline_dependency_impact_summary",
+      source_summary
+    )
+    |> validate_timeline_publication_summary_dependency_impact_source_fields(
+      path,
+      summary,
+      source_summary
+    )
+  end
+
+  defp validate_optional_timeline_dependency_impact_summary_source(issues, _path, nil),
+    do: issues
+
+  defp validate_optional_timeline_dependency_impact_summary_source(issues, path, %{} = summary),
+    do: validate_timeline_dependency_impact_summary(issues, path, summary)
+
+  defp validate_optional_timeline_dependency_impact_summary_source(issues, path, _summary),
+    do: [error(path, "must be an object") | issues]
+
+  defp validate_timeline_publication_summary_dependency_impact_source_fields(
+         issues,
+         path,
+         summary,
+         %{} = source_summary
+       ) do
+    issues
+    |> require_timeline_publication_summary_dependency_impact_fields(path, summary)
+    |> expect_field_equals(
+      path,
+      summary,
+      "dependency_impact_status",
+      Map.get(source_summary, "dependency_impact_status"),
+      "must equal source_timeline_dependency_impact_summary.dependency_impact_status"
+    )
+    |> expect_field_equals(
+      path,
+      summary,
+      "dependency_impact_row_count",
+      source_summary |> Map.get("dependency_impact_rows", []) |> length(),
+      "must equal source_timeline_dependency_impact_summary row count"
+    )
+    |> expect_timeline_publication_summary_dependency_impact_id_fields(
+      path,
+      summary,
+      source_summary
+    )
+  end
+
+  defp validate_timeline_publication_summary_dependency_impact_source_fields(
+         issues,
+         _path,
+         _summary,
+         _source
+       ) do
+    issues
+  end
+
+  defp require_timeline_publication_summary_dependency_impact_fields(issues, path, summary) do
+    timeline_publication_summary_dependency_impact_source_field_pairs()
+    |> Enum.reduce(issues, fn {field, _source_field}, acc ->
+      if Map.has_key?(summary, field) do
+        acc
+      else
+        [
+          error(
+            "#{path}.#{field}",
+            "must be present when source_timeline_dependency_impact_summary is present"
+          )
+          | acc
+        ]
+      end
+    end)
+  end
+
+  defp expect_timeline_publication_summary_dependency_impact_id_fields(
+         issues,
+         path,
+         summary,
+         source_summary
+       ) do
+    timeline_publication_summary_dependency_impact_source_field_pairs()
+    |> Enum.reduce(issues, fn {field, source_field}, acc ->
+      expect_field_equals(
+        acc,
+        path,
+        summary,
+        field,
+        Map.get(source_summary, source_field),
+        "must equal source_timeline_dependency_impact_summary.#{source_field}"
+      )
+    end)
+  end
+
+  defp timeline_publication_summary_dependency_impact_source_field_pairs do
+    [
+      {"impacted_source_activity_ids", "impacted_source_activity_ids"},
+      {"impacted_source_timeline_ids", "impacted_source_timeline_ids"},
+      {"dependent_activity_ids", "dependent_activity_ids"},
+      {"dependent_timeline_ids", "dependent_timeline_ids"},
+      {"source_dependent_activity_ids", "source_dependent_activity_ids"},
+      {"source_dependent_timeline_ids", "source_dependent_timeline_ids"},
+      {"replacement_dependent_activity_ids", "replacement_dependent_activity_ids"},
+      {"replacement_dependent_timeline_ids", "replacement_dependent_timeline_ids"},
+      {"impacted_dependency_activity_ids", "impacted_dependency_activity_ids"},
+      {"impacted_dependency_timeline_ids", "impacted_dependency_timeline_ids"},
+      {"impacted_exclusive_with_activity_ids", "impacted_exclusive_with_activity_ids"},
+      {"impacted_exclusive_with_timeline_ids", "impacted_exclusive_with_timeline_ids"}
+    ]
+  end
+
   defp validate_timeline_publication_summary_dependency_count(issues, path, summary) do
     if summary["dependency_impact_status"] in ["clear", "not_evaluated"] do
       expect_field_equals(
@@ -43353,20 +43575,32 @@ defmodule OrbitalDynamics.Schema do
   defp validate_timeline_publication_summary_no_impact_without_review(issues, path, summary) do
     if summary["dependency_impact_status"] in ["clear", "not_evaluated"] do
       [
+        "impacted_source_activity_ids",
+        "impacted_source_timeline_ids",
+        "dependent_activity_ids",
+        "dependent_timeline_ids",
+        "source_dependent_activity_ids",
+        "source_dependent_timeline_ids",
+        "replacement_dependent_activity_ids",
+        "replacement_dependent_timeline_ids",
         "impacted_dependency_activity_ids",
         "impacted_dependency_timeline_ids",
         "impacted_exclusive_with_activity_ids",
         "impacted_exclusive_with_timeline_ids"
       ]
       |> Enum.reduce(issues, fn field, acc ->
-        expect_field_equals(
-          acc,
-          path,
-          summary,
-          field,
-          [],
-          "must be empty unless dependency_impact_status is review_required"
-        )
+        if Map.has_key?(summary, field) do
+          expect_field_equals(
+            acc,
+            path,
+            summary,
+            field,
+            [],
+            "must be empty unless dependency_impact_status is review_required"
+          )
+        else
+          acc
+        end
       end)
     else
       issues

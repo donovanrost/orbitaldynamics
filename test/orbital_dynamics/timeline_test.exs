@@ -3724,6 +3724,15 @@ defmodule OrbitalDynamics.TimelineTest do
              ],
              "dependency_impact_status" => "review_required",
              "dependency_impact_row_count" => 2,
+             "source_timeline_dependency_impact_summary" => ^dependency_impact,
+             "impacted_source_activity_ids" => ["health_gate"],
+             "impacted_source_timeline_ids" => ["timeline:health_check:0.0"],
+             "dependent_activity_ids" => ["cmd_main"],
+             "dependent_timeline_ids" => ["timeline:command:20.0"],
+             "source_dependent_activity_ids" => ["cmd_main"],
+             "source_dependent_timeline_ids" => ["timeline:command:20.0"],
+             "replacement_dependent_activity_ids" => ["cmd_main"],
+             "replacement_dependent_timeline_ids" => ["timeline:command:20.0"],
              "impacted_dependency_activity_ids" => ["health_gate"],
              "impacted_dependency_timeline_ids" => [],
              "impacted_exclusive_with_activity_ids" => [],
@@ -3778,6 +3787,19 @@ defmodule OrbitalDynamics.TimelineTest do
 
     assert {:ok, %{"schema_contract" => "timeline_publication_summary.v1"}} =
              Schema.validate_artifact(summary)
+
+    stale_impacted_source_ids =
+      Map.put(summary, "impacted_source_activity_ids", ["wrong_source"])
+
+    assert {:error, stale_impacted_source_ids_report} =
+             Schema.validate_artifact(stale_impacted_source_ids)
+
+    assert Enum.any?(
+             stale_impacted_source_ids_report["errors"],
+             &(&1["path"] == "$.impacted_source_activity_ids" and
+                 &1["message"] ==
+                   "must equal source_timeline_dependency_impact_summary.impacted_source_activity_ids")
+           )
 
     stale_status = Map.put(summary, "publication_status", "published")
 

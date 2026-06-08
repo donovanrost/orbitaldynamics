@@ -6723,6 +6723,14 @@ defmodule OrbitalDynamics.Validation do
         "invalidated_downstream_product_ids" => "cadence_import:plan:v1|operator_review:plan:v1",
         "dependency_impact_status" => "review_required",
         "dependency_impact_row_count" => 2,
+        "impacted_source_activity_ids" => "health_gate",
+        "impacted_source_timeline_ids" => "timeline:health_check:0.0",
+        "dependent_activity_ids" => "cmd_main",
+        "dependent_timeline_ids" => "timeline:command:20.0",
+        "source_dependent_activity_ids" => "cmd_main",
+        "source_dependent_timeline_ids" => "timeline:command:20.0",
+        "replacement_dependent_activity_ids" => "cmd_main",
+        "replacement_dependent_timeline_ids" => "timeline:command:20.0",
         "impacted_dependency_activity_ids" => "health_gate",
         "impacted_dependency_timeline_ids" => "",
         "impacted_exclusive_with_activity_ids" => "",
@@ -16045,6 +16053,38 @@ defmodule OrbitalDynamics.Validation do
         |> Enum.join("|"),
       "dependency_impact_status" => Map.get(artifact, "dependency_impact_status"),
       "dependency_impact_row_count" => Map.get(artifact, "dependency_impact_row_count"),
+      "impacted_source_activity_ids" =>
+        artifact
+        |> list_values("impacted_source_activity_ids")
+        |> Enum.join("|"),
+      "impacted_source_timeline_ids" =>
+        artifact
+        |> list_values("impacted_source_timeline_ids")
+        |> Enum.join("|"),
+      "dependent_activity_ids" =>
+        artifact
+        |> list_values("dependent_activity_ids")
+        |> Enum.join("|"),
+      "dependent_timeline_ids" =>
+        artifact
+        |> list_values("dependent_timeline_ids")
+        |> Enum.join("|"),
+      "source_dependent_activity_ids" =>
+        artifact
+        |> list_values("source_dependent_activity_ids")
+        |> Enum.join("|"),
+      "source_dependent_timeline_ids" =>
+        artifact
+        |> list_values("source_dependent_timeline_ids")
+        |> Enum.join("|"),
+      "replacement_dependent_activity_ids" =>
+        artifact
+        |> list_values("replacement_dependent_activity_ids")
+        |> Enum.join("|"),
+      "replacement_dependent_timeline_ids" =>
+        artifact
+        |> list_values("replacement_dependent_timeline_ids")
+        |> Enum.join("|"),
       "impacted_dependency_activity_ids" =>
         artifact
         |> list_values("impacted_dependency_activity_ids")

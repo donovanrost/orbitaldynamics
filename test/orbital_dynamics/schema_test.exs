@@ -26139,6 +26139,24 @@ defmodule OrbitalDynamics.SchemaTest do
              "type"
            ]) == "string"
 
+    publication_lineage_fields = [
+      "source_report_timeline_publication_impacted_source_activity_ids",
+      "source_report_timeline_publication_impacted_source_timeline_ids",
+      "source_report_timeline_publication_dependent_activity_ids",
+      "source_report_timeline_publication_dependent_timeline_ids",
+      "source_report_timeline_publication_source_dependent_activity_ids",
+      "source_report_timeline_publication_source_dependent_timeline_ids",
+      "source_report_timeline_publication_replacement_dependent_activity_ids",
+      "source_report_timeline_publication_replacement_dependent_timeline_ids"
+    ]
+
+    for field <- publication_lineage_fields do
+      assert get_in(schema, ["properties", field, "type"]) == "array"
+
+      assert get_in(schema, ["properties", field, "items", "pattern"]) ==
+               Schema.identity_policy()["stable_id_pattern"]
+    end
+
     named_freshness_schema =
       get_in(schema, [
         "properties",

@@ -26488,6 +26488,24 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "operator_review:plan:v1"
              ],
              "source_report_timeline_publication_dependency_impact_row_count" => 2,
+             "source_report_timeline_publication_impacted_source_activity_ids" => ["health_gate"],
+             "source_report_timeline_publication_impacted_source_timeline_ids" => [
+               "timeline:health_check:0.0"
+             ],
+             "source_report_timeline_publication_dependent_activity_ids" => ["cmd_main"],
+             "source_report_timeline_publication_dependent_timeline_ids" => [
+               "timeline:command:20.0"
+             ],
+             "source_report_timeline_publication_source_dependent_activity_ids" => ["cmd_main"],
+             "source_report_timeline_publication_source_dependent_timeline_ids" => [
+               "timeline:command:20.0"
+             ],
+             "source_report_timeline_publication_replacement_dependent_activity_ids" => [
+               "cmd_main"
+             ],
+             "source_report_timeline_publication_replacement_dependent_timeline_ids" => [
+               "timeline:command:20.0"
+             ],
              "source_report_timeline_publication_diff_row_count" => 3,
              "source_report_timeline_publication_diff_review_required_count" => 2,
              "source_report_timeline_publication_changed_field_counts" => %{
@@ -26536,6 +26554,14 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
                "operator_review:plan:v1"
              ],
              "dependency_impact_row_count" => 2,
+             "impacted_source_activity_ids" => ["health_gate"],
+             "impacted_source_timeline_ids" => ["timeline:health_check:0.0"],
+             "dependent_activity_ids" => ["cmd_main"],
+             "dependent_timeline_ids" => ["timeline:command:20.0"],
+             "source_dependent_activity_ids" => ["cmd_main"],
+             "source_dependent_timeline_ids" => ["timeline:command:20.0"],
+             "replacement_dependent_activity_ids" => ["cmd_main"],
+             "replacement_dependent_timeline_ids" => ["timeline:command:20.0"],
              "impacted_dependency_activity_ids" => ["health_gate"],
              "timeline_diff_row_count" => 3,
              "timeline_diff_changed_count" => 0,
@@ -26597,6 +26623,106 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     refute summary["branch_local_timeline_publication_changed_field_pressure"]
     refute summary["branch_local_timeline_publication_invalidation_pressure"]
     refute summary["branch_local_timeline_publication_review_pressure"]
+  end
+
+  test "timeline publication replay derives dependency IDs from row-only review and import handoffs" do
+    source = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 0.0, ends_at_s: 10.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    replacement = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 5.0, ends_at_s: 15.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    publication_summary =
+      %{
+        "schema_contract" => "operational_timeline_report.v1",
+        "id" => "timeline:published_plan:v2"
+      }
+      |> Timeline.publication_summary(
+        publication_sequence: 7,
+        publication_authority: :mission_operations,
+        supersedes_artifact_ids: ["timeline:published_plan:v1"],
+        downstream_product_ids: ["operator_review:plan:v1", "cadence_import:plan:v1"],
+        dependency_impact_summary: Timeline.dependency_impact_summary(source, replacement),
+        timeline_diff_summary: Timeline.diff_summary(source, replacement)
+      )
+
+    strip_embedded_publication_summary = fn artifact ->
+      Map.update!(artifact, "rows", fn rows ->
+        Enum.map(rows, fn row ->
+          row
+          |> Map.delete("source_timeline_publication_summary")
+          |> Map.update("source_review_row", nil, fn
+            %{} = source_review_row ->
+              Map.delete(source_review_row, "source_timeline_publication_summary")
+
+            source_review_row ->
+              source_review_row
+          end)
+        end)
+      end)
+    end
+
+    refresh = %{
+      "source_operator_review_package" =>
+        publication_summary
+        |> OperatorReview.from_timeline_publication_summary()
+        |> strip_embedded_publication_summary.(),
+      "source_cadence_import_manifest" =>
+        publication_summary
+        |> CadenceImport.from_timeline_publication_summary()
+        |> strip_embedded_publication_summary.()
+    }
+
+    source_report_summary = CandidateRefresh.source_report_summary(refresh)
+
+    assert %{
+             "source_report_timeline_publication_count" => 2,
+             "source_report_timeline_publication_row_count" => 2,
+             "source_report_timeline_publication_impacted_source_activity_ids" => ["health_gate"],
+             "source_report_timeline_publication_impacted_source_timeline_ids" => [
+               "timeline:health_check:0.0"
+             ],
+             "source_report_timeline_publication_dependent_activity_ids" => ["cmd_main"],
+             "source_report_timeline_publication_dependent_timeline_ids" => [
+               "timeline:command:20.0"
+             ],
+             "source_report_timeline_publication_source_dependent_activity_ids" => ["cmd_main"],
+             "source_report_timeline_publication_replacement_dependent_activity_ids" => [
+               "cmd_main"
+             ],
+             "source_report_timeline_publication_impacted_dependency_activity_ids" => [
+               "health_gate"
+             ]
+           } = source_report_summary
+
+    assert %{
+             "source_report_count" => 2,
+             "source_report_row_count" => 2,
+             "impacted_source_activity_ids" => ["health_gate"],
+             "impacted_source_timeline_ids" => ["timeline:health_check:0.0"],
+             "dependent_activity_ids" => ["cmd_main"],
+             "dependent_timeline_ids" => ["timeline:command:20.0"],
+             "source_dependent_activity_ids" => ["cmd_main"],
+             "replacement_dependent_activity_ids" => ["cmd_main"],
+             "impacted_dependency_activity_ids" => ["health_gate"],
+             "branch_local_timeline_publication_dependency_pressure" => true
+           } = CandidateRefresh.timeline_publication_replay_summary(refresh)
   end
 
   test "timeline publication replay reads strategy branch candidate-source summary metadata" do
