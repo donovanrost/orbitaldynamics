@@ -8,9 +8,9 @@ Current slice:
 Wrapped operational import-eligibility summary Cadence import coverage.
 
 Status:
-Implementation, focused verification, and read-only `slice_reviewer` handoff
-are complete. CandidateRefresh Cadence-import regression coverage now pins
-result-artifact-wrapped
+Product commit complete. Implementation, focused verification, read-only
+`slice_reviewer` handoff, and push are complete. CandidateRefresh
+Cadence-import regression coverage now pins result-artifact-wrapped
 `operational_import_eligibility_summary.v1` handoffs. The test asserts exact
 wrapper-qualified source paths, operational-readiness import actions,
 review-only import classification, readiness/gate counts, embedded compact
@@ -43,11 +43,11 @@ preserve routing evidence that review/import or CandidateRefresh replay still
 does not consume.
 
 Last commit:
-Pending commit for this slice.
+Product commit `01a21bbfc1b62458cdb0a316f9b9bde27ffcd4c8`.
 
 Next candidate:
-After review and push, reassess the next weak resource/contact,
-readiness/quality-gate, or CandidateRefresh handoff.
+Reassess the next weak resource/contact, readiness/quality-gate, or
+CandidateRefresh handoff.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
