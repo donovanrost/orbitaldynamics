@@ -8000,6 +8000,95 @@ defmodule OrbitalDynamics.Validation do
         "checks contention-resolution recommendation counts, routing maps, no-reservation boundary, and model-limit boundary only"
       ]
     },
+    "fixture.artifact.contact_contention_resolution_summary.v1" => %{
+      "id" => "fixture.artifact.contact_contention_resolution_summary.v1",
+      "model_id" => "artifact.contact_contention_resolution_summary.v1",
+      "reference_case" => "checked-in contact contention resolution summary artifact",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/contact_contention_resolution_summary_v1.json",
+        "contract" => "contact_contention_resolution_summary.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "contact_contention_resolution_summary.v1",
+        "model" => "artifact_only_contact_contention_resolution_summary",
+        "source_artifact_type" => "contact_contention_resolution_report.v1",
+        "conflict_group_count" => 2,
+        "recommendation_count" => 2,
+        "recommendation_group_ids" =>
+          "spacecraft:sat_1:contention:1|station:equator_prime:contention:1",
+        "review_group_ids" => "spacecraft:sat_1:contention:1|station:equator_prime:contention:1",
+        "selected_contact_ids" => "dl_1|dl_3",
+        "selected_contact_ids_by_group_id" => %{
+          "spacecraft:sat_1:contention:1" => ["dl_3"],
+          "station:equator_prime:contention:1" => ["dl_1"]
+        },
+        "deferred_contact_ids" => "dl_2|dl_4",
+        "deferred_contact_ids_by_group_id" => %{
+          "spacecraft:sat_1:contention:1" => ["dl_4"],
+          "station:equator_prime:contention:1" => ["dl_2"]
+        },
+        "review_contact_ids" => "dl_1|dl_2|dl_3|dl_4",
+        "review_contact_ids_by_group_id" => %{
+          "spacecraft:sat_1:contention:1" => ["dl_3", "dl_4"],
+          "station:equator_prime:contention:1" => ["dl_1", "dl_2"]
+        },
+        "review_recommendation_count" => 2,
+        "resource_scope_counts" => %{"ground_station" => 1, "spacecraft" => 1},
+        "selected_contact_ids_by_resource_scope" => %{
+          "ground_station" => ["dl_1"],
+          "spacecraft" => ["dl_3"]
+        },
+        "deferred_contact_ids_by_resource_scope" => %{
+          "ground_station" => ["dl_2"],
+          "spacecraft" => ["dl_4"]
+        },
+        "review_contact_ids_by_resource_scope" => %{
+          "ground_station" => ["dl_1", "dl_2"],
+          "spacecraft" => ["dl_3", "dl_4"]
+        },
+        "selection_reason_counts" => %{"highest_score_earliest_start" => 2},
+        "selected_contact_ids_by_selection_reason" => %{
+          "highest_score_earliest_start" => ["dl_1", "dl_3"]
+        },
+        "action_counts" => %{"recommend_preferred_contact_for_operator_review" => 2},
+        "review_contact_ids_by_action" => %{
+          "recommend_preferred_contact_for_operator_review" => [
+            "dl_1",
+            "dl_2",
+            "dl_3",
+            "dl_4"
+          ]
+        },
+        "ambiguous_group_ids" => "",
+        "ambiguous_duplicate_contact_ids" => "",
+        "ambiguous_duplicate_contact_ids_by_group_id" => %{},
+        "model_limit_count" => 5,
+        "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
+        "assumption_source" => "contact_contention_resolution_report.v1",
+        "candidate_mutation" => "none",
+        "operator_authority" => "not_granted_by_summary",
+        "no_provider_reservation" => true,
+        "no_candidate_suppression" => true,
+        "no_schedule_mutation" => true,
+        "no_link_budget_model" => true
+      },
+      "tolerances" => %{
+        "conflict_group_count" => 0,
+        "recommendation_count" => 0,
+        "review_recommendation_count" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by contact_contention_resolution_summary.v1 validation tests"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not provider reservation or schedule validation",
+        "checks compact contention-resolution routing, review handoff IDs, model limits, and no-mutation boundaries only"
+      ]
+    },
     "fixture.artifact.link_capacity_report.v1" => %{
       "id" => "fixture.artifact.link_capacity_report.v1",
       "model_id" => "artifact.link_capacity_report.v1",
@@ -16632,6 +16721,78 @@ defmodule OrbitalDynamics.Validation do
         |> sort_grouped_values(),
       "resolution_boundary" => get_in(artifact, ["assumptions", "boundary"]),
       "model_limit_count" => count(artifact, "model_limits")
+    }
+  end
+
+  def artifact_observations("contact_contention_resolution_summary.v1", artifact)
+      when is_map(artifact) do
+    artifact = stringify_keys(artifact)
+    model_limits = list_values(artifact, "model_limits")
+
+    %{
+      "schema_contract" => Map.get(artifact, "schema_contract"),
+      "model" => Map.get(artifact, "model"),
+      "source_artifact_type" => Map.get(artifact, "source_artifact_type"),
+      "conflict_group_count" => Map.get(artifact, "conflict_group_count"),
+      "recommendation_count" => Map.get(artifact, "recommendation_count"),
+      "recommendation_group_ids" =>
+        artifact
+        |> list_values("recommendation_group_ids")
+        |> Enum.join("|"),
+      "review_group_ids" =>
+        artifact
+        |> list_values("review_group_ids")
+        |> Enum.join("|"),
+      "selected_contact_ids" =>
+        artifact
+        |> list_values("selected_contact_ids")
+        |> Enum.join("|"),
+      "selected_contact_ids_by_group_id" =>
+        Map.get(artifact, "selected_contact_ids_by_group_id") || %{},
+      "deferred_contact_ids" =>
+        artifact
+        |> list_values("deferred_contact_ids")
+        |> Enum.join("|"),
+      "deferred_contact_ids_by_group_id" =>
+        Map.get(artifact, "deferred_contact_ids_by_group_id") || %{},
+      "review_contact_ids" =>
+        artifact
+        |> list_values("review_contact_ids")
+        |> Enum.join("|"),
+      "review_contact_ids_by_group_id" =>
+        Map.get(artifact, "review_contact_ids_by_group_id") || %{},
+      "review_recommendation_count" => Map.get(artifact, "review_recommendation_count"),
+      "resource_scope_counts" => Map.get(artifact, "resource_scope_counts") || %{},
+      "selected_contact_ids_by_resource_scope" =>
+        Map.get(artifact, "selected_contact_ids_by_resource_scope") || %{},
+      "deferred_contact_ids_by_resource_scope" =>
+        Map.get(artifact, "deferred_contact_ids_by_resource_scope") || %{},
+      "review_contact_ids_by_resource_scope" =>
+        Map.get(artifact, "review_contact_ids_by_resource_scope") || %{},
+      "selection_reason_counts" => Map.get(artifact, "selection_reason_counts") || %{},
+      "selected_contact_ids_by_selection_reason" =>
+        Map.get(artifact, "selected_contact_ids_by_selection_reason") || %{},
+      "action_counts" => Map.get(artifact, "action_counts") || %{},
+      "review_contact_ids_by_action" => Map.get(artifact, "review_contact_ids_by_action") || %{},
+      "ambiguous_group_ids" =>
+        artifact
+        |> list_values("ambiguous_group_ids")
+        |> Enum.join("|"),
+      "ambiguous_duplicate_contact_ids" =>
+        artifact
+        |> list_values("ambiguous_duplicate_contact_ids")
+        |> Enum.join("|"),
+      "ambiguous_duplicate_contact_ids_by_group_id" =>
+        Map.get(artifact, "ambiguous_duplicate_contact_ids_by_group_id") || %{},
+      "model_limit_count" => length(model_limits),
+      "execution_boundary" => get_in(artifact, ["assumptions", "execution_boundary"]),
+      "assumption_source" => get_in(artifact, ["assumptions", "source"]),
+      "candidate_mutation" => get_in(artifact, ["assumptions", "candidate_mutation"]),
+      "operator_authority" => get_in(artifact, ["assumptions", "operator_authority"]),
+      "no_provider_reservation" => "no_provider_reservation" in model_limits,
+      "no_candidate_suppression" => "no_candidate_suppression" in model_limits,
+      "no_schedule_mutation" => "no_schedule_mutation" in model_limits,
+      "no_link_budget_model" => "no_link_budget_model" in model_limits
     }
   end
 

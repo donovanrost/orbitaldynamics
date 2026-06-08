@@ -11314,6 +11314,107 @@ defmodule OrbitalDynamics.ValidationTest do
            )
   end
 
+  test "verifies curated contact contention resolution summary reference fixtures" do
+    fixture_id = "fixture.artifact.contact_contention_resolution_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.contact_contention_resolution_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = contact_contention_resolution_summary_fixture()
+    observations = contact_contention_resolution_summary_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "conflict_group_count" => 2,
+             "recommendation_count" => 2,
+             "recommendation_group_ids" =>
+               "spacecraft:sat_1:contention:1|station:equator_prime:contention:1",
+             "review_group_ids" =>
+               "spacecraft:sat_1:contention:1|station:equator_prime:contention:1",
+             "selected_contact_ids" => "dl_1|dl_3",
+             "deferred_contact_ids" => "dl_2|dl_4",
+             "review_contact_ids" => "dl_1|dl_2|dl_3|dl_4",
+             "review_recommendation_count" => 2,
+             "resource_scope_counts" => %{"ground_station" => 1, "spacecraft" => 1},
+             "selected_contact_ids_by_resource_scope" => %{
+               "ground_station" => ["dl_1"],
+               "spacecraft" => ["dl_3"]
+             },
+             "deferred_contact_ids_by_resource_scope" => %{
+               "ground_station" => ["dl_2"],
+               "spacecraft" => ["dl_4"]
+             },
+             "selection_reason_counts" => %{"highest_score_earliest_start" => 2},
+             "action_counts" => %{"recommend_preferred_contact_for_operator_review" => 2},
+             "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
+             "candidate_mutation" => "none",
+             "operator_authority" => "not_granted_by_summary",
+             "no_provider_reservation" => true,
+             "no_candidate_suppression" => true,
+             "no_schedule_mutation" => true
+           } = observations
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "contact_contention_resolution_summary.v1",
+             report
+           ) ==
+             Validation.artifact_observations(
+               "contact_contention_resolution_summary.v1",
+               report
+             )
+
+    stale_count_observations = Map.put(observations, "recommendation_count", 1)
+
+    assert {:ok, stale_count_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_count_observations)
+
+    assert stale_count_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_count_verification["checks"],
+             &(&1["field"] == "recommendation_count" and &1["status"] == "fail")
+           )
+
+    stale_routing_observations =
+      put_in(observations, ["selected_contact_ids_by_resource_scope", "spacecraft"], [])
+
+    assert {:ok, stale_routing_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_routing_observations)
+
+    assert stale_routing_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_routing_verification["checks"],
+             &(&1["field"] == "selected_contact_ids_by_resource_scope" and
+                 &1["status"] == "fail")
+           )
+
+    stale_boundary_observations =
+      Map.put(observations, "execution_boundary", "provider_reservation_ready")
+
+    assert {:ok, stale_boundary_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_boundary_observations)
+
+    assert stale_boundary_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_boundary_verification["checks"],
+             &(&1["field"] == "execution_boundary" and &1["status"] == "fail")
+           )
+
+    assert {:ok, %{"schema_contract" => "contact_contention_resolution_summary.v1"}} =
+             Schema.validate_artifact(report,
+               schema_contract: "contact_contention_resolution_summary.v1"
+             )
+  end
+
   test "verifies curated link capacity report reference fixtures" do
     fixture_id = "fixture.artifact.link_capacity_report.v1"
 
@@ -13204,6 +13305,8 @@ defmodule OrbitalDynamics.ValidationTest do
           contact_contention_cross_station_fixture_observations(),
         "fixture.artifact.contact_contention_resolution_report.v1" =>
           contact_contention_resolution_report_fixture_observations(),
+        "fixture.artifact.contact_contention_resolution_summary.v1" =>
+          contact_contention_resolution_summary_fixture_observations(),
         "fixture.artifact.contact_filter_report.v1" =>
           contact_filter_report_fixture_observations(),
         "fixture.artifact.contact_intent.v1" => contact_intent_fixture_observations(),
@@ -13438,8 +13541,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 172,
-             "status_counts" => %{"pass" => 172},
+             "fixture_count" => 173,
+             "status_counts" => %{"pass" => 173},
              "reports" => reports
            } = report
 
@@ -13485,6 +13588,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.contact_contention_report.cross_station_spacecraft",
              "fixture.artifact.contact_contention_report.v1",
              "fixture.artifact.contact_contention_resolution_report.v1",
+             "fixture.artifact.contact_contention_resolution_summary.v1",
              "fixture.artifact.contact_filter_report.v1",
              "fixture.artifact.contact_intent.v1",
              "fixture.artifact.contact_intent_summary.v1",
@@ -13628,7 +13732,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 172},
+             "status_counts" => %{"fail" => 173},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -15407,6 +15511,15 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp contact_contention_resolution_report_fixture do
     read_json!("study_results/contact_contention_resolution_report_v1.json")
+  end
+
+  defp contact_contention_resolution_summary_fixture_observations do
+    "contact_contention_resolution_summary.v1"
+    |> Validation.artifact_observations(contact_contention_resolution_summary_fixture())
+  end
+
+  defp contact_contention_resolution_summary_fixture do
+    read_json!("study_results/contact_contention_resolution_summary_v1.json")
   end
 
   defp link_capacity_report_fixture_observations do
