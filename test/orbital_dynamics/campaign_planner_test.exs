@@ -42116,6 +42116,175 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives branch refresh from mission-state operational readiness gate summaries" do
+    gate_summary = fn prefix, trust_boundary ->
+      readiness_report = %{
+        "schema_contract" => "operational_readiness_report.v1",
+        "model" => "OrbitalDynamics.OperationalReadiness.V1",
+        "report_id" => "operational_readiness:planned_activity.v1:#{prefix}_activity",
+        "source_artifact_type" => "planned_activity.v1",
+        "source_artifact_id" => "#{prefix}_activity",
+        "readiness_level" => "blocked",
+        "import_classification" => "blocked",
+        "status" => "blocked",
+        "gates" => [
+          %{
+            "id" => "source_contract",
+            "status" => "passed",
+            "classification" => "importable",
+            "reason" => "source contract is valid"
+          },
+          %{
+            "id" => "adapter_boundary",
+            "status" => "passed",
+            "classification" => "importable",
+            "reason" => "adapter boundary is declared"
+          },
+          %{
+            "id" => "operational_mode",
+            "status" => "analysis_only",
+            "classification" => "analysis_only",
+            "reason" => "#{prefix} simulation mode is analysis-only",
+            "analysis_mode" => "simulation",
+            "analysis_mode_source" => "mission_state"
+          },
+          %{
+            "id" => "operator_review",
+            "status" => "review_required",
+            "classification" => "review_only",
+            "reason" => "#{prefix} requires operator review"
+          },
+          %{
+            "id" => "cadence_import",
+            "status" => "blocked",
+            "classification" => "blocked",
+            "reason" => "#{prefix} import blocked by policy"
+          }
+        ]
+      }
+
+      readiness_report
+      |> OrbitalDynamics.OperationalReadiness.gate_summary()
+      |> Map.put("provenance", %{"trust_boundary" => trust_boundary})
+    end
+
+    direct_summary = gate_summary.("direct_readiness_gate", "direct_readiness_gate_boundary")
+    canonical_summary = gate_summary.("canonical_readiness_gate", "canonical_gate_boundary")
+
+    wrapped_summary =
+      gate_summary.("wrapped_readiness_gate", "wrapped_gate_source_boundary")
+      |> Map.delete("provenance")
+
+    assert {:ok, %{"schema_contract" => "operational_readiness_gate_summary.v1"}} =
+             Schema.validate_artifact(direct_summary)
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put("source_operational_readiness_gate_summary", direct_summary)
+      |> Map.put("operational_readiness_gate_summary", canonical_summary)
+      |> Map.put(:source_result_artifact, %{
+        "schema_contract" => "result_artifact.v1",
+        "artifact_type" => "mission_state_result_artifact",
+        "operational_readiness_gate_summary" => wrapped_summary,
+        "provenance" => %{"trust_boundary" => "wrapped_readiness_gate_artifact_boundary"}
+      })
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    direct_branch =
+      branch(
+        artifact,
+        "derived_operational_readiness_pressure_direct_readiness_gate_activity"
+      )
+
+    assert %{
+             "type" => "operational_readiness_pressure",
+             "source_artifact_type" => "planned_activity.v1",
+             "source_artifact_id" => "direct_readiness_gate_activity",
+             "readiness_level" => "blocked",
+             "import_classification" => "blocked",
+             "operational_readiness_status" => "blocked",
+             "review_required_gate_ids" => ["operator_review"],
+             "analysis_only_gate_ids" => ["operational_mode"],
+             "blocked_gate_ids" => ["cadence_import"],
+             "non_passed_gate_ids" => ["operational_mode", "operator_review", "cadence_import"],
+             "required_operator_action" => "review_blocked_operational_readiness",
+             "feedback_source" => "mission_state.source_operational_readiness_gate_summary",
+             "feedback_scope" => "operational_readiness",
+             "trust_boundary" => "direct_readiness_gate_boundary",
+             "assumptions" => %{
+               "operator_authority" => "not_granted_by_summary"
+             }
+           } = List.first(direct_branch["events"])
+
+    assert Enum.any?(
+             direct_branch["risk_indicators"],
+             &(&1["type"] == "operational_readiness_pressure" and
+                 &1["operational_readiness_status"] == "blocked" and
+                 &1["trust_boundary"] == "direct_readiness_gate_boundary")
+           )
+
+    direct_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] ==
+            "derived_operational_readiness_pressure_direct_readiness_gate_activity")
+      )
+
+    assert direct_row["branch_operational_readiness_levels"] == ["blocked"]
+    assert direct_row["branch_operational_readiness_import_classifications"] == ["blocked"]
+    assert direct_row["branch_operational_readiness_statuses"] == ["blocked"]
+
+    assert direct_row["branch_operational_readiness_review_required_gate_ids"] == [
+             "operator_review"
+           ]
+
+    assert direct_row["branch_operational_readiness_analysis_only_gate_ids"] == [
+             "operational_mode"
+           ]
+
+    assert direct_row["branch_operational_readiness_blocked_gate_ids"] == ["cadence_import"]
+
+    canonical_branch =
+      branch(
+        artifact,
+        "derived_operational_readiness_pressure_canonical_readiness_gate_activity"
+      )
+
+    assert %{
+             "source_artifact_id" => "canonical_readiness_gate_activity",
+             "feedback_source" => "mission_state.operational_readiness_gate_summary",
+             "trust_boundary" => "canonical_gate_boundary"
+           } = List.first(canonical_branch["events"])
+
+    wrapped_branch =
+      branch(
+        artifact,
+        "derived_operational_readiness_pressure_wrapped_readiness_gate_activity"
+      )
+
+    assert %{
+             "source_artifact_id" => "wrapped_readiness_gate_activity",
+             "feedback_source" =>
+               "mission_state.source_result_artifact.operational_readiness_gate_summary",
+             "trust_boundary" => "wrapped_readiness_gate_artifact_boundary"
+           } = List.first(wrapped_branch["events"])
+
+    assert "mission_state.source_operational_readiness_gate_summary" in get_in(
+             direct_branch,
+             ["assumptions", "candidate_source", "source_report_input_paths"]
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy derives branch refresh from mission-state quality gate reports" do
     quality_gate_report =
       passive_quality_gate_report()

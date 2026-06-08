@@ -5251,6 +5251,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "source_operational_readiness_report" =>
         Map.get(state, "source_operational_readiness_report"),
       "operational_readiness_report" => Map.get(state, "operational_readiness_report"),
+      "source_operational_readiness_gate_summary" =>
+        Map.get(state, "source_operational_readiness_gate_summary"),
+      "operational_readiness_gate_summary" =>
+        Map.get(state, "operational_readiness_gate_summary"),
       "source_quality_gate_report" => Map.get(state, "source_quality_gate_report"),
       "quality_gate_report" => Map.get(state, "quality_gate_report"),
       "source_operational_quality_gate_summary" =>
@@ -28269,6 +28273,25 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ])
   end
 
+  defp mission_state_operational_readiness_gate_summaries(mission_state) do
+    mission_state_source_operational_readiness_gate_summaries(mission_state) ++
+      mission_state_canonical_operational_readiness_gate_summaries(mission_state) ++
+      mission_state_result_artifact_operational_readiness_gate_summaries(mission_state)
+  end
+
+  defp mission_state_source_operational_readiness_gate_summaries(mission_state) do
+    mission_state_operational_readiness_gate_summaries(mission_state, [
+      {"source_operational_readiness_gate_summary",
+       "mission_state.source_operational_readiness_gate_summary"}
+    ])
+  end
+
+  defp mission_state_canonical_operational_readiness_gate_summaries(mission_state) do
+    mission_state_operational_readiness_gate_summaries(mission_state, [
+      {"operational_readiness_gate_summary", "mission_state.operational_readiness_gate_summary"}
+    ])
+  end
+
   defp mission_state_operational_readiness_reports(mission_state, fields) do
     mission_state = stringify_keys(mission_state || %{})
 
@@ -28278,6 +28301,42 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Map.get(field)
       |> mission_state_source_report_entries(source_path)
     end)
+  end
+
+  defp mission_state_operational_readiness_gate_summaries(mission_state, fields) do
+    mission_state = stringify_keys(mission_state || %{})
+
+    fields
+    |> Enum.flat_map(fn {field, source_path} ->
+      mission_state
+      |> Map.get(field)
+      |> mission_state_source_report_entries(source_path)
+    end)
+  end
+
+  defp mission_state_result_artifact_operational_readiness_gate_summaries(mission_state) do
+    mission_state
+    |> mission_state_result_artifacts_with_source()
+    |> Enum.flat_map(fn {artifact, source_path} ->
+      result_artifact_operational_readiness_gate_summaries(artifact, source_path)
+    end)
+  end
+
+  defp result_artifact_operational_readiness_gate_summaries(artifact, source_path) do
+    artifact = stringify_keys(artifact)
+
+    if artifact["schema_contract"] == "operational_readiness_gate_summary.v1" do
+      [{put_inherited_result_artifact_trust_boundary(artifact, artifact), source_path}]
+    else
+      ["source_operational_readiness_gate_summary", "operational_readiness_gate_summary"]
+      |> Enum.flat_map(fn summary_key ->
+        result_artifact_embedded_report_entries(
+          Map.get(artifact, summary_key),
+          artifact,
+          "#{source_path}.#{summary_key}"
+        )
+      end)
+    end
   end
 
   defp operational_readiness_pressure_branch(row, source_path, index) do
@@ -28320,6 +28379,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "readiness_gate_reason" => row["readiness_gate_reason"],
         "analysis_mode" => row["analysis_mode"],
         "analysis_mode_source" => row["analysis_mode_source"],
+        "gate_status_counts" => row["gate_status_counts"],
+        "gate_classification_counts" => row["gate_classification_counts"],
+        "passed_gate_ids" => row["passed_gate_ids"],
+        "review_required_gate_ids" => row["review_required_gate_ids"],
+        "analysis_only_gate_ids" => row["analysis_only_gate_ids"],
+        "blocked_gate_ids" => row["blocked_gate_ids"],
+        "non_passed_gate_ids" => row["non_passed_gate_ids"],
         "evidence" => row["evidence"],
         "required_operator_action" => row["required_operator_action"],
         "derivation_reasons" => ["operational_readiness_review"],
@@ -28329,6 +28395,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
           row["readiness_gate_id"] || row["report_id"] || row["source_artifact_id"] ||
             "operational_readiness",
         "trust_boundary" => operator_review_trust_boundary(row),
+        "assumptions" => row["assumptions"],
         "source_operational_readiness_gate" => row["source_operational_readiness_gate"],
         "source_operational_readiness_report" => row["source_operational_readiness_report"]
       }
@@ -28362,7 +28429,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp derived_mission_state_operational_readiness_pressure_branches(mission_state) do
     mission_state
-    |> mission_state_operational_readiness_reports()
+    |> mission_state_operational_readiness_pressure_sources()
     |> Enum.flat_map(fn {report, source_path} ->
       trust_boundary =
         Map.get(report, "trust_boundary") || get_in(report, ["provenance", "trust_boundary"])
@@ -28371,20 +28438,47 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> operational_readiness_pressure_rows()
       |> Enum.with_index(1)
       |> Enum.flat_map(fn {row, index} ->
-        row_source =
-          row
-          |> Map.get("source", "operational_readiness_report")
-          |> String.replace_prefix("operational_readiness_report", source_path)
-
         row
         |> Map.put("_source_report_trust_boundary", trust_boundary)
-        |> operational_readiness_pressure_branch(row_source, index)
+        |> operational_readiness_pressure_branch(
+          operational_readiness_pressure_row_source(row, source_path),
+          index
+        )
       end)
     end)
   end
 
+  defp operational_readiness_pressure_row_source(row, source_path) do
+    row_source = Map.get(row, "source", "operational_readiness_report")
+
+    cond do
+      String.starts_with?(row_source, "operational_readiness_report") ->
+        String.replace_prefix(row_source, "operational_readiness_report", source_path)
+
+      String.starts_with?(row_source, "operational_readiness_gate_summary") ->
+        String.replace_prefix(row_source, "operational_readiness_gate_summary", source_path)
+
+      true ->
+        source_path
+    end
+  end
+
+  defp mission_state_operational_readiness_pressure_sources(mission_state) do
+    mission_state_operational_readiness_reports(mission_state) ++
+      mission_state_operational_readiness_gate_summaries(mission_state)
+  end
+
   defp operational_readiness_pressure_rows(report) do
     report = stringify_keys(report || %{})
+
+    if report["schema_contract"] == "operational_readiness_gate_summary.v1" do
+      operational_readiness_gate_summary_pressure_rows(report)
+    else
+      operational_readiness_report_pressure_rows(report)
+    end
+  end
+
+  defp operational_readiness_report_pressure_rows(report) do
     classification = report["import_classification"] || "review_only"
 
     summary_row =
@@ -28433,6 +28527,74 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "required_operator_action" => operational_readiness_pressure_action(classification),
           "source_operational_readiness_gate" => gate,
           "source_operational_readiness_report" => report
+        }
+        |> Map.merge(operational_readiness_operator_training_context(gate))
+        |> compact_map()
+      end)
+
+    [summary_row | gate_rows]
+  end
+
+  defp operational_readiness_gate_summary_pressure_rows(summary) do
+    summary = stringify_keys(summary || %{})
+    classification = summary["import_classification"] || "review_only"
+
+    summary_row =
+      %{
+        "source" => "operational_readiness_gate_summary",
+        "source_artifact_type" => summary["source_artifact_type"],
+        "source_artifact_id" => summary["source_artifact_id"],
+        "readiness_level" => summary["readiness_level"],
+        "import_classification" => classification,
+        "operational_readiness_status" => summary["status"],
+        "gate_count" => summary["gate_count"],
+        "passed_gate_count" => summary["passed_gate_count"],
+        "review_gate_count" => summary["review_gate_count"],
+        "analysis_gate_count" => summary["analysis_gate_count"],
+        "blocked_gate_count" => summary["blocked_gate_count"],
+        "gate_status_counts" => summary["gate_status_counts"],
+        "gate_classification_counts" => summary["gate_classification_counts"],
+        "passed_gate_ids" => summary["passed_gate_ids"],
+        "review_required_gate_ids" => summary["review_required_gate_ids"],
+        "analysis_only_gate_ids" => summary["analysis_only_gate_ids"],
+        "blocked_gate_ids" => summary["blocked_gate_ids"],
+        "non_passed_gate_ids" => summary["non_passed_gate_ids"],
+        "assumptions" => summary["assumptions"],
+        "required_operator_action" => operational_readiness_pressure_action(classification)
+      }
+      |> compact_map()
+
+    gate_rows =
+      summary
+      |> Map.get("non_passed_gates", [])
+      |> List.wrap()
+      |> Enum.map(&stringify_keys/1)
+      |> Enum.map(fn gate ->
+        classification = gate["classification"] || "review_only"
+
+        %{
+          "source" => "operational_readiness_gate_summary.non_passed_gates",
+          "source_artifact_type" => summary["source_artifact_type"],
+          "source_artifact_id" => summary["source_artifact_id"],
+          "readiness_level" => operational_readiness_pressure_level(classification),
+          "import_classification" => classification,
+          "operational_readiness_status" => gate["status"],
+          "readiness_gate_id" => gate["id"] || "operational_gate",
+          "readiness_gate_status" => gate["status"] || "review_required",
+          "readiness_gate_classification" => classification,
+          "readiness_gate_reason" => gate["reason"],
+          "analysis_mode" => gate["analysis_mode"],
+          "analysis_mode_source" => gate["analysis_mode_source"],
+          "gate_status_counts" => summary["gate_status_counts"],
+          "gate_classification_counts" => summary["gate_classification_counts"],
+          "passed_gate_ids" => summary["passed_gate_ids"],
+          "review_required_gate_ids" => summary["review_required_gate_ids"],
+          "analysis_only_gate_ids" => summary["analysis_only_gate_ids"],
+          "blocked_gate_ids" => summary["blocked_gate_ids"],
+          "non_passed_gate_ids" => summary["non_passed_gate_ids"],
+          "assumptions" => summary["assumptions"],
+          "required_operator_action" => operational_readiness_pressure_action(classification),
+          "source_operational_readiness_gate" => gate
         }
         |> Map.merge(operational_readiness_operator_training_context(gate))
         |> compact_map()
@@ -41820,6 +41982,26 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "branch_transition_reasons" => branch_event_transition_values(events, "transition_reason"),
       "branch_requires_operator_review" => branch_event_requires_operator_review(events),
       "branch_requires_operator_review_count" => branch_event_operator_review_count(events),
+      "branch_operational_readiness_levels" =>
+        branch_operational_readiness_unique_values(events, "readiness_level"),
+      "branch_operational_readiness_import_classifications" =>
+        branch_operational_readiness_unique_values(events, "import_classification"),
+      "branch_operational_readiness_statuses" =>
+        branch_operational_readiness_unique_values(events, "operational_readiness_status"),
+      "branch_operational_readiness_gate_ids" =>
+        branch_operational_readiness_unique_values(events, "readiness_gate_id"),
+      "branch_operational_readiness_gate_statuses" =>
+        branch_operational_readiness_unique_values(events, "readiness_gate_status"),
+      "branch_operational_readiness_gate_classifications" =>
+        branch_operational_readiness_unique_values(events, "readiness_gate_classification"),
+      "branch_operational_readiness_review_required_gate_ids" =>
+        branch_operational_readiness_unique_values(events, "review_required_gate_ids"),
+      "branch_operational_readiness_analysis_only_gate_ids" =>
+        branch_operational_readiness_unique_values(events, "analysis_only_gate_ids"),
+      "branch_operational_readiness_blocked_gate_ids" =>
+        branch_operational_readiness_unique_values(events, "blocked_gate_ids"),
+      "branch_operational_readiness_non_passed_gate_ids" =>
+        branch_operational_readiness_unique_values(events, "non_passed_gate_ids"),
       "branch_missed_downlink_activity_ids" =>
         branch_event_unique_values(events, [
           "missed_downlink_activity_id",
@@ -42123,6 +42305,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> maybe_put_nonempty("branch_transition_reasons")
     |> maybe_put_nonempty("branch_requires_operator_review")
     |> maybe_put_nonempty("branch_requires_operator_review_count")
+    |> maybe_put_nonempty("branch_operational_readiness_levels")
+    |> maybe_put_nonempty("branch_operational_readiness_import_classifications")
+    |> maybe_put_nonempty("branch_operational_readiness_statuses")
+    |> maybe_put_nonempty("branch_operational_readiness_gate_ids")
+    |> maybe_put_nonempty("branch_operational_readiness_gate_statuses")
+    |> maybe_put_nonempty("branch_operational_readiness_gate_classifications")
+    |> maybe_put_nonempty("branch_operational_readiness_review_required_gate_ids")
+    |> maybe_put_nonempty("branch_operational_readiness_analysis_only_gate_ids")
+    |> maybe_put_nonempty("branch_operational_readiness_blocked_gate_ids")
+    |> maybe_put_nonempty("branch_operational_readiness_non_passed_gate_ids")
     |> maybe_put_nonempty("branch_missed_downlink_activity_ids")
     |> maybe_put_nonempty("branch_maneuver_execution_uncertainty_activity_ids")
     |> maybe_put_nonempty("branch_maneuver_execution_uncertainty_timeline_ids")
@@ -42336,6 +42528,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp branch_timeline_preservation_unique_values(events, fields) do
     events
     |> Enum.filter(&(&1["type"] == "timeline_preservation_pressure"))
+    |> branch_event_unique_values(fields)
+  end
+
+  defp branch_operational_readiness_unique_values(events, fields) do
+    events
+    |> Enum.filter(&(&1["type"] == "operational_readiness_pressure"))
     |> branch_event_unique_values(fields)
   end
 

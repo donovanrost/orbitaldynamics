@@ -5,33 +5,28 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Make timeline preservation reports branch-visible.
+Make operational readiness gate summaries branch-visible.
 
 Status:
 Implemented and parent-verified.
-`timeline_preservation_report.v1` and `timeline_preservation_status.v1`
-handoffs now derive planner-visible branch pressure with risk indicators, score
-penalties, branch comparison fields, source paths, trust boundaries,
-preservation status, preserve/review activity and timeline IDs, protection
-decision/category/reason evidence, invalid-input evidence, and artifact-only
-no-mutation/no-authority assumptions.
+`operational_readiness_gate_summary.v1` handoffs now derive planner-visible
+operational-readiness pressure with risk indicators, score penalties, branch
+comparison fields, source paths, trust boundaries, readiness/import/status
+evidence, gate counts, non-passed/review/analysis/blocked gate IDs, and
+artifact-only no-authority assumptions.
 
 Slice-selection note:
 - Selected slice: derive branch-local pressure from
-  `timeline_preservation_report.v1` and `timeline_preservation_status.v1`
-  handoffs.
-- Why this slice: the roadmap asks for existing timeline review evidence to
-  affect V2/V3 branch scoring; CandidateRefresh already replays
-  preservation-required, review-required, action-routing, and invalid-input
-  preservation evidence, but CampaignPlanner has no derived timeline
-  preservation-pressure branches.
-- Level 6 pillar: typed operational activity/timeline semantics, reproducible
-  branch trees, approval-aware automation boundaries, and lifecycle preservation
-  review handoffs.
-- Current evidence gap: preservation reports and statuses carry protected
-  activity/timeline IDs, preserve/review-change decisions, protection category
-  and reason counts, and invalid activity input evidence but remain replay-only
-  for branch scoring.
+  `operational_readiness_gate_summary.v1` handoffs.
+- Why this slice: gate summaries are the compact Cadence-facing readiness
+  contract for non-passed gates; CandidateRefresh already replays their
+  status/classification counts, gate IDs, and trust boundaries, but strategy
+  branch scoring still requires the full readiness report path.
+- Level 6 pillar: approval-aware automation boundaries, import readiness, and
+  reproducible branch trees from compact operational artifacts.
+- Current evidence gap: compact readiness gate summaries carry review,
+  analysis-only, blocked, and non-passed gate IDs but remain replay-only for
+  CampaignPlanner branch scoring.
 - Docs read:
   `docs/autonomous_work_guide.md`,
   `.codex/prompts/long_running_context_efficient_product_loop.md`,
@@ -39,18 +34,19 @@ Slice-selection note:
   `docs/feature_set/definition_of_feature_complete.md`,
   `docs/feature_set/current_capability_snapshot.md`,
   `docs/feature_set/recommended_roadmap.md`,
-  `docs/feature_set/capability_map/08_mission_activities_and_timelines.md`,
-  `docs/mission_planning/high_fidelity/04_plan_structure_and_lifecycle.md`.
+  `docs/feature_set/capability_map/17_reproducibility_artifacts_and_audit.md`,
+  `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`,
+  `docs/mission_planning/high_fidelity/12_operational_readiness.md`.
 - Likely files: `lib/orbital_dynamics/campaign_planner.ex`,
   `test/orbital_dynamics/campaign_planner_test.exs`,
   `.codex/status/autonomous_product_loop.md`.
-- Definition of done: direct/canonical/result-artifact preservation reports and
-  statuses create branch-local pressure events retaining source paths, trust
-  boundaries, preservation status, preserve/review activity and timeline IDs,
-  protection decisions/categories/reasons, invalid input evidence, and
-  no-mutation/no-authority assumptions; events affect risk/scoring/comparison
-  without mutating schedules, granting operator authority, approving import, or
-  executing commands; focused tests, compile, and whitespace checks pass.
+- Definition of done: direct/canonical/result-artifact gate summaries create
+  branch-local operational-readiness pressure events retaining source paths,
+  trust boundaries, readiness level, import classification, status, gate counts,
+  non-passed/review/analysis/blocked gate IDs, and no-approval/no-import
+  assumptions; events affect risk/scoring/comparison without granting operator
+  authority, approving import, writing Cadence state, or executing commands;
+  focused tests, compile, and whitespace checks pass.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -59,30 +55,32 @@ Files changed:
 
 Tests run:
 - `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs .codex/status/autonomous_product_loop.md`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:29676` (1 passed, 675 excluded)
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:29676 test/orbital_dynamics/candidate_refresh_test.exs:23559` (2 passed, 1415 excluded)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:42119` (1 passed, 676 excluded)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:42119 test/orbital_dynamics/candidate_refresh_test.exs:30035` (2 passed, 1416 excluded)
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- None expected; this is a planner/test slice for existing timeline preservation
-  artifacts.
+- None expected; this is a planner/test slice for an existing readiness summary
+  artifact.
 
 Local review:
-- Direct, canonical, and result-artifact preservation report/status inputs now
-  feed derived branch pressure for prior plans and mission state.
-- Report rows carry report-level preservation counts and ID sets while
-  preserving row-level protection decision/category/reason and invalid input
-  evidence.
-- New events explicitly do not mutate timelines, grant operator authority,
-  import to Cadence, or execute commands.
-- Branch comparison rows expose preservation activity/timeline IDs, statuses,
-  protection decisions/categories/reasons, preserve/review-change IDs, and
-  invalid input reasons.
+- Direct, canonical, and result-artifact
+  `operational_readiness_gate_summary.v1` inputs now feed derived
+  operational-readiness pressure.
+- Summary-derived events carry readiness/import/status evidence, gate counts,
+  status/classification maps, gate ID routing, trust boundaries, and
+  no-authority assumptions.
+- Source paths distinguish direct, canonical, and wrapped result-artifact
+  summary rows.
+- Branch comparison rows expose readiness levels, import classifications,
+  statuses, gate statuses/classifications, and review/analysis/blocked/non-passed
+  gate IDs.
 
 Level 6 pillar advanced:
-Timeline lifecycle-preservation evidence now affects V2/V3 branch scoring and
-comparison while preserving artifact-only approval and execution boundaries.
+Compact Cadence-facing readiness summaries now affect V2/V3 branch scoring and
+comparison without reopening full readiness reports or granting import/operator
+authority.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -92,12 +90,12 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
+Pending for this slice. Previous product commit:
 `fe0ac70` Derive timeline preservation pressure.
 
 Next candidate:
-Reinspect live code for the next planner-visible readiness or resource/contact
-evidence gap, likely around allocation/readiness artifacts that are
-CandidateRefresh-visible but not yet branch-scored.
+After this slice, reinspect live code for the next planner-visible
+resource/contact evidence gap.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
