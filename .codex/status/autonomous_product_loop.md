@@ -8,7 +8,7 @@ Current slice:
 State-scoped schema-validation CandidateRefresh review/import handoff.
 
 Status:
-Completed locally; CandidateRefresh OperatorReview/CadenceImport handoffs now
+Completed and pushed; CandidateRefresh OperatorReview/CadenceImport handoffs now
 lift `schema_validation_report.v1` and nested
 `schema_validation_batch_report.v1` entries from accepted planning state and
 mission state, not only top-level refresh fields and result-artifact wrappers.
@@ -44,8 +44,8 @@ or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Pending commit; previous pushed commit
-`14873410e68e0b2577a0074b9f2c50e0c3cf78ac`.
+Pushed `ff1251ebee258332059af32749c7d1e041b01525` after product commit
+`30eac969617757582db3b6ce270f283b2ba911d1`.
 
 Next candidate:
 After committing, continue branch-local CandidateRefresh depth by checking
