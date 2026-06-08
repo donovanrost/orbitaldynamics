@@ -5699,6 +5699,117 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(package)
   end
 
+  test "candidate refresh accepted planning state contact allocation summaries become review rows" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:accepted_contact_allocation_summary:001",
+      "accepted_planning_state" => %{
+        "source_contact_allocation_summary" =>
+          study_result_fixture("contact_allocation_summary_v1.json")
+      }
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:accepted_contact_allocation_summary:001",
+             "review_count" => 3,
+             "contact_allocation_review_count" => 3
+           } = package
+
+    assert Enum.map(package["rows"], & &1["source"]) == [
+             "candidate_refresh.accepted_planning_state.source_contact_allocation_summary.review_rows",
+             "candidate_refresh.accepted_planning_state.source_contact_allocation_summary.review_rows",
+             "candidate_refresh.accepted_planning_state.source_contact_allocation_summary.review_rows"
+           ]
+
+    assert %{
+             "review_type" => "contact_allocation_review",
+             "source" =>
+               "candidate_refresh.accepted_planning_state.source_contact_allocation_summary.review_rows",
+             "required_operator_action" => "review_contact_allocation",
+             "source_contact_allocation" => %{
+               "source_summary_schema_contract" => "contact_allocation_summary.v1",
+               "source_summary_model" => "artifact_only_contact_allocation_summary",
+               "source_contact_allocation_summary" => %{
+                 "schema_contract" => "contact_allocation_summary.v1",
+                 "model" => "artifact_only_contact_allocation_summary"
+               }
+             }
+           } = List.first(package["rows"])
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:accepted_contact_allocation_summary:001",
+             "row_count" => 3,
+             "source_review_type_counts" => %{"contact_allocation_review" => 3},
+             "import_action_counts" => %{"review_contact_allocation" => 3}
+           } = manifest
+
+    assert %{
+             "import_action" => "review_contact_allocation",
+             "source_review_row" => %{
+               "source" =>
+                 "candidate_refresh.accepted_planning_state.source_contact_allocation_summary.review_rows",
+               "source_contact_allocation" => %{
+                 "source_contact_allocation_summary" => %{
+                   "schema_contract" => "contact_allocation_summary.v1",
+                   "model" => "artifact_only_contact_allocation_summary"
+                 }
+               }
+             }
+           } = List.first(manifest["rows"])
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
+  test "candidate refresh mission state contact allocation summaries become review rows" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:mission_contact_allocation_summary:001",
+      "mission_state" => %{
+        "contact_allocation_reservation_conflict_summary" =>
+          study_result_fixture("contact_allocation_reservation_conflict_summary_v1.json")
+      }
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:mission_contact_allocation_summary:001",
+             "review_count" => 1,
+             "contact_allocation_review_count" => 1
+           } = package
+
+    assert [
+             %{
+               "review_type" => "contact_allocation_review",
+               "source" =>
+                 "candidate_refresh.mission_state.contact_allocation_reservation_conflict_summary.reservation_review_rows",
+               "required_operator_action" => "review_contact_allocation",
+               "source_contact_allocation" => %{
+                 "source_summary_schema_contract" =>
+                   "contact_allocation_reservation_conflict_summary.v1",
+                 "source_contact_allocation_summary" => %{
+                   "schema_contract" => "contact_allocation_reservation_conflict_summary.v1",
+                   "model" => "artifact_only_contact_allocation_reservation_conflict_summary"
+                 }
+               }
+             }
+           ] = package["rows"]
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+  end
+
   test "candidate refresh result artifact contact allocation reports become operator review rows" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",

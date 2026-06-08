@@ -12639,6 +12639,93 @@ defmodule OrbitalDynamics.OperatorReview do
   defp candidate_refresh_contact_allocation_rows(artifact) do
     direct_rows =
       [
+        {"candidate_refresh.accepted_planning_state.source_contact_allocation_report",
+         get_in(artifact, ["accepted_planning_state", "source_contact_allocation_report"])},
+        {"candidate_refresh.accepted_planning_state.contact_allocation_report",
+         get_in(artifact, ["accepted_planning_state", "contact_allocation_report"])},
+        {"candidate_refresh.accepted_planning_state.source_contact_allocation_summary",
+         get_in(artifact, ["accepted_planning_state", "source_contact_allocation_summary"])},
+        {"candidate_refresh.accepted_planning_state.contact_allocation_summary",
+         get_in(artifact, ["accepted_planning_state", "contact_allocation_summary"])},
+        {"candidate_refresh.accepted_planning_state.source_contact_allocation_station_pressure_summary",
+         get_in(artifact, [
+           "accepted_planning_state",
+           "source_contact_allocation_station_pressure_summary"
+         ])},
+        {"candidate_refresh.accepted_planning_state.contact_allocation_station_pressure_summary",
+         get_in(artifact, [
+           "accepted_planning_state",
+           "contact_allocation_station_pressure_summary"
+         ])},
+        {"candidate_refresh.accepted_planning_state.source_contact_allocation_reservation_conflict_summary",
+         get_in(artifact, [
+           "accepted_planning_state",
+           "source_contact_allocation_reservation_conflict_summary"
+         ])},
+        {"candidate_refresh.accepted_planning_state.contact_allocation_reservation_conflict_summary",
+         get_in(artifact, [
+           "accepted_planning_state",
+           "contact_allocation_reservation_conflict_summary"
+         ])},
+        {"candidate_refresh.accepted_planning_state.source_contact_allocation_capacity_pack_summary",
+         get_in(artifact, [
+           "accepted_planning_state",
+           "source_contact_allocation_capacity_pack_summary"
+         ])},
+        {"candidate_refresh.accepted_planning_state.contact_allocation_capacity_pack_summary",
+         get_in(artifact, [
+           "accepted_planning_state",
+           "contact_allocation_capacity_pack_summary"
+         ])},
+        {"candidate_refresh.accepted_planning_state.source_contact_allocation_provider_reservation_request_summary",
+         get_in(artifact, [
+           "accepted_planning_state",
+           "source_contact_allocation_provider_reservation_request_summary"
+         ])},
+        {"candidate_refresh.accepted_planning_state.contact_allocation_provider_reservation_request_summary",
+         get_in(artifact, [
+           "accepted_planning_state",
+           "contact_allocation_provider_reservation_request_summary"
+         ])},
+        {"candidate_refresh.mission_state.source_contact_allocation_report",
+         get_in(artifact, ["mission_state", "source_contact_allocation_report"])},
+        {"candidate_refresh.mission_state.contact_allocation_report",
+         get_in(artifact, ["mission_state", "contact_allocation_report"])},
+        {"candidate_refresh.mission_state.source_contact_allocation_summary",
+         get_in(artifact, ["mission_state", "source_contact_allocation_summary"])},
+        {"candidate_refresh.mission_state.contact_allocation_summary",
+         get_in(artifact, ["mission_state", "contact_allocation_summary"])},
+        {"candidate_refresh.mission_state.source_contact_allocation_station_pressure_summary",
+         get_in(artifact, [
+           "mission_state",
+           "source_contact_allocation_station_pressure_summary"
+         ])},
+        {"candidate_refresh.mission_state.contact_allocation_station_pressure_summary",
+         get_in(artifact, ["mission_state", "contact_allocation_station_pressure_summary"])},
+        {"candidate_refresh.mission_state.source_contact_allocation_reservation_conflict_summary",
+         get_in(artifact, [
+           "mission_state",
+           "source_contact_allocation_reservation_conflict_summary"
+         ])},
+        {"candidate_refresh.mission_state.contact_allocation_reservation_conflict_summary",
+         get_in(artifact, [
+           "mission_state",
+           "contact_allocation_reservation_conflict_summary"
+         ])},
+        {"candidate_refresh.mission_state.source_contact_allocation_capacity_pack_summary",
+         get_in(artifact, ["mission_state", "source_contact_allocation_capacity_pack_summary"])},
+        {"candidate_refresh.mission_state.contact_allocation_capacity_pack_summary",
+         get_in(artifact, ["mission_state", "contact_allocation_capacity_pack_summary"])},
+        {"candidate_refresh.mission_state.source_contact_allocation_provider_reservation_request_summary",
+         get_in(artifact, [
+           "mission_state",
+           "source_contact_allocation_provider_reservation_request_summary"
+         ])},
+        {"candidate_refresh.mission_state.contact_allocation_provider_reservation_request_summary",
+         get_in(artifact, [
+           "mission_state",
+           "contact_allocation_provider_reservation_request_summary"
+         ])},
         {"candidate_refresh.source_contact_allocation_report",
          artifact["source_contact_allocation_report"]},
         {"candidate_refresh.contact_allocation_report", artifact["contact_allocation_report"]},
