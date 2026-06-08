@@ -4009,6 +4009,24 @@ defmodule OrbitalDynamics.OperatorReviewTest do
                "preserve_activity_count" => 2,
                "review_change_activity_count" => 1,
                "preservation_sensitive_activity_count" => 3,
+               "source_preservation_protection_category_counts" => %{
+                 "executed" => 1,
+                 "invalid_activity_input" => 1,
+                 "locked_or_approved" => 1,
+                 "none" => 1
+               },
+               "source_preservation_activity_id_sets_by_protection_category" => %{
+                 "executed" => ["obs_done"],
+                 "invalid_activity_input" => ["bad_missing_type"],
+                 "locked_or_approved" => ["contact_locked"],
+                 "none" => ["cmd_mutable"]
+               },
+               "source_preservation_timeline_id_sets_by_protection_category" => %{
+                 "executed" => ["timeline:observe"],
+                 "invalid_activity_input" => ["timeline:invalid_activity_input:bad_missing_type"],
+                 "locked_or_approved" => ["timeline:planned_contact"],
+                 "none" => ["timeline:command"]
+               },
                "source_timeline_preservation" => %{
                  "activity_id" => "contact_locked",
                  "protection_decision" => "preserve"

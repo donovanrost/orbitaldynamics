@@ -112,6 +112,10 @@ idempotent inputs by the preservation-report facade when downstream queues
 already hold the standalone preservation artifact.
 Existing `timeline_preservation_status.v1` artifacts are accepted the same way
 by the single-activity preservation-status facade.
+Operator-review packages and Cadence-import manifests flatten the
+summary-derived protection-category counts and category-keyed activity/timeline
+ID maps into preservation handoff rows, while retaining the row-local
+protection decision, category, and reason evidence.
 
 ## Transition application summary
 

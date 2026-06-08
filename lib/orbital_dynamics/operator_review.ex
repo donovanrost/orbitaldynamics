@@ -10624,6 +10624,11 @@ defmodule OrbitalDynamics.OperatorReview do
       "review_change_timeline_ids" => summary["review_change_timeline_ids"],
       "preservation_sensitive_activity_ids" => summary["preservation_sensitive_activity_ids"],
       "preservation_sensitive_timeline_ids" => summary["preservation_sensitive_timeline_ids"],
+      "source_preservation_protection_category_counts" => summary["protection_category_counts"],
+      "source_preservation_activity_id_sets_by_protection_category" =>
+        summary["activity_id_sets_by_protection_category"],
+      "source_preservation_timeline_id_sets_by_protection_category" =>
+        summary["timeline_id_sets_by_protection_category"],
       "source_timeline_preservation" => source_state
     }
     |> compact_map()

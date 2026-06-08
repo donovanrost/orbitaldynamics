@@ -14536,6 +14536,24 @@ defmodule OrbitalDynamics.CadenceImportTest do
                "requires_preservation" => true,
                "requires_operator_review" => false,
                "timeline_preservation_protection_decision" => "preserve",
+               "source_preservation_protection_category_counts" => %{
+                 "executed" => 1,
+                 "invalid_activity_input" => 1,
+                 "locked_or_approved" => 1,
+                 "none" => 1
+               },
+               "source_preservation_activity_id_sets_by_protection_category" => %{
+                 "executed" => ["obs_done"],
+                 "invalid_activity_input" => ["bad_missing_type"],
+                 "locked_or_approved" => ["contact_locked"],
+                 "none" => ["cmd_mutable"]
+               },
+               "source_preservation_timeline_id_sets_by_protection_category" => %{
+                 "executed" => ["timeline:observe"],
+                 "invalid_activity_input" => ["timeline:invalid_activity_input:bad_missing_type"],
+                 "locked_or_approved" => ["timeline:planned_contact"],
+                 "none" => ["timeline:command"]
+               },
                "source_timeline_preservation" => %{
                  "activity_id" => "contact_locked",
                  "protection_decision" => "preserve"
@@ -14598,6 +14616,14 @@ defmodule OrbitalDynamics.CadenceImportTest do
              "source_timeline_preservation",
              "activity_id"
            ]) == "contact_locked"
+
+    assert get_in(manifest, [
+             "rows",
+             Access.at(0),
+             "source_review_row",
+             "source_preservation_activity_id_sets_by_protection_category",
+             "locked_or_approved"
+           ]) == ["contact_locked"]
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
              Schema.validate_artifact(manifest)
