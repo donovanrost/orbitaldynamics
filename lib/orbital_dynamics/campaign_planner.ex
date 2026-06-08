@@ -29129,7 +29129,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Enum.map(&stringify_keys/1)
       |> Enum.filter(&(Map.get(&1, "status") not in [nil, "passed"]))
       |> Enum.map(fn gate ->
-        classification = gate["classification"] || "review_only"
+        classification = operational_readiness_gate_pressure_classification(gate)
+        gate_status = gate["status"] || "review_required"
 
         %{
           "source" => "operational_readiness_report.gates",
@@ -29138,9 +29139,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "source_artifact_id" => report["source_artifact_id"],
           "readiness_level" => operational_readiness_pressure_level(classification),
           "import_classification" => classification,
-          "operational_readiness_status" => gate["status"],
+          "operational_readiness_status" => gate_status,
           "readiness_gate_id" => gate["id"] || "operational_gate",
-          "readiness_gate_status" => gate["status"] || "review_required",
+          "readiness_gate_status" => gate_status,
           "readiness_gate_classification" => classification,
           "readiness_gate_reason" => gate["reason"],
           "analysis_mode" => gate["analysis_mode"],
@@ -29191,7 +29192,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> List.wrap()
       |> Enum.map(&stringify_keys/1)
       |> Enum.map(fn gate ->
-        classification = gate["classification"] || "review_only"
+        classification = operational_readiness_gate_pressure_classification(gate)
+        gate_status = gate["status"] || "review_required"
 
         %{
           "source" => "operational_readiness_gate_summary.non_passed_gates",
@@ -29199,9 +29201,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "source_artifact_id" => summary["source_artifact_id"],
           "readiness_level" => operational_readiness_pressure_level(classification),
           "import_classification" => classification,
-          "operational_readiness_status" => gate["status"],
+          "operational_readiness_status" => gate_status,
           "readiness_gate_id" => gate["id"] || "operational_gate",
-          "readiness_gate_status" => gate["status"] || "review_required",
+          "readiness_gate_status" => gate_status,
           "readiness_gate_classification" => classification,
           "readiness_gate_reason" => gate["reason"],
           "analysis_mode" => gate["analysis_mode"],
@@ -29223,6 +29225,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     [summary_row | gate_rows]
   end
+
+  defp operational_readiness_gate_pressure_classification(%{"status" => "blocked"}),
+    do: "blocked"
+
+  defp operational_readiness_gate_pressure_classification(%{"status" => "analysis_only"}),
+    do: "analysis_only"
+
+  defp operational_readiness_gate_pressure_classification(%{"classification" => classification})
+       when classification not in [nil, ""],
+       do: classification
+
+  defp operational_readiness_gate_pressure_classification(_gate), do: "review_only"
 
   defp operational_readiness_pressure_action("analysis_only"),
     do: "record_operational_readiness_analysis_only"

@@ -44527,6 +44527,126 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives operational readiness gate classification from row status" do
+    readiness_report = %{
+      "schema_contract" => "operational_readiness_report.v1",
+      "schema_version" => 1,
+      "model" => "artifact_only_operational_readiness_classifier",
+      "report_id" => "operational_readiness:planned_activity.v1:stale_gate_status",
+      "source_artifact_type" => "planned_activity.v1",
+      "source_artifact_id" => "stale_gate_status",
+      "readiness_level" => "operator_review",
+      "import_classification" => "review_only",
+      "status" => "review_required",
+      "gate_count" => 2,
+      "passed_gate_count" => 0,
+      "review_gate_count" => 2,
+      "analysis_gate_count" => 0,
+      "blocked_gate_count" => 0,
+      "gates" => [
+        %{
+          "id" => "blocked_without_classification",
+          "status" => "blocked",
+          "reason" => "blocked gate status must not be downgraded"
+        },
+        %{
+          "id" => "analysis_stale_classification",
+          "status" => "analysis_only",
+          "classification" => "review_only",
+          "reason" => "analysis-only gate status must win over stale classification"
+        }
+      ],
+      "evidence" => %{},
+      "assumptions" => %{"execution_boundary" => "artifact_only_no_cadence_write"},
+      "model_limits" => ["artifact_only"],
+      "provenance" => %{"trust_boundary" => "stale_readiness_report_boundary"}
+    }
+
+    gate_summary = %{
+      "schema_contract" => "operational_readiness_gate_summary.v1",
+      "schema_version" => 1,
+      "model" => "artifact_only_operational_readiness_gate_summary",
+      "source_artifact_type" => "planned_activity.v1",
+      "source_artifact_id" => "stale_gate_summary",
+      "readiness_level" => "operator_review",
+      "import_classification" => "review_only",
+      "status" => "review_required",
+      "gate_count" => 1,
+      "passed_gate_count" => 0,
+      "review_gate_count" => 1,
+      "analysis_gate_count" => 0,
+      "blocked_gate_count" => 0,
+      "non_passed_gates" => [
+        %{
+          "id" => "summary_blocked_without_classification",
+          "status" => "blocked",
+          "reason" => "summary blocked status must not be downgraded"
+        }
+      ],
+      "assumptions" => %{"operator_authority" => "not_granted_by_summary"},
+      "provenance" => %{"trust_boundary" => "stale_readiness_summary_boundary"}
+    }
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put(:source_operational_readiness_report, readiness_report)
+      |> Map.put(:source_operational_readiness_gate_summary, gate_summary)
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    blocked_branch =
+      branch(artifact, "derived_operational_readiness_pressure_blocked_without_classification")
+
+    assert %{
+             "type" => "operational_readiness_pressure",
+             "readiness_level" => "blocked",
+             "import_classification" => "blocked",
+             "operational_readiness_status" => "blocked",
+             "readiness_gate_status" => "blocked",
+             "readiness_gate_classification" => "blocked",
+             "required_operator_action" => "review_blocked_operational_readiness",
+             "feedback_source" => "mission_state.source_operational_readiness_report.gates"
+           } = List.first(blocked_branch["events"])
+
+    analysis_branch =
+      branch(artifact, "derived_operational_readiness_pressure_analysis_stale_classification")
+
+    assert %{
+             "readiness_level" => "analysis_only",
+             "import_classification" => "analysis_only",
+             "operational_readiness_status" => "analysis_only",
+             "readiness_gate_status" => "analysis_only",
+             "readiness_gate_classification" => "analysis_only",
+             "required_operator_action" => "record_operational_readiness_analysis_only"
+           } = List.first(analysis_branch["events"])
+
+    summary_branch =
+      branch(
+        artifact,
+        "derived_operational_readiness_pressure_summary_blocked_without_classification"
+      )
+
+    assert %{
+             "readiness_level" => "blocked",
+             "import_classification" => "blocked",
+             "operational_readiness_status" => "blocked",
+             "readiness_gate_status" => "blocked",
+             "readiness_gate_classification" => "blocked",
+             "required_operator_action" => "review_blocked_operational_readiness",
+             "feedback_source" =>
+               "mission_state.source_operational_readiness_gate_summary.non_passed_gates"
+           } = List.first(summary_branch["events"])
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy preserves resource availability quality-gate row context in branch events" do
     quality_gate_report =
       passive_quality_gate_report()
