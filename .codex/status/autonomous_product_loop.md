@@ -8,7 +8,7 @@ Current slice:
 Quality-gate schema-validation CandidateRefresh review/import handoff.
 
 Status:
-Completed locally; CandidateRefresh OperatorReview/CadenceImport handoffs now
+Completed and pushed; CandidateRefresh OperatorReview/CadenceImport handoffs now
 lift compact `operational_quality_gate_schema_validation_summary.v1` inputs from
 top-level refresh fields, accepted/mission state, `source_result_artifact`, and
 `result_artifact` wrappers. Compact summaries reconstruct non-passed
@@ -46,8 +46,8 @@ or review/import handoffs expose routing evidence that CandidateRefresh, V2/V3,
 or operator-review replay does not yet preserve.
 
 Last commit:
-Pending commit; previous pushed commit
-`26a50bcc69da06b9ef3099fc565f27fa215c7900`.
+Pushed `f9060eae8dd4066d0a0e552513e42d168a2593cc` after product commit
+`c8bf26112e598fc811c2ba343f713de325e56b0a`.
 
 Next candidate:
 Reassess the guide queue after committing: quality-gate compact summary
