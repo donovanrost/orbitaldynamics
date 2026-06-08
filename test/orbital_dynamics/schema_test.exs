@@ -2838,9 +2838,13 @@ defmodule OrbitalDynamics.SchemaTest do
                "review_station_provider_contention" => ["reservation_missing"],
                "review_station_reservation_overlap" => ["reservation_expired"]
              },
+             "reservation_hold_ids_by_direction" => %{},
+             "reservation_hold_ids_by_direction_and_ground_station_id" => %{},
              "reservation_hold_contact_ids_by_import_status" => %{
                "review_required_before_import" => ["dl_source_reserved"]
              },
+             "reservation_hold_contact_ids_by_direction" => %{},
+             "reservation_hold_contact_ids_by_direction_and_ground_station_id" => %{},
              "assumptions" => %{
                "execution_boundary" => "artifact_only_no_provider_or_cadence_writes",
                "provider_write" => "not_performed_by_summary",

@@ -9246,10 +9246,18 @@ defmodule OrbitalDynamics.OperatorReview do
           row["station_reservation_hold_ids_by_import_status"],
         "station_reservation_hold_ids_by_required_import_action" =>
           row["station_reservation_hold_ids_by_required_import_action"],
+        "station_reservation_hold_ids_by_direction" =>
+          row["station_reservation_hold_ids_by_direction"],
+        "station_reservation_hold_ids_by_direction_and_ground_station_id" =>
+          row["station_reservation_hold_ids_by_direction_and_ground_station_id"],
         "station_reservation_hold_contact_ids_by_import_status" =>
           row["station_reservation_hold_contact_ids_by_import_status"],
         "station_reservation_hold_contact_ids_by_expiration_status" =>
           row["station_reservation_hold_contact_ids_by_expiration_status"],
+        "station_reservation_hold_contact_ids_by_direction" =>
+          row["station_reservation_hold_contact_ids_by_direction"],
+        "station_reservation_hold_contact_ids_by_direction_and_ground_station_id" =>
+          row["station_reservation_hold_contact_ids_by_direction_and_ground_station_id"],
         "station_reservation_hold_import_status_counts" =>
           row["station_reservation_hold_import_status_counts"],
         "station_reservation_hold_required_import_action_counts" =>
@@ -9359,10 +9367,18 @@ defmodule OrbitalDynamics.OperatorReview do
           group["station_reservation_hold_ids_by_import_status"],
         "station_reservation_hold_ids_by_required_import_action" =>
           group["station_reservation_hold_ids_by_required_import_action"],
+        "station_reservation_hold_ids_by_direction" =>
+          group["station_reservation_hold_ids_by_direction"],
+        "station_reservation_hold_ids_by_direction_and_ground_station_id" =>
+          group["station_reservation_hold_ids_by_direction_and_ground_station_id"],
         "station_reservation_hold_contact_ids_by_import_status" =>
           group["station_reservation_hold_contact_ids_by_import_status"],
         "station_reservation_hold_contact_ids_by_expiration_status" =>
           group["station_reservation_hold_contact_ids_by_expiration_status"],
+        "station_reservation_hold_contact_ids_by_direction" =>
+          group["station_reservation_hold_contact_ids_by_direction"],
+        "station_reservation_hold_contact_ids_by_direction_and_ground_station_id" =>
+          group["station_reservation_hold_contact_ids_by_direction_and_ground_station_id"],
         "station_reservation_hold_import_status_counts" =>
           group["station_reservation_hold_import_status_counts"],
         "station_reservation_hold_required_import_action_counts" =>
@@ -14417,10 +14433,17 @@ defmodule OrbitalDynamics.OperatorReview do
           summary["reservation_hold_ids_by_import_status"],
         "reservation_hold_ids_by_required_import_action" =>
           summary["reservation_hold_ids_by_required_import_action"],
+        "reservation_hold_ids_by_direction" => summary["reservation_hold_ids_by_direction"],
+        "reservation_hold_ids_by_direction_and_ground_station_id" =>
+          summary["reservation_hold_ids_by_direction_and_ground_station_id"],
         "reservation_hold_contact_ids_by_import_status" =>
           summary["reservation_hold_contact_ids_by_import_status"],
         "reservation_hold_contact_ids_by_expiration_status" =>
           summary["reservation_hold_contact_ids_by_expiration_status"],
+        "reservation_hold_contact_ids_by_direction" =>
+          summary["reservation_hold_contact_ids_by_direction"],
+        "reservation_hold_contact_ids_by_direction_and_ground_station_id" =>
+          summary["reservation_hold_contact_ids_by_direction_and_ground_station_id"],
         "assumptions" => summary["assumptions"]
       }
       |> compact_map()
@@ -14459,12 +14482,28 @@ defmodule OrbitalDynamics.OperatorReview do
       summary["reservation_hold_ids_by_required_import_action"]
     )
     |> Map.put(
+      "station_reservation_hold_ids_by_direction",
+      summary["reservation_hold_ids_by_direction"]
+    )
+    |> Map.put(
+      "station_reservation_hold_ids_by_direction_and_ground_station_id",
+      summary["reservation_hold_ids_by_direction_and_ground_station_id"]
+    )
+    |> Map.put(
       "station_reservation_hold_contact_ids_by_import_status",
       summary["reservation_hold_contact_ids_by_import_status"]
     )
     |> Map.put(
       "station_reservation_hold_contact_ids_by_expiration_status",
       summary["reservation_hold_contact_ids_by_expiration_status"]
+    )
+    |> Map.put(
+      "station_reservation_hold_contact_ids_by_direction",
+      summary["reservation_hold_contact_ids_by_direction"]
+    )
+    |> Map.put(
+      "station_reservation_hold_contact_ids_by_direction_and_ground_station_id",
+      summary["reservation_hold_contact_ids_by_direction_and_ground_station_id"]
     )
     |> Map.put(
       "station_reservation_hold_import_status_counts",

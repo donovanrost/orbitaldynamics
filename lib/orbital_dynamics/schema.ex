@@ -5131,7 +5131,14 @@ defmodule OrbitalDynamics.Schema do
         "import_readiness_rows",
         "assumptions"
       ],
-      "optional_fields" => ["source", "model_limits"],
+      "optional_fields" => [
+        "source",
+        "reservation_hold_ids_by_direction",
+        "reservation_hold_ids_by_direction_and_ground_station_id",
+        "reservation_hold_contact_ids_by_direction",
+        "reservation_hold_contact_ids_by_direction_and_ground_station_id",
+        "model_limits"
+      ],
       "nested_contracts" => ["station_reservation_report.v1"]
     },
     @provider_counteroffer_report => %{
@@ -14002,10 +14009,24 @@ defmodule OrbitalDynamics.Schema do
               "reservation_hold_ids_by_status",
               "reservation_hold_ids_by_reserved_by",
               "reservation_hold_ids_by_required_import_action",
+              "reservation_hold_ids_by_direction",
               "reservation_hold_contact_ids_by_import_status",
-              "reservation_hold_contact_ids_by_expiration_status"
+              "reservation_hold_contact_ids_by_expiration_status",
+              "reservation_hold_contact_ids_by_direction"
             ] do
     stable_id_array_map_schema()
+  end
+
+  defp json_schema_property(
+         field,
+         @station_reservation_hold_import_readiness_summary,
+         _contract
+       )
+       when field in [
+              "reservation_hold_ids_by_direction_and_ground_station_id",
+              "reservation_hold_contact_ids_by_direction_and_ground_station_id"
+            ] do
+    nested_stable_id_array_map_json_schema()
   end
 
   defp json_schema_property(
@@ -38557,6 +38578,21 @@ defmodule OrbitalDynamics.Schema do
       path <> ".reservation_hold_ids_by_required_import_action",
       Map.get(summary, "reservation_hold_ids_by_required_import_action")
     )
+    |> expect_optional_type(path, summary, "reservation_hold_ids_by_direction", :map)
+    |> validate_stable_id_array_map(
+      path <> ".reservation_hold_ids_by_direction",
+      Map.get(summary, "reservation_hold_ids_by_direction")
+    )
+    |> expect_optional_type(
+      path,
+      summary,
+      "reservation_hold_ids_by_direction_and_ground_station_id",
+      :map
+    )
+    |> validate_nested_stable_id_array_map(
+      path <> ".reservation_hold_ids_by_direction_and_ground_station_id",
+      Map.get(summary, "reservation_hold_ids_by_direction_and_ground_station_id")
+    )
     |> expect_type(path, summary, "reservation_hold_contact_ids_by_import_status", :map)
     |> validate_stable_id_array_map(
       path <> ".reservation_hold_contact_ids_by_import_status",
@@ -38566,6 +38602,21 @@ defmodule OrbitalDynamics.Schema do
     |> validate_stable_id_array_map(
       path <> ".reservation_hold_contact_ids_by_expiration_status",
       Map.get(summary, "reservation_hold_contact_ids_by_expiration_status")
+    )
+    |> expect_optional_type(path, summary, "reservation_hold_contact_ids_by_direction", :map)
+    |> validate_stable_id_array_map(
+      path <> ".reservation_hold_contact_ids_by_direction",
+      Map.get(summary, "reservation_hold_contact_ids_by_direction")
+    )
+    |> expect_optional_type(
+      path,
+      summary,
+      "reservation_hold_contact_ids_by_direction_and_ground_station_id",
+      :map
+    )
+    |> validate_nested_stable_id_array_map(
+      path <> ".reservation_hold_contact_ids_by_direction_and_ground_station_id",
+      Map.get(summary, "reservation_hold_contact_ids_by_direction_and_ground_station_id")
     )
     |> expect_type(path, summary, "review_contact_ids", :list)
     |> validate_stable_id_list(
@@ -38743,6 +38794,20 @@ defmodule OrbitalDynamics.Schema do
       station_reservation_summary_ids_by(rows, "required_operator_action"),
       "must equal row-derived reservation_hold_ids_by_required_import_action"
     )
+    |> expect_optional_field_equals(
+      path,
+      summary,
+      "reservation_hold_ids_by_direction",
+      station_reservation_summary_ids_by_direction(rows),
+      "must equal row-derived reservation_hold_ids_by_direction"
+    )
+    |> expect_optional_field_equals(
+      path,
+      summary,
+      "reservation_hold_ids_by_direction_and_ground_station_id",
+      station_reservation_summary_ids_by_direction_and_ground_station(rows),
+      "must equal row-derived reservation_hold_ids_by_direction_and_ground_station_id"
+    )
     |> expect_field_equals(
       path,
       summary,
@@ -38756,6 +38821,20 @@ defmodule OrbitalDynamics.Schema do
       "reservation_hold_contact_ids_by_expiration_status",
       station_reservation_summary_contact_ids_by(rows, "station_reservation_expiration_status"),
       "must equal row-derived reservation_hold_contact_ids_by_expiration_status"
+    )
+    |> expect_optional_field_equals(
+      path,
+      summary,
+      "reservation_hold_contact_ids_by_direction",
+      row_ids_by_direction(rows, "contact_id"),
+      "must equal row-derived reservation_hold_contact_ids_by_direction"
+    )
+    |> expect_optional_field_equals(
+      path,
+      summary,
+      "reservation_hold_contact_ids_by_direction_and_ground_station_id",
+      row_ids_by_direction_and_ground_station(rows, "contact_id"),
+      "must equal row-derived reservation_hold_contact_ids_by_direction_and_ground_station_id"
     )
     |> expect_field_equals(
       path,
@@ -38789,6 +38868,29 @@ defmodule OrbitalDynamics.Schema do
     |> reservation_id_pairs_to_map()
   end
 
+  defp station_reservation_summary_ids_by_direction(rows) do
+    rows
+    |> Enum.flat_map(fn row ->
+      reservation_id_value_pairs(
+        Map.get(row, "reservation_ids"),
+        station_reservation_row_directions(row)
+      )
+    end)
+    |> reservation_id_pairs_to_map()
+  end
+
+  defp station_reservation_summary_ids_by_direction_and_ground_station(rows) do
+    rows
+    |> Enum.reduce(%{}, fn row, acc ->
+      put_nested_stable_ids(
+        acc,
+        station_reservation_row_directions(row),
+        Map.get(row, "ground_station_id"),
+        Map.get(row, "reservation_ids")
+      )
+    end)
+  end
+
   defp station_reservation_summary_contact_ids(rows) do
     rows
     |> Enum.map(&Map.get(&1, "contact_id"))
@@ -38806,6 +38908,37 @@ defmodule OrbitalDynamics.Schema do
       )
     end)
     |> reservation_id_pairs_to_map()
+  end
+
+  defp station_reservation_row_directions(row) do
+    [
+      Map.get(row, "direction"),
+      Map.get(row, "directions"),
+      Map.get(row, "station_calendar_directions")
+    ]
+    |> List.flatten()
+    |> Enum.reject(&is_nil/1)
+    |> Enum.map(&to_string/1)
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp put_nested_stable_ids(acc, directions, group, ids) do
+    ids = ids |> List.wrap() |> Enum.reject(&is_nil/1)
+
+    if directions == [] or group in [nil, ""] or ids == [] do
+      acc
+    else
+      Enum.reduce(directions, acc, fn direction, direction_acc ->
+        Map.update(direction_acc, direction, %{group => ids |> Enum.uniq() |> Enum.sort()}, fn
+          group_map ->
+            Map.update(group_map, group, ids |> Enum.uniq() |> Enum.sort(), fn existing_ids ->
+              (existing_ids ++ ids) |> Enum.uniq() |> Enum.sort()
+            end)
+        end)
+      end)
+    end
   end
 
   defp reservation_id_value_pairs(ids, values) do

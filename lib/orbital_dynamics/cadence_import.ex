@@ -5714,10 +5714,18 @@ defmodule OrbitalDynamics.CadenceImport do
         row["station_reservation_hold_ids_by_import_status"],
       "station_reservation_hold_ids_by_required_import_action" =>
         row["station_reservation_hold_ids_by_required_import_action"],
+      "station_reservation_hold_ids_by_direction" =>
+        row["station_reservation_hold_ids_by_direction"],
+      "station_reservation_hold_ids_by_direction_and_ground_station_id" =>
+        row["station_reservation_hold_ids_by_direction_and_ground_station_id"],
       "station_reservation_hold_contact_ids_by_import_status" =>
         row["station_reservation_hold_contact_ids_by_import_status"],
       "station_reservation_hold_contact_ids_by_expiration_status" =>
         row["station_reservation_hold_contact_ids_by_expiration_status"],
+      "station_reservation_hold_contact_ids_by_direction" =>
+        row["station_reservation_hold_contact_ids_by_direction"],
+      "station_reservation_hold_contact_ids_by_direction_and_ground_station_id" =>
+        row["station_reservation_hold_contact_ids_by_direction_and_ground_station_id"],
       "station_reservation_hold_import_status_counts" =>
         row["station_reservation_hold_import_status_counts"],
       "station_reservation_hold_required_import_action_counts" =>

@@ -592,6 +592,7 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
         "affected_contacts" => [
           %{
             "contact_id" => "dl_source_reserved",
+            "direction" => "downlink",
             "ground_station_id" => "equator_prime",
             "source_station_calendar_entry" => %{
               "id" => "calendar_reserved_1",
@@ -666,6 +667,7 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
               "provider_id" => "ops_calendar",
               "provider_entry_id" => "provider_reserved_1",
               "availability" => "reserved",
+              "directions" => ["downlink"],
               "reservation_id" => "reservation_expired",
               "reservation_status" => "held",
               "reserved_by" => "ops_calendar",
@@ -680,6 +682,7 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
             "reservation_ids" => ["reservation_active"],
             "reservation_statuses" => ["confirmed"],
             "reservation_expires_at_s" => [420.0],
+            "directions" => ["downlink"],
             "required_operator_action" => "review_station_provider_contention"
           },
           %{
@@ -688,10 +691,16 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
             "reservation_ids" => ["reservation_missing"],
             "reservation_statuses" => ["held"],
             "reserved_by" => ["partner_calendar"],
+            "directions" => ["uplink"],
             "required_operator_action" => "review_station_provider_contention"
           }
         ]
       })
+
+    reservation_report =
+      update_in(reservation_report, ["affected_contacts", Access.at(0)], fn row ->
+        Map.put(row, "direction", "downlink")
+      end)
 
     summary = StationCalendar.reservation_review_summary(reservation_report, now_s: 300.0)
 
@@ -1000,11 +1009,25 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
                "review_station_provider_contention" => ["reservation_missing"],
                "review_station_reservation_overlap" => ["reservation_expired"]
              },
+             "reservation_hold_ids_by_direction" => %{
+               "downlink" => ["reservation_expired"],
+               "uplink" => ["reservation_missing"]
+             },
+             "reservation_hold_ids_by_direction_and_ground_station_id" => %{
+               "downlink" => %{"equator_prime" => ["reservation_expired"]},
+               "uplink" => %{"polar_prime" => ["reservation_missing"]}
+             },
              "reservation_hold_contact_ids_by_import_status" => %{
                "review_required_before_import" => ["dl_source_reserved"]
              },
              "reservation_hold_contact_ids_by_expiration_status" => %{
                "expired" => ["dl_source_reserved"]
+             },
+             "reservation_hold_contact_ids_by_direction" => %{
+               "downlink" => ["dl_source_reserved"]
+             },
+             "reservation_hold_contact_ids_by_direction_and_ground_station_id" => %{
+               "downlink" => %{"equator_prime" => ["dl_source_reserved"]}
              },
              "review_contact_ids" => ["dl_source_reserved"],
              "import_readiness_rows" => [
@@ -1086,6 +1109,20 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
              stale_count_report["errors"],
              &(&1["path"] == "$.review_required_before_import_count" and
                  &1["message"] == "must equal row-derived review_required_before_import_count")
+           )
+
+    stale_direction_summary =
+      Map.put(hold_import_readiness_summary, "reservation_hold_ids_by_direction", %{
+        "downlink" => ["reservation_missing"]
+      })
+
+    assert {:error, stale_direction_report} =
+             Schema.validate_artifact(stale_direction_summary)
+
+    assert Enum.any?(
+             stale_direction_report["errors"],
+             &(&1["path"] == "$.reservation_hold_ids_by_direction" and
+                 &1["message"] == "must equal row-derived reservation_hold_ids_by_direction")
            )
 
     stale_row_summary =

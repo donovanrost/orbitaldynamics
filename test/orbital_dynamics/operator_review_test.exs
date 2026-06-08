@@ -9482,6 +9482,13 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              "station_reservation_hold_import_status" => "review_required_before_import",
              "station_reservation_hold_import_readiness_status" => "review_required",
              "station_reservation_hold_import_classification" => "review_only",
+             "station_reservation_hold_ids_by_direction" => %{
+               "downlink" => ["reservation_expired"],
+               "uplink" => ["reservation_missing"]
+             },
+             "station_reservation_hold_contact_ids_by_direction" => %{
+               "downlink" => ["dl_source_reserved"]
+             },
              "station_reservation_hold_import_execution_boundary" =>
                "artifact_only_no_provider_or_cadence_writes",
              "station_reservation_hold_provider_write" => "not_performed_by_summary",
@@ -9491,7 +9498,11 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              "source_station_reservation_hold_import_readiness_summary" => %{
                "model" => "artifact_only_station_reservation_hold_import_readiness_summary",
                "import_readiness_status" => "review_required",
-               "reservation_hold_count" => 2
+               "reservation_hold_count" => 2,
+               "reservation_hold_ids_by_direction" => %{
+                 "downlink" => ["reservation_expired"],
+                 "uplink" => ["reservation_missing"]
+               }
              },
              "source_station_reservation" => %{
                "station_reservation_hold_import_status" => "review_required_before_import",
@@ -9509,6 +9520,10 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              "provider_calendar_contention_reserved_by" => ["partner_calendar"],
              "provider_calendar_contention_reservation_statuses" => ["held"],
              "station_reservation_hold_import_status" => "review_required_before_import",
+             "station_reservation_hold_ids_by_direction_and_ground_station_id" => %{
+               "downlink" => %{"equator_prime" => ["reservation_expired"]},
+               "uplink" => %{"polar_prime" => ["reservation_missing"]}
+             },
              "station_reservation_hold_ids_by_required_import_action" => %{
                "review_station_provider_contention" => ["reservation_missing"],
                "review_station_reservation_overlap" => ["reservation_expired"]
@@ -21348,16 +21363,31 @@ defmodule OrbitalDynamics.OperatorReviewTest do
         "review_station_provider_contention" => ["reservation_missing"],
         "review_station_reservation_overlap" => ["reservation_expired"]
       },
+      "reservation_hold_ids_by_direction" => %{
+        "downlink" => ["reservation_expired"],
+        "uplink" => ["reservation_missing"]
+      },
+      "reservation_hold_ids_by_direction_and_ground_station_id" => %{
+        "downlink" => %{"equator_prime" => ["reservation_expired"]},
+        "uplink" => %{"polar_prime" => ["reservation_missing"]}
+      },
       "reservation_hold_contact_ids_by_import_status" => %{
         "review_required_before_import" => ["dl_source_reserved"]
       },
       "reservation_hold_contact_ids_by_expiration_status" => %{
         "expired" => ["dl_source_reserved"]
       },
+      "reservation_hold_contact_ids_by_direction" => %{
+        "downlink" => ["dl_source_reserved"]
+      },
+      "reservation_hold_contact_ids_by_direction_and_ground_station_id" => %{
+        "downlink" => %{"equator_prime" => ["dl_source_reserved"]}
+      },
       "import_readiness_rows" => [
         %{
           "reservation_review_row_type" => "affected_contact",
           "contact_id" => "dl_source_reserved",
+          "direction" => "downlink",
           "ground_station_id" => "equator_prime",
           "starts_at_s" => 100.0,
           "ends_at_s" => 160.0,
@@ -21376,6 +21406,7 @@ defmodule OrbitalDynamics.OperatorReviewTest do
           "reservation_ids" => ["reservation_missing"],
           "reservation_statuses" => ["held"],
           "reserved_by" => ["partner_calendar"],
+          "directions" => ["uplink"],
           "station_reservation_expiration_status" => "missing",
           "station_reservation_hold_import_status" => "review_required_before_import",
           "required_operator_action" => "review_station_provider_contention"
