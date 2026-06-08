@@ -9689,6 +9689,69 @@ defmodule OrbitalDynamics.Validation do
         "checks resource-projection battery handoff row aggregation only"
       ]
     },
+    "fixture.artifact.operational_execution_boundary_summary.v1" => %{
+      "id" => "fixture.artifact.operational_execution_boundary_summary.v1",
+      "model_id" => "artifact.operational_execution_boundary_summary.v1",
+      "reference_case" =>
+        "checked-in operational execution boundary summary from ready readiness evidence",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/operational_execution_boundary_summary_v1.json",
+        "source_contract" => "operational_readiness_report.v1",
+        "contract" => "operational_execution_boundary_summary.v1",
+        "source_artifact_type" => "planned_activity.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "operational_execution_boundary_summary.v1",
+        "model" => "artifact_only_operational_execution_boundary_summary",
+        "source" => "operational_readiness_report.v1",
+        "source_artifact_type" => "planned_activity.v1",
+        "source_artifact_id" => "activity_1",
+        "readiness_level" => "import_eligible",
+        "import_classification" => "importable",
+        "status" => "passed",
+        "import_eligible" => true,
+        "handoff_only" => true,
+        "execution_allowed" => false,
+        "cadence_write_allowed" => false,
+        "operator_authority_granted" => false,
+        "execution_boundary" => "adapter_handoff_only",
+        "operational_mode_gate_id" => "operational_mode",
+        "operational_mode_gate_status" => "passed",
+        "operational_mode_gate_classification" => "importable",
+        "gate_count" => 5,
+        "passed_gate_count" => 5,
+        "review_gate_count" => 0,
+        "analysis_gate_count" => 0,
+        "blocked_gate_count" => 0,
+        "non_passed_gate_count" => 0,
+        "non_passed_gate_keys" => "",
+        "model_limit_count" => 2,
+        "assumption_execution_boundary" => "artifact_only_no_cadence_write_no_command_execution",
+        "operator_authority" => "not_granted_by_execution_boundary_summary",
+        "cadence_write" => "not_performed_by_summary",
+        "command_execution" => "not_performed_by_summary",
+        "assumption_source" => "operational_readiness_report.v1"
+      },
+      "tolerances" => %{
+        "gate_count" => 0,
+        "passed_gate_count" => 0,
+        "review_gate_count" => 0,
+        "analysis_gate_count" => 0,
+        "blocked_gate_count" => 0,
+        "non_passed_gate_count" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by operational_execution_boundary_summary.v1 validation tests"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not external operations validation",
+        "checks execution/write/authority denial, gate counts, and handoff boundary only"
+      ]
+    },
     "fixture.artifact.operational_import_eligibility_summary.v1" => %{
       "id" => "fixture.artifact.operational_import_eligibility_summary.v1",
       "model_id" => "artifact.operational_import_eligibility_summary.v1",
@@ -16907,6 +16970,48 @@ defmodule OrbitalDynamics.Validation do
       "adapter_context_count" => Map.get(evidence, "adapter_context_count"),
       "adapter_trust_boundary_missing_count" =>
         Map.get(evidence, "adapter_trust_boundary_missing_count")
+    }
+  end
+
+  def artifact_observations("operational_execution_boundary_summary.v1", artifact)
+      when is_map(artifact) do
+    artifact = stringify_keys(artifact)
+    operational_mode_gate = stringify_keys(Map.get(artifact, "operational_mode_gate") || %{})
+
+    %{
+      "schema_contract" => Map.get(artifact, "schema_contract"),
+      "model" => Map.get(artifact, "model"),
+      "source" => Map.get(artifact, "source"),
+      "source_artifact_type" => Map.get(artifact, "source_artifact_type"),
+      "source_artifact_id" => Map.get(artifact, "source_artifact_id"),
+      "readiness_level" => Map.get(artifact, "readiness_level"),
+      "import_classification" => Map.get(artifact, "import_classification"),
+      "status" => Map.get(artifact, "status"),
+      "import_eligible" => Map.get(artifact, "import_eligible"),
+      "handoff_only" => Map.get(artifact, "handoff_only"),
+      "execution_allowed" => Map.get(artifact, "execution_allowed"),
+      "cadence_write_allowed" => Map.get(artifact, "cadence_write_allowed"),
+      "operator_authority_granted" => Map.get(artifact, "operator_authority_granted"),
+      "execution_boundary" => Map.get(artifact, "execution_boundary"),
+      "operational_mode_gate_id" => Map.get(operational_mode_gate, "id"),
+      "operational_mode_gate_status" => Map.get(operational_mode_gate, "status"),
+      "operational_mode_gate_classification" => Map.get(operational_mode_gate, "classification"),
+      "gate_count" => Map.get(artifact, "gate_count"),
+      "passed_gate_count" => Map.get(artifact, "passed_gate_count"),
+      "review_gate_count" => Map.get(artifact, "review_gate_count"),
+      "analysis_gate_count" => Map.get(artifact, "analysis_gate_count"),
+      "blocked_gate_count" => Map.get(artifact, "blocked_gate_count"),
+      "non_passed_gate_count" => Map.get(artifact, "non_passed_gate_count"),
+      "non_passed_gate_keys" =>
+        artifact
+        |> list_values("non_passed_gate_ids")
+        |> Enum.join("|"),
+      "model_limit_count" => count(artifact, "model_limits"),
+      "assumption_execution_boundary" => get_in(artifact, ["assumptions", "execution_boundary"]),
+      "operator_authority" => get_in(artifact, ["assumptions", "operator_authority"]),
+      "cadence_write" => get_in(artifact, ["assumptions", "cadence_write"]),
+      "command_execution" => get_in(artifact, ["assumptions", "command_execution"]),
+      "assumption_source" => get_in(artifact, ["assumptions", "source"])
     }
   end
 

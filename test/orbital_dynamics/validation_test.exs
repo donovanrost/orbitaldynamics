@@ -2177,6 +2177,93 @@ defmodule OrbitalDynamics.ValidationTest do
            )
   end
 
+  test "verifies curated operational execution boundary summary reference fixtures" do
+    fixture_id = "fixture.artifact.operational_execution_boundary_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.operational_execution_boundary_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = operational_execution_boundary_summary_fixture()
+    observations = operational_execution_boundary_summary_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert observations["import_eligible"] == true
+    assert observations["handoff_only"] == true
+    assert observations["execution_allowed"] == false
+    assert observations["cadence_write_allowed"] == false
+    assert observations["operator_authority_granted"] == false
+    assert observations["execution_boundary"] == "adapter_handoff_only"
+
+    assert observations["assumption_execution_boundary"] ==
+             "artifact_only_no_cadence_write_no_command_execution"
+
+    assert observations["operator_authority"] == "not_granted_by_execution_boundary_summary"
+    assert observations["cadence_write"] == "not_performed_by_summary"
+    assert observations["command_execution"] == "not_performed_by_summary"
+    assert observations["operational_mode_gate_id"] == "operational_mode"
+    assert observations["operational_mode_gate_status"] == "passed"
+    assert observations["gate_count"] == 5
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "operational_execution_boundary_summary.v1",
+             report
+           ) ==
+             Validation.artifact_observations(
+               "operational_execution_boundary_summary.v1",
+               report
+             )
+
+    stale_execution_observations = Map.put(observations, "execution_allowed", true)
+
+    assert {:ok, stale_execution_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_execution_observations)
+
+    assert stale_execution_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_execution_verification["checks"],
+             &(&1["field"] == "execution_allowed" and &1["status"] == "fail")
+           )
+
+    stale_boundary_observations =
+      Map.put(observations, "execution_boundary", "ready_for_command_execution")
+
+    assert {:ok, stale_boundary_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_boundary_observations)
+
+    assert stale_boundary_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_boundary_verification["checks"],
+             &(&1["field"] == "execution_boundary" and &1["status"] == "fail")
+           )
+
+    stale_assumption_observations =
+      Map.put(observations, "command_execution", "performed_by_summary")
+
+    assert {:ok, stale_assumption_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_assumption_observations)
+
+    assert stale_assumption_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_assumption_verification["checks"],
+             &(&1["field"] == "command_execution" and &1["status"] == "fail")
+           )
+
+    assert {:ok, _schema_report} =
+             Schema.validate_artifact(report,
+               schema_contract: "operational_execution_boundary_summary.v1"
+             )
+  end
+
   test "verifies curated operational import eligibility summary reference fixtures" do
     fixture_id = "fixture.artifact.operational_import_eligibility_summary.v1"
 
@@ -12826,6 +12913,8 @@ defmodule OrbitalDynamics.ValidationTest do
           operator_review_package_fixture_observations(),
         "fixture.artifact.operator_review_package.resource_projection_battery_handoff_v1" =>
           operator_review_resource_projection_battery_handoff_fixture_observations(),
+        "fixture.artifact.operational_execution_boundary_summary.v1" =>
+          operational_execution_boundary_summary_fixture_observations(),
         "fixture.artifact.operational_import_eligibility_summary.v1" =>
           operational_import_eligibility_summary_fixture_observations(),
         "fixture.artifact.operational_readiness_report.v1" =>
@@ -12969,8 +13058,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 167,
-             "status_counts" => %{"pass" => 167},
+             "fixture_count" => 168,
+             "status_counts" => %{"pass" => 168},
              "reports" => reports
            } = report
 
@@ -13036,6 +13125,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.monte_carlo_reproducibility_report.v1",
              "fixture.artifact.objective_satisfaction_report.v1",
              "fixture.artifact.objective_tradeoff_report.v1",
+             "fixture.artifact.operational_execution_boundary_summary.v1",
              "fixture.artifact.operational_import_eligibility_summary.v1",
              "fixture.artifact.operational_quality_gate_import_readiness_summary.v1",
              "fixture.artifact.operational_quality_gate_operator_training_summary.v1",
@@ -13154,7 +13244,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 167},
+             "status_counts" => %{"fail" => 168},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -15204,6 +15294,15 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp operational_readiness_report_fixture do
     read_json!("study_results/operational_readiness_report_v1.json")
+  end
+
+  defp operational_execution_boundary_summary_fixture_observations do
+    "operational_execution_boundary_summary.v1"
+    |> Validation.artifact_observations(operational_execution_boundary_summary_fixture())
+  end
+
+  defp operational_execution_boundary_summary_fixture do
+    read_json!("study_results/operational_execution_boundary_summary_v1.json")
   end
 
   defp operational_import_eligibility_summary_fixture_observations do
