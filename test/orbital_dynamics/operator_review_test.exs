@@ -7694,6 +7694,113 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(manifest)
   end
 
+  test "candidate refresh compact unavailable-resource quality gate summaries become review and import rows" do
+    summary = quality_gate_unavailable_resource_summary()
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "candidate_refresh:quality_gate_unavailable_resource:001",
+      "source_operational_quality_gate_unavailable_resource_summary" =>
+        Map.put(summary, "resource_availability_row_count", 99),
+      "source_result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "source_operational_quality_gate_unavailable_resource_summary" => summary
+        }
+      ],
+      "result_artifact" => [
+        %{
+          "schema_contract" => "result_artifact.v1",
+          "operational_quality_gate_unavailable_resource_summary" => summary
+        }
+      ]
+    }
+
+    package = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:quality_gate_unavailable_resource:001",
+             "review_count" => 3,
+             "quality_gate_review_count" => 3
+           } = package
+
+    assert Enum.map(package["rows"], & &1["source"]) == [
+             "candidate_refresh.source_operational_quality_gate_unavailable_resource_summary",
+             "candidate_refresh.source_result_artifact[0].source_operational_quality_gate_unavailable_resource_summary",
+             "candidate_refresh.result_artifact[0].operational_quality_gate_unavailable_resource_summary"
+           ]
+
+    assert %{
+             "review_type" => "quality_gate_review",
+             "required_operator_action" => "review_quality_gate",
+             "quality_gate_id" => "resource_availability",
+             "quality_gate_status" => "review_required",
+             "quality_gate_classification" => "review_only",
+             "readiness_level" => "operator_review",
+             "resource_availability_pressure_count" => 2,
+             "resource_availability_reason_counts" => %{
+               "ground_station_unavailable" => 1,
+               "payload_unavailable" => 1
+             },
+             "resource_availability_reason_ids" => [
+               "ground_station_unavailable",
+               "payload_unavailable"
+             ],
+             "station_availability_reason_ids" => ["ground_station_unavailable"],
+             "unavailable_resource_reason_ids" => ["payload_unavailable"],
+             "resource_blocking_dimension_counts" => %{"payload" => 1},
+             "resource_blocked_contact_ids_by_blocking_dimension" => %{
+               "payload" => ["contact:payload_blocked"]
+             },
+             "source_quality_gate_row" => %{
+               "id" => "quality_gate:activity_1:resource_availability",
+               "gate_id" => "resource_availability",
+               "status" => "review_required",
+               "resource_availability_reason_counts" => %{
+                 "ground_station_unavailable" => 1,
+                 "payload_unavailable" => 1
+               }
+             },
+             "source_quality_gate_report" => %{
+               "schema_contract" => "quality_gate_report.v1",
+               "report_id" => "quality_gate:contact_filter:payload_blocked",
+               "quality_gate_row_ids_by_status" => %{
+                 "review_required" => ["quality_gate:activity_1:resource_availability"]
+               }
+             }
+           } = List.first(package["rows"])
+
+    manifest = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "candidate_refresh:quality_gate_unavailable_resource:001",
+             "row_count" => 3,
+             "source_review_type_counts" => %{"quality_gate_review" => 3},
+             "import_action_counts" => %{"review_quality_gate" => 3}
+           } = manifest
+
+    assert %{
+             "import_action" => "review_quality_gate",
+             "import_status" => "review_required_before_import",
+             "source_review_row" => %{
+               "source" =>
+                 "candidate_refresh.source_operational_quality_gate_unavailable_resource_summary",
+               "resource_availability_reason_counts" => %{
+                 "ground_station_unavailable" => 1,
+                 "payload_unavailable" => 1
+               }
+             }
+           } = List.first(manifest["rows"])
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "candidate refresh source schema validation reports become operator review rows" do
     source_schema_validation_report = %{
       "schema_contract" => "schema_validation_report.v1",
@@ -16902,6 +17009,52 @@ defmodule OrbitalDynamics.OperatorReviewTest do
         "execution_boundary" => "artifact_only_no_cadence_write",
         "operator_authority" => "not_granted_by_quality_gate_import_readiness_summary"
       }
+    }
+  end
+
+  defp quality_gate_unavailable_resource_summary do
+    %{
+      "schema_contract" => "operational_quality_gate_unavailable_resource_summary.v1",
+      "model" => "artifact_only_quality_gate_unavailable_resource_summary",
+      "source" => "quality_gate_report.v1",
+      "source_artifact_type" => "contact_filter_report.v1",
+      "source_artifact_id" => "contact_filter:payload_blocked",
+      "source_quality_gate_report_id" => "quality_gate:contact_filter:payload_blocked",
+      "source_readiness_report_id" => "operational_readiness:contact_filter:payload_blocked",
+      "resource_availability_row_count" => 1,
+      "unavailable_resource_row_count" => 1,
+      "unavailable_resource_pressure_count" => 1,
+      "unavailable_resource_reason_counts" => %{"payload_unavailable" => 1},
+      "unavailable_resource_reason_ids" => ["payload_unavailable"],
+      "station_availability_reason_counts" => %{"ground_station_unavailable" => 1},
+      "station_availability_reason_ids" => ["ground_station_unavailable"],
+      "resource_blocking_dimension_counts" => %{"payload" => 1},
+      "blocked_contact_ids_by_blocking_dimension" => %{
+        "payload" => ["contact:payload_blocked"]
+      },
+      "blocked_contact_ids_by_spacecraft_id" => %{
+        "leo_1" => ["contact:payload_blocked"]
+      },
+      "blocked_contact_ids_by_status" => %{
+        "review_required" => ["contact:payload_blocked"]
+      },
+      "quality_gate_row_ids_by_status" => %{
+        "review_required" => ["quality_gate:activity_1:resource_availability"]
+      },
+      "quality_gate_ids_by_status" => %{"review_required" => ["resource_availability"]},
+      "review_required_quality_gate_row_ids" => [
+        "quality_gate:activity_1:resource_availability"
+      ],
+      "blocked_quality_gate_row_ids" => [],
+      "resource_availability_gate_ids" => ["resource_availability"],
+      "assumptions" => %{
+        "execution_boundary" => "artifact_only_no_cadence_write",
+        "source" => "quality_gate_report.v1",
+        "operator_authority" => "not_granted_by_unavailable_resource_summary",
+        "cadence_write" => "not_performed_by_summary",
+        "command_execution" => "not_performed_by_summary"
+      },
+      "provenance" => %{"trust_boundary" => "unavailable_resource_summary_fixture"}
     }
   end
 
