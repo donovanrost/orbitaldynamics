@@ -91,7 +91,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`cb62212` Flatten reservation conflict direction handoffs.
+`27ab76f` Add hold import readiness direction routing.
 
 Next candidate:
 Continue guide-priority resource/contact semantics or candidate-refresh depth
@@ -102,6 +102,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `27ab76f` added hold import-readiness direction routing.
 - `cb62212` flattened reservation-conflict direction handoffs.
 - `cd331cf` flattened station-pressure direction handoffs.
 - `0c7c0e2` flattened capacity-pack direction handoffs.
