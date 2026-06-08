@@ -3508,6 +3508,31 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ]
   end
 
+  defp event_risk_indicators(%{"type" => "timeline_publication_pressure"} = event) do
+    [
+      %{
+        "type" => "timeline_publication_pressure",
+        "severity" => "high",
+        "reason" =>
+          "timeline publication #{event["publication_id"] || event["source_artifact_id"]} carries review, dependency-impact, changed-field, or downstream invalidation pressure",
+        "publication_id" => event["publication_id"],
+        "publication_sequence" => event["publication_sequence"],
+        "publication_status" => event["publication_status"],
+        "downstream_invalidation_status" => event["downstream_invalidation_status"],
+        "dependency_impact_status" => event["dependency_impact_status"],
+        "dependency_impact_row_count" => event["dependency_impact_row_count"],
+        "timeline_diff_review_required_count" => event["timeline_diff_review_required_count"],
+        "invalidated_downstream_product_ids" => event["invalidated_downstream_product_ids"],
+        "changed_timeline_ids" => event["changed_timeline_ids"],
+        "review_timeline_ids" => event["review_timeline_ids"],
+        "feedback_source" => event["feedback_source"],
+        "feedback_scope" => event["feedback_scope"],
+        "trust_boundary" => event["trust_boundary"]
+      }
+      |> compact_map()
+    ]
+  end
+
   defp event_risk_indicators(%{"type" => "downlink_demand_feedback"} = event) do
     station = event_ground_station_id(event) || "default"
 
@@ -5306,6 +5331,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Kernel.++(
         derived_mission_state_timeline_dependency_impact_pressure_branches(mission_state)
       )
+      |> Kernel.++(derived_timeline_publication_pressure_branches(prior_plan))
+      |> Kernel.++(derived_mission_state_timeline_publication_pressure_branches(mission_state))
       |> Kernel.++(derived_timeline_diff_pressure_branches(prior_plan, policy))
       |> Kernel.++(derived_mission_state_timeline_diff_pressure_branches(mission_state, policy))
       |> Kernel.++(derived_planned_activity_pressure_branches(prior_plan))
@@ -5351,6 +5378,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> disambiguate_constraint_pressure_branch_ids()
       |> disambiguate_timeline_integrity_pressure_branch_ids()
       |> disambiguate_timeline_dependency_impact_pressure_branch_ids()
+      |> disambiguate_timeline_publication_pressure_branch_ids()
       |> disambiguate_timeline_diff_pressure_branch_ids()
       |> disambiguate_review_replay_pressure_branch_ids()
       |> disambiguate_degraded_spacecraft_branch_ids()
@@ -17578,11 +17606,56 @@ defmodule OrbitalDynamics.CampaignPlanner do
     end)
   end
 
+  defp derived_timeline_publication_pressure_branches(prior_plan) do
+    prior_plan
+    |> prior_plan_timeline_publication_pressure_summaries()
+    |> Enum.flat_map(fn {summary, source_path, index} ->
+      timeline_publication_pressure_branch(summary, source_path, index)
+    end)
+  end
+
   defp prior_plan_timeline_dependency_impact_pressure_rows(prior_plan) do
     prior_plan
     |> prior_plan_timeline_dependency_impact_summaries()
     |> timeline_dependency_impact_pressure_rows()
   end
+
+  defp prior_plan_timeline_publication_pressure_summaries(prior_plan) do
+    prior_plan
+    |> prior_plan_timeline_publication_summaries()
+    |> Enum.with_index(1)
+    |> Enum.map(fn {{summary, source_path}, index} -> {summary, source_path, index} end)
+  end
+
+  defp prior_plan_timeline_publication_summaries(prior_plan) do
+    direct_summaries =
+      [
+        {"source_timeline_publication_summary", "prior_plan.source_timeline_publication_summary"},
+        {"timeline_publication_summary", "prior_plan.timeline_publication_summary"}
+      ]
+      |> Enum.flat_map(fn {field, source_path} ->
+        prior_plan
+        |> Map.get(field)
+        |> timeline_publication_summary_entries(source_path)
+      end)
+
+    direct_summaries ++ prior_plan_result_artifact_timeline_publication_summaries(prior_plan)
+  end
+
+  defp timeline_publication_summary_entries(nil, _source_path), do: []
+
+  defp timeline_publication_summary_entries(summaries, source_path) when is_list(summaries) do
+    summaries
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {summary, index} ->
+      timeline_publication_summary_entries(summary, "#{source_path}[#{index}]")
+    end)
+  end
+
+  defp timeline_publication_summary_entries(%{} = summary, source_path),
+    do: [{stringify_keys(summary), source_path}]
+
+  defp timeline_publication_summary_entries(_summary, _source_path), do: []
 
   defp prior_plan_timeline_dependency_impact_summaries(prior_plan) do
     direct_summaries =
@@ -17729,10 +17802,31 @@ defmodule OrbitalDynamics.CampaignPlanner do
     end)
   end
 
+  defp derived_mission_state_timeline_publication_pressure_branches(mission_state) do
+    mission_state
+    |> mission_state_timeline_publication_pressure_summaries()
+    |> Enum.flat_map(fn {summary, source_path, index} ->
+      timeline_publication_pressure_branch(summary, source_path, index)
+    end)
+  end
+
   defp mission_state_timeline_dependency_impact_pressure_rows(mission_state) do
     mission_state
     |> mission_state_timeline_dependency_impact_pressure_summaries()
     |> timeline_dependency_impact_pressure_rows()
+  end
+
+  defp mission_state_timeline_publication_pressure_summaries(mission_state) do
+    mission_state
+    |> mission_state_timeline_publication_summaries()
+    |> Enum.with_index(1)
+    |> Enum.map(fn {{summary, source_path}, index} -> {summary, source_path, index} end)
+  end
+
+  defp mission_state_timeline_publication_summaries(mission_state) do
+    mission_state_source_timeline_publication_summaries(mission_state) ++
+      mission_state_canonical_timeline_publication_summaries(mission_state) ++
+      mission_state_result_artifact_timeline_publication_summaries(mission_state)
   end
 
   defp mission_state_timeline_dependency_impact_pressure_summaries(mission_state) do
@@ -17944,6 +18038,29 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp mission_state_timeline_dependency_impact_summaries(mission_state, fields) do
+    mission_state = stringify_keys(mission_state || %{})
+
+    fields
+    |> Enum.flat_map(fn {field, source_path} ->
+      mission_state
+      |> Map.get(field)
+      |> mission_state_source_report_entries(source_path)
+    end)
+  end
+
+  defp mission_state_source_timeline_publication_summaries(mission_state) do
+    mission_state_timeline_publication_summaries(mission_state, [
+      {"source_timeline_publication_summary", "mission_state.source_timeline_publication_summary"}
+    ])
+  end
+
+  defp mission_state_canonical_timeline_publication_summaries(mission_state) do
+    mission_state_timeline_publication_summaries(mission_state, [
+      {"timeline_publication_summary", "mission_state.timeline_publication_summary"}
+    ])
+  end
+
+  defp mission_state_timeline_publication_summaries(mission_state, fields) do
     mission_state = stringify_keys(mission_state || %{})
 
     fields
@@ -18176,6 +18293,39 @@ defmodule OrbitalDynamics.CampaignPlanner do
       [{artifact, source_path}]
     else
       ["source_timeline_dependency_impact_summary", "timeline_dependency_impact_summary"]
+      |> Enum.flat_map(fn summary_key ->
+        result_artifact_embedded_report_entries(
+          Map.get(artifact, summary_key),
+          artifact,
+          "#{source_path}.#{summary_key}"
+        )
+      end)
+    end
+  end
+
+  defp mission_state_result_artifact_timeline_publication_summaries(mission_state) do
+    mission_state
+    |> mission_state_result_artifacts_with_source()
+    |> Enum.flat_map(fn {artifact, source_path} ->
+      result_artifact_timeline_publication_summaries(artifact, source_path)
+    end)
+  end
+
+  defp prior_plan_result_artifact_timeline_publication_summaries(prior_plan) do
+    prior_plan
+    |> prior_plan_result_artifacts_with_source()
+    |> Enum.flat_map(fn {artifact, source_path} ->
+      result_artifact_timeline_publication_summaries(artifact, source_path)
+    end)
+  end
+
+  defp result_artifact_timeline_publication_summaries(artifact, source_path) do
+    artifact = stringify_keys(artifact)
+
+    if artifact["schema_contract"] == "timeline_publication_summary.v1" do
+      [{artifact, source_path}]
+    else
+      ["source_timeline_publication_summary", "timeline_publication_summary"]
       |> Enum.flat_map(fn summary_key ->
         result_artifact_embedded_report_entries(
           Map.get(artifact, summary_key),
@@ -18445,6 +18595,137 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> reject_empty_values()
   end
 
+  defp timeline_publication_pressure_branch(summary, source_path, index) do
+    case timeline_publication_pressure_event(summary, source_path) do
+      nil ->
+        []
+
+      event ->
+        identity =
+          summary["publication_id"] || summary["source_artifact_id"] || event["feedback_key"] ||
+            index
+
+        [
+          %{
+            "id" => "derived_timeline_publication_pressure_#{branch_id_fragment(identity)}",
+            "label" => "Derived timeline publication pressure #{identity}",
+            "events" => [event],
+            "metadata" =>
+              %{
+                "derived_source" => source_path,
+                "publication_id" => summary["publication_id"],
+                "publication_status" => summary["publication_status"],
+                "downstream_invalidation_status" => summary["downstream_invalidation_status"],
+                "dependency_impact_status" => summary["dependency_impact_status"]
+              }
+              |> compact_map()
+          }
+        ]
+    end
+  end
+
+  defp timeline_publication_pressure_event(summary, source_path) do
+    summary = stringify_keys(summary)
+    context = timeline_publication_pressure_context(summary)
+    publication_id = summary["publication_id"]
+    source_artifact_id = summary["source_artifact_id"]
+
+    if context == %{} or not timeline_publication_pressure?(summary) do
+      nil
+    else
+      %{
+        "type" => "timeline_publication_pressure",
+        "publication_id" => publication_id,
+        "publication_sequence" => summary["publication_sequence"],
+        "publication_status" => summary["publication_status"],
+        "downstream_invalidation_status" => summary["downstream_invalidation_status"],
+        "dependency_impact_status" => summary["dependency_impact_status"],
+        "source_artifact_id" => source_artifact_id,
+        "source_artifact_type" => summary["source_artifact_type"],
+        "publication_authority" => summary["publication_authority"],
+        "feedback_source" => source_path,
+        "feedback_scope" => "timeline_publication",
+        "feedback_key" => publication_id || source_artifact_id,
+        "trust_boundary" => operator_review_trust_boundary(summary),
+        "derivation_reasons" => ["timeline_publication_summary_pressure"],
+        "assumptions" => %{
+          "publication_execution" => "not_performed_by_strategy_branch",
+          "notification_delivery" => "not_performed_by_strategy_branch",
+          "operator_authority" => "not_granted_by_strategy_branch",
+          "import_approval" => "not_granted_by_strategy_branch"
+        }
+      }
+      |> Map.merge(context)
+      |> compact_map()
+    end
+  end
+
+  defp timeline_publication_pressure?(summary) do
+    summary["publication_status"] in [
+      "review_required",
+      "published_with_downstream_invalidations"
+    ] or
+      summary["downstream_invalidation_status"] == "invalidated" or
+      summary["dependency_impact_status"] == "review_required" or
+      positive_count?(summary["dependency_impact_row_count"]) or
+      positive_count?(summary["timeline_diff_review_required_count"]) or
+      nonempty_pressure_value?(summary["invalidated_downstream_product_ids"]) or
+      nonempty_pressure_value?(summary["downstream_invalidation_reason_counts"]) or
+      nonempty_pressure_value?(summary["changed_field_counts"]) or
+      nonempty_pressure_value?(summary["changed_timeline_ids"]) or
+      nonempty_pressure_value?(summary["review_timeline_ids"])
+  end
+
+  defp timeline_publication_pressure_context(summary) do
+    downstream_invalidation_reason_counts =
+      stringify_keys(Map.get(summary, "downstream_invalidation_reason_counts", %{}))
+
+    changed_field_counts = stringify_keys(Map.get(summary, "changed_field_counts", %{}))
+
+    %{
+      "supersedes_artifact_ids" => summary["supersedes_artifact_ids"],
+      "downstream_product_ids" => summary["downstream_product_ids"],
+      "invalidated_downstream_product_ids" => summary["invalidated_downstream_product_ids"],
+      "downstream_invalidation_reason_counts" => downstream_invalidation_reason_counts,
+      "downstream_invalidation_reasons" => Map.keys(downstream_invalidation_reason_counts),
+      "invalidated_downstream_product_ids_by_reason" =>
+        summary["invalidated_downstream_product_ids_by_reason"],
+      "dependency_impact_row_count" => summary["dependency_impact_row_count"],
+      "impacted_source_activity_ids" => summary["impacted_source_activity_ids"],
+      "impacted_source_timeline_ids" => summary["impacted_source_timeline_ids"],
+      "dependent_activity_ids" => summary["dependent_activity_ids"],
+      "dependent_timeline_ids" => summary["dependent_timeline_ids"],
+      "source_dependent_activity_ids" => summary["source_dependent_activity_ids"],
+      "source_dependent_timeline_ids" => summary["source_dependent_timeline_ids"],
+      "replacement_dependent_activity_ids" => summary["replacement_dependent_activity_ids"],
+      "replacement_dependent_timeline_ids" => summary["replacement_dependent_timeline_ids"],
+      "impacted_dependency_activity_ids" => summary["impacted_dependency_activity_ids"],
+      "impacted_dependency_timeline_ids" => summary["impacted_dependency_timeline_ids"],
+      "impacted_exclusive_with_activity_ids" => summary["impacted_exclusive_with_activity_ids"],
+      "impacted_exclusive_with_timeline_ids" => summary["impacted_exclusive_with_timeline_ids"],
+      "timeline_diff_row_count" => summary["timeline_diff_row_count"],
+      "timeline_diff_changed_count" => summary["timeline_diff_changed_count"],
+      "timeline_diff_review_required_count" => summary["timeline_diff_review_required_count"],
+      "changed_field_counts" => changed_field_counts,
+      "changed_fields" => Map.keys(changed_field_counts),
+      "changed_timeline_ids" => summary["changed_timeline_ids"],
+      "review_timeline_ids" => summary["review_timeline_ids"],
+      "timeline_ids_by_changed_field" => summary["timeline_ids_by_changed_field"]
+    }
+    |> reject_empty_values()
+  end
+
+  defp positive_count?(value) do
+    case numeric_or_nil(value) do
+      count when is_number(count) -> count > 0
+      _count -> false
+    end
+  end
+
+  defp nonempty_pressure_value?(value) when is_list(value), do: value != []
+  defp nonempty_pressure_value?(%{} = value), do: map_size(value) > 0
+  defp nonempty_pressure_value?(_value), do: false
+
   defp timeline_diff_pressure_branch(row, source_path, index, policy \\ %{}) do
     row = normalize_timeline_diff_pressure_row(row)
 
@@ -18575,6 +18856,92 @@ defmodule OrbitalDynamics.CampaignPlanner do
     do: String.starts_with?(id, "derived_timeline_dependency_impact_pressure_")
 
   defp timeline_dependency_impact_pressure_branch_id?(_id), do: false
+
+  defp disambiguate_timeline_publication_pressure_branch_ids(branches) do
+    id_counts = Enum.frequencies_by(branches, & &1["id"])
+
+    branches
+    |> Enum.with_index(1)
+    |> Enum.map(fn {branch, index} ->
+      branch_id = branch["id"]
+
+      if timeline_publication_pressure_branch_id?(branch_id) and
+           Map.get(id_counts, branch_id, 0) > 1 do
+        suffix =
+          branch
+          |> timeline_publication_pressure_branch_identity(index)
+          |> branch_id_fragment()
+
+        branch
+        |> Map.put("id", "#{branch_id}_#{suffix}")
+        |> Map.update("metadata", %{}, fn metadata ->
+          metadata
+          |> Map.put("timeline_publication_branch_base_id", branch_id)
+          |> Map.put("timeline_publication_branch_identity", suffix)
+        end)
+      else
+        branch
+      end
+    end)
+    |> disambiguate_duplicate_timeline_publication_suffixes()
+  end
+
+  defp timeline_publication_pressure_branch_id?(id) when is_binary(id),
+    do: String.starts_with?(id, "derived_timeline_publication_pressure_")
+
+  defp timeline_publication_pressure_branch_id?(_id), do: false
+
+  defp disambiguate_duplicate_timeline_publication_suffixes(branches) do
+    id_counts = Enum.frequencies_by(branches, & &1["id"])
+
+    branches
+    |> Enum.with_index(1)
+    |> Enum.map(fn {branch, index} ->
+      metadata = Map.get(branch, "metadata", %{})
+
+      if Map.has_key?(metadata, "timeline_publication_branch_base_id") and
+           Map.get(id_counts, branch["id"], 0) > 1 do
+        suffix = "#{metadata["timeline_publication_branch_identity"]}_#{index}"
+
+        branch
+        |> Map.put("id", "#{metadata["timeline_publication_branch_base_id"]}_#{suffix}")
+        |> Map.update(
+          "metadata",
+          %{},
+          &Map.put(&1, "timeline_publication_branch_identity", suffix)
+        )
+      else
+        branch
+      end
+    end)
+  end
+
+  defp timeline_publication_pressure_branch_identity(branch, index) do
+    branch
+    |> Map.get("events", [])
+    |> List.wrap()
+    |> Enum.flat_map(fn event ->
+      [
+        event["publication_id"],
+        event["source_artifact_id"],
+        event["feedback_source"],
+        event["publication_status"],
+        event["downstream_invalidation_status"],
+        event["dependency_impact_status"],
+        event["invalidated_downstream_product_ids"],
+        event["changed_timeline_ids"],
+        event["review_timeline_ids"]
+      ]
+    end)
+    |> List.flatten()
+    |> Enum.map(&encode_value/1)
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.uniq()
+    |> case do
+      [] -> index
+      identifiers -> Enum.join(identifiers, "_")
+    end
+  end
 
   defp disambiguate_duplicate_timeline_dependency_impact_suffixes(branches) do
     id_counts = Enum.frequencies_by(branches, & &1["id"])
@@ -38909,6 +39276,39 @@ defmodule OrbitalDynamics.CampaignPlanner do
           events,
           "impacted_exclusive_with_timeline_ids"
         ),
+      "branch_timeline_publication_ids" =>
+        branch_timeline_publication_unique_values(events, "publication_id"),
+      "branch_timeline_publication_statuses" =>
+        branch_timeline_publication_unique_values(events, "publication_status"),
+      "branch_timeline_publication_source_artifact_ids" =>
+        branch_timeline_publication_unique_values(events, "source_artifact_id"),
+      "branch_timeline_publication_source_artifact_types" =>
+        branch_timeline_publication_unique_values(events, "source_artifact_type"),
+      "branch_timeline_publication_downstream_invalidation_statuses" =>
+        branch_timeline_publication_unique_values(events, "downstream_invalidation_status"),
+      "branch_timeline_publication_invalidated_downstream_product_ids" =>
+        branch_timeline_publication_unique_values(
+          events,
+          "invalidated_downstream_product_ids"
+        ),
+      "branch_timeline_publication_downstream_invalidation_reasons" =>
+        branch_timeline_publication_unique_values(events, "downstream_invalidation_reasons"),
+      "branch_timeline_publication_dependency_impact_statuses" =>
+        branch_timeline_publication_unique_values(events, "dependency_impact_status"),
+      "branch_timeline_publication_impacted_source_activity_ids" =>
+        branch_timeline_publication_unique_values(events, "impacted_source_activity_ids"),
+      "branch_timeline_publication_impacted_source_timeline_ids" =>
+        branch_timeline_publication_unique_values(events, "impacted_source_timeline_ids"),
+      "branch_timeline_publication_dependent_activity_ids" =>
+        branch_timeline_publication_unique_values(events, "dependent_activity_ids"),
+      "branch_timeline_publication_dependent_timeline_ids" =>
+        branch_timeline_publication_unique_values(events, "dependent_timeline_ids"),
+      "branch_timeline_publication_changed_fields" =>
+        branch_timeline_publication_unique_values(events, "changed_fields"),
+      "branch_timeline_publication_changed_timeline_ids" =>
+        branch_timeline_publication_unique_values(events, "changed_timeline_ids"),
+      "branch_timeline_publication_review_timeline_ids" =>
+        branch_timeline_publication_unique_values(events, "review_timeline_ids"),
       "branch_source_activity_ids" =>
         branch_event_unique_values(events, ["source_activity_id", "source_activity_ids"]),
       "branch_directions" => branch_event_unique_values(events, "direction"),
@@ -39027,6 +39427,21 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> maybe_put_nonempty("branch_impacted_dependency_timeline_ids")
     |> maybe_put_nonempty("branch_impacted_exclusive_with_activity_ids")
     |> maybe_put_nonempty("branch_impacted_exclusive_with_timeline_ids")
+    |> maybe_put_nonempty("branch_timeline_publication_ids")
+    |> maybe_put_nonempty("branch_timeline_publication_statuses")
+    |> maybe_put_nonempty("branch_timeline_publication_source_artifact_ids")
+    |> maybe_put_nonempty("branch_timeline_publication_source_artifact_types")
+    |> maybe_put_nonempty("branch_timeline_publication_downstream_invalidation_statuses")
+    |> maybe_put_nonempty("branch_timeline_publication_invalidated_downstream_product_ids")
+    |> maybe_put_nonempty("branch_timeline_publication_downstream_invalidation_reasons")
+    |> maybe_put_nonempty("branch_timeline_publication_dependency_impact_statuses")
+    |> maybe_put_nonempty("branch_timeline_publication_impacted_source_activity_ids")
+    |> maybe_put_nonempty("branch_timeline_publication_impacted_source_timeline_ids")
+    |> maybe_put_nonempty("branch_timeline_publication_dependent_activity_ids")
+    |> maybe_put_nonempty("branch_timeline_publication_dependent_timeline_ids")
+    |> maybe_put_nonempty("branch_timeline_publication_changed_fields")
+    |> maybe_put_nonempty("branch_timeline_publication_changed_timeline_ids")
+    |> maybe_put_nonempty("branch_timeline_publication_review_timeline_ids")
     |> maybe_put_nonempty("branch_source_activity_ids")
     |> maybe_put_nonempty("branch_directions")
     |> maybe_put_nonempty("branch_station_calendar_entry_ids")
@@ -39086,6 +39501,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp branch_timeline_dependency_impact_unique_values(events, fields) do
     events
     |> Enum.filter(&(&1["type"] == "timeline_dependency_impact_pressure"))
+    |> branch_event_unique_values(fields)
+  end
+
+  defp branch_timeline_publication_unique_values(events, fields) do
+    events
+    |> Enum.filter(&(&1["type"] == "timeline_publication_pressure"))
     |> branch_event_unique_values(fields)
   end
 
