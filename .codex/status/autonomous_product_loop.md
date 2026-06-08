@@ -5,55 +5,56 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Operator-review projection for accepted/mission activity-precondition summaries.
+Nested CandidateRefresh single-activity lifecycle-state review/import handoff.
 
 Status:
-Product commit complete; CandidateRefresh accepted-planning-state and
-mission-state timeline activity-precondition summaries now project into
-OperatorReview activity-precondition review rows and CadenceImport
-review-timeline-precondition rows. Nested summaries reuse the existing summary
-row builder, preserving `candidate_refresh.*` source paths,
-dependency/exclusivity evidence, invalid-input evidence, embedded source
-summaries, and timeline IDs without evaluating preconditions, mutating
-timelines, granting authority, or selecting candidates.
+Implementation, focused verification, and read-only `slice_reviewer` handoff
+complete. CandidateRefresh accepted-planning-state and mission-state nested
+single-activity state artifacts now project into OperatorReview
+`timeline_lifecycle_state_review` rows and CadenceImport
+`review_timeline_lifecycle_state` rows. Covered nested families:
+`source_timeline_activity_state`, `timeline_activity_state`,
+`source_timeline_activity_status_state`, `timeline_activity_status_state`,
+`source_timeline_activity_approval_state`,
+`timeline_activity_approval_state`,
+`source_timeline_activity_lifecycle_state`, and
+`timeline_activity_lifecycle_state`.
 
 Files changed:
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
 - `lib/orbital_dynamics/operator_review.ex`
 - `test/orbital_dynamics/operator_review_test.exs`
+- `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/operator_review_test.exs:3121 test/orbital_dynamics/operator_review_test.exs:3205`
-- `mix test test/orbital_dynamics/operator_review_test.exs` (193 passed)
+- `mix test test/orbital_dynamics/operator_review_test.exs:3557 test/orbital_dynamics/operator_review_test.exs:3641 test/orbital_dynamics/operator_review_test.exs:3724 test/orbital_dynamics/operator_review_test.exs:3808` (4 passed)
+- `mix test test/orbital_dynamics/operator_review_test.exs` (197 passed)
 - `mix test test/orbital_dynamics/cadence_import_test.exs` (92 passed)
 - `git diff --check`
-- `mix test` (3165 passed; expected `:propagator_exit` log appeared from
-  `scenario_runner_test`)
-- Full-suite caveat: none beyond the known `:propagator_exit` log noise; the
-  suite exits green.
+- `slice_reviewer` read-only review (no must-fix findings)
 
 Docs/artifacts changed:
-- Activity-precondition CandidateRefresh docs now name accepted-state and
-  mission-state OperatorReview/CadenceImport summary handoffs.
+- CandidateRefresh activity-state docs now name accepted-state and
+  mission-state nested single-activity lifecycle-state review/import handoffs.
 
 Level 6 pillar advanced:
-Typed operational activity precondition semantics and Cadence-facing import
-handoff: accepted-planning-state and mission-state activity-precondition
-summaries now reach
-OperatorReview and CadenceImport without requiring top-level or
-result-artifact duplication.
+Approval-aware automation boundaries and Cadence-facing import readiness:
+nested CandidateRefresh single-activity lifecycle evidence reaches review and
+import manifests without granting authority, mutating schedules, applying
+transitions, or selecting candidates.
 
 Remaining maturity gaps:
 Continue closing thin artifact-only replay gaps where checked-in summaries
 preserve routing evidence that review/import or CandidateRefresh replay still
-does not consume.
+does not consume. Reassess remaining CandidateRefresh/OperatorReview/
+CadenceImport handoff gaps after the reviewer result.
 
 Last commit:
-Product commit `c2e9ab02c0e45d1009a3da94c21805552f9b2db2`.
+Previous committed handoff `46713a9 Record nested precondition review slice`.
+Current slice is not committed yet.
 
 Next candidate:
-Reassess the remaining summary-contract coverage map after nested
-activity-precondition projection and pick the next weak
+Commit the current slice, then reassess the next weak
 CandidateRefresh/OperatorReview/CadenceImport handoff.
 
 Unrelated local changes:
@@ -62,3 +63,7 @@ Unrelated local changes:
 
 Blocked:
 No.
+
+Notes:
+Known compile warnings from existing dependencies/modules remain unchanged in
+the focused test runs.

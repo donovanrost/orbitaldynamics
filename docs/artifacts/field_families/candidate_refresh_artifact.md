@@ -1753,15 +1753,16 @@ rows with `candidate_refresh.*` source paths. The handoff preserves source
 lifecycle rows, transition decisions, status/approval transitions, required
 operator actions, activity/timeline routing, and source-summary context without
 granting operator authority or applying lifecycle transitions.
-The same CandidateRefresh review/import handoff accepts direct/list-valued and
-wrapped `source_timeline_activity_state` / `timeline_activity_state`,
+The same CandidateRefresh review/import handoff accepts direct/list-valued,
+accepted-state, mission-state, and wrapped `source_timeline_activity_state` /
+`timeline_activity_state`,
 `source_timeline_activity_status_state` /
 `timeline_activity_status_state`, and
 `source_timeline_activity_approval_state` /
 `timeline_activity_approval_state` artifacts, preserving compact
 single-activity state, status-transition, and approval-transition evidence as
 lifecycle review/import rows with source artifact identity. It also accepts
-direct/list-valued and
+direct/list-valued, accepted-state, mission-state, and
 wrapped `source_timeline_activity_lifecycle_state` /
 `timeline_activity_lifecycle_state` artifacts, preserving single-activity
 lock/executed/protection and status/approval transition evidence as lifecycle

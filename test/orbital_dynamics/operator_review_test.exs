@@ -3554,6 +3554,342 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              Schema.validate_artifact(invalid_lifecycle_package)
   end
 
+  test "CandidateRefresh lifts accepted planning state activity status states" do
+    planned = %{
+      id: :cmd_accepted_state,
+      type: :command,
+      status: "In Progress",
+      approval_status: "Approved",
+      metadata: %{timeline_id: :"timeline:cmd_accepted_state"}
+    }
+
+    realized = %{
+      id: :cmd_accepted_state,
+      type: :command,
+      status: "succeeded",
+      approval_status: "Approved",
+      metadata: %{timeline_id: :"timeline:cmd_accepted_state"}
+    }
+
+    state = Timeline.activity_status_state(planned, realized)
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "refresh:accepted_activity_status_state_handoff",
+      "accepted_planning_state" => %{
+        "source_timeline_activity_status_state" => state
+      }
+    }
+
+    review = OperatorReview.from_candidate_refresh_artifact(artifact)
+    import = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "refresh:accepted_activity_status_state_handoff",
+             "review_count" => 1,
+             "timeline_lifecycle_state_review_count" => 1,
+             "review_type_counts" => %{"timeline_lifecycle_state_review" => 1}
+           } = review
+
+    assert [
+             %{
+               "review_type" => "timeline_lifecycle_state_review",
+               "source" =>
+                 "candidate_refresh.accepted_planning_state.source_timeline_activity_status_state.state",
+               "timeline_id" => "timeline:cmd_accepted_state",
+               "activity_id" => "cmd_accepted_state",
+               "transition_decision" => "record",
+               "required_operator_action" => "record_timeline_change",
+               "approval_status" => "not_required",
+               "import_action" => "import_replacement_activity",
+               "source_timeline_lifecycle_state" => %{
+                 "schema_contract" => "timeline_activity_status_state.v1",
+                 "timeline_id" => "timeline:cmd_accepted_state"
+               }
+             }
+           ] = review["rows"]
+
+    assert %{
+             "row_count" => 1,
+             "import_action_counts" => %{"review_timeline_lifecycle_state" => 1},
+             "source_review_type_counts" => %{"timeline_lifecycle_state_review" => 1}
+           } = import
+
+    assert [
+             %{
+               "import_action" => "review_timeline_lifecycle_state",
+               "source_review_type" => "timeline_lifecycle_state_review",
+               "timeline_id" => "timeline:cmd_accepted_state",
+               "source_review_row" => %{
+                 "source" =>
+                   "candidate_refresh.accepted_planning_state.source_timeline_activity_status_state.state",
+                 "source_timeline_lifecycle_state" => %{
+                   "schema_contract" => "timeline_activity_status_state.v1"
+                 }
+               }
+             }
+           ] = import["rows"]
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(import)
+  end
+
+  test "CandidateRefresh lifts accepted planning state aggregate activity states" do
+    planned = %{
+      id: :cmd_accepted_activity_state,
+      type: :command,
+      status: "In Progress",
+      approval_status: "Approved",
+      metadata: %{timeline_id: :"timeline:cmd_accepted_activity_state"}
+    }
+
+    realized = %{
+      id: :cmd_accepted_activity_state,
+      type: :command,
+      status: "succeeded",
+      approval_status: "Approved",
+      metadata: %{timeline_id: :"timeline:cmd_accepted_activity_state"}
+    }
+
+    state = OrbitalDynamics.timeline_activity_state(planned, realized)
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "refresh:accepted_activity_state_handoff",
+      "accepted_planning_state" => %{
+        "timeline_activity_state" => state
+      }
+    }
+
+    review = OperatorReview.from_candidate_refresh_artifact(artifact)
+    import = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "refresh:accepted_activity_state_handoff",
+             "review_count" => 1,
+             "timeline_lifecycle_state_review_count" => 1,
+             "review_type_counts" => %{"timeline_lifecycle_state_review" => 1}
+           } = review
+
+    assert [
+             %{
+               "review_type" => "timeline_lifecycle_state_review",
+               "source" =>
+                 "candidate_refresh.accepted_planning_state.timeline_activity_state.state",
+               "timeline_id" => "timeline:cmd_accepted_activity_state",
+               "activity_id" => "cmd_accepted_activity_state",
+               "required_operator_action" => "record_timeline_change",
+               "approval_status" => "not_required",
+               "source_timeline_lifecycle_state" => %{
+                 "schema_contract" => "timeline_activity_state.v1",
+                 "timeline_id" => "timeline:cmd_accepted_activity_state"
+               }
+             }
+           ] = review["rows"]
+
+    assert %{
+             "row_count" => 1,
+             "import_action_counts" => %{"review_timeline_lifecycle_state" => 1},
+             "source_review_type_counts" => %{"timeline_lifecycle_state_review" => 1}
+           } = import
+
+    assert [
+             %{
+               "import_action" => "review_timeline_lifecycle_state",
+               "source_review_type" => "timeline_lifecycle_state_review",
+               "timeline_id" => "timeline:cmd_accepted_activity_state",
+               "source_review_row" => %{
+                 "source" =>
+                   "candidate_refresh.accepted_planning_state.timeline_activity_state.state",
+                 "source_timeline_lifecycle_state" => %{
+                   "schema_contract" => "timeline_activity_state.v1"
+                 }
+               }
+             }
+           ] = import["rows"]
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(import)
+  end
+
+  test "CandidateRefresh lifts mission state activity approval states" do
+    planned = %{
+      id: :cmd_mission_approval,
+      type: :command,
+      status: "planned",
+      approval_status: "pending",
+      metadata: %{timeline_id: :"timeline:cmd_mission_approval"}
+    }
+
+    realized = %{
+      id: :cmd_mission_approval,
+      type: :command,
+      status: "planned",
+      approval_status: "approved",
+      metadata: %{timeline_id: :"timeline:cmd_mission_approval"}
+    }
+
+    state = Timeline.activity_approval_state(planned, realized)
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "refresh:mission_activity_approval_state_handoff",
+      "mission_state" => %{
+        "timeline_activity_approval_state" => state
+      }
+    }
+
+    review = OperatorReview.from_candidate_refresh_artifact(artifact)
+    import = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "refresh:mission_activity_approval_state_handoff",
+             "review_count" => 1,
+             "timeline_lifecycle_state_review_count" => 1,
+             "required_operator_action_counts" => %{"review_activity_approval" => 1}
+           } = review
+
+    assert [
+             %{
+               "review_type" => "timeline_lifecycle_state_review",
+               "source" =>
+                 "candidate_refresh.mission_state.timeline_activity_approval_state.state",
+               "timeline_id" => "timeline:cmd_mission_approval",
+               "activity_id" => "cmd_mission_approval",
+               "transition_decision" => "review",
+               "required_operator_action" => "review_activity_approval",
+               "approval_status" => "operator_review_required",
+               "approval_transition" => %{"transition_category" => "approval_granted"},
+               "source_timeline_lifecycle_state" => %{
+                 "schema_contract" => "timeline_activity_approval_state.v1",
+                 "timeline_id" => "timeline:cmd_mission_approval"
+               }
+             }
+           ] = review["rows"]
+
+    assert %{
+             "row_count" => 1,
+             "import_action_counts" => %{"review_timeline_lifecycle_state" => 1},
+             "source_review_type_counts" => %{"timeline_lifecycle_state_review" => 1}
+           } = import
+
+    assert [
+             %{
+               "import_action" => "review_timeline_lifecycle_state",
+               "source_review_type" => "timeline_lifecycle_state_review",
+               "timeline_id" => "timeline:cmd_mission_approval",
+               "source_review_row" => %{
+                 "source" =>
+                   "candidate_refresh.mission_state.timeline_activity_approval_state.state",
+                 "source_timeline_lifecycle_state" => %{
+                   "schema_contract" => "timeline_activity_approval_state.v1"
+                 }
+               }
+             }
+           ] = import["rows"]
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(import)
+  end
+
+  test "CandidateRefresh lifts mission state activity lifecycle states" do
+    planned = %{
+      id: :cmd_mission_lifecycle,
+      type: :command,
+      status: "planned",
+      approval_status: "pending",
+      locked: true,
+      metadata: %{timeline_id: :"timeline:cmd_mission_lifecycle"}
+    }
+
+    realized = %{
+      id: :cmd_mission_lifecycle,
+      type: :command,
+      status: "executed",
+      approval_status: "approved",
+      metadata: %{timeline_id: :"timeline:cmd_mission_lifecycle"}
+    }
+
+    state = Timeline.activity_lifecycle_state(planned, realized)
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "refresh_id" => "refresh:mission_activity_lifecycle_state_handoff",
+      "mission_state" => %{
+        "source_timeline_activity_lifecycle_state" => state
+      }
+    }
+
+    review = OperatorReview.from_candidate_refresh_artifact(artifact)
+    import = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_artifact_type" => "candidate_refresh.v1",
+             "source_artifact_id" => "refresh:mission_activity_lifecycle_state_handoff",
+             "review_count" => 1,
+             "timeline_lifecycle_state_review_count" => 1,
+             "required_operator_action_counts" => %{"review_activity_approval" => 1}
+           } = review
+
+    assert [
+             %{
+               "review_type" => "timeline_lifecycle_state_review",
+               "source" =>
+                 "candidate_refresh.mission_state.source_timeline_activity_lifecycle_state.state",
+               "timeline_id" => "timeline:cmd_mission_lifecycle",
+               "activity_id" => "cmd_mission_lifecycle",
+               "transition_decision" => "review",
+               "required_operator_action" => "review_activity_approval",
+               "approval_status" => "operator_review_required",
+               "source_timeline_lifecycle_state" => %{
+                 "schema_contract" => "timeline_activity_lifecycle_state.v1",
+                 "timeline_id" => "timeline:cmd_mission_lifecycle",
+                 "planned_locked" => true
+               }
+             }
+           ] = review["rows"]
+
+    assert %{
+             "row_count" => 1,
+             "import_action_counts" => %{"review_timeline_lifecycle_state" => 1},
+             "source_review_type_counts" => %{"timeline_lifecycle_state_review" => 1}
+           } = import
+
+    assert [
+             %{
+               "import_action" => "review_timeline_lifecycle_state",
+               "source_review_type" => "timeline_lifecycle_state_review",
+               "timeline_id" => "timeline:cmd_mission_lifecycle",
+               "source_review_row" => %{
+                 "source" =>
+                   "candidate_refresh.mission_state.source_timeline_activity_lifecycle_state.state",
+                 "source_timeline_lifecycle_state" => %{
+                   "schema_contract" => "timeline_activity_lifecycle_state.v1",
+                   "planned_locked" => true
+                 }
+               }
+             }
+           ] = import["rows"]
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(import)
+  end
+
   test "timeline preservation artifacts become operator review rows" do
     activities = [
       %{id: :cmd_mutable, type: :command, status: :planned, approval_status: :pending},
