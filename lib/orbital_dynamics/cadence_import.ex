@@ -4560,14 +4560,28 @@ defmodule OrbitalDynamics.CadenceImport do
 
   defp first_approval_requirement(_row), do: %{}
 
-  defp first_approval_rule_match(%{"approval_rule_matches" => rule_matches})
+  defp first_approval_rule_match(%{"approval_rule_matches" => rule_matches} = row)
        when is_list(rule_matches) do
-    rule_matches
-    |> Enum.find(%{}, &is_map/1)
-    |> stringify_keys()
+    preferred_approval_rule_match(rule_matches, row_approval_classification(row))
   end
 
   defp first_approval_rule_match(_row), do: %{}
+
+  defp row_approval_classification(%{} = row) do
+    row["approval_status"] || get_in(row, ["policy_decision", "classification"])
+  end
+
+  defp preferred_approval_rule_match(rule_matches, preferred_classification)
+       when is_list(rule_matches) do
+    rule_matches =
+      rule_matches
+      |> Enum.filter(&is_map/1)
+      |> Enum.map(&stringify_keys/1)
+
+    Enum.find(rule_matches, &(&1["classification"] == preferred_classification)) ||
+      List.first(rule_matches) ||
+      %{}
+  end
 
   defp preferred_approval_escalation(escalations, row, source_requirement)
        when is_list(escalations) do

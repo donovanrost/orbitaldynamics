@@ -2959,7 +2959,7 @@ defmodule OrbitalDynamics.OperatorReview do
       contact_id = row["contact_id"]
       required_operator_action = contact_allocation_required_operator_action(row)
       requirement = row["approval_requirements"] |> first_map() |> stringify_keys()
-      rule_match = row["approval_rule_matches"] |> first_map() |> stringify_keys()
+      rule_match = preferred_approval_rule_match(row)
       policy_decision = stringify_keys(row["policy_decision"] || %{})
       policy_escalation = row |> matched_policy_escalation() |> stringify_keys()
 
@@ -7449,6 +7449,27 @@ defmodule OrbitalDynamics.OperatorReview do
 
   defp first_map(_values), do: %{}
 
+  defp preferred_approval_rule_match(%{} = row) do
+    preferred_classification =
+      row["approval_status"] || get_in(row, ["policy_decision", "classification"])
+
+    preferred_approval_rule_match(row["approval_rule_matches"], preferred_classification)
+  end
+
+  defp preferred_approval_rule_match(rule_matches, preferred_classification)
+       when is_list(rule_matches) do
+    rule_matches =
+      rule_matches
+      |> Enum.filter(&is_map/1)
+      |> Enum.map(&stringify_keys/1)
+
+    Enum.find(rule_matches, &(&1["classification"] == preferred_classification)) ||
+      List.first(rule_matches) ||
+      %{}
+  end
+
+  defp preferred_approval_rule_match(_rule_matches, _preferred_classification), do: %{}
+
   defp resource_suppression_reason(%{"suppressed_reason" => reason}) when is_binary(reason),
     do: "resource filter suppressed candidate: #{reason}"
 
@@ -9345,6 +9366,11 @@ defmodule OrbitalDynamics.OperatorReview do
   defp normalize_station_calendar_status_value(value), do: value
 
   defp matched_policy_escalation(row) do
+    preferred_rule_id =
+      row
+      |> preferred_approval_rule_match()
+      |> Map.get("rule_id")
+
     rule_ids =
       row
       |> Map.get("approval_rule_matches", [])
@@ -9359,7 +9385,8 @@ defmodule OrbitalDynamics.OperatorReview do
       |> Enum.filter(&is_map/1)
 
     escalation =
-      Enum.find(escalations, &(Map.get(&1, "rule_id") in rule_ids)) ||
+      Enum.find(escalations, &(Map.get(&1, "rule_id") == preferred_rule_id)) ||
+        Enum.find(escalations, &(Map.get(&1, "rule_id") in rule_ids)) ||
         List.first(escalations) ||
         row
         |> Map.get("approval_rule_matches", [])

@@ -9508,7 +9508,7 @@ defmodule OrbitalDynamics.CadenceImportTest do
 
     assert %{
              "contact_id" => "cmd_unavailable",
-             "activity_type" => "planned_contact",
+             "activity_type" => "command",
              "direction" => "command",
              "allocation_status" => "blocked",
              "allocation_reason" => "ground_station_unavailable",
