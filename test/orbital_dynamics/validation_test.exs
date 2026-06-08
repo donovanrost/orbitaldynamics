@@ -11322,6 +11322,98 @@ defmodule OrbitalDynamics.ValidationTest do
            )
   end
 
+  test "verifies curated link capacity summary reference fixtures" do
+    fixture_id = "fixture.artifact.link_capacity_summary.v1"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.link_capacity_summary.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    report = link_capacity_summary_fixture()
+    observations = link_capacity_summary_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "station_count" => 1,
+             "contact_count" => 1,
+             "effective_contact_count" => 1,
+             "selected_contact_count" => 1,
+             "actual_throughput_contact_count" => 1,
+             "actual_completion_contact_count" => 0,
+             "downlink_requirement_status" => "satisfied",
+             "actual_downlink_requirement_status" => "shortfall",
+             "selection_utilization_status" => "fully_selected",
+             "capacity_adjusted_throughput_mb" => 120.0,
+             "actual_downlink_shortfall_mb" => 10.0,
+             "contact_ids" => "science_downlink",
+             "selected_contact_ids_by_ground_station_id" => %{
+               "equator_prime" => ["science_downlink"]
+             },
+             "actual_throughput_contact_ids_by_ground_station_id" => %{
+               "equator_prime" => ["science_downlink"]
+             },
+             "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
+             "assumption_source" => "link_capacity_report.v1",
+             "operator_authority" => "not_granted_by_summary",
+             "no_provider_reservation" => true,
+             "no_schedule_mutation" => true,
+             "no_link_budget_model" => true
+           } = observations
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "link_capacity_summary.v1",
+             report
+           ) == Validation.artifact_observations("link_capacity_summary.v1", report)
+
+    stale_count_observations = Map.put(observations, "actual_throughput_contact_count", 0)
+
+    assert {:ok, stale_count_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_count_observations)
+
+    assert stale_count_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_count_verification["checks"],
+             &(&1["field"] == "actual_throughput_contact_count" and &1["status"] == "fail")
+           )
+
+    stale_routing_observations =
+      put_in(observations, ["selected_contact_ids_by_ground_station_id", "equator_prime"], [])
+
+    assert {:ok, stale_routing_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_routing_observations)
+
+    assert stale_routing_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_routing_verification["checks"],
+             &(&1["field"] == "selected_contact_ids_by_ground_station_id" and
+                 &1["status"] == "fail")
+           )
+
+    stale_boundary_observations =
+      Map.put(observations, "execution_boundary", "provider_reservation_ready")
+
+    assert {:ok, stale_boundary_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_boundary_observations)
+
+    assert stale_boundary_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_boundary_verification["checks"],
+             &(&1["field"] == "execution_boundary" and &1["status"] == "fail")
+           )
+
+    assert {:ok, %{"schema_contract" => "link_capacity_summary.v1"}} =
+             Schema.validate_artifact(report, schema_contract: "link_capacity_summary.v1")
+  end
+
   test "verifies curated relay data-path summary reference fixtures" do
     fixture_id = "fixture.artifact.relay_data_path_summary.v1"
 
@@ -12942,6 +13034,8 @@ defmodule OrbitalDynamics.ValidationTest do
         "fixture.artifact.invalidated_candidate.v1" =>
           invalidated_candidate_fixture_observations(),
         "fixture.artifact.link_capacity_report.v1" => link_capacity_report_fixture_observations(),
+        "fixture.artifact.link_capacity_summary.v1" =>
+          link_capacity_summary_fixture_observations(),
         "fixture.artifact.relay_data_path_summary.v1" =>
           relay_data_path_summary_fixture_observations(),
         "fixture.artifact.maneuver_execution_delta.v1" =>
@@ -13148,8 +13242,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 169,
-             "status_counts" => %{"pass" => 169},
+             "fixture_count" => 170,
+             "status_counts" => %{"pass" => 170},
              "reports" => reports
            } = report
 
@@ -13208,6 +13302,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.freshness_report.v1",
              "fixture.artifact.invalidated_candidate.v1",
              "fixture.artifact.link_capacity_report.v1",
+             "fixture.artifact.link_capacity_summary.v1",
              "fixture.artifact.maneuver_execution_delta.v1",
              "fixture.artifact.maneuver_recommendation.v1",
              "fixture.artifact.maneuver_review_report.v1",
@@ -13335,7 +13430,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 169},
+             "status_counts" => %{"fail" => 170},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -15123,6 +15218,15 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp link_capacity_report_fixture do
     read_json!("study_results/link_capacity_report_v1.json")
+  end
+
+  defp link_capacity_summary_fixture_observations do
+    "link_capacity_summary.v1"
+    |> Validation.artifact_observations(link_capacity_summary_fixture())
+  end
+
+  defp link_capacity_summary_fixture do
+    read_json!("study_results/link_capacity_summary_v1.json")
   end
 
   defp relay_data_path_summary_fixture_observations do

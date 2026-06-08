@@ -4591,6 +4591,98 @@ defmodule OrbitalDynamics.Validation do
         "checks compact contact direction, station, capacity-source routing, and no-provider-reservation/no-mutation boundaries only"
       ]
     },
+    "fixture.artifact.link_capacity_summary.v1" => %{
+      "id" => "fixture.artifact.link_capacity_summary.v1",
+      "model_id" => "artifact.link_capacity_summary.v1",
+      "reference_case" => "checked-in link capacity summary artifact",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/link_capacity_summary_v1.json",
+        "contract" => "link_capacity_summary.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "link_capacity_summary.v1",
+        "model" => "artifact_only_link_capacity_summary",
+        "source_artifact_type" => "link_capacity_report.v1",
+        "station_count" => 1,
+        "contact_count" => 1,
+        "effective_contact_count" => 1,
+        "ignored_contact_count" => 0,
+        "selected_contact_count" => 1,
+        "ignored_selected_contact_count" => 0,
+        "required_downlink_contact_count" => 0,
+        "actual_throughput_contact_count" => 1,
+        "actual_completion_contact_count" => 0,
+        "invalid_contact_input_count" => 0,
+        "invalid_selected_contact_input_count" => 0,
+        "invalid_policy_required_downlink_station_count" => 0,
+        "downlink_requirement_status" => "satisfied",
+        "actual_downlink_requirement_status" => "shortfall",
+        "selection_utilization_status" => "fully_selected",
+        "selected_downlink_shortfall_mb" => 0,
+        "actual_downlink_shortfall_mb" => 10,
+        "capacity_adjusted_throughput_mb" => 120,
+        "selected_capacity_adjusted_throughput_mb" => 120,
+        "unused_capacity_adjusted_throughput_mb" => 0,
+        "contact_ids" => "science_downlink",
+        "selected_contact_ids" => "science_downlink",
+        "actual_throughput_contact_ids" => "science_downlink",
+        "actual_completion_contact_ids" => "",
+        "ground_station_ids" => "equator_prime",
+        "selected_contact_ids_by_ground_station_id" => %{
+          "equator_prime" => ["science_downlink"]
+        },
+        "actual_throughput_contact_ids_by_ground_station_id" => %{
+          "equator_prime" => ["science_downlink"]
+        },
+        "actual_completion_contact_ids_by_ground_station_id" => %{},
+        "capacity_adjusted_throughput_mb_by_ground_station_id" => %{
+          "equator_prime" => 120
+        },
+        "selected_capacity_adjusted_throughput_mb_by_ground_station_id" => %{
+          "equator_prime" => 120
+        },
+        "unused_capacity_adjusted_throughput_mb_by_ground_station_id" => %{
+          "equator_prime" => 0
+        },
+        "model_limit_count" => 9,
+        "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
+        "assumption_source" => "link_capacity_report.v1",
+        "operator_authority" => "not_granted_by_summary",
+        "no_provider_reservation" => true,
+        "no_schedule_mutation" => true,
+        "no_link_budget_model" => true
+      },
+      "tolerances" => %{
+        "station_count" => 0,
+        "contact_count" => 0,
+        "effective_contact_count" => 0,
+        "ignored_contact_count" => 0,
+        "selected_contact_count" => 0,
+        "ignored_selected_contact_count" => 0,
+        "required_downlink_contact_count" => 0,
+        "actual_throughput_contact_count" => 0,
+        "actual_completion_contact_count" => 0,
+        "invalid_contact_input_count" => 0,
+        "invalid_selected_contact_input_count" => 0,
+        "invalid_policy_required_downlink_station_count" => 0,
+        "selected_downlink_shortfall_mb" => 0,
+        "actual_downlink_shortfall_mb" => 0,
+        "capacity_adjusted_throughput_mb" => 0,
+        "selected_capacity_adjusted_throughput_mb" => 0,
+        "unused_capacity_adjusted_throughput_mb" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by link_capacity_summary.v1 validation tests"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not external link-budget validation",
+        "checks compact contact, station, throughput routing, and no-provider-reservation/no-mutation boundaries only"
+      ]
+    },
     "fixture.artifact.refreshed_window.v1" => %{
       "id" => "fixture.artifact.refreshed_window.v1",
       "model_id" => "artifact.refreshed_window.v1",
@@ -14108,6 +14200,83 @@ defmodule OrbitalDynamics.Validation do
       "no_provider_reservation" => "no_provider_reservation" in model_limits,
       "no_schedule_mutation" => "no_schedule_mutation" in model_limits,
       "no_command_execution" => "no_command_execution" in model_limits
+    }
+  end
+
+  def artifact_observations("link_capacity_summary.v1", artifact) when is_map(artifact) do
+    artifact = stringify_keys(artifact)
+    model_limits = list_values(artifact, "model_limits")
+
+    %{
+      "schema_contract" => Map.get(artifact, "schema_contract"),
+      "model" => Map.get(artifact, "model"),
+      "source_artifact_type" => Map.get(artifact, "source_artifact_type"),
+      "station_count" => Map.get(artifact, "station_count"),
+      "contact_count" => Map.get(artifact, "contact_count"),
+      "effective_contact_count" => Map.get(artifact, "effective_contact_count"),
+      "ignored_contact_count" => Map.get(artifact, "ignored_contact_count"),
+      "selected_contact_count" => Map.get(artifact, "selected_contact_count"),
+      "ignored_selected_contact_count" => Map.get(artifact, "ignored_selected_contact_count"),
+      "required_downlink_contact_count" => Map.get(artifact, "required_downlink_contact_count"),
+      "actual_throughput_contact_count" => Map.get(artifact, "actual_throughput_contact_count"),
+      "actual_completion_contact_count" => Map.get(artifact, "actual_completion_contact_count"),
+      "invalid_contact_input_count" => Map.get(artifact, "invalid_contact_input_count"),
+      "invalid_selected_contact_input_count" =>
+        Map.get(artifact, "invalid_selected_contact_input_count"),
+      "invalid_policy_required_downlink_station_count" =>
+        Map.get(artifact, "invalid_policy_required_downlink_station_count"),
+      "downlink_requirement_status" => Map.get(artifact, "downlink_requirement_status"),
+      "actual_downlink_requirement_status" =>
+        Map.get(artifact, "actual_downlink_requirement_status"),
+      "selection_utilization_status" => Map.get(artifact, "selection_utilization_status"),
+      "selected_downlink_shortfall_mb" => Map.get(artifact, "selected_downlink_shortfall_mb"),
+      "actual_downlink_shortfall_mb" => Map.get(artifact, "actual_downlink_shortfall_mb"),
+      "capacity_adjusted_throughput_mb" => Map.get(artifact, "capacity_adjusted_throughput_mb"),
+      "selected_capacity_adjusted_throughput_mb" =>
+        Map.get(artifact, "selected_capacity_adjusted_throughput_mb"),
+      "unused_capacity_adjusted_throughput_mb" =>
+        Map.get(artifact, "unused_capacity_adjusted_throughput_mb"),
+      "contact_ids" =>
+        artifact
+        |> list_values("contact_ids")
+        |> Enum.join("|"),
+      "selected_contact_ids" =>
+        artifact
+        |> list_values("selected_contact_ids")
+        |> Enum.join("|"),
+      "actual_throughput_contact_ids" =>
+        artifact
+        |> list_values("actual_throughput_contact_ids")
+        |> Enum.join("|"),
+      "actual_completion_contact_ids" =>
+        artifact
+        |> list_values("actual_completion_contact_ids")
+        |> Enum.join("|"),
+      "ground_station_ids" =>
+        artifact
+        |> list_values("ground_station_ids")
+        |> Enum.join("|"),
+      "selected_contact_ids_by_ground_station_id" =>
+        Map.get(artifact, "selected_contact_ids_by_ground_station_id") || %{},
+      "actual_throughput_contact_ids_by_ground_station_id" =>
+        Map.get(artifact, "actual_throughput_contact_ids_by_ground_station_id") || %{},
+      "actual_completion_contact_ids_by_ground_station_id" =>
+        Map.get(artifact, "actual_completion_contact_ids_by_ground_station_id") || %{},
+      "capacity_adjusted_throughput_mb_by_ground_station_id" =>
+        Map.get(artifact, "capacity_adjusted_throughput_mb_by_ground_station_id") || %{},
+      "selected_capacity_adjusted_throughput_mb_by_ground_station_id" =>
+        Map.get(artifact, "selected_capacity_adjusted_throughput_mb_by_ground_station_id") ||
+          %{},
+      "unused_capacity_adjusted_throughput_mb_by_ground_station_id" =>
+        Map.get(artifact, "unused_capacity_adjusted_throughput_mb_by_ground_station_id") ||
+          %{},
+      "model_limit_count" => length(model_limits),
+      "execution_boundary" => get_in(artifact, ["assumptions", "execution_boundary"]),
+      "assumption_source" => get_in(artifact, ["assumptions", "source"]),
+      "operator_authority" => get_in(artifact, ["assumptions", "operator_authority"]),
+      "no_provider_reservation" => "no_provider_reservation" in model_limits,
+      "no_schedule_mutation" => "no_schedule_mutation" in model_limits,
+      "no_link_budget_model" => "no_link_budget_model" in model_limits
     }
   end
 
