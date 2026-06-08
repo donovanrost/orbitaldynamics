@@ -1540,6 +1540,16 @@ Selected recommendations also include:
   provider-entry, and availability-pressure status/type evidence so
   resource-pressure recommendations can be routed without reopening nested
   projection flow rows.
+- **`operational_readiness_pressure` explanation rows** — preserve the selected
+  branch's readiness report, source artifact, readiness/import/status counts,
+  gate ID/status/classification/reason, required operator action, feedback
+  source/scope/key, trust boundary, and operator-training context when a
+  readiness-pressure branch is recommended.
+- **`quality_gate_pressure` explanation rows** — preserve the selected branch's
+  quality-gate report/readiness linkage, gate status/classification/reason,
+  required operator action, feedback source/scope/key, trust boundary,
+  operator-training context, and resource-availability pressure IDs/counts when
+  a quality-gate pressure event drives the recommended branch.
 
 The corresponding strategy-recommendation operator-review row and Cadence import
 gate flatten those same risk type and stable-ID arrays, plus resource-pressure

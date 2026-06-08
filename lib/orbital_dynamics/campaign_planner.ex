@@ -4129,6 +4129,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     repair_link_rows = recommendation_repair_link_rows(recommended)
     resource_pressure_rows = recommendation_resource_pressure_rows(recommended)
+    readiness_pressure_rows = recommendation_operational_readiness_pressure_rows(recommended)
+    quality_gate_pressure_rows = recommendation_quality_gate_pressure_rows(recommended)
     feedback_rows = recommendation_feedback_rows(recommended)
     branch_event_rows = recommendation_branch_event_rows(recommended)
 
@@ -4159,6 +4161,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       risk_rows ++
       repair_link_rows ++
       resource_pressure_rows ++
+      readiness_pressure_rows ++
+      quality_gate_pressure_rows ++
       feedback_rows ++
       branch_event_rows ++
       approval_rows ++
@@ -4382,6 +4386,109 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp recommendation_resource_pressure_rows(_branch), do: []
+
+  defp recommendation_operational_readiness_pressure_rows(%PlanBranch{
+         id: branch_id,
+         events: events
+       }) do
+    events
+    |> Enum.filter(&(&1["type"] == "operational_readiness_pressure"))
+    |> Enum.map(fn event ->
+      event
+      |> Map.take([
+        "report_id",
+        "source_artifact_type",
+        "source_artifact_id",
+        "readiness_level",
+        "import_classification",
+        "operational_readiness_status",
+        "gate_count",
+        "passed_gate_count",
+        "review_gate_count",
+        "analysis_gate_count",
+        "blocked_gate_count",
+        "readiness_gate_id",
+        "readiness_gate_status",
+        "readiness_gate_classification",
+        "readiness_gate_reason",
+        "analysis_mode",
+        "analysis_mode_source",
+        "required_operator_action",
+        "feedback_source",
+        "feedback_scope",
+        "feedback_key",
+        "trust_boundary",
+        "operator_training_requirement_count",
+        "operator_training_requirement_counts",
+        "required_operator_roles",
+        "required_training_ids",
+        "required_certification_ids",
+        "required_qualification_ids"
+      ])
+      |> Map.put("type", "operational_readiness_pressure")
+      |> Map.put("recommended_branch_id", branch_id)
+      |> Map.put(
+        "reason",
+        event["readiness_gate_reason"] ||
+          "recommended branch includes operational readiness pressure"
+      )
+      |> compact_map()
+    end)
+  end
+
+  defp recommendation_quality_gate_pressure_rows(%PlanBranch{
+         id: branch_id,
+         events: events
+       }) do
+    events
+    |> Enum.filter(&(&1["type"] == "quality_gate_pressure"))
+    |> Enum.map(fn event ->
+      event
+      |> Map.take([
+        "report_id",
+        "source_artifact_type",
+        "source_artifact_id",
+        "source_readiness_report_id",
+        "readiness_level",
+        "import_classification",
+        "quality_gate_status",
+        "gate_count",
+        "passed_gate_count",
+        "review_gate_count",
+        "analysis_gate_count",
+        "blocked_gate_count",
+        "gate_id",
+        "gate_status",
+        "gate_classification",
+        "gate_reason",
+        "analysis_mode",
+        "analysis_mode_source",
+        "required_operator_action",
+        "feedback_source",
+        "feedback_scope",
+        "feedback_key",
+        "trust_boundary",
+        "operator_training_requirement_count",
+        "operator_training_requirement_counts",
+        "required_operator_roles",
+        "required_training_ids",
+        "required_certification_ids",
+        "required_qualification_ids",
+        "resource_availability_pressure_count",
+        "resource_availability_reason_counts",
+        "resource_availability_reason_ids",
+        "unavailable_resource_reason_ids",
+        "resource_blocking_dimension_counts"
+      ])
+      |> Map.put("type", "quality_gate_pressure")
+      |> Map.put("recommended_branch_id", branch_id)
+      |> Map.put(
+        "reason",
+        event["gate_reason"] || "recommended branch includes quality gate pressure"
+      )
+      |> compact_map()
+    end)
+  end
 
   defp recommendation_resource_pressure_context(pressure, pressure_kind) do
     %{

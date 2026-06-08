@@ -18279,6 +18279,175 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy recommendation explains selected readiness and quality-gate pressure events" do
+    prior_plan =
+      base_plan(%{
+        "planning_horizon" => %{"duration_s" => 2_000.0},
+        "activities" => [],
+        "candidate_activities" => []
+      })
+
+    artifact =
+      strategy(prior_plan,
+        mission_state:
+          mission_state([%{"type" => "priority_commitment", "target_id" => "target_hot"}]),
+        strategy_policy: %{
+          "mission_value_weight" => 10.0,
+          "risk_weight" => 0.0,
+          "approval_load_weight" => 0.0
+        },
+        approval_policy: %{
+          "blocked_risk_types" => [],
+          "operator_review_risk_limit" => 10
+        },
+        branches: [
+          %{id: "baseline"},
+          %{
+            id: "urgent",
+            events: [
+              %{
+                type: "urgent_target",
+                target_id: "target_hot",
+                starts_at_s: 500.0,
+                ends_at_s: 560.0,
+                priority: 20.0,
+                candidate_windows: [
+                  %{
+                    id: "candidate_obs_hot",
+                    type: "observe",
+                    target_id: "target_hot",
+                    scenario_id: "leo_1",
+                    starts_at_s: 500.0,
+                    ends_at_s: 560.0,
+                    duration_s: 60.0,
+                    score: 10.0
+                  }
+                ]
+              },
+              %{
+                type: "operational_readiness_pressure",
+                report_id: "operational_readiness:resource_projection_report.v1:live_ops",
+                source_artifact_type: "resource_projection_report.v1",
+                source_artifact_id: "live_ops",
+                readiness_level: "operator_review",
+                import_classification: "review_only",
+                operational_readiness_status: "review_required",
+                gate_count: 1,
+                passed_gate_count: 0,
+                review_gate_count: 1,
+                analysis_gate_count: 0,
+                blocked_gate_count: 0,
+                readiness_gate_id: "operator_training",
+                readiness_gate_status: "review_required",
+                readiness_gate_classification: "review_only",
+                readiness_gate_reason: "operator training requires role-qualified review",
+                required_operator_action: "review_operational_readiness",
+                feedback_source: "mission_state.source_operational_readiness_report.gates",
+                feedback_scope: "operational_readiness",
+                feedback_key: "operator_training",
+                trust_boundary: "mission_state_operational_readiness_report",
+                operator_training_requirement_count: 2,
+                required_operator_roles: ["contact_operator"]
+              },
+              %{
+                type: "quality_gate_pressure",
+                report_id: "quality_gate:resource_projection_report.v1:live_ops",
+                source_artifact_type: "resource_projection_report.v1",
+                source_artifact_id: "live_ops",
+                source_readiness_report_id:
+                  "operational_readiness:resource_projection_report.v1:live_ops",
+                readiness_level: "operator_review",
+                import_classification: "review_only",
+                quality_gate_status: "review_required",
+                gate_count: 1,
+                passed_gate_count: 0,
+                review_gate_count: 1,
+                analysis_gate_count: 0,
+                blocked_gate_count: 0,
+                gate_id: "resource_availability",
+                gate_status: "review_required",
+                gate_classification: "review_only",
+                gate_reason:
+                  "resource availability evidence requires operator review before import",
+                required_operator_action: "review_operational_readiness",
+                feedback_source: "mission_state.source_quality_gate_report.rows",
+                feedback_scope: "quality_gate",
+                feedback_key: "resource_availability",
+                trust_boundary: "mission_state_quality_gate_report",
+                resource_availability_pressure_count: 2,
+                resource_availability_reason_ids: [
+                  "antenna_unavailable",
+                  "payload_unavailable"
+                ]
+              }
+            ]
+          }
+        ],
+        current_epoch_s: 0.0
+      )
+
+    explanation = artifact["recommendation"]["explanation"]
+
+    assert artifact["recommendation"]["recommended_branch_id"] == "urgent"
+
+    assert %{
+             "type" => "operational_readiness_pressure",
+             "recommended_branch_id" => "urgent",
+             "report_id" => "operational_readiness:resource_projection_report.v1:live_ops",
+             "source_artifact_type" => "resource_projection_report.v1",
+             "source_artifact_id" => "live_ops",
+             "readiness_level" => "operator_review",
+             "import_classification" => "review_only",
+             "operational_readiness_status" => "review_required",
+             "readiness_gate_id" => "operator_training",
+             "readiness_gate_status" => "review_required",
+             "readiness_gate_classification" => "review_only",
+             "readiness_gate_reason" => "operator training requires role-qualified review",
+             "required_operator_action" => "review_operational_readiness",
+             "feedback_source" => "mission_state.source_operational_readiness_report.gates",
+             "feedback_scope" => "operational_readiness",
+             "feedback_key" => "operator_training",
+             "trust_boundary" => "mission_state_operational_readiness_report",
+             "operator_training_requirement_count" => 2,
+             "required_operator_roles" => ["contact_operator"],
+             "reason" => "operator training requires role-qualified review"
+           } =
+             Enum.find(explanation, &(&1["type"] == "operational_readiness_pressure"))
+
+    assert %{
+             "type" => "quality_gate_pressure",
+             "recommended_branch_id" => "urgent",
+             "report_id" => "quality_gate:resource_projection_report.v1:live_ops",
+             "source_artifact_type" => "resource_projection_report.v1",
+             "source_artifact_id" => "live_ops",
+             "source_readiness_report_id" =>
+               "operational_readiness:resource_projection_report.v1:live_ops",
+             "readiness_level" => "operator_review",
+             "import_classification" => "review_only",
+             "quality_gate_status" => "review_required",
+             "gate_id" => "resource_availability",
+             "gate_status" => "review_required",
+             "gate_classification" => "review_only",
+             "gate_reason" =>
+               "resource availability evidence requires operator review before import",
+             "required_operator_action" => "review_operational_readiness",
+             "feedback_source" => "mission_state.source_quality_gate_report.rows",
+             "feedback_scope" => "quality_gate",
+             "feedback_key" => "resource_availability",
+             "trust_boundary" => "mission_state_quality_gate_report",
+             "resource_availability_pressure_count" => 2,
+             "resource_availability_reason_ids" => [
+               "antenna_unavailable",
+               "payload_unavailable"
+             ],
+             "reason" => "resource availability evidence requires operator review before import"
+           } =
+             Enum.find(explanation, &(&1["type"] == "quality_gate_pressure"))
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy requires at least two branches" do
     assert_raise ArgumentError,
                  ~r/requires a baseline branch and at least one what-if branch/,
