@@ -29016,6 +29016,129 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            |> Enum.any?(&String.starts_with?(&1, "derived_timeline_publication_pressure_"))
   end
 
+  test "strategy scores branch-local timeline publication replay pressure" do
+    source = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 0.0, ends_at_s: 10.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    replacement = [
+      %{id: :health_gate, type: :health_check, starts_at_s: 5.0, ends_at_s: 15.0},
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 20.0,
+        ends_at_s: 30.0,
+        dependencies: [:health_gate]
+      }
+    ]
+
+    publication_summary =
+      %{
+        "schema_contract" => "operational_timeline_report.v1",
+        "id" => "timeline:published_plan:replay"
+      }
+      |> Timeline.publication_summary(
+        publication_sequence: 11,
+        publication_authority: :mission_operations,
+        supersedes_artifact_ids: ["timeline:published_plan:previous"],
+        downstream_product_ids: ["operator_review:plan:previous", "cadence_import:plan:previous"],
+        dependency_impact_summary: Timeline.dependency_impact_summary(source, replacement),
+        timeline_diff_summary: Timeline.diff_summary(source, replacement)
+      )
+      |> Map.put("provenance", %{"trust_boundary" => "replay_publication_boundary"})
+
+    assert {:ok, %{"schema_contract" => "timeline_publication_summary.v1"}} =
+             Schema.validate_artifact(publication_summary)
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put("source_timeline_publication_summary", [publication_summary])
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        branches: [
+          %{id: "baseline"},
+          %{
+            id: "urgent",
+            events: [%{type: "urgent_target", target_id: "target_a", priority: 12.0}],
+            candidate_refresh:
+              candidate_refresh_artifact(
+                [refreshed_downlink("dl_publication_replay", 500.0, 560.0)],
+                refresh_id: "candidate_refresh:publication_replay"
+              ),
+            candidate_refresh_request: %{
+              source_timeline_publication_summary: [publication_summary]
+            }
+          }
+        ],
+        current_epoch_s: 0.0
+      )
+
+    urgent = branch(artifact, "urgent")
+
+    assert %{"type" => "candidate_refresh.v1", "scope" => "branch"} =
+             candidate_source = urgent["assumptions"]["candidate_source"]
+
+    assert "source_timeline_publication_summary[0]" in candidate_source[
+             "source_report_input_paths"
+           ]
+
+    assert %{
+             "branch_local_timeline_publication_pressure" => true,
+             "branch_local_timeline_publication_dependency_pressure" => true,
+             "branch_local_timeline_publication_invalidation_pressure" => true,
+             "branch_local_timeline_publication_review_pressure" => true,
+             "publication_ids" => [
+               "timeline_publication:11:timeline:published_plan:replay:timeline:published_plan:previous"
+             ],
+             "invalidated_downstream_product_ids" => [
+               "cadence_import:plan:previous",
+               "operator_review:plan:previous"
+             ],
+             "review_timeline_ids" => [
+               "timeline:health_check:0.0",
+               "timeline:health_check:5.0"
+             ]
+           } = CandidateRefresh.timeline_publication_replay_summary(candidate_source)
+
+    assert_timeline_publication_pressure_score_terms(urgent, artifact)
+
+    urgent_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+
+    assert "timeline_publication_pressure" in urgent_row["risk_types"]
+
+    assert urgent_row["branch_timeline_publication_ids"] == [
+             "timeline_publication:11:timeline:published_plan:replay:timeline:published_plan:previous"
+           ]
+
+    assert urgent_row[
+             "branch_timeline_publication_invalidated_downstream_product_ids"
+           ] == ["cadence_import:plan:previous", "operator_review:plan:previous"]
+
+    assert urgent_row["branch_timeline_publication_changed_timeline_ids"] == [
+             "timeline:health_check:0.0",
+             "timeline:health_check:5.0"
+           ]
+
+    assert urgent_row["branch_timeline_publication_review_timeline_ids"] == [
+             "timeline:health_check:0.0",
+             "timeline:health_check:5.0"
+           ]
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy carries mission-state timeline transition-application summaries into branch refresh requests" do
     protected_source = %{
       id: :cmd_lock,

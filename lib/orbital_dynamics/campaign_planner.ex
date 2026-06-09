@@ -1059,7 +1059,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         repair_candidate_source(
           prior_plan,
           candidate_refresh,
-          if(prebuilt_candidate_refresh, do: nil, else: candidate_refresh_request)
+          candidate_refresh_request
         ),
       ground_network: ground_network,
       generated_at: generated_at,
@@ -1484,7 +1484,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp evaluate_branch(branch, request) do
     prior_plan = apply_branch_plan_events(request.prior_plan, branch, request)
-    candidate_refresh = branch_candidate_refresh(branch, request)
+    candidate_refresh_request = branch_candidate_refresh_request(branch, request)
+    candidate_refresh = branch_candidate_refresh(branch, request, candidate_refresh_request)
 
     realized_state =
       request.realized_state
@@ -1514,6 +1515,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         approval_policy: request.approval_policy,
         scoring_policy: scoring_policy,
         candidate_refresh: candidate_refresh,
+        candidate_refresh_request: candidate_refresh_request,
         mission_state: request.mission_state,
         generated_at: request.generated_at,
         metadata: %{"branch_id" => branch["id"]}
@@ -3619,9 +3621,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
     lifecycle_replay =
       CandidateRefresh.timeline_lifecycle_state_replay_summary(candidate_source)
 
+    publication_replay =
+      CandidateRefresh.timeline_publication_replay_summary(candidate_source)
+
     []
     |> maybe_add_candidate_source_contact_allocation_risks(contact_allocation_replay, event_risks)
     |> maybe_add_candidate_source_timeline_lifecycle_risks(lifecycle_replay, event_risks)
+    |> maybe_add_candidate_source_timeline_publication_risks(publication_replay, event_risks)
   end
 
   defp candidate_source_risk_indicators(_candidate_source, _event_risks), do: []
@@ -3641,6 +3647,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
       risks
     else
       risks ++ timeline_lifecycle_replay_review_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_timeline_publication_risks(risks, replay_summary, event_risks) do
+    if Enum.any?(event_risks, &timeline_publication_pressure_risk?/1) do
+      risks
+    else
+      risks ++ timeline_publication_replay_pressure_risks(replay_summary)
     end
   end
 
@@ -3732,6 +3746,72 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp timeline_lifecycle_replay_review_risks(_replay_summary), do: []
+
+  defp timeline_publication_replay_pressure_risks(
+         %{"branch_local_timeline_publication_pressure" => true} = replay_summary
+       ) do
+    [
+      %{
+        "type" => "timeline_publication_pressure",
+        "severity" => "high",
+        "reason" =>
+          "candidate source timeline publication replay reports downstream invalidation, dependency, changed-field, or review pressure",
+        "publication_status_counts" => Map.get(replay_summary, "publication_status_counts"),
+        "downstream_invalidation_status_counts" =>
+          Map.get(replay_summary, "downstream_invalidation_status_counts"),
+        "dependency_impact_status_counts" =>
+          Map.get(replay_summary, "dependency_impact_status_counts"),
+        "publication_ids" => Map.get(replay_summary, "publication_ids"),
+        "source_artifact_ids" => Map.get(replay_summary, "source_artifact_ids"),
+        "supersedes_artifact_ids" => Map.get(replay_summary, "supersedes_artifact_ids"),
+        "downstream_product_ids" => Map.get(replay_summary, "downstream_product_ids"),
+        "invalidated_downstream_product_ids" =>
+          Map.get(replay_summary, "invalidated_downstream_product_ids"),
+        "downstream_invalidation_reason_counts" =>
+          Map.get(replay_summary, "downstream_invalidation_reason_counts"),
+        "downstream_invalidation_reasons" =>
+          replay_summary
+          |> Map.get("downstream_invalidation_reason_counts")
+          |> Kernel.||(%{})
+          |> Map.keys(),
+        "dependency_impact_row_count" => Map.get(replay_summary, "dependency_impact_row_count"),
+        "impacted_source_activity_ids" => Map.get(replay_summary, "impacted_source_activity_ids"),
+        "impacted_source_timeline_ids" => Map.get(replay_summary, "impacted_source_timeline_ids"),
+        "dependent_activity_ids" => Map.get(replay_summary, "dependent_activity_ids"),
+        "dependent_timeline_ids" => Map.get(replay_summary, "dependent_timeline_ids"),
+        "changed_field_counts" => Map.get(replay_summary, "changed_field_counts"),
+        "changed_fields" =>
+          replay_summary
+          |> Map.get("changed_field_counts")
+          |> Kernel.||(%{})
+          |> Map.keys(),
+        "changed_timeline_ids" =>
+          timeline_publication_replay_changed_timeline_ids(replay_summary),
+        "review_timeline_ids" => Map.get(replay_summary, "review_timeline_ids"),
+        "feedback_source" => "candidate_source.timeline_publication_replay_summary",
+        "feedback_scope" => "timeline_publication",
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries")
+      }
+      |> compact_map()
+    ]
+  end
+
+  defp timeline_publication_replay_pressure_risks(_replay_summary), do: []
+
+  defp timeline_publication_replay_changed_timeline_ids(replay_summary) do
+    case Map.get(replay_summary, "changed_timeline_ids") do
+      values when is_list(values) and values != [] ->
+        values
+
+      _values ->
+        replay_summary
+        |> Map.get("timeline_ids_by_changed_field", %{})
+        |> Map.values()
+        |> List.flatten()
+        |> Enum.uniq()
+        |> Enum.sort()
+    end
+  end
 
   defp resource_projection_risk_indicators(%{"projected_resources" => rows}) when is_list(rows) do
     rows
@@ -44873,6 +44953,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
         risk["type"] == "timeline_lifecycle_state_review"
       end)
 
+    timeline_publication_risks =
+      Enum.filter(risk_indicators, fn risk ->
+        risk["type"] == "timeline_publication_pressure"
+      end)
+
     %{
       "branch_station_reservation_conflict_contact_ids" =>
         branch_event_unique_values(station_reservation_conflict_risks, [
@@ -44895,7 +44980,32 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "branch_timeline_lifecycle_state_review_activity_ids" =>
         branch_event_unique_values(timeline_lifecycle_state_risks, "review_activity_ids"),
       "branch_timeline_lifecycle_state_invalid_activity_input_ids" =>
-        branch_event_unique_values(timeline_lifecycle_state_risks, "invalid_activity_input_ids")
+        branch_event_unique_values(timeline_lifecycle_state_risks, "invalid_activity_input_ids"),
+      "branch_timeline_publication_ids" =>
+        branch_event_unique_values(timeline_publication_risks, "publication_ids"),
+      "branch_timeline_publication_source_artifact_ids" =>
+        branch_event_unique_values(timeline_publication_risks, "source_artifact_ids"),
+      "branch_timeline_publication_invalidated_downstream_product_ids" =>
+        branch_event_unique_values(
+          timeline_publication_risks,
+          "invalidated_downstream_product_ids"
+        ),
+      "branch_timeline_publication_downstream_invalidation_reasons" =>
+        branch_event_unique_values(timeline_publication_risks, "downstream_invalidation_reasons"),
+      "branch_timeline_publication_impacted_source_activity_ids" =>
+        branch_event_unique_values(timeline_publication_risks, "impacted_source_activity_ids"),
+      "branch_timeline_publication_impacted_source_timeline_ids" =>
+        branch_event_unique_values(timeline_publication_risks, "impacted_source_timeline_ids"),
+      "branch_timeline_publication_dependent_activity_ids" =>
+        branch_event_unique_values(timeline_publication_risks, "dependent_activity_ids"),
+      "branch_timeline_publication_dependent_timeline_ids" =>
+        branch_event_unique_values(timeline_publication_risks, "dependent_timeline_ids"),
+      "branch_timeline_publication_changed_fields" =>
+        branch_event_unique_values(timeline_publication_risks, "changed_fields"),
+      "branch_timeline_publication_changed_timeline_ids" =>
+        branch_event_unique_values(timeline_publication_risks, "changed_timeline_ids"),
+      "branch_timeline_publication_review_timeline_ids" =>
+        branch_event_unique_values(timeline_publication_risks, "review_timeline_ids")
     }
     |> maybe_put_nonempty("branch_station_reservation_conflict_contact_ids")
     |> maybe_put_nonempty("branch_station_reservation_conflict_reservation_ids")
@@ -44903,6 +45013,17 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> maybe_put_nonempty("branch_timeline_lifecycle_state_review_timeline_ids")
     |> maybe_put_nonempty("branch_timeline_lifecycle_state_review_activity_ids")
     |> maybe_put_nonempty("branch_timeline_lifecycle_state_invalid_activity_input_ids")
+    |> maybe_put_nonempty("branch_timeline_publication_ids")
+    |> maybe_put_nonempty("branch_timeline_publication_source_artifact_ids")
+    |> maybe_put_nonempty("branch_timeline_publication_invalidated_downstream_product_ids")
+    |> maybe_put_nonempty("branch_timeline_publication_downstream_invalidation_reasons")
+    |> maybe_put_nonempty("branch_timeline_publication_impacted_source_activity_ids")
+    |> maybe_put_nonempty("branch_timeline_publication_impacted_source_timeline_ids")
+    |> maybe_put_nonempty("branch_timeline_publication_dependent_activity_ids")
+    |> maybe_put_nonempty("branch_timeline_publication_dependent_timeline_ids")
+    |> maybe_put_nonempty("branch_timeline_publication_changed_fields")
+    |> maybe_put_nonempty("branch_timeline_publication_changed_timeline_ids")
+    |> maybe_put_nonempty("branch_timeline_publication_review_timeline_ids")
   end
 
   defp branch_comparison_target_branch_fields(%PlanBranch{provenance: provenance}) do
@@ -45716,24 +45837,31 @@ defmodule OrbitalDynamics.CampaignPlanner do
     }
   end
 
-  defp branch_candidate_refresh(branch, request) do
+  defp branch_candidate_refresh(branch, request, candidate_refresh_request) do
     cond do
       Map.get(branch, "candidate_refresh") ->
         Map.get(branch, "candidate_refresh")
 
-      Map.get(branch, "candidate_refresh_request") ->
-        execute_branch_candidate_refresh(branch, request)
+      candidate_refresh_request ->
+        branch
+        |> Map.put("candidate_refresh_request", candidate_refresh_request)
+        |> execute_branch_candidate_refresh(request)
 
       true ->
-        case derive_branch_candidate_refresh_request(branch, request) do
-          nil ->
-            request.candidate_refresh
+        request.candidate_refresh
+    end
+  end
 
-          refresh_request ->
-            branch
-            |> Map.put("candidate_refresh_request", refresh_request)
-            |> execute_branch_candidate_refresh(request)
-        end
+  defp branch_candidate_refresh_request(branch, request) do
+    cond do
+      Map.get(branch, "candidate_refresh_request") ->
+        Map.get(branch, "candidate_refresh_request")
+
+      Map.get(branch, "candidate_refresh") ->
+        nil
+
+      true ->
+        derive_branch_candidate_refresh_request(branch, request)
     end
   end
 
