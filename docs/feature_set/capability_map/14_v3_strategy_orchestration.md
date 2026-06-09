@@ -957,7 +957,9 @@ link-capacity-family provenance, preserving relay/direct route counts, route
 IDs, source and relay spacecraft IDs, ground downlink contact IDs,
 custody/latency/risk status maps, wrapper-qualified paths, trust boundaries,
 and artifact-only no-scheduling/no-allocation assumptions without selecting
-candidates or mutating schedules.
+candidates or mutating schedules. Compact relay summaries with embedded rows
+derive those route/status maps and route/contact IDs from rows before stale
+top-level aggregates are replayed into branch-local provenance.
 
 ### Contact-filter reports
 

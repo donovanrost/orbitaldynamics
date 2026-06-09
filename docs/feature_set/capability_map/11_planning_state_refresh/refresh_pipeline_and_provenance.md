@@ -104,6 +104,10 @@ From those inputs the pipeline:
   CandidateRefresh source-report and replay throughput, selected/actual contact,
   source-window, and direction-routing maps from rows before stale top-level
   summary aggregates are merged.
+- Compact `relay_data_path_summary.v1` inputs with embedded rows derive relay
+  and direct route counts, route/status maps, spacecraft IDs, and ground
+  downlink contact IDs from rows before stale top-level summary aggregates are
+  merged.
 
 ## Result-artifact wrapper handling
 
@@ -131,7 +135,7 @@ Each summary carries paths plus its relevant counts/summaries:
 - **Timeline** — timeline-diff status, required-action, duplicate-scope, and feedback counts; timeline-transition application status, decision, action, and duplicate-scope counts.
 - **Windows and maneuvers** — command-window feedback counts; maneuver-review feedback and uncertainty counts.
 - **Constraints and resources** — constraint metric/resource/spacecraft routing counts; resource-projection pressure type, spacecraft, and activity routing counts; resource-filter spacecraft/resource/blocking-dimension routing counts.
-- **Contacts** — contact-contention ground-station/contact routing counts; candidate-rejection candidate/station routing counts; link-capacity ground-station and selected/actual contact routing counts, with compact link-capacity summaries deriving those maps from embedded rows when present.
+- **Contacts** — contact-contention ground-station/contact routing counts; candidate-rejection candidate/station routing counts; link-capacity ground-station and selected/actual contact routing counts, with compact link-capacity and relay data-path summaries deriving those maps from embedded rows when present.
 - **Objectives and scoring** — objective/score-term station, target, and collection routing counts.
 - **Allocation** — contact-allocation station-pressure contact counts by ground station, station availability, precedence availability, and precedence rank.
 - **Station calendars** — station-calendar affected-contact counts by ground station and availability; station-calendar provider-contention counts by provider and ground station.

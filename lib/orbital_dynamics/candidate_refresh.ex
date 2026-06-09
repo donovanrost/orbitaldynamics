@@ -27326,21 +27326,38 @@ defmodule OrbitalDynamics.CandidateRefresh do
       |> Enum.filter(&is_map/1)
       |> Enum.map(&stringify_keys/1)
 
-    if link_capacity_summary_source?(summary) and rows != [] do
-      %{
-        "schema_contract" => "link_capacity_report.v1",
-        "rows" => rows,
-        "source" => summary["source"]
-      }
-      |> LinkCapacity.summary()
-      |> Map.put("rows", rows)
-      |> Map.merge(Map.take(summary, ["provenance", "source"]))
-    else
-      summary
+    cond do
+      link_capacity_summary_source?(summary) and rows != [] ->
+        %{
+          "schema_contract" => "link_capacity_report.v1",
+          "rows" => rows,
+          "source" => summary["source"]
+        }
+        |> LinkCapacity.summary()
+        |> Map.put("rows", rows)
+        |> Map.merge(link_capacity_compact_summary_metadata(summary))
+
+      relay_data_path_summary_source?(summary) and rows != [] ->
+        rows
+        |> LinkCapacity.relay_data_path_summary(source: summary["source"])
+        |> Map.merge(link_capacity_compact_summary_metadata(summary))
+
+      true ->
+        summary
     end
   end
 
   defp link_capacity_compact_summary_for_provenance(report), do: report
+
+  defp link_capacity_compact_summary_metadata(summary) do
+    Map.take(summary, [
+      "provenance",
+      "source",
+      "source_summary_model",
+      "source_summary_schema_contract",
+      "source_artifact_type"
+    ])
+  end
 
   defp link_capacity_input_summary_contract(reports) do
     reports

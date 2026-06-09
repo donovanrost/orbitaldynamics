@@ -480,7 +480,10 @@ result-artifact-wrapped `relay_data_path_summary.v1` handoffs in the same
 link-capacity provenance family, preserving route counts, relay/direct route
 IDs, source and relay spacecraft IDs, ground downlink contact IDs,
 custody/latency/risk status maps, path-qualified provenance, and artifact-only
-no-scheduling/no-allocation boundaries without rerunning relay analysis.
+no-scheduling/no-allocation boundaries without rerunning relay analysis. When
+embedded rows are present, CandidateRefresh derives those route counts, route
+ID maps, spacecraft IDs, and ground downlink contact IDs from the rows before
+trusting top-level relay summary aggregates.
 
 `LinkCapacity.capabilities/0` advertises the triage summary's station/contact,
 selected/ignored, required-downlink, actual-throughput/completion, invalid-input,

@@ -12260,6 +12260,88 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert CandidateRefresh.link_capacity_replay_summary(artifact) == replay_summary
   end
 
+  test "relay data path source summaries derive stale aggregate pressure from rows" do
+    stale_summary =
+      relay_data_path_summary_fixture()
+      |> Map.merge(%{
+        "route_count" => 99,
+        "relay_route_count" => 99,
+        "direct_downlink_route_count" => 99,
+        "custody_status_counts" => %{"stale_custody" => 99},
+        "latency_status_counts" => %{"stale_latency" => 99},
+        "risk_status_counts" => %{"stale_risk" => 99},
+        "route_ids" => ["stale_route"],
+        "source_spacecraft_ids" => ["stale_source_spacecraft"],
+        "relay_spacecraft_ids" => ["stale_relay"],
+        "ground_station_ids" => ["stale_station"],
+        "ground_downlink_contact_ids" => ["stale_downlink"],
+        "route_ids_by_custody_status" => %{"stale_custody" => ["stale_route"]},
+        "route_ids_by_latency_status" => %{"stale_latency" => ["stale_route"]},
+        "route_ids_by_risk_status" => %{"stale_risk" => ["stale_route"]},
+        "route_ids_by_ground_station_id" => %{"stale_station" => ["stale_route"]}
+      })
+
+    refresh = %{"source_relay_data_path_summary" => stale_summary}
+
+    assert %{
+             "source_report_link_capacity_contract" => "relay_data_path_summary.v1",
+             "source_report_link_capacity_count" => 1,
+             "source_report_link_capacity_row_count" => 2,
+             "source_report_link_capacity_ground_station_counts" => %{
+               "dss_14" => 1,
+               "dss_35" => 1
+             },
+             "source_report_link_capacity_spacecraft_counts" => %{"sat_a" => 1, "sat_b" => 1},
+             "source_report_link_capacity_branch_local_link_capacity_pressure" => true,
+             "source_reports" => %{
+               "link_capacity_report" => %{
+                 "relay_route_count" => 1,
+                 "direct_downlink_route_count" => 1,
+                 "relay_route_ids" => ["route_direct", "route_relay_alpha"],
+                 "source_spacecraft_ids" => ["sat_a", "sat_b"],
+                 "relay_spacecraft_ids" => ["relay_1", "relay_2"],
+                 "ground_downlink_contact_ids" => ["downlink_1", "downlink_2"],
+                 "relay_custody_status_counts" => %{"confirmed" => 1, "missing_ack" => 1},
+                 "relay_latency_status_counts" => %{
+                   "exceeds_limit" => 1,
+                   "within_limit" => 1
+                 },
+                 "relay_risk_status_counts" => %{"high" => 1, "nominal" => 1},
+                 "relay_route_ids_by_ground_station" => %{
+                   "dss_14" => ["route_relay_alpha"],
+                   "dss_35" => ["route_direct"]
+                 }
+               }
+             }
+           } = source_summary = CandidateRefresh.source_report_summary(refresh)
+
+    refute "stale_route" in get_in(source_summary, [
+             "source_reports",
+             "link_capacity_report",
+             "relay_route_ids"
+           ])
+
+    assert %{
+             "source_report_row_count" => 2,
+             "relay_route_count" => 1,
+             "direct_downlink_route_count" => 1,
+             "relay_route_ids" => ["route_direct", "route_relay_alpha"],
+             "source_spacecraft_ids" => ["sat_a", "sat_b"],
+             "relay_spacecraft_ids" => ["relay_1", "relay_2"],
+             "ground_downlink_contact_ids" => ["downlink_1", "downlink_2"],
+             "relay_custody_status_counts" => %{"confirmed" => 1, "missing_ack" => 1},
+             "relay_latency_status_counts" => %{"exceeds_limit" => 1, "within_limit" => 1},
+             "relay_risk_status_counts" => %{"high" => 1, "nominal" => 1},
+             "relay_route_ids_by_ground_station" => %{
+               "dss_14" => ["route_relay_alpha"],
+               "dss_35" => ["route_direct"]
+             },
+             "ground_station_counts" => %{"dss_14" => 1, "dss_35" => 1},
+             "spacecraft_counts" => %{"sat_a" => 1, "sat_b" => 1},
+             "branch_local_link_capacity_pressure" => true
+           } = CandidateRefresh.link_capacity_replay_summary(refresh)
+  end
+
   test "source report summary replays wrapped relay data path summaries" do
     direct_summary =
       relay_data_path_summary_fixture()
