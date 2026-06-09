@@ -8,7 +8,7 @@ Current slice:
 Split readiness and quality-gate pressure into explicit V3 score terms.
 
 Status:
-Completed locally; ready to commit and push.
+Completed and pushed in product commit `5771a9b`.
 
 Slice-selection note:
 - Selected slice: split V3 operational-readiness and quality-gate branch risks
@@ -77,7 +77,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`b6c8c60` Split execution feedback pressure score term.
+`5771a9b` Split readiness quality gate pressure score terms.
 
 Next candidate:
 After this score-term split, continue with the next planner-visible
@@ -88,6 +88,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `5771a9b` split operational-readiness and quality-gate pressure into explicit
+  V3 score terms and recommendation tradeoff dimensions.
 - `b6c8c60` split execution-feedback pressure into an explicit V3 score term
   and recommendation tradeoff dimension.
 - `c0110a9` split relay data-path pressure into an explicit V3 score term and
