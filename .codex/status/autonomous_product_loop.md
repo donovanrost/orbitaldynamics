@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Pin operator-training requirement routing guards.
+Split operator-training strategy pressure score terms.
 
 Status:
 Completed and pushed.
@@ -13,30 +13,32 @@ Completed and pushed.
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `docs/artifacts/compatibility_checks.md`
-- `test/orbital_dynamics/validation_test.exs`
+- `lib/orbital_dynamics/campaign_planner.ex`
+- `test/orbital_dynamics/campaign_planner_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/validation_test.exs:3045`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:43940`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:43668`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:43891`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-The checked-in
-`operational_quality_gate_operator_training_summary.v1` validation-reference
-test now asserts role, training, certification, and qualification routing keys
-and rejects stale role/training key observations. Compatibility docs record the
-stale requirement-routing guard.
+V3 strategy scoring now emits `operator_training_pressure_penalty` for
+operator-training quality-gate risks and keeps those risks out of the broad
+`quality_gate_pressure_penalty`. Compatibility docs record the score-term
+split.
 
 Local review:
-Parent review confirmed staged scope, operator-training routing-key assertions,
-stale-observation checks, docs, and focused verification. `.gitignore` remains
-unrelated and unstaged.
+Parent review confirmed staged scope, score-term classification, score-term
+report rows, focused quality-gate regressions, docs, and verification.
+`.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Operator-training compatibility evidence now pins concrete readiness/training
-requirement routing before adapter queues, review surfaces, or replay consumers
-trust the compact quality-gate summary.
+Operator-training readiness pressure is now planner-visible in reproducible V3
+branch score explanations instead of being hidden in a generic quality-gate
+bucket.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -46,7 +48,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`47c8261` Pin operator training routing keys.
+`78da141` Split operator training score pressure.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -59,6 +61,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `78da141` split operator-training quality-gate pressure into a dedicated V3
+  strategy score term.
 - `47c8261` pinned operator-training role/training/certification/qualification
   routing keys in validation-reference coverage.
 - `50f59e3` pinned checked-in unavailable-resource quality-gate row routing in
