@@ -8,7 +8,7 @@ Current slice:
 Split timeline preservation pressure into an explicit V3 score term.
 
 Status:
-Completed locally; ready to commit and push.
+Completed and pushed in product commit `ab41543`.
 
 Slice-selection note:
 - Selected slice: split V3 timeline preservation risk indicators into
@@ -75,7 +75,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`8704579` Split timeline precondition pressure score term.
+`ab41543` Split timeline preservation pressure score term.
 
 Next candidate:
 After this score-term split, continue with the next planner-visible
@@ -87,6 +87,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `ab41543` split timeline preservation pressure into an explicit V3 score term
+  and recommendation tradeoff dimension.
 - `8704579` split timeline activity-precondition pressure into an explicit V3
   score term and recommendation tradeoff dimension.
 - `7e34eac` split timeline lifecycle-state pressure into an explicit V3 score
