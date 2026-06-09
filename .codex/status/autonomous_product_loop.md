@@ -5,24 +5,26 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve selected capacity-pack pressure context on V3 recommendation
+Preserve selected station reservation conflict context on V3 recommendation
 review/import rows.
 
 Status:
 Completed and ready to publish.
 
 What changed:
-- `downlink_completion_gap` risks now retain contact identity and capacity-pack
-  required-fraction details when branch events carry capacity-pack pressure.
-- `OrbitalDynamics.RecommendationRiskContext` now owns selected capacity-pack
-  handoff aggregation and exposes its pass-through key set.
-- `OperatorReview` and `CadenceImport` now include selected capacity-pack risk
-  context on strategy recommendation review/import rows, including review-package
-  to Cadence import conversion.
+- `downlink_completion_gap` risks now retain station reservation ID, owner,
+  status, match status, expiration, and provenance when branch events carry
+  reservation-conflict pressure.
+- `OrbitalDynamics.RecommendationRiskContext` now owns selected station
+  reservation conflict handoff aggregation and exposes its pass-through key set.
+- `OperatorReview` and `CadenceImport` now include selected station reservation
+  conflict context on strategy recommendation review/import rows, including
+  review-package to Cadence import conversion.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:42634`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:25740`
 - `mix compile --warnings-as-errors`
 - `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/campaign_planner.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
@@ -51,10 +53,13 @@ Published commits:
 - `fdc6aa1` Preserve provider reservation recommendation context
 - `4f13476` Update autonomous loop handoff
 - `3a65d52` Preserve capacity pack recommendation context
+- `1914c39` Update autonomous loop handoff
+- `97e6e72` Preserve station reservation recommendation context
 
 Next suggested slice:
-Reassess station reservation conflict/hold selected-risk context, or switch to
-the next small branch-refresh contract cleanup from the active strategy surfaces.
+Reassess station reservation hold/import-readiness selected-risk context, or
+switch to the next small branch-refresh contract cleanup from the active
+strategy surfaces.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
