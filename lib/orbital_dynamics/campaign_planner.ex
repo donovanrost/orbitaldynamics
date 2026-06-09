@@ -3176,7 +3176,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp operational_readiness_pressure_risk?(%{"type" => "operational_readiness_pressure"} = risk) do
-    not operational_readiness_resource_availability_pressure_risk?(risk)
+    not operational_readiness_operator_training_pressure_risk?(risk) and
+      not operational_readiness_resource_availability_pressure_risk?(risk)
   end
 
   defp operational_readiness_pressure_risk?(_risk), do: false
@@ -3205,7 +3206,25 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "operational_quality_gate_operator_training_summary.v1"
   end
 
+  defp operator_training_pressure_risk?(%{"type" => "operational_readiness_pressure"} = risk) do
+    operational_readiness_operator_training_pressure_risk?(risk)
+  end
+
   defp operator_training_pressure_risk?(_risk), do: false
+
+  defp operational_readiness_operator_training_pressure_risk?(
+         %{"type" => "operational_readiness_pressure"} = risk
+       ) do
+    risk["readiness_gate_id"] == "operator_training" or
+      risk["operator_training_requirement_count"] not in [nil, 0] or
+      is_map(risk["operator_training_requirement_counts"]) or
+      risk["required_operator_roles"] not in [nil, []] or
+      risk["required_training_ids"] not in [nil, []] or
+      risk["required_certification_ids"] not in [nil, []] or
+      risk["required_qualification_ids"] not in [nil, []]
+  end
+
+  defp operational_readiness_operator_training_pressure_risk?(_risk), do: false
 
   defp import_readiness_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &import_readiness_pressure_risk?/1)

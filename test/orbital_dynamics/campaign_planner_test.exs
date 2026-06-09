@@ -45167,6 +45167,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              }
            } = List.first(readiness_branch["events"])
 
+    assert_operator_training_pressure_score_terms(readiness_branch, artifact)
+    assert readiness_branch["score_terms"]["operational_readiness_pressure_penalty"] == 0.0
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
@@ -72606,7 +72609,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     operator_training_pressure_count =
       Enum.count(
         branch["risk_indicators"],
-        &(&1["type"] == "quality_gate_pressure" and &1["gate_id"] == "operator_training")
+        &operator_training_source_report_pressure?(&1)
       )
 
     assert operator_training_pressure_count > 0
@@ -73060,6 +73063,26 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            )
   end
 
+  defp operator_training_source_report_pressure?(%{"type" => "quality_gate_pressure"} = risk) do
+    risk["gate_id"] == "operator_training" or
+      risk["operator_training_requirement_count"] not in [nil, 0] or
+      is_map(risk["operator_training_requirement_counts"])
+  end
+
+  defp operator_training_source_report_pressure?(
+         %{"type" => "operational_readiness_pressure"} = risk
+       ) do
+    risk["readiness_gate_id"] == "operator_training" or
+      risk["operator_training_requirement_count"] not in [nil, 0] or
+      is_map(risk["operator_training_requirement_counts"]) or
+      risk["required_operator_roles"] not in [nil, []] or
+      risk["required_training_ids"] not in [nil, []] or
+      risk["required_certification_ids"] not in [nil, []] or
+      risk["required_qualification_ids"] not in [nil, []]
+  end
+
+  defp operator_training_source_report_pressure?(_risk), do: false
+
   defp assert_schema_validation_quality_gate_pressure_score_terms(branch, artifact) do
     risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
 
@@ -73369,6 +73392,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       Enum.count(
         branch["risk_indicators"],
         &(&1["type"] == "operational_readiness_pressure" and
+            not operator_training_source_report_pressure?(&1) and
             not resource_availability_source_report_pressure?(&1))
       )
 
