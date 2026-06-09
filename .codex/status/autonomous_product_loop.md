@@ -5,24 +5,24 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Route operational-readiness operator-training pressure into training score terms.
+Route operational-readiness import-readiness pressure into import score terms.
 
 Status:
 Completed and pushed.
 
 Slice selection note:
-Operational-readiness pressure events can identify an `operator_training` gate
-with role/training/certification/qualification requirements, and those fields
-are already preserved in branch context. Quality-gate operator-training pressure
-uses the dedicated `operator_training_pressure_penalty`, but the
-operational-readiness form still scores under broad readiness. This slice routes
-operational-readiness operator-training pressure into the dedicated operator
-training score family while leaving ordinary readiness gates on
-`operational_readiness_pressure_penalty`. Likely files are
+Operational-readiness pressure events can identify `cadence_import` or import
+readiness gates, but their freshness/import/Cadence status fields are not
+preserved in the readiness risk context and the score remains under broad
+readiness. Quality-gate import-readiness pressure already uses
+`import_readiness_pressure_penalty`. This slice preserves import-readiness
+context for operational-readiness gates and routes those indicators into the
+dedicated import-readiness score family while leaving ordinary readiness gates
+on `operational_readiness_pressure_penalty`. Likely files are
 `lib/orbital_dynamics/campaign_planner.ex`, `test/orbital_dynamics/campaign_planner_test.exs`,
 `docs/artifacts/compatibility_checks.md`, and this ledger. Definition of done:
-focused operational-readiness operator-training tests prove the split, adjacent
-operator-training quality-gate regressions still pass, compile/diff checks pass,
+focused operational-readiness import-readiness tests prove the split, adjacent
+quality-gate import-readiness regressions still pass, compile/diff checks pass,
 and product plus handoff commits are pushed while leaving unrelated `.gitignore`
 unstaged.
 
@@ -33,28 +33,34 @@ Files changed:
 - `test/orbital_dynamics/campaign_planner_test.exs`
 
 Tests run:
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:45177`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:44500`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:44700`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:45272`
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:45092`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:45378`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:43141`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-Compatibility docs now record that operational-readiness operator-training
-gates route role/training/certification/qualification pressure into
-`operator_training_pressure_penalty`.
+Compatibility docs now record that operational-readiness import gates preserve
+freshness/import/Cadence status evidence and route score pressure into
+`import_readiness_pressure_penalty`.
 
 Local review:
-Parent review confirmed operational-readiness operator-training indicators are
-excluded from broad readiness scoring, counted by the dedicated
-operator-training score term, and still preserve existing branch event context.
-The adjacent operator-training quality-gate regression still passes.
-`.gitignore` remains unrelated and unstaged.
+Parent review confirmed operational-readiness import-readiness fields are
+preserved into branch events/risk indicators, explicit false import flags
+survive the row/evidence fallback, the dedicated import-readiness score term
+carries the penalty, and broad operational-readiness scoring stays zero for
+that case. Adjacent quality-gate import-readiness, ordinary readiness
+classification, operator-training readiness, and resource-availability
+readiness regressions pass. `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Operator-training evidence from operational-readiness gates is now
+Import-readiness evidence from operational-readiness gates is now
 planner-visible in the same dedicated V3 score-term family as quality-gate
-operator-training pressure, improving reproducible Cadence-facing review
+import-readiness pressure, improving reproducible Cadence-facing import review
 explanations.
 
 Remaining maturity gaps:
@@ -65,7 +71,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`4f1a388` Route readiness training score pressure.
+`754dfc3` Route readiness import score pressure.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -78,6 +84,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `754dfc3` routed operational-readiness import-readiness pressure into the
+  dedicated V3 import-readiness score term.
 - `4f1a388` routed operational-readiness operator-training pressure into the
   dedicated V3 operator-training score term.
 - `195816a` routed operational-readiness resource-availability pressure into
