@@ -19631,14 +19631,29 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
               },
               %{
                 type: "downlink_completion_gap",
+                scenario_id: "leo_1",
+                spacecraft_id: "leo_1",
                 contact_id: "dl_capacity_overflow",
                 source_activity_id: "dl_capacity_overflow",
                 source_activity_ids: ["dl_capacity_overflow"],
                 ground_station_id: "equator_prime",
+                starts_at_s: 1_560.0,
+                ends_at_s: 1_620.0,
+                source_window_id: "window_capacity_overflow",
                 required_contacts: 1,
                 planned_contacts: 0,
                 required_downlink_mb: 47.0,
                 planned_downlink_mb: 0.0,
+                selected_contact_id: "dl_capacity_selected",
+                selected_priority_source: "policy_contact_priority",
+                selection_reason: "highest_priority_highest_score",
+                resolution_selection_rule: "highest_priority_highest_score",
+                resolution_priority_override_count: 2,
+                resolution_priority_override_contact_ids: [
+                  "dl_capacity_selected",
+                  "dl_capacity_overflow"
+                ],
+                review_status: "operator_review_required",
                 capacity_pack_group_id: "capacity_pack_equator_prime",
                 capacity_pack_status: "deferred_by_reduced_station_capacity_pack",
                 capacity_pack_capacity_fraction: 0.5,
@@ -19649,6 +19664,12 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 derivation_reasons: [
                   "contact_contention_deferred",
                   "deferred_by_reduced_station_capacity_pack"
+                ],
+                downlink_demand_sources: [
+                  "contention_resolution.required_downlink:dl_capacity_overflow"
+                ],
+                downlink_completion_sources: [
+                  "contact_contention_resolution_report:recommendations"
                 ],
                 feedback_source: "mission_state.source_contact_allocation_capacity_pack_summary",
                 feedback_scope: "contact_contention_resolution",
@@ -22327,6 +22348,62 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       ],
       "capacity_pack_risk_feedback_scopes" => ["contact_contention_resolution"],
       "capacity_pack_risk_trust_boundaries" => ["mission_state_capacity_pack_summary"],
+      "contact_contention_resolution_pressure_risk_types" => ["downlink_completion_gap"],
+      "contact_contention_resolution_pressure_contact_ids" => ["dl_capacity_overflow"],
+      "contact_contention_resolution_pressure_selected_contact_ids" => [
+        "dl_capacity_selected"
+      ],
+      "contact_contention_resolution_pressure_scenario_ids" => ["leo_1"],
+      "contact_contention_resolution_pressure_spacecraft_ids" => ["leo_1"],
+      "contact_contention_resolution_pressure_ground_station_ids" => ["equator_prime"],
+      "contact_contention_resolution_pressure_source_activity_ids" => [
+        "dl_capacity_overflow"
+      ],
+      "contact_contention_resolution_pressure_source_window_ids" => [
+        "window_capacity_overflow"
+      ],
+      "contact_contention_resolution_pressure_required_contact_values" => [1],
+      "contact_contention_resolution_pressure_planned_contact_values" => [0],
+      "contact_contention_resolution_pressure_required_downlink_values_mb" => [47.0],
+      "contact_contention_resolution_pressure_planned_downlink_values_mb" => [0.0],
+      "contact_contention_resolution_pressure_start_values_s" => [1_560.0],
+      "contact_contention_resolution_pressure_end_values_s" => [1_620.0],
+      "contact_contention_resolution_pressure_selected_priority_sources" => [
+        "policy_contact_priority"
+      ],
+      "contact_contention_resolution_pressure_selection_reasons" => [
+        "highest_priority_highest_score"
+      ],
+      "contact_contention_resolution_pressure_resolution_selection_rules" => [
+        "highest_priority_highest_score"
+      ],
+      "contact_contention_resolution_pressure_priority_override_count_values" => [2],
+      "contact_contention_resolution_pressure_priority_override_contact_ids" => [
+        "dl_capacity_selected",
+        "dl_capacity_overflow"
+      ],
+      "contact_contention_resolution_pressure_review_statuses" => [
+        "operator_review_required"
+      ],
+      "contact_contention_resolution_pressure_downlink_demand_sources" => [
+        "contention_resolution.required_downlink:dl_capacity_overflow"
+      ],
+      "contact_contention_resolution_pressure_downlink_completion_sources" => [
+        "contact_contention_resolution_report:recommendations"
+      ],
+      "contact_contention_resolution_pressure_feedback_sources" => [
+        "mission_state.source_contact_allocation_capacity_pack_summary"
+      ],
+      "contact_contention_resolution_pressure_feedback_scopes" => [
+        "contact_contention_resolution"
+      ],
+      "contact_contention_resolution_pressure_trust_boundaries" => [
+        "mission_state_capacity_pack_summary"
+      ],
+      "contact_contention_resolution_pressure_derivation_reasons" => [
+        "contact_contention_deferred",
+        "deferred_by_reduced_station_capacity_pack"
+      ],
       "contact_allocation_pressure_risk_types" => ["downlink_completion_gap"],
       "contact_allocation_pressure_contact_ids" => ["dl_reservation_conflict"],
       "contact_allocation_pressure_scenario_ids" => ["leo_1"],

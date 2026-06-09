@@ -138,6 +138,35 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
     "capacity_pack_risk_trust_boundaries"
   ]
 
+  @contact_contention_resolution_context_keys [
+    "contact_contention_resolution_pressure_risk_types",
+    "contact_contention_resolution_pressure_contact_ids",
+    "contact_contention_resolution_pressure_selected_contact_ids",
+    "contact_contention_resolution_pressure_scenario_ids",
+    "contact_contention_resolution_pressure_spacecraft_ids",
+    "contact_contention_resolution_pressure_ground_station_ids",
+    "contact_contention_resolution_pressure_source_activity_ids",
+    "contact_contention_resolution_pressure_source_window_ids",
+    "contact_contention_resolution_pressure_required_contact_values",
+    "contact_contention_resolution_pressure_planned_contact_values",
+    "contact_contention_resolution_pressure_required_downlink_values_mb",
+    "contact_contention_resolution_pressure_planned_downlink_values_mb",
+    "contact_contention_resolution_pressure_start_values_s",
+    "contact_contention_resolution_pressure_end_values_s",
+    "contact_contention_resolution_pressure_selected_priority_sources",
+    "contact_contention_resolution_pressure_selection_reasons",
+    "contact_contention_resolution_pressure_resolution_selection_rules",
+    "contact_contention_resolution_pressure_priority_override_count_values",
+    "contact_contention_resolution_pressure_priority_override_contact_ids",
+    "contact_contention_resolution_pressure_review_statuses",
+    "contact_contention_resolution_pressure_downlink_demand_sources",
+    "contact_contention_resolution_pressure_downlink_completion_sources",
+    "contact_contention_resolution_pressure_feedback_sources",
+    "contact_contention_resolution_pressure_feedback_scopes",
+    "contact_contention_resolution_pressure_trust_boundaries",
+    "contact_contention_resolution_pressure_derivation_reasons"
+  ]
+
   @station_reservation_conflict_context_keys [
     "station_reservation_conflict_contact_ids",
     "station_reservation_conflict_source_activity_ids",
@@ -961,6 +990,9 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
 
   def capacity_pack_context_keys, do: @capacity_pack_context_keys
 
+  def contact_contention_resolution_context_keys,
+    do: @contact_contention_resolution_context_keys
+
   def station_reservation_conflict_context_keys, do: @station_reservation_conflict_context_keys
 
   def station_reservation_hold_import_readiness_context_keys,
@@ -1366,6 +1398,84 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
   end
 
   def capacity_pack_context(_risks), do: %{}
+
+  def contact_contention_resolution_context(risks) when is_list(risks) do
+    risks = Enum.map(risks, &stringify_keys/1)
+
+    contact_contention_resolution_risks =
+      Enum.filter(risks, &contact_contention_resolution_risk?/1)
+
+    %{
+      "contact_contention_resolution_pressure_risk_types" =>
+        risk_context_values(contact_contention_resolution_risks, ["type", "risk_type"]),
+      "contact_contention_resolution_pressure_contact_ids" =>
+        risk_context_values(contact_contention_resolution_risks, "contact_id"),
+      "contact_contention_resolution_pressure_selected_contact_ids" =>
+        risk_context_values(contact_contention_resolution_risks, "selected_contact_id"),
+      "contact_contention_resolution_pressure_scenario_ids" =>
+        risk_context_values(contact_contention_resolution_risks, "scenario_id"),
+      "contact_contention_resolution_pressure_spacecraft_ids" =>
+        risk_context_values(contact_contention_resolution_risks, "spacecraft_id"),
+      "contact_contention_resolution_pressure_ground_station_ids" =>
+        risk_context_values(contact_contention_resolution_risks, "ground_station_id"),
+      "contact_contention_resolution_pressure_source_activity_ids" =>
+        risk_context_values(contact_contention_resolution_risks, [
+          "source_activity_id",
+          "source_activity_ids"
+        ]),
+      "contact_contention_resolution_pressure_source_window_ids" =>
+        risk_context_values(contact_contention_resolution_risks, "source_window_id"),
+      "contact_contention_resolution_pressure_required_contact_values" =>
+        risk_context_values(contact_contention_resolution_risks, "required_contacts"),
+      "contact_contention_resolution_pressure_planned_contact_values" =>
+        risk_context_values(contact_contention_resolution_risks, "planned_contacts"),
+      "contact_contention_resolution_pressure_required_downlink_values_mb" =>
+        risk_context_values(contact_contention_resolution_risks, "required_downlink_mb"),
+      "contact_contention_resolution_pressure_planned_downlink_values_mb" =>
+        risk_context_values(contact_contention_resolution_risks, "planned_downlink_mb"),
+      "contact_contention_resolution_pressure_start_values_s" =>
+        risk_context_values(contact_contention_resolution_risks, "starts_at_s"),
+      "contact_contention_resolution_pressure_end_values_s" =>
+        risk_context_values(contact_contention_resolution_risks, "ends_at_s"),
+      "contact_contention_resolution_pressure_selected_priority_sources" =>
+        risk_context_values(contact_contention_resolution_risks, "selected_priority_source"),
+      "contact_contention_resolution_pressure_selection_reasons" =>
+        risk_context_values(contact_contention_resolution_risks, "selection_reason"),
+      "contact_contention_resolution_pressure_resolution_selection_rules" =>
+        risk_context_values(contact_contention_resolution_risks, "resolution_selection_rule"),
+      "contact_contention_resolution_pressure_priority_override_count_values" =>
+        risk_context_values(
+          contact_contention_resolution_risks,
+          "resolution_priority_override_count"
+        ),
+      "contact_contention_resolution_pressure_priority_override_contact_ids" =>
+        risk_context_values(
+          contact_contention_resolution_risks,
+          ["resolution_priority_override_contact_ids"]
+        ),
+      "contact_contention_resolution_pressure_review_statuses" =>
+        risk_context_values(contact_contention_resolution_risks, "review_status"),
+      "contact_contention_resolution_pressure_downlink_demand_sources" =>
+        risk_context_values(contact_contention_resolution_risks, ["downlink_demand_sources"]),
+      "contact_contention_resolution_pressure_downlink_completion_sources" =>
+        risk_context_values(
+          contact_contention_resolution_risks,
+          ["downlink_completion_sources"]
+        ),
+      "contact_contention_resolution_pressure_feedback_sources" =>
+        risk_context_values(contact_contention_resolution_risks, "feedback_source"),
+      "contact_contention_resolution_pressure_feedback_scopes" =>
+        risk_context_values(contact_contention_resolution_risks, "feedback_scope"),
+      "contact_contention_resolution_pressure_trust_boundaries" =>
+        risk_context_values(contact_contention_resolution_risks, "trust_boundary"),
+      "contact_contention_resolution_pressure_derivation_reasons" =>
+        risk_context_values(contact_contention_resolution_risks, ["derivation_reasons"])
+    }
+    |> Enum.reject(fn {_key, values} -> values == [] end)
+    |> Map.new()
+  end
+
+  def contact_contention_resolution_context(_risks), do: %{}
 
   def station_reservation_conflict_context(risks) when is_list(risks) do
     risks = Enum.map(risks, &stringify_keys/1)
@@ -3575,6 +3685,13 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
   defp contact_allocation_risk?(%{"feedback_scope" => "contact_allocation"}), do: true
 
   defp contact_allocation_risk?(_risk), do: false
+
+  defp contact_contention_resolution_risk?(%{
+         "feedback_scope" => "contact_contention_resolution"
+       }),
+       do: true
+
+  defp contact_contention_resolution_risk?(_risk), do: false
 
   defp contact_filter_risk?(%{"feedback_scope" => "contact_filter"}), do: true
 
