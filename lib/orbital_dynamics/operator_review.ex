@@ -2280,6 +2280,17 @@ defmodule OrbitalDynamics.OperatorReview do
           row["capacity_pack_total_required_capacity_fraction"],
         "capacity_pack_required_capacity_sources" =>
           row["capacity_pack_required_capacity_sources"],
+        "capacity_pack_contact_ids_by_direction" => row["capacity_pack_contact_ids_by_direction"],
+        "capacity_pack_selected_contact_ids_by_direction" =>
+          row["capacity_pack_selected_contact_ids_by_direction"],
+        "capacity_pack_deferred_contact_ids_by_direction" =>
+          row["capacity_pack_deferred_contact_ids_by_direction"],
+        "capacity_pack_required_capacity_fraction_by_direction" =>
+          row["capacity_pack_required_capacity_fraction_by_direction"],
+        "capacity_pack_selected_required_capacity_fraction_by_direction" =>
+          row["capacity_pack_selected_required_capacity_fraction_by_direction"],
+        "capacity_pack_deferred_required_capacity_fraction_by_direction" =>
+          row["capacity_pack_deferred_required_capacity_fraction_by_direction"],
         "target_branch_base_id" => row["target_branch_base_id"],
         "target_branch_identity" => row["target_branch_identity"],
         "priority_commitment_required_target_count" =>

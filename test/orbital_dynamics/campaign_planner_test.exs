@@ -47557,6 +47557,108 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "deferred_by_reduced_station_capacity_pack"
            ]
 
+    capacity_review_row =
+      artifact["operator_review_package"]["rows"]
+      |> Enum.find(
+        &(&1["review_type"] == "strategy_tradeoff" and
+            &1["branch_id"] == capacity_branch_id and
+            &1["source"] == "campaign_strategy.branch_comparison_report.rows")
+      )
+
+    assert capacity_review_row["capacity_pack_contact_ids_by_direction"] == %{
+             "downlink" => [
+               "summary_capacity_dl_capacity_overflow",
+               "summary_capacity_dl_capacity_primary",
+               "summary_capacity_dl_capacity_secondary"
+             ]
+           }
+
+    assert capacity_review_row["capacity_pack_selected_contact_ids_by_direction"] == %{
+             "downlink" => [
+               "summary_capacity_dl_capacity_primary",
+               "summary_capacity_dl_capacity_secondary"
+             ]
+           }
+
+    assert capacity_review_row["capacity_pack_deferred_contact_ids_by_direction"] == %{
+             "downlink" => ["summary_capacity_dl_capacity_overflow"]
+           }
+
+    assert capacity_review_row["capacity_pack_required_capacity_fraction_by_direction"] == %{
+             "downlink" => 0.75
+           }
+
+    assert capacity_review_row[
+             "capacity_pack_selected_required_capacity_fraction_by_direction"
+           ] == %{
+             "downlink" => 0.5
+           }
+
+    assert capacity_review_row[
+             "capacity_pack_deferred_required_capacity_fraction_by_direction"
+           ] == %{
+             "downlink" => 0.25
+           }
+
+    assert get_in(capacity_review_row, [
+             "source_branch_comparison",
+             "capacity_pack_selected_contact_ids_by_direction"
+           ]) == %{
+             "downlink" => [
+               "summary_capacity_dl_capacity_primary",
+               "summary_capacity_dl_capacity_secondary"
+             ]
+           }
+
+    capacity_import_row =
+      artifact["cadence_import_manifest"]["rows"]
+      |> Enum.find(
+        &(&1["source_review_type"] == "strategy_branch_comparison" and
+            &1["branch_id"] == capacity_branch_id)
+      )
+
+    assert capacity_import_row["capacity_pack_contact_ids_by_direction"] == %{
+             "downlink" => [
+               "summary_capacity_dl_capacity_overflow",
+               "summary_capacity_dl_capacity_primary",
+               "summary_capacity_dl_capacity_secondary"
+             ]
+           }
+
+    assert capacity_import_row["capacity_pack_selected_contact_ids_by_direction"] == %{
+             "downlink" => [
+               "summary_capacity_dl_capacity_primary",
+               "summary_capacity_dl_capacity_secondary"
+             ]
+           }
+
+    assert capacity_import_row["capacity_pack_deferred_contact_ids_by_direction"] == %{
+             "downlink" => ["summary_capacity_dl_capacity_overflow"]
+           }
+
+    assert capacity_import_row["capacity_pack_required_capacity_fraction_by_direction"] == %{
+             "downlink" => 0.75
+           }
+
+    assert capacity_import_row[
+             "capacity_pack_selected_required_capacity_fraction_by_direction"
+           ] == %{
+             "downlink" => 0.5
+           }
+
+    assert capacity_import_row[
+             "capacity_pack_deferred_required_capacity_fraction_by_direction"
+           ] == %{
+             "downlink" => 0.25
+           }
+
+    assert get_in(capacity_import_row, [
+             "source_branch_comparison",
+             "capacity_pack_deferred_required_capacity_fraction_by_direction"
+           ]) == %{
+             "downlink" => 0.25
+           }
+
     provider_branch =
       branch(
         artifact,

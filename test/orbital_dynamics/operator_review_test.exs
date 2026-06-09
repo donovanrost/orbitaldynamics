@@ -13489,6 +13489,24 @@ defmodule OrbitalDynamics.OperatorReviewTest do
           "capacity_pack_max_required_capacity_fraction" => 0.25,
           "capacity_pack_total_required_capacity_fraction" => 0.25,
           "capacity_pack_required_capacity_sources" => ["contact_required_capacity_fraction"],
+          "capacity_pack_contact_ids_by_direction" => %{
+            "downlink" => ["review_dl_primary", "review_dl_overflow"]
+          },
+          "capacity_pack_selected_contact_ids_by_direction" => %{
+            "downlink" => ["review_dl_primary"]
+          },
+          "capacity_pack_deferred_contact_ids_by_direction" => %{
+            "downlink" => ["review_dl_overflow"]
+          },
+          "capacity_pack_required_capacity_fraction_by_direction" => %{
+            "downlink" => 0.75
+          },
+          "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+            "downlink" => 0.5
+          },
+          "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+            "downlink" => 0.25
+          },
           "resource_pressure_statuses" => ["downlink_shortfall"],
           "resource_pressure_types" => ["downlink_shortfall", "storage_overflow"],
           "first_resource_pressure_kinds" => ["downlink_shortfall"],
@@ -13607,6 +13625,24 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              "capacity_pack_max_required_capacity_fraction" => 0.25,
              "capacity_pack_total_required_capacity_fraction" => 0.25,
              "capacity_pack_required_capacity_sources" => ["contact_required_capacity_fraction"],
+             "capacity_pack_contact_ids_by_direction" => %{
+               "downlink" => ["review_dl_primary", "review_dl_overflow"]
+             },
+             "capacity_pack_selected_contact_ids_by_direction" => %{
+               "downlink" => ["review_dl_primary"]
+             },
+             "capacity_pack_deferred_contact_ids_by_direction" => %{
+               "downlink" => ["review_dl_overflow"]
+             },
+             "capacity_pack_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.75
+             },
+             "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.5
+             },
+             "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.25
+             },
              "resource_pressure_statuses" => ["downlink_shortfall"],
              "resource_pressure_types" => ["downlink_shortfall", "storage_overflow"],
              "first_resource_pressure_kinds" => ["downlink_shortfall"],
@@ -13637,6 +13673,12 @@ defmodule OrbitalDynamics.OperatorReviewTest do
                "capacity_pack_max_required_capacity_fraction" => 0.25,
                "capacity_pack_total_required_capacity_fraction" => 0.25,
                "capacity_pack_required_capacity_sources" => ["contact_required_capacity_fraction"],
+               "capacity_pack_selected_contact_ids_by_direction" => %{
+                 "downlink" => ["review_dl_primary"]
+               },
+               "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+                 "downlink" => 0.25
+               },
                "repair_link_actual_downlink_completion_ratio" => 0.65,
                "first_resource_pressure_activity_id" => "urgent_downlink",
                "first_resource_pressure_ground_station_id" => "equator_prime",

@@ -6154,6 +6154,24 @@ defmodule OrbitalDynamics.CadenceImportTest do
             "capacity_pack_max_required_capacity_fraction" => 0.25,
             "capacity_pack_total_required_capacity_fraction" => 0.25,
             "capacity_pack_required_capacity_sources" => ["contact_required_capacity_fraction"],
+            "capacity_pack_contact_ids_by_direction" => %{
+              "downlink" => ["review_dl_primary", "review_dl_overflow"]
+            },
+            "capacity_pack_selected_contact_ids_by_direction" => %{
+              "downlink" => ["review_dl_primary"]
+            },
+            "capacity_pack_deferred_contact_ids_by_direction" => %{
+              "downlink" => ["review_dl_overflow"]
+            },
+            "capacity_pack_required_capacity_fraction_by_direction" => %{
+              "downlink" => 0.75
+            },
+            "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+              "downlink" => 0.5
+            },
+            "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+              "downlink" => 0.25
+            },
             "coverage_observed_target_count" => 3,
             "revisit_count" => 2,
             "collection_latency_ratio" => 0.5,
@@ -6288,6 +6306,24 @@ defmodule OrbitalDynamics.CadenceImportTest do
                  "capacity_pack_required_capacity_sources" => [
                    "contact_required_capacity_fraction"
                  ],
+                 "capacity_pack_contact_ids_by_direction" => %{
+                   "downlink" => ["review_dl_primary", "review_dl_overflow"]
+                 },
+                 "capacity_pack_selected_contact_ids_by_direction" => %{
+                   "downlink" => ["review_dl_primary"]
+                 },
+                 "capacity_pack_deferred_contact_ids_by_direction" => %{
+                   "downlink" => ["review_dl_overflow"]
+                 },
+                 "capacity_pack_required_capacity_fraction_by_direction" => %{
+                   "downlink" => 0.75
+                 },
+                 "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+                   "downlink" => 0.5
+                 },
+                 "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+                   "downlink" => 0.25
+                 },
                  "coverage_observed_target_count" => 3,
                  "revisit_count" => 2,
                  "collection_latency_ratio" => 0.5,
@@ -6375,6 +6411,12 @@ defmodule OrbitalDynamics.CadenceImportTest do
                    "capacity_pack_required_capacity_sources" => [
                      "contact_required_capacity_fraction"
                    ],
+                   "capacity_pack_selected_contact_ids_by_direction" => %{
+                     "downlink" => ["review_dl_primary"]
+                   },
+                   "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+                     "downlink" => 0.25
+                   },
                    "repair_link_actual_downlink_completion_ratio" => 0.5,
                    "first_resource_pressure_activity_id" => "dl_pressure",
                    "first_resource_pressure_ground_station_id" => "equator_prime",
