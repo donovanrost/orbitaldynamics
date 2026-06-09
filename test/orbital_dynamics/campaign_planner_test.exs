@@ -46725,6 +46725,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert get_in(pressure_branch, ["provenance", "branch_metadata", "selection_reason"]) ==
              "highest_priority_highest_score"
 
+    assert_contact_contention_pressure_score_terms(pressure_branch, artifact)
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
@@ -46824,6 +46826,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            } = List.first(pressure_branch["events"])
 
     assert planned_downlink_mb == 0.0
+
+    assert_contact_contention_pressure_score_terms(pressure_branch, artifact)
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
@@ -72497,6 +72501,36 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              artifact["score_term_report"]["rows"],
              &(&1["branch_id"] == branch["branch_id"] and
                  &1["term_key"] == "contact_intent_pressure_penalty" and &1["value"] < 0.0)
+           )
+  end
+
+  defp assert_contact_contention_pressure_score_terms(branch, artifact) do
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    contact_contention_pressure_count =
+      Enum.count(
+        branch["risk_indicators"],
+        &(&1["type"] == "downlink_completion_gap" and
+            &1["feedback_scope"] in ["contact_contention", "contact_contention_resolution"])
+      )
+
+    assert contact_contention_pressure_count > 0
+
+    assert branch["score_terms"]["contact_contention_pressure_penalty"] ==
+             -contact_contention_pressure_count * risk_weight
+
+    assert branch["score_terms"]["risk_penalty"] ==
+             -(length(branch["risk_indicators"]) - contact_contention_pressure_count) *
+               risk_weight
+
+    assert "contact_contention_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == branch["branch_id"] and
+                 &1["term_key"] == "contact_contention_pressure_penalty" and &1["value"] < 0.0)
            )
   end
 

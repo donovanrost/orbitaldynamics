@@ -364,6 +364,10 @@ Contact-intent review/import pressure contributes to the dedicated V3
 `contact_intent_pressure_penalty` score term instead of blending into generic
 `risk_penalty`, while preserving the same total one-risk-weight penalty per
 contact-intent pressure risk.
+Contact-contention and contention-resolution pressures likewise contribute to
+`contact_contention_pressure_penalty`, keeping contention review pressure
+separate from unrelated generic risk without changing total branch penalty
+weight.
 
 `policy_decision.v1` rule-match evidence preserves those source confidence
 factors with the same bounds. Communication rule-match counters for concurrent

@@ -72,6 +72,10 @@
 - The same recommendation payload can be replayed from nested or flattened operator-review source rows, or from top-level Cadence import `source_recommendation` / flattened contact-contention recommendation rows, without resubmitting the original contention-resolution artifact.
 - Multiple independent contention recommendations for the same deferred contact now receive deterministic source-window/contention-group/source-evidence branch IDs instead of collapsing behind the contact-only derived branch ID.
 - Branch risks and branch-comparison rows flatten that pack evidence for operator scanning.
+- Contact-contention and contention-resolution `downlink_completion_gap` risks
+  contribute to `contact_contention_pressure_penalty` in V3 score terms,
+  keeping contention pressure visible separately from unrelated generic risks
+  while preserving total branch score compatibility.
 
 ## Wrapper-embedded report replay through live communications paths
 

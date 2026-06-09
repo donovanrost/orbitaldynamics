@@ -758,6 +758,9 @@ risks while preserving total branch score compatibility.
 Contact-intent-derived review/import risks contribute to
 `contact_intent_pressure_penalty`, leaving generic `risk_penalty` for unrelated
 risks while preserving total branch score compatibility.
+Contact-contention and contention-resolution risks contribute to
+`contact_contention_pressure_penalty`, leaving generic `risk_penalty` for
+unrelated risks while preserving total branch score compatibility.
 Station-calendar pressure risks, including reserved, unavailable, and
 reduced-capacity station feedback, contribute to
 `station_calendar_pressure_penalty`, leaving generic `risk_penalty` for
@@ -1624,6 +1627,11 @@ Selected recommendations also include:
   unrelated risks while preserving total branch score compatibility. Focused
   contact-intent pressure fixtures now assert split branch math and score-term
   report rows.
+- **Contact-contention pressure score terms** — split contact-contention and
+  contention-resolution risks into `contact_contention_pressure_penalty`,
+  leaving `risk_penalty` for unrelated risks while preserving total branch score
+  compatibility. Focused contention pressure fixtures now assert split branch
+  math and score-term report rows.
 - **Storage/downlink pressure score terms** — split storage/downlink
   resource-margin and projection risks into `storage_downlink_pressure_penalty`,
   leaving `risk_penalty` for unrelated risks while preserving total branch score
