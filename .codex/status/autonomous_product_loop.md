@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Pin checked-in unavailable-resource quality-gate routing guards.
+Pin operator-training requirement routing guards.
 
 Status:
 Completed and pushed.
@@ -16,27 +16,27 @@ Files changed:
 - `test/orbital_dynamics/validation_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/validation_test.exs:2843`
+- `mix test test/orbital_dynamics/validation_test.exs:3045`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
 The checked-in
-`operational_quality_gate_unavailable_resource_summary.v1` validation-reference
-test now asserts quality-gate row routing by status and rejects stale routing
-observations. Compatibility docs record the checked-in quality-gate routing
-guard before resource-pressure replay consumers trust the summary.
+`operational_quality_gate_operator_training_summary.v1` validation-reference
+test now asserts role, training, certification, and qualification routing keys
+and rejects stale role/training key observations. Compatibility docs record the
+stale requirement-routing guard.
 
 Local review:
-Parent review confirmed staged scope, checked-in fixture routing assertion,
-stale-observation check, docs, and focused verification. `.gitignore` remains
+Parent review confirmed staged scope, operator-training routing-key assertions,
+stale-observation checks, docs, and focused verification. `.gitignore` remains
 unrelated and unstaged.
 
 Level 6 pillar advanced:
-Unavailable-resource compatibility evidence now pins checked-in quality-gate
-row routing for resource/contact pressure summaries consumed by downstream
-review, import, and CandidateRefresh replay flows.
+Operator-training compatibility evidence now pins concrete readiness/training
+requirement routing before adapter queues, review surfaces, or replay consumers
+trust the compact quality-gate summary.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -46,7 +46,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`50f59e3` Pin unavailable resource row routing.
+`47c8261` Pin operator training routing keys.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -59,6 +59,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `47c8261` pinned operator-training role/training/certification/qualification
+  routing keys in validation-reference coverage.
 - `50f59e3` pinned checked-in unavailable-resource quality-gate row routing in
   validation-reference coverage.
 - `5caf920` pinned objective-satisfaction status count and objective-routing
