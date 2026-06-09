@@ -13813,6 +13813,29 @@ defmodule OrbitalDynamics.CadenceImportTest do
                  "$.rows[0].source_review_row.source_timeline_dependency_impact.dependency_impact_status")
            )
 
+    stale_nested_source_dependency_impact =
+      put_in(
+        manifest,
+        [
+          "rows",
+          Access.at(0),
+          "source_review_row",
+          "source_timeline_dependency_impact",
+          "activity_id"
+        ],
+        "stale_cmd_combo"
+      )
+
+    assert {:error, stale_nested_source_dependency_impact_report} =
+             Schema.validate_artifact(stale_nested_source_dependency_impact)
+
+    assert Enum.any?(
+             stale_nested_source_dependency_impact_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.source_timeline_dependency_impact" and
+                 &1["message"] ==
+                   "must match source_timeline_dependency_impact on Cadence import row")
+           )
+
     assert OrbitalDynamics.cadence_import_manifest(summary) == manifest
 
     assert OrbitalDynamics.cadence_import_manifest(Map.delete(summary, "schema_contract")) ==
