@@ -16,8 +16,8 @@ Files changed:
 - Ledger only: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:33812`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:34075`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:32940`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:33807`
 - `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
 - `mix compile --warnings-as-errors`
@@ -29,23 +29,23 @@ Level 6 pillar advanced:
 Reproducible V1/V2/V3 branch trees with explainable score terms and deltas.
 
 Last completed slice:
-Fed branch-local transition-application replay pressure into V3 branch risk and
-score terms.
+Fed branch-local timeline dependency-impact replay pressure into V3 branch risk
+and score terms.
 
 What changed:
-- Branch-generated candidate-source transition-application replay pressure now
-  emits a `timeline_transition_application_pressure` risk.
+- Branch-generated candidate-source dependency-impact replay pressure now emits
+  a `timeline_dependency_impact` risk.
 - Branches affected by that replay now expose
-  `timeline_transition_application_pressure_penalty` in score terms and the
+  `timeline_dependency_impact_pressure_penalty` in score terms and the
   score-term report.
-- Existing direct transition-application pressure branch scoring still passes.
-- Added focused assertions to the mission-state transition-application replay
+- Existing transition-application replay bridge still passes.
+- Added focused assertions to the mission-state dependency-impact replay
   strategy test.
 - Parent performed bounded local review and mechanical publish because no
   suitable subagent tool is available in this runtime.
 
 Last commit:
-- Product: `8018844` Feed transition application replay into branch scoring
+- Product: `4defd2e` Feed dependency impact replay into branch scoring
 - Ledger: pending
 
 Remaining maturity gaps:
