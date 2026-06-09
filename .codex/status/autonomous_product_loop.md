@@ -5,125 +5,77 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reassess the next selected-risk contract cleanup from active strategy surfaces.
+Reassess the next Level 6 maturity gap from active strategy/planner surfaces.
 
 Status:
 Recommended next; not yet selected.
 
+Files changed:
+- Last product slice: `lib/orbital_dynamics/campaign_planner.ex`
+- Last product slice: `test/orbital_dynamics/campaign_planner_test.exs`
+- Ledger only: `.codex/status/autonomous_product_loop.md`
+
+Tests run:
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:43680`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:44000 test/orbital_dynamics/campaign_planner_test.exs:44081 test/orbital_dynamics/campaign_planner_test.exs:44208 test/orbital_dynamics/campaign_planner_test.exs:44600 test/orbital_dynamics/campaign_planner_test.exs:63747`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:6875 test/orbital_dynamics/campaign_planner_test.exs:18418`
+- `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
+- `mix compile --warnings-as-errors`
+- `git diff --check`
+- `rg -n "IO\\.inspect|handoff mismatch" lib/orbital_dynamics test/orbital_dynamics/campaign_planner_test.exs`
+
+Note:
+Targeted test runs emitted the known `0.0` fixture warning; compile with
+warnings-as-errors passed.
+
+Docs/artifacts changed:
+No public docs or schema artifacts changed; behavior stayed within V3 strategy
+score/explanation output.
+
+Level 6 pillar advanced:
+Reproducible V3 branch trees with explainable score terms and deltas.
+
 Last completed slice:
-Preserved selected resource-projection context on V3 recommendation
-review/import rows.
+Split resource-projection downlink-gap pressure into a named V3 score term and
+strategy tradeoff dimension.
 
 What changed:
-- `OrbitalDynamics.RecommendationRiskContext` now owns a scoped
-  `resource_projection_pressure_*` selected-context contract for
-  resource-projection feedback risks.
-- Strategy recommendation review rows, selected Cadence import rows, and
-  review-package Cadence import conversion retain projected downlink-gap
-  requirements, source-activity identity, downlink demand/completion provenance,
-  projected margin/availability/activity-type fields when present, feedback
-  source, trust boundary, and derivation details.
-- The selected-pressure strategy recommendation fixture now includes a
-  scoped resource-projection downlink-gap event and asserts identical handoff
-  context across all selected review/import surfaces.
-- Existing prior-plan, mission-state, result-artifact, duplicate-source, and
-  review/import resource-projection pressure replay remain unchanged.
-- Resource-margin selected context remains intact; resource-projection rows now
-  also have a scoped selected handoff when feedback scope is
-  `resource_projection`.
-- Parent performed the bounded local review and mechanical publish steps because
-  no subagent tool was available in this runtime.
+- `resource_projection` `downlink_completion_gap` risks now produce
+  `resource_projection_pressure_penalty`.
+- That risk is subtracted from generic `risk_penalty` and included in
+  raw/expected score terms.
+- Strategy recommendation tradeoffs include `resource_projection_pressure`.
+- Focused tests prove the pressure branch has the named penalty, score-term
+  report row, and tradeoff dimension.
+- Existing resource-margin/resource-availability scoring and
+  resource-projection replay behavior stayed unchanged.
+- Parent performed bounded local review and mechanical publish because no
+  suitable subagent tool is available in this runtime.
 
-Verification:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:43680 test/orbital_dynamics/campaign_planner_test.exs:44000 test/orbital_dynamics/campaign_planner_test.exs:44081 test/orbital_dynamics/campaign_planner_test.exs:44208 test/orbital_dynamics/campaign_planner_test.exs:44600 test/orbital_dynamics/campaign_planner_test.exs:63747`
-- `mix compile --warnings-as-errors`
-- `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
-- `git diff --check`
-- `rg -n "IO\.inspect|handoff mismatch" lib/orbital_dynamics test/orbital_dynamics/campaign_planner_test.exs`
+Last commit:
+- Product: `ae20d8f` Split resource projection pressure scoring
+- Ledger: pending
 
-Published commits:
-- `28598a5` Refresh V1 campaign fixture drift
-- `5bc4f1f` Update autonomous loop handoff
-- `474eed2` Preserve provider counteroffer recommendation context
-- `0181bf2` Update autonomous loop handoff
-- `5fd942e` Preserve candidate rejection recommendation context
-- `26efb85` Update autonomous loop handoff
-- `d8c94af` Preserve model acceptance recommendation context
-- `9a83a63` Update autonomous loop handoff
-- `c42aa31` Preserve schema validation recommendation context
-- `d740ac4` Update autonomous loop handoff
-- `68646bc` Preserve refresh budget recommendation context
-- `d78d2cf` Update autonomous loop handoff
-- `181bff6` Preserve refresh freshness recommendation context
-- `2922d32` Update autonomous loop handoff
-- `f06caa5` Preserve validation safety case recommendation context
-- `3052235` Update autonomous loop handoff
-- `ce6fa7e` Consolidate validation refresh recommendation context
-- `6060c19` Update autonomous loop handoff
-- `5d4396c` Preserve approval boundary recommendation context
-- `85ce3c0` Update autonomous loop handoff
-- `fdc6aa1` Preserve provider reservation recommendation context
-- `4f13476` Update autonomous loop handoff
-- `3a65d52` Preserve capacity pack recommendation context
-- `1914c39` Update autonomous loop handoff
-- `97e6e72` Preserve station reservation recommendation context
-- `07d2368` Update autonomous loop handoff
-- `6256ffe` Preserve reservation hold import recommendation context
-- `dd09125` Update autonomous loop handoff
-- `68028bc` Preserve precondition recommendation context
-- `f9c9c51` Update autonomous loop handoff
-- `01ccc07` Preserve timeline preservation recommendation context
-- `254a23d` Update autonomous loop handoff
-- `36b53a1` Preserve publication recommendation context
-- `981924a` Update autonomous loop handoff
-- `d5e57c6` Preserve lifecycle recommendation context
-- `9096f35` Update autonomous loop handoff
-- `96e21e8` Preserve activity lifecycle recommendation context
-- `421229a` Update autonomous loop handoff
-- `ab800e7` Preserve dependency impact recommendation context
-- `6bc2137` Update autonomous loop handoff
-- `97b537d` Preserve resource margin recommendation context
-- `7acf60d` Update autonomous loop handoff
-- `c7f6671` Preserve maneuver uncertainty recommendation context
-- `e0d7e23` Update autonomous loop handoff
-- `49211bf` Preserve timeline integrity recommendation context
-- `cb8051a` Update autonomous loop handoff
-- `3d6e253` Preserve execution success recommendation context
-- `ae6904d` Update autonomous loop handoff
-- `772f40d` Preserve operational feedback recommendation context
-- `42b29a2` Update autonomous loop handoff
-- `1a7c485` Preserve relay data path recommendation context
-- `b5dee0c` Update autonomous loop handoff
-- `d87058e` Preserve link capacity recommendation context
-- `d7e4c4d` Update autonomous loop handoff
-- `dce8964` Preserve contact intent recommendation context
-- `416dc9b` Update autonomous loop handoff
-- `0db1f7d` Preserve station calendar recommendation context
-- `92cd55f` Update autonomous loop handoff
-- `55d5d5c` Preserve score term recommendation context
-- `ef09e53` Update autonomous loop handoff
-- `233c741` Preserve objective satisfaction recommendation context
-- `80ddf0f` Update autonomous loop handoff
-- `e457730` Preserve objective tradeoff recommendation context
-- `be852b3` Update autonomous loop handoff
-- `fc5229d` Preserve contact allocation recommendation context
-- `fd0f778` Update autonomous loop handoff
-- `33f469f` Preserve contact filter recommendation context
-- `a96f59a` Update autonomous loop handoff
-- `a97918b` Preserve resource filter recommendation context
-- `afb3329` Update autonomous loop handoff
-- `cac70ff` Preserve contact contention resolution context
-- `056e6d1` Update autonomous loop handoff
-- `0c98cd5` Preserve contact contention recommendation context
-- `bab2e8c` Update autonomous loop handoff
-- `a8bc9cb` Preserve resource projection recommendation context
+Remaining maturity gaps:
+- Continue making existing review evidence planner-visible through candidate
+  selection, branch scoring, compatibility checks, and challenge fixtures.
+- Consider challenge fixture for contradictory provider calendar, reservation,
+  and contact-allocation evidence.
+- Consider readiness/quality-gate pressure affecting candidate selection or
+  branch recommendation beyond review/import handoff.
+- Consider exact compatibility fixture for a resource/contact artifact family
+  without curated reference coverage.
 
-Next suggested slice:
-After this slice, re-audit active strategy surfaces for the next pressure
-family whose selected recommendation review/import handoff is weaker than the
-branch explanation.
+Next candidate:
+Reassess current strategy/planner surfaces after this scoring slice; prefer a
+small Level 6 slice that converts existing review evidence into candidate
+selection, branch scoring, compatibility checks, or challenge fixtures.
 
-Unrelated local changes:
+Blocked:
+Not blocked.
+
+Notes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
+- Sidecar delegation is unavailable in this runtime; parent uses the same
+  bounded review and mechanical publish scope.
