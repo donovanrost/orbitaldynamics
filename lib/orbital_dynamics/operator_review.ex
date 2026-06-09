@@ -9915,6 +9915,7 @@ defmodule OrbitalDynamics.OperatorReview do
             "selected_dependency_order_violation_timeline_ids",
             "selected_exclusivity_violation_activity_ids",
             "selected_exclusivity_violation_timeline_ids",
+            "selected_exclusivity_violation_group",
             "transition_application_provenance"
           ])
         )
@@ -10166,6 +10167,7 @@ defmodule OrbitalDynamics.OperatorReview do
         row["selected_exclusivity_violation_activity_ids"],
       "selected_exclusivity_violation_timeline_ids" =>
         row["selected_exclusivity_violation_timeline_ids"],
+      "selected_exclusivity_violation_group" => row["selected_exclusivity_violation_group"],
       "source_timeline_diff" => row
     }
     |> compact_map()

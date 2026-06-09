@@ -5559,6 +5559,7 @@ defmodule OrbitalDynamics.CadenceImport do
         row["selected_exclusivity_violation_activity_ids"],
       "selected_exclusivity_violation_timeline_ids" =>
         row["selected_exclusivity_violation_timeline_ids"],
+      "selected_exclusivity_violation_group" => row["selected_exclusivity_violation_group"],
       "approval_status" => approval_status,
       "policy_classification" => row["policy_classification"],
       "approval_rule_matches" => row["approval_rule_matches"],

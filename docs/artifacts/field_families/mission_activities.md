@@ -218,7 +218,10 @@ callers no longer need to hide durable timeline identity under metadata.
 Operational timeline rows and activity contexts expose the same overlap policy
 as canonical `allow_overlap` booleans, and timeline diffs compare that field so
 repair/review handoffs cannot silently relax or tighten schedule-overlap
-constraints.
+constraints. Selected transition-application handoffs preserve
+`selected_exclusivity_violation_group` alongside selected violation activity and
+timeline IDs, so operator review and Cadence import rows keep group-level
+overlap conflicts self-contained.
 Typed activities preserve explicit `source_window_type` and nested
 `source_window` provenance next to `source_window_id`, deriving the canonical
 ID/type from provider-shaped nested windows (`id`, `window_id`, `type`, `kind`,

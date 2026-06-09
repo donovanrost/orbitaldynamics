@@ -6330,7 +6330,8 @@ defmodule OrbitalDynamics.Timeline do
       "selected_exclusivity_violation_activity_ids" =>
         selected_activity["exclusivity_violation_activity_ids"],
       "selected_exclusivity_violation_timeline_ids" =>
-        selected_activity["exclusivity_violation_timeline_ids"]
+        selected_activity["exclusivity_violation_timeline_ids"],
+      "selected_exclusivity_violation_group" => selected_activity["exclusivity_violation_group"]
     }
   end
 

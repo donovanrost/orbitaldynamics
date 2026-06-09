@@ -9158,6 +9158,94 @@ defmodule OrbitalDynamics.TimelineTest do
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
              Schema.validate_artifact(manifest)
+
+    group_obs_overlap = %{
+      id: :group_obs_overlap,
+      type: :observe,
+      target_id: :target_a,
+      status: :planned,
+      approval_status: :approved,
+      locked: true,
+      starts_at_s: 30.0,
+      ends_at_s: 40.0,
+      exclusivity_group: :station_dss_14,
+      metadata: %{timeline_id: :"timeline:group_obs_overlap"}
+    }
+
+    group_dl_overlap = %{
+      id: :group_dl_overlap,
+      type: :downlink,
+      ground_station_id: :dss_14,
+      status: :planned,
+      approval_status: :approved,
+      locked: true,
+      starts_at_s: 35.0,
+      ends_at_s: 45.0,
+      exclusivity_group: :station_dss_14,
+      metadata: %{timeline_id: :"timeline:group_dl_overlap"}
+    }
+
+    group_report =
+      Timeline.transition_application_report([group_obs_overlap, group_dl_overlap], [],
+        validate_selected_dependencies?: false
+      )
+
+    assert %{
+             "selected_timeline_integrity_issue_types" => ["exclusivity_group_overlap"],
+             "selected_exclusivity_violation_activity_ids" => ["group_dl_overlap"],
+             "selected_exclusivity_violation_timeline_ids" => ["timeline:group_dl_overlap"],
+             "selected_exclusivity_violation_group" => "station_dss_14",
+             "selected_activity" => %{
+               "exclusivity_violation_activity_ids" => ["group_dl_overlap"],
+               "exclusivity_violation_timeline_ids" => ["timeline:group_dl_overlap"],
+               "exclusivity_violation_group" => "station_dss_14"
+             }
+           } =
+             Enum.find(
+               group_report["applications"],
+               &(&1["timeline_id"] == "timeline:group_obs_overlap")
+             )
+
+    group_review = OperatorReview.from_timeline_transition_application_report(group_report)
+
+    group_review_row =
+      Enum.find(group_review["rows"], &(&1["timeline_id"] == "timeline:group_obs_overlap"))
+
+    assert %{
+             "selected_exclusivity_violation_group" => "station_dss_14",
+             "source_timeline_application" => %{
+               "selected_exclusivity_violation_group" => "station_dss_14"
+             }
+           } = group_review_row
+
+    group_manifest = CadenceImport.from_timeline_transition_application_report(group_report)
+
+    group_manifest_row =
+      Enum.find(group_manifest["rows"], &(&1["timeline_id"] == "timeline:group_obs_overlap"))
+
+    assert %{
+             "selected_exclusivity_violation_group" => "station_dss_14",
+             "source_review_row" => %{
+               "selected_exclusivity_violation_group" => "station_dss_14"
+             }
+           } = group_manifest_row
+
+    assert {:ok, %{"schema_contract" => "timeline_transition_application_report.v1"}} =
+             Schema.validate_artifact(group_report)
+
+    assert_rejects_stale_transition_selected_activity_evidence(
+      group_report,
+      "timeline:group_obs_overlap",
+      "selected_exclusivity_violation_group",
+      "station_other",
+      "exclusivity_violation_group"
+    )
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(group_review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(group_manifest)
   end
 
   test "classifies lock approved and executed preservation decisions" do
