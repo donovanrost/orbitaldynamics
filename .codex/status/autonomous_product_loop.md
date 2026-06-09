@@ -8,7 +8,7 @@ Current slice:
 Harden station-calendar pressure score helper evidence.
 
 Status:
-Implemented and verified locally; ready for mechanical commit/push handoff.
+Completed and pushed in product commit `ba914f0`.
 
 Slice-selection note:
 - Selected slice: add a shared station-calendar pressure score helper and use
@@ -74,8 +74,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-Pending mechanical publish for this slice; previous product commit was
-`7aa4ac2` Harden contact allocation pressure helper.
+`ba914f0` Harden station calendar pressure helper.
 
 Next candidate:
 After this station-calendar helper hardening, continue with the next
@@ -87,6 +86,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `ba914f0` hardened shared station-calendar pressure helper coverage for split
+  branch math and score-term report rows.
 - `7aa4ac2` hardened shared contact-allocation pressure helper coverage for
   split branch math and score-term report rows.
 - `32bb1cf` applied shared quality-gate pressure helper coverage to direct and
