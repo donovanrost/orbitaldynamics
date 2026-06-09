@@ -3541,6 +3541,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp model_acceptance_pressure_risk?(_risk), do: false
 
+  defp schema_validation_pressure_risk?(%{"feedback_scope" => "schema_validation"}),
+    do: true
+
+  defp schema_validation_pressure_risk?(%{"type" => "schema_validation_pressure"}),
+    do: true
+
+  defp schema_validation_pressure_risk?(_risk), do: false
+
   defp validation_refresh_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &validation_refresh_pressure_risk?/1)
   end
@@ -3717,6 +3725,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     quality_gate_replay =
       CandidateRefresh.quality_gate_replay_summary(candidate_source)
 
+    schema_validation_replay =
+      CandidateRefresh.schema_validation_replay_summary(candidate_source)
+
     model_acceptance_replay =
       CandidateRefresh.model_acceptance_replay_summary(candidate_source)
 
@@ -3759,6 +3770,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       event_risks
     )
     |> maybe_add_candidate_source_quality_gate_risks(quality_gate_replay, event_risks)
+    |> maybe_add_candidate_source_schema_validation_risks(schema_validation_replay, event_risks)
     |> maybe_add_candidate_source_model_acceptance_risks(model_acceptance_replay, event_risks)
     |> maybe_add_candidate_source_timeline_activity_state_risks(
       activity_state_replay,
@@ -3854,6 +3866,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
       risks
     else
       risks ++ quality_gate_replay_pressure_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_schema_validation_risks(risks, replay_summary, event_risks) do
+    if Enum.any?(event_risks, &schema_validation_pressure_risk?/1) do
+      risks
+    else
+      risks ++ schema_validation_replay_pressure_risks(replay_summary)
     end
   end
 
@@ -4692,6 +4712,102 @@ defmodule OrbitalDynamics.CampaignPlanner do
       summary_positive?(replay_summary, "review_gate_count") or
       summary_positive?(replay_summary, "blocked_gate_count") or
       summary_positive?(replay_summary, "non_passed_gate_count")
+  end
+
+  defp schema_validation_replay_pressure_risks(%{} = replay_summary) do
+    if schema_validation_replay_scoring_pressure?(replay_summary) do
+      schema_validation_replay_pressure_risk(replay_summary)
+    else
+      []
+    end
+  end
+
+  defp schema_validation_replay_pressure_risks(_replay_summary), do: []
+
+  defp schema_validation_replay_scoring_pressure?(replay_summary) do
+    Map.get(replay_summary, "branch_local_validation_pressure") == true or
+      Map.get(replay_summary, "branch_local_schema_error_pressure") == true or
+      Map.get(replay_summary, "branch_local_schema_warning_pressure") == true or
+      Map.get(replay_summary, "branch_local_remediation_pressure") == true or
+      summary_positive?(replay_summary, "error_count") or
+      summary_positive?(replay_summary, "warning_count") or
+      summary_positive?(replay_summary, "remediation_count")
+  end
+
+  defp schema_validation_replay_pressure_risk(replay_summary) do
+    statuses = replay_summary |> Map.get("status_counts", %{}) |> map_keys()
+
+    validated_contracts =
+      replay_summary |> Map.get("validated_contract_counts", %{}) |> map_keys()
+
+    validation_modes = replay_summary |> Map.get("validation_mode_counts", %{}) |> map_keys()
+
+    remediation_actions =
+      replay_summary |> Map.get("remediation_action_counts", %{}) |> map_keys()
+
+    remediation_categories =
+      replay_summary |> Map.get("remediation_category_counts", %{}) |> map_keys()
+
+    remediation_paths = replay_summary |> Map.get("remediation_path_counts", %{}) |> map_keys()
+
+    issue_severity =
+      cond do
+        summary_positive?(replay_summary, "error_count") -> "error"
+        summary_positive?(replay_summary, "warning_count") -> "warning"
+        true -> nil
+      end
+
+    [
+      %{
+        "type" => "schema_validation_pressure",
+        "severity" =>
+          validation_refresh_pressure_risk_severity(%{
+            "validation_status" => pressure_priority_value(statuses),
+            "issue_severity" => issue_severity,
+            "required_operator_action" => "review_schema_validation"
+          }),
+        "reason" =>
+          "candidate source schema-validation replay reports failing, warning, or remediation pressure",
+        "source_report_count" => Map.get(replay_summary, "source_report_count"),
+        "source_report_row_count" => Map.get(replay_summary, "source_report_row_count"),
+        "source_report_paths" => Map.get(replay_summary, "source_report_paths"),
+        "status_counts" => Map.get(replay_summary, "status_counts"),
+        "validated_contract_counts" => Map.get(replay_summary, "validated_contract_counts"),
+        "validation_mode_counts" => Map.get(replay_summary, "validation_mode_counts"),
+        "error_count" => Map.get(replay_summary, "error_count"),
+        "warning_count" => Map.get(replay_summary, "warning_count"),
+        "remediation_count" => Map.get(replay_summary, "remediation_count"),
+        "remediation_action_counts" => Map.get(replay_summary, "remediation_action_counts"),
+        "remediation_category_counts" => Map.get(replay_summary, "remediation_category_counts"),
+        "remediation_path_counts" => Map.get(replay_summary, "remediation_path_counts"),
+        "validation_status" => pressure_priority_value(statuses),
+        "validation_statuses" => statuses,
+        "validation_mode" => pressure_priority_value(validation_modes),
+        "validation_modes" => validation_modes,
+        "validated_contract" => pressure_priority_value(validated_contracts),
+        "validated_contracts" => validated_contracts,
+        "issue_severity" => issue_severity,
+        "remediation_action" => pressure_priority_value(remediation_actions),
+        "remediation_actions" => remediation_actions,
+        "remediation_category" => pressure_priority_value(remediation_categories),
+        "remediation_categories" => remediation_categories,
+        "remediation_paths" => remediation_paths,
+        "branch_local_validation_pressure" =>
+          Map.get(replay_summary, "branch_local_validation_pressure"),
+        "branch_local_schema_error_pressure" =>
+          Map.get(replay_summary, "branch_local_schema_error_pressure"),
+        "branch_local_schema_warning_pressure" =>
+          Map.get(replay_summary, "branch_local_schema_warning_pressure"),
+        "branch_local_remediation_pressure" =>
+          Map.get(replay_summary, "branch_local_remediation_pressure"),
+        "feedback_source" => "candidate_source.schema_validation_replay_summary",
+        "feedback_scope" => "schema_validation",
+        "feedback_key" => "schema_validation",
+        "trust_boundary_status" => Map.get(replay_summary, "trust_boundary_status"),
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries")
+      }
+      |> compact_map()
+    ]
   end
 
   defp model_acceptance_replay_pressure_risks(%{} = replay_summary) do

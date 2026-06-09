@@ -28577,6 +28577,60 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "mission_state.source_schema_validation_report"
            ]
 
+    schema_validation_pressure_count =
+      Enum.count(
+        urgent["risk_indicators"],
+        &(&1["type"] == "schema_validation_pressure" and
+            &1["feedback_source"] == "candidate_source.schema_validation_replay_summary")
+      )
+
+    assert schema_validation_pressure_count == 1
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "schema_validation_pressure" and
+                 &1["feedback_scope"] == "schema_validation" and
+                 &1["severity"] == "high" and
+                 &1["source_report_count"] == 4 and
+                 &1["source_report_row_count"] == 4 and
+                 &1["source_report_paths"] == replay_source_paths and
+                 &1["status_counts"] == %{"fail" => 1, "pass" => 1, "warning" => 2} and
+                 &1["validated_contract_counts"] == %{
+                   "campaign_plan.v1" => 1,
+                   "campaign_strategy.v3" => 1,
+                   "candidate_refresh.v1" => 1,
+                   "operator_review_package.v1" => 1
+                 } and
+                 &1["validation_mode_counts"] == %{"artifact" => 3, "artifact_file" => 1} and
+                 &1["error_count"] == 2 and
+                 &1["warning_count"] == 3 and
+                 &1["remediation_count"] == 4 and
+                 &1["remediation_action_counts"] == %{
+                   "populate_id" => 1,
+                   "populate_type" => 1,
+                   "review_canonical_schema_warning" => 1,
+                   "review_warning" => 1
+                 } and
+                 &1["remediation_category_counts"] == %{
+                   "canonical_schema_warning" => 1,
+                   "missing_required_field" => 2,
+                   "schema_warning" => 1
+                 } and
+                 &1["remediation_path_counts"] == %{
+                   "$.candidate_activities[0].id" => 1,
+                   "$.candidate_activities[0].type" => 1,
+                   "$.operator_review.rows[0].source" => 1,
+                   "$.warnings[0]" => 1
+                 } and
+                 &1["issue_severity"] == "error" and
+                 &1["branch_local_validation_pressure"] == true and
+                 &1["branch_local_schema_error_pressure"] == true and
+                 &1["branch_local_schema_warning_pressure"] == true and
+                 &1["branch_local_remediation_pressure"] == true)
+           )
+
+    assert_validation_refresh_pressure_score_terms(urgent, artifact, "schema_validation")
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
