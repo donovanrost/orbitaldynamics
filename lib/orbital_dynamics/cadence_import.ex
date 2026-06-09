@@ -3061,6 +3061,13 @@ defmodule OrbitalDynamics.CadenceImport do
             Map.get(&1, "type") == "model_acceptance_pressure")
       )
 
+    schema_validation_risks =
+      Enum.filter(
+        risks,
+        &(Map.get(&1, "feedback_scope") == "schema_validation" or
+            Map.get(&1, "type") == "schema_validation_pressure")
+      )
+
     provider_counteroffer_risks =
       Enum.filter(
         risks,
@@ -3227,6 +3234,40 @@ defmodule OrbitalDynamics.CadenceImport do
         risk_context_values(model_acceptance_risks, "feedback_key"),
       "model_acceptance_trust_boundaries" =>
         risk_context_values(model_acceptance_risks, "trust_boundary"),
+      "schema_validation_statuses" =>
+        risk_context_values(schema_validation_risks, "validation_status"),
+      "schema_validation_modes" =>
+        risk_context_values(schema_validation_risks, "validation_mode"),
+      "schema_validation_validated_contracts" =>
+        risk_context_values(schema_validation_risks, "validated_contract"),
+      "schema_validation_artifact_families" =>
+        risk_context_values(schema_validation_risks, "validated_artifact_family"),
+      "schema_validation_artifact_paths" =>
+        risk_context_values(schema_validation_risks, "artifact_path"),
+      "schema_validation_issue_severities" =>
+        risk_context_values(schema_validation_risks, "issue_severity"),
+      "schema_validation_issue_paths" =>
+        risk_context_values(schema_validation_risks, "issue_path"),
+      "schema_validation_error_count_values" =>
+        risk_context_values(schema_validation_risks, "error_count"),
+      "schema_validation_warning_count_values" =>
+        risk_context_values(schema_validation_risks, "warning_count"),
+      "schema_validation_remediation_count_values" =>
+        risk_context_values(schema_validation_risks, "remediation_count"),
+      "schema_validation_remediation_categories" =>
+        risk_context_values(schema_validation_risks, "remediation_category"),
+      "schema_validation_remediation_actions" =>
+        risk_context_values(schema_validation_risks, "remediation_action"),
+      "schema_validation_required_operator_actions" =>
+        risk_context_values(schema_validation_risks, "required_operator_action"),
+      "schema_validation_feedback_sources" =>
+        risk_context_values(schema_validation_risks, "feedback_source"),
+      "schema_validation_feedback_scopes" =>
+        risk_context_values(schema_validation_risks, "feedback_scope"),
+      "schema_validation_feedback_keys" =>
+        risk_context_values(schema_validation_risks, "feedback_key"),
+      "schema_validation_trust_boundaries" =>
+        risk_context_values(schema_validation_risks, "trust_boundary"),
       "provider_counteroffer_ids" =>
         risk_context_values(provider_counteroffer_risks, "provider_counteroffer_id"),
       "provider_counteroffer_statuses" =>
@@ -6423,6 +6464,26 @@ defmodule OrbitalDynamics.CadenceImport do
       "model_acceptance_feedback_scopes" => row["model_acceptance_feedback_scopes"],
       "model_acceptance_feedback_keys" => row["model_acceptance_feedback_keys"],
       "model_acceptance_trust_boundaries" => row["model_acceptance_trust_boundaries"],
+      "schema_validation_statuses" => row["schema_validation_statuses"],
+      "schema_validation_modes" => row["schema_validation_modes"],
+      "schema_validation_validated_contracts" => row["schema_validation_validated_contracts"],
+      "schema_validation_artifact_families" => row["schema_validation_artifact_families"],
+      "schema_validation_artifact_paths" => row["schema_validation_artifact_paths"],
+      "schema_validation_issue_severities" => row["schema_validation_issue_severities"],
+      "schema_validation_issue_paths" => row["schema_validation_issue_paths"],
+      "schema_validation_error_count_values" => row["schema_validation_error_count_values"],
+      "schema_validation_warning_count_values" => row["schema_validation_warning_count_values"],
+      "schema_validation_remediation_count_values" =>
+        row["schema_validation_remediation_count_values"],
+      "schema_validation_remediation_categories" =>
+        row["schema_validation_remediation_categories"],
+      "schema_validation_remediation_actions" => row["schema_validation_remediation_actions"],
+      "schema_validation_required_operator_actions" =>
+        row["schema_validation_required_operator_actions"],
+      "schema_validation_feedback_sources" => row["schema_validation_feedback_sources"],
+      "schema_validation_feedback_scopes" => row["schema_validation_feedback_scopes"],
+      "schema_validation_feedback_keys" => row["schema_validation_feedback_keys"],
+      "schema_validation_trust_boundaries" => row["schema_validation_trust_boundaries"],
       "provider_counteroffer_ids" => row["provider_counteroffer_ids"],
       "provider_counteroffer_statuses" => row["provider_counteroffer_statuses"],
       "provider_counteroffer_negotiation_states" =>

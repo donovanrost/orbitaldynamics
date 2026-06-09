@@ -18603,6 +18603,26 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 feedback_scope: "model_acceptance",
                 feedback_key: "live_analysis_model",
                 trust_boundary: "mission_state_model_acceptance_report"
+              },
+              %{
+                type: "schema_validation_pressure",
+                validation_status: "fail",
+                validation_mode: "artifact_file",
+                validated_contract: "candidate_refresh.v1",
+                validated_artifact_family: "candidate_refresh",
+                artifact_path: "study_results/candidate_refresh.json",
+                issue_severity: "error",
+                issue_path: "$.candidate_plan.activities[0].id",
+                error_count: 1,
+                warning_count: 0,
+                remediation_count: 1,
+                remediation_category: "schema_contract",
+                remediation_action: "regenerate_candidate_refresh",
+                required_operator_action: "review_schema_validation",
+                feedback_source: "mission_state.source_schema_validation_report.errors",
+                feedback_scope: "schema_validation",
+                feedback_key: "$.candidate_plan.activities[0].id",
+                trust_boundary: "mission_state_schema_validation_report"
               }
             ]
           }
@@ -18775,6 +18795,34 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                explanation,
                &(&1["type"] == "risk_driver" and
                    &1["risk_type"] == "model_acceptance_pressure")
+             )
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "schema_validation_pressure",
+             "severity" => "high",
+             "validation_status" => "fail",
+             "validation_mode" => "artifact_file",
+             "validated_contract" => "candidate_refresh.v1",
+             "validated_artifact_family" => "candidate_refresh",
+             "artifact_path" => "study_results/candidate_refresh.json",
+             "issue_severity" => "error",
+             "issue_path" => "$.candidate_plan.activities[0].id",
+             "error_count" => 1,
+             "warning_count" => 0,
+             "remediation_count" => 1,
+             "remediation_category" => "schema_contract",
+             "remediation_action" => "regenerate_candidate_refresh",
+             "required_operator_action" => "review_schema_validation",
+             "feedback_source" => "mission_state.source_schema_validation_report.errors",
+             "feedback_scope" => "schema_validation",
+             "feedback_key" => "$.candidate_plan.activities[0].id",
+             "trust_boundary" => "mission_state_schema_validation_report"
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "schema_validation_pressure")
              )
 
     assert %{
@@ -18951,6 +18999,27 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "model_acceptance_feedback_keys" => ["live_analysis_model"],
       "model_acceptance_trust_boundaries" => [
         "mission_state_model_acceptance_report"
+      ],
+      "schema_validation_statuses" => ["fail"],
+      "schema_validation_modes" => ["artifact_file"],
+      "schema_validation_validated_contracts" => ["candidate_refresh.v1"],
+      "schema_validation_artifact_families" => ["candidate_refresh"],
+      "schema_validation_artifact_paths" => ["study_results/candidate_refresh.json"],
+      "schema_validation_issue_severities" => ["error"],
+      "schema_validation_issue_paths" => ["$.candidate_plan.activities[0].id"],
+      "schema_validation_error_count_values" => [1],
+      "schema_validation_warning_count_values" => [0],
+      "schema_validation_remediation_count_values" => [1],
+      "schema_validation_remediation_categories" => ["schema_contract"],
+      "schema_validation_remediation_actions" => ["regenerate_candidate_refresh"],
+      "schema_validation_required_operator_actions" => ["review_schema_validation"],
+      "schema_validation_feedback_sources" => [
+        "mission_state.source_schema_validation_report.errors"
+      ],
+      "schema_validation_feedback_scopes" => ["schema_validation"],
+      "schema_validation_feedback_keys" => ["$.candidate_plan.activities[0].id"],
+      "schema_validation_trust_boundaries" => [
+        "mission_state_schema_validation_report"
       ]
     }
 
@@ -22171,7 +22240,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert Enum.any?(
              direct_branch["risk_indicators"],
-             &(&1["type"] == "provider_counteroffer_review" and
+             &(&1["type"] == "provider_counteroffer_pressure" and
                  &1["plan_impact_status"] == "review_required")
            )
 
@@ -22199,7 +22268,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         &(&1["branch_id"] == "derived_provider_counteroffer_pressure_direct_counteroffer")
       )
 
-    assert "provider_counteroffer_review" in comparison_row["risk_types"]
+    assert "provider_counteroffer_pressure" in comparison_row["risk_types"]
 
     assert comparison_row["branch_station_calendar_provider_entry_ids"] == [
              "direct_provider_offer"
@@ -43690,7 +43759,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert Enum.any?(
              counteroffer_branch["risk_indicators"],
-             &(&1["type"] == "provider_counteroffer_review" and
+             &(&1["type"] == "provider_counteroffer_pressure" and
                  &1["provider_counteroffer_id"] == "provider_offer_1")
            )
 

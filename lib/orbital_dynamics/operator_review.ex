@@ -16047,6 +16047,13 @@ defmodule OrbitalDynamics.OperatorReview do
             Map.get(&1, "type") == "model_acceptance_pressure")
       )
 
+    schema_validation_risks =
+      Enum.filter(
+        risks,
+        &(Map.get(&1, "feedback_scope") == "schema_validation" or
+            Map.get(&1, "type") == "schema_validation_pressure")
+      )
+
     provider_counteroffer_risks =
       Enum.filter(
         risks,
@@ -16213,6 +16220,40 @@ defmodule OrbitalDynamics.OperatorReview do
         risk_context_values(model_acceptance_risks, "feedback_key"),
       "model_acceptance_trust_boundaries" =>
         risk_context_values(model_acceptance_risks, "trust_boundary"),
+      "schema_validation_statuses" =>
+        risk_context_values(schema_validation_risks, "validation_status"),
+      "schema_validation_modes" =>
+        risk_context_values(schema_validation_risks, "validation_mode"),
+      "schema_validation_validated_contracts" =>
+        risk_context_values(schema_validation_risks, "validated_contract"),
+      "schema_validation_artifact_families" =>
+        risk_context_values(schema_validation_risks, "validated_artifact_family"),
+      "schema_validation_artifact_paths" =>
+        risk_context_values(schema_validation_risks, "artifact_path"),
+      "schema_validation_issue_severities" =>
+        risk_context_values(schema_validation_risks, "issue_severity"),
+      "schema_validation_issue_paths" =>
+        risk_context_values(schema_validation_risks, "issue_path"),
+      "schema_validation_error_count_values" =>
+        risk_context_values(schema_validation_risks, "error_count"),
+      "schema_validation_warning_count_values" =>
+        risk_context_values(schema_validation_risks, "warning_count"),
+      "schema_validation_remediation_count_values" =>
+        risk_context_values(schema_validation_risks, "remediation_count"),
+      "schema_validation_remediation_categories" =>
+        risk_context_values(schema_validation_risks, "remediation_category"),
+      "schema_validation_remediation_actions" =>
+        risk_context_values(schema_validation_risks, "remediation_action"),
+      "schema_validation_required_operator_actions" =>
+        risk_context_values(schema_validation_risks, "required_operator_action"),
+      "schema_validation_feedback_sources" =>
+        risk_context_values(schema_validation_risks, "feedback_source"),
+      "schema_validation_feedback_scopes" =>
+        risk_context_values(schema_validation_risks, "feedback_scope"),
+      "schema_validation_feedback_keys" =>
+        risk_context_values(schema_validation_risks, "feedback_key"),
+      "schema_validation_trust_boundaries" =>
+        risk_context_values(schema_validation_risks, "trust_boundary"),
       "provider_counteroffer_ids" =>
         risk_context_values(provider_counteroffer_risks, "provider_counteroffer_id"),
       "provider_counteroffer_statuses" =>
