@@ -11,32 +11,32 @@ Status:
 Recommended next; not yet selected.
 
 Last completed slice:
-Preserved selected contact-contention conflict context on V3 recommendation
+Preserved selected resource-projection context on V3 recommendation
 review/import rows.
 
 What changed:
 - `OrbitalDynamics.RecommendationRiskContext` now owns a scoped
-  `contact_contention_pressure_*` selected-context contract for
-  contact-contention conflict feedback risks.
+  `resource_projection_pressure_*` selected-context contract for
+  resource-projection feedback risks.
 - Strategy recommendation review rows, selected Cadence import rows, and
-  review-package Cadence import conversion retain conflict-group identity,
-  resource scope, contending contact ids, operator action/reason, approval
-  status, source-window evidence, downlink requirements/provenance, feedback
+  review-package Cadence import conversion retain projected downlink-gap
+  requirements, source-activity identity, downlink demand/completion provenance,
+  projected margin/availability/activity-type fields when present, feedback
   source, trust boundary, and derivation details.
 - The selected-pressure strategy recommendation fixture now includes a
-  contact-contention conflict event and asserts identical handoff context across
-  all selected review/import surfaces.
-- Existing prior-plan, mission-state, result-artifact, and review/import
-  contact-contention conflict replay remain unchanged.
-- Contact-contention-resolution selected context remains intact; conflict rows
-  now have their own scoped selected handoff when feedback scope is
-  `contact_contention`.
+  scoped resource-projection downlink-gap event and asserts identical handoff
+  context across all selected review/import surfaces.
+- Existing prior-plan, mission-state, result-artifact, duplicate-source, and
+  review/import resource-projection pressure replay remain unchanged.
+- Resource-margin selected context remains intact; resource-projection rows now
+  also have a scoped selected handoff when feedback scope is
+  `resource_projection`.
 - Parent performed the bounded local review and mechanical publish steps because
   no subagent tool was available in this runtime.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:51773 test/orbital_dynamics/campaign_planner_test.exs:51877 test/orbital_dynamics/campaign_planner_test.exs:63909`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:43680 test/orbital_dynamics/campaign_planner_test.exs:44000 test/orbital_dynamics/campaign_planner_test.exs:44081 test/orbital_dynamics/campaign_planner_test.exs:44208 test/orbital_dynamics/campaign_planner_test.exs:44600 test/orbital_dynamics/campaign_planner_test.exs:63747`
 - `mix compile --warnings-as-errors`
 - `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
@@ -116,6 +116,8 @@ Published commits:
 - `cac70ff` Preserve contact contention resolution context
 - `056e6d1` Update autonomous loop handoff
 - `0c98cd5` Preserve contact contention recommendation context
+- `bab2e8c` Update autonomous loop handoff
+- `a8bc9cb` Preserve resource projection recommendation context
 
 Next suggested slice:
 After this slice, re-audit active strategy surfaces for the next pressure
