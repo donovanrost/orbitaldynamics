@@ -5155,8 +5155,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "planned_contacts" => event["planned_contacts"],
         "required_downlink_mb" => event["required_downlink_mb"],
         "planned_downlink_mb" => event["planned_downlink_mb"],
+        "contact_id" => event["contact_id"],
         "contact_result" => event["contact_result"],
         "realized_status" => event["realized_status"],
+        "source_activity_id" => event["source_activity_id"],
         "source_activity_ids" => event["source_activity_ids"],
         "missed_downlink_activity_id" => event["missed_downlink_activity_id"],
         "missed_downlink_activity_ids" => event["missed_downlink_activity_ids"],
@@ -5169,7 +5171,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "capacity_pack_group_id" => event["capacity_pack_group_id"],
         "capacity_pack_status" => event["capacity_pack_status"],
         "capacity_pack_capacity_fraction" => event["capacity_pack_capacity_fraction"],
-        "capacity_pack_used_fraction" => event["capacity_pack_used_fraction"]
+        "capacity_pack_used_fraction" => event["capacity_pack_used_fraction"],
+        "capacity_pack_unused_fraction" => event["capacity_pack_unused_fraction"],
+        "required_capacity_fraction" => event["required_capacity_fraction"],
+        "required_capacity_fraction_source" => event["required_capacity_fraction_source"]
       }
       |> compact_map()
     ]
@@ -5710,6 +5715,26 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "feedback_scope",
       "trust_boundary",
       "assumptions"
+    ]
+  end
+
+  defp capacity_pack_pressure_risk_fields do
+    [
+      "contact_id",
+      "source_activity_id",
+      "source_activity_ids",
+      "ground_station_id",
+      "capacity_pack_group_id",
+      "capacity_pack_status",
+      "capacity_pack_capacity_fraction",
+      "capacity_pack_used_fraction",
+      "capacity_pack_unused_fraction",
+      "required_capacity_fraction",
+      "required_capacity_fraction_source",
+      "derivation_reasons",
+      "feedback_source",
+      "feedback_scope",
+      "trust_boundary"
     ]
   end
 
@@ -6705,6 +6730,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
          %{"type" => "provider_reservation_request_review"} = risk
        ) do
     Map.take(risk, provider_reservation_request_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(
+         %{"feedback_scope" => "contact_contention_resolution"} = risk
+       ) do
+    Map.take(risk, capacity_pack_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"capacity_pack_group_id" => _group_id} = risk) do
+    Map.take(risk, capacity_pack_pressure_risk_fields())
   end
 
   defp recommendation_pressure_risk_context(%{"feedback_scope" => "candidate_rejection"} = risk) do

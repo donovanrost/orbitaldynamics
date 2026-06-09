@@ -18558,6 +18558,31 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 }
               },
               %{
+                type: "downlink_completion_gap",
+                contact_id: "dl_capacity_overflow",
+                source_activity_id: "dl_capacity_overflow",
+                source_activity_ids: ["dl_capacity_overflow"],
+                ground_station_id: "equator_prime",
+                required_contacts: 1,
+                planned_contacts: 0,
+                required_downlink_mb: 47.0,
+                planned_downlink_mb: 0.0,
+                capacity_pack_group_id: "capacity_pack_equator_prime",
+                capacity_pack_status: "deferred_by_reduced_station_capacity_pack",
+                capacity_pack_capacity_fraction: 0.5,
+                capacity_pack_used_fraction: 0.5,
+                capacity_pack_unused_fraction: 0.0,
+                required_capacity_fraction: 0.25,
+                required_capacity_fraction_source: "contact_required_capacity_fraction",
+                derivation_reasons: [
+                  "contact_contention_deferred",
+                  "deferred_by_reduced_station_capacity_pack"
+                ],
+                feedback_source: "mission_state.source_contact_allocation_capacity_pack_summary",
+                feedback_scope: "contact_contention_resolution",
+                trust_boundary: "mission_state_capacity_pack_summary"
+              },
+              %{
                 type: "provider_counteroffer_pressure",
                 provider_counteroffer_id: "provider_offer_urgent",
                 provider_counteroffer_status: "proposed",
@@ -18853,6 +18878,41 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                &(&1["type"] == "risk_driver" and
                    &1["risk_type"] == "provider_reservation_request_review")
              )
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "downlink_completion_gap",
+             "severity" => "medium",
+             "contact_id" => "dl_capacity_overflow",
+             "source_activity_id" => "dl_capacity_overflow",
+             "source_activity_ids" => ["dl_capacity_overflow"],
+             "ground_station_id" => "equator_prime",
+             "required_contacts" => 1,
+             "planned_contacts" => 0,
+             "required_downlink_mb" => 47.0,
+             "planned_downlink_mb" => planned_downlink_mb,
+             "capacity_pack_group_id" => "capacity_pack_equator_prime",
+             "capacity_pack_status" => "deferred_by_reduced_station_capacity_pack",
+             "capacity_pack_capacity_fraction" => 0.5,
+             "capacity_pack_used_fraction" => 0.5,
+             "capacity_pack_unused_fraction" => capacity_pack_unused_fraction,
+             "required_capacity_fraction" => 0.25,
+             "required_capacity_fraction_source" => "contact_required_capacity_fraction",
+             "derivation_reasons" => [
+               "contact_contention_deferred",
+               "deferred_by_reduced_station_capacity_pack"
+             ],
+             "feedback_source" => "mission_state.source_contact_allocation_capacity_pack_summary",
+             "feedback_scope" => "contact_contention_resolution",
+             "trust_boundary" => "mission_state_capacity_pack_summary"
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and &1["contact_id"] == "dl_capacity_overflow")
+             )
+
+    assert planned_downlink_mb == 0.0
+    assert capacity_pack_unused_fraction == 0.0
 
     assert %{
              "type" => "risk_driver",
@@ -19226,6 +19286,27 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "provider_reservation_request_trust_boundaries" => [
         "mission_state_provider_reservation_request_summary"
       ],
+      "capacity_pack_risk_contact_ids" => ["dl_capacity_overflow"],
+      "capacity_pack_risk_source_activity_ids" => ["dl_capacity_overflow"],
+      "capacity_pack_risk_ground_station_ids" => ["equator_prime"],
+      "capacity_pack_risk_group_ids" => ["capacity_pack_equator_prime"],
+      "capacity_pack_risk_statuses" => ["deferred_by_reduced_station_capacity_pack"],
+      "capacity_pack_risk_capacity_fraction_values" => [0.5],
+      "capacity_pack_risk_used_fraction_values" => [0.5],
+      "capacity_pack_risk_unused_fraction_values" => [0.0],
+      "capacity_pack_risk_required_capacity_fraction_values" => [0.25],
+      "capacity_pack_risk_required_capacity_fraction_sources" => [
+        "contact_required_capacity_fraction"
+      ],
+      "capacity_pack_risk_derivation_reasons" => [
+        "contact_contention_deferred",
+        "deferred_by_reduced_station_capacity_pack"
+      ],
+      "capacity_pack_risk_feedback_sources" => [
+        "mission_state.source_contact_allocation_capacity_pack_summary"
+      ],
+      "capacity_pack_risk_feedback_scopes" => ["contact_contention_resolution"],
+      "capacity_pack_risk_trust_boundaries" => ["mission_state_capacity_pack_summary"],
       "provider_counteroffer_ids" => ["provider_offer_urgent"],
       "provider_counteroffer_statuses" => ["proposed"],
       "provider_counteroffer_negotiation_states" => ["proposed"],

@@ -3237,6 +3237,7 @@ defmodule OrbitalDynamics.CadenceImport do
     |> Map.merge(
       OrbitalDynamics.RecommendationRiskContext.provider_reservation_request_context(risks)
     )
+    |> Map.merge(OrbitalDynamics.RecommendationRiskContext.capacity_pack_context(risks))
     |> Enum.reject(fn {_key, values} -> values == [] end)
     |> Map.new()
   end
@@ -6520,6 +6521,9 @@ defmodule OrbitalDynamics.CadenceImport do
         row,
         OrbitalDynamics.RecommendationRiskContext.provider_reservation_request_context_keys()
       )
+    )
+    |> Map.merge(
+      Map.take(row, OrbitalDynamics.RecommendationRiskContext.capacity_pack_context_keys())
     )
     |> compact_map()
   end

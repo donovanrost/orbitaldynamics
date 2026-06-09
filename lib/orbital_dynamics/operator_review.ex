@@ -16223,6 +16223,7 @@ defmodule OrbitalDynamics.OperatorReview do
     |> Map.merge(
       OrbitalDynamics.RecommendationRiskContext.provider_reservation_request_context(risks)
     )
+    |> Map.merge(OrbitalDynamics.RecommendationRiskContext.capacity_pack_context(risks))
     |> Enum.reject(fn {_key, values} -> values == [] end)
     |> Map.new()
   end
