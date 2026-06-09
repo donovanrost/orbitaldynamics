@@ -8,7 +8,7 @@ Current slice:
 Split station-calendar pressure into an explicit V3 score term.
 
 Status:
-Completed locally; pending commit/push.
+Completed and pushed in product commit `25da839`.
 
 Slice-selection note:
 - Selected slice: V3 strategy scoring should classify station-calendar pressure
@@ -76,7 +76,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`91b7f03` Preserve precedence routing in CandidateRefresh.
+`25da839` Split station calendar pressure score term.
 
 Next candidate:
 Continue with planner-visible resource/contact/readiness evidence that affects
@@ -88,6 +88,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `25da839` split station-calendar pressure into an explicit V3 score term.
 - `91b7f03` preserved compact station-calendar precedence reservation routing
   through CandidateRefresh source-report and replay summaries.
 - `7b80988` preserved suppressed reservation ID/status/owner routing in
