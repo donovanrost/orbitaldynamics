@@ -3688,6 +3688,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     contact_allocation_replay =
       CandidateRefresh.contact_allocation_replay_summary(candidate_source)
 
+    candidate_rejection_replay =
+      CandidateRefresh.candidate_rejection_replay_summary(candidate_source)
+
     contact_filter_replay =
       CandidateRefresh.contact_filter_replay_summary(candidate_source)
 
@@ -3729,6 +3732,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     []
     |> maybe_add_candidate_source_contact_allocation_risks(contact_allocation_replay, event_risks)
+    |> maybe_add_candidate_source_candidate_rejection_risks(
+      candidate_rejection_replay,
+      event_risks
+    )
     |> maybe_add_candidate_source_contact_filter_risks(contact_filter_replay, event_risks)
     |> maybe_add_candidate_source_link_capacity_risks(link_capacity_replay, event_risks)
     |> maybe_add_candidate_source_station_calendar_risks(station_calendar_replay, event_risks)
@@ -3771,6 +3778,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
       risks ++
         contact_allocation_replay_reservation_conflict_risks(replay_summary) ++
         contact_allocation_replay_provider_reservation_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_candidate_rejection_risks(risks, replay_summary, event_risks) do
+    if Enum.any?(event_risks, &candidate_rejection_pressure_risk?/1) do
+      risks
+    else
+      risks ++ candidate_rejection_replay_pressure_risks(replay_summary)
     end
   end
 
@@ -3964,6 +3979,68 @@ defmodule OrbitalDynamics.CampaignPlanner do
         |> compact_map()
       end)
     end)
+  end
+
+  defp candidate_rejection_replay_pressure_risks(
+         %{"branch_local_rejection_pressure" => true} = replay_summary
+       ) do
+    if candidate_rejection_replay_scoring_pressure?(replay_summary) do
+      candidate_rejection_replay_pressure_risk(replay_summary)
+    else
+      []
+    end
+  end
+
+  defp candidate_rejection_replay_pressure_risks(_replay_summary), do: []
+
+  defp candidate_rejection_replay_scoring_pressure?(replay_summary) do
+    Map.get(replay_summary, "branch_local_review_pressure") == true or
+      Map.get(replay_summary, "branch_local_invalid_input_pressure") == true or
+      summary_positive?(replay_summary, "rejected_count")
+  end
+
+  defp candidate_rejection_replay_pressure_risk(replay_summary) do
+    candidate_ids =
+      replay_summary
+      |> Map.get("candidate_rejection_candidate_id_counts", %{})
+      |> map_keys()
+
+    ground_station_ids =
+      replay_summary
+      |> Map.get("candidate_rejection_ground_station_counts", %{})
+      |> map_keys()
+
+    [
+      %{
+        "type" => "candidate_rejection_pressure",
+        "severity" => "high",
+        "reason" =>
+          "candidate source candidate-rejection replay reports rejected, reviewable, or invalid candidate pressure",
+        "source_report_count" => Map.get(replay_summary, "source_report_count"),
+        "source_report_row_count" => Map.get(replay_summary, "source_report_row_count"),
+        "source_report_paths" => Map.get(replay_summary, "source_report_paths"),
+        "rejected_count" => Map.get(replay_summary, "rejected_count"),
+        "reviewable_count" => Map.get(replay_summary, "reviewable_count"),
+        "invalid_candidate_input_count" =>
+          Map.get(replay_summary, "invalid_candidate_input_count"),
+        "rejection_reason_counts" => Map.get(replay_summary, "rejection_reason_counts"),
+        "required_operator_action_counts" =>
+          Map.get(replay_summary, "required_operator_action_counts"),
+        "candidate_rejection_candidate_id_counts" =>
+          Map.get(replay_summary, "candidate_rejection_candidate_id_counts"),
+        "candidate_rejection_ground_station_counts" =>
+          Map.get(replay_summary, "candidate_rejection_ground_station_counts"),
+        "candidate_ids" => candidate_ids,
+        "ground_station_ids" => ground_station_ids,
+        "branch_local_review_pressure" => Map.get(replay_summary, "branch_local_review_pressure"),
+        "branch_local_invalid_input_pressure" =>
+          Map.get(replay_summary, "branch_local_invalid_input_pressure"),
+        "feedback_source" => "candidate_source.candidate_rejection_replay_summary",
+        "feedback_scope" => "candidate_rejection",
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries")
+      }
+      |> compact_map()
+    ]
   end
 
   defp contact_filter_replay_pressure_risks(

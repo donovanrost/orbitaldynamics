@@ -37433,6 +37433,63 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "mission_state.source_result_artifact.candidate_rejection_report"
            ]
 
+    candidate_rejection_pressure_count =
+      Enum.count(
+        urgent["risk_indicators"],
+        &(&1["type"] == "candidate_rejection_pressure" and
+            &1["feedback_source"] == "candidate_source.candidate_rejection_replay_summary")
+      )
+
+    assert candidate_rejection_pressure_count == 1
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "candidate_rejection_pressure" and
+                 &1["feedback_scope"] == "candidate_rejection" and
+                 &1["rejected_count"] == 5 and
+                 &1["reviewable_count"] == 3 and
+                 &1["invalid_candidate_input_count"] == 2 and
+                 &1["rejection_reason_counts"] == %{
+                   "contact_too_short" => 1,
+                   "invalid_candidate_input" => 1,
+                   "station_maintenance" => 1,
+                   "station_reserved" => 1,
+                   "weather_outage" => 1
+                 } and
+                 &1["required_operator_action_counts"] == %{
+                   "none" => 2,
+                   "review_candidate_rejection" => 3
+                 } and
+                 &1["candidate_ids"] == [
+                   "canonical_weather_candidate",
+                   "direct_invalid_candidate",
+                   "direct_reserved_candidate",
+                   "result_wrapped_short_candidate",
+                   "source_wrapped_maintenance_candidate"
+                 ] and
+                 &1["ground_station_ids"] == [
+                   "dss_14",
+                   "dss_43",
+                   "equator_prime",
+                   "polar_prime"
+                 ])
+           )
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    assert urgent["score_terms"]["candidate_rejection_pressure_penalty"] ==
+             -candidate_rejection_pressure_count * risk_weight
+
+    assert "candidate_rejection_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == urgent["branch_id"] and
+                 &1["term_key"] == "candidate_rejection_pressure_penalty" and &1["value"] < 0.0)
+           )
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
