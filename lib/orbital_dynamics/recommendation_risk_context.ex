@@ -453,6 +453,47 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
     "timeline_integrity_derivation_reasons"
   ]
 
+  @execution_success_feedback_context_keys [
+    "execution_success_feedback_risk_types",
+    "execution_success_feedback_activity_ids",
+    "execution_success_feedback_scenario_ids",
+    "execution_success_feedback_timeline_ids",
+    "execution_success_feedback_source_activity_ids",
+    "execution_success_feedback_replacement_activity_ids",
+    "execution_success_feedback_command_success_factor_values",
+    "execution_success_feedback_maneuver_success_factor_values",
+    "execution_success_feedback_command_results",
+    "execution_success_feedback_maneuver_results",
+    "execution_success_feedback_realized_statuses",
+    "execution_success_feedback_ground_station_ids",
+    "execution_success_feedback_planned_ground_station_ids",
+    "execution_success_feedback_realized_ground_station_ids",
+    "execution_success_feedback_ground_station_match_statuses",
+    "execution_success_feedback_directions",
+    "execution_success_feedback_planned_directions",
+    "execution_success_feedback_realized_directions",
+    "execution_success_feedback_direction_match_statuses",
+    "execution_success_feedback_source_window_ids",
+    "execution_success_feedback_planned_source_window_ids",
+    "execution_success_feedback_realized_source_window_ids",
+    "execution_success_feedback_source_window_match_statuses",
+    "execution_success_feedback_command_identity_mismatch_fields",
+    "execution_success_feedback_start_values_s",
+    "execution_success_feedback_end_values_s",
+    "execution_success_feedback_changed_fields",
+    "execution_success_feedback_status_transition_maps",
+    "execution_success_feedback_transition_types",
+    "execution_success_feedback_transition_categories",
+    "execution_success_feedback_transition_reasons",
+    "execution_success_feedback_required_operator_actions",
+    "execution_success_feedback_requires_operator_review_values",
+    "execution_success_feedback_feedback_sources",
+    "execution_success_feedback_feedback_scopes",
+    "execution_success_feedback_feedback_keys",
+    "execution_success_feedback_trust_boundaries",
+    "execution_success_feedback_derivation_reasons"
+  ]
+
   def validation_refresh_context_keys, do: @validation_refresh_context_keys
 
   def approval_boundary_context_keys, do: @approval_boundary_context_keys
@@ -486,6 +527,9 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
     do: @maneuver_execution_uncertainty_context_keys
 
   def timeline_integrity_context_keys, do: @timeline_integrity_context_keys
+
+  def execution_success_feedback_context_keys,
+    do: @execution_success_feedback_context_keys
 
   def validation_refresh_context(risks) when is_list(risks) do
     risks = Enum.map(risks, &stringify_keys/1)
@@ -1805,6 +1849,101 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
 
   def timeline_integrity_context(_risks), do: %{}
 
+  def execution_success_feedback_context(risks) when is_list(risks) do
+    risks = Enum.map(risks, &stringify_keys/1)
+
+    execution_success_feedback_risks =
+      Enum.filter(risks, &execution_success_feedback_risk?/1)
+
+    %{
+      "execution_success_feedback_risk_types" =>
+        risk_context_values(execution_success_feedback_risks, ["type", "risk_type"]),
+      "execution_success_feedback_activity_ids" =>
+        risk_context_values(execution_success_feedback_risks, "activity_id"),
+      "execution_success_feedback_scenario_ids" =>
+        risk_context_values(execution_success_feedback_risks, "scenario_id"),
+      "execution_success_feedback_timeline_ids" =>
+        risk_context_values(execution_success_feedback_risks, "timeline_id"),
+      "execution_success_feedback_source_activity_ids" =>
+        risk_context_values(execution_success_feedback_risks, [
+          "source_activity_id",
+          "source_activity_ids"
+        ]),
+      "execution_success_feedback_replacement_activity_ids" =>
+        risk_context_values(execution_success_feedback_risks, "replacement_activity_id"),
+      "execution_success_feedback_command_success_factor_values" =>
+        risk_context_values(execution_success_feedback_risks, "command_success_factor"),
+      "execution_success_feedback_maneuver_success_factor_values" =>
+        risk_context_values(execution_success_feedback_risks, "maneuver_success_factor"),
+      "execution_success_feedback_command_results" =>
+        risk_context_values(execution_success_feedback_risks, "command_result"),
+      "execution_success_feedback_maneuver_results" =>
+        risk_context_values(execution_success_feedback_risks, "maneuver_result"),
+      "execution_success_feedback_realized_statuses" =>
+        risk_context_values(execution_success_feedback_risks, "realized_status"),
+      "execution_success_feedback_ground_station_ids" =>
+        risk_context_values(execution_success_feedback_risks, "ground_station_id"),
+      "execution_success_feedback_planned_ground_station_ids" =>
+        risk_context_values(execution_success_feedback_risks, "planned_ground_station_id"),
+      "execution_success_feedback_realized_ground_station_ids" =>
+        risk_context_values(execution_success_feedback_risks, "realized_ground_station_id"),
+      "execution_success_feedback_ground_station_match_statuses" =>
+        risk_context_values(execution_success_feedback_risks, "ground_station_match_status"),
+      "execution_success_feedback_directions" =>
+        risk_context_values(execution_success_feedback_risks, "direction"),
+      "execution_success_feedback_planned_directions" =>
+        risk_context_values(execution_success_feedback_risks, "planned_direction"),
+      "execution_success_feedback_realized_directions" =>
+        risk_context_values(execution_success_feedback_risks, "realized_direction"),
+      "execution_success_feedback_direction_match_statuses" =>
+        risk_context_values(execution_success_feedback_risks, "direction_match_status"),
+      "execution_success_feedback_source_window_ids" =>
+        risk_context_values(execution_success_feedback_risks, "source_window_id"),
+      "execution_success_feedback_planned_source_window_ids" =>
+        risk_context_values(execution_success_feedback_risks, "planned_source_window_id"),
+      "execution_success_feedback_realized_source_window_ids" =>
+        risk_context_values(execution_success_feedback_risks, "realized_source_window_id"),
+      "execution_success_feedback_source_window_match_statuses" =>
+        risk_context_values(execution_success_feedback_risks, "source_window_match_status"),
+      "execution_success_feedback_command_identity_mismatch_fields" =>
+        risk_context_values(execution_success_feedback_risks, [
+          "command_identity_mismatch_fields"
+        ]),
+      "execution_success_feedback_start_values_s" =>
+        risk_context_values(execution_success_feedback_risks, "starts_at_s"),
+      "execution_success_feedback_end_values_s" =>
+        risk_context_values(execution_success_feedback_risks, "ends_at_s"),
+      "execution_success_feedback_changed_fields" =>
+        risk_context_values(execution_success_feedback_risks, ["changed_fields"]),
+      "execution_success_feedback_status_transition_maps" =>
+        risk_context_values(execution_success_feedback_risks, "status_transition"),
+      "execution_success_feedback_transition_types" =>
+        risk_context_values(execution_success_feedback_risks, "transition_type"),
+      "execution_success_feedback_transition_categories" =>
+        risk_context_values(execution_success_feedback_risks, "transition_category"),
+      "execution_success_feedback_transition_reasons" =>
+        risk_context_values(execution_success_feedback_risks, "transition_reason"),
+      "execution_success_feedback_required_operator_actions" =>
+        risk_context_values(execution_success_feedback_risks, "required_operator_action"),
+      "execution_success_feedback_requires_operator_review_values" =>
+        risk_context_values(execution_success_feedback_risks, "requires_operator_review"),
+      "execution_success_feedback_feedback_sources" =>
+        risk_context_values(execution_success_feedback_risks, "feedback_source"),
+      "execution_success_feedback_feedback_scopes" =>
+        risk_context_values(execution_success_feedback_risks, "feedback_scope"),
+      "execution_success_feedback_feedback_keys" =>
+        risk_context_values(execution_success_feedback_risks, "feedback_key"),
+      "execution_success_feedback_trust_boundaries" =>
+        risk_context_values(execution_success_feedback_risks, "trust_boundary"),
+      "execution_success_feedback_derivation_reasons" =>
+        risk_context_values(execution_success_feedback_risks, ["derivation_reasons"])
+    }
+    |> Enum.reject(fn {_key, values} -> values == [] end)
+    |> Map.new()
+  end
+
+  def execution_success_feedback_context(_risks), do: %{}
+
   defp resource_margin_risk?(%{"resource_field" => field}) when is_binary(field) do
     field in [
       "fuel_margin",
@@ -1854,6 +1993,16 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
   defp timeline_integrity_risk?(%{"feedback_scope" => "timeline_integrity"}), do: true
 
   defp timeline_integrity_risk?(_risk), do: false
+
+  defp execution_success_feedback_risk?(%{"type" => type}) when is_binary(type) do
+    type in ["command_success_rate_low", "maneuver_success_rate_low"]
+  end
+
+  defp execution_success_feedback_risk?(%{"risk_type" => type}) when is_binary(type) do
+    type in ["command_success_rate_low", "maneuver_success_rate_low"]
+  end
+
+  defp execution_success_feedback_risk?(_risk), do: false
 
   defp risk_context_values(risks, keys) when is_list(keys) do
     risks

@@ -3259,6 +3259,9 @@ defmodule OrbitalDynamics.CadenceImport do
     )
     |> Map.merge(OrbitalDynamics.RecommendationRiskContext.timeline_integrity_context(risks))
     |> Map.merge(
+      OrbitalDynamics.RecommendationRiskContext.execution_success_feedback_context(risks)
+    )
+    |> Map.merge(
       OrbitalDynamics.RecommendationRiskContext.timeline_activity_precondition_context(risks)
     )
     |> Map.merge(
@@ -6591,6 +6594,12 @@ defmodule OrbitalDynamics.CadenceImport do
     )
     |> Map.merge(
       Map.take(row, OrbitalDynamics.RecommendationRiskContext.timeline_integrity_context_keys())
+    )
+    |> Map.merge(
+      Map.take(
+        row,
+        OrbitalDynamics.RecommendationRiskContext.execution_success_feedback_context_keys()
+      )
     )
     |> Map.merge(
       Map.take(

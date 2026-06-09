@@ -18628,6 +18628,91 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 derivation_reasons: ["timeline_integrity_report_pressure"]
               },
               %{
+                type: "command_success_feedback",
+                activity_id: "cmd_success_review",
+                scenario_id: "leo_1",
+                timeline_id: "timeline:cmd_success_review",
+                starts_at_s: 700.0,
+                ends_at_s: 730.0,
+                command_success_factor: 0.25,
+                command_result: "timeout",
+                realized_status: "failed",
+                ground_station_id: "equator_prime",
+                planned_ground_station_id: "polar_prime",
+                realized_ground_station_id: "equator_prime",
+                ground_station_match_status: "mismatch",
+                direction: "command",
+                planned_direction: "uplink",
+                realized_direction: "command",
+                direction_match_status: "mismatch",
+                source_window_id: "window_equator_command",
+                planned_source_window_id: "window_polar_uplink",
+                realized_source_window_id: "window_equator_command",
+                source_window_match_status: "mismatch",
+                command_identity_mismatch_fields: [
+                  "direction",
+                  "ground_station",
+                  "source_window"
+                ],
+                source_activity_id: "cmd_success_source",
+                replacement_activity_id: "cmd_success_review",
+                source_activity_ids: ["cmd_success_review", "cmd_success_source"],
+                changed_fields: ["command_result", "command_success_factor"],
+                required_operator_action: "review_command_execution_feedback",
+                feedback_source: "mission_state.source_command_window_report.rows",
+                feedback_scope: "command_execution_feedback",
+                feedback_key: "cmd_success_review",
+                trust_boundary: "mission_state_command_window_report",
+                status_transition: %{
+                  "field" => "status",
+                  "from" => "planned",
+                  "to" => "failed",
+                  "transition_type" => "status_changed",
+                  "transition_category" => "terminal_exception",
+                  "transition_reason" => "command execution timed out",
+                  "requires_operator_review" => true
+                },
+                transition_type: "status_changed",
+                transition_category: "terminal_exception",
+                transition_reason: "command execution timed out",
+                requires_operator_review: true,
+                derivation_reasons: ["command_window_execution_feedback_pressure"]
+              },
+              %{
+                type: "maneuver_success_feedback",
+                activity_id: "burn_success_review",
+                scenario_id: "leo_1",
+                timeline_id: "timeline:burn_success_review",
+                starts_at_s: 760.0,
+                ends_at_s: 760.0,
+                maneuver_success_factor: 0.4,
+                maneuver_result: "accepted, failed",
+                realized_status: "failed",
+                source_activity_id: "burn_success_source",
+                replacement_activity_id: "burn_success_review",
+                source_activity_ids: ["burn_success_review", "burn_success_source"],
+                changed_fields: ["maneuver_result", "maneuver_success_factor"],
+                required_operator_action: "review_maneuver_execution_feedback",
+                feedback_source: "mission_state.source_maneuver_review.rows",
+                feedback_scope: "maneuver_execution_feedback",
+                feedback_key: "burn_success_review",
+                trust_boundary: "mission_state_maneuver_review",
+                status_transition: %{
+                  "field" => "status",
+                  "from" => "planned",
+                  "to" => "failed",
+                  "transition_type" => "status_changed",
+                  "transition_category" => "terminal_exception",
+                  "transition_reason" => "maneuver failed after acceptance",
+                  "requires_operator_review" => true
+                },
+                transition_type: "status_changed",
+                transition_category: "terminal_exception",
+                transition_reason: "maneuver failed after acceptance",
+                requires_operator_review: true,
+                derivation_reasons: ["maneuver_review_success_feedback_pressure"]
+              },
+              %{
                 type: "resource_margin_pressure",
                 spacecraft_id: "leo_1",
                 scenario_id: "leo_1",
@@ -19474,6 +19559,91 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                explanation,
                &(&1["type"] == "risk_driver" and
                    &1["risk_type"] == "timeline_integrity_issue")
+             )
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "command_success_rate_low",
+             "severity" => "medium",
+             "activity_id" => "cmd_success_review",
+             "scenario_id" => "leo_1",
+             "timeline_id" => "timeline:cmd_success_review",
+             "starts_at_s" => 700.0,
+             "ends_at_s" => 730.0,
+             "value" => 0.25,
+             "command_success_factor" => 0.25,
+             "command_result" => "timeout",
+             "realized_status" => "failed",
+             "ground_station_id" => "equator_prime",
+             "planned_ground_station_id" => "polar_prime",
+             "realized_ground_station_id" => "equator_prime",
+             "ground_station_match_status" => "mismatch",
+             "direction" => "command",
+             "planned_direction" => "uplink",
+             "realized_direction" => "command",
+             "direction_match_status" => "mismatch",
+             "source_window_id" => "window_equator_command",
+             "planned_source_window_id" => "window_polar_uplink",
+             "realized_source_window_id" => "window_equator_command",
+             "source_window_match_status" => "mismatch",
+             "command_identity_mismatch_fields" => [
+               "direction",
+               "ground_station",
+               "source_window"
+             ],
+             "source_activity_id" => "cmd_success_source",
+             "replacement_activity_id" => "cmd_success_review",
+             "source_activity_ids" => ["cmd_success_review", "cmd_success_source"],
+             "changed_fields" => ["command_result", "command_success_factor"],
+             "required_operator_action" => "review_command_execution_feedback",
+             "feedback_source" => "mission_state.source_command_window_report.rows",
+             "feedback_scope" => "command_execution_feedback",
+             "feedback_key" => "cmd_success_review",
+             "trust_boundary" => "mission_state_command_window_report",
+             "transition_type" => "status_changed",
+             "transition_category" => "terminal_exception",
+             "transition_reason" => "command execution timed out",
+             "requires_operator_review" => true,
+             "derivation_reasons" => ["command_window_execution_feedback_pressure"]
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "command_success_rate_low")
+             )
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "maneuver_success_rate_low",
+             "severity" => "medium",
+             "activity_id" => "burn_success_review",
+             "scenario_id" => "leo_1",
+             "timeline_id" => "timeline:burn_success_review",
+             "starts_at_s" => 760.0,
+             "ends_at_s" => 760.0,
+             "value" => 0.4,
+             "maneuver_success_factor" => 0.4,
+             "maneuver_result" => "accepted, failed",
+             "realized_status" => "failed",
+             "source_activity_id" => "burn_success_source",
+             "replacement_activity_id" => "burn_success_review",
+             "source_activity_ids" => ["burn_success_review", "burn_success_source"],
+             "changed_fields" => ["maneuver_result", "maneuver_success_factor"],
+             "required_operator_action" => "review_maneuver_execution_feedback",
+             "feedback_source" => "mission_state.source_maneuver_review.rows",
+             "feedback_scope" => "maneuver_execution_feedback",
+             "feedback_key" => "burn_success_review",
+             "trust_boundary" => "mission_state_maneuver_review",
+             "transition_type" => "status_changed",
+             "transition_category" => "terminal_exception",
+             "transition_reason" => "maneuver failed after acceptance",
+             "requires_operator_review" => true,
+             "derivation_reasons" => ["maneuver_review_success_feedback_pressure"]
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "maneuver_success_rate_low")
              )
 
     assert %{
@@ -20375,6 +20545,110 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         "mission_state_timeline_integrity_report"
       ],
       "timeline_integrity_derivation_reasons" => ["timeline_integrity_report_pressure"],
+      "execution_success_feedback_risk_types" => [
+        "command_success_rate_low",
+        "maneuver_success_rate_low"
+      ],
+      "execution_success_feedback_activity_ids" => [
+        "cmd_success_review",
+        "burn_success_review"
+      ],
+      "execution_success_feedback_scenario_ids" => ["leo_1"],
+      "execution_success_feedback_timeline_ids" => [
+        "timeline:cmd_success_review",
+        "timeline:burn_success_review"
+      ],
+      "execution_success_feedback_source_activity_ids" => [
+        "cmd_success_source",
+        "cmd_success_review",
+        "burn_success_source",
+        "burn_success_review"
+      ],
+      "execution_success_feedback_replacement_activity_ids" => [
+        "cmd_success_review",
+        "burn_success_review"
+      ],
+      "execution_success_feedback_command_success_factor_values" => [0.25],
+      "execution_success_feedback_maneuver_success_factor_values" => [0.4],
+      "execution_success_feedback_command_results" => ["timeout"],
+      "execution_success_feedback_maneuver_results" => ["accepted, failed"],
+      "execution_success_feedback_realized_statuses" => ["failed"],
+      "execution_success_feedback_ground_station_ids" => ["equator_prime"],
+      "execution_success_feedback_planned_ground_station_ids" => ["polar_prime"],
+      "execution_success_feedback_realized_ground_station_ids" => ["equator_prime"],
+      "execution_success_feedback_ground_station_match_statuses" => ["mismatch"],
+      "execution_success_feedback_directions" => ["command"],
+      "execution_success_feedback_planned_directions" => ["uplink"],
+      "execution_success_feedback_realized_directions" => ["command"],
+      "execution_success_feedback_direction_match_statuses" => ["mismatch"],
+      "execution_success_feedback_source_window_ids" => ["window_equator_command"],
+      "execution_success_feedback_planned_source_window_ids" => ["window_polar_uplink"],
+      "execution_success_feedback_realized_source_window_ids" => ["window_equator_command"],
+      "execution_success_feedback_source_window_match_statuses" => ["mismatch"],
+      "execution_success_feedback_command_identity_mismatch_fields" => [
+        "direction",
+        "ground_station",
+        "source_window"
+      ],
+      "execution_success_feedback_start_values_s" => [700.0, 760.0],
+      "execution_success_feedback_end_values_s" => [730.0, 760.0],
+      "execution_success_feedback_changed_fields" => [
+        "command_result",
+        "command_success_factor",
+        "maneuver_result",
+        "maneuver_success_factor"
+      ],
+      "execution_success_feedback_status_transition_maps" => [
+        %{
+          "field" => "status",
+          "from" => "planned",
+          "to" => "failed",
+          "transition_type" => "status_changed",
+          "transition_category" => "terminal_exception",
+          "transition_reason" => "command execution timed out",
+          "requires_operator_review" => true
+        },
+        %{
+          "field" => "status",
+          "from" => "planned",
+          "to" => "failed",
+          "transition_type" => "status_changed",
+          "transition_category" => "terminal_exception",
+          "transition_reason" => "maneuver failed after acceptance",
+          "requires_operator_review" => true
+        }
+      ],
+      "execution_success_feedback_transition_types" => ["status_changed"],
+      "execution_success_feedback_transition_categories" => ["terminal_exception"],
+      "execution_success_feedback_transition_reasons" => [
+        "command execution timed out",
+        "maneuver failed after acceptance"
+      ],
+      "execution_success_feedback_required_operator_actions" => [
+        "review_command_execution_feedback",
+        "review_maneuver_execution_feedback"
+      ],
+      "execution_success_feedback_requires_operator_review_values" => [true],
+      "execution_success_feedback_feedback_sources" => [
+        "mission_state.source_command_window_report.rows",
+        "mission_state.source_maneuver_review.rows"
+      ],
+      "execution_success_feedback_feedback_scopes" => [
+        "command_execution_feedback",
+        "maneuver_execution_feedback"
+      ],
+      "execution_success_feedback_feedback_keys" => [
+        "cmd_success_review",
+        "burn_success_review"
+      ],
+      "execution_success_feedback_trust_boundaries" => [
+        "mission_state_command_window_report",
+        "mission_state_maneuver_review"
+      ],
+      "execution_success_feedback_derivation_reasons" => [
+        "command_window_execution_feedback_pressure",
+        "maneuver_review_success_feedback_pressure"
+      ],
       "resource_margin_risk_types" => ["power_margin_low"],
       "resource_margin_spacecraft_ids" => ["leo_1"],
       "resource_margin_scenario_ids" => ["leo_1"],
