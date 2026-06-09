@@ -40382,6 +40382,124 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "wrapped_operational_timeline_boundary"
            ]
 
+    operational_timeline_pressure_risks =
+      Enum.filter(
+        urgent["risk_indicators"],
+        &(&1["type"] == "operational_timeline_pressure" and
+            &1["feedback_source"] == "candidate_source.operational_timeline_replay_summary")
+      )
+
+    assert length(operational_timeline_pressure_risks) == 1
+
+    operational_timeline_pressure_risk = List.first(operational_timeline_pressure_risks)
+
+    assert operational_timeline_pressure_risk["contract"] == "operational_timeline_report.v1"
+    assert operational_timeline_pressure_risk["source_report_count"] == 3
+    assert operational_timeline_pressure_risk["source_report_row_count"] == 3
+    assert operational_timeline_pressure_risk["contact_feedback_count"] == 1
+    assert operational_timeline_pressure_risk["command_feedback_count"] == 2
+    assert operational_timeline_pressure_risk["station_throughput_feedback_count"] == 1
+
+    assert Enum.sort(operational_timeline_pressure_risk["source_report_paths"]) == [
+             "mission_state.result_artifact.operational_timeline_report",
+             "operational_timeline_report",
+             "source_operational_timeline_report"
+           ]
+
+    assert Enum.sort(operational_timeline_pressure_risk["input_keys"]) == [
+             "command_success_rate",
+             "contact_success_rate",
+             "station_throughput_factor"
+           ]
+
+    assert operational_timeline_pressure_risk["operational_kind_counts"] == %{
+             "command" => 2,
+             "contact" => 1
+           }
+
+    assert operational_timeline_pressure_risk["activity_status_counts"] == %{
+             "approved" => 1,
+             "partial" => 1,
+             "planned" => 1
+           }
+
+    assert operational_timeline_pressure_risk["required_operator_action_counts"] == %{
+             "review_canonical_timeline" => 1,
+             "review_direct_timeline" => 1,
+             "review_wrapped_timeline" => 1
+           }
+
+    assert operational_timeline_pressure_risk["cadence_import_status_counts"] == %{
+             "review" => 3
+           }
+
+    assert Enum.sort(operational_timeline_pressure_risk["trust_boundaries"]) == [
+             "canonical_operational_timeline_boundary",
+             "direct_operational_timeline_boundary",
+             "wrapped_operational_timeline_boundary"
+           ]
+
+    assert operational_timeline_pressure_risk["assumptions"]["timeline_mutation"] ==
+             "not_performed_by_summary"
+
+    assert urgent["score_terms"]["operational_timeline_pressure_penalty"] ==
+             -length(operational_timeline_pressure_risks) * risk_weight
+
+    assert "operational_timeline_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == "urgent" and
+                 &1["term_key"] == "operational_timeline_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+
+    assert "operational_timeline_pressure" in urgent_row["risk_types"]
+
+    assert urgent_row["branch_operational_timeline_source_report_paths"] == [
+             "mission_state.result_artifact.operational_timeline_report",
+             "operational_timeline_report",
+             "source_operational_timeline_report"
+           ]
+
+    assert urgent_row["branch_operational_timeline_input_keys"] == [
+             "command_success_rate",
+             "contact_success_rate",
+             "station_throughput_factor"
+           ]
+
+    assert urgent_row["branch_operational_timeline_kinds"] == ["command", "contact"]
+
+    assert urgent_row["branch_operational_timeline_activity_ids"] == [
+             "canonical_timeline_activity",
+             "direct_timeline_activity",
+             "wrapped_timeline_activity"
+           ]
+
+    assert urgent_row["branch_operational_timeline_activity_statuses"] == [
+             "approved",
+             "partial",
+             "planned"
+           ]
+
+    assert urgent_row["branch_operational_timeline_approval_statuses"] == ["review_required"]
+
+    assert urgent_row["branch_operational_timeline_required_operator_actions"] == [
+             "review_canonical_timeline",
+             "review_direct_timeline",
+             "review_wrapped_timeline"
+           ]
+
+    assert urgent_row["branch_operational_timeline_import_statuses"] == ["review"]
+
+    assert urgent_row["branch_operational_timeline_trust_boundaries"] == [
+             "canonical_operational_timeline_boundary",
+             "direct_operational_timeline_boundary",
+             "wrapped_operational_timeline_boundary"
+           ]
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end

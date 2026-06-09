@@ -2857,6 +2857,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
     command_window_pressure_count = command_window_pressure_risk_count(risk_indicators)
     objective_gap_pressure_count = objective_gap_pressure_risk_count(risk_indicators)
     timeline_feedback_pressure_count = timeline_feedback_pressure_risk_count(risk_indicators)
+
+    operational_timeline_pressure_count =
+      operational_timeline_pressure_risk_count(risk_indicators)
+
     maneuver_review_pressure_count = maneuver_review_pressure_risk_count(risk_indicators)
 
     operational_readiness_pressure_count =
@@ -2924,6 +2928,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
           contact_contention_pressure_count -
           contact_filter_pressure_count - command_window_pressure_count -
           objective_gap_pressure_count - timeline_feedback_pressure_count -
+          operational_timeline_pressure_count -
           maneuver_review_pressure_count -
           operational_readiness_pressure_count - operator_training_pressure_count -
           import_readiness_pressure_count - quality_gate_pressure_count -
@@ -2994,6 +2999,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     timeline_feedback_pressure_penalty =
       -timeline_feedback_pressure_count * policy.risk_weight
+
+    operational_timeline_pressure_penalty =
+      -operational_timeline_pressure_count * policy.risk_weight
 
     maneuver_review_pressure_penalty =
       -maneuver_review_pressure_count * policy.risk_weight
@@ -3083,6 +3091,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         contact_filter_pressure_penalty + command_window_pressure_penalty +
         objective_gap_pressure_penalty +
         timeline_feedback_pressure_penalty +
+        operational_timeline_pressure_penalty +
         maneuver_review_pressure_penalty +
         operator_training_pressure_penalty + import_readiness_pressure_penalty +
         quality_gate_pressure_penalty +
@@ -3123,6 +3132,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "command_window_pressure_penalty" => command_window_pressure_penalty,
       "objective_gap_pressure_penalty" => objective_gap_pressure_penalty,
       "timeline_feedback_pressure_penalty" => timeline_feedback_pressure_penalty,
+      "operational_timeline_pressure_penalty" => operational_timeline_pressure_penalty,
       "maneuver_review_pressure_penalty" => maneuver_review_pressure_penalty,
       "operational_readiness_pressure_penalty" => operational_readiness_pressure_penalty,
       "operator_training_pressure_penalty" => operator_training_pressure_penalty,
@@ -3262,6 +3272,25 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp timeline_feedback_event_pressure_risk?(_risk), do: false
+
+  defp operational_timeline_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &operational_timeline_pressure_risk?/1)
+  end
+
+  defp operational_timeline_pressure_risk?(%{"type" => "operational_timeline_pressure"}),
+    do: true
+
+  defp operational_timeline_pressure_risk?(_risk), do: false
+
+  defp operational_timeline_event_pressure_risk?(%{"feedback_scope" => "operational_timeline"}),
+    do: true
+
+  defp operational_timeline_event_pressure_risk?(%{"feedback_source" => source})
+       when is_binary(source) do
+    String.contains?(source, "operational_timeline_report")
+  end
+
+  defp operational_timeline_event_pressure_risk?(_risk), do: false
 
   defp maneuver_review_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &maneuver_review_pressure_risk?/1)
@@ -3813,6 +3842,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     timeline_feedback_replay =
       CandidateRefresh.timeline_feedback_replay_summary(candidate_source)
 
+    operational_timeline_replay =
+      CandidateRefresh.operational_timeline_replay_summary(candidate_source)
+
     maneuver_review_replay =
       CandidateRefresh.maneuver_review_replay_summary(candidate_source)
 
@@ -3878,6 +3910,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> maybe_add_candidate_source_objective_gap_risks(objective_gap_replay, event_risks)
     |> maybe_add_candidate_source_timeline_feedback_risks(
       timeline_feedback_replay,
+      event_risks
+    )
+    |> maybe_add_candidate_source_operational_timeline_risks(
+      operational_timeline_replay,
       event_risks
     )
     |> maybe_add_candidate_source_maneuver_review_risks(maneuver_review_replay, event_risks)
@@ -3970,6 +4006,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
       risks
     else
       risks ++ timeline_feedback_replay_pressure_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_operational_timeline_risks(risks, replay_summary, event_risks) do
+    if Enum.any?(event_risks, &operational_timeline_event_pressure_risk?/1) do
+      risks
+    else
+      risks ++ operational_timeline_replay_pressure_risks(replay_summary)
     end
   end
 
@@ -5114,6 +5158,65 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp timeline_feedback_replay_pressure_risks(_replay_summary), do: []
+
+  defp operational_timeline_replay_pressure_risks(
+         %{"branch_local_operational_timeline_pressure" => true} = replay_summary
+       ) do
+    [
+      %{
+        "type" => "operational_timeline_pressure",
+        "severity" => "medium",
+        "reason" =>
+          "candidate source operational-timeline replay reports operational feedback, activity-routing, status, approval, import, integrity, or station-reservation pressure",
+        "contract" => Map.get(replay_summary, "contract"),
+        "source_report_count" => Map.get(replay_summary, "source_report_count"),
+        "source_report_row_count" => Map.get(replay_summary, "source_report_row_count"),
+        "source_report_paths" => Map.get(replay_summary, "source_report_paths"),
+        "contact_feedback_count" => Map.get(replay_summary, "contact_feedback_count"),
+        "command_feedback_count" => Map.get(replay_summary, "command_feedback_count"),
+        "maneuver_feedback_count" => Map.get(replay_summary, "maneuver_feedback_count"),
+        "observation_feedback_count" => Map.get(replay_summary, "observation_feedback_count"),
+        "station_throughput_feedback_count" =>
+          Map.get(replay_summary, "station_throughput_feedback_count"),
+        "input_keys" => Map.get(replay_summary, "input_keys"),
+        "operational_kind_counts" => Map.get(replay_summary, "operational_kind_counts"),
+        "activity_id_counts" => Map.get(replay_summary, "activity_id_counts"),
+        "activity_status_counts" => Map.get(replay_summary, "activity_status_counts"),
+        "approval_status_counts" => Map.get(replay_summary, "approval_status_counts"),
+        "required_operator_action_counts" =>
+          Map.get(replay_summary, "required_operator_action_counts"),
+        "cadence_import_status_counts" => Map.get(replay_summary, "cadence_import_status_counts"),
+        "timeline_integrity_issue_count" =>
+          Map.get(replay_summary, "timeline_integrity_issue_count"),
+        "dependency_integrity_issue_count" =>
+          Map.get(replay_summary, "dependency_integrity_issue_count"),
+        "exclusivity_integrity_issue_count" =>
+          Map.get(replay_summary, "exclusivity_integrity_issue_count"),
+        "timeline_integrity_issue_type_counts" =>
+          Map.get(replay_summary, "timeline_integrity_issue_type_counts"),
+        "station_reservation_evidence_row_count" =>
+          Map.get(replay_summary, "station_reservation_evidence_row_count"),
+        "station_reservation_expiration_evidence_row_count" =>
+          Map.get(replay_summary, "station_reservation_expiration_evidence_row_count"),
+        "trust_boundary_status" => Map.get(replay_summary, "trust_boundary_status"),
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries"),
+        "branch_local_feedback_pressure" =>
+          Map.get(replay_summary, "branch_local_feedback_pressure"),
+        "branch_local_activity_routing_pressure" =>
+          Map.get(replay_summary, "branch_local_activity_routing_pressure"),
+        "branch_local_integrity_pressure" =>
+          Map.get(replay_summary, "branch_local_integrity_pressure"),
+        "branch_local_station_reservation_pressure" =>
+          Map.get(replay_summary, "branch_local_station_reservation_pressure"),
+        "feedback_source" => "candidate_source.operational_timeline_replay_summary",
+        "feedback_scope" => "operational_timeline",
+        "assumptions" => Map.get(replay_summary, "assumptions")
+      }
+      |> compact_map()
+    ]
+  end
+
+  defp operational_timeline_replay_pressure_risks(_replay_summary), do: []
 
   defp maneuver_review_replay_pressure_risks(
          %{"branch_local_maneuver_review_pressure" => true} = replay_summary
@@ -7854,6 +7957,42 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ]
   end
 
+  defp operational_timeline_pressure_risk_fields do
+    [
+      "contract",
+      "source_report_count",
+      "source_report_row_count",
+      "source_report_paths",
+      "contact_feedback_count",
+      "command_feedback_count",
+      "maneuver_feedback_count",
+      "observation_feedback_count",
+      "station_throughput_feedback_count",
+      "input_keys",
+      "operational_kind_counts",
+      "activity_id_counts",
+      "activity_status_counts",
+      "approval_status_counts",
+      "required_operator_action_counts",
+      "cadence_import_status_counts",
+      "timeline_integrity_issue_count",
+      "dependency_integrity_issue_count",
+      "exclusivity_integrity_issue_count",
+      "timeline_integrity_issue_type_counts",
+      "station_reservation_evidence_row_count",
+      "station_reservation_expiration_evidence_row_count",
+      "trust_boundary_status",
+      "trust_boundaries",
+      "branch_local_feedback_pressure",
+      "branch_local_activity_routing_pressure",
+      "branch_local_integrity_pressure",
+      "branch_local_station_reservation_pressure",
+      "feedback_source",
+      "feedback_scope",
+      "assumptions"
+    ]
+  end
+
   defp maneuver_review_pressure_risk_fields do
     [
       "source_report_count",
@@ -8935,6 +9074,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"command_window_pressure", "command_window_pressure_penalty"},
         {"objective_gap_pressure", "objective_gap_pressure_penalty"},
         {"timeline_feedback_pressure", "timeline_feedback_pressure_penalty"},
+        {"operational_timeline_pressure", "operational_timeline_pressure_penalty"},
         {"maneuver_review_pressure", "maneuver_review_pressure_penalty"},
         {"operational_readiness_pressure", "operational_readiness_pressure_penalty"},
         {"operator_training_pressure", "operator_training_pressure_penalty"},
@@ -9922,6 +10062,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp recommendation_pressure_risk_context(%{"type" => "timeline_feedback_pressure"} = risk) do
     Map.take(risk, timeline_feedback_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"type" => "operational_timeline_pressure"} = risk) do
+    Map.take(risk, operational_timeline_pressure_risk_fields())
   end
 
   defp recommendation_pressure_risk_context(%{"type" => "maneuver_review_pressure"} = risk) do
@@ -49231,6 +49375,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
         risk["type"] == "timeline_feedback_pressure"
       end)
 
+    operational_timeline_risks =
+      Enum.filter(risk_indicators, fn risk ->
+        risk["type"] == "operational_timeline_pressure"
+      end)
+
     maneuver_review_risks =
       Enum.filter(risk_indicators, fn risk ->
         risk["type"] == "maneuver_review_pressure"
@@ -49394,6 +49543,26 @@ defmodule OrbitalDynamics.CampaignPlanner do
         branch_event_map_keys(timeline_feedback_risks, "cadence_import_status_counts"),
       "branch_timeline_feedback_trust_boundaries" =>
         branch_event_unique_values(timeline_feedback_risks, "trust_boundaries"),
+      "branch_operational_timeline_source_report_paths" =>
+        branch_event_unique_values(operational_timeline_risks, "source_report_paths"),
+      "branch_operational_timeline_input_keys" =>
+        branch_event_unique_values(operational_timeline_risks, "input_keys"),
+      "branch_operational_timeline_kinds" =>
+        branch_event_map_keys(operational_timeline_risks, "operational_kind_counts"),
+      "branch_operational_timeline_activity_ids" =>
+        branch_event_map_keys(operational_timeline_risks, "activity_id_counts"),
+      "branch_operational_timeline_activity_statuses" =>
+        branch_event_map_keys(operational_timeline_risks, "activity_status_counts"),
+      "branch_operational_timeline_approval_statuses" =>
+        branch_event_map_keys(operational_timeline_risks, "approval_status_counts"),
+      "branch_operational_timeline_required_operator_actions" =>
+        branch_event_map_keys(operational_timeline_risks, "required_operator_action_counts"),
+      "branch_operational_timeline_import_statuses" =>
+        branch_event_map_keys(operational_timeline_risks, "cadence_import_status_counts"),
+      "branch_operational_timeline_integrity_issue_types" =>
+        branch_event_map_keys(operational_timeline_risks, "timeline_integrity_issue_type_counts"),
+      "branch_operational_timeline_trust_boundaries" =>
+        branch_event_unique_values(operational_timeline_risks, "trust_boundaries"),
       "branch_maneuver_review_source_report_paths" =>
         branch_event_unique_values(maneuver_review_risks, "source_report_paths"),
       "branch_maneuver_review_input_keys" =>
@@ -49527,6 +49696,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> maybe_put_nonempty("branch_timeline_feedback_activity_ids")
     |> maybe_put_nonempty("branch_timeline_feedback_import_statuses")
     |> maybe_put_nonempty("branch_timeline_feedback_trust_boundaries")
+    |> maybe_put_nonempty("branch_operational_timeline_source_report_paths")
+    |> maybe_put_nonempty("branch_operational_timeline_input_keys")
+    |> maybe_put_nonempty("branch_operational_timeline_kinds")
+    |> maybe_put_nonempty("branch_operational_timeline_activity_ids")
+    |> maybe_put_nonempty("branch_operational_timeline_activity_statuses")
+    |> maybe_put_nonempty("branch_operational_timeline_approval_statuses")
+    |> maybe_put_nonempty("branch_operational_timeline_required_operator_actions")
+    |> maybe_put_nonempty("branch_operational_timeline_import_statuses")
+    |> maybe_put_nonempty("branch_operational_timeline_integrity_issue_types")
+    |> maybe_put_nonempty("branch_operational_timeline_trust_boundaries")
     |> maybe_put_nonempty("branch_maneuver_review_source_report_paths")
     |> maybe_put_nonempty("branch_maneuver_review_input_keys")
     |> maybe_put_nonempty("branch_maneuver_review_maneuver_ids")
