@@ -738,6 +738,9 @@ tradeoffs therefore expose
 dependency/exclusivity integrity, dependency-impact, publication, lifecycle, and
 precondition/preservation pressure separately without changing branch ranking
 for fixed inputs.
+Challenge coverage also verifies stale top-level preservation aggregates cannot
+mask row-local preservation-required or review-change pressure in V3 score-term
+reports.
 Storage/downlink resource-pressure risks, including storage/downlink margin
 pressure and projected storage overflow/downlink shortfall, similarly contribute
 to `storage_downlink_pressure_penalty` so score-term reports can distinguish

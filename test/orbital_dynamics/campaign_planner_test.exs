@@ -30723,6 +30723,59 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "feedback_source" => "mission_state.source_timeline_preservation_report.rows[1]"
            } = List.first(review_branch["events"])
 
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    preserve_pressure_count =
+      Enum.count(
+        preserve_branch["risk_indicators"],
+        &(&1["type"] == "timeline_preservation_review")
+      )
+
+    review_pressure_count =
+      Enum.count(
+        review_branch["risk_indicators"],
+        &(&1["type"] == "timeline_preservation_review")
+      )
+
+    assert preserve_pressure_count == 1
+    assert review_pressure_count == 1
+
+    assert preserve_branch["score_terms"]["timeline_preservation_pressure_penalty"] ==
+             -preserve_pressure_count * risk_weight
+
+    assert review_branch["score_terms"]["timeline_preservation_pressure_penalty"] ==
+             -review_pressure_count * risk_weight
+
+    assert preserve_branch["score_terms"]["timeline_pressure_penalty"] == 0.0
+    assert review_branch["score_terms"]["timeline_pressure_penalty"] == 0.0
+
+    assert preserve_branch["score_terms"]["risk_penalty"] ==
+             -(length(preserve_branch["risk_indicators"]) - preserve_pressure_count) *
+               risk_weight
+
+    assert review_branch["score_terms"]["risk_penalty"] ==
+             -(length(review_branch["risk_indicators"]) - review_pressure_count) *
+               risk_weight
+
+    assert "timeline_preservation_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == "derived_timeline_preservation_pressure_stale_locked" and
+                 &1["term_key"] == "timeline_preservation_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] ==
+                 "derived_timeline_preservation_pressure_stale_bad_missing_type" and
+                 &1["term_key"] == "timeline_preservation_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+
     preserve_row =
       artifact["branch_comparison_report"]["rows"]
       |> Enum.find(&(&1["branch_id"] == "derived_timeline_preservation_pressure_stale_locked"))
