@@ -5,74 +5,67 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Refresh checked-in V3 strategy score-term fixtures after pressure-term splits.
+Refresh checked-in V2 repair fixture from the public repair facade.
 
 Status:
 Completed and published.
 
 Slice-selection note:
-- Selected slice: regenerate the checked-in V3 campaign strategy fixture after
-  recent dedicated pressure score-term splits and pin its embedded
-  branch-comparison and score-term reports.
-- Why this slice: live code now emits additional dedicated score terms, but the
-  checked-in `leo_constellation_campaign_strategy_v3.json` fixture still exposes
-  the older score-term key set. Compatibility fixtures should pin the current
-  public facade output, not a stale but schema-valid subset.
+- Selected slice: regenerate the checked-in V2 campaign repair fixture and pin
+  it against `OrbitalDynamics.campaign_repair_from_file!/2`.
+- Why this slice: a public-facade regeneration probe for
+  `studies/leo_constellation_campaign_repair_v2.json` passed schema validation
+  but did not byte-match `study_results/leo_constellation_campaign_repair_v2.json`.
+  The V3 strategy fixture now matches its facade; the V2 repair fixture should
+  have the same reproducibility guard.
 - Level 6 pillar: durable schema-versioned artifacts and compatibility checks
-  for reproducible V3 branch trees with explainable score terms.
-- Current evidence gap: fixture validation may pass while checked-in V3 examples
-  omit current score-term keys and values, weakening downstream compatibility
-  evidence.
+  for reproducible repair artifacts and Cadence-facing review/import evidence.
+- Current evidence gap: fixture validation may pass while the checked-in V2
+  repair example drifts from current public repair-facade output.
 - Docs read:
   `docs/feature_set/recommended_roadmap.md`,
   `docs/artifacts/compatibility_checks.md`.
-- Files/tests: `study_results/leo_constellation_campaign_strategy_v3.json`,
+- Files/tests: `study_results/leo_constellation_campaign_repair_v2.json`,
   `test/orbital_dynamics/golden_artifact_test.exs`,
   `test/orbital_dynamics/validation_test.exs`,
   `test/orbital_dynamics/schema_test.exs`, and
   `docs/artifacts/compatibility_checks.md`.
-- Definition of done: checked-in V3 strategy fixture is regenerated from the
-  public strategy facade, validation/schema/golden checks cover the updated
-  score-term keys, docs record the refreshed compatibility surface, and product
-  plus handoff are committed and pushed without touching unrelated `.gitignore`.
+- Definition of done: checked-in V2 repair fixture is regenerated from the
+  public repair facade, focused golden/schema/validation checks pass, docs
+  record the refreshed compatibility surface, and product plus handoff are
+  committed and pushed without touching unrelated `.gitignore`.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `study_results/leo_constellation_campaign_strategy_v3.json`
+- `study_results/leo_constellation_campaign_repair_v2.json`
 - `test/orbital_dynamics/golden_artifact_test.exs`
 - `docs/artifacts/compatibility_checks.md`
 
 Tests run:
-- `mix orbital_dynamics.campaign.run --type strategy --request studies/leo_constellation_campaign_strategy_v3.json --output study_results/leo_constellation_campaign_strategy_v3.json`
-- `mix test test/orbital_dynamics/golden_artifact_test.exs:343`
-- `mix test test/orbital_dynamics/golden_artifact_test.exs:501`
+- `mix orbital_dynamics.campaign.run --type repair --request studies/leo_constellation_campaign_repair_v2.json --output study_results/leo_constellation_campaign_repair_v2.json`
+- `mix test test/orbital_dynamics/golden_artifact_test.exs:212 test/orbital_dynamics/golden_artifact_test.exs:343 test/orbital_dynamics/validation_test.exs:1707 test/orbital_dynamics/schema_test.exs:32461`
 - `mix test test/orbital_dynamics/golden_artifact_test.exs`
-- `mix test test/orbital_dynamics/validation_test.exs:1725 test/orbital_dynamics/schema_test.exs:31679 test/orbital_dynamics/schema_test.exs:32467`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-The checked-in V3 strategy artifact now matches the public campaign strategy
-facade output. Its nested `score_term_report` pins 902 rows, 41 score-term keys,
-550 pressure rows, and 25 selected pressure rows, including dedicated pressure
-terms for execution feedback, resource availability/margins, approval
-boundaries, station calendars, quality gates, link capacity, and timeline
-lifecycle/precondition evidence. The standalone curated branch-comparison and
-score-term fixtures were left unchanged because they cover separate curated
-artifact examples, not the generated V3 strategy output.
+The checked-in V2 repair artifact now matches the public campaign repair facade
+and is pinned by an exact writer-normalized golden test. Compatibility docs now
+state that both V2 repair and V3 strategy executable request artifacts are
+guarded against schema-valid fixture drift.
 
 Local review:
 Sidecar review was not started because the available multi-agent tool requires
 explicit user-requested delegation. Parent review checked public-facade
-regeneration, JSON writer normalization, nested score-term key coverage,
+regeneration, JSON writer normalization, focused repair fixture coverage,
 validation/schema/golden coverage, docs, and staged scope; no must-fix issues
 remained. `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Checked-in V3 strategy examples are now reproducible from the public facade and
-carry the current dedicated pressure score-term surface for downstream
-compatibility and Cadence-facing review/import evidence.
+Checked-in V2 repair examples are now reproducible from the public repair
+facade, preserving durable repair/review/import evidence for downstream
+compatibility checks.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -82,7 +75,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`6f2d914` Refresh V3 strategy score-term fixture.
+`5a7cdb2` Refresh V2 repair fixture.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -95,6 +88,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `5a7cdb2` refreshed the checked-in V2 repair artifact from the public repair
+  facade and added an exact golden regeneration guard.
 - `6f2d914` refreshed the checked-in V3 strategy artifact from the public
   strategy facade and pinned its current dedicated pressure score-term surface.
 - `85e38dd` routed contact, observation, and station operational-feedback risks
