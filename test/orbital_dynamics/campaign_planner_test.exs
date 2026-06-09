@@ -42791,31 +42791,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              ["assumptions", "candidate_source", "source_report_input_paths"]
            )
 
-    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
-
-    candidate_rejection_pressure_count =
-      Enum.count(
-        rejection_branch["risk_indicators"],
-        &(&1["feedback_scope"] == "candidate_rejection")
-      )
-
-    assert candidate_rejection_pressure_count > 0
-
-    assert rejection_branch["score_terms"]["candidate_rejection_pressure_penalty"] ==
-             -candidate_rejection_pressure_count * risk_weight
-
-    assert rejection_branch["score_terms"]["risk_penalty"] ==
-             -(length(rejection_branch["risk_indicators"]) - candidate_rejection_pressure_count) *
-               risk_weight
-
-    assert "candidate_rejection_pressure_penalty" in artifact["score_term_report"][
-             "score_term_keys"
-           ]
-
-    assert Enum.any?(
-             artifact["score_term_report"]["rows"],
-             &(&1["term_key"] == "candidate_rejection_pressure_penalty" and &1["value"] < 0.0)
-           )
+    assert_candidate_rejection_pressure_score_terms(rejection_branch, artifact)
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
@@ -72668,6 +72644,36 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              artifact["score_term_report"]["rows"],
              &(&1["branch_id"] == branch["branch_id"] and
                  &1["term_key"] == "storage_downlink_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+  end
+
+  defp assert_candidate_rejection_pressure_score_terms(branch, artifact) do
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    candidate_rejection_pressure_count =
+      Enum.count(
+        branch["risk_indicators"],
+        &(&1["feedback_scope"] == "candidate_rejection")
+      )
+
+    assert candidate_rejection_pressure_count > 0
+
+    assert branch["score_terms"]["candidate_rejection_pressure_penalty"] ==
+             -candidate_rejection_pressure_count * risk_weight
+
+    assert branch["score_terms"]["risk_penalty"] ==
+             -(length(branch["risk_indicators"]) - candidate_rejection_pressure_count) *
+               risk_weight
+
+    assert "candidate_rejection_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == branch["branch_id"] and
+                 &1["term_key"] == "candidate_rejection_pressure_penalty" and
                  &1["value"] < 0.0)
            )
   end

@@ -5,39 +5,40 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Harden storage/downlink pressure score helper evidence.
+Harden candidate-rejection pressure score helper evidence.
 
 Status:
-Completed and pushed in product commit `799450e`.
+Implemented and verified locally; ready for mechanical commit/push handoff.
 
 Slice-selection note:
-- Selected slice: add a shared storage/downlink pressure score helper and use
-  it in focused storage/downlink pressure fixtures so
-  `storage_downlink_pressure_penalty` is proven in branch math and score-term
-  report rows.
-- Why this slice: storage/downlink pressure tests assert split score math in
-  several places, but score-term report-row evidence is not consistently
-  helper-backed across recommendation and derived-branch paths.
-- Level 6 pillar: validation, compatibility, and challenge fixtures for unsafe
-  but plausible inputs; reproducible V3 branch score explanations.
-- Current evidence gap: storage/downlink score-term fixtures can drift apart
+- Selected slice: add a shared candidate-rejection pressure score helper and
+  use it in the focused candidate-rejection branch-refresh fixture so
+  `candidate_rejection_pressure_penalty` is proven in branch math and
+  branch-specific score-term report rows.
+- Why this slice: candidate-rejection pressure already feeds branch-local
+  refresh provenance and V3 score terms, but its score assertions are still
+  in-place and only prove that some report row for the term exists.
+- Level 6 pillar: refreshed candidates from current mission state; validation,
+  compatibility, and challenge fixtures for unsafe but plausible inputs;
+  reproducible V3 branch score explanations.
+- Current evidence gap: candidate-rejection score-term fixtures can drift apart
   because branch score math, split risk penalty, score-term key, and report-row
   checks are not centralized.
 - Docs to read:
-  `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`,
+  `docs/feature_set/capability_map/11_planning_state_refresh_and_opportunity_generation.md`,
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`.
 - Likely files:
   `test/orbital_dynamics/campaign_planner_test.exs`,
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
   `.codex/status/autonomous_product_loop.md`.
 - Likely tests:
-  focused campaign-planner storage/downlink pressure tests;
+  focused campaign-planner candidate-rejection pressure test;
   `mix compile --warnings-as-errors`; `git diff --check`.
-- Definition of done: shared storage/downlink pressure assertions prove
+- Definition of done: shared candidate-rejection pressure assertions prove
   branch score math, split risk penalty, score-term key, and score-term report
-  rows for recommendation and derived resource-pressure branches; docs note the
-  shared helper evidence; locally reviewed, committed, and pushed without
-  touching unrelated `.gitignore`.
+  row evidence for the branch-refresh fixture; docs note the shared helper
+  evidence; locally reviewed, committed, and pushed without touching unrelated
+  `.gitignore`.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -45,27 +46,26 @@ Files changed:
 - `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:18056 test/orbital_dynamics/campaign_planner_test.exs:19344 test/orbital_dynamics/campaign_planner_test.exs:34612 test/orbital_dynamics/campaign_planner_test.exs:34694`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:42729`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
-- `rg -n "assert_storage_downlink_pressure_score_terms|storage/downlink pressure fixtures now assert|storage_downlink_pressure_penalty|station_calendar_pressure|execution_feedback_pressure" test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
+- `rg -n "assert_candidate_rejection_pressure_score_terms|candidate-rejection pressure fixtures now assert|candidate_rejection_pressure_penalty|risk_penalty" test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Docs/artifacts changed:
-The V3 strategy-orchestration docs now note that focused storage/downlink
+The V3 strategy-orchestration docs now note that focused candidate-rejection
 pressure fixtures assert split branch math and score-term report rows through a
 shared helper.
 
 Local review:
 Parent local review confirmed the diff is limited to the shared
-storage/downlink pressure score helper, focused storage/downlink helper call
-sites, the current tradeoff-dimension expectation, the V3 score-term doc note,
-and this ledger. `.gitignore` remains unrelated and unstaged.
+candidate-rejection pressure score helper, the focused candidate-rejection
+helper call site, the V3 score-term doc note, and this ledger. `.gitignore`
+remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Storage/downlink pressure challenge fixtures now prove branch score math, split
-risk penalty, score-term key, and score-term report rows through a shared
-helper for recommendation, outage, resource-margin, and derived downlink
-branches.
+Candidate-rejection pressure challenge fixtures now prove branch score math,
+split risk penalty, score-term key, and branch-specific score-term report rows
+through a shared helper for branch-local candidate-refresh provenance.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -75,12 +75,13 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
+Pending mechanical publish for this slice; previous product commit was
 `799450e` Harden storage downlink pressure helper.
 
 Next candidate:
-After this storage/downlink helper hardening, continue with the next
-planner-visible resource/contact/readiness or candidate-refresh provenance gap
-from the guide.
+After this candidate-rejection helper hardening, continue with provider
+counteroffer, validation/refresh governance, relay data-path, execution
+feedback, or the next planner-visible candidate-refresh provenance gap.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is

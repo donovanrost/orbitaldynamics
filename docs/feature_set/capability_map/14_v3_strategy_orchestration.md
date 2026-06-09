@@ -1601,7 +1601,8 @@ Selected recommendations also include:
 - **Candidate-rejection pressure score terms** — split review-required
   candidate-rejection risks into `candidate_rejection_pressure_penalty`, leaving
   `risk_penalty` for unrelated risks while preserving total branch score
-  compatibility.
+  compatibility. Focused candidate-rejection pressure fixtures now assert split
+  branch math and score-term report rows through a shared helper.
 - **Provider-counteroffer pressure score terms** — split review-required
   provider-counteroffer risks into `provider_counteroffer_pressure_penalty`,
   leaving `risk_penalty` for unrelated risks while preserving total branch score
