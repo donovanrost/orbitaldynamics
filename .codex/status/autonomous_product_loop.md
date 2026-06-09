@@ -11,26 +11,26 @@ Status:
 Recommended next; not yet selected.
 
 Last completed slice:
-Preserved selected station-calendar pressure context on V3 recommendation
+Preserved selected score-term pressure context on V3 recommendation
 review/import rows.
 
 What changed:
 - `OrbitalDynamics.RecommendationRiskContext` now owns a scoped
-  `station_calendar_pressure_*` selected-context contract for
-  station-calendar feedback and derived station-calendar pressure risks.
+  `score_term_pressure_*` selected-context contract for score-term feedback
+  risks.
 - Strategy recommendation review rows, selected Cadence import rows, and
-  review-package Cadence import conversion retain station-calendar timing,
-  availability, overlap, ambiguity, reservation, provider-contention,
+  review-package Cadence import conversion retain score-term objective,
+  routing, downlink/contact/latency requirement, score-term key/value/map,
   feedback provenance, and derivation details.
 - The selected-pressure strategy recommendation fixture now includes a
-  station-calendar pressure event and asserts identical handoff context across
-  all selected review/import surfaces.
-- Existing station-calendar branch-local pressure derivation and scoring
-  behavior remain unchanged.
+  score-term pressure event and asserts identical handoff context across all
+  selected review/import surfaces.
+- Existing score-term branch-local pressure derivation and scoring behavior
+  remain unchanged.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:8084 test/orbital_dynamics/campaign_planner_test.exs:8202 test/orbital_dynamics/campaign_planner_test.exs:43830 test/orbital_dynamics/campaign_planner_test.exs:44263`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:73939 test/orbital_dynamics/campaign_planner_test.exs:74015 test/orbital_dynamics/campaign_planner_test.exs:74344 test/orbital_dynamics/campaign_planner_test.exs:74447`
 - `mix compile --warnings-as-errors`
 - `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
@@ -94,6 +94,8 @@ Published commits:
 - `dce8964` Preserve contact intent recommendation context
 - `416dc9b` Update autonomous loop handoff
 - `0db1f7d` Preserve station calendar recommendation context
+- `92cd55f` Update autonomous loop handoff
+- `55d5d5c` Preserve score term recommendation context
 
 Next suggested slice:
 Re-audit active strategy surfaces for the next pressure family whose selected
