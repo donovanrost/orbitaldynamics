@@ -5,26 +5,28 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve selected station reservation conflict context on V3 recommendation
-review/import rows.
+Preserve selected station reservation hold/import-readiness context on V3
+recommendation review/import rows.
 
 Status:
 Completed and ready to publish.
 
 What changed:
-- `downlink_completion_gap` risks now retain station reservation ID, owner,
-  status, match status, expiration, and provenance when branch events carry
-  reservation-conflict pressure.
+- `downlink_completion_gap` risk indicators now retain direction plus station
+  reservation hold/import-readiness detail from branch events, including hold
+  IDs, import status, required action groupings, execution-boundary assumptions,
+  and source summary context.
 - `OrbitalDynamics.RecommendationRiskContext` now owns selected station
-  reservation conflict handoff aggregation and exposes its pass-through key set.
+  reservation hold/import-readiness aggregation and exposes the pass-through key
+  set for review/import conversion.
 - `OperatorReview` and `CadenceImport` now include selected station reservation
-  conflict context on strategy recommendation review/import rows, including
-  review-package to Cadence import conversion.
+  hold/import-readiness context on strategy recommendation review/import rows,
+  including review-package to Cadence import conversion.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:42634`
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:25740`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:42634`
 - `mix compile --warnings-as-errors`
 - `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/campaign_planner.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
@@ -55,11 +57,13 @@ Published commits:
 - `3a65d52` Preserve capacity pack recommendation context
 - `1914c39` Update autonomous loop handoff
 - `97e6e72` Preserve station reservation recommendation context
+- `07d2368` Update autonomous loop handoff
+- `6256ffe` Preserve reservation hold import recommendation context
 
 Next suggested slice:
-Reassess station reservation hold/import-readiness selected-risk context, or
-switch to the next small branch-refresh contract cleanup from the active
-strategy surfaces.
+Reassess the next small branch-refresh selected-risk contract cleanup from the
+active strategy surfaces, especially any remaining station/provider context that
+reaches `risks_remaining` but is not yet projected into review/import rows.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
