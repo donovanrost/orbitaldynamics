@@ -2686,6 +2686,100 @@ defmodule OrbitalDynamics.Validation do
         "checks candidate-refresh replay of link-capacity provenance without contact allocation, candidate selection, import approval, or Cadence writes"
       ]
     },
+    "fixture.artifact.candidate_refresh.resource_filter_replay" => %{
+      "id" => "fixture.artifact.candidate_refresh.resource_filter_replay",
+      "model_id" => "artifact.candidate_refresh.v1",
+      "reference_case" =>
+        "generated candidate refresh replay of resource-filter source-report provenance",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "source" => "generated_candidate_refresh_resource_filter_fixture",
+        "contract" => "candidate_refresh.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "candidate_refresh.v1",
+        "schema_version" => 1,
+        "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 1,
+        "source_report_row_count" => 4,
+        "source_resource_filter_report_count" => 1,
+        "source_resource_filter_row_count" => 4,
+        "source_resource_filter_suppressed_candidate_count" => 3,
+        "source_resource_filter_invalid_resource_summary_input_count" => 1,
+        "source_resource_filter_suppressed_reason_counts" => %{
+          "downlink_margin_low" => 1,
+          "payload_unavailable" => 1,
+          "power_margin_low" => 1
+        },
+        "source_resource_filter_candidate_ids_by_suppressed_reason" => %{
+          "downlink_margin_low" => ["downlink_margin_block"],
+          "payload_unavailable" => ["obs_payload_block"],
+          "power_margin_low" => ["power_block"]
+        },
+        "source_resource_filter_spacecraft_counts" => %{"leo_1" => 2, "leo_2" => 1},
+        "source_resource_filter_candidate_ids_by_spacecraft" => %{
+          "leo_1" => ["downlink_margin_block", "obs_payload_block"],
+          "leo_2" => ["power_block"]
+        },
+        "source_resource_filter_resource_counts" => %{
+          "battery_main" => 1,
+          "downlink_budget" => 1,
+          "payload_1" => 1
+        },
+        "source_resource_filter_blocking_dimension_counts" => %{
+          "communications" => 1,
+          "payload" => 1,
+          "power" => 1
+        },
+        "source_resource_filter_direction_counts" => %{
+          "command" => 1,
+          "downlink" => 1
+        },
+        "source_resource_filter_direction_routing" => %{
+          "command" => %{
+            "candidate_count" => 1,
+            "candidate_ids" => ["power_block"]
+          },
+          "downlink" => %{
+            "candidate_count" => 1,
+            "candidate_ids" => ["downlink_margin_block"]
+          }
+        },
+        "source_resource_filter_trust_boundary_status" => "declared",
+        "source_resource_filter_branch_local_resource_filter_pressure" => true,
+        "source_resource_filter_branch_local_candidate_suppression_pressure" => true,
+        "source_resource_filter_branch_local_invalid_resource_summary_pressure" => true,
+        "source_resource_filter_branch_local_resource_blocking_pressure" => true
+      },
+      "tolerances" => %{
+        "schema_version" => 0,
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 0,
+        "source_report_row_count" => 0,
+        "source_resource_filter_report_count" => 0,
+        "source_resource_filter_row_count" => 0,
+        "source_resource_filter_suppressed_candidate_count" => 0,
+        "source_resource_filter_invalid_resource_summary_input_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal generated artifact regression, not resource filtering validation",
+        "checks candidate-refresh replay of resource-filter provenance without resource filtering, candidate selection, import approval, or Cadence writes"
+      ]
+    },
     "fixture.artifact.candidate_refresh.resource_provenance_v1" => %{
       "id" => "fixture.artifact.candidate_refresh.resource_provenance_v1",
       "model_id" => "artifact.candidate_refresh.v1",
@@ -14543,6 +14637,7 @@ defmodule OrbitalDynamics.Validation do
     contact_intent_summary = Map.get(source_reports, "contact_intent") || %{}
     constraint_summary = Map.get(source_reports, "constraint_report") || %{}
     link_capacity_summary = Map.get(source_reports, "link_capacity_report") || %{}
+    resource_filter_summary = Map.get(source_reports, "resource_filter_report") || %{}
 
     objective_satisfaction_summary =
       Map.get(source_reports, "objective_satisfaction_report") || %{}
@@ -14787,6 +14882,47 @@ defmodule OrbitalDynamics.Validation do
         link_capacity_branch_local_downlink_shortfall_pressure?(link_capacity_summary),
       "source_link_capacity_branch_local_actual_throughput_pressure" =>
         link_capacity_branch_local_actual_throughput_pressure?(link_capacity_summary),
+      "source_resource_filter_report_count" => Map.get(resource_filter_summary, "count"),
+      "source_resource_filter_row_count" => Map.get(resource_filter_summary, "row_count"),
+      "source_resource_filter_suppressed_candidate_count" =>
+        Map.get(resource_filter_summary, "suppressed_candidate_count"),
+      "source_resource_filter_invalid_resource_summary_input_count" =>
+        Map.get(resource_filter_summary, "invalid_resource_summary_input_count"),
+      "source_resource_filter_invalid_resource_summary_input_ids" =>
+        Map.get(resource_filter_summary, "invalid_resource_summary_input_ids") || [],
+      "source_resource_filter_suppressed_reason_counts" =>
+        Map.get(resource_filter_summary, "suppressed_reason_counts") || %{},
+      "source_resource_filter_candidate_ids_by_suppressed_reason" =>
+        Map.get(resource_filter_summary, "candidate_ids_by_suppressed_reason") || %{},
+      "source_resource_filter_spacecraft_counts" =>
+        Map.get(resource_filter_summary, "resource_filter_spacecraft_counts") || %{},
+      "source_resource_filter_candidate_ids_by_spacecraft" =>
+        Map.get(resource_filter_summary, "candidate_ids_by_spacecraft") || %{},
+      "source_resource_filter_resource_counts" =>
+        Map.get(resource_filter_summary, "resource_filter_resource_counts") || %{},
+      "source_resource_filter_candidate_ids_by_resource" =>
+        Map.get(resource_filter_summary, "candidate_ids_by_resource") || %{},
+      "source_resource_filter_blocking_dimension_counts" =>
+        Map.get(resource_filter_summary, "resource_filter_blocking_dimension_counts") || %{},
+      "source_resource_filter_candidate_ids_by_blocking_dimension" =>
+        Map.get(resource_filter_summary, "candidate_ids_by_blocking_dimension") || %{},
+      "source_resource_filter_direction_counts" =>
+        Map.get(resource_filter_summary, "direction_counts") || %{},
+      "source_resource_filter_directions" => Map.get(resource_filter_summary, "directions") || [],
+      "source_resource_filter_candidate_ids_by_direction" =>
+        Map.get(resource_filter_summary, "candidate_ids_by_direction") || %{},
+      "source_resource_filter_direction_routing" =>
+        Map.get(resource_filter_summary, "direction_routing") || %{},
+      "source_resource_filter_trust_boundary_status" =>
+        Map.get(resource_filter_summary, "trust_boundary_status"),
+      "source_resource_filter_branch_local_resource_filter_pressure" =>
+        resource_filter_branch_local_resource_filter_pressure?(resource_filter_summary),
+      "source_resource_filter_branch_local_candidate_suppression_pressure" =>
+        resource_filter_branch_local_candidate_suppression_pressure?(resource_filter_summary),
+      "source_resource_filter_branch_local_invalid_resource_summary_pressure" =>
+        resource_filter_branch_local_invalid_resource_summary_pressure?(resource_filter_summary),
+      "source_resource_filter_branch_local_resource_blocking_pressure" =>
+        resource_filter_branch_local_resource_blocking_pressure?(resource_filter_summary),
       "source_resource_projection_report_count" => Map.get(resource_projection_summary, "count"),
       "source_resource_projection_row_count" => Map.get(resource_projection_summary, "row_count"),
       "source_resource_projection_projected_resource_count" =>
@@ -21649,6 +21785,39 @@ defmodule OrbitalDynamics.Validation do
     |> Enum.any?(fn {status, values} ->
       String.starts_with?(to_string(status), "actual_") and List.wrap(values) != []
     end)
+  end
+
+  defp resource_filter_branch_local_resource_filter_pressure?(%{} = summary) do
+    resource_filter_branch_local_candidate_suppression_pressure?(summary) or
+      resource_filter_branch_local_invalid_resource_summary_pressure?(summary) or
+      resource_filter_branch_local_resource_blocking_pressure?(summary)
+  end
+
+  defp resource_filter_branch_local_candidate_suppression_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "suppressed_candidate_count") or
+      map_size(Map.get(summary, "suppressed_reason_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "candidate_ids_by_spacecraft") || %{}) > 0 or
+      map_size(Map.get(summary, "candidate_ids_by_resource") || %{}) > 0 or
+      map_size(Map.get(summary, "candidate_ids_by_blocking_dimension") || %{}) > 0 or
+      map_size(Map.get(summary, "candidate_ids_by_suppressed_reason") || %{}) > 0 or
+      map_size(Map.get(summary, "direction_counts") || %{}) > 0 or
+      list_values(summary, "directions") != [] or
+      map_size(Map.get(summary, "candidate_ids_by_direction") || %{}) > 0 or
+      map_size(Map.get(summary, "direction_routing") || %{}) > 0
+  end
+
+  defp resource_filter_branch_local_invalid_resource_summary_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "invalid_resource_summary_input_count") or
+      list_values(summary, "invalid_resource_summary_input_ids") != []
+  end
+
+  defp resource_filter_branch_local_resource_blocking_pressure?(%{} = summary) do
+    map_size(Map.get(summary, "resource_filter_spacecraft_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "resource_filter_resource_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "resource_filter_blocking_dimension_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "candidate_ids_by_spacecraft") || %{}) > 0 or
+      map_size(Map.get(summary, "candidate_ids_by_resource") || %{}) > 0 or
+      map_size(Map.get(summary, "candidate_ids_by_blocking_dimension") || %{}) > 0
   end
 
   defp score_term_routing_pressure?(%{} = summary) do

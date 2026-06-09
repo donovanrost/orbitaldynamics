@@ -5665,6 +5665,114 @@ defmodule OrbitalDynamics.ValidationTest do
              Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
   end
 
+  test "verifies candidate refresh resource filter replay fixtures" do
+    fixture_id = "fixture.artifact.candidate_refresh.resource_filter_replay"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = candidate_refresh_resource_filter_fixture()
+    observations = candidate_refresh_resource_filter_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "source_report_family_count" => 1,
+             "source_report_row_count" => 4,
+             "source_resource_filter_report_count" => 1,
+             "source_resource_filter_row_count" => 4,
+             "source_resource_filter_suppressed_candidate_count" => 3,
+             "source_resource_filter_invalid_resource_summary_input_count" => 1,
+             "source_resource_filter_invalid_resource_summary_input_ids" => ["bad_summary"],
+             "source_resource_filter_suppressed_reason_counts" => %{
+               "downlink_margin_low" => 1,
+               "payload_unavailable" => 1,
+               "power_margin_low" => 1
+             },
+             "source_resource_filter_candidate_ids_by_suppressed_reason" => %{
+               "downlink_margin_low" => ["downlink_margin_block"],
+               "payload_unavailable" => ["obs_payload_block"],
+               "power_margin_low" => ["power_block"]
+             },
+             "source_resource_filter_spacecraft_counts" => %{"leo_1" => 2, "leo_2" => 1},
+             "source_resource_filter_candidate_ids_by_spacecraft" => %{
+               "leo_1" => ["downlink_margin_block", "obs_payload_block"],
+               "leo_2" => ["power_block"]
+             },
+             "source_resource_filter_resource_counts" => %{
+               "battery_main" => 1,
+               "downlink_budget" => 1,
+               "payload_1" => 1
+             },
+             "source_resource_filter_candidate_ids_by_resource" => %{
+               "battery_main" => ["power_block"],
+               "downlink_budget" => ["downlink_margin_block"],
+               "payload_1" => ["obs_payload_block"]
+             },
+             "source_resource_filter_blocking_dimension_counts" => %{
+               "communications" => 1,
+               "payload" => 1,
+               "power" => 1
+             },
+             "source_resource_filter_candidate_ids_by_blocking_dimension" => %{
+               "communications" => ["downlink_margin_block"],
+               "payload" => ["obs_payload_block"],
+               "power" => ["power_block"]
+             },
+             "source_resource_filter_direction_counts" => %{
+               "command" => 1,
+               "downlink" => 1
+             },
+             "source_resource_filter_directions" => ["command", "downlink"],
+             "source_resource_filter_candidate_ids_by_direction" => %{
+               "command" => ["power_block"],
+               "downlink" => ["downlink_margin_block"]
+             },
+             "source_resource_filter_direction_routing" => %{
+               "command" => %{
+                 "candidate_count" => 1,
+                 "candidate_ids" => ["power_block"]
+               },
+               "downlink" => %{
+                 "candidate_count" => 1,
+                 "candidate_ids" => ["downlink_margin_block"]
+               }
+             },
+             "source_resource_filter_trust_boundary_status" => "declared",
+             "source_resource_filter_branch_local_resource_filter_pressure" => true,
+             "source_resource_filter_branch_local_candidate_suppression_pressure" => true,
+             "source_resource_filter_branch_local_invalid_resource_summary_pressure" => true,
+             "source_resource_filter_branch_local_resource_blocking_pressure" => true
+           } = observations
+
+    stale_resource_filter_pressure_observations =
+      observations
+      |> Map.put("source_resource_filter_branch_local_resource_filter_pressure", false)
+
+    assert {:ok, stale_resource_filter_pressure_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_resource_filter_pressure_observations
+             )
+
+    assert stale_resource_filter_pressure_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_resource_filter_pressure_verification["checks"],
+             &(&1["field"] == "source_resource_filter_branch_local_resource_filter_pressure" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _validated_artifact} =
+             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
+  end
+
   test "verifies curated candidate rejection report reference fixtures" do
     fixture_id = "fixture.artifact.candidate_rejection_report.v1"
 
@@ -14564,6 +14672,8 @@ defmodule OrbitalDynamics.ValidationTest do
           candidate_refresh_objective_gap_fixture_observations(),
         "fixture.artifact.candidate_refresh.quality_gate_replay" =>
           candidate_refresh_quality_gate_fixture_observations(),
+        "fixture.artifact.candidate_refresh.resource_filter_replay" =>
+          candidate_refresh_resource_filter_fixture_observations(),
         "fixture.artifact.candidate_refresh.resource_provenance_v1" =>
           candidate_refresh_resource_provenance_fixture_observations(),
         "fixture.artifact.candidate_rejection_report.v1" =>
@@ -14849,8 +14959,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 188,
-             "status_counts" => %{"pass" => 188},
+             "fixture_count" => 189,
+             "status_counts" => %{"pass" => 189},
              "reports" => reports
            } = report
 
@@ -14889,6 +14999,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.candidate_refresh.objective_gap_replay",
              "fixture.artifact.candidate_refresh.operational_readiness_replay",
              "fixture.artifact.candidate_refresh.quality_gate_replay",
+             "fixture.artifact.candidate_refresh.resource_filter_replay",
              "fixture.artifact.candidate_refresh.resource_projection_replay",
              "fixture.artifact.candidate_refresh.resource_provenance_v1",
              "fixture.artifact.candidate_refresh.timeline_activity_lifecycle_replay",
@@ -15065,7 +15176,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 188},
+             "status_counts" => %{"fail" => 189},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -16146,6 +16257,82 @@ defmodule OrbitalDynamics.ValidationTest do
         "selected_contact_ids" => ["stale_selected_contact"],
         "actual_throughput_contact_ids" => ["stale_actual_contact"],
         "provenance" => %{"trust_boundary" => "link_capacity_replay_report"}
+      }
+    }
+  end
+
+  defp candidate_refresh_resource_filter_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(candidate_refresh_resource_filter_fixture())
+  end
+
+  defp candidate_refresh_resource_filter_fixture do
+    result_set(%{})
+    |> CandidateRefresh.build(
+      candidate_refresh: candidate_refresh_resource_filter_request(),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  defp candidate_refresh_resource_filter_request do
+    %{
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-resource-filter-replay-challenge",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [],
+        "source" => %{"system" => "validation_challenge"},
+        "quality" => %{"level" => "accepted"},
+        "provenance" => %{"created_by" => "validation_fixture"}
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "targets" => [],
+      "constraints" => %{},
+      "scoring_policy" => %{},
+      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
+      "source_resource_filter_report" => %{
+        "schema_contract" => "resource_filter_report.v1",
+        "suppressed_candidates" => [
+          %{
+            "id" => "obs_payload_block",
+            "spacecraft_id" => "leo_1",
+            "resource_id" => "payload_1",
+            "suppressed_reason" => "payload_unavailable",
+            "resource_blocking_dimension" => "payload"
+          },
+          %{
+            "id" => "downlink_margin_block",
+            "direction" => "Down Link",
+            "spacecraft_id" => "leo_1",
+            "resource_summary_id" => "downlink_budget",
+            "suppressed_reason" => "downlink_margin_low",
+            "resource_blocking_dimension" => "communications"
+          },
+          %{
+            "id" => "power_block",
+            "activity_context" => %{"direction" => "s-band command"},
+            "spacecraft_id" => "leo_2",
+            "battery_id" => "battery_main",
+            "suppressed_reason" => "power_margin_low",
+            "resource_blocking_dimension" => "power"
+          }
+        ],
+        "invalid_resource_summary_inputs" => [%{"resource_summary_id" => "bad_summary"}],
+        "suppressed_reason_counts" => %{"stale_reason" => 99},
+        "resource_filter_spacecraft_counts" => %{"stale_spacecraft" => 99},
+        "candidate_ids_by_spacecraft" => %{"stale_spacecraft" => ["stale_candidate"]},
+        "resource_filter_resource_counts" => %{"stale_resource" => 99},
+        "candidate_ids_by_resource" => %{"stale_resource" => ["stale_candidate"]},
+        "resource_filter_blocking_dimension_counts" => %{"stale_dimension" => 99},
+        "candidate_ids_by_blocking_dimension" => %{"stale_dimension" => ["stale_candidate"]},
+        "direction_counts" => %{"stale_direction" => 99},
+        "candidate_ids_by_direction" => %{"stale_direction" => ["stale_candidate"]},
+        "candidate_ids_by_suppressed_reason" => %{"stale_reason" => ["stale_candidate"]},
+        "provenance" => %{"trust_boundary" => "resource_filter_replay_report"}
       }
     }
   end

@@ -618,6 +618,12 @@ throughput totals, station/spacecraft/direction/contact routing maps,
 downlink-requirement shortfall routing, branch-local link-capacity pressure
 booleans, and trust-boundary status without contact allocation, candidate
 selection, import approval, or Cadence writes.
+The registry also includes a generated CandidateRefresh resource-filter replay
+fixture. It checks resource-filter source-report provenance counts, row-derived
+candidate suppression, invalid resource-summary input evidence,
+resource/blocking-dimension/direction routing maps, branch-local
+resource-filter pressure booleans, and trust-boundary status without resource
+filtering, candidate selection, import approval, or Cadence writes.
 The registry also includes a generated CandidateRefresh resource-projection
 replay fixture. It checks projected-resource and invalid-input counts, resource
 pressure status/type/direction maps, activity routing, and trust-boundary
