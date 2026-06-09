@@ -5,26 +5,26 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve selected schema-validation pressure context on V3 recommendation
+Preserve selected refresh-budget pressure context on V3 recommendation
 review/import rows.
 
 Status:
 Completed and ready to publish.
 
 What changed:
-- `CampaignPlanner` now carries schema-validation selected-risk context into
-  recommendation explanation rows via the validation-refresh field set.
-- `OperatorReview` and `CadenceImport` now aggregate selected
-  schema-validation risks into strategy recommendation handoff fields.
-- Focused tests assert schema-validation explanation and review/import handoff
-  rows; stale provider-counteroffer assertions were updated to the current
-  pressure risk type exposed by selected provider-counteroffer risks.
+- `CampaignPlanner` now carries selected refresh-budget pressure context into
+  recommendation explanation rows through the validation-refresh field set.
+- `OperatorReview` and `CadenceImport` now aggregate selected refresh-budget
+  statuses, candidate counts, limit values, actions, and provenance into
+  strategy recommendation handoff rows.
+- Focused tests assert refresh-budget selected-risk explanation and handoff
+  fields while preserving existing derived refresh-budget branch behavior.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:43670 test/orbital_dynamics/campaign_planner_test.exs:43782`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:18418 test/orbital_dynamics/campaign_planner_test.exs:22000`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:43300 test/orbital_dynamics/campaign_planner_test.exs:46880 test/orbital_dynamics/campaign_planner_test.exs:47010`
 - `mix compile --warnings-as-errors`
+- `mix format lib/orbital_dynamics/campaign_planner.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
 
 Published commits:
@@ -37,11 +37,13 @@ Published commits:
 - `d8c94af` Preserve model acceptance recommendation context
 - `9a83a63` Update autonomous loop handoff
 - `c42aa31` Preserve schema validation recommendation context
+- `d740ac4` Update autonomous loop handoff
+- `68646bc` Preserve refresh budget recommendation context
 
 Next suggested slice:
-Continue validation-refresh selected handoff coverage for refresh-budget or
-refresh-freshness pressure, or consolidate repeated source-pressure aggregation
-helpers if the duplication starts obscuring behavior.
+Continue validation-refresh selected handoff coverage for refresh-freshness
+pressure, then consider consolidating repeated source-pressure aggregation
+helpers if duplication starts obscuring behavior.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
