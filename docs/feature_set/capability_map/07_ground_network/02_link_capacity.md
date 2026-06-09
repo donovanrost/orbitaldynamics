@@ -376,6 +376,9 @@ Resource-availability pressure contributes to
 `resource_availability_pressure_penalty`, keeping payload, antenna, spacecraft,
 and generic resource unavailability separate from both generic risk and
 storage/downlink margin pressure.
+Fuel, power, and thermal margin pressure contributes to
+`resource_margin_pressure_penalty`, while storage and downlink margin pressure
+remain in `storage_downlink_pressure_penalty`.
 
 `policy_decision.v1` rule-match evidence preserves those source confidence
 factors with the same bounds. Communication rule-match counters for concurrent

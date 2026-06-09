@@ -768,6 +768,10 @@ Resource-availability risks contribute to
 `resource_availability_pressure_penalty`, leaving generic `risk_penalty` for
 unrelated risks while resource-margin storage/downlink pressure remains in
 `storage_downlink_pressure_penalty`.
+Fuel, power, and thermal margin risks contribute to
+`resource_margin_pressure_penalty`, leaving generic `risk_penalty` for
+unrelated risks while storage/downlink margin pressure remains in
+`storage_downlink_pressure_penalty`.
 Station-calendar pressure risks, including reserved, unavailable, and
 reduced-capacity station feedback, contribute to
 `station_calendar_pressure_penalty`, leaving generic `risk_penalty` for
@@ -1650,6 +1654,11 @@ Selected recommendations also include:
   unrelated risks while preserving total branch score compatibility. Focused
   resource-filter and operational-feedback fixtures now assert split branch
   math and score-term report rows.
+- **Resource-margin pressure score terms** — split fuel, power, and thermal
+  margin risks into `resource_margin_pressure_penalty`, leaving `risk_penalty`
+  for unrelated risks while preserving total branch score compatibility. Focused
+  fuel-preservation and thermal resource-filter fixtures now assert split
+  branch math and score-term report rows.
 - **Storage/downlink pressure score terms** — split storage/downlink
   resource-margin and projection risks into `storage_downlink_pressure_penalty`,
   leaving `risk_penalty` for unrelated risks while preserving total branch score

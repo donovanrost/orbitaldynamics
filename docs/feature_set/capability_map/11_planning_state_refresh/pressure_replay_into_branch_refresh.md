@@ -52,6 +52,8 @@
   replay contribute to `resource_availability_pressure_penalty` in V3 score
   terms, while resource-margin storage/downlink risks stay in the
   storage/downlink pressure term.
+- Fuel, power, and thermal margin risks from replayed resource pressure
+  contribute to `resource_margin_pressure_penalty` in V3 score terms.
 - Contact-filter `downlink_completion_gap` risks contribute to
   `contact_filter_pressure_penalty` in V3 score terms, keeping suppressed
   contact-window pressure visible separately from unrelated generic risks while
