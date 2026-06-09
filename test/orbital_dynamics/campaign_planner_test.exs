@@ -38263,6 +38263,148 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "mission_state.source_result_artifact.candidate_diff_report"
            ]
 
+    candidate_diff_pressure_risks =
+      Enum.filter(
+        urgent["risk_indicators"],
+        &(&1["type"] == "candidate_diff_pressure" and
+            &1["feedback_source"] == "candidate_source.candidate_diff_replay_summary")
+      )
+
+    assert length(candidate_diff_pressure_risks) == 1
+
+    candidate_diff_pressure_risk = List.first(candidate_diff_pressure_risks)
+
+    assert candidate_diff_pressure_risk["contract"] == "candidate_diff_report.v1"
+    assert candidate_diff_pressure_risk["source_report_count"] == 4
+    assert candidate_diff_pressure_risk["source_report_row_count"] == 5
+    assert candidate_diff_pressure_risk["retained_candidate_count"] == 2
+    assert candidate_diff_pressure_risk["new_candidate_count"] == 1
+    assert candidate_diff_pressure_risk["invalidated_candidate_count"] == 2
+
+    assert Enum.sort(candidate_diff_pressure_risk["source_report_paths"]) == [
+             "mission_state.candidate_diff_report",
+             "mission_state.result_artifact.source_candidate_diff_report",
+             "mission_state.source_candidate_diff_report",
+             "mission_state.source_result_artifact.candidate_diff_report"
+           ]
+
+    assert candidate_diff_pressure_risk["diff_reason_counts"] == %{
+             "not_present_in_prior_candidate_set" => 1,
+             "present_in_prior_candidate_set_with_semantic_changes" => 2
+           }
+
+    assert candidate_diff_pressure_risk["invalidated_reason_counts"] == %{
+             "not_present_in_refreshed_candidate_set" => 2
+           }
+
+    assert candidate_diff_pressure_risk["semantic_change_reason_counts"] == %{
+             "contact_window_shifted" => 1,
+             "link_margin_changed" => 1,
+             "priority_changed" => 1,
+             "station_reservation_changed" => 1
+           }
+
+    assert candidate_diff_pressure_risk["candidate_diff_changed_field_counts"] == %{
+             "link_margin_s" => 1,
+             "priority" => 1,
+             "starts_at_s" => 1,
+             "station_reservation_status" => 1
+           }
+
+    assert candidate_diff_pressure_risk["candidate_diff_candidate_id_counts"] == %{
+             "canonical_invalidated_candidate" => 1,
+             "direct_new_candidate" => 1,
+             "direct_retained_candidate" => 1,
+             "result_wrapped_retained_candidate" => 1,
+             "source_wrapped_invalidated_candidate" => 1
+           }
+
+    assert candidate_diff_pressure_risk["candidate_diff_ground_station_counts"] == %{
+             "dss_43" => 1,
+             "dss_14" => 1,
+             "equator_prime" => 1,
+             "polar_prime" => 2
+           }
+
+    assert candidate_diff_pressure_risk["assumptions"]["candidate_selection"] ==
+             "not_performed_by_summary"
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    assert urgent["score_terms"]["candidate_diff_pressure_penalty"] ==
+             -length(candidate_diff_pressure_risks) * risk_weight
+
+    assert "candidate_diff_pressure_penalty" in artifact["score_term_report"]["score_term_keys"]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == "urgent" and
+                 &1["term_key"] == "candidate_diff_pressure_penalty" and &1["value"] < 0.0)
+           )
+
+    urgent_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+
+    assert "candidate_diff_pressure" in urgent_row["risk_types"]
+
+    assert urgent_row["branch_candidate_diff_source_report_paths"] == [
+             "mission_state.candidate_diff_report",
+             "mission_state.result_artifact.source_candidate_diff_report",
+             "mission_state.source_candidate_diff_report",
+             "mission_state.source_result_artifact.candidate_diff_report"
+           ]
+
+    assert urgent_row["branch_candidate_diff_reasons"] == [
+             "not_present_in_prior_candidate_set",
+             "present_in_prior_candidate_set_with_semantic_changes"
+           ]
+
+    assert urgent_row["branch_candidate_diff_invalidated_reasons"] == [
+             "not_present_in_refreshed_candidate_set"
+           ]
+
+    assert urgent_row["branch_candidate_diff_semantic_change_reasons"] == [
+             "contact_window_shifted",
+             "link_margin_changed",
+             "priority_changed",
+             "station_reservation_changed"
+           ]
+
+    assert urgent_row["branch_candidate_diff_changed_fields"] == [
+             "link_margin_s",
+             "priority",
+             "starts_at_s",
+             "station_reservation_status"
+           ]
+
+    assert urgent_row["branch_candidate_diff_candidate_ids"] == [
+             "canonical_invalidated_candidate",
+             "direct_new_candidate",
+             "direct_retained_candidate",
+             "result_wrapped_retained_candidate",
+             "source_wrapped_invalidated_candidate"
+           ]
+
+    assert urgent_row["branch_candidate_diff_ground_station_ids"] == [
+             "dss_14",
+             "dss_43",
+             "equator_prime",
+             "polar_prime"
+           ]
+
+    assert urgent_row["branch_candidate_diff_trust_boundaries"] == [
+             "canonical_candidate_diff_report_boundary",
+             "canonical_invalidated_candidate_boundary",
+             "direct_candidate_diff_report_boundary",
+             "direct_new_candidate_boundary",
+             "direct_retained_candidate_boundary",
+             "result_wrapped_candidate_diff_boundary",
+             "result_wrapped_retained_candidate_boundary",
+             "source_wrapped_candidate_diff_boundary",
+             "source_wrapped_invalidated_candidate_boundary"
+           ]
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
