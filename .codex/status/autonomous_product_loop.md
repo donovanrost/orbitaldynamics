@@ -5,8 +5,8 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Feed branch-local timeline activity-precondition replay pressure into V3 branch
-risk and score terms.
+Feed branch-local link-capacity replay pressure into V3 branch risk and score
+terms.
 
 Status:
 Completed and pushed.
@@ -17,10 +17,8 @@ Files changed:
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:34455`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:34207`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:35309`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:35509`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:31330`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:31330 test/orbital_dynamics/campaign_planner_test.exs:31606 test/orbital_dynamics/campaign_planner_test.exs:31768 test/orbital_dynamics/campaign_planner_test.exs:54250`
 - `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
 - `mix compile --warnings-as-errors`
@@ -32,23 +30,26 @@ Level 6 pillar advanced:
 Reproducible V1/V2/V3 branch trees with explainable score terms and deltas.
 
 Last completed slice:
-Fed branch-local timeline activity-precondition replay pressure into V3 branch
-risk and score terms.
+Fed branch-local link-capacity replay pressure into V3 branch risk and score
+terms.
 
 What changed:
-- Branch-generated candidate-source timeline activity-precondition replay
-  pressure now emits a `timeline_activity_precondition_review` risk.
-- Branches affected by that replay now expose
-  `timeline_precondition_pressure_penalty` in score terms and the score-term
-  report.
-- Existing integrity and direct precondition pressure paths still pass.
-- Added focused assertions to a mission-state activity-precondition replay
-  strategy test.
+- Branch-generated candidate-source link-capacity replay pressure now emits a
+  `downlink_completion_gap` risk with
+  `candidate_source.link_capacity_replay_summary` provenance.
+- The synthetic branch-local link-capacity risk is limited to downlink
+  shortfall, actual-throughput, or capacity-adjusted-throughput pressure so
+  relay-only data-path pressure keeps its separate score term.
+- Branches affected by replayed link-capacity pressure now expose
+  `link_capacity_pressure_penalty` in score terms and the score-term report.
+- Added focused assertions to the mission-state link-capacity replay strategy
+  test, including replay row counts, selected/actual contact IDs, score-term
+  value, and score-term report rows.
 - Parent performed bounded local review and mechanical publish because no
   suitable subagent tool is available in this runtime.
 
 Last commit:
-- Product: `0ecee46` Feed precondition replay into branch scoring
+- Product: `82e956a` Feed link capacity replay into branch scoring
 - Ledger: latest `Update autonomous loop handoff` commit on `main`
 
 Remaining maturity gaps:
@@ -63,8 +64,9 @@ Remaining maturity gaps:
 
 Next candidate:
 Reassess branch-local replay families for another pressure signal that is
-replayed but not yet planner-visible, or switch to a stale-but-plausible
-challenge fixture for an existing planner-visible pressure family.
+replayed but not yet planner-visible, or switch to preserving replayed
+candidate-source review rows through branch candidate construction if the live
+gap justifies the broader shape change.
 
 Blocked:
 Not blocked.
