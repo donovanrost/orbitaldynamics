@@ -3533,6 +3533,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp provider_counteroffer_pressure_risk?(_risk), do: false
 
+  defp model_acceptance_pressure_risk?(%{"feedback_scope" => "model_acceptance"}),
+    do: true
+
+  defp model_acceptance_pressure_risk?(%{"type" => "model_acceptance_pressure"}),
+    do: true
+
+  defp model_acceptance_pressure_risk?(_risk), do: false
+
   defp validation_refresh_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &validation_refresh_pressure_risk?/1)
   end
@@ -3709,6 +3717,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     quality_gate_replay =
       CandidateRefresh.quality_gate_replay_summary(candidate_source)
 
+    model_acceptance_replay =
+      CandidateRefresh.model_acceptance_replay_summary(candidate_source)
+
     lifecycle_replay =
       CandidateRefresh.timeline_lifecycle_state_replay_summary(candidate_source)
 
@@ -3748,6 +3759,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       event_risks
     )
     |> maybe_add_candidate_source_quality_gate_risks(quality_gate_replay, event_risks)
+    |> maybe_add_candidate_source_model_acceptance_risks(model_acceptance_replay, event_risks)
     |> maybe_add_candidate_source_timeline_activity_state_risks(
       activity_state_replay,
       event_risks
@@ -3842,6 +3854,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
       risks
     else
       risks ++ quality_gate_replay_pressure_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_model_acceptance_risks(risks, replay_summary, event_risks) do
+    if Enum.any?(event_risks, &model_acceptance_pressure_risk?/1) do
+      risks
+    else
+      risks ++ model_acceptance_replay_pressure_risks(replay_summary)
     end
   end
 
@@ -4672,6 +4692,88 @@ defmodule OrbitalDynamics.CampaignPlanner do
       summary_positive?(replay_summary, "review_gate_count") or
       summary_positive?(replay_summary, "blocked_gate_count") or
       summary_positive?(replay_summary, "non_passed_gate_count")
+  end
+
+  defp model_acceptance_replay_pressure_risks(%{} = replay_summary) do
+    if model_acceptance_replay_scoring_pressure?(replay_summary) do
+      model_acceptance_replay_pressure_risk(replay_summary)
+    else
+      []
+    end
+  end
+
+  defp model_acceptance_replay_pressure_risks(_replay_summary), do: []
+
+  defp model_acceptance_replay_scoring_pressure?(replay_summary) do
+    Map.get(replay_summary, "branch_local_review_pressure") == true or
+      Map.get(replay_summary, "branch_local_blocking_pressure") == true or
+      Map.get(replay_summary, "branch_local_unknown_model_pressure") == true or
+      summary_positive?(replay_summary, "review_required_count") or
+      summary_positive?(replay_summary, "blocked_count") or
+      summary_positive?(replay_summary, "unknown_model_count")
+  end
+
+  defp model_acceptance_replay_pressure_risk(replay_summary) do
+    statuses = replay_summary |> Map.get("status_counts", %{}) |> map_keys()
+    intended_uses = replay_summary |> Map.get("intended_use_counts", %{}) |> map_keys()
+    validation_levels = replay_summary |> Map.get("validation_level_counts", %{}) |> map_keys()
+
+    model_ids =
+      [
+        replay_summary |> Map.get("model_ids_by_status", %{}) |> Map.values(),
+        replay_summary |> Map.get("model_ids_by_validation_level", %{}) |> Map.values(),
+        replay_summary |> Map.get("model_ids_by_intended_use", %{}) |> Map.values()
+      ]
+      |> List.flatten()
+      |> sorted_encoded_values()
+
+    [
+      %{
+        "type" => "model_acceptance_pressure",
+        "severity" =>
+          validation_refresh_pressure_risk_severity(%{
+            "model_acceptance_status" => pressure_priority_value(statuses),
+            "model_status" => pressure_priority_value(statuses),
+            "validation_level" => pressure_priority_value(validation_levels)
+          }),
+        "reason" =>
+          "candidate source model-acceptance replay reports review, blocking, or unknown-model pressure",
+        "source_report_count" => Map.get(replay_summary, "source_report_count"),
+        "source_report_row_count" => Map.get(replay_summary, "source_report_row_count"),
+        "source_report_record_count" => Map.get(replay_summary, "source_report_record_count"),
+        "source_report_paths" => Map.get(replay_summary, "source_report_paths"),
+        "intended_use_counts" => Map.get(replay_summary, "intended_use_counts"),
+        "status_counts" => Map.get(replay_summary, "status_counts"),
+        "validation_level_counts" => Map.get(replay_summary, "validation_level_counts"),
+        "model_count" => Map.get(replay_summary, "model_count"),
+        "accepted_count" => Map.get(replay_summary, "accepted_count"),
+        "review_required_count" => Map.get(replay_summary, "review_required_count"),
+        "blocked_count" => Map.get(replay_summary, "blocked_count"),
+        "unknown_model_count" => Map.get(replay_summary, "unknown_model_count"),
+        "model_ids_by_status" => Map.get(replay_summary, "model_ids_by_status"),
+        "model_ids_by_validation_level" =>
+          Map.get(replay_summary, "model_ids_by_validation_level"),
+        "model_ids_by_intended_use" => Map.get(replay_summary, "model_ids_by_intended_use"),
+        "model_ids" => model_ids,
+        "intended_uses" => intended_uses,
+        "model_acceptance_statuses" => statuses,
+        "validation_levels" => validation_levels,
+        "model_acceptance_status" => pressure_priority_value(statuses),
+        "model_status" => pressure_priority_value(statuses),
+        "validation_level" => pressure_priority_value(validation_levels),
+        "branch_local_review_pressure" => Map.get(replay_summary, "branch_local_review_pressure"),
+        "branch_local_blocking_pressure" =>
+          Map.get(replay_summary, "branch_local_blocking_pressure"),
+        "branch_local_unknown_model_pressure" =>
+          Map.get(replay_summary, "branch_local_unknown_model_pressure"),
+        "feedback_source" => "candidate_source.model_acceptance_replay_summary",
+        "feedback_scope" => "model_acceptance",
+        "feedback_key" => "model_acceptance",
+        "trust_boundary_status" => Map.get(replay_summary, "trust_boundary_status"),
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries")
+      }
+      |> compact_map()
+    ]
   end
 
   defp quality_gate_replay_pressure_risk(replay_summary) do

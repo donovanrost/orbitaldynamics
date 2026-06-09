@@ -28015,6 +28015,55 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert Enum.sort(replay_unknown_ids) == Enum.sort(unknown_ids)
     assert Enum.sort(replay_intended_use_ids) == Enum.sort(intended_use_ids)
 
+    model_acceptance_pressure_count =
+      Enum.count(
+        urgent["risk_indicators"],
+        &(&1["type"] == "model_acceptance_pressure" and
+            &1["feedback_source"] == "candidate_source.model_acceptance_replay_summary")
+      )
+
+    assert model_acceptance_pressure_count == 1
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "model_acceptance_pressure" and
+                 &1["feedback_scope"] == "model_acceptance" and
+                 &1["severity"] == "high" and
+                 &1["source_report_count"] == 4 and
+                 &1["source_report_row_count"] == 12 and
+                 &1["source_report_record_count"] == 8 and
+                 &1["source_report_paths"] == replay_source_paths and
+                 &1["intended_use_counts"] == %{"operational_import" => 4} and
+                 &1["status_counts"] == %{"blocked" => 4} and
+                 &1["validation_level_counts"] == %{
+                   "analysis" => 4,
+                   "educational" => 4,
+                   "unknown" => 4
+                 } and
+                 &1["model_count"] == 12 and
+                 &1["review_required_count"] == 4 and
+                 &1["blocked_count"] == 8 and
+                 &1["unknown_model_count"] == 4 and
+                 &1["model_ids_by_status"] == %{
+                   "blocked" => replay_blocked_ids,
+                   "review_required" => replay_review_ids
+                 } and
+                 &1["model_ids_by_validation_level"] == %{
+                   "analysis" => replay_analysis_ids,
+                   "educational" => replay_educational_ids,
+                   "unknown" => replay_unknown_ids
+                 } and
+                 &1["model_ids_by_intended_use"] == %{
+                   "operational_import" => replay_intended_use_ids
+                 } and
+                 &1["model_ids"] == Enum.sort(Enum.uniq(replay_intended_use_ids)) and
+                 &1["branch_local_review_pressure"] == true and
+                 &1["branch_local_blocking_pressure"] == true and
+                 &1["branch_local_unknown_model_pressure"] == true)
+           )
+
+    assert_validation_refresh_pressure_score_terms(urgent, artifact, "model_acceptance")
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
