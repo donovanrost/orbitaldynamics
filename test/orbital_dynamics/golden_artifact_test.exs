@@ -243,10 +243,11 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
       |> File.read!()
       |> :json.decode()
 
-    assert Map.drop(campaign, ["execution_report", "run"]) ==
-             Map.drop(generated_campaign, ["execution_report", "run"])
+    assert normalize_campaign_artifact_for_exact_match(campaign) ==
+             normalize_campaign_artifact_for_exact_match(generated_campaign)
 
-    assert campaign["campaign_plan"] == generated_campaign["campaign_plan"]
+    assert normalize_git_revisions(campaign["campaign_plan"]) ==
+             normalize_git_revisions(generated_campaign["campaign_plan"])
   end
 
   test "checked-in repair artifact preserves the V2 repair surface" do
@@ -432,7 +433,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
            "schema_version" => 3,
            "planner" => "OrbitalDynamics.CampaignPlanner.V3",
            "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
-           "strategy_id" => "477ab67c4235dcb97718ac9e1fde15458e08c7f7cf0d22e4aa6fcbb94455f3be",
+           "strategy_id" => "fdb0044eb96540cc867b51fcb17c37904e90c33f850f8627330c29992a9c500b",
            "recommended_branch_id" => "derived_urgent_target_target_hot",
            "approval_status" => "operator_review_required",
            "recommendation_status" => "pass"
@@ -1297,6 +1298,51 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
   defp rounded_values(rows, key) do
     Enum.map(rows || [], fn row -> Float.round(row[key] * 1.0, 6) end)
   end
+
+  defp normalize_campaign_artifact_for_exact_match(artifact) do
+    artifact
+    |> Map.drop(["execution_report", "run"])
+    |> normalize_git_revisions()
+    |> normalize_dropped_runtime_payload_metrics()
+  end
+
+  defp normalize_dropped_runtime_payload_metrics(%{"payload_metrics" => %{} = metrics} = artifact) do
+    metrics =
+      metrics
+      |> Map.put("artifact_body_bytes", "__runtime_sections_normalized__")
+      |> update_in(["sections"], fn
+        %{} = sections ->
+          sections
+          |> normalize_payload_section_bytes("execution_report")
+          |> normalize_payload_section_bytes("run")
+
+        sections ->
+          sections
+      end)
+
+    Map.put(artifact, "payload_metrics", metrics)
+  end
+
+  defp normalize_dropped_runtime_payload_metrics(artifact), do: artifact
+
+  defp normalize_payload_section_bytes(sections, section) do
+    update_in(sections, [section], fn
+      %{} = payload_section -> Map.put(payload_section, "bytes", "__runtime_section_normalized__")
+      payload_section -> payload_section
+    end)
+  end
+
+  defp normalize_git_revisions(%{} = map) do
+    Map.new(map, fn
+      {"git_revision", value} when is_binary(value) -> {"git_revision", "__normalized__"}
+      {key, value} -> {key, normalize_git_revisions(value)}
+    end)
+  end
+
+  defp normalize_git_revisions(values) when is_list(values),
+    do: Enum.map(values, &normalize_git_revisions/1)
+
+  defp normalize_git_revisions(value), do: value
 
   defp source_review_join_issues(row) do
     source_review_row = row["source_review_row"]

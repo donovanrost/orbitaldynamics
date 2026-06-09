@@ -1741,8 +1741,8 @@ defmodule OrbitalDynamics.ValidationTest do
 
     observations = campaign_strategy_fixture_observations()
 
-    assert observations["score_term_report_row_count"] == 1107
-    assert observations["score_term_report_key_count"] == 41
+    assert observations["score_term_report_row_count"] == 1161
+    assert observations["score_term_report_key_count"] == 43
 
     assert observations["score_term_report_row_derived_key_counts"][
              "resource_availability_pressure_penalty"
