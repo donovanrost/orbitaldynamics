@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve timeline-publication branch evidence through review/import handoffs.
+Preserve timeline activity branch evidence through review/import handoffs.
 
 Status:
 Completed and pushed.
@@ -19,8 +19,7 @@ Files changed:
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:34028`
-- `mix test test/orbital_dynamics/operator_review_test.exs:13408 test/orbital_dynamics/cadence_import_test.exs:6119 test/orbital_dynamics/campaign_planner_test.exs:34028`
+- `mix test test/orbital_dynamics/operator_review_test.exs:13408 test/orbital_dynamics/cadence_import_test.exs:6119 test/orbital_dynamics/campaign_planner_test.exs:33898`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
@@ -32,38 +31,66 @@ Reproducible V3 branch trees with explainable score terms and clear Cadence
 integration artifacts.
 
 Slice selection note:
-Selected slice: Preserve `branch_timeline_publication_*` strategy
-branch-comparison evidence through operator-review and Cadence-import rows.
+Selected slice: Preserve existing `branch_timeline_dependency_impact_*`,
+`branch_timeline_lifecycle_state_*`,
+`branch_timeline_activity_lifecycle_state_*`,
+`branch_timeline_activity_precondition_*`, and
+`branch_timeline_preservation_*` strategy branch-comparison evidence through
+operator-review and Cadence-import rows.
 
-Why this slice: The planner already derives and scores timeline-publication
-pressure, and branch-comparison rows carry aggregate publication status,
-invalidation, dependency-impact, changed-field, and review-timeline evidence.
-The downstream branch-comparison row builders did not expose those aggregate
-fields, so Cadence-facing strategy alternatives could lose why a publication
-branch needs review.
+Why this slice: CampaignPlanner already emits aggregate branch evidence for
+timeline dependency impact, lifecycle state, activity lifecycle transitions,
+activity preconditions, and preservation pressure. Branch-comparison
+review/import mappers still preserve only the older integrity subset plus
+timeline publication fields, so Cadence-facing strategy alternatives can lose
+why a timeline/activity branch needs review.
+
+Level 6 pillar: Reproducible V3 branch trees with explainable score terms and
+clear Cadence integration artifacts.
+
+Current evidence gap: Existing branch-comparison rows contain the evidence, but
+operator-review and Cadence-import strategy handoffs do not expose the same
+aggregate timeline activity fields.
+
+Docs to read: `docs/artifacts/field_families/mission_activities.md`;
+`docs/feature_set/capability_map/08_mission_activities_and_timelines.md`;
+`docs/feature_set/capability_map/08_mission_activities/integrity-rejection-and-preservation-reports.md`.
+
+Likely files: `lib/orbital_dynamics/operator_review.ex`;
+`lib/orbital_dynamics/cadence_import.ex`;
+`test/orbital_dynamics/operator_review_test.exs`;
+`test/orbital_dynamics/cadence_import_test.exs`;
+`test/orbital_dynamics/campaign_planner_test.exs`.
+
+Likely tests: focused operator-review, Cadence-import, and campaign-planner
+tests for branch-comparison timeline handoffs; `mix compile
+--warnings-as-errors`; `git diff --check`.
 
 Definition of done:
-- Operator-review strategy tradeoff rows preserve timeline-publication aggregate
-  branch-comparison fields.
+- Operator-review strategy tradeoff rows preserve timeline dependency-impact,
+  lifecycle-state, activity-lifecycle-state, activity-precondition, and
+  preservation aggregate branch-comparison fields.
 - Cadence import rows preserve the same fields for direct strategy branch
   comparison rows and review-package-derived strategy tradeoff rows.
-- Focused validation covers a concrete timeline-publication pressure branch.
+- Focused validation covers at least one concrete full-strategy timeline
+  dependency/lifecycle evidence path plus direct branch-comparison handoffs.
 
 What changed:
-- `OperatorReview.from_branch_comparison_report/1` strategy tradeoff rows now
-  preserve `branch_timeline_publication_*` aggregate fields.
-- `CadenceImport` preserves the same fields for direct campaign-strategy branch
-  comparison rows and review-package-derived strategy tradeoff rows.
-- Focused tests assert the fields on standalone branch-comparison
-  operator-review/import handoffs and on the full V3 strategy artifact path.
-- Parent performed bounded local review and mechanical publish because no
-  suitable subagent tool is available in this runtime.
+`OperatorReview.from_branch_comparison_report/1` and Cadence-import strategy
+handoff rows now preserve aggregate branch evidence for timeline dependency
+impact, lifecycle state, activity lifecycle transitions, activity preconditions,
+and preservation pressure. Direct branch-comparison tests assert representative
+fields from each family, and the full V3 dependency-impact strategy test asserts
+the evidence survives through embedded operator-review and Cadence-import rows.
+
+Parent performed bounded local review and mechanical publish because no
+suitable subagent tool is available in this runtime.
 
 Last completed slice:
-Preserved timeline-publication branch evidence through review/import handoffs.
+Preserved timeline activity branch evidence through review/import handoffs.
 
 Last commit:
-- Product: `c81d6a4` Preserve timeline publication handoff fields
+- Product: `04ced08` Preserve timeline activity handoff fields
 - Ledger: this handoff commit on `main`
 
 Remaining maturity gaps:
@@ -71,7 +98,7 @@ Remaining maturity gaps:
   selection, branch scoring, compatibility checks, and challenge fixtures.
 - Continue closing queue-1 activity/timeline semantics where selected handoffs,
   operator review, import manifests, and schema exports do not preserve the same
-  conflict evidence emitted by operational timeline integrity rows.
+  conflict evidence emitted by operational timeline rows.
 
 Next candidate:
 Reassess the guide queue from current checkout and choose the next narrow Level
