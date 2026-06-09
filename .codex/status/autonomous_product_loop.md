@@ -5,52 +5,58 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Pin V3 strategy score-term fixture observations.
+Route operational-readiness resource pressure into resource score terms.
 
 Status:
 Completed and pushed.
 
 Slice selection note:
-Recent V3 scoring work changed dedicated score-term families inside the
-checked-in campaign strategy artifact, but the strategy reference fixture only
-pins top-level branch metadata. This slice adds embedded score-term report
-observations to the campaign-strategy fixture so future score-family drift fails
-through the public validation facade. Likely files are
-`lib/orbital_dynamics/validation.ex`, `test/orbital_dynamics/validation_test.exs`,
-and this ledger. Definition of done: campaign-strategy fixture verification
-passes with score-term report counts pinned, stale score-term observations fail
-with clear fields, focused validation tests pass, and the product plus handoff
-commits are pushed while leaving unrelated `.gitignore` unstaged.
+Operational-readiness pressure events can identify a `resource_availability`
+gate with resource-availability counts/reasons, but the operational-readiness
+risk context drops those fields and the score remains in the broad readiness
+penalty. This slice preserves those resource fields and routes operational
+readiness resource-availability pressure into
+`resource_availability_pressure_penalty`, leaving ordinary readiness gates on
+`operational_readiness_pressure_penalty`. Likely files are
+`lib/orbital_dynamics/campaign_planner.ex`, `test/orbital_dynamics/campaign_planner_test.exs`,
+`docs/artifacts/compatibility_checks.md`, and this ledger. Definition of done:
+focused operational-readiness strategy tests prove the split, schema validation
+still passes, compile/diff checks pass, and product plus handoff commits are
+pushed while leaving unrelated `.gitignore` unstaged.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/validation.ex`
-- `test/orbital_dynamics/validation_test.exs`
+- `docs/artifacts/compatibility_checks.md`
+- `lib/orbital_dynamics/campaign_planner.ex`
+- `test/orbital_dynamics/campaign_planner_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/validation_test.exs:1718`
-- `mix test test/orbital_dynamics/validation_test.exs:14263`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:43141`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:43263`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:43706`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
-- `mix orbital_dynamics.schema.lint --all`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-No checked-in artifact JSON changed. The validation fixture metadata now states
-that the campaign-strategy fixture pins embedded strategy score-term routing.
+Compatibility docs now record that operational-readiness
+resource-availability gates preserve resource counts/reasons in branch risk
+indicators and route score pressure into
+`resource_availability_pressure_penalty`.
 
 Local review:
-Parent review confirmed the campaign-strategy fixture now observes the embedded
-strategy `score_term_report.v1` model/source/counts, exact score-term key
-counts, row-derived key counts, and a stale
-`resource_availability_pressure_penalty` challenge. `.gitignore` remains
-unrelated and unstaged.
+Parent review confirmed the resource-availability context is preserved from
+operational-readiness reports and gate summaries into branch events/risk
+indicators, the specific resource pressure score term carries the penalty, the
+generic operational-readiness score term stays zero for that resource case, and
+ordinary readiness plus unavailable-resource quality-gate regressions still
+pass. `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-The checked-in V3 campaign strategy fixture now fails through the public
-validation facade when embedded score-term routing drifts, preserving
-reproducible planner-visible score explanations as the dedicated pressure terms
-evolve.
+Resource-availability evidence from operational-readiness gates is now
+planner-visible in the same dedicated V3 score-term family as quality-gate and
+resource-projection availability pressure, improving reproducible strategy
+explanations for Cadence-facing review.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -60,7 +66,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`b103389` Pin strategy score term fixture observations.
+`195816a` Route readiness resource score pressure.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -73,6 +79,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `195816a` routed operational-readiness resource-availability pressure into
+  the dedicated V3 resource-availability score term.
 - `b103389` pinned the checked-in V3 campaign strategy fixture to embedded
   strategy score-term report observations, including exact score-term key and
   row-derived key counts.
