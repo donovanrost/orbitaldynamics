@@ -64,6 +64,7 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 
 - Semantic candidate-diff replacement links from supplied `candidate_refresh.v1` artifacts are used to prefer matching refreshed replacement candidates and are preserved in moved/replaced activity repair metadata.
 - Duplicate replacement candidate IDs are excluded from automatic move/replacement selection, so repair does not choose between ambiguous candidate rows by sort order.
+- Mission-state and supplied-refresh `candidate_rejection_report.v1` evidence is consulted during automatic replacement selection, so rejected replacement candidates are excluded even when they have higher scores. Repair artifacts preserve the source candidate-rejection report and lift it into operator-review and Cadence-import handoff rows for audit.
 
 ## Additional reports and reconciliation
 

@@ -1089,6 +1089,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     realized_by_id = realized_activities_by_id(request.realized_state)
     degraded_modes = degraded_modes_by_scenario(request.realized_state, request.repair_policy)
     selected_activity_ids = selected_activity_ids(planned_activities)
+    rejected_replacement_candidate_ids = repair_rejected_candidate_ids(request)
 
     initial = %{
       activities: [],
@@ -1109,6 +1110,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
           remaining_horizon: request.remaining_horizon,
           realized_by_id: realized_by_id,
           degraded_modes: degraded_modes,
+          rejected_replacement_candidate_ids: rejected_replacement_candidate_ids,
           selected_activity_ids: selected_activity_ids,
           repair_policy: request.repair_policy,
           scoring_policy: request.scoring_policy,
@@ -1242,6 +1244,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> maybe_put_source_report(
         "source_candidate_diff_report",
         repair_candidate_diff_report(request.candidate_refresh)
+      )
+      |> maybe_put_source_report(
+        "source_candidate_rejection_report",
+        repair_candidate_rejection_report(request)
       )
       |> maybe_put_source_report(
         "source_freshness_report",
@@ -51971,6 +51977,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> Enum.filter(&within_remaining_horizon?(&1, context.remaining_horizon))
     |> Enum.filter(&(activity_start(&1) >= context.current_epoch_s))
     |> Enum.reject(&degraded_incompatible?(&1, context.degraded_modes, context.repair_policy))
+    |> Enum.reject(
+      &MapSet.member?(
+        Map.get(context, :rejected_replacement_candidate_ids, MapSet.new()),
+        activity_id(&1)
+      )
+    )
     |> Enum.reject(fn candidate -> Enum.any?(acc.activities, &overlaps?(candidate, &1)) end)
     |> Enum.filter(&matches_repair_intent?(activity, &1, intent_type))
     |> reject_duplicate_replacement_candidate_ids()
@@ -52781,6 +52793,57 @@ defmodule OrbitalDynamics.CampaignPlanner do
       _report ->
         %{}
     end
+  end
+
+  defp repair_candidate_rejection_report(%{} = request) do
+    request
+    |> repair_candidate_rejection_reports()
+    |> List.first()
+  end
+
+  defp repair_candidate_rejection_reports(%{} = request) do
+    mission_state_reports =
+      request.mission_state
+      |> mission_state_candidate_rejection_reports()
+      |> Enum.map(fn {report, _source_path} -> report end)
+
+    mission_state_reports ++ repair_candidate_refresh_rejection_reports(request.candidate_refresh)
+  end
+
+  defp repair_candidate_refresh_rejection_reports(nil), do: []
+
+  defp repair_candidate_refresh_rejection_reports(%{} = candidate_refresh) do
+    ["source_candidate_rejection_report", "candidate_rejection_report"]
+    |> Enum.flat_map(fn field ->
+      candidate_refresh
+      |> Map.get(field)
+      |> List.wrap()
+    end)
+    |> Enum.filter(&is_map/1)
+    |> Enum.map(&stringify_keys/1)
+  end
+
+  defp repair_rejected_candidate_ids(%{} = request) do
+    request
+    |> repair_candidate_rejection_reports()
+    |> candidate_rejection_rejected_candidate_ids()
+    |> MapSet.new()
+  end
+
+  defp candidate_rejection_rejected_candidate_ids(reports) do
+    reports
+    |> List.wrap()
+    |> Enum.flat_map(fn report ->
+      report
+      |> stringify_keys()
+      |> Map.get("rows", [])
+      |> List.wrap()
+    end)
+    |> Enum.map(&stringify_keys/1)
+    |> Enum.filter(&(Map.get(&1, "rejection_status", "rejected") == "rejected"))
+    |> Enum.map(&candidate_rejection_candidate_id/1)
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.uniq()
   end
 
   defp candidate_diff_replacements_by_invalidated_id(%{} = report) do

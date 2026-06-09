@@ -1518,6 +1518,10 @@ defmodule OrbitalDynamics.OperatorReview do
           Map.get(artifact, "source_candidate_diff_report"),
           "campaign_repair.source_candidate_diff_report"
         ) ++
+        source_candidate_rejection_report_rows(
+          Map.get(artifact, "source_candidate_rejection_report"),
+          "campaign_repair.source_candidate_rejection_report"
+        ) ++
         constraint_rows(
           get_in(artifact, ["constraint_report", "rows"]) || [],
           "campaign_repair.constraint_report.rows"

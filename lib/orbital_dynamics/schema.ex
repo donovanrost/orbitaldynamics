@@ -8070,7 +8070,8 @@ defmodule OrbitalDynamics.Schema do
         "operator_review_package",
         "objective_tradeoff_report",
         "score_term_report",
-        "link_capacity_report"
+        "link_capacity_report",
+        "source_candidate_rejection_report"
       ],
       "nested_contracts" => [
         "planned_activity.v1",
@@ -8081,7 +8082,8 @@ defmodule OrbitalDynamics.Schema do
         "operator_review_package.v1",
         "objective_tradeoff_report.v1",
         "score_term_report.v1",
-        "link_capacity_report.v1"
+        "link_capacity_report.v1",
+        "candidate_rejection_report.v1"
       ]
     },
     @campaign_strategy => %{
@@ -32739,6 +32741,10 @@ defmodule OrbitalDynamics.Schema do
     |> validate_optional_candidate_diff_report(
       "$.source_candidate_diff_report",
       Map.get(artifact, "source_candidate_diff_report")
+    )
+    |> validate_optional_candidate_rejection_report(
+      "$.source_candidate_rejection_report",
+      Map.get(artifact, "source_candidate_rejection_report")
     )
     |> validate_optional_freshness_report(
       "$.source_freshness_report",

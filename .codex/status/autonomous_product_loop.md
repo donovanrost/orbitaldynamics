@@ -6,32 +6,39 @@ planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
 Completed slice:
-Refreshed current capability snapshot wording after replay scoring series.
+Used mission-state candidate-rejection evidence during V2 replacement selection.
 
 Status:
-Product slice complete and pushed.
-
-Published commits:
-- `57e1bc8` Refresh capability snapshot after replay scoring
+Product slice complete; ready for mechanical publish.
 
 Files changed:
-- `docs/feature_set/current_capability_snapshot.md`
+- `lib/orbital_dynamics/campaign_planner.ex`
+- `lib/orbital_dynamics/operator_review.ex`
+- `lib/orbital_dynamics/schema.ex`
+- `test/orbital_dynamics/campaign_planner_test.exs`
+- `docs/feature_set/capability_map/13_v2_rolling_repair.md`
 
 What changed:
-- The capability snapshot now records that replay-derived review pressure feeds
-  explainable V3 score terms for branch-local contact, resource,
-  station-calendar, timeline, readiness, quality-gate, import-readiness,
-  validation, and storage/downlink tradeoffs.
-- The weakest-area wording now narrows the remaining resource/contact/readiness
-  gap to candidate selection and optimization rather than branch scoring.
-- The snapshot still leaves Level 6, high-fidelity, optimizer, schema-discipline,
-  external-validation, and provider-write maturity gaps intact.
+- V2 repair now collects candidate IDs from mission-state and supplied-refresh
+  `candidate_rejection_report.v1` evidence and excludes those candidates from
+  automatic replacement selection.
+- Repair artifacts preserve `source_candidate_rejection_report` evidence and
+  runtime/schema metadata validates it on `campaign_repair.v2`.
+- Repair operator-review and Cadence-import handoffs now include preserved
+  source candidate-rejection rows.
+- A focused test proves a higher-scoring rejected candidate loses to an
+  available replacement while candidate-diff replacement behavior remains green.
 
 Level 6 pillar advanced:
-Reproducible V1/V2/V3 branch trees with explainable score terms and durable
-Cadence-facing maturity evidence.
+Refreshed candidates from current mission state and realized feedback with
+approval-aware candidate-selection boundaries.
 
 Verification:
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:4545`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:4512 test/orbital_dynamics/campaign_planner_test.exs:4649 test/orbital_dynamics/campaign_planner_test.exs:43162`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:4545 test/orbital_dynamics/campaign_planner_test.exs:43162 test/orbital_dynamics/schema_test.exs:20278`
+- `mix test test/orbital_dynamics/schema_test.exs:20278 test/mix/tasks/orbital_dynamics.schema.export_test.exs`
+- `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Review:
@@ -39,11 +46,11 @@ Reviewer sidecar unavailable because the agent thread limit was reached. Parent
 fallback review completed; no must-fix findings.
 
 Next slice candidates:
-- Add stale-but-plausible readiness/quality challenge fixtures.
-- Return to the guide queue for typed activity/timeline semantics if no current
-  planner-scoring evidence gap is stronger.
-- Add a candidate-selection use of one replayed resource/contact/readiness
-  pressure signal if live code shows it is still branch-score-only.
+- Use one more source-report pressure family in V2 candidate selection if live
+  code shows it is still review/scoring-only.
+- Return to the guide queue for typed activity/timeline semantics.
+- Add a compatibility fixture for repair artifacts with source candidate-
+  rejection evidence.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is

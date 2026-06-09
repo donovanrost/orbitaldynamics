@@ -4542,6 +4542,99 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "repair excludes mission-state rejected replacement candidates" do
+    available_candidate =
+      "dl_available"
+      |> refreshed_downlink(520.0, 580.0)
+      |> Map.put("score", 10.0)
+
+    rejected_high_score_candidate =
+      "dl_rejected"
+      |> refreshed_downlink(500.0, 560.0)
+      |> Map.put("score", 500.0)
+      |> put_in(["score_terms", "repair_priority"], 490.0)
+
+    rejection_report =
+      Timeline.candidate_rejection_report(
+        [
+          %{
+            id: :dl_rejected,
+            type: :downlink,
+            scenario_id: :leo_1,
+            ground_station_id: :equator_prime,
+            source_window_id: :equator_prime_rejected_window,
+            starts_at_s: 500.0,
+            ends_at_s: 560.0,
+            min_duration_s: 120.0
+          }
+        ],
+        source: :mission_state_candidate_rejections
+      )
+      |> Map.put("provenance", %{"trust_boundary" => "mission_state_candidate_rejection_report"})
+
+    artifact =
+      repair(
+        %{
+          "activities" => [downlink("dl_old", 100.0, 160.0)],
+          "candidate_activities" => [downlink("dl_old", 100.0, 160.0)]
+        },
+        mission_state: %{source_candidate_rejection_report: rejection_report},
+        realized_state: %{activities: [%{id: "dl_old", status: "missed"}]},
+        current_epoch_s: 165.0,
+        candidate_refresh:
+          candidate_refresh_artifact([available_candidate, rejected_high_score_candidate],
+            freshness_report: freshness_report("current")
+          )
+      )
+
+    assert [%{"id" => "dl_available", "repair" => repair}] = artifact["activities"]
+    refute Enum.any?(artifact["activities"], &(&1["id"] == "dl_rejected"))
+
+    assert %{
+             "action" => "moved",
+             "timeline_link" => %{"replacement_activity_id" => "dl_available"}
+           } = repair
+
+    assert %{
+             "schema_contract" => "candidate_rejection_report.v1",
+             "rows" => [
+               %{
+                 "candidate_id" => "dl_rejected",
+                 "rejection_status" => "rejected",
+                 "required_operator_action" => "review_candidate_rejection"
+               }
+             ]
+           } = artifact["source_candidate_rejection_report"]
+
+    assert %{
+             "candidate_rejection_review_count" => 1
+           } = artifact["operator_review_package"]
+
+    assert %{
+             "review_type" => "candidate_rejection_review",
+             "candidate_id" => "dl_rejected",
+             "source" => "campaign_repair.source_candidate_rejection_report.rows"
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["review_type"] == "candidate_rejection_review")
+             )
+
+    assert %{
+             "import_action" => "review_candidate_rejection",
+             "source_review_type" => "candidate_rejection_review",
+             "activity_id" => "dl_rejected",
+             "source_review_row" => %{"candidate_id" => "dl_rejected"}
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["source_review_type"] == "candidate_rejection_review")
+             )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "repair preserves ambiguous candidate-diff replacement matches" do
     semantic_replacement =
       "dl_semantic"
