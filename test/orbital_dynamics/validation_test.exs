@@ -8986,6 +8986,8 @@ defmodule OrbitalDynamics.ValidationTest do
 
     report = timeline_activity_precondition_summary_fixture()
 
+    assert generated_timeline_activity_precondition_summary_fixture() == report
+
     assert {:ok, verification} =
              Validation.verify_reference_fixture(
                fixture_id,
@@ -16126,6 +16128,19 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp timeline_activity_precondition_summary_fixture do
     read_json!("study_results/timeline_activity_precondition_summary_v1.json")
+  end
+
+  defp generated_timeline_activity_precondition_summary_fixture do
+    %{
+      "id" => "cmd_source",
+      "type" => "command",
+      "scenario_id" => "leo_1",
+      "metadata" => %{"timeline_id" => "timeline:cmd_source"},
+      "payload_available" => false,
+      "resource_blocking_dimension" => "power",
+      "degraded" => true
+    }
+    |> OrbitalDynamics.timeline_activity_precondition_summary()
   end
 
   defp timeline_activity_state_fixture_observations do
