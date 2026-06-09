@@ -8,7 +8,7 @@ Current slice:
 Score operational-timeline replay pressure from candidate-source reports.
 
 Status:
-Completed; product commit created.
+Completed and pushed.
 
 Files changed:
 - Planner: `lib/orbital_dynamics/campaign_planner.ex`
@@ -87,7 +87,7 @@ Scored operational-timeline replay pressure from candidate-source reports.
 
 Last commit:
 - Product: `834c111` Score operational-timeline replay pressure
-- Ledger: pending
+- Ledger: `f6b3ba8` Update autonomous loop status
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
