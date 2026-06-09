@@ -6147,6 +6147,24 @@ defmodule OrbitalDynamics.CadenceImportTest do
             "downlink_completion_planned_downlink_mb" => 70.0,
             "downlink_completion_ratio" => 0.58,
             "branch_actual_downlink_completion_ratio" => 0.5,
+            "branch_timeline_publication_ids" => [
+              "timeline_publication:review:published:v2:v1"
+            ],
+            "branch_timeline_publication_statuses" => [
+              "published_with_downstream_invalidations"
+            ],
+            "branch_timeline_publication_downstream_invalidation_statuses" => [
+              "invalidated"
+            ],
+            "branch_timeline_publication_invalidated_downstream_product_ids" => [
+              "cadence_import:review:v1",
+              "operator_review:review:v1"
+            ],
+            "branch_timeline_publication_changed_fields" => ["timeline_presence"],
+            "branch_timeline_publication_review_timeline_ids" => [
+              "timeline:review:health:0.0",
+              "timeline:review:health:5.0"
+            ],
             "capacity_pack_group_ids" => ["station:equator_prime:pack:review"],
             "capacity_pack_statuses" => ["deferred_by_reduced_station_capacity_pack"],
             "capacity_pack_min_capacity_fraction" => 0.5,
@@ -6297,6 +6315,24 @@ defmodule OrbitalDynamics.CadenceImportTest do
                  "downlink_completion_planned_downlink_mb" => 70.0,
                  "downlink_completion_ratio" => 0.58,
                  "branch_actual_downlink_completion_ratio" => 0.5,
+                 "branch_timeline_publication_ids" => [
+                   "timeline_publication:review:published:v2:v1"
+                 ],
+                 "branch_timeline_publication_statuses" => [
+                   "published_with_downstream_invalidations"
+                 ],
+                 "branch_timeline_publication_downstream_invalidation_statuses" => [
+                   "invalidated"
+                 ],
+                 "branch_timeline_publication_invalidated_downstream_product_ids" => [
+                   "cadence_import:review:v1",
+                   "operator_review:review:v1"
+                 ],
+                 "branch_timeline_publication_changed_fields" => ["timeline_presence"],
+                 "branch_timeline_publication_review_timeline_ids" => [
+                   "timeline:review:health:0.0",
+                   "timeline:review:health:5.0"
+                 ],
                  "capacity_pack_group_ids" => ["station:equator_prime:pack:review"],
                  "capacity_pack_statuses" => ["deferred_by_reduced_station_capacity_pack"],
                  "capacity_pack_min_capacity_fraction" => 0.5,
@@ -6417,6 +6453,10 @@ defmodule OrbitalDynamics.CadenceImportTest do
                    "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
                      "downlink" => 0.25
                    },
+                   "branch_timeline_publication_review_timeline_ids" => [
+                     "timeline:review:health:0.0",
+                     "timeline:review:health:5.0"
+                   ],
                    "repair_link_actual_downlink_completion_ratio" => 0.5,
                    "first_resource_pressure_activity_id" => "dl_pressure",
                    "first_resource_pressure_ground_station_id" => "equator_prime",

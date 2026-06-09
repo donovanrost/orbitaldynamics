@@ -2919,6 +2919,7 @@ defmodule OrbitalDynamics.CadenceImport do
         else: %{}
       )
     )
+    |> Map.merge(Map.take(row, branch_timeline_publication_fields()))
     |> Map.merge(operational_feedback_context)
     |> compact_map()
   end
@@ -6710,7 +6711,28 @@ defmodule OrbitalDynamics.CadenceImport do
         OrbitalDynamics.RecommendationRiskContext.timeline_preservation_context_keys()
       )
     )
+    |> Map.merge(Map.take(row, branch_timeline_publication_fields()))
     |> compact_map()
+  end
+
+  defp branch_timeline_publication_fields do
+    [
+      "branch_timeline_publication_ids",
+      "branch_timeline_publication_statuses",
+      "branch_timeline_publication_source_artifact_ids",
+      "branch_timeline_publication_source_artifact_types",
+      "branch_timeline_publication_downstream_invalidation_statuses",
+      "branch_timeline_publication_invalidated_downstream_product_ids",
+      "branch_timeline_publication_downstream_invalidation_reasons",
+      "branch_timeline_publication_dependency_impact_statuses",
+      "branch_timeline_publication_impacted_source_activity_ids",
+      "branch_timeline_publication_impacted_source_timeline_ids",
+      "branch_timeline_publication_dependent_activity_ids",
+      "branch_timeline_publication_dependent_timeline_ids",
+      "branch_timeline_publication_changed_fields",
+      "branch_timeline_publication_changed_timeline_ids",
+      "branch_timeline_publication_review_timeline_ids"
+    ]
   end
 
   defp strategy_tradeoff_manifest_row(row, rank) do
@@ -6941,6 +6963,7 @@ defmodule OrbitalDynamics.CadenceImport do
       "source_branch_comparison" => row["source_branch_comparison"],
       "source_review_row" => row
     }
+    |> Map.merge(Map.take(row, branch_timeline_publication_fields()))
     |> compact_map()
   end
 

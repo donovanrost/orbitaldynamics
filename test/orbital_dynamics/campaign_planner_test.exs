@@ -34182,6 +34182,65 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "timeline:health_check:5.0"
            ]
 
+    publication_review_row =
+      artifact["operator_review_package"]["rows"]
+      |> Enum.find(
+        &(&1["review_type"] == "strategy_tradeoff" and
+            &1["branch_id"] == prior_source_branch_id and
+            &1["source"] == "campaign_strategy.branch_comparison_report.rows")
+      )
+
+    assert publication_review_row["branch_timeline_publication_ids"] == [
+             "timeline_publication:7:timeline:published_plan:v2:timeline:published_plan:v1"
+           ]
+
+    assert publication_review_row[
+             "branch_timeline_publication_downstream_invalidation_statuses"
+           ] == ["invalidated"]
+
+    assert publication_review_row[
+             "branch_timeline_publication_invalidated_downstream_product_ids"
+           ] == ["cadence_import:plan:v1", "operator_review:plan:v1"]
+
+    assert publication_review_row["branch_timeline_publication_review_timeline_ids"] == [
+             "timeline:health_check:0.0",
+             "timeline:health_check:5.0"
+           ]
+
+    assert get_in(publication_review_row, [
+             "source_branch_comparison",
+             "branch_timeline_publication_review_timeline_ids"
+           ]) == ["timeline:health_check:0.0", "timeline:health_check:5.0"]
+
+    publication_import_row =
+      artifact["cadence_import_manifest"]["rows"]
+      |> Enum.find(
+        &(&1["source_review_type"] == "strategy_branch_comparison" and
+            &1["branch_id"] == prior_source_branch_id)
+      )
+
+    assert publication_import_row["branch_timeline_publication_ids"] == [
+             "timeline_publication:7:timeline:published_plan:v2:timeline:published_plan:v1"
+           ]
+
+    assert publication_import_row[
+             "branch_timeline_publication_downstream_invalidation_statuses"
+           ] == ["invalidated"]
+
+    assert publication_import_row[
+             "branch_timeline_publication_invalidated_downstream_product_ids"
+           ] == ["cadence_import:plan:v1", "operator_review:plan:v1"]
+
+    assert publication_import_row["branch_timeline_publication_review_timeline_ids"] == [
+             "timeline:health_check:0.0",
+             "timeline:health_check:5.0"
+           ]
+
+    assert get_in(publication_import_row, [
+             "source_branch_comparison",
+             "branch_timeline_publication_review_timeline_ids"
+           ]) == ["timeline:health_check:0.0", "timeline:health_check:5.0"]
+
     bare_branch =
       Enum.find_value(publication_branches, fn {_branch_id, candidate_branch} ->
         event = List.first(candidate_branch["events"])
