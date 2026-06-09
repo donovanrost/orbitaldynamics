@@ -18074,6 +18074,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "feedback_adjustment",
              "contact_allocation_pressure",
              "approval_boundary_pressure",
+             "timeline_pressure",
              "risk_count",
              "approval_count",
              "schedule_stability"
@@ -28515,7 +28516,22 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["impacted_dependency_timeline_ids"] == ["timeline:health_check:0.0"])
            )
 
-    assert prior_source_branch["score_terms"]["risk_penalty"] < 0.0
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    timeline_pressure_count =
+      Enum.count(
+        prior_source_branch["risk_indicators"],
+        &(&1["type"] == "timeline_dependency_impact")
+      )
+
+    assert timeline_pressure_count == 1
+
+    assert prior_source_branch["score_terms"]["timeline_pressure_penalty"] ==
+             -timeline_pressure_count * risk_weight
+
+    assert prior_source_branch["score_terms"]["risk_penalty"] ==
+             -(length(prior_source_branch["risk_indicators"]) - timeline_pressure_count) *
+               risk_weight
 
     prior_source_row =
       artifact["branch_comparison_report"]["rows"]
@@ -28681,7 +28697,22 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["publication_status"] == "published_with_downstream_invalidations")
            )
 
-    assert prior_source_branch["score_terms"]["risk_penalty"] < 0.0
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    timeline_pressure_count =
+      Enum.count(
+        prior_source_branch["risk_indicators"],
+        &(&1["type"] == "timeline_publication_pressure")
+      )
+
+    assert timeline_pressure_count == 1
+
+    assert prior_source_branch["score_terms"]["timeline_pressure_penalty"] ==
+             -timeline_pressure_count * risk_weight
+
+    assert prior_source_branch["score_terms"]["risk_penalty"] ==
+             -(length(prior_source_branch["risk_indicators"]) - timeline_pressure_count) *
+               risk_weight
 
     prior_source_row =
       artifact["branch_comparison_report"]["rows"]
@@ -29508,7 +29539,26 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["feedback_source"] == "prior_plan.source_timeline_integrity_report[0].rows")
            )
 
-    assert prior_branch["score_terms"]["risk_penalty"] < 0.0
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    timeline_pressure_count =
+      Enum.count(prior_branch["risk_indicators"], &(&1["type"] == "timeline_integrity_issue"))
+
+    assert timeline_pressure_count == 1
+
+    assert prior_branch["score_terms"]["timeline_pressure_penalty"] ==
+             -timeline_pressure_count * risk_weight
+
+    assert prior_branch["score_terms"]["risk_penalty"] ==
+             -(length(prior_branch["risk_indicators"]) - timeline_pressure_count) * risk_weight
+
+    assert "timeline_pressure_penalty" in artifact["score_term_report"]["score_term_keys"]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == "derived_timeline_integrity_pressure_cmd_prior_integrity" and
+                 &1["term_key"] == "timeline_pressure_penalty" and &1["value"] < 0.0)
+           )
 
     prior_row =
       artifact["branch_comparison_report"]["rows"]
@@ -29721,7 +29771,21 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                    "mission_state.source_timeline_lifecycle_state_summary")
            )
 
-    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    timeline_pressure_count =
+      Enum.count(
+        direct_branch["risk_indicators"],
+        &(&1["type"] == "timeline_lifecycle_state_review")
+      )
+
+    assert timeline_pressure_count == 1
+
+    assert direct_branch["score_terms"]["timeline_pressure_penalty"] ==
+             -timeline_pressure_count * risk_weight
+
+    assert direct_branch["score_terms"]["risk_penalty"] ==
+             -(length(direct_branch["risk_indicators"]) - timeline_pressure_count) * risk_weight
 
     direct_row =
       artifact["branch_comparison_report"]["rows"]
@@ -29870,7 +29934,21 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                    "mission_state.source_timeline_activity_lifecycle_state")
            )
 
-    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    timeline_pressure_count =
+      Enum.count(
+        direct_branch["risk_indicators"],
+        &(&1["type"] == "timeline_activity_lifecycle_state_review")
+      )
+
+    assert timeline_pressure_count == 1
+
+    assert direct_branch["score_terms"]["timeline_pressure_penalty"] ==
+             -timeline_pressure_count * risk_weight
+
+    assert direct_branch["score_terms"]["risk_penalty"] ==
+             -(length(direct_branch["risk_indicators"]) - timeline_pressure_count) * risk_weight
 
     direct_row =
       artifact["branch_comparison_report"]["rows"]
@@ -30036,7 +30114,21 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                    "mission_state.source_timeline_activity_precondition_summary")
            )
 
-    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    timeline_pressure_count =
+      Enum.count(
+        direct_branch["risk_indicators"],
+        &(&1["type"] == "timeline_activity_precondition_review")
+      )
+
+    assert timeline_pressure_count == 1
+
+    assert direct_branch["score_terms"]["timeline_pressure_penalty"] ==
+             -timeline_pressure_count * risk_weight
+
+    assert direct_branch["score_terms"]["risk_penalty"] ==
+             -(length(direct_branch["risk_indicators"]) - timeline_pressure_count) * risk_weight
 
     direct_row =
       artifact["branch_comparison_report"]["rows"]
@@ -30213,7 +30305,21 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                    "mission_state.source_timeline_preservation_report.rows[0]")
            )
 
-    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    timeline_pressure_count =
+      Enum.count(
+        direct_branch["risk_indicators"],
+        &(&1["type"] == "timeline_preservation_review")
+      )
+
+    assert timeline_pressure_count == 1
+
+    assert direct_branch["score_terms"]["timeline_pressure_penalty"] ==
+             -timeline_pressure_count * risk_weight
+
+    assert direct_branch["score_terms"]["risk_penalty"] ==
+             -(length(direct_branch["risk_indicators"]) - timeline_pressure_count) * risk_weight
 
     direct_row =
       artifact["branch_comparison_report"]["rows"]

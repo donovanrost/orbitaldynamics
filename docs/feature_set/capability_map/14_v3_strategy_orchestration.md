@@ -723,6 +723,12 @@ operational-readiness sub-summary, provider-counteroffer review,
 station-reservation review, operational quality-gate summary,
 timeline-precondition, timeline-preservation, and timeline-publication
 families across direct, mission-state, and result-artifact-wrapped inputs.
+Timeline integrity, dependency-impact, publication, lifecycle-state,
+activity-precondition, and preservation risk rows contribute to
+`timeline_pressure_penalty`, leaving the standard strategy `risk_penalty` for
+unrelated risks while preserving the same one-`risk_weight` total penalty per
+risk indicator. Score-term reports and tradeoffs therefore expose timeline
+pressure directly without changing branch ranking for fixed inputs.
 
 ### Constraint, objective, tradeoff, and score-term replay
 
