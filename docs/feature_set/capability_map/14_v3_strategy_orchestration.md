@@ -744,6 +744,10 @@ into generic risk.
 Provider-counteroffer review risks contribute to
 `provider_counteroffer_pressure_penalty`, keeping provider negotiation pressure
 visible as its own score dimension without granting provider-write authority.
+Relay data-path pressure risks contribute to
+`relay_data_path_pressure_penalty`, keeping custody, latency, and route-risk
+pressure visible as its own score dimension without scheduling relays, mutating
+contacts, or writing provider reservations.
 
 ### Constraint, objective, tradeoff, and score-term replay
 
@@ -1585,6 +1589,10 @@ Selected recommendations also include:
   schema-validation, model-acceptance, validation-safety-case, freshness, and
   refresh-budget risks into `validation_refresh_pressure_penalty`, leaving
   `risk_penalty` for unrelated risks while preserving total branch score
+  compatibility.
+- **Relay data-path pressure score terms** — split relay data-path custody,
+  latency, and route-risk indicators into `relay_data_path_pressure_penalty`,
+  leaving `risk_penalty` for unrelated risks while preserving total branch score
   compatibility.
 - **`operational_readiness_pressure` explanation rows** — preserve the selected
   branch's readiness report, source artifact, readiness/import/status counts,
