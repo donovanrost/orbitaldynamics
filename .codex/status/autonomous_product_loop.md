@@ -5,104 +5,96 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve contact-allocation branch evidence through review/import handoffs.
+Add checked-in strategy branch-comparison handoff drift coverage.
 
 Status:
-Completed and pushed.
+Completed and ready to publish ledger.
 
 Files changed:
-- Runtime: `lib/orbital_dynamics/operator_review.ex`
-- Runtime: `lib/orbital_dynamics/cadence_import.ex`
-- Tests: `test/orbital_dynamics/operator_review_test.exs`
-- Tests: `test/orbital_dynamics/cadence_import_test.exs`
-- Tests: `test/orbital_dynamics/campaign_planner_test.exs`
+- Tests: `test/orbital_dynamics/golden_artifact_test.exs`
+- Artifact: `study_results/leo_constellation_campaign_strategy_v3.json`
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/operator_review_test.exs:13408 test/orbital_dynamics/cadence_import_test.exs:6119 test/orbital_dynamics/campaign_planner_test.exs:47031 test/orbital_dynamics/campaign_planner_test.exs:47594`
+- `mix test test/orbital_dynamics/golden_artifact_test.exs:560` (failed before
+  fixture refresh; confirmed checked-in strategy artifact drift)
+- `mix orbital_dynamics.campaign.run --type strategy --request studies/leo_constellation_campaign_strategy_v3.json --output study_results/leo_constellation_campaign_strategy_v3.json`
+- `mix test test/orbital_dynamics/golden_artifact_test.exs`
+- `mix test test/orbital_dynamics/schema_test.exs:31489`
 - `mix compile --warnings-as-errors`
-- `git diff --check`
 
 Docs/artifacts changed:
-No docs or checked-in generated artifacts changed.
+Refreshed checked-in V3 strategy fixture:
+`study_results/leo_constellation_campaign_strategy_v3.json`.
 
 Level 6 pillar advanced:
-Fleet-level resource, contact, station-calendar, and allocation behavior plus
-clear Cadence integration artifacts.
+Durable schema-versioned artifacts and compatibility checks plus clear Cadence
+integration artifacts.
 
 Slice selection note:
-Selected slice: Preserve existing `branch_contact_allocation_*` and
-`branch_station_reservation_conflict_*` strategy branch-comparison evidence
-through operator-review and Cadence-import rows.
+Selected slice: Add checked-in V3 strategy artifact coverage that verifies
+Cadence import rows preserve branch-comparison source evidence from their
+operator-review rows and embedded source branch-comparison rows.
 
-Why this slice: CampaignPlanner already emits aggregate branch evidence for
-allocation status/effective status/reason/review/policy classification and
-station-reservation conflict contact/reservation/match-status routing. The
-branch-comparison review/import mappers preserve basic station reservation
-fields but not those allocation/conflict aggregates, so Cadence-facing strategy
-alternatives can lose why a branch is blocked, deferred, or reviewable.
+Why this slice: The branch-comparison runtime mappers now preserve many
+evidence families, but the checked-in artifact compatibility guard only
+verified embedded source-review identity joins. A checked-in V3 fixture
+assertion should fail if source branch-comparison evidence is silently dropped
+from the Cadence-facing handoff.
 
-Level 6 pillar: Fleet-level resource, contact, station-calendar, and allocation
-behavior plus clear Cadence integration artifacts.
+Level 6 pillar: Durable schema-versioned artifacts and compatibility checks
+plus clear Cadence integration artifacts.
 
-Current evidence gap: Branch comparison rows contain contact-allocation and
-station-reservation conflict evidence, but operator-review and Cadence-import
-strategy handoffs do not carry the same aggregate routing fields.
+Current evidence gap: The exact-regeneration test showed
+`study_results/leo_constellation_campaign_strategy_v3.json` had drifted from
+the public strategy facade after recent branch-handoff expansions, and the
+golden join test did not include embedded `source_branch_comparison` equality.
 
-Docs to read: `docs/feature_set/capability_map/07_ground_network_and_communications_planning.md`;
-`docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`;
-`docs/artifacts/field_families/candidate_refresh_artifact.md`;
-`docs/mission_planning/high_fidelity/06_operational_concerns.md`.
+Docs to read: `docs/artifacts/compatibility_checks.md`;
+`docs/artifacts/field_families/v3_strategy_artifact/branch-feedback-validation-and-recommendation.md`.
 
-Likely files: `lib/orbital_dynamics/operator_review.ex`;
-`lib/orbital_dynamics/cadence_import.ex`;
-`test/orbital_dynamics/operator_review_test.exs`;
-`test/orbital_dynamics/cadence_import_test.exs`;
-`test/orbital_dynamics/campaign_planner_test.exs`.
+Likely files: `test/orbital_dynamics/golden_artifact_test.exs`;
+`study_results/leo_constellation_campaign_strategy_v3.json`;
+`.codex/status/autonomous_product_loop.md`.
 
-Likely tests: focused operator-review, Cadence-import, and campaign-planner
-tests for branch-comparison contact-allocation handoffs; `mix compile
+Likely tests: `mix test test/orbital_dynamics/golden_artifact_test.exs`;
+`mix test test/orbital_dynamics/schema_test.exs:31489`; `mix compile
 --warnings-as-errors`; `git diff --check`.
 
 Definition of done:
-- Operator-review strategy tradeoff rows preserve contact-allocation and
-  station-reservation conflict aggregate branch-comparison fields.
-- Cadence import rows preserve the same fields for direct strategy branch
-  comparison rows and review-package-derived strategy tradeoff rows.
-- Focused validation covers concrete full-strategy contact-allocation /
-  reservation-conflict paths plus direct branch-comparison handoffs.
+- Checked-in strategy artifact exact-regenerates from the public V3 strategy
+  facade.
+- Checked-in campaign import manifests assert embedded
+  `source_branch_comparison` maps match their embedded source review rows.
+- Golden fixture expectations pin the refreshed score-term and review/import
+  counts.
 
 What changed:
-`OperatorReview.from_branch_comparison_report/1` and Cadence-import strategy
-handoff rows now preserve aggregate branch evidence for contact-allocation
-status/effective status/reason/review/policy classification and
-station-reservation conflict contact/reservation/match-status routing. Direct
-branch-comparison tests assert representative fields, and the full V3
-contact-allocation and reservation-conflict strategy tests assert the evidence
-survives through embedded operator-review and Cadence-import rows.
-
-Parent performed bounded local review and mechanical publish because no
-suitable subagent tool is available in this runtime.
+The checked-in V3 strategy artifact was refreshed through
+`OrbitalDynamics.campaign_strategy_from_file!/1` via the campaign run task. The
+golden surface now pins the regenerated strategy id, two additional score-term
+keys, and updated review/import counts. The embedded source-review join test
+now fails if Cadence import rows lose their `source_branch_comparison` map while
+embedding an operator-review row that still has it.
 
 Last completed slice:
-Preserved contact-allocation branch evidence through review/import handoffs.
+Added checked-in strategy branch-comparison handoff drift coverage.
 
 Last commit:
-- Product: `2e2abd2` Preserve contact allocation handoff fields
-- Ledger: this handoff commit on `main`
+- Product: `3f9d897` Refresh strategy branch handoff fixture
+- Ledger: pending
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
   selection, branch scoring, compatibility checks, and challenge fixtures.
-- Continue closing queue-2/queue-3 handoff completeness gaps where selected
-  resource/readiness evidence is emitted by branch comparison rows but not yet
-  asserted through review/import manifests.
+- Continue closing queue-2/queue-3 handoff completeness gaps for branch evidence
+  families not present in checked-in strategy artifacts.
 
 Next candidate:
-Reassess the guide queue from current checkout and choose the next narrow Level
-6 slice. Good candidates remain resource/contact allocation semantics,
-readiness/quality-gate selection effects, or checked-in compatibility fixture
-coverage if current checkout shows one.
+Reassess the guide queue from current checkout. Good candidates remain
+resource/contact allocation semantics, readiness/quality-gate selection effects,
+or fixture coverage for branch evidence not present in the checked-in V3
+strategy artifact.
 
 Blocked:
 Not blocked.
@@ -110,8 +102,5 @@ Not blocked.
 Notes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
-- Focused tests emitted the existing unrelated `0.0` pattern warning from the
-  selected readiness/quality-gate campaign-planner test module; the selected
-  tests passed.
 - Sidecar delegation is unavailable in this runtime; parent uses the same
   bounded review and mechanical publish scope.
