@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Pin score-term row-derived validation-reference guards.
+Pin score-term fixture-chain guard.
 
 Status:
 Completed and pushed.
@@ -13,7 +13,6 @@ Completed and pushed.
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `docs/artifacts/compatibility_checks.md`
-- `lib/orbital_dynamics/validation.ex`
 - `test/orbital_dynamics/validation_test.exs`
 
 Tests run:
@@ -23,21 +22,19 @@ Tests run:
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-Score-term validation-reference observations now include row-derived
-score-term key counts alongside declared key-list counts. The curated
-`score_term_report.v1` fixture rejects stale row-derived score-term key counts,
-and compatibility docs record the declared/row-derived score-term key-count
-guard.
+The standalone `score_term_report.v1` fixture is now asserted to match the
+checked-in V1 campaign artifact's embedded `campaign_plan.score_term_report`
+before validation-reference checks run. Compatibility docs record this
+fixture-chain guard.
 
 Local review:
-Parent review confirmed staged scope, observation expansion, stale
-row-derived-count fixture check, docs, and focused verification. `.gitignore`
-remains unrelated and unstaged.
+Parent review confirmed staged scope, exact fixture-chain assertion, docs, and
+focused verification. `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Score-term compatibility evidence now cross-checks declared score-term keys
-against row-derived term keys in validation-reference coverage, reducing
-stale-but-plausible score explanation drift.
+Score-term compatibility evidence now pins the standalone score-term fixture to
+the emitted V1 campaign score explanation surface, reducing fixture-chain drift
+risk for reproducible plan scoring evidence.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -47,7 +44,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`833630c` Pin score term row-derived guards.
+`cd369ee` Pin score term fixture chain.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -60,6 +57,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `cd369ee` pinned the standalone score-term fixture to the checked-in V1
+  campaign artifact's embedded score-term report.
 - `833630c` pinned row-derived score-term key counts in validation-reference
   coverage for checked-in score-term reports.
 - `ddac705` pinned lifecycle-summary operator-action reason aggregate challenge
