@@ -5,43 +5,52 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Route unavailable-resource summary pressure into resource score terms.
+Pin V3 strategy score-term fixture observations.
 
 Status:
 Completed and pushed.
 
+Slice selection note:
+Recent V3 scoring work changed dedicated score-term families inside the
+checked-in campaign strategy artifact, but the strategy reference fixture only
+pins top-level branch metadata. This slice adds embedded score-term report
+observations to the campaign-strategy fixture so future score-family drift fails
+through the public validation facade. Likely files are
+`lib/orbital_dynamics/validation.ex`, `test/orbital_dynamics/validation_test.exs`,
+and this ledger. Definition of done: campaign-strategy fixture verification
+passes with score-term report counts pinned, stale score-term observations fail
+with clear fields, focused validation tests pass, and the product plus handoff
+commits are pushed while leaving unrelated `.gitignore` unstaged.
+
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `docs/artifacts/compatibility_checks.md`
-- `lib/orbital_dynamics/campaign_planner.ex`
-- `test/orbital_dynamics/campaign_planner_test.exs`
+- `lib/orbital_dynamics/validation.ex`
+- `test/orbital_dynamics/validation_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:43705`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:43668`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:43940`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:44159`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:44384`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:39384`
+- `mix test test/orbital_dynamics/validation_test.exs:1718`
+- `mix test test/orbital_dynamics/validation_test.exs:14263`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
+- `mix orbital_dynamics.schema.lint --all`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-V3 strategy scoring now routes unavailable-resource quality-gate risks into
-`resource_availability_pressure_penalty` and keeps those risks out of broad
-`quality_gate_pressure_penalty`. Compatibility docs record the resource score
-route for antenna, payload, station, and blocked-contact availability pressure.
+No checked-in artifact JSON changed. The validation fixture metadata now states
+that the campaign-strategy fixture pins embedded strategy score-term routing.
 
 Local review:
-Parent review confirmed staged scope, score-term classification, score-term
-report rows, focused resource/operator/schema/import quality-gate regressions,
-docs, and verification. `.gitignore` remains unrelated and unstaged.
+Parent review confirmed the campaign-strategy fixture now observes the embedded
+strategy `score_term_report.v1` model/source/counts, exact score-term key
+counts, row-derived key counts, and a stale
+`resource_availability_pressure_penalty` challenge. `.gitignore` remains
+unrelated and unstaged.
 
 Level 6 pillar advanced:
-Unavailable-resource and quality-gate resource pressure are now planner-visible
-in reproducible V3 branch score explanations under the resource-availability
-score-term family.
+The checked-in V3 campaign strategy fixture now fails through the public
+validation facade when embedded score-term routing drifts, preserving
+reproducible planner-visible score explanations as the dedicated pressure terms
+evolve.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -51,7 +60,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`da0b2cb` Route unavailable resource score pressure.
+`b103389` Pin strategy score term fixture observations.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -64,6 +73,9 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `b103389` pinned the checked-in V3 campaign strategy fixture to embedded
+  strategy score-term report observations, including exact score-term key and
+  row-derived key counts.
 - `da0b2cb` routed unavailable-resource quality-gate summary risks into the V3
   resource-availability pressure score term.
 - `e1b2858` split import-readiness quality-gate pressure into a dedicated V3
