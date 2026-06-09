@@ -5,69 +5,74 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Route contact, observation, and station operational feedback into V3 execution
-feedback score terms.
+Refresh checked-in V3 strategy score-term fixtures after pressure-term splits.
 
 Status:
-Completed and committed in product commit `85e38dd`.
+Completed and published.
 
 Slice-selection note:
-- Selected slice: make branch-local `contact_success_rate_low`,
-  `observation_success_rate_low`, and `station_throughput_factor_low` risk
-  indicators contribute to the existing `execution_feedback_pressure_penalty`
-  instead of remaining generic `risk_penalty`.
-- Why this slice: command and maneuver execution feedback already has a
-  dedicated score term, while contact/observation/station operational feedback
-  only affects `feedback_adjustment_score` plus generic risk. These are the same
-  planner-visible operational feedback family and should produce explainable
-  score-term report rows.
-- Level 6 pillar: reproducible V3 branch scoring with planner-visible
-  operational-feedback learning and explainable score-term deltas.
-- Current evidence gap: otherwise-equal operational-feedback branches should
-  isolate contact success, observation success, and station throughput pressure
-  in `execution_feedback_pressure_penalty`, leaving `risk_penalty` for unrelated
-  risks.
+- Selected slice: regenerate the checked-in V3 campaign strategy fixture after
+  recent dedicated pressure score-term splits and pin its embedded
+  branch-comparison and score-term reports.
+- Why this slice: live code now emits additional dedicated score terms, but the
+  checked-in `leo_constellation_campaign_strategy_v3.json` fixture still exposes
+  the older score-term key set. Compatibility fixtures should pin the current
+  public facade output, not a stale but schema-valid subset.
+- Level 6 pillar: durable schema-versioned artifacts and compatibility checks
+  for reproducible V3 branch trees with explainable score terms.
+- Current evidence gap: fixture validation may pass while checked-in V3 examples
+  omit current score-term keys and values, weakening downstream compatibility
+  evidence.
 - Docs read:
-  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
-  `docs/feature_set/recommended_roadmap.md`.
-- Likely files/tests: `lib/orbital_dynamics/campaign_planner.ex`,
-  `test/orbital_dynamics/campaign_planner_test.exs`, and the V3 orchestration
-  doc.
-- Definition of done: operational contact/observation/station feedback risks
-  count in the dedicated execution-feedback score term; focused strategy tests
-  and docs cover the split; product and handoff are committed and pushed without
-  touching unrelated `.gitignore`.
+  `docs/feature_set/recommended_roadmap.md`,
+  `docs/artifacts/compatibility_checks.md`.
+- Files/tests: `study_results/leo_constellation_campaign_strategy_v3.json`,
+  `test/orbital_dynamics/golden_artifact_test.exs`,
+  `test/orbital_dynamics/validation_test.exs`,
+  `test/orbital_dynamics/schema_test.exs`, and
+  `docs/artifacts/compatibility_checks.md`.
+- Definition of done: checked-in V3 strategy fixture is regenerated from the
+  public strategy facade, validation/schema/golden checks cover the updated
+  score-term keys, docs record the refreshed compatibility surface, and product
+  plus handoff are committed and pushed without touching unrelated `.gitignore`.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/campaign_planner.ex`
-- `test/orbital_dynamics/campaign_planner_test.exs`
-- `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
+- `study_results/leo_constellation_campaign_strategy_v3.json`
+- `test/orbital_dynamics/golden_artifact_test.exs`
+- `docs/artifacts/compatibility_checks.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:12149 test/orbital_dynamics/campaign_planner_test.exs:53358 test/orbital_dynamics/campaign_planner_test.exs:15526`
+- `mix orbital_dynamics.campaign.run --type strategy --request studies/leo_constellation_campaign_strategy_v3.json --output study_results/leo_constellation_campaign_strategy_v3.json`
+- `mix test test/orbital_dynamics/golden_artifact_test.exs:343`
+- `mix test test/orbital_dynamics/golden_artifact_test.exs:501`
+- `mix test test/orbital_dynamics/golden_artifact_test.exs`
+- `mix test test/orbital_dynamics/validation_test.exs:1725 test/orbital_dynamics/schema_test.exs:31679 test/orbital_dynamics/schema_test.exs:32467`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-V3 orchestration docs now state that contact-success, observation-success,
-station-throughput, command-success, maneuver-success, and maneuver
-execution-uncertainty risks contribute to `execution_feedback_pressure_penalty`,
-leaving `risk_penalty` for unrelated risks.
+The checked-in V3 strategy artifact now matches the public campaign strategy
+facade output. Its nested `score_term_report` pins 902 rows, 41 score-term keys,
+550 pressure rows, and 25 selected pressure rows, including dedicated pressure
+terms for execution feedback, resource availability/margins, approval
+boundaries, station calendars, quality gates, link capacity, and timeline
+lifecycle/precondition evidence. The standalone curated branch-comparison and
+score-term fixtures were left unchanged because they cover separate curated
+artifact examples, not the generated V3 strategy output.
 
 Local review:
 Sidecar review was not started because the available multi-agent tool requires
-explicit user-requested delegation. Parent review checked operational-feedback
-risk classification, full execution-feedback family counting, generic-risk
-subtraction, existing command/maneuver compatibility, focused tests, docs, and
-staged scope; no must-fix issues remained. `.gitignore` remains unrelated and
-unstaged.
+explicit user-requested delegation. Parent review checked public-facade
+regeneration, JSON writer normalization, nested score-term key coverage,
+validation/schema/golden coverage, docs, and staged scope; no must-fix issues
+remained. `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Operational contact, observation, and station feedback pressure is now
-score-visible in V3 branch trees through the dedicated execution-feedback score
-term and report rows while preserving `feedback_adjustment_score`.
+Checked-in V3 strategy examples are now reproducible from the public facade and
+carry the current dedicated pressure score-term surface for downstream
+compatibility and Cadence-facing review/import evidence.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -77,17 +82,21 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`85e38dd` Route operational feedback score terms.
+`6f2d914` Refresh V3 strategy score-term fixture.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
-timeline/readiness scoring gap from current Level 6 evidence.
+timeline/readiness scoring gap from current Level 6 evidence, with preference
+for gaps where a public facade or checked-in compatibility fixture can expose
+the behavior.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 
 Previous published slices:
+- `6f2d914` refreshed the checked-in V3 strategy artifact from the public
+  strategy facade and pinned its current dedicated pressure score-term surface.
 - `85e38dd` routed contact, observation, and station operational-feedback risks
   into the dedicated V3 execution-feedback score term while preserving
   feedback-adjustment scoring and generic risk scoring for unrelated risks.
@@ -102,25 +111,3 @@ Previous published slices:
   import handoffs.
 - `f8e4afa` rejected stale activity-precondition source-review evidence in
   Cadence import handoffs.
-- `379420e` rejected stale lifecycle-state and preservation source-review
-  evidence in Cadence import handoffs.
-- `7905319` split battery-depletion V3 pressure into a dedicated score term
-  while preserving total branch score compatibility.
-- `69761fb` split fuel, power, and thermal margin V3 pressure into a dedicated
-  score term while preserving total branch score compatibility.
-- `cce6dc7` split resource-availability V3 pressure into a dedicated score term
-  while preserving total branch score compatibility.
-- `fbffb6b` split contact-filter V3 pressure into a dedicated score term while
-  preserving total branch score compatibility.
-- `50d6f65` split contact-contention and contention-resolution V3 pressure into
-  a dedicated score term while preserving total branch score compatibility.
-- `1076212` split contact-intent-derived V3 review/import pressure into a
-  dedicated score term while preserving total branch score compatibility.
-- `9d07ee2` split link-capacity-derived V3 shortfall pressure into a dedicated
-  score term while preserving total branch score compatibility.
-- `24adf78` hardened compact relay data-path CandidateRefresh source/replay
-  summaries against stale top-level aggregate maps.
-- `72e824e` hardened compact link-capacity CandidateRefresh source/replay
-  summaries against stale top-level aggregate maps.
-- `7efd232` hardened compact contact-intent CandidateRefresh source/replay
-  routing against stale top-level aggregate maps.
