@@ -6,54 +6,64 @@ planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
 Completed slice:
-Used mission-state candidate-rejection evidence during V2 replacement selection.
+Pinned V2 repair candidate-rejection source evidence in compatibility fixtures.
 
 Status:
 Product slice complete and pushed.
 
 Published commits:
 - `755e55e` Use candidate rejection evidence in repair selection
+- `ffa3bc3` Pin repair rejection evidence fixture
 
 Files changed:
-- `lib/orbital_dynamics/campaign_planner.ex`
-- `lib/orbital_dynamics/operator_review.ex`
-- `lib/orbital_dynamics/schema.ex`
-- `test/orbital_dynamics/campaign_planner_test.exs`
-- `docs/feature_set/capability_map/13_v2_rolling_repair.md`
+- `studies/leo_constellation_campaign_repair_v2.json`
+- `study_results/leo_constellation_campaign_repair_v2.json`
+- `study_results/leo_constellation_campaign_strategy_v3.json`
+- `study_results/campaign_request_lint_v1.json`
+- `study_results/validation_reference_fixtures.json`
+- `test/orbital_dynamics/golden_artifact_test.exs`
+- `lib/orbital_dynamics/validation.ex`
+- `docs/artifacts/compatibility_checks.md`
 
 What changed:
-- V2 repair now collects candidate IDs from mission-state and supplied-refresh
-  `candidate_rejection_report.v1` evidence and excludes those candidates from
-  automatic replacement selection.
-- Repair artifacts preserve `source_candidate_rejection_report` evidence and
-  runtime/schema metadata validates it on `campaign_repair.v2`.
-- Repair operator-review and Cadence-import handoffs now include preserved
-  source candidate-rejection rows.
-- A focused test proves a higher-scoring rejected candidate loses to an
-  available replacement while candidate-diff replacement behavior remains green.
+- The checked-in V2 repair request now includes deterministic
+  mission-state `source_candidate_rejection_report` evidence for
+  `leo_1_observe_target_a_1`.
+- The public V2 repair artifact preserves that source report and projects it
+  into operator-review and Cadence-import candidate-rejection rows.
+- Repair golden coverage now asserts the preserved source report plus the
+  derived review/import rows.
+- Validation-reference observations now pin repair source-rejection counts,
+  review counts, and import counts.
+- Dependent request-lint, V2 repair, V3 strategy, and validation-reference
+  checked-in artifacts were regenerated through the documented public tasks.
 
 Level 6 pillar advanced:
-Refreshed candidates from current mission state and realized feedback with
-approval-aware candidate-selection boundaries.
+Durable schema-versioned artifacts and compatibility checks for refreshed
+candidates from current mission state.
 
 Verification:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:4545`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:4512 test/orbital_dynamics/campaign_planner_test.exs:4649 test/orbital_dynamics/campaign_planner_test.exs:43162`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:4545 test/orbital_dynamics/campaign_planner_test.exs:43162 test/orbital_dynamics/schema_test.exs:20278`
-- `mix test test/orbital_dynamics/schema_test.exs:20278 test/mix/tasks/orbital_dynamics.schema.export_test.exs`
+- `mix orbital_dynamics.campaign.run --type repair --request studies/leo_constellation_campaign_repair_v2.json --output study_results/leo_constellation_campaign_repair_v2.json`
+- `mix orbital_dynamics.campaign.lint --type repair --request studies/leo_constellation_campaign_repair_v2.json --output study_results/campaign_request_lint_v1.json`
+- `mix orbital_dynamics.campaign.run --type strategy --request studies/leo_constellation_campaign_strategy_v3.json --output study_results/leo_constellation_campaign_strategy_v3.json`
+- `mix test test/orbital_dynamics/golden_artifact_test.exs:252 test/orbital_dynamics/golden_artifact_test.exs:404 test/orbital_dynamics/golden_artifact_test.exs:427 test/orbital_dynamics/golden_artifact_test.exs:557 test/orbital_dynamics/golden_artifact_test.exs:580 test/orbital_dynamics/golden_artifact_test.exs:633 test/orbital_dynamics/golden_artifact_test.exs:643`
+- `mix test test/orbital_dynamics/validation_test.exs:6492 test/orbital_dynamics/validation_test.exs:15009 test/orbital_dynamics/schema_test.exs:15449 test/orbital_dynamics/schema_test.exs:15641 test/orbital_dynamics/schema_test.exs:15742 test/orbital_dynamics/schema_test.exs:32569 test/mix/tasks/orbital_dynamics.schema.export_test.exs`
+- `mix test test/mix/tasks/orbital_dynamics.campaign.lint_test.exs:108 test/mix/tasks/orbital_dynamics.campaign.run_test.exs`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Review:
-Reviewer sidecar unavailable because the agent thread limit was reached. Parent
-fallback review completed; no must-fix findings.
+Parent review complete; no must-fix findings. Broader `golden_artifact_test`
+still shows a pre-existing V1 campaign deterministic drift in the
+`campaign_plan` and `payload_metrics` top-level keys, outside this repair
+fixture slice.
 
 Next slice candidates:
 - Use one more source-report pressure family in V2 candidate selection if live
   code shows it is still review/scoring-only.
 - Return to the guide queue for typed activity/timeline semantics.
-- Add a compatibility fixture for repair artifacts with source candidate-
-  rejection evidence.
+- Investigate the pre-existing V1 campaign deterministic fixture drift surfaced
+  by the full golden artifact test.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
