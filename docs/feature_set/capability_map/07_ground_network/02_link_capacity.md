@@ -360,6 +360,11 @@ factors before those rows feed policy/review/import surfaces. Policy
 action-rule thresholds for contact, command, observation, and maneuver success
 factors use the same unit-interval bounds.
 
+Contact-intent review/import pressure contributes to the dedicated V3
+`contact_intent_pressure_penalty` score term instead of blending into generic
+`risk_penalty`, while preserving the same total one-risk-weight penalty per
+contact-intent pressure risk.
+
 `policy_decision.v1` rule-match evidence preserves those source confidence
 factors with the same bounds. Communication rule-match counters for concurrent
 contacts, contact-pair overlaps, and ambiguous station-calendar entries, plus

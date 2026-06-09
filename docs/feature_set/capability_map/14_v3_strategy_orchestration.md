@@ -755,6 +755,9 @@ fleet resource pressure from unrelated risk while preserving total score math.
 Link-capacity-derived shortfall risks contribute to
 `link_capacity_pressure_penalty`, leaving generic `risk_penalty` for unrelated
 risks while preserving total branch score compatibility.
+Contact-intent-derived review/import risks contribute to
+`contact_intent_pressure_penalty`, leaving generic `risk_penalty` for unrelated
+risks while preserving total branch score compatibility.
 Station-calendar pressure risks, including reserved, unavailable, and
 reduced-capacity station feedback, contribute to
 `station_calendar_pressure_penalty`, leaving generic `risk_penalty` for
@@ -1615,6 +1618,11 @@ Selected recommendations also include:
   into `link_capacity_pressure_penalty`, leaving `risk_penalty` for unrelated
   risks while preserving total branch score compatibility. Focused
   link-capacity pressure fixtures now assert split branch math and score-term
+  report rows.
+- **Contact-intent pressure score terms** — split contact-intent review/import
+  risks into `contact_intent_pressure_penalty`, leaving `risk_penalty` for
+  unrelated risks while preserving total branch score compatibility. Focused
+  contact-intent pressure fixtures now assert split branch math and score-term
   report rows.
 - **Storage/downlink pressure score terms** — split storage/downlink
   resource-margin and projection risks into `storage_downlink_pressure_penalty`,

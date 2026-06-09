@@ -46176,6 +46176,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert blocked_row["branch_station_reservation_statuses"] == ["confirmed"]
     assert blocked_row["branch_station_reservation_match_statuses"] == ["unmatched_overlap"]
 
+    assert_contact_intent_pressure_score_terms(blocked_branch, artifact)
+
     missing_branch =
       branch(
         artifact,
@@ -72467,6 +72469,34 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              artifact["score_term_report"]["rows"],
              &(&1["branch_id"] == branch["branch_id"] and
                  &1["term_key"] == "link_capacity_pressure_penalty" and &1["value"] < 0.0)
+           )
+  end
+
+  defp assert_contact_intent_pressure_score_terms(branch, artifact) do
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    contact_intent_pressure_count =
+      Enum.count(
+        branch["risk_indicators"],
+        &(&1["type"] == "downlink_completion_gap" and &1["feedback_scope"] == "contact_intent")
+      )
+
+    assert contact_intent_pressure_count > 0
+
+    assert branch["score_terms"]["contact_intent_pressure_penalty"] ==
+             -contact_intent_pressure_count * risk_weight
+
+    assert branch["score_terms"]["risk_penalty"] ==
+             -(length(branch["risk_indicators"]) - contact_intent_pressure_count) * risk_weight
+
+    assert "contact_intent_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == branch["branch_id"] and
+                 &1["term_key"] == "contact_intent_pressure_penalty" and &1["value"] < 0.0)
            )
   end
 

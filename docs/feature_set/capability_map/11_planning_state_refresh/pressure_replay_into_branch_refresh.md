@@ -76,6 +76,12 @@
 ## Wrapper-embedded report replay through live communications paths
 
 - Mission-state `source_result_artifact` / `result_artifact` wrappers can now replay embedded station-calendar, contact-allocation, contact-filter, contact-contention-resolution, and link-capacity reports through the same live branch-local communications pressure paths, while inheriting wrapper trust-boundary evidence.
+- Contact-intent rows and review/import handoffs replay blocked, missing-import,
+  or invalid intent gates through branch-local `downlink_completion_gap` events.
+  Those contact-intent-scoped risks contribute to
+  `contact_intent_pressure_penalty` in V3 score terms, keeping review/import
+  pressure visible separately from unrelated generic risks while preserving
+  total branch score compatibility.
 
 ## Link-capacity report replay
 
