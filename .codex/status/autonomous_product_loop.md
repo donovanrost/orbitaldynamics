@@ -5,47 +5,49 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Add Cadence import fixtures for advertised contact-allocation summary sources.
+Refresh stale checked-in link/contact allocation fixture outputs.
 
 Status:
 Completed and pushed.
 
 Files changed:
-- Product test: `test/orbital_dynamics/cadence_import_test.exs`
+- Fixture: `study_results/link_capacity_summary_v1.json`
+- Fixture: `study_results/contact_allocation_report_v1.json`
+- Fixture: `study_results/contact_allocation_capacity_pack_report_v1.json`
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/cadence_import_test.exs:244`
-- `mix test test/orbital_dynamics/cadence_import_test.exs`
-- `mix format test/orbital_dynamics/cadence_import_test.exs --check-formatted`
+- `mix test test/orbital_dynamics/schema_test.exs:1262`
+- `mix test test/orbital_dynamics/schema_test.exs:23866`
+- `mix test test/orbital_dynamics/schema_test.exs:24178`
+- `mix test test/orbital_dynamics/schema_test.exs:1262 test/orbital_dynamics/schema_test.exs:23866 test/orbital_dynamics/schema_test.exs:24178`
+- `mix test test/orbital_dynamics/schema_test.exs`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-No docs or generated artifacts changed. The slice reuses existing checked-in
-contact-allocation summary fixtures.
+Regenerated three checked-in JSON fixtures through public facades. No docs
+changed.
 
 Level 6 pillar advanced:
-Approval-aware automation boundaries, import readiness, and Cadence-facing
-integration artifact compatibility.
+Durable schema-versioned artifacts and compatibility checks; resource/contact
+allocation fixture integrity.
 
 Last completed slice:
-Added Cadence import fixture coverage for advertised contact-allocation summary
-sources.
+Refreshed stale checked-in link/contact allocation fixture outputs.
 
 What changed:
-- The advertised-source fixture map now includes
-  `contact_allocation_capacity_pack_summary.v1` and
-  `contact_allocation_reservation_conflict_summary.v1`.
-- The compatibility fixture test now validates that both advertised summary
-  sources can produce valid `cadence_import_manifest.v1` artifacts using the
-  existing checked-in fixtures.
-- Full `test/orbital_dynamics/cadence_import_test.exs` now passes.
+- `link_capacity_summary_v1.json` now matches the public facade source value
+  used by its exact-regeneration test.
+- `contact_allocation_report_v1.json` and
+  `contact_allocation_capacity_pack_report_v1.json` now include current
+  station-calendar report count/status fields emitted by public regeneration.
+- Full `test/orbital_dynamics/schema_test.exs` now passes.
 - Parent performed bounded local review and mechanical publish because no
   suitable subagent tool is available in this runtime.
 
 Last commit:
-- Product: `cddf547` Cover advertised Cadence import summaries
+- Product: `22f50ad` Refresh link and allocation fixtures
 - Ledger: this handoff commit on `main`
 
 Remaining maturity gaps:
@@ -61,9 +63,9 @@ Remaining maturity gaps:
 Next candidate:
 Reassess the guide queue from current checkout and choose the next narrow Level
 6 slice, likely in queue-1 activity/timeline handoff completeness or queue-2
-remaining resource/contact allocation semantics. Candidate follow-up: rerun the
-focused schema fixture-regeneration failures from the prior full schema run and
-decide whether one is a narrow checked-in fixture refresh slice.
+remaining resource/contact allocation semantics. Candidate follow-up: choose
+the next product behavior slice now that focused Cadence import and schema
+fixture suites are green.
 
 Blocked:
 Not blocked.
