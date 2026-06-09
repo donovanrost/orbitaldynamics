@@ -45174,6 +45174,99 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy preserves import-readiness readiness gate context in branch events" do
+    readiness_report = %{
+      "schema_contract" => "operational_readiness_report.v1",
+      "schema_version" => 1,
+      "model" => "OrbitalDynamics.OperationalReadiness.V1",
+      "report_id" => "operational_readiness:planned_activity.v1:import_payload",
+      "source_artifact_type" => "planned_activity.v1",
+      "source_artifact_id" => "import_payload",
+      "readiness_level" => "operator_review",
+      "import_classification" => "review_only",
+      "status" => "review_required",
+      "gate_count" => 2,
+      "passed_gate_count" => 1,
+      "review_gate_count" => 1,
+      "analysis_gate_count" => 0,
+      "blocked_gate_count" => 0,
+      "gates" => [
+        %{
+          "id" => "cadence_import",
+          "status" => "review_required",
+          "classification" => "review_only",
+          "reason" => "Cadence import manifest requires review before execution",
+          "import_readiness_row_count" => 1,
+          "ready_for_import_count" => 0,
+          "manifest_review_required_count" => 1,
+          "blocked_import_count" => 0,
+          "missing_import_count" => 0,
+          "invalid_cadence_import_count" => 1,
+          "current_freshness_count" => 0,
+          "stale_freshness_count" => 1,
+          "unknown_freshness_count" => 0,
+          "freshness_status_counts" => %{"stale" => 1},
+          "freshness_status_ids" => ["stale"],
+          "import_status_counts" => %{"review_required_before_import" => 1},
+          "import_status_ids" => ["review_required_before_import"],
+          "cadence_import_status_counts" => %{"invalid" => 1},
+          "cadence_import_status_ids" => ["invalid"],
+          "freshness_review_required" => true,
+          "import_preparation_required" => true,
+          "import_blocked" => false,
+          "stale_or_unknown_freshness_quality_gate_row_ids" => [
+            "quality_gate:import_payload:cadence_import:1"
+          ],
+          "import_preparation_quality_gate_row_ids" => [
+            "quality_gate:import_payload:cadence_import:1"
+          ],
+          "blocked_import_quality_gate_row_ids" => []
+        }
+      ],
+      "evidence" => %{},
+      "assumptions" => %{"execution_boundary" => "artifact_only_no_cadence_write"},
+      "model_limits" => ["artifact_only"],
+      "provenance" => %{"trust_boundary" => "mission_state_operational_readiness_report"}
+    }
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put(:source_operational_readiness_report, readiness_report)
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    readiness_branch = branch(artifact, "derived_operational_readiness_pressure_cadence_import")
+
+    event = List.first(readiness_branch["events"])
+
+    assert event["type"] == "operational_readiness_pressure"
+    assert event["readiness_gate_id"] == "cadence_import"
+    assert event["import_readiness_row_count"] == 1
+    assert event["manifest_review_required_count"] == 1
+    assert event["invalid_cadence_import_count"] == 1
+    assert event["freshness_status_counts"] == %{"stale" => 1}
+    assert event["import_status_counts"] == %{"review_required_before_import" => 1}
+    assert event["cadence_import_status_counts"] == %{"invalid" => 1}
+    assert event["freshness_review_required"] == true
+    assert event["import_preparation_required"] == true
+    assert event["import_blocked"] == false
+    assert event["feedback_source"] == "mission_state.source_operational_readiness_report.gates"
+    assert get_in(event, ["source_operational_readiness_gate", "id"]) == "cadence_import"
+    assert get_in(event, ["source_operational_readiness_gate", "import_readiness_row_count"]) == 1
+
+    assert_import_readiness_pressure_score_terms(readiness_branch, artifact)
+    assert readiness_branch["score_terms"]["operational_readiness_pressure_penalty"] == 0.0
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy derives operational readiness gate classification from row status" do
     readiness_report = %{
       "schema_contract" => "operational_readiness_report.v1",
@@ -73122,12 +73215,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     import_readiness_pressure_count =
       Enum.count(
         branch["risk_indicators"],
-        &(&1["type"] == "quality_gate_pressure" and
-            (&1["import_blocked"] == true or
-               &1["freshness_review_required"] == true or
-               &1["import_preparation_required"] == true or
-               is_map(&1["import_status_counts"]) or
-               is_map(&1["cadence_import_status_counts"])))
+        &import_readiness_source_report_pressure?(&1)
       )
 
     assert import_readiness_pressure_count > 0
@@ -73151,6 +73239,33 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["term_key"] == "import_readiness_pressure_penalty" and &1["value"] < 0.0)
            )
   end
+
+  defp import_readiness_source_report_pressure?(%{"type" => "quality_gate_pressure"} = risk) do
+    risk["import_blocked"] == true or
+      risk["freshness_review_required"] == true or
+      risk["import_preparation_required"] == true or
+      is_map(risk["import_status_counts"]) or
+      is_map(risk["cadence_import_status_counts"])
+  end
+
+  defp import_readiness_source_report_pressure?(
+         %{"type" => "operational_readiness_pressure"} = risk
+       ) do
+    risk["readiness_gate_id"] in ["cadence_import", "import_readiness"] or
+      risk["import_blocked"] == true or
+      risk["freshness_review_required"] == true or
+      risk["import_preparation_required"] == true or
+      risk["import_readiness_row_count"] not in [nil, 0] or
+      risk["manifest_review_required_count"] not in [nil, 0] or
+      risk["blocked_import_count"] not in [nil, 0] or
+      risk["missing_import_count"] not in [nil, 0] or
+      risk["invalid_cadence_import_count"] not in [nil, 0] or
+      is_map(risk["freshness_status_counts"]) or
+      is_map(risk["import_status_counts"]) or
+      is_map(risk["cadence_import_status_counts"])
+  end
+
+  defp import_readiness_source_report_pressure?(_risk), do: false
 
   defp assert_relay_data_path_pressure_score_terms(branch, artifact) do
     risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
@@ -73393,6 +73508,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         branch["risk_indicators"],
         &(&1["type"] == "operational_readiness_pressure" and
             not operator_training_source_report_pressure?(&1) and
+            not import_readiness_source_report_pressure?(&1) and
             not resource_availability_source_report_pressure?(&1))
       )
 

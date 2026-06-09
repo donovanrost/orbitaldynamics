@@ -529,6 +529,10 @@ pressure. V3 strategy scoring now emits a dedicated
 `import_readiness_pressure_penalty` for branch-local import-readiness
 quality-gate risks instead of folding freshness, import-preparation, and
 blocked-import evidence into the broader `quality_gate_pressure_penalty`.
+Operational-readiness import gates now preserve freshness/import/Cadence status
+evidence in branch risk indicators and use the same dedicated
+`import_readiness_pressure_penalty` instead of folding that pressure into the
+broader `operational_readiness_pressure_penalty`.
 The same readiness gate also consumes contact-allocation station pressure
 handoffs: ground-station reserved, unavailable, zero-capacity, and
 reduced-capacity allocation reasons become row-derived availability reason

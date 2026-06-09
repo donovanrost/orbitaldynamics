@@ -3177,6 +3177,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp operational_readiness_pressure_risk?(%{"type" => "operational_readiness_pressure"} = risk) do
     not operational_readiness_operator_training_pressure_risk?(risk) and
+      not operational_readiness_import_readiness_pressure_risk?(risk) and
       not operational_readiness_resource_availability_pressure_risk?(risk)
   end
 
@@ -3241,7 +3242,30 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "operational_quality_gate_import_readiness_summary.v1"
   end
 
+  defp import_readiness_pressure_risk?(%{"type" => "operational_readiness_pressure"} = risk) do
+    operational_readiness_import_readiness_pressure_risk?(risk)
+  end
+
   defp import_readiness_pressure_risk?(_risk), do: false
+
+  defp operational_readiness_import_readiness_pressure_risk?(
+         %{"type" => "operational_readiness_pressure"} = risk
+       ) do
+    risk["readiness_gate_id"] in ["cadence_import", "import_readiness"] or
+      risk["import_blocked"] == true or
+      risk["freshness_review_required"] == true or
+      risk["import_preparation_required"] == true or
+      numeric_or_nil(risk["import_readiness_row_count"]) not in [nil, 0.0] or
+      numeric_or_nil(risk["manifest_review_required_count"]) not in [nil, 0.0] or
+      numeric_or_nil(risk["blocked_import_count"]) not in [nil, 0.0] or
+      numeric_or_nil(risk["missing_import_count"]) not in [nil, 0.0] or
+      numeric_or_nil(risk["invalid_cadence_import_count"]) not in [nil, 0.0] or
+      is_map(risk["freshness_status_counts"]) or
+      is_map(risk["import_status_counts"]) or
+      is_map(risk["cadence_import_status_counts"])
+  end
+
+  defp operational_readiness_import_readiness_pressure_risk?(_risk), do: false
 
   defp approval_boundary_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &approval_boundary_pressure_risk?/1)
@@ -4848,6 +4872,27 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "required_training_ids",
       "required_certification_ids",
       "required_qualification_ids",
+      "import_readiness_row_count",
+      "ready_for_import_count",
+      "manifest_review_required_count",
+      "blocked_import_count",
+      "missing_import_count",
+      "invalid_cadence_import_count",
+      "current_freshness_count",
+      "stale_freshness_count",
+      "unknown_freshness_count",
+      "freshness_status_counts",
+      "freshness_status_ids",
+      "import_status_counts",
+      "import_status_ids",
+      "cadence_import_status_counts",
+      "cadence_import_status_ids",
+      "freshness_review_required",
+      "import_preparation_required",
+      "import_blocked",
+      "stale_or_unknown_freshness_quality_gate_row_ids",
+      "import_preparation_quality_gate_row_ids",
+      "blocked_import_quality_gate_row_ids",
       "resource_availability_pressure_count",
       "resource_availability_reason_counts",
       "resource_availability_reason_ids",
@@ -30007,6 +30052,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "source_operational_readiness_report" => row["source_operational_readiness_report"]
       }
       |> Map.merge(operational_readiness_operator_training_context(row))
+      |> Map.merge(operational_readiness_import_readiness_context(row))
       |> Map.merge(operational_readiness_resource_availability_context(row))
       |> compact_map()
     end
@@ -30193,6 +30239,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "required_operator_action" => operational_readiness_pressure_action(classification),
         "source_operational_readiness_report" => report
       }
+      |> Map.merge(operational_readiness_import_readiness_context(report))
       |> Map.merge(operational_readiness_resource_availability_context(report))
       |> compact_map()
 
@@ -30225,6 +30272,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "source_operational_readiness_report" => report
         }
         |> Map.merge(operational_readiness_operator_training_context(gate))
+        |> Map.merge(operational_readiness_import_readiness_context(gate))
         |> Map.merge(operational_readiness_resource_availability_context(gate))
         |> compact_map()
       end)
@@ -30259,6 +30307,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "assumptions" => summary["assumptions"],
         "required_operator_action" => operational_readiness_pressure_action(classification)
       }
+      |> Map.merge(operational_readiness_import_readiness_context(summary))
       |> Map.merge(operational_readiness_resource_availability_context(summary))
       |> compact_map()
 
@@ -30296,6 +30345,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "source_operational_readiness_gate" => gate
         }
         |> Map.merge(operational_readiness_operator_training_context(gate))
+        |> Map.merge(operational_readiness_import_readiness_context(gate))
         |> Map.merge(operational_readiness_resource_availability_context(gate))
         |> compact_map()
       end)
@@ -31122,6 +31172,46 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "required_qualification_ids" =>
         row["required_qualification_ids"] || evidence["required_qualification_ids"]
     }
+  end
+
+  defp operational_readiness_import_readiness_context(%{} = row) do
+    evidence = Map.get(row, "evidence") || %{}
+
+    %{
+      "import_readiness_row_count" =>
+        row_or_evidence(row, evidence, "import_readiness_row_count"),
+      "ready_for_import_count" => row_or_evidence(row, evidence, "ready_for_import_count"),
+      "manifest_review_required_count" =>
+        row_or_evidence(row, evidence, "manifest_review_required_count"),
+      "blocked_import_count" => row_or_evidence(row, evidence, "blocked_import_count"),
+      "missing_import_count" => row_or_evidence(row, evidence, "missing_import_count"),
+      "invalid_cadence_import_count" =>
+        row_or_evidence(row, evidence, "invalid_cadence_import_count"),
+      "current_freshness_count" => row_or_evidence(row, evidence, "current_freshness_count"),
+      "stale_freshness_count" => row_or_evidence(row, evidence, "stale_freshness_count"),
+      "unknown_freshness_count" => row_or_evidence(row, evidence, "unknown_freshness_count"),
+      "freshness_status_counts" => row_or_evidence(row, evidence, "freshness_status_counts"),
+      "freshness_status_ids" => row_or_evidence(row, evidence, "freshness_status_ids"),
+      "import_status_counts" => row_or_evidence(row, evidence, "import_status_counts"),
+      "import_status_ids" => row_or_evidence(row, evidence, "import_status_ids"),
+      "cadence_import_status_counts" =>
+        row_or_evidence(row, evidence, "cadence_import_status_counts"),
+      "cadence_import_status_ids" => row_or_evidence(row, evidence, "cadence_import_status_ids"),
+      "freshness_review_required" => row_or_evidence(row, evidence, "freshness_review_required"),
+      "import_preparation_required" =>
+        row_or_evidence(row, evidence, "import_preparation_required"),
+      "import_blocked" => row_or_evidence(row, evidence, "import_blocked"),
+      "stale_or_unknown_freshness_quality_gate_row_ids" =>
+        row_or_evidence(row, evidence, "stale_or_unknown_freshness_quality_gate_row_ids"),
+      "import_preparation_quality_gate_row_ids" =>
+        row_or_evidence(row, evidence, "import_preparation_quality_gate_row_ids"),
+      "blocked_import_quality_gate_row_ids" =>
+        row_or_evidence(row, evidence, "blocked_import_quality_gate_row_ids")
+    }
+  end
+
+  defp row_or_evidence(row, evidence, key) do
+    if Map.has_key?(row, key), do: row[key], else: evidence[key]
   end
 
   defp operational_readiness_resource_availability_context(%{} = row) do
