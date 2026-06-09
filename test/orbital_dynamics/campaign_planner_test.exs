@@ -81089,6 +81089,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
   defp assert_timeline_lifecycle_pressure_score_terms(branch, artifact, risk_type) do
     risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+    pressure_term = timeline_lifecycle_pressure_term(risk_type)
 
     timeline_lifecycle_pressure_count =
       Enum.count(
@@ -81098,8 +81099,12 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert timeline_lifecycle_pressure_count == 1
 
-    assert branch["score_terms"]["timeline_lifecycle_pressure_penalty"] ==
+    assert branch["score_terms"][pressure_term] ==
              -timeline_lifecycle_pressure_count * risk_weight
+
+    if pressure_term == "timeline_activity_state_pressure_penalty" do
+      assert branch["score_terms"]["timeline_lifecycle_pressure_penalty"] == 0.0
+    end
 
     assert branch["score_terms"]["timeline_pressure_penalty"] == 0.0
 
@@ -81107,17 +81112,21 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              -(length(branch["risk_indicators"]) - timeline_lifecycle_pressure_count) *
                risk_weight
 
-    assert "timeline_lifecycle_pressure_penalty" in artifact["score_term_report"][
-             "score_term_keys"
-           ]
+    assert pressure_term in artifact["score_term_report"]["score_term_keys"]
 
     assert Enum.any?(
              artifact["score_term_report"]["rows"],
              &(&1["branch_id"] == branch["branch_id"] and
-                 &1["term_key"] == "timeline_lifecycle_pressure_penalty" and
+                 &1["term_key"] == pressure_term and
                  &1["value"] < 0.0)
            )
   end
+
+  defp timeline_lifecycle_pressure_term("timeline_activity_lifecycle_state_review"),
+    do: "timeline_activity_state_pressure_penalty"
+
+  defp timeline_lifecycle_pressure_term(_risk_type),
+    do: "timeline_lifecycle_pressure_penalty"
 
   defp assert_timeline_precondition_pressure_score_terms(branch, artifact) do
     risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])

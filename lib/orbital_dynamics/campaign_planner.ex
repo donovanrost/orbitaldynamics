@@ -2887,6 +2887,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     timeline_transition_application_pressure_count =
       timeline_transition_application_pressure_risk_count(risk_indicators)
 
+    timeline_activity_state_pressure_count =
+      timeline_activity_state_pressure_risk_count(risk_indicators)
+
     timeline_lifecycle_pressure_count =
       timeline_lifecycle_pressure_risk_count(risk_indicators)
 
@@ -2938,7 +2941,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
           import_readiness_pressure_count - quality_gate_pressure_count -
           timeline_integrity_pressure_count - timeline_dependency_impact_pressure_count -
           timeline_publication_pressure_count -
-          timeline_transition_application_pressure_count - timeline_lifecycle_pressure_count -
+          timeline_transition_application_pressure_count -
+          timeline_activity_state_pressure_count - timeline_lifecycle_pressure_count -
           timeline_precondition_pressure_count - timeline_preservation_pressure_count -
           timeline_pressure_count - storage_downlink_pressure_count -
           resource_projection_pressure_count -
@@ -3043,6 +3047,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     timeline_transition_application_pressure_penalty =
       -timeline_transition_application_pressure_count * policy.risk_weight
 
+    timeline_activity_state_pressure_penalty =
+      -timeline_activity_state_pressure_count * policy.risk_weight
+
     timeline_lifecycle_pressure_penalty =
       -timeline_lifecycle_pressure_count * policy.risk_weight
 
@@ -3110,7 +3117,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
         approval_boundary_pressure_penalty +
         timeline_integrity_pressure_penalty + timeline_dependency_impact_pressure_penalty +
         timeline_publication_pressure_penalty +
-        timeline_transition_application_pressure_penalty + timeline_lifecycle_pressure_penalty +
+        timeline_transition_application_pressure_penalty +
+        timeline_activity_state_pressure_penalty + timeline_lifecycle_pressure_penalty +
         timeline_precondition_pressure_penalty + timeline_preservation_pressure_penalty +
         timeline_pressure_penalty + storage_downlink_pressure_penalty +
         resource_projection_pressure_penalty +
@@ -3159,6 +3167,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "timeline_publication_pressure_penalty" => timeline_publication_pressure_penalty,
       "timeline_transition_application_pressure_penalty" =>
         timeline_transition_application_pressure_penalty,
+      "timeline_activity_state_pressure_penalty" => timeline_activity_state_pressure_penalty,
       "timeline_lifecycle_pressure_penalty" => timeline_lifecycle_pressure_penalty,
       "timeline_precondition_pressure_penalty" => timeline_precondition_pressure_penalty,
       "timeline_preservation_pressure_penalty" => timeline_preservation_pressure_penalty,
@@ -3497,16 +3506,23 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp timeline_transition_application_pressure_risk?(_risk), do: false
 
+  defp timeline_activity_state_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &timeline_activity_state_pressure_risk?/1)
+  end
+
+  defp timeline_activity_state_pressure_risk?(%{
+         "type" => "timeline_activity_lifecycle_state_review"
+       }),
+       do: true
+
+  defp timeline_activity_state_pressure_risk?(_risk), do: false
+
   defp timeline_lifecycle_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &timeline_lifecycle_pressure_risk?/1)
   end
 
-  defp timeline_lifecycle_pressure_risk?(%{"type" => type})
-       when type in [
-              "timeline_lifecycle_state_review",
-              "timeline_activity_lifecycle_state_review"
-            ],
-       do: true
+  defp timeline_lifecycle_pressure_risk?(%{"type" => "timeline_lifecycle_state_review"}),
+    do: true
 
   defp timeline_lifecycle_pressure_risk?(_risk), do: false
 
@@ -9333,6 +9349,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"timeline_publication_pressure", "timeline_publication_pressure_penalty"},
         {"timeline_transition_application_pressure",
          "timeline_transition_application_pressure_penalty"},
+        {"timeline_activity_state_pressure", "timeline_activity_state_pressure_penalty"},
         {"timeline_lifecycle_pressure", "timeline_lifecycle_pressure_penalty"},
         {"timeline_precondition_pressure", "timeline_precondition_pressure_penalty"},
         {"timeline_preservation_pressure", "timeline_preservation_pressure_penalty"},
