@@ -26035,6 +26035,51 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "source_wrapped_provider_counteroffer_row_boundary"
            ]
 
+    provider_counteroffer_pressure_count =
+      Enum.count(
+        urgent["risk_indicators"],
+        &(&1["type"] == "provider_counteroffer_review" and
+            &1["feedback_source"] ==
+              "candidate_source.provider_counteroffer_replay_summary")
+      )
+
+    assert provider_counteroffer_pressure_count == 1
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "provider_counteroffer_review" and
+                 &1["feedback_scope"] == "provider_counteroffer" and
+                 &1["reviewable_count"] == 3 and
+                 &1["counteroffer_cost_delta_count"] == 4 and
+                 &1["counteroffer_cost_delta_total"] == 200.0 and
+                 &1["counteroffer_timing_shift_count"] == 4 and
+                 &1["counteroffer_start_delta_count"] == 4 and
+                 &1["counteroffer_end_delta_count"] == 4 and
+                 &1["counteroffer_duration_delta_count"] == 4 and
+                 &1["counteroffer_lock_deadline_count"] == 4 and
+                 &1["earliest_counteroffer_lock_deadline_s"] == 120.0 and
+                 &1["counteroffer_status_counts"] == %{"accepted" => 1, "proposed" => 3} and
+                 &1["required_operator_action_counts"] == %{
+                   "none" => 1,
+                   "review_provider_counteroffer" => 3
+                 })
+           )
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    assert urgent["score_terms"]["provider_counteroffer_pressure_penalty"] ==
+             -provider_counteroffer_pressure_count * risk_weight
+
+    assert "provider_counteroffer_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == urgent["branch_id"] and
+                 &1["term_key"] == "provider_counteroffer_pressure_penalty" and &1["value"] < 0.0)
+           )
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
