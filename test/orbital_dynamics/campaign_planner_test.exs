@@ -31546,6 +31546,59 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "source_wrapped_link_capacity_row_boundary"
            ]
 
+    link_capacity_pressure_count =
+      Enum.count(
+        urgent["risk_indicators"],
+        &(&1["type"] == "downlink_completion_gap" and
+            &1["feedback_source"] == "candidate_source.link_capacity_replay_summary")
+      )
+
+    assert link_capacity_pressure_count == 1
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "downlink_completion_gap" and
+                 &1["feedback_scope"] == "link_capacity" and
+                 &1["selected_shortfall_row_count"] == 4 and
+                 &1["actual_shortfall_row_count"] == 4 and
+                 &1["actual_throughput_row_count"] == 4 and
+                 &1["capacity_adjusted_throughput_row_count"] == 4 and
+                 &1["capacity_adjusted_throughput_mb_total"] == 250.0 and
+                 &1["selected_capacity_adjusted_throughput_mb_total"] == 185.0 and
+                 &1["unused_capacity_adjusted_throughput_mb_total"] == 65.0 and
+                 &1["ground_station_ids"] == [
+                   "canberra_deep",
+                   "dss_43",
+                   "equator_prime",
+                   "polar_prime"
+                 ] and
+                 &1["selected_contact_ids"] == [
+                   "canonical_direct_selected_contact",
+                   "direct_selected_contact",
+                   "result_wrapped_selected_contact",
+                   "source_wrapped_selected_contact"
+                 ] and
+                 &1["actual_throughput_contact_ids"] == [
+                   "canonical_direct_actual_contact",
+                   "direct_actual_contact",
+                   "result_wrapped_actual_contact",
+                   "source_wrapped_actual_contact"
+                 ])
+           )
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    assert urgent["score_terms"]["link_capacity_pressure_penalty"] ==
+             -link_capacity_pressure_count * risk_weight
+
+    assert "link_capacity_pressure_penalty" in artifact["score_term_report"]["score_term_keys"]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == urgent["branch_id"] and
+                 &1["term_key"] == "link_capacity_pressure_penalty" and &1["value"] < 0.0)
+           )
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
