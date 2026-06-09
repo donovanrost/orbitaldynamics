@@ -929,7 +929,10 @@ evidence, and the artifact-only `no-schedule-mutation`, `no-authority`,
 The checked-in lifecycle-state summary fixture is likewise regenerated through
 `OrbitalDynamics.timeline_lifecycle_state_summary/3`, pinning duplicate-identity
 review routing, record/preserve/review counts, and the summary-level
-no-import/no-command/no-authority boundary.
+no-import/no-command/no-authority boundary. Schema and validation-reference
+challenge coverage rejects stale lifecycle-summary operator-action reason count
+and review-routing aggregates before compact lifecycle summaries can steer
+review/import routing.
 `study_results/timeline_dependency_impact_summary_v1.json` now feeds a curated
 `timeline_dependency_impact_summary.v1` validation-reference fixture. The
 observations check source/replacement counts, changed-source counts, dependent

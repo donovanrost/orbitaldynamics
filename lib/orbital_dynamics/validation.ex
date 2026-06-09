@@ -6028,6 +6028,16 @@ defmodule OrbitalDynamics.Validation do
           "review_activity_approval" => 1,
           "review_duplicate_timeline_identity" => 1
         },
+        "operator_action_reason_counts" => %{
+          "activity_execution_recorded" => 2,
+          "approval_grant_requires_operator_authority" => 1,
+          "duplicate_timeline_identity" => 1
+        },
+        "row_derived_operator_action_reason_counts" => %{
+          "activity_execution_recorded" => 2,
+          "approval_grant_requires_operator_authority" => 1,
+          "duplicate_timeline_identity" => 1
+        },
         "import_action_counts" => %{
           "import_replacement_activity" => 1,
           "record_preserved_activity" => 1,
@@ -6074,6 +6084,16 @@ defmodule OrbitalDynamics.Validation do
         "row_derived_review_timeline_ids_by_required_operator_action" => %{
           "review_activity_approval" => ["timeline:cmd_provider"],
           "review_duplicate_timeline_identity" => ["timeline:dup"]
+        },
+        "review_timeline_ids_by_operator_action_reason" => %{
+          "activity_execution_recorded" => ["timeline:cmd_provider"],
+          "approval_grant_requires_operator_authority" => ["timeline:cmd_provider"],
+          "duplicate_timeline_identity" => ["timeline:dup"]
+        },
+        "row_derived_review_timeline_ids_by_operator_action_reason" => %{
+          "activity_execution_recorded" => ["timeline:cmd_provider"],
+          "approval_grant_requires_operator_authority" => ["timeline:cmd_provider"],
+          "duplicate_timeline_identity" => ["timeline:dup"]
         },
         "review_timeline_ids_by_approval_transition_category" => %{
           "approval_granted" => ["timeline:cmd_provider"]
@@ -17168,6 +17188,11 @@ defmodule OrbitalDynamics.Validation do
       "required_operator_action_counts" => Map.get(artifact, "required_operator_action_counts"),
       "row_derived_required_operator_action_counts" =>
         row_value_counts(rows, "required_operator_action"),
+      "operator_action_reason_counts" => Map.get(artifact, "operator_action_reason_counts"),
+      "row_derived_operator_action_reason_counts" =>
+        rows
+        |> Enum.flat_map(&list_values(&1, "operator_action_reasons"))
+        |> Enum.frequencies(),
       "import_action_counts" => Map.get(artifact, "import_action_counts"),
       "row_derived_import_action_counts" => row_value_counts(rows, "import_action"),
       "planned_status_category_counts" => Map.get(artifact, "planned_status_category_counts"),
@@ -17223,6 +17248,12 @@ defmodule OrbitalDynamics.Validation do
       "row_derived_review_timeline_ids_by_required_operator_action" =>
         review_rows
         |> group_row_ids_by_value("required_operator_action", "timeline_id")
+        |> sort_grouped_values(),
+      "review_timeline_ids_by_operator_action_reason" =>
+        Map.get(artifact, "review_timeline_ids_by_operator_action_reason"),
+      "row_derived_review_timeline_ids_by_operator_action_reason" =>
+        review_rows
+        |> lifecycle_summary_timeline_ids_by_list_value("operator_action_reasons")
         |> sort_grouped_values(),
       "review_timeline_ids_by_approval_transition_category" =>
         Map.get(artifact, "review_timeline_ids_by_approval_transition_category"),
@@ -20637,6 +20668,24 @@ defmodule OrbitalDynamics.Validation do
     |> Enum.uniq()
     |> Enum.sort()
     |> Enum.join("|")
+  end
+
+  defp lifecycle_summary_timeline_ids_by_list_value(rows, value_key) do
+    rows
+    |> Enum.flat_map(fn row ->
+      timeline_id = Map.get(row, "timeline_id")
+
+      if is_binary(timeline_id) do
+        row
+        |> list_values(value_key)
+        |> Enum.map(&{&1, timeline_id})
+      else
+        []
+      end
+    end)
+    |> Enum.group_by(fn {value, _timeline_id} -> to_string(value) end, fn {_value, timeline_id} ->
+      timeline_id
+    end)
   end
 
   defp joined_row_values(rows, key, predicate) when is_list(rows) do

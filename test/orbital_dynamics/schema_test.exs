@@ -11297,6 +11297,11 @@ defmodule OrbitalDynamics.SchemaTest do
                "review_activity_approval" => 1,
                "review_duplicate_timeline_identity" => 1
              },
+             "operator_action_reason_counts" => %{
+               "activity_execution_recorded" => 2,
+               "approval_grant_requires_operator_authority" => 1,
+               "duplicate_timeline_identity" => 1
+             },
              "import_action_counts" => %{
                "import_replacement_activity" => 1,
                "record_preserved_activity" => 1,
@@ -11310,6 +11315,11 @@ defmodule OrbitalDynamics.SchemaTest do
              "review_timeline_ids_by_required_operator_action" => %{
                "review_activity_approval" => ["timeline:cmd_provider"],
                "review_duplicate_timeline_identity" => ["timeline:dup"]
+             },
+             "review_timeline_ids_by_operator_action_reason" => %{
+               "activity_execution_recorded" => ["timeline:cmd_provider"],
+               "approval_grant_requires_operator_authority" => ["timeline:cmd_provider"],
+               "duplicate_timeline_identity" => ["timeline:dup"]
              },
              "review_timeline_ids_by_status_transition_category" => %{
                "execution_recorded" => ["timeline:cmd_provider"]
@@ -11379,6 +11389,34 @@ defmodule OrbitalDynamics.SchemaTest do
              %{"timeline_id" => "timeline:cmd_provider"},
              %{"timeline_id" => "timeline:dup"}
            ] = summary["review_rows"]
+
+    stale_operator_reason_counts =
+      put_in(summary, ["operator_action_reason_counts", "activity_execution_recorded"], 1)
+
+    assert {:error, validation_report} = Schema.validate_artifact(stale_operator_reason_counts)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.operator_action_reason_counts" and
+                 &1["message"] == "must equal row-derived operator_action_reason_counts")
+           )
+
+    stale_operator_reason_routing =
+      put_in(
+        summary,
+        ["review_timeline_ids_by_operator_action_reason", "activity_execution_recorded"],
+        []
+      )
+
+    assert {:error, validation_report} =
+             Schema.validate_artifact(stale_operator_reason_routing)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.review_timeline_ids_by_operator_action_reason" and
+                 &1["message"] ==
+                   "must equal row-derived review_timeline_ids_by_operator_action_reason")
+           )
   end
 
   test "exports and validates timeline integrity report fields" do

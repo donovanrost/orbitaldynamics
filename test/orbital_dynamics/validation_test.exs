@@ -9338,6 +9338,24 @@ defmodule OrbitalDynamics.ValidationTest do
     assert observations["row_derived_review_timeline_keys"] ==
              "timeline:cmd_provider|timeline:dup"
 
+    assert observations["operator_action_reason_counts"] == %{
+             "activity_execution_recorded" => 2,
+             "approval_grant_requires_operator_authority" => 1,
+             "duplicate_timeline_identity" => 1
+           }
+
+    assert observations["row_derived_operator_action_reason_counts"] ==
+             observations["operator_action_reason_counts"]
+
+    assert observations["review_timeline_ids_by_operator_action_reason"] == %{
+             "activity_execution_recorded" => ["timeline:cmd_provider"],
+             "approval_grant_requires_operator_authority" => ["timeline:cmd_provider"],
+             "duplicate_timeline_identity" => ["timeline:dup"]
+           }
+
+    assert observations["row_derived_review_timeline_ids_by_operator_action_reason"] ==
+             observations["review_timeline_ids_by_operator_action_reason"]
+
     assert observations["operator_authority"] == "not_granted_by_summary"
     assert observations["cadence_import"] == "not_performed_by_summary"
 
@@ -9367,6 +9385,36 @@ defmodule OrbitalDynamics.ValidationTest do
     assert Enum.any?(
              stale_review_routing_verification["checks"],
              &(&1["field"] == "row_derived_review_timeline_ids_by_required_operator_action" and
+                 &1["status"] == "fail")
+           )
+
+    stale_operator_reason_observations =
+      observations
+      |> put_in(["row_derived_operator_action_reason_counts", "activity_execution_recorded"], 1)
+
+    assert {:ok, stale_operator_reason_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_operator_reason_observations)
+
+    assert stale_operator_reason_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_operator_reason_verification["checks"],
+             &(&1["field"] == "row_derived_operator_action_reason_counts" and
+                 &1["status"] == "fail")
+           )
+
+    stale_operator_routing_observations =
+      observations
+      |> put_in(["row_derived_review_timeline_ids_by_operator_action_reason"], %{})
+
+    assert {:ok, stale_operator_routing_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_operator_routing_observations)
+
+    assert stale_operator_routing_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_operator_routing_verification["checks"],
+             &(&1["field"] == "row_derived_review_timeline_ids_by_operator_action_reason" and
                  &1["status"] == "fail")
            )
 
