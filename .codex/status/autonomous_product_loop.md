@@ -8,7 +8,7 @@ Current slice:
 Refresh aggregate validation-reference fixture report.
 
 Status:
-Completed and ready to publish ledger.
+Completed and pushed.
 
 Files changed:
 - Artifact: `study_results/validation_reference_fixtures.json`
@@ -70,7 +70,7 @@ Refreshed aggregate validation-reference fixture report.
 
 Last commit:
 - Product: `d3b9d44` Refresh validation reference fixture report
-- Ledger: pending
+- Ledger: this handoff commit on `main`
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
