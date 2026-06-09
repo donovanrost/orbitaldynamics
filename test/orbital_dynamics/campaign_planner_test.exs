@@ -30342,6 +30342,141 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives activity precondition pressure from row-local stale aggregate evidence" do
+    stale_summary =
+      Timeline.activity_precondition_summary(%{
+        id: :stale_precondition_cmd_precondition,
+        type: :command,
+        scenario_id: :leo_1,
+        subject_id: :dss_14,
+        payload_available: false,
+        degraded: true,
+        command_authorized: false,
+        command_safety_status: :failed,
+        command_safety_checked: false,
+        resource_blocking_dimension: :battery,
+        dependency_activity_ids: [:health_check, :health_check],
+        dependency_timeline_ids: [:"timeline:health_check"],
+        exclusive_with: [:downlink_conflict, :downlink_conflict],
+        exclusive_with_timeline_ids: [:"timeline:downlink_conflict"],
+        allow_overlap: true,
+        metadata: %{timeline_id: "timeline:stale_precondition:cmd_precondition"},
+        activity_context: %{
+          activity_template: %{
+            schema_contract: "activity_template.v1",
+            id: "stale_precondition_command_template",
+            activity_type: "command",
+            subsystem_state_hints: %{
+              required_states: [
+                %{
+                  subsystem: "commanding",
+                  state: "armed",
+                  reason: "template requires armed commanding state"
+                }
+              ]
+            }
+          }
+        }
+      })
+      |> Map.put("provenance", %{"trust_boundary" => "stale_precondition_boundary"})
+      |> Map.update!("preconditions", fn preconditions ->
+        Enum.map(preconditions, fn precondition ->
+          precondition
+          |> Map.put("blocked_precondition_count", 99)
+          |> Map.put("review_precondition_count", 99)
+          |> Map.put("blocked_precondition_types", ["bogus_blocked_row_type"])
+          |> Map.put("review_precondition_types", ["bogus_review_row_type"])
+        end)
+      end)
+      |> Map.merge(%{
+        "precondition_status" => "clear",
+        "blocked_precondition_count" => 0,
+        "review_precondition_count" => 0,
+        "blocked_precondition_types" => [],
+        "review_precondition_types" => []
+      })
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put("source_timeline_activity_precondition_summary", stale_summary)
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    branch =
+      branch(
+        artifact,
+        "derived_timeline_activity_precondition_pressure_stale_precondition_cmd_precondition"
+      )
+
+    assert %{
+             "type" => "timeline_activity_precondition_pressure",
+             "activity_id" => "stale_precondition_cmd_precondition",
+             "timeline_id" => "timeline:stale_precondition:cmd_precondition",
+             "precondition_status" => "blocked",
+             "blocked_precondition_count" => 3,
+             "review_precondition_count" => 4,
+             "blocked_precondition_types" => [
+               "command_safety_failed",
+               "payload_unavailable",
+               "resource_block_declared"
+             ],
+             "review_precondition_types" => [
+               "command_authority_missing",
+               "command_safety_unchecked",
+               "degraded_mode",
+               "subsystem_state_required"
+             ],
+             "feedback_source" => "mission_state.source_timeline_activity_precondition_summary",
+             "trust_boundary" => "stale_precondition_boundary",
+             "requires_operator_review" => true,
+             "required_operator_action" => "review_blocked_activity_precondition"
+           } = List.first(branch["events"])
+
+    assert Enum.any?(
+             branch["risk_indicators"],
+             &(&1["type"] == "timeline_activity_precondition_review" and
+                 &1["precondition_status"] == "blocked" and
+                 &1["blocked_precondition_types"] == [
+                   "command_safety_failed",
+                   "payload_unavailable",
+                   "resource_block_declared"
+                 ])
+           )
+
+    assert_timeline_precondition_pressure_score_terms(branch, artifact)
+
+    row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] ==
+            "derived_timeline_activity_precondition_pressure_stale_precondition_cmd_precondition")
+      )
+
+    assert row["branch_timeline_activity_precondition_statuses"] == ["blocked"]
+
+    assert row["branch_timeline_activity_precondition_blocked_types"] == [
+             "command_safety_failed",
+             "payload_unavailable",
+             "resource_block_declared"
+           ]
+
+    assert row["branch_timeline_activity_precondition_review_types"] == [
+             "command_authority_missing",
+             "command_safety_unchecked",
+             "degraded_mode",
+             "subsystem_state_required"
+           ]
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy derives branch pressure from timeline preservation reports and statuses" do
     preservation_report = fn prefix, trust_boundary ->
       [

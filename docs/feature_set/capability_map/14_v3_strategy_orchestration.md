@@ -741,6 +741,10 @@ tradeoffs therefore expose
 dependency/exclusivity integrity, dependency-impact, publication, lifecycle, and
 precondition/preservation pressure separately without changing branch ranking
 for fixed inputs.
+V3 branch pressure derives activity-precondition status, blocked/review counts,
+and blocked/review type lists from precondition rows when row evidence is
+present, so stale top-level aggregate status/count/type fields cannot hide
+row-local blocked or review-required pressure.
 Challenge coverage also verifies stale top-level preservation aggregates cannot
 mask row-local preservation-required or review-change pressure in V3 score-term
 reports.
@@ -1660,7 +1664,9 @@ Selected recommendations also include:
   preservation pressure for its dedicated timeline term while preserving total
   branch score compatibility. Focused activity-precondition pressure fixtures
   now assert split branch math, legacy compatibility term behavior, and
-  score-term report rows through a shared helper.
+  score-term report rows through a shared helper. Stale aggregate challenge
+  coverage also verifies row-local precondition evidence drives branch pressure
+  status, counts, and type lists.
 - **Timeline-preservation pressure score terms** — split lock/approval/executed
   preservation review risks into `timeline_preservation_pressure_penalty`,
   leaving the legacy `timeline_pressure_penalty` present as an empty
