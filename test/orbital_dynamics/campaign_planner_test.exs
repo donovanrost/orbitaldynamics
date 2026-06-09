@@ -18948,6 +18948,75 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 trust_boundary: "mission_state_contact_intent_review"
               },
               %{
+                type: "ground_station_reserved",
+                ground_station_id: "canberra",
+                starts_at_s: 1_170.0,
+                ends_at_s: 1_230.0,
+                capacity_fraction: 0.4,
+                station_availability: "reserved",
+                station_contention_status: "reserved_overlap",
+                station_calendar_entry_id: "calendar_selected_reserved",
+                station_calendar_provider_id: "partner_calendar",
+                station_calendar_provider_entry_id: "partner_entry_calendar_selected",
+                station_calendar_directions: ["downlink"],
+                station_calendar_status: "reserved",
+                station_calendar_overlap_count: 2,
+                station_calendar_overlap_entry_ids: [
+                  "calendar_selected_reserved",
+                  "calendar_selected_maintenance"
+                ],
+                station_calendar_overlap_availabilities: ["reserved", "maintenance"],
+                station_calendar_entry_ambiguous: true,
+                station_calendar_ambiguous_entry_count: 2,
+                station_calendar_ambiguous_entry_ids: [
+                  "calendar_selected_reserved",
+                  "calendar_selected_backup"
+                ],
+                station_calendar_reservation_overlap_count: 1,
+                station_calendar_reservation_ids: ["reservation_calendar_selected"],
+                station_calendar_reserved_by: ["partner_team"],
+                station_calendar_reservation_statuses: ["confirmed"],
+                station_calendar_trust_boundary_status: "declared",
+                station_reservation_id: "reservation_calendar_selected",
+                station_reserved_by: "partner_team",
+                station_reservation_status: "confirmed",
+                station_reservation_match_status: "overlap",
+                station_reservation_expires_at_s: 1_260.0,
+                station_reservation_expiration_status: "active",
+                provider_calendar_contention_group_id: "provider_contention_selected",
+                provider_calendar_contention_status: "review_required",
+                provider_calendar_contention_entry_ids: [
+                  "calendar_selected_reserved",
+                  "calendar_selected_maintenance"
+                ],
+                provider_calendar_contention_provider_ids: ["partner_calendar"],
+                provider_calendar_contention_provider_entry_ids: [
+                  "partner_entry_calendar_selected",
+                  "partner_entry_calendar_maintenance"
+                ],
+                provider_calendar_contention_availabilities: ["reserved", "maintenance"],
+                provider_calendar_contention_directions: ["downlink"],
+                provider_calendar_contention_reservation_ids: ["reservation_calendar_selected"],
+                provider_calendar_contention_reserved_by: ["partner_team"],
+                provider_calendar_contention_reservation_statuses: ["confirmed"],
+                provider_calendar_contention_trust_boundary_statuses: ["declared"],
+                provider_calendar_contention_overlap_pairs: [
+                  %{
+                    "entry_id" => "calendar_selected_reserved",
+                    "overlap_entry_id" => "calendar_selected_maintenance"
+                  }
+                ],
+                required_operator_action: "review_station_calendar",
+                feedback_source: "mission_state.source_station_calendar_report.affected_contacts",
+                feedback_scope: "station_calendar",
+                trust_boundary: "mission_state_station_calendar_report",
+                derivation_reasons: [
+                  "station_calendar_reserved",
+                  "reserved_overlap",
+                  "overlap"
+                ]
+              },
+              %{
                 type: "relay_data_path_pressure",
                 ground_station_id: "dss_14",
                 route_id: "relay_route_review",
@@ -21210,6 +21279,111 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         "review_contact_intent",
         "reserved",
         "unmatched_overlap"
+      ],
+      "station_calendar_pressure_risk_types" => ["ground_station_reserved"],
+      "station_calendar_pressure_ground_station_ids" => ["canberra"],
+      "station_calendar_pressure_start_values_s" => [1_170.0],
+      "station_calendar_pressure_end_values_s" => [1_230.0],
+      "station_calendar_pressure_capacity_fraction_values" => [0.4],
+      "station_calendar_pressure_station_availabilities" => ["reserved"],
+      "station_calendar_pressure_station_contention_statuses" => ["reserved_overlap"],
+      "station_calendar_pressure_station_calendar_entry_ids" => [
+        "calendar_selected_reserved"
+      ],
+      "station_calendar_pressure_station_calendar_provider_ids" => ["partner_calendar"],
+      "station_calendar_pressure_station_calendar_provider_entry_ids" => [
+        "partner_entry_calendar_selected"
+      ],
+      "station_calendar_pressure_station_calendar_directions" => ["downlink"],
+      "station_calendar_pressure_station_calendar_statuses" => ["reserved"],
+      "station_calendar_pressure_station_calendar_overlap_count_values" => [2],
+      "station_calendar_pressure_station_calendar_overlap_entry_ids" => [
+        "calendar_selected_reserved",
+        "calendar_selected_maintenance"
+      ],
+      "station_calendar_pressure_station_calendar_overlap_availabilities" => [
+        "reserved",
+        "maintenance"
+      ],
+      "station_calendar_pressure_station_calendar_entry_ambiguous_values" => [true],
+      "station_calendar_pressure_station_calendar_ambiguous_entry_count_values" => [2],
+      "station_calendar_pressure_station_calendar_ambiguous_entry_ids" => [
+        "calendar_selected_reserved",
+        "calendar_selected_backup"
+      ],
+      "station_calendar_pressure_station_calendar_reservation_overlap_count_values" => [1],
+      "station_calendar_pressure_station_calendar_reservation_ids" => [
+        "reservation_calendar_selected"
+      ],
+      "station_calendar_pressure_station_calendar_reserved_by" => ["partner_team"],
+      "station_calendar_pressure_station_calendar_reservation_statuses" => [
+        "confirmed"
+      ],
+      "station_calendar_pressure_station_calendar_trust_boundary_statuses" => [
+        "declared"
+      ],
+      "station_calendar_pressure_station_reservation_ids" => [
+        "reservation_calendar_selected"
+      ],
+      "station_calendar_pressure_station_reserved_by" => ["partner_team"],
+      "station_calendar_pressure_station_reservation_statuses" => ["confirmed"],
+      "station_calendar_pressure_station_reservation_match_statuses" => ["overlap"],
+      "station_calendar_pressure_station_reservation_expires_at_values_s" => [1_260.0],
+      "station_calendar_pressure_station_reservation_expiration_statuses" => ["active"],
+      "station_calendar_pressure_provider_calendar_contention_group_ids" => [
+        "provider_contention_selected"
+      ],
+      "station_calendar_pressure_provider_calendar_contention_statuses" => [
+        "review_required"
+      ],
+      "station_calendar_pressure_provider_calendar_contention_entry_ids" => [
+        "calendar_selected_reserved",
+        "calendar_selected_maintenance"
+      ],
+      "station_calendar_pressure_provider_calendar_contention_provider_ids" => [
+        "partner_calendar"
+      ],
+      "station_calendar_pressure_provider_calendar_contention_provider_entry_ids" => [
+        "partner_entry_calendar_selected",
+        "partner_entry_calendar_maintenance"
+      ],
+      "station_calendar_pressure_provider_calendar_contention_availabilities" => [
+        "reserved",
+        "maintenance"
+      ],
+      "station_calendar_pressure_provider_calendar_contention_directions" => ["downlink"],
+      "station_calendar_pressure_provider_calendar_contention_reservation_ids" => [
+        "reservation_calendar_selected"
+      ],
+      "station_calendar_pressure_provider_calendar_contention_reserved_by" => [
+        "partner_team"
+      ],
+      "station_calendar_pressure_provider_calendar_contention_reservation_statuses" => [
+        "confirmed"
+      ],
+      "station_calendar_pressure_provider_calendar_contention_trust_boundary_statuses" => [
+        "declared"
+      ],
+      "station_calendar_pressure_provider_calendar_contention_overlap_pairs" => [
+        %{
+          "entry_id" => "calendar_selected_reserved",
+          "overlap_entry_id" => "calendar_selected_maintenance"
+        }
+      ],
+      "station_calendar_pressure_required_operator_actions" => [
+        "review_station_calendar"
+      ],
+      "station_calendar_pressure_feedback_sources" => [
+        "mission_state.source_station_calendar_report.affected_contacts"
+      ],
+      "station_calendar_pressure_feedback_scopes" => ["station_calendar"],
+      "station_calendar_pressure_trust_boundaries" => [
+        "mission_state_station_calendar_report"
+      ],
+      "station_calendar_pressure_derivation_reasons" => [
+        "station_calendar_reserved",
+        "reserved_overlap",
+        "overlap"
       ],
       "relay_data_path_risk_types" => ["relay_data_path_pressure"],
       "relay_data_path_ground_station_ids" => ["dss_14"],

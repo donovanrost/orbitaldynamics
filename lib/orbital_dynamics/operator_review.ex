@@ -16238,6 +16238,7 @@ defmodule OrbitalDynamics.OperatorReview do
     |> Map.merge(OrbitalDynamics.RecommendationRiskContext.relay_data_path_context(risks))
     |> Map.merge(OrbitalDynamics.RecommendationRiskContext.link_capacity_context(risks))
     |> Map.merge(OrbitalDynamics.RecommendationRiskContext.contact_intent_context(risks))
+    |> Map.merge(OrbitalDynamics.RecommendationRiskContext.station_calendar_context(risks))
     |> Map.merge(
       OrbitalDynamics.RecommendationRiskContext.resource_margin_context(
         resource_margin_context_rows
