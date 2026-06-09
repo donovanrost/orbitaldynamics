@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve readiness and quality-gate branch evidence through review/import handoffs.
+Preserve contact-allocation branch evidence through review/import handoffs.
 
 Status:
 Completed and pushed.
@@ -19,7 +19,7 @@ Files changed:
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/operator_review_test.exs:13408 test/orbital_dynamics/cadence_import_test.exs:6119 test/orbital_dynamics/campaign_planner_test.exs:49330 test/orbital_dynamics/campaign_planner_test.exs:27624`
+- `mix test test/orbital_dynamics/operator_review_test.exs:13408 test/orbital_dynamics/cadence_import_test.exs:6119 test/orbital_dynamics/campaign_planner_test.exs:47031 test/orbital_dynamics/campaign_planner_test.exs:47594`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
@@ -27,33 +27,32 @@ Docs/artifacts changed:
 No docs or checked-in generated artifacts changed.
 
 Level 6 pillar advanced:
-Approval-aware automation boundaries, quality gates, import readiness, and
+Fleet-level resource, contact, station-calendar, and allocation behavior plus
 clear Cadence integration artifacts.
 
 Slice selection note:
-Selected slice: Preserve existing `branch_operational_readiness_*` and
-`branch_quality_gate_*` strategy branch-comparison evidence through
-operator-review and Cadence-import rows.
+Selected slice: Preserve existing `branch_contact_allocation_*` and
+`branch_station_reservation_conflict_*` strategy branch-comparison evidence
+through operator-review and Cadence-import rows.
 
-Why this slice: CampaignPlanner already derives branch-local operational
-readiness and quality-gate pressure, and branch-comparison rows carry the
-readiness levels, import classifications, gate statuses/classifications,
-source-report paths, gate IDs, and row-ID routing. The branch-comparison
-review/import mappers do not expose those aggregate fields, so Cadence-facing
-strategy alternatives can lose why a branch is review-only, analysis-only, or
-blocked.
+Why this slice: CampaignPlanner already emits aggregate branch evidence for
+allocation status/effective status/reason/review/policy classification and
+station-reservation conflict contact/reservation/match-status routing. The
+branch-comparison review/import mappers preserve basic station reservation
+fields but not those allocation/conflict aggregates, so Cadence-facing strategy
+alternatives can lose why a branch is blocked, deferred, or reviewable.
 
-Level 6 pillar: Approval-aware automation boundaries, quality gates, import
-readiness, and clear Cadence integration artifacts.
+Level 6 pillar: Fleet-level resource, contact, station-calendar, and allocation
+behavior plus clear Cadence integration artifacts.
 
-Current evidence gap: Branch comparison rows contain readiness and quality-gate
-evidence, but operator-review and Cadence-import strategy handoffs do not carry
-the same aggregate routing fields.
+Current evidence gap: Branch comparison rows contain contact-allocation and
+station-reservation conflict evidence, but operator-review and Cadence-import
+strategy handoffs do not carry the same aggregate routing fields.
 
-Docs to read: `docs/feature_set/capability_map/17_reproducibility_artifacts_and_audit.md`;
-`docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`;
-`docs/mission_planning/high_fidelity/09_security_and_modes.md`;
-`docs/mission_planning/high_fidelity/12_operational_readiness.md`.
+Docs to read: `docs/feature_set/capability_map/07_ground_network_and_communications_planning.md`;
+`docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`;
+`docs/artifacts/field_families/candidate_refresh_artifact.md`;
+`docs/mission_planning/high_fidelity/06_operational_concerns.md`.
 
 Likely files: `lib/orbital_dynamics/operator_review.ex`;
 `lib/orbital_dynamics/cadence_import.ex`;
@@ -62,35 +61,34 @@ Likely files: `lib/orbital_dynamics/operator_review.ex`;
 `test/orbital_dynamics/campaign_planner_test.exs`.
 
 Likely tests: focused operator-review, Cadence-import, and campaign-planner
-tests for branch-comparison readiness/gate handoffs; `mix compile
+tests for branch-comparison contact-allocation handoffs; `mix compile
 --warnings-as-errors`; `git diff --check`.
 
 Definition of done:
-- Operator-review strategy tradeoff rows preserve operational-readiness and
-  quality-gate aggregate branch-comparison fields.
+- Operator-review strategy tradeoff rows preserve contact-allocation and
+  station-reservation conflict aggregate branch-comparison fields.
 - Cadence import rows preserve the same fields for direct strategy branch
   comparison rows and review-package-derived strategy tradeoff rows.
-- Focused validation covers concrete full-strategy readiness and quality-gate
-  pressure paths plus direct branch-comparison handoffs.
+- Focused validation covers concrete full-strategy contact-allocation /
+  reservation-conflict paths plus direct branch-comparison handoffs.
 
 What changed:
 `OperatorReview.from_branch_comparison_report/1` and Cadence-import strategy
-handoff rows now preserve aggregate branch evidence for operational readiness
-and quality-gate routing, including readiness/import classifications,
-status/classification arrays, source-report paths, gate IDs, and quality-gate
-row IDs. Direct branch-comparison tests assert representative fields, and the
-full V3 readiness/quality-gate strategy tests assert the evidence survives
-through embedded operator-review and Cadence-import rows.
+handoff rows now preserve aggregate branch evidence for contact-allocation
+status/effective status/reason/review/policy classification and
+station-reservation conflict contact/reservation/match-status routing. Direct
+branch-comparison tests assert representative fields, and the full V3
+contact-allocation and reservation-conflict strategy tests assert the evidence
+survives through embedded operator-review and Cadence-import rows.
 
 Parent performed bounded local review and mechanical publish because no
 suitable subagent tool is available in this runtime.
 
 Last completed slice:
-Preserved readiness and quality-gate branch evidence through review/import
-handoffs.
+Preserved contact-allocation branch evidence through review/import handoffs.
 
 Last commit:
-- Product: `7a3e8ef` Preserve readiness gate handoff fields
+- Product: `2e2abd2` Preserve contact allocation handoff fields
 - Ledger: this handoff commit on `main`
 
 Remaining maturity gaps:
