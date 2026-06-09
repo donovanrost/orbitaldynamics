@@ -9,7 +9,7 @@ Preserve suppressed reservation routing in station-calendar precedence
 summaries.
 
 Status:
-Completed locally; pending commit/push.
+Completed and pushed in product commit `7b80988`.
 
 Slice-selection note:
 - Selected slice: extend `station_calendar_precedence_summary.v1` so
@@ -104,7 +104,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`630bb44` Split storage downlink pressure score term.
+`7b80988` Preserve station precedence reservation routing.
 
 Next candidate:
 After this slice, continue with planner-visible resource/contact/readiness
@@ -116,6 +116,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `7b80988` preserved suppressed reservation ID/status/owner routing in
+  station-calendar precedence summaries.
 - `630bb44` split storage/downlink pressure into an explicit V3 score term.
 - `211d7fd` preserved actual-throughput ID replay pressure in composed
   storage/downlink summaries.
