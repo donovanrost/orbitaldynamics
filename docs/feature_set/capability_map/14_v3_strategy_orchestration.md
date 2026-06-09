@@ -1674,6 +1674,9 @@ unrelated risks. Otherwise equal branches with readiness or quality-gate review
 pressure rank below pressure-free alternatives when `risk_weight` applies while
 score-term reports isolate readiness pressure from quality-gate pressure. Branch
 comparison rows expose the corresponding risk types.
+Challenge coverage also verifies blocked or analysis-only readiness row statuses
+remain score-visible through `operational_readiness_pressure_penalty` when
+source classifications are missing or stale.
 
 The corresponding strategy-recommendation operator-review row and Cadence import
 gate flatten those same risk type and stable-ID arrays, plus resource-pressure

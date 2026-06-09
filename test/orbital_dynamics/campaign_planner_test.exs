@@ -45383,6 +45383,81 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                "mission_state.source_operational_readiness_gate_summary.non_passed_gates"
            } = List.first(summary_branch["events"])
 
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    blocked_pressure_count =
+      Enum.count(
+        blocked_branch["risk_indicators"],
+        &(&1["type"] == "operational_readiness_pressure")
+      )
+
+    analysis_pressure_count =
+      Enum.count(
+        analysis_branch["risk_indicators"],
+        &(&1["type"] == "operational_readiness_pressure")
+      )
+
+    summary_pressure_count =
+      Enum.count(
+        summary_branch["risk_indicators"],
+        &(&1["type"] == "operational_readiness_pressure")
+      )
+
+    assert blocked_pressure_count == 1
+    assert analysis_pressure_count == 1
+    assert summary_pressure_count == 1
+
+    assert blocked_branch["score_terms"]["approval_boundary_pressure_penalty"] == 0.0
+    assert analysis_branch["score_terms"]["approval_boundary_pressure_penalty"] == 0.0
+    assert summary_branch["score_terms"]["approval_boundary_pressure_penalty"] == 0.0
+
+    assert blocked_branch["score_terms"]["operational_readiness_pressure_penalty"] ==
+             -blocked_pressure_count * risk_weight
+
+    assert analysis_branch["score_terms"]["operational_readiness_pressure_penalty"] ==
+             -analysis_pressure_count * risk_weight
+
+    assert summary_branch["score_terms"]["operational_readiness_pressure_penalty"] ==
+             -summary_pressure_count * risk_weight
+
+    assert blocked_branch["score_terms"]["risk_penalty"] ==
+             -(length(blocked_branch["risk_indicators"]) - blocked_pressure_count) * risk_weight
+
+    assert analysis_branch["score_terms"]["risk_penalty"] ==
+             -(length(analysis_branch["risk_indicators"]) - analysis_pressure_count) *
+               risk_weight
+
+    assert summary_branch["score_terms"]["risk_penalty"] ==
+             -(length(summary_branch["risk_indicators"]) - summary_pressure_count) * risk_weight
+
+    assert "operational_readiness_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] ==
+                 "derived_operational_readiness_pressure_blocked_without_classification" and
+                 &1["term_key"] == "operational_readiness_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] ==
+                 "derived_operational_readiness_pressure_analysis_stale_classification" and
+                 &1["term_key"] == "operational_readiness_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] ==
+                 "derived_operational_readiness_pressure_summary_blocked_without_classification" and
+                 &1["term_key"] == "operational_readiness_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
