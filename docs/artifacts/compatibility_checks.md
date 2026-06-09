@@ -1214,8 +1214,9 @@ generated score-term reports. The standalone score-term fixture is also pinned
 to the checked-in V1 campaign artifact's embedded
 `campaign_plan.score_term_report`, so fixture-chain drift is caught before
 validation-reference checks run. It also
-rejects stale ranking-comparison row/status counts and per-row rank/value deltas
-that no longer match the compared ranks and values.
+rejects stale ranking-comparison row/status counts, row-derived scenario
+routing by status, and per-row rank/value deltas that no longer match the
+compared ranks and values.
 The V3 strategy golden fixture also pins the embedded strategy score-term report
 from the public strategy facade. That nested report now covers 902 score-term
 rows, 550 pressure rows, and dedicated pressure keys for resource availability,

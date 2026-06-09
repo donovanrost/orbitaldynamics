@@ -13688,8 +13688,22 @@ defmodule OrbitalDynamics.ValidationTest do
     assert verification["status"] == "pass"
     assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
 
+    observations = ranking_comparison_report_fixture_observations()
+
+    assert observations["status_counts"] == %{
+             "left_only" => 1,
+             "matched" => 1,
+             "right_only" => 1
+           }
+
+    assert observations["scenario_ids_by_status"] == %{
+             "left_only" => ["burn_a"],
+             "matched" => ["burn_b"],
+             "right_only" => ["burn_c"]
+           }
+
     stale_observations =
-      ranking_comparison_report_fixture_observations()
+      observations
       |> Map.put("matched_count", 0)
 
     assert {:ok, stale_verification} =
@@ -13700,6 +13714,34 @@ defmodule OrbitalDynamics.ValidationTest do
     assert Enum.any?(
              stale_verification["checks"],
              &(&1["field"] == "matched_count" and &1["status"] == "fail")
+           )
+
+    stale_status_count_observations =
+      observations
+      |> put_in(["status_counts", "matched"], 0)
+
+    assert {:ok, stale_status_count_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_status_count_observations)
+
+    assert stale_status_count_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_status_count_verification["checks"],
+             &(&1["field"] == "status_counts" and &1["status"] == "fail")
+           )
+
+    stale_status_routing_observations =
+      observations
+      |> put_in(["scenario_ids_by_status", "matched"], [])
+
+    assert {:ok, stale_status_routing_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_status_routing_observations)
+
+    assert stale_status_routing_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_status_routing_verification["checks"],
+             &(&1["field"] == "scenario_ids_by_status" and &1["status"] == "fail")
            )
 
     assert OrbitalDynamics.validation_artifact_observations(
