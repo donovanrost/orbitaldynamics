@@ -1448,6 +1448,9 @@ not only documentation examples. Use
 `OrbitalDynamics.campaign_repair_from_file!/2` and
 `OrbitalDynamics.campaign_strategy_from_file!/2` to resolve `source_plan_ref`
 and build artifacts from the checked-in request files.
+The checked-in V2 repair and V3 strategy artifacts are pinned in golden tests
+against those public facades using the same JSON writer as the campaign run
+task, so schema-valid drift in compact examples is caught as fixture drift.
 
 For repeatable file-to-file generation, use the campaign run task:
 

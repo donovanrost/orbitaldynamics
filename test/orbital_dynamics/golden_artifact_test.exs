@@ -340,6 +340,29 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
            } == repair_golden_surface(repair)
   end
 
+  test "checked-in repair artifact matches the public V2 repair facade" do
+    repair = read_json!("study_results/leo_constellation_campaign_repair_v2.json")
+
+    output_path =
+      Path.join(
+        System.tmp_dir!(),
+        "orbital_dynamics_repair_golden_#{System.unique_integer([:positive])}.json"
+      )
+
+    on_exit(fn -> File.rm(output_path) end)
+
+    "studies/leo_constellation_campaign_repair_v2.json"
+    |> OrbitalDynamics.campaign_repair_from_file!()
+    |> OrbitalDynamics.ResultSet.Artifact.write_json!(output_path)
+
+    generated_repair =
+      output_path
+      |> File.read!()
+      |> :json.decode()
+
+    assert repair == generated_repair
+  end
+
   test "checked-in strategy artifact preserves the V3 strategy surface" do
     strategy = read_json!("study_results/leo_constellation_campaign_strategy_v3.json")
     surface = strategy_golden_surface(strategy)
