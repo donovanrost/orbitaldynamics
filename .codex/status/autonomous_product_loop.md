@@ -5,22 +5,22 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Split link-capacity pressure into planner-visible V3 score terms.
+Split contact-intent pressure into planner-visible V3 score terms.
 
 Status:
-Completed and pushed in product commit `9d07ee2`.
+Completed and pushed in product commit `1076212`.
 
 Slice-selection note:
-- Selected slice: give link-capacity-derived `downlink_completion_gap` risks a
-  dedicated V3 `link_capacity_pressure_penalty` score term.
-- Why this slice: link-capacity pressure already derives branch-local refresh
-  branches from prior-plan, mission-state, and result-artifact evidence, but it
-  still shares the generic `risk_penalty` bucket while adjacent communications
-  pressure families have dedicated score terms.
+- Selected slice: give contact-intent-derived `downlink_completion_gap` risks a
+  dedicated V3 `contact_intent_pressure_penalty` score term.
+- Why this slice: contact-intent pressure already derives branch-local refresh
+  branches from prior-plan, mission-state, operator-review, Cadence-import, and
+  result-artifact evidence, but it still shares the generic `risk_penalty`
+  bucket while adjacent communications pressure families have dedicated terms.
 - Level 6 pillar: fleet-level communications allocation behavior; reproducible
   V3 branch trees with explainable score terms and deltas.
 - Current evidence gap: planner-visible score-term reports should distinguish
-  link-capacity shortfall pressure from unrelated generic risks while preserving
+  contact-intent review/import pressure from unrelated generic risks while preserving
   total branch score compatibility.
 - Docs read:
   `docs/feature_set/capability_map/07_ground_network/02_link_capacity.md`,
@@ -28,7 +28,7 @@ Slice-selection note:
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`.
 - Likely files/tests: `lib/orbital_dynamics/campaign_planner.ex`,
   `test/orbital_dynamics/campaign_planner_test.exs`, and the listed docs.
-- Definition of done: link-capacity pressure risks are counted in a dedicated
+- Definition of done: contact-intent pressure risks are counted in a dedicated
   score term and removed from generic risk count; score-term reports expose the
   new term; focused V3 tests and docs cover the split; locally reviewed,
   committed, and pushed without touching unrelated `.gitignore`.
@@ -42,17 +42,17 @@ Files changed:
 - `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:48182`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:48182 test/orbital_dynamics/campaign_planner_test.exs:48413 test/orbital_dynamics/campaign_planner_test.exs:48535 test/orbital_dynamics/campaign_planner_test.exs:48642 test/orbital_dynamics/campaign_planner_test.exs:20867 test/orbital_dynamics/campaign_planner_test.exs:41362 test/orbital_dynamics/campaign_planner_test.exs:27268`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:46028`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:46028 test/orbital_dynamics/campaign_planner_test.exs:46210 test/orbital_dynamics/campaign_planner_test.exs:46412 test/orbital_dynamics/campaign_planner_test.exs:69350 test/orbital_dynamics/campaign_planner_test.exs:48182 test/orbital_dynamics/campaign_planner_test.exs:41362 test/orbital_dynamics/campaign_planner_test.exs:20867`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
-- `rg -n 'link_capacity_pressure_penalty|link_capacity_pressure_risk|assert_link_capacity_pressure_score_terms|Link-capacity-derived|link-capacity shortfall risks' lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/07_ground_network/02_link_capacity.md docs/feature_set/capability_map/11_planning_state_refresh/pressure_replay_into_branch_refresh.md docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
+- `rg -n 'contact_intent_pressure_penalty|contact_intent_pressure_risk|assert_contact_intent_pressure_score_terms|Contact-intent.*pressure|contact-intent.*pressure' lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/07_ground_network/02_link_capacity.md docs/feature_set/capability_map/11_planning_state_refresh/pressure_replay_into_branch_refresh.md docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Docs/artifacts changed:
-Link-capacity, refresh pressure replay, and V3 orchestration docs now state
-that link-capacity-derived shortfall risks contribute to
-`link_capacity_pressure_penalty` while generic `risk_penalty` remains for
+Ground-network, refresh pressure replay, and V3 orchestration docs now state
+that contact-intent review/import pressure contributes to
+`contact_intent_pressure_penalty` while generic `risk_penalty` remains for
 unrelated risks.
 
 Local review:
@@ -62,10 +62,9 @@ score-term report/tradeoff coverage, focused tests, docs, and scope; no
 must-fix issues remained. `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-V3 branch score terms now distinguish link-capacity shortfall pressure from
-unrelated generic risks while preserving total one-risk-weight branch score
-compatibility; adjacent relay fixture expectations now match row-derived relay
-summary replay.
+V3 branch score terms now distinguish contact-intent review/import pressure
+from unrelated generic risks while preserving total one-risk-weight branch score
+compatibility.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -75,10 +74,10 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`9d07ee2` Split link-capacity pressure score term.
+`1076212` Split contact-intent pressure score term.
 
 Next candidate:
-After this link-capacity score-term split, reassess the next planner-visible
+After this contact-intent score-term split, reassess the next planner-visible
 communications allocation or timeline/readiness scoring gap.
 
 Unrelated local changes:
@@ -86,6 +85,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `1076212` split contact-intent-derived V3 review/import pressure into a
+  dedicated score term while preserving total branch score compatibility.
 - `9d07ee2` split link-capacity-derived V3 shortfall pressure into a dedicated
   score term while preserving total branch score compatibility.
 - `24adf78` hardened compact relay data-path CandidateRefresh source/replay
