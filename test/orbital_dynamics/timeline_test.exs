@@ -3560,6 +3560,8 @@ defmodule OrbitalDynamics.TimelineTest do
 
     assert "artifact_level_only" in model_limits
     assert OrbitalDynamics.timeline_dependency_impact_summary(source, replacement) == summary
+    assert read_json!("study_results/timeline_dependency_impact_summary_v1.json") == summary
+
     advertised_statuses = Timeline.capabilities().dependency_impact_statuses
     assert summary["dependency_impact_status"] in advertised_statuses
 
