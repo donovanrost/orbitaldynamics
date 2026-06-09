@@ -23016,6 +23016,39 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "mission_state.source_result_artifact.operational_readiness_report"
            ]
 
+    assert_operational_readiness_pressure_score_terms(urgent, artifact)
+
+    urgent_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+
+    assert "operational_readiness_pressure" in urgent_row["risk_types"]
+
+    assert urgent_row["branch_operational_readiness_levels"] == [
+             "analysis_only",
+             "blocked",
+             "operator_review"
+           ]
+
+    assert urgent_row["branch_operational_readiness_import_classifications"] == [
+             "analysis_only",
+             "blocked",
+             "review_only"
+           ]
+
+    assert urgent_row["branch_operational_readiness_statuses"] == [
+             "analysis_only",
+             "blocked",
+             "review_required"
+           ]
+
+    assert urgent_row["branch_operational_readiness_source_report_paths"] == [
+             "mission_state.operational_readiness_report",
+             "mission_state.result_artifact.source_operational_readiness_report",
+             "mission_state.source_operational_readiness_report",
+             "mission_state.source_result_artifact.operational_readiness_report"
+           ]
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end

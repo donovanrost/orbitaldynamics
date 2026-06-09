@@ -3188,6 +3188,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp operational_readiness_pressure_risk?(_risk), do: false
 
+  defp operational_readiness_pressure_event_risk?(%{
+         "type" => "operational_readiness_pressure"
+       }),
+       do: true
+
+  defp operational_readiness_pressure_event_risk?(_risk), do: false
+
   defp quality_gate_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &quality_gate_pressure_risk?/1)
   end
@@ -3630,6 +3637,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     contact_allocation_replay =
       CandidateRefresh.contact_allocation_replay_summary(candidate_source)
 
+    operational_readiness_replay =
+      CandidateRefresh.operational_readiness_replay_summary(candidate_source)
+
     lifecycle_replay =
       CandidateRefresh.timeline_lifecycle_state_replay_summary(candidate_source)
 
@@ -3641,6 +3651,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     []
     |> maybe_add_candidate_source_contact_allocation_risks(contact_allocation_replay, event_risks)
+    |> maybe_add_candidate_source_operational_readiness_risks(
+      operational_readiness_replay,
+      event_risks
+    )
     |> maybe_add_candidate_source_timeline_activity_state_risks(
       activity_state_replay,
       event_risks
@@ -3658,6 +3672,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
       risks ++
         contact_allocation_replay_reservation_conflict_risks(replay_summary) ++
         contact_allocation_replay_provider_reservation_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_operational_readiness_risks(
+         risks,
+         replay_summary,
+         event_risks
+       ) do
+    if Enum.any?(event_risks, &operational_readiness_pressure_event_risk?/1) do
+      risks
+    else
+      risks ++ operational_readiness_replay_pressure_risks(replay_summary)
     end
   end
 
@@ -3747,6 +3773,103 @@ defmodule OrbitalDynamics.CampaignPlanner do
         |> compact_map()
       end)
     end)
+  end
+
+  defp operational_readiness_replay_pressure_risks(%{} = replay_summary) do
+    if operational_readiness_replay_scoring_pressure?(replay_summary) do
+      operational_readiness_replay_pressure_risk(replay_summary)
+    else
+      []
+    end
+  end
+
+  defp operational_readiness_replay_pressure_risks(_replay_summary), do: []
+
+  defp operational_readiness_replay_scoring_pressure?(replay_summary) do
+    Map.get(replay_summary, "branch_local_review_pressure") == true or
+      Map.get(replay_summary, "branch_local_import_pressure") == true or
+      Map.get(replay_summary, "branch_local_execution_boundary_pressure") == true or
+      summary_positive?(replay_summary, "review_gate_count") or
+      summary_positive?(replay_summary, "blocked_gate_count") or
+      summary_positive?(replay_summary, "non_passed_gate_count")
+  end
+
+  defp operational_readiness_replay_pressure_risk(replay_summary) do
+    readiness_levels = replay_summary |> Map.get("readiness_level_counts", %{}) |> map_keys()
+
+    import_classifications =
+      replay_summary |> Map.get("import_classification_counts", %{}) |> map_keys()
+
+    readiness_statuses = replay_summary |> Map.get("status_counts", %{}) |> map_keys()
+
+    gate_statuses = replay_summary |> Map.get("gate_status_counts", %{}) |> map_keys()
+
+    gate_classifications =
+      replay_summary |> Map.get("gate_classification_counts", %{}) |> map_keys()
+
+    [
+      %{
+        "type" => "operational_readiness_pressure",
+        "severity" =>
+          readiness_pressure_risk_severity(%{
+            "readiness_level" => pressure_priority_value(readiness_levels),
+            "import_classification" => pressure_priority_value(import_classifications),
+            "operational_readiness_status" => pressure_priority_value(readiness_statuses)
+          }),
+        "reason" =>
+          "candidate source operational-readiness replay reports review, blocked, analysis-only, or import-boundary pressure",
+        "readiness_level" => pressure_priority_value(readiness_levels),
+        "import_classification" => pressure_priority_value(import_classifications),
+        "operational_readiness_status" => pressure_priority_value(readiness_statuses),
+        "readiness_levels" => readiness_levels,
+        "import_classifications" => import_classifications,
+        "operational_readiness_statuses" => readiness_statuses,
+        "source_report_paths" => Map.get(replay_summary, "source_report_paths"),
+        "gate_count" => Map.get(replay_summary, "gate_count"),
+        "passed_gate_count" => Map.get(replay_summary, "passed_gate_count"),
+        "review_gate_count" => Map.get(replay_summary, "review_gate_count"),
+        "analysis_gate_count" => Map.get(replay_summary, "analysis_gate_count"),
+        "blocked_gate_count" => Map.get(replay_summary, "blocked_gate_count"),
+        "non_passed_gate_count" => Map.get(replay_summary, "non_passed_gate_count"),
+        "gate_status_counts" => Map.get(replay_summary, "gate_status_counts"),
+        "gate_classification_counts" => Map.get(replay_summary, "gate_classification_counts"),
+        "gate_statuses" => gate_statuses,
+        "gate_classifications" => gate_classifications,
+        "review_required_gate_ids" => Map.get(replay_summary, "review_required_gate_ids"),
+        "analysis_only_gate_ids" => Map.get(replay_summary, "analysis_only_gate_ids"),
+        "blocked_gate_ids" => Map.get(replay_summary, "blocked_gate_ids"),
+        "non_passed_gate_ids" => Map.get(replay_summary, "non_passed_gate_ids"),
+        "branch_local_review_pressure" => Map.get(replay_summary, "branch_local_review_pressure"),
+        "branch_local_import_pressure" => Map.get(replay_summary, "branch_local_import_pressure"),
+        "branch_local_execution_boundary_pressure" =>
+          Map.get(replay_summary, "branch_local_execution_boundary_pressure"),
+        "feedback_source" => "candidate_source.operational_readiness_replay_summary",
+        "feedback_scope" => "operational_readiness",
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries")
+      }
+      |> compact_map()
+    ]
+  end
+
+  defp pressure_priority_value(values) do
+    priority = [
+      "blocked",
+      "blocked_by_policy",
+      "review_blocked_operational_readiness",
+      "review_required",
+      "review_only",
+      "operator_review",
+      "analysis_only"
+    ]
+
+    Enum.find(priority, &(&1 in values)) || List.first(values)
+  end
+
+  defp summary_positive?(summary, field) do
+    case numeric_or_nil(Map.get(summary, field)) do
+      value when is_number(value) -> value > 0
+      _value -> false
+    end
   end
 
   defp timeline_lifecycle_replay_review_risks(
@@ -45091,6 +45214,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
           not is_nil(risk["station_reservation_match_status"])
       end)
 
+    operational_readiness_risks =
+      Enum.filter(risk_indicators, fn risk ->
+        risk["type"] == "operational_readiness_pressure"
+      end)
+
     timeline_lifecycle_state_risks =
       Enum.filter(risk_indicators, fn risk ->
         risk["type"] == "timeline_lifecycle_state_review"
@@ -45123,6 +45251,41 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "station_reservation_match_status",
           "reservation_match_status"
         ]),
+      "branch_operational_readiness_levels" =>
+        branch_event_unique_values(operational_readiness_risks, [
+          "readiness_level",
+          "readiness_levels"
+        ]),
+      "branch_operational_readiness_import_classifications" =>
+        branch_event_unique_values(operational_readiness_risks, [
+          "import_classification",
+          "import_classifications"
+        ]),
+      "branch_operational_readiness_statuses" =>
+        branch_event_unique_values(operational_readiness_risks, [
+          "operational_readiness_status",
+          "operational_readiness_statuses"
+        ]),
+      "branch_operational_readiness_source_report_paths" =>
+        branch_event_unique_values(operational_readiness_risks, "source_report_paths"),
+      "branch_operational_readiness_gate_statuses" =>
+        branch_event_unique_values(operational_readiness_risks, [
+          "readiness_gate_status",
+          "gate_statuses"
+        ]),
+      "branch_operational_readiness_gate_classifications" =>
+        branch_event_unique_values(operational_readiness_risks, [
+          "readiness_gate_classification",
+          "gate_classifications"
+        ]),
+      "branch_operational_readiness_review_required_gate_ids" =>
+        branch_event_unique_values(operational_readiness_risks, "review_required_gate_ids"),
+      "branch_operational_readiness_analysis_only_gate_ids" =>
+        branch_event_unique_values(operational_readiness_risks, "analysis_only_gate_ids"),
+      "branch_operational_readiness_blocked_gate_ids" =>
+        branch_event_unique_values(operational_readiness_risks, "blocked_gate_ids"),
+      "branch_operational_readiness_non_passed_gate_ids" =>
+        branch_event_unique_values(operational_readiness_risks, "non_passed_gate_ids"),
       "branch_timeline_lifecycle_state_review_timeline_ids" =>
         branch_event_unique_values(timeline_lifecycle_state_risks, "review_timeline_ids"),
       "branch_timeline_lifecycle_state_review_activity_ids" =>
@@ -45198,6 +45361,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> maybe_put_nonempty("branch_station_reservation_conflict_contact_ids")
     |> maybe_put_nonempty("branch_station_reservation_conflict_reservation_ids")
     |> maybe_put_nonempty("branch_station_reservation_conflict_match_statuses")
+    |> maybe_put_nonempty("branch_operational_readiness_levels")
+    |> maybe_put_nonempty("branch_operational_readiness_import_classifications")
+    |> maybe_put_nonempty("branch_operational_readiness_statuses")
+    |> maybe_put_nonempty("branch_operational_readiness_source_report_paths")
+    |> maybe_put_nonempty("branch_operational_readiness_gate_statuses")
+    |> maybe_put_nonempty("branch_operational_readiness_gate_classifications")
+    |> maybe_put_nonempty("branch_operational_readiness_review_required_gate_ids")
+    |> maybe_put_nonempty("branch_operational_readiness_analysis_only_gate_ids")
+    |> maybe_put_nonempty("branch_operational_readiness_blocked_gate_ids")
+    |> maybe_put_nonempty("branch_operational_readiness_non_passed_gate_ids")
     |> maybe_put_nonempty("branch_timeline_lifecycle_state_review_timeline_ids")
     |> maybe_put_nonempty("branch_timeline_lifecycle_state_review_activity_ids")
     |> maybe_put_nonempty("branch_timeline_lifecycle_state_invalid_activity_input_ids")
