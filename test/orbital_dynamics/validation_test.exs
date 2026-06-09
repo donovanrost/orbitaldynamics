@@ -5937,6 +5937,72 @@ defmodule OrbitalDynamics.ValidationTest do
              Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
   end
 
+  test "verifies candidate refresh freshness replay fixtures" do
+    fixture_id = "fixture.artifact.candidate_refresh.freshness_replay"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = candidate_refresh_freshness_fixture()
+    observations = candidate_refresh_freshness_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "source_report_family_count" => 1,
+             "source_report_row_count" => 2,
+             "source_freshness_report_count" => 2,
+             "source_freshness_row_count" => 2,
+             "source_freshness_path_keys" =>
+               "source_freshness_report[0]|source_freshness_report[1]",
+             "source_freshness_status_counts" => %{
+               "stale" => 1,
+               "unknown" => 1
+             },
+             "source_freshness_stale_reason_count" => 2,
+             "source_freshness_stale_reason_keys" =>
+               "accepted_snapshot_older_than_policy|horizon_start_before_now",
+             "source_freshness_stale_reason_counts" => %{
+               "accepted_snapshot_older_than_policy" => 1,
+               "horizon_start_before_now" => 1
+             },
+             "source_freshness_unknown_reason_count" => 1,
+             "source_freshness_unknown_reason_keys" => "missing_generated_at",
+             "source_freshness_unknown_reason_counts" => %{"missing_generated_at" => 1},
+             "source_freshness_trust_boundary_status" => "declared",
+             "source_freshness_branch_local_stale_pressure" => true,
+             "source_freshness_branch_local_unknown_pressure" => true,
+             "source_freshness_branch_local_freshness_pressure" => true
+           } = observations
+
+    stale_freshness_pressure_observations =
+      observations
+      |> Map.put("source_freshness_branch_local_freshness_pressure", false)
+
+    assert {:ok, stale_freshness_pressure_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_freshness_pressure_observations
+             )
+
+    assert stale_freshness_pressure_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_freshness_pressure_verification["checks"],
+             &(&1["field"] == "source_freshness_branch_local_freshness_pressure" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _validated_artifact} =
+             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
+  end
+
   test "verifies curated candidate rejection report reference fixtures" do
     fixture_id = "fixture.artifact.candidate_rejection_report.v1"
 
@@ -14822,6 +14888,8 @@ defmodule OrbitalDynamics.ValidationTest do
           candidate_refresh_contact_intent_direction_fixture_observations(),
         "fixture.artifact.candidate_refresh.constraint_replay" =>
           candidate_refresh_constraint_fixture_observations(),
+        "fixture.artifact.candidate_refresh.freshness_replay" =>
+          candidate_refresh_freshness_fixture_observations(),
         "fixture.artifact.candidate_refresh.link_capacity_replay" =>
           candidate_refresh_link_capacity_fixture_observations(),
         "fixture.artifact.candidate_refresh.operational_readiness_replay" =>
@@ -15127,8 +15195,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 191,
-             "status_counts" => %{"pass" => 191},
+             "fixture_count" => 192,
+             "status_counts" => %{"pass" => 192},
              "reports" => reports
            } = report
 
@@ -15165,6 +15233,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay",
              "fixture.artifact.candidate_refresh.contact_filter_replay",
              "fixture.artifact.candidate_refresh.contact_intent_direction_replay",
+             "fixture.artifact.candidate_refresh.freshness_replay",
              "fixture.artifact.candidate_refresh.link_capacity_replay",
              "fixture.artifact.candidate_refresh.objective_gap_replay",
              "fixture.artifact.candidate_refresh.operational_readiness_replay",
@@ -15346,7 +15415,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 191},
+             "status_counts" => %{"fail" => 192},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -16660,6 +16729,59 @@ defmodule OrbitalDynamics.ValidationTest do
         ],
         "provenance" => %{"trust_boundary" => "candidate_rejection_replay_report"}
       }
+    }
+  end
+
+  defp candidate_refresh_freshness_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(candidate_refresh_freshness_fixture())
+  end
+
+  defp candidate_refresh_freshness_fixture do
+    result_set(%{})
+    |> CandidateRefresh.build(
+      candidate_refresh: candidate_refresh_freshness_request(),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  defp candidate_refresh_freshness_request do
+    %{
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-freshness-replay-challenge",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [],
+        "source" => %{"system" => "validation_challenge"},
+        "quality" => %{"level" => "accepted"},
+        "provenance" => %{"created_by" => "validation_fixture"}
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "targets" => [],
+      "constraints" => %{},
+      "scoring_policy" => %{},
+      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
+      "source_freshness_report" => [
+        %{
+          "schema_contract" => "freshness_report.v1",
+          "status" => "stale",
+          "stale_reasons" => [
+            "accepted_snapshot_older_than_policy",
+            "horizon_start_before_now"
+          ],
+          "provenance" => %{"trust_boundary" => "ops_freshness"}
+        },
+        %{
+          "schema_contract" => "freshness_report.v1",
+          "freshness_status" => "unknown",
+          "unknown_reasons" => ["missing_generated_at"],
+          "provenance" => %{"trust_boundary" => "ops_freshness"}
+        }
+      ]
     }
   end
 

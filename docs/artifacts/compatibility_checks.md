@@ -610,6 +610,11 @@ replay fixture. It checks candidate-rejection source-report provenance counts,
 row-derived rejection reasons, required operator actions, candidate/station
 routing maps, branch-local rejection pressure booleans, and trust-boundary
 status without candidate selection, import approval, or Cadence writes.
+The registry also includes a generated CandidateRefresh freshness replay
+fixture. It checks freshness source-report provenance counts, source paths,
+stale/unknown status maps, reason lists/count maps, branch-local freshness
+pressure booleans, and trust-boundary status without refresh mutation, import
+approval, or Cadence writes.
 The registry also includes a generated CandidateRefresh objective-gap replay
 fixture. It checks objective-satisfaction, objective-tradeoff, and score-term
 source-report provenance counts, row-derived gap/status/term maps, source

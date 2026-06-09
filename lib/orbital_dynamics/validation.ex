@@ -1695,6 +1695,73 @@ defmodule OrbitalDynamics.Validation do
         "checks candidate-refresh replay of candidate-rejection provenance without candidate selection, import approval, or Cadence writes"
       ]
     },
+    "fixture.artifact.candidate_refresh.freshness_replay" => %{
+      "id" => "fixture.artifact.candidate_refresh.freshness_replay",
+      "model_id" => "artifact.candidate_refresh.v1",
+      "reference_case" =>
+        "generated candidate refresh replay of freshness source-report provenance",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "source" => "generated_candidate_refresh_freshness_fixture",
+        "contract" => "candidate_refresh.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "candidate_refresh.v1",
+        "schema_version" => 1,
+        "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 1,
+        "source_report_row_count" => 2,
+        "source_freshness_report_count" => 2,
+        "source_freshness_row_count" => 2,
+        "source_freshness_path_keys" => "source_freshness_report[0]|source_freshness_report[1]",
+        "source_freshness_status_counts" => %{
+          "stale" => 1,
+          "unknown" => 1
+        },
+        "source_freshness_stale_reason_count" => 2,
+        "source_freshness_stale_reason_keys" =>
+          "accepted_snapshot_older_than_policy|horizon_start_before_now",
+        "source_freshness_stale_reason_counts" => %{
+          "accepted_snapshot_older_than_policy" => 1,
+          "horizon_start_before_now" => 1
+        },
+        "source_freshness_unknown_reason_count" => 1,
+        "source_freshness_unknown_reason_keys" => "missing_generated_at",
+        "source_freshness_unknown_reason_counts" => %{"missing_generated_at" => 1},
+        "source_freshness_trust_boundary_status" => "declared",
+        "source_freshness_branch_local_stale_pressure" => true,
+        "source_freshness_branch_local_unknown_pressure" => true,
+        "source_freshness_branch_local_freshness_pressure" => true
+      },
+      "tolerances" => %{
+        "schema_version" => 0,
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 0,
+        "source_report_row_count" => 0,
+        "source_freshness_report_count" => 0,
+        "source_freshness_row_count" => 0,
+        "source_freshness_stale_reason_count" => 0,
+        "source_freshness_unknown_reason_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal generated artifact regression, not freshness policy validation",
+        "checks candidate-refresh replay of freshness provenance without refresh mutation, import approval, or Cadence writes"
+      ]
+    },
     "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay" => %{
       "id" => "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay",
       "model_id" => "artifact.candidate_refresh.v1",
@@ -14798,6 +14865,7 @@ defmodule OrbitalDynamics.Validation do
     contact_filter_summary = Map.get(source_reports, "contact_filter_report") || %{}
     contact_intent_summary = Map.get(source_reports, "contact_intent") || %{}
     constraint_summary = Map.get(source_reports, "constraint_report") || %{}
+    freshness_summary = Map.get(source_reports, "freshness_report") || %{}
     link_capacity_summary = Map.get(source_reports, "link_capacity_report") || %{}
     resource_filter_summary = Map.get(source_reports, "resource_filter_report") || %{}
 
@@ -14969,6 +15037,39 @@ defmodule OrbitalDynamics.Validation do
         candidate_rejection_branch_local_review_pressure?(candidate_rejection_summary),
       "source_candidate_rejection_branch_local_invalid_input_pressure" =>
         candidate_rejection_branch_local_invalid_input_pressure?(candidate_rejection_summary),
+      "source_freshness_report_count" => Map.get(freshness_summary, "count"),
+      "source_freshness_row_count" => Map.get(freshness_summary, "row_count"),
+      "source_freshness_path_keys" =>
+        freshness_summary
+        |> list_values("paths")
+        |> Enum.join("|")
+        |> normalize_optional_string(),
+      "source_freshness_status_counts" => Map.get(freshness_summary, "status_counts") || %{},
+      "source_freshness_stale_reason_count" => Map.get(freshness_summary, "stale_reason_count"),
+      "source_freshness_stale_reason_keys" =>
+        freshness_summary
+        |> list_values("stale_reasons")
+        |> Enum.join("|")
+        |> normalize_optional_string(),
+      "source_freshness_stale_reason_counts" =>
+        Map.get(freshness_summary, "stale_reason_counts") || %{},
+      "source_freshness_unknown_reason_count" =>
+        Map.get(freshness_summary, "unknown_reason_count"),
+      "source_freshness_unknown_reason_keys" =>
+        freshness_summary
+        |> list_values("unknown_reasons")
+        |> Enum.join("|")
+        |> normalize_optional_string(),
+      "source_freshness_unknown_reason_counts" =>
+        Map.get(freshness_summary, "unknown_reason_counts") || %{},
+      "source_freshness_trust_boundary_status" =>
+        Map.get(freshness_summary, "trust_boundary_status"),
+      "source_freshness_branch_local_stale_pressure" =>
+        freshness_branch_local_stale_pressure?(freshness_summary),
+      "source_freshness_branch_local_unknown_pressure" =>
+        freshness_branch_local_unknown_pressure?(freshness_summary),
+      "source_freshness_branch_local_freshness_pressure" =>
+        freshness_branch_local_freshness_pressure?(freshness_summary),
       "source_contact_intent_report_count" => Map.get(contact_intent_summary, "count"),
       "source_contact_intent_row_count" => Map.get(contact_intent_summary, "row_count"),
       "source_contact_intent_station_feedback_count" =>
@@ -21987,6 +22088,25 @@ defmodule OrbitalDynamics.Validation do
         Map.get(summary, "rejection_reason_counts") || %{},
         "invalid_candidate_input"
       )
+  end
+
+  defp freshness_branch_local_stale_pressure?(%{} = summary) do
+    positive_integer_observation?(Map.get(summary, "status_counts") || %{}, "stale") or
+      positive_integer_observation?(summary, "stale_reason_count") or
+      list_values(summary, "stale_reasons") != [] or
+      map_size(Map.get(summary, "stale_reason_counts") || %{}) > 0
+  end
+
+  defp freshness_branch_local_unknown_pressure?(%{} = summary) do
+    positive_integer_observation?(Map.get(summary, "status_counts") || %{}, "unknown") or
+      positive_integer_observation?(summary, "unknown_reason_count") or
+      list_values(summary, "unknown_reasons") != [] or
+      map_size(Map.get(summary, "unknown_reason_counts") || %{}) > 0
+  end
+
+  defp freshness_branch_local_freshness_pressure?(%{} = summary) do
+    freshness_branch_local_stale_pressure?(summary) or
+      freshness_branch_local_unknown_pressure?(summary)
   end
 
   defp contact_filter_branch_local_contact_filter_pressure?(%{} = summary) do
