@@ -1642,7 +1642,9 @@ Selected recommendations also include:
   downstream-invalidation risks into `timeline_publication_pressure_penalty`,
   leaving lifecycle, precondition, and preservation pressure for their dedicated
   or broader timeline terms while preserving total branch score
-  compatibility.
+  compatibility. Focused publication pressure fixtures now assert split branch
+  math, legacy compatibility term behavior, and score-term report rows through a
+  shared helper.
 - **Timeline lifecycle-state pressure score terms** — split timeline and
   activity lifecycle-state review risks into
   `timeline_lifecycle_pressure_penalty`, leaving precondition and preservation
