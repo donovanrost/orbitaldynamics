@@ -5,39 +5,48 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Refresh V3 strategy score-term compatibility counts in docs.
+Pin CandidateRefresh score-term replay pressure booleans.
 
 Status:
 Completed and pushed.
 
 Slice selection note:
-The compatibility docs still described the V3 strategy golden fixture as having
-902 embedded score-term rows and 550 pressure rows, while current fixture
-evidence pins 1107 rows, 41 score-term keys, and 675 pressure rows. This slice
-aligns the public artifact-contract prose with the checked-in validation
-fixture evidence.
+CandidateRefresh objective-gap replay already pins score-term source-report
+counts and routing maps, but did not pin the branch-local score-term pressure
+booleans exposed by `CandidateRefresh.objective_gap_replay_summary/1`. This
+slice adds those booleans to validation observations and the checked-in
+reference rollup so stale score-term replay-pressure routing fails fixture
+verification.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `docs/artifacts/compatibility_checks.md`
+- `lib/orbital_dynamics/validation.ex`
+- `study_results/validation_reference_fixtures.json`
+- `test/orbital_dynamics/validation_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/validation_test.exs:1730`
+- `mix test test/orbital_dynamics/validation_test.exs:5405`
+- `mix test test/orbital_dynamics/validation_test.exs:5405 test/orbital_dynamics/schema_test.exs:15632`
+- `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-`docs/artifacts/compatibility_checks.md` now reports the current embedded V3
-strategy score-term report counts: 1107 rows, 41 keys, and 675 pressure rows.
+Compatibility docs now state that the generated CandidateRefresh objective-gap
+replay fixture pins score-term branch-local pressure booleans. The checked-in
+validation-reference rollup was refreshed for
+`fixture.artifact.candidate_refresh.objective_gap_replay`.
 
 Local review:
-Parent review confirmed the docs now match `Validation` expected counts and the
-checked-in strategy fixture pressure-row count derived from
-`study_results/leo_constellation_campaign_strategy_v3.json`. `.gitignore`
+Parent review confirmed the fixture pins score-term/downlink/target/collection
+latency/routing pressure booleans, stale score-term pressure observations fail
+verification, and schema reference-fixture validation passes. `.gitignore`
 remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Durable compatibility docs now match the current V3 strategy score-term fixture
-evidence.
+CandidateRefresh score-term replay pressure is now protected by
+validation-reference fixture evidence, strengthening compatibility checks for
+score-term-driven branch refresh provenance.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -47,7 +56,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`e32bb40` Refresh strategy score term compatibility counts.
+`12953f3` Pin score term replay pressure fixtures.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -59,6 +68,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `12953f3` pinned CandidateRefresh score-term replay pressure booleans and
+  stale-pressure verification.
 - `e32bb40` refreshed V3 strategy score-term compatibility doc counts to match
   current fixture evidence.
 - `c7413fd` pinned CandidateRefresh quality-gate replay pressure fixture
@@ -67,7 +78,3 @@ Previous published slices:
   fixture observations and stale-pressure verification.
 - `bc99918` routed operational-readiness schema-validation pressure into the
   dedicated V3 validation-refresh score term.
-- `754dfc3` routed operational-readiness import-readiness pressure into the
-  dedicated V3 import-readiness score term.
-- `4f1a388` routed operational-readiness operator-training pressure into the
-  dedicated V3 operator-training score term.
