@@ -1204,12 +1204,13 @@ campaign, repair, and strategy score-term tradeoff model set used by generated
 reports.
 `study_results/score_term_report_v1.json` and
 `study_results/ranking_comparison_report_v1.json` are observed for score-term
-row counts, selected-row counts, score-term key counts, score totals, pairwise
-ranking status maps, winner-change evidence, no-solver assumptions, and
-model-limit boundaries. Executable validation rejects stale score-term row
-counts, score-term key lists that no longer match emitted rows, and stale
-score-term model strings, and exports the allowed model set with the string
-source boundary emitted by generated score-term reports. It also
+row counts, selected-row counts, declared and row-derived score-term key counts,
+score totals, pairwise ranking status maps, winner-change evidence, no-solver
+assumptions, and model-limit boundaries. Executable validation rejects stale
+score-term row counts, score-term key lists that no longer match emitted rows,
+stale row-derived score-term key counts, and stale score-term model strings, and
+exports the allowed model set with the string source boundary emitted by
+generated score-term reports. It also
 rejects stale ranking-comparison row/status counts and per-row rank/value deltas
 that no longer match the compared ranks and values.
 The V3 strategy golden fixture also pins the embedded strategy score-term report

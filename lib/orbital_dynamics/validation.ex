@@ -9511,6 +9511,15 @@ defmodule OrbitalDynamics.Validation do
           "selected_observation_count" => 1,
           "target_value" => 1
         },
+        "row_derived_score_term_key_counts" => %{
+          "activity_count_penalty" => 1,
+          "activity_score" => 1,
+          "contact_value" => 1,
+          "eclipse_penalty" => 1,
+          "selected_contact_count" => 1,
+          "selected_observation_count" => 1,
+          "target_value" => 1
+        },
         "term_value_total" => 2835.546366421513,
         "timeline_score_total" => 9920.912282475295,
         "score_term_source" => "ranked_timeline.score_terms",
@@ -18843,6 +18852,7 @@ defmodule OrbitalDynamics.Validation do
         artifact
         |> Map.get("score_term_keys")
         |> list_value_counts(),
+      "row_derived_score_term_key_counts" => row_value_counts(rows, "term_key"),
       "term_value_total" => sum_numeric(rows, "value"),
       "timeline_score_total" => sum_numeric(rows, "timeline_score"),
       "score_term_source" => get_in(artifact, ["assumptions", "score_term_source"]),

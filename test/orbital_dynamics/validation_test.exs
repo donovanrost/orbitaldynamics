@@ -13600,8 +13600,13 @@ defmodule OrbitalDynamics.ValidationTest do
     assert verification["status"] == "pass"
     assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
 
+    observations = score_term_report_fixture_observations()
+
+    assert observations["row_derived_score_term_key_counts"] ==
+             observations["score_term_key_counts"]
+
     stale_observations =
-      score_term_report_fixture_observations()
+      observations
       |> Map.put("selected_row_count", 6)
 
     assert {:ok, stale_verification} =
@@ -13612,6 +13617,21 @@ defmodule OrbitalDynamics.ValidationTest do
     assert Enum.any?(
              stale_verification["checks"],
              &(&1["field"] == "selected_row_count" and &1["status"] == "fail")
+           )
+
+    stale_row_derived_key_observations =
+      observations
+      |> put_in(["row_derived_score_term_key_counts", "activity_score"], 2)
+
+    assert {:ok, stale_row_derived_key_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_row_derived_key_observations)
+
+    assert stale_row_derived_key_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_row_derived_key_verification["checks"],
+             &(&1["field"] == "row_derived_score_term_key_counts" and
+                 &1["status"] == "fail")
            )
 
     assert OrbitalDynamics.validation_artifact_observations(
