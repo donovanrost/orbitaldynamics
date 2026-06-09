@@ -40054,6 +40054,32 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["ground_station_id"] == "equator_prime")
            )
 
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    station_calendar_pressure_count =
+      Enum.count(
+        reserved_branch["risk_indicators"],
+        &(&1["feedback_scope"] == "station_calendar")
+      )
+
+    assert station_calendar_pressure_count > 0
+
+    assert reserved_branch["score_terms"]["station_calendar_pressure_penalty"] ==
+             -station_calendar_pressure_count * risk_weight
+
+    assert reserved_branch["score_terms"]["risk_penalty"] ==
+             -(length(reserved_branch["risk_indicators"]) - station_calendar_pressure_count) *
+               risk_weight
+
+    assert "station_calendar_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["term_key"] == "station_calendar_pressure_penalty" and &1["value"] < 0.0)
+           )
+
     provider_contention_branch =
       branch(
         artifact,

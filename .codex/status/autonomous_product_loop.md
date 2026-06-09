@@ -5,75 +5,68 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve suppressed reservation routing through CandidateRefresh precedence
-summary replay.
+Split station-calendar pressure into an explicit V3 score term.
 
 Status:
-Completed and pushed in product commit `91b7f03`.
+Completed locally; pending commit/push.
 
 Slice-selection note:
-- Selected slice: CandidateRefresh should preserve the new
-  `station_calendar_precedence_summary.v1` suppressed-reservation ID/status/owner
-  routing when direct or wrapped precedence summaries are consumed as
-  station-calendar provenance.
-- Why this slice: the prior slice made compact precedence summaries carry
-  suppressed reservation evidence, but CandidateRefresh aggregation and replay
-  still project only the older contact/applied-availability fields. Branch-local
-  provenance should not drop suppressed reservation IDs when a handoff contains
-  only the compact precedence summary.
-- Level 6 pillar: Cadence-facing operational handoffs with explainable
-  provider-calendar evidence and no provider-write authority.
-- Current evidence gap: CandidateRefresh source-report top-level fields, replay
-  projection, compact aggregation, and station-calendar contact identity
-  extraction do not yet include the suppressed reservation routing fields added
-  to precedence summaries.
+- Selected slice: V3 strategy scoring should classify station-calendar pressure
+  into a dedicated score term instead of leaving it inside generic
+  `risk_penalty`.
+- Why this slice: branch derivation already emits station-calendar pressure for
+  reserved, unavailable, reduced-capacity, and provider-contention station
+  calendar evidence, but score terms only split contact-allocation,
+  approval-boundary, timeline, and storage/downlink pressure. Operators should
+  see station-calendar pressure as its own scoring dimension while keeping the
+  same one-risk-weight total penalty.
+- Level 6 pillar: reproducible V1/V2/V3 branch trees with explainable score
+  terms and deltas.
+- Current evidence gap: `strategic_score_terms/7` counts station-calendar
+  pressure as generic risk even though branch events carry
+  `feedback_scope: station_calendar` and station-calendar event types.
 - Docs to read:
   `docs/autonomous_work_guide.md`,
   `.codex/prompts/long_running_context_efficient_product_loop.md`,
   `.codex/status/autonomous_product_loop.md`,
-  `docs/artifacts/field_families/candidate_refresh_artifact.md`,
-  `test/orbital_dynamics/candidate_refresh_test.exs`.
-- Likely files: `lib/orbital_dynamics/candidate_refresh.ex`,
-  `test/orbital_dynamics/candidate_refresh_test.exs`,
-  `docs/artifacts/field_families/candidate_refresh_artifact.md`,
+  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
+  `test/orbital_dynamics/campaign_planner_test.exs`.
+- Likely files: `lib/orbital_dynamics/campaign_planner.ex`,
+  `test/orbital_dynamics/campaign_planner_test.exs`,
+  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
   `.codex/status/autonomous_product_loop.md`.
 - Likely tests:
-  `mix test test/orbital_dynamics/candidate_refresh_test.exs:<direct-precedence-summary-selector>`,
+  `mix test test/orbital_dynamics/campaign_planner_test.exs:<station-calendar-pressure-selector>`,
   `mix compile --warnings-as-errors`, `git diff --check`.
-- Definition of done: CandidateRefresh source-report summaries and station
-  calendar replay summaries preserve suppressed reservation IDs, IDs by
-  reservation status, IDs by owner, contact IDs by reservation status, and
-  contact IDs by owner from compact precedence summaries; focused tests and
-  compile pass.
+- Definition of done: V3 score terms include
+  `station_calendar_pressure_penalty`, generic `risk_penalty` excludes those
+  station-calendar risks, branch score-term reports expose the new key, docs
+  mention the split, and focused tests/compile pass.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/candidate_refresh.ex`
-- `test/orbital_dynamics/candidate_refresh_test.exs`
-- `docs/artifacts/field_families/candidate_refresh_artifact.md`
+- `lib/orbital_dynamics/campaign_planner.ex`
+- `test/orbital_dynamics/campaign_planner_test.exs`
+- `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:17946`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:39758`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- `docs/artifacts/field_families/candidate_refresh_artifact.md` documents
-  suppressed reservation ID/status/owner routing preservation through compact
-  precedence-summary replay.
+- `docs/feature_set/capability_map/14_v3_strategy_orchestration.md` documents
+  the station-calendar pressure score-term split.
 
 Local review:
-- Parent local review found the slice scoped to CandidateRefresh source-report
-  aggregation, replay projection, compact contact identity extraction, focused
-  tests, and artifact-family docs. No multi-agent reviewer was used because the
-  available delegation tool requires an explicit user request for subagents in
-  this turn.
+- Parent local review found the slice scoped to V3 score-term classification,
+  score-report/tradeoff exposure, focused station-calendar pressure assertions,
+  and V3 strategy docs. No multi-agent reviewer was used because the available
+  delegation tool requires an explicit user request for subagents in this turn.
 
 Level 6 pillar advanced:
-Cadence-facing provider-calendar handoffs: CandidateRefresh now preserves
-suppressed reservation ID/status/owner routing from compact
-station-calendar-precedence summaries while keeping replay artifact-only and
-no-provider-write.
+Reproducible V3 branch trees: station-calendar pressure now has an explicit
+score term and no longer hides inside generic risk scoring.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
