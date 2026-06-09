@@ -13414,8 +13414,24 @@ defmodule OrbitalDynamics.ValidationTest do
     assert verification["status"] == "pass"
     assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
 
+    observations = objective_satisfaction_report_fixture_observations()
+
+    assert observations["status_counts"] == %{
+             "no_candidate_window" => 1,
+             "partial" => 1,
+             "selected" => 1,
+             "unmet" => 1
+           }
+
+    assert observations["objective_ids_by_status"] == %{
+             "no_candidate_window" => ["objective:target_commitment:target_b"],
+             "partial" => ["objective:target_coverage"],
+             "selected" => ["objective:target_commitment:target_a"],
+             "unmet" => ["objective:downlink_completion"]
+           }
+
     stale_observations =
-      objective_satisfaction_report_fixture_observations()
+      observations
       |> Map.put("satisfied_count_total", 1)
 
     assert {:ok, stale_verification} =
@@ -13426,6 +13442,34 @@ defmodule OrbitalDynamics.ValidationTest do
     assert Enum.any?(
              stale_verification["checks"],
              &(&1["field"] == "satisfied_count_total" and &1["status"] == "fail")
+           )
+
+    stale_status_count_observations =
+      observations
+      |> put_in(["status_counts", "partial"], 0)
+
+    assert {:ok, stale_status_count_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_status_count_observations)
+
+    assert stale_status_count_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_status_count_verification["checks"],
+             &(&1["field"] == "status_counts" and &1["status"] == "fail")
+           )
+
+    stale_status_routing_observations =
+      observations
+      |> put_in(["objective_ids_by_status", "partial"], [])
+
+    assert {:ok, stale_status_routing_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_status_routing_observations)
+
+    assert stale_status_routing_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_status_routing_verification["checks"],
+             &(&1["field"] == "objective_ids_by_status" and &1["status"] == "fail")
            )
 
     assert OrbitalDynamics.validation_artifact_observations(

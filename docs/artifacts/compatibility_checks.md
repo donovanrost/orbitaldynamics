@@ -1193,15 +1193,15 @@ artifact-only no-resource-propagation/no-schedule-mutation assumptions.
 status maps, selected/satisfied/required totals, planned-not-executed
 assumptions, ranking/tradeoff counts, score-term key shape, score totals,
 selected-ranking assumptions, and model-limit boundaries.
-Executable validation rejects stale objective-satisfaction objective counts and
-row candidate/selected counts when explicit candidate or selected ID lists are
-present, rejects stale objective-satisfaction model strings, and schema export
-pins the campaign selected-activity objective summary model used by generated
-reports. It also rejects stale objective-tradeoff ranking counts, score-term
-key lists, and row activity counts that no longer match emitted tradeoff rows,
-rejects stale objective-tradeoff model strings, and schema export pins the
-campaign, repair, and strategy score-term tradeoff model set used by generated
-reports.
+Executable validation rejects stale objective-satisfaction objective counts,
+status counts, objective routing by status, and row candidate/selected counts
+when explicit candidate or selected ID lists are present, rejects stale
+objective-satisfaction model strings, and schema export pins the campaign
+selected-activity objective summary model used by generated reports. It also
+rejects stale objective-tradeoff ranking counts, score-term key lists, and row
+activity counts that no longer match emitted tradeoff rows, rejects stale
+objective-tradeoff model strings, and schema export pins the campaign, repair,
+and strategy score-term tradeoff model set used by generated reports.
 `study_results/score_term_report_v1.json` and
 `study_results/ranking_comparison_report_v1.json` are observed for score-term
 row counts, selected-row counts, declared and row-derived score-term key counts,
