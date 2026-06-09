@@ -5,24 +5,26 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Route operational-readiness resource pressure into resource score terms.
+Route operational-readiness operator-training pressure into training score terms.
 
 Status:
 Completed and pushed.
 
 Slice selection note:
-Operational-readiness pressure events can identify a `resource_availability`
-gate with resource-availability counts/reasons, but the operational-readiness
-risk context drops those fields and the score remains in the broad readiness
-penalty. This slice preserves those resource fields and routes operational
-readiness resource-availability pressure into
-`resource_availability_pressure_penalty`, leaving ordinary readiness gates on
+Operational-readiness pressure events can identify an `operator_training` gate
+with role/training/certification/qualification requirements, and those fields
+are already preserved in branch context. Quality-gate operator-training pressure
+uses the dedicated `operator_training_pressure_penalty`, but the
+operational-readiness form still scores under broad readiness. This slice routes
+operational-readiness operator-training pressure into the dedicated operator
+training score family while leaving ordinary readiness gates on
 `operational_readiness_pressure_penalty`. Likely files are
 `lib/orbital_dynamics/campaign_planner.ex`, `test/orbital_dynamics/campaign_planner_test.exs`,
 `docs/artifacts/compatibility_checks.md`, and this ledger. Definition of done:
-focused operational-readiness strategy tests prove the split, schema validation
-still passes, compile/diff checks pass, and product plus handoff commits are
-pushed while leaving unrelated `.gitignore` unstaged.
+focused operational-readiness operator-training tests prove the split, adjacent
+operator-training quality-gate regressions still pass, compile/diff checks pass,
+and product plus handoff commits are pushed while leaving unrelated `.gitignore`
+unstaged.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -31,32 +33,29 @@ Files changed:
 - `test/orbital_dynamics/campaign_planner_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:43141`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:43263`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:43706`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:45092`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:45378`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-Compatibility docs now record that operational-readiness
-resource-availability gates preserve resource counts/reasons in branch risk
-indicators and route score pressure into
-`resource_availability_pressure_penalty`.
+Compatibility docs now record that operational-readiness operator-training
+gates route role/training/certification/qualification pressure into
+`operator_training_pressure_penalty`.
 
 Local review:
-Parent review confirmed the resource-availability context is preserved from
-operational-readiness reports and gate summaries into branch events/risk
-indicators, the specific resource pressure score term carries the penalty, the
-generic operational-readiness score term stays zero for that resource case, and
-ordinary readiness plus unavailable-resource quality-gate regressions still
-pass. `.gitignore` remains unrelated and unstaged.
+Parent review confirmed operational-readiness operator-training indicators are
+excluded from broad readiness scoring, counted by the dedicated
+operator-training score term, and still preserve existing branch event context.
+The adjacent operator-training quality-gate regression still passes.
+`.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Resource-availability evidence from operational-readiness gates is now
-planner-visible in the same dedicated V3 score-term family as quality-gate and
-resource-projection availability pressure, improving reproducible strategy
-explanations for Cadence-facing review.
+Operator-training evidence from operational-readiness gates is now
+planner-visible in the same dedicated V3 score-term family as quality-gate
+operator-training pressure, improving reproducible Cadence-facing review
+explanations.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -66,7 +65,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`195816a` Route readiness resource score pressure.
+`4f1a388` Route readiness training score pressure.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -79,6 +78,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `4f1a388` routed operational-readiness operator-training pressure into the
+  dedicated V3 operator-training score term.
 - `195816a` routed operational-readiness resource-availability pressure into
   the dedicated V3 resource-availability score term.
 - `b103389` pinned the checked-in V3 campaign strategy fixture to embedded
