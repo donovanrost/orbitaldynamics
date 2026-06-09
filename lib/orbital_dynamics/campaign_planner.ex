@@ -2844,12 +2844,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
     timeline_pressure_count = timeline_pressure_risk_count(risk_indicators)
     storage_downlink_pressure_count = storage_downlink_pressure_risk_count(risk_indicators)
     station_calendar_pressure_count = station_calendar_pressure_risk_count(risk_indicators)
+    candidate_rejection_pressure_count = candidate_rejection_pressure_risk_count(risk_indicators)
 
     generic_risk_count =
       max(
         risk_count - contact_allocation_pressure_count - approval_boundary_pressure_count -
           timeline_pressure_count - storage_downlink_pressure_count -
-          station_calendar_pressure_count,
+          station_calendar_pressure_count - candidate_rejection_pressure_count,
         0
       )
 
@@ -2898,6 +2899,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     station_calendar_pressure_penalty =
       -station_calendar_pressure_count * policy.risk_weight
 
+    candidate_rejection_pressure_penalty =
+      -candidate_rejection_pressure_count * policy.risk_weight
+
     risk_penalty = -generic_risk_count * policy.risk_weight
     approval_load_penalty = -approval_count * policy.approval_load_weight
 
@@ -2908,7 +2912,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         feedback_adjustment_score + contact_allocation_pressure_penalty +
         approval_boundary_pressure_penalty + timeline_pressure_penalty +
         storage_downlink_pressure_penalty + station_calendar_pressure_penalty +
-        risk_penalty + approval_load_penalty
+        candidate_rejection_pressure_penalty + risk_penalty + approval_load_penalty
 
     probability = Map.get(branch, "probability", 1.0)
     expected_score = raw_score * probability * policy.probability_weight
@@ -2930,6 +2934,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "timeline_pressure_penalty" => timeline_pressure_penalty,
       "storage_downlink_pressure_penalty" => storage_downlink_pressure_penalty,
       "station_calendar_pressure_penalty" => station_calendar_pressure_penalty,
+      "candidate_rejection_pressure_penalty" => candidate_rejection_pressure_penalty,
       "risk_penalty" => risk_penalty,
       "approval_load_penalty" => approval_load_penalty,
       "raw_score" => raw_score,
@@ -3015,6 +3020,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
        do: true
 
   defp station_calendar_pressure_risk?(_risk), do: false
+
+  defp candidate_rejection_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &candidate_rejection_pressure_risk?/1)
+  end
+
+  defp candidate_rejection_pressure_risk?(%{"feedback_scope" => "candidate_rejection"}),
+    do: true
+
+  defp candidate_rejection_pressure_risk?(%{"type" => "candidate_rejection_pressure"}),
+    do: true
+
+  defp candidate_rejection_pressure_risk?(_risk), do: false
 
   defp branch_risk_indicators(
          branch,
@@ -4008,6 +4025,37 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ]
   end
 
+  defp event_risk_indicators(%{"type" => "candidate_rejection_pressure"} = event) do
+    [
+      %{
+        "type" => "candidate_rejection_pressure",
+        "severity" => "high",
+        "reason" =>
+          "candidate #{event["candidate_id"]} has rejection evidence requiring operator review",
+        "candidate_id" => event["candidate_id"],
+        "activity_id" => event["activity_id"],
+        "activity_type" => event["activity_type"],
+        "scenario_id" => event["scenario_id"],
+        "target_id" => event["target_id"],
+        "ground_station_id" => event["ground_station_id"],
+        "source_window_id" => event["source_window_id"],
+        "source_window_type" => event["source_window_type"],
+        "rejection_status" => event["rejection_status"],
+        "primary_rejection_reason" => event["primary_rejection_reason"],
+        "rejection_reasons" => event["rejection_reasons"],
+        "violated_constraint" => event["violated_constraint"],
+        "required_margin" => event["required_margin"],
+        "actual_margin" => event["actual_margin"],
+        "required_operator_action" => event["required_operator_action"],
+        "feedback_source" => event["feedback_source"],
+        "feedback_scope" => event["feedback_scope"],
+        "feedback_key" => event["feedback_key"],
+        "trust_boundary" => event["trust_boundary"]
+      }
+      |> compact_map()
+    ]
+  end
+
   defp event_risk_indicators(%{"type" => "relay_data_path_pressure"} = event) do
     [
       event
@@ -4513,7 +4561,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"approval_boundary_pressure", "approval_boundary_pressure_penalty"},
         {"timeline_pressure", "timeline_pressure_penalty"},
         {"storage_downlink_pressure", "storage_downlink_pressure_penalty"},
-        {"station_calendar_pressure", "station_calendar_pressure_penalty"}
+        {"station_calendar_pressure", "station_calendar_pressure_penalty"},
+        {"candidate_rejection_pressure", "candidate_rejection_pressure_penalty"}
       ]) ++
       [
         %{
