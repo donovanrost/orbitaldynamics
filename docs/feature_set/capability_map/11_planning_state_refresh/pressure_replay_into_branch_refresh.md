@@ -92,6 +92,10 @@
   - `downlink_completion_source` / `downlink_completion_sources`.
   - Report or wrapper trust-boundary evidence.
 - Multiple independent shortfall rows for the same station now receive deterministic source/contact/window-based branch IDs instead of collapsing behind the station-only derived branch ID.
+- Link-capacity-derived `downlink_completion_gap` risks contribute to
+  `link_capacity_pressure_penalty` in V3 score terms, keeping shortfall pressure
+  visible separately from unrelated generic risks while preserving total branch
+  score compatibility.
 
 ## Objective-satisfaction report replay
 

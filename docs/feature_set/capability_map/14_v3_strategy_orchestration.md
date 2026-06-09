@@ -752,6 +752,9 @@ Storage/downlink resource-pressure risks, including storage/downlink margin
 pressure and projected storage overflow/downlink shortfall, similarly contribute
 to `storage_downlink_pressure_penalty` so score-term reports can distinguish
 fleet resource pressure from unrelated risk while preserving total score math.
+Link-capacity-derived shortfall risks contribute to
+`link_capacity_pressure_penalty`, leaving generic `risk_penalty` for unrelated
+risks while preserving total branch score compatibility.
 Station-calendar pressure risks, including reserved, unavailable, and
 reduced-capacity station feedback, contribute to
 `station_calendar_pressure_penalty`, leaving generic `risk_penalty` for
@@ -1608,6 +1611,11 @@ Selected recommendations also include:
   compatible while score-term reports expose contact pressure directly. Focused
   contact-allocation pressure fixtures now assert split branch math and
   score-term report rows through a shared helper.
+- **Link-capacity pressure score terms** — split link-capacity shortfall risks
+  into `link_capacity_pressure_penalty`, leaving `risk_penalty` for unrelated
+  risks while preserving total branch score compatibility. Focused
+  link-capacity pressure fixtures now assert split branch math and score-term
+  report rows.
 - **Storage/downlink pressure score terms** — split storage/downlink
   resource-margin and projection risks into `storage_downlink_pressure_penalty`,
   leaving `risk_penalty` for unrelated risks while preserving total branch score

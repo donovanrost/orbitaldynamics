@@ -539,4 +539,7 @@ policy into that row-level classification.
 V3 branch repair link-capacity rows preserve low `actual_completion_fraction`
 and realized-throughput `actual_downlink_completion_ratio` evidence through
 ground-network policy review, operator-review packaging, and Cadence import
-handoff.
+handoff. Link-capacity-derived branch pressure now contributes to the dedicated
+V3 `link_capacity_pressure_penalty` score term instead of blending into generic
+`risk_penalty`, while preserving the same total one-risk-weight penalty per
+link-capacity shortfall risk.

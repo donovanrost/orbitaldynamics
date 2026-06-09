@@ -2840,6 +2840,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     approval_count = length(branch_approval_requirements(repair_result, candidate_plan))
     risk_count = length(risk_indicators)
     contact_allocation_pressure_count = contact_allocation_pressure_risk_count(risk_indicators)
+    link_capacity_pressure_count = link_capacity_pressure_risk_count(risk_indicators)
 
     operational_readiness_pressure_count =
       operational_readiness_pressure_risk_count(risk_indicators)
@@ -2883,6 +2884,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     generic_risk_count =
       max(
         risk_count - contact_allocation_pressure_count - approval_boundary_pressure_count -
+          link_capacity_pressure_count -
           operational_readiness_pressure_count - quality_gate_pressure_count -
           timeline_integrity_pressure_count - timeline_dependency_impact_pressure_count -
           timeline_publication_pressure_count - timeline_lifecycle_pressure_count -
@@ -2926,6 +2928,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     contact_allocation_pressure_penalty =
       -contact_allocation_pressure_count * policy.risk_weight
+
+    link_capacity_pressure_penalty =
+      -link_capacity_pressure_count * policy.risk_weight
 
     operational_readiness_pressure_penalty =
       -operational_readiness_pressure_count * policy.risk_weight
@@ -2986,15 +2991,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
         downlink_completion_score + fuel_preservation_score + schedule_stability_penalty +
         asset_balance_score + priority_commitment_score + resource_score +
         feedback_adjustment_score + contact_allocation_pressure_penalty +
-        operational_readiness_pressure_penalty + quality_gate_pressure_penalty +
-        approval_boundary_pressure_penalty + timeline_integrity_pressure_penalty +
-        timeline_dependency_impact_pressure_penalty + timeline_publication_pressure_penalty +
-        timeline_lifecycle_pressure_penalty + timeline_precondition_pressure_penalty +
-        timeline_preservation_pressure_penalty + timeline_pressure_penalty +
-        storage_downlink_pressure_penalty + station_calendar_pressure_penalty +
-        candidate_rejection_pressure_penalty + provider_counteroffer_pressure_penalty +
-        validation_refresh_pressure_penalty + relay_data_path_pressure_penalty +
-        execution_feedback_pressure_penalty + risk_penalty + approval_load_penalty
+        link_capacity_pressure_penalty + operational_readiness_pressure_penalty +
+        quality_gate_pressure_penalty + approval_boundary_pressure_penalty +
+        timeline_integrity_pressure_penalty + timeline_dependency_impact_pressure_penalty +
+        timeline_publication_pressure_penalty + timeline_lifecycle_pressure_penalty +
+        timeline_precondition_pressure_penalty + timeline_preservation_pressure_penalty +
+        timeline_pressure_penalty + storage_downlink_pressure_penalty +
+        station_calendar_pressure_penalty + candidate_rejection_pressure_penalty +
+        provider_counteroffer_pressure_penalty + validation_refresh_pressure_penalty +
+        relay_data_path_pressure_penalty + execution_feedback_pressure_penalty +
+        risk_penalty + approval_load_penalty
 
     probability = Map.get(branch, "probability", 1.0)
     expected_score = raw_score * probability * policy.probability_weight
@@ -3012,6 +3018,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "resource_score" => resource_score,
       "feedback_adjustment_score" => feedback_adjustment_score,
       "contact_allocation_pressure_penalty" => contact_allocation_pressure_penalty,
+      "link_capacity_pressure_penalty" => link_capacity_pressure_penalty,
       "operational_readiness_pressure_penalty" => operational_readiness_pressure_penalty,
       "quality_gate_pressure_penalty" => quality_gate_pressure_penalty,
       "approval_boundary_pressure_penalty" => approval_boundary_pressure_penalty,
@@ -3056,6 +3063,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp contact_allocation_pressure_risk?(_risk), do: false
+
+  defp link_capacity_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &link_capacity_pressure_risk?/1)
+  end
+
+  defp link_capacity_pressure_risk?(%{
+         "type" => "downlink_completion_gap",
+         "feedback_scope" => "link_capacity"
+       }),
+       do: true
+
+  defp link_capacity_pressure_risk?(_risk), do: false
 
   defp operational_readiness_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &operational_readiness_pressure_risk?/1)
@@ -4903,6 +4922,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"resource_score", "resource_score"},
         {"feedback_adjustment", "feedback_adjustment_score"},
         {"contact_allocation_pressure", "contact_allocation_pressure_penalty"},
+        {"link_capacity_pressure", "link_capacity_pressure_penalty"},
         {"operational_readiness_pressure", "operational_readiness_pressure_penalty"},
         {"quality_gate_pressure", "quality_gate_pressure_penalty"},
         {"approval_boundary_pressure", "approval_boundary_pressure_penalty"},

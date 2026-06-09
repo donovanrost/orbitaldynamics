@@ -27302,14 +27302,16 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "source_report_count" => 2,
              "source_report_row_count" => 2,
              "source_report_paths" => replay_source_paths,
-             "direct_downlink_route_count" => 2,
+             "relay_route_count" => 2,
              "ground_downlink_contact_ids" => [
                "downlink_canonical",
                "downlink_direct"
              ],
              "trust_boundary_status" => "declared",
              "branch_local_link_capacity_pressure" => true
-           } = CandidateRefresh.link_capacity_replay_summary(candidate_source)
+           } = replay_summary = CandidateRefresh.link_capacity_replay_summary(candidate_source)
+
+    refute Map.has_key?(replay_summary, "direct_downlink_route_count")
 
     for source_path <- [
           "mission_state.source_relay_data_path_summary",
@@ -48403,6 +48405,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["ground_station_id"] == "equator_prime" and
                  &1["reason"] =~ "50.0 MB")
            )
+
+    assert_link_capacity_pressure_score_terms(pressure_branch, artifact)
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
@@ -72435,6 +72439,34 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              &(&1["branch_id"] == branch["branch_id"] and
                  &1["term_key"] == "contact_allocation_pressure_penalty" and
                  &1["value"] < 0.0)
+           )
+  end
+
+  defp assert_link_capacity_pressure_score_terms(branch, artifact) do
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    link_capacity_pressure_count =
+      Enum.count(
+        branch["risk_indicators"],
+        &(&1["type"] == "downlink_completion_gap" and &1["feedback_scope"] == "link_capacity")
+      )
+
+    assert link_capacity_pressure_count > 0
+
+    assert branch["score_terms"]["link_capacity_pressure_penalty"] ==
+             -link_capacity_pressure_count * risk_weight
+
+    assert branch["score_terms"]["risk_penalty"] ==
+             -(length(branch["risk_indicators"]) - link_capacity_pressure_count) * risk_weight
+
+    assert "link_capacity_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == branch["branch_id"] and
+                 &1["term_key"] == "link_capacity_pressure_penalty" and &1["value"] < 0.0)
            )
   end
 
