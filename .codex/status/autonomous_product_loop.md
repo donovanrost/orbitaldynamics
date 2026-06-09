@@ -11,14 +11,13 @@ Status:
 Recommended next; not yet selected.
 
 Files changed:
-- Last product slice:
-  `test/orbital_dynamics/communications/link_capacity_test.exs`
+- Last product slice: `test/orbital_dynamics/timeline_test.exs`
 - Ledger only: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/communications/link_capacity_test.exs:343`
-- `mix test test/orbital_dynamics/validation_test.exs:13295`
-- `mix format test/orbital_dynamics/communications/link_capacity_test.exs --check-formatted`
+- `mix test test/orbital_dynamics/timeline_test.exs:9801`
+- `mix test test/orbital_dynamics/validation_test.exs:10582`
+- `mix format test/orbital_dynamics/timeline_test.exs --check-formatted`
 - `git diff --check`
 - `mix compile --warnings-as-errors`
 
@@ -29,22 +28,21 @@ Level 6 pillar advanced:
 Exact fixture regeneration through public facades.
 
 Last completed slice:
-Exact-pinned the checked-in relay data-path summary fixture to the public
-facade.
+Exact-pinned the checked-in timeline diff summary fixture to the public facade.
 
 What changed:
-- The relay data-path summary unit test now asserts
-  `study_results/relay_data_path_summary_v1.json` exactly equals the summary
-  regenerated through `OrbitalDynamics.relay_data_path_summary/2`.
+- The timeline diff summary unit test now asserts
+  `study_results/timeline_diff_summary_v1.json` exactly equals the summary
+  regenerated through `OrbitalDynamics.timeline_diff_summary/*`.
 - The existing reference-fixture validation test for
-  `relay_data_path_summary.v1` still passes.
-- The checked-in relay fixture already matched the public-facade output, so no
-  artifact update was required.
+  `timeline_diff_summary.v1` still passes.
+- The checked-in timeline diff fixture already matched the public-facade output,
+  so no artifact update was required.
 - Parent performed bounded local review and mechanical publish because no
   suitable subagent tool is available in this runtime.
 
 Last commit:
-- Product: `d64fbb8` Pin relay data path summary fixture regeneration
+- Product: `cff8389` Pin timeline diff summary fixture regeneration
 - Ledger: pending
 
 Remaining maturity gaps:
