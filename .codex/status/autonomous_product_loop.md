@@ -11,27 +11,27 @@ Status:
 Recommended next; not yet selected.
 
 Last completed slice:
-Preserved selected objective-tradeoff pressure context on V3 recommendation
+Preserved selected contact-allocation pressure context on V3 recommendation
 review/import rows.
 
 What changed:
 - `OrbitalDynamics.RecommendationRiskContext` now owns a scoped
-  `objective_tradeoff_pressure_*` selected-context contract for
-  objective-tradeoff feedback risks.
+  `contact_allocation_pressure_*` selected-context contract for
+  contact-allocation feedback risks.
 - Strategy recommendation review rows, selected Cadence import rows, and
-  review-package Cadence import conversion retain objective id/type, routing,
-  downlink/contact/latency requirement, score, score-delta, score-term map,
-  source activity identity, feedback provenance, trust boundary, and derivation
-  details.
+  review-package Cadence import conversion retain deferred allocation status,
+  allocation reason, policy classification, source window, downlink requirement,
+  contact identity, feedback provenance, trust boundary, and derivation details.
 - The selected-pressure strategy recommendation fixture now includes a
-  scoped objective-tradeoff collection-latency event and asserts identical
+  scoped contact-allocation event and asserts identical
   handoff context across all selected review/import surfaces.
-- Existing prior-plan, mission-state, station-alias, result-artifact, and
-  nested-target objective-tradeoff pressure derivation remain unchanged.
+- Existing prior-plan, mission-state, summary, result-artifact,
+  duplicate-contact, and capacity-pack contact-allocation pressure derivation
+  remain unchanged.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:60975 test/orbital_dynamics/campaign_planner_test.exs:61091 test/orbital_dynamics/campaign_planner_test.exs:62188 test/orbital_dynamics/campaign_planner_test.exs:62252 test/orbital_dynamics/campaign_planner_test.exs:62468`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:45325 test/orbital_dynamics/campaign_planner_test.exs:45742 test/orbital_dynamics/campaign_planner_test.exs:45846 test/orbital_dynamics/campaign_planner_test.exs:46207 test/orbital_dynamics/campaign_planner_test.exs:46283 test/orbital_dynamics/campaign_planner_test.exs:46411`
 - `mix compile --warnings-as-errors`
 - `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
@@ -101,6 +101,8 @@ Published commits:
 - `233c741` Preserve objective satisfaction recommendation context
 - `80ddf0f` Update autonomous loop handoff
 - `e457730` Preserve objective tradeoff recommendation context
+- `be852b3` Update autonomous loop handoff
+- `fc5229d` Preserve contact allocation recommendation context
 
 Next suggested slice:
 Re-audit active strategy surfaces for the next pressure family whose selected
