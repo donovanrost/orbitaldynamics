@@ -4338,7 +4338,14 @@
     ]
   },
   "station_calendar_report": {
+    "affected_contact_availability_counts": {
+      "reserved": 1,
+      "unavailable": 1
+    },
     "affected_contact_count": 2,
+    "affected_contact_ground_station_counts": {
+      "equator_prime": 2
+    },
     "affected_contact_ids_by_reservation_match_status": {
       "overlap": [
         "dl_3"
@@ -4811,6 +4818,7 @@
         "station_calendar_precedence_availability": "reserved",
         "station_reservation_status": "reserved",
         "direction": "downlink",
+        "station_calendar_status": "reserved",
         "station_calendar_reservation_overlap_count": 1,
         "source_station_calendar_overlaps": [
           {
@@ -5410,6 +5418,7 @@
         "station_calendar_precedence_availability": "unavailable",
         "station_calendar_precedence_rank": 0,
         "station_calendar_provider_entry_id": "declared:equator_prime:390.000000:440.000000",
+        "station_calendar_status": "unavailable",
         "station_calendar_trust_boundary_status": "missing",
         "status": "unavailable"
       }
@@ -5426,6 +5435,10 @@
     "calendar_entry_trust_boundary_status_counts": {
       "missing": 2
     },
+    "direction_counts": {
+      "command": 1,
+      "downlink": 1
+    },
     "duplicate_affected_contact_id_count": 0,
     "duplicate_affected_contact_row_count": 0,
     "input_contact_count": 4,
@@ -5441,6 +5454,10 @@
     "provider_calendar_contention_groups": [],
     "provider_counteroffer_count": 0,
     "schema_contract": "station_calendar_report.v1",
+    "station_calendar_status_counts": {
+      "reserved": 1,
+      "unavailable": 1
+    },
     "station_calendar_trust_boundary_status_counts": {
       "missing": 2
     },
