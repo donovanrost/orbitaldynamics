@@ -13,39 +13,38 @@ Recommended next; not yet selected.
 Files changed:
 - Last product slice:
   `test/orbital_dynamics/communications/link_capacity_test.exs`
-- Last product artifact: `study_results/link_capacity_summary_v1.json`
 - Ledger only: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/communications/link_capacity_test.exs:684`
-- `mix test test/orbital_dynamics/validation_test.exs:13203`
+- `mix test test/orbital_dynamics/communications/link_capacity_test.exs:343`
+- `mix test test/orbital_dynamics/validation_test.exs:13295`
 - `mix format test/orbital_dynamics/communications/link_capacity_test.exs --check-formatted`
 - `git diff --check`
 - `mix compile --warnings-as-errors`
 
 Docs/artifacts changed:
-- Updated checked-in `link_capacity_summary_v1.json` top-level `source` from
-  stale `validation.link_capacity_summary` to the public-facade output
-  `timeline_feedback`.
+No public docs, schema exports, or checked-in JSON artifacts changed.
 
 Level 6 pillar advanced:
 Exact fixture regeneration through public facades.
 
 Last completed slice:
-Exact-pinned the checked-in link-capacity summary fixture to the public facade.
+Exact-pinned the checked-in relay data-path summary fixture to the public
+facade.
 
 What changed:
-- The link-capacity summary unit test now asserts
-  `study_results/link_capacity_summary_v1.json` exactly equals the summary
-  regenerated through `OrbitalDynamics.link_capacity_summary/1`.
+- The relay data-path summary unit test now asserts
+  `study_results/relay_data_path_summary_v1.json` exactly equals the summary
+  regenerated through `OrbitalDynamics.relay_data_path_summary/2`.
 - The existing reference-fixture validation test for
-  `link_capacity_summary.v1` still passes.
-- The checked-in fixture now matches the public-facade summary source field.
+  `relay_data_path_summary.v1` still passes.
+- The checked-in relay fixture already matched the public-facade output, so no
+  artifact update was required.
 - Parent performed bounded local review and mechanical publish because no
   suitable subagent tool is available in this runtime.
 
 Last commit:
-- Product: `c864b6f` Pin link capacity summary fixture regeneration
+- Product: `d64fbb8` Pin relay data path summary fixture regeneration
 - Ledger: pending
 
 Remaining maturity gaps:
