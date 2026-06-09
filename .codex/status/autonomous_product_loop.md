@@ -11,27 +11,26 @@ Status:
 Recommended next; not yet selected.
 
 Last completed slice:
-Preserved selected maneuver-execution uncertainty context on V3 recommendation
-review/import rows.
+Preserved selected timeline-integrity context on V3 recommendation review/import
+rows.
 
 What changed:
-- Maneuver execution uncertainty risk indicators now retain event provenance
-  needed for selected recommendation review, including source/replacement
-  activity IDs, timing window, changed fields, required operator action,
-  feedback key, review flag, and derivation reasons.
-- Recommendation explanation risk-driver rows now carry the same maneuver
-  execution uncertainty source/change/review context.
-- `OrbitalDynamics.RecommendationRiskContext` owns scoped maneuver execution
-  uncertainty aggregation and Cadence import pass-through keys.
+- Timeline-integrity risk indicators now retain status, issue counts/types,
+  issue evidence, required operator action, feedback key, trust boundary, and
+  derivation reasons needed for selected recommendation review.
+- Recommendation explanation risk-driver rows now carry the same
+  timeline-integrity status/evidence context.
+- `OrbitalDynamics.RecommendationRiskContext` owns scoped timeline-integrity
+  aggregation and Cadence import pass-through keys.
 - Strategy recommendation review rows, selected Cadence import rows, and
-  review-package Cadence import conversion retain uncertainty status/source,
-  covariance values, timing/delta-v thresholds, provenance, and review context.
-- Existing maneuver execution uncertainty scoring and branch derivation behavior
-  remain unchanged.
+  review-package Cadence import conversion retain timeline-integrity issue
+  context, including dependency and exclusivity issue IDs.
+- Existing timeline-integrity scoring and branch derivation behavior remain
+  unchanged.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:58035 test/orbital_dynamics/campaign_planner_test.exs:58150`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:32303`
 - `mix compile --warnings-as-errors`
 - `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/campaign_planner.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
@@ -80,12 +79,12 @@ Published commits:
 - `97b537d` Preserve resource margin recommendation context
 - `7acf60d` Update autonomous loop handoff
 - `c7f6671` Preserve maneuver uncertainty recommendation context
+- `e0d7e23` Update autonomous loop handoff
+- `49211bf` Preserve timeline integrity recommendation context
 
 Next suggested slice:
 Re-audit active strategy surfaces for the next pressure family whose selected
-recommendation review/import handoff is weaker than the branch explanation;
-timeline integrity remains the next small candidate unless audit points to a
-clearer selected-risk gap.
+recommendation review/import handoff is weaker than the branch explanation.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
