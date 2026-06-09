@@ -5,78 +5,72 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Refresh strategy validation-reference score-term expectations.
+Refresh aggregate validation-reference fixture report.
 
 Status:
-Completed and pushed.
+Completed and ready to publish ledger.
 
 Files changed:
-- Runtime/reference catalog: `lib/orbital_dynamics/validation.ex`
-- Tests: `test/orbital_dynamics/validation_test.exs`
+- Artifact: `study_results/validation_reference_fixtures.json`
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/validation_test.exs:1731` (failed before
-  expected-value refresh; confirmed validation-reference drift)
-- `mix test test/orbital_dynamics/validation_test.exs:1731`
-- `mix test test/orbital_dynamics/golden_artifact_test.exs`
+- `mix test test/orbital_dynamics/validation_test.exs` (failed before aggregate
+  fixture refresh; `validation_reference_fixtures.json` drift)
+- `mix test test/orbital_dynamics/validation_test.exs`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-No docs or checked-in generated artifacts changed.
+Refreshed checked-in aggregate validation-reference fixture:
+`study_results/validation_reference_fixtures.json`.
 
 Level 6 pillar advanced:
 Validated model tiers and explicit known limits plus durable schema-versioned
 artifacts and compatibility checks.
 
 Slice selection note:
-Selected slice: Refresh the curated campaign-strategy validation-reference
-fixture expectations for the regenerated V3 strategy score-term surface.
+Selected slice: Refresh the checked-in aggregate
+`validation_reference_fixture_report.v1` fixture so it includes the updated
+campaign-strategy score-term validation report.
 
-Why this slice: The checked-in V3 strategy artifact now exact-regenerates with
-two additional score-term keys and updated score-term row counts, but
-`Validation.reference_fixtures/0` still expected the older embedded score-term
-surface. Focused validation-reference tests failed after the fixture refresh.
+Why this slice: After the V3 strategy fixture and campaign-strategy validation
+expectations were refreshed, the full validation test still failed because
+`study_results/validation_reference_fixtures.json` embedded the old
+campaign-strategy validation-reference report.
 
 Level 6 pillar: Validated model tiers and explicit known limits plus durable
 schema-versioned artifacts and compatibility checks.
 
-Current evidence gap: `fixture.artifact.campaign_strategy.leo_constellation_v3`
-still pinned the old score-term key count, row count, and per-key row-derived
-counts, so validation-reference checks no longer matched the checked-in
-strategy artifact.
+Current evidence gap: Focused campaign-strategy validation passed, but the
+aggregate checked-in validation-reference fixture no longer exact-matched
+`Validation.reference_fixture_report/1`.
 
 Docs to read: `docs/artifacts/compatibility_checks.md`.
 
-Likely files: `lib/orbital_dynamics/validation.ex`;
-`test/orbital_dynamics/validation_test.exs`;
+Likely files: `study_results/validation_reference_fixtures.json`;
 `.codex/status/autonomous_product_loop.md`.
 
-Likely tests: `mix test test/orbital_dynamics/validation_test.exs:1731`;
-`mix test test/orbital_dynamics/golden_artifact_test.exs`;
+Likely tests: `mix test test/orbital_dynamics/validation_test.exs`;
 `mix compile --warnings-as-errors`; `git diff --check`.
 
 Definition of done:
-- Campaign-strategy validation-reference expected score-term counts match the
-  regenerated checked-in V3 strategy artifact.
-- Focused validation-reference test passes and still fails on stale score-term
-  observations.
-- Golden artifact and compile/whitespace checks remain clean.
+- `study_results/validation_reference_fixtures.json` contains the regenerated
+  campaign-strategy validation-reference report.
+- Full `validation_test.exs` passes.
+- Compile and whitespace checks pass.
 
 What changed:
-The curated campaign-strategy validation-reference fixture now expects 1,215
-embedded score-term rows and 45 score-term keys. It also pins
-`resource_projection_pressure_penalty` and
-`timeline_transition_application_pressure_penalty` in both key-count maps.
-Focused validation tests assert those two current score-term dimensions.
+The aggregate validation-reference fixture now embeds the regenerated
+campaign-strategy report with the current 45-key, 1,215-row score-term surface.
+The full validation reference test suite passes again.
 
 Last completed slice:
-Refreshed strategy validation-reference score-term expectations.
+Refreshed aggregate validation-reference fixture report.
 
 Last commit:
-- Product: `c9fd00b` Refresh strategy validation fixture counts
-- Ledger: this handoff commit on `main`
+- Product: `d3b9d44` Refresh validation reference fixture report
+- Ledger: pending
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
