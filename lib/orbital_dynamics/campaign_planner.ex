@@ -6660,6 +6660,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
     Map.take(risk, quality_gate_pressure_risk_fields())
   end
 
+  defp recommendation_pressure_risk_context(%{"feedback_scope" => "approval_boundary"} = risk) do
+    Map.take(risk, approval_boundary_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"type" => "approval_boundary_pressure"} = risk) do
+    Map.take(risk, approval_boundary_pressure_risk_fields())
+  end
+
   defp recommendation_pressure_risk_context(%{"feedback_scope" => "candidate_rejection"} = risk) do
     Map.take(risk, candidate_rejection_pressure_risk_fields())
   end

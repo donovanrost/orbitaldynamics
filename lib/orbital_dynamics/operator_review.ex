@@ -16219,6 +16219,7 @@ defmodule OrbitalDynamics.OperatorReview do
         risk_context_values(provider_counteroffer_risks, "trust_boundary")
     }
     |> Map.merge(OrbitalDynamics.RecommendationRiskContext.validation_refresh_context(risks))
+    |> Map.merge(OrbitalDynamics.RecommendationRiskContext.approval_boundary_context(risks))
     |> Enum.reject(fn {_key, values} -> values == [] end)
     |> Map.new()
   end

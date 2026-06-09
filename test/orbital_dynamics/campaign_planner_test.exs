@@ -18415,7 +18415,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
-  test "strategy recommendation explains selected readiness and quality-gate pressure events" do
+  test "strategy recommendation explains selected readiness, quality-gate, and approval-boundary pressure events" do
     prior_plan =
       base_plan(%{
         "planning_horizon" => %{"duration_s" => 2_000.0},
@@ -18434,7 +18434,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         },
         approval_policy: %{
           "blocked_risk_types" => [],
-          "operator_review_risk_limit" => 10
+          "operator_review_risk_limit" => 20
         },
         branches: [
           %{id: "baseline"},
@@ -18515,6 +18515,23 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                   "antenna_unavailable",
                   "payload_unavailable"
                 ]
+              },
+              %{
+                type: "approval_boundary_pressure",
+                approval_boundary: "command_execution",
+                approval_boundary_status: "operator_review_required",
+                approval_boundary_reason: "command execution requires flight director approval",
+                automation_boundary: "no_command_execution",
+                execution_boundary: "flight_director_approval",
+                import_classification: "review_only",
+                required_operator_action: "review_approval_boundary",
+                required_authority: "flight_director",
+                policy_bundle_id: "flight_rules_v3",
+                rule_id: "no_unapproved_command_execution",
+                feedback_source: "mission_state.source_approval_boundary_policy.rules",
+                feedback_scope: "approval_boundary",
+                feedback_key: "no_unapproved_command_execution",
+                trust_boundary: "mission_state_approval_boundary_policy"
               },
               %{
                 type: "provider_counteroffer_pressure",
@@ -18754,6 +18771,31 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Enum.find(
                explanation,
                &(&1["type"] == "risk_driver" and &1["risk_type"] == "quality_gate_pressure")
+             )
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "approval_boundary_pressure",
+             "severity" => "medium",
+             "approval_boundary" => "command_execution",
+             "approval_boundary_status" => "operator_review_required",
+             "approval_boundary_reason" => "command execution requires flight director approval",
+             "automation_boundary" => "no_command_execution",
+             "execution_boundary" => "flight_director_approval",
+             "import_classification" => "review_only",
+             "required_operator_action" => "review_approval_boundary",
+             "required_authority" => "flight_director",
+             "policy_bundle_id" => "flight_rules_v3",
+             "rule_id" => "no_unapproved_command_execution",
+             "feedback_source" => "mission_state.source_approval_boundary_policy.rules",
+             "feedback_scope" => "approval_boundary",
+             "feedback_key" => "no_unapproved_command_execution",
+             "trust_boundary" => "mission_state_approval_boundary_policy"
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "approval_boundary_pressure")
              )
 
     assert %{
@@ -19079,6 +19121,24 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         "antenna_unavailable",
         "payload_unavailable"
       ],
+      "approval_boundary_ids" => ["command_execution"],
+      "approval_boundary_statuses" => ["operator_review_required"],
+      "approval_boundary_reasons" => [
+        "command execution requires flight director approval"
+      ],
+      "automation_boundaries" => ["no_command_execution"],
+      "execution_boundaries" => ["flight_director_approval"],
+      "approval_boundary_import_classifications" => ["review_only"],
+      "approval_boundary_required_operator_actions" => ["review_approval_boundary"],
+      "approval_boundary_required_authorities" => ["flight_director"],
+      "approval_boundary_policy_bundle_ids" => ["flight_rules_v3"],
+      "approval_boundary_rule_ids" => ["no_unapproved_command_execution"],
+      "approval_boundary_feedback_sources" => [
+        "mission_state.source_approval_boundary_policy.rules"
+      ],
+      "approval_boundary_feedback_scopes" => ["approval_boundary"],
+      "approval_boundary_feedback_keys" => ["no_unapproved_command_execution"],
+      "approval_boundary_trust_boundaries" => ["mission_state_approval_boundary_policy"],
       "provider_counteroffer_ids" => ["provider_offer_urgent"],
       "provider_counteroffer_statuses" => ["proposed"],
       "provider_counteroffer_negotiation_states" => ["proposed"],
