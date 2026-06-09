@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Add a planner challenge for stale validation-safety-case replay pressure.
+Add a planner challenge for stale model-acceptance replay pressure.
 
 Status:
 Completed and pushed.
@@ -16,8 +16,8 @@ Files changed:
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:51895`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:51895 test/orbital_dynamics/campaign_planner_test.exs:51591 test/orbital_dynamics/campaign_planner_test.exs:51457 test/orbital_dynamics/campaign_planner_test.exs:28236 test/orbital_dynamics/campaign_planner_test.exs:28071 test/orbital_dynamics/campaign_planner_test.exs:28357`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:51389`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:51389 test/orbital_dynamics/campaign_planner_test.exs:51259 test/orbital_dynamics/campaign_planner_test.exs:27767 test/orbital_dynamics/campaign_planner_test.exs:52016`
 - `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
 - `mix compile --warnings-as-errors`
@@ -31,25 +31,26 @@ tiers and explicit known limits; reproducible V1/V2/V3 branch trees with
 explainable score terms and deltas.
 
 Last completed slice:
-Added a planner challenge for stale validation-safety-case replay pressure.
+Added a planner challenge for stale model-acceptance replay pressure.
 
 What changed:
-- Added a strategy challenge where a validation-safety-case summary has stale
-  top-level accepted status/counts while evidence rows contain blocked and
-  review-required pressure.
-- Candidate-source safety-case replay is asserted to preserve row-derived
-  evidence status, input-contract, evidence-reference, and pressure counters.
-- Branch risk construction now uses row-derived evidence statuses as the
-  safety-case pressure status when the top-level safety-case status is not
-  review/blocking, so stale accepted rollups cannot soften branch scoring.
-- The challenge asserts the resulting `validation_safety_case_pressure` risk,
+- Added a strategy challenge where a `model_acceptance_report.v1` has stale
+  top-level accepted status/counts while row evidence contains blocked and
+  review-required model pressure.
+- Candidate-source model-acceptance replay is asserted to preserve the stale
+  top-level `status_counts` for auditability while deriving model counts,
+  validation-level counts, and model-ID routing from rows.
+- Branch risk construction now derives replay pressure status from row-derived
+  model status routing and counts as well as top-level status counts, so stale
+  accepted rollups cannot reduce blocked/review pressure severity.
+- The challenge asserts the resulting `model_acceptance_pressure` risk,
   `validation_refresh_pressure_penalty`, score-term report row, and schema
   validity.
 - Parent performed bounded local review and mechanical publish because no
   suitable subagent tool is available in this runtime.
 
 Last commit:
-- Product: `6ac6fd3` Challenge stale safety case replay scoring
+- Product: `e067c31` Challenge stale model acceptance replay scoring
 - Ledger: this handoff commit on `main`
 
 Remaining maturity gaps:
@@ -57,13 +58,13 @@ Remaining maturity gaps:
   selection, branch scoring, compatibility checks, and challenge fixtures.
 - Prefer checked-in compatibility or challenge fixtures where live coverage is
   weaker than the Level 6 maturity map.
-- Reassess other newly scored replay families for stale-but-plausible challenge
-  coverage, or move to checked-in compatibility fixture coverage.
+- Reassess schema-validation, freshness, or refresh-budget replay scoring for
+  stale-top-level challenge coverage.
 
 Next candidate:
-Reassess model-acceptance, schema-validation, freshness, or refresh-budget
-replay scoring for stale-top-level challenge coverage, or switch to checked-in
-compatibility fixtures if live tests already cover the risk.
+Reassess schema-validation, freshness, or refresh-budget replay scoring for
+stale-top-level challenge coverage, or switch to checked-in compatibility
+fixtures if live tests already cover the risk.
 
 Blocked:
 Not blocked.
@@ -71,5 +72,9 @@ Not blocked.
 Notes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
+- The focused campaign-planner selector runs still emit the known unrelated
+  `0.0` pattern-match warning from
+  `strategy recommendation explains selected readiness, quality-gate, and
+  approval-boundary pressure events`; tests exit green.
 - Sidecar delegation is unavailable in this runtime; parent uses the same
   bounded review and mechanical publish scope.
