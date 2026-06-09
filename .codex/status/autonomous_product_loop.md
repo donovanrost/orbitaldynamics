@@ -15,8 +15,8 @@ Files changed:
 - Ledger only: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/timeline_test.exs:3482`
-- `mix test test/orbital_dynamics/validation_test.exs:10513`
+- `mix test test/orbital_dynamics/timeline_test.exs:8554`
+- `mix test test/orbital_dynamics/validation_test.exs:10776`
 - `mix format test/orbital_dynamics/timeline_test.exs --check-formatted`
 - `git diff --check`
 - `mix compile --warnings-as-errors`
@@ -28,22 +28,23 @@ Level 6 pillar advanced:
 Exact fixture regeneration through public facades.
 
 Last completed slice:
-Exact-pinned the checked-in timeline dependency-impact summary fixture to the
-public facade.
+Exact-pinned the checked-in timeline transition-application summary fixture to
+the public facade.
 
 What changed:
-- The timeline dependency-impact summary unit test now asserts
-  `study_results/timeline_dependency_impact_summary_v1.json` exactly equals the
-  summary regenerated through `OrbitalDynamics.timeline_dependency_impact_summary/2`.
+- The timeline transition-application summary unit test now asserts
+  `study_results/timeline_transition_application_summary_v1.json` exactly equals
+  the summary regenerated through
+  `OrbitalDynamics.timeline_transition_application_summary/*`.
 - The existing reference-fixture validation test for
-  `timeline_dependency_impact_summary.v1` still passes.
-- The checked-in dependency-impact fixture already matched the public-facade
-  output, so no artifact update was required.
+  `timeline_transition_application_summary.v1` still passes.
+- The checked-in transition-application fixture already matched the
+  public-facade output, so no artifact update was required.
 - Parent performed bounded local review and mechanical publish because no
   suitable subagent tool is available in this runtime.
 
 Last commit:
-- Product: `098a6c3` Pin timeline dependency impact summary fixture regeneration
+- Product: `502c3a8` Pin timeline transition application summary fixture regeneration
 - Ledger: pending
 
 Remaining maturity gaps:
