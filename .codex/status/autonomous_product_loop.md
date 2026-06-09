@@ -10,7 +10,10 @@ Aligned explicit pressure helper expectations for split readiness and quality
 gate score terms.
 
 Status:
-Product slice complete; ready for mechanical publish.
+Product slice complete and pushed.
+
+Published commits:
+- `c178b04` Align split pressure score assertions
 
 Files changed:
 - `test/orbital_dynamics/campaign_planner_test.exs`
