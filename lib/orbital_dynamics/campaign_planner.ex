@@ -2886,6 +2886,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     timeline_pressure_count = timeline_pressure_risk_count(risk_indicators)
     storage_downlink_pressure_count = storage_downlink_pressure_risk_count(risk_indicators)
 
+    resource_projection_pressure_count =
+      resource_projection_pressure_risk_count(risk_indicators)
+
     resource_availability_pressure_count =
       resource_availability_pressure_risk_count(risk_indicators)
 
@@ -2919,6 +2922,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
           timeline_publication_pressure_count - timeline_lifecycle_pressure_count -
           timeline_precondition_pressure_count - timeline_preservation_pressure_count -
           timeline_pressure_count - storage_downlink_pressure_count -
+          resource_projection_pressure_count -
           resource_availability_pressure_count - resource_margin_pressure_count -
           battery_depletion_pressure_count - station_calendar_pressure_count -
           candidate_rejection_pressure_count - provider_counteroffer_pressure_count -
@@ -3011,6 +3015,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     storage_downlink_pressure_penalty =
       -storage_downlink_pressure_count * policy.risk_weight
 
+    resource_projection_pressure_penalty =
+      -resource_projection_pressure_count * policy.risk_weight
+
     resource_availability_pressure_penalty =
       -resource_availability_pressure_count * policy.risk_weight
 
@@ -3055,6 +3062,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         timeline_publication_pressure_penalty + timeline_lifecycle_pressure_penalty +
         timeline_precondition_pressure_penalty + timeline_preservation_pressure_penalty +
         timeline_pressure_penalty + storage_downlink_pressure_penalty +
+        resource_projection_pressure_penalty +
         resource_availability_pressure_penalty + resource_margin_pressure_penalty +
         battery_depletion_pressure_penalty + station_calendar_pressure_penalty +
         candidate_rejection_pressure_penalty + provider_counteroffer_pressure_penalty +
@@ -3096,6 +3104,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "timeline_preservation_pressure_penalty" => timeline_preservation_pressure_penalty,
       "timeline_pressure_penalty" => timeline_pressure_penalty,
       "storage_downlink_pressure_penalty" => storage_downlink_pressure_penalty,
+      "resource_projection_pressure_penalty" => resource_projection_pressure_penalty,
       "resource_availability_pressure_penalty" => resource_availability_pressure_penalty,
       "resource_margin_pressure_penalty" => resource_margin_pressure_penalty,
       "battery_depletion_pressure_penalty" => battery_depletion_pressure_penalty,
@@ -3383,6 +3392,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
        do: true
 
   defp storage_downlink_pressure_risk?(_risk), do: false
+
+  defp resource_projection_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &resource_projection_pressure_risk?/1)
+  end
+
+  defp resource_projection_pressure_risk?(%{
+         "type" => "downlink_completion_gap",
+         "feedback_scope" => "resource_projection"
+       }),
+       do: true
+
+  defp resource_projection_pressure_risk?(_risk), do: false
 
   defp resource_availability_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &resource_availability_pressure_risk?/1)
@@ -6675,6 +6696,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"timeline_preservation_pressure", "timeline_preservation_pressure_penalty"},
         {"timeline_pressure", "timeline_pressure_penalty"},
         {"storage_downlink_pressure", "storage_downlink_pressure_penalty"},
+        {"resource_projection_pressure", "resource_projection_pressure_penalty"},
         {"resource_availability_pressure", "resource_availability_pressure_penalty"},
         {"resource_margin_pressure", "resource_margin_pressure_penalty"},
         {"battery_depletion_pressure", "battery_depletion_pressure_penalty"},
