@@ -5,23 +5,24 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Harden stale readiness gate score evidence.
+Harden quality-gate pressure score helper evidence.
 
 Status:
-Completed and pushed in product commit `d279ba8`.
+Completed locally; ready to commit and push.
 
 Slice-selection note:
-- Selected slice: harden the stale operational-readiness gate classification
-  challenge so blocked/analysis-only row statuses score through
-  `operational_readiness_pressure_penalty` even when classifications are missing
-  or stale.
-- Why this slice: the stale readiness challenge already proves status routing
-  wins over stale or missing classification, but it does not prove those unsafe
-  but plausible inputs remain visible in V3 score-term explanations.
+- Selected slice: strengthen the shared quality-gate pressure score helper so
+  every focused quality-gate pressure fixture proves
+  `quality_gate_pressure_penalty` appears in score-term reports and is split
+  out of `approval_boundary_pressure_penalty`.
+- Why this slice: quality-gate pressure tests already use a shared score helper,
+  but that helper only checks branch-local score math; it does not prove the
+  report row that downstream review/import adapters inspect.
 - Level 6 pillar: validation, compatibility, and challenge fixtures for unsafe
   but plausible inputs; reproducible V3 branch score explanations.
-- Current evidence gap: stale readiness gate evidence has branch/event routing
-  assertions but no score-term assertion for operational-readiness pressure.
+- Current evidence gap: quality-gate pressure challenge fixtures have weaker
+  score-term report evidence than the newly hardened readiness and preservation
+  fixtures.
 - Docs to read:
   `docs/feature_set/capability_map/17_reproducibility_artifacts_and_audit.md`,
   `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`,
@@ -31,11 +32,11 @@ Slice-selection note:
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
   `.codex/status/autonomous_product_loop.md`.
 - Likely tests:
-  focused stale readiness classification test; `mix compile --warnings-as-errors`;
-  `git diff --check`.
-- Definition of done: stale readiness challenge proves blocked and
-  analysis-only row statuses score through `operational_readiness_pressure_penalty`
-  despite missing/stale classifications, docs note the challenge coverage,
+  focused campaign-planner quality-gate pressure tests using the helper;
+  `mix compile --warnings-as-errors`; `git diff --check`.
+- Definition of done: shared quality-gate pressure assertions prove branch score
+  math, approval-boundary split, score-term key, and score-term report row for
+  quality-gate pressure fixtures, docs note the stronger report evidence,
   locally reviewed, committed, and pushed without touching unrelated
   `.gitignore`.
 
@@ -45,24 +46,25 @@ Files changed:
 - `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:45270`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:43767 test/orbital_dynamics/campaign_planner_test.exs:43990 test/orbital_dynamics/campaign_planner_test.exs:44202 test/orbital_dynamics/campaign_planner_test.exs:44426 test/orbital_dynamics/campaign_planner_test.exs:44696 test/orbital_dynamics/campaign_planner_test.exs:44892`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
-- `rg -n "stale readiness|missing or stale|operational_readiness_pressure_penalty|blocked_without_classification|analysis_stale_classification" test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
+- `rg -n "quality_gate_pressure_penalty|score-term report rows|assert_quality_gate_pressure_score_terms|approval_boundary_pressure_penalty" test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Docs/artifacts changed:
-The V3 strategy-orchestration docs now note challenge coverage for stale or
-missing readiness classifications versus row-status readiness pressure.
+The V3 strategy-orchestration docs now note that focused quality-gate pressure
+fixtures assert split branch math and score-term report rows through the shared
+helper.
 
 Local review:
-Parent local review confirmed the diff is limited to focused stale readiness
-score assertions, the V3 challenge-coverage doc note, and this ledger.
+Parent local review confirmed the diff is limited to the shared quality-gate
+pressure score helper, the V3 score-term doc note, and this ledger.
 `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-The stale readiness challenge fixture now proves blocked and analysis-only row
-statuses remain score-visible through `operational_readiness_pressure_penalty`
-despite missing or stale source classifications.
+Quality-gate pressure challenge fixtures now prove the branch score,
+approval-boundary split, score-term key, and score-term report row expected by
+downstream V3 review/import score explanations.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation

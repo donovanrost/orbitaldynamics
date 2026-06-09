@@ -72811,11 +72811,21 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert quality_gate_pressure_count > 0
 
+    assert branch["score_terms"]["approval_boundary_pressure_penalty"] == 0.0
+
     assert branch["score_terms"]["quality_gate_pressure_penalty"] ==
              -quality_gate_pressure_count * risk_weight
 
     assert branch["score_terms"]["risk_penalty"] ==
              -(length(branch["risk_indicators"]) - quality_gate_pressure_count) * risk_weight
+
+    assert "quality_gate_pressure_penalty" in artifact["score_term_report"]["score_term_keys"]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == branch["branch_id"] and
+                 &1["term_key"] == "quality_gate_pressure_penalty" and &1["value"] < 0.0)
+           )
   end
 
   defp observe(id, scenario_id, target_id, starts_at_s, ends_at_s, score) do

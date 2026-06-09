@@ -1651,7 +1651,9 @@ Selected recommendations also include:
   analysis-only, unavailable-resource, schema-validation, and import-readiness
   risks into `quality_gate_pressure_penalty`, leaving broader
   approval-boundary and generic risk terms for unrelated risks while preserving
-  total branch score compatibility.
+  total branch score compatibility. Focused quality-gate pressure fixtures now
+  assert the split branch math and score-term report rows through a shared
+  helper.
 - **`operational_readiness_pressure` explanation rows** — preserve the selected
   branch's readiness report, source artifact, readiness/import/status counts,
   gate ID/status/classification/reason, required operator action, feedback
