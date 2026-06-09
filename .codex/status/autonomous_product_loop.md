@@ -5,27 +5,27 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Split readiness and quality-gate pressure into explicit V3 score terms.
+Split timeline-integrity pressure into an explicit V3 score term.
 
 Status:
-Completed and pushed in product commit `5771a9b`.
+Completed locally; ready to commit and push.
 
 Slice-selection note:
-- Selected slice: split V3 operational-readiness and quality-gate branch risks
-  into `operational_readiness_pressure_penalty` and
-  `quality_gate_pressure_penalty` instead of grouping both under
-  `approval_boundary_pressure_penalty`.
-- Why this slice: readiness and quality-gate branches already generate
-  Cadence-facing review/import-boundary risk indicators, candidate-refresh
-  provenance, and branch-comparison rows, but score attribution still bundles
-  the two families together.
+- Selected slice: split V3 timeline-integrity risk indicators into
+  `timeline_integrity_pressure_penalty`, leaving dependency-impact,
+  publication, and lifecycle-state review pressure under
+  `timeline_pressure_penalty`.
+- Why this slice: timeline integrity, dependency impact, publication, and
+  lifecycle-state review branches are already planner-visible, but the V3 score
+  report still groups all of them under one timeline pressure term.
 - Level 6 pillar: reproducible V1/V2/V3 branch trees with explainable score
-  terms and deltas; approval-aware automation boundaries, quality gates, and
-  import readiness.
-- Current evidence gap: V3 can derive operational-readiness and quality-gate
-  pressure branches, but score-term reports cannot distinguish readiness
-  pressure from quality-gate pressure.
+  terms and deltas; typed activity/timeline semantics made planner-visible.
+- Current evidence gap: strategy score-term reports cannot distinguish
+  dependency/exclusivity integrity pressure from broader timeline publication
+  or lifecycle review pressure.
 - Docs to read:
+  `docs/feature_set/capability_map/08_mission_activities_and_timelines.md`,
+  `docs/feature_set/capability_map/08_mission_activities/partial-and-future.md`,
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`.
 - Likely files:
   `lib/orbital_dynamics/campaign_planner.ex`,
@@ -33,14 +33,13 @@ Slice-selection note:
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
   `.codex/status/autonomous_product_loop.md`.
 - Likely tests:
-  focused campaign-planner tests for urgent approval-boundary pressure,
-  mission-state readiness/quality-gate derivation, and quality-gate summaries;
+  focused V3 campaign-planner timeline integrity/dependency/publication tests;
   `mix compile --warnings-as-errors`; `git diff --check`.
-- Definition of done: readiness and quality-gate risks are counted in separate
-  score terms, removed from the broader approval-boundary term, surfaced in
-  strategy score-term reports and recommendation tradeoffs, covered by focused
-  tests, documented in the V3 score-term section, locally reviewed, committed,
-  and pushed without touching unrelated `.gitignore`.
+- Definition of done: timeline-integrity risk indicators score through a
+  separate term and recommendation tradeoff dimension, broader timeline pressure
+  still covers non-integrity timeline risks, focused tests prove both paths, V3
+  docs are updated, locally reviewed, committed, and pushed without touching
+  unrelated `.gitignore`.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -49,25 +48,25 @@ Files changed:
 - `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:18657 test/orbital_dynamics/campaign_planner_test.exs:20818 test/orbital_dynamics/campaign_planner_test.exs:21592 test/orbital_dynamics/campaign_planner_test.exs:43455 test/orbital_dynamics/campaign_planner_test.exs:43659 test/orbital_dynamics/campaign_planner_test.exs:43894 test/orbital_dynamics/campaign_planner_test.exs:44113 test/orbital_dynamics/campaign_planner_test.exs:44338 test/orbital_dynamics/campaign_planner_test.exs:44611 test/orbital_dynamics/campaign_planner_test.exs:44763`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:29596 test/orbital_dynamics/campaign_planner_test.exs:28598 test/orbital_dynamics/campaign_planner_test.exs:28743 test/orbital_dynamics/campaign_planner_test.exs:29822 test/orbital_dynamics/campaign_planner_test.exs:30015 test/orbital_dynamics/campaign_planner_test.exs:30177 test/orbital_dynamics/campaign_planner_test.exs:30391`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
-- `rg -n "operational_readiness_pressure_(penalty|risk)|quality_gate_pressure_(penalty|risk)|Operational-readiness pressure score terms|Quality-gate pressure score terms" lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
+- `rg -n "timeline_integrity_pressure_(penalty|risk)|Timeline-integrity pressure score terms|timeline_integrity_pressure" lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Docs/artifacts changed:
 The V3 strategy-orchestration score-term sections now document
-`operational_readiness_pressure_penalty` and `quality_gate_pressure_penalty`.
+`timeline_integrity_pressure_penalty` as separate from broader
+`timeline_pressure_penalty`.
 
 Local review:
 Parent local review confirmed the diff is limited to planner score accounting,
-focused readiness/quality-gate score assertions, the V3 score-term doc, and this
+focused timeline-integrity score assertions, the V3 score-term doc, and this
 ledger. `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-V3 branch scoring now exposes operational-readiness and quality-gate pressure
-as separate score terms and recommendation tradeoff dimensions while preserving
-total score compatibility by removing those risks from the broader
-approval-boundary score term.
+V3 branch scoring now exposes timeline-integrity pressure as a separate score
+term and recommendation tradeoff dimension while preserving total score
+compatibility by removing those risks from the broader timeline-pressure term.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -81,7 +80,8 @@ Last product commit:
 
 Next candidate:
 After this score-term split, continue with the next planner-visible
-resource/contact/readiness or candidate-refresh provenance gap from the guide.
+timeline/resource/contact/readiness or candidate-refresh provenance gap from
+the guide.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is

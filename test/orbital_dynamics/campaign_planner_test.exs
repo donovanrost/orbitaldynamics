@@ -29714,23 +29714,30 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
 
-    timeline_pressure_count =
+    timeline_integrity_pressure_count =
       Enum.count(prior_branch["risk_indicators"], &(&1["type"] == "timeline_integrity_issue"))
 
-    assert timeline_pressure_count == 1
+    assert timeline_integrity_pressure_count == 1
 
-    assert prior_branch["score_terms"]["timeline_pressure_penalty"] ==
-             -timeline_pressure_count * risk_weight
+    assert prior_branch["score_terms"]["timeline_integrity_pressure_penalty"] ==
+             -timeline_integrity_pressure_count * risk_weight
+
+    assert prior_branch["score_terms"]["timeline_pressure_penalty"] == 0.0
 
     assert prior_branch["score_terms"]["risk_penalty"] ==
-             -(length(prior_branch["risk_indicators"]) - timeline_pressure_count) * risk_weight
+             -(length(prior_branch["risk_indicators"]) - timeline_integrity_pressure_count) *
+               risk_weight
+
+    assert "timeline_integrity_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
 
     assert "timeline_pressure_penalty" in artifact["score_term_report"]["score_term_keys"]
 
     assert Enum.any?(
              artifact["score_term_report"]["rows"],
              &(&1["branch_id"] == "derived_timeline_integrity_pressure_cmd_prior_integrity" and
-                 &1["term_key"] == "timeline_pressure_penalty" and &1["value"] < 0.0)
+                 &1["term_key"] == "timeline_integrity_pressure_penalty" and &1["value"] < 0.0)
            )
 
     prior_row =
