@@ -47824,6 +47824,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["reason"] =~ "55.0 MB")
            )
 
+    assert_contact_filter_pressure_score_terms(pressure_branch, artifact)
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
@@ -47914,6 +47916,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["ground_station_id"] == "equator_prime" and
                  &1["reason"] =~ "48.0 MB")
            )
+
+    assert_contact_filter_pressure_score_terms(pressure_branch, artifact)
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
@@ -72531,6 +72535,35 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              artifact["score_term_report"]["rows"],
              &(&1["branch_id"] == branch["branch_id"] and
                  &1["term_key"] == "contact_contention_pressure_penalty" and &1["value"] < 0.0)
+           )
+  end
+
+  defp assert_contact_filter_pressure_score_terms(branch, artifact) do
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    contact_filter_pressure_count =
+      Enum.count(
+        branch["risk_indicators"],
+        &(&1["type"] == "downlink_completion_gap" and &1["feedback_scope"] == "contact_filter")
+      )
+
+    assert contact_filter_pressure_count > 0
+
+    assert branch["score_terms"]["contact_filter_pressure_penalty"] ==
+             -contact_filter_pressure_count * risk_weight
+
+    assert branch["score_terms"]["risk_penalty"] ==
+             -(length(branch["risk_indicators"]) - contact_filter_pressure_count) *
+               risk_weight
+
+    assert "contact_filter_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == branch["branch_id"] and
+                 &1["term_key"] == "contact_filter_pressure_penalty" and &1["value"] < 0.0)
            )
   end
 

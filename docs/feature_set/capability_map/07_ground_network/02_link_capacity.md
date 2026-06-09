@@ -368,6 +368,10 @@ Contact-contention and contention-resolution pressures likewise contribute to
 `contact_contention_pressure_penalty`, keeping contention review pressure
 separate from unrelated generic risk without changing total branch penalty
 weight.
+Contact-filter downlink suppression pressure contributes to
+`contact_filter_pressure_penalty`, keeping filtered contact-window pressure
+separate from unrelated generic risk while preserving the same total branch
+penalty weight.
 
 `policy_decision.v1` rule-match evidence preserves those source confidence
 factors with the same bounds. Communication rule-match counters for concurrent
