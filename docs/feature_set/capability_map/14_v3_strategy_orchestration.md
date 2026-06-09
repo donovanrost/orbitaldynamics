@@ -1606,7 +1606,8 @@ Selected recommendations also include:
 - **Provider-counteroffer pressure score terms** — split review-required
   provider-counteroffer risks into `provider_counteroffer_pressure_penalty`,
   leaving `risk_penalty` for unrelated risks while preserving total branch score
-  compatibility.
+  compatibility. Focused provider-counteroffer pressure fixtures now assert
+  split branch math and score-term report rows through a shared helper.
 - **Validation/refresh governance pressure score terms** — split
   schema-validation, model-acceptance, validation-safety-case, freshness, and
   refresh-budget risks into `validation_refresh_pressure_penalty`, leaving
