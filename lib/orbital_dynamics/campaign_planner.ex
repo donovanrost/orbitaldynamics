@@ -3367,6 +3367,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp execution_feedback_pressure_risk?(%{"type" => type})
        when type in [
+              "contact_success_rate_low",
+              "observation_success_rate_low",
+              "station_throughput_factor_low",
               "command_success_rate_low",
               "maneuver_success_rate_low",
               "maneuver_execution_uncertainty_high",

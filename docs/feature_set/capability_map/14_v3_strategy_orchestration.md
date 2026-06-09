@@ -792,10 +792,11 @@ Relay data-path pressure risks contribute to
 `relay_data_path_pressure_penalty`, keeping custody, latency, and route-risk
 pressure visible as its own score dimension without scheduling relays, mutating
 contacts, or writing provider reservations.
-Command-success, maneuver-success, and maneuver execution-uncertainty risks
-contribute to `execution_feedback_pressure_penalty`, keeping execution-feedback
-pressure visible as its own score dimension while preserving the existing
-feedback adjustment score and without approving timeline changes.
+Contact-success, observation-success, station-throughput, command-success,
+maneuver-success, and maneuver execution-uncertainty risks contribute to
+`execution_feedback_pressure_penalty`, keeping execution-feedback pressure
+visible as its own score dimension while preserving the existing feedback
+adjustment score and without approving timeline changes.
 
 ### Constraint, objective, tradeoff, and score-term replay
 
@@ -1702,12 +1703,13 @@ Selected recommendations also include:
   leaving `risk_penalty` for unrelated risks while preserving total branch score
   compatibility. Focused relay data-path pressure fixtures now assert split
   branch math and score-term report rows through a shared helper.
-- **Execution-feedback pressure score terms** — split command-success,
-  maneuver-success, and maneuver execution-uncertainty risks into
+- **Execution-feedback pressure score terms** — split contact-success,
+  observation-success, station-throughput, command-success, maneuver-success,
+  and maneuver execution-uncertainty risks into
   `execution_feedback_pressure_penalty`, leaving `risk_penalty` for unrelated
   risks while preserving total branch score compatibility. Focused
-  execution-feedback pressure fixtures now assert split branch math and
-  score-term report rows through a shared helper.
+  execution-feedback and operational-feedback fixtures now assert split branch
+  math and score-term report rows through a shared helper.
 - **Timeline-integrity pressure score terms** — split dependency/exclusivity
   integrity risks into `timeline_integrity_pressure_penalty`, leaving
   publication, lifecycle, precondition, and preservation pressure for their

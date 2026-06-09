@@ -12204,6 +12204,11 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert review_row["station_throughput_factor_source"] ==
              "operational_feedback.station_throughput_factor"
 
+    assert_execution_feedback_pressure_score_terms(review, artifact, [
+      "contact_success_rate_low",
+      "station_throughput_factor_low"
+    ])
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
@@ -53459,6 +53464,12 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["target_id"] == "target_a")
            )
 
+    assert_execution_feedback_pressure_score_terms(
+      branch,
+      artifact,
+      "observation_success_rate_low"
+    )
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
@@ -73010,13 +73021,21 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            )
   end
 
-  defp assert_execution_feedback_pressure_score_terms(branch, artifact, risk_type) do
+  defp assert_execution_feedback_pressure_score_terms(branch, artifact, risk_types) do
     risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+    expected_risk_types = List.wrap(risk_types)
+
+    execution_feedback_risk_types =
+      ~w(contact_success_rate_low observation_success_rate_low station_throughput_factor_low command_success_rate_low maneuver_success_rate_low maneuver_execution_uncertainty_high maneuver_execution_uncertainty_missing)
+
+    Enum.each(expected_risk_types, fn risk_type ->
+      assert Enum.any?(branch["risk_indicators"], &(&1["type"] == risk_type))
+    end)
 
     execution_feedback_pressure_count =
       Enum.count(
         branch["risk_indicators"],
-        &(&1["type"] == risk_type)
+        &(&1["type"] in execution_feedback_risk_types)
       )
 
     assert execution_feedback_pressure_count > 0
