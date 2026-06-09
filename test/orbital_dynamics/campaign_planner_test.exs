@@ -80767,6 +80767,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
   defp assert_validation_refresh_pressure_score_terms(branch, artifact, feedback_scope) do
     risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+    pressure_term = validation_refresh_pressure_term(feedback_scope)
 
     requested_validation_refresh_pressure_count =
       Enum.count(
@@ -80776,42 +80777,58 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       )
 
     validation_refresh_pressure_count =
-      Enum.count(branch["risk_indicators"], &validation_refresh_pressure?/1)
+      Enum.count(
+        branch["risk_indicators"],
+        &validation_refresh_scored_pressure?(&1, feedback_scope)
+      )
 
     assert requested_validation_refresh_pressure_count > 0
     assert validation_refresh_pressure_count > 0
 
-    assert branch["score_terms"]["validation_refresh_pressure_penalty"] ==
+    assert branch["score_terms"][pressure_term] ==
              -validation_refresh_pressure_count * risk_weight
+
+    if pressure_term == "model_acceptance_pressure_penalty" do
+      assert branch["score_terms"]["validation_refresh_pressure_penalty"] == 0.0
+    end
 
     assert branch["score_terms"]["risk_penalty"] ==
              -(length(branch["risk_indicators"]) - validation_refresh_pressure_count) *
                risk_weight
 
-    assert "validation_refresh_pressure_penalty" in artifact["score_term_report"][
-             "score_term_keys"
-           ]
+    assert pressure_term in artifact["score_term_report"]["score_term_keys"]
 
     assert Enum.any?(
              artifact["score_term_report"]["rows"],
              &(&1["branch_id"] == branch["branch_id"] and
-                 &1["term_key"] == "validation_refresh_pressure_penalty" and
+                 &1["term_key"] == pressure_term and
                  &1["value"] < 0.0)
            )
   end
+
+  defp validation_refresh_pressure_term("model_acceptance"),
+    do: "model_acceptance_pressure_penalty"
+
+  defp validation_refresh_pressure_term(_feedback_scope),
+    do: "validation_refresh_pressure_penalty"
+
+  defp validation_refresh_scored_pressure?(risk, "model_acceptance"),
+    do:
+      risk["feedback_scope"] == "model_acceptance" or risk["type"] == "model_acceptance_pressure"
+
+  defp validation_refresh_scored_pressure?(risk, _feedback_scope),
+    do: validation_refresh_pressure?(risk)
 
   defp validation_refresh_pressure?(risk) do
     validation_refresh_source_report_pressure?(risk, "schema_validation") or
       risk["feedback_scope"] in [
         "schema_validation",
-        "model_acceptance",
         "validation_safety_case",
         "refresh_budget",
         "refresh_freshness"
       ] or
       risk["type"] in [
         "schema_validation_pressure",
-        "model_acceptance_pressure",
         "validation_safety_case_pressure",
         "refresh_budget_pressure",
         "refresh_freshness_pressure"
