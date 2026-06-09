@@ -3691,6 +3691,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     link_capacity_replay =
       CandidateRefresh.link_capacity_replay_summary(candidate_source)
 
+    station_calendar_replay =
+      CandidateRefresh.station_calendar_replay_summary(candidate_source)
+
     operational_readiness_replay =
       CandidateRefresh.operational_readiness_replay_summary(candidate_source)
 
@@ -3721,6 +3724,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     []
     |> maybe_add_candidate_source_contact_allocation_risks(contact_allocation_replay, event_risks)
     |> maybe_add_candidate_source_link_capacity_risks(link_capacity_replay, event_risks)
+    |> maybe_add_candidate_source_station_calendar_risks(station_calendar_replay, event_risks)
     |> maybe_add_candidate_source_operational_readiness_risks(
       operational_readiness_replay,
       event_risks
@@ -3764,6 +3768,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
       risks
     else
       risks ++ link_capacity_replay_pressure_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_station_calendar_risks(risks, replay_summary, event_risks) do
+    if Enum.any?(event_risks, &station_calendar_pressure_risk?/1) do
+      risks
+    else
+      risks ++ station_calendar_replay_pressure_risks(replay_summary)
     end
   end
 
@@ -4023,6 +4035,177 @@ defmodule OrbitalDynamics.CampaignPlanner do
           Map.get(replay_summary, "branch_local_actual_throughput_pressure"),
         "feedback_source" => "candidate_source.link_capacity_replay_summary",
         "feedback_scope" => "link_capacity",
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries")
+      }
+      |> compact_map()
+    ]
+  end
+
+  defp station_calendar_replay_pressure_risks(
+         %{"branch_local_station_calendar_pressure" => true} = replay_summary
+       ) do
+    if station_calendar_replay_scoring_pressure?(replay_summary) do
+      station_calendar_replay_pressure_risk(replay_summary)
+    else
+      []
+    end
+  end
+
+  defp station_calendar_replay_pressure_risks(_replay_summary), do: []
+
+  defp station_calendar_replay_scoring_pressure?(replay_summary) do
+    Map.get(replay_summary, "branch_local_affected_contact_pressure") == true or
+      Map.get(replay_summary, "branch_local_provider_contention_pressure") == true or
+      Map.get(replay_summary, "branch_local_station_availability_pressure") == true
+  end
+
+  defp station_calendar_replay_pressure_risk(replay_summary) do
+    affected_ground_station_ids =
+      replay_summary
+      |> Map.get("affected_contact_ground_station_counts", %{})
+      |> map_keys()
+
+    provider_ground_station_ids =
+      replay_summary
+      |> Map.get("provider_calendar_contention_ground_station_counts", %{})
+      |> map_keys()
+
+    ground_station_ids =
+      affected_ground_station_ids
+      |> Kernel.++(provider_ground_station_ids)
+      |> sorted_encoded_values()
+
+    station_calendar_statuses =
+      replay_summary
+      |> Map.get("station_calendar_status_counts", %{})
+      |> map_keys()
+
+    affected_contact_availabilities =
+      replay_summary
+      |> Map.get("affected_contact_availability_counts", %{})
+      |> map_keys()
+
+    directions =
+      replay_summary
+      |> Map.get("direction_counts", %{})
+      |> map_keys()
+      |> Kernel.++(
+        replay_summary
+        |> Map.get("provider_calendar_contention_direction_counts", %{})
+        |> map_keys()
+      )
+      |> sorted_encoded_values()
+
+    [
+      %{
+        "type" => "station_calendar_pressure",
+        "severity" => "medium",
+        "reason" =>
+          "candidate source station-calendar replay reports affected-contact, provider-contention, or station-availability pressure",
+        "source_report_count" => Map.get(replay_summary, "source_report_count"),
+        "source_report_row_count" => Map.get(replay_summary, "source_report_row_count"),
+        "source_report_paths" => Map.get(replay_summary, "source_report_paths"),
+        "affected_contact_count" => Map.get(replay_summary, "affected_contact_count"),
+        "provider_calendar_contention_group_count" =>
+          Map.get(replay_summary, "provider_calendar_contention_group_count"),
+        "affected_contact_ids" => Map.get(replay_summary, "affected_contact_ids"),
+        "affected_station_calendar_entry_ids" =>
+          Map.get(replay_summary, "affected_station_calendar_entry_ids"),
+        "affected_station_reservation_ids" =>
+          Map.get(replay_summary, "affected_station_reservation_ids"),
+        "ground_station_ids" => ground_station_ids,
+        "station_calendar_statuses" => station_calendar_statuses,
+        "affected_contact_availabilities" => affected_contact_availabilities,
+        "directions" => directions,
+        "station_calendar_status_counts" =>
+          Map.get(replay_summary, "station_calendar_status_counts"),
+        "affected_contact_ground_station_counts" =>
+          Map.get(replay_summary, "affected_contact_ground_station_counts"),
+        "affected_contact_availability_counts" =>
+          Map.get(replay_summary, "affected_contact_availability_counts"),
+        "contact_ids_by_status" => Map.get(replay_summary, "contact_ids_by_status"),
+        "contact_ids_by_ground_station" =>
+          Map.get(replay_summary, "contact_ids_by_ground_station"),
+        "contact_ids_by_availability" => Map.get(replay_summary, "contact_ids_by_availability"),
+        "station_calendar_entry_ids_by_status" =>
+          Map.get(replay_summary, "station_calendar_entry_ids_by_status"),
+        "station_calendar_entry_ids_by_ground_station" =>
+          Map.get(replay_summary, "station_calendar_entry_ids_by_ground_station"),
+        "station_calendar_entry_ids_by_availability" =>
+          Map.get(replay_summary, "station_calendar_entry_ids_by_availability"),
+        "station_reservation_ids_by_status" =>
+          Map.get(replay_summary, "station_reservation_ids_by_status"),
+        "station_reservation_ids_by_ground_station" =>
+          Map.get(replay_summary, "station_reservation_ids_by_ground_station"),
+        "station_reservation_ids_by_availability" =>
+          Map.get(replay_summary, "station_reservation_ids_by_availability"),
+        "direction_counts" => Map.get(replay_summary, "direction_counts"),
+        "contact_ids_by_direction" => Map.get(replay_summary, "contact_ids_by_direction"),
+        "station_calendar_entry_ids_by_direction" =>
+          Map.get(replay_summary, "station_calendar_entry_ids_by_direction"),
+        "station_reservation_ids_by_direction" =>
+          Map.get(replay_summary, "station_reservation_ids_by_direction"),
+        "station_capacity_fractions_by_direction" =>
+          Map.get(replay_summary, "station_capacity_fractions_by_direction"),
+        "direction_routing" => Map.get(replay_summary, "direction_routing"),
+        "reserved_by_counts" => Map.get(replay_summary, "reserved_by_counts"),
+        "contact_ids_by_reserved_by" => Map.get(replay_summary, "contact_ids_by_reserved_by"),
+        "station_calendar_entry_ids_by_reserved_by" =>
+          Map.get(replay_summary, "station_calendar_entry_ids_by_reserved_by"),
+        "station_reservation_ids_by_reserved_by" =>
+          Map.get(replay_summary, "station_reservation_ids_by_reserved_by"),
+        "station_reservation_expires_at_s" =>
+          Map.get(replay_summary, "station_reservation_expires_at_s"),
+        "earliest_station_reservation_expires_at_s" =>
+          Map.get(replay_summary, "earliest_station_reservation_expires_at_s"),
+        "station_capacity_fractions" => Map.get(replay_summary, "station_capacity_fractions"),
+        "minimum_station_capacity_fraction" =>
+          Map.get(replay_summary, "minimum_station_capacity_fraction"),
+        "station_capacity_fractions_by_status" =>
+          Map.get(replay_summary, "station_capacity_fractions_by_status"),
+        "station_capacity_fractions_by_ground_station" =>
+          Map.get(replay_summary, "station_capacity_fractions_by_ground_station"),
+        "station_capacity_fractions_by_availability" =>
+          Map.get(replay_summary, "station_capacity_fractions_by_availability"),
+        "provider_calendar_contention_provider_counts" =>
+          Map.get(replay_summary, "provider_calendar_contention_provider_counts"),
+        "provider_calendar_contention_ground_station_counts" =>
+          Map.get(replay_summary, "provider_calendar_contention_ground_station_counts"),
+        "provider_calendar_contention_group_ids" =>
+          Map.get(replay_summary, "provider_calendar_contention_group_ids"),
+        "provider_calendar_contention_source_entry_ids" =>
+          Map.get(replay_summary, "provider_calendar_contention_source_entry_ids"),
+        "provider_calendar_contention_provider_entry_ids" =>
+          Map.get(replay_summary, "provider_calendar_contention_provider_entry_ids"),
+        "provider_calendar_contention_direction_counts" =>
+          Map.get(replay_summary, "provider_calendar_contention_direction_counts"),
+        "provider_calendar_contention_group_ids_by_direction" =>
+          Map.get(replay_summary, "provider_calendar_contention_group_ids_by_direction"),
+        "provider_calendar_contention_source_entry_ids_by_direction" =>
+          Map.get(replay_summary, "provider_calendar_contention_source_entry_ids_by_direction"),
+        "provider_calendar_contention_provider_entry_ids_by_direction" =>
+          Map.get(replay_summary, "provider_calendar_contention_provider_entry_ids_by_direction"),
+        "provider_calendar_contention_capacity_fractions" =>
+          Map.get(replay_summary, "provider_calendar_contention_capacity_fractions"),
+        "provider_calendar_contention_minimum_capacity_fraction" =>
+          Map.get(replay_summary, "provider_calendar_contention_minimum_capacity_fraction"),
+        "provider_calendar_contention_capacity_fractions_by_provider" =>
+          Map.get(replay_summary, "provider_calendar_contention_capacity_fractions_by_provider"),
+        "provider_calendar_contention_capacity_fractions_by_ground_station" =>
+          Map.get(
+            replay_summary,
+            "provider_calendar_contention_capacity_fractions_by_ground_station"
+          ),
+        "provider_calendar_contention_capacity_fractions_by_direction" =>
+          Map.get(replay_summary, "provider_calendar_contention_capacity_fractions_by_direction"),
+        "branch_local_affected_contact_pressure" =>
+          Map.get(replay_summary, "branch_local_affected_contact_pressure"),
+        "branch_local_provider_contention_pressure" =>
+          Map.get(replay_summary, "branch_local_provider_contention_pressure"),
+        "branch_local_station_availability_pressure" =>
+          Map.get(replay_summary, "branch_local_station_availability_pressure"),
+        "feedback_source" => "candidate_source.station_calendar_replay_summary",
+        "feedback_scope" => "station_calendar",
         "trust_boundaries" => Map.get(replay_summary, "trust_boundaries")
       }
       |> compact_map()

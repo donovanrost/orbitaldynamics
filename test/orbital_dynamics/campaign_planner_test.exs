@@ -24619,6 +24619,65 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "source_wrapped_station_calendar_row_boundary"
            ]
 
+    station_calendar_pressure_count =
+      Enum.count(
+        urgent["risk_indicators"],
+        &(&1["type"] == "station_calendar_pressure" and
+            &1["feedback_source"] == "candidate_source.station_calendar_replay_summary")
+      )
+
+    assert station_calendar_pressure_count == 1
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "station_calendar_pressure" and
+                 &1["feedback_scope"] == "station_calendar" and
+                 &1["affected_contact_count"] == 4 and
+                 &1["provider_calendar_contention_group_count"] == 4 and
+                 &1["station_calendar_status_counts"] == %{
+                   "reduced_capacity" => 1,
+                   "reserved" => 2,
+                   "unavailable" => 1
+                 } and
+                 &1["ground_station_ids"] == [
+                   "canberra_deep",
+                   "dss_43",
+                   "equator_prime",
+                   "polar_prime"
+                 ] and
+                 &1["affected_contact_ids"] == [
+                   "canonical_direct_contact",
+                   "direct_contact",
+                   "result_wrapped_contact",
+                   "source_wrapped_contact"
+                 ] and
+                 &1["affected_station_calendar_entry_ids"] == [
+                   "canonical_direct_station_entry",
+                   "direct_station_entry",
+                   "result_wrapped_station_entry",
+                   "source_wrapped_station_entry"
+                 ] and
+                 &1["provider_calendar_contention_group_ids"] == [
+                   "canonical_direct_contention_group",
+                   "direct_contention_group",
+                   "result_wrapped_contention_group",
+                   "source_wrapped_contention_group"
+                 ])
+           )
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    assert urgent["score_terms"]["station_calendar_pressure_penalty"] ==
+             -station_calendar_pressure_count * risk_weight
+
+    assert "station_calendar_pressure_penalty" in artifact["score_term_report"]["score_term_keys"]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == urgent["branch_id"] and
+                 &1["term_key"] == "station_calendar_pressure_penalty" and &1["value"] < 0.0)
+           )
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
