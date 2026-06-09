@@ -18595,6 +18595,39 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 derivation_reasons: ["timeline_dependency_impact_summary_pressure"]
               },
               %{
+                type: "timeline_integrity_feedback",
+                activity_id: "cmd_integrity_review",
+                timeline_id: "timeline:cmd_integrity_review",
+                timeline_integrity_status: "review_required",
+                timeline_integrity_issue_count: 2,
+                timeline_integrity_issue_types: [
+                  "missing_dependency_activity",
+                  "exclusivity_overlap"
+                ],
+                timeline_integrity_issues: [
+                  %{
+                    "type" => "missing_dependency_activity",
+                    "missing_dependency_activity_id" => "cmd_power_on"
+                  },
+                  %{
+                    "type" => "exclusivity_overlap",
+                    "exclusivity_violation_activity_id" => "downlink_conflict",
+                    "exclusivity_violation_timeline_id" => "timeline:downlink_conflict",
+                    "exclusivity_violation_group" => "equator_prime"
+                  }
+                ],
+                missing_dependency_activity_ids: ["cmd_power_on"],
+                exclusivity_violation_activity_ids: ["downlink_conflict"],
+                exclusivity_violation_timeline_ids: ["timeline:downlink_conflict"],
+                exclusivity_violation_group: "equator_prime",
+                required_operator_action: "review_timeline_integrity",
+                feedback_source: "mission_state.source_timeline_integrity_report.rows",
+                feedback_scope: "timeline_integrity",
+                feedback_key: "cmd_integrity_review",
+                trust_boundary: "mission_state_timeline_integrity_report",
+                derivation_reasons: ["timeline_integrity_report_pressure"]
+              },
+              %{
                 type: "resource_margin_pressure",
                 spacecraft_id: "leo_1",
                 scenario_id: "leo_1",
@@ -19400,6 +19433,47 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                explanation,
                &(&1["type"] == "risk_driver" and
                    &1["risk_type"] == "timeline_dependency_impact")
+             )
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "timeline_integrity_issue",
+             "severity" => "high",
+             "activity_id" => "cmd_integrity_review",
+             "timeline_id" => "timeline:cmd_integrity_review",
+             "timeline_integrity_status" => "review_required",
+             "timeline_integrity_issue_count" => 2,
+             "timeline_integrity_issue_types" => [
+               "missing_dependency_activity",
+               "exclusivity_overlap"
+             ],
+             "timeline_integrity_issues" => [
+               %{
+                 "type" => "missing_dependency_activity",
+                 "missing_dependency_activity_id" => "cmd_power_on"
+               },
+               %{
+                 "type" => "exclusivity_overlap",
+                 "exclusivity_violation_activity_id" => "downlink_conflict",
+                 "exclusivity_violation_timeline_id" => "timeline:downlink_conflict",
+                 "exclusivity_violation_group" => "equator_prime"
+               }
+             ],
+             "missing_dependency_activity_ids" => ["cmd_power_on"],
+             "exclusivity_violation_activity_ids" => ["downlink_conflict"],
+             "exclusivity_violation_timeline_ids" => ["timeline:downlink_conflict"],
+             "exclusivity_violation_group" => "equator_prime",
+             "required_operator_action" => "review_timeline_integrity",
+             "feedback_source" => "mission_state.source_timeline_integrity_report.rows",
+             "feedback_scope" => "timeline_integrity",
+             "feedback_key" => "cmd_integrity_review",
+             "trust_boundary" => "mission_state_timeline_integrity_report",
+             "derivation_reasons" => ["timeline_integrity_report_pressure"]
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "timeline_integrity_issue")
              )
 
     assert %{
@@ -20262,6 +20336,45 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "timeline_dependency_impact_derivation_reasons" => [
         "timeline_dependency_impact_summary_pressure"
       ],
+      "timeline_integrity_risk_types" => ["timeline_integrity_issue"],
+      "timeline_integrity_activity_ids" => ["cmd_integrity_review"],
+      "timeline_integrity_timeline_ids" => ["timeline:cmd_integrity_review"],
+      "timeline_integrity_statuses" => ["review_required"],
+      "timeline_integrity_issue_count_values" => [2],
+      "timeline_integrity_issue_types" => [
+        "missing_dependency_activity",
+        "exclusivity_overlap"
+      ],
+      "timeline_integrity_issue_maps" => [
+        [
+          %{
+            "type" => "missing_dependency_activity",
+            "missing_dependency_activity_id" => "cmd_power_on"
+          },
+          %{
+            "type" => "exclusivity_overlap",
+            "exclusivity_violation_activity_id" => "downlink_conflict",
+            "exclusivity_violation_timeline_id" => "timeline:downlink_conflict",
+            "exclusivity_violation_group" => "equator_prime"
+          }
+        ]
+      ],
+      "timeline_integrity_missing_dependency_activity_ids" => ["cmd_power_on"],
+      "timeline_integrity_exclusivity_violation_activity_ids" => ["downlink_conflict"],
+      "timeline_integrity_exclusivity_violation_timeline_ids" => [
+        "timeline:downlink_conflict"
+      ],
+      "timeline_integrity_exclusivity_violation_groups" => ["equator_prime"],
+      "timeline_integrity_required_operator_actions" => ["review_timeline_integrity"],
+      "timeline_integrity_feedback_sources" => [
+        "mission_state.source_timeline_integrity_report.rows"
+      ],
+      "timeline_integrity_feedback_scopes" => ["timeline_integrity"],
+      "timeline_integrity_feedback_keys" => ["cmd_integrity_review"],
+      "timeline_integrity_trust_boundaries" => [
+        "mission_state_timeline_integrity_report"
+      ],
+      "timeline_integrity_derivation_reasons" => ["timeline_integrity_report_pressure"],
       "resource_margin_risk_types" => ["power_margin_low"],
       "resource_margin_spacecraft_ids" => ["leo_1"],
       "resource_margin_scenario_ids" => ["leo_1"],

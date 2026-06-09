@@ -16243,6 +16243,7 @@ defmodule OrbitalDynamics.OperatorReview do
     |> Map.merge(
       OrbitalDynamics.RecommendationRiskContext.maneuver_execution_uncertainty_context(risks)
     )
+    |> Map.merge(OrbitalDynamics.RecommendationRiskContext.timeline_integrity_context(risks))
     |> Map.merge(
       OrbitalDynamics.RecommendationRiskContext.timeline_activity_precondition_context(risks)
     )

@@ -4747,6 +4747,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "activity #{event["activity_id"] || event["timeline_id"]} has dependency or exclusivity integrity issues",
         "activity_id" => event["activity_id"],
         "timeline_id" => event["timeline_id"],
+        "timeline_integrity_status" => event["timeline_integrity_status"],
+        "timeline_integrity_issue_count" => event["timeline_integrity_issue_count"],
+        "timeline_integrity_issue_types" => event["timeline_integrity_issue_types"],
+        "timeline_integrity_issues" => event["timeline_integrity_issues"],
         "missing_dependency_activity_ids" => event["missing_dependency_activity_ids"],
         "missing_dependency_timeline_ids" => event["missing_dependency_timeline_ids"],
         "dependency_cycle_activity_ids" => event["dependency_cycle_activity_ids"],
@@ -4758,9 +4762,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "exclusivity_violation_activity_ids" => event["exclusivity_violation_activity_ids"],
         "exclusivity_violation_timeline_ids" => event["exclusivity_violation_timeline_ids"],
         "exclusivity_violation_group" => event["exclusivity_violation_group"],
+        "required_operator_action" => event["required_operator_action"],
         "feedback_source" => event["feedback_source"],
         "feedback_scope" => event["feedback_scope"],
-        "trust_boundary" => event["trust_boundary"]
+        "feedback_key" => event["feedback_key"],
+        "trust_boundary" => event["trust_boundary"],
+        "derivation_reasons" => event["derivation_reasons"]
       }
       |> compact_map()
     ]
@@ -6665,6 +6672,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "delta_v_3sigma_magnitude_km_s" => risk["delta_v_3sigma_magnitude_km_s"],
           "delta_v_3sigma_magnitude_threshold_km_s" =>
             risk["delta_v_3sigma_magnitude_threshold_km_s"],
+          "timeline_integrity_status" => risk["timeline_integrity_status"],
+          "timeline_integrity_issue_count" => risk["timeline_integrity_issue_count"],
+          "timeline_integrity_issue_types" => risk["timeline_integrity_issue_types"],
+          "timeline_integrity_issues" => risk["timeline_integrity_issues"],
           "missing_dependency_activity_ids" => risk["missing_dependency_activity_ids"],
           "missing_dependency_timeline_ids" => risk["missing_dependency_timeline_ids"],
           "dependency_cycle_activity_ids" => risk["dependency_cycle_activity_ids"],
