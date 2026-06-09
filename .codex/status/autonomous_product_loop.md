@@ -5,27 +5,28 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject stale dependency-impact source-review evidence in Cadence import
+Reject stale publication source-review evidence in Cadence import
 handoffs.
 
 Status:
-Completed and pushed in product commit `0bdc8df`.
+Completed and pushed in product commit `777a1dc`.
 
 Slice-selection note:
 - Selected slice: make Cadence import schema validation reject stale nested
-  `source_review_row` dependency-impact evidence when it no longer matches the
-  import row's `source_timeline_dependency_impact`.
+  `source_review_row` publication summary evidence when it no longer matches
+  the import row's `source_timeline_publication_summary`.
 - Why this slice: live coverage now guards stale timeline protection,
   lifecycle-state, preservation, and activity-precondition source-review
-  handoffs, but dependency-impact import rows still only validate nested source
-  object shape. A stale nested source row can pass schema validation while
-  disagreeing with the import row it is supposed to justify.
+  handoffs. Publication import rows validate publication handoff fields against
+  their own source summary, but a self-consistent nested `source_review_row`
+  summary can still drift from the import row summary it is supposed to justify.
 - Level 6 pillar: Cadence-facing operational handoff integrity; review/import
   artifacts should be reproducible, challengeable, and resistant to stale
   nested evidence.
-- Current evidence gap: dependency-impact import fixtures should fail when
-  `source_review_row.source_timeline_dependency_impact` drifts from the Cadence
-  import row's corresponding source field.
+- Current evidence gap: publication import fixtures should fail when
+  `source_review_row.source_timeline_publication_summary` drifts from the
+  Cadence import row's corresponding source field, even if the nested summary
+  is internally self-consistent.
 - Docs read:
   `docs/feature_set/capability_map/08_mission_activities_and_timelines.md`,
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
@@ -33,10 +34,10 @@ Slice-selection note:
 - Likely files/tests: `lib/orbital_dynamics/schema.ex` and
   `test/orbital_dynamics/cadence_import_test.exs`.
 - Definition of done: a focused import test demonstrates stale nested
-  dependency-impact evidence is rejected with a source-review mismatch error;
-  schema validation performs the equality check; focused tests and schema
-  compile/checks pass; product and handoff are committed and pushed without
-  touching unrelated `.gitignore`.
+  publication evidence is rejected with a source-review mismatch error; schema
+  validation performs the equality check; focused tests and schema compile/checks
+  pass; product and handoff are committed and pushed without touching unrelated
+  `.gitignore`.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -44,7 +45,7 @@ Files changed:
 - `test/orbital_dynamics/cadence_import_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/cadence_import_test.exs:13634`
+- `mix test test/orbital_dynamics/cadence_import_test.exs:13851`
 - `mix test test/orbital_dynamics/cadence_import_test.exs`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
@@ -57,14 +58,15 @@ import handoff integrity.
 Local review:
 Sidecar review could not start because the agent thread limit was reached.
 Parent fallback review checked validator scope, stale-vs-shape fixture design,
-existing protection/lifecycle/preservation/precondition parity, focused and
-full import tests, compile, and staged scope; no must-fix issues remained.
-`.gitignore` remains unrelated and unstaged.
+existing protection/lifecycle/preservation/precondition/dependency parity,
+self-consistent stale publication fixture design, focused and full import
+tests, compile, and staged scope; no must-fix issues remained. `.gitignore`
+remains unrelated and unstaged.
 
 Level 6 pillar advanced:
 Cadence import schema validation now rejects stale nested source-review
-dependency-impact evidence instead of accepting source rows that disagree with
-the import row they are supposed to justify.
+publication evidence instead of accepting source rows that disagree with the
+import row they are supposed to justify.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -74,7 +76,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`0bdc8df` Reject stale dependency import source reviews.
+`777a1dc` Reject stale publication import source reviews.
 
 Next candidate:
 Reassess the next planner-visible timeline/readiness or communications scoring
@@ -85,6 +87,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `777a1dc` rejected stale publication source-review evidence in Cadence import
+  handoffs.
 - `0bdc8df` rejected stale dependency-impact source-review evidence in Cadence
   import handoffs.
 - `f8e4afa` rejected stale activity-precondition source-review evidence in
@@ -115,5 +119,3 @@ Previous published slices:
   summaries against stale top-level aggregates.
 - `1af9828` hardened stale activity-precondition CandidateRefresh
   source-report summaries against stale top-level aggregates.
-- `afbcf90` hardened stale activity-precondition V3 branch pressure against
-  stale top-level aggregates by deriving pressure from row-local preconditions.
