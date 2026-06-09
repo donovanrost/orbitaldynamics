@@ -5,28 +5,27 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve selected station reservation hold/import-readiness context on V3
-recommendation review/import rows.
+Preserve selected timeline activity-precondition context on V3 recommendation
+review/import rows.
 
 Status:
 Completed and ready to publish.
 
 What changed:
-- `downlink_completion_gap` risk indicators now retain direction plus station
-  reservation hold/import-readiness detail from branch events, including hold
-  IDs, import status, required action groupings, execution-boundary assumptions,
-  and source summary context.
-- `OrbitalDynamics.RecommendationRiskContext` now owns selected station
-  reservation hold/import-readiness aggregation and exposes the pass-through key
-  set for review/import conversion.
-- `OperatorReview` and `CadenceImport` now include selected station reservation
-  hold/import-readiness context on strategy recommendation review/import rows,
-  including review-package to Cadence import conversion.
+- `timeline_activity_precondition_review` selected risks now retain allow-overlap,
+  required-action, operator-review, feedback-key, derivation, and assumption
+  context from timeline activity-precondition pressure events.
+- `OrbitalDynamics.RecommendationRiskContext` now owns selected timeline
+  activity-precondition aggregation and exposes a pass-through key set.
+- `OperatorReview` and `CadenceImport` now include selected timeline
+  precondition status/count/type/dependency/exclusivity/invalid-input context on
+  strategy recommendation review/import rows, including review-package to
+  Cadence import conversion.
+- Existing timeline precondition import actions remain unchanged.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:25740`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:42634`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:31835`
 - `mix compile --warnings-as-errors`
 - `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/campaign_planner.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
@@ -59,11 +58,13 @@ Published commits:
 - `97e6e72` Preserve station reservation recommendation context
 - `07d2368` Update autonomous loop handoff
 - `6256ffe` Preserve reservation hold import recommendation context
+- `dd09125` Update autonomous loop handoff
+- `68028bc` Preserve precondition recommendation context
 
 Next suggested slice:
-Reassess the next small branch-refresh selected-risk contract cleanup from the
-active strategy surfaces, especially any remaining station/provider context that
-reaches `risks_remaining` but is not yet projected into review/import rows.
+Reassess the next small selected-risk contract cleanup from the active strategy
+surfaces, with timeline publication/lifecycle/preservation pressure as likely
+nearby candidates.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
