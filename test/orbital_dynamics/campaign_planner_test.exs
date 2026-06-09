@@ -18434,7 +18434,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         },
         approval_policy: %{
           "blocked_risk_types" => [],
-          "operator_review_risk_limit" => 20
+          "operator_review_risk_limit" => 30
         },
         branches: [
           %{id: "baseline"},
@@ -18570,6 +18570,29 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                   "operator_authority" => "not_granted_by_strategy_branch",
                   "cadence_import" => "not_performed_by_strategy_branch"
                 }
+              },
+              %{
+                type: "timeline_dependency_impact_pressure",
+                activity_id: "cmd_dependency_review",
+                timeline_id: "timeline:cmd_dependency_review",
+                dependency_impact_scope: "source",
+                dependency_impact_status: "review_required",
+                operator_action_reason: "dependency_link_impacted_by_timeline_change",
+                required_operator_action: "review_timeline_dependency_impact",
+                dependency_activity_ids: ["health_check"],
+                dependency_timeline_ids: ["timeline:health_check"],
+                exclusive_with_activity_ids: ["downlink_conflict"],
+                exclusive_with_timeline_ids: ["timeline:downlink_conflict"],
+                impacted_dependency_activity_ids: ["health_check"],
+                impacted_dependency_timeline_ids: ["timeline:health_check"],
+                impacted_exclusive_with_activity_ids: ["downlink_conflict"],
+                impacted_exclusive_with_timeline_ids: ["timeline:downlink_conflict"],
+                feedback_source:
+                  "mission_state.source_timeline_dependency_impact_summary.dependency_impact_rows",
+                feedback_scope: "timeline_dependency_impact",
+                feedback_key: "cmd_dependency_review",
+                trust_boundary: "mission_state_timeline_dependency_impact_summary",
+                derivation_reasons: ["timeline_dependency_impact_summary_pressure"]
               },
               %{
                 type: "timeline_publication_pressure",
@@ -19290,6 +19313,37 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                explanation,
                &(&1["type"] == "risk_driver" and
                    &1["risk_type"] == "timeline_activity_precondition_review")
+             )
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "timeline_dependency_impact",
+             "severity" => "high",
+             "activity_id" => "cmd_dependency_review",
+             "timeline_id" => "timeline:cmd_dependency_review",
+             "dependency_impact_scope" => "source",
+             "dependency_impact_status" => "review_required",
+             "operator_action_reason" => "dependency_link_impacted_by_timeline_change",
+             "required_operator_action" => "review_timeline_dependency_impact",
+             "dependency_activity_ids" => ["health_check"],
+             "dependency_timeline_ids" => ["timeline:health_check"],
+             "exclusive_with_activity_ids" => ["downlink_conflict"],
+             "exclusive_with_timeline_ids" => ["timeline:downlink_conflict"],
+             "impacted_dependency_activity_ids" => ["health_check"],
+             "impacted_dependency_timeline_ids" => ["timeline:health_check"],
+             "impacted_exclusive_with_activity_ids" => ["downlink_conflict"],
+             "impacted_exclusive_with_timeline_ids" => ["timeline:downlink_conflict"],
+             "feedback_source" =>
+               "mission_state.source_timeline_dependency_impact_summary.dependency_impact_rows",
+             "feedback_scope" => "timeline_dependency_impact",
+             "feedback_key" => "cmd_dependency_review",
+             "trust_boundary" => "mission_state_timeline_dependency_impact_summary",
+             "derivation_reasons" => ["timeline_dependency_impact_summary_pressure"]
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "timeline_dependency_impact")
              )
 
     assert %{
@@ -20037,6 +20091,43 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
           "operator_authority" => "not_granted_by_strategy_branch",
           "cadence_import" => "not_performed_by_strategy_branch"
         }
+      ],
+      "timeline_dependency_impact_activity_ids" => ["cmd_dependency_review"],
+      "timeline_dependency_impact_timeline_ids" => ["timeline:cmd_dependency_review"],
+      "timeline_dependency_impact_scopes" => ["source"],
+      "timeline_dependency_impact_statuses" => ["review_required"],
+      "timeline_dependency_impact_required_operator_actions" => [
+        "review_timeline_dependency_impact"
+      ],
+      "timeline_dependency_impact_operator_action_reasons" => [
+        "dependency_link_impacted_by_timeline_change"
+      ],
+      "timeline_dependency_impact_dependency_activity_ids" => ["health_check"],
+      "timeline_dependency_impact_dependency_timeline_ids" => ["timeline:health_check"],
+      "timeline_dependency_impact_exclusive_with_activity_ids" => ["downlink_conflict"],
+      "timeline_dependency_impact_exclusive_with_timeline_ids" => [
+        "timeline:downlink_conflict"
+      ],
+      "timeline_dependency_impact_impacted_dependency_activity_ids" => ["health_check"],
+      "timeline_dependency_impact_impacted_dependency_timeline_ids" => [
+        "timeline:health_check"
+      ],
+      "timeline_dependency_impact_impacted_exclusive_with_activity_ids" => [
+        "downlink_conflict"
+      ],
+      "timeline_dependency_impact_impacted_exclusive_with_timeline_ids" => [
+        "timeline:downlink_conflict"
+      ],
+      "timeline_dependency_impact_feedback_sources" => [
+        "mission_state.source_timeline_dependency_impact_summary.dependency_impact_rows"
+      ],
+      "timeline_dependency_impact_feedback_scopes" => ["timeline_dependency_impact"],
+      "timeline_dependency_impact_feedback_keys" => ["cmd_dependency_review"],
+      "timeline_dependency_impact_trust_boundaries" => [
+        "mission_state_timeline_dependency_impact_summary"
+      ],
+      "timeline_dependency_impact_derivation_reasons" => [
+        "timeline_dependency_impact_summary_pressure"
       ],
       "timeline_publication_ids" => [
         "timeline_publication:9:timeline:selected_plan:v2:timeline:selected_plan:v1"

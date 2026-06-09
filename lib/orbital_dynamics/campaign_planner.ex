@@ -4777,13 +4777,21 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "timeline_id" => event["timeline_id"],
         "dependency_impact_scope" => event["dependency_impact_scope"],
         "dependency_impact_status" => event["dependency_impact_status"],
+        "operator_action_reason" => event["operator_action_reason"],
+        "required_operator_action" => event["required_operator_action"],
+        "dependency_activity_ids" => event["dependency_activity_ids"],
+        "dependency_timeline_ids" => event["dependency_timeline_ids"],
+        "exclusive_with_activity_ids" => event["exclusive_with_activity_ids"],
+        "exclusive_with_timeline_ids" => event["exclusive_with_timeline_ids"],
         "impacted_dependency_activity_ids" => event["impacted_dependency_activity_ids"],
         "impacted_dependency_timeline_ids" => event["impacted_dependency_timeline_ids"],
         "impacted_exclusive_with_activity_ids" => event["impacted_exclusive_with_activity_ids"],
         "impacted_exclusive_with_timeline_ids" => event["impacted_exclusive_with_timeline_ids"],
         "feedback_source" => event["feedback_source"],
         "feedback_scope" => event["feedback_scope"],
-        "trust_boundary" => event["trust_boundary"]
+        "feedback_key" => event["feedback_key"],
+        "trust_boundary" => event["trust_boundary"],
+        "derivation_reasons" => event["derivation_reasons"]
       }
       |> compact_map()
     ]
@@ -5427,6 +5435,30 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "trust_boundary",
       "derivation_reasons",
       "assumptions"
+    ]
+  end
+
+  defp timeline_dependency_impact_pressure_risk_fields do
+    [
+      "activity_id",
+      "timeline_id",
+      "dependency_impact_scope",
+      "dependency_impact_status",
+      "operator_action_reason",
+      "required_operator_action",
+      "dependency_activity_ids",
+      "dependency_timeline_ids",
+      "exclusive_with_activity_ids",
+      "exclusive_with_timeline_ids",
+      "impacted_dependency_activity_ids",
+      "impacted_dependency_timeline_ids",
+      "impacted_exclusive_with_activity_ids",
+      "impacted_exclusive_with_timeline_ids",
+      "feedback_source",
+      "feedback_scope",
+      "feedback_key",
+      "trust_boundary",
+      "derivation_reasons"
     ]
   end
 
@@ -7226,6 +7258,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
          %{"feedback_scope" => "timeline_activity_lifecycle_state"} = risk
        ) do
     Map.take(risk, timeline_activity_lifecycle_state_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"type" => "timeline_dependency_impact"} = risk) do
+    Map.take(risk, timeline_dependency_impact_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(
+         %{"feedback_scope" => "timeline_dependency_impact"} = risk
+       ) do
+    Map.take(risk, timeline_dependency_impact_pressure_risk_fields())
   end
 
   defp recommendation_pressure_risk_context(%{"type" => "timeline_publication_pressure"} = risk) do

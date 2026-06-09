@@ -16238,6 +16238,9 @@ defmodule OrbitalDynamics.OperatorReview do
     |> Map.merge(
       OrbitalDynamics.RecommendationRiskContext.timeline_activity_lifecycle_state_context(risks)
     )
+    |> Map.merge(
+      OrbitalDynamics.RecommendationRiskContext.timeline_dependency_impact_context(risks)
+    )
     |> Map.merge(OrbitalDynamics.RecommendationRiskContext.timeline_publication_context(risks))
     |> Map.merge(
       OrbitalDynamics.RecommendationRiskContext.timeline_lifecycle_state_context(risks)
