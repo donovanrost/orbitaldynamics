@@ -8664,6 +8664,7 @@ defmodule OrbitalDynamics.TimelineTest do
     assert Timeline.transition_application_summary(source, replacement) == summary
     assert OrbitalDynamics.timeline_transition_application_summary(report) == summary
     assert OrbitalDynamics.timeline_transition_application_summary(source, replacement) == summary
+    assert read_json!("study_results/timeline_transition_application_summary_v1.json") == summary
 
     stale_summary_count_report =
       Map.merge(report, %{
