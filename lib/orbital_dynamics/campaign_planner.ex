@@ -3557,6 +3557,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp refresh_freshness_pressure_risk?(_risk), do: false
 
+  defp refresh_budget_pressure_risk?(%{"feedback_scope" => "refresh_budget"}),
+    do: true
+
+  defp refresh_budget_pressure_risk?(%{"type" => "refresh_budget_pressure"}),
+    do: true
+
+  defp refresh_budget_pressure_risk?(_risk), do: false
+
   defp validation_refresh_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &validation_refresh_pressure_risk?/1)
   end
@@ -3739,6 +3747,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     freshness_replay =
       CandidateRefresh.freshness_replay_summary(candidate_source)
 
+    refresh_budget_replay =
+      CandidateRefresh.refresh_budget_replay_summary(candidate_source)
+
     model_acceptance_replay =
       CandidateRefresh.model_acceptance_replay_summary(candidate_source)
 
@@ -3783,6 +3794,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> maybe_add_candidate_source_quality_gate_risks(quality_gate_replay, event_risks)
     |> maybe_add_candidate_source_schema_validation_risks(schema_validation_replay, event_risks)
     |> maybe_add_candidate_source_freshness_risks(freshness_replay, event_risks)
+    |> maybe_add_candidate_source_refresh_budget_risks(refresh_budget_replay, event_risks)
     |> maybe_add_candidate_source_model_acceptance_risks(model_acceptance_replay, event_risks)
     |> maybe_add_candidate_source_timeline_activity_state_risks(
       activity_state_replay,
@@ -3894,6 +3906,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
       risks
     else
       risks ++ freshness_replay_pressure_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_refresh_budget_risks(risks, replay_summary, event_risks) do
+    if Enum.any?(event_risks, &refresh_budget_pressure_risk?/1) do
+      risks
+    else
+      risks ++ refresh_budget_replay_pressure_risks(replay_summary)
     end
   end
 
@@ -4770,6 +4790,86 @@ defmodule OrbitalDynamics.CampaignPlanner do
       Map.get(replay_summary, "branch_local_unknown_pressure") == true or
       summary_positive?(replay_summary, "stale_reason_count") or
       summary_positive?(replay_summary, "unknown_reason_count")
+  end
+
+  defp refresh_budget_replay_pressure_risks(%{} = replay_summary) do
+    if refresh_budget_replay_scoring_pressure?(replay_summary) do
+      refresh_budget_replay_pressure_risk(replay_summary)
+    else
+      []
+    end
+  end
+
+  defp refresh_budget_replay_pressure_risks(_replay_summary), do: []
+
+  defp refresh_budget_replay_scoring_pressure?(replay_summary) do
+    Map.get(replay_summary, "branch_local_budget_pressure") == true or
+      Map.get(replay_summary, "branch_local_dropped_candidate_pressure") == true or
+      Map.get(replay_summary, "branch_local_invalid_limit_pressure") == true or
+      Map.get(replay_summary, "branch_local_candidate_limit_applied") == true or
+      summary_positive?(replay_summary, "dropped_candidate_count") or
+      summary_positive?(replay_summary, "invalid_candidate_limit_policy_count")
+  end
+
+  defp refresh_budget_replay_pressure_risk(replay_summary) do
+    kept_candidate_ids =
+      replay_summary
+      |> Map.get("kept_candidate_ids")
+      |> sorted_encoded_values()
+
+    dropped_candidate_ids =
+      replay_summary
+      |> Map.get("dropped_candidate_ids")
+      |> sorted_encoded_values()
+
+    candidate_limit_status =
+      cond do
+        summary_positive?(replay_summary, "invalid_candidate_limit_policy_count") -> "invalid"
+        summary_positive?(replay_summary, "dropped_candidate_count") -> "dropped"
+        Map.get(replay_summary, "branch_local_candidate_limit_applied") == true -> "limited"
+        true -> nil
+      end
+
+    [
+      %{
+        "type" => "refresh_budget_pressure",
+        "severity" =>
+          validation_refresh_pressure_risk_severity(%{
+            "candidate_limit_status" => candidate_limit_status,
+            "refresh_budget_status" => candidate_limit_status,
+            "required_operator_action" => "review_refresh_budget"
+          }),
+        "reason" =>
+          "candidate source refresh-budget replay reports dropped-candidate, invalid-limit, or candidate-limit pressure",
+        "source_report_count" => Map.get(replay_summary, "source_report_count"),
+        "source_report_row_count" => Map.get(replay_summary, "source_report_row_count"),
+        "source_report_paths" => Map.get(replay_summary, "source_report_paths"),
+        "input_candidate_count" => Map.get(replay_summary, "input_candidate_count"),
+        "kept_candidate_count" => Map.get(replay_summary, "kept_candidate_count"),
+        "dropped_candidate_count" => Map.get(replay_summary, "dropped_candidate_count"),
+        "invalid_candidate_limit_policy_count" =>
+          Map.get(replay_summary, "invalid_candidate_limit_policy_count"),
+        "invalid_candidate_limit_policy_reason_counts" =>
+          Map.get(replay_summary, "invalid_candidate_limit_policy_reason_counts"),
+        "candidate_limit_status" => candidate_limit_status,
+        "refresh_budget_status" => candidate_limit_status,
+        "kept_candidate_ids" => kept_candidate_ids,
+        "dropped_candidate_ids" => dropped_candidate_ids,
+        "branch_local_budget_pressure" => Map.get(replay_summary, "branch_local_budget_pressure"),
+        "branch_local_dropped_candidate_pressure" =>
+          Map.get(replay_summary, "branch_local_dropped_candidate_pressure"),
+        "branch_local_invalid_limit_pressure" =>
+          Map.get(replay_summary, "branch_local_invalid_limit_pressure"),
+        "branch_local_candidate_limit_applied" =>
+          Map.get(replay_summary, "branch_local_candidate_limit_applied"),
+        "feedback_source" => "candidate_source.refresh_budget_replay_summary",
+        "feedback_scope" => "refresh_budget",
+        "feedback_key" => "refresh_budget",
+        "trust_boundary_status" => Map.get(replay_summary, "trust_boundary_status"),
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries")
+      }
+      |> compact_map()
+    ]
   end
 
   defp freshness_replay_pressure_risk(replay_summary) do

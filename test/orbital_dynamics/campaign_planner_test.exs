@@ -28387,6 +28387,42 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "mission_state.source_result_artifact.refresh_budget_report"
            ]
 
+    refresh_budget_pressure_count =
+      Enum.count(
+        urgent["risk_indicators"],
+        &(&1["type"] == "refresh_budget_pressure" and
+            &1["feedback_source"] == "candidate_source.refresh_budget_replay_summary")
+      )
+
+    assert refresh_budget_pressure_count == 1
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "refresh_budget_pressure" and
+                 &1["feedback_scope"] == "refresh_budget" and
+                 &1["severity"] == "high" and
+                 &1["source_report_count"] == 4 and
+                 &1["source_report_row_count"] == 4 and
+                 &1["source_report_paths"] == replay_source_paths and
+                 &1["input_candidate_count"] == 14 and
+                 &1["kept_candidate_count"] == 8 and
+                 &1["dropped_candidate_count"] == 6 and
+                 &1["invalid_candidate_limit_policy_count"] == 1 and
+                 &1["invalid_candidate_limit_policy_reason_counts"] == %{
+                   "max_candidate_activities_must_be_integer" => 1
+                 } and
+                 &1["candidate_limit_status"] == "invalid" and
+                 &1["refresh_budget_status"] == "invalid" and
+                 &1["kept_candidate_ids"] == Enum.sort(replay_kept_candidate_ids) and
+                 &1["dropped_candidate_ids"] == Enum.sort(replay_dropped_candidate_ids) and
+                 &1["branch_local_budget_pressure"] == true and
+                 &1["branch_local_dropped_candidate_pressure"] == true and
+                 &1["branch_local_invalid_limit_pressure"] == true and
+                 &1["branch_local_candidate_limit_applied"] == true)
+           )
+
+    assert_validation_refresh_pressure_score_terms(urgent, artifact, "refresh_budget")
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
