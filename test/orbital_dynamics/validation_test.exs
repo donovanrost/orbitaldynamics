@@ -9568,6 +9568,8 @@ defmodule OrbitalDynamics.ValidationTest do
 
     report = timeline_integrity_report_fixture()
 
+    assert generated_timeline_integrity_report_fixture() == report
+
     assert {:ok, verification} =
              Validation.verify_reference_fixture(
                fixture_id,
@@ -16214,6 +16216,38 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp timeline_integrity_report_fixture do
     read_json!("study_results/timeline_integrity_report_v1.json")
+  end
+
+  defp generated_timeline_integrity_report_fixture do
+    [
+      %{
+        id: :health_gate,
+        type: :health_check,
+        starts_at_s: 0.0,
+        ends_at_s: 15.0,
+        ground_station_id: :dss_14,
+        direction: :command
+      },
+      %{
+        id: :cmd_main,
+        type: :command,
+        starts_at_s: 10.0,
+        ends_at_s: 20.0,
+        ground_station_id: :dss_14,
+        direction: :command,
+        dependencies: [:health_gate, :missing_gate],
+        exclusive_with: [:dl_conflict]
+      },
+      %{
+        id: :dl_conflict,
+        type: :downlink,
+        starts_at_s: 12.0,
+        ends_at_s: 22.0,
+        ground_station_id: :dss_14,
+        direction: :downlink
+      }
+    ]
+    |> OrbitalDynamics.timeline_integrity_report()
   end
 
   defp timeline_transition_application_report_fixture_observations do

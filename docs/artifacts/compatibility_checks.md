@@ -956,11 +956,11 @@ the no-schedule-mutation/no-authority boundary.
 check dependency/exclusivity review rows, issue-type counts, required-action and
 operator-reason maps, review activity/timeline routing, flattened
 dependency/exclusivity evidence IDs, and no-schedule-mutation assumptions.
-Focused schema-reference coverage also exact-regenerates the checked-in fixture
-through `OrbitalDynamics.timeline_integrity_report/2` from deterministic
-dependency-order, missing-dependency, and exclusivity-overlap activities before
-schema validation, pinning row issue evidence and review routing to the public
-facade.
+Focused validation and schema-reference coverage also exact-regenerate the
+checked-in fixture through `OrbitalDynamics.timeline_integrity_report/2` from
+deterministic dependency-order, missing-dependency, and exclusivity-overlap
+activities before schema validation, pinning row issue evidence and review
+routing to the public facade.
 Executable validation rejects stale issue counts and stale row-derived
 issue-type maps before integrity summaries can steer review/import routing.
 `study_results/timeline_transition_application_summary_v1.json` now feeds a
