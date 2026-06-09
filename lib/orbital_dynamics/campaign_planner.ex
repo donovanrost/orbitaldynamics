@@ -2851,6 +2851,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     risk_count = length(risk_indicators)
     contact_allocation_pressure_count = contact_allocation_pressure_risk_count(risk_indicators)
     candidate_diff_pressure_count = candidate_diff_pressure_risk_count(risk_indicators)
+    timeline_diff_pressure_count = timeline_diff_pressure_risk_count(risk_indicators)
     link_capacity_pressure_count = link_capacity_pressure_risk_count(risk_indicators)
     contact_intent_pressure_count = contact_intent_pressure_risk_count(risk_indicators)
     contact_contention_pressure_count = contact_contention_pressure_risk_count(risk_indicators)
@@ -2926,6 +2927,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       max(
         risk_count - contact_allocation_pressure_count - approval_boundary_pressure_count -
           candidate_diff_pressure_count -
+          timeline_diff_pressure_count -
           link_capacity_pressure_count - contact_intent_pressure_count -
           contact_contention_pressure_count -
           contact_filter_pressure_count - command_window_pressure_count -
@@ -2983,6 +2985,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     candidate_diff_pressure_penalty =
       -candidate_diff_pressure_count * policy.risk_weight
+
+    timeline_diff_pressure_penalty =
+      -timeline_diff_pressure_count * policy.risk_weight
 
     link_capacity_pressure_penalty =
       -link_capacity_pressure_count * policy.risk_weight
@@ -3092,6 +3097,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         asset_balance_score + priority_commitment_score + resource_score +
         feedback_adjustment_score + contact_allocation_pressure_penalty +
         candidate_diff_pressure_penalty +
+        timeline_diff_pressure_penalty +
         link_capacity_pressure_penalty + contact_intent_pressure_penalty +
         contact_contention_pressure_penalty + operational_readiness_pressure_penalty +
         contact_filter_pressure_penalty + command_window_pressure_penalty +
@@ -3132,6 +3138,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "feedback_adjustment_score" => feedback_adjustment_score,
       "contact_allocation_pressure_penalty" => contact_allocation_pressure_penalty,
       "candidate_diff_pressure_penalty" => candidate_diff_pressure_penalty,
+      "timeline_diff_pressure_penalty" => timeline_diff_pressure_penalty,
       "link_capacity_pressure_penalty" => link_capacity_pressure_penalty,
       "contact_intent_pressure_penalty" => contact_intent_pressure_penalty,
       "contact_contention_pressure_penalty" => contact_contention_pressure_penalty,
@@ -3210,6 +3217,23 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp candidate_diff_event_pressure_risk?(_risk), do: false
+
+  defp timeline_diff_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &timeline_diff_pressure_risk?/1)
+  end
+
+  defp timeline_diff_pressure_risk?(%{"type" => "timeline_diff_pressure"}), do: true
+  defp timeline_diff_pressure_risk?(_risk), do: false
+
+  defp timeline_diff_event_pressure_risk?(%{"feedback_scope" => "timeline_diff"}), do: true
+  defp timeline_diff_event_pressure_risk?(%{"type" => "timeline_diff_pressure"}), do: true
+
+  defp timeline_diff_event_pressure_risk?(%{"feedback_source" => source})
+       when is_binary(source) do
+    String.contains?(source, "timeline_diff_report")
+  end
+
+  defp timeline_diff_event_pressure_risk?(_risk), do: false
 
   defp link_capacity_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &link_capacity_pressure_risk?/1)
@@ -3854,6 +3878,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     candidate_diff_replay =
       CandidateRefresh.candidate_diff_replay_summary(candidate_source)
 
+    timeline_diff_replay =
+      CandidateRefresh.timeline_diff_replay_summary(candidate_source)
+
     candidate_rejection_replay =
       CandidateRefresh.candidate_rejection_replay_summary(candidate_source)
 
@@ -3932,6 +3959,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
       candidate_diff_replay,
       event_risks
     )
+    |> maybe_add_candidate_source_timeline_diff_risks(
+      timeline_diff_replay,
+      event_risks
+    )
     |> maybe_add_candidate_source_candidate_rejection_risks(
       candidate_rejection_replay,
       event_risks
@@ -4005,6 +4036,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
       risks
     else
       risks ++ candidate_diff_replay_pressure_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_timeline_diff_risks(risks, replay_summary, event_risks) do
+    if Enum.any?(event_risks, &timeline_diff_event_pressure_risk?/1) do
+      risks
+    else
+      risks ++ timeline_diff_replay_pressure_risks(replay_summary)
     end
   end
 
@@ -4335,6 +4374,68 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp candidate_diff_replay_pressure_risks(_replay_summary), do: []
+
+  defp timeline_diff_replay_pressure_risks(
+         %{"branch_local_timeline_diff_pressure" => true} = replay_summary
+       ) do
+    [
+      %{
+        "type" => "timeline_diff_pressure",
+        "severity" => "high",
+        "reason" =>
+          "candidate source timeline-diff replay reports duplicate-identity, removed/changed activity, operator-review, or activity-routing pressure",
+        "contract" => Map.get(replay_summary, "contract"),
+        "source_report_count" => Map.get(replay_summary, "source_report_count"),
+        "source_report_row_count" => Map.get(replay_summary, "source_report_row_count"),
+        "source_report_paths" => Map.get(replay_summary, "source_report_paths"),
+        "duplicate_timeline_identity_count" =>
+          Map.get(replay_summary, "duplicate_timeline_identity_count"),
+        "duplicate_source_timeline_identity_count" =>
+          Map.get(replay_summary, "duplicate_source_timeline_identity_count"),
+        "duplicate_replacement_timeline_identity_count" =>
+          Map.get(replay_summary, "duplicate_replacement_timeline_identity_count"),
+        "removed_downlink_count" => Map.get(replay_summary, "removed_downlink_count"),
+        "removed_observation_count" => Map.get(replay_summary, "removed_observation_count"),
+        "changed_downlink_shortfall_count" =>
+          Map.get(replay_summary, "changed_downlink_shortfall_count"),
+        "changed_contact_feedback_count" =>
+          Map.get(replay_summary, "changed_contact_feedback_count"),
+        "changed_observation_count" => Map.get(replay_summary, "changed_observation_count"),
+        "changed_observation_quality_feedback_count" =>
+          Map.get(replay_summary, "changed_observation_quality_feedback_count"),
+        "changed_command_feedback_count" =>
+          Map.get(replay_summary, "changed_command_feedback_count"),
+        "changed_maneuver_feedback_count" =>
+          Map.get(replay_summary, "changed_maneuver_feedback_count"),
+        "diff_status_counts" => Map.get(replay_summary, "diff_status_counts"),
+        "required_operator_action_counts" =>
+          Map.get(replay_summary, "required_operator_action_counts"),
+        "duplicate_timeline_identity_scope_counts" =>
+          Map.get(replay_summary, "duplicate_timeline_identity_scope_counts"),
+        "source_activity_id_counts" => Map.get(replay_summary, "source_activity_id_counts"),
+        "replacement_activity_id_counts" =>
+          Map.get(replay_summary, "replacement_activity_id_counts"),
+        "trust_boundary_status" => Map.get(replay_summary, "trust_boundary_status"),
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries"),
+        "branch_local_duplicate_identity_pressure" =>
+          Map.get(replay_summary, "branch_local_duplicate_identity_pressure"),
+        "branch_local_removed_activity_pressure" =>
+          Map.get(replay_summary, "branch_local_removed_activity_pressure"),
+        "branch_local_changed_activity_pressure" =>
+          Map.get(replay_summary, "branch_local_changed_activity_pressure"),
+        "branch_local_activity_routing_pressure" =>
+          Map.get(replay_summary, "branch_local_activity_routing_pressure"),
+        "branch_local_operator_review_pressure" =>
+          Map.get(replay_summary, "branch_local_operator_review_pressure"),
+        "feedback_source" => "candidate_source.timeline_diff_replay_summary",
+        "feedback_scope" => "timeline_diff",
+        "assumptions" => Map.get(replay_summary, "assumptions")
+      }
+      |> compact_map()
+    ]
+  end
+
+  defp timeline_diff_replay_pressure_risks(_replay_summary), do: []
 
   defp candidate_rejection_replay_pressure_risks(
          %{"branch_local_rejection_pressure" => true} = replay_summary
@@ -8489,6 +8590,41 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ]
   end
 
+  defp timeline_diff_pressure_risk_fields do
+    [
+      "contract",
+      "source_report_count",
+      "source_report_row_count",
+      "source_report_paths",
+      "duplicate_timeline_identity_count",
+      "duplicate_source_timeline_identity_count",
+      "duplicate_replacement_timeline_identity_count",
+      "removed_downlink_count",
+      "removed_observation_count",
+      "changed_downlink_shortfall_count",
+      "changed_contact_feedback_count",
+      "changed_observation_count",
+      "changed_observation_quality_feedback_count",
+      "changed_command_feedback_count",
+      "changed_maneuver_feedback_count",
+      "diff_status_counts",
+      "required_operator_action_counts",
+      "duplicate_timeline_identity_scope_counts",
+      "source_activity_id_counts",
+      "replacement_activity_id_counts",
+      "trust_boundary_status",
+      "trust_boundaries",
+      "branch_local_duplicate_identity_pressure",
+      "branch_local_removed_activity_pressure",
+      "branch_local_changed_activity_pressure",
+      "branch_local_activity_routing_pressure",
+      "branch_local_operator_review_pressure",
+      "feedback_source",
+      "feedback_scope",
+      "assumptions"
+    ]
+  end
+
   defp candidate_rejection_pressure_risk_fields do
     [
       "candidate_id",
@@ -9177,6 +9313,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"feedback_adjustment", "feedback_adjustment_score"},
         {"contact_allocation_pressure", "contact_allocation_pressure_penalty"},
         {"candidate_diff_pressure", "candidate_diff_pressure_penalty"},
+        {"timeline_diff_pressure", "timeline_diff_pressure_penalty"},
         {"link_capacity_pressure", "link_capacity_pressure_penalty"},
         {"contact_intent_pressure", "contact_intent_pressure_penalty"},
         {"contact_contention_pressure", "contact_contention_pressure_penalty"},
@@ -10164,6 +10301,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp recommendation_pressure_risk_context(%{"type" => "candidate_diff_pressure"} = risk) do
     Map.take(risk, candidate_diff_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"type" => "timeline_diff_pressure"} = risk) do
+    Map.take(risk, timeline_diff_pressure_risk_fields())
   end
 
   defp recommendation_pressure_risk_context(%{"feedback_scope" => "command_window"} = risk) do
@@ -49484,6 +49625,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
         risk["type"] == "candidate_diff_pressure"
       end)
 
+    timeline_diff_risks =
+      Enum.filter(risk_indicators, fn risk ->
+        risk["type"] == "timeline_diff_pressure"
+      end)
+
     objective_gap_risks =
       Enum.filter(risk_indicators, fn risk ->
         risk["type"] == "objective_gap_pressure"
@@ -49639,6 +49785,20 @@ defmodule OrbitalDynamics.CampaignPlanner do
         branch_event_map_keys(candidate_diff_risks, "candidate_diff_ground_station_counts"),
       "branch_candidate_diff_trust_boundaries" =>
         branch_event_unique_values(candidate_diff_risks, "trust_boundaries"),
+      "branch_timeline_diff_source_report_paths" =>
+        branch_event_unique_values(timeline_diff_risks, "source_report_paths"),
+      "branch_timeline_diff_statuses" =>
+        branch_event_map_keys(timeline_diff_risks, "diff_status_counts"),
+      "branch_timeline_diff_required_operator_actions" =>
+        branch_event_map_keys(timeline_diff_risks, "required_operator_action_counts"),
+      "branch_timeline_diff_duplicate_identity_scopes" =>
+        branch_event_map_keys(timeline_diff_risks, "duplicate_timeline_identity_scope_counts"),
+      "branch_timeline_diff_source_activity_ids" =>
+        branch_event_map_keys(timeline_diff_risks, "source_activity_id_counts"),
+      "branch_timeline_diff_replacement_activity_ids" =>
+        branch_event_map_keys(timeline_diff_risks, "replacement_activity_id_counts"),
+      "branch_timeline_diff_trust_boundaries" =>
+        branch_event_unique_values(timeline_diff_risks, "trust_boundaries"),
       "branch_objective_gap_contracts" =>
         branch_event_unique_values(objective_gap_risks, "contracts"),
       "branch_objective_gap_source_report_paths" =>
@@ -49821,6 +49981,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> maybe_put_nonempty("branch_candidate_diff_candidate_ids")
     |> maybe_put_nonempty("branch_candidate_diff_ground_station_ids")
     |> maybe_put_nonempty("branch_candidate_diff_trust_boundaries")
+    |> maybe_put_nonempty("branch_timeline_diff_source_report_paths")
+    |> maybe_put_nonempty("branch_timeline_diff_statuses")
+    |> maybe_put_nonempty("branch_timeline_diff_required_operator_actions")
+    |> maybe_put_nonempty("branch_timeline_diff_duplicate_identity_scopes")
+    |> maybe_put_nonempty("branch_timeline_diff_source_activity_ids")
+    |> maybe_put_nonempty("branch_timeline_diff_replacement_activity_ids")
+    |> maybe_put_nonempty("branch_timeline_diff_trust_boundaries")
     |> maybe_put_nonempty("branch_objective_gap_contracts")
     |> maybe_put_nonempty("branch_objective_gap_source_report_paths")
     |> maybe_put_nonempty("branch_objective_gap_score_term_keys")

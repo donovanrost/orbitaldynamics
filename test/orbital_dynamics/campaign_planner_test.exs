@@ -33247,6 +33247,61 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       assert source_path in replay_source_paths
     end
 
+    timeline_diff_pressure_count =
+      Enum.count(urgent["risk_indicators"], &(&1["type"] == "timeline_diff_pressure"))
+
+    assert timeline_diff_pressure_count == 1
+
+    assert %{
+             "source_report_count" => 4,
+             "source_report_row_count" => ^source_report_row_count,
+             "source_report_paths" => pressure_source_paths,
+             "diff_status_counts" => ^source_status_counts,
+             "required_operator_action_counts" => ^source_action_counts,
+             "feedback_source" => "candidate_source.timeline_diff_replay_summary",
+             "feedback_scope" => "timeline_diff",
+             "assumptions" => %{
+               "replay_scope" => "timeline_diff_candidate_source_report_summary_only",
+               "timeline_mutation" => "not_performed_by_summary"
+             }
+           } =
+             Enum.find(urgent["risk_indicators"], &(&1["type"] == "timeline_diff_pressure"))
+
+    assert Enum.sort(pressure_source_paths) == Enum.sort(replay_source_paths)
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    assert urgent["score_terms"]["timeline_diff_pressure_penalty"] ==
+             -timeline_diff_pressure_count * risk_weight
+
+    assert "timeline_diff_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == "urgent" and
+                 &1["term_key"] == "timeline_diff_pressure_penalty" and &1["value"] < 0.0)
+           )
+
+    urgent_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+
+    assert "timeline_diff_pressure" in urgent_row["risk_types"]
+
+    assert urgent_row["branch_timeline_diff_source_report_paths"] ==
+             Enum.sort(replay_source_paths)
+
+    assert urgent_row["branch_timeline_diff_statuses"] ==
+             source_status_counts |> Map.keys() |> Enum.sort()
+
+    assert urgent_row["branch_timeline_diff_required_operator_actions"] ==
+             source_action_counts |> Map.keys() |> Enum.sort()
+
+    assert urgent_row["branch_timeline_diff_trust_boundaries"] ==
+             Enum.sort(replay_trust_boundaries)
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
