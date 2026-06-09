@@ -5,31 +5,29 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reassess the next small selected-risk contract cleanup from the active strategy
+Reassess the next selected-risk contract cleanup from the active strategy
 surfaces.
 
 Status:
 Recommended next; not yet selected.
 
 Last completed slice:
-Preserved selected timeline activity-lifecycle-state context on V3
+Preserved selected timeline dependency-impact context on V3
 recommendation review/import rows.
 
 What changed:
-- `timeline_activity_lifecycle_state_review` selected risks now retain
-  planned/realized IDs, status/category/approval, protection, review flag,
-  feedback-key, derivation, and assumption context.
+- `timeline_dependency_impact` selected risks now retain
+  dependency/exclusivity source IDs, impacted IDs, scope/status,
+  required-action, feedback-key, and derivation context.
 - `OrbitalDynamics.RecommendationRiskContext` owns selected timeline
-  activity-lifecycle-state aggregation and Cadence import pass-through keys.
+  dependency-impact aggregation and Cadence import pass-through keys.
 - Strategy recommendation review rows and Cadence import rows expose selected
-  activity lifecycle-state context, including review-package conversion.
-- Existing timeline activity lifecycle-state import action names remain
-  unchanged.
+  dependency-impact context, including review-package conversion.
+- Existing timeline dependency-impact import action names remain unchanged.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:30302`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:32327`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:30935`
 - `mix compile --warnings-as-errors`
 - `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/campaign_planner.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
@@ -72,11 +70,12 @@ Published commits:
 - `d5e57c6` Preserve lifecycle recommendation context
 - `9096f35` Update autonomous loop handoff
 - `96e21e8` Preserve activity lifecycle recommendation context
+- `421229a` Update autonomous loop handoff
+- `ab800e7` Preserve dependency impact recommendation context
 
 Next suggested slice:
-Re-audit the selected-risk projection table for the next nearby strategy
-pressure family whose event context is richer than its recommendation
-review/import handoff.
+Re-audit the selected-risk projection table for the next pressure family whose
+event context is richer than its recommendation review/import handoff.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
