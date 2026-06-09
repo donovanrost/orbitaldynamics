@@ -3232,6 +3232,7 @@ defmodule OrbitalDynamics.OperatorReview do
     |> Enum.map(&stringify_keys/1)
     |> Enum.with_index(1)
     |> Enum.map(fn {group, index} ->
+      group = put_contact_allocation_capacity_pack_direction_summary(group)
       group_id = group["contention_group_id"]
 
       %{
@@ -3255,6 +3256,18 @@ defmodule OrbitalDynamics.OperatorReview do
         "selected_contact_ids" => group["selected_contact_ids"],
         "capacity_packed_contact_ids" => group["capacity_packed_contact_ids"],
         "deferred_contact_ids" => group["deferred_contact_ids"],
+        "capacity_pack_contact_ids_by_direction" =>
+          group["capacity_pack_contact_ids_by_direction"],
+        "capacity_pack_selected_contact_ids_by_direction" =>
+          group["capacity_pack_selected_contact_ids_by_direction"],
+        "capacity_pack_deferred_contact_ids_by_direction" =>
+          group["capacity_pack_deferred_contact_ids_by_direction"],
+        "capacity_pack_required_capacity_fraction_by_direction" =>
+          group["capacity_pack_required_capacity_fraction_by_direction"],
+        "capacity_pack_selected_required_capacity_fraction_by_direction" =>
+          group["capacity_pack_selected_required_capacity_fraction_by_direction"],
+        "capacity_pack_deferred_required_capacity_fraction_by_direction" =>
+          group["capacity_pack_deferred_required_capacity_fraction_by_direction"],
         "capacity_requirement_rows" => group["capacity_requirement_rows"],
         "pack_status" => group["pack_status"],
         "action" => "review_contact_allocation_capacity_pack",
@@ -3266,6 +3279,124 @@ defmodule OrbitalDynamics.OperatorReview do
       }
       |> compact_map()
     end)
+  end
+
+  defp put_contact_allocation_capacity_pack_direction_summary(%{} = group) do
+    rows =
+      group
+      |> Map.get("capacity_requirement_rows", [])
+      |> Enum.filter(&is_map/1)
+      |> Enum.map(&stringify_keys/1)
+
+    contact_directions = contact_allocation_capacity_pack_contact_directions(group, rows)
+
+    routed_rows =
+      rows
+      |> Enum.map(fn row ->
+        direction = row["direction"] || contact_directions[row["contact_id"]]
+
+        row
+        |> Map.put("direction", direction)
+        |> compact_map()
+      end)
+      |> Enum.filter(&(is_binary(&1["contact_id"]) and is_binary(&1["direction"])))
+
+    if routed_rows == [] do
+      group
+    else
+      selected_rows =
+        Enum.filter(routed_rows, &(&1["allocation_status"] == "allocated"))
+
+      deferred_rows =
+        Enum.filter(routed_rows, &(&1["allocation_status"] == "deferred"))
+
+      Map.merge(group, %{
+        "capacity_pack_contact_ids_by_direction" =>
+          contact_allocation_capacity_pack_contact_ids_by_direction(routed_rows),
+        "capacity_pack_selected_contact_ids_by_direction" =>
+          contact_allocation_capacity_pack_contact_ids_by_direction(selected_rows),
+        "capacity_pack_deferred_contact_ids_by_direction" =>
+          contact_allocation_capacity_pack_contact_ids_by_direction(deferred_rows),
+        "capacity_pack_required_capacity_fraction_by_direction" =>
+          contact_allocation_capacity_pack_required_fraction_by_direction(routed_rows),
+        "capacity_pack_selected_required_capacity_fraction_by_direction" =>
+          contact_allocation_capacity_pack_required_fraction_by_direction(selected_rows),
+        "capacity_pack_deferred_required_capacity_fraction_by_direction" =>
+          contact_allocation_capacity_pack_required_fraction_by_direction(deferred_rows)
+      })
+    end
+  end
+
+  defp put_contact_allocation_capacity_pack_direction_summary(group), do: group
+
+  defp contact_allocation_capacity_pack_contact_directions(%{} = group, rows) do
+    fallback_direction =
+      cond do
+        is_binary(group["direction"]) ->
+          group["direction"]
+
+        match?([direction] when is_binary(direction), List.wrap(group["directions"])) ->
+          List.first(group["directions"])
+
+        true ->
+          nil
+      end
+
+    group_candidate_directions =
+      group
+      |> Map.get("source_contact_candidates", [])
+      |> contact_allocation_capacity_pack_candidate_directions()
+
+    recommendation_candidate_directions =
+      group
+      |> get_in(["source_contention_recommendation", "source_contact_candidates"])
+      |> contact_allocation_capacity_pack_candidate_directions()
+
+    row_directions =
+      rows
+      |> Enum.filter(&(is_binary(&1["contact_id"]) and is_binary(&1["direction"])))
+      |> Map.new(&{&1["contact_id"], &1["direction"]})
+
+    fallback_directions =
+      rows
+      |> Enum.filter(&(is_binary(&1["contact_id"]) and is_binary(fallback_direction)))
+      |> Map.new(&{&1["contact_id"], fallback_direction})
+
+    fallback_directions
+    |> Map.merge(group_candidate_directions)
+    |> Map.merge(recommendation_candidate_directions)
+    |> Map.merge(row_directions)
+  end
+
+  defp contact_allocation_capacity_pack_candidate_directions(candidates) do
+    candidates
+    |> List.wrap()
+    |> Enum.filter(&is_map/1)
+    |> Enum.map(&stringify_keys/1)
+    |> Enum.filter(&(is_binary(&1["id"]) and is_binary(&1["direction"])))
+    |> Map.new(&{&1["id"], &1["direction"]})
+  end
+
+  defp contact_allocation_capacity_pack_contact_ids_by_direction(rows) do
+    rows
+    |> Enum.group_by(& &1["direction"], & &1["contact_id"])
+    |> Map.new(fn {direction, contact_ids} ->
+      {direction, contact_ids |> Enum.uniq() |> Enum.sort()}
+    end)
+  end
+
+  defp contact_allocation_capacity_pack_required_fraction_by_direction(rows) do
+    rows
+    |> Enum.reduce(%{}, fn row, acc ->
+      case {row["direction"], row["required_capacity_fraction"]} do
+        {direction, fraction} when is_binary(direction) and is_number(fraction) ->
+          Map.update(acc, direction, fraction, &(&1 + fraction))
+
+        _row_without_fraction ->
+          acc
+      end
+    end)
+    |> Map.new(fn {direction, fraction} -> {direction, Float.round(fraction, 10)} end)
   end
 
   defp contact_allocation_capacity_pack_reason(%{

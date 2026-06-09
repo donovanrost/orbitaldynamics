@@ -7177,7 +7177,34 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              "required_operator_action" => "review_contact_allocation_capacity_pack",
              "contention_group_id" => "capacity_pack:equator_prime:downlink:100_160",
              "capacity_packed_contact_ids" => ["dl_capacity_secondary"],
+             "capacity_pack_contact_ids_by_direction" => %{
+               "downlink" => [
+                 "dl_capacity_overflow",
+                 "dl_capacity_primary",
+                 "dl_capacity_secondary"
+               ]
+             },
+             "capacity_pack_selected_contact_ids_by_direction" => %{
+               "downlink" => ["dl_capacity_primary", "dl_capacity_secondary"]
+             },
+             "capacity_pack_deferred_contact_ids_by_direction" => %{
+               "downlink" => ["dl_capacity_overflow"]
+             },
+             "capacity_pack_required_capacity_fraction_by_direction" => %{"downlink" => 0.75},
+             "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.5
+             },
+             "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.25
+             },
              "source_contact_allocation_capacity_pack" => %{
+               "capacity_pack_contact_ids_by_direction" => %{
+                 "downlink" => [
+                   "dl_capacity_overflow",
+                   "dl_capacity_primary",
+                   "dl_capacity_secondary"
+                 ]
+               },
                "source_contact_allocation_summary" => %{
                  "schema_contract" => "contact_allocation_capacity_pack_summary.v1",
                  "model" => "artifact_only_contact_allocation_capacity_pack_summary"
@@ -19383,8 +19410,35 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              "selected_contact_ids" => ["dl_capacity_primary"],
              "capacity_packed_contact_ids" => ["dl_capacity_secondary"],
              "deferred_contact_ids" => ["dl_capacity_overflow"],
+             "capacity_pack_contact_ids_by_direction" => %{
+               "downlink" => [
+                 "dl_capacity_overflow",
+                 "dl_capacity_primary",
+                 "dl_capacity_secondary"
+               ]
+             },
+             "capacity_pack_selected_contact_ids_by_direction" => %{
+               "downlink" => ["dl_capacity_primary", "dl_capacity_secondary"]
+             },
+             "capacity_pack_deferred_contact_ids_by_direction" => %{
+               "downlink" => ["dl_capacity_overflow"]
+             },
+             "capacity_pack_required_capacity_fraction_by_direction" => %{"downlink" => 0.75},
+             "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.5
+             },
+             "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.25
+             },
              "source_contact_allocation_capacity_pack" => %{
-               "contention_group_id" => "station:equator_prime:contention:1"
+               "contention_group_id" => "station:equator_prime:contention:1",
+               "capacity_pack_contact_ids_by_direction" => %{
+                 "downlink" => [
+                   "dl_capacity_overflow",
+                   "dl_capacity_primary",
+                   "dl_capacity_secondary"
+                 ]
+               }
              }
            } =
              Enum.find(
@@ -19436,6 +19490,29 @@ defmodule OrbitalDynamics.OperatorReviewTest do
              &(&1["path"] =~ ~r/^\$\.rows\[\d+\]\.capacity_fraction$/ and
                  &1["message"] ==
                    "must match source_contact_allocation_capacity_pack.capacity_fraction")
+           )
+
+    invalid_direction_map_package =
+      update_in(package, ["rows"], fn rows ->
+        Enum.map(rows, fn
+          %{"review_type" => "contact_allocation_capacity_pack_review"} = row ->
+            Map.put(row, "capacity_pack_selected_contact_ids_by_direction", %{
+              "downlink" => ["dl_capacity_primary"]
+            })
+
+          row ->
+            row
+        end)
+      end)
+
+    assert {:error, report} = Schema.validate_artifact(invalid_direction_map_package)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] =~
+                 ~r/^\$\.rows\[\d+\]\.capacity_pack_selected_contact_ids_by_direction$/ and
+                 &1["message"] ==
+                   "must match source_contact_allocation_capacity_pack.capacity_pack_selected_contact_ids_by_direction")
            )
   end
 

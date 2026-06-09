@@ -1074,8 +1074,8 @@ direct `source_contact_allocation_report` / `contact_allocation_report` rows and
 reduced-capacity pack groups into `contact_allocation_review` and
 `contact_allocation_capacity_pack_review` rows, preserving source paths,
 allocation status/reason, station/resource/capacity evidence, source row
-payloads, and allocation summary counts without selecting contacts or mutating
-allocations.
+payloads, allocation summary counts, and reduced-capacity pack direction
+routing maps without selecting contacts or mutating allocations.
 Direct/list and result-artifact-wrapped `source_contact_allocation_summary` /
 `contact_allocation_summary` inputs lift through the same OperatorReview and
 CadenceImport handoff. Their validated compact
