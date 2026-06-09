@@ -470,6 +470,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
     assert model_limits == LinkCapacity.capabilities().relay_data_path_model_limits
     assert OrbitalDynamics.relay_data_path_summary(routes, source: "relay_ops") == summary
     assert LinkCapacity.relay_data_path_summary(summary) == summary
+    assert read_json!("study_results/relay_data_path_summary_v1.json") == summary
 
     assert {:ok, %{"schema_contract" => "relay_data_path_summary.v1"}} =
              Schema.validate_artifact(summary)
