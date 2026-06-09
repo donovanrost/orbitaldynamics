@@ -1581,6 +1581,11 @@ Selected recommendations also include:
   provider-counteroffer risks into `provider_counteroffer_pressure_penalty`,
   leaving `risk_penalty` for unrelated risks while preserving total branch score
   compatibility.
+- **Validation/refresh governance pressure score terms** — split
+  schema-validation, model-acceptance, validation-safety-case, freshness, and
+  refresh-budget risks into `validation_refresh_pressure_penalty`, leaving
+  `risk_penalty` for unrelated risks while preserving total branch score
+  compatibility.
 - **`operational_readiness_pressure` explanation rows** — preserve the selected
   branch's readiness report, source artifact, readiness/import/status counts,
   gate ID/status/classification/reason, required operator action, feedback

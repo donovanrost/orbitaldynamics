@@ -2849,12 +2849,15 @@ defmodule OrbitalDynamics.CampaignPlanner do
     provider_counteroffer_pressure_count =
       provider_counteroffer_pressure_risk_count(risk_indicators)
 
+    validation_refresh_pressure_count =
+      validation_refresh_pressure_risk_count(risk_indicators)
+
     generic_risk_count =
       max(
         risk_count - contact_allocation_pressure_count - approval_boundary_pressure_count -
           timeline_pressure_count - storage_downlink_pressure_count -
           station_calendar_pressure_count - candidate_rejection_pressure_count -
-          provider_counteroffer_pressure_count,
+          provider_counteroffer_pressure_count - validation_refresh_pressure_count,
         0
       )
 
@@ -2909,6 +2912,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     provider_counteroffer_pressure_penalty =
       -provider_counteroffer_pressure_count * policy.risk_weight
 
+    validation_refresh_pressure_penalty =
+      -validation_refresh_pressure_count * policy.risk_weight
+
     risk_penalty = -generic_risk_count * policy.risk_weight
     approval_load_penalty = -approval_count * policy.approval_load_weight
 
@@ -2920,7 +2926,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         approval_boundary_pressure_penalty + timeline_pressure_penalty +
         storage_downlink_pressure_penalty + station_calendar_pressure_penalty +
         candidate_rejection_pressure_penalty + provider_counteroffer_pressure_penalty +
-        risk_penalty + approval_load_penalty
+        validation_refresh_pressure_penalty + risk_penalty + approval_load_penalty
 
     probability = Map.get(branch, "probability", 1.0)
     expected_score = raw_score * probability * policy.probability_weight
@@ -2944,6 +2950,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "station_calendar_pressure_penalty" => station_calendar_pressure_penalty,
       "candidate_rejection_pressure_penalty" => candidate_rejection_pressure_penalty,
       "provider_counteroffer_pressure_penalty" => provider_counteroffer_pressure_penalty,
+      "validation_refresh_pressure_penalty" => validation_refresh_pressure_penalty,
       "risk_penalty" => risk_penalty,
       "approval_load_penalty" => approval_load_penalty,
       "raw_score" => raw_score,
@@ -3053,6 +3060,32 @@ defmodule OrbitalDynamics.CampaignPlanner do
     do: true
 
   defp provider_counteroffer_pressure_risk?(_risk), do: false
+
+  defp validation_refresh_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &validation_refresh_pressure_risk?/1)
+  end
+
+  defp validation_refresh_pressure_risk?(%{"feedback_scope" => scope})
+       when scope in [
+              "schema_validation",
+              "model_acceptance",
+              "validation_safety_case",
+              "refresh_budget",
+              "refresh_freshness"
+            ],
+       do: true
+
+  defp validation_refresh_pressure_risk?(%{"type" => type})
+       when type in [
+              "schema_validation_pressure",
+              "model_acceptance_pressure",
+              "validation_safety_case_pressure",
+              "refresh_budget_pressure",
+              "refresh_freshness_pressure"
+            ],
+       do: true
+
+  defp validation_refresh_pressure_risk?(_risk), do: false
 
   defp branch_risk_indicators(
          branch,
@@ -3343,6 +3376,26 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "type" => "quality_gate_pressure",
         "severity" => readiness_pressure_risk_severity(event),
         "reason" => event["gate_reason"] || "quality gate pressure requires review before import"
+      })
+      |> compact_map()
+    ]
+  end
+
+  defp event_risk_indicators(%{"type" => type} = event)
+       when type in [
+              "schema_validation_pressure",
+              "model_acceptance_pressure",
+              "validation_safety_case_pressure",
+              "refresh_budget_pressure",
+              "refresh_freshness_pressure"
+            ] do
+    [
+      event
+      |> Map.take(validation_refresh_pressure_risk_fields())
+      |> Map.merge(%{
+        "type" => type,
+        "severity" => validation_refresh_pressure_risk_severity(event),
+        "reason" => validation_refresh_pressure_risk_reason(event)
       })
       |> compact_map()
     ]
@@ -4210,6 +4263,120 @@ defmodule OrbitalDynamics.CampaignPlanner do
     end
   end
 
+  defp validation_refresh_pressure_risk_severity(event) do
+    high_values = [
+      "blocked",
+      "fail",
+      "error",
+      "invalid",
+      "review_blocked_validation_safety_case"
+    ]
+
+    if Enum.any?(
+         [
+           event["validation_status"],
+           event["issue_severity"],
+           event["model_acceptance_status"],
+           event["model_status"],
+           event["validation_safety_case_status"],
+           event["evidence_status"],
+           event["freshness_status"],
+           event["state_quality_status"],
+           event["refresh_budget_status"],
+           event["candidate_limit_status"],
+           event["required_operator_action"]
+         ],
+         &(&1 in high_values)
+       ) do
+      "high"
+    else
+      "medium"
+    end
+  end
+
+  defp validation_refresh_pressure_risk_reason(%{"type" => "schema_validation_pressure"} = event) do
+    "schema validation #{event["validated_contract"] || event["validated_artifact_family"] || "artifact"} requires review"
+  end
+
+  defp validation_refresh_pressure_risk_reason(%{"type" => "model_acceptance_pressure"} = event) do
+    "model acceptance #{event["model_id"] || event["report_id"] || "report"} requires review"
+  end
+
+  defp validation_refresh_pressure_risk_reason(
+         %{"type" => "validation_safety_case_pressure"} = event
+       ) do
+    "validation safety case #{event["evidence_ref"] || event["report_id"] || "summary"} requires review"
+  end
+
+  defp validation_refresh_pressure_risk_reason(%{"type" => "refresh_budget_pressure"} = event) do
+    "refresh budget #{event["feedback_key"] || event["candidate_limit_status"] || "report"} requires review"
+  end
+
+  defp validation_refresh_pressure_risk_reason(%{"type" => "refresh_freshness_pressure"} = event) do
+    "refresh freshness #{event["freshness_status"] || event["state_quality_status"] || "report"} requires review"
+  end
+
+  defp validation_refresh_pressure_risk_reason(_event),
+    do: "validation or refresh-governance pressure requires review"
+
+  defp validation_refresh_pressure_risk_fields do
+    [
+      "report_id",
+      "validation_status",
+      "validation_mode",
+      "validated_contract",
+      "validated_artifact_family",
+      "artifact_path",
+      "issue_severity",
+      "issue_path",
+      "error_count",
+      "warning_count",
+      "remediation_count",
+      "remediation_category",
+      "remediation_action",
+      "intended_use",
+      "model_acceptance_status",
+      "model_id",
+      "model_status",
+      "validation_level",
+      "validation_safety_case_status",
+      "evidence_status",
+      "input_contract",
+      "input_contracts",
+      "evidence_ref",
+      "evidence_count",
+      "accepted_evidence_count",
+      "review_required_evidence_count",
+      "blocked_evidence_count",
+      "model_blocked_count",
+      "quality_gate_review_count",
+      "quality_gate_blocked_count",
+      "schema_error_count",
+      "schema_warning_count",
+      "freshness_status",
+      "state_quality_status",
+      "accepted_snapshot_age_s",
+      "horizon_start_offset_s",
+      "max_snapshot_age_s",
+      "max_horizon_start_offset_s",
+      "stale_reasons",
+      "unknown_reasons",
+      "input_candidate_count",
+      "kept_candidate_count",
+      "dropped_candidate_count",
+      "invalid_limit_count",
+      "current_max_candidate_activities",
+      "relaxed_max_candidate_activities",
+      "candidate_limit_status",
+      "refresh_budget_status",
+      "required_operator_action",
+      "feedback_source",
+      "feedback_scope",
+      "feedback_key",
+      "trust_boundary"
+    ]
+  end
+
   defp operational_readiness_pressure_risk_fields do
     [
       "report_id",
@@ -4584,7 +4751,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"storage_downlink_pressure", "storage_downlink_pressure_penalty"},
         {"station_calendar_pressure", "station_calendar_pressure_penalty"},
         {"candidate_rejection_pressure", "candidate_rejection_pressure_penalty"},
-        {"provider_counteroffer_pressure", "provider_counteroffer_pressure_penalty"}
+        {"provider_counteroffer_pressure", "provider_counteroffer_pressure_penalty"},
+        {"validation_refresh_pressure", "validation_refresh_pressure_penalty"}
       ]) ++
       [
         %{

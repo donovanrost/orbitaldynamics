@@ -42924,6 +42924,32 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              ["assumptions", "candidate_source", "source_report_input_paths"]
            )
 
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    validation_refresh_pressure_count =
+      Enum.count(
+        schema_branch["risk_indicators"],
+        &(&1["feedback_scope"] == "schema_validation")
+      )
+
+    assert validation_refresh_pressure_count > 0
+
+    assert schema_branch["score_terms"]["validation_refresh_pressure_penalty"] ==
+             -validation_refresh_pressure_count * risk_weight
+
+    assert schema_branch["score_terms"]["risk_penalty"] ==
+             -(length(schema_branch["risk_indicators"]) - validation_refresh_pressure_count) *
+               risk_weight
+
+    assert "validation_refresh_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["term_key"] == "validation_refresh_pressure_penalty" and &1["value"] < 0.0)
+           )
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
@@ -45318,6 +45344,23 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              ]
            )
 
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    validation_refresh_pressure_count =
+      Enum.count(
+        model_branch["risk_indicators"],
+        &(&1["feedback_scope"] == "model_acceptance")
+      )
+
+    assert validation_refresh_pressure_count > 0
+
+    assert model_branch["score_terms"]["validation_refresh_pressure_penalty"] ==
+             -validation_refresh_pressure_count * risk_weight
+
+    assert model_branch["score_terms"]["risk_penalty"] ==
+             -(length(model_branch["risk_indicators"]) - validation_refresh_pressure_count) *
+               risk_weight
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
 
@@ -45512,6 +45555,24 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            } = validation_safety_case_replay_summary
 
     assert "mission_state.source_validation_safety_case_summary" in validation_safety_case_source_paths
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    validation_refresh_pressure_count =
+      Enum.count(
+        safety_case_branch["risk_indicators"],
+        &(&1["feedback_scope"] == "validation_safety_case")
+      )
+
+    assert validation_refresh_pressure_count > 0
+
+    assert safety_case_branch["score_terms"]["validation_refresh_pressure_penalty"] ==
+             -validation_refresh_pressure_count * risk_weight
+
+    assert safety_case_branch["score_terms"]["risk_penalty"] ==
+             -(length(safety_case_branch["risk_indicators"]) -
+                 validation_refresh_pressure_count) *
+               risk_weight
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
@@ -45841,6 +45902,38 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              budget_branch,
              ["assumptions", "candidate_source", "source_report_input_paths"]
            )
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    freshness_pressure_count =
+      Enum.count(
+        freshness_branch["risk_indicators"],
+        &(&1["feedback_scope"] == "refresh_freshness")
+      )
+
+    assert freshness_pressure_count > 0
+
+    assert freshness_branch["score_terms"]["validation_refresh_pressure_penalty"] ==
+             -freshness_pressure_count * risk_weight
+
+    assert freshness_branch["score_terms"]["risk_penalty"] ==
+             -(length(freshness_branch["risk_indicators"]) - freshness_pressure_count) *
+               risk_weight
+
+    budget_pressure_count =
+      Enum.count(
+        budget_branch["risk_indicators"],
+        &(&1["feedback_scope"] == "refresh_budget")
+      )
+
+    assert budget_pressure_count > 0
+
+    assert budget_branch["score_terms"]["validation_refresh_pressure_penalty"] ==
+             -budget_pressure_count * risk_weight
+
+    assert budget_branch["score_terms"]["risk_penalty"] ==
+             -(length(budget_branch["risk_indicators"]) - budget_pressure_count) *
+               risk_weight
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
