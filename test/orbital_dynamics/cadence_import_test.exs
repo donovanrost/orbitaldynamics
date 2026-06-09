@@ -14005,6 +14005,41 @@ defmodule OrbitalDynamics.CadenceImportTest do
                  "$.rows[0].source_review_row.source_timeline_publication_summary.publication_status")
            )
 
+    stale_summary =
+      Timeline.publication_summary(
+        %{
+          "schema_contract" => "operational_timeline_report.v1",
+          "id" => "timeline:published_plan:stale"
+        },
+        publication_sequence: 8,
+        publication_authority: :mission_operations,
+        supersedes_artifact_ids: ["timeline:published_plan:v0"],
+        downstream_product_ids: ["operator_review:plan:v1", "cadence_import:plan:v1"],
+        dependency_impact_summary: dependency_impact,
+        timeline_diff_summary: timeline_diff_summary
+      )
+
+    stale_nested_source_publication =
+      update_in(manifest, ["rows"], fn [row] ->
+        stale_source_review_row =
+          row["source_review_row"]
+          |> Map.merge(Map.take(stale_summary, Map.keys(row)))
+          |> Map.put("source_timeline_publication_summary", stale_summary)
+
+        [Map.put(row, "source_review_row", stale_source_review_row)]
+      end)
+
+    assert {:error, stale_nested_source_publication_report} =
+             Schema.validate_artifact(stale_nested_source_publication)
+
+    assert Enum.any?(
+             stale_nested_source_publication_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_review_row.source_timeline_publication_summary" and
+                 &1["message"] ==
+                   "must match source_timeline_publication_summary on Cadence import row")
+           )
+
     assert OrbitalDynamics.cadence_import_manifest(summary) == manifest
 
     assert OrbitalDynamics.cadence_import_manifest(Map.delete(summary, "schema_contract")) ==

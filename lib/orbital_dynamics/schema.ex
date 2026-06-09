@@ -61399,6 +61399,7 @@ defmodule OrbitalDynamics.Schema do
     |> validate_cadence_source_review_plan_delta_handoff_matches(path, row)
     |> validate_cadence_source_review_warning_handoff_matches(path, row)
     |> validate_cadence_source_review_timeline_dependency_impact_handoff_matches(path, row)
+    |> validate_cadence_source_review_timeline_publication_handoff_matches(path, row)
     |> validate_cadence_source_review_timeline_activity_precondition_handoff_matches(path, row)
     |> validate_cadence_source_review_timeline_lifecycle_state_handoff_matches(path, row)
     |> validate_cadence_source_review_timeline_preservation_handoff_matches(path, row)
@@ -64128,6 +64129,37 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_cadence_source_review_timeline_protection_handoff_matches(issues, _path, _row),
     do: issues
+
+  defp validate_cadence_source_review_timeline_publication_handoff_matches(
+         issues,
+         path,
+         %{"source_review_row" => %{} = source_review_row} = row
+       ) do
+    if timeline_publication_handoff_row?(row) do
+      validate_cadence_source_review_handoff_matches(
+        issues,
+        path,
+        row,
+        source_review_row,
+        [{"source_timeline_publication_summary", "source_timeline_publication_summary"}]
+      )
+    else
+      issues
+    end
+  end
+
+  defp validate_cadence_source_review_timeline_publication_handoff_matches(
+         issues,
+         _path,
+         _row
+       ),
+       do: issues
+
+  defp timeline_publication_handoff_row?(row) do
+    Map.get(row, "review_type") == "timeline_publication_review" or
+      Map.get(row, "source_review_type") == "timeline_publication_review" or
+      Map.get(row, "import_action") == "review_timeline_publication"
+  end
 
   defp validate_cadence_source_review_timeline_dependency_impact_handoff_matches(
          issues,
