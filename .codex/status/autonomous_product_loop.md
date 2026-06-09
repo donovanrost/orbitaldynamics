@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Pin checked-in timeline activity-state fixtures to public facades.
+Pin lifecycle-summary operator-action aggregate challenge guards.
 
 Status:
 Completed and pushed.
@@ -13,37 +13,33 @@ Completed and pushed.
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `docs/artifacts/compatibility_checks.md`
-- `study_results/timeline_lifecycle_state_summary_v1.json`
+- `lib/orbital_dynamics/validation.ex`
+- `test/orbital_dynamics/schema_test.exs`
 - `test/orbital_dynamics/validation_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/validation_test.exs:9043 test/orbital_dynamics/validation_test.exs:9102 test/orbital_dynamics/validation_test.exs:9171 test/orbital_dynamics/validation_test.exs:9243 test/orbital_dynamics/validation_test.exs:9311 test/orbital_dynamics/schema_test.exs:10235 test/orbital_dynamics/schema_test.exs:10501 test/orbital_dynamics/schema_test.exs:10634 test/orbital_dynamics/schema_test.exs:10782 test/orbital_dynamics/schema_test.exs:11190`
+- `mix test test/orbital_dynamics/schema_test.exs:11190 test/orbital_dynamics/validation_test.exs:9311`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-Validation-reference tests now exact-regenerate the checked-in
-timeline-activity state, approval-state, status-state, lifecycle-state, and
-lifecycle-state summary fixtures through the public
-`OrbitalDynamics.timeline_activity_*` and
-`OrbitalDynamics.timeline_lifecycle_state_summary/3` facades before checking
-curated observations. The checked-in lifecycle-state summary fixture was
-refreshed with current facade-derived operator-action reason counts and
-review-timeline routing by operator-action reason. Compatibility docs now state
-that validation-reference and schema-reference coverage pin the same public
-facade generation paths.
+Validation-reference observations for `timeline_lifecycle_state_summary.v1` now
+include operator-action reason count/routing aggregates and row-derived
+counterparts. Schema tests reject stale operator-action reason count and
+review-routing aggregates, validation-reference tests reject stale row-derived
+observations for the same fields, and compatibility docs record the challenge
+coverage.
 
 Local review:
-Parent review confirmed staged scope, public-facade helper inputs, focused
-validation/schema coverage, regenerated fixture drift, and docs. `.gitignore`
-remains unrelated and unstaged.
+Parent review confirmed staged scope, observation expansion, schema challenge
+assertions, validation-reference stale-observation checks, docs, and focused
+verification. `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Checked-in timeline activity-state review/import evidence is now pinned to
-public facade generation at both validation-reference and schema-reference
-levels, reducing schema-valid fixture drift risk for Cadence-facing activity
-handoffs.
+Lifecycle-state summary review/import evidence now has explicit challenge
+guards for operator-action reason aggregates, reducing stale-but-plausible
+aggregate drift risk for compact lifecycle handoffs.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -53,7 +49,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`fa7e5e1` Pin timeline activity-state fixtures.
+`ddac705` Pin lifecycle summary aggregate guards.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -66,6 +62,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `ddac705` pinned lifecycle-summary operator-action reason aggregate challenge
+  guards in schema and validation-reference coverage.
 - `fa7e5e1` pinned checked-in timeline activity-state fixtures to public facade
   regeneration in validation-reference coverage and refreshed lifecycle-summary
   operator-action reason aggregates.
