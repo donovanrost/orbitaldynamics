@@ -4867,6 +4867,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
     evidence_statuses = replay_summary |> Map.get("evidence_status_counts", %{}) |> map_keys()
     input_contracts = replay_summary |> Map.get("input_contract_counts", %{}) |> map_keys()
 
+    pressure_statuses =
+      if Enum.any?(safety_case_statuses, &(&1 in ["blocked", "review_required"])) do
+        safety_case_statuses
+      else
+        case evidence_statuses do
+          [] -> safety_case_statuses
+          statuses -> statuses
+        end
+      end
+
     evidence_refs =
       [
         replay_summary |> Map.get("evidence_refs_by_status", %{}) |> Map.values(),
@@ -4884,7 +4894,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "type" => "validation_safety_case_pressure",
         "severity" =>
           validation_refresh_pressure_risk_severity(%{
-            "validation_safety_case_status" => pressure_priority_value(safety_case_statuses),
+            "validation_safety_case_status" => pressure_priority_value(pressure_statuses),
             "evidence_status" => pressure_priority_value(evidence_statuses),
             "required_operator_action" =>
               if(blocked?,
@@ -4897,8 +4907,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "source_report_count" => Map.get(replay_summary, "source_report_count"),
         "source_report_row_count" => Map.get(replay_summary, "source_report_row_count"),
         "source_report_paths" => Map.get(replay_summary, "source_report_paths"),
-        "validation_safety_case_status" => pressure_priority_value(safety_case_statuses),
-        "validation_safety_case_statuses" => safety_case_statuses,
+        "validation_safety_case_status" => pressure_priority_value(pressure_statuses),
+        "validation_safety_case_statuses" => pressure_statuses,
         "evidence_status" => pressure_priority_value(evidence_statuses),
         "evidence_statuses" => evidence_statuses,
         "input_contract" => pressure_priority_value(input_contracts),

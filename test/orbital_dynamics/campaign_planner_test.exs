@@ -51892,6 +51892,117 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(replay_artifact)
   end
 
+  test "strategy challenge scores validation safety-case replay from rows when top-level fields are stale" do
+    stale_summary =
+      %{
+        "schema_contract" => "validation_safety_case_summary.v1",
+        "schema_version" => 1,
+        "model" => "artifact_only_validation_safety_case_summary",
+        "report_id" => "validation_safety_case:stale_top_level",
+        "status" => "accepted",
+        "evidence_count" => 1,
+        "accepted_evidence_count" => 1,
+        "review_required_evidence_count" => 0,
+        "blocked_evidence_count" => 0,
+        "schema_error_count" => 0,
+        "schema_warning_count" => 0,
+        "model_blocked_count" => 0,
+        "quality_gate_review_count" => 0,
+        "quality_gate_blocked_count" => 0,
+        "input_contracts" => ["model_acceptance_report.v1", "quality_gate_report.v1"],
+        "evidence_status_counts" => %{"accepted" => 1},
+        "evidence_refs_by_status" => %{
+          "accepted" => ["model_acceptance_report.v1:stale.accepted"]
+        },
+        "evidence_refs_by_contract" => %{
+          "model_acceptance_report.v1" => ["model_acceptance_report.v1:stale.accepted"]
+        },
+        "evidence" => [
+          %{
+            "id" => "row.blocked",
+            "ref" => "model_acceptance_report.v1:row.blocked",
+            "input_contract" => "model_acceptance_report.v1",
+            "status" => "blocked",
+            "model_blocked_count" => 1,
+            "schema_error_count" => 1
+          },
+          %{
+            "id" => "row.review",
+            "ref" => "quality_gate_report.v1:row.review",
+            "input_contract" => "quality_gate_report.v1",
+            "status" => "review_required",
+            "quality_gate_review_count" => 1
+          }
+        ],
+        "assumptions" => %{"stale_top_level_challenge" => true},
+        "model_limits" => ["artifact_only"],
+        "provenance" => %{"trust_boundary" => "stale_safety_case_boundary"}
+      }
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put(:source_validation_safety_case_summary, stale_summary),
+        branches: [
+          %{id: "baseline"},
+          %{
+            id: "urgent",
+            events: [%{type: "urgent_target", target_id: "target_a", priority: 12.0}]
+          }
+        ],
+        current_epoch_s: 0.0
+      )
+
+    urgent = branch(artifact, "urgent")
+
+    assert %{"type" => "candidate_refresh.v1", "scope" => "branch_generated"} =
+             candidate_source = urgent["assumptions"]["candidate_source"]
+
+    assert %{
+             "status_counts" => %{"accepted" => 1},
+             "evidence_status_counts" => %{"blocked" => 1, "review_required" => 1},
+             "input_contract_counts" => %{
+               "model_acceptance_report.v1" => 1,
+               "quality_gate_report.v1" => 1
+             },
+             "review_required_evidence_count" => 1,
+             "blocked_evidence_count" => 1,
+             "model_blocked_count" => 1,
+             "quality_gate_review_count" => 1,
+             "schema_error_count" => 1,
+             "branch_local_review_pressure" => true,
+             "branch_local_blocking_pressure" => true,
+             "branch_local_schema_pressure" => true
+           } = CandidateRefresh.validation_safety_case_replay_summary(candidate_source)
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "validation_safety_case_pressure" and
+                 &1["feedback_source"] ==
+                   "candidate_source.validation_safety_case_replay_summary" and
+                 &1["validation_safety_case_status"] == "blocked" and
+                 &1["evidence_status"] == "blocked" and
+                 &1["status_counts"] == %{
+                   "accepted" => 1
+                 } and
+                 &1["evidence_refs"] == [
+                   "model_acceptance_report.v1:row.blocked",
+                   "quality_gate_report.v1:row.review"
+                 ] and
+                 &1["blocked_evidence_count"] == 1 and
+                 &1["review_required_evidence_count"] == 1 and
+                 &1["model_blocked_count"] == 1 and
+                 &1["quality_gate_review_count"] == 1 and
+                 &1["schema_error_count"] == 1)
+           )
+
+    assert_validation_refresh_pressure_score_terms(urgent, artifact, "validation_safety_case")
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy derives branch refresh from mission-state freshness and refresh budget reports" do
     mission_state =
       mission_state_with_refresh_inputs()
