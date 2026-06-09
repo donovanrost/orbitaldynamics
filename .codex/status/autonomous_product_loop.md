@@ -8,7 +8,7 @@ Current slice:
 Split execution-feedback pressure into an explicit V3 score term.
 
 Status:
-Completed locally; ready to commit and push.
+Completed and pushed in product commit `b6c8c60`.
 
 Slice-selection note:
 - Selected slice: make V3 command-success, maneuver-success, and maneuver
@@ -78,7 +78,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`c0110a9` Split relay data path pressure score term.
+`b6c8c60` Split execution feedback pressure score term.
 
 Next candidate:
 After this score-term split, continue with the next planner-visible
@@ -89,6 +89,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `b6c8c60` split execution-feedback pressure into an explicit V3 score term
+  and recommendation tradeoff dimension.
 - `c0110a9` split relay data-path pressure into an explicit V3 score term and
   recommendation tradeoff dimension.
 - `dba9b34` split validation/refresh governance pressure into an explicit V3
