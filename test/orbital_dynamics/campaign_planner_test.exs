@@ -19295,6 +19295,30 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 }
               },
               %{
+                type: "downlink_completion_gap",
+                scenario_id: "leo_projection_selected",
+                spacecraft_id: "leo_projection_selected",
+                ground_station_id: "polar_prime",
+                required_contacts: 1,
+                planned_contacts: 0,
+                required_downlink_mb: 52.0,
+                planned_downlink_mb: 12.0,
+                starts_at_s: 1_590.0,
+                ends_at_s: 1_650.0,
+                source_activity_id: "obs_projection_pressure",
+                source_activity_ids: ["obs_projection_pressure"],
+                downlink_demand_sources: [
+                  "resource_projection.projected_downlink_shortfall:obs_projection_pressure"
+                ],
+                downlink_completion_sources: [
+                  "resource_projection.projected_downlink_shortfall:obs_projection_pressure"
+                ],
+                derivation_reasons: ["projected_downlink_shortfall"],
+                feedback_source: "mission_state.source_resource_projection_report",
+                feedback_scope: "resource_projection",
+                trust_boundary: "mission_state_resource_projection_report"
+              },
+              %{
                 type: "resource_margin_pressure",
                 spacecraft_id: "leo_1",
                 scenario_id: "leo_1",
@@ -21923,6 +21947,35 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
           "operator_authority" => "not_granted_by_summary",
           "provider_reservation" => "not_performed"
         }
+      ],
+      "resource_projection_pressure_risk_types" => ["downlink_completion_gap"],
+      "resource_projection_pressure_scenario_ids" => ["leo_projection_selected"],
+      "resource_projection_pressure_spacecraft_ids" => ["leo_projection_selected"],
+      "resource_projection_pressure_ground_station_ids" => ["polar_prime"],
+      "resource_projection_pressure_source_activity_ids" => [
+        "obs_projection_pressure"
+      ],
+      "resource_projection_pressure_required_contact_values" => [1],
+      "resource_projection_pressure_planned_contact_values" => [0],
+      "resource_projection_pressure_required_downlink_values_mb" => [52.0],
+      "resource_projection_pressure_planned_downlink_values_mb" => [12.0],
+      "resource_projection_pressure_start_values_s" => [1_590.0],
+      "resource_projection_pressure_end_values_s" => [1_650.0],
+      "resource_projection_pressure_downlink_demand_sources" => [
+        "resource_projection.projected_downlink_shortfall:obs_projection_pressure"
+      ],
+      "resource_projection_pressure_downlink_completion_sources" => [
+        "resource_projection.projected_downlink_shortfall:obs_projection_pressure"
+      ],
+      "resource_projection_pressure_feedback_sources" => [
+        "mission_state.source_resource_projection_report"
+      ],
+      "resource_projection_pressure_feedback_scopes" => ["resource_projection"],
+      "resource_projection_pressure_trust_boundaries" => [
+        "mission_state_resource_projection_report"
+      ],
+      "resource_projection_pressure_derivation_reasons" => [
+        "projected_downlink_shortfall"
       ],
       "resource_margin_risk_types" => ["power_margin_low"],
       "resource_margin_spacecraft_ids" => ["leo_1"],
