@@ -14141,6 +14141,29 @@ defmodule OrbitalDynamics.CadenceImportTest do
              &(&1["path"] ==
                  "$.rows[0].source_review_row.source_timeline_lifecycle_state.timeline_id")
            )
+
+    stale_source_review_lifecycle_state =
+      put_in(
+        manifest,
+        [
+          "rows",
+          Access.at(0),
+          "source_review_row",
+          "source_timeline_lifecycle_state",
+          "timeline_id"
+        ],
+        "timeline:stale_cmd_provider"
+      )
+
+    assert {:error, stale_source_review_lifecycle_state_report} =
+             Schema.validate_artifact(stale_source_review_lifecycle_state)
+
+    assert Enum.any?(
+             stale_source_review_lifecycle_state_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.source_timeline_lifecycle_state" and
+                 &1["message"] ==
+                   "must match source_timeline_lifecycle_state on Cadence import row")
+           )
   end
 
   test "timeline activity precondition summaries become import manifest rows" do
@@ -14870,6 +14893,29 @@ defmodule OrbitalDynamics.CadenceImportTest do
              invalid_nested_source_preservation_report["errors"],
              &(&1["path"] ==
                  "$.rows[0].source_review_row.source_timeline_preservation.activity_id")
+           )
+
+    stale_nested_source_preservation =
+      put_in(
+        manifest,
+        [
+          "rows",
+          Access.at(0),
+          "source_review_row",
+          "source_timeline_preservation",
+          "activity_id"
+        ],
+        "stale_contact_locked"
+      )
+
+    assert {:error, stale_nested_source_preservation_report} =
+             Schema.validate_artifact(stale_nested_source_preservation)
+
+    assert Enum.any?(
+             stale_nested_source_preservation_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.source_timeline_preservation" and
+                 &1["message"] ==
+                   "must match source_timeline_preservation on Cadence import row")
            )
   end
 

@@ -61398,6 +61398,8 @@ defmodule OrbitalDynamics.Schema do
     |> validate_plan_delta_handoff_matches_source(path, row)
     |> validate_cadence_source_review_plan_delta_handoff_matches(path, row)
     |> validate_cadence_source_review_warning_handoff_matches(path, row)
+    |> validate_cadence_source_review_timeline_lifecycle_state_handoff_matches(path, row)
+    |> validate_cadence_source_review_timeline_preservation_handoff_matches(path, row)
     |> validate_cadence_source_review_timeline_protection_handoff_matches(path, row)
     |> validate_cadence_source_review_policy_escalation_handoff_matches(path, row)
     |> validate_cadence_source_review_freshness_handoff_matches(path, row)
@@ -64124,6 +64126,68 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_cadence_source_review_timeline_protection_handoff_matches(issues, _path, _row),
     do: issues
+
+  defp validate_cadence_source_review_timeline_lifecycle_state_handoff_matches(
+         issues,
+         path,
+         %{"source_review_row" => %{} = source_review_row} = row
+       ) do
+    if timeline_lifecycle_state_handoff_row?(row) do
+      validate_cadence_source_review_handoff_matches(
+        issues,
+        path,
+        row,
+        source_review_row,
+        [{"source_timeline_lifecycle_state", "source_timeline_lifecycle_state"}]
+      )
+    else
+      issues
+    end
+  end
+
+  defp validate_cadence_source_review_timeline_lifecycle_state_handoff_matches(
+         issues,
+         _path,
+         _row
+       ),
+       do: issues
+
+  defp timeline_lifecycle_state_handoff_row?(row) do
+    Map.get(row, "review_type") == "timeline_lifecycle_state_review" or
+      Map.get(row, "source_review_type") == "timeline_lifecycle_state_review" or
+      Map.get(row, "import_action") == "review_timeline_lifecycle_state"
+  end
+
+  defp validate_cadence_source_review_timeline_preservation_handoff_matches(
+         issues,
+         path,
+         %{"source_review_row" => %{} = source_review_row} = row
+       ) do
+    if timeline_preservation_handoff_row?(row) do
+      validate_cadence_source_review_handoff_matches(
+        issues,
+        path,
+        row,
+        source_review_row,
+        [{"source_timeline_preservation", "source_timeline_preservation"}]
+      )
+    else
+      issues
+    end
+  end
+
+  defp validate_cadence_source_review_timeline_preservation_handoff_matches(
+         issues,
+         _path,
+         _row
+       ),
+       do: issues
+
+  defp timeline_preservation_handoff_row?(row) do
+    Map.get(row, "review_type") == "timeline_preservation_review" or
+      Map.get(row, "source_review_type") == "timeline_preservation_review" or
+      Map.get(row, "import_action") == "review_timeline_preservation"
+  end
 
   defp timeline_protection_handoff_row?(row) do
     Map.get(row, "review_type") == "timeline_protection" or
