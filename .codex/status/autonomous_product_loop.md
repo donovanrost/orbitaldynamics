@@ -8,7 +8,7 @@ Current slice:
 Harden provider-counteroffer pressure score helper evidence.
 
 Status:
-Implemented and verified locally; ready for mechanical commit/push handoff.
+Completed and pushed in product commit `64bab3a`.
 
 Slice-selection note:
 - Selected slice: add a shared provider-counteroffer pressure score helper and
@@ -75,8 +75,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-Pending mechanical publish for this slice; previous product commit was
-`c4cd687` Harden candidate rejection pressure helper.
+`64bab3a` Harden provider counteroffer pressure helper.
 
 Next candidate:
 After this provider-counteroffer helper hardening, continue with
@@ -88,6 +87,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `64bab3a` hardened shared provider-counteroffer pressure helper coverage for
+  split branch math and score-term report rows.
 - `c4cd687` hardened shared candidate-rejection pressure helper coverage for
   split branch math and score-term report rows.
 - `799450e` hardened shared storage/downlink pressure helper coverage for split
