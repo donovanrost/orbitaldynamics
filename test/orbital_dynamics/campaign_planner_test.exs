@@ -34032,6 +34032,46 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "source_wrapped_transition_application_row_boundary"
            ]
 
+    transition_application_pressure_count =
+      Enum.count(
+        urgent["risk_indicators"],
+        &(&1["type"] == "timeline_transition_application_pressure" and
+            &1["feedback_source"] ==
+              "candidate_source.timeline_transition_application_replay_summary")
+      )
+
+    assert transition_application_pressure_count == 1
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "timeline_transition_application_pressure" and
+                 &1["selected_activity_ids"] == [
+                   "canonical_selected_activity",
+                   "direct_selected_activity"
+                 ] and
+                 &1["review_activity_ids"] == [] and
+                 &1["review_required_count"] == 2 and
+                 &1["withheld_review_count"] == 2 and
+                 &1["duplicate_timeline_identity_count"] == 2 and
+                 &1["feedback_scope"] == "timeline_transition_application")
+           )
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    assert urgent["score_terms"]["timeline_transition_application_pressure_penalty"] ==
+             -transition_application_pressure_count * risk_weight
+
+    assert "timeline_transition_application_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == urgent["branch_id"] and
+                 &1["term_key"] == "timeline_transition_application_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end

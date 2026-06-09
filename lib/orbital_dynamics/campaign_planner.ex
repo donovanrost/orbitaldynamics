@@ -3703,6 +3703,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     publication_replay =
       CandidateRefresh.timeline_publication_replay_summary(candidate_source)
 
+    transition_application_replay =
+      CandidateRefresh.timeline_transition_application_replay_summary(candidate_source)
+
     []
     |> maybe_add_candidate_source_contact_allocation_risks(contact_allocation_replay, event_risks)
     |> maybe_add_candidate_source_operational_readiness_risks(
@@ -3716,6 +3719,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
     )
     |> maybe_add_candidate_source_timeline_lifecycle_risks(lifecycle_replay, event_risks)
     |> maybe_add_candidate_source_timeline_publication_risks(publication_replay, event_risks)
+    |> maybe_add_candidate_source_timeline_transition_application_risks(
+      transition_application_replay,
+      event_risks
+    )
   end
 
   defp candidate_source_risk_indicators(_candidate_source, _event_risks), do: []
@@ -3775,6 +3782,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
       risks
     else
       risks ++ timeline_publication_replay_pressure_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_timeline_transition_application_risks(
+         risks,
+         replay_summary,
+         event_risks
+       ) do
+    if Enum.any?(event_risks, &timeline_transition_application_pressure_risk?/1) do
+      risks
+    else
+      risks ++ timeline_transition_application_replay_pressure_risks(replay_summary)
     end
   end
 
@@ -4220,6 +4239,63 @@ defmodule OrbitalDynamics.CampaignPlanner do
         |> Enum.sort()
     end
   end
+
+  defp timeline_transition_application_replay_pressure_risks(
+         %{"branch_local_timeline_transition_application_pressure" => true} = replay_summary
+       ) do
+    selected_activity_ids =
+      replay_summary
+      |> Map.get("selected_activity_id_counts", %{})
+      |> map_keys()
+
+    review_activity_ids =
+      replay_summary
+      |> Map.get("review_activity_id_counts", %{})
+      |> map_keys()
+
+    required_operator_actions =
+      replay_summary
+      |> Map.get("required_operator_action_counts", %{})
+      |> Map.delete("none")
+      |> map_keys()
+
+    [
+      %{
+        "type" => "timeline_transition_application_pressure",
+        "severity" => "high",
+        "reason" =>
+          "candidate source timeline transition-application replay reports selected, review, withhold, preserved, or duplicate-identity pressure",
+        "source_report_count" => Map.get(replay_summary, "source_report_count"),
+        "source_application_count" => Map.get(replay_summary, "source_application_count"),
+        "selected_activity_count" => Map.get(replay_summary, "selected_activity_count"),
+        "selected_activity_ids" => selected_activity_ids,
+        "review_activity_ids" => review_activity_ids,
+        "review_required_count" => Map.get(replay_summary, "review_required_count"),
+        "preserved_source_count" => Map.get(replay_summary, "preserved_source_count"),
+        "recorded_replacement_count" => Map.get(replay_summary, "recorded_replacement_count"),
+        "withheld_review_count" => Map.get(replay_summary, "withheld_review_count"),
+        "duplicate_timeline_identity_count" =>
+          Map.get(replay_summary, "duplicate_timeline_identity_count"),
+        "duplicate_source_timeline_identity_count" =>
+          Map.get(replay_summary, "duplicate_source_timeline_identity_count"),
+        "duplicate_replacement_timeline_identity_count" =>
+          Map.get(replay_summary, "duplicate_replacement_timeline_identity_count"),
+        "application_status_counts" => Map.get(replay_summary, "application_status_counts"),
+        "transition_decision_counts" => Map.get(replay_summary, "transition_decision_counts"),
+        "required_operator_action_counts" =>
+          Map.get(replay_summary, "required_operator_action_counts"),
+        "required_operator_actions" => required_operator_actions,
+        "duplicate_timeline_identity_scope_counts" =>
+          Map.get(replay_summary, "duplicate_timeline_identity_scope_counts"),
+        "feedback_source" => "candidate_source.timeline_transition_application_replay_summary",
+        "feedback_scope" => "timeline_transition_application",
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries")
+      }
+      |> compact_map()
+    ]
+  end
+
+  defp timeline_transition_application_replay_pressure_risks(_replay_summary), do: []
 
   defp resource_projection_risk_indicators(%{"projected_resources" => rows}) when is_list(rows) do
     rows
