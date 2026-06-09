@@ -9,7 +9,7 @@ Preserve suppressed reservation routing through CandidateRefresh precedence
 summary replay.
 
 Status:
-Completed locally; pending commit/push.
+Completed and pushed in product commit `91b7f03`.
 
 Slice-selection note:
 - Selected slice: CandidateRefresh should preserve the new
@@ -83,18 +83,20 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`7b80988` Preserve station precedence reservation routing.
+`91b7f03` Preserve precedence routing in CandidateRefresh.
 
 Next candidate:
-After this slice, continue with planner-visible resource/contact/readiness
-evidence that affects V2/V3 branch scoring or candidate-refresh provenance, or
-move to the next highest guide item after a fresh status check.
+Continue with planner-visible resource/contact/readiness evidence that affects
+V2/V3 branch scoring or candidate-refresh provenance, or move to the next
+highest guide item after a fresh status check.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 
 Previous published slices:
+- `91b7f03` preserved compact station-calendar precedence reservation routing
+  through CandidateRefresh source-report and replay summaries.
 - `7b80988` preserved suppressed reservation ID/status/owner routing in
   station-calendar precedence summaries.
 - `630bb44` split storage/downlink pressure into an explicit V3 score term.
