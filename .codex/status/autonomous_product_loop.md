@@ -5,59 +5,67 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Apply quality-gate pressure helper to prior-plan branch evidence.
+Harden contact-allocation pressure score helper evidence.
 
 Status:
-Completed and pushed in product commit `32bb1cf`.
+Implemented and verified locally; ready for mechanical commit/push handoff.
 
 Slice-selection note:
-- Selected slice: route the prior-plan direct and wrapped quality-gate pressure
-  branches through the existing shared quality-gate pressure score helper so
-  `quality_gate_pressure_penalty` is proven in branch math and score-term
-  report rows for both source paths.
-- Why this slice: after the readiness helper pass, the same prior-plan fixture
-  still leaves quality-gate pressure score checks partly ad hoc and does not
-  helper-check the wrapped quality-gate branch.
+- Selected slice: add a shared contact-allocation pressure score helper and use
+  it in focused contact-allocation/provider-reservation pressure fixtures so
+  `contact_allocation_pressure_penalty` is proven in branch math and
+  score-term report rows.
+- Why this slice: contact-allocation pressure tests already assert the right
+  score math and report rows, but the assertions are duplicated across direct,
+  capacity-pack, and provider-reservation branches.
 - Level 6 pillar: validation, compatibility, and challenge fixtures for unsafe
   but plausible inputs; reproducible V3 branch score explanations.
-- Current evidence gap: prior-plan quality-gate branches can drift away from
-  the shared helper evidence expected by downstream V3 review/import score
-  explanations.
+- Current evidence gap: contact-allocation score-term fixtures can drift apart
+  because branch score math, split risk penalty, score-term key, and report-row
+  checks are not centralized.
 - Docs to read:
+  `docs/feature_set/capability_map/07_ground_network_and_communications_planning.md`,
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`.
 - Likely files:
   `test/orbital_dynamics/campaign_planner_test.exs`,
+  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
   `.codex/status/autonomous_product_loop.md`.
 - Likely tests:
-  `mix test test/orbital_dynamics/campaign_planner_test.exs:44884`;
+  focused campaign-planner contact-allocation pressure tests;
   `mix compile --warnings-as-errors`; `git diff --check`.
-- Definition of done: the prior-plan direct and wrapped quality-gate branches
-  use the shared helper for branch score math, approval-boundary split,
-  score-term key, and score-term report row evidence, locally reviewed,
-  committed, and pushed without touching unrelated `.gitignore`.
+- Definition of done: shared contact-allocation pressure assertions prove
+  branch score math, split risk penalty, score-term key, and score-term report
+  rows for direct, capacity-pack, and provider-reservation branches; docs note
+  the shared helper evidence; locally reviewed, committed, and pushed without
+  touching unrelated `.gitignore`.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `test/orbital_dynamics/campaign_planner_test.exs`
+- `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:44884`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:41369 test/orbital_dynamics/campaign_planner_test.exs:41473 test/orbital_dynamics/campaign_planner_test.exs:41698`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
-- `rg -n "assert_quality_gate_pressure_score_terms|derived_quality_gate_pressure|quality_gate_pressure_penalty|approval_boundary_pressure_penalty" test/orbital_dynamics/campaign_planner_test.exs .codex/status/autonomous_product_loop.md`
+- `rg -n "assert_contact_allocation_pressure_score_terms|contact-allocation pressure fixtures now assert|contact_allocation_pressure_penalty|risk_penalty" test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Docs/artifacts changed:
-None; this slice only strengthens focused test evidence.
+The V3 strategy-orchestration docs now note that focused contact-allocation
+pressure fixtures assert split branch math and score-term report rows through a
+shared helper.
 
 Local review:
-Parent local review confirmed the diff is limited to prior-plan direct and
-wrapped quality-gate pressure helper call sites plus this ledger. `.gitignore`
-remains unrelated and unstaged.
+Parent local review confirmed the diff is limited to the shared
+contact-allocation pressure score helper, focused contact-allocation helper
+call sites, the V3 score-term doc note, and this ledger. `.gitignore` remains
+unrelated and unstaged.
 
 Level 6 pillar advanced:
-Prior-plan quality-gate pressure challenge fixtures now prove branch score
-math, approval-boundary split, score-term key, and score-term report rows
-through the shared helper for direct and wrapped source paths.
+Contact-allocation pressure challenge fixtures now prove branch score math,
+split risk penalty, score-term key, and score-term report rows through a shared
+helper for direct, capacity-pack, provider-reservation, and prior-plan
+capacity branches.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -67,11 +75,13 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
+Pending mechanical publish for this slice; previous product commit was
 `32bb1cf` Apply quality gate helper to prior plan pressure.
 
 Next candidate:
-After this helper-application slice, continue with the next planner-visible
-resource/contact/readiness or candidate-refresh provenance gap from the guide.
+After this contact-allocation helper hardening, continue with the next
+planner-visible resource/contact/readiness or candidate-refresh provenance gap
+from the guide.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is

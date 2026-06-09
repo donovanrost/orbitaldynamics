@@ -1584,7 +1584,9 @@ Selected recommendations also include:
 - **Contact-allocation pressure score terms** — split contact-allocation
   pressure risks into `contact_allocation_pressure_penalty`, leaving
   `risk_penalty` for non-contact-allocation risks so total branch score remains
-  compatible while score-term reports expose contact pressure directly.
+  compatible while score-term reports expose contact pressure directly. Focused
+  contact-allocation pressure fixtures now assert split branch math and
+  score-term report rows through a shared helper.
 - **Storage/downlink pressure score terms** — split storage/downlink
   resource-margin and projection risks into `storage_downlink_pressure_penalty`,
   leaving `risk_penalty` for unrelated risks while preserving total branch score
