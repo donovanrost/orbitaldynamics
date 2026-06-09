@@ -681,6 +681,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
            } = summary = LinkCapacity.summary(report)
 
     assert OrbitalDynamics.link_capacity_summary(report) == summary
+    assert read_json!("study_results/link_capacity_summary_v1.json") == summary
 
     expected_model_limits =
       LinkCapacity.capabilities()
@@ -4695,5 +4696,11 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
         "provider_direction_aliases"
       ])
     end)
+  end
+
+  defp read_json!(path) do
+    path
+    |> File.read!()
+    |> :json.decode()
   end
 end
