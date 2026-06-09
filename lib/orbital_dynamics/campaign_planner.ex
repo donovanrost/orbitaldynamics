@@ -3317,6 +3317,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp timeline_lifecycle_pressure_risk?(_risk), do: false
 
+  defp timeline_lifecycle_state_review_risk?(%{"type" => "timeline_lifecycle_state_review"}),
+    do: true
+
+  defp timeline_lifecycle_state_review_risk?(_risk), do: false
+
+  defp timeline_activity_lifecycle_state_review_risk?(%{
+         "type" => "timeline_activity_lifecycle_state_review"
+       }),
+       do: true
+
+  defp timeline_activity_lifecycle_state_review_risk?(_risk), do: false
+
   defp timeline_precondition_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &timeline_precondition_pressure_risk?/1)
   end
@@ -3621,11 +3633,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
     lifecycle_replay =
       CandidateRefresh.timeline_lifecycle_state_replay_summary(candidate_source)
 
+    activity_state_replay =
+      CandidateRefresh.timeline_activity_state_replay_summary(candidate_source)
+
     publication_replay =
       CandidateRefresh.timeline_publication_replay_summary(candidate_source)
 
     []
     |> maybe_add_candidate_source_contact_allocation_risks(contact_allocation_replay, event_risks)
+    |> maybe_add_candidate_source_timeline_activity_state_risks(
+      activity_state_replay,
+      event_risks
+    )
     |> maybe_add_candidate_source_timeline_lifecycle_risks(lifecycle_replay, event_risks)
     |> maybe_add_candidate_source_timeline_publication_risks(publication_replay, event_risks)
   end
@@ -3643,10 +3662,22 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp maybe_add_candidate_source_timeline_lifecycle_risks(risks, replay_summary, event_risks) do
-    if Enum.any?(event_risks, &timeline_lifecycle_pressure_risk?/1) do
+    if Enum.any?(event_risks, &timeline_lifecycle_state_review_risk?/1) do
       risks
     else
       risks ++ timeline_lifecycle_replay_review_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_timeline_activity_state_risks(
+         risks,
+         replay_summary,
+         event_risks
+       ) do
+    if Enum.any?(event_risks, &timeline_activity_lifecycle_state_review_risk?/1) do
+      risks
+    else
+      risks ++ timeline_activity_state_replay_review_risks(replay_summary)
     end
   end
 
@@ -3746,6 +3777,118 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp timeline_lifecycle_replay_review_risks(_replay_summary), do: []
+
+  defp timeline_activity_state_replay_review_risks(%{} = replay_summary) do
+    if timeline_activity_state_replay_scoring_pressure?(replay_summary) do
+      timeline_activity_state_replay_review_risk(replay_summary)
+    else
+      []
+    end
+  end
+
+  defp timeline_activity_state_replay_review_risks(_replay_summary), do: []
+
+  defp timeline_activity_state_replay_scoring_pressure?(replay_summary) do
+    Map.get(replay_summary, "branch_local_activity_state_review_pressure") == true or
+      Map.get(replay_summary, "branch_local_activity_state_action_pressure") == true or
+      map_size(Map.get(replay_summary, "transition_decision_counts", %{})) > 0 or
+      map_size(Map.get(replay_summary, "required_operator_action_counts", %{})) > 0 or
+      map_size(Map.get(replay_summary, "import_action_counts", %{})) > 0
+  end
+
+  defp timeline_activity_state_replay_review_risk(replay_summary) do
+    activity_ids =
+      replay_summary
+      |> Map.get("activity_id_counts", %{})
+      |> map_keys()
+
+    timeline_ids =
+      replay_summary
+      |> Map.get("timeline_id_counts", %{})
+      |> map_keys()
+
+    required_operator_actions =
+      replay_summary
+      |> Map.get("required_operator_action_counts", %{})
+      |> map_keys()
+
+    import_actions =
+      replay_summary
+      |> Map.get("import_action_counts", %{})
+      |> map_keys()
+
+    transition_decisions =
+      replay_summary
+      |> Map.get("transition_decision_counts", %{})
+      |> map_keys()
+
+    [
+      %{
+        "type" => "timeline_activity_lifecycle_state_review",
+        "severity" => "high",
+        "reason" =>
+          "candidate source timeline activity-state replay reports review, action, routing, or state-transition pressure",
+        "source_report_row_count" => Map.get(replay_summary, "source_report_row_count"),
+        "review_required_count" => Map.get(replay_summary, "review_required_count"),
+        "state_status_counts" => Map.get(replay_summary, "state_status_counts"),
+        "transition_decision_counts" => Map.get(replay_summary, "transition_decision_counts"),
+        "transition_decisions" => transition_decisions,
+        "required_operator_action_counts" =>
+          Map.get(replay_summary, "required_operator_action_counts"),
+        "required_operator_actions" => required_operator_actions,
+        "import_action_counts" => Map.get(replay_summary, "import_action_counts"),
+        "import_actions" => import_actions,
+        "activity_ids" => activity_ids,
+        "timeline_ids" => timeline_ids,
+        "review_activity_ids" =>
+          replay_summary
+          |> Map.get("review_activity_id_counts", %{})
+          |> map_keys(),
+        "action_routing_activity_ids" =>
+          timeline_activity_state_replay_action_routing_values(replay_summary, "activity_ids"),
+        "action_routing_timeline_ids" =>
+          timeline_activity_state_replay_action_routing_values(replay_summary, "timeline_ids"),
+        "status_transition_categories" =>
+          timeline_activity_state_replay_action_routing_values(
+            replay_summary,
+            "status_transition_categories"
+          ),
+        "approval_transition_categories" =>
+          timeline_activity_state_replay_action_routing_values(
+            replay_summary,
+            "approval_transition_categories"
+          ),
+        "feedback_source" => "candidate_source.timeline_activity_state_replay_summary",
+        "feedback_scope" => "timeline_activity_state",
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries")
+      }
+      |> compact_map()
+    ]
+  end
+
+  defp timeline_activity_state_replay_action_routing_values(replay_summary, field) do
+    replay_summary
+    |> Map.get("action_routing", %{})
+    |> Map.values()
+    |> Enum.flat_map(fn
+      %{} = route -> List.wrap(Map.get(route, field))
+      _route -> []
+    end)
+    |> sorted_encoded_values()
+  end
+
+  defp map_keys(%{} = map), do: map |> Map.keys() |> sorted_encoded_values()
+  defp map_keys(_map), do: []
+
+  defp sorted_encoded_values(values) do
+    values
+    |> List.wrap()
+    |> List.flatten()
+    |> Enum.map(&encode_value/1)
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
 
   defp timeline_publication_replay_pressure_risks(
          %{"branch_local_timeline_publication_pressure" => true} = replay_summary
@@ -44953,6 +45096,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
         risk["type"] == "timeline_lifecycle_state_review"
       end)
 
+    timeline_activity_lifecycle_state_risks =
+      Enum.filter(risk_indicators, fn risk ->
+        risk["type"] == "timeline_activity_lifecycle_state_review"
+      end)
+
     timeline_publication_risks =
       Enum.filter(risk_indicators, fn risk ->
         risk["type"] == "timeline_publication_pressure"
@@ -44981,6 +45129,46 @@ defmodule OrbitalDynamics.CampaignPlanner do
         branch_event_unique_values(timeline_lifecycle_state_risks, "review_activity_ids"),
       "branch_timeline_lifecycle_state_invalid_activity_input_ids" =>
         branch_event_unique_values(timeline_lifecycle_state_risks, "invalid_activity_input_ids"),
+      "branch_timeline_activity_lifecycle_state_activity_ids" =>
+        branch_event_unique_values(timeline_activity_lifecycle_state_risks, [
+          "activity_id",
+          "activity_ids",
+          "action_routing_activity_ids",
+          "review_activity_ids"
+        ]),
+      "branch_timeline_activity_lifecycle_state_timeline_ids" =>
+        branch_event_unique_values(timeline_activity_lifecycle_state_risks, [
+          "timeline_id",
+          "timeline_ids",
+          "action_routing_timeline_ids"
+        ]),
+      "branch_timeline_activity_lifecycle_state_transition_decisions" =>
+        branch_event_unique_values(timeline_activity_lifecycle_state_risks, [
+          "transition_decision",
+          "transition_decisions"
+        ]),
+      "branch_timeline_activity_lifecycle_state_required_operator_actions" =>
+        branch_event_unique_values(timeline_activity_lifecycle_state_risks, [
+          "required_operator_action",
+          "required_operator_actions",
+          "required_operator_action_counts"
+        ]),
+      "branch_timeline_activity_lifecycle_state_import_actions" =>
+        branch_event_unique_values(timeline_activity_lifecycle_state_risks, [
+          "import_action",
+          "import_actions",
+          "import_action_counts"
+        ]),
+      "branch_timeline_activity_lifecycle_state_status_transition_categories" =>
+        branch_event_unique_values(
+          timeline_activity_lifecycle_state_risks,
+          "status_transition_categories"
+        ),
+      "branch_timeline_activity_lifecycle_state_approval_transition_categories" =>
+        branch_event_unique_values(
+          timeline_activity_lifecycle_state_risks,
+          "approval_transition_categories"
+        ),
       "branch_timeline_publication_ids" =>
         branch_event_unique_values(timeline_publication_risks, "publication_ids"),
       "branch_timeline_publication_source_artifact_ids" =>
@@ -45013,6 +45201,15 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> maybe_put_nonempty("branch_timeline_lifecycle_state_review_timeline_ids")
     |> maybe_put_nonempty("branch_timeline_lifecycle_state_review_activity_ids")
     |> maybe_put_nonempty("branch_timeline_lifecycle_state_invalid_activity_input_ids")
+    |> maybe_put_nonempty("branch_timeline_activity_lifecycle_state_activity_ids")
+    |> maybe_put_nonempty("branch_timeline_activity_lifecycle_state_timeline_ids")
+    |> maybe_put_nonempty("branch_timeline_activity_lifecycle_state_transition_decisions")
+    |> maybe_put_nonempty("branch_timeline_activity_lifecycle_state_required_operator_actions")
+    |> maybe_put_nonempty("branch_timeline_activity_lifecycle_state_import_actions")
+    |> maybe_put_nonempty("branch_timeline_activity_lifecycle_state_status_transition_categories")
+    |> maybe_put_nonempty(
+      "branch_timeline_activity_lifecycle_state_approval_transition_categories"
+    )
     |> maybe_put_nonempty("branch_timeline_publication_ids")
     |> maybe_put_nonempty("branch_timeline_publication_source_artifact_ids")
     |> maybe_put_nonempty("branch_timeline_publication_invalidated_downstream_product_ids")

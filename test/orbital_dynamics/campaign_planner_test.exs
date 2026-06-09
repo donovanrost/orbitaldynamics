@@ -28326,6 +28326,52 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       assert source_path in replay_source_paths
     end
 
+    assert_timeline_lifecycle_pressure_score_terms(
+      urgent,
+      artifact,
+      "timeline_activity_lifecycle_state_review"
+    )
+
+    urgent_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+
+    assert "timeline_activity_lifecycle_state_review" in urgent_row["risk_types"]
+
+    assert urgent_row["branch_timeline_activity_lifecycle_state_activity_ids"] == [
+             "canonical_approval_state_cmd_pending",
+             "direct_approval_state_cmd_pending",
+             "result_wrapped_approval_state_cmd_pending",
+             "wrapped_approval_state_cmd_pending"
+           ]
+
+    assert urgent_row["branch_timeline_activity_lifecycle_state_timeline_ids"] == [
+             "timeline:canonical_approval_state:cmd_pending",
+             "timeline:direct_approval_state:cmd_pending",
+             "timeline:result_wrapped_approval_state:cmd_pending",
+             "timeline:wrapped_approval_state:cmd_pending"
+           ]
+
+    assert urgent_row["branch_timeline_activity_lifecycle_state_transition_decisions"] == [
+             "review"
+           ]
+
+    assert urgent_row[
+             "branch_timeline_activity_lifecycle_state_required_operator_actions"
+           ] == [
+             "review_activity_approval"
+           ]
+
+    assert urgent_row["branch_timeline_activity_lifecycle_state_import_actions"] == [
+             "review_timeline_diff"
+           ]
+
+    assert urgent_row[
+             "branch_timeline_activity_lifecycle_state_approval_transition_categories"
+           ] == [
+             "approval_granted"
+           ]
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
