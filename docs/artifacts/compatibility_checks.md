@@ -513,7 +513,10 @@ CandidateRefresh replay also derives reconstructed quality-gate status,
 generic ready/review/analysis/blocked row routing, and row counts from
 `quality_gate_row_ids_by_status` when present, preventing stale compact
 import-readiness top-level arrays from steering branch-local quality-gate
-pressure.
+pressure. V3 strategy scoring now emits a dedicated
+`import_readiness_pressure_penalty` for branch-local import-readiness
+quality-gate risks instead of folding freshness, import-preparation, and
+blocked-import evidence into the broader `quality_gate_pressure_penalty`.
 The same readiness gate also consumes contact-allocation station pressure
 handoffs: ground-station reserved, unavailable, zero-capacity, and
 reduced-capacity allocation reasons become row-derived availability reason

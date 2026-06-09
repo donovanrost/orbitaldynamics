@@ -44594,7 +44594,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  ])
            )
 
-    assert_quality_gate_pressure_score_terms(direct_branch, artifact)
+    assert_import_readiness_pressure_score_terms(direct_branch, artifact)
 
     comparison_row =
       artifact["branch_comparison_report"]["rows"]
@@ -44790,7 +44790,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["freshness_review_required"] == true)
            )
 
-    assert_quality_gate_pressure_score_terms(stale_branch, artifact)
+    assert_import_readiness_pressure_score_terms(stale_branch, artifact)
 
     comparison_row =
       artifact["branch_comparison_report"]["rows"]
@@ -73052,6 +73052,42 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              artifact["score_term_report"]["rows"],
              &(&1["branch_id"] == branch["branch_id"] and
                  &1["term_key"] == "validation_refresh_pressure_penalty" and &1["value"] < 0.0)
+           )
+  end
+
+  defp assert_import_readiness_pressure_score_terms(branch, artifact) do
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    import_readiness_pressure_count =
+      Enum.count(
+        branch["risk_indicators"],
+        &(&1["type"] == "quality_gate_pressure" and
+            (&1["import_blocked"] == true or
+               &1["freshness_review_required"] == true or
+               &1["import_preparation_required"] == true or
+               is_map(&1["import_status_counts"]) or
+               is_map(&1["cadence_import_status_counts"])))
+      )
+
+    assert import_readiness_pressure_count > 0
+
+    assert branch["score_terms"]["import_readiness_pressure_penalty"] ==
+             -import_readiness_pressure_count * risk_weight
+
+    assert branch["score_terms"]["quality_gate_pressure_penalty"] == 0.0
+
+    assert branch["score_terms"]["risk_penalty"] ==
+             -(length(branch["risk_indicators"]) - import_readiness_pressure_count) *
+               risk_weight
+
+    assert "import_readiness_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == branch["branch_id"] and
+                 &1["term_key"] == "import_readiness_pressure_penalty" and &1["value"] < 0.0)
            )
   end
 
