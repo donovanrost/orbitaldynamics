@@ -1649,7 +1649,9 @@ Selected recommendations also include:
   activity lifecycle-state review risks into
   `timeline_lifecycle_pressure_penalty`, leaving precondition and preservation
   pressure for their dedicated or broader timeline terms while preserving total
-  branch score compatibility.
+  branch score compatibility. Focused lifecycle-state pressure fixtures now
+  assert split branch math, legacy compatibility term behavior, and score-term
+  report rows through a shared helper.
 - **Timeline-precondition pressure score terms** — split activity-precondition
   review risks into `timeline_precondition_pressure_penalty`, leaving
   preservation pressure for its dedicated timeline term while preserving total
