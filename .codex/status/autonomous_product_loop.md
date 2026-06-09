@@ -8,7 +8,7 @@ Current slice:
 Harden operational-readiness pressure score helper evidence.
 
 Status:
-Implemented and verified locally; ready for mechanical commit/push handoff.
+Completed and pushed in product commit `b27e50b`.
 
 Slice-selection note:
 - Selected slice: add a shared operational-readiness pressure score helper and
@@ -76,8 +76,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-Pending mechanical publish for this slice; previous product commit was
-`e4e303f` Harden quality gate pressure score helper.
+`b27e50b` Harden readiness pressure score helper.
 
 Next candidate:
 After this helper hardening, continue with the next planner-visible
@@ -88,6 +87,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `b27e50b` hardened shared operational-readiness pressure helper coverage for
+  split branch math and score-term report rows.
 - `e4e303f` hardened shared quality-gate pressure helper coverage for split
   branch math and score-term report rows.
 - `d279ba8` hardened stale readiness gate challenge coverage for row-status
