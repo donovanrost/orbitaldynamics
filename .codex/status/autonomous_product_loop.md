@@ -8,7 +8,7 @@ Current slice:
 Clarify autonomous-loop sidecar fallback and publish sequencing.
 
 Status:
-Completed locally; pending commit/push.
+Completed and pushed in product commit `1c43e21`.
 
 Slice-selection note:
 - Selected slice: update the active long-running prompt and matching loop
@@ -77,7 +77,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`c564585` Split provider counteroffer pressure score term.
+`1c43e21` Clarify autonomous sidecar fallback.
 
 Next candidate:
 Continue with planner-visible resource/contact/readiness evidence that affects
@@ -89,6 +89,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `1c43e21` clarified prompt/guide fallback behavior when sidecar review or
+  publish tools are unavailable.
 - `c564585` split provider-counteroffer pressure into an explicit V3 score term.
 - `e679918` made candidate-rejection pressure score-visible and split it into
   an explicit V3 score term.
