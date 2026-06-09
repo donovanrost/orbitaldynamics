@@ -1258,11 +1258,11 @@ rejects stale ranking-comparison row/status counts, row-derived scenario
 routing by status, and per-row rank/value deltas that no longer match the
 compared ranks and values.
 The V3 strategy golden fixture also pins the embedded strategy score-term report
-from the public strategy facade. That nested report now covers 902 score-term
-rows, 550 pressure rows, and dedicated pressure keys for resource availability,
-execution feedback, approval boundaries, timeline lifecycle/preconditions, link
-capacity, station calendars, quality gates, provider counteroffers, and related
-planning evidence families.
+from the public strategy facade. That nested report now covers 1107 score-term
+rows, 41 score-term keys, 675 pressure rows, and dedicated pressure keys for
+resource availability, execution feedback, approval boundaries, timeline
+lifecycle/preconditions, link capacity, station calendars, quality gates,
+provider counteroffers, and related planning evidence families.
 Ranking-comparison validation also rejects stale model strings, and schema
 export pins the scenario-ranking pairwise-delta model used by generated reports.
 `study_results/maneuver_review_report_v1.json` and
