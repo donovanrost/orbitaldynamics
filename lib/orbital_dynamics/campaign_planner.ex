@@ -3175,6 +3175,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     Enum.count(risk_indicators, &approval_boundary_pressure_risk?/1)
   end
 
+  defp approval_boundary_pressure_risk?(%{"type" => "approval_boundary_pressure"}), do: true
   defp approval_boundary_pressure_risk?(_risk), do: false
 
   defp timeline_integrity_pressure_risk_count(risk_indicators) do
@@ -3667,6 +3668,22 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "type" => "quality_gate_pressure",
         "severity" => readiness_pressure_risk_severity(event),
         "reason" => event["gate_reason"] || "quality gate pressure requires review before import"
+      })
+      |> compact_map()
+    ]
+  end
+
+  defp event_risk_indicators(%{"type" => "approval_boundary_pressure"} = event) do
+    [
+      event
+      |> Map.take(approval_boundary_pressure_risk_fields())
+      |> Map.merge(%{
+        "type" => "approval_boundary_pressure",
+        "severity" => event["severity"] || "medium",
+        "reason" =>
+          event["approval_boundary_reason"] ||
+            event["reason"] ||
+            "approval boundary pressure requires operator review before automation"
       })
       |> compact_map()
     ]
@@ -4774,6 +4791,25 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "blocked_contact_ids_by_blocking_dimension",
       "blocked_contact_ids_by_spacecraft_id",
       "blocked_contact_ids_by_status"
+    ]
+  end
+
+  defp approval_boundary_pressure_risk_fields do
+    [
+      "approval_boundary",
+      "approval_boundary_status",
+      "approval_boundary_reason",
+      "automation_boundary",
+      "execution_boundary",
+      "import_classification",
+      "required_operator_action",
+      "required_authority",
+      "policy_bundle_id",
+      "rule_id",
+      "feedback_source",
+      "feedback_scope",
+      "feedback_key",
+      "trust_boundary"
     ]
   end
 

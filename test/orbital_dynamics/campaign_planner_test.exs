@@ -18786,6 +18786,131 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact["branch_comparison_report"])
   end
 
+  test "approval-boundary pressure uses dedicated strategy score terms" do
+    prior_plan =
+      base_plan(%{
+        "planning_horizon" => %{"duration_s" => 2_000.0},
+        "activities" => [],
+        "candidate_activities" => []
+      })
+
+    urgent_event = %{
+      type: "urgent_target",
+      target_id: "target_hot",
+      starts_at_s: 500.0,
+      ends_at_s: 560.0,
+      priority: 20.0,
+      candidate_windows: [
+        %{
+          id: "candidate_obs_hot",
+          type: "observe",
+          target_id: "target_hot",
+          scenario_id: "leo_1",
+          starts_at_s: 500.0,
+          ends_at_s: 560.0,
+          duration_s: 60.0,
+          score: 10.0
+        }
+      ]
+    }
+
+    approval_boundary_event = %{
+      type: "approval_boundary_pressure",
+      approval_boundary: "recommendations_only_no_command_execution",
+      approval_boundary_status: "operator_review_required",
+      approval_boundary_reason: "command execution requires flight director approval",
+      automation_boundary: "no_command_execution",
+      execution_boundary: "artifact_only_no_execution",
+      import_classification: "review_only",
+      required_operator_action: "review_command_execution_boundary",
+      required_authority: "flight_director",
+      policy_bundle_id: "mission_ops_approval_v1",
+      rule_id: "command_execution_boundary",
+      feedback_source: "mission_state.approval_boundary",
+      feedback_scope: "approval_boundary",
+      feedback_key: "command_execution",
+      trust_boundary: "mission_state_approval_boundary"
+    }
+
+    artifact =
+      strategy(prior_plan,
+        mission_state:
+          mission_state([%{"type" => "priority_commitment", "target_id" => "target_hot"}]),
+        strategy_policy: %{
+          "mission_value_weight" => 10.0,
+          "risk_weight" => 5.0,
+          "approval_load_weight" => 0.0
+        },
+        approval_policy: %{
+          "blocked_risk_types" => [],
+          "operator_review_risk_limit" => 10
+        },
+        branches: [
+          %{id: "baseline"},
+          %{id: "urgent_clean", events: [urgent_event]},
+          %{id: "urgent_approval_boundary", events: [urgent_event, approval_boundary_event]}
+        ],
+        current_epoch_s: 0.0
+      )
+
+    clean_branch = branch(artifact, "urgent_clean")
+    pressure_branch = branch(artifact, "urgent_approval_boundary")
+
+    approval_boundary_pressure_count =
+      Enum.count(
+        pressure_branch["risk_indicators"],
+        &(&1["type"] == "approval_boundary_pressure")
+      )
+
+    assert approval_boundary_pressure_count == 1
+
+    assert pressure_branch["score_terms"]["approval_boundary_pressure_penalty"] ==
+             -approval_boundary_pressure_count * 5.0
+
+    assert pressure_branch["score_terms"]["risk_penalty"] ==
+             -(length(pressure_branch["risk_indicators"]) - approval_boundary_pressure_count) *
+               5.0
+
+    assert clean_branch["score_terms"]["approval_boundary_pressure_penalty"] == 0.0
+    assert pressure_branch["score"] < clean_branch["score"]
+
+    assert %{
+             "type" => "approval_boundary_pressure",
+             "severity" => "medium",
+             "approval_boundary" => "recommendations_only_no_command_execution",
+             "approval_boundary_status" => "operator_review_required",
+             "automation_boundary" => "no_command_execution",
+             "execution_boundary" => "artifact_only_no_execution",
+             "required_operator_action" => "review_command_execution_boundary",
+             "required_authority" => "flight_director",
+             "trust_boundary" => "mission_state_approval_boundary",
+             "reason" => "command execution requires flight director approval"
+           } =
+             Enum.find(
+               pressure_branch["risk_indicators"],
+               &(&1["type"] == "approval_boundary_pressure")
+             )
+
+    assert "approval_boundary_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == "urgent_approval_boundary" and
+                 &1["term_key"] == "approval_boundary_pressure_penalty" and &1["value"] < 0.0)
+           )
+
+    pressure_comparison =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent_approval_boundary"))
+
+    assert "approval_boundary_pressure" in pressure_comparison["risk_types"]
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy requires at least two branches" do
     assert_raise ArgumentError,
                  ~r/requires a baseline branch and at least one what-if branch/,

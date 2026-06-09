@@ -1777,12 +1777,13 @@ indicators with the same report, source-artifact, gate, required-action,
 feedback, trust-boundary, operator-training, and resource-availability routing
 context. Operational-readiness rows contribute to
 `operational_readiness_pressure_penalty`, and quality-gate rows contribute to
-`quality_gate_pressure_penalty`, leaving the broader
-`approval_boundary_pressure_penalty` and standard strategy `risk_penalty` for
-unrelated risks. Otherwise equal branches with readiness or quality-gate review
-pressure rank below pressure-free alternatives when `risk_weight` applies while
-score-term reports isolate readiness pressure from quality-gate pressure. Branch
-comparison rows expose the corresponding risk types.
+`quality_gate_pressure_penalty`. Explicit approval-boundary pressure events
+contribute to `approval_boundary_pressure_penalty`, leaving standard strategy
+`risk_penalty` for unrelated risks. Otherwise equal branches with readiness,
+quality-gate, or approval-boundary review pressure rank below pressure-free
+alternatives when `risk_weight` applies while score-term reports isolate
+readiness, quality-gate, and approval-boundary pressure. Branch comparison rows
+expose the corresponding risk types.
 Challenge coverage also verifies blocked or analysis-only readiness row statuses
 remain score-visible through `operational_readiness_pressure_penalty` when
 source classifications are missing or stale.
