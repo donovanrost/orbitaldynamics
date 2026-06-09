@@ -15683,6 +15683,10 @@ defmodule OrbitalDynamics.CadenceImportTest do
       "link_capacity_report.v1" => {:path, "study_results/link_capacity_report_v1.json"},
       "contact_allocation_report.v1" =>
         {:path, "study_results/contact_allocation_report_v1.json"},
+      "contact_allocation_capacity_pack_summary.v1" =>
+        {:path, "study_results/contact_allocation_capacity_pack_summary_v1.json"},
+      "contact_allocation_reservation_conflict_summary.v1" =>
+        {:path, "study_results/contact_allocation_reservation_conflict_summary_v1.json"},
       "resource_projection_report.v1" =>
         {:path, "study_results/resource_projection_report_v1.json"},
       "resource_projection_flow_summary.v1" => {:artifact, resource_projection_flow_summary()},
