@@ -18055,6 +18055,30 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "source_report_station_calendar_reserved_under_higher_precedence_contact_ids" => [
                "dl_1"
              ],
+             "source_report_station_calendar_reserved_under_higher_precedence_contact_ids_by_applied_availability" =>
+               %{
+                 "unavailable" => ["dl_1"]
+               },
+             "source_report_station_calendar_reserved_under_higher_precedence_reservation_ids" =>
+               [
+                 "reservation_42"
+               ],
+             "source_report_station_calendar_reserved_under_higher_precedence_reservation_ids_by_status" =>
+               %{
+                 "confirmed" => ["reservation_42"]
+               },
+             "source_report_station_calendar_reserved_under_higher_precedence_reservation_ids_by_reserved_by" =>
+               %{
+                 "ops_team_b" => ["reservation_42"]
+               },
+             "source_report_station_calendar_reserved_under_higher_precedence_contact_ids_by_reservation_status" =>
+               %{
+                 "confirmed" => ["dl_1"]
+               },
+             "source_report_station_calendar_reserved_under_higher_precedence_contact_ids_by_reserved_by" =>
+               %{
+                 "ops_team_b" => ["dl_1"]
+               },
              "source_reports" => %{
                "station_calendar_report" => station_summary
              }
@@ -18073,6 +18097,29 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert station_summary["trust_boundary_status"] == "declared"
     assert station_summary["trust_boundaries"] == ["ops_precedence_summary"]
+
+    assert station_summary["reserved_under_higher_precedence_reservation_ids"] == [
+             "reservation_42"
+           ]
+
+    assert station_summary["reserved_under_higher_precedence_reservation_ids_by_status"] == %{
+             "confirmed" => ["reservation_42"]
+           }
+
+    assert station_summary["reserved_under_higher_precedence_reservation_ids_by_reserved_by"] ==
+             %{
+               "ops_team_b" => ["reservation_42"]
+             }
+
+    assert station_summary[
+             "reserved_under_higher_precedence_contact_ids_by_reservation_status"
+           ] == %{
+             "confirmed" => ["dl_1"]
+           }
+
+    assert station_summary["reserved_under_higher_precedence_contact_ids_by_reserved_by"] == %{
+             "ops_team_b" => ["dl_1"]
+           }
 
     replay_summary = CandidateRefresh.station_calendar_replay_summary(refresh)
 
@@ -18106,6 +18153,30 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
 
     assert replay_summary["reserved_under_higher_precedence_contact_count"] == 4
     assert replay_summary["reserved_under_higher_precedence_contact_ids"] == ["dl_1"]
+
+    assert replay_summary["reserved_under_higher_precedence_reservation_ids"] == [
+             "reservation_42"
+           ]
+
+    assert replay_summary["reserved_under_higher_precedence_reservation_ids_by_status"] == %{
+             "confirmed" => ["reservation_42"]
+           }
+
+    assert replay_summary["reserved_under_higher_precedence_reservation_ids_by_reserved_by"] ==
+             %{
+               "ops_team_b" => ["reservation_42"]
+             }
+
+    assert replay_summary[
+             "reserved_under_higher_precedence_contact_ids_by_reservation_status"
+           ] == %{
+             "confirmed" => ["dl_1"]
+           }
+
+    assert replay_summary["reserved_under_higher_precedence_contact_ids_by_reserved_by"] == %{
+             "ops_team_b" => ["dl_1"]
+           }
+
     assert replay_summary["trust_boundaries"] == ["ops_precedence_summary"]
     assert replay_summary["branch_local_station_calendar_pressure"]
     assert replay_summary["branch_local_affected_contact_pressure"]

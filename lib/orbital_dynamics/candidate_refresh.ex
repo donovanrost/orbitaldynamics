@@ -3574,6 +3574,36 @@ defmodule OrbitalDynamics.CandidateRefresh do
           "station_calendar_report",
           "reserved_under_higher_precedence_contact_ids_by_applied_availability"
         ),
+      "source_report_station_calendar_reserved_under_higher_precedence_reservation_ids" =>
+        source_report_summary_family_merge_string_lists(
+          source_reports,
+          "station_calendar_report",
+          "reserved_under_higher_precedence_reservation_ids"
+        ),
+      "source_report_station_calendar_reserved_under_higher_precedence_reservation_ids_by_status" =>
+        source_report_summary_family_merge_string_list_maps(
+          source_reports,
+          "station_calendar_report",
+          "reserved_under_higher_precedence_reservation_ids_by_status"
+        ),
+      "source_report_station_calendar_reserved_under_higher_precedence_reservation_ids_by_reserved_by" =>
+        source_report_summary_family_merge_string_list_maps(
+          source_reports,
+          "station_calendar_report",
+          "reserved_under_higher_precedence_reservation_ids_by_reserved_by"
+        ),
+      "source_report_station_calendar_reserved_under_higher_precedence_contact_ids_by_reservation_status" =>
+        source_report_summary_family_merge_string_list_maps(
+          source_reports,
+          "station_calendar_report",
+          "reserved_under_higher_precedence_contact_ids_by_reservation_status"
+        ),
+      "source_report_station_calendar_reserved_under_higher_precedence_contact_ids_by_reserved_by" =>
+        source_report_summary_family_merge_string_list_maps(
+          source_reports,
+          "station_calendar_report",
+          "reserved_under_higher_precedence_contact_ids_by_reserved_by"
+        ),
       "source_report_candidate_diff_retained_candidate_count" =>
         source_report_summary_family_count(
           source_reports,
@@ -11550,6 +11580,41 @@ defmodule OrbitalDynamics.CandidateRefresh do
       )
       |> non_empty_map()
 
+    reserved_under_higher_precedence_reservation_ids =
+      Map.get(station_summary, "reserved_under_higher_precedence_reservation_ids", [])
+
+    reserved_under_higher_precedence_reservation_ids_by_status =
+      Map.get(
+        station_summary,
+        "reserved_under_higher_precedence_reservation_ids_by_status",
+        %{}
+      )
+      |> non_empty_map()
+
+    reserved_under_higher_precedence_reservation_ids_by_reserved_by =
+      Map.get(
+        station_summary,
+        "reserved_under_higher_precedence_reservation_ids_by_reserved_by",
+        %{}
+      )
+      |> non_empty_map()
+
+    reserved_under_higher_precedence_contact_ids_by_reservation_status =
+      Map.get(
+        station_summary,
+        "reserved_under_higher_precedence_contact_ids_by_reservation_status",
+        %{}
+      )
+      |> non_empty_map()
+
+    reserved_under_higher_precedence_contact_ids_by_reserved_by =
+      Map.get(
+        station_summary,
+        "reserved_under_higher_precedence_contact_ids_by_reserved_by",
+        %{}
+      )
+      |> non_empty_map()
+
     precedence_pressure =
       not is_nil(precedence_review_status_counts) or
         not is_nil(applied_availability_counts) or
@@ -11558,7 +11623,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
         not is_nil(affected_contact_ids_by_overlap_availability) or
         reserved_under_higher_precedence_contact_count > 0 or
         reserved_under_higher_precedence_contact_ids != [] or
-        not is_nil(reserved_under_higher_precedence_contact_ids_by_applied_availability)
+        not is_nil(reserved_under_higher_precedence_contact_ids_by_applied_availability) or
+        reserved_under_higher_precedence_reservation_ids != [] or
+        not is_nil(reserved_under_higher_precedence_reservation_ids_by_status) or
+        not is_nil(reserved_under_higher_precedence_reservation_ids_by_reserved_by) or
+        not is_nil(reserved_under_higher_precedence_contact_ids_by_reservation_status) or
+        not is_nil(reserved_under_higher_precedence_contact_ids_by_reserved_by)
 
     affected_contact_ids = Map.get(station_summary, "affected_contact_ids", [])
 
@@ -11725,6 +11795,19 @@ defmodule OrbitalDynamics.CandidateRefresh do
         end,
       "reserved_under_higher_precedence_contact_ids_by_applied_availability" =>
         reserved_under_higher_precedence_contact_ids_by_applied_availability,
+      "reserved_under_higher_precedence_reservation_ids" =>
+        case reserved_under_higher_precedence_reservation_ids do
+          [] -> nil
+          reservation_ids -> reservation_ids
+        end,
+      "reserved_under_higher_precedence_reservation_ids_by_status" =>
+        reserved_under_higher_precedence_reservation_ids_by_status,
+      "reserved_under_higher_precedence_reservation_ids_by_reserved_by" =>
+        reserved_under_higher_precedence_reservation_ids_by_reserved_by,
+      "reserved_under_higher_precedence_contact_ids_by_reservation_status" =>
+        reserved_under_higher_precedence_contact_ids_by_reservation_status,
+      "reserved_under_higher_precedence_contact_ids_by_reserved_by" =>
+        reserved_under_higher_precedence_contact_ids_by_reserved_by,
       "trust_boundary_status" => Map.get(station_summary, "trust_boundary_status"),
       "trust_boundaries" => Map.get(station_summary, "trust_boundaries", []),
       "branch_local_station_calendar_pressure" =>
@@ -25330,6 +25413,38 @@ defmodule OrbitalDynamics.CandidateRefresh do
           )
         )
         |> merge_string_list_maps(),
+      "reserved_under_higher_precedence_reservation_ids" =>
+        reports
+        |> Enum.flat_map(&Map.get(&1, "reserved_under_higher_precedence_reservation_ids", []))
+        |> sorted_string_values(),
+      "reserved_under_higher_precedence_reservation_ids_by_status" =>
+        reports
+        |> Enum.map(
+          &Map.get(&1, "reserved_under_higher_precedence_reservation_ids_by_status", %{})
+        )
+        |> merge_string_list_maps(),
+      "reserved_under_higher_precedence_reservation_ids_by_reserved_by" =>
+        reports
+        |> Enum.map(
+          &Map.get(&1, "reserved_under_higher_precedence_reservation_ids_by_reserved_by", %{})
+        )
+        |> merge_string_list_maps(),
+      "reserved_under_higher_precedence_contact_ids_by_reservation_status" =>
+        reports
+        |> Enum.map(
+          &Map.get(
+            &1,
+            "reserved_under_higher_precedence_contact_ids_by_reservation_status",
+            %{}
+          )
+        )
+        |> merge_string_list_maps(),
+      "reserved_under_higher_precedence_contact_ids_by_reserved_by" =>
+        reports
+        |> Enum.map(
+          &Map.get(&1, "reserved_under_higher_precedence_contact_ids_by_reserved_by", %{})
+        )
+        |> merge_string_list_maps(),
       "trust_boundary_status" => source_station_calendar_report_trust_boundary_status(reports),
       "trust_boundaries" => source_station_calendar_report_trust_boundaries(reports)
     }
@@ -33671,7 +33786,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
     [
       Map.get(report, "affected_contact_ids_by_applied_availability", %{}),
       Map.get(report, "affected_contact_ids_by_overlap_availability", %{}),
-      Map.get(report, "reserved_under_higher_precedence_contact_ids_by_applied_availability", %{})
+      Map.get(
+        report,
+        "reserved_under_higher_precedence_contact_ids_by_applied_availability",
+        %{}
+      ),
+      Map.get(report, "reserved_under_higher_precedence_contact_ids_by_reservation_status", %{}),
+      Map.get(report, "reserved_under_higher_precedence_contact_ids_by_reserved_by", %{})
     ]
     |> Enum.flat_map(fn
       %{} = contact_ids_by_key -> Map.values(contact_ids_by_key)

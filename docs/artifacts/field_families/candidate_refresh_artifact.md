@@ -462,7 +462,8 @@ It preserves the following for audit **without changing refresh selection**:
 - station-calendar affected-contact count maps by ground station and
   availability
 - station-calendar precedence-summary applied-status and
-  reserved-under-higher-precedence status routing maps
+  reserved-under-higher-precedence contact/reservation status and owner routing
+  maps
 - station-calendar provider-contention count maps by provider and ground
   station
 - contact-filter suppression-reason contact-ID maps plus station-suppression
@@ -1461,10 +1462,10 @@ accepted-state, mission-state, and result-artifact-wrapped
 inputs replay as station-calendar source provenance while preserving source
 summary model/contract/artifact-type identity, affected-contact counts, applied
 and overlap availability maps, higher-precedence reservation contact IDs,
-source paths, exact station-calendar `model_limits`, and trust-boundary
-evidence. The summary replay remains
-artifact-only and does not mutate station calendars, accept reservations, write
-to Cadence, or regenerate candidates.
+suppressed reservation IDs, reservation-status/owner routing maps, source paths,
+exact station-calendar `model_limits`, and trust-boundary evidence. The summary
+replay remains artifact-only and does not mutate station calendars, accept
+reservations, write to Cadence, or regenerate candidates.
 The same operator-review handoff accepts station-calendar reports inside
 candidate-refresh `source_result_artifact` / `result_artifact` wrappers,
 preserving wrapper-qualified source paths and list indexes.

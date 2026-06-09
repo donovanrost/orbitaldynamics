@@ -5,96 +5,75 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve suppressed reservation routing in station-calendar precedence
-summaries.
+Preserve suppressed reservation routing through CandidateRefresh precedence
+summary replay.
 
 Status:
-Completed and pushed in product commit `7b80988`.
+Completed locally; pending commit/push.
 
 Slice-selection note:
-- Selected slice: extend `station_calendar_precedence_summary.v1` so
-  reserved-under-outage or reserved-under-maintenance rows expose suppressed
-  reservation IDs, reservation statuses, and owner routing directly in the
-  compact precedence handoff.
-- Why this slice: the precedence report already applies outage/maintenance
-  above reservations and preserves reservation overlap evidence on affected
-  rows, but the compact summary only routes affected contact IDs. Review,
-  replay, and import queues should not need to reopen every row to triage which
-  provider reservation was suppressed by higher-precedence station downtime.
+- Selected slice: CandidateRefresh should preserve the new
+  `station_calendar_precedence_summary.v1` suppressed-reservation ID/status/owner
+  routing when direct or wrapped precedence summaries are consumed as
+  station-calendar provenance.
+- Why this slice: the prior slice made compact precedence summaries carry
+  suppressed reservation evidence, but CandidateRefresh aggregation and replay
+  still project only the older contact/applied-availability fields. Branch-local
+  provenance should not drop suppressed reservation IDs when a handoff contains
+  only the compact precedence summary.
 - Level 6 pillar: Cadence-facing operational handoffs with explainable
   provider-calendar evidence and no provider-write authority.
-- Current evidence gap: `station_calendar_precedence_summary.v1` exposes
-  reserved-under-higher-precedence contact routing, applied availability/status
-  maps, and overlap availability maps, but not the suppressed reservation ID,
-  reservation-status, or owner sets that already exist on affected-contact rows.
+- Current evidence gap: CandidateRefresh source-report top-level fields, replay
+  projection, compact aggregation, and station-calendar contact identity
+  extraction do not yet include the suppressed reservation routing fields added
+  to precedence summaries.
 - Docs to read:
   `docs/autonomous_work_guide.md`,
   `.codex/prompts/long_running_context_efficient_product_loop.md`,
   `.codex/status/autonomous_product_loop.md`,
-  `docs/feature_set/capability_map/07_ground_network_and_communications_planning.md`,
-  `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`,
-  `docs/mission_planning/high_fidelity/06_operational_concerns.md`.
-- Likely files: `lib/orbital_dynamics/communications/station_calendar.ex`,
-  `lib/orbital_dynamics/schema.ex`,
-  `test/orbital_dynamics/communications/station_calendar_test.exs`,
-  `test/orbital_dynamics/schema_test.exs`,
-  `test/mix/tasks/orbital_dynamics.schema.export_test.exs`,
-  `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`,
-  `docs/mission_planning/high_fidelity/06_operational_concerns.md`,
+  `docs/artifacts/field_families/candidate_refresh_artifact.md`,
+  `test/orbital_dynamics/candidate_refresh_test.exs`.
+- Likely files: `lib/orbital_dynamics/candidate_refresh.ex`,
+  `test/orbital_dynamics/candidate_refresh_test.exs`,
+  `docs/artifacts/field_families/candidate_refresh_artifact.md`,
   `.codex/status/autonomous_product_loop.md`.
 - Likely tests:
-  `mix test test/orbital_dynamics/communications/station_calendar_test.exs`,
-  `mix test test/orbital_dynamics/schema_test.exs:<precedence-fixture-selector>`,
-  `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs:<precedence-schema-selector>`,
-  `mix compile --warnings-as-errors`,
-  `git diff --check`.
-- Definition of done: precedence summaries include row-derived suppressed
-  reservation ID/status/owner maps for reserved-under-higher-precedence rows;
-  runtime validation and JSON Schema export pin the fields; the checked-in
-  precedence fixture regenerates exactly; focused tests pass.
+  `mix test test/orbital_dynamics/candidate_refresh_test.exs:<direct-precedence-summary-selector>`,
+  `mix compile --warnings-as-errors`, `git diff --check`.
+- Definition of done: CandidateRefresh source-report summaries and station
+  calendar replay summaries preserve suppressed reservation IDs, IDs by
+  reservation status, IDs by owner, contact IDs by reservation status, and
+  contact IDs by owner from compact precedence summaries; focused tests and
+  compile pass.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/communications/station_calendar.ex`
-- `lib/orbital_dynamics/schema.ex`
-- `test/orbital_dynamics/communications/station_calendar_test.exs`
-- `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`
-- `docs/mission_planning/high_fidelity/06_operational_concerns.md`
-- `schemas/station_calendar_precedence_summary.v1.schema.json`
-- `schemas/orbital_dynamics.schema_bundle.v1.json`
-- `study_results/station_calendar_precedence_summary_v1.json`
+- `lib/orbital_dynamics/candidate_refresh.ex`
+- `test/orbital_dynamics/candidate_refresh_test.exs`
+- `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/communications/station_calendar_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:2596`
-- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs:2765`
-- `mix orbital_dynamics.schema.lint --input study_results/station_calendar_precedence_summary_v1.json --contract station_calendar_precedence_summary.v1`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:17946`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`
-  documents suppressed reservation ID/status/owner routing in precedence
-  summaries.
-- `docs/mission_planning/high_fidelity/06_operational_concerns.md` records the
-  compact triage evidence and no-provider-write boundary.
-- `schemas/station_calendar_precedence_summary.v1.schema.json` and
-  `schemas/orbital_dynamics.schema_bundle.v1.json` were regenerated.
-- `study_results/station_calendar_precedence_summary_v1.json` was updated to
-  exact public-facade output.
+- `docs/artifacts/field_families/candidate_refresh_artifact.md` documents
+  suppressed reservation ID/status/owner routing preservation through compact
+  precedence-summary replay.
 
 Local review:
-- Parent local review found the slice scoped to precedence-summary generation,
-  runtime/schema validation, export assertions, docs, and the checked-in
-  precedence fixture. No multi-agent reviewer was used because the available
-  delegation tool requires an explicit user request for subagents in this turn.
+- Parent local review found the slice scoped to CandidateRefresh source-report
+  aggregation, replay projection, compact contact identity extraction, focused
+  tests, and artifact-family docs. No multi-agent reviewer was used because the
+  available delegation tool requires an explicit user request for subagents in
+  this turn.
 
 Level 6 pillar advanced:
-Cadence-facing provider-calendar handoffs: reserved-under-outage and
-reserved-under-maintenance compact summaries now carry suppressed reservation
-ID/status/owner routing while preserving artifact-only, no-provider-write
-authority.
+Cadence-facing provider-calendar handoffs: CandidateRefresh now preserves
+suppressed reservation ID/status/owner routing from compact
+station-calendar-precedence summaries while keeping replay artifact-only and
+no-provider-write.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
