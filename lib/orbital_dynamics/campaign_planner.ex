@@ -3700,6 +3700,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     dependency_impact_replay =
       CandidateRefresh.timeline_dependency_impact_replay_summary(candidate_source)
 
+    precondition_replay =
+      CandidateRefresh.timeline_activity_precondition_replay_summary(candidate_source)
+
     integrity_replay =
       CandidateRefresh.timeline_integrity_replay_summary(candidate_source)
 
@@ -3725,6 +3728,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
     )
     |> maybe_add_candidate_source_timeline_dependency_impact_risks(
       dependency_impact_replay,
+      event_risks
+    )
+    |> maybe_add_candidate_source_timeline_precondition_risks(
+      precondition_replay,
       event_risks
     )
     |> maybe_add_candidate_source_timeline_integrity_risks(integrity_replay, event_risks)
@@ -3809,6 +3816,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
       risks
     else
       risks ++ timeline_integrity_replay_pressure_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_timeline_precondition_risks(
+         risks,
+         replay_summary,
+         event_risks
+       ) do
+    if Enum.any?(event_risks, &timeline_precondition_pressure_risk?/1) do
+      risks
+    else
+      risks ++ timeline_precondition_replay_pressure_risks(replay_summary)
     end
   end
 
@@ -4390,6 +4409,110 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp timeline_integrity_replay_pressure_risks(_replay_summary), do: []
+
+  defp timeline_precondition_replay_pressure_risks(
+         %{"branch_local_timeline_activity_precondition_pressure" => true} = replay_summary
+       ) do
+    blocked_precondition_types =
+      replay_summary
+      |> Map.get("blocked_precondition_type_counts", %{})
+      |> map_keys()
+
+    review_precondition_types =
+      replay_summary
+      |> Map.get("review_precondition_type_counts", %{})
+      |> map_keys()
+
+    invalid_activity_input_reasons =
+      replay_summary
+      |> Map.get("invalid_activity_input_reason_counts", %{})
+      |> map_keys()
+
+    [
+      %{
+        "type" => "timeline_activity_precondition_review",
+        "severity" => "high",
+        "reason" =>
+          "candidate source timeline activity-precondition replay reports blocked, review, dependency, exclusivity, or invalid-input pressure",
+        "source_report_count" => Map.get(replay_summary, "source_report_count"),
+        "source_report_row_count" => Map.get(replay_summary, "source_report_row_count"),
+        "source_report_paths" => Map.get(replay_summary, "source_report_paths"),
+        "precondition_status_counts" => Map.get(replay_summary, "precondition_status_counts"),
+        "blocked_precondition_count" => Map.get(replay_summary, "blocked_precondition_count"),
+        "review_precondition_count" => Map.get(replay_summary, "review_precondition_count"),
+        "blocked_precondition_type_counts" =>
+          Map.get(replay_summary, "blocked_precondition_type_counts"),
+        "blocked_precondition_types" => blocked_precondition_types,
+        "review_precondition_type_counts" =>
+          Map.get(replay_summary, "review_precondition_type_counts"),
+        "review_precondition_types" => review_precondition_types,
+        "invalid_activity_input_count" => Map.get(replay_summary, "invalid_activity_input_count"),
+        "invalid_activity_input_reason_counts" =>
+          Map.get(replay_summary, "invalid_activity_input_reason_counts"),
+        "invalid_activity_input_reasons" => invalid_activity_input_reasons,
+        "activity_ids" =>
+          replay_summary
+          |> Map.get("activity_id_counts", %{})
+          |> map_keys(),
+        "timeline_ids" =>
+          replay_summary
+          |> Map.get("timeline_id_counts", %{})
+          |> map_keys(),
+        "dependency_activity_ids" =>
+          replay_summary
+          |> Map.get("dependency_activity_id_counts", %{})
+          |> map_keys(),
+        "dependency_timeline_ids" =>
+          replay_summary
+          |> Map.get("dependency_timeline_id_counts", %{})
+          |> map_keys(),
+        "exclusive_with_activity_ids" =>
+          replay_summary
+          |> Map.get("exclusive_with_activity_id_counts", %{})
+          |> map_keys(),
+        "exclusive_with_timeline_ids" =>
+          replay_summary
+          |> Map.get("exclusive_with_timeline_id_counts", %{})
+          |> map_keys(),
+        "duplicate_dependency_activity_ids" =>
+          replay_summary
+          |> Map.get("duplicate_dependency_activity_id_counts", %{})
+          |> map_keys(),
+        "duplicate_dependency_timeline_ids" =>
+          replay_summary
+          |> Map.get("duplicate_dependency_timeline_id_counts", %{})
+          |> map_keys(),
+        "duplicate_exclusivity_activity_ids" =>
+          replay_summary
+          |> Map.get("duplicate_exclusivity_activity_id_counts", %{})
+          |> map_keys(),
+        "duplicate_exclusivity_timeline_ids" =>
+          replay_summary
+          |> Map.get("duplicate_exclusivity_timeline_id_counts", %{})
+          |> map_keys(),
+        "allow_overlap_values" =>
+          replay_summary
+          |> Map.get("allow_overlap_counts", %{})
+          |> map_keys(),
+        "branch_local_activity_precondition_review_pressure" =>
+          Map.get(replay_summary, "branch_local_activity_precondition_review_pressure"),
+        "branch_local_activity_precondition_dependency_pressure" =>
+          Map.get(replay_summary, "branch_local_activity_precondition_dependency_pressure"),
+        "branch_local_activity_precondition_exclusivity_pressure" =>
+          Map.get(replay_summary, "branch_local_activity_precondition_exclusivity_pressure"),
+        "branch_local_activity_precondition_invalid_input_pressure" =>
+          Map.get(replay_summary, "branch_local_activity_precondition_invalid_input_pressure"),
+        "branch_local_activity_precondition_routing_pressure" =>
+          Map.get(replay_summary, "branch_local_activity_precondition_routing_pressure"),
+        "feedback_source" => "candidate_source.timeline_activity_precondition_replay_summary",
+        "feedback_scope" => "timeline_activity_precondition",
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries")
+      }
+      |> compact_map()
+    ]
+  end
+
+  defp timeline_precondition_replay_pressure_risks(_replay_summary), do: []
 
   defp timeline_publication_replay_pressure_risks(
          %{"branch_local_timeline_publication_pressure" => true} = replay_summary

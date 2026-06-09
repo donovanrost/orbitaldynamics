@@ -34452,6 +34452,165 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy carries mission-state timeline activity-precondition summaries into branch refresh requests" do
+    precondition_summary =
+      Timeline.activity_precondition_summary(%{
+        id: :branch_precondition_cmd_precondition,
+        type: :command,
+        scenario_id: :leo_1,
+        subject_id: :dss_14,
+        payload_available: false,
+        degraded: true,
+        command_authorized: false,
+        command_safety_status: :failed,
+        command_safety_checked: false,
+        resource_blocking_dimension: :battery,
+        dependency_activity_ids: [:health_check, :health_check],
+        dependency_timeline_ids: [:"timeline:health_check"],
+        exclusive_with: [:downlink_conflict, :downlink_conflict],
+        exclusive_with_timeline_ids: [:"timeline:downlink_conflict"],
+        allow_overlap: true,
+        metadata: %{timeline_id: "timeline:branch_precondition:cmd_precondition"},
+        activity_context: %{
+          activity_template: %{
+            schema_contract: "activity_template.v1",
+            id: "branch_precondition_command_template",
+            activity_type: "command",
+            subsystem_state_hints: %{
+              required_states: [
+                %{
+                  subsystem: "commanding",
+                  state: "armed",
+                  reason: "template requires armed commanding state"
+                }
+              ]
+            }
+          }
+        }
+      })
+      |> Map.put("provenance", %{"trust_boundary" => "branch_precondition_boundary"})
+
+    assert {:ok, %{"schema_contract" => "timeline_activity_precondition_summary.v1"}} =
+             Schema.validate_artifact(precondition_summary)
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put("source_timeline_activity_precondition_summary", precondition_summary),
+        branches: [
+          %{id: "baseline"},
+          %{
+            id: "urgent",
+            events: [%{type: "urgent_target", target_id: "target_a", priority: 12.0}]
+          }
+        ],
+        current_epoch_s: 0.0
+      )
+
+    urgent = branch(artifact, "urgent")
+
+    assert %{"type" => "candidate_refresh.v1", "scope" => "branch_generated"} =
+             candidate_source = urgent["assumptions"]["candidate_source"]
+
+    assert "mission_state.source_timeline_activity_precondition_summary" in candidate_source[
+             "source_report_input_paths"
+           ]
+
+    assert "mission_state.source_timeline_activity_precondition_summary" in candidate_source[
+             "candidate_refresh_request_source_report_input_paths"
+           ]
+
+    assert %{
+             "source" =>
+               "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_activity_precondition_summary",
+             "contract" => "timeline_activity_precondition_summary.v1",
+             "source_report_count" => 1,
+             "source_report_row_count" => 7,
+             "source_report_paths" => [
+               "mission_state.source_timeline_activity_precondition_summary"
+             ],
+             "blocked_precondition_count" => 3,
+             "review_precondition_count" => 4,
+             "blocked_precondition_type_counts" => %{
+               "command_safety_failed" => 1,
+               "payload_unavailable" => 1,
+               "resource_block_declared" => 1
+             },
+             "review_precondition_type_counts" => %{
+               "command_authority_missing" => 1,
+               "command_safety_unchecked" => 1,
+               "degraded_mode" => 1,
+               "subsystem_state_required" => 1
+             },
+             "activity_id_counts" => %{"branch_precondition_cmd_precondition" => 2},
+             "timeline_id_counts" => %{"timeline:branch_precondition:cmd_precondition" => 2},
+             "dependency_activity_id_counts" => %{"health_check" => 1},
+             "dependency_timeline_id_counts" => %{"timeline:health_check" => 1},
+             "duplicate_dependency_activity_id_counts" => %{"health_check" => 1},
+             "exclusive_with_activity_id_counts" => %{"downlink_conflict" => 1},
+             "exclusive_with_timeline_id_counts" => %{"timeline:downlink_conflict" => 1},
+             "duplicate_exclusivity_activity_id_counts" => %{"downlink_conflict" => 1},
+             "branch_local_timeline_activity_precondition_pressure" => true,
+             "branch_local_activity_precondition_review_pressure" => true,
+             "branch_local_activity_precondition_dependency_pressure" => true,
+             "branch_local_activity_precondition_exclusivity_pressure" => true
+           } = CandidateRefresh.timeline_activity_precondition_replay_summary(candidate_source)
+
+    precondition_pressure_count =
+      Enum.count(
+        urgent["risk_indicators"],
+        &(&1["type"] == "timeline_activity_precondition_review" and
+            &1["feedback_source"] ==
+              "candidate_source.timeline_activity_precondition_replay_summary")
+      )
+
+    assert precondition_pressure_count == 1
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "timeline_activity_precondition_review" and
+                 &1["blocked_precondition_count"] == 3 and
+                 &1["review_precondition_count"] == 4 and
+                 &1["blocked_precondition_types"] == [
+                   "command_safety_failed",
+                   "payload_unavailable",
+                   "resource_block_declared"
+                 ] and
+                 &1["review_precondition_types"] == [
+                   "command_authority_missing",
+                   "command_safety_unchecked",
+                   "degraded_mode",
+                   "subsystem_state_required"
+                 ] and
+                 &1["activity_ids"] == ["branch_precondition_cmd_precondition"] and
+                 &1["dependency_activity_ids"] == ["health_check"] and
+                 &1["duplicate_dependency_activity_ids"] == ["health_check"] and
+                 &1["exclusive_with_activity_ids"] == ["downlink_conflict"] and
+                 &1["duplicate_exclusivity_activity_ids"] == ["downlink_conflict"] and
+                 &1["feedback_scope"] == "timeline_activity_precondition")
+           )
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    assert urgent["score_terms"]["timeline_precondition_pressure_penalty"] ==
+             -precondition_pressure_count * risk_weight
+
+    assert "timeline_precondition_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == urgent["branch_id"] and
+                 &1["term_key"] == "timeline_precondition_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy derives branch pressure from timeline integrity reports" do
     integrity_report = fn activity_id, missing_activity_id, source, trust_boundary ->
       Timeline.integrity_report(
