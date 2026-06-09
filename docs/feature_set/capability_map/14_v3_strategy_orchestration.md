@@ -1558,10 +1558,12 @@ Selected recommendations also include:
 Operational-readiness and quality-gate pressure events also emit branch risk
 indicators with the same report, source-artifact, gate, required-action,
 feedback, trust-boundary, operator-training, and resource-availability routing
-context. Those risk rows contribute to the standard strategy `risk_penalty`, so
-otherwise equal branches with readiness or quality-gate review pressure rank
-below pressure-free alternatives when `risk_weight` applies, and branch
-comparison rows expose the corresponding risk types.
+context. Those risk rows contribute to `approval_boundary_pressure_penalty`,
+leaving the standard strategy `risk_penalty` for unrelated risks, so otherwise
+equal branches with readiness or quality-gate review pressure rank below
+pressure-free alternatives when `risk_weight` applies while score-term reports
+isolate the approval-boundary effect. Branch comparison rows expose the
+corresponding risk types.
 
 The corresponding strategy-recommendation operator-review row and Cadence import
 gate flatten those same risk type and stable-ID arrays, plus resource-pressure

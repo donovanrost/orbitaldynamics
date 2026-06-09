@@ -2840,7 +2840,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
     approval_count = length(branch_approval_requirements(repair_result, candidate_plan))
     risk_count = length(risk_indicators)
     contact_allocation_pressure_count = contact_allocation_pressure_risk_count(risk_indicators)
-    generic_risk_count = max(risk_count - contact_allocation_pressure_count, 0)
+    approval_boundary_pressure_count = approval_boundary_pressure_risk_count(risk_indicators)
+
+    generic_risk_count =
+      max(risk_count - contact_allocation_pressure_count - approval_boundary_pressure_count, 0)
 
     mission_value_score =
       activities
@@ -2875,6 +2878,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     contact_allocation_pressure_penalty =
       -contact_allocation_pressure_count * policy.risk_weight
 
+    approval_boundary_pressure_penalty =
+      -approval_boundary_pressure_count * policy.risk_weight
+
     risk_penalty = -generic_risk_count * policy.risk_weight
     approval_load_penalty = -approval_count * policy.approval_load_weight
 
@@ -2882,8 +2888,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       mission_value_score + coverage_score + revisit_score + latency_penalty +
         downlink_completion_score + fuel_preservation_score + schedule_stability_penalty +
         asset_balance_score + priority_commitment_score + resource_score +
-        feedback_adjustment_score + contact_allocation_pressure_penalty + risk_penalty +
-        approval_load_penalty
+        feedback_adjustment_score + contact_allocation_pressure_penalty +
+        approval_boundary_pressure_penalty + risk_penalty + approval_load_penalty
 
     probability = Map.get(branch, "probability", 1.0)
     expected_score = raw_score * probability * policy.probability_weight
@@ -2901,6 +2907,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "resource_score" => resource_score,
       "feedback_adjustment_score" => feedback_adjustment_score,
       "contact_allocation_pressure_penalty" => contact_allocation_pressure_penalty,
+      "approval_boundary_pressure_penalty" => approval_boundary_pressure_penalty,
       "risk_penalty" => risk_penalty,
       "approval_load_penalty" => approval_load_penalty,
       "raw_score" => raw_score,
@@ -2927,6 +2934,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp contact_allocation_pressure_risk?(_risk), do: false
+
+  defp approval_boundary_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &approval_boundary_pressure_risk?/1)
+  end
+
+  defp approval_boundary_pressure_risk?(%{"type" => type})
+       when type in ["operational_readiness_pressure", "quality_gate_pressure"],
+       do: true
+
+  defp approval_boundary_pressure_risk?(_risk), do: false
 
   defp branch_risk_indicators(
          branch,
@@ -4421,7 +4438,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"asset_balance", "asset_balance_score"},
         {"resource_score", "resource_score"},
         {"feedback_adjustment", "feedback_adjustment_score"},
-        {"contact_allocation_pressure", "contact_allocation_pressure_penalty"}
+        {"contact_allocation_pressure", "contact_allocation_pressure_penalty"},
+        {"approval_boundary_pressure", "approval_boundary_pressure_penalty"}
       ]) ++
       [
         %{

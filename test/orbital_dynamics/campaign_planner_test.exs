@@ -18073,6 +18073,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "resource_score",
              "feedback_adjustment",
              "contact_allocation_pressure",
+             "approval_boundary_pressure",
              "risk_count",
              "approval_count",
              "schedule_stability"
@@ -18672,9 +18673,35 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     pressure_branch = branch(artifact, "urgent_pressure")
 
     assert clean_branch["score_terms"]["contact_allocation_pressure_penalty"] == 0.0
+    assert clean_branch["score_terms"]["approval_boundary_pressure_penalty"] == 0.0
     assert clean_branch["score_terms"]["risk_penalty"] == -5.0
     assert pressure_branch["score_terms"]["contact_allocation_pressure_penalty"] == 0.0
-    assert pressure_branch["score_terms"]["risk_penalty"] == -15.0
+
+    approval_boundary_pressure_count =
+      Enum.count(
+        pressure_branch["risk_indicators"],
+        &(&1["type"] in ["operational_readiness_pressure", "quality_gate_pressure"])
+      )
+
+    assert approval_boundary_pressure_count == 2
+
+    assert pressure_branch["score_terms"]["approval_boundary_pressure_penalty"] ==
+             -approval_boundary_pressure_count * 5.0
+
+    assert "approval_boundary_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == "urgent_pressure" and
+                 &1["term_key"] == "approval_boundary_pressure_penalty" and &1["value"] < 0.0)
+           )
+
+    assert pressure_branch["score_terms"]["risk_penalty"] ==
+             -(length(pressure_branch["risk_indicators"]) - approval_boundary_pressure_count) *
+               5.0
+
     assert pressure_branch["score"] < clean_branch["score"]
 
     assert %{
@@ -44518,8 +44545,37 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "trust_boundary" => "prior_plan_result_artifact_boundary"
            } = List.first(wrapped_quality_branch["events"])
 
-    assert direct_readiness_branch["score_terms"]["risk_penalty"] < 0.0
-    assert direct_quality_branch["score_terms"]["risk_penalty"] < 0.0
+    readiness_pressure_count =
+      Enum.count(
+        direct_readiness_branch["risk_indicators"],
+        &(&1["type"] == "operational_readiness_pressure")
+      )
+
+    quality_pressure_count =
+      Enum.count(
+        direct_quality_branch["risk_indicators"],
+        &(&1["type"] == "quality_gate_pressure")
+      )
+
+    readiness_risk_weight =
+      get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    assert readiness_pressure_count == 1
+    assert quality_pressure_count == 1
+
+    assert direct_readiness_branch["score_terms"]["approval_boundary_pressure_penalty"] ==
+             -readiness_pressure_count * readiness_risk_weight
+
+    assert direct_quality_branch["score_terms"]["approval_boundary_pressure_penalty"] ==
+             -quality_pressure_count * readiness_risk_weight
+
+    assert direct_readiness_branch["score_terms"]["risk_penalty"] ==
+             -(length(direct_readiness_branch["risk_indicators"]) - readiness_pressure_count) *
+               readiness_risk_weight
+
+    assert direct_quality_branch["score_terms"]["risk_penalty"] ==
+             -(length(direct_quality_branch["risk_indicators"]) - quality_pressure_count) *
+               readiness_risk_weight
 
     comparison_rows =
       artifact["branch_comparison_report"]["rows"]
