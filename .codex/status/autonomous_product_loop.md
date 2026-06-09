@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Split import-readiness strategy pressure score terms.
+Route unavailable-resource summary pressure into resource score terms.
 
 Status:
 Completed and pushed.
@@ -17,30 +17,31 @@ Files changed:
 - `test/orbital_dynamics/campaign_planner_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:44384`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:44657`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:44159`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:43940`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:43705`
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:43668`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:43940`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:44159`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:44384`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:39384`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-V3 strategy scoring now emits `import_readiness_pressure_penalty` for
-import-readiness quality-gate risks and keeps those risks out of broad
-`quality_gate_pressure_penalty`. Compatibility docs record the score-term
-split for freshness, import-preparation, and blocked-import evidence.
+V3 strategy scoring now routes unavailable-resource quality-gate risks into
+`resource_availability_pressure_penalty` and keeps those risks out of broad
+`quality_gate_pressure_penalty`. Compatibility docs record the resource score
+route for antenna, payload, station, and blocked-contact availability pressure.
 
 Local review:
 Parent review confirmed staged scope, score-term classification, score-term
-report rows, focused import/schema/operator/generic quality-gate regressions,
+report rows, focused resource/operator/schema/import quality-gate regressions,
 docs, and verification. `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Cadence import-readiness pressure is now planner-visible in reproducible V3
-branch score explanations instead of being hidden in a generic quality-gate
-bucket.
+Unavailable-resource and quality-gate resource pressure are now planner-visible
+in reproducible V3 branch score explanations under the resource-availability
+score-term family.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -50,7 +51,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`e1b2858` Split import readiness score pressure.
+`da0b2cb` Route unavailable resource score pressure.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -63,6 +64,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `da0b2cb` routed unavailable-resource quality-gate summary risks into the V3
+  resource-availability pressure score term.
 - `e1b2858` split import-readiness quality-gate pressure into a dedicated V3
   strategy score term.
 - `a2e5c9c` routed schema-validation quality-gate summary risks into the V3
