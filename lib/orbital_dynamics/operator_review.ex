@@ -16236,6 +16236,9 @@ defmodule OrbitalDynamics.OperatorReview do
       OrbitalDynamics.RecommendationRiskContext.timeline_activity_precondition_context(risks)
     )
     |> Map.merge(OrbitalDynamics.RecommendationRiskContext.timeline_publication_context(risks))
+    |> Map.merge(
+      OrbitalDynamics.RecommendationRiskContext.timeline_lifecycle_state_context(risks)
+    )
     |> Map.merge(OrbitalDynamics.RecommendationRiskContext.timeline_preservation_context(risks))
     |> Enum.reject(fn {_key, values} -> values == [] end)
     |> Map.new()

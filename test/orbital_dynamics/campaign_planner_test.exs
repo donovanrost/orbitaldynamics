@@ -18629,6 +18629,86 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 }
               },
               %{
+                type: "timeline_lifecycle_state_pressure",
+                timeline_lifecycle_state_status: "review_required",
+                planned_activity_count: 4,
+                realized_activity_count: 1,
+                row_count: 4,
+                recordable_count: 3,
+                preserved_count: 1,
+                review_required_count: 3,
+                duplicate_timeline_identity_count: 1,
+                invalid_activity_input_count: 1,
+                transition_decision_counts: %{"record" => 3, "none" => 1},
+                required_operator_action_counts: %{
+                  "review_activity_approval" => 1,
+                  "review_duplicate_timeline_identity" => 1,
+                  "review_invalid_activity_input" => 1
+                },
+                operator_action_reason_counts: %{
+                  "activity_approval_pending" => 1,
+                  "duplicate_timeline_identity" => 1,
+                  "missing_activity_type" => 1
+                },
+                import_action_counts: %{"review_timeline_diff" => 3},
+                planned_status_category_counts: %{"planned" => 4},
+                realized_status_category_counts: %{"executed" => 1},
+                status_transition_category_counts: %{"changed" => 1},
+                approval_transition_category_counts: %{"changed" => 1},
+                recordable_timeline_ids: [
+                  "timeline:lifecycle:cmd_pending",
+                  "timeline:lifecycle:dup",
+                  "timeline:invalid_activity_input:lifecycle_bad_missing_type"
+                ],
+                preserved_timeline_ids: ["timeline:lifecycle:obs_preserved"],
+                review_timeline_ids: [
+                  "timeline:lifecycle:cmd_pending",
+                  "timeline:lifecycle:dup",
+                  "timeline:invalid_activity_input:lifecycle_bad_missing_type"
+                ],
+                review_activity_ids: [
+                  "lifecycle_cmd_pending",
+                  "lifecycle_dup_a",
+                  "lifecycle_dup_b",
+                  "timeline_row:4:lifecycle_bad_missing_type"
+                ],
+                invalid_activity_input_ids: ["timeline_row:4:lifecycle_bad_missing_type"],
+                review_timeline_ids_by_required_operator_action: %{
+                  "review_activity_approval" => ["timeline:lifecycle:cmd_pending"],
+                  "review_duplicate_timeline_identity" => ["timeline:lifecycle:dup"],
+                  "review_invalid_activity_input" => [
+                    "timeline:invalid_activity_input:lifecycle_bad_missing_type"
+                  ]
+                },
+                review_timeline_ids_by_operator_action_reason: %{
+                  "activity_approval_pending" => ["timeline:lifecycle:cmd_pending"],
+                  "duplicate_timeline_identity" => ["timeline:lifecycle:dup"],
+                  "missing_activity_type" => [
+                    "timeline:invalid_activity_input:lifecycle_bad_missing_type"
+                  ]
+                },
+                review_timeline_ids_by_status_transition_category: %{
+                  "changed" => ["timeline:lifecycle:cmd_pending"]
+                },
+                review_timeline_ids_by_approval_transition_category: %{
+                  "changed" => ["timeline:lifecycle:cmd_pending"]
+                },
+                requires_operator_review: true,
+                required_operator_action: "review_timeline_lifecycle_state",
+                feedback_source: "mission_state.source_timeline_lifecycle_state_summary",
+                feedback_scope: "timeline_lifecycle_state",
+                feedback_key: "mission.lifecycle.summary",
+                trust_boundary: "mission_state_timeline_lifecycle_state_summary",
+                derivation_reasons: ["timeline_lifecycle_state_summary_pressure"],
+                assumptions: %{
+                  "timeline_lifecycle_application" => "not_performed_by_strategy_branch",
+                  "timeline_mutation" => "not_performed_by_strategy_branch",
+                  "operator_authority" => "not_granted_by_strategy_branch",
+                  "cadence_import" => "not_performed_by_strategy_branch",
+                  "command_execution" => "not_performed_by_strategy_branch"
+                }
+              },
+              %{
                 type: "timeline_preservation_pressure",
                 activity_id: "contact_locked_review",
                 timeline_id: "timeline:contact_locked_review",
@@ -19195,6 +19275,57 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                explanation,
                &(&1["type"] == "risk_driver" and
                    &1["risk_type"] == "timeline_publication_pressure")
+             )
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "timeline_lifecycle_state_review",
+             "severity" => "high",
+             "timeline_lifecycle_state_status" => "review_required",
+             "planned_activity_count" => 4,
+             "realized_activity_count" => 1,
+             "row_count" => 4,
+             "recordable_count" => 3,
+             "preserved_count" => 1,
+             "review_required_count" => 3,
+             "duplicate_timeline_identity_count" => 1,
+             "invalid_activity_input_count" => 1,
+             "transition_decision_counts" => %{"record" => 3, "none" => 1},
+             "required_operator_action_counts" => %{
+               "review_activity_approval" => 1,
+               "review_duplicate_timeline_identity" => 1,
+               "review_invalid_activity_input" => 1
+             },
+             "operator_action_reason_counts" => %{
+               "activity_approval_pending" => 1,
+               "duplicate_timeline_identity" => 1,
+               "missing_activity_type" => 1
+             },
+             "import_action_counts" => %{"review_timeline_diff" => 3},
+             "review_timeline_ids" => [
+               "timeline:lifecycle:cmd_pending",
+               "timeline:lifecycle:dup",
+               "timeline:invalid_activity_input:lifecycle_bad_missing_type"
+             ],
+             "review_activity_ids" => [
+               "lifecycle_cmd_pending",
+               "lifecycle_dup_a",
+               "lifecycle_dup_b",
+               "timeline_row:4:lifecycle_bad_missing_type"
+             ],
+             "invalid_activity_input_ids" => ["timeline_row:4:lifecycle_bad_missing_type"],
+             "requires_operator_review" => true,
+             "required_operator_action" => "review_timeline_lifecycle_state",
+             "feedback_source" => "mission_state.source_timeline_lifecycle_state_summary",
+             "feedback_scope" => "timeline_lifecycle_state",
+             "feedback_key" => "mission.lifecycle.summary",
+             "trust_boundary" => "mission_state_timeline_lifecycle_state_summary",
+             "derivation_reasons" => ["timeline_lifecycle_state_summary_pressure"]
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "timeline_lifecycle_state_review")
              )
 
     assert %{
@@ -19863,6 +19994,117 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
           "notification_delivery" => "not_performed_by_strategy_branch",
           "operator_authority" => "not_granted_by_strategy_branch",
           "import_approval" => "not_granted_by_strategy_branch"
+        }
+      ],
+      "timeline_lifecycle_state_statuses" => ["review_required"],
+      "timeline_lifecycle_state_planned_activity_count_values" => [4],
+      "timeline_lifecycle_state_realized_activity_count_values" => [1],
+      "timeline_lifecycle_state_row_count_values" => [4],
+      "timeline_lifecycle_state_recordable_count_values" => [3],
+      "timeline_lifecycle_state_preserved_count_values" => [1],
+      "timeline_lifecycle_state_review_required_count_values" => [3],
+      "timeline_lifecycle_state_duplicate_identity_count_values" => [1],
+      "timeline_lifecycle_state_invalid_activity_input_count_values" => [1],
+      "timeline_lifecycle_state_transition_decision_count_maps" => [
+        %{"record" => 3, "none" => 1}
+      ],
+      "timeline_lifecycle_state_required_operator_action_count_maps" => [
+        %{
+          "review_activity_approval" => 1,
+          "review_duplicate_timeline_identity" => 1,
+          "review_invalid_activity_input" => 1
+        }
+      ],
+      "timeline_lifecycle_state_operator_action_reason_count_maps" => [
+        %{
+          "activity_approval_pending" => 1,
+          "duplicate_timeline_identity" => 1,
+          "missing_activity_type" => 1
+        }
+      ],
+      "timeline_lifecycle_state_import_action_count_maps" => [
+        %{"review_timeline_diff" => 3}
+      ],
+      "timeline_lifecycle_state_planned_status_category_count_maps" => [
+        %{"planned" => 4}
+      ],
+      "timeline_lifecycle_state_realized_status_category_count_maps" => [
+        %{"executed" => 1}
+      ],
+      "timeline_lifecycle_state_status_transition_category_count_maps" => [
+        %{"changed" => 1}
+      ],
+      "timeline_lifecycle_state_approval_transition_category_count_maps" => [
+        %{"changed" => 1}
+      ],
+      "timeline_lifecycle_state_recordable_timeline_ids" => [
+        "timeline:lifecycle:cmd_pending",
+        "timeline:lifecycle:dup",
+        "timeline:invalid_activity_input:lifecycle_bad_missing_type"
+      ],
+      "timeline_lifecycle_state_preserved_timeline_ids" => [
+        "timeline:lifecycle:obs_preserved"
+      ],
+      "timeline_lifecycle_state_review_timeline_ids" => [
+        "timeline:lifecycle:cmd_pending",
+        "timeline:lifecycle:dup",
+        "timeline:invalid_activity_input:lifecycle_bad_missing_type"
+      ],
+      "timeline_lifecycle_state_review_activity_ids" => [
+        "lifecycle_cmd_pending",
+        "lifecycle_dup_a",
+        "lifecycle_dup_b",
+        "timeline_row:4:lifecycle_bad_missing_type"
+      ],
+      "timeline_lifecycle_state_invalid_activity_input_ids" => [
+        "timeline_row:4:lifecycle_bad_missing_type"
+      ],
+      "timeline_lifecycle_state_review_timeline_ids_by_required_operator_action" => [
+        %{
+          "review_activity_approval" => ["timeline:lifecycle:cmd_pending"],
+          "review_duplicate_timeline_identity" => ["timeline:lifecycle:dup"],
+          "review_invalid_activity_input" => [
+            "timeline:invalid_activity_input:lifecycle_bad_missing_type"
+          ]
+        }
+      ],
+      "timeline_lifecycle_state_review_timeline_ids_by_operator_action_reason" => [
+        %{
+          "activity_approval_pending" => ["timeline:lifecycle:cmd_pending"],
+          "duplicate_timeline_identity" => ["timeline:lifecycle:dup"],
+          "missing_activity_type" => [
+            "timeline:invalid_activity_input:lifecycle_bad_missing_type"
+          ]
+        }
+      ],
+      "timeline_lifecycle_state_review_timeline_ids_by_status_transition_category" => [
+        %{"changed" => ["timeline:lifecycle:cmd_pending"]}
+      ],
+      "timeline_lifecycle_state_review_timeline_ids_by_approval_transition_category" => [
+        %{"changed" => ["timeline:lifecycle:cmd_pending"]}
+      ],
+      "timeline_lifecycle_state_required_operator_actions" => [
+        "review_timeline_lifecycle_state"
+      ],
+      "timeline_lifecycle_state_requires_operator_review_values" => [true],
+      "timeline_lifecycle_state_feedback_sources" => [
+        "mission_state.source_timeline_lifecycle_state_summary"
+      ],
+      "timeline_lifecycle_state_feedback_scopes" => ["timeline_lifecycle_state"],
+      "timeline_lifecycle_state_feedback_keys" => ["mission.lifecycle.summary"],
+      "timeline_lifecycle_state_trust_boundaries" => [
+        "mission_state_timeline_lifecycle_state_summary"
+      ],
+      "timeline_lifecycle_state_derivation_reasons" => [
+        "timeline_lifecycle_state_summary_pressure"
+      ],
+      "timeline_lifecycle_state_assumption_maps" => [
+        %{
+          "timeline_lifecycle_application" => "not_performed_by_strategy_branch",
+          "timeline_mutation" => "not_performed_by_strategy_branch",
+          "operator_authority" => "not_granted_by_strategy_branch",
+          "cadence_import" => "not_performed_by_strategy_branch",
+          "command_execution" => "not_performed_by_strategy_branch"
         }
       ],
       "timeline_preservation_activity_ids" => ["contact_locked_review"],

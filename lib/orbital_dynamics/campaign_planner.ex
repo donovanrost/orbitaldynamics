@@ -4839,17 +4839,43 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "reason" =>
           "timeline lifecycle summary carries review, import, duplicate identity, or invalid activity pressure",
         "timeline_lifecycle_state_status" => event["timeline_lifecycle_state_status"],
+        "planned_activity_count" => event["planned_activity_count"],
+        "realized_activity_count" => event["realized_activity_count"],
+        "row_count" => event["row_count"],
+        "recordable_count" => event["recordable_count"],
+        "preserved_count" => event["preserved_count"],
         "review_required_count" => event["review_required_count"],
         "duplicate_timeline_identity_count" => event["duplicate_timeline_identity_count"],
         "invalid_activity_input_count" => event["invalid_activity_input_count"],
+        "transition_decision_counts" => event["transition_decision_counts"],
+        "required_operator_action_counts" => event["required_operator_action_counts"],
+        "operator_action_reason_counts" => event["operator_action_reason_counts"],
+        "import_action_counts" => event["import_action_counts"],
+        "planned_status_category_counts" => event["planned_status_category_counts"],
+        "realized_status_category_counts" => event["realized_status_category_counts"],
+        "status_transition_category_counts" => event["status_transition_category_counts"],
+        "approval_transition_category_counts" => event["approval_transition_category_counts"],
+        "recordable_timeline_ids" => event["recordable_timeline_ids"],
+        "preserved_timeline_ids" => event["preserved_timeline_ids"],
         "review_timeline_ids" => event["review_timeline_ids"],
         "review_activity_ids" => event["review_activity_ids"],
         "invalid_activity_input_ids" => event["invalid_activity_input_ids"],
-        "required_operator_action_counts" => event["required_operator_action_counts"],
-        "import_action_counts" => event["import_action_counts"],
+        "review_timeline_ids_by_required_operator_action" =>
+          event["review_timeline_ids_by_required_operator_action"],
+        "review_timeline_ids_by_operator_action_reason" =>
+          event["review_timeline_ids_by_operator_action_reason"],
+        "review_timeline_ids_by_status_transition_category" =>
+          event["review_timeline_ids_by_status_transition_category"],
+        "review_timeline_ids_by_approval_transition_category" =>
+          event["review_timeline_ids_by_approval_transition_category"],
+        "requires_operator_review" => event["requires_operator_review"],
+        "required_operator_action" => event["required_operator_action"],
         "feedback_source" => event["feedback_source"],
         "feedback_scope" => event["feedback_scope"],
-        "trust_boundary" => event["trust_boundary"]
+        "feedback_key" => event["feedback_key"],
+        "trust_boundary" => event["trust_boundary"],
+        "derivation_reasons" => event["derivation_reasons"],
+        "assumptions" => event["assumptions"]
       }
       |> compact_map()
     ]
@@ -5403,6 +5429,45 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "changed_timeline_ids",
       "review_timeline_ids",
       "timeline_ids_by_changed_field",
+      "feedback_source",
+      "feedback_scope",
+      "feedback_key",
+      "trust_boundary",
+      "derivation_reasons",
+      "assumptions"
+    ]
+  end
+
+  defp timeline_lifecycle_state_pressure_risk_fields do
+    [
+      "timeline_lifecycle_state_status",
+      "planned_activity_count",
+      "realized_activity_count",
+      "row_count",
+      "recordable_count",
+      "preserved_count",
+      "review_required_count",
+      "duplicate_timeline_identity_count",
+      "invalid_activity_input_count",
+      "transition_decision_counts",
+      "required_operator_action_counts",
+      "operator_action_reason_counts",
+      "import_action_counts",
+      "planned_status_category_counts",
+      "realized_status_category_counts",
+      "status_transition_category_counts",
+      "approval_transition_category_counts",
+      "recordable_timeline_ids",
+      "preserved_timeline_ids",
+      "review_timeline_ids",
+      "review_activity_ids",
+      "invalid_activity_input_ids",
+      "review_timeline_ids_by_required_operator_action",
+      "review_timeline_ids_by_operator_action_reason",
+      "review_timeline_ids_by_status_transition_category",
+      "review_timeline_ids_by_approval_transition_category",
+      "requires_operator_review",
+      "required_operator_action",
       "feedback_source",
       "feedback_scope",
       "feedback_key",
@@ -7086,6 +7151,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp recommendation_pressure_risk_context(%{"feedback_scope" => "timeline_publication"} = risk) do
     Map.take(risk, timeline_publication_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"type" => "timeline_lifecycle_state_review"} = risk) do
+    Map.take(risk, timeline_lifecycle_state_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(
+         %{"feedback_scope" => "timeline_lifecycle_state"} = risk
+       ) do
+    Map.take(risk, timeline_lifecycle_state_pressure_risk_fields())
   end
 
   defp recommendation_pressure_risk_context(%{"type" => "timeline_preservation_review"} = risk) do
