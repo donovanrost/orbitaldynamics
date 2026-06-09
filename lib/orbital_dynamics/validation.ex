@@ -1623,6 +1623,78 @@ defmodule OrbitalDynamics.Validation do
         "checks candidate-refresh product counts and source-report provenance counts only"
       ]
     },
+    "fixture.artifact.candidate_refresh.candidate_rejection_replay" => %{
+      "id" => "fixture.artifact.candidate_refresh.candidate_rejection_replay",
+      "model_id" => "artifact.candidate_refresh.v1",
+      "reference_case" =>
+        "generated candidate refresh replay of candidate-rejection source-report provenance",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "source" => "generated_candidate_refresh_candidate_rejection_fixture",
+        "contract" => "candidate_refresh.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "candidate_refresh.v1",
+        "schema_version" => 1,
+        "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 1,
+        "source_report_row_count" => 2,
+        "source_candidate_rejection_report_count" => 1,
+        "source_candidate_rejection_row_count" => 2,
+        "source_candidate_rejection_rejected_count" => 2,
+        "source_candidate_rejection_reviewable_count" => 1,
+        "source_candidate_rejection_invalid_candidate_input_count" => 1,
+        "source_candidate_rejection_rejection_reason_counts" => %{
+          "invalid_candidate_input" => 1,
+          "station_reserved" => 1
+        },
+        "source_candidate_rejection_required_operator_action_counts" => %{
+          "none" => 1,
+          "review_candidate_rejection" => 1
+        },
+        "source_candidate_rejection_candidate_id_counts" => %{
+          "bad_candidate" => 1,
+          "dl_reserved" => 1
+        },
+        "source_candidate_rejection_ground_station_counts" => %{
+          "dss_43" => 1,
+          "equator_prime" => 1
+        },
+        "source_candidate_rejection_trust_boundary_status" => "declared",
+        "source_candidate_rejection_branch_local_rejection_pressure" => true,
+        "source_candidate_rejection_branch_local_review_pressure" => true,
+        "source_candidate_rejection_branch_local_invalid_input_pressure" => true
+      },
+      "tolerances" => %{
+        "schema_version" => 0,
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 0,
+        "source_report_row_count" => 0,
+        "source_candidate_rejection_report_count" => 0,
+        "source_candidate_rejection_row_count" => 0,
+        "source_candidate_rejection_rejected_count" => 0,
+        "source_candidate_rejection_reviewable_count" => 0,
+        "source_candidate_rejection_invalid_candidate_input_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal generated artifact regression, not candidate selection validation",
+        "checks candidate-refresh replay of candidate-rejection provenance without candidate selection, import approval, or Cadence writes"
+      ]
+    },
     "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay" => %{
       "id" => "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay",
       "model_id" => "artifact.candidate_refresh.v1",
@@ -14721,6 +14793,7 @@ defmodule OrbitalDynamics.Validation do
   def artifact_observations("candidate_refresh.v1", artifact) when is_map(artifact) do
     artifact = stringify_keys(artifact)
     source_reports = get_in(artifact, ["provenance", "source_reports"]) || %{}
+    candidate_rejection_summary = Map.get(source_reports, "candidate_rejection_report") || %{}
     contact_contention_summary = Map.get(source_reports, "contact_contention_report") || %{}
     contact_filter_summary = Map.get(source_reports, "contact_filter_report") || %{}
     contact_intent_summary = Map.get(source_reports, "contact_intent") || %{}
@@ -14872,6 +14945,30 @@ defmodule OrbitalDynamics.Validation do
         contact_filter_branch_local_invalid_contact_input_pressure?(contact_filter_summary),
       "source_contact_filter_branch_local_station_suppression_pressure" =>
         contact_filter_branch_local_station_suppression_pressure?(contact_filter_summary),
+      "source_candidate_rejection_report_count" => Map.get(candidate_rejection_summary, "count"),
+      "source_candidate_rejection_row_count" => Map.get(candidate_rejection_summary, "row_count"),
+      "source_candidate_rejection_rejected_count" =>
+        Map.get(candidate_rejection_summary, "rejected_count"),
+      "source_candidate_rejection_reviewable_count" =>
+        Map.get(candidate_rejection_summary, "reviewable_count"),
+      "source_candidate_rejection_invalid_candidate_input_count" =>
+        Map.get(candidate_rejection_summary, "invalid_candidate_input_count"),
+      "source_candidate_rejection_rejection_reason_counts" =>
+        Map.get(candidate_rejection_summary, "rejection_reason_counts") || %{},
+      "source_candidate_rejection_required_operator_action_counts" =>
+        Map.get(candidate_rejection_summary, "required_operator_action_counts") || %{},
+      "source_candidate_rejection_candidate_id_counts" =>
+        Map.get(candidate_rejection_summary, "candidate_rejection_candidate_id_counts") || %{},
+      "source_candidate_rejection_ground_station_counts" =>
+        Map.get(candidate_rejection_summary, "candidate_rejection_ground_station_counts") || %{},
+      "source_candidate_rejection_trust_boundary_status" =>
+        Map.get(candidate_rejection_summary, "trust_boundary_status"),
+      "source_candidate_rejection_branch_local_rejection_pressure" =>
+        candidate_rejection_branch_local_rejection_pressure?(candidate_rejection_summary),
+      "source_candidate_rejection_branch_local_review_pressure" =>
+        candidate_rejection_branch_local_review_pressure?(candidate_rejection_summary),
+      "source_candidate_rejection_branch_local_invalid_input_pressure" =>
+        candidate_rejection_branch_local_invalid_input_pressure?(candidate_rejection_summary),
       "source_contact_intent_report_count" => Map.get(contact_intent_summary, "count"),
       "source_contact_intent_row_count" => Map.get(contact_intent_summary, "row_count"),
       "source_contact_intent_station_feedback_count" =>
@@ -21867,6 +21964,29 @@ defmodule OrbitalDynamics.Validation do
       map_size(Map.get(summary, "source_activity_id_counts") || %{}) > 0 or
       map_size(Map.get(summary, "constraint_resource_counts") || %{}) > 0 or
       map_size(Map.get(summary, "constraint_spacecraft_counts") || %{}) > 0
+  end
+
+  defp candidate_rejection_branch_local_rejection_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "rejected_count") or
+      positive_integer_observation?(summary, "reviewable_count") or
+      positive_integer_observation?(summary, "invalid_candidate_input_count") or
+      map_size(Map.get(summary, "rejection_reason_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "required_operator_action_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "candidate_rejection_candidate_id_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "candidate_rejection_ground_station_counts") || %{}) > 0
+  end
+
+  defp candidate_rejection_branch_local_review_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "reviewable_count") or
+      map_size(Map.get(summary, "required_operator_action_counts") || %{}) > 0
+  end
+
+  defp candidate_rejection_branch_local_invalid_input_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "invalid_candidate_input_count") or
+      positive_integer_observation?(
+        Map.get(summary, "rejection_reason_counts") || %{},
+        "invalid_candidate_input"
+      )
   end
 
   defp contact_filter_branch_local_contact_filter_pressure?(%{} = summary) do

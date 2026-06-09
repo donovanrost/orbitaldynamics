@@ -5868,6 +5868,75 @@ defmodule OrbitalDynamics.ValidationTest do
              Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
   end
 
+  test "verifies candidate refresh candidate rejection replay fixtures" do
+    fixture_id = "fixture.artifact.candidate_refresh.candidate_rejection_replay"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = candidate_refresh_candidate_rejection_fixture()
+    observations = candidate_refresh_candidate_rejection_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "source_report_family_count" => 1,
+             "source_report_row_count" => 2,
+             "source_candidate_rejection_report_count" => 1,
+             "source_candidate_rejection_row_count" => 2,
+             "source_candidate_rejection_rejected_count" => 2,
+             "source_candidate_rejection_reviewable_count" => 1,
+             "source_candidate_rejection_invalid_candidate_input_count" => 1,
+             "source_candidate_rejection_rejection_reason_counts" => %{
+               "invalid_candidate_input" => 1,
+               "station_reserved" => 1
+             },
+             "source_candidate_rejection_required_operator_action_counts" => %{
+               "none" => 1,
+               "review_candidate_rejection" => 1
+             },
+             "source_candidate_rejection_candidate_id_counts" => %{
+               "bad_candidate" => 1,
+               "dl_reserved" => 1
+             },
+             "source_candidate_rejection_ground_station_counts" => %{
+               "dss_43" => 1,
+               "equator_prime" => 1
+             },
+             "source_candidate_rejection_trust_boundary_status" => "declared",
+             "source_candidate_rejection_branch_local_rejection_pressure" => true,
+             "source_candidate_rejection_branch_local_review_pressure" => true,
+             "source_candidate_rejection_branch_local_invalid_input_pressure" => true
+           } = observations
+
+    stale_rejection_pressure_observations =
+      observations
+      |> Map.put("source_candidate_rejection_branch_local_rejection_pressure", false)
+
+    assert {:ok, stale_rejection_pressure_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_rejection_pressure_observations
+             )
+
+    assert stale_rejection_pressure_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_rejection_pressure_verification["checks"],
+             &(&1["field"] == "source_candidate_rejection_branch_local_rejection_pressure" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _validated_artifact} =
+             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
+  end
+
   test "verifies curated candidate rejection report reference fixtures" do
     fixture_id = "fixture.artifact.candidate_rejection_report.v1"
 
@@ -14743,6 +14812,8 @@ defmodule OrbitalDynamics.ValidationTest do
           candidate_diff_report_fixture_observations(),
         "fixture.artifact.candidate_diff_row.v1" => candidate_diff_row_fixture_observations(),
         "fixture.artifact.candidate_refresh.v1" => candidate_refresh_fixture_observations(),
+        "fixture.artifact.candidate_refresh.candidate_rejection_replay" =>
+          candidate_refresh_candidate_rejection_fixture_observations(),
         "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay" =>
           candidate_refresh_contact_contention_challenge_fixture_observations(),
         "fixture.artifact.candidate_refresh.contact_filter_replay" =>
@@ -15056,8 +15127,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 190,
-             "status_counts" => %{"pass" => 190},
+             "fixture_count" => 191,
+             "status_counts" => %{"pass" => 191},
              "reports" => reports
            } = report
 
@@ -15089,6 +15160,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.candidate_activity.v1",
              "fixture.artifact.candidate_diff_report.v1",
              "fixture.artifact.candidate_diff_row.v1",
+             "fixture.artifact.candidate_refresh.candidate_rejection_replay",
              "fixture.artifact.candidate_refresh.constraint_replay",
              "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay",
              "fixture.artifact.candidate_refresh.contact_filter_replay",
@@ -15274,7 +15346,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 190},
+             "status_counts" => %{"fail" => 191},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -16519,6 +16591,74 @@ defmodule OrbitalDynamics.ValidationTest do
           "stale_status" => ["stale_provider_entry"]
         },
         "provenance" => %{"trust_boundary" => "contact_filter_replay_report"}
+      }
+    }
+  end
+
+  defp candidate_refresh_candidate_rejection_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(candidate_refresh_candidate_rejection_fixture())
+  end
+
+  defp candidate_refresh_candidate_rejection_fixture do
+    result_set(%{})
+    |> CandidateRefresh.build(
+      candidate_refresh: candidate_refresh_candidate_rejection_request(),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  defp candidate_refresh_candidate_rejection_request do
+    %{
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-candidate-rejection-replay-challenge",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [],
+        "source" => %{"system" => "validation_challenge"},
+        "quality" => %{"level" => "accepted"},
+        "provenance" => %{"created_by" => "validation_fixture"}
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "targets" => [],
+      "constraints" => %{},
+      "scoring_policy" => %{},
+      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
+      "source_candidate_rejection_report" => %{
+        "schema_contract" => "candidate_rejection_report.v1",
+        "row_count" => 2,
+        "rejected_count" => 2,
+        "reviewable_count" => 1,
+        "invalid_candidate_input_count" => 1,
+        "rejection_reason_counts" => %{
+          "stale_rejection_reason" => 99
+        },
+        "required_operator_action_counts" => %{
+          "stale_required_action" => 99
+        },
+        "rows" => [
+          %{
+            "id" => "candidate_rejection:dl_reserved",
+            "candidate_id" => "dl_reserved",
+            "ground_station_id" => "equator_prime",
+            "rejection_reasons" => ["station_reserved"],
+            "primary_rejection_reason" => "station_reserved",
+            "required_operator_action" => "review_candidate_rejection"
+          },
+          %{
+            "id" => "candidate_rejection:bad_candidate",
+            "candidate_id" => "bad_candidate",
+            "activity_context" => %{"ground_station_id" => "dss_43"},
+            "rejection_reasons" => ["invalid_candidate_input"],
+            "primary_rejection_reason" => "invalid_candidate_input",
+            "required_operator_action" => "none"
+          }
+        ],
+        "provenance" => %{"trust_boundary" => "candidate_rejection_replay_report"}
       }
     }
   end

@@ -605,6 +605,11 @@ candidate suppression, invalid contact-input evidence, direction and
 station-suppression routing maps, branch-local contact-filter pressure
 booleans, and trust-boundary status without contact allocation, candidate
 selection, import approval, or Cadence writes.
+The registry also includes a generated CandidateRefresh candidate-rejection
+replay fixture. It checks candidate-rejection source-report provenance counts,
+row-derived rejection reasons, required operator actions, candidate/station
+routing maps, branch-local rejection pressure booleans, and trust-boundary
+status without candidate selection, import approval, or Cadence writes.
 The registry also includes a generated CandidateRefresh objective-gap replay
 fixture. It checks objective-satisfaction, objective-tradeoff, and score-term
 source-report provenance counts, row-derived gap/status/term maps, source

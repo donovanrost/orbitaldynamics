@@ -16171,6 +16171,7 @@ defmodule OrbitalDynamics.SchemaTest do
 
     expected_reason_counts = %{"antenna_unavailable" => 1, "payload_unavailable" => 1}
     expected_reason_ids = ["antenna_unavailable", "payload_unavailable"]
+    expected_reason_id_key = Enum.join(expected_reason_ids, "|")
 
     assert %{
              "schema_contract" => "candidate_refresh.v1",
@@ -16350,6 +16351,28 @@ defmodule OrbitalDynamics.SchemaTest do
                "warning_count" => 3,
                "source_report_family_count" => 2,
                "source_report_row_count" => 7,
+               "source_candidate_rejection_branch_local_invalid_input_pressure" => false,
+               "source_candidate_rejection_branch_local_rejection_pressure" => false,
+               "source_candidate_rejection_branch_local_review_pressure" => false,
+               "source_constraint_branch_local_constraint_pressure" => false,
+               "source_constraint_branch_local_constraint_routing_pressure" => false,
+               "source_constraint_branch_local_downlink_gap_pressure" => false,
+               "source_constraint_branch_local_resource_margin_pressure" => false,
+               "source_contact_filter_branch_local_candidate_suppression_pressure" => false,
+               "source_contact_filter_branch_local_contact_filter_pressure" => false,
+               "source_contact_filter_branch_local_invalid_contact_input_pressure" => false,
+               "source_contact_filter_branch_local_station_suppression_pressure" => false,
+               "source_link_capacity_branch_local_actual_throughput_pressure" => false,
+               "source_link_capacity_branch_local_capacity_adjusted_throughput_pressure" => false,
+               "source_link_capacity_branch_local_downlink_shortfall_pressure" => false,
+               "source_link_capacity_branch_local_link_capacity_pressure" => false,
+               "source_objective_gap_branch_local_collection_latency_gap_pressure" => false,
+               "source_objective_gap_branch_local_downlink_gap_pressure" => false,
+               "source_objective_gap_branch_local_objective_gap_pressure" => false,
+               "source_objective_gap_branch_local_objective_status_pressure" => false,
+               "source_objective_gap_branch_local_routing_pressure" => false,
+               "source_objective_gap_branch_local_score_term_pressure" => false,
+               "source_objective_gap_branch_local_target_gap_pressure" => false,
                "source_quality_gate_report_count" => 1,
                "source_quality_gate_row_count" => 6,
                "source_quality_gate_gate_count" => 6,
@@ -16357,6 +16380,9 @@ defmodule OrbitalDynamics.SchemaTest do
                "source_quality_gate_review_gate_count" => 3,
                "source_quality_gate_analysis_gate_count" => 0,
                "source_quality_gate_blocked_gate_count" => 0,
+               "source_quality_gate_branch_local_import_pressure" => false,
+               "source_quality_gate_branch_local_resource_pressure" => true,
+               "source_quality_gate_branch_local_review_pressure" => true,
                "source_quality_gate_readiness_level_counts" => %{"operator_review" => 1},
                "source_quality_gate_import_classification_counts" => %{"review_only" => 1},
                "source_quality_gate_status_counts" => %{"review_required" => 1},
@@ -16368,6 +16394,10 @@ defmodule OrbitalDynamics.SchemaTest do
                  "importable" => 3,
                  "review_only" => 3
                },
+               "source_quality_gate_resource_availability_pressure_count" => 2,
+               "source_quality_gate_resource_availability_reason_counts" =>
+                 expected_reason_counts,
+               "source_quality_gate_resource_availability_reason_ids" => expected_reason_id_key,
                "source_quality_gate_trust_boundary_status" => "missing",
                "source_operational_readiness_report_count" => 1,
                "source_operational_readiness_row_count" => 1,
@@ -16376,14 +16406,31 @@ defmodule OrbitalDynamics.SchemaTest do
                "source_operational_readiness_review_gate_count" => 3,
                "source_operational_readiness_analysis_gate_count" => 0,
                "source_operational_readiness_blocked_gate_count" => 0,
+               "source_operational_readiness_branch_local_import_pressure" => false,
+               "source_operational_readiness_branch_local_resource_pressure" => true,
+               "source_operational_readiness_branch_local_review_pressure" => true,
                "source_operational_readiness_readiness_level_counts" => %{
                  "operator_review" => 1
                },
                "source_operational_readiness_import_classification_counts" => %{
                  "review_only" => 1
                },
+               "source_operational_readiness_resource_availability_pressure_count" => 2,
+               "source_operational_readiness_resource_availability_reason_counts" =>
+                 expected_reason_counts,
+               "source_operational_readiness_resource_availability_reason_ids" =>
+                 expected_reason_id_key,
                "source_operational_readiness_status_counts" => %{"review_required" => 1},
-               "source_operational_readiness_trust_boundary_status" => "missing"
+               "source_operational_readiness_trust_boundary_status" => "missing",
+               "source_resource_filter_branch_local_candidate_suppression_pressure" => false,
+               "source_resource_filter_branch_local_invalid_resource_summary_pressure" => false,
+               "source_resource_filter_branch_local_resource_blocking_pressure" => false,
+               "source_resource_filter_branch_local_resource_filter_pressure" => false,
+               "source_score_term_branch_local_collection_latency_gap_pressure" => false,
+               "source_score_term_branch_local_downlink_gap_pressure" => false,
+               "source_score_term_branch_local_routing_pressure" => false,
+               "source_score_term_branch_local_score_term_pressure" => false,
+               "source_score_term_branch_local_target_gap_pressure" => false
              }
 
     invalid_reason_id =
