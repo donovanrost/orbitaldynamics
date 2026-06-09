@@ -5,40 +5,34 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Harden provider-counteroffer pressure score helper evidence.
+Harden validation/refresh pressure score helper evidence.
 
 Status:
-Completed and pushed in product commit `64bab3a`.
+Completed and pushed in product commit `61c9484`.
 
 Slice-selection note:
-- Selected slice: add a shared provider-counteroffer pressure score helper and
-  use it in the focused provider-counteroffer branch-refresh fixture so
-  `provider_counteroffer_pressure_penalty` is proven in branch math and
+- Selected slice: add a shared validation/refresh pressure score helper and use
+  it in focused schema-validation and validation-governance fixtures so
+  `validation_refresh_pressure_penalty` is proven in branch math and
   branch-specific score-term report rows.
-- Why this slice: provider-counteroffer pressure already feeds branch-local
-  refresh provenance and V3 score terms, but its score assertions are still
-  in-place and only prove that some report row for the term exists.
+- Why this slice: validation/refresh governance pressure already drives V3
+  score terms for schema, model-acceptance, safety-case, freshness, and
+  refresh-budget branches, but the score assertions were duplicated.
 - Level 6 pillar: refreshed candidates from current mission state; validation,
   compatibility, and challenge fixtures for unsafe but plausible inputs;
   reproducible V3 branch score explanations.
-- Current evidence gap: provider-counteroffer score-term fixtures can drift apart
-  because branch score math, split risk penalty, score-term key, and report-row
-  checks are not centralized.
-- Docs to read:
+- Current evidence gap closed: validation/refresh score-term fixtures now share
+  one helper for branch score math, split risk penalty, score-term key, and
+  branch-specific score-term report-row checks.
+- Docs read:
+  `docs/feature_set/capability_map/17_reproducibility_artifacts_and_audit.md`,
   `docs/feature_set/capability_map/11_planning_state_refresh_and_opportunity_generation.md`,
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`.
-- Likely files:
-  `test/orbital_dynamics/campaign_planner_test.exs`,
-  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
-  `.codex/status/autonomous_product_loop.md`.
-- Likely tests:
-  focused campaign-planner provider-counteroffer pressure test;
-  `mix compile --warnings-as-errors`; `git diff --check`.
-- Definition of done: shared provider-counteroffer pressure assertions prove
+- Definition of done: shared validation/refresh pressure assertions prove
   branch score math, split risk penalty, score-term key, and score-term report
-  row evidence for the branch-refresh fixture; docs note the shared helper
-  evidence; locally reviewed, committed, and pushed without touching unrelated
-  `.gitignore`.
+  row evidence for schema-validation and validation-governance fixtures; docs
+  note the shared helper evidence; product commit pushed without touching
+  unrelated `.gitignore`.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -46,26 +40,27 @@ Files changed:
 - `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:42800`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:42912 test/orbital_dynamics/campaign_planner_test.exs:45279 test/orbital_dynamics/campaign_planner_test.exs:45409 test/orbital_dynamics/campaign_planner_test.exs:45840`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
-- `rg -n "assert_provider_counteroffer_pressure_score_terms|provider-counteroffer pressure fixtures now assert|provider_counteroffer_pressure_penalty|risk_penalty" test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
+- `rg -n "assert_validation_refresh_pressure_score_terms|validation/refresh governance pressure fixtures now assert|validation_refresh_pressure_penalty|risk_penalty" test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Docs/artifacts changed:
-The V3 strategy-orchestration docs now note that focused provider-counteroffer
-pressure fixtures assert split branch math and score-term report rows through a
-shared helper.
+The V3 strategy-orchestration docs now note that focused
+validation/refresh-governance pressure fixtures assert split branch math and
+score-term report rows through a shared helper.
 
 Local review:
 Parent local review confirmed the diff is limited to the shared
-provider-counteroffer pressure score helper, the focused provider-counteroffer
-helper call site, the V3 score-term doc note, and this ledger. `.gitignore`
-remains unrelated and unstaged.
+validation/refresh pressure score helper, the schema-validation,
+model-acceptance, validation-safety-case, freshness, and refresh-budget helper
+call sites, the V3 score-term doc note, and this ledger. `.gitignore` remains
+unrelated and unstaged.
 
 Level 6 pillar advanced:
-Provider-counteroffer pressure challenge fixtures now prove branch score math,
+Validation/refresh governance challenge fixtures now prove branch score math,
 split risk penalty, score-term key, and branch-specific score-term report rows
-through a shared helper for branch-local provider negotiation provenance.
+through a shared helper for branch-local validation and refresh provenance.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -75,18 +70,19 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`64bab3a` Harden provider counteroffer pressure helper.
+`61c9484` Harden validation refresh pressure helper.
 
 Next candidate:
-After this provider-counteroffer helper hardening, continue with
-validation/refresh governance, relay data-path, execution feedback, or the next
-planner-visible candidate-refresh provenance gap.
+Continue with relay data-path, execution feedback, timeline pressure helper
+hardening, or the next planner-visible candidate-refresh provenance gap.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 
 Previous published slices:
+- `61c9484` hardened shared validation/refresh governance pressure helper
+  coverage for split branch math and score-term report rows.
 - `64bab3a` hardened shared provider-counteroffer pressure helper coverage for
   split branch math and score-term report rows.
 - `c4cd687` hardened shared candidate-rejection pressure helper coverage for
@@ -101,43 +97,3 @@ Previous published slices:
   wrapped prior-plan quality-gate branches.
 - `b27e50b` hardened shared operational-readiness pressure helper coverage for
   split branch math and score-term report rows.
-- `e4e303f` hardened shared quality-gate pressure helper coverage for split
-  branch math and score-term report rows.
-- `d279ba8` hardened stale readiness gate challenge coverage for row-status
-  operational-readiness score terms despite missing/stale classifications.
-- `00c6646` hardened stale preservation challenge coverage for row-local
-  preservation score terms despite stale clear aggregate fields.
-- `ab41543` split timeline preservation pressure into an explicit V3 score term
-  and recommendation tradeoff dimension.
-- `8704579` split timeline activity-precondition pressure into an explicit V3
-  score term and recommendation tradeoff dimension.
-- `7e34eac` split timeline lifecycle-state pressure into an explicit V3 score
-  term and recommendation tradeoff dimension.
-- `a88acc9` split timeline-publication pressure into an explicit V3 score term
-  and recommendation tradeoff dimension.
-- `23c9ddf` split timeline dependency-impact pressure into an explicit V3 score
-  term and recommendation tradeoff dimension.
-- `1117a44` split timeline-integrity pressure into an explicit V3 score term
-  and recommendation tradeoff dimension.
-- `5771a9b` split operational-readiness and quality-gate pressure into explicit
-  V3 score terms and recommendation tradeoff dimensions.
-- `b6c8c60` split execution-feedback pressure into an explicit V3 score term
-  and recommendation tradeoff dimension.
-- `c0110a9` split relay data-path pressure into an explicit V3 score term and
-  recommendation tradeoff dimension.
-- `dba9b34` split validation/refresh governance pressure into an explicit V3
-  score term and recommendation tradeoff dimension.
-- `1c43e21` clarified prompt/guide fallback behavior when sidecar review or
-  publish tools are unavailable.
-- `c564585` split provider-counteroffer pressure into an explicit V3 score term.
-- `e679918` made candidate-rejection pressure score-visible and split it into
-  an explicit V3 score term.
-- `25da839` split station-calendar pressure into an explicit V3 score term.
-- `91b7f03` preserved compact station-calendar precedence reservation routing
-  through CandidateRefresh source-report and replay summaries.
-- `7b80988` preserved suppressed reservation ID/status/owner routing in
-  station-calendar precedence summaries.
-- `630bb44` split storage/downlink pressure into an explicit V3 score term.
-
-Blocked:
-No.
