@@ -6165,6 +6165,77 @@ defmodule OrbitalDynamics.CadenceImportTest do
               "timeline:review:health:0.0",
               "timeline:review:health:5.0"
             ],
+            "branch_timeline_dependency_impact_activity_ids" => ["cmd_combo"],
+            "branch_timeline_dependency_impact_timeline_ids" => [
+              "timeline:command:20.0"
+            ],
+            "branch_timeline_dependency_impact_scopes" => ["source"],
+            "branch_impacted_dependency_timeline_ids" => [
+              "timeline:health_check:0.0"
+            ],
+            "branch_impacted_exclusive_with_activity_ids" => ["health_gate"],
+            "branch_timeline_lifecycle_state_statuses" => ["review_required"],
+            "branch_timeline_lifecycle_state_review_timeline_ids" => [
+              "timeline:command:20.0"
+            ],
+            "branch_timeline_lifecycle_state_review_activity_ids" => ["cmd_combo"],
+            "branch_timeline_lifecycle_state_required_operator_actions" => [
+              "review_timeline_lifecycle_state"
+            ],
+            "branch_timeline_lifecycle_state_import_actions" => [
+              "review_timeline_lifecycle_state"
+            ],
+            "branch_timeline_activity_lifecycle_state_activity_ids" => ["cmd_combo"],
+            "branch_timeline_activity_lifecycle_state_timeline_ids" => [
+              "timeline:command:20.0"
+            ],
+            "branch_timeline_activity_lifecycle_state_transition_decisions" => [
+              "review_required"
+            ],
+            "branch_timeline_activity_lifecycle_state_required_operator_actions" => [
+              "review_timeline_lifecycle_state"
+            ],
+            "branch_timeline_activity_lifecycle_state_import_actions" => [
+              "review_timeline_lifecycle_state"
+            ],
+            "branch_timeline_activity_lifecycle_state_status_transition_categories" => [
+              "terminal_regression"
+            ],
+            "branch_timeline_activity_lifecycle_state_approval_transition_categories" => [
+              "operator_authority_required"
+            ],
+            "branch_timeline_activity_precondition_activity_ids" => ["cmd_combo"],
+            "branch_timeline_activity_precondition_timeline_ids" => [
+              "timeline:command:20.0"
+            ],
+            "branch_timeline_activity_precondition_statuses" => ["blocked"],
+            "branch_timeline_activity_precondition_blocked_types" => [
+              "missing_dependency"
+            ],
+            "branch_timeline_activity_precondition_dependency_timeline_ids" => [
+              "timeline:health_check:0.0"
+            ],
+            "branch_timeline_activity_precondition_duplicate_dependency_activity_ids" => [
+              "health_gate"
+            ],
+            "branch_timeline_activity_precondition_invalid_activity_input_reasons" => [
+              "missing_activity_id"
+            ],
+            "branch_timeline_preservation_activity_ids" => ["cmd_combo"],
+            "branch_timeline_preservation_timeline_ids" => [
+              "timeline:command:20.0"
+            ],
+            "branch_timeline_preservation_statuses" => ["preservation_required"],
+            "branch_timeline_preservation_protection_decisions" => ["preserve"],
+            "branch_timeline_preservation_protection_categories" => [
+              "locked_or_approved"
+            ],
+            "branch_timeline_preservation_preserve_timeline_ids" => [
+              "timeline:command:20.0"
+            ],
+            "branch_timeline_preservation_review_change_activity_ids" => [
+              "cmd_combo"
+            ],
             "capacity_pack_group_ids" => ["station:equator_prime:pack:review"],
             "capacity_pack_statuses" => ["deferred_by_reduced_station_capacity_pack"],
             "capacity_pack_min_capacity_fraction" => 0.5,
@@ -6333,6 +6404,25 @@ defmodule OrbitalDynamics.CadenceImportTest do
                    "timeline:review:health:0.0",
                    "timeline:review:health:5.0"
                  ],
+                 "branch_timeline_dependency_impact_activity_ids" => ["cmd_combo"],
+                 "branch_timeline_dependency_impact_scopes" => ["source"],
+                 "branch_impacted_dependency_timeline_ids" => [
+                   "timeline:health_check:0.0"
+                 ],
+                 "branch_timeline_lifecycle_state_statuses" => ["review_required"],
+                 "branch_timeline_lifecycle_state_review_activity_ids" => ["cmd_combo"],
+                 "branch_timeline_activity_lifecycle_state_transition_decisions" => [
+                   "review_required"
+                 ],
+                 "branch_timeline_activity_lifecycle_state_status_transition_categories" => [
+                   "terminal_regression"
+                 ],
+                 "branch_timeline_activity_precondition_statuses" => ["blocked"],
+                 "branch_timeline_activity_precondition_dependency_timeline_ids" => [
+                   "timeline:health_check:0.0"
+                 ],
+                 "branch_timeline_preservation_statuses" => ["preservation_required"],
+                 "branch_timeline_preservation_protection_decisions" => ["preserve"],
                  "capacity_pack_group_ids" => ["station:equator_prime:pack:review"],
                  "capacity_pack_statuses" => ["deferred_by_reduced_station_capacity_pack"],
                  "capacity_pack_min_capacity_fraction" => 0.5,
@@ -6457,6 +6547,9 @@ defmodule OrbitalDynamics.CadenceImportTest do
                      "timeline:review:health:0.0",
                      "timeline:review:health:5.0"
                    ],
+                   "branch_timeline_dependency_impact_scopes" => ["source"],
+                   "branch_timeline_activity_precondition_statuses" => ["blocked"],
+                   "branch_timeline_preservation_statuses" => ["preservation_required"],
                    "repair_link_actual_downlink_completion_ratio" => 0.5,
                    "first_resource_pressure_activity_id" => "dl_pressure",
                    "first_resource_pressure_ground_station_id" => "equator_prime",

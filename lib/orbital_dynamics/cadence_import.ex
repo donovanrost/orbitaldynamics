@@ -2919,7 +2919,7 @@ defmodule OrbitalDynamics.CadenceImport do
         else: %{}
       )
     )
-    |> Map.merge(Map.take(row, branch_timeline_publication_fields()))
+    |> Map.merge(Map.take(row, branch_timeline_evidence_fields()))
     |> Map.merge(operational_feedback_context)
     |> compact_map()
   end
@@ -6711,8 +6711,63 @@ defmodule OrbitalDynamics.CadenceImport do
         OrbitalDynamics.RecommendationRiskContext.timeline_preservation_context_keys()
       )
     )
-    |> Map.merge(Map.take(row, branch_timeline_publication_fields()))
+    |> Map.merge(Map.take(row, branch_timeline_evidence_fields()))
     |> compact_map()
+  end
+
+  defp branch_timeline_evidence_fields do
+    branch_timeline_activity_evidence_fields() ++ branch_timeline_publication_fields()
+  end
+
+  defp branch_timeline_activity_evidence_fields do
+    [
+      "branch_timeline_dependency_impact_activity_ids",
+      "branch_timeline_dependency_impact_timeline_ids",
+      "branch_timeline_dependency_impact_scopes",
+      "branch_impacted_dependency_activity_ids",
+      "branch_impacted_dependency_timeline_ids",
+      "branch_impacted_exclusive_with_activity_ids",
+      "branch_impacted_exclusive_with_timeline_ids",
+      "branch_timeline_lifecycle_state_statuses",
+      "branch_timeline_lifecycle_state_review_timeline_ids",
+      "branch_timeline_lifecycle_state_review_activity_ids",
+      "branch_timeline_lifecycle_state_invalid_activity_input_ids",
+      "branch_timeline_lifecycle_state_required_operator_actions",
+      "branch_timeline_lifecycle_state_import_actions",
+      "branch_timeline_activity_lifecycle_state_activity_ids",
+      "branch_timeline_activity_lifecycle_state_timeline_ids",
+      "branch_timeline_activity_lifecycle_state_transition_decisions",
+      "branch_timeline_activity_lifecycle_state_required_operator_actions",
+      "branch_timeline_activity_lifecycle_state_import_actions",
+      "branch_timeline_activity_lifecycle_state_status_transition_categories",
+      "branch_timeline_activity_lifecycle_state_approval_transition_categories",
+      "branch_timeline_activity_lifecycle_state_invalid_activity_input_reasons",
+      "branch_timeline_activity_precondition_activity_ids",
+      "branch_timeline_activity_precondition_timeline_ids",
+      "branch_timeline_activity_precondition_statuses",
+      "branch_timeline_activity_precondition_blocked_types",
+      "branch_timeline_activity_precondition_review_types",
+      "branch_timeline_activity_precondition_dependency_activity_ids",
+      "branch_timeline_activity_precondition_dependency_timeline_ids",
+      "branch_timeline_activity_precondition_exclusive_with_activity_ids",
+      "branch_timeline_activity_precondition_exclusive_with_timeline_ids",
+      "branch_timeline_activity_precondition_duplicate_dependency_activity_ids",
+      "branch_timeline_activity_precondition_duplicate_dependency_timeline_ids",
+      "branch_timeline_activity_precondition_duplicate_exclusivity_activity_ids",
+      "branch_timeline_activity_precondition_duplicate_exclusivity_timeline_ids",
+      "branch_timeline_activity_precondition_invalid_activity_input_reasons",
+      "branch_timeline_preservation_activity_ids",
+      "branch_timeline_preservation_timeline_ids",
+      "branch_timeline_preservation_statuses",
+      "branch_timeline_preservation_protection_decisions",
+      "branch_timeline_preservation_protection_categories",
+      "branch_timeline_preservation_protection_reasons",
+      "branch_timeline_preservation_preserve_activity_ids",
+      "branch_timeline_preservation_preserve_timeline_ids",
+      "branch_timeline_preservation_review_change_activity_ids",
+      "branch_timeline_preservation_review_change_timeline_ids",
+      "branch_timeline_preservation_invalid_activity_input_reasons"
+    ]
   end
 
   defp branch_timeline_publication_fields do
@@ -6963,7 +7018,7 @@ defmodule OrbitalDynamics.CadenceImport do
       "source_branch_comparison" => row["source_branch_comparison"],
       "source_review_row" => row
     }
-    |> Map.merge(Map.take(row, branch_timeline_publication_fields()))
+    |> Map.merge(Map.take(row, branch_timeline_evidence_fields()))
     |> compact_map()
   end
 

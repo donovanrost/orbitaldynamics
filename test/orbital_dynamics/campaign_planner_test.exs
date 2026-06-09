@@ -34002,6 +34002,51 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "timeline:health_check:0.0"
            ]
 
+    dependency_review_row =
+      artifact["operator_review_package"]["rows"]
+      |> Enum.find(
+        &(&1["review_type"] == "strategy_tradeoff" and
+            &1["branch_id"] == prior_source_branch_id and
+            &1["source"] == "campaign_strategy.branch_comparison_report.rows")
+      )
+
+    assert dependency_review_row["branch_timeline_dependency_impact_activity_ids"] == [
+             "cmd_combo"
+           ]
+
+    assert dependency_review_row["branch_timeline_dependency_impact_scopes"] == ["source"]
+
+    assert dependency_review_row["branch_impacted_dependency_timeline_ids"] == [
+             "timeline:health_check:0.0"
+           ]
+
+    assert get_in(dependency_review_row, [
+             "source_branch_comparison",
+             "branch_impacted_dependency_timeline_ids"
+           ]) == ["timeline:health_check:0.0"]
+
+    dependency_import_row =
+      artifact["cadence_import_manifest"]["rows"]
+      |> Enum.find(
+        &(&1["source_review_type"] == "strategy_branch_comparison" and
+            &1["branch_id"] == prior_source_branch_id)
+      )
+
+    assert dependency_import_row["branch_timeline_dependency_impact_activity_ids"] == [
+             "cmd_combo"
+           ]
+
+    assert dependency_import_row["branch_timeline_dependency_impact_scopes"] == ["source"]
+
+    assert dependency_import_row["branch_impacted_dependency_timeline_ids"] == [
+             "timeline:health_check:0.0"
+           ]
+
+    assert get_in(dependency_import_row, [
+             "source_branch_comparison",
+             "branch_impacted_dependency_timeline_ids"
+           ]) == ["timeline:health_check:0.0"]
+
     mission_branch =
       Enum.find_value(dependency_branches, fn {_branch_id, candidate_branch} ->
         event = List.first(candidate_branch["events"])
