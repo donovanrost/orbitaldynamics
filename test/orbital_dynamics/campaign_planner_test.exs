@@ -40229,7 +40229,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "branch_local_import_review_pressure" => true,
              "assumptions" => %{
                "replay_scope" => "timeline_feedback_candidate_source_report_summary_only",
-               "strategy_operational_feedback_application" => "not_performed_by_summary",
+               "operational_feedback_application" => "not_performed_by_summary",
                "timeline_mutation" => "not_performed_by_summary",
                "candidate_generation" => "not_performed_by_summary"
              }
@@ -40242,6 +40242,98 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            ]
 
     assert Enum.sort(timeline_feedback_trust_boundaries) == [
+             "canonical_timeline_feedback_boundary",
+             "direct_timeline_feedback_boundary",
+             "wrapped_timeline_feedback_boundary"
+           ]
+
+    timeline_feedback_pressure_risks =
+      Enum.filter(
+        urgent["risk_indicators"],
+        &(&1["type"] == "timeline_feedback_pressure" and
+            &1["feedback_source"] == "candidate_source.timeline_feedback_replay_summary")
+      )
+
+    assert length(timeline_feedback_pressure_risks) == 1
+
+    timeline_feedback_pressure_risk = List.first(timeline_feedback_pressure_risks)
+
+    assert timeline_feedback_pressure_risk["contract"] == "timeline_feedback_report.v1"
+    assert timeline_feedback_pressure_risk["source_report_count"] == 3
+    assert timeline_feedback_pressure_risk["source_report_row_count"] == 3
+
+    assert Enum.sort(timeline_feedback_pressure_risk["source_report_paths"]) == [
+             "mission_state.source_result_artifact.timeline_feedback_report",
+             "source_timeline_feedback_report",
+             "timeline_feedback_report"
+           ]
+
+    assert timeline_feedback_pressure_risk["status_counts"] == %{
+             "applied" => 1,
+             "matched" => 1,
+             "review_required" => 1
+           }
+
+    assert timeline_feedback_pressure_risk["feedback_kind_counts"] == %{
+             "command" => 2,
+             "contact" => 1
+           }
+
+    assert timeline_feedback_pressure_risk["match_strategy_counts"] == %{
+             "activity_id" => 3
+           }
+
+    assert timeline_feedback_pressure_risk["cadence_import_status_counts"] == %{
+             "present" => 3
+           }
+
+    assert Enum.sort(timeline_feedback_pressure_risk["trust_boundaries"]) == [
+             "canonical_timeline_feedback_boundary",
+             "direct_timeline_feedback_boundary",
+             "wrapped_timeline_feedback_boundary"
+           ]
+
+    assert timeline_feedback_pressure_risk["assumptions"]["timeline_mutation"] ==
+             "not_performed_by_summary"
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    assert urgent["score_terms"]["timeline_feedback_pressure_penalty"] ==
+             -length(timeline_feedback_pressure_risks) * risk_weight
+
+    assert "timeline_feedback_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == "urgent" and
+                 &1["term_key"] == "timeline_feedback_pressure_penalty" and &1["value"] < 0.0)
+           )
+
+    urgent_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+
+    assert "timeline_feedback_pressure" in urgent_row["risk_types"]
+
+    assert urgent_row["branch_timeline_feedback_source_report_paths"] == [
+             "mission_state.source_result_artifact.timeline_feedback_report",
+             "source_timeline_feedback_report",
+             "timeline_feedback_report"
+           ]
+
+    assert urgent_row["branch_timeline_feedback_statuses"] == [
+             "applied",
+             "matched",
+             "review_required"
+           ]
+
+    assert urgent_row["branch_timeline_feedback_kinds"] == ["command", "contact"]
+    assert urgent_row["branch_timeline_feedback_match_strategies"] == ["activity_id"]
+    assert urgent_row["branch_timeline_feedback_import_statuses"] == ["present"]
+
+    assert urgent_row["branch_timeline_feedback_trust_boundaries"] == [
              "canonical_timeline_feedback_boundary",
              "direct_timeline_feedback_boundary",
              "wrapped_timeline_feedback_boundary"
@@ -40272,7 +40364,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "branch_local_activity_routing_pressure" => true,
              "assumptions" => %{
                "replay_scope" => "operational_timeline_candidate_source_report_summary_only",
-               "strategy_operational_feedback_application" => "not_performed_by_summary",
+               "operational_feedback_application" => "not_performed_by_summary",
                "timeline_mutation" => "not_performed_by_summary",
                "candidate_generation" => "not_performed_by_summary"
              }
