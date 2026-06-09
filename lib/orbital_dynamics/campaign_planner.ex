@@ -5134,6 +5134,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "severity" => "medium",
         "reason" => reason,
         "ground_station_id" => event_ground_station_id(event),
+        "direction" => event["direction"],
         "scenario_id" => event["scenario_id"],
         "target_id" => event["target_id"],
         "collection_id" => event["collection_id"],
@@ -5169,6 +5170,50 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "station_reservation_status" => event["station_reservation_status"],
         "station_reservation_match_status" => event["station_reservation_match_status"],
         "station_reservation_expires_at_s" => event["station_reservation_expires_at_s"],
+        "station_reservation_hold_import_status" =>
+          event["station_reservation_hold_import_status"],
+        "station_reservation_hold_import_readiness_summary_model" =>
+          event["station_reservation_hold_import_readiness_summary_model"],
+        "station_reservation_hold_import_readiness_source" =>
+          event["station_reservation_hold_import_readiness_source"],
+        "station_reservation_hold_import_readiness_source_artifact_type" =>
+          event["station_reservation_hold_import_readiness_source_artifact_type"],
+        "station_reservation_hold_import_readiness_status" =>
+          event["station_reservation_hold_import_readiness_status"],
+        "station_reservation_hold_import_classification" =>
+          event["station_reservation_hold_import_classification"],
+        "station_reservation_hold_count" => event["station_reservation_hold_count"],
+        "station_reservation_hold_ids" => event["station_reservation_hold_ids"],
+        "station_reservation_hold_ids_by_import_status" =>
+          event["station_reservation_hold_ids_by_import_status"],
+        "station_reservation_hold_ids_by_required_import_action" =>
+          event["station_reservation_hold_ids_by_required_import_action"],
+        "station_reservation_hold_ids_by_direction" =>
+          event["station_reservation_hold_ids_by_direction"],
+        "station_reservation_hold_ids_by_direction_and_ground_station_id" =>
+          event["station_reservation_hold_ids_by_direction_and_ground_station_id"],
+        "station_reservation_hold_contact_ids_by_import_status" =>
+          event["station_reservation_hold_contact_ids_by_import_status"],
+        "station_reservation_hold_contact_ids_by_expiration_status" =>
+          event["station_reservation_hold_contact_ids_by_expiration_status"],
+        "station_reservation_hold_contact_ids_by_direction" =>
+          event["station_reservation_hold_contact_ids_by_direction"],
+        "station_reservation_hold_contact_ids_by_direction_and_ground_station_id" =>
+          event["station_reservation_hold_contact_ids_by_direction_and_ground_station_id"],
+        "station_reservation_hold_import_status_counts" =>
+          event["station_reservation_hold_import_status_counts"],
+        "station_reservation_hold_required_import_action_counts" =>
+          event["station_reservation_hold_required_import_action_counts"],
+        "station_reservation_hold_import_execution_boundary" =>
+          event["station_reservation_hold_import_execution_boundary"],
+        "station_reservation_hold_provider_write" =>
+          event["station_reservation_hold_provider_write"],
+        "station_reservation_hold_cadence_write" =>
+          event["station_reservation_hold_cadence_write"],
+        "station_reservation_hold_reservation_acceptance" =>
+          event["station_reservation_hold_reservation_acceptance"],
+        "source_station_reservation_hold_import_readiness_summary" =>
+          event["source_station_reservation_hold_import_readiness_summary"],
         "feedback_source" => event["feedback_source"],
         "feedback_scope" => event["feedback_scope"],
         "trust_boundary" => event["trust_boundary"],
@@ -5754,6 +5799,48 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "station_reservation_status",
       "station_reservation_match_status",
       "station_reservation_expires_at_s",
+      "derivation_reasons",
+      "feedback_source",
+      "feedback_scope",
+      "trust_boundary"
+    ]
+  end
+
+  defp station_reservation_hold_import_readiness_pressure_risk_fields do
+    [
+      "contact_id",
+      "source_activity_id",
+      "source_activity_ids",
+      "ground_station_id",
+      "direction",
+      "station_reservation_id",
+      "station_reserved_by",
+      "station_reservation_status",
+      "station_reservation_match_status",
+      "station_reservation_expires_at_s",
+      "station_reservation_hold_import_status",
+      "station_reservation_hold_import_readiness_summary_model",
+      "station_reservation_hold_import_readiness_source",
+      "station_reservation_hold_import_readiness_source_artifact_type",
+      "station_reservation_hold_import_readiness_status",
+      "station_reservation_hold_import_classification",
+      "station_reservation_hold_count",
+      "station_reservation_hold_ids",
+      "station_reservation_hold_ids_by_import_status",
+      "station_reservation_hold_ids_by_required_import_action",
+      "station_reservation_hold_ids_by_direction",
+      "station_reservation_hold_ids_by_direction_and_ground_station_id",
+      "station_reservation_hold_contact_ids_by_import_status",
+      "station_reservation_hold_contact_ids_by_expiration_status",
+      "station_reservation_hold_contact_ids_by_direction",
+      "station_reservation_hold_contact_ids_by_direction_and_ground_station_id",
+      "station_reservation_hold_import_status_counts",
+      "station_reservation_hold_required_import_action_counts",
+      "station_reservation_hold_import_execution_boundary",
+      "station_reservation_hold_provider_write",
+      "station_reservation_hold_cadence_write",
+      "station_reservation_hold_reservation_acceptance",
+      "source_station_reservation_hold_import_readiness_summary",
       "derivation_reasons",
       "feedback_source",
       "feedback_scope",
@@ -6763,6 +6850,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp recommendation_pressure_risk_context(%{"capacity_pack_group_id" => _group_id} = risk) do
     Map.take(risk, capacity_pack_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(
+         %{"station_reservation_hold_import_status" => _status} = risk
+       ) do
+    Map.take(risk, station_reservation_hold_import_readiness_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(
+         %{"station_reservation_hold_import_readiness_status" => _status} = risk
+       ) do
+    Map.take(risk, station_reservation_hold_import_readiness_pressure_risk_fields())
   end
 
   defp recommendation_pressure_risk_context(

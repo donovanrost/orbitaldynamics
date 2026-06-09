@@ -18604,6 +18604,92 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 trust_boundary: "mission_state_reservation_conflict_summary"
               },
               %{
+                type: "downlink_completion_gap",
+                contact_id: "dl_hold_import_review",
+                source_activity_id: "dl_hold_import_review",
+                source_activity_ids: ["dl_hold_import_review"],
+                ground_station_id: "equator_prime",
+                direction: "downlink",
+                required_contacts: 1,
+                planned_contacts: 0,
+                required_downlink_mb: 41.0,
+                planned_downlink_mb: 0.0,
+                station_reservation_id: "reservation_hold_expired",
+                station_reserved_by: "ops_calendar",
+                station_reservation_status: "held",
+                station_reservation_match_status: "overlap",
+                station_reservation_expires_at_s: 120.0,
+                station_reservation_hold_import_status: "review_required_before_import",
+                station_reservation_hold_import_readiness_summary_model:
+                  "artifact_only_station_reservation_hold_import_readiness_summary",
+                station_reservation_hold_import_readiness_source:
+                  "station_calendar_report.reservation_evidence",
+                station_reservation_hold_import_readiness_source_artifact_type:
+                  "station_reservation_report.v1",
+                station_reservation_hold_import_readiness_status: "review_required",
+                station_reservation_hold_import_classification: "review_only",
+                station_reservation_hold_count: 2,
+                station_reservation_hold_ids: [
+                  "reservation_hold_expired",
+                  "reservation_hold_missing"
+                ],
+                station_reservation_hold_ids_by_import_status: %{
+                  "review_required_before_import" => [
+                    "reservation_hold_expired",
+                    "reservation_hold_missing"
+                  ]
+                },
+                station_reservation_hold_ids_by_required_import_action: %{
+                  "review_station_provider_contention" => ["reservation_hold_missing"],
+                  "review_station_reservation_overlap" => ["reservation_hold_expired"]
+                },
+                station_reservation_hold_ids_by_direction: %{
+                  "downlink" => ["reservation_hold_expired"],
+                  "uplink" => ["reservation_hold_missing"]
+                },
+                station_reservation_hold_ids_by_direction_and_ground_station_id: %{
+                  "downlink:equator_prime" => ["reservation_hold_expired"],
+                  "uplink:equator_prime" => ["reservation_hold_missing"]
+                },
+                station_reservation_hold_contact_ids_by_import_status: %{
+                  "review_required_before_import" => ["dl_hold_import_review"]
+                },
+                station_reservation_hold_contact_ids_by_expiration_status: %{
+                  "expired" => ["dl_hold_import_review"]
+                },
+                station_reservation_hold_contact_ids_by_direction: %{
+                  "downlink" => ["dl_hold_import_review"]
+                },
+                station_reservation_hold_contact_ids_by_direction_and_ground_station_id: %{
+                  "downlink:equator_prime" => ["dl_hold_import_review"]
+                },
+                station_reservation_hold_import_status_counts: %{
+                  "review_required_before_import" => 2
+                },
+                station_reservation_hold_required_import_action_counts: %{
+                  "review_station_provider_contention" => 1,
+                  "review_station_reservation_overlap" => 1
+                },
+                station_reservation_hold_import_execution_boundary:
+                  "artifact_only_no_provider_or_cadence_writes",
+                station_reservation_hold_provider_write: "not_performed_by_summary",
+                station_reservation_hold_cadence_write: "not_performed_by_summary",
+                station_reservation_hold_reservation_acceptance: "not_performed_by_summary",
+                source_station_reservation_hold_import_readiness_summary: %{
+                  "model" => "artifact_only_station_reservation_hold_import_readiness_summary",
+                  "source_artifact_type" => "station_reservation_report.v1",
+                  "source" => "station_calendar_report.reservation_evidence",
+                  "reservation_hold_count" => 2,
+                  "import_readiness_status" => "review_required",
+                  "import_classification" => "review_only"
+                },
+                derivation_reasons: ["branch_local_reservation_hold_import_readiness_pressure"],
+                feedback_source:
+                  "mission_state.source_station_reservation_hold_import_readiness_summary",
+                feedback_scope: "station_reservation_hold_import_readiness",
+                trust_boundary: "mission_state_station_reservation_hold_import_readiness_summary"
+              },
+              %{
                 type: "provider_counteroffer_pressure",
                 provider_counteroffer_id: "provider_offer_urgent",
                 provider_counteroffer_status: "proposed",
@@ -18964,6 +19050,55 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              )
 
     assert reservation_planned_downlink_mb == 0.0
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "downlink_completion_gap",
+             "severity" => "medium",
+             "contact_id" => "dl_hold_import_review",
+             "source_activity_id" => "dl_hold_import_review",
+             "source_activity_ids" => ["dl_hold_import_review"],
+             "ground_station_id" => "equator_prime",
+             "direction" => "downlink",
+             "required_contacts" => 1,
+             "planned_contacts" => 0,
+             "required_downlink_mb" => 41.0,
+             "planned_downlink_mb" => hold_planned_downlink_mb,
+             "station_reservation_id" => "reservation_hold_expired",
+             "station_reserved_by" => "ops_calendar",
+             "station_reservation_status" => "held",
+             "station_reservation_match_status" => "overlap",
+             "station_reservation_expires_at_s" => 120.0,
+             "station_reservation_hold_import_status" => "review_required_before_import",
+             "station_reservation_hold_import_readiness_summary_model" =>
+               "artifact_only_station_reservation_hold_import_readiness_summary",
+             "station_reservation_hold_import_readiness_source" =>
+               "station_calendar_report.reservation_evidence",
+             "station_reservation_hold_import_readiness_source_artifact_type" =>
+               "station_reservation_report.v1",
+             "station_reservation_hold_import_readiness_status" => "review_required",
+             "station_reservation_hold_import_classification" => "review_only",
+             "station_reservation_hold_count" => 2,
+             "station_reservation_hold_ids" => [
+               "reservation_hold_expired",
+               "reservation_hold_missing"
+             ],
+             "station_reservation_hold_import_execution_boundary" =>
+               "artifact_only_no_provider_or_cadence_writes",
+             "station_reservation_hold_provider_write" => "not_performed_by_summary",
+             "station_reservation_hold_cadence_write" => "not_performed_by_summary",
+             "station_reservation_hold_reservation_acceptance" => "not_performed_by_summary",
+             "feedback_source" =>
+               "mission_state.source_station_reservation_hold_import_readiness_summary",
+             "feedback_scope" => "station_reservation_hold_import_readiness",
+             "trust_boundary" => "mission_state_station_reservation_hold_import_readiness_summary"
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and &1["contact_id"] == "dl_hold_import_review")
+             )
+
+    assert hold_planned_downlink_mb == 0.0
 
     assert %{
              "type" => "risk_driver",
@@ -19375,6 +19510,98 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "station_reservation_conflict_feedback_scopes" => ["contact_allocation"],
       "station_reservation_conflict_trust_boundaries" => [
         "mission_state_reservation_conflict_summary"
+      ],
+      "station_reservation_hold_import_statuses" => ["review_required_before_import"],
+      "station_reservation_hold_import_readiness_summary_models" => [
+        "artifact_only_station_reservation_hold_import_readiness_summary"
+      ],
+      "station_reservation_hold_import_readiness_sources" => [
+        "station_calendar_report.reservation_evidence"
+      ],
+      "station_reservation_hold_import_readiness_source_artifact_types" => [
+        "station_reservation_report.v1"
+      ],
+      "station_reservation_hold_import_readiness_statuses" => ["review_required"],
+      "station_reservation_hold_import_classifications" => ["review_only"],
+      "station_reservation_hold_count_values" => [2],
+      "station_reservation_hold_ids" => [
+        "reservation_hold_expired",
+        "reservation_hold_missing"
+      ],
+      "station_reservation_hold_ids_by_import_status" => [
+        %{
+          "review_required_before_import" => [
+            "reservation_hold_expired",
+            "reservation_hold_missing"
+          ]
+        }
+      ],
+      "station_reservation_hold_ids_by_required_import_action" => [
+        %{
+          "review_station_provider_contention" => ["reservation_hold_missing"],
+          "review_station_reservation_overlap" => ["reservation_hold_expired"]
+        }
+      ],
+      "station_reservation_hold_ids_by_direction" => [
+        %{
+          "downlink" => ["reservation_hold_expired"],
+          "uplink" => ["reservation_hold_missing"]
+        }
+      ],
+      "station_reservation_hold_ids_by_direction_and_ground_station_id" => [
+        %{
+          "downlink:equator_prime" => ["reservation_hold_expired"],
+          "uplink:equator_prime" => ["reservation_hold_missing"]
+        }
+      ],
+      "station_reservation_hold_contact_ids" => ["dl_hold_import_review"],
+      "station_reservation_hold_contact_ids_by_import_status" => [
+        %{"review_required_before_import" => ["dl_hold_import_review"]}
+      ],
+      "station_reservation_hold_contact_ids_by_expiration_status" => [
+        %{"expired" => ["dl_hold_import_review"]}
+      ],
+      "station_reservation_hold_contact_ids_by_direction" => [
+        %{"downlink" => ["dl_hold_import_review"]}
+      ],
+      "station_reservation_hold_contact_ids_by_direction_and_ground_station_id" => [
+        %{"downlink:equator_prime" => ["dl_hold_import_review"]}
+      ],
+      "station_reservation_hold_import_status_count_maps" => [
+        %{"review_required_before_import" => 2}
+      ],
+      "station_reservation_hold_required_import_action_count_maps" => [
+        %{
+          "review_station_provider_contention" => 1,
+          "review_station_reservation_overlap" => 1
+        }
+      ],
+      "station_reservation_hold_import_execution_boundaries" => [
+        "artifact_only_no_provider_or_cadence_writes"
+      ],
+      "station_reservation_hold_provider_write_values" => ["not_performed_by_summary"],
+      "station_reservation_hold_cadence_write_values" => ["not_performed_by_summary"],
+      "station_reservation_hold_reservation_acceptance_values" => [
+        "not_performed_by_summary"
+      ],
+      "station_reservation_hold_feedback_sources" => [
+        "mission_state.source_station_reservation_hold_import_readiness_summary"
+      ],
+      "station_reservation_hold_feedback_scopes" => [
+        "station_reservation_hold_import_readiness"
+      ],
+      "station_reservation_hold_trust_boundaries" => [
+        "mission_state_station_reservation_hold_import_readiness_summary"
+      ],
+      "source_station_reservation_hold_import_readiness_summaries" => [
+        %{
+          "model" => "artifact_only_station_reservation_hold_import_readiness_summary",
+          "source_artifact_type" => "station_reservation_report.v1",
+          "source" => "station_calendar_report.reservation_evidence",
+          "reservation_hold_count" => 2,
+          "import_readiness_status" => "review_required",
+          "import_classification" => "review_only"
+        }
       ],
       "provider_counteroffer_ids" => ["provider_offer_urgent"],
       "provider_counteroffer_statuses" => ["proposed"],
