@@ -348,7 +348,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "schema_version" => 3,
              "planner" => "OrbitalDynamics.CampaignPlanner.V3",
              "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
-             "strategy_id" => "3528f1c9f88cfafeda8a7e7a311beab2505a80cd15dd5688798cced94a84efaa",
+             "strategy_id" => "d4334490eaa7a97d23dfa8ef429e5847c7c207dbc93fcb7f0ce72dc8e4d72d74",
              "recommended_branch_id" => "derived_urgent_target_target_hot",
              "approval_status" => "operator_review_required",
              "recommendation_status" => "pass"
@@ -366,9 +366,9 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "derived_objective_satisfaction_objective:target_coverage:target_a_prior_plan.objective_satisfaction_report_objective:target_coverage_target_coverage_target_a_1",
              "derived_objective_satisfaction_objective:target_coverage:target_a_prior_plan.operator_review_package.rows.source_objective_satisfaction_objective:target_coverage_target_coverage_target_a_1",
              "derived_observation_success_feedback",
-             "derived_station_calendar_pressure_reduced_capacity_leo_1_downlink_equator_prime_1_prior_plan.cadence_import_manifest.rows.source_station_calendar_review_station_calendar_station_calendar_reduced_capacity_equator_prime_reduced_capacity_demo_available_reduced_capacity_equator_prime_0.0_345.42424173964787",
-             "derived_station_calendar_pressure_reduced_capacity_leo_1_downlink_equator_prime_1_prior_plan.operator_review_package.rows.source_station_calendar_review_station_calendar_station_calendar_reduced_capacity_equator_prime_reduced_capacity_demo_available_reduced_capacity_equator_prime_0.0_345.42424173964787",
-             "derived_station_calendar_pressure_reduced_capacity_leo_1_downlink_equator_prime_1_prior_plan.station_calendar_report_station_calendar_station_calendar_reduced_capacity_equator_prime_reduced_capacity_demo_available_reduced_capacity_equator_prime_0.0_345.42424173964787",
+             "derived_station_calendar_pressure_reduced_capacity_leo_1_downlink_equator_prime_1_prior_plan.cadence_import_manifest.rows.source_station_calendar_review_station_calendar_station_calendar_reduced_capacity_review_reduced_station_capacity_equator_prime_reduced_capacity_demo_available_reduced_capacity_equator_prime_0.0_345.42424173964787",
+             "derived_station_calendar_pressure_reduced_capacity_leo_1_downlink_equator_prime_1_prior_plan.operator_review_package.rows.source_station_calendar_review_station_calendar_station_calendar_reduced_capacity_review_reduced_station_capacity_equator_prime_reduced_capacity_demo_available_reduced_capacity_equator_prime_0.0_345.42424173964787",
+             "derived_station_calendar_pressure_reduced_capacity_leo_1_downlink_equator_prime_1_prior_plan.station_calendar_report_station_calendar_station_calendar_reduced_capacity_review_reduced_station_capacity_equator_prime_reduced_capacity_demo_available_reduced_capacity_equator_prime_0.0_345.42424173964787",
              "derived_station_capacity_equator_prime",
              "derived_station_throughput_feedback",
              "baseline",
@@ -416,7 +416,39 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "dominated_count" => 7
            }
 
-    assert surface["score_term_report"]["row_count"] == 352
+    assert surface["score_term_report"]
+           |> Map.take([
+             "row_count",
+             "score_term_keys",
+             "pressure_row_count",
+             "selected_pressure_row_count"
+           ]) == %{
+             "row_count" => 418,
+             "score_term_keys" => [
+               "approval_boundary_pressure_penalty",
+               "approval_load_penalty",
+               "asset_balance_score",
+               "branch_probability",
+               "contact_allocation_pressure_penalty",
+               "coverage_score",
+               "downlink_completion_score",
+               "expected_score",
+               "feedback_adjustment_score",
+               "fuel_preservation_score",
+               "latency_penalty",
+               "mission_value_score",
+               "priority_commitment_score",
+               "raw_score",
+               "resource_score",
+               "revisit_score",
+               "risk_penalty",
+               "schedule_stability_penalty",
+               "timeline_pressure_penalty"
+             ],
+             "pressure_row_count" => 66,
+             "selected_pressure_row_count" => 3
+           }
+
     assert surface["objective_tradeoff_report"]["ranking_count"] == 22
 
     assert surface["operator_review_package"]
@@ -426,9 +458,9 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "score_term_review_count",
              "objective_tradeoff_review_count"
            ]) == %{
-             "review_count" => 836,
+             "review_count" => 905,
              "contact_allocation_review_count" => 20,
-             "score_term_review_count" => 418,
+             "score_term_review_count" => 484,
              "objective_tradeoff_review_count" => 44
            }
 
@@ -438,8 +470,8 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "review_required_count",
              "contact_allocation_import_count"
            ]) == %{
-             "row_count" => 857,
-             "review_required_count" => 836,
+             "row_count" => 926,
+             "review_required_count" => 905,
              "contact_allocation_import_count" => 20
            }
   end
@@ -1036,6 +1068,9 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
     rows = report["rows"] || []
     first_row = List.first(rows) || %{}
 
+    pressure_rows =
+      Enum.filter(rows, &String.ends_with?(&1["term_key"] || "", "_pressure_penalty"))
+
     %{
       "schema_contract" => report["schema_contract"],
       "model" => report["model"],
@@ -1047,6 +1082,8 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
         |> Enum.filter(&(&1["selected"] == true))
         |> Enum.map(& &1["branch_id"])
         |> Enum.uniq(),
+      "pressure_row_count" => length(pressure_rows),
+      "selected_pressure_row_count" => Enum.count(pressure_rows, &(&1["selected"] == true)),
       "first_row_branch_id" => first_row["branch_id"],
       "first_row_term_key" => first_row["term_key"],
       "first_row_selected" => first_row["selected"]
