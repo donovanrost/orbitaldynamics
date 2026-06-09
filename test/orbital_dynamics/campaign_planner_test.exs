@@ -50145,6 +50145,144 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy challenge uses readiness rows when top-level readiness fields are stale" do
+    readiness_report = %{
+      "schema_contract" => "operational_readiness_report.v1",
+      "schema_version" => 1,
+      "model" => "artifact_only_operational_readiness_classifier",
+      "report_id" => "operational_readiness:planned_activity.v1:stale_top_level",
+      "source_artifact_type" => "planned_activity.v1",
+      "source_artifact_id" => "stale_top_level",
+      "readiness_level" => "import_eligible",
+      "import_classification" => "importable",
+      "status" => "passed",
+      "gate_count" => 1,
+      "passed_gate_count" => 1,
+      "review_gate_count" => 0,
+      "analysis_gate_count" => 0,
+      "blocked_gate_count" => 0,
+      "gates" => [
+        %{
+          "id" => "stale_readiness_gate",
+          "status" => "review_required",
+          "classification" => "review_only",
+          "reason" => "row evidence requires review despite stale top-level pass"
+        }
+      ],
+      "evidence" => %{},
+      "assumptions" => %{"stale_top_level_challenge" => true},
+      "model_limits" => ["artifact_only"],
+      "provenance" => %{"trust_boundary" => "stale_readiness_challenge_boundary"}
+    }
+
+    quality_gate_report =
+      passive_quality_gate_report()
+      |> Map.merge(%{
+        "report_id" => "quality_gate:planned_activity.v1:stale_top_level",
+        "source_artifact_type" => "planned_activity.v1",
+        "source_artifact_id" => "stale_top_level",
+        "source_readiness_report_id" =>
+          "operational_readiness:planned_activity.v1:stale_top_level",
+        "readiness_level" => "import_eligible",
+        "import_classification" => "importable",
+        "status" => "passed",
+        "gate_count" => 1,
+        "passed_gate_count" => 1,
+        "review_gate_count" => 0,
+        "analysis_gate_count" => 0,
+        "blocked_gate_count" => 0,
+        "rows" => [
+          %{
+            "id" => "quality_gate:stale_top_level:stale_quality_gate:1",
+            "rank" => 1,
+            "gate_id" => "stale_quality_gate",
+            "status" => "review_required",
+            "classification" => "review_only",
+            "reason" => "row evidence requires review despite stale top-level pass"
+          }
+        ],
+        "assumptions" => %{"stale_top_level_challenge" => true},
+        "provenance" => %{"trust_boundary" => "stale_quality_gate_challenge_boundary"}
+      })
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put(:source_operational_readiness_report, readiness_report)
+      |> Map.put(:source_quality_gate_report, quality_gate_report)
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    readiness_branch =
+      branch(artifact, "derived_operational_readiness_pressure_stale_readiness_gate")
+
+    quality_gate_branch = branch(artifact, "derived_quality_gate_pressure_stale_quality_gate")
+
+    assert artifact["recommendation"]["recommended_branch_id"] == "baseline"
+
+    assert %{
+             "type" => "operational_readiness_pressure",
+             "readiness_level" => "operator_review",
+             "import_classification" => "review_only",
+             "operational_readiness_status" => "review_required",
+             "readiness_gate_id" => "stale_readiness_gate",
+             "readiness_gate_status" => "review_required",
+             "readiness_gate_classification" => "review_only",
+             "feedback_source" => "mission_state.source_operational_readiness_report.gates",
+             "source_operational_readiness_report" => %{
+               "readiness_level" => "import_eligible",
+               "import_classification" => "importable",
+               "status" => "passed"
+             }
+           } = List.first(readiness_branch["events"])
+
+    assert %{
+             "type" => "quality_gate_pressure",
+             "readiness_level" => "operator_review",
+             "import_classification" => "review_only",
+             "quality_gate_status" => "review_required",
+             "gate_id" => "stale_quality_gate",
+             "gate_status" => "review_required",
+             "gate_classification" => "review_only",
+             "feedback_source" => "mission_state.source_quality_gate_report.rows",
+             "source_quality_gate_report" => %{
+               "readiness_level" => "import_eligible",
+               "import_classification" => "importable",
+               "status" => "passed"
+             }
+           } = List.first(quality_gate_branch["events"])
+
+    assert_operational_readiness_pressure_score_terms(readiness_branch, artifact, 1)
+    assert_quality_gate_pressure_score_terms(quality_gate_branch, artifact)
+
+    readiness_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == readiness_branch["branch_id"]))
+
+    assert readiness_row["branch_operational_readiness_gate_ids"] == ["stale_readiness_gate"]
+    assert readiness_row["branch_operational_readiness_gate_statuses"] == ["review_required"]
+    assert "operational_readiness_pressure" in readiness_row["risk_types"]
+
+    quality_gate_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == quality_gate_branch["branch_id"]))
+
+    assert quality_gate_row["branch_quality_gate_statuses"] == ["review_required"]
+    assert quality_gate_row["branch_quality_gate_gate_classifications"] == ["review_only"]
+    assert "quality_gate_pressure" in quality_gate_row["risk_types"]
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+
+    assert {:ok, %{"schema_contract" => "branch_comparison_report.v1", "status" => "pass"}} =
+             Schema.validate_artifact(artifact["branch_comparison_report"])
+  end
+
   test "strategy preserves resource availability quality-gate row context in branch events" do
     quality_gate_report =
       passive_quality_gate_report()
