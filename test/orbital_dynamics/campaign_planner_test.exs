@@ -27884,6 +27884,35 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       assert source_path in replay_source_paths
     end
 
+    assert_timeline_lifecycle_pressure_score_terms(
+      urgent,
+      artifact,
+      "timeline_lifecycle_state_review"
+    )
+
+    urgent_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+
+    assert "timeline_lifecycle_state_review" in urgent_row["risk_types"]
+
+    assert urgent_row["branch_timeline_lifecycle_state_review_timeline_ids"] == [
+             "timeline:cmd_pending",
+             "timeline:dup",
+             "timeline:invalid_activity_input:bad_missing_type"
+           ]
+
+    assert urgent_row["branch_timeline_lifecycle_state_review_activity_ids"] == [
+             "cmd_pending",
+             "dup_a",
+             "dup_b",
+             "timeline_row:5:bad_missing_type"
+           ]
+
+    assert urgent_row["branch_timeline_lifecycle_state_invalid_activity_input_ids"] == [
+             "timeline_row:5:bad_missing_type"
+           ]
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end

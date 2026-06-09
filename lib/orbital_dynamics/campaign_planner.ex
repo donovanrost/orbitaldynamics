@@ -3604,28 +3604,45 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp candidate_source_risk_indicators(candidate_source, branch, event_risks) do
-    cond do
-      branch["events"] in [nil, []] ->
-        []
-
-      Enum.any?(event_risks, &contact_allocation_pressure_risk?/1) ->
-        []
-
-      true ->
-        candidate_source_risk_indicators(candidate_source)
+    if branch["events"] in [nil, []] do
+      []
+    else
+      candidate_source_risk_indicators(candidate_source, event_risks)
     end
   end
 
-  defp candidate_source_risk_indicators(%{"scope" => scope} = candidate_source)
+  defp candidate_source_risk_indicators(%{"scope" => scope} = candidate_source, event_risks)
        when scope in ["branch", "branch_generated"] do
     contact_allocation_replay =
       CandidateRefresh.contact_allocation_replay_summary(candidate_source)
 
-    contact_allocation_replay_reservation_conflict_risks(contact_allocation_replay) ++
-      contact_allocation_replay_provider_reservation_risks(contact_allocation_replay)
+    lifecycle_replay =
+      CandidateRefresh.timeline_lifecycle_state_replay_summary(candidate_source)
+
+    []
+    |> maybe_add_candidate_source_contact_allocation_risks(contact_allocation_replay, event_risks)
+    |> maybe_add_candidate_source_timeline_lifecycle_risks(lifecycle_replay, event_risks)
   end
 
-  defp candidate_source_risk_indicators(_candidate_source), do: []
+  defp candidate_source_risk_indicators(_candidate_source, _event_risks), do: []
+
+  defp maybe_add_candidate_source_contact_allocation_risks(risks, replay_summary, event_risks) do
+    if Enum.any?(event_risks, &contact_allocation_pressure_risk?/1) do
+      risks
+    else
+      risks ++
+        contact_allocation_replay_reservation_conflict_risks(replay_summary) ++
+        contact_allocation_replay_provider_reservation_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_timeline_lifecycle_risks(risks, replay_summary, event_risks) do
+    if Enum.any?(event_risks, &timeline_lifecycle_pressure_risk?/1) do
+      risks
+    else
+      risks ++ timeline_lifecycle_replay_review_risks(replay_summary)
+    end
+  end
 
   defp contact_allocation_replay_reservation_conflict_risks(replay_summary) do
     reservation_ids_by_match_status =
@@ -3686,6 +3703,35 @@ defmodule OrbitalDynamics.CampaignPlanner do
       end)
     end)
   end
+
+  defp timeline_lifecycle_replay_review_risks(
+         %{"branch_local_lifecycle_review_pressure" => true} = replay_summary
+       ) do
+    [
+      %{
+        "type" => "timeline_lifecycle_state_review",
+        "severity" => "high",
+        "reason" =>
+          "candidate source timeline lifecycle replay reports review, duplicate identity, or invalid activity pressure",
+        "review_required_count" => Map.get(replay_summary, "review_required_count"),
+        "duplicate_timeline_identity_count" =>
+          Map.get(replay_summary, "duplicate_timeline_identity_count"),
+        "invalid_activity_input_count" => Map.get(replay_summary, "invalid_activity_input_count"),
+        "review_timeline_ids" => Map.get(replay_summary, "review_timeline_ids"),
+        "review_activity_ids" => Map.get(replay_summary, "review_activity_ids"),
+        "invalid_activity_input_ids" => Map.get(replay_summary, "invalid_activity_input_ids"),
+        "required_operator_action_counts" =>
+          Map.get(replay_summary, "required_operator_action_counts"),
+        "import_action_counts" => Map.get(replay_summary, "import_action_counts"),
+        "feedback_source" => "candidate_source.timeline_lifecycle_state_replay_summary",
+        "feedback_scope" => "timeline_lifecycle_state",
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries")
+      }
+      |> compact_map()
+    ]
+  end
+
+  defp timeline_lifecycle_replay_review_risks(_replay_summary), do: []
 
   defp resource_projection_risk_indicators(%{"projected_resources" => rows}) when is_list(rows) do
     rows
@@ -44822,6 +44868,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
           not is_nil(risk["station_reservation_match_status"])
       end)
 
+    timeline_lifecycle_state_risks =
+      Enum.filter(risk_indicators, fn risk ->
+        risk["type"] == "timeline_lifecycle_state_review"
+      end)
+
     %{
       "branch_station_reservation_conflict_contact_ids" =>
         branch_event_unique_values(station_reservation_conflict_risks, [
@@ -44838,11 +44889,20 @@ defmodule OrbitalDynamics.CampaignPlanner do
         branch_event_unique_values(station_reservation_conflict_risks, [
           "station_reservation_match_status",
           "reservation_match_status"
-        ])
+        ]),
+      "branch_timeline_lifecycle_state_review_timeline_ids" =>
+        branch_event_unique_values(timeline_lifecycle_state_risks, "review_timeline_ids"),
+      "branch_timeline_lifecycle_state_review_activity_ids" =>
+        branch_event_unique_values(timeline_lifecycle_state_risks, "review_activity_ids"),
+      "branch_timeline_lifecycle_state_invalid_activity_input_ids" =>
+        branch_event_unique_values(timeline_lifecycle_state_risks, "invalid_activity_input_ids")
     }
     |> maybe_put_nonempty("branch_station_reservation_conflict_contact_ids")
     |> maybe_put_nonempty("branch_station_reservation_conflict_reservation_ids")
     |> maybe_put_nonempty("branch_station_reservation_conflict_match_statuses")
+    |> maybe_put_nonempty("branch_timeline_lifecycle_state_review_timeline_ids")
+    |> maybe_put_nonempty("branch_timeline_lifecycle_state_review_activity_ids")
+    |> maybe_put_nonempty("branch_timeline_lifecycle_state_invalid_activity_input_ids")
   end
 
   defp branch_comparison_target_branch_fields(%PlanBranch{provenance: provenance}) do
