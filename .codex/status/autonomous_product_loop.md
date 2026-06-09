@@ -5,32 +5,34 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Pin CandidateRefresh link-capacity replay pressure fixture.
+Pin CandidateRefresh resource-filter replay pressure fixture.
 
 Status:
 Completed and pushed.
 
 Slice selection note:
-Selected slice: Pin a generated CandidateRefresh link-capacity replay fixture.
+Selected slice: Pin a generated CandidateRefresh resource-filter replay fixture.
 
-Why this slice: `CandidateRefresh.link_capacity_replay_summary/1` exposes
-branch-local link-capacity, capacity-adjusted-throughput, downlink-shortfall,
-and actual-throughput pressure, and `source_report_summary/1` already mirrors
-those booleans, but validation had no CandidateRefresh fixture for replayed
-`link_capacity_report` source provenance.
+Why this slice: `CandidateRefresh.resource_filter_replay_summary/1` and the
+public facade expose branch-local resource-filter, candidate-suppression,
+invalid-resource-summary, and resource-blocking pressure, while standalone
+`resource_filter_report.v1` and `resource_filter_summary.v1` fixtures are
+covered. Candidate-refresh validation did not expose
+`source_resource_filter_*` observations or a generated replay fixture.
 
 Level 6 pillar: Durable schema-versioned artifacts and compatibility checks for
-branch-local communications/downlink-capacity evidence.
+branch-local resource/filtering evidence that feeds planner-visible candidate
+selection.
 
 Completed work:
-- Added `source_link_capacity_*` candidate-refresh observations for
-  link-capacity source-report counts, throughput totals, station/spacecraft/
-  direction/contact routing maps, requirement-status routing, trust-boundary
-  status, and branch-local replay-pressure booleans.
+- Added `source_resource_filter_*` candidate-refresh observations for
+  source-report counts, suppressed-candidate and invalid-summary evidence,
+  suppression/resource/blocking-dimension/direction routing maps,
+  trust-boundary status, and branch-local replay-pressure booleans.
 - Added the generated
-  `fixture.artifact.candidate_refresh.link_capacity_replay` reference fixture
+  `fixture.artifact.candidate_refresh.resource_filter_replay` reference fixture
   and focused stale-pressure verification.
-- Regenerated `study_results/validation_reference_fixtures.json` to 188 passing
+- Regenerated `study_results/validation_reference_fixtures.json` to 189 passing
   fixtures and documented the compatibility guard.
 
 Files changed:
@@ -41,31 +43,31 @@ Files changed:
 - `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/validation_test.exs:5575`
-- `mix test test/orbital_dynamics/validation_test.exs:5575 test/orbital_dynamics/schema_test.exs:15632`
-- `mix test test/orbital_dynamics/validation_test.exs:14502`
+- `mix test test/orbital_dynamics/validation_test.exs:5668`
+- `mix test test/orbital_dynamics/validation_test.exs:5668 test/orbital_dynamics/schema_test.exs:15632`
+- `mix test test/orbital_dynamics/validation_test.exs:14610`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-Compatibility docs now state that the generated CandidateRefresh link-capacity
-replay fixture pins source-report provenance counts, row-derived throughput and
-routing maps, downlink-requirement shortfall routing, branch-local pressure
-booleans, and trust-boundary status. The checked-in validation-reference rollup
-was refreshed to 188 passing fixtures.
+Compatibility docs now state that the generated CandidateRefresh resource-filter
+replay fixture pins provenance counts, row-derived candidate suppression,
+invalid resource-summary input evidence, resource/blocking-dimension/direction
+routing maps, branch-local pressure booleans, and trust-boundary status. The
+checked-in validation-reference rollup was refreshed to 189 passing fixtures.
 
 Local review:
-Parent review confirmed the fixture pins link-capacity, adjusted-throughput,
-downlink-shortfall, and actual-throughput pressure booleans; stale
-link-capacity pressure observations fail reference-fixture verification; schema
-validation passes; and the deterministic validation-reference rollup matches
-the checked-in artifact. `.gitignore` remains unrelated and unstaged.
+Parent review confirmed the fixture pins resource-filter, candidate-suppression,
+invalid-summary, and resource-blocking pressure booleans; stale resource-filter
+pressure observations fail reference-fixture verification; schema validation
+passes; and the deterministic validation-reference rollup matches the checked-in
+artifact. `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-CandidateRefresh link-capacity replay pressure is now protected by generated
+CandidateRefresh resource-filter replay pressure is now protected by generated
 validation-reference fixture evidence, strengthening compatibility checks for
-branch-local communications/downlink-capacity provenance.
+branch-local resource filtering and candidate-suppression provenance.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -75,20 +77,22 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`bf7e0a6` Pin link capacity replay pressure fixture.
+`42ed232` Pin resource filter replay pressure fixture.
 
 Next candidate:
-Reassess the next planner-visible communications, resource, or
-timeline/readiness scoring gap from current Level 6 evidence. A likely useful
-slice is another public-facade-backed compatibility fixture for a replay family
-that already has CandidateRefresh summary pressure but lacks candidate-refresh
-validation-reference coverage.
+Reassess the next planner-visible communications, resource, or timeline/readiness
+scoring gap from current Level 6 evidence. CandidateRefresh contact-filter,
+candidate-rejection, freshness, refresh-budget, station-calendar, or validation
+safety replay families still have public pressure summaries that may be worth
+pinning through validation-reference coverage.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 
 Previous published slices:
+- `42ed232` pinned CandidateRefresh resource-filter replay pressure observations
+  and stale-pressure verification.
 - `bf7e0a6` pinned CandidateRefresh link-capacity replay pressure observations
   and stale-pressure verification.
 - `0441a71` pinned CandidateRefresh constraint replay pressure observations and
@@ -99,9 +103,3 @@ Previous published slices:
   stale-pressure verification.
 - `e32bb40` refreshed V3 strategy score-term compatibility doc counts to match
   current fixture evidence.
-- `c7413fd` pinned CandidateRefresh quality-gate replay pressure fixture
-  observations and stale-pressure verification.
-- `dd6c7d3` pinned CandidateRefresh operational-readiness replay pressure
-  fixture observations and stale-pressure verification.
-- `bc99918` routed operational-readiness schema-validation pressure into the
-  dedicated V3 validation-refresh score term.
