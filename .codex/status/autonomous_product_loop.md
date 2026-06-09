@@ -5,84 +5,82 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve actual-throughput ID routing in storage/downlink replay summaries.
+Split storage/downlink pressure into an explicit V3 score term.
 
 Status:
-Completed; handoff recorded for product commit `211d7fd`.
+Completed; handoff recorded for product commit `630bb44`.
 
 Slice-selection note:
-- Selected slice: carry link-capacity actual-throughput contact, source-window,
-  station-calendar entry, and provider-entry ID lists through
-  `CandidateRefresh.storage_downlink_pressure_replay_summary/1`, and let
-  list-only actual-throughput evidence set the branch-local actual-throughput
-  pressure flag.
-- Why this slice: the guide prioritizes resource/contact allocation semantics
-  and branch-local candidate-refresh depth. The link-capacity source summary
-  already derives actual-throughput ID lists, but the composed
-  storage/downlink replay summary currently exposes only row counts and contact
-  ID count maps.
-- Level 6 pillar: refreshed candidates from current mission state and realized
-  feedback; fleet-level resource/contact/downlink evidence; Cadence-facing
-  artifact-only handoff surfaces.
-- Current evidence gap: docs say actual-throughput row or contact evidence
-  contributes to storage/downlink pressure, but list-only contact/source/station
-  evidence is dropped from the composed replay summary and does not affect the
-  actual-throughput pressure flag.
+- Selected slice: classify storage/downlink `resource_margin_pressure` risks
+  into a dedicated `storage_downlink_pressure_penalty` score term for V3
+  strategy branches, subtracting those risks from the generic `risk_penalty`
+  while preserving total branch score compatibility.
+- Why this slice: the previous slices made resource/contact/downlink evidence
+  richer, but V3 scoring still exposes low storage/downlink resource-margin
+  pressure only through generic risk. The loop handoff calls out deeper
+  planner-visible use of resource/contact/readiness evidence during branch
+  scoring as the next gap.
+- Level 6 pillar: reproducible V1/V2/V3 branch trees with explainable score
+  terms and deltas; fleet-level resource/contact/downlink behavior.
+- Current evidence gap: contact-allocation, approval-boundary, and timeline
+  pressure have split V3 score terms; storage/downlink pressure remains mixed
+  into `risk_penalty`, making downlink/storage tradeoffs harder to audit in
+  score-term reports and branch comparison tradeoffs.
 - Docs to read:
   `docs/autonomous_work_guide.md`,
   `.codex/prompts/long_running_context_efficient_product_loop.md`,
   `.codex/status/autonomous_product_loop.md`,
+  `docs/feature_set/capability_map/07_ground_network_and_communications_planning.md`,
   `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`,
+  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`.
+- Likely files: `lib/orbital_dynamics/campaign_planner.ex`,
+  `test/orbital_dynamics/campaign_planner_test.exs`,
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
-  `docs/artifacts/field_families/candidate_refresh_artifact.md`.
-- Likely files: `lib/orbital_dynamics/candidate_refresh.ex`,
-  `test/orbital_dynamics/candidate_refresh_test.exs`,
-  `docs/artifacts/field_families/candidate_refresh_artifact.md`,
   `.codex/status/autonomous_product_loop.md`.
 - Likely tests:
-  `mix test test/orbital_dynamics/candidate_refresh_test.exs:<storage_downlink_selectors>`,
+  `mix test test/orbital_dynamics/campaign_planner_test.exs:<resource_margin_selectors>`,
   `mix compile --warnings-as-errors`,
   `git diff --check`.
-- Definition of done: storage/downlink replay summaries expose actual-throughput
-  contact/source-window/station/provider-entry ID lists from link-capacity
-  provenance; list-only evidence drives `branch_local_actual_throughput_pressure`
-  and composed downlink/storage-downlink pressure; focused candidate-refresh
-  tests pass.
+- Definition of done: V3 branches with storage/downlink resource-margin
+  pressure expose `storage_downlink_pressure_penalty`; generic `risk_penalty`
+  excludes those risks; branch tradeoffs and score-term reports include the new
+  term; focused campaign-planner tests pass.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/candidate_refresh.ex`
-- `test/orbital_dynamics/candidate_refresh_test.exs`
-- `docs/artifacts/field_families/candidate_refresh_artifact.md`
+- `lib/orbital_dynamics/campaign_planner.ex`
+- `test/orbital_dynamics/campaign_planner_test.exs`
+- `test/orbital_dynamics/golden_artifact_test.exs`
+- `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
+- `study_results/leo_constellation_campaign_strategy_v3.json`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:11257 test/orbital_dynamics/candidate_refresh_test.exs:11513 test/orbital_dynamics/candidate_refresh_test.exs:14240 test/orbital_dynamics/candidate_refresh_test.exs:14272 test/orbital_dynamics/candidate_refresh_test.exs:14320`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:17852 test/orbital_dynamics/campaign_planner_test.exs:19105 test/orbital_dynamics/campaign_planner_test.exs:34268 test/orbital_dynamics/campaign_planner_test.exs:34365 test/orbital_dynamics/campaign_planner_test.exs:17910`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs`
+- `mix test test/orbital_dynamics/golden_artifact_test.exs`
 - `mix compile --warnings-as-errors`
+- `mix orbital_dynamics.schema.lint --input study_results/leo_constellation_campaign_strategy_v3.json --contract campaign_strategy.v3`
 - `git diff --check`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 
 Docs/artifacts changed:
-- `docs/artifacts/field_families/candidate_refresh_artifact.md` now says the
-  composed storage/downlink replay summary preserves actual-throughput contact
-  count maps plus contact/source-window/station-calendar entry/provider-entry
-  ID lists, and that row/count/list evidence drives composed pressure without
-  implying shortfall.
+- `docs/feature_set/capability_map/14_v3_strategy_orchestration.md` documents
+  `storage_downlink_pressure_penalty` and its total-score compatibility rule.
+- `study_results/leo_constellation_campaign_strategy_v3.json` was regenerated
+  with the new score-term key; golden surface expectations now pin 20 V3 score
+  terms, 440 score-term rows, and updated review/import counts.
 
 Local review:
-- Read-only reviewer `Linnaeus` found no blockers. The reviewer confirmed the
-  storage/downlink helper preserves the four actual-throughput ID-list fields,
-  emits them in the replay output, and lets list-only evidence drive
-  actual-throughput/downlink/storage-downlink pressure without setting storage,
-  capacity-adjusted-throughput, or shortfall pressure. The initial per-field
-  granularity gap was closed with a looped regression that tests each ID-list
-  field as the sole evidence source.
+- Read-only reviewer `Euler` found no code blockers. The reviewer confirmed the
+  new term is subtracted from generic risk, included in raw score, emitted in
+  score terms/tradeoffs, and documented. The reviewer noted projection
+  `storage_overflow` / `downlink_shortfall` lacked direct coverage; this was
+  closed with focused assertions in the existing storage-overflow and
+  downlink-shortfall projection fixtures.
 
 Level 6 pillar advanced:
-Candidate-refresh replay fidelity for realized downlink evidence: composed
-storage/downlink summaries now preserve actual-throughput ID routing evidence
-from link-capacity provenance and treat list-only evidence as branch-local
-actual-throughput/downlink/storage-downlink pressure without mutating allocation
-or projection state.
+V3 branch scoring explainability for fleet storage/downlink pressure:
+resource-margin and projection storage/downlink risks now have a dedicated
+score term while preserving the same one-`risk_weight` total penalty per risk.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -92,18 +90,19 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`211d7fd` Preserve actual-throughput ID replay pressure.
+`630bb44` Split storage downlink pressure score term.
 
 Next candidate:
-After this storage/downlink replay slice, continue with planner-visible
-resource/contact/readiness evidence that affects V2/V3 branch scoring or
-candidate-refresh provenance.
+Continue with planner-visible resource/contact/readiness evidence that affects
+V2/V3 branch scoring or candidate-refresh provenance, or move to the next
+highest guide item after a fresh status check.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 
 Previous published slices:
+- `630bb44` split storage/downlink pressure into an explicit V3 score term.
 - `211d7fd` preserved actual-throughput ID replay pressure in composed
   storage/downlink summaries.
 - `1054d07` exposed operational timeline duplicate rollups in schema.
