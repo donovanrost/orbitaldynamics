@@ -96,6 +96,8 @@ defmodule OrbitalDynamics.CadenceImport do
         "station_reservation_report.v1",
         "link_capacity_report.v1",
         "contact_allocation_report.v1",
+        "contact_allocation_capacity_pack_summary.v1",
+        "contact_allocation_reservation_conflict_summary.v1",
         "resource_projection_report.v1",
         "resource_projection_flow_summary.v1",
         "contact_intent.v1",
@@ -614,6 +616,28 @@ defmodule OrbitalDynamics.CadenceImport do
 
   def manifest(%{schema_contract: "contact_allocation_report.v1"} = report, opts),
     do: report |> stringify_keys() |> from_contact_allocation_report(opts)
+
+  def manifest(
+        %{"schema_contract" => "contact_allocation_capacity_pack_summary.v1"} = summary,
+        opts
+      ),
+      do: from_contact_allocation_capacity_pack_summary(summary, opts)
+
+  def manifest(%{schema_contract: "contact_allocation_capacity_pack_summary.v1"} = summary, opts),
+    do: summary |> stringify_keys() |> from_contact_allocation_capacity_pack_summary(opts)
+
+  def manifest(
+        %{"schema_contract" => "contact_allocation_reservation_conflict_summary.v1"} = summary,
+        opts
+      ),
+      do: from_contact_allocation_reservation_conflict_summary(summary, opts)
+
+  def manifest(
+        %{schema_contract: "contact_allocation_reservation_conflict_summary.v1"} = summary,
+        opts
+      ),
+      do:
+        summary |> stringify_keys() |> from_contact_allocation_reservation_conflict_summary(opts)
 
   def manifest(%{"schema_contract" => "contact_intent.v1"} = intent, opts),
     do: from_contact_intent(intent, opts)
@@ -1342,6 +1366,36 @@ defmodule OrbitalDynamics.CadenceImport do
       opts,
       "contact_allocation_report.v1",
       source_artifact_id || "contact_allocation_report"
+    )
+  end
+
+  @doc """
+  Builds an import manifest from a contact-allocation capacity-pack summary.
+  """
+  def from_contact_allocation_capacity_pack_summary(%{} = summary, opts \\ []) do
+    summary = stringify_keys(summary)
+    source_artifact_id = option(opts, :source_artifact_id, summary["id"] || summary["source"])
+
+    from_review_report(
+      OperatorReview.from_contact_allocation_capacity_pack_summary(summary),
+      opts,
+      "contact_allocation_capacity_pack_summary.v1",
+      source_artifact_id || "contact_allocation_capacity_pack_summary"
+    )
+  end
+
+  @doc """
+  Builds an import manifest from a contact-allocation reservation-conflict summary.
+  """
+  def from_contact_allocation_reservation_conflict_summary(%{} = summary, opts \\ []) do
+    summary = stringify_keys(summary)
+    source_artifact_id = option(opts, :source_artifact_id, summary["id"] || summary["source"])
+
+    from_review_report(
+      OperatorReview.from_contact_allocation_reservation_conflict_summary(summary),
+      opts,
+      "contact_allocation_reservation_conflict_summary.v1",
+      source_artifact_id || "contact_allocation_reservation_conflict_summary"
     )
   end
 

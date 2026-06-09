@@ -29,6 +29,8 @@ defmodule OrbitalDynamics.CadenceImportTest do
                "station_reservation_report.v1",
                "link_capacity_report.v1",
                "contact_allocation_report.v1",
+               "contact_allocation_capacity_pack_summary.v1",
+               "contact_allocation_reservation_conflict_summary.v1",
                "resource_projection_report.v1",
                "resource_projection_flow_summary.v1",
                "contact_intent.v1",
@@ -12202,6 +12204,102 @@ defmodule OrbitalDynamics.CadenceImportTest do
              &(&1["path"] =~ ~r/^\$\.rows\[\d+\]\.source_review_row\.required_operator_action$/ and
                  &1["message"] == "must match required_operator_action on Cadence import row")
            )
+  end
+
+  test "builds import rows from standalone contact allocation summary artifacts" do
+    capacity_pack_summary =
+      "study_results/contact_allocation_capacity_pack_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
+    capacity_pack_manifest =
+      CadenceImport.from_contact_allocation_capacity_pack_summary(capacity_pack_summary)
+
+    assert OrbitalDynamics.cadence_import_manifest(capacity_pack_summary) ==
+             capacity_pack_manifest
+
+    assert %{
+             "source_artifact_type" => "contact_allocation_capacity_pack_summary.v1",
+             "source_artifact_id" => "validation.contact_allocation_capacity_pack_summary",
+             "row_count" => 4,
+             "review_required_count" => 4,
+             "reduced_capacity_pack_group_count" => 1,
+             "reduced_capacity_pack_status_counts" => %{"capacity_limited" => 1}
+           } = capacity_pack_manifest
+
+    assert %{
+             "import_action" => "review_contact_allocation_capacity_pack",
+             "source_review_type" => "contact_allocation_capacity_pack_review",
+             "contention_group_id" => "capacity_pack:equator_prime:downlink:100_160",
+             "capacity_packed_contact_ids" => ["dl_capacity_secondary"],
+             "source_contact_allocation_capacity_pack" => %{
+               "source_contact_allocation_summary" => %{
+                 "schema_contract" => "contact_allocation_capacity_pack_summary.v1",
+                 "model" => "artifact_only_contact_allocation_capacity_pack_summary"
+               }
+             },
+             "source_review_row" => %{
+               "source_contact_allocation_capacity_pack" => %{
+                 "source_summary_schema_contract" => "contact_allocation_capacity_pack_summary.v1"
+               }
+             }
+           } =
+             Enum.find(
+               capacity_pack_manifest["rows"],
+               &(&1["source_review_type"] == "contact_allocation_capacity_pack_review")
+             )
+
+    reservation_conflict_summary =
+      "study_results/contact_allocation_reservation_conflict_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
+    reservation_conflict_manifest =
+      CadenceImport.from_contact_allocation_reservation_conflict_summary(
+        reservation_conflict_summary
+      )
+
+    assert OrbitalDynamics.cadence_import_manifest(reservation_conflict_summary) ==
+             reservation_conflict_manifest
+
+    assert %{
+             "source_artifact_type" => "contact_allocation_reservation_conflict_summary.v1",
+             "source_artifact_id" => "validation.contact_allocation_reservation_conflict_summary",
+             "row_count" => 1,
+             "review_required_count" => 1,
+             "reservation_conflict_contact_ids_by_direction" => %{
+               "downlink" => ["dl_reserved_intruder"]
+             }
+           } = reservation_conflict_manifest
+
+    assert [
+             %{
+               "import_action" => "review_contact_allocation",
+               "source_review_type" => "contact_allocation_review",
+               "contact_id" => "dl_reserved_intruder",
+               "station_reservation_id" => "reservation_1",
+               "source_contact_allocation" => %{
+                 "source_summary_schema_contract" =>
+                   "contact_allocation_reservation_conflict_summary.v1",
+                 "source_contact_allocation_summary" => %{
+                   "schema_contract" => "contact_allocation_reservation_conflict_summary.v1",
+                   "model" => "artifact_only_contact_allocation_reservation_conflict_summary"
+                 }
+               },
+               "source_review_row" => %{
+                 "source_contact_allocation" => %{
+                   "source_summary_schema_contract" =>
+                     "contact_allocation_reservation_conflict_summary.v1"
+                 }
+               }
+             }
+           ] = reservation_conflict_manifest["rows"]
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(capacity_pack_manifest)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(reservation_conflict_manifest)
   end
 
   test "lifts embedded contact-allocation summary fields from wrapper manifests" do

@@ -1417,6 +1417,11 @@ validation-reference fixture. The observations check reservation contact,
 conflict, and review counts, match/status/owner/expiration routing,
 direction-and-station conflict maps, row subsets, model limits, and
 no-provider-reservation/no-schedule-mutation assumptions.
+Standalone `contact_allocation_capacity_pack_summary.v1` and
+`contact_allocation_reservation_conflict_summary.v1` artifacts now also publish
+direct operator-review packages and Cadence import manifests, preserving the
+compact summary context in source review rows instead of requiring the full
+allocation report or a candidate-refresh wrapper.
 The validation-reference registry and checked-in
 `study_results/contact_allocation_provider_reservation_request_summary_v1.json`
 fixture also feed the

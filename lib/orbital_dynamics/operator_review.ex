@@ -82,6 +82,8 @@ defmodule OrbitalDynamics.OperatorReview do
     station_reservation_report.v1
     link_capacity_report.v1
     contact_allocation_report.v1
+    contact_allocation_capacity_pack_summary.v1
+    contact_allocation_reservation_conflict_summary.v1
     resource_projection_report.v1
     resource_projection_flow_summary.v1
     contact_intent.v1
@@ -784,6 +786,47 @@ defmodule OrbitalDynamics.OperatorReview do
       Map.get(report, "provenance", %{})
     )
     |> put_contact_allocation_summaries([report])
+  end
+
+  @doc """
+  Builds an `operator_review_package.v1` from a contact-allocation capacity-pack summary.
+  """
+  def from_contact_allocation_capacity_pack_summary(%{} = summary) do
+    summary = stringify_keys(summary)
+
+    rows =
+      contact_allocation_summary_review_rows(summary, "contact_allocation_capacity_pack_summary")
+
+    package(
+      rows,
+      "contact_allocation_capacity_pack_summary.v1",
+      Map.get(summary, "id") || Map.get(summary, "source") ||
+        "contact_allocation_capacity_pack_summary",
+      Map.get(summary, "provenance", %{})
+    )
+    |> put_contact_allocation_summaries([summary])
+  end
+
+  @doc """
+  Builds an `operator_review_package.v1` from a contact-allocation reservation-conflict summary.
+  """
+  def from_contact_allocation_reservation_conflict_summary(%{} = summary) do
+    summary = stringify_keys(summary)
+
+    rows =
+      contact_allocation_summary_review_rows(
+        summary,
+        "contact_allocation_reservation_conflict_summary"
+      )
+
+    package(
+      rows,
+      "contact_allocation_reservation_conflict_summary.v1",
+      Map.get(summary, "id") || Map.get(summary, "source") ||
+        "contact_allocation_reservation_conflict_summary",
+      Map.get(summary, "provenance", %{})
+    )
+    |> put_contact_allocation_summaries([summary])
   end
 
   defp contact_allocation_station_calendar_provider_contention_rows(

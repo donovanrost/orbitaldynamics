@@ -2712,6 +2712,16 @@ defmodule OrbitalDynamics do
   def operator_review_package(%{"schema_contract" => "contact_allocation_report.v1"} = artifact),
     do: OperatorReview.from_contact_allocation_report(artifact)
 
+  def operator_review_package(
+        %{"schema_contract" => "contact_allocation_capacity_pack_summary.v1"} = artifact
+      ),
+      do: OperatorReview.from_contact_allocation_capacity_pack_summary(artifact)
+
+  def operator_review_package(
+        %{"schema_contract" => "contact_allocation_reservation_conflict_summary.v1"} = artifact
+      ),
+      do: OperatorReview.from_contact_allocation_reservation_conflict_summary(artifact)
+
   def operator_review_package(%{"schema_contract" => "contact_intent.v1"} = artifact),
     do: OperatorReview.from_contact_intent(artifact)
 
@@ -2959,6 +2969,16 @@ defmodule OrbitalDynamics do
 
   def operator_review_package(%{schema_contract: "contact_allocation_report.v1"} = artifact),
     do: OperatorReview.from_contact_allocation_report(artifact)
+
+  def operator_review_package(
+        %{schema_contract: "contact_allocation_capacity_pack_summary.v1"} = artifact
+      ),
+      do: OperatorReview.from_contact_allocation_capacity_pack_summary(artifact)
+
+  def operator_review_package(
+        %{schema_contract: "contact_allocation_reservation_conflict_summary.v1"} = artifact
+      ),
+      do: OperatorReview.from_contact_allocation_reservation_conflict_summary(artifact)
 
   def operator_review_package(%{schema_contract: "contact_intent.v1"} = artifact),
     do: OperatorReview.from_contact_intent(artifact)

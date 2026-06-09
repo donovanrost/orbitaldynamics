@@ -58,6 +58,8 @@ defmodule OrbitalDynamics.OperatorReviewTest do
     assert "operational_readiness_review" in review_types
     assert "quality_gate_review" in review_types
     assert "resource_projection_flow_summary.v1" in source_artifact_types
+    assert "contact_allocation_capacity_pack_summary.v1" in source_artifact_types
+    assert "contact_allocation_reservation_conflict_summary.v1" in source_artifact_types
     assert "result" in provider_result_map_value_keys
     assert "provider_status" in provider_result_map_value_keys
     assert "provider_outcome" in provider_result_map_value_keys
@@ -7147,6 +7149,91 @@ defmodule OrbitalDynamics.OperatorReviewTest do
 
     assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
              Schema.validate_artifact(package)
+  end
+
+  test "standalone contact allocation summaries become operator review rows" do
+    capacity_pack_summary =
+      study_result_fixture("contact_allocation_capacity_pack_summary_v1.json")
+
+    capacity_pack_package =
+      OperatorReview.from_contact_allocation_capacity_pack_summary(capacity_pack_summary)
+
+    assert OrbitalDynamics.operator_review_package(capacity_pack_summary) ==
+             capacity_pack_package
+
+    assert %{
+             "source_artifact_type" => "contact_allocation_capacity_pack_summary.v1",
+             "source_artifact_id" => "validation.contact_allocation_capacity_pack_summary",
+             "review_count" => 4,
+             "contact_allocation_review_count" => 3,
+             "contact_allocation_capacity_pack_review_count" => 1,
+             "reduced_capacity_pack_group_count" => 1,
+             "reduced_capacity_pack_status_counts" => %{"capacity_limited" => 1}
+           } = capacity_pack_package
+
+    assert %{
+             "review_type" => "contact_allocation_capacity_pack_review",
+             "source" => "contact_allocation_capacity_pack_summary.reduced_capacity_pack_groups",
+             "required_operator_action" => "review_contact_allocation_capacity_pack",
+             "contention_group_id" => "capacity_pack:equator_prime:downlink:100_160",
+             "capacity_packed_contact_ids" => ["dl_capacity_secondary"],
+             "source_contact_allocation_capacity_pack" => %{
+               "source_contact_allocation_summary" => %{
+                 "schema_contract" => "contact_allocation_capacity_pack_summary.v1",
+                 "model" => "artifact_only_contact_allocation_capacity_pack_summary"
+               }
+             }
+           } =
+             Enum.find(
+               capacity_pack_package["rows"],
+               &(&1["review_type"] == "contact_allocation_capacity_pack_review")
+             )
+
+    reservation_conflict_summary =
+      study_result_fixture("contact_allocation_reservation_conflict_summary_v1.json")
+
+    reservation_conflict_package =
+      OperatorReview.from_contact_allocation_reservation_conflict_summary(
+        reservation_conflict_summary
+      )
+
+    assert OrbitalDynamics.operator_review_package(reservation_conflict_summary) ==
+             reservation_conflict_package
+
+    assert %{
+             "source_artifact_type" => "contact_allocation_reservation_conflict_summary.v1",
+             "source_artifact_id" => "validation.contact_allocation_reservation_conflict_summary",
+             "review_count" => 1,
+             "contact_allocation_review_count" => 1,
+             "reservation_conflict_contact_ids_by_direction" => %{
+               "downlink" => ["dl_reserved_intruder"]
+             }
+           } = reservation_conflict_package
+
+    assert [
+             %{
+               "review_type" => "contact_allocation_review",
+               "source" =>
+                 "contact_allocation_reservation_conflict_summary.reservation_review_rows",
+               "required_operator_action" => "review_contact_allocation",
+               "contact_id" => "dl_reserved_intruder",
+               "station_reservation_id" => "reservation_1",
+               "source_contact_allocation" => %{
+                 "source_summary_schema_contract" =>
+                   "contact_allocation_reservation_conflict_summary.v1",
+                 "source_contact_allocation_summary" => %{
+                   "schema_contract" => "contact_allocation_reservation_conflict_summary.v1",
+                   "model" => "artifact_only_contact_allocation_reservation_conflict_summary"
+                 }
+               }
+             }
+           ] = reservation_conflict_package["rows"]
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(capacity_pack_package)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(reservation_conflict_package)
   end
 
   test "candidate refresh result artifact contact allocation reports become operator review rows" do
