@@ -3249,6 +3249,7 @@ defmodule OrbitalDynamics.CadenceImport do
         risks
       )
     )
+    |> Map.merge(OrbitalDynamics.RecommendationRiskContext.relay_data_path_context(risks))
     |> Map.merge(
       OrbitalDynamics.RecommendationRiskContext.resource_margin_context(
         resource_margin_context_rows
@@ -6583,6 +6584,9 @@ defmodule OrbitalDynamics.CadenceImport do
         row,
         OrbitalDynamics.RecommendationRiskContext.station_reservation_hold_import_readiness_context_keys()
       )
+    )
+    |> Map.merge(
+      Map.take(row, OrbitalDynamics.RecommendationRiskContext.relay_data_path_context_keys())
     )
     |> Map.merge(
       Map.take(row, OrbitalDynamics.RecommendationRiskContext.resource_margin_context_keys())

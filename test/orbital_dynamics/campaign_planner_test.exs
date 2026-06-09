@@ -18435,7 +18435,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         },
         approval_policy: %{
           "blocked_risk_types" => [],
-          "operator_review_risk_limit" => 40
+          "operator_review_risk_limit" => 45
         },
         branches: [
           %{id: "baseline"},
@@ -18873,6 +18873,63 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 transition_reason: "station throughput below plan",
                 requires_operator_review: true,
                 derivation_reasons: ["station_throughput_feedback_pressure"]
+              },
+              %{
+                type: "relay_data_path_pressure",
+                ground_station_id: "dss_14",
+                route_id: "relay_route_review",
+                route_ids: ["relay_route_review", "relay_route_backup"],
+                source_spacecraft_id: "leo_1",
+                source_spacecraft_ids: ["leo_1"],
+                relay_spacecraft_ids: ["relay_a"],
+                relay_chain_spacecraft_ids: ["relay_a", "relay_b"],
+                relay_hop_count: 2,
+                ground_downlink_contact_id: "downlink_relay_review",
+                ground_downlink_contact_ids: [
+                  "downlink_relay_review",
+                  "downlink_relay_backup"
+                ],
+                custody_status: "missing_ack",
+                latency_s: 500.0,
+                latency_limit_s: 300.0,
+                latency_status: "exceeds_limit",
+                risk_status: "high",
+                risk_reasons: ["custody_missing_ack", "latency_exceeds_limit"],
+                product_ids: ["product_relay"],
+                collection_ids: ["collection_relay"],
+                route_count: 2,
+                relay_route_count: 2,
+                direct_downlink_route_count: 0,
+                custody_status_counts: %{"missing_ack" => 2},
+                latency_status_counts: %{"exceeds_limit" => 2},
+                risk_status_counts: %{"high" => 2},
+                route_ids_by_custody_status: %{
+                  "missing_ack" => ["relay_route_review", "relay_route_backup"]
+                },
+                route_ids_by_latency_status: %{
+                  "exceeds_limit" => ["relay_route_review", "relay_route_backup"]
+                },
+                route_ids_by_risk_status: %{
+                  "high" => ["relay_route_review", "relay_route_backup"]
+                },
+                route_ids_by_ground_station_id: %{
+                  "dss_14" => ["relay_route_review", "relay_route_backup"]
+                },
+                feedback_source: "mission_state.source_relay_data_path_summary.rows",
+                feedback_scope: "link_capacity",
+                feedback_key: "relay_route_review",
+                trust_boundary: "mission_state_relay_data_path_summary",
+                derivation_reasons: [
+                  "relay_data_path_custody_missing_ack",
+                  "relay_data_path_latency_exceeds_limit",
+                  "relay_data_path_risk_high"
+                ],
+                assumptions: %{
+                  "execution_boundary" =>
+                    "artifact_only_no_relay_scheduling_or_schedule_mutation",
+                  "operator_authority" => "not_granted_by_summary",
+                  "provider_reservation" => "not_performed"
+                }
               },
               %{
                 type: "resource_margin_pressure",
@@ -20988,6 +21045,61 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         "contact_execution_feedback_pressure",
         "observation_execution_feedback_pressure",
         "station_throughput_feedback_pressure"
+      ],
+      "relay_data_path_risk_types" => ["relay_data_path_pressure"],
+      "relay_data_path_ground_station_ids" => ["dss_14"],
+      "relay_data_path_route_ids" => ["relay_route_review", "relay_route_backup"],
+      "relay_data_path_source_spacecraft_ids" => ["leo_1"],
+      "relay_data_path_relay_spacecraft_ids" => ["relay_a"],
+      "relay_data_path_relay_chain_spacecraft_ids" => ["relay_a", "relay_b"],
+      "relay_data_path_relay_hop_count_values" => [2],
+      "relay_data_path_ground_downlink_contact_ids" => [
+        "downlink_relay_review",
+        "downlink_relay_backup"
+      ],
+      "relay_data_path_custody_statuses" => ["missing_ack"],
+      "relay_data_path_latency_values_s" => [500.0],
+      "relay_data_path_latency_limit_values_s" => [300.0],
+      "relay_data_path_latency_statuses" => ["exceeds_limit"],
+      "relay_data_path_risk_statuses" => ["high"],
+      "relay_data_path_risk_reasons" => ["custody_missing_ack", "latency_exceeds_limit"],
+      "relay_data_path_product_ids" => ["product_relay"],
+      "relay_data_path_collection_ids" => ["collection_relay"],
+      "relay_data_path_route_count_values" => [2],
+      "relay_data_path_relay_route_count_values" => [2],
+      "relay_data_path_direct_downlink_route_count_values" => [0],
+      "relay_data_path_custody_status_count_maps" => [%{"missing_ack" => 2}],
+      "relay_data_path_latency_status_count_maps" => [%{"exceeds_limit" => 2}],
+      "relay_data_path_risk_status_count_maps" => [%{"high" => 2}],
+      "relay_data_path_route_ids_by_custody_status" => [
+        %{"missing_ack" => ["relay_route_review", "relay_route_backup"]}
+      ],
+      "relay_data_path_route_ids_by_latency_status" => [
+        %{"exceeds_limit" => ["relay_route_review", "relay_route_backup"]}
+      ],
+      "relay_data_path_route_ids_by_risk_status" => [
+        %{"high" => ["relay_route_review", "relay_route_backup"]}
+      ],
+      "relay_data_path_route_ids_by_ground_station_id" => [
+        %{"dss_14" => ["relay_route_review", "relay_route_backup"]}
+      ],
+      "relay_data_path_feedback_sources" => [
+        "mission_state.source_relay_data_path_summary.rows"
+      ],
+      "relay_data_path_feedback_scopes" => ["link_capacity"],
+      "relay_data_path_feedback_keys" => ["relay_route_review"],
+      "relay_data_path_trust_boundaries" => ["mission_state_relay_data_path_summary"],
+      "relay_data_path_derivation_reasons" => [
+        "relay_data_path_custody_missing_ack",
+        "relay_data_path_latency_exceeds_limit",
+        "relay_data_path_risk_high"
+      ],
+      "relay_data_path_assumption_maps" => [
+        %{
+          "execution_boundary" => "artifact_only_no_relay_scheduling_or_schedule_mutation",
+          "operator_authority" => "not_granted_by_summary",
+          "provider_reservation" => "not_performed"
+        }
       ],
       "resource_margin_risk_types" => ["power_margin_low"],
       "resource_margin_spacecraft_ids" => ["leo_1"],
