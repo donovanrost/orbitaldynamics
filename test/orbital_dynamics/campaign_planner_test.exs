@@ -18534,6 +18534,30 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 trust_boundary: "mission_state_approval_boundary_policy"
               },
               %{
+                type: "provider_reservation_request_pressure",
+                contact_id: "dl_provider_review",
+                source_activity_id: "dl_provider_review",
+                source_activity_ids: ["dl_provider_review"],
+                ground_station_id: "equator_prime",
+                direction: "downlink",
+                station_reservation_id: "provider_reservation_review",
+                station_reserved_by: "partner_calendar",
+                station_reservation_status: "confirmed",
+                station_reservation_match_status: "overlap",
+                provider_reservation_request_status: "review_required",
+                provider_reservation_row_scope: "review",
+                required_operator_action: "review_provider_reservation_request",
+                feedback_source:
+                  "mission_state.source_contact_allocation_provider_reservation_request_summary",
+                feedback_scope: "contact_allocation_provider_reservation_request",
+                trust_boundary: "mission_state_provider_reservation_request_summary",
+                assumptions: %{
+                  "provider_reservation_execution" => "not_performed_by_strategy_branch",
+                  "schedule_mutation" => "not_performed_by_strategy_branch",
+                  "operator_authority" => "not_granted_by_strategy_branch"
+                }
+              },
+              %{
                 type: "provider_counteroffer_pressure",
                 provider_counteroffer_id: "provider_offer_urgent",
                 provider_counteroffer_status: "proposed",
@@ -18796,6 +18820,38 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                explanation,
                &(&1["type"] == "risk_driver" and
                    &1["risk_type"] == "approval_boundary_pressure")
+             )
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "provider_reservation_request_review",
+             "severity" => "high",
+             "contact_id" => "dl_provider_review",
+             "source_activity_id" => "dl_provider_review",
+             "source_activity_ids" => ["dl_provider_review"],
+             "ground_station_id" => "equator_prime",
+             "direction" => "downlink",
+             "station_reservation_id" => "provider_reservation_review",
+             "station_reserved_by" => "partner_calendar",
+             "station_reservation_status" => "confirmed",
+             "station_reservation_match_status" => "overlap",
+             "provider_reservation_request_status" => "review_required",
+             "provider_reservation_row_scope" => "review",
+             "required_operator_action" => "review_provider_reservation_request",
+             "feedback_source" =>
+               "mission_state.source_contact_allocation_provider_reservation_request_summary",
+             "feedback_scope" => "contact_allocation_provider_reservation_request",
+             "trust_boundary" => "mission_state_provider_reservation_request_summary",
+             "assumptions" => %{
+               "provider_reservation_execution" => "not_performed_by_strategy_branch",
+               "schedule_mutation" => "not_performed_by_strategy_branch",
+               "operator_authority" => "not_granted_by_strategy_branch"
+             }
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "provider_reservation_request_review")
              )
 
     assert %{
@@ -19139,6 +19195,37 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "approval_boundary_feedback_scopes" => ["approval_boundary"],
       "approval_boundary_feedback_keys" => ["no_unapproved_command_execution"],
       "approval_boundary_trust_boundaries" => ["mission_state_approval_boundary_policy"],
+      "provider_reservation_request_contact_ids" => ["dl_provider_review"],
+      "provider_reservation_request_source_activity_ids" => ["dl_provider_review"],
+      "provider_reservation_request_ground_station_ids" => ["equator_prime"],
+      "provider_reservation_request_directions" => ["downlink"],
+      "provider_reservation_request_station_reservation_ids" => [
+        "provider_reservation_review"
+      ],
+      "provider_reservation_request_station_reserved_by" => ["partner_calendar"],
+      "provider_reservation_request_station_reservation_statuses" => ["confirmed"],
+      "provider_reservation_request_station_reservation_match_statuses" => ["overlap"],
+      "provider_reservation_request_statuses" => ["review_required"],
+      "provider_reservation_request_row_scopes" => ["review"],
+      "provider_reservation_request_required_operator_actions" => [
+        "review_provider_reservation_request"
+      ],
+      "provider_reservation_request_assumption_maps" => [
+        %{
+          "provider_reservation_execution" => "not_performed_by_strategy_branch",
+          "schedule_mutation" => "not_performed_by_strategy_branch",
+          "operator_authority" => "not_granted_by_strategy_branch"
+        }
+      ],
+      "provider_reservation_request_feedback_sources" => [
+        "mission_state.source_contact_allocation_provider_reservation_request_summary"
+      ],
+      "provider_reservation_request_feedback_scopes" => [
+        "contact_allocation_provider_reservation_request"
+      ],
+      "provider_reservation_request_trust_boundaries" => [
+        "mission_state_provider_reservation_request_summary"
+      ],
       "provider_counteroffer_ids" => ["provider_offer_urgent"],
       "provider_counteroffer_statuses" => ["proposed"],
       "provider_counteroffer_negotiation_states" => ["proposed"],

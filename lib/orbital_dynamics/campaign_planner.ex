@@ -4934,15 +4934,21 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "reason" =>
           "contact #{event["contact_id"] || event["source_activity_id"]} has provider reservation request evidence requiring operator review",
         "contact_id" => event["contact_id"],
+        "source_activity_id" => event["source_activity_id"],
+        "source_activity_ids" => event["source_activity_ids"],
         "ground_station_id" => event["ground_station_id"],
+        "direction" => event["direction"],
         "station_reservation_id" => event["station_reservation_id"],
+        "station_reserved_by" => event["station_reserved_by"],
         "station_reservation_match_status" => event["station_reservation_match_status"],
         "station_reservation_status" => event["station_reservation_status"],
         "provider_reservation_request_status" => event["provider_reservation_request_status"],
         "provider_reservation_row_scope" => event["provider_reservation_row_scope"],
+        "required_operator_action" => event["required_operator_action"],
         "feedback_source" => event["feedback_source"],
         "feedback_scope" => event["feedback_scope"],
-        "trust_boundary" => event["trust_boundary"]
+        "trust_boundary" => event["trust_boundary"],
+        "assumptions" => event["assumptions"]
       }
       |> compact_map()
     ]
@@ -5683,6 +5689,27 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "feedback_scope",
       "feedback_key",
       "trust_boundary"
+    ]
+  end
+
+  defp provider_reservation_request_pressure_risk_fields do
+    [
+      "contact_id",
+      "source_activity_id",
+      "source_activity_ids",
+      "ground_station_id",
+      "direction",
+      "station_reservation_id",
+      "station_reserved_by",
+      "station_reservation_status",
+      "station_reservation_match_status",
+      "provider_reservation_request_status",
+      "provider_reservation_row_scope",
+      "required_operator_action",
+      "feedback_source",
+      "feedback_scope",
+      "trust_boundary",
+      "assumptions"
     ]
   end
 
@@ -6666,6 +6693,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp recommendation_pressure_risk_context(%{"type" => "approval_boundary_pressure"} = risk) do
     Map.take(risk, approval_boundary_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(
+         %{"feedback_scope" => "contact_allocation_provider_reservation_request"} = risk
+       ) do
+    Map.take(risk, provider_reservation_request_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(
+         %{"type" => "provider_reservation_request_review"} = risk
+       ) do
+    Map.take(risk, provider_reservation_request_pressure_risk_fields())
   end
 
   defp recommendation_pressure_risk_context(%{"feedback_scope" => "candidate_rejection"} = risk) do
