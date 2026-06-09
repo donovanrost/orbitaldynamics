@@ -5,60 +5,69 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve selected exclusivity-group overlap evidence through timeline
-transition-application review/import handoffs.
+Preserve reduced-capacity pack direction routing on capacity-pack review rows.
 
 Status:
 Completed and pushed.
 
 Files changed:
-- Product: `lib/orbital_dynamics/timeline.ex`
 - Product: `lib/orbital_dynamics/operator_review.ex`
 - Product: `lib/orbital_dynamics/cadence_import.ex`
 - Product schema: `lib/orbital_dynamics/schema.ex`
-- Product test: `test/orbital_dynamics/timeline_test.exs`
-- Docs: `docs/artifacts/field_families/mission_activities.md`
+- Product tests: `test/orbital_dynamics/operator_review_test.exs`
+- Product tests: `test/orbital_dynamics/cadence_import_test.exs`
+- Docs: `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
+- Docs: `docs/artifacts/field_families/candidate_refresh_artifact.md`
+- Schema exports: `schemas/*.schema.json` files changed by
+  `mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/timeline_test.exs:9069`
-- `mix test test/orbital_dynamics/timeline_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:13848 test/orbital_dynamics/schema_test.exs:14759`
-- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs:3088`
-- `mix format lib/orbital_dynamics/timeline.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/timeline_test.exs --check-formatted`
+- `mix test test/orbital_dynamics/operator_review_test.exs:7151 test/orbital_dynamics/operator_review_test.exs:19348`
+- `mix test test/orbital_dynamics/operator_review_test.exs`
+- `mix test test/orbital_dynamics/cadence_import_test.exs:12075 test/orbital_dynamics/cadence_import_test.exs:12252`
+- `mix test test/orbital_dynamics/schema_test.exs:21345 test/orbital_dynamics/schema_test.exs:28932 test/orbital_dynamics/schema_test.exs:31476 test/orbital_dynamics/schema_test.exs:31552 test/mix/tasks/orbital_dynamics.schema.export_test.exs:2647`
+- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs:2647`
+- `mix format lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/operator_review_test.exs test/orbital_dynamics/cadence_import_test.exs --check-formatted`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
+- Attempted broader checks: `mix test test/orbital_dynamics/cadence_import_test.exs`
+  still has a fixture-coverage failure for advertised summary import sources;
+  `mix test test/orbital_dynamics/schema_test.exs` surfaced existing checked-in
+  fixture regeneration drift outside this slice plus the schema-export drift
+  fixed by this slice.
 
 Docs/artifacts changed:
-Updated `docs/artifacts/field_families/mission_activities.md` to document
-selected exclusivity-group handoff preservation. No checked-in JSON artifacts
-changed.
+Updated contact-allocation capability docs and candidate-refresh field-family
+docs to document row-level capacity-pack direction routing preservation.
+Regenerated checked-in JSON Schema exports for the shared review/import row
+properties.
 
 Level 6 pillar advanced:
-Approval-aware automation boundaries and Cadence-facing integration artifacts;
-durable schema-versioned timeline integrity handoffs.
+Resource and communications allocation semantics; approval-aware automation
+boundaries and Cadence-facing review/import artifacts.
 
 Last completed slice:
-Preserved selected exclusivity-group overlap evidence through timeline
-transition-application review/import handoffs.
+Preserved reduced-capacity pack direction routing on capacity-pack review and
+Cadence import rows.
 
 What changed:
-- Selected transition-application rows now include
-  `selected_exclusivity_violation_group` alongside selected violation activity
-  and timeline IDs.
-- Operator review and Cadence import transition-application rows preserve the
-  selected group field at top level and in nested source handoff rows.
-- Schema validation and exported schema properties cover the new optional field
-  and reject stale selected group values that diverge from
-  `selected_activity.exclusivity_violation_group`.
-- The timeline regression now exercises group-level overlap without explicit
-  `exclusive_with` IDs, validates review/import artifacts, and mutates the
-  selected group field to prove the stale-evidence guard.
+- `contact_allocation_capacity_pack_review` rows now derive and expose
+  all/selected/deferred contact IDs by direction plus required-capacity fraction
+  maps by direction from embedded reduced-capacity pack source evidence.
+- Cadence import rows copy those six direction maps to their own top-level
+  adapter boundary while still preserving the nested `source_review_row`.
+- Schema validation and checked-in JSON Schema exports cover the new optional
+  row/source fields and reject stale row-level maps that diverge from
+  `source_contact_allocation_capacity_pack`.
+- Focused operator-review and Cadence-import tests cover standalone
+  `contact_allocation_report.v1` and
+  `contact_allocation_capacity_pack_summary.v1` fixture paths.
 - Parent performed bounded local review and mechanical publish because no
   suitable subagent tool is available in this runtime.
 
 Last commit:
-- Product: `32bdb57` Preserve selected exclusivity group handoffs
+- Product: `8c612e9` Preserve capacity pack direction handoffs
 - Ledger: this handoff commit on `main`
 
 Remaining maturity gaps:
@@ -74,7 +83,9 @@ Remaining maturity gaps:
 Next candidate:
 Reassess the guide queue from current checkout and choose the next narrow Level
 6 slice, likely in queue-1 activity/timeline handoff completeness or queue-2
-resource/contact allocation semantics.
+remaining resource/contact allocation semantics. Candidate follow-up: decide
+whether to address the broader Cadence import fixture coverage gap for
+advertised summary sources before taking another schema-visible product slice.
 
 Blocked:
 Not blocked.
