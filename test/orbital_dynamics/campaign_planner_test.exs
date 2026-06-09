@@ -18572,6 +18572,63 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 }
               },
               %{
+                type: "timeline_publication_pressure",
+                publication_id:
+                  "timeline_publication:9:timeline:selected_plan:v2:timeline:selected_plan:v1",
+                publication_sequence: 9,
+                publication_status: "published_with_downstream_invalidations",
+                downstream_invalidation_status: "invalidated",
+                dependency_impact_status: "review_required",
+                source_artifact_id: "timeline:selected_plan:v2",
+                source_artifact_type: "operational_timeline_report.v1",
+                publication_authority: "mission_operations",
+                supersedes_artifact_ids: ["timeline:selected_plan:v1"],
+                downstream_product_ids: [
+                  "operator_review:selected:v1",
+                  "cadence_import:selected:v1"
+                ],
+                invalidated_downstream_product_ids: [
+                  "cadence_import:selected:v1",
+                  "operator_review:selected:v1"
+                ],
+                downstream_invalidation_reason_counts: %{
+                  "dependency_impact_review_required" => 2
+                },
+                downstream_invalidation_reasons: ["dependency_impact_review_required"],
+                invalidated_downstream_product_ids_by_reason: %{
+                  "dependency_impact_review_required" => [
+                    "cadence_import:selected:v1",
+                    "operator_review:selected:v1"
+                  ]
+                },
+                dependency_impact_row_count: 2,
+                timeline_diff_row_count: 3,
+                timeline_diff_changed_count: 2,
+                timeline_diff_review_required_count: 1,
+                changed_field_counts: %{"timeline_presence" => 2},
+                changed_fields: ["timeline_presence"],
+                changed_timeline_ids: ["timeline:health_check:0.0"],
+                review_timeline_ids: ["timeline:health_check:0.0", "timeline:health_check:5.0"],
+                timeline_ids_by_changed_field: %{
+                  "timeline_presence" => [
+                    "timeline:health_check:0.0",
+                    "timeline:health_check:5.0"
+                  ]
+                },
+                feedback_source: "mission_state.source_timeline_publication_summary",
+                feedback_scope: "timeline_publication",
+                feedback_key:
+                  "timeline_publication:9:timeline:selected_plan:v2:timeline:selected_plan:v1",
+                trust_boundary: "mission_state_timeline_publication_summary",
+                derivation_reasons: ["timeline_publication_summary_pressure"],
+                assumptions: %{
+                  "publication_execution" => "not_performed_by_strategy_branch",
+                  "notification_delivery" => "not_performed_by_strategy_branch",
+                  "operator_authority" => "not_granted_by_strategy_branch",
+                  "import_approval" => "not_granted_by_strategy_branch"
+                }
+              },
+              %{
                 type: "timeline_preservation_pressure",
                 activity_id: "contact_locked_review",
                 timeline_id: "timeline:contact_locked_review",
@@ -19082,6 +19139,62 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                explanation,
                &(&1["type"] == "risk_driver" and
                    &1["risk_type"] == "timeline_activity_precondition_review")
+             )
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "timeline_publication_pressure",
+             "severity" => "high",
+             "publication_id" =>
+               "timeline_publication:9:timeline:selected_plan:v2:timeline:selected_plan:v1",
+             "publication_sequence" => 9,
+             "publication_status" => "published_with_downstream_invalidations",
+             "downstream_invalidation_status" => "invalidated",
+             "dependency_impact_status" => "review_required",
+             "source_artifact_id" => "timeline:selected_plan:v2",
+             "source_artifact_type" => "operational_timeline_report.v1",
+             "publication_authority" => "mission_operations",
+             "supersedes_artifact_ids" => ["timeline:selected_plan:v1"],
+             "downstream_product_ids" => [
+               "operator_review:selected:v1",
+               "cadence_import:selected:v1"
+             ],
+             "invalidated_downstream_product_ids" => [
+               "cadence_import:selected:v1",
+               "operator_review:selected:v1"
+             ],
+             "downstream_invalidation_reason_counts" => %{
+               "dependency_impact_review_required" => 2
+             },
+             "downstream_invalidation_reasons" => ["dependency_impact_review_required"],
+             "dependency_impact_row_count" => 2,
+             "timeline_diff_row_count" => 3,
+             "timeline_diff_changed_count" => 2,
+             "timeline_diff_review_required_count" => 1,
+             "changed_field_counts" => %{"timeline_presence" => 2},
+             "changed_fields" => ["timeline_presence"],
+             "changed_timeline_ids" => ["timeline:health_check:0.0"],
+             "review_timeline_ids" => [
+               "timeline:health_check:0.0",
+               "timeline:health_check:5.0"
+             ],
+             "feedback_source" => "mission_state.source_timeline_publication_summary",
+             "feedback_scope" => "timeline_publication",
+             "feedback_key" =>
+               "timeline_publication:9:timeline:selected_plan:v2:timeline:selected_plan:v1",
+             "trust_boundary" => "mission_state_timeline_publication_summary",
+             "derivation_reasons" => ["timeline_publication_summary_pressure"],
+             "assumptions" => %{
+               "publication_execution" => "not_performed_by_strategy_branch",
+               "notification_delivery" => "not_performed_by_strategy_branch",
+               "operator_authority" => "not_granted_by_strategy_branch",
+               "import_approval" => "not_granted_by_strategy_branch"
+             }
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "timeline_publication_pressure")
              )
 
     assert %{
@@ -19677,6 +19790,79 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
           "timeline_mutation" => "not_performed_by_strategy_branch",
           "operator_authority" => "not_granted_by_strategy_branch",
           "cadence_import" => "not_performed_by_strategy_branch"
+        }
+      ],
+      "timeline_publication_ids" => [
+        "timeline_publication:9:timeline:selected_plan:v2:timeline:selected_plan:v1"
+      ],
+      "timeline_publication_sequences" => [9],
+      "timeline_publication_statuses" => ["published_with_downstream_invalidations"],
+      "timeline_publication_downstream_invalidation_statuses" => ["invalidated"],
+      "timeline_publication_dependency_impact_statuses" => ["review_required"],
+      "timeline_publication_source_artifact_ids" => ["timeline:selected_plan:v2"],
+      "timeline_publication_source_artifact_types" => ["operational_timeline_report.v1"],
+      "timeline_publication_authorities" => ["mission_operations"],
+      "timeline_publication_supersedes_artifact_ids" => ["timeline:selected_plan:v1"],
+      "timeline_publication_downstream_product_ids" => [
+        "operator_review:selected:v1",
+        "cadence_import:selected:v1"
+      ],
+      "timeline_publication_invalidated_downstream_product_ids" => [
+        "cadence_import:selected:v1",
+        "operator_review:selected:v1"
+      ],
+      "timeline_publication_downstream_invalidation_reason_count_maps" => [
+        %{"dependency_impact_review_required" => 2}
+      ],
+      "timeline_publication_downstream_invalidation_reasons" => [
+        "dependency_impact_review_required"
+      ],
+      "timeline_publication_invalidated_downstream_product_ids_by_reason" => [
+        %{
+          "dependency_impact_review_required" => [
+            "cadence_import:selected:v1",
+            "operator_review:selected:v1"
+          ]
+        }
+      ],
+      "timeline_publication_dependency_impact_row_count_values" => [2],
+      "timeline_publication_timeline_diff_row_count_values" => [3],
+      "timeline_publication_timeline_diff_changed_count_values" => [2],
+      "timeline_publication_timeline_diff_review_required_count_values" => [1],
+      "timeline_publication_changed_field_count_maps" => [%{"timeline_presence" => 2}],
+      "timeline_publication_changed_fields" => ["timeline_presence"],
+      "timeline_publication_changed_timeline_ids" => ["timeline:health_check:0.0"],
+      "timeline_publication_review_timeline_ids" => [
+        "timeline:health_check:0.0",
+        "timeline:health_check:5.0"
+      ],
+      "timeline_publication_timeline_ids_by_changed_field" => [
+        %{
+          "timeline_presence" => [
+            "timeline:health_check:0.0",
+            "timeline:health_check:5.0"
+          ]
+        }
+      ],
+      "timeline_publication_feedback_sources" => [
+        "mission_state.source_timeline_publication_summary"
+      ],
+      "timeline_publication_feedback_scopes" => ["timeline_publication"],
+      "timeline_publication_feedback_keys" => [
+        "timeline_publication:9:timeline:selected_plan:v2:timeline:selected_plan:v1"
+      ],
+      "timeline_publication_trust_boundaries" => [
+        "mission_state_timeline_publication_summary"
+      ],
+      "timeline_publication_derivation_reasons" => [
+        "timeline_publication_summary_pressure"
+      ],
+      "timeline_publication_assumption_maps" => [
+        %{
+          "publication_execution" => "not_performed_by_strategy_branch",
+          "notification_delivery" => "not_performed_by_strategy_branch",
+          "operator_authority" => "not_granted_by_strategy_branch",
+          "import_approval" => "not_granted_by_strategy_branch"
         }
       ],
       "timeline_preservation_activity_ids" => ["contact_locked_review"],

@@ -4801,14 +4801,31 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "publication_status" => event["publication_status"],
         "downstream_invalidation_status" => event["downstream_invalidation_status"],
         "dependency_impact_status" => event["dependency_impact_status"],
+        "source_artifact_id" => event["source_artifact_id"],
+        "source_artifact_type" => event["source_artifact_type"],
+        "publication_authority" => event["publication_authority"],
+        "supersedes_artifact_ids" => event["supersedes_artifact_ids"],
+        "downstream_product_ids" => event["downstream_product_ids"],
         "dependency_impact_row_count" => event["dependency_impact_row_count"],
         "timeline_diff_review_required_count" => event["timeline_diff_review_required_count"],
         "invalidated_downstream_product_ids" => event["invalidated_downstream_product_ids"],
+        "downstream_invalidation_reason_counts" => event["downstream_invalidation_reason_counts"],
+        "downstream_invalidation_reasons" => event["downstream_invalidation_reasons"],
+        "invalidated_downstream_product_ids_by_reason" =>
+          event["invalidated_downstream_product_ids_by_reason"],
+        "timeline_diff_row_count" => event["timeline_diff_row_count"],
+        "timeline_diff_changed_count" => event["timeline_diff_changed_count"],
+        "changed_field_counts" => event["changed_field_counts"],
+        "changed_fields" => event["changed_fields"],
         "changed_timeline_ids" => event["changed_timeline_ids"],
         "review_timeline_ids" => event["review_timeline_ids"],
+        "timeline_ids_by_changed_field" => event["timeline_ids_by_changed_field"],
         "feedback_source" => event["feedback_source"],
         "feedback_scope" => event["feedback_scope"],
-        "trust_boundary" => event["trust_boundary"]
+        "feedback_key" => event["feedback_key"],
+        "trust_boundary" => event["trust_boundary"],
+        "derivation_reasons" => event["derivation_reasons"],
+        "assumptions" => event["assumptions"]
       }
       |> compact_map()
     ]
@@ -5352,6 +5369,40 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "route_ids_by_latency_status",
       "route_ids_by_risk_status",
       "route_ids_by_ground_station_id",
+      "feedback_source",
+      "feedback_scope",
+      "feedback_key",
+      "trust_boundary",
+      "derivation_reasons",
+      "assumptions"
+    ]
+  end
+
+  defp timeline_publication_pressure_risk_fields do
+    [
+      "publication_id",
+      "publication_sequence",
+      "publication_status",
+      "downstream_invalidation_status",
+      "dependency_impact_status",
+      "source_artifact_id",
+      "source_artifact_type",
+      "publication_authority",
+      "supersedes_artifact_ids",
+      "downstream_product_ids",
+      "invalidated_downstream_product_ids",
+      "downstream_invalidation_reason_counts",
+      "downstream_invalidation_reasons",
+      "invalidated_downstream_product_ids_by_reason",
+      "dependency_impact_row_count",
+      "timeline_diff_row_count",
+      "timeline_diff_changed_count",
+      "timeline_diff_review_required_count",
+      "changed_field_counts",
+      "changed_fields",
+      "changed_timeline_ids",
+      "review_timeline_ids",
+      "timeline_ids_by_changed_field",
       "feedback_source",
       "feedback_scope",
       "feedback_key",
@@ -7027,6 +7078,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
          %{"feedback_scope" => "timeline_activity_precondition"} = risk
        ) do
     Map.take(risk, timeline_activity_precondition_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"type" => "timeline_publication_pressure"} = risk) do
+    Map.take(risk, timeline_publication_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"feedback_scope" => "timeline_publication"} = risk) do
+    Map.take(risk, timeline_publication_pressure_risk_fields())
   end
 
   defp recommendation_pressure_risk_context(%{"type" => "timeline_preservation_review"} = risk) do
