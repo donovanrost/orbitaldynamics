@@ -5,25 +5,27 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Consolidate selected validation-refresh recommendation handoff aggregation.
+Preserve selected approval-boundary pressure context on V3 recommendation
+review/import rows.
 
 Status:
 Completed and ready to publish.
 
 What changed:
-- Added `OrbitalDynamics.RecommendationRiskContext` to own selected
-  validation-refresh recommendation handoff aggregation and its pass-through key
-  set.
-- `OperatorReview` and `CadenceImport` now call the shared helper for
-  model-acceptance, schema-validation, validation-safety-case, refresh-budget,
-  and refresh-freshness selected-risk context.
-- The Cadence review-package adapter now passes validation-refresh handoff fields
-  through via the shared key set instead of a repeated manifest-row list.
+- Selected `approval_boundary_pressure` risks now retain approval boundary,
+  automation/execution boundary, authority, rule, and provenance fields in
+  recommendation risk-driver explanation rows.
+- `OrbitalDynamics.RecommendationRiskContext` now owns selected
+  approval-boundary handoff aggregation and exposes its pass-through key set.
+- `OperatorReview` and `CadenceImport` now include approval-boundary handoff
+  context on strategy recommendation review/import rows, including review-package
+  to Cadence import conversion.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:19512`
 - `mix compile --warnings-as-errors`
-- `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex --check-formatted`
+- `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/campaign_planner.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
 
 Published commits:
@@ -44,10 +46,13 @@ Published commits:
 - `f06caa5` Preserve validation safety case recommendation context
 - `3052235` Update autonomous loop handoff
 - `ce6fa7e` Consolidate validation refresh recommendation context
+- `6060c19` Update autonomous loop handoff
+- `5d4396c` Preserve approval boundary recommendation context
 
 Next suggested slice:
-Audit broader selected-risk handoff gaps outside validation-refresh, or choose a
-small branch-refresh contract cleanup from the active test surfaces.
+Audit provider reservation request selected-risk handoff coverage, or choose the
+next small branch-refresh contract cleanup from the active strategy test
+surfaces.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
