@@ -2525,6 +2525,80 @@ defmodule OrbitalDynamics.Validation do
         "checks candidate-refresh replay of objective-gap provenance without objective generation, score recalculation, candidate selection, import approval, or Cadence writes"
       ]
     },
+    "fixture.artifact.candidate_refresh.constraint_replay" => %{
+      "id" => "fixture.artifact.candidate_refresh.constraint_replay",
+      "model_id" => "artifact.candidate_refresh.v1",
+      "reference_case" =>
+        "generated candidate refresh replay of constraint source-report provenance",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "source" => "generated_candidate_refresh_constraint_fixture",
+        "contract" => "candidate_refresh.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "candidate_refresh.v1",
+        "schema_version" => 1,
+        "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 1,
+        "source_report_row_count" => 3,
+        "source_constraint_report_count" => 1,
+        "source_constraint_row_count" => 3,
+        "source_constraint_downlink_gap_row_count" => 1,
+        "source_constraint_resource_margin_row_count" => 2,
+        "source_constraint_status_counts" => %{"fail" => 1, "warning" => 2},
+        "source_constraint_ground_station_counts" => %{"equator_prime" => 1},
+        "source_constraint_metric_counts" => %{
+          "battery_margin" => 1,
+          "selected_downlink_shortfall_mb" => 1,
+          "storage_margin" => 1
+        },
+        "source_constraint_id_counts" => %{
+          "battery_margin" => 1,
+          "downlink_shortfall" => 1,
+          "storage_margin" => 1
+        },
+        "source_constraint_source_activity_id_counts" => %{
+          "constraint_battery_activity" => 1,
+          "constraint_downlink_activity" => 1,
+          "constraint_storage_activity" => 1
+        },
+        "source_constraint_resource_counts" => %{"battery_1" => 1, "storage_1" => 1},
+        "source_constraint_spacecraft_counts" => %{"sat_1" => 2},
+        "source_constraint_trust_boundary_status" => "declared",
+        "source_constraint_branch_local_constraint_pressure" => true,
+        "source_constraint_branch_local_downlink_gap_pressure" => true,
+        "source_constraint_branch_local_resource_margin_pressure" => true,
+        "source_constraint_branch_local_constraint_routing_pressure" => true
+      },
+      "tolerances" => %{
+        "schema_version" => 0,
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 0,
+        "source_report_row_count" => 0,
+        "source_constraint_report_count" => 0,
+        "source_constraint_row_count" => 0,
+        "source_constraint_downlink_gap_row_count" => 0,
+        "source_constraint_resource_margin_row_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal generated artifact regression, not constraint or resource validation",
+        "checks candidate-refresh replay of constraint provenance without objective generation, resource mutation, candidate selection, import approval, or Cadence writes"
+      ]
+    },
     "fixture.artifact.candidate_refresh.resource_provenance_v1" => %{
       "id" => "fixture.artifact.candidate_refresh.resource_provenance_v1",
       "model_id" => "artifact.candidate_refresh.v1",
@@ -14380,6 +14454,7 @@ defmodule OrbitalDynamics.Validation do
     source_reports = get_in(artifact, ["provenance", "source_reports"]) || %{}
     contact_contention_summary = Map.get(source_reports, "contact_contention_report") || %{}
     contact_intent_summary = Map.get(source_reports, "contact_intent") || %{}
+    constraint_summary = Map.get(source_reports, "constraint_report") || %{}
 
     objective_satisfaction_summary =
       Map.get(source_reports, "objective_satisfaction_report") || %{}
@@ -14474,6 +14549,34 @@ defmodule OrbitalDynamics.Validation do
         Map.get(contact_intent_summary, "direction_routing") || %{},
       "source_contact_intent_trust_boundary_status" =>
         Map.get(contact_intent_summary, "trust_boundary_status"),
+      "source_constraint_report_count" => Map.get(constraint_summary, "count"),
+      "source_constraint_row_count" => Map.get(constraint_summary, "row_count"),
+      "source_constraint_downlink_gap_row_count" =>
+        Map.get(constraint_summary, "downlink_gap_row_count"),
+      "source_constraint_resource_margin_row_count" =>
+        Map.get(constraint_summary, "resource_margin_row_count"),
+      "source_constraint_status_counts" => Map.get(constraint_summary, "status_counts") || %{},
+      "source_constraint_ground_station_counts" =>
+        Map.get(constraint_summary, "ground_station_counts") || %{},
+      "source_constraint_metric_counts" =>
+        Map.get(constraint_summary, "constraint_metric_counts") || %{},
+      "source_constraint_id_counts" => Map.get(constraint_summary, "constraint_id_counts") || %{},
+      "source_constraint_source_activity_id_counts" =>
+        Map.get(constraint_summary, "source_activity_id_counts") || %{},
+      "source_constraint_resource_counts" =>
+        Map.get(constraint_summary, "constraint_resource_counts") || %{},
+      "source_constraint_spacecraft_counts" =>
+        Map.get(constraint_summary, "constraint_spacecraft_counts") || %{},
+      "source_constraint_trust_boundary_status" =>
+        Map.get(constraint_summary, "trust_boundary_status"),
+      "source_constraint_branch_local_constraint_pressure" =>
+        constraint_branch_local_constraint_pressure?(constraint_summary),
+      "source_constraint_branch_local_downlink_gap_pressure" =>
+        positive_integer_observation?(constraint_summary, "downlink_gap_row_count"),
+      "source_constraint_branch_local_resource_margin_pressure" =>
+        constraint_branch_local_resource_margin_pressure?(constraint_summary),
+      "source_constraint_branch_local_constraint_routing_pressure" =>
+        constraint_branch_local_routing_pressure?(constraint_summary),
       "source_resource_projection_report_count" => Map.get(resource_projection_summary, "count"),
       "source_resource_projection_row_count" => Map.get(resource_projection_summary, "row_count"),
       "source_resource_projection_projected_resource_count" =>
@@ -21217,6 +21320,28 @@ defmodule OrbitalDynamics.Validation do
       map_size(Map.get(summary, "blocked_contact_ids_by_blocking_dimension") || %{}) > 0 or
       map_size(Map.get(summary, "blocked_contact_ids_by_spacecraft_id") || %{}) > 0 or
       map_size(Map.get(summary, "blocked_contact_ids_by_status") || %{}) > 0
+  end
+
+  defp constraint_branch_local_constraint_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "downlink_gap_row_count") or
+      map_size(Map.get(summary, "status_counts") || %{}) > 0 or
+      constraint_branch_local_resource_margin_pressure?(summary) or
+      constraint_branch_local_routing_pressure?(summary)
+  end
+
+  defp constraint_branch_local_resource_margin_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "resource_margin_row_count") or
+      map_size(Map.get(summary, "constraint_resource_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "constraint_spacecraft_counts") || %{}) > 0
+  end
+
+  defp constraint_branch_local_routing_pressure?(%{} = summary) do
+    map_size(Map.get(summary, "ground_station_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "constraint_metric_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "constraint_id_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "source_activity_id_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "constraint_resource_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "constraint_spacecraft_counts") || %{}) > 0
   end
 
   defp score_term_routing_pressure?(%{} = summary) do

@@ -5500,6 +5500,78 @@ defmodule OrbitalDynamics.ValidationTest do
              Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
   end
 
+  test "verifies candidate refresh constraint replay fixtures" do
+    fixture_id = "fixture.artifact.candidate_refresh.constraint_replay"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = candidate_refresh_constraint_fixture()
+    observations = candidate_refresh_constraint_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "source_report_family_count" => 1,
+             "source_report_row_count" => 3,
+             "source_constraint_report_count" => 1,
+             "source_constraint_row_count" => 3,
+             "source_constraint_downlink_gap_row_count" => 1,
+             "source_constraint_resource_margin_row_count" => 2,
+             "source_constraint_status_counts" => %{"fail" => 1, "warning" => 2},
+             "source_constraint_ground_station_counts" => %{"equator_prime" => 1},
+             "source_constraint_metric_counts" => %{
+               "battery_margin" => 1,
+               "selected_downlink_shortfall_mb" => 1,
+               "storage_margin" => 1
+             },
+             "source_constraint_id_counts" => %{
+               "battery_margin" => 1,
+               "downlink_shortfall" => 1,
+               "storage_margin" => 1
+             },
+             "source_constraint_source_activity_id_counts" => %{
+               "constraint_battery_activity" => 1,
+               "constraint_downlink_activity" => 1,
+               "constraint_storage_activity" => 1
+             },
+             "source_constraint_resource_counts" => %{"battery_1" => 1, "storage_1" => 1},
+             "source_constraint_spacecraft_counts" => %{"sat_1" => 2},
+             "source_constraint_trust_boundary_status" => "declared",
+             "source_constraint_branch_local_constraint_pressure" => true,
+             "source_constraint_branch_local_downlink_gap_pressure" => true,
+             "source_constraint_branch_local_resource_margin_pressure" => true,
+             "source_constraint_branch_local_constraint_routing_pressure" => true
+           } = observations
+
+    stale_constraint_pressure_observations =
+      observations
+      |> Map.put("source_constraint_branch_local_constraint_pressure", false)
+
+    assert {:ok, stale_constraint_pressure_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_constraint_pressure_observations
+             )
+
+    assert stale_constraint_pressure_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_constraint_pressure_verification["checks"],
+             &(&1["field"] == "source_constraint_branch_local_constraint_pressure" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _validated_artifact} =
+             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
+  end
+
   test "verifies curated candidate rejection report reference fixtures" do
     fixture_id = "fixture.artifact.candidate_rejection_report.v1"
 
@@ -14379,6 +14451,8 @@ defmodule OrbitalDynamics.ValidationTest do
           candidate_refresh_contact_contention_challenge_fixture_observations(),
         "fixture.artifact.candidate_refresh.contact_intent_direction_replay" =>
           candidate_refresh_contact_intent_direction_fixture_observations(),
+        "fixture.artifact.candidate_refresh.constraint_replay" =>
+          candidate_refresh_constraint_fixture_observations(),
         "fixture.artifact.candidate_refresh.operational_readiness_replay" =>
           candidate_refresh_operational_readiness_fixture_observations(),
         "fixture.artifact.candidate_refresh.timeline_activity_precondition_replay" =>
@@ -14680,8 +14754,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 186,
-             "status_counts" => %{"pass" => 186},
+             "fixture_count" => 187,
+             "status_counts" => %{"pass" => 187},
              "reports" => reports
            } = report
 
@@ -14713,6 +14787,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.candidate_activity.v1",
              "fixture.artifact.candidate_diff_report.v1",
              "fixture.artifact.candidate_diff_row.v1",
+             "fixture.artifact.candidate_refresh.constraint_replay",
              "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay",
              "fixture.artifact.candidate_refresh.contact_intent_direction_replay",
              "fixture.artifact.candidate_refresh.objective_gap_replay",
@@ -14894,7 +14969,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 186},
+             "status_counts" => %{"fail" => 187},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -15789,6 +15864,77 @@ defmodule OrbitalDynamics.ValidationTest do
         ],
         "source_activity_id_counts" => %{"stale_score_activity" => 99},
         "provenance" => %{"trust_boundary" => "objective_gap_score_report"}
+      }
+    }
+  end
+
+  defp candidate_refresh_constraint_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(candidate_refresh_constraint_fixture())
+  end
+
+  defp candidate_refresh_constraint_fixture do
+    result_set(%{})
+    |> CandidateRefresh.build(
+      candidate_refresh: candidate_refresh_constraint_request(),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  defp candidate_refresh_constraint_request do
+    %{
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-constraint-replay-challenge",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [],
+        "source" => %{"system" => "validation_challenge"},
+        "quality" => %{"level" => "accepted"},
+        "provenance" => %{"created_by" => "validation_fixture"}
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "targets" => [],
+      "constraints" => %{},
+      "scoring_policy" => %{},
+      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
+      "source_constraint_report" => %{
+        "schema_contract" => "constraint_report.v1",
+        "rows" => [
+          %{
+            "constraint_id" => "downlink_shortfall",
+            "metric" => "selected_downlink_shortfall_mb",
+            "status" => "warning",
+            "value" => 40.0,
+            "ground_station_id" => "equator_prime",
+            "source_activity_id" => "constraint_downlink_activity",
+            "trust_boundary" => "constraint_replay_rows"
+          },
+          %{
+            "constraint_id" => "battery_margin",
+            "metric" => "battery_margin",
+            "status" => "fail",
+            "value" => -0.2,
+            "resource_id" => "battery_1",
+            "spacecraft_id" => "sat_1",
+            "activity_ids" => ["constraint_battery_activity"],
+            "trust_boundary" => "constraint_replay_rows"
+          },
+          %{
+            "constraint_id" => "storage_margin",
+            "metric" => "storage_margin",
+            "status" => "warning",
+            "value" => -0.1,
+            "resource_id" => "storage_1",
+            "spacecraft_id" => "sat_1",
+            "activity_id" => "constraint_storage_activity",
+            "trust_boundary" => "constraint_replay_rows"
+          }
+        ],
+        "provenance" => %{"trust_boundary" => "constraint_replay_report"}
       }
     }
   end
