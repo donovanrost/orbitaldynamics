@@ -47436,6 +47436,48 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "blocked_by_policy"
            ]
 
+    policy_review_row =
+      artifact["operator_review_package"]["rows"]
+      |> Enum.find(
+        &(&1["review_type"] == "strategy_tradeoff" and
+            &1["branch_id"] ==
+              "derived_contact_allocation_pressure_policy_blocked_dl_policy_blocked" and
+            &1["source"] == "campaign_strategy.branch_comparison_report.rows")
+      )
+
+    assert policy_review_row["branch_contact_allocation_statuses"] == ["allocated"]
+
+    assert policy_review_row["branch_contact_allocation_effective_statuses"] == [
+             "policy_blocked"
+           ]
+
+    assert policy_review_row["branch_contact_allocation_policy_classifications"] == [
+             "blocked_by_policy"
+           ]
+
+    assert get_in(policy_review_row, [
+             "source_branch_comparison",
+             "branch_contact_allocation_effective_statuses"
+           ]) == ["policy_blocked"]
+
+    policy_import_row =
+      artifact["cadence_import_manifest"]["rows"]
+      |> Enum.find(
+        &(&1["source_review_type"] == "strategy_branch_comparison" and
+            &1["branch_id"] ==
+              "derived_contact_allocation_pressure_policy_blocked_dl_policy_blocked")
+      )
+
+    assert policy_import_row["branch_contact_allocation_statuses"] == ["allocated"]
+
+    assert policy_import_row["branch_contact_allocation_effective_statuses"] == [
+             "policy_blocked"
+           ]
+
+    assert policy_import_row["branch_contact_allocation_policy_classifications"] == [
+             "blocked_by_policy"
+           ]
+
     refute Enum.any?(
              pressure_branch["repair_result"]["warnings"],
              &(&1 == "operational feedback was applied without a declared trust boundary")
@@ -47668,6 +47710,50 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            ]
 
     assert reservation_row["branch_station_reservation_conflict_match_statuses"] == [
+             "overlap"
+           ]
+
+    reservation_review_row =
+      artifact["operator_review_package"]["rows"]
+      |> Enum.find(
+        &(&1["review_type"] == "strategy_tradeoff" and
+            &1["branch_id"] == reservation_branch["branch_id"] and
+            &1["source"] == "campaign_strategy.branch_comparison_report.rows")
+      )
+
+    assert reservation_review_row["branch_station_reservation_conflict_contact_ids"] == [
+             "summary_reservation_dl_reserved_intruder"
+           ]
+
+    assert reservation_review_row["branch_station_reservation_conflict_reservation_ids"] == [
+             "summary_reservation_reservation_1"
+           ]
+
+    assert reservation_review_row["branch_station_reservation_conflict_match_statuses"] == [
+             "overlap"
+           ]
+
+    assert get_in(reservation_review_row, [
+             "source_branch_comparison",
+             "branch_station_reservation_conflict_reservation_ids"
+           ]) == ["summary_reservation_reservation_1"]
+
+    reservation_import_row =
+      artifact["cadence_import_manifest"]["rows"]
+      |> Enum.find(
+        &(&1["source_review_type"] == "strategy_branch_comparison" and
+            &1["branch_id"] == reservation_branch["branch_id"])
+      )
+
+    assert reservation_import_row["branch_station_reservation_conflict_contact_ids"] == [
+             "summary_reservation_dl_reserved_intruder"
+           ]
+
+    assert reservation_import_row["branch_station_reservation_conflict_reservation_ids"] == [
+             "summary_reservation_reservation_1"
+           ]
+
+    assert reservation_import_row["branch_station_reservation_conflict_match_statuses"] == [
              "overlap"
            ]
 

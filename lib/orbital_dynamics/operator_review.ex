@@ -2419,8 +2419,23 @@ defmodule OrbitalDynamics.OperatorReview do
       }
       |> Map.merge(Map.take(row, branch_timeline_evidence_fields()))
       |> Map.merge(Map.take(row, branch_readiness_quality_gate_fields()))
+      |> Map.merge(Map.take(row, branch_contact_allocation_fields()))
       |> compact_map()
     end)
+  end
+
+  defp branch_contact_allocation_fields do
+    [
+      "branch_contact_allocation_statuses",
+      "branch_contact_allocation_effective_statuses",
+      "branch_contact_allocation_reasons",
+      "branch_contact_allocation_review_statuses",
+      "branch_contact_allocation_approval_statuses",
+      "branch_contact_allocation_policy_classifications",
+      "branch_station_reservation_conflict_contact_ids",
+      "branch_station_reservation_conflict_reservation_ids",
+      "branch_station_reservation_conflict_match_statuses"
+    ]
   end
 
   defp branch_readiness_quality_gate_fields do

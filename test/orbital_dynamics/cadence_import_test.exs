@@ -6257,6 +6257,15 @@ defmodule OrbitalDynamics.CadenceImportTest do
             "branch_quality_gate_gate_classifications" => ["blocked"],
             "branch_quality_gate_blocked_gate_ids" => ["schema_validation"],
             "branch_quality_gate_blocked_row_ids" => ["quality_gate:schema_validation:1"],
+            "branch_contact_allocation_statuses" => ["blocked"],
+            "branch_contact_allocation_effective_statuses" => ["policy_blocked"],
+            "branch_contact_allocation_reasons" => ["policy_blocked", "station_reserved"],
+            "branch_contact_allocation_review_statuses" => ["review_required"],
+            "branch_contact_allocation_approval_statuses" => ["blocked_by_policy"],
+            "branch_contact_allocation_policy_classifications" => ["blocked_by_policy"],
+            "branch_station_reservation_conflict_contact_ids" => ["review_dl_overflow"],
+            "branch_station_reservation_conflict_reservation_ids" => ["reservation_partner"],
+            "branch_station_reservation_conflict_match_statuses" => ["unmatched_overlap"],
             "capacity_pack_group_ids" => ["station:equator_prime:pack:review"],
             "capacity_pack_statuses" => ["deferred_by_reduced_station_capacity_pack"],
             "capacity_pack_min_capacity_fraction" => 0.5,
@@ -6456,6 +6465,14 @@ defmodule OrbitalDynamics.CadenceImportTest do
                  "branch_quality_gate_blocked_row_ids" => [
                    "quality_gate:schema_validation:1"
                  ],
+                 "branch_contact_allocation_statuses" => ["blocked"],
+                 "branch_contact_allocation_effective_statuses" => ["policy_blocked"],
+                 "branch_contact_allocation_reasons" => ["policy_blocked", "station_reserved"],
+                 "branch_station_reservation_conflict_contact_ids" => ["review_dl_overflow"],
+                 "branch_station_reservation_conflict_reservation_ids" => [
+                   "reservation_partner"
+                 ],
+                 "branch_station_reservation_conflict_match_statuses" => ["unmatched_overlap"],
                  "capacity_pack_group_ids" => ["station:equator_prime:pack:review"],
                  "capacity_pack_statuses" => ["deferred_by_reduced_station_capacity_pack"],
                  "capacity_pack_min_capacity_fraction" => 0.5,
@@ -6588,6 +6605,13 @@ defmodule OrbitalDynamics.CadenceImportTest do
                    ],
                    "branch_quality_gate_blocked_row_ids" => [
                      "quality_gate:schema_validation:1"
+                   ],
+                   "branch_contact_allocation_reasons" => [
+                     "policy_blocked",
+                     "station_reserved"
+                   ],
+                   "branch_station_reservation_conflict_reservation_ids" => [
+                     "reservation_partner"
                    ],
                    "repair_link_actual_downlink_completion_ratio" => 0.5,
                    "first_resource_pressure_activity_id" => "dl_pressure",
