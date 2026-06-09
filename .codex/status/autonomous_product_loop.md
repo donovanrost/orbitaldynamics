@@ -5,69 +5,47 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve reduced-capacity pack direction routing on capacity-pack review rows.
+Add Cadence import fixtures for advertised contact-allocation summary sources.
 
 Status:
 Completed and pushed.
 
 Files changed:
-- Product: `lib/orbital_dynamics/operator_review.ex`
-- Product: `lib/orbital_dynamics/cadence_import.ex`
-- Product schema: `lib/orbital_dynamics/schema.ex`
-- Product tests: `test/orbital_dynamics/operator_review_test.exs`
-- Product tests: `test/orbital_dynamics/cadence_import_test.exs`
-- Docs: `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
-- Docs: `docs/artifacts/field_families/candidate_refresh_artifact.md`
-- Schema exports: `schemas/*.schema.json` files changed by
-  `mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
+- Product test: `test/orbital_dynamics/cadence_import_test.exs`
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/operator_review_test.exs:7151 test/orbital_dynamics/operator_review_test.exs:19348`
-- `mix test test/orbital_dynamics/operator_review_test.exs`
-- `mix test test/orbital_dynamics/cadence_import_test.exs:12075 test/orbital_dynamics/cadence_import_test.exs:12252`
-- `mix test test/orbital_dynamics/schema_test.exs:21345 test/orbital_dynamics/schema_test.exs:28932 test/orbital_dynamics/schema_test.exs:31476 test/orbital_dynamics/schema_test.exs:31552 test/mix/tasks/orbital_dynamics.schema.export_test.exs:2647`
-- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs:2647`
-- `mix format lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/operator_review_test.exs test/orbital_dynamics/cadence_import_test.exs --check-formatted`
+- `mix test test/orbital_dynamics/cadence_import_test.exs:244`
+- `mix test test/orbital_dynamics/cadence_import_test.exs`
+- `mix format test/orbital_dynamics/cadence_import_test.exs --check-formatted`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
-- Attempted broader checks: `mix test test/orbital_dynamics/cadence_import_test.exs`
-  still has a fixture-coverage failure for advertised summary import sources;
-  `mix test test/orbital_dynamics/schema_test.exs` surfaced existing checked-in
-  fixture regeneration drift outside this slice plus the schema-export drift
-  fixed by this slice.
 
 Docs/artifacts changed:
-Updated contact-allocation capability docs and candidate-refresh field-family
-docs to document row-level capacity-pack direction routing preservation.
-Regenerated checked-in JSON Schema exports for the shared review/import row
-properties.
+No docs or generated artifacts changed. The slice reuses existing checked-in
+contact-allocation summary fixtures.
 
 Level 6 pillar advanced:
-Resource and communications allocation semantics; approval-aware automation
-boundaries and Cadence-facing review/import artifacts.
+Approval-aware automation boundaries, import readiness, and Cadence-facing
+integration artifact compatibility.
 
 Last completed slice:
-Preserved reduced-capacity pack direction routing on capacity-pack review and
-Cadence import rows.
+Added Cadence import fixture coverage for advertised contact-allocation summary
+sources.
 
 What changed:
-- `contact_allocation_capacity_pack_review` rows now derive and expose
-  all/selected/deferred contact IDs by direction plus required-capacity fraction
-  maps by direction from embedded reduced-capacity pack source evidence.
-- Cadence import rows copy those six direction maps to their own top-level
-  adapter boundary while still preserving the nested `source_review_row`.
-- Schema validation and checked-in JSON Schema exports cover the new optional
-  row/source fields and reject stale row-level maps that diverge from
-  `source_contact_allocation_capacity_pack`.
-- Focused operator-review and Cadence-import tests cover standalone
-  `contact_allocation_report.v1` and
-  `contact_allocation_capacity_pack_summary.v1` fixture paths.
+- The advertised-source fixture map now includes
+  `contact_allocation_capacity_pack_summary.v1` and
+  `contact_allocation_reservation_conflict_summary.v1`.
+- The compatibility fixture test now validates that both advertised summary
+  sources can produce valid `cadence_import_manifest.v1` artifacts using the
+  existing checked-in fixtures.
+- Full `test/orbital_dynamics/cadence_import_test.exs` now passes.
 - Parent performed bounded local review and mechanical publish because no
   suitable subagent tool is available in this runtime.
 
 Last commit:
-- Product: `8c612e9` Preserve capacity pack direction handoffs
+- Product: `cddf547` Cover advertised Cadence import summaries
 - Ledger: this handoff commit on `main`
 
 Remaining maturity gaps:
@@ -83,9 +61,9 @@ Remaining maturity gaps:
 Next candidate:
 Reassess the guide queue from current checkout and choose the next narrow Level
 6 slice, likely in queue-1 activity/timeline handoff completeness or queue-2
-remaining resource/contact allocation semantics. Candidate follow-up: decide
-whether to address the broader Cadence import fixture coverage gap for
-advertised summary sources before taking another schema-visible product slice.
+remaining resource/contact allocation semantics. Candidate follow-up: rerun the
+focused schema fixture-regeneration failures from the prior full schema run and
+decide whether one is a narrow checked-in fixture refresh slice.
 
 Blocked:
 Not blocked.
