@@ -5,63 +5,68 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Harden stale activity-precondition pressure row evidence.
+Harden stale activity-precondition CandidateRefresh source summaries.
 
 Status:
-Completed and pushed in product commit `afbcf90`.
+Completed and pushed in product commit `1af9828`.
 
 Slice-selection note:
-- Selected slice: add a stale aggregate challenge for timeline activity
-  precondition summaries and make V3 branch pressure derive blocked/review
-  counts and type maps from row-local precondition evidence when rows are
-  present.
-- Why this slice: lifecycle and preservation pressure now resist stale
-  top-level aggregates, while activity-precondition pressure still has the same
-  stale-but-plausible input risk.
+- Selected slice: make CandidateRefresh activity-precondition source-report
+  summaries derive status, blocked/review counts, and type maps from row-local
+  precondition evidence when rows are present.
+- Why this slice: V3 branch pressure now resists stale top-level
+  activity-precondition aggregates, but CandidateRefresh source-report
+  summaries can still replay stale aggregate-shaped fields into branch-local
+  pressure summaries.
 - Level 6 pillar: durable timeline semantics; validation and challenge fixtures
   for stale-but-plausible inputs; reproducible V3 branch trees with explainable
   score terms and deltas.
-- Current evidence gap closed: stale precondition summary aggregate status,
-  count, and type fields no longer mask row-local blocked or review-required
-  pressure before the planner derives branch pressure.
+- Current evidence gap: stale top-level precondition summary status/count/type
+  fields can hide row-local blocked or review-required preconditions in
+  CandidateRefresh source-report provenance and replay summaries.
 - Docs read:
-  `docs/feature_set/capability_map/08_mission_activities_and_timelines.md`,
+  `docs/feature_set/capability_map/11_planning_state_refresh/refresh_pipeline_and_provenance.md`,
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`.
-- Definition of done: stale top-level precondition aggregate counts no longer
-  mask row-local blocked/review pressure in V3 branches; score terms and branch
-  comparison rows still expose the pressure; docs record the challenge behavior;
-  locally reviewed, committed, and pushed without touching unrelated `.gitignore`.
+- Definition of done: stale top-level activity-precondition aggregates no longer
+  mask row-local blocked/review pressure in CandidateRefresh source-report
+  summaries or replay flags; docs record the row-derived source-summary
+  behavior; locally reviewed, committed, and pushed without touching unrelated
+  `.gitignore`.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/campaign_planner.ex`
-- `test/orbital_dynamics/campaign_planner_test.exs`
+- `lib/orbital_dynamics/candidate_refresh.ex`
+- `test/orbital_dynamics/candidate_refresh_test.exs`
+- `docs/feature_set/capability_map/11_planning_state_refresh/refresh_pipeline_and_provenance.md`
 - `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:30145 test/orbital_dynamics/campaign_planner_test.exs:30345`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:25209 test/orbital_dynamics/candidate_refresh_test.exs:25548`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
-- `rg -n "timeline_activity_precondition_rows_pressure_count|bogus_blocked_row_type|row-local precondition evidence|stale aggregate challenge" lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
+- `rg -n "timeline_activity_precondition_summary_precondition_count|timeline_activity_precondition_precondition_rows_status|timeline_activity_precondition_precondition_row_status|timeline activity precondition source summaries derive stale aggregate pressure|Timeline activity-precondition source summaries derive|branch-local replay pressure|CandidateRefresh replay pressure|bogus_blocked_row_type|precondition_status" lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs docs/feature_set/capability_map/11_planning_state_refresh/refresh_pipeline_and_provenance.md docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Docs/artifacts changed:
-The V3 strategy-orchestration docs now state that activity-precondition branch
-pressure derives status, blocked/review counts, and type lists from row-local
-precondition evidence when rows are present, so stale aggregate fields cannot
-hide blocked or review-required pressure.
+Refresh provenance and V3 orchestration docs now state that activity-precondition
+source summaries derive status, blocked/review counts, and type maps from
+precondition rows when row evidence is present, preventing stale aggregate
+fields from hiding branch-local replay pressure.
 
 Local review:
-Read-only review found the first helper version still trusted aggregate-shaped
-fields embedded in rows. Fixed by deriving counts and types only from each
-precondition row's `status` and `type`; the stale challenge fixture now poisons
-row-local aggregate fields to prove they are ignored. Parent review confirmed
-the final staged product diff was limited to CampaignPlanner, the focused test,
-and the V3 doc note. `.gitignore` remains unrelated and unstaged.
+Read-only review found two must-fix issues: the first helper version treated
+row-local `precondition_status` as a precondition-row status alias, and the
+ledger named the umbrella planning-state doc instead of the nested provenance
+doc. Fixed the helper to read only precondition-row `status`, poisoned
+row-local `precondition_status` in the stale fixture, and corrected the ledger
+path. Parent review confirmed the final staged product diff was limited to
+CandidateRefresh, the focused test, and the two doc notes. `.gitignore` remains
+unrelated and unstaged.
 
 Level 6 pillar advanced:
 Stale-but-plausible activity-precondition inputs now preserve row-local
-blocked/review pressure through V3 branch derivation, risk indicators, score
-terms, and branch comparison rows.
+blocked/review pressure through CandidateRefresh source-report summaries,
+replay summaries, branch-local pressure flags, and row-only review/import
+handoffs.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -71,17 +76,19 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`afbcf90` Harden stale precondition pressure evidence.
+`1af9828` Harden precondition source-report summaries.
 
 Next candidate:
-After this stale precondition challenge, reassess the next planner-visible
-candidate-refresh or timeline-semantics gap.
+After this CandidateRefresh source-summary hardening, reassess the next
+planner-visible candidate-refresh or timeline-semantics gap.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 
 Previous published slices:
+- `afbcf90` hardened stale activity-precondition V3 branch pressure against
+  stale top-level aggregates by deriving pressure from row-local preconditions.
 - `792e502` hardened stale lifecycle-state pressure against stale top-level
   aggregates by deriving branch pressure from row-local evidence.
 - `120e936` hardened shared timeline preservation pressure helper coverage for
