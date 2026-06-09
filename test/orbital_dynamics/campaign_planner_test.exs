@@ -18639,6 +18639,25 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 feedback_scope: "refresh_budget",
                 feedback_key: "refresh_budget:limit",
                 trust_boundary: "mission_state_refresh_budget_report"
+              },
+              %{
+                type: "refresh_freshness_pressure",
+                freshness_status: "stale",
+                state_quality_status: "stale",
+                accepted_snapshot_age_s: 3600.0,
+                horizon_start_offset_s: 120.0,
+                max_snapshot_age_s: 60.0,
+                max_horizon_start_offset_s: 30.0,
+                stale_reasons: [
+                  "accepted_snapshot_older_than_policy",
+                  "horizon_start_offset_exceeds_policy"
+                ],
+                unknown_reasons: [],
+                required_operator_action: "review_refresh_freshness",
+                feedback_source: "mission_state.source_freshness_report",
+                feedback_scope: "refresh_freshness",
+                feedback_key: "freshness:stale",
+                trust_boundary: "mission_state_freshness_report"
               }
             ]
           }
@@ -18866,6 +18885,33 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              )
 
     assert %{
+             "type" => "risk_driver",
+             "risk_type" => "refresh_freshness_pressure",
+             "severity" => "medium",
+             "freshness_status" => "stale",
+             "state_quality_status" => "stale",
+             "accepted_snapshot_age_s" => 3600.0,
+             "horizon_start_offset_s" => 120.0,
+             "max_snapshot_age_s" => 60.0,
+             "max_horizon_start_offset_s" => 30.0,
+             "stale_reasons" => [
+               "accepted_snapshot_older_than_policy",
+               "horizon_start_offset_exceeds_policy"
+             ],
+             "unknown_reasons" => [],
+             "required_operator_action" => "review_refresh_freshness",
+             "feedback_source" => "mission_state.source_freshness_report",
+             "feedback_scope" => "refresh_freshness",
+             "feedback_key" => "freshness:stale",
+             "trust_boundary" => "mission_state_freshness_report"
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "refresh_freshness_pressure")
+             )
+
+    assert %{
              "type" => "operational_readiness_pressure",
              "recommended_branch_id" => "urgent",
              "report_id" => "operational_readiness:resource_projection_report.v1:live_ops",
@@ -19075,6 +19121,23 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "refresh_budget_feedback_keys" => ["refresh_budget:limit"],
       "refresh_budget_trust_boundaries" => [
         "mission_state_refresh_budget_report"
+      ],
+      "refresh_freshness_statuses" => ["stale"],
+      "refresh_freshness_state_quality_statuses" => ["stale"],
+      "refresh_freshness_accepted_snapshot_age_values_s" => [3600.0],
+      "refresh_freshness_horizon_start_offset_values_s" => [120.0],
+      "refresh_freshness_max_snapshot_age_values_s" => [60.0],
+      "refresh_freshness_max_horizon_start_offset_values_s" => [30.0],
+      "refresh_freshness_stale_reason_ids" => [
+        "accepted_snapshot_older_than_policy",
+        "horizon_start_offset_exceeds_policy"
+      ],
+      "refresh_freshness_required_operator_actions" => ["review_refresh_freshness"],
+      "refresh_freshness_feedback_sources" => ["mission_state.source_freshness_report"],
+      "refresh_freshness_feedback_scopes" => ["refresh_freshness"],
+      "refresh_freshness_feedback_keys" => ["freshness:stale"],
+      "refresh_freshness_trust_boundaries" => [
+        "mission_state_freshness_report"
       ]
     }
 

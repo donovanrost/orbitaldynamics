@@ -6689,6 +6689,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
     Map.take(risk, validation_refresh_pressure_risk_fields())
   end
 
+  defp recommendation_pressure_risk_context(%{"feedback_scope" => "refresh_freshness"} = risk) do
+    Map.take(risk, validation_refresh_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"type" => "refresh_freshness_pressure"} = risk) do
+    Map.take(risk, validation_refresh_pressure_risk_fields())
+  end
+
   defp recommendation_pressure_risk_context(%{"feedback_scope" => "provider_counteroffer"} = risk) do
     Map.take(risk, provider_counteroffer_pressure_risk_fields())
   end

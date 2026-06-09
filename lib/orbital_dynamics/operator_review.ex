@@ -16061,6 +16061,13 @@ defmodule OrbitalDynamics.OperatorReview do
             Map.get(&1, "type") == "refresh_budget_pressure")
       )
 
+    refresh_freshness_risks =
+      Enum.filter(
+        risks,
+        &(Map.get(&1, "feedback_scope") == "refresh_freshness" or
+            Map.get(&1, "type") == "refresh_freshness_pressure")
+      )
+
     provider_counteroffer_risks =
       Enum.filter(
         risks,
@@ -16286,6 +16293,32 @@ defmodule OrbitalDynamics.OperatorReview do
       "refresh_budget_feedback_keys" => risk_context_values(refresh_budget_risks, "feedback_key"),
       "refresh_budget_trust_boundaries" =>
         risk_context_values(refresh_budget_risks, "trust_boundary"),
+      "refresh_freshness_statuses" =>
+        risk_context_values(refresh_freshness_risks, "freshness_status"),
+      "refresh_freshness_state_quality_statuses" =>
+        risk_context_values(refresh_freshness_risks, "state_quality_status"),
+      "refresh_freshness_accepted_snapshot_age_values_s" =>
+        risk_context_values(refresh_freshness_risks, "accepted_snapshot_age_s"),
+      "refresh_freshness_horizon_start_offset_values_s" =>
+        risk_context_values(refresh_freshness_risks, "horizon_start_offset_s"),
+      "refresh_freshness_max_snapshot_age_values_s" =>
+        risk_context_values(refresh_freshness_risks, "max_snapshot_age_s"),
+      "refresh_freshness_max_horizon_start_offset_values_s" =>
+        risk_context_values(refresh_freshness_risks, "max_horizon_start_offset_s"),
+      "refresh_freshness_stale_reason_ids" =>
+        risk_context_values(refresh_freshness_risks, ["stale_reasons"]),
+      "refresh_freshness_unknown_reason_ids" =>
+        risk_context_values(refresh_freshness_risks, ["unknown_reasons"]),
+      "refresh_freshness_required_operator_actions" =>
+        risk_context_values(refresh_freshness_risks, "required_operator_action"),
+      "refresh_freshness_feedback_sources" =>
+        risk_context_values(refresh_freshness_risks, "feedback_source"),
+      "refresh_freshness_feedback_scopes" =>
+        risk_context_values(refresh_freshness_risks, "feedback_scope"),
+      "refresh_freshness_feedback_keys" =>
+        risk_context_values(refresh_freshness_risks, "feedback_key"),
+      "refresh_freshness_trust_boundaries" =>
+        risk_context_values(refresh_freshness_risks, "trust_boundary"),
       "provider_counteroffer_ids" =>
         risk_context_values(provider_counteroffer_risks, "provider_counteroffer_id"),
       "provider_counteroffer_statuses" =>
