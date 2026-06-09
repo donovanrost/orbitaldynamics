@@ -5006,7 +5006,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp freshness_replay_pressure_risk(replay_summary) do
-    statuses = replay_summary |> Map.get("status_counts", %{}) |> map_keys()
+    statuses = freshness_replay_pressure_statuses(replay_summary)
 
     stale_reasons =
       [
@@ -5029,8 +5029,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "type" => "refresh_freshness_pressure",
         "severity" =>
           validation_refresh_pressure_risk_severity(%{
-            "freshness_status" => pressure_priority_value(statuses),
-            "state_quality_status" => pressure_priority_value(statuses),
+            "freshness_status" => freshness_pressure_priority_value(statuses),
+            "state_quality_status" => freshness_pressure_priority_value(statuses),
             "required_operator_action" => "review_refresh_freshness"
           }),
         "reason" =>
@@ -5039,9 +5039,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "source_report_row_count" => Map.get(replay_summary, "source_report_row_count"),
         "source_report_paths" => Map.get(replay_summary, "source_report_paths"),
         "status_counts" => Map.get(replay_summary, "status_counts"),
-        "freshness_status" => pressure_priority_value(statuses),
+        "freshness_status" => freshness_pressure_priority_value(statuses),
         "freshness_statuses" => statuses,
-        "state_quality_status" => pressure_priority_value(statuses),
+        "state_quality_status" => freshness_pressure_priority_value(statuses),
         "stale_reason_count" => Map.get(replay_summary, "stale_reason_count"),
         "stale_reasons" => stale_reasons,
         "stale_reason_counts" => Map.get(replay_summary, "stale_reason_counts"),
@@ -5061,6 +5061,42 @@ defmodule OrbitalDynamics.CampaignPlanner do
       }
       |> compact_map()
     ]
+  end
+
+  defp freshness_replay_pressure_statuses(replay_summary) do
+    reason_statuses =
+      [
+        {"stale_reason_count", "stale"},
+        {"unknown_reason_count", "unknown"}
+      ]
+      |> Enum.flat_map(fn {field, status} ->
+        if summary_positive?(replay_summary, field), do: [status], else: []
+      end)
+
+    map_statuses =
+      [
+        {Map.get(replay_summary, "stale_reasons"), "stale"},
+        {replay_summary |> Map.get("stale_reason_counts", %{}) |> map_keys(), "stale"},
+        {Map.get(replay_summary, "unknown_reasons"), "unknown"},
+        {replay_summary |> Map.get("unknown_reason_counts", %{}) |> map_keys(), "unknown"}
+      ]
+      |> Enum.flat_map(fn
+        {[], _status} -> []
+        {nil, _status} -> []
+        {_values, status} -> [status]
+      end)
+
+    [
+      replay_summary |> Map.get("status_counts", %{}) |> map_keys(),
+      reason_statuses,
+      map_statuses
+    ]
+    |> sorted_encoded_values()
+  end
+
+  defp freshness_pressure_priority_value(statuses) do
+    Enum.find(["stale", "unknown", "current"], &(&1 in statuses)) ||
+      pressure_priority_value(statuses)
   end
 
   defp schema_validation_replay_pressure_risk(replay_summary) do

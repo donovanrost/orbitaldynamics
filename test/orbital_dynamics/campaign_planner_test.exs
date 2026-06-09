@@ -28233,6 +28233,81 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy challenge scores freshness replay from reasons when top-level status is stale" do
+    stale_current_report =
+      freshness_report("current")
+      |> Map.put("stale_reasons", [
+        "accepted_snapshot_older_than_policy",
+        "horizon_start_offset_exceeds_policy"
+      ])
+      |> Map.put("unknown_reasons", ["state_quality_missing"])
+      |> Map.put("provenance", %{"trust_boundary" => "stale_current_freshness_boundary"})
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put(:source_freshness_report, stale_current_report),
+        branches: [
+          %{id: "baseline"},
+          %{
+            id: "urgent",
+            events: [%{type: "urgent_target", target_id: "target_a", priority: 12.0}]
+          }
+        ],
+        current_epoch_s: 0.0
+      )
+
+    urgent = branch(artifact, "urgent")
+
+    assert %{"type" => "candidate_refresh.v1", "scope" => "branch_generated"} =
+             candidate_source = urgent["assumptions"]["candidate_source"]
+
+    assert %{
+             "status_counts" => %{"current" => 1},
+             "stale_reason_count" => 2,
+             "stale_reasons" => stale_reasons,
+             "stale_reason_counts" => %{
+               "accepted_snapshot_older_than_policy" => 1,
+               "horizon_start_offset_exceeds_policy" => 1
+             },
+             "unknown_reason_count" => 1,
+             "unknown_reasons" => ["state_quality_missing"],
+             "unknown_reason_counts" => %{"state_quality_missing" => 1},
+             "branch_local_stale_pressure" => true,
+             "branch_local_unknown_pressure" => true,
+             "branch_local_freshness_pressure" => true
+           } = CandidateRefresh.freshness_replay_summary(candidate_source)
+
+    assert Enum.sort(stale_reasons) == [
+             "accepted_snapshot_older_than_policy",
+             "horizon_start_offset_exceeds_policy"
+           ]
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "refresh_freshness_pressure" and
+                 &1["feedback_source"] == "candidate_source.freshness_replay_summary" and
+                 &1["severity"] == "medium" and
+                 &1["freshness_status"] == "stale" and
+                 &1["freshness_statuses"] == ["current", "stale", "unknown"] and
+                 &1["state_quality_status"] == "stale" and
+                 &1["status_counts"] == %{"current" => 1} and
+                 &1["stale_reason_count"] == 2 and
+                 &1["stale_reasons"] == Enum.sort(stale_reasons) and
+                 &1["unknown_reason_count"] == 1 and
+                 &1["unknown_reasons"] == ["state_quality_missing"] and
+                 &1["branch_local_stale_pressure"] == true and
+                 &1["branch_local_unknown_pressure"] == true and
+                 &1["branch_local_freshness_pressure"] == true)
+           )
+
+    assert_validation_refresh_pressure_score_terms(urgent, artifact, "refresh_freshness")
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy carries mission-state refresh-budget reports into branch refresh requests" do
     refresh_budget_report = fn prefix, input_count, kept_count, dropped_count, invalid_limit? ->
       report = %{
