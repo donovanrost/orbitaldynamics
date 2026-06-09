@@ -18435,7 +18435,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         },
         approval_policy: %{
           "blocked_risk_types" => [],
-          "operator_review_risk_limit" => 45
+          "operator_review_risk_limit" => 50
         },
         branches: [
           %{id: "baseline"},
@@ -18873,6 +18873,32 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 transition_reason: "station throughput below plan",
                 requires_operator_review: true,
                 derivation_reasons: ["station_throughput_feedback_pressure"]
+              },
+              %{
+                type: "downlink_completion_gap",
+                ground_station_id: "equator_prime",
+                required_contacts: 1,
+                planned_contacts: 0,
+                required_downlink_mb: 45.0,
+                planned_downlink_mb: 10.0,
+                starts_at_s: 1_020.0,
+                ends_at_s: 1_080.0,
+                source_activity_ids: ["dl_link_capacity_source"],
+                source_window_id: "window_link_capacity",
+                source_window_ids: ["window_link_capacity", "window_link_capacity_backup"],
+                selected_capacity_adjusted_throughput_mb: 10.0,
+                selected_downlink_shortfall_mb: 35.0,
+                actual_throughput_mb: 8.0,
+                actual_downlink_completion_ratio: 0.22,
+                actual_downlink_shortfall_mb: 37.0,
+                downlink_requirement_status: "shortfall",
+                actual_downlink_requirement_status: "shortfall",
+                downlink_demand_sources: ["mission_objective:relay_collection"],
+                downlink_completion_sources: ["link_capacity_report:selected_contacts"],
+                derivation_reasons: ["link_capacity_selected_downlink_shortfall"],
+                feedback_source: "mission_state.source_link_capacity_report.rows",
+                feedback_scope: "link_capacity",
+                trust_boundary: "mission_state_link_capacity_report"
               },
               %{
                 type: "relay_data_path_pressure",
@@ -21045,6 +21071,40 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         "contact_execution_feedback_pressure",
         "observation_execution_feedback_pressure",
         "station_throughput_feedback_pressure"
+      ],
+      "link_capacity_pressure_risk_types" => ["downlink_completion_gap"],
+      "link_capacity_pressure_ground_station_ids" => ["equator_prime"],
+      "link_capacity_pressure_required_contact_values" => [1],
+      "link_capacity_pressure_planned_contact_values" => [0],
+      "link_capacity_pressure_required_downlink_values_mb" => [45.0],
+      "link_capacity_pressure_planned_downlink_values_mb" => [10.0],
+      "link_capacity_pressure_start_values_s" => [1_020.0],
+      "link_capacity_pressure_end_values_s" => [1_080.0],
+      "link_capacity_pressure_source_activity_ids" => ["dl_link_capacity_source"],
+      "link_capacity_pressure_source_window_ids" => [
+        "window_link_capacity",
+        "window_link_capacity_backup"
+      ],
+      "link_capacity_pressure_selected_capacity_adjusted_throughput_values_mb" => [10.0],
+      "link_capacity_pressure_selected_downlink_shortfall_values_mb" => [35.0],
+      "link_capacity_pressure_actual_throughput_values_mb" => [8.0],
+      "link_capacity_pressure_actual_downlink_completion_ratio_values" => [0.22],
+      "link_capacity_pressure_actual_downlink_shortfall_values_mb" => [37.0],
+      "link_capacity_pressure_downlink_requirement_statuses" => ["shortfall"],
+      "link_capacity_pressure_actual_downlink_requirement_statuses" => ["shortfall"],
+      "link_capacity_pressure_downlink_demand_sources" => [
+        "mission_objective:relay_collection"
+      ],
+      "link_capacity_pressure_downlink_completion_sources" => [
+        "link_capacity_report:selected_contacts"
+      ],
+      "link_capacity_pressure_feedback_sources" => [
+        "mission_state.source_link_capacity_report.rows"
+      ],
+      "link_capacity_pressure_feedback_scopes" => ["link_capacity"],
+      "link_capacity_pressure_trust_boundaries" => ["mission_state_link_capacity_report"],
+      "link_capacity_pressure_derivation_reasons" => [
+        "link_capacity_selected_downlink_shortfall"
       ],
       "relay_data_path_risk_types" => ["relay_data_path_pressure"],
       "relay_data_path_ground_station_ids" => ["dss_14"],
