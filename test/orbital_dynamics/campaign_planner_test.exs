@@ -18572,6 +18572,53 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 }
               },
               %{
+                type: "timeline_preservation_pressure",
+                activity_id: "contact_locked_review",
+                timeline_id: "timeline:contact_locked_review",
+                timeline_preservation_status: "review_required",
+                requires_preservation: false,
+                requires_operator_review: true,
+                status: "planned",
+                approval_status: "approved",
+                locked: true,
+                approved: true,
+                protection_decision: "preserve",
+                protection_category: "locked_or_approved",
+                protection_reason: "activity_locked_or_approved",
+                activity_count: 3,
+                preserve_activity_count: 2,
+                review_change_activity_count: 1,
+                preservation_sensitive_activity_count: 2,
+                preserve_activity_ids: ["contact_locked_review", "obs_done_review"],
+                preserve_timeline_ids: [
+                  "timeline:contact_locked_review",
+                  "timeline:obs_done_review"
+                ],
+                review_change_activity_ids: ["bad_missing_type_review"],
+                review_change_timeline_ids: ["timeline:bad_missing_type_review"],
+                preservation_sensitive_activity_ids: [
+                  "contact_locked_review",
+                  "obs_done_review"
+                ],
+                preservation_sensitive_timeline_ids: [
+                  "timeline:contact_locked_review",
+                  "timeline:obs_done_review"
+                ],
+                invalid_activity_input: false,
+                required_operator_action: "review_timeline_preservation",
+                feedback_source: "mission_state.source_timeline_preservation_report.rows[0]",
+                feedback_scope: "timeline_preservation",
+                feedback_key: "contact_locked_review",
+                trust_boundary: "mission_state_timeline_preservation_report",
+                derivation_reasons: ["timeline_preservation_pressure"],
+                assumptions: %{
+                  "timeline_preservation_application" => "not_performed_by_strategy_branch",
+                  "timeline_mutation" => "not_performed_by_strategy_branch",
+                  "operator_authority" => "not_granted_by_strategy_branch",
+                  "cadence_import" => "not_performed_by_strategy_branch"
+                }
+              },
+              %{
                 type: "provider_reservation_request_pressure",
                 contact_id: "dl_provider_review",
                 source_activity_id: "dl_provider_review",
@@ -19035,6 +19082,60 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                explanation,
                &(&1["type"] == "risk_driver" and
                    &1["risk_type"] == "timeline_activity_precondition_review")
+             )
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "timeline_preservation_review",
+             "severity" => "high",
+             "activity_id" => "contact_locked_review",
+             "timeline_id" => "timeline:contact_locked_review",
+             "timeline_preservation_status" => "review_required",
+             "requires_preservation" => false,
+             "requires_operator_review" => true,
+             "status" => "planned",
+             "approval_status" => "approved",
+             "locked" => true,
+             "approved" => true,
+             "protection_decision" => "preserve",
+             "protection_category" => "locked_or_approved",
+             "protection_reason" => "activity_locked_or_approved",
+             "preserve_activity_count" => 2,
+             "review_change_activity_count" => 1,
+             "preservation_sensitive_activity_count" => 2,
+             "preserve_activity_ids" => ["contact_locked_review", "obs_done_review"],
+             "preserve_timeline_ids" => [
+               "timeline:contact_locked_review",
+               "timeline:obs_done_review"
+             ],
+             "review_change_activity_ids" => ["bad_missing_type_review"],
+             "review_change_timeline_ids" => ["timeline:bad_missing_type_review"],
+             "preservation_sensitive_activity_ids" => [
+               "contact_locked_review",
+               "obs_done_review"
+             ],
+             "preservation_sensitive_timeline_ids" => [
+               "timeline:contact_locked_review",
+               "timeline:obs_done_review"
+             ],
+             "invalid_activity_input" => false,
+             "required_operator_action" => "review_timeline_preservation",
+             "feedback_source" => "mission_state.source_timeline_preservation_report.rows[0]",
+             "feedback_scope" => "timeline_preservation",
+             "feedback_key" => "contact_locked_review",
+             "trust_boundary" => "mission_state_timeline_preservation_report",
+             "derivation_reasons" => ["timeline_preservation_pressure"],
+             "assumptions" => %{
+               "timeline_preservation_application" => "not_performed_by_strategy_branch",
+               "timeline_mutation" => "not_performed_by_strategy_branch",
+               "operator_authority" => "not_granted_by_strategy_branch",
+               "cadence_import" => "not_performed_by_strategy_branch"
+             }
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "timeline_preservation_review")
              )
 
     assert %{
@@ -19573,6 +19674,56 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "timeline_activity_precondition_assumption_maps" => [
         %{
           "activity_precondition_evaluation" => "not_performed_by_strategy_branch",
+          "timeline_mutation" => "not_performed_by_strategy_branch",
+          "operator_authority" => "not_granted_by_strategy_branch",
+          "cadence_import" => "not_performed_by_strategy_branch"
+        }
+      ],
+      "timeline_preservation_activity_ids" => ["contact_locked_review"],
+      "timeline_preservation_timeline_ids" => ["timeline:contact_locked_review"],
+      "timeline_preservation_statuses" => ["review_required"],
+      "timeline_preservation_requires_preservation_values" => [false],
+      "timeline_preservation_requires_operator_review_values" => [true],
+      "timeline_preservation_protection_decisions" => ["preserve"],
+      "timeline_preservation_protection_categories" => ["locked_or_approved"],
+      "timeline_preservation_protection_reasons" => ["activity_locked_or_approved"],
+      "timeline_preservation_preserve_activity_count_values" => [2],
+      "timeline_preservation_review_change_activity_count_values" => [1],
+      "timeline_preservation_sensitive_activity_count_values" => [2],
+      "timeline_preservation_preserve_activity_ids" => [
+        "contact_locked_review",
+        "obs_done_review"
+      ],
+      "timeline_preservation_preserve_timeline_ids" => [
+        "timeline:contact_locked_review",
+        "timeline:obs_done_review"
+      ],
+      "timeline_preservation_review_change_activity_ids" => ["bad_missing_type_review"],
+      "timeline_preservation_review_change_timeline_ids" => [
+        "timeline:bad_missing_type_review"
+      ],
+      "timeline_preservation_sensitive_activity_ids" => [
+        "contact_locked_review",
+        "obs_done_review"
+      ],
+      "timeline_preservation_sensitive_timeline_ids" => [
+        "timeline:contact_locked_review",
+        "timeline:obs_done_review"
+      ],
+      "timeline_preservation_invalid_activity_input_values" => [false],
+      "timeline_preservation_required_operator_actions" => ["review_timeline_preservation"],
+      "timeline_preservation_feedback_sources" => [
+        "mission_state.source_timeline_preservation_report.rows[0]"
+      ],
+      "timeline_preservation_feedback_scopes" => ["timeline_preservation"],
+      "timeline_preservation_feedback_keys" => ["contact_locked_review"],
+      "timeline_preservation_trust_boundaries" => [
+        "mission_state_timeline_preservation_report"
+      ],
+      "timeline_preservation_derivation_reasons" => ["timeline_preservation_pressure"],
+      "timeline_preservation_assumption_maps" => [
+        %{
+          "timeline_preservation_application" => "not_performed_by_strategy_branch",
           "timeline_mutation" => "not_performed_by_strategy_branch",
           "operator_authority" => "not_granted_by_strategy_branch",
           "cadence_import" => "not_performed_by_strategy_branch"

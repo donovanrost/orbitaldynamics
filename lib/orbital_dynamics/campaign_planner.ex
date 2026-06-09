@@ -4915,18 +4915,32 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "timeline_preservation_status" => event["timeline_preservation_status"],
         "requires_preservation" => event["requires_preservation"],
         "requires_operator_review" => event["requires_operator_review"],
+        "status" => event["status"],
+        "approval_status" => event["approval_status"],
+        "locked" => event["locked"],
+        "approved" => event["approved"],
         "protection_decision" => event["protection_decision"],
         "protection_category" => event["protection_category"],
         "protection_reason" => event["protection_reason"],
+        "activity_count" => event["activity_count"],
+        "preserve_activity_count" => event["preserve_activity_count"],
+        "review_change_activity_count" => event["review_change_activity_count"],
+        "preservation_sensitive_activity_count" => event["preservation_sensitive_activity_count"],
         "preserve_activity_ids" => event["preserve_activity_ids"],
         "preserve_timeline_ids" => event["preserve_timeline_ids"],
         "review_change_activity_ids" => event["review_change_activity_ids"],
         "review_change_timeline_ids" => event["review_change_timeline_ids"],
+        "preservation_sensitive_activity_ids" => event["preservation_sensitive_activity_ids"],
+        "preservation_sensitive_timeline_ids" => event["preservation_sensitive_timeline_ids"],
         "invalid_activity_input" => event["invalid_activity_input"],
         "invalid_activity_input_reason" => event["invalid_activity_input_reason"],
+        "required_operator_action" => event["required_operator_action"],
         "feedback_source" => event["feedback_source"],
         "feedback_scope" => event["feedback_scope"],
-        "trust_boundary" => event["trust_boundary"]
+        "feedback_key" => event["feedback_key"],
+        "trust_boundary" => event["trust_boundary"],
+        "derivation_reasons" => event["derivation_reasons"],
+        "assumptions" => event["assumptions"]
       }
       |> compact_map()
     ]
@@ -5369,6 +5383,42 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "invalid_activity_input",
       "invalid_activity_input_reason",
       "requires_operator_review",
+      "required_operator_action",
+      "feedback_source",
+      "feedback_scope",
+      "feedback_key",
+      "trust_boundary",
+      "derivation_reasons",
+      "assumptions"
+    ]
+  end
+
+  defp timeline_preservation_pressure_risk_fields do
+    [
+      "activity_id",
+      "timeline_id",
+      "timeline_preservation_status",
+      "requires_preservation",
+      "requires_operator_review",
+      "status",
+      "approval_status",
+      "locked",
+      "approved",
+      "protection_decision",
+      "protection_category",
+      "protection_reason",
+      "activity_count",
+      "preserve_activity_count",
+      "review_change_activity_count",
+      "preservation_sensitive_activity_count",
+      "preserve_activity_ids",
+      "preserve_timeline_ids",
+      "review_change_activity_ids",
+      "review_change_timeline_ids",
+      "preservation_sensitive_activity_ids",
+      "preservation_sensitive_timeline_ids",
+      "invalid_activity_input",
+      "invalid_activity_input_reason",
       "required_operator_action",
       "feedback_source",
       "feedback_scope",
@@ -6977,6 +7027,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
          %{"feedback_scope" => "timeline_activity_precondition"} = risk
        ) do
     Map.take(risk, timeline_activity_precondition_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"type" => "timeline_preservation_review"} = risk) do
+    Map.take(risk, timeline_preservation_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"feedback_scope" => "timeline_preservation"} = risk) do
+    Map.take(risk, timeline_preservation_pressure_risk_fields())
   end
 
   defp recommendation_pressure_risk_context(_risk), do: %{}
