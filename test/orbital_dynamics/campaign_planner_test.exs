@@ -19017,6 +19017,55 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 ]
               },
               %{
+                type: "downlink_completion_gap",
+                objective_id: "score_term:downlink_shortfall",
+                objective_type: "score_term_gap",
+                latency_objective: true,
+                target_id: "target_score_term",
+                scenario_id: "leo_1",
+                branch_id: "urgent",
+                ground_station_id: "polar_prime",
+                collection_id: "collection_score_alpha",
+                collection_ids: ["collection_score_alpha", "collection_score_beta"],
+                product_id: "product_score_alpha",
+                product_ids: ["product_score_alpha", "product_score_beta"],
+                payload_id: "payload_score_alpha",
+                payload_ids: ["payload_score_alpha", "payload_score_beta"],
+                instrument_id: "instrument_score_alpha",
+                instrument_ids: ["instrument_score_alpha", "instrument_score_beta"],
+                starts_at_s: 1_240.0,
+                ends_at_s: 1_360.0,
+                required_contacts: 2,
+                planned_contacts: 1,
+                required_downlink_mb: 80.0,
+                planned_downlink_mb: 35.0,
+                max_latency_s: 300.0,
+                planned_latency_s: 420.0,
+                source_activity_id: "obs_score_source",
+                source_activity_ids: ["dl_score_source", "obs_score_source"],
+                score_term_key: "collection_latency_gap_s",
+                score_term_value: 120.0,
+                timeline_score: 9.5,
+                score_terms: %{
+                  "collection_latency_gap_s" => 120.0,
+                  "downlink_shortfall_mb" => 45.0
+                },
+                downlink_demand_sources: [
+                  "score_term:score_term:downlink_shortfall:collection_latency_gap_s"
+                ],
+                downlink_completion_sources: [
+                  "score_term:score_term:downlink_shortfall:collection_latency_gap_s"
+                ],
+                derivation_reasons: [
+                  "collection_latency_gap",
+                  "score_term_collection_latency_gap",
+                  "score_term_collection_latency_gap_s"
+                ],
+                feedback_source: "mission_state.source_score_term_report.rows",
+                feedback_scope: "score_term",
+                trust_boundary: "mission_state_score_term_report"
+              },
+              %{
                 type: "relay_data_path_pressure",
                 ground_station_id: "dss_14",
                 route_id: "relay_route_review",
@@ -21384,6 +21433,67 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         "station_calendar_reserved",
         "reserved_overlap",
         "overlap"
+      ],
+      "score_term_pressure_risk_types" => ["downlink_completion_gap"],
+      "score_term_pressure_objective_ids" => ["score_term:downlink_shortfall"],
+      "score_term_pressure_objective_types" => ["score_term_gap"],
+      "score_term_pressure_latency_objective_values" => [true],
+      "score_term_pressure_target_ids" => ["target_score_term"],
+      "score_term_pressure_scenario_ids" => ["leo_1"],
+      "score_term_pressure_branch_ids" => ["urgent"],
+      "score_term_pressure_ground_station_ids" => ["polar_prime"],
+      "score_term_pressure_collection_ids" => [
+        "collection_score_alpha",
+        "collection_score_beta"
+      ],
+      "score_term_pressure_product_ids" => [
+        "product_score_alpha",
+        "product_score_beta"
+      ],
+      "score_term_pressure_payload_ids" => [
+        "payload_score_alpha",
+        "payload_score_beta"
+      ],
+      "score_term_pressure_instrument_ids" => [
+        "instrument_score_alpha",
+        "instrument_score_beta"
+      ],
+      "score_term_pressure_start_values_s" => [1_240.0],
+      "score_term_pressure_end_values_s" => [1_360.0],
+      "score_term_pressure_required_contact_values" => [2],
+      "score_term_pressure_planned_contact_values" => [1],
+      "score_term_pressure_required_downlink_values_mb" => [80.0],
+      "score_term_pressure_planned_downlink_values_mb" => [35.0],
+      "score_term_pressure_max_latency_values_s" => [300.0],
+      "score_term_pressure_planned_latency_values_s" => [420.0],
+      "score_term_pressure_source_activity_ids" => [
+        "obs_score_source",
+        "dl_score_source"
+      ],
+      "score_term_pressure_keys" => ["collection_latency_gap_s"],
+      "score_term_pressure_values" => [120.0],
+      "score_term_pressure_timeline_score_values" => [9.5],
+      "score_term_pressure_score_term_maps" => [
+        %{
+          "collection_latency_gap_s" => 120.0,
+          "downlink_shortfall_mb" => 45.0
+        }
+      ],
+      "score_term_pressure_downlink_demand_sources" => [
+        "score_term:score_term:downlink_shortfall:collection_latency_gap_s"
+      ],
+      "score_term_pressure_downlink_completion_sources" => [
+        "score_term:score_term:downlink_shortfall:collection_latency_gap_s"
+      ],
+      "score_term_pressure_feedback_sources" => [
+        "mission_state.source_score_term_report.rows"
+      ],
+      "score_term_pressure_feedback_scopes" => ["score_term"],
+      "score_term_pressure_trust_boundaries" => ["mission_state_score_term_report"],
+      "score_term_pressure_derivation_reasons" => [
+        "collection_latency_gap",
+        "score_term_collection_latency_gap",
+        "score_term_collection_latency_gap_s"
       ],
       "relay_data_path_risk_types" => ["relay_data_path_pressure"],
       "relay_data_path_ground_station_ids" => ["dss_14"],
