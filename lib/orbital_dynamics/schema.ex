@@ -6980,7 +6980,11 @@ defmodule OrbitalDynamics.Schema do
         "timeline_integrity_review_count",
         "timeline_integrity_issue_count",
         "duplicate_timeline_identity_count",
-        "duplicate_timeline_identity_activity_count"
+        "duplicate_timeline_identity_activity_count",
+        "duplicate_dependency_activity_ids",
+        "duplicate_dependency_timeline_ids",
+        "duplicate_exclusivity_activity_ids",
+        "duplicate_exclusivity_timeline_ids"
       ],
       "nested_contracts" => []
     },
@@ -12621,6 +12625,16 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property("invalid_activity_input_ids", @operational_timeline_report, _contract) do
+    stable_id_array_schema()
+  end
+
+  defp json_schema_property(field, @operational_timeline_report, _contract)
+       when field in [
+              "duplicate_dependency_activity_ids",
+              "duplicate_dependency_timeline_ids",
+              "duplicate_exclusivity_activity_ids",
+              "duplicate_exclusivity_timeline_ids"
+            ] do
     stable_id_array_schema()
   end
 

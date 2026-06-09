@@ -801,6 +801,11 @@ The validation-reference fixture set now includes a checked-in `operational_time
 - Planned-not-commanded assumptions.
 - Model-limit boundaries.
 
+The exported `operational_timeline_report.v1` schema also exposes the
+top-level duplicate dependency/exclusivity activity and timeline ID rollups
+emitted by the checked-in fixture, so schema-visibility checks cover both row
+and report-level integrity evidence.
+
 ## Contact-allocation fixtures
 
 Status: **implemented**.
