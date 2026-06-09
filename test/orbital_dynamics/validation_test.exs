@@ -4979,19 +4979,29 @@ defmodule OrbitalDynamics.ValidationTest do
              "source_report_row_count" => 1,
              "source_operational_readiness_report_count" => 1,
              "source_operational_readiness_row_count" => 1,
-             "source_operational_readiness_gate_count" => 5,
-             "source_operational_readiness_passed_gate_count" => 5,
-             "source_operational_readiness_review_gate_count" => 0,
+             "source_operational_readiness_gate_count" => 6,
+             "source_operational_readiness_passed_gate_count" => 3,
+             "source_operational_readiness_review_gate_count" => 3,
              "source_operational_readiness_analysis_gate_count" => 0,
              "source_operational_readiness_blocked_gate_count" => 0,
              "source_operational_readiness_readiness_level_counts" => %{
-               "import_eligible" => 1
+               "operator_review" => 1
              },
              "source_operational_readiness_import_classification_counts" => %{
-               "importable" => 1
+               "review_only" => 1
              },
-             "source_operational_readiness_status_counts" => %{"passed" => 1},
-             "source_operational_readiness_trust_boundary_status" => "declared"
+             "source_operational_readiness_status_counts" => %{"review_required" => 1},
+             "source_operational_readiness_trust_boundary_status" => "declared",
+             "source_operational_readiness_resource_availability_pressure_count" => 2,
+             "source_operational_readiness_resource_availability_reason_counts" => %{
+               "antenna_unavailable" => 1,
+               "payload_unavailable" => 1
+             },
+             "source_operational_readiness_resource_availability_reason_ids" =>
+               "antenna_unavailable|payload_unavailable",
+             "source_operational_readiness_branch_local_review_pressure" => true,
+             "source_operational_readiness_branch_local_import_pressure" => true,
+             "source_operational_readiness_branch_local_resource_pressure" => true
            } = observations
 
     stale_status_observations =
@@ -5006,6 +5016,21 @@ defmodule OrbitalDynamics.ValidationTest do
     assert Enum.any?(
              stale_status_verification["checks"],
              &(&1["field"] == "source_operational_readiness_status_counts" and
+                 &1["status"] == "fail")
+           )
+
+    stale_resource_pressure_observations =
+      observations
+      |> Map.put("source_operational_readiness_branch_local_resource_pressure", false)
+
+    assert {:ok, stale_resource_pressure_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_resource_pressure_observations)
+
+    assert stale_resource_pressure_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_resource_pressure_verification["checks"],
+             &(&1["field"] == "source_operational_readiness_branch_local_resource_pressure" and
                  &1["status"] == "fail")
            )
 
@@ -15375,7 +15400,7 @@ defmodule OrbitalDynamics.ValidationTest do
   end
 
   defp candidate_refresh_operational_readiness_report do
-    operational_readiness_report_fixture()
+    operational_readiness_resource_pressure_fixture()
     |> Map.put("provenance", %{
       "trust_boundary" => "generated_operational_readiness_fixture"
     })

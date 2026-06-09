@@ -619,6 +619,11 @@ replay fixture. It checks readiness/import/status maps, gate counts, and
 trust-boundary status from imported operational-readiness evidence without
 granting execution authority, operator authority, candidate selection, import
 approval, or Cadence writes.
+That fixture now uses the resource-pressure readiness source and pins
+branch-local review, import, and resource pressure booleans plus resource
+availability count/reason evidence, so stale replay-pressure routing fails
+fixture verification before branch-local refresh consumers trust the compact
+provenance.
 The registry also includes a generated CandidateRefresh timeline-activity
 precondition replay fixture. It checks blocked/review precondition status,
 dependency and exclusivity routing, invalid-activity input evidence, overlap

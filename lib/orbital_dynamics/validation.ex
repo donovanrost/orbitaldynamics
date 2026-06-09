@@ -1957,7 +1957,7 @@ defmodule OrbitalDynamics.Validation do
       "id" => "fixture.artifact.candidate_refresh.operational_readiness_replay",
       "model_id" => "artifact.candidate_refresh.v1",
       "reference_case" =>
-        "generated candidate refresh replay of operational-readiness import evidence",
+        "generated candidate refresh replay of operational-readiness resource pressure evidence",
       "validation_level" => "artifact_contract",
       "fixture_type" => "curated_internal_artifact_regression",
       "inputs" => %{
@@ -1977,17 +1977,27 @@ defmodule OrbitalDynamics.Validation do
         "source_report_row_count" => 1,
         "source_operational_readiness_report_count" => 1,
         "source_operational_readiness_row_count" => 1,
-        "source_operational_readiness_gate_count" => 5,
-        "source_operational_readiness_passed_gate_count" => 5,
-        "source_operational_readiness_review_gate_count" => 0,
+        "source_operational_readiness_gate_count" => 6,
+        "source_operational_readiness_passed_gate_count" => 3,
+        "source_operational_readiness_review_gate_count" => 3,
         "source_operational_readiness_analysis_gate_count" => 0,
         "source_operational_readiness_blocked_gate_count" => 0,
-        "source_operational_readiness_readiness_level_counts" => %{"import_eligible" => 1},
+        "source_operational_readiness_readiness_level_counts" => %{"operator_review" => 1},
         "source_operational_readiness_import_classification_counts" => %{
-          "importable" => 1
+          "review_only" => 1
         },
-        "source_operational_readiness_status_counts" => %{"passed" => 1},
-        "source_operational_readiness_trust_boundary_status" => "declared"
+        "source_operational_readiness_status_counts" => %{"review_required" => 1},
+        "source_operational_readiness_trust_boundary_status" => "declared",
+        "source_operational_readiness_resource_availability_pressure_count" => 2,
+        "source_operational_readiness_resource_availability_reason_counts" => %{
+          "antenna_unavailable" => 1,
+          "payload_unavailable" => 1
+        },
+        "source_operational_readiness_resource_availability_reason_ids" =>
+          "antenna_unavailable|payload_unavailable",
+        "source_operational_readiness_branch_local_review_pressure" => true,
+        "source_operational_readiness_branch_local_import_pressure" => true,
+        "source_operational_readiness_branch_local_resource_pressure" => true
       },
       "tolerances" => %{
         "schema_version" => 0,
@@ -2004,7 +2014,8 @@ defmodule OrbitalDynamics.Validation do
         "source_operational_readiness_passed_gate_count" => 0,
         "source_operational_readiness_review_gate_count" => 0,
         "source_operational_readiness_analysis_gate_count" => 0,
-        "source_operational_readiness_blocked_gate_count" => 0
+        "source_operational_readiness_blocked_gate_count" => 0,
+        "source_operational_readiness_resource_availability_pressure_count" => 0
       },
       "evidence" => [
         "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
@@ -14280,8 +14291,7 @@ defmodule OrbitalDynamics.Validation do
         Map.get(score_term_observations, "derived_row_count"),
       "score_term_report_selected_row_count" =>
         Map.get(score_term_observations, "selected_row_count"),
-      "score_term_report_key_count" =>
-        Map.get(score_term_observations, "score_term_key_count"),
+      "score_term_report_key_count" => Map.get(score_term_observations, "score_term_key_count"),
       "score_term_report_key_counts" =>
         Map.get(score_term_observations, "score_term_key_counts") || %{},
       "score_term_report_row_derived_key_counts" =>
@@ -14513,6 +14523,20 @@ defmodule OrbitalDynamics.Validation do
         Map.get(operational_readiness_summary, "status_counts") || %{},
       "source_operational_readiness_trust_boundary_status" =>
         Map.get(operational_readiness_summary, "trust_boundary_status"),
+      "source_operational_readiness_resource_availability_pressure_count" =>
+        Map.get(operational_readiness_summary, "resource_availability_pressure_count"),
+      "source_operational_readiness_resource_availability_reason_counts" =>
+        Map.get(operational_readiness_summary, "resource_availability_reason_counts") || %{},
+      "source_operational_readiness_resource_availability_reason_ids" =>
+        operational_readiness_summary
+        |> list_values("resource_availability_reason_ids")
+        |> stable_id_keys(),
+      "source_operational_readiness_branch_local_review_pressure" =>
+        operational_readiness_branch_local_review_pressure?(operational_readiness_summary),
+      "source_operational_readiness_branch_local_import_pressure" =>
+        operational_readiness_branch_local_import_pressure?(operational_readiness_summary),
+      "source_operational_readiness_branch_local_resource_pressure" =>
+        operational_readiness_branch_local_resource_pressure?(operational_readiness_summary),
       "source_timeline_activity_precondition_report_count" =>
         Map.get(timeline_activity_precondition_summary, "count"),
       "source_timeline_activity_precondition_row_count" =>
@@ -21049,6 +21073,32 @@ defmodule OrbitalDynamics.Validation do
     |> Enum.map(&integer_observation_value(Map.get(&1, "row_count")))
     |> Enum.reject(&is_nil/1)
     |> Enum.sum()
+  end
+
+  defp operational_readiness_branch_local_review_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "review_gate_count") or
+      positive_integer_observation?(summary, "blocked_gate_count") or
+      positive_integer_observation?(summary, "review_required_count")
+  end
+
+  defp operational_readiness_branch_local_import_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "manifest_review_required_count") or
+      positive_integer_observation?(summary, "missing_import_count") or
+      positive_integer_observation?(summary, "blocked_import_count") or
+      positive_integer_observation?(summary, "invalid_cadence_import_count") or
+      positive_integer_observation?(summary, "import_ineligible_count")
+  end
+
+  defp operational_readiness_branch_local_resource_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "resource_availability_pressure_count") or
+      map_size(Map.get(summary, "resource_availability_reason_counts") || %{}) > 0
+  end
+
+  defp positive_integer_observation?(%{} = summary, key) do
+    case integer_observation_value(Map.get(summary, key)) do
+      value when is_integer(value) -> value > 0
+      _value -> false
+    end
   end
 
   defp schema_validation_batch_report_status_count(reports, status) when is_list(reports) do

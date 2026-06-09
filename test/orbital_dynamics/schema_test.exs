@@ -15642,6 +15642,9 @@ defmodule OrbitalDynamics.SchemaTest do
         "fixture.artifact.campaign_strategy.leo_constellation_v3" =>
           campaign_strategy_fixture_observations(),
         "fixture.artifact.candidate_refresh.v1" => candidate_refresh_fixture_observations(),
+        "fixture.artifact.score_term_report.v1" => score_term_report_fixture_observations(),
+        "fixture.artifact.timeline_lifecycle_state_summary.v1" =>
+          timeline_lifecycle_state_summary_fixture_observations(),
         "fixture.artifact.model_acceptance_report.operational_import" =>
           Validation.artifact_observations(
             "model_acceptance_report.v1",
@@ -32512,6 +32515,18 @@ defmodule OrbitalDynamics.SchemaTest do
     |> read_json!()
     |> Map.fetch!("candidate_refresh")
     |> then(&Validation.artifact_observations("candidate_refresh.v1", &1))
+  end
+
+  defp score_term_report_fixture_observations do
+    "study_results/score_term_report_v1.json"
+    |> read_json!()
+    |> then(&Validation.artifact_observations("score_term_report.v1", &1))
+  end
+
+  defp timeline_lifecycle_state_summary_fixture_observations do
+    "study_results/timeline_lifecycle_state_summary_v1.json"
+    |> read_json!()
+    |> then(&Validation.artifact_observations("timeline_lifecycle_state_summary.v1", &1))
   end
 
   defp schema_validation_report_fixture_observations do
