@@ -42,7 +42,10 @@ refresh accepts direct and result-artifact-wrapped raw contact-intent rows plus
 `contact_intent_summary.v1` inputs as the same artifact-only replay family,
 preserving source paths, row counts, capacity-demand maps, all-contact station
 and direction routing, and trust-boundary evidence without generating contacts
-or allocating station time.
+or allocating station time. When a compact contact-intent summary carries
+embedded rows, CandidateRefresh derives those replay maps from the rows before
+merging summary aggregates, so stale top-level direction/capacity maps cannot
+mask row-local contact routing.
 
 ### Success evidence and confidence factors
 

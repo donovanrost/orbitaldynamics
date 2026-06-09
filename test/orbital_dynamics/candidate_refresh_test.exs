@@ -3585,6 +3585,157 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     assert CandidateRefresh.contact_intent_replay_summary(artifact) == replay_summary
   end
 
+  test "compact contact intent source summaries derive stale aggregate routing from rows" do
+    rows = [
+      %{
+        "schema_contract" => "contact_intent.v1",
+        "id" => "row_downlink_contact",
+        "activity_id" => "row_downlink_contact",
+        "ground_station_id" => "equator_prime",
+        "direction" => "downlink",
+        "required_capacity_fraction" => 0.4
+      },
+      %{
+        "schema_contract" => "contact_intent.v1",
+        "id" => "row_command_contact",
+        "activity_id" => "row_command_contact",
+        "ground_station_id" => "dss_43",
+        "direction" => "command"
+      }
+    ]
+
+    stale_summary =
+      rows
+      |> ContactIntent.summary()
+      |> Map.put("rows", rows)
+      |> Map.put("provenance", %{"trust_boundary" => "row_derived_contact_summary"})
+      |> Map.merge(%{
+        "contact_intent_count" => 99,
+        "capacity_pack_required_contact_count" => 99,
+        "capacity_pack_required_capacity_fraction" => 9.9,
+        "capacity_pack_required_capacity_fraction_by_ground_station_id" => %{
+          "stale_station" => 9.9
+        },
+        "capacity_pack_required_capacity_fraction_by_direction" => %{"uplink" => 9.9},
+        "capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id" => %{
+          "uplink" => %{"stale_station" => 9.9}
+        },
+        "required_capacity_fraction_contact_ids_by_source" => %{
+          "stale_source" => ["stale_contact"]
+        },
+        "capacity_pack_contact_ids_by_ground_station_id" => %{
+          "stale_station" => ["stale_contact"]
+        },
+        "contact_ids_by_ground_station_id" => %{"stale_station" => ["stale_contact"]},
+        "capacity_pack_contact_ids_by_direction" => %{"uplink" => ["stale_contact"]},
+        "capacity_pack_contact_ids_by_direction_and_ground_station_id" => %{
+          "uplink" => %{"stale_station" => ["stale_contact"]}
+        },
+        "contact_ids_by_direction_and_ground_station_id" => %{
+          "uplink" => %{"stale_station" => ["stale_contact"]}
+        },
+        "directions" => ["uplink"],
+        "direction_counts" => %{"uplink" => 99},
+        "contact_ids_by_direction" => %{"uplink" => ["stale_contact"]},
+        "direction_routing" => %{
+          "uplink" => %{
+            "contact_count" => 99,
+            "contact_ids" => ["stale_contact"],
+            "capacity_pack_required_capacity_fraction" => 9.9,
+            "capacity_pack_contact_ids" => ["stale_contact"]
+          }
+        }
+      })
+
+    refresh = %{"source_contact_intent_summary" => stale_summary}
+
+    expected_direction_routing = %{
+      "command" => %{
+        "contact_count" => 1,
+        "contact_ids" => ["row_command_contact"],
+        "capacity_pack_contact_ids" => [],
+        "ground_station_ids" => ["dss_43"],
+        "contact_ids_by_ground_station" => %{"dss_43" => ["row_command_contact"]}
+      },
+      "downlink" => %{
+        "contact_count" => 1,
+        "contact_ids" => ["row_downlink_contact"],
+        "capacity_pack_required_capacity_fraction" => 0.4,
+        "capacity_pack_contact_ids" => ["row_downlink_contact"],
+        "ground_station_ids" => ["equator_prime"],
+        "contact_ids_by_ground_station" => %{
+          "equator_prime" => ["row_downlink_contact"]
+        },
+        "capacity_pack_required_capacity_fraction_by_ground_station" => %{
+          "equator_prime" => 0.4
+        },
+        "capacity_pack_contact_ids_by_ground_station" => %{
+          "equator_prime" => ["row_downlink_contact"]
+        }
+      }
+    }
+
+    assert %{
+             "source_report_contact_intent_count" => 1,
+             "source_report_contact_intent_row_count" => 2,
+             "source_report_contact_intent_capacity_pack_required_contact_count" => 1,
+             "source_report_contact_intent_capacity_pack_required_capacity_fraction" => 0.4,
+             "source_report_contact_intent_capacity_pack_required_capacity_fraction_by_ground_station" =>
+               %{"equator_prime" => 0.4},
+             "source_report_contact_intent_capacity_pack_required_capacity_fraction_by_direction" =>
+               %{"downlink" => 0.4},
+             "source_report_contact_intent_capacity_pack_required_capacity_fraction_by_direction_and_ground_station" =>
+               %{"downlink" => %{"equator_prime" => 0.4}},
+             "source_report_contact_intent_capacity_pack_contact_ids_by_ground_station" =>
+               %{"equator_prime" => ["row_downlink_contact"]},
+             "source_report_contact_intent_contact_ids_by_ground_station" => %{
+               "dss_43" => ["row_command_contact"],
+               "equator_prime" => ["row_downlink_contact"]
+             },
+             "source_report_contact_intent_capacity_pack_contact_ids_by_direction" => %{
+               "downlink" => ["row_downlink_contact"]
+             },
+             "source_report_contact_intent_contact_ids_by_direction_and_ground_station" => %{
+               "command" => %{"dss_43" => ["row_command_contact"]},
+               "downlink" => %{"equator_prime" => ["row_downlink_contact"]}
+             },
+             "source_report_contact_intent_directions" => ["command", "downlink"],
+             "source_report_contact_intent_direction_counts" => %{
+               "command" => 1,
+               "downlink" => 1
+             },
+             "source_report_contact_intent_contact_ids_by_direction" => %{
+               "command" => ["row_command_contact"],
+               "downlink" => ["row_downlink_contact"]
+             },
+             "source_report_contact_intent_direction_routing" => ^expected_direction_routing
+           } = source_summary = CandidateRefresh.source_report_summary(refresh)
+
+    refute Map.has_key?(
+             source_summary["source_report_contact_intent_contact_ids_by_direction"],
+             "uplink"
+           )
+
+    assert %{
+             "source_report_row_count" => 2,
+             "capacity_pack_required_contact_count" => 1,
+             "capacity_pack_required_capacity_fraction" => 0.4,
+             "capacity_pack_required_capacity_fraction_by_direction" => %{"downlink" => 0.4},
+             "capacity_pack_contact_ids_by_direction" => %{
+               "downlink" => ["row_downlink_contact"]
+             },
+             "directions" => ["command", "downlink"],
+             "direction_counts" => %{"command" => 1, "downlink" => 1},
+             "contact_ids_by_direction" => %{
+               "command" => ["row_command_contact"],
+               "downlink" => ["row_downlink_contact"]
+             },
+             "direction_routing" => ^expected_direction_routing,
+             "branch_local_contact_intent_pressure" => true,
+             "branch_local_capacity_pack_pressure" => true
+           } = CandidateRefresh.contact_intent_replay_summary(refresh)
+  end
+
   test "operator review and import lift contact intent summaries from candidate refresh artifacts" do
     intent_summary = fn source, prefix ->
       [

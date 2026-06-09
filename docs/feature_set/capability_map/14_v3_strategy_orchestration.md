@@ -1135,7 +1135,10 @@ Branch-generated refresh requests also carry direct and wrapped
 `source_contact_intent_summary` / `contact_intent_summary` inputs, preserving
 compact summary source paths, row counts, station/direction capacity maps,
 direction routing, trust-boundary evidence, and artifact-only no-generation /
-no-allocation assumptions for CandidateRefresh replay.
+no-allocation assumptions for CandidateRefresh replay. Compact summaries that
+carry embedded contact-intent rows derive those station/direction capacity maps,
+direction routing, and contact-ID maps from the rows before stale aggregate
+fields are replayed into branch-local provenance.
 
 ### Station-calendar reports
 

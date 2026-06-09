@@ -90,6 +90,10 @@ From those inputs the pipeline:
 ### Contact-intent rows
 
 - Replays prior `contact_intent.v1` rows from direct source intents, result-artifact wrappers, operator-review packages, and Cadence-import manifests as the same unavailable/reserved/zero-capacity pre-filter station feedback, while preserving contact-intent policy, reservation, timing, and trust-boundary evidence — including wrapper trust boundaries inherited by embedded contact-intent rows from direct wrappers, nested operator-review packages, or nested Cadence-import manifests when those rows omit row-level trust.
+- Compact `contact_intent_summary.v1` source inputs with embedded rows derive
+  CandidateRefresh source-report and replay direction/capacity routing from the
+  rows before summary aggregates are merged, preventing stale top-level maps
+  from hiding row-local contact-intent pressure.
 
 ## Downlink-completion objectives from prior reports
 
@@ -127,7 +131,7 @@ Each summary carries paths plus its relevant counts/summaries:
 - **Objectives and scoring** — objective/score-term station, target, and collection routing counts.
 - **Allocation** — contact-allocation station-pressure contact counts by ground station, station availability, precedence availability, and precedence rank.
 - **Station calendars** — station-calendar affected-contact counts by ground station and availability; station-calendar provider-contention counts by provider and ground station.
-- **Contact filter/intent** — contact-filter station-suppression counts by ground station, availability, and status; contact-intent station-feedback and status count maps.
+- **Contact filter/intent** — contact-filter station-suppression counts by ground station, availability, and status; contact-intent station-feedback and status count maps, plus row-derived compact-summary direction/capacity routing when embedded contact-intent rows are present.
 - **Quality gates and readiness** — quality-gate row/status/classification count maps derived from quality-gate rows when rows are present; readiness and quality-gate Cadence-import gate import-status/freshness/schema-validation count maps.
 - **Adapter boundary** — adapter-boundary declared/missing/untrusted count maps.
 - **Counteroffers** — provider-counteroffer status/action/cost/lock-deadline summaries.

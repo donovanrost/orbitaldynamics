@@ -26050,7 +26050,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_contact_intent_compact_summary_input_summary([]), do: nil
 
   defp source_contact_intent_compact_summary_input_summary(sources) do
-    summaries = Enum.map(sources, fn {_path, summary} -> summary end)
+    summaries =
+      Enum.map(sources, fn {_path, summary} ->
+        contact_intent_compact_summary_for_provenance(summary)
+      end)
 
     contact_ids_by_direction =
       merge_string_list_maps(Enum.map(summaries, & &1["contact_ids_by_direction"]))
@@ -26164,6 +26167,29 @@ defmodule OrbitalDynamics.CandidateRefresh do
     }
     |> compact_map()
   end
+
+  defp contact_intent_compact_summary_for_provenance(%{} = summary) do
+    summary = stringify_keys(summary)
+
+    rows =
+      summary
+      |> Map.get("rows", [])
+      |> List.wrap()
+      |> Enum.filter(&is_map/1)
+      |> Enum.map(&stringify_keys/1)
+
+    case rows do
+      [] ->
+        summary
+
+      rows ->
+        rows
+        |> ContactIntent.summary()
+        |> Map.merge(Map.take(summary, ["provenance", "source"]))
+    end
+  end
+
+  defp contact_intent_compact_summary_for_provenance(summary), do: summary
 
   defp merge_source_contact_intent_input_summaries(summaries) do
     summaries = Enum.reject(summaries, &is_nil/1)
