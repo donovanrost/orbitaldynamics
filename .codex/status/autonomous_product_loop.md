@@ -5,27 +5,26 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve selected timeline activity-precondition context on V3 recommendation
+Preserve selected timeline preservation context on V3 recommendation
 review/import rows.
 
 Status:
 Completed and ready to publish.
 
 What changed:
-- `timeline_activity_precondition_review` selected risks now retain allow-overlap,
-  required-action, operator-review, feedback-key, derivation, and assumption
-  context from timeline activity-precondition pressure events.
+- `timeline_preservation_review` selected risks now retain feedback key,
+  required action, derivation, assumption, count, and preservation-sensitive ID
+  context from timeline preservation pressure events.
 - `OrbitalDynamics.RecommendationRiskContext` now owns selected timeline
-  activity-precondition aggregation and exposes a pass-through key set.
-- `OperatorReview` and `CadenceImport` now include selected timeline
-  precondition status/count/type/dependency/exclusivity/invalid-input context on
-  strategy recommendation review/import rows, including review-package to
-  Cadence import conversion.
-- Existing timeline precondition import actions remain unchanged.
+  preservation aggregation and exposes a pass-through key set.
+- `OperatorReview` and `CadenceImport` now include selected preservation
+  status/decision/category/ID/invalid-input context on strategy recommendation
+  review/import rows, including review-package to Cadence import conversion.
+- Existing timeline preservation import action remains unchanged.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:31835`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:32295`
 - `mix compile --warnings-as-errors`
 - `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/campaign_planner.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
@@ -60,11 +59,13 @@ Published commits:
 - `6256ffe` Preserve reservation hold import recommendation context
 - `dd09125` Update autonomous loop handoff
 - `68028bc` Preserve precondition recommendation context
+- `f9c9c51` Update autonomous loop handoff
+- `01ccc07` Preserve timeline preservation recommendation context
 
 Next suggested slice:
 Reassess the next small selected-risk contract cleanup from the active strategy
-surfaces, with timeline publication/lifecycle/preservation pressure as likely
-nearby candidates.
+surfaces, with timeline publication or lifecycle pressure as likely nearby
+candidates.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
