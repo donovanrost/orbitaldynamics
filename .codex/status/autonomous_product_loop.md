@@ -79,7 +79,7 @@ Scored model-acceptance replay pressure with a dedicated score term.
 
 Last commit:
 - Product: `c2389da` Score model acceptance replay pressure
-- Ledger: pending
+- Ledger: `dd7a99a` Update autonomous loop status
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
