@@ -9,7 +9,10 @@ Completed slice:
 Refreshed current capability snapshot wording after replay scoring series.
 
 Status:
-Product slice complete; ready for mechanical publish.
+Product slice complete and pushed.
+
+Published commits:
+- `57e1bc8` Refresh capability snapshot after replay scoring
 
 Files changed:
 - `docs/feature_set/current_capability_snapshot.md`
