@@ -28708,6 +28708,120 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy challenge scores schema-validation replay from evidence when top-level status is stale" do
+    stale_report = %{
+      "schema_contract" => "schema_validation_report.v1",
+      "validation_mode" => "artifact",
+      "validated_contract" => "candidate_refresh.v1",
+      "status" => "pass",
+      "error_count" => 2,
+      "warning_count" => 1,
+      "remediation_count" => 2,
+      "errors" => [
+        %{
+          "severity" => "error",
+          "path" => "$.candidate_activities[0].id",
+          "message" => "candidate activity id is required"
+        },
+        %{
+          "severity" => "error",
+          "path" => "$.candidate_activities[0].type",
+          "message" => "candidate activity type is required"
+        }
+      ],
+      "warnings" => [
+        %{
+          "severity" => "warning",
+          "path" => "$.metadata.generated_by",
+          "message" => "generated_by metadata should be reviewed"
+        }
+      ],
+      "remediation" => [
+        %{
+          "path" => "$.candidate_activities[0].id",
+          "category" => "missing_required_field",
+          "action" => "populate candidate activity id"
+        },
+        %{
+          "path" => "$.candidate_activities[0].type",
+          "category" => "missing_required_field",
+          "action" => "populate candidate activity type"
+        }
+      ],
+      "provenance" => %{"trust_boundary" => "stale_schema_validation_boundary"}
+    }
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put(:source_schema_validation_report, stale_report),
+        branches: [
+          %{id: "baseline"},
+          %{
+            id: "urgent",
+            events: [%{type: "urgent_target", target_id: "target_a", priority: 12.0}]
+          }
+        ],
+        current_epoch_s: 0.0
+      )
+
+    urgent = branch(artifact, "urgent")
+
+    assert %{"type" => "candidate_refresh.v1", "scope" => "branch_generated"} =
+             candidate_source = urgent["assumptions"]["candidate_source"]
+
+    assert %{
+             "status_counts" => %{"pass" => 1},
+             "validated_contract_counts" => %{"candidate_refresh.v1" => 1},
+             "validation_mode_counts" => %{"artifact" => 1},
+             "error_count" => 2,
+             "warning_count" => 1,
+             "remediation_count" => 2,
+             "remediation_action_counts" => %{
+               "populate_candidate_activity_id" => 1,
+               "populate_candidate_activity_type" => 1
+             },
+             "remediation_category_counts" => %{"missing_required_field" => 2},
+             "remediation_path_counts" => %{
+               "$.candidate_activities[0].id" => 1,
+               "$.candidate_activities[0].type" => 1
+             },
+             "branch_local_validation_pressure" => true,
+             "branch_local_schema_error_pressure" => true,
+             "branch_local_schema_warning_pressure" => true,
+             "branch_local_remediation_pressure" => true
+           } = CandidateRefresh.schema_validation_replay_summary(candidate_source)
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "schema_validation_pressure" and
+                 &1["feedback_source"] ==
+                   "candidate_source.schema_validation_replay_summary" and
+                 &1["severity"] == "high" and
+                 &1["validation_status"] == "fail" and
+                 &1["validation_statuses"] == ["fail", "pass", "warning"] and
+                 &1["status_counts"] == %{"pass" => 1} and
+                 &1["validated_contract"] == "candidate_refresh.v1" and
+                 &1["validation_mode"] == "artifact" and
+                 &1["issue_severity"] == "error" and
+                 &1["error_count"] == 2 and
+                 &1["warning_count"] == 1 and
+                 &1["remediation_count"] == 2 and
+                 &1["remediation_action"] == "populate_candidate_activity_id" and
+                 &1["remediation_category"] == "missing_required_field" and
+                 &1["branch_local_validation_pressure"] == true and
+                 &1["branch_local_schema_error_pressure"] == true and
+                 &1["branch_local_schema_warning_pressure"] == true and
+                 &1["branch_local_remediation_pressure"] == true)
+           )
+
+    assert_validation_refresh_pressure_score_terms(urgent, artifact, "schema_validation")
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy carries mission-state contact-filter reports into branch refresh requests" do
     direct_report = %{
       "schema_contract" => "contact_filter_report.v1",

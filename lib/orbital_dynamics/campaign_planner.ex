@@ -5064,7 +5064,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp schema_validation_replay_pressure_risk(replay_summary) do
-    statuses = replay_summary |> Map.get("status_counts", %{}) |> map_keys()
+    statuses = schema_validation_replay_pressure_statuses(replay_summary)
 
     validated_contracts =
       replay_summary |> Map.get("validated_contract_counts", %{}) |> map_keys()
@@ -5137,6 +5137,24 @@ defmodule OrbitalDynamics.CampaignPlanner do
       }
       |> compact_map()
     ]
+  end
+
+  defp schema_validation_replay_pressure_statuses(replay_summary) do
+    count_statuses =
+      [
+        {"error_count", "fail"},
+        {"warning_count", "warning"},
+        {"remediation_count", "warning"}
+      ]
+      |> Enum.flat_map(fn {field, status} ->
+        if summary_positive?(replay_summary, field), do: [status], else: []
+      end)
+
+    [
+      replay_summary |> Map.get("status_counts", %{}) |> map_keys(),
+      count_statuses
+    ]
+    |> sorted_encoded_values()
   end
 
   defp model_acceptance_replay_pressure_risks(%{} = replay_summary) do
