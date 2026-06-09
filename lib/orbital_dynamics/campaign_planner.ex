@@ -3549,6 +3549,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp schema_validation_pressure_risk?(_risk), do: false
 
+  defp refresh_freshness_pressure_risk?(%{"feedback_scope" => "refresh_freshness"}),
+    do: true
+
+  defp refresh_freshness_pressure_risk?(%{"type" => "refresh_freshness_pressure"}),
+    do: true
+
+  defp refresh_freshness_pressure_risk?(_risk), do: false
+
   defp validation_refresh_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &validation_refresh_pressure_risk?/1)
   end
@@ -3728,6 +3736,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     schema_validation_replay =
       CandidateRefresh.schema_validation_replay_summary(candidate_source)
 
+    freshness_replay =
+      CandidateRefresh.freshness_replay_summary(candidate_source)
+
     model_acceptance_replay =
       CandidateRefresh.model_acceptance_replay_summary(candidate_source)
 
@@ -3771,6 +3782,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     )
     |> maybe_add_candidate_source_quality_gate_risks(quality_gate_replay, event_risks)
     |> maybe_add_candidate_source_schema_validation_risks(schema_validation_replay, event_risks)
+    |> maybe_add_candidate_source_freshness_risks(freshness_replay, event_risks)
     |> maybe_add_candidate_source_model_acceptance_risks(model_acceptance_replay, event_risks)
     |> maybe_add_candidate_source_timeline_activity_state_risks(
       activity_state_replay,
@@ -3874,6 +3886,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
       risks
     else
       risks ++ schema_validation_replay_pressure_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_freshness_risks(risks, replay_summary, event_risks) do
+    if Enum.any?(event_risks, &refresh_freshness_pressure_risk?/1) do
+      risks
+    else
+      risks ++ freshness_replay_pressure_risks(replay_summary)
     end
   end
 
@@ -4732,6 +4752,82 @@ defmodule OrbitalDynamics.CampaignPlanner do
       summary_positive?(replay_summary, "error_count") or
       summary_positive?(replay_summary, "warning_count") or
       summary_positive?(replay_summary, "remediation_count")
+  end
+
+  defp freshness_replay_pressure_risks(%{} = replay_summary) do
+    if freshness_replay_scoring_pressure?(replay_summary) do
+      freshness_replay_pressure_risk(replay_summary)
+    else
+      []
+    end
+  end
+
+  defp freshness_replay_pressure_risks(_replay_summary), do: []
+
+  defp freshness_replay_scoring_pressure?(replay_summary) do
+    Map.get(replay_summary, "branch_local_freshness_pressure") == true or
+      Map.get(replay_summary, "branch_local_stale_pressure") == true or
+      Map.get(replay_summary, "branch_local_unknown_pressure") == true or
+      summary_positive?(replay_summary, "stale_reason_count") or
+      summary_positive?(replay_summary, "unknown_reason_count")
+  end
+
+  defp freshness_replay_pressure_risk(replay_summary) do
+    statuses = replay_summary |> Map.get("status_counts", %{}) |> map_keys()
+
+    stale_reasons =
+      [
+        Map.get(replay_summary, "stale_reasons"),
+        replay_summary |> Map.get("stale_reason_counts", %{}) |> map_keys()
+      ]
+      |> List.flatten()
+      |> sorted_encoded_values()
+
+    unknown_reasons =
+      [
+        Map.get(replay_summary, "unknown_reasons"),
+        replay_summary |> Map.get("unknown_reason_counts", %{}) |> map_keys()
+      ]
+      |> List.flatten()
+      |> sorted_encoded_values()
+
+    [
+      %{
+        "type" => "refresh_freshness_pressure",
+        "severity" =>
+          validation_refresh_pressure_risk_severity(%{
+            "freshness_status" => pressure_priority_value(statuses),
+            "state_quality_status" => pressure_priority_value(statuses),
+            "required_operator_action" => "review_refresh_freshness"
+          }),
+        "reason" =>
+          "candidate source freshness replay reports stale or unknown state-quality pressure",
+        "source_report_count" => Map.get(replay_summary, "source_report_count"),
+        "source_report_row_count" => Map.get(replay_summary, "source_report_row_count"),
+        "source_report_paths" => Map.get(replay_summary, "source_report_paths"),
+        "status_counts" => Map.get(replay_summary, "status_counts"),
+        "freshness_status" => pressure_priority_value(statuses),
+        "freshness_statuses" => statuses,
+        "state_quality_status" => pressure_priority_value(statuses),
+        "stale_reason_count" => Map.get(replay_summary, "stale_reason_count"),
+        "stale_reasons" => stale_reasons,
+        "stale_reason_counts" => Map.get(replay_summary, "stale_reason_counts"),
+        "unknown_reason_count" => Map.get(replay_summary, "unknown_reason_count"),
+        "unknown_reasons" => unknown_reasons,
+        "unknown_reason_counts" => Map.get(replay_summary, "unknown_reason_counts"),
+        "branch_local_stale_pressure" => Map.get(replay_summary, "branch_local_stale_pressure"),
+        "branch_local_unknown_pressure" =>
+          Map.get(replay_summary, "branch_local_unknown_pressure"),
+        "branch_local_freshness_pressure" =>
+          Map.get(replay_summary, "branch_local_freshness_pressure"),
+        "feedback_source" => "candidate_source.freshness_replay_summary",
+        "feedback_scope" => "refresh_freshness",
+        "feedback_key" => "refresh_freshness",
+        "trust_boundary_status" => Map.get(replay_summary, "trust_boundary_status"),
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries")
+      }
+      |> compact_map()
+    ]
   end
 
   defp schema_validation_replay_pressure_risk(replay_summary) do

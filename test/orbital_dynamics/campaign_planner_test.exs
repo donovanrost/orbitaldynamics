@@ -28192,6 +28192,43 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "mission_state.source_result_artifact.freshness_report"
            ]
 
+    freshness_pressure_count =
+      Enum.count(
+        urgent["risk_indicators"],
+        &(&1["type"] == "refresh_freshness_pressure" and
+            &1["feedback_source"] == "candidate_source.freshness_replay_summary")
+      )
+
+    assert freshness_pressure_count == 1
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "refresh_freshness_pressure" and
+                 &1["feedback_scope"] == "refresh_freshness" and
+                 &1["severity"] == "medium" and
+                 &1["source_report_count"] == 4 and
+                 &1["source_report_row_count"] == 4 and
+                 &1["source_report_paths"] == replay_source_paths and
+                 &1["status_counts"] == %{"stale" => 3, "unknown" => 1} and
+                 &1["freshness_status"] == "stale" and
+                 &1["freshness_statuses"] == ["stale", "unknown"] and
+                 &1["state_quality_status"] == "stale" and
+                 &1["stale_reason_count"] == 3 and
+                 &1["stale_reasons"] == Enum.sort(replay_stale_reasons) and
+                 &1["stale_reason_counts"] == %{
+                   "accepted_snapshot_older_than_policy" => 1,
+                   "horizon_start_offset_exceeds_policy" => 2
+                 } and
+                 &1["unknown_reason_count"] == 1 and
+                 &1["unknown_reasons"] == ["accepted_snapshot_missing"] and
+                 &1["unknown_reason_counts"] == %{"accepted_snapshot_missing" => 1} and
+                 &1["branch_local_stale_pressure"] == true and
+                 &1["branch_local_unknown_pressure"] == true and
+                 &1["branch_local_freshness_pressure"] == true)
+           )
+
+    assert_validation_refresh_pressure_score_terms(urgent, artifact, "refresh_freshness")
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
@@ -78828,13 +78865,17 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
   defp assert_validation_refresh_pressure_score_terms(branch, artifact, feedback_scope) do
     risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
 
-    validation_refresh_pressure_count =
+    requested_validation_refresh_pressure_count =
       Enum.count(
         branch["risk_indicators"],
         &(validation_refresh_source_report_pressure?(&1, feedback_scope) or
             &1["feedback_scope"] == feedback_scope)
       )
 
+    validation_refresh_pressure_count =
+      Enum.count(branch["risk_indicators"], &validation_refresh_pressure?/1)
+
+    assert requested_validation_refresh_pressure_count > 0
     assert validation_refresh_pressure_count > 0
 
     assert branch["score_terms"]["validation_refresh_pressure_penalty"] ==
@@ -78854,6 +78895,24 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["term_key"] == "validation_refresh_pressure_penalty" and
                  &1["value"] < 0.0)
            )
+  end
+
+  defp validation_refresh_pressure?(risk) do
+    validation_refresh_source_report_pressure?(risk, "schema_validation") or
+      risk["feedback_scope"] in [
+        "schema_validation",
+        "model_acceptance",
+        "validation_safety_case",
+        "refresh_budget",
+        "refresh_freshness"
+      ] or
+      risk["type"] in [
+        "schema_validation_pressure",
+        "model_acceptance_pressure",
+        "validation_safety_case_pressure",
+        "refresh_budget_pressure",
+        "refresh_freshness_pressure"
+      ]
   end
 
   defp validation_refresh_source_report_pressure?(risk, "schema_validation"),
