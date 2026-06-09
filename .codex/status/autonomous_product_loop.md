@@ -11,29 +11,32 @@ Status:
 Recommended next; not yet selected.
 
 Last completed slice:
-Preserved selected contact-filter pressure context on V3 recommendation
+Preserved selected resource-filter pressure context on V3 recommendation
 review/import rows.
 
 What changed:
 - `OrbitalDynamics.RecommendationRiskContext` now owns a scoped
-  `contact_filter_pressure_*` selected-context contract for contact-filter
+  `resource_filter_pressure_*` selected-context contract for resource-filter
   feedback risks.
 - Strategy recommendation review rows, selected Cadence import rows, and
-  review-package Cadence import conversion retain contact identity,
-  source-window, suppression reason, station reservation/calendar evidence,
-  downlink demand/completion provenance, feedback source, trust boundary, and
+  review-package Cadence import conversion retain resource availability,
+  resource field, source activity identity, suppression reason, source quality,
+  resource trust-boundary status, feedback source, trust boundary, and
   derivation details.
 - The selected-pressure strategy recommendation fixture now includes a
-  scoped contact-filter event and asserts identical handoff context across all
-  selected review/import surfaces.
-- Existing prior-plan, mission-state, result-artifact, duplicate-contact, and
-  review/import contact-filter pressure replay remain unchanged.
+  scoped resource-filter availability event and asserts identical handoff
+  context across all selected review/import surfaces.
+- Existing prior-plan, mission-state, result-artifact, duplicate-resource, and
+  review/import resource-filter pressure replay remain unchanged.
+- Resource-margin selected context remains intact and can still carry broader
+  resource-margin rows; resource-filter rows now also have a scoped selected
+  handoff when their feedback scope is `resource_filter`.
 - Parent performed the bounded local review and mechanical publish steps because
   no subagent tool was available in this runtime.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:52461 test/orbital_dynamics/campaign_planner_test.exs:52588 test/orbital_dynamics/campaign_planner_test.exs:52746 test/orbital_dynamics/campaign_planner_test.exs:52833 test/orbital_dynamics/campaign_planner_test.exs:64028`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:51996 test/orbital_dynamics/campaign_planner_test.exs:52087 test/orbital_dynamics/campaign_planner_test.exs:52168 test/orbital_dynamics/campaign_planner_test.exs:52239 test/orbital_dynamics/campaign_planner_test.exs:52355 test/orbital_dynamics/campaign_planner_test.exs:64090 test/orbital_dynamics/campaign_planner_test.exs:64258`
 - `mix compile --warnings-as-errors`
 - `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
@@ -107,10 +110,13 @@ Published commits:
 - `fc5229d` Preserve contact allocation recommendation context
 - `fd0f778` Update autonomous loop handoff
 - `33f469f` Preserve contact filter recommendation context
+- `a96f59a` Update autonomous loop handoff
+- `a97918b` Preserve resource filter recommendation context
 
 Next suggested slice:
-Re-audit active strategy surfaces for the next pressure family whose selected
-recommendation review/import handoff is weaker than the branch explanation.
+After this slice, re-audit active strategy surfaces for the next pressure
+family whose selected recommendation review/import handoff is weaker than the
+branch explanation.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
