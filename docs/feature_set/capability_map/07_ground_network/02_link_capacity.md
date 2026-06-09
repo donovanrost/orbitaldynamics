@@ -379,6 +379,9 @@ storage/downlink margin pressure.
 Fuel, power, and thermal margin pressure contributes to
 `resource_margin_pressure_penalty`, while storage and downlink margin pressure
 remain in `storage_downlink_pressure_penalty`.
+Projected battery-depletion pressure contributes to
+`battery_depletion_pressure_penalty`, separate from storage/downlink projection
+pressure and generic risk.
 
 `policy_decision.v1` rule-match evidence preserves those source confidence
 factors with the same bounds. Communication rule-match counters for concurrent

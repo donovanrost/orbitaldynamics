@@ -2874,6 +2874,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       resource_availability_pressure_risk_count(risk_indicators)
 
     resource_margin_pressure_count = resource_margin_pressure_risk_count(risk_indicators)
+    battery_depletion_pressure_count = battery_depletion_pressure_risk_count(risk_indicators)
 
     station_calendar_pressure_count = station_calendar_pressure_risk_count(risk_indicators)
     candidate_rejection_pressure_count = candidate_rejection_pressure_risk_count(risk_indicators)
@@ -2902,8 +2903,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
           timeline_precondition_pressure_count - timeline_preservation_pressure_count -
           timeline_pressure_count - storage_downlink_pressure_count -
           resource_availability_pressure_count - resource_margin_pressure_count -
-          station_calendar_pressure_count - candidate_rejection_pressure_count -
-          provider_counteroffer_pressure_count - validation_refresh_pressure_count -
+          battery_depletion_pressure_count - station_calendar_pressure_count -
+          candidate_rejection_pressure_count - provider_counteroffer_pressure_count -
+          validation_refresh_pressure_count -
           relay_data_path_pressure_count - execution_feedback_pressure_count,
         0
       )
@@ -2992,6 +2994,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     resource_margin_pressure_penalty =
       -resource_margin_pressure_count * policy.risk_weight
 
+    battery_depletion_pressure_penalty =
+      -battery_depletion_pressure_count * policy.risk_weight
+
     station_calendar_pressure_penalty =
       -station_calendar_pressure_count * policy.risk_weight
 
@@ -3027,8 +3032,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
         timeline_precondition_pressure_penalty + timeline_preservation_pressure_penalty +
         timeline_pressure_penalty + storage_downlink_pressure_penalty +
         resource_availability_pressure_penalty + resource_margin_pressure_penalty +
-        station_calendar_pressure_penalty + candidate_rejection_pressure_penalty +
-        provider_counteroffer_pressure_penalty + validation_refresh_pressure_penalty +
+        battery_depletion_pressure_penalty + station_calendar_pressure_penalty +
+        candidate_rejection_pressure_penalty + provider_counteroffer_pressure_penalty +
+        validation_refresh_pressure_penalty +
         relay_data_path_pressure_penalty + execution_feedback_pressure_penalty +
         risk_penalty + approval_load_penalty
 
@@ -3066,6 +3072,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "storage_downlink_pressure_penalty" => storage_downlink_pressure_penalty,
       "resource_availability_pressure_penalty" => resource_availability_pressure_penalty,
       "resource_margin_pressure_penalty" => resource_margin_pressure_penalty,
+      "battery_depletion_pressure_penalty" => battery_depletion_pressure_penalty,
       "station_calendar_pressure_penalty" => station_calendar_pressure_penalty,
       "candidate_rejection_pressure_penalty" => candidate_rejection_pressure_penalty,
       "provider_counteroffer_pressure_penalty" => provider_counteroffer_pressure_penalty,
@@ -3275,6 +3282,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
        do: true
 
   defp resource_margin_pressure_risk?(_risk), do: false
+
+  defp battery_depletion_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &battery_depletion_pressure_risk?/1)
+  end
+
+  defp battery_depletion_pressure_risk?(%{"type" => "battery_depletion"}), do: true
+  defp battery_depletion_pressure_risk?(_risk), do: false
 
   defp station_calendar_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &station_calendar_pressure_risk?/1)
@@ -5040,6 +5054,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"storage_downlink_pressure", "storage_downlink_pressure_penalty"},
         {"resource_availability_pressure", "resource_availability_pressure_penalty"},
         {"resource_margin_pressure", "resource_margin_pressure_penalty"},
+        {"battery_depletion_pressure", "battery_depletion_pressure_penalty"},
         {"station_calendar_pressure", "station_calendar_pressure_penalty"},
         {"candidate_rejection_pressure", "candidate_rejection_pressure_penalty"},
         {"provider_counteroffer_pressure", "provider_counteroffer_pressure_penalty"},

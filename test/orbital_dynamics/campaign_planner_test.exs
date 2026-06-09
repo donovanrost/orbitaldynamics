@@ -19316,7 +19316,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              branch(artifact, "outage")["risk_indicators"]
              |> Enum.find(&(&1["type"] == "downlink_shortfall"))
 
-    assert_storage_downlink_pressure_score_terms(branch(artifact, "outage"), artifact, 1, 1)
+    assert_storage_downlink_pressure_score_terms(branch(artifact, "outage"), artifact, 1, 2)
 
     assert %{
              "review_type" => "strategy_tradeoff",
@@ -19370,6 +19370,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              &(&1["type"] == "battery_depletion" and &1["value"] == 30.0 and
                  &1["first_resource_pressure_kind"] == "battery_depletion")
            )
+
+    assert_battery_depletion_pressure_score_terms(branch(artifact, "outage"), artifact, 1)
 
     assert branch(artifact, "outage")["approval_status"] == "blocked_by_policy"
     assert get_in(branch(artifact, "outage"), ["policy_decision", "risk_count"]) >= 2
@@ -72710,6 +72712,33 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              &(&1["branch_id"] == branch["branch_id"] and
                  &1["term_key"] == "resource_margin_pressure_penalty" and
                  &1["value"] < 0.0)
+           )
+  end
+
+  defp assert_battery_depletion_pressure_score_terms(branch, artifact, extra_split_pressure_count) do
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    battery_depletion_pressure_count =
+      Enum.count(branch["risk_indicators"], &(&1["type"] == "battery_depletion"))
+
+    assert battery_depletion_pressure_count > 0
+
+    assert branch["score_terms"]["battery_depletion_pressure_penalty"] ==
+             -battery_depletion_pressure_count * risk_weight
+
+    assert branch["score_terms"]["risk_penalty"] ==
+             -(length(branch["risk_indicators"]) -
+                 battery_depletion_pressure_count - extra_split_pressure_count) *
+               risk_weight
+
+    assert "battery_depletion_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == branch["branch_id"] and
+                 &1["term_key"] == "battery_depletion_pressure_penalty" and &1["value"] < 0.0)
            )
   end
 
