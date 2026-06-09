@@ -8,7 +8,7 @@ Current slice:
 Harden stale readiness gate score evidence.
 
 Status:
-Completed locally; ready to commit and push.
+Completed and pushed in product commit `d279ba8`.
 
 Slice-selection note:
 - Selected slice: harden the stale operational-readiness gate classification
@@ -72,7 +72,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`00c6646` Harden stale preservation pressure challenge.
+`d279ba8` Harden stale readiness pressure challenge.
 
 Next candidate:
 After this score-term split, continue with the next planner-visible
@@ -84,6 +84,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `d279ba8` hardened stale readiness gate challenge coverage for row-status
+  operational-readiness score terms despite missing/stale classifications.
 - `00c6646` hardened stale preservation challenge coverage for row-local
   preservation score terms despite stale clear aggregate fields.
 - `ab41543` split timeline preservation pressure into an explicit V3 score term
