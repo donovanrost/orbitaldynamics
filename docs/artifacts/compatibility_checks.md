@@ -474,8 +474,9 @@ feeds a curated validation-reference fixture for that summary family. The
 fixture observes top-level and map-derived requirement counts, role/training/
 certification/qualification routing, review-required/review-only row routing,
 and the no-Cadence-write/no-authority assumptions, and executable verification
-rejects stale requirement counts plus stale review-row evidence before adapter
-queues can trust the compact summary.
+rejects stale requirement counts, stale role/training requirement routing keys,
+and stale review-row evidence before adapter queues can trust the compact
+summary.
 Focused checked-in fixture coverage exact-compares the public
 `OrbitalDynamics.operational_quality_gate_operator_training_summary/1` facade
 output from the deterministic planned-activity ready-import source with

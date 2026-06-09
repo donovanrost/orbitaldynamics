@@ -3069,6 +3069,10 @@ defmodule OrbitalDynamics.ValidationTest do
              "training" => 1
            }
 
+    assert observations["required_operator_role_keys"] == "contact_operator|mission_director"
+    assert observations["required_training_keys"] == "contact_replan_drill"
+    assert observations["required_certification_keys"] == "cadence_import_cert"
+    assert observations["required_qualification_keys"] == "sat_ops_current"
     assert observations["operator_training_review_required"] == true
     assert observations["row_derived_review_required_quality_gate_row_count"] == 1
     assert observations["row_derived_review_only_quality_gate_row_count"] == 1
@@ -3111,6 +3115,32 @@ defmodule OrbitalDynamics.ValidationTest do
              stale_row_derived_requirement_verification["checks"],
              &(&1["field"] == "row_derived_operator_training_requirement_count" and
                  &1["status"] == "fail")
+           )
+
+    stale_role_routing_observations =
+      Map.put(observations, "required_operator_role_keys", "contact_operator")
+
+    assert {:ok, stale_role_routing_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_role_routing_observations)
+
+    assert stale_role_routing_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_role_routing_verification["checks"],
+             &(&1["field"] == "required_operator_role_keys" and &1["status"] == "fail")
+           )
+
+    stale_training_routing_observations =
+      Map.put(observations, "required_training_keys", "")
+
+    assert {:ok, stale_training_routing_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_training_routing_observations)
+
+    assert stale_training_routing_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_training_routing_verification["checks"],
+             &(&1["field"] == "required_training_keys" and &1["status"] == "fail")
            )
 
     stale_review_row_observations =
