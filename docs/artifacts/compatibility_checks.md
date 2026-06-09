@@ -475,6 +475,10 @@ V3 strategy scoring routes schema-validation summary risks into the existing
 `validation_refresh_pressure_penalty` rather than the broader
 `quality_gate_pressure_penalty`, so failed schema evidence stays visible in the
 validation score-term family.
+Operational-readiness schema-validation gates also preserve fail, error,
+warning, remediation, status, and failed-row evidence in branch risk indicators,
+and route that pressure into `validation_refresh_pressure_penalty` instead of
+the broader `operational_readiness_pressure_penalty`.
 The public quality-gate operator-training summary publishes
 `operational_quality_gate_operator_training_summary.v1`, preserving role,
 training, certification, and qualification routing from operator-training

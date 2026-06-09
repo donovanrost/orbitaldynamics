@@ -3178,6 +3178,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp operational_readiness_pressure_risk?(%{"type" => "operational_readiness_pressure"} = risk) do
     not operational_readiness_operator_training_pressure_risk?(risk) and
       not operational_readiness_import_readiness_pressure_risk?(risk) and
+      not operational_readiness_schema_validation_pressure_risk?(risk) and
       not operational_readiness_resource_availability_pressure_risk?(risk)
   end
 
@@ -3486,6 +3487,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
     schema_validation_quality_gate_pressure_risk?(risk)
   end
 
+  defp validation_refresh_pressure_risk?(%{"type" => "operational_readiness_pressure"} = risk) do
+    operational_readiness_schema_validation_pressure_risk?(risk)
+  end
+
   defp validation_refresh_pressure_risk?(_risk), do: false
 
   defp schema_validation_quality_gate_pressure_risk?(%{"type" => "quality_gate_pressure"} = risk) do
@@ -3496,6 +3501,21 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp schema_validation_quality_gate_pressure_risk?(_risk), do: false
+
+  defp operational_readiness_schema_validation_pressure_risk?(
+         %{"type" => "operational_readiness_pressure"} = risk
+       ) do
+    risk["schema_validation_import_blocked"] == true or
+      numeric_or_nil(risk["schema_validation_row_count"]) not in [nil, 0.0] or
+      numeric_or_nil(risk["schema_validation_fail_count"]) not in [nil, 0.0] or
+      numeric_or_nil(risk["schema_validation_error_count"]) not in [nil, 0.0] or
+      numeric_or_nil(risk["schema_validation_warning_count"]) not in [nil, 0.0] or
+      numeric_or_nil(risk["schema_validation_remediation_count"]) not in [nil, 0.0] or
+      is_map(risk["schema_validation_status_counts"]) or
+      risk["failed_schema_validation_quality_gate_row_ids"] not in [nil, []]
+  end
+
+  defp operational_readiness_schema_validation_pressure_risk?(_risk), do: false
 
   defp relay_data_path_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &relay_data_path_pressure_risk?/1)
@@ -4893,6 +4913,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "stale_or_unknown_freshness_quality_gate_row_ids",
       "import_preparation_quality_gate_row_ids",
       "blocked_import_quality_gate_row_ids",
+      "schema_validation_row_count",
+      "schema_validation_pass_count",
+      "schema_validation_fail_count",
+      "schema_validation_error_count",
+      "schema_validation_warning_count",
+      "schema_validation_remediation_count",
+      "schema_validation_status_counts",
+      "schema_validation_status_ids",
+      "schema_validation_import_blocked",
+      "failed_schema_validation_quality_gate_row_ids",
       "resource_availability_pressure_count",
       "resource_availability_reason_counts",
       "resource_availability_reason_ids",
@@ -30053,6 +30083,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       }
       |> Map.merge(operational_readiness_operator_training_context(row))
       |> Map.merge(operational_readiness_import_readiness_context(row))
+      |> Map.merge(operational_readiness_schema_validation_context(row))
       |> Map.merge(operational_readiness_resource_availability_context(row))
       |> compact_map()
     end
@@ -30240,6 +30271,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "source_operational_readiness_report" => report
       }
       |> Map.merge(operational_readiness_import_readiness_context(report))
+      |> Map.merge(operational_readiness_schema_validation_context(report))
       |> Map.merge(operational_readiness_resource_availability_context(report))
       |> compact_map()
 
@@ -30273,6 +30305,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         }
         |> Map.merge(operational_readiness_operator_training_context(gate))
         |> Map.merge(operational_readiness_import_readiness_context(gate))
+        |> Map.merge(operational_readiness_schema_validation_context(gate))
         |> Map.merge(operational_readiness_resource_availability_context(gate))
         |> compact_map()
       end)
@@ -30308,6 +30341,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "required_operator_action" => operational_readiness_pressure_action(classification)
       }
       |> Map.merge(operational_readiness_import_readiness_context(summary))
+      |> Map.merge(operational_readiness_schema_validation_context(summary))
       |> Map.merge(operational_readiness_resource_availability_context(summary))
       |> compact_map()
 
@@ -30346,6 +30380,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         }
         |> Map.merge(operational_readiness_operator_training_context(gate))
         |> Map.merge(operational_readiness_import_readiness_context(gate))
+        |> Map.merge(operational_readiness_schema_validation_context(gate))
         |> Map.merge(operational_readiness_resource_availability_context(gate))
         |> compact_map()
       end)
@@ -31212,6 +31247,33 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp row_or_evidence(row, evidence, key) do
     if Map.has_key?(row, key), do: row[key], else: evidence[key]
+  end
+
+  defp operational_readiness_schema_validation_context(%{} = row) do
+    evidence = Map.get(row, "evidence") || %{}
+
+    %{
+      "schema_validation_row_count" =>
+        row_or_evidence(row, evidence, "schema_validation_row_count"),
+      "schema_validation_pass_count" =>
+        row_or_evidence(row, evidence, "schema_validation_pass_count"),
+      "schema_validation_fail_count" =>
+        row_or_evidence(row, evidence, "schema_validation_fail_count"),
+      "schema_validation_error_count" =>
+        row_or_evidence(row, evidence, "schema_validation_error_count"),
+      "schema_validation_warning_count" =>
+        row_or_evidence(row, evidence, "schema_validation_warning_count"),
+      "schema_validation_remediation_count" =>
+        row_or_evidence(row, evidence, "schema_validation_remediation_count"),
+      "schema_validation_status_counts" =>
+        row_or_evidence(row, evidence, "schema_validation_status_counts"),
+      "schema_validation_status_ids" =>
+        row_or_evidence(row, evidence, "schema_validation_status_ids"),
+      "schema_validation_import_blocked" =>
+        row_or_evidence(row, evidence, "schema_validation_import_blocked"),
+      "failed_schema_validation_quality_gate_row_ids" =>
+        row_or_evidence(row, evidence, "failed_schema_validation_quality_gate_row_ids")
+    }
   end
 
   defp operational_readiness_resource_availability_context(%{} = row) do

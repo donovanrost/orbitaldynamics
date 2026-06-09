@@ -45267,6 +45267,98 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy preserves schema-validation readiness gate context in branch events" do
+    readiness_report = %{
+      "schema_contract" => "operational_readiness_report.v1",
+      "schema_version" => 1,
+      "model" => "OrbitalDynamics.OperationalReadiness.V1",
+      "report_id" => "operational_readiness:planned_activity.v1:schema_payload",
+      "source_artifact_type" => "planned_activity.v1",
+      "source_artifact_id" => "schema_payload",
+      "readiness_level" => "blocked",
+      "import_classification" => "blocked",
+      "status" => "blocked",
+      "gate_count" => 2,
+      "passed_gate_count" => 1,
+      "review_gate_count" => 0,
+      "analysis_gate_count" => 0,
+      "blocked_gate_count" => 1,
+      "gates" => [
+        %{
+          "id" => "schema_validation",
+          "status" => "blocked",
+          "classification" => "blocked",
+          "reason" => "candidate refresh schema validation failed before import",
+          "schema_validation_row_count" => 1,
+          "schema_validation_pass_count" => 0,
+          "schema_validation_fail_count" => 1,
+          "schema_validation_error_count" => 1,
+          "schema_validation_warning_count" => 0,
+          "schema_validation_remediation_count" => 1,
+          "schema_validation_status_counts" => %{"fail" => 1},
+          "schema_validation_status_ids" => ["fail"],
+          "schema_validation_import_blocked" => true,
+          "failed_schema_validation_quality_gate_row_ids" => [
+            "quality_gate:schema_payload:schema_validation:1"
+          ]
+        }
+      ],
+      "evidence" => %{},
+      "assumptions" => %{"execution_boundary" => "artifact_only_no_cadence_write"},
+      "model_limits" => ["artifact_only"],
+      "provenance" => %{"trust_boundary" => "mission_state_operational_readiness_report"}
+    }
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put(:source_operational_readiness_report, readiness_report)
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    readiness_branch =
+      branch(artifact, "derived_operational_readiness_pressure_schema_validation")
+
+    event = List.first(readiness_branch["events"])
+
+    assert event["type"] == "operational_readiness_pressure"
+    assert event["readiness_gate_id"] == "schema_validation"
+    assert event["schema_validation_row_count"] == 1
+    assert event["schema_validation_fail_count"] == 1
+    assert event["schema_validation_error_count"] == 1
+    assert event["schema_validation_warning_count"] == 0
+    assert event["schema_validation_remediation_count"] == 1
+    assert event["schema_validation_status_counts"] == %{"fail" => 1}
+    assert event["schema_validation_status_ids"] == ["fail"]
+    assert event["schema_validation_import_blocked"] == true
+
+    assert event["failed_schema_validation_quality_gate_row_ids"] == [
+             "quality_gate:schema_payload:schema_validation:1"
+           ]
+
+    assert event["feedback_source"] == "mission_state.source_operational_readiness_report.gates"
+    assert get_in(event, ["source_operational_readiness_gate", "id"]) == "schema_validation"
+
+    assert get_in(event, ["source_operational_readiness_gate", "schema_validation_fail_count"]) ==
+             1
+
+    assert_validation_refresh_pressure_score_terms(
+      readiness_branch,
+      artifact,
+      "schema_validation"
+    )
+
+    assert readiness_branch["score_terms"]["operational_readiness_pressure_penalty"] == 0.0
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy derives operational readiness gate classification from row status" do
     readiness_report = %{
       "schema_contract" => "operational_readiness_report.v1",
@@ -73132,7 +73224,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     validation_refresh_pressure_count =
       Enum.count(
         branch["risk_indicators"],
-        &(&1["feedback_scope"] == feedback_scope)
+        &(validation_refresh_source_report_pressure?(&1, feedback_scope) or
+            &1["feedback_scope"] == feedback_scope)
       )
 
     assert validation_refresh_pressure_count > 0
@@ -73155,6 +73248,32 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["value"] < 0.0)
            )
   end
+
+  defp validation_refresh_source_report_pressure?(risk, "schema_validation"),
+    do: schema_validation_source_report_pressure?(risk)
+
+  defp validation_refresh_source_report_pressure?(_risk, _feedback_scope), do: false
+
+  defp schema_validation_source_report_pressure?(%{"type" => "quality_gate_pressure"} = risk) do
+    risk["schema_validation_import_blocked"] == true or
+      is_map(risk["schema_validation_status_counts"]) or
+      risk["failed_schema_validation_quality_gate_row_ids"] not in [nil, []]
+  end
+
+  defp schema_validation_source_report_pressure?(
+         %{"type" => "operational_readiness_pressure"} = risk
+       ) do
+    risk["schema_validation_import_blocked"] == true or
+      risk["schema_validation_row_count"] not in [nil, 0] or
+      risk["schema_validation_fail_count"] not in [nil, 0] or
+      risk["schema_validation_error_count"] not in [nil, 0] or
+      risk["schema_validation_warning_count"] not in [nil, 0] or
+      risk["schema_validation_remediation_count"] not in [nil, 0] or
+      is_map(risk["schema_validation_status_counts"]) or
+      risk["failed_schema_validation_quality_gate_row_ids"] not in [nil, []]
+  end
+
+  defp schema_validation_source_report_pressure?(_risk), do: false
 
   defp operator_training_source_report_pressure?(%{"type" => "quality_gate_pressure"} = risk) do
     risk["gate_id"] == "operator_training" or
@@ -73509,6 +73628,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         &(&1["type"] == "operational_readiness_pressure" and
             not operator_training_source_report_pressure?(&1) and
             not import_readiness_source_report_pressure?(&1) and
+            not schema_validation_source_report_pressure?(&1) and
             not resource_availability_source_report_pressure?(&1))
       )
 
