@@ -11,32 +11,33 @@ Status:
 Recommended next; not yet selected.
 
 Last completed slice:
-Preserved selected resource-filter pressure context on V3 recommendation
+Preserved selected contact-contention-resolution context on V3 recommendation
 review/import rows.
 
 What changed:
 - `OrbitalDynamics.RecommendationRiskContext` now owns a scoped
-  `resource_filter_pressure_*` selected-context contract for resource-filter
-  feedback risks.
+  `contact_contention_resolution_pressure_*` selected-context contract for
+  contact-contention-resolution feedback risks.
 - Strategy recommendation review rows, selected Cadence import rows, and
-  review-package Cadence import conversion retain resource availability,
-  resource field, source activity identity, suppression reason, source quality,
-  resource trust-boundary status, feedback source, trust boundary, and
+  review-package Cadence import conversion retain selected contact identity,
+  priority source, selection reason/rule, review status, source-window identity,
+  downlink requirements/provenance, feedback source, trust boundary, and
   derivation details.
 - The selected-pressure strategy recommendation fixture now includes a
-  scoped resource-filter availability event and asserts identical handoff
-  context across all selected review/import surfaces.
-- Existing prior-plan, mission-state, result-artifact, duplicate-resource, and
-  review/import resource-filter pressure replay remain unchanged.
-- Resource-margin selected context remains intact and can still carry broader
-  resource-margin rows; resource-filter rows now also have a scoped selected
-  handoff when their feedback scope is `resource_filter`.
+  contact-contention-resolution event with branch-level selection details and
+  asserts identical handoff context across all selected review/import surfaces.
+- Existing prior-plan, mission-state, result-artifact, duplicate-contact, and
+  review/import contact-contention pressure replay remain unchanged.
+- Capacity-pack selected context remains intact and still carries reduced
+  station-capacity pack fields; contact-contention-resolution rows now also
+  have a scoped selected handoff when their feedback scope is
+  `contact_contention_resolution`.
 - Parent performed the bounded local review and mechanical publish steps because
   no subagent tool was available in this runtime.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:51996 test/orbital_dynamics/campaign_planner_test.exs:52087 test/orbital_dynamics/campaign_planner_test.exs:52168 test/orbital_dynamics/campaign_planner_test.exs:52239 test/orbital_dynamics/campaign_planner_test.exs:52355 test/orbital_dynamics/campaign_planner_test.exs:64090 test/orbital_dynamics/campaign_planner_test.exs:64258`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:51518 test/orbital_dynamics/campaign_planner_test.exs:51621 test/orbital_dynamics/campaign_planner_test.exs:51901 test/orbital_dynamics/campaign_planner_test.exs:51980 test/orbital_dynamics/campaign_planner_test.exs:63841`
 - `mix compile --warnings-as-errors`
 - `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
@@ -112,6 +113,8 @@ Published commits:
 - `33f469f` Preserve contact filter recommendation context
 - `a96f59a` Update autonomous loop handoff
 - `a97918b` Preserve resource filter recommendation context
+- `afb3329` Update autonomous loop handoff
+- `cac70ff` Preserve contact contention resolution context
 
 Next suggested slice:
 After this slice, re-audit active strategy surfaces for the next pressure
