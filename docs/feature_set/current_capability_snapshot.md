@@ -67,16 +67,19 @@ Implemented or partially implemented modules and artifacts include:
   source-report, timeline-diff, transition-application, integrity, publication,
   readiness, quality, contact-allocation, link-capacity, station-calendar,
   resource, policy, and validation evidence as branch-local provenance for V2/V3
-  repair and strategy paths.
+  repair and strategy paths, with replay-derived pressure feeding explainable
+  V3 score terms for branch-local contact, resource, station-calendar,
+  timeline, readiness, quality-gate, import-readiness, validation, and
+  storage/downlink tradeoffs.
 - Example manifests and outputs in `studies/`, `study_results/`, and
   `benchmark_results/`.
 
 The current implementation is strongest as a transparent LEO planning prototype.
 Its strongest Cadence-facing surfaces are artifact-only review/import contracts
-and branch-local refresh provenance. Its weakest areas are high-fidelity
-dynamics, frame/time transformations, resource simulation beyond declarative
-planning-grade subsystem contracts, event precision guarantees, optimizer
-breadth, schema versioning discipline, external validation evidence, external
-orbit-data ingestion, provider-write/notification workflows, and deeper
-planner-visible use of resource/contact/readiness evidence during candidate
-selection and branch scoring.
+and branch-local refresh provenance with planner-visible branch scoring for many
+replayed review-pressure families. Its weakest areas are high-fidelity dynamics,
+frame/time transformations, resource simulation beyond declarative planning-grade
+subsystem contracts, event precision guarantees, optimizer breadth, schema
+versioning discipline, external validation evidence, external orbit-data
+ingestion, provider-write/notification workflows, and deeper use of
+resource/contact/readiness evidence during candidate selection and optimization.
