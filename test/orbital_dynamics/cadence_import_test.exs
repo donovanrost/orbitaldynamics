@@ -14281,6 +14281,30 @@ defmodule OrbitalDynamics.CadenceImportTest do
              &(&1["path"] ==
                  "$.rows[0].source_review_row.source_timeline_activity_precondition_summary.timeline_id")
            )
+
+    stale_source_review =
+      put_in(
+        manifest,
+        [
+          "rows",
+          Access.at(0),
+          "source_review_row",
+          "source_timeline_activity_precondition_summary",
+          "timeline_id"
+        ],
+        "timeline:stale_cmd_preflight"
+      )
+
+    assert {:error, stale_source_review_report} =
+             Schema.validate_artifact(stale_source_review)
+
+    assert Enum.any?(
+             stale_source_review_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[0].source_review_row.source_timeline_activity_precondition_summary" and
+                 &1["message"] ==
+                   "must match source_timeline_activity_precondition_summary on Cadence import row")
+           )
   end
 
   test "candidate refresh precondition summaries become import manifest rows" do
