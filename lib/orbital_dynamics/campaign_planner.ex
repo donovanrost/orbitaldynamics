@@ -2854,6 +2854,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     contact_intent_pressure_count = contact_intent_pressure_risk_count(risk_indicators)
     contact_contention_pressure_count = contact_contention_pressure_risk_count(risk_indicators)
     contact_filter_pressure_count = contact_filter_pressure_risk_count(risk_indicators)
+    command_window_pressure_count = command_window_pressure_risk_count(risk_indicators)
 
     operational_readiness_pressure_count =
       operational_readiness_pressure_risk_count(risk_indicators)
@@ -2918,7 +2919,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         risk_count - contact_allocation_pressure_count - approval_boundary_pressure_count -
           link_capacity_pressure_count - contact_intent_pressure_count -
           contact_contention_pressure_count -
-          contact_filter_pressure_count -
+          contact_filter_pressure_count - command_window_pressure_count -
           operational_readiness_pressure_count - operator_training_pressure_count -
           import_readiness_pressure_count - quality_gate_pressure_count -
           timeline_integrity_pressure_count - timeline_dependency_impact_pressure_count -
@@ -2979,6 +2980,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     contact_filter_pressure_penalty =
       -contact_filter_pressure_count * policy.risk_weight
+
+    command_window_pressure_penalty =
+      -command_window_pressure_count * policy.risk_weight
 
     operational_readiness_pressure_penalty =
       -operational_readiness_pressure_count * policy.risk_weight
@@ -3062,8 +3066,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
         feedback_adjustment_score + contact_allocation_pressure_penalty +
         link_capacity_pressure_penalty + contact_intent_pressure_penalty +
         contact_contention_pressure_penalty + operational_readiness_pressure_penalty +
-        contact_filter_pressure_penalty + operator_training_pressure_penalty +
-        import_readiness_pressure_penalty + quality_gate_pressure_penalty +
+        contact_filter_pressure_penalty + command_window_pressure_penalty +
+        operator_training_pressure_penalty + import_readiness_pressure_penalty +
+        quality_gate_pressure_penalty +
         approval_boundary_pressure_penalty +
         timeline_integrity_pressure_penalty + timeline_dependency_impact_pressure_penalty +
         timeline_publication_pressure_penalty +
@@ -3098,6 +3103,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "contact_intent_pressure_penalty" => contact_intent_pressure_penalty,
       "contact_contention_pressure_penalty" => contact_contention_pressure_penalty,
       "contact_filter_pressure_penalty" => contact_filter_pressure_penalty,
+      "command_window_pressure_penalty" => command_window_pressure_penalty,
       "operational_readiness_pressure_penalty" => operational_readiness_pressure_penalty,
       "operator_training_pressure_penalty" => operator_training_pressure_penalty,
       "import_readiness_pressure_penalty" => import_readiness_pressure_penalty,
@@ -3199,6 +3205,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
        do: true
 
   defp contact_filter_pressure_risk?(_risk), do: false
+
+  defp command_window_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &command_window_pressure_risk?/1)
+  end
+
+  defp command_window_pressure_risk?(%{"type" => "command_window_pressure"}), do: true
+  defp command_window_pressure_risk?(_risk), do: false
 
   defp operational_readiness_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &operational_readiness_pressure_risk?/1)
@@ -3734,6 +3747,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     contact_filter_replay =
       CandidateRefresh.contact_filter_replay_summary(candidate_source)
 
+    command_window_replay =
+      CandidateRefresh.command_window_replay_summary(candidate_source)
+
     link_capacity_replay =
       CandidateRefresh.link_capacity_replay_summary(candidate_source)
 
@@ -3792,6 +3808,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       event_risks
     )
     |> maybe_add_candidate_source_contact_filter_risks(contact_filter_replay, event_risks)
+    |> maybe_add_candidate_source_command_window_risks(command_window_replay, event_risks)
     |> maybe_add_candidate_source_link_capacity_risks(link_capacity_replay, event_risks)
     |> maybe_add_candidate_source_station_calendar_risks(station_calendar_replay, event_risks)
     |> maybe_add_candidate_source_operational_readiness_risks(
@@ -3857,6 +3874,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
       risks
     else
       risks ++ contact_filter_replay_pressure_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_command_window_risks(risks, replay_summary, event_risks) do
+    if Enum.any?(event_risks, &(&1["feedback_scope"] == "command_window")) do
+      risks
+    else
+      risks ++ command_window_replay_pressure_risks(replay_summary)
     end
   end
 
@@ -4847,6 +4872,42 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp validation_safety_case_replay_pressure_risks(_replay_summary), do: []
+
+  defp command_window_replay_pressure_risks(
+         %{"branch_local_command_window_pressure" => true} = replay_summary
+       ) do
+    [
+      %{
+        "type" => "command_window_pressure",
+        "severity" => "medium",
+        "reason" =>
+          "candidate source command-window replay reports command feedback, routing, or operator-action pressure",
+        "source_report_count" => Map.get(replay_summary, "source_report_count"),
+        "source_report_row_count" => Map.get(replay_summary, "source_report_row_count"),
+        "source_report_paths" => Map.get(replay_summary, "source_report_paths"),
+        "command_feedback_count" => Map.get(replay_summary, "command_feedback_count"),
+        "input_keys" => Map.get(replay_summary, "input_keys"),
+        "direction_counts" => Map.get(replay_summary, "direction_counts"),
+        "activity_ids_by_direction" => Map.get(replay_summary, "activity_ids_by_direction"),
+        "window_ids_by_direction" => Map.get(replay_summary, "window_ids_by_direction"),
+        "direction_routing" => Map.get(replay_summary, "direction_routing"),
+        "required_operator_action_counts" =>
+          Map.get(replay_summary, "required_operator_action_counts"),
+        "trust_boundary_status" => Map.get(replay_summary, "trust_boundary_status"),
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries"),
+        "branch_local_command_feedback_pressure" =>
+          Map.get(replay_summary, "branch_local_command_feedback_pressure"),
+        "branch_local_command_window_action_pressure" =>
+          Map.get(replay_summary, "branch_local_command_window_action_pressure"),
+        "feedback_source" => "candidate_source.command_window_replay_summary",
+        "feedback_scope" => "command_window",
+        "assumptions" => Map.get(replay_summary, "assumptions")
+      }
+      |> compact_map()
+    ]
+  end
+
+  defp command_window_replay_pressure_risks(_replay_summary), do: []
 
   defp validation_safety_case_replay_scoring_pressure?(replay_summary) do
     Map.get(replay_summary, "branch_local_review_pressure") == true or
@@ -7458,6 +7519,28 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ]
   end
 
+  defp command_window_pressure_risk_fields do
+    [
+      "source_report_count",
+      "source_report_row_count",
+      "source_report_paths",
+      "command_feedback_count",
+      "input_keys",
+      "direction_counts",
+      "activity_ids_by_direction",
+      "window_ids_by_direction",
+      "direction_routing",
+      "required_operator_action_counts",
+      "trust_boundary_status",
+      "trust_boundaries",
+      "branch_local_command_feedback_pressure",
+      "branch_local_command_window_action_pressure",
+      "feedback_source",
+      "feedback_scope",
+      "assumptions"
+    ]
+  end
+
   defp timeline_publication_pressure_risk_fields do
     [
       "publication_id",
@@ -8513,6 +8596,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"contact_intent_pressure", "contact_intent_pressure_penalty"},
         {"contact_contention_pressure", "contact_contention_pressure_penalty"},
         {"contact_filter_pressure", "contact_filter_pressure_penalty"},
+        {"command_window_pressure", "command_window_pressure_penalty"},
         {"operational_readiness_pressure", "operational_readiness_pressure_penalty"},
         {"operator_training_pressure", "operator_training_pressure_penalty"},
         {"import_readiness_pressure", "import_readiness_pressure_penalty"},
@@ -9483,6 +9567,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp recommendation_pressure_risk_context(%{"feedback_scope" => "timeline_publication"} = risk) do
     Map.take(risk, timeline_publication_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"type" => "command_window_pressure"} = risk) do
+    Map.take(risk, command_window_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"feedback_scope" => "command_window"} = risk) do
+    Map.take(risk, command_window_pressure_risk_fields())
   end
 
   defp recommendation_pressure_risk_context(%{"type" => "timeline_lifecycle_state_review"} = risk) do
@@ -48773,6 +48865,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
         risk["type"] == "quality_gate_pressure"
       end)
 
+    command_window_risks =
+      Enum.filter(risk_indicators, fn risk ->
+        risk["type"] == "command_window_pressure"
+      end)
+
     timeline_lifecycle_state_risks =
       Enum.filter(risk_indicators, fn risk ->
         risk["type"] == "timeline_lifecycle_state_review"
@@ -48878,6 +48975,20 @@ defmodule OrbitalDynamics.CampaignPlanner do
         branch_event_unique_values(quality_gate_risks, "blocked_quality_gate_row_ids"),
       "branch_quality_gate_non_passed_row_ids" =>
         branch_event_unique_values(quality_gate_risks, "non_passed_quality_gate_row_ids"),
+      "branch_command_window_source_report_paths" =>
+        branch_event_unique_values(command_window_risks, "source_report_paths"),
+      "branch_command_window_input_keys" =>
+        branch_event_unique_values(command_window_risks, "input_keys"),
+      "branch_command_window_directions" =>
+        branch_event_map_keys(command_window_risks, "direction_counts"),
+      "branch_command_window_activity_ids" =>
+        branch_event_merged_maps(command_window_risks, "activity_ids_by_direction"),
+      "branch_command_window_window_ids" =>
+        branch_event_merged_maps(command_window_risks, "window_ids_by_direction"),
+      "branch_command_window_required_operator_actions" =>
+        branch_event_map_keys(command_window_risks, "required_operator_action_counts"),
+      "branch_command_window_trust_boundaries" =>
+        branch_event_unique_values(command_window_risks, "trust_boundaries"),
       "branch_timeline_lifecycle_state_review_timeline_ids" =>
         branch_event_unique_values(timeline_lifecycle_state_risks, "review_timeline_ids"),
       "branch_timeline_lifecycle_state_review_activity_ids" =>
@@ -48976,6 +49087,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> maybe_put_nonempty("branch_quality_gate_analysis_only_row_ids")
     |> maybe_put_nonempty("branch_quality_gate_blocked_row_ids")
     |> maybe_put_nonempty("branch_quality_gate_non_passed_row_ids")
+    |> maybe_put_nonempty("branch_command_window_source_report_paths")
+    |> maybe_put_nonempty("branch_command_window_input_keys")
+    |> maybe_put_nonempty("branch_command_window_directions")
+    |> maybe_put_nonempty("branch_command_window_activity_ids")
+    |> maybe_put_nonempty("branch_command_window_window_ids")
+    |> maybe_put_nonempty("branch_command_window_required_operator_actions")
+    |> maybe_put_nonempty("branch_command_window_trust_boundaries")
     |> maybe_put_nonempty("branch_timeline_lifecycle_state_review_timeline_ids")
     |> maybe_put_nonempty("branch_timeline_lifecycle_state_review_activity_ids")
     |> maybe_put_nonempty("branch_timeline_lifecycle_state_invalid_activity_input_ids")
@@ -49046,6 +49164,20 @@ defmodule OrbitalDynamics.CampaignPlanner do
       Enum.map(fields, &Map.get(event, &1))
     end)
     |> Enum.flat_map(&List.wrap/1)
+    |> Enum.map(&encode_value/1)
+    |> Enum.filter(&(is_binary(&1) and &1 != ""))
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp branch_event_map_keys(events, field) do
+    events
+    |> Enum.flat_map(fn event ->
+      case Map.get(event, field) do
+        %{} = map -> Map.keys(map)
+        _value -> []
+      end
+    end)
     |> Enum.map(&encode_value/1)
     |> Enum.filter(&(is_binary(&1) and &1 != ""))
     |> Enum.uniq()

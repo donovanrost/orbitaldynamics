@@ -24903,6 +24903,71 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "source_wrapped_command_window_row_boundary"
            ]
 
+    command_window_pressure_count =
+      Enum.count(
+        urgent["risk_indicators"],
+        &(&1["type"] == "command_window_pressure" and
+            &1["feedback_source"] == "candidate_source.command_window_replay_summary")
+      )
+
+    assert command_window_pressure_count == 1
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "command_window_pressure" and
+                 &1["source_report_count"] == 4 and
+                 &1["source_report_row_count"] == 4 and
+                 &1["command_feedback_count"] == 4 and
+                 &1["direction_counts"] == %{
+                   "command" => 2,
+                   "tracking" => 1,
+                   "uplink" => 1
+                 } and
+                 &1["required_operator_action_counts"] == %{
+                   "none" => 1,
+                   "review_command_result" => 1,
+                   "review_command_window" => 2
+                 } and
+                 &1["trust_boundaries"] == replay_trust_boundaries and
+                 &1["assumptions"]["command_execution"] == "not_performed_by_summary")
+           )
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    assert urgent["score_terms"]["command_window_pressure_penalty"] ==
+             -command_window_pressure_count * risk_weight
+
+    assert "command_window_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == "urgent" and
+                 &1["term_key"] == "command_window_pressure_penalty" and &1["value"] < 0.0)
+           )
+
+    urgent_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+
+    assert "command_window_pressure" in urgent_row["risk_types"]
+
+    assert urgent_row["branch_command_window_source_report_paths"] == [
+             "mission_state.command_window_report",
+             "mission_state.result_artifact.source_command_window_report",
+             "mission_state.source_command_window_report",
+             "mission_state.source_result_artifact.command_window_report"
+           ]
+
+    assert urgent_row["branch_command_window_directions"] == ["command", "tracking", "uplink"]
+
+    assert urgent_row["branch_command_window_required_operator_actions"] == [
+             "none",
+             "review_command_result",
+             "review_command_window"
+           ]
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end

@@ -430,13 +430,13 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
     surface = strategy_golden_surface(strategy)
 
     assert %{
-           "schema_version" => 3,
-           "planner" => "OrbitalDynamics.CampaignPlanner.V3",
-           "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
-           "strategy_id" => "7fa2c33294b3d1b652f54b88dd879be6e2304cbb8cb011d8dc2fdbd364b7222e",
-           "recommended_branch_id" => "derived_urgent_target_target_hot",
-           "approval_status" => "operator_review_required",
-           "recommendation_status" => "pass"
+             "schema_version" => 3,
+             "planner" => "OrbitalDynamics.CampaignPlanner.V3",
+             "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
+             "strategy_id" => "db20a55dd0b1d045a73a82494f0f3e8981d17b5e19e07f1ef95fd41e84f99c67",
+             "recommended_branch_id" => "derived_urgent_target_target_hot",
+             "approval_status" => "operator_review_required",
+             "recommendation_status" => "pass"
            } = surface
 
     assert length(surface["branch_ids"]) == 27
@@ -478,7 +478,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "pressure_row_count",
              "selected_pressure_row_count"
            ]) == %{
-             "row_count" => 1215,
+             "row_count" => 1242,
              "score_term_keys" => [
                "approval_boundary_pressure_penalty",
                "approval_load_penalty",
@@ -486,6 +486,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
                "battery_depletion_pressure_penalty",
                "branch_probability",
                "candidate_rejection_pressure_penalty",
+               "command_window_pressure_penalty",
                "contact_allocation_pressure_penalty",
                "contact_contention_pressure_penalty",
                "contact_filter_pressure_penalty",
@@ -526,8 +527,8 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
                "timeline_transition_application_pressure_penalty",
                "validation_refresh_pressure_penalty"
              ],
-             "pressure_row_count" => 783,
-             "selected_pressure_row_count" => 29
+             "pressure_row_count" => 810,
+             "selected_pressure_row_count" => 30
            }
 
     assert surface["objective_tradeoff_report"]["ranking_count"] == 27
@@ -539,9 +540,9 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "score_term_review_count",
              "objective_tradeoff_review_count"
            ]) == %{
-             "review_count" => 1833,
+             "review_count" => 1861,
              "contact_allocation_review_count" => 25,
-             "score_term_review_count" => 1296,
+             "score_term_review_count" => 1323,
              "objective_tradeoff_review_count" => 54
            }
 
@@ -551,8 +552,8 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "review_required_count",
              "contact_allocation_import_count"
            ]) == %{
-             "row_count" => 1859,
-             "review_required_count" => 1833,
+             "row_count" => 1887,
+             "review_required_count" => 1861,
              "contact_allocation_import_count" => 25
            }
   end
@@ -821,6 +822,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
     review_package = Map.fetch!(repair, "operator_review_package")
     cadence_import_manifest = Map.fetch!(repair, "cadence_import_manifest")
     manifest_rows = cadence_import_manifest["rows"] || []
+
     candidate_rejection_import_rows =
       Enum.filter(manifest_rows, &(&1["source_review_type"] == "candidate_rejection_review"))
 
