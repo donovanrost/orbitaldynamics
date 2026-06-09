@@ -18515,6 +18515,40 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                   "antenna_unavailable",
                   "payload_unavailable"
                 ]
+              },
+              %{
+                type: "provider_counteroffer_pressure",
+                provider_counteroffer_id: "provider_offer_urgent",
+                provider_counteroffer_status: "proposed",
+                provider_counteroffer_negotiation_state: "proposed",
+                provider_counteroffer_reason_code: "provider_shifted_window",
+                provider_counteroffer_cost_delta: 125.5,
+                provider_counteroffer_lock_deadline_s: 150.0,
+                provider_counteroffer_starts_at_s: 530.0,
+                provider_counteroffer_ends_at_s: 590.0,
+                provider_counteroffer_start_delta_s: 30.0,
+                provider_counteroffer_end_delta_s: 30.0,
+                provider_counteroffer_duration_delta_s: 0.0,
+                plan_impact_status: "review_required",
+                affected_station_calendar_entry_ids: ["contact_original"],
+                affected_provider_entry_ids: ["partner_entry_42"],
+                impact_counteroffer_ids: ["provider_offer_urgent"],
+                ground_station_id: "equator_prime",
+                starts_at_s: 500.0,
+                ends_at_s: 560.0,
+                station_calendar_entry_id: "contact_original",
+                station_calendar_provider_id: "partner_calendar",
+                station_calendar_provider_entry_id: "partner_entry_42",
+                station_availability: "counteroffer",
+                required_operator_action: "review_provider_counteroffer",
+                feedback_source: "mission_state.source_provider_counteroffer_report.rows",
+                feedback_scope: "provider_counteroffer",
+                feedback_key: "provider_offer_urgent",
+                trust_boundary: "mission_state_provider_counteroffer_report",
+                source_provider_counteroffer: %{
+                  "provider_counteroffer_id" => "provider_offer_urgent",
+                  "required_operator_action" => "review_provider_counteroffer"
+                }
               }
             ]
           }
@@ -18580,6 +18614,48 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                explanation,
                &(&1["type"] == "risk_driver" and &1["risk_type"] == "quality_gate_pressure")
              )
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "provider_counteroffer_pressure",
+             "severity" => "medium",
+             "provider_counteroffer_id" => "provider_offer_urgent",
+             "provider_counteroffer_status" => "proposed",
+             "provider_counteroffer_negotiation_state" => "proposed",
+             "provider_counteroffer_reason_code" => "provider_shifted_window",
+             "provider_counteroffer_cost_delta" => 125.5,
+             "provider_counteroffer_lock_deadline_s" => 150.0,
+             "provider_counteroffer_starts_at_s" => 530.0,
+             "provider_counteroffer_ends_at_s" => 590.0,
+             "provider_counteroffer_start_delta_s" => 30.0,
+             "provider_counteroffer_end_delta_s" => 30.0,
+             "provider_counteroffer_duration_delta_s" => duration_delta_s,
+             "plan_impact_status" => "review_required",
+             "affected_station_calendar_entry_ids" => ["contact_original"],
+             "affected_provider_entry_ids" => ["partner_entry_42"],
+             "impact_counteroffer_ids" => ["provider_offer_urgent"],
+             "ground_station_id" => "equator_prime",
+             "station_calendar_entry_id" => "contact_original",
+             "station_calendar_provider_id" => "partner_calendar",
+             "station_calendar_provider_entry_id" => "partner_entry_42",
+             "station_availability" => "counteroffer",
+             "required_operator_action" => "review_provider_counteroffer",
+             "feedback_source" => "mission_state.source_provider_counteroffer_report.rows",
+             "feedback_scope" => "provider_counteroffer",
+             "feedback_key" => "provider_offer_urgent",
+             "trust_boundary" => "mission_state_provider_counteroffer_report",
+             "source_provider_counteroffer" => %{
+               "provider_counteroffer_id" => "provider_offer_urgent",
+               "required_operator_action" => "review_provider_counteroffer"
+             }
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "provider_counteroffer_pressure")
+             )
+
+    assert duration_delta_s == 0.0
 
     assert %{
              "type" => "operational_readiness_pressure",
@@ -18676,6 +18752,30 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "quality_gate_resource_availability_reason_ids" => [
         "antenna_unavailable",
         "payload_unavailable"
+      ],
+      "provider_counteroffer_ids" => ["provider_offer_urgent"],
+      "provider_counteroffer_statuses" => ["proposed"],
+      "provider_counteroffer_negotiation_states" => ["proposed"],
+      "provider_counteroffer_reason_codes" => ["provider_shifted_window"],
+      "provider_counteroffer_cost_deltas" => [125.5],
+      "provider_counteroffer_lock_deadline_values_s" => [150.0],
+      "provider_counteroffer_starts_at_values_s" => [530.0],
+      "provider_counteroffer_ends_at_values_s" => [590.0],
+      "provider_counteroffer_start_delta_values_s" => [30.0],
+      "provider_counteroffer_end_delta_values_s" => [30.0],
+      "provider_counteroffer_duration_delta_values_s" => [0.0],
+      "provider_counteroffer_plan_impact_statuses" => ["review_required"],
+      "provider_counteroffer_affected_station_calendar_entry_ids" => ["contact_original"],
+      "provider_counteroffer_affected_provider_entry_ids" => ["partner_entry_42"],
+      "provider_counteroffer_impact_counteroffer_ids" => ["provider_offer_urgent"],
+      "provider_counteroffer_required_operator_actions" => ["review_provider_counteroffer"],
+      "provider_counteroffer_feedback_sources" => [
+        "mission_state.source_provider_counteroffer_report.rows"
+      ],
+      "provider_counteroffer_feedback_scopes" => ["provider_counteroffer"],
+      "provider_counteroffer_feedback_keys" => ["provider_offer_urgent"],
+      "provider_counteroffer_trust_boundaries" => [
+        "mission_state_provider_counteroffer_report"
       ]
     }
 

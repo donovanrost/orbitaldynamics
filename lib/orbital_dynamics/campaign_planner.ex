@@ -4419,6 +4419,22 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ]
   end
 
+  defp event_risk_indicators(%{"type" => "provider_counteroffer_pressure"} = event) do
+    [
+      event
+      |> Map.take(provider_counteroffer_pressure_risk_fields())
+      |> Map.merge(%{
+        "type" => "provider_counteroffer_pressure",
+        "severity" => event["severity"] || "medium",
+        "reason" =>
+          event["provider_counteroffer_reason"] ||
+            event["reason"] ||
+            "provider counteroffer requires operator review before schedule import"
+      })
+      |> compact_map()
+    ]
+  end
+
   defp event_risk_indicators(%{"type" => "approval_boundary_pressure"} = event) do
     [
       event
@@ -5596,6 +5612,39 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ]
   end
 
+  defp provider_counteroffer_pressure_risk_fields do
+    [
+      "provider_counteroffer_id",
+      "provider_counteroffer_status",
+      "provider_counteroffer_negotiation_state",
+      "provider_counteroffer_reason_code",
+      "provider_counteroffer_cost_delta",
+      "provider_counteroffer_lock_deadline_s",
+      "provider_counteroffer_starts_at_s",
+      "provider_counteroffer_ends_at_s",
+      "provider_counteroffer_start_delta_s",
+      "provider_counteroffer_end_delta_s",
+      "provider_counteroffer_duration_delta_s",
+      "plan_impact_status",
+      "affected_station_calendar_entry_ids",
+      "affected_provider_entry_ids",
+      "impact_counteroffer_ids",
+      "ground_station_id",
+      "starts_at_s",
+      "ends_at_s",
+      "station_calendar_entry_id",
+      "station_calendar_provider_id",
+      "station_calendar_provider_entry_id",
+      "station_availability",
+      "required_operator_action",
+      "feedback_source",
+      "feedback_scope",
+      "feedback_key",
+      "trust_boundary",
+      "source_provider_counteroffer"
+    ]
+  end
+
   defp approval_boundary_pressure_risk_fields do
     [
       "approval_boundary",
@@ -6587,6 +6636,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp recommendation_pressure_risk_context(%{"type" => "quality_gate_pressure"} = risk) do
     Map.take(risk, quality_gate_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"feedback_scope" => "provider_counteroffer"} = risk) do
+    Map.take(risk, provider_counteroffer_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"type" => "provider_counteroffer_review"} = risk) do
+    Map.take(risk, provider_counteroffer_pressure_risk_fields())
   end
 
   defp recommendation_pressure_risk_context(_risk), do: %{}

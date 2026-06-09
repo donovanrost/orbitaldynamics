@@ -16033,6 +16033,14 @@ defmodule OrbitalDynamics.OperatorReview do
   defp strategy_recommendation_risk_context(%{"risks_remaining" => risks}) when is_list(risks) do
     risks = Enum.map(risks, &stringify_keys/1)
 
+    provider_counteroffer_risks =
+      Enum.filter(
+        risks,
+        &(Map.get(&1, "feedback_scope") == "provider_counteroffer" or
+            Map.get(&1, "type") == "provider_counteroffer_review" or
+            Map.has_key?(&1, "provider_counteroffer_id"))
+      )
+
     %{
       "risk_types" => risk_context_values(risks, "type"),
       "activity_ids" =>
@@ -16122,7 +16130,50 @@ defmodule OrbitalDynamics.OperatorReview do
       "resource_pressure_statuses" => risk_context_values(risks, "resource_pressure_status"),
       "resource_pressure_types" => risk_context_values(risks, ["resource_pressure_types"]),
       "first_resource_pressure_kinds" =>
-        risk_context_values(risks, "first_resource_pressure_kind")
+        risk_context_values(risks, "first_resource_pressure_kind"),
+      "provider_counteroffer_ids" =>
+        risk_context_values(provider_counteroffer_risks, "provider_counteroffer_id"),
+      "provider_counteroffer_statuses" =>
+        risk_context_values(provider_counteroffer_risks, "provider_counteroffer_status"),
+      "provider_counteroffer_negotiation_states" =>
+        risk_context_values(
+          provider_counteroffer_risks,
+          "provider_counteroffer_negotiation_state"
+        ),
+      "provider_counteroffer_reason_codes" =>
+        risk_context_values(provider_counteroffer_risks, "provider_counteroffer_reason_code"),
+      "provider_counteroffer_cost_deltas" =>
+        risk_context_values(provider_counteroffer_risks, "provider_counteroffer_cost_delta"),
+      "provider_counteroffer_lock_deadline_values_s" =>
+        risk_context_values(provider_counteroffer_risks, "provider_counteroffer_lock_deadline_s"),
+      "provider_counteroffer_starts_at_values_s" =>
+        risk_context_values(provider_counteroffer_risks, "provider_counteroffer_starts_at_s"),
+      "provider_counteroffer_ends_at_values_s" =>
+        risk_context_values(provider_counteroffer_risks, "provider_counteroffer_ends_at_s"),
+      "provider_counteroffer_start_delta_values_s" =>
+        risk_context_values(provider_counteroffer_risks, "provider_counteroffer_start_delta_s"),
+      "provider_counteroffer_end_delta_values_s" =>
+        risk_context_values(provider_counteroffer_risks, "provider_counteroffer_end_delta_s"),
+      "provider_counteroffer_duration_delta_values_s" =>
+        risk_context_values(provider_counteroffer_risks, "provider_counteroffer_duration_delta_s"),
+      "provider_counteroffer_plan_impact_statuses" =>
+        risk_context_values(provider_counteroffer_risks, "plan_impact_status"),
+      "provider_counteroffer_affected_station_calendar_entry_ids" =>
+        risk_context_values(provider_counteroffer_risks, ["affected_station_calendar_entry_ids"]),
+      "provider_counteroffer_affected_provider_entry_ids" =>
+        risk_context_values(provider_counteroffer_risks, ["affected_provider_entry_ids"]),
+      "provider_counteroffer_impact_counteroffer_ids" =>
+        risk_context_values(provider_counteroffer_risks, ["impact_counteroffer_ids"]),
+      "provider_counteroffer_required_operator_actions" =>
+        risk_context_values(provider_counteroffer_risks, "required_operator_action"),
+      "provider_counteroffer_feedback_sources" =>
+        risk_context_values(provider_counteroffer_risks, "feedback_source"),
+      "provider_counteroffer_feedback_scopes" =>
+        risk_context_values(provider_counteroffer_risks, "feedback_scope"),
+      "provider_counteroffer_feedback_keys" =>
+        risk_context_values(provider_counteroffer_risks, "feedback_key"),
+      "provider_counteroffer_trust_boundaries" =>
+        risk_context_values(provider_counteroffer_risks, "trust_boundary")
     }
     |> Enum.reject(fn {_key, values} -> values == [] end)
     |> Map.new()
