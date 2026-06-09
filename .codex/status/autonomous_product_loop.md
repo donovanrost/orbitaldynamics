@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Route schema-validation summary pressure into validation score terms.
+Split import-readiness strategy pressure score terms.
 
 Status:
 Completed and pushed.
@@ -17,6 +17,8 @@ Files changed:
 - `test/orbital_dynamics/campaign_planner_test.exs`
 
 Tests run:
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:44384`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:44657`
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:44159`
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:43940`
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:43668`
@@ -25,20 +27,20 @@ Tests run:
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-V3 strategy scoring now routes schema-validation quality-gate summary risks
-into `validation_refresh_pressure_penalty` and keeps those risks out of broad
-`quality_gate_pressure_penalty`. Compatibility docs record the validation
-score-term route.
+V3 strategy scoring now emits `import_readiness_pressure_penalty` for
+import-readiness quality-gate risks and keeps those risks out of broad
+`quality_gate_pressure_penalty`. Compatibility docs record the score-term
+split for freshness, import-preparation, and blocked-import evidence.
 
 Local review:
 Parent review confirmed staged scope, score-term classification, score-term
-report rows, focused schema/operator/generic quality-gate regressions, docs,
-and verification. `.gitignore` remains unrelated and unstaged.
+report rows, focused import/schema/operator/generic quality-gate regressions,
+docs, and verification. `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Schema-validation readiness evidence is now planner-visible in reproducible V3
-branch score explanations under the validation score-term family instead of a
-generic quality-gate bucket.
+Cadence import-readiness pressure is now planner-visible in reproducible V3
+branch score explanations instead of being hidden in a generic quality-gate
+bucket.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -48,7 +50,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`a2e5c9c` Route schema validation score pressure.
+`e1b2858` Split import readiness score pressure.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -61,6 +63,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `e1b2858` split import-readiness quality-gate pressure into a dedicated V3
+  strategy score term.
 - `a2e5c9c` routed schema-validation quality-gate summary risks into the V3
   validation-refresh pressure score term.
 - `78da141` split operator-training quality-gate pressure into a dedicated V3
