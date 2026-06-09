@@ -5,75 +5,71 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Expose reservation-conflict identities in branch comparison rows.
+Split contact-allocation pressure out of generic V3 risk scoring.
 
 Status:
-Published locally in product commit `ae950a5`; handoff commit pending.
+Published locally in product commit `7dd93f5`; handoff commit pending.
 
 Slice-selection note:
-- Selected slice: add branch-comparison fields for contact/reservation IDs whose
-  station-reservation match status indicates an overlap, conflict, unmatched, or
-  owner-mismatch condition.
-- Why this slice: the roadmap prioritizes making resource/contact pressure
-  directly visible in branch score explanations; generic reservation IDs and
-  match statuses are present, but conflict-specific routing is not separated for
-  adapter-facing review.
+- Selected slice: split contact-allocation pressure risk out of the generic V3
+  `risk_penalty` score term into an explicit score term while preserving the
+  same total score for fixed inputs.
+- Why this slice: the roadmap prioritizes converting existing resource/contact
+  review evidence into planner-visible branch score explanations; live code
+  already routes contact-allocation risks, but their score effect is hidden in
+  generic risk count.
 - Level 6 pillar: fleet-level resource/contact behavior and reproducible V3
   branch trees with explainable score terms and deltas.
-- Current evidence gap: `contact_allocation_reservation_conflict_summary.v1`
-  already flows into V3 pressure branches, but branch comparison rows expose
-  only generic `branch_station_reservation_*` fields, making conflict contact
-  routing less explicit than CandidateRefresh replay and quality-gate routing.
+- Current evidence gap: `downlink_completion_gap` and provider-reservation
+  review risks affect branch score only through `risk_penalty`; score-term
+  reports and tradeoffs do not isolate contact-allocation pressure.
 - Docs read:
   `docs/autonomous_work_guide.md`,
   `.codex/prompts/long_running_context_efficient_product_loop.md`,
+  `docs/feature_set/completeness_levels/06_mature_operational_platform.md`,
+  `docs/feature_set/definition_of_feature_complete.md`,
+  `docs/feature_set/current_capability_snapshot.md`,
   `docs/feature_set/recommended_roadmap.md`,
   `docs/feature_set/capability_map/07_ground_network_and_communications_planning.md`,
-  `docs/artifacts/field_families/candidate_refresh_artifact.md`.
+  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`.
 - Likely files: `lib/orbital_dynamics/campaign_planner.ex`,
-  `lib/orbital_dynamics/schema.ex`,
   `test/orbital_dynamics/campaign_planner_test.exs`,
-  `test/orbital_dynamics/schema_test.exs`,
-  `schemas/*.schema.json`,
+  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
   `.codex/status/autonomous_product_loop.md`.
-- Definition of done: branch comparison rows expose conflict contact IDs,
-  reservation IDs, and match statuses for reservation-conflict pressure; schema
-  validation/export surfaces the optional fields; focused planner/schema tests,
-  schema export/lint, compile, and whitespace checks pass.
+- Definition of done: contact-allocation pressure contributes an explicit V3
+  score term and score-term report key; generic risk penalty excludes those
+  same risks so total score remains compatible; focused planner tests, compile,
+  and whitespace checks pass.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `lib/orbital_dynamics/campaign_planner.ex`
-- `lib/orbital_dynamics/schema.ex`
 - `test/orbital_dynamics/campaign_planner_test.exs`
-- `test/orbital_dynamics/schema_test.exs`
-- `schemas/*.schema.json` branch-comparison export dependents
-- `schemas/orbital_dynamics.schema_bundle.v1.json`
+- `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:40973 test/orbital_dynamics/schema_test.exs:24696`
-- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `mix orbital_dynamics.schema.lint --all`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:17852 test/orbital_dynamics/campaign_planner_test.exs:40872 test/orbital_dynamics/campaign_planner_test.exs:41000 test/orbital_dynamics/campaign_planner_test.exs:41247`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- Checked-in schema exports refreshed for `branch_comparison_report.v1` and
-  top-level exports that embed the updated branch-comparison row shape.
+- Documented `contact_allocation_pressure_penalty` in the V3 strategy
+  orchestration capability notes.
 
 Local review:
-Branch comparison rows now derive conflict-specific contact IDs, reservation
-IDs, and match statuses from events whose station-reservation match status is
-not matched/owned. Generic reservation fields remain unchanged, while conflict
-fields stay absent for matched owner rows. Focused planner coverage asserts the
-fields for a reservation-conflict summary branch, and schema coverage pins the
-new optional arrays. Read-only reviewer `Boyle` found that mixed matched plus
-conflict status aliases could leak matched values into the conflict-status
-field; the collector now filters individual status values, and the focused test
-adds a matched alias regression.
+- V3 strategy score terms now split contact-allocation pressure into
+  `contact_allocation_pressure_penalty`, while `risk_penalty` retains
+  non-contact-allocation risks. Raw score still applies one `risk_weight`
+  penalty per risk indicator, preserving total branch-score compatibility for
+  fixed inputs. Focused tests assert exact contact risk counts, exact split
+  penalties, score-term report rows/keys, non-contact branches with zero
+  contact pressure, and the new recommendation tradeoff dimension. Read-only
+  reviewer `Darwin` found that compatibility-sum assertions alone would not
+  catch over-broad contact classification; tests were tightened accordingly.
 
 Level 6 pillar advanced:
-Planner-visible resource/contact reservation-conflict explanation.
+Planner-visible resource/contact score explanations without ranking drift.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -83,11 +79,11 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`ae950a5` Expose reservation conflict branch comparison fields.
+`7dd93f5` Split contact allocation pressure score term.
 
 Next candidate:
-After this slice, inspect whether resource/contact pressure should influence
-candidate ranking more directly or whether another compatibility fixture is
+After this slice, inspect whether the same score-term split is useful for
+readiness/quality-gate pressure or whether a compatibility fixture is
 higher-value.
 
 Unrelated local changes:
@@ -95,6 +91,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `ae950a5` exposed reservation-conflict identities in branch comparison rows.
 - `eae9483` derived operational-readiness gate pressure classification from
   row-local status.
 - `110ba8e` hardened timeline-preservation pressure status against stale
