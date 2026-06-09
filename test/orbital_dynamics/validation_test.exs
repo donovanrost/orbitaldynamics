@@ -6003,6 +6003,69 @@ defmodule OrbitalDynamics.ValidationTest do
              Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
   end
 
+  test "verifies candidate refresh refresh-budget replay fixtures" do
+    fixture_id = "fixture.artifact.candidate_refresh.refresh_budget_replay"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = candidate_refresh_refresh_budget_fixture()
+    observations = candidate_refresh_refresh_budget_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "source_report_family_count" => 1,
+             "source_report_row_count" => 2,
+             "source_refresh_budget_report_count" => 2,
+             "source_refresh_budget_row_count" => 2,
+             "source_refresh_budget_path_keys" =>
+               "source_refresh_budget_report[0]|source_refresh_budget_report[1]",
+             "source_refresh_budget_input_candidate_count" => 5,
+             "source_refresh_budget_kept_candidate_count" => 3,
+             "source_refresh_budget_dropped_candidate_count" => 2,
+             "source_refresh_budget_invalid_candidate_limit_policy_count" => 1,
+             "source_refresh_budget_invalid_candidate_limit_policy_reason_counts" => %{
+               "max_candidate_activities_must_be_integer" => 1
+             },
+             "source_refresh_budget_kept_candidate_id_keys" =>
+               "candidate_a|candidate_b|candidate_e",
+             "source_refresh_budget_dropped_candidate_id_keys" => "candidate_c|candidate_d",
+             "source_refresh_budget_trust_boundary_status" => "declared",
+             "source_refresh_budget_branch_local_budget_pressure" => true,
+             "source_refresh_budget_branch_local_dropped_candidate_pressure" => true,
+             "source_refresh_budget_branch_local_invalid_limit_pressure" => true,
+             "source_refresh_budget_branch_local_candidate_limit_applied" => true
+           } = observations
+
+    stale_budget_pressure_observations =
+      observations
+      |> Map.put("source_refresh_budget_branch_local_budget_pressure", false)
+
+    assert {:ok, stale_budget_pressure_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_budget_pressure_observations
+             )
+
+    assert stale_budget_pressure_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_budget_pressure_verification["checks"],
+             &(&1["field"] == "source_refresh_budget_branch_local_budget_pressure" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _validated_artifact} =
+             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
+  end
+
   test "verifies curated candidate rejection report reference fixtures" do
     fixture_id = "fixture.artifact.candidate_rejection_report.v1"
 
@@ -14908,6 +14971,8 @@ defmodule OrbitalDynamics.ValidationTest do
           candidate_refresh_objective_gap_fixture_observations(),
         "fixture.artifact.candidate_refresh.quality_gate_replay" =>
           candidate_refresh_quality_gate_fixture_observations(),
+        "fixture.artifact.candidate_refresh.refresh_budget_replay" =>
+          candidate_refresh_refresh_budget_fixture_observations(),
         "fixture.artifact.candidate_refresh.resource_filter_replay" =>
           candidate_refresh_resource_filter_fixture_observations(),
         "fixture.artifact.candidate_refresh.resource_provenance_v1" =>
@@ -15195,8 +15260,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 192,
-             "status_counts" => %{"pass" => 192},
+             "fixture_count" => 193,
+             "status_counts" => %{"pass" => 193},
              "reports" => reports
            } = report
 
@@ -15238,6 +15303,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.candidate_refresh.objective_gap_replay",
              "fixture.artifact.candidate_refresh.operational_readiness_replay",
              "fixture.artifact.candidate_refresh.quality_gate_replay",
+             "fixture.artifact.candidate_refresh.refresh_budget_replay",
              "fixture.artifact.candidate_refresh.resource_filter_replay",
              "fixture.artifact.candidate_refresh.resource_projection_replay",
              "fixture.artifact.candidate_refresh.resource_provenance_v1",
@@ -15415,7 +15481,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 192},
+             "status_counts" => %{"fail" => 193},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -16780,6 +16846,64 @@ defmodule OrbitalDynamics.ValidationTest do
           "freshness_status" => "unknown",
           "unknown_reasons" => ["missing_generated_at"],
           "provenance" => %{"trust_boundary" => "ops_freshness"}
+        }
+      ]
+    }
+  end
+
+  defp candidate_refresh_refresh_budget_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(candidate_refresh_refresh_budget_fixture())
+  end
+
+  defp candidate_refresh_refresh_budget_fixture do
+    result_set(%{})
+    |> CandidateRefresh.build(
+      candidate_refresh: candidate_refresh_refresh_budget_request(),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  defp candidate_refresh_refresh_budget_request do
+    %{
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-refresh-budget-replay-challenge",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [],
+        "source" => %{"system" => "validation_challenge"},
+        "quality" => %{"level" => "accepted"},
+        "provenance" => %{"created_by" => "validation_fixture"}
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "targets" => [],
+      "constraints" => %{},
+      "scoring_policy" => %{},
+      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
+      "source_refresh_budget_report" => [
+        %{
+          "schema_contract" => "refresh_budget_report.v1",
+          "input_candidate_count" => 4,
+          "kept_candidate_count" => 2,
+          "dropped_candidate_count" => 2,
+          "kept_candidate_ids" => ["candidate_a", "candidate_b"],
+          "dropped_candidate_ids" => ["candidate_c", "candidate_d"],
+          "provenance" => %{"trust_boundary" => "ops_refresh_budget"}
+        },
+        %{
+          "schema_contract" => "refresh_budget_report.v1",
+          "input_candidate_count" => 1,
+          "kept_candidate_count" => 1,
+          "dropped_candidate_count" => 0,
+          "invalid_candidate_limit_policy" => true,
+          "invalid_candidate_limit_policy_reason" => "max_candidate_activities_must_be_integer",
+          "kept_candidate_ids" => ["candidate_e"],
+          "dropped_candidate_ids" => [],
+          "provenance" => %{"trust_boundary" => "ops_refresh_budget"}
         }
       ]
     }

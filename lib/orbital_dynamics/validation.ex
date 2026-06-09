@@ -1762,6 +1762,72 @@ defmodule OrbitalDynamics.Validation do
         "checks candidate-refresh replay of freshness provenance without refresh mutation, import approval, or Cadence writes"
       ]
     },
+    "fixture.artifact.candidate_refresh.refresh_budget_replay" => %{
+      "id" => "fixture.artifact.candidate_refresh.refresh_budget_replay",
+      "model_id" => "artifact.candidate_refresh.v1",
+      "reference_case" =>
+        "generated candidate refresh replay of refresh-budget source-report provenance",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "source" => "generated_candidate_refresh_refresh_budget_fixture",
+        "contract" => "candidate_refresh.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "candidate_refresh.v1",
+        "schema_version" => 1,
+        "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 1,
+        "source_report_row_count" => 2,
+        "source_refresh_budget_report_count" => 2,
+        "source_refresh_budget_row_count" => 2,
+        "source_refresh_budget_path_keys" =>
+          "source_refresh_budget_report[0]|source_refresh_budget_report[1]",
+        "source_refresh_budget_input_candidate_count" => 5,
+        "source_refresh_budget_kept_candidate_count" => 3,
+        "source_refresh_budget_dropped_candidate_count" => 2,
+        "source_refresh_budget_invalid_candidate_limit_policy_count" => 1,
+        "source_refresh_budget_invalid_candidate_limit_policy_reason_counts" => %{
+          "max_candidate_activities_must_be_integer" => 1
+        },
+        "source_refresh_budget_kept_candidate_id_keys" => "candidate_a|candidate_b|candidate_e",
+        "source_refresh_budget_dropped_candidate_id_keys" => "candidate_c|candidate_d",
+        "source_refresh_budget_trust_boundary_status" => "declared",
+        "source_refresh_budget_branch_local_budget_pressure" => true,
+        "source_refresh_budget_branch_local_dropped_candidate_pressure" => true,
+        "source_refresh_budget_branch_local_invalid_limit_pressure" => true,
+        "source_refresh_budget_branch_local_candidate_limit_applied" => true
+      },
+      "tolerances" => %{
+        "schema_version" => 0,
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 0,
+        "source_report_row_count" => 0,
+        "source_refresh_budget_report_count" => 0,
+        "source_refresh_budget_row_count" => 0,
+        "source_refresh_budget_input_candidate_count" => 0,
+        "source_refresh_budget_kept_candidate_count" => 0,
+        "source_refresh_budget_dropped_candidate_count" => 0,
+        "source_refresh_budget_invalid_candidate_limit_policy_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal generated artifact regression, not refresh-budget policy validation",
+        "checks candidate-refresh replay of refresh-budget provenance without refresh mutation, import approval, or Cadence writes"
+      ]
+    },
     "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay" => %{
       "id" => "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay",
       "model_id" => "artifact.candidate_refresh.v1",
@@ -14867,6 +14933,7 @@ defmodule OrbitalDynamics.Validation do
     constraint_summary = Map.get(source_reports, "constraint_report") || %{}
     freshness_summary = Map.get(source_reports, "freshness_report") || %{}
     link_capacity_summary = Map.get(source_reports, "link_capacity_report") || %{}
+    refresh_budget_summary = Map.get(source_reports, "refresh_budget_report") || %{}
     resource_filter_summary = Map.get(source_reports, "resource_filter_report") || %{}
 
     objective_satisfaction_summary =
@@ -15070,6 +15137,43 @@ defmodule OrbitalDynamics.Validation do
         freshness_branch_local_unknown_pressure?(freshness_summary),
       "source_freshness_branch_local_freshness_pressure" =>
         freshness_branch_local_freshness_pressure?(freshness_summary),
+      "source_refresh_budget_report_count" => Map.get(refresh_budget_summary, "count"),
+      "source_refresh_budget_row_count" => Map.get(refresh_budget_summary, "row_count"),
+      "source_refresh_budget_path_keys" =>
+        refresh_budget_summary
+        |> list_values("paths")
+        |> Enum.join("|")
+        |> normalize_optional_string(),
+      "source_refresh_budget_input_candidate_count" =>
+        Map.get(refresh_budget_summary, "input_candidate_count"),
+      "source_refresh_budget_kept_candidate_count" =>
+        Map.get(refresh_budget_summary, "kept_candidate_count"),
+      "source_refresh_budget_dropped_candidate_count" =>
+        Map.get(refresh_budget_summary, "dropped_candidate_count"),
+      "source_refresh_budget_invalid_candidate_limit_policy_count" =>
+        Map.get(refresh_budget_summary, "invalid_candidate_limit_policy_count"),
+      "source_refresh_budget_invalid_candidate_limit_policy_reason_counts" =>
+        Map.get(refresh_budget_summary, "invalid_candidate_limit_policy_reason_counts") || %{},
+      "source_refresh_budget_kept_candidate_id_keys" =>
+        refresh_budget_summary
+        |> list_values("kept_candidate_ids")
+        |> Enum.join("|")
+        |> normalize_optional_string(),
+      "source_refresh_budget_dropped_candidate_id_keys" =>
+        refresh_budget_summary
+        |> list_values("dropped_candidate_ids")
+        |> Enum.join("|")
+        |> normalize_optional_string(),
+      "source_refresh_budget_trust_boundary_status" =>
+        Map.get(refresh_budget_summary, "trust_boundary_status"),
+      "source_refresh_budget_branch_local_budget_pressure" =>
+        refresh_budget_branch_local_budget_pressure?(refresh_budget_summary),
+      "source_refresh_budget_branch_local_dropped_candidate_pressure" =>
+        refresh_budget_branch_local_dropped_candidate_pressure?(refresh_budget_summary),
+      "source_refresh_budget_branch_local_invalid_limit_pressure" =>
+        refresh_budget_branch_local_invalid_limit_pressure?(refresh_budget_summary),
+      "source_refresh_budget_branch_local_candidate_limit_applied" =>
+        refresh_budget_branch_local_candidate_limit_applied?(refresh_budget_summary),
       "source_contact_intent_report_count" => Map.get(contact_intent_summary, "count"),
       "source_contact_intent_row_count" => Map.get(contact_intent_summary, "row_count"),
       "source_contact_intent_station_feedback_count" =>
@@ -22107,6 +22211,33 @@ defmodule OrbitalDynamics.Validation do
   defp freshness_branch_local_freshness_pressure?(%{} = summary) do
     freshness_branch_local_stale_pressure?(summary) or
       freshness_branch_local_unknown_pressure?(summary)
+  end
+
+  defp refresh_budget_branch_local_budget_pressure?(%{} = summary) do
+    refresh_budget_branch_local_dropped_candidate_pressure?(summary) or
+      refresh_budget_branch_local_invalid_limit_pressure?(summary) or
+      refresh_budget_branch_local_candidate_limit_applied?(summary)
+  end
+
+  defp refresh_budget_branch_local_dropped_candidate_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "dropped_candidate_count") or
+      list_values(summary, "dropped_candidate_ids") != []
+  end
+
+  defp refresh_budget_branch_local_invalid_limit_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "invalid_candidate_limit_policy_count") or
+      map_size(Map.get(summary, "invalid_candidate_limit_policy_reason_counts") || %{}) > 0
+  end
+
+  defp refresh_budget_branch_local_candidate_limit_applied?(%{} = summary) do
+    input_candidate_count =
+      integer_observation_value(Map.get(summary, "input_candidate_count")) || 0
+
+    kept_candidate_count =
+      integer_observation_value(Map.get(summary, "kept_candidate_count")) || 0
+
+    refresh_budget_branch_local_dropped_candidate_pressure?(summary) or
+      (input_candidate_count > 0 and kept_candidate_count < input_candidate_count)
   end
 
   defp contact_filter_branch_local_contact_filter_pressure?(%{} = summary) do

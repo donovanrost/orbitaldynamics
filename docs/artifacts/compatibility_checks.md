@@ -615,6 +615,12 @@ fixture. It checks freshness source-report provenance counts, source paths,
 stale/unknown status maps, reason lists/count maps, branch-local freshness
 pressure booleans, and trust-boundary status without refresh mutation, import
 approval, or Cadence writes.
+The registry also includes a generated CandidateRefresh refresh-budget replay
+fixture. It checks refresh-budget source-report provenance counts, path keys,
+input/kept/dropped candidate counts, kept/dropped candidate ID keys,
+invalid-limit reason maps, branch-local budget pressure booleans, and
+trust-boundary status without refresh mutation, import approval, or Cadence
+writes.
 The registry also includes a generated CandidateRefresh objective-gap replay
 fixture. It checks objective-satisfaction, objective-tradeoff, and score-term
 source-report provenance counts, row-derived gap/status/term maps, source
