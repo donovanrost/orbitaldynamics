@@ -1421,10 +1421,10 @@ defmodule OrbitalDynamics.Validation do
         "warning_count" => 0,
         "score_term_report_model" => "strategy_branch_score_terms",
         "score_term_report_source" => "campaign_strategy.branches.score_terms",
-        "score_term_report_row_count" => 1161,
-        "score_term_report_derived_row_count" => 1161,
-        "score_term_report_selected_row_count" => 43,
-        "score_term_report_key_count" => 43,
+        "score_term_report_row_count" => 1215,
+        "score_term_report_derived_row_count" => 1215,
+        "score_term_report_selected_row_count" => 45,
+        "score_term_report_key_count" => 45,
         "score_term_report_key_counts" => %{
           "approval_boundary_pressure_penalty" => 1,
           "approval_load_penalty" => 1,
@@ -1455,6 +1455,7 @@ defmodule OrbitalDynamics.Validation do
           "relay_data_path_pressure_penalty" => 1,
           "resource_availability_pressure_penalty" => 1,
           "resource_margin_pressure_penalty" => 1,
+          "resource_projection_pressure_penalty" => 1,
           "resource_score" => 1,
           "revisit_score" => 1,
           "risk_penalty" => 1,
@@ -1468,6 +1469,7 @@ defmodule OrbitalDynamics.Validation do
           "timeline_preservation_pressure_penalty" => 1,
           "timeline_pressure_penalty" => 1,
           "timeline_publication_pressure_penalty" => 1,
+          "timeline_transition_application_pressure_penalty" => 1,
           "validation_refresh_pressure_penalty" => 1
         },
         "score_term_report_row_derived_key_counts" => %{
@@ -1500,6 +1502,7 @@ defmodule OrbitalDynamics.Validation do
           "relay_data_path_pressure_penalty" => 27,
           "resource_availability_pressure_penalty" => 27,
           "resource_margin_pressure_penalty" => 27,
+          "resource_projection_pressure_penalty" => 27,
           "resource_score" => 27,
           "revisit_score" => 27,
           "risk_penalty" => 27,
@@ -1513,6 +1516,7 @@ defmodule OrbitalDynamics.Validation do
           "timeline_preservation_pressure_penalty" => 27,
           "timeline_pressure_penalty" => 27,
           "timeline_publication_pressure_penalty" => 27,
+          "timeline_transition_application_pressure_penalty" => 27,
           "validation_refresh_pressure_penalty" => 27
         },
         "score_term_report_validation_refresh_pressure_row_count" => 27,
