@@ -13591,6 +13591,8 @@ defmodule OrbitalDynamics.ValidationTest do
 
     report = score_term_report_fixture()
 
+    assert campaign_plan_score_term_report_fixture() == report
+
     assert {:ok, verification} =
              Validation.verify_reference_fixture(
                fixture_id,
@@ -17013,6 +17015,12 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp score_term_report_fixture do
     read_json!("study_results/score_term_report_v1.json")
+  end
+
+  defp campaign_plan_score_term_report_fixture do
+    "study_results/leo_constellation_campaign.json"
+    |> read_json!()
+    |> get_in(["campaign_plan", "score_term_report"])
   end
 
   defp ranking_comparison_report_fixture_observations do

@@ -1210,7 +1210,10 @@ assumptions, and model-limit boundaries. Executable validation rejects stale
 score-term row counts, score-term key lists that no longer match emitted rows,
 stale row-derived score-term key counts, and stale score-term model strings, and
 exports the allowed model set with the string source boundary emitted by
-generated score-term reports. It also
+generated score-term reports. The standalone score-term fixture is also pinned
+to the checked-in V1 campaign artifact's embedded
+`campaign_plan.score_term_report`, so fixture-chain drift is caught before
+validation-reference checks run. It also
 rejects stale ranking-comparison row/status counts and per-row rank/value deltas
 that no longer match the compared ranks and values.
 The V3 strategy golden fixture also pins the embedded strategy score-term report
