@@ -8,7 +8,7 @@ Current slice:
 Split relay data-path pressure into an explicit V3 score term.
 
 Status:
-Completed locally; ready to commit and push.
+Completed and pushed in product commit `c0110a9`.
 
 Slice-selection note:
 - Selected slice: make V3 relay data-path branch risks score-visible through a
@@ -76,7 +76,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`dba9b34` Split validation refresh pressure score term.
+`c0110a9` Split relay data path pressure score term.
 
 Next candidate:
 After this score-term split, continue with the next planner-visible
@@ -87,6 +87,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `c0110a9` split relay data-path pressure into an explicit V3 score term and
+  recommendation tradeoff dimension.
 - `dba9b34` split validation/refresh governance pressure into an explicit V3
   score term and recommendation tradeoff dimension.
 - `1c43e21` clarified prompt/guide fallback behavior when sidecar review or
