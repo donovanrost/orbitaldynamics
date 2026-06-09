@@ -88,7 +88,7 @@ Scored timeline-diff replay pressure from candidate-source reports.
 
 Last commit:
 - Product: `1c60224` Score timeline-diff replay pressure
-- Ledger: pending
+- Ledger: `c3dbfd6` Update autonomous loop status
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
