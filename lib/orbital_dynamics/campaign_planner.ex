@@ -3175,8 +3175,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     Enum.count(risk_indicators, &operational_readiness_pressure_risk?/1)
   end
 
-  defp operational_readiness_pressure_risk?(%{"type" => "operational_readiness_pressure"}),
-    do: true
+  defp operational_readiness_pressure_risk?(%{"type" => "operational_readiness_pressure"} = risk) do
+    not operational_readiness_resource_availability_pressure_risk?(risk)
+  end
 
   defp operational_readiness_pressure_risk?(_risk), do: false
 
@@ -3317,6 +3318,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
     resource_availability_quality_gate_pressure_risk?(risk)
   end
 
+  defp resource_availability_pressure_risk?(%{"type" => "operational_readiness_pressure"} = risk) do
+    operational_readiness_resource_availability_pressure_risk?(risk)
+  end
+
   defp resource_availability_pressure_risk?(%{"type" => type}) do
     type in resource_projection_availability_pressure_types()
   end
@@ -3336,6 +3341,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp resource_availability_quality_gate_pressure_risk?(_risk), do: false
+
+  defp operational_readiness_resource_availability_pressure_risk?(
+         %{"type" => "operational_readiness_pressure"} = risk
+       ) do
+    risk["readiness_gate_id"] == "resource_availability" or
+      numeric_or_nil(risk["resource_availability_pressure_count"]) not in [nil, 0.0] or
+      is_map(risk["resource_availability_reason_counts"]) or
+      is_map(risk["unavailable_resource_reason_counts"]) or
+      is_map(risk["blocked_contact_ids_by_blocking_dimension"])
+  end
+
+  defp operational_readiness_resource_availability_pressure_risk?(_risk), do: false
 
   defp resource_margin_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &resource_margin_pressure_risk?/1)
@@ -4811,7 +4828,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "required_operator_roles",
       "required_training_ids",
       "required_certification_ids",
-      "required_qualification_ids"
+      "required_qualification_ids",
+      "resource_availability_pressure_count",
+      "resource_availability_reason_counts",
+      "resource_availability_reason_ids",
+      "unavailable_resource_reason_counts",
+      "unavailable_resource_reason_ids",
+      "station_availability_reason_counts",
+      "station_availability_reason_ids",
+      "resource_blocking_dimension_counts",
+      "blocked_contact_ids_by_blocking_dimension",
+      "blocked_contact_ids_by_spacecraft_id",
+      "blocked_contact_ids_by_status"
     ]
   end
 
@@ -29960,6 +29988,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "source_operational_readiness_report" => row["source_operational_readiness_report"]
       }
       |> Map.merge(operational_readiness_operator_training_context(row))
+      |> Map.merge(operational_readiness_resource_availability_context(row))
       |> compact_map()
     end
   end
@@ -30145,6 +30174,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "required_operator_action" => operational_readiness_pressure_action(classification),
         "source_operational_readiness_report" => report
       }
+      |> Map.merge(operational_readiness_resource_availability_context(report))
       |> compact_map()
 
     gate_rows =
@@ -30176,6 +30206,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "source_operational_readiness_report" => report
         }
         |> Map.merge(operational_readiness_operator_training_context(gate))
+        |> Map.merge(operational_readiness_resource_availability_context(gate))
         |> compact_map()
       end)
 
@@ -30209,6 +30240,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "assumptions" => summary["assumptions"],
         "required_operator_action" => operational_readiness_pressure_action(classification)
       }
+      |> Map.merge(operational_readiness_resource_availability_context(summary))
       |> compact_map()
 
     gate_rows =
@@ -30245,6 +30277,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "source_operational_readiness_gate" => gate
         }
         |> Map.merge(operational_readiness_operator_training_context(gate))
+        |> Map.merge(operational_readiness_resource_availability_context(gate))
         |> compact_map()
       end)
 
@@ -31069,6 +31102,42 @@ defmodule OrbitalDynamics.CampaignPlanner do
         row["required_certification_ids"] || evidence["required_certification_ids"],
       "required_qualification_ids" =>
         row["required_qualification_ids"] || evidence["required_qualification_ids"]
+    }
+  end
+
+  defp operational_readiness_resource_availability_context(%{} = row) do
+    evidence = Map.get(row, "evidence") || %{}
+
+    %{
+      "resource_availability_pressure_count" =>
+        row["resource_availability_pressure_count"] ||
+          evidence["resource_availability_pressure_count"],
+      "resource_availability_reason_counts" =>
+        row["resource_availability_reason_counts"] ||
+          evidence["resource_availability_reason_counts"],
+      "resource_availability_reason_ids" =>
+        row["resource_availability_reason_ids"] || evidence["resource_availability_reason_ids"],
+      "unavailable_resource_reason_counts" =>
+        row["unavailable_resource_reason_counts"] ||
+          evidence["unavailable_resource_reason_counts"],
+      "unavailable_resource_reason_ids" =>
+        row["unavailable_resource_reason_ids"] || evidence["unavailable_resource_reason_ids"],
+      "station_availability_reason_counts" =>
+        row["station_availability_reason_counts"] ||
+          evidence["station_availability_reason_counts"],
+      "station_availability_reason_ids" =>
+        row["station_availability_reason_ids"] || evidence["station_availability_reason_ids"],
+      "resource_blocking_dimension_counts" =>
+        row["resource_blocking_dimension_counts"] ||
+          evidence["resource_blocking_dimension_counts"],
+      "blocked_contact_ids_by_blocking_dimension" =>
+        row["blocked_contact_ids_by_blocking_dimension"] ||
+          evidence["blocked_contact_ids_by_blocking_dimension"],
+      "blocked_contact_ids_by_spacecraft_id" =>
+        row["blocked_contact_ids_by_spacecraft_id"] ||
+          evidence["blocked_contact_ids_by_spacecraft_id"],
+      "blocked_contact_ids_by_status" =>
+        row["blocked_contact_ids_by_status"] || evidence["blocked_contact_ids_by_status"]
     }
   end
 

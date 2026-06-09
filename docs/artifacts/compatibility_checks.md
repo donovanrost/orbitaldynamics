@@ -447,6 +447,10 @@ unavailable-resource quality-gate risks into
 `resource_availability_pressure_penalty` instead of the broader
 `quality_gate_pressure_penalty`, so antenna/payload/station availability
 pressure remains planner-visible as resource pressure.
+Operational-readiness resource-availability gates now preserve the same
+resource pressure counts and reason maps in branch risk indicators, and V3
+strategy scoring routes them into `resource_availability_pressure_penalty`
+instead of the broader `operational_readiness_pressure_penalty`.
 The public quality-gate schema-validation summary publishes
 `operational_quality_gate_schema_validation_summary.v1` for Cadence-import
 quality-gate rows carrying schema-validation evidence, preserving pass/fail and

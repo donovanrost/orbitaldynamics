@@ -43238,6 +43238,24 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              ]
            )
 
+    assert %{
+             "resource_availability_pressure_count" => 2,
+             "resource_availability_reason_counts" => %{
+               "antenna_unavailable" => 1,
+               "payload_unavailable" => 1
+             }
+           } = List.first(readiness_branch["events"])
+
+    assert Enum.any?(
+             readiness_branch["risk_indicators"],
+             &(&1["type"] == "operational_readiness_pressure" and
+                 &1["readiness_gate_id"] == "resource_availability" and
+                 &1["resource_availability_pressure_count"] == 2)
+           )
+
+    assert_resource_availability_pressure_score_terms(readiness_branch, artifact)
+    assert readiness_branch["score_terms"]["operational_readiness_pressure_penalty"] == 0.0
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
@@ -72847,12 +72865,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
             "activity_type_suppressed_by_resource_summary",
             "activity_type_incompatible_with_resource_summary",
             "antenna_unavailable"
-          ] or
-            (&1["type"] == "quality_gate_pressure" and
-               (&1["gate_id"] == "resource_availability" or
-                  is_map(&1["resource_availability_reason_counts"]) or
-                  is_map(&1["unavailable_resource_reason_counts"]) or
-                  is_map(&1["blocked_contact_ids_by_blocking_dimension"]))))
+          ] or resource_availability_source_report_pressure?(&1))
       )
 
     assert resource_availability_pressure_count > 0
@@ -72877,6 +72890,24 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["value"] < 0.0)
            )
   end
+
+  defp resource_availability_source_report_pressure?(%{"type" => "quality_gate_pressure"} = risk) do
+    risk["gate_id"] == "resource_availability" or
+      is_map(risk["resource_availability_reason_counts"]) or
+      is_map(risk["unavailable_resource_reason_counts"]) or
+      is_map(risk["blocked_contact_ids_by_blocking_dimension"])
+  end
+
+  defp resource_availability_source_report_pressure?(
+         %{"type" => "operational_readiness_pressure"} = risk
+       ) do
+    risk["readiness_gate_id"] == "resource_availability" or
+      is_map(risk["resource_availability_reason_counts"]) or
+      is_map(risk["unavailable_resource_reason_counts"]) or
+      is_map(risk["blocked_contact_ids_by_blocking_dimension"])
+  end
+
+  defp resource_availability_source_report_pressure?(_risk), do: false
 
   defp assert_resource_margin_pressure_score_terms(branch, artifact) do
     risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
@@ -73335,7 +73366,11 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
 
     readiness_pressure_count =
-      Enum.count(branch["risk_indicators"], &(&1["type"] == "operational_readiness_pressure"))
+      Enum.count(
+        branch["risk_indicators"],
+        &(&1["type"] == "operational_readiness_pressure" and
+            not resource_availability_source_report_pressure?(&1))
+      )
 
     assert readiness_pressure_count == expected_pressure_count
 
