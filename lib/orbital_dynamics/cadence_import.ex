@@ -3255,6 +3255,9 @@ defmodule OrbitalDynamics.CadenceImport do
       )
     )
     |> Map.merge(
+      OrbitalDynamics.RecommendationRiskContext.maneuver_execution_uncertainty_context(risks)
+    )
+    |> Map.merge(
       OrbitalDynamics.RecommendationRiskContext.timeline_activity_precondition_context(risks)
     )
     |> Map.merge(
@@ -6578,6 +6581,12 @@ defmodule OrbitalDynamics.CadenceImport do
     )
     |> Map.merge(
       Map.take(row, OrbitalDynamics.RecommendationRiskContext.resource_margin_context_keys())
+    )
+    |> Map.merge(
+      Map.take(
+        row,
+        OrbitalDynamics.RecommendationRiskContext.maneuver_execution_uncertainty_context_keys()
+      )
     )
     |> Map.merge(
       Map.take(

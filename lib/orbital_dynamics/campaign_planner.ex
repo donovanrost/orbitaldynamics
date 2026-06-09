@@ -5150,6 +5150,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "timeline_id" => event["timeline_id"],
         "maneuver_id" => event["maneuver_id"],
         "scenario_id" => event["scenario_id"],
+        "starts_at_s" => event["starts_at_s"],
+        "ends_at_s" => event["ends_at_s"],
+        "source_activity_id" => event["source_activity_id"],
+        "replacement_activity_id" => event["replacement_activity_id"],
+        "source_activity_ids" => event["source_activity_ids"],
         "execution_uncertainty_status" => event["execution_uncertainty_status"],
         "execution_uncertainty_source" => event["execution_uncertainty_source"],
         "execution_uncertainty" => event["execution_uncertainty"],
@@ -5159,10 +5164,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "delta_v_3sigma_magnitude_km_s" => event["delta_v_3sigma_magnitude_km_s"],
         "delta_v_3sigma_magnitude_threshold_km_s" =>
           event["delta_v_3sigma_magnitude_threshold_km_s"],
+        "changed_fields" => event["changed_fields"],
+        "required_operator_action" => event["required_operator_action"],
+        "requires_operator_review" => event["requires_operator_review"],
         "feedback_source" => event["feedback_source"],
         "feedback_scope" => event["feedback_scope"],
         "feedback_key" => event["feedback_key"],
-        "trust_boundary" => event["trust_boundary"]
+        "trust_boundary" => event["trust_boundary"],
+        "derivation_reasons" => event["derivation_reasons"]
       }
       |> compact_map()
     ]
@@ -6640,6 +6649,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "planned_downlink_mb" => risk["planned_downlink_mb"],
           "contact_result" => risk["contact_result"],
           "realized_status" => risk["realized_status"],
+          "starts_at_s" => risk["starts_at_s"],
+          "ends_at_s" => risk["ends_at_s"],
+          "source_activity_id" => risk["source_activity_id"],
+          "replacement_activity_id" => risk["replacement_activity_id"],
           "source_activity_ids" => risk["source_activity_ids"],
           "timeline_id" => risk["timeline_id"],
           "maneuver_id" => risk["maneuver_id"],
@@ -6665,8 +6678,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "exclusivity_violation_group" => risk["exclusivity_violation_group"],
           "missed_downlink_activity_id" => risk["missed_downlink_activity_id"],
           "missed_downlink_activity_ids" => risk["missed_downlink_activity_ids"],
+          "changed_fields" => risk["changed_fields"],
+          "required_operator_action" => risk["required_operator_action"],
+          "requires_operator_review" => risk["requires_operator_review"],
           "feedback_source" => risk["feedback_source"],
           "feedback_scope" => risk["feedback_scope"],
+          "feedback_key" => risk["feedback_key"],
           "trust_boundary" => risk["trust_boundary"],
           "derivation_reasons" => risk["derivation_reasons"],
           "direction" => risk["direction"],

@@ -18619,6 +18619,38 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 derivation_reasons: ["resource_projection_power_margin_low"]
               },
               %{
+                type: "maneuver_execution_uncertainty_feedback",
+                activity_id: "burn_uncertain_review",
+                timeline_id: "timeline:maneuver:burn_uncertain_review",
+                maneuver_id: "burn_uncertain_review",
+                scenario_id: "leo_1",
+                starts_at_s: 620.0,
+                ends_at_s: 620.0,
+                source_activity_id: "burn_uncertain_source",
+                replacement_activity_id: "burn_uncertain_review",
+                source_activity_ids: ["burn_uncertain_review", "burn_uncertain_source"],
+                execution_uncertainty_status: "declared",
+                execution_uncertainty: %{
+                  "timing_3sigma_s" => 75.0,
+                  "delta_v_3sigma_km_s" => [0.0, 0.003, 0.004],
+                  "source" => "ops_covariance_review"
+                },
+                timing_3sigma_s: 75.0,
+                timing_3sigma_threshold_s: 60.0,
+                delta_v_3sigma_km_s: [0.0, 0.003, 0.004],
+                delta_v_3sigma_magnitude_km_s: 0.005,
+                delta_v_3sigma_magnitude_threshold_km_s: 0.002,
+                execution_uncertainty_source: "ops_covariance_review",
+                changed_fields: ["execution_uncertainty"],
+                required_operator_action: "review_maneuver_execution_uncertainty",
+                requires_operator_review: true,
+                feedback_source: "mission_state.source_maneuver_review.rows",
+                feedback_scope: "maneuver_execution_uncertainty",
+                feedback_key: "burn_uncertain_review",
+                trust_boundary: "mission_state_maneuver_review",
+                derivation_reasons: ["maneuver_review_execution_uncertainty_pressure"]
+              },
+              %{
                 type: "timeline_publication_pressure",
                 publication_id:
                   "timeline_publication:9:timeline:selected_plan:v2:timeline:selected_plan:v1",
@@ -19405,6 +19437,46 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                explanation,
                &(&1["type"] == "resource_margin_pressure" and
                    &1["risk_type"] == "power_margin_low")
+             )
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "maneuver_execution_uncertainty_high",
+             "severity" => "medium",
+             "activity_id" => "burn_uncertain_review",
+             "timeline_id" => "timeline:maneuver:burn_uncertain_review",
+             "maneuver_id" => "burn_uncertain_review",
+             "scenario_id" => "leo_1",
+             "starts_at_s" => 620.0,
+             "ends_at_s" => 620.0,
+             "source_activity_id" => "burn_uncertain_source",
+             "replacement_activity_id" => "burn_uncertain_review",
+             "source_activity_ids" => ["burn_uncertain_review", "burn_uncertain_source"],
+             "execution_uncertainty_status" => "declared",
+             "execution_uncertainty_source" => "ops_covariance_review",
+             "execution_uncertainty" => %{
+               "timing_3sigma_s" => 75.0,
+               "delta_v_3sigma_km_s" => [0.0, 0.003, 0.004],
+               "source" => "ops_covariance_review"
+             },
+             "timing_3sigma_s" => 75.0,
+             "timing_3sigma_threshold_s" => 60.0,
+             "delta_v_3sigma_km_s" => [0.0, 0.003, 0.004],
+             "delta_v_3sigma_magnitude_km_s" => 0.005,
+             "delta_v_3sigma_magnitude_threshold_km_s" => 0.002,
+             "changed_fields" => ["execution_uncertainty"],
+             "required_operator_action" => "review_maneuver_execution_uncertainty",
+             "requires_operator_review" => true,
+             "feedback_source" => "mission_state.source_maneuver_review.rows",
+             "feedback_scope" => "maneuver_execution_uncertainty",
+             "feedback_key" => "burn_uncertain_review",
+             "trust_boundary" => "mission_state_maneuver_review",
+             "derivation_reasons" => ["maneuver_review_execution_uncertainty_pressure"]
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "maneuver_execution_uncertainty_high")
              )
 
     assert %{
@@ -20221,6 +20293,60 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "resource_margin_trust_boundaries" => ["mission_state_resource_projection_report"],
       "resource_margin_derivation_reasons" => [
         "resource_projection_power_margin_low"
+      ],
+      "maneuver_execution_uncertainty_risk_types" => [
+        "maneuver_execution_uncertainty_high"
+      ],
+      "maneuver_execution_uncertainty_activity_ids" => ["burn_uncertain_review"],
+      "maneuver_execution_uncertainty_timeline_ids" => [
+        "timeline:maneuver:burn_uncertain_review"
+      ],
+      "maneuver_execution_uncertainty_maneuver_ids" => ["burn_uncertain_review"],
+      "maneuver_execution_uncertainty_scenario_ids" => ["leo_1"],
+      "maneuver_execution_uncertainty_source_activity_ids" => [
+        "burn_uncertain_source",
+        "burn_uncertain_review"
+      ],
+      "maneuver_execution_uncertainty_replacement_activity_ids" => [
+        "burn_uncertain_review"
+      ],
+      "maneuver_execution_uncertainty_statuses" => ["declared"],
+      "maneuver_execution_uncertainty_sources" => ["ops_covariance_review"],
+      "maneuver_execution_uncertainty_maps" => [
+        %{
+          "timing_3sigma_s" => 75.0,
+          "delta_v_3sigma_km_s" => [0.0, 0.003, 0.004],
+          "source" => "ops_covariance_review"
+        }
+      ],
+      "maneuver_execution_uncertainty_timing_3sigma_values_s" => [75.0],
+      "maneuver_execution_uncertainty_timing_3sigma_threshold_values_s" => [60.0],
+      "maneuver_execution_uncertainty_delta_v_3sigma_vectors_km_s" => [
+        [0.0, 0.003, 0.004]
+      ],
+      "maneuver_execution_uncertainty_delta_v_3sigma_magnitude_values_km_s" => [0.005],
+      "maneuver_execution_uncertainty_delta_v_3sigma_magnitude_threshold_values_km_s" => [
+        0.002
+      ],
+      "maneuver_execution_uncertainty_start_values_s" => [620.0],
+      "maneuver_execution_uncertainty_end_values_s" => [620.0],
+      "maneuver_execution_uncertainty_changed_fields" => ["execution_uncertainty"],
+      "maneuver_execution_uncertainty_required_operator_actions" => [
+        "review_maneuver_execution_uncertainty"
+      ],
+      "maneuver_execution_uncertainty_requires_operator_review_values" => [true],
+      "maneuver_execution_uncertainty_feedback_sources" => [
+        "mission_state.source_maneuver_review.rows"
+      ],
+      "maneuver_execution_uncertainty_feedback_scopes" => [
+        "maneuver_execution_uncertainty"
+      ],
+      "maneuver_execution_uncertainty_feedback_keys" => ["burn_uncertain_review"],
+      "maneuver_execution_uncertainty_trust_boundaries" => [
+        "mission_state_maneuver_review"
+      ],
+      "maneuver_execution_uncertainty_derivation_reasons" => [
+        "maneuver_review_execution_uncertainty_pressure"
       ],
       "timeline_publication_ids" => [
         "timeline_publication:9:timeline:selected_plan:v2:timeline:selected_plan:v1"
