@@ -4580,7 +4580,30 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "reason" =>
           "station #{station} throughput feedback factor #{event["station_throughput_factor"]} reduces generated contact capacity",
         "value" => event["station_throughput_factor"],
-        "ground_station_id" => event_ground_station_id(event)
+        "activity_id" => event["activity_id"],
+        "scenario_id" => event["scenario_id"],
+        "timeline_id" => event["timeline_id"],
+        "ground_station_id" => event_ground_station_id(event),
+        "source_activity_id" => event["source_activity_id"],
+        "replacement_activity_id" => event["replacement_activity_id"],
+        "source_activity_ids" => event["source_activity_ids"],
+        "station_throughput_factor" => event["station_throughput_factor"],
+        "actual_throughput_mb" => event["actual_throughput_mb"],
+        "estimated_throughput_mb" => event["estimated_throughput_mb"],
+        "starts_at_s" => event["starts_at_s"] || event["source_starts_at_s"],
+        "ends_at_s" => event["ends_at_s"] || event["source_ends_at_s"],
+        "changed_fields" => event["changed_fields"],
+        "required_operator_action" => event["required_operator_action"],
+        "requires_operator_review" => event["requires_operator_review"],
+        "status_transition" => event["status_transition"],
+        "transition_type" => event["transition_type"],
+        "transition_category" => event["transition_category"],
+        "transition_reason" => event["transition_reason"],
+        "feedback_source" => event["feedback_source"],
+        "feedback_scope" => event["feedback_scope"],
+        "feedback_key" => event["feedback_key"],
+        "trust_boundary" => event["trust_boundary"],
+        "derivation_reasons" => event["derivation_reasons"]
       }
       |> compact_map()
     ]
@@ -4596,6 +4619,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "reason" =>
           "station #{station} contact success feedback factor #{event["contact_success_factor"]} reduces generated contact confidence",
         "value" => event["contact_success_factor"],
+        "activity_id" => event["activity_id"],
+        "scenario_id" => event["scenario_id"],
+        "timeline_id" => event["timeline_id"],
+        "starts_at_s" => event["starts_at_s"] || event["source_starts_at_s"],
+        "ends_at_s" => event["ends_at_s"] || event["source_ends_at_s"],
+        "contact_success_factor" => event["contact_success_factor"],
         "ground_station_id" => event_ground_station_id(event),
         "contact_result" => event["contact_result"],
         "realized_status" => event["realized_status"],
@@ -4612,9 +4641,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "source_window_match_status" => event["source_window_match_status"],
         "contact_identity_mismatch_fields" => event["contact_identity_mismatch_fields"],
         "source_activity_id" => event["source_activity_id"],
+        "replacement_activity_id" => event["replacement_activity_id"],
         "source_activity_ids" => event["source_activity_ids"],
         "feedback_source" => event["feedback_source"],
         "feedback_scope" => event["feedback_scope"],
+        "feedback_key" => event["feedback_key"],
         "trust_boundary" => event["trust_boundary"],
         "link_margin_db" => event["link_margin_db"],
         "snr_db" => event["snr_db"],
@@ -4629,6 +4660,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "transition_type" => event["transition_type"],
         "transition_category" => event["transition_category"],
         "transition_reason" => event["transition_reason"],
+        "changed_fields" => event["changed_fields"],
+        "required_operator_action" => event["required_operator_action"],
+        "derivation_reasons" => event["derivation_reasons"],
         "requires_operator_review" => event["requires_operator_review"]
       }
       |> compact_map()
@@ -4643,10 +4677,17 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "reason" =>
           "target #{event["target_id"]} observation success feedback factor #{event["observation_success_factor"]} reduces generated observation confidence",
         "value" => event["observation_success_factor"],
+        "activity_id" => event["activity_id"],
+        "scenario_id" => event["scenario_id"],
+        "timeline_id" => event["timeline_id"],
+        "starts_at_s" => event["starts_at_s"] || event["source_starts_at_s"],
+        "ends_at_s" => event["ends_at_s"] || event["source_ends_at_s"],
+        "observation_success_factor" => event["observation_success_factor"],
         "target_id" => event["target_id"],
         "observation_result" => event["observation_result"],
         "realized_status" => event["realized_status"],
         "target_match_status" => event["target_match_status"],
+        "collection_id" => event["collection_id"],
         "planned_target_id" => event["planned_target_id"],
         "realized_target_id" => event["realized_target_id"],
         "collection_match_status" => event["collection_match_status"],
@@ -4659,9 +4700,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "planned_product_ids" => event["planned_product_ids"],
         "realized_product_ids" => event["realized_product_ids"],
         "product_ids" => event["product_ids"],
+        "payload_id" => event["payload_id"],
         "payload_match_status" => event["payload_match_status"],
         "planned_payload_id" => event["planned_payload_id"],
         "realized_payload_id" => event["realized_payload_id"],
+        "instrument_id" => event["instrument_id"],
         "instrument_match_status" => event["instrument_match_status"],
         "planned_instrument_id" => event["planned_instrument_id"],
         "realized_instrument_id" => event["realized_instrument_id"],
@@ -4684,14 +4727,24 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "eclipse_overlap_fraction" => event["eclipse_overlap_fraction"],
         "eclipse_overlap_s" => event["eclipse_overlap_s"],
         "source_activity_id" => event["source_activity_id"],
+        "replacement_activity_id" => event["replacement_activity_id"],
         "source_activity_ids" => event["source_activity_ids"],
         "feedback_source" => event["feedback_source"],
         "feedback_scope" => event["feedback_scope"],
+        "feedback_key" => event["feedback_key"],
         "trust_boundary" => event["trust_boundary"],
+        "image_quality_score" => event["image_quality_score"],
+        "image_quality_status" => event["image_quality_status"],
+        "image_quality_source" => event["image_quality_source"],
+        "cloud_cover_fraction" => event["cloud_cover_fraction"],
+        "blur_score" => event["blur_score"],
         "status_transition" => event["status_transition"],
         "transition_type" => event["transition_type"],
         "transition_category" => event["transition_category"],
         "transition_reason" => event["transition_reason"],
+        "changed_fields" => event["changed_fields"],
+        "required_operator_action" => event["required_operator_action"],
+        "derivation_reasons" => event["derivation_reasons"],
         "requires_operator_review" => event["requires_operator_review"]
       }
       |> compact_map()
@@ -6253,6 +6306,98 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ]
   end
 
+  defp operational_feedback_pressure_risk_fields do
+    [
+      "activity_id",
+      "scenario_id",
+      "timeline_id",
+      "source_activity_id",
+      "replacement_activity_id",
+      "source_activity_ids",
+      "contact_success_factor",
+      "observation_success_factor",
+      "station_throughput_factor",
+      "contact_result",
+      "observation_result",
+      "realized_status",
+      "ground_station_id",
+      "planned_ground_station_id",
+      "realized_ground_station_id",
+      "ground_station_match_status",
+      "direction",
+      "planned_direction",
+      "realized_direction",
+      "direction_match_status",
+      "source_window_id",
+      "planned_source_window_id",
+      "realized_source_window_id",
+      "source_window_match_status",
+      "contact_identity_mismatch_fields",
+      "target_id",
+      "planned_target_id",
+      "realized_target_id",
+      "target_match_status",
+      "collection_id",
+      "collection_ids",
+      "planned_collection_id",
+      "realized_collection_id",
+      "collection_match_status",
+      "product_id",
+      "product_ids",
+      "planned_product_id",
+      "planned_product_ids",
+      "realized_product_id",
+      "realized_product_ids",
+      "product_match_status",
+      "product_ids_match_status",
+      "payload_id",
+      "payload_ids",
+      "planned_payload_id",
+      "realized_payload_id",
+      "payload_match_status",
+      "instrument_id",
+      "instrument_ids",
+      "planned_instrument_id",
+      "realized_instrument_id",
+      "instrument_match_status",
+      "observation_identity_mismatch_fields",
+      "pointing_status",
+      "pointing_error_deg",
+      "attitude_status",
+      "attitude_error_deg",
+      "lighting_condition_match_status",
+      "planned_lighting_condition",
+      "realized_lighting_condition",
+      "lighting_condition_detail",
+      "lighting_condition_model",
+      "lighting_detail_model",
+      "lighting_confidence",
+      "eclipse_overlap_fraction",
+      "eclipse_overlap_s",
+      "image_quality_score",
+      "image_quality_status",
+      "image_quality_source",
+      "cloud_cover_fraction",
+      "blur_score",
+      "actual_throughput_mb",
+      "estimated_throughput_mb",
+      "starts_at_s",
+      "ends_at_s",
+      "changed_fields",
+      "required_operator_action",
+      "requires_operator_review",
+      "status_transition",
+      "transition_type",
+      "transition_category",
+      "transition_reason",
+      "feedback_source",
+      "feedback_scope",
+      "feedback_key",
+      "trust_boundary",
+      "derivation_reasons"
+    ]
+  end
+
   defp degraded_spacecraft_activity_type_risks(event, spacecraft_id) do
     event
     |> Map.get("derivation_reasons", [])
@@ -7353,6 +7498,15 @@ defmodule OrbitalDynamics.CampaignPlanner do
            risk
        ) do
     Map.take(risk, station_reservation_conflict_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"type" => type} = risk)
+       when type in [
+              "contact_success_rate_low",
+              "observation_success_rate_low",
+              "station_throughput_factor_low"
+            ] do
+    Map.take(risk, operational_feedback_pressure_risk_fields())
   end
 
   defp recommendation_pressure_risk_context(%{"feedback_scope" => "candidate_rejection"} = risk) do

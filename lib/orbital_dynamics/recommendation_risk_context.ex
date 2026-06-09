@@ -494,6 +494,86 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
     "execution_success_feedback_derivation_reasons"
   ]
 
+  @operational_feedback_context_keys [
+    "strategy_operational_feedback_risk_types",
+    "strategy_operational_feedback_activity_ids",
+    "strategy_operational_feedback_scenario_ids",
+    "strategy_operational_feedback_timeline_ids",
+    "strategy_operational_feedback_source_activity_ids",
+    "strategy_operational_feedback_replacement_activity_ids",
+    "strategy_operational_feedback_contact_success_factor_values",
+    "strategy_operational_feedback_observation_success_factor_values",
+    "strategy_operational_feedback_station_throughput_factor_values",
+    "strategy_operational_feedback_contact_results",
+    "strategy_operational_feedback_observation_results",
+    "strategy_operational_feedback_realized_statuses",
+    "strategy_operational_feedback_ground_station_ids",
+    "strategy_operational_feedback_planned_ground_station_ids",
+    "strategy_operational_feedback_realized_ground_station_ids",
+    "strategy_operational_feedback_ground_station_match_statuses",
+    "strategy_operational_feedback_directions",
+    "strategy_operational_feedback_planned_directions",
+    "strategy_operational_feedback_realized_directions",
+    "strategy_operational_feedback_direction_match_statuses",
+    "strategy_operational_feedback_source_window_ids",
+    "strategy_operational_feedback_planned_source_window_ids",
+    "strategy_operational_feedback_realized_source_window_ids",
+    "strategy_operational_feedback_source_window_match_statuses",
+    "strategy_operational_feedback_contact_identity_mismatch_fields",
+    "strategy_operational_feedback_target_ids",
+    "strategy_operational_feedback_planned_target_ids",
+    "strategy_operational_feedback_realized_target_ids",
+    "strategy_operational_feedback_target_match_statuses",
+    "strategy_operational_feedback_collection_ids",
+    "strategy_operational_feedback_planned_collection_ids",
+    "strategy_operational_feedback_realized_collection_ids",
+    "strategy_operational_feedback_collection_match_statuses",
+    "strategy_operational_feedback_product_ids",
+    "strategy_operational_feedback_planned_product_ids",
+    "strategy_operational_feedback_realized_product_ids",
+    "strategy_operational_feedback_product_match_statuses",
+    "strategy_operational_feedback_payload_ids",
+    "strategy_operational_feedback_planned_payload_ids",
+    "strategy_operational_feedback_realized_payload_ids",
+    "strategy_operational_feedback_payload_match_statuses",
+    "strategy_operational_feedback_instrument_ids",
+    "strategy_operational_feedback_planned_instrument_ids",
+    "strategy_operational_feedback_realized_instrument_ids",
+    "strategy_operational_feedback_instrument_match_statuses",
+    "strategy_operational_feedback_observation_identity_mismatch_fields",
+    "strategy_operational_feedback_pointing_statuses",
+    "strategy_operational_feedback_pointing_error_values_deg",
+    "strategy_operational_feedback_attitude_statuses",
+    "strategy_operational_feedback_attitude_error_values_deg",
+    "strategy_operational_feedback_lighting_condition_match_statuses",
+    "strategy_operational_feedback_planned_lighting_conditions",
+    "strategy_operational_feedback_realized_lighting_conditions",
+    "strategy_operational_feedback_lighting_condition_details",
+    "strategy_operational_feedback_lighting_confidence_values",
+    "strategy_operational_feedback_eclipse_overlap_fraction_values",
+    "strategy_operational_feedback_image_quality_score_values",
+    "strategy_operational_feedback_image_quality_statuses",
+    "strategy_operational_feedback_image_quality_sources",
+    "strategy_operational_feedback_cloud_cover_fraction_values",
+    "strategy_operational_feedback_blur_score_values",
+    "strategy_operational_feedback_actual_throughput_values_mb",
+    "strategy_operational_feedback_estimated_throughput_values_mb",
+    "strategy_operational_feedback_start_values_s",
+    "strategy_operational_feedback_end_values_s",
+    "strategy_operational_feedback_changed_fields",
+    "strategy_operational_feedback_status_transition_maps",
+    "strategy_operational_feedback_transition_types",
+    "strategy_operational_feedback_transition_categories",
+    "strategy_operational_feedback_transition_reasons",
+    "strategy_operational_feedback_required_operator_actions",
+    "strategy_operational_feedback_requires_operator_review_values",
+    "strategy_operational_feedback_feedback_sources",
+    "strategy_operational_feedback_feedback_scopes",
+    "strategy_operational_feedback_feedback_keys",
+    "strategy_operational_feedback_trust_boundaries",
+    "strategy_operational_feedback_derivation_reasons"
+  ]
+
   def validation_refresh_context_keys, do: @validation_refresh_context_keys
 
   def approval_boundary_context_keys, do: @approval_boundary_context_keys
@@ -530,6 +610,9 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
 
   def execution_success_feedback_context_keys,
     do: @execution_success_feedback_context_keys
+
+  def operational_feedback_context_keys,
+    do: @operational_feedback_context_keys
 
   def validation_refresh_context(risks) when is_list(risks) do
     risks = Enum.map(risks, &stringify_keys/1)
@@ -1944,6 +2027,191 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
 
   def execution_success_feedback_context(_risks), do: %{}
 
+  def operational_feedback_context(risks) when is_list(risks) do
+    risks = Enum.map(risks, &stringify_keys/1)
+
+    operational_feedback_risks =
+      Enum.filter(risks, &operational_feedback_risk?/1)
+
+    %{
+      "strategy_operational_feedback_risk_types" =>
+        risk_context_values(operational_feedback_risks, ["type", "risk_type"]),
+      "strategy_operational_feedback_activity_ids" =>
+        risk_context_values(operational_feedback_risks, "activity_id"),
+      "strategy_operational_feedback_scenario_ids" =>
+        risk_context_values(operational_feedback_risks, "scenario_id"),
+      "strategy_operational_feedback_timeline_ids" =>
+        risk_context_values(operational_feedback_risks, "timeline_id"),
+      "strategy_operational_feedback_source_activity_ids" =>
+        risk_context_values(operational_feedback_risks, [
+          "source_activity_id",
+          "source_activity_ids"
+        ]),
+      "strategy_operational_feedback_replacement_activity_ids" =>
+        risk_context_values(operational_feedback_risks, "replacement_activity_id"),
+      "strategy_operational_feedback_contact_success_factor_values" =>
+        risk_context_values(operational_feedback_risks, "contact_success_factor"),
+      "strategy_operational_feedback_observation_success_factor_values" =>
+        risk_context_values(operational_feedback_risks, "observation_success_factor"),
+      "strategy_operational_feedback_station_throughput_factor_values" =>
+        risk_context_values(operational_feedback_risks, "station_throughput_factor"),
+      "strategy_operational_feedback_contact_results" =>
+        risk_context_values(operational_feedback_risks, "contact_result"),
+      "strategy_operational_feedback_observation_results" =>
+        risk_context_values(operational_feedback_risks, "observation_result"),
+      "strategy_operational_feedback_realized_statuses" =>
+        risk_context_values(operational_feedback_risks, "realized_status"),
+      "strategy_operational_feedback_ground_station_ids" =>
+        risk_context_values(operational_feedback_risks, "ground_station_id"),
+      "strategy_operational_feedback_planned_ground_station_ids" =>
+        risk_context_values(operational_feedback_risks, "planned_ground_station_id"),
+      "strategy_operational_feedback_realized_ground_station_ids" =>
+        risk_context_values(operational_feedback_risks, "realized_ground_station_id"),
+      "strategy_operational_feedback_ground_station_match_statuses" =>
+        risk_context_values(operational_feedback_risks, "ground_station_match_status"),
+      "strategy_operational_feedback_directions" =>
+        risk_context_values(operational_feedback_risks, "direction"),
+      "strategy_operational_feedback_planned_directions" =>
+        risk_context_values(operational_feedback_risks, "planned_direction"),
+      "strategy_operational_feedback_realized_directions" =>
+        risk_context_values(operational_feedback_risks, "realized_direction"),
+      "strategy_operational_feedback_direction_match_statuses" =>
+        risk_context_values(operational_feedback_risks, "direction_match_status"),
+      "strategy_operational_feedback_source_window_ids" =>
+        risk_context_values(operational_feedback_risks, "source_window_id"),
+      "strategy_operational_feedback_planned_source_window_ids" =>
+        risk_context_values(operational_feedback_risks, "planned_source_window_id"),
+      "strategy_operational_feedback_realized_source_window_ids" =>
+        risk_context_values(operational_feedback_risks, "realized_source_window_id"),
+      "strategy_operational_feedback_source_window_match_statuses" =>
+        risk_context_values(operational_feedback_risks, "source_window_match_status"),
+      "strategy_operational_feedback_contact_identity_mismatch_fields" =>
+        risk_context_values(operational_feedback_risks, ["contact_identity_mismatch_fields"]),
+      "strategy_operational_feedback_target_ids" =>
+        risk_context_values(operational_feedback_risks, "target_id"),
+      "strategy_operational_feedback_planned_target_ids" =>
+        risk_context_values(operational_feedback_risks, "planned_target_id"),
+      "strategy_operational_feedback_realized_target_ids" =>
+        risk_context_values(operational_feedback_risks, "realized_target_id"),
+      "strategy_operational_feedback_target_match_statuses" =>
+        risk_context_values(operational_feedback_risks, "target_match_status"),
+      "strategy_operational_feedback_collection_ids" =>
+        risk_context_values(operational_feedback_risks, [
+          "collection_id",
+          "collection_ids"
+        ]),
+      "strategy_operational_feedback_planned_collection_ids" =>
+        risk_context_values(operational_feedback_risks, "planned_collection_id"),
+      "strategy_operational_feedback_realized_collection_ids" =>
+        risk_context_values(operational_feedback_risks, "realized_collection_id"),
+      "strategy_operational_feedback_collection_match_statuses" =>
+        risk_context_values(operational_feedback_risks, "collection_match_status"),
+      "strategy_operational_feedback_product_ids" =>
+        risk_context_values(operational_feedback_risks, ["product_id", "product_ids"]),
+      "strategy_operational_feedback_planned_product_ids" =>
+        risk_context_values(operational_feedback_risks, [
+          "planned_product_id",
+          "planned_product_ids"
+        ]),
+      "strategy_operational_feedback_realized_product_ids" =>
+        risk_context_values(operational_feedback_risks, [
+          "realized_product_id",
+          "realized_product_ids"
+        ]),
+      "strategy_operational_feedback_product_match_statuses" =>
+        risk_context_values(operational_feedback_risks, [
+          "product_match_status",
+          "product_ids_match_status"
+        ]),
+      "strategy_operational_feedback_payload_ids" =>
+        risk_context_values(operational_feedback_risks, ["payload_id", "payload_ids"]),
+      "strategy_operational_feedback_planned_payload_ids" =>
+        risk_context_values(operational_feedback_risks, "planned_payload_id"),
+      "strategy_operational_feedback_realized_payload_ids" =>
+        risk_context_values(operational_feedback_risks, "realized_payload_id"),
+      "strategy_operational_feedback_payload_match_statuses" =>
+        risk_context_values(operational_feedback_risks, "payload_match_status"),
+      "strategy_operational_feedback_instrument_ids" =>
+        risk_context_values(operational_feedback_risks, ["instrument_id", "instrument_ids"]),
+      "strategy_operational_feedback_planned_instrument_ids" =>
+        risk_context_values(operational_feedback_risks, "planned_instrument_id"),
+      "strategy_operational_feedback_realized_instrument_ids" =>
+        risk_context_values(operational_feedback_risks, "realized_instrument_id"),
+      "strategy_operational_feedback_instrument_match_statuses" =>
+        risk_context_values(operational_feedback_risks, "instrument_match_status"),
+      "strategy_operational_feedback_observation_identity_mismatch_fields" =>
+        risk_context_values(operational_feedback_risks, [
+          "observation_identity_mismatch_fields"
+        ]),
+      "strategy_operational_feedback_pointing_statuses" =>
+        risk_context_values(operational_feedback_risks, "pointing_status"),
+      "strategy_operational_feedback_pointing_error_values_deg" =>
+        risk_context_values(operational_feedback_risks, "pointing_error_deg"),
+      "strategy_operational_feedback_attitude_statuses" =>
+        risk_context_values(operational_feedback_risks, "attitude_status"),
+      "strategy_operational_feedback_attitude_error_values_deg" =>
+        risk_context_values(operational_feedback_risks, "attitude_error_deg"),
+      "strategy_operational_feedback_lighting_condition_match_statuses" =>
+        risk_context_values(operational_feedback_risks, "lighting_condition_match_status"),
+      "strategy_operational_feedback_planned_lighting_conditions" =>
+        risk_context_values(operational_feedback_risks, "planned_lighting_condition"),
+      "strategy_operational_feedback_realized_lighting_conditions" =>
+        risk_context_values(operational_feedback_risks, "realized_lighting_condition"),
+      "strategy_operational_feedback_lighting_condition_details" =>
+        risk_context_values(operational_feedback_risks, "lighting_condition_detail"),
+      "strategy_operational_feedback_lighting_confidence_values" =>
+        risk_context_values(operational_feedback_risks, "lighting_confidence"),
+      "strategy_operational_feedback_eclipse_overlap_fraction_values" =>
+        risk_context_values(operational_feedback_risks, "eclipse_overlap_fraction"),
+      "strategy_operational_feedback_image_quality_score_values" =>
+        risk_context_values(operational_feedback_risks, "image_quality_score"),
+      "strategy_operational_feedback_image_quality_statuses" =>
+        risk_context_values(operational_feedback_risks, "image_quality_status"),
+      "strategy_operational_feedback_image_quality_sources" =>
+        risk_context_values(operational_feedback_risks, "image_quality_source"),
+      "strategy_operational_feedback_cloud_cover_fraction_values" =>
+        risk_context_values(operational_feedback_risks, "cloud_cover_fraction"),
+      "strategy_operational_feedback_blur_score_values" =>
+        risk_context_values(operational_feedback_risks, "blur_score"),
+      "strategy_operational_feedback_actual_throughput_values_mb" =>
+        risk_context_values(operational_feedback_risks, "actual_throughput_mb"),
+      "strategy_operational_feedback_estimated_throughput_values_mb" =>
+        risk_context_values(operational_feedback_risks, "estimated_throughput_mb"),
+      "strategy_operational_feedback_start_values_s" =>
+        risk_context_values(operational_feedback_risks, "starts_at_s"),
+      "strategy_operational_feedback_end_values_s" =>
+        risk_context_values(operational_feedback_risks, "ends_at_s"),
+      "strategy_operational_feedback_changed_fields" =>
+        risk_context_values(operational_feedback_risks, ["changed_fields"]),
+      "strategy_operational_feedback_status_transition_maps" =>
+        risk_context_values(operational_feedback_risks, "status_transition"),
+      "strategy_operational_feedback_transition_types" =>
+        risk_context_values(operational_feedback_risks, "transition_type"),
+      "strategy_operational_feedback_transition_categories" =>
+        risk_context_values(operational_feedback_risks, "transition_category"),
+      "strategy_operational_feedback_transition_reasons" =>
+        risk_context_values(operational_feedback_risks, "transition_reason"),
+      "strategy_operational_feedback_required_operator_actions" =>
+        risk_context_values(operational_feedback_risks, "required_operator_action"),
+      "strategy_operational_feedback_requires_operator_review_values" =>
+        risk_context_values(operational_feedback_risks, "requires_operator_review"),
+      "strategy_operational_feedback_feedback_sources" =>
+        risk_context_values(operational_feedback_risks, "feedback_source"),
+      "strategy_operational_feedback_feedback_scopes" =>
+        risk_context_values(operational_feedback_risks, "feedback_scope"),
+      "strategy_operational_feedback_feedback_keys" =>
+        risk_context_values(operational_feedback_risks, "feedback_key"),
+      "strategy_operational_feedback_trust_boundaries" =>
+        risk_context_values(operational_feedback_risks, "trust_boundary"),
+      "strategy_operational_feedback_derivation_reasons" =>
+        risk_context_values(operational_feedback_risks, ["derivation_reasons"])
+    }
+    |> Enum.reject(fn {_key, values} -> values == [] end)
+    |> Map.new()
+  end
+
+  def operational_feedback_context(_risks), do: %{}
+
   defp resource_margin_risk?(%{"resource_field" => field}) when is_binary(field) do
     field in [
       "fuel_margin",
@@ -2003,6 +2271,24 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
   end
 
   defp execution_success_feedback_risk?(_risk), do: false
+
+  defp operational_feedback_risk?(%{"type" => type}) when is_binary(type) do
+    type in [
+      "contact_success_rate_low",
+      "observation_success_rate_low",
+      "station_throughput_factor_low"
+    ]
+  end
+
+  defp operational_feedback_risk?(%{"risk_type" => type}) when is_binary(type) do
+    type in [
+      "contact_success_rate_low",
+      "observation_success_rate_low",
+      "station_throughput_factor_low"
+    ]
+  end
+
+  defp operational_feedback_risk?(_risk), do: false
 
   defp risk_context_values(risks, keys) when is_list(keys) do
     risks

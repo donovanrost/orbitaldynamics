@@ -12950,7 +12950,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert review_branch["feedback_adjustments"]["station_throughput_factor"] == 0.8
 
-    assert artifact["operational_feedback_provenance"]["explicit_request_override"] == true
+    assert artifact["operational_feedback_provenance"]["explicit_request_override"] ==
+             true
 
     assert artifact["operational_feedback_provenance"]["effective_sources"] == %{
              "station_throughput_factor" => "request.operational_feedback"
@@ -13193,7 +13194,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  "input_keys" => ["invalid_operational_feedback_input"],
                  "invalid_operational_feedback_input" => true,
                  "invalid_operational_feedback_input_reason" =>
-                   "operational_feedback_must_be_object",
+                   "strategy_operational_feedback_must_be_object",
                  "source_operational_feedback" => %{
                    "invalid_feedback_shape" => "bad_feedback"
                  }
@@ -16650,7 +16651,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert [
              %{
                "field" => "source_operational_feedback",
-               "reason" => "operational_feedback_must_be_object",
+               "reason" => "strategy_operational_feedback_must_be_object",
                "invalid_feedback_shape" => "bad_feedback",
                "row_id" => "cadence_import:strategy_branch:malformed_feedback",
                "source_review_type" => "strategy_branch_comparison"
@@ -16770,7 +16771,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert [
              %{
                "field" => "source_operational_feedback",
-               "reason" => "operational_feedback_must_be_object",
+               "reason" => "strategy_operational_feedback_must_be_object",
                "invalid_feedback_shape" => "feedback_snapshot",
                "row_id" => "cadence_import:warning:candidate_refresh_feedback",
                "source_review_type" => "warning",
@@ -18434,7 +18435,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         },
         approval_policy: %{
           "blocked_risk_types" => [],
-          "operator_review_risk_limit" => 30
+          "operator_review_risk_limit" => 40
         },
         branches: [
           %{id: "baseline"},
@@ -18711,6 +18712,167 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 transition_reason: "maneuver failed after acceptance",
                 requires_operator_review: true,
                 derivation_reasons: ["maneuver_review_success_feedback_pressure"]
+              },
+              %{
+                type: "contact_success_feedback",
+                activity_id: "contact_feedback_review",
+                scenario_id: "leo_1",
+                timeline_id: "timeline:contact_feedback_review",
+                starts_at_s: 790.0,
+                ends_at_s: 850.0,
+                contact_success_factor: 0.35,
+                contact_result: "no-contact",
+                realized_status: "missed",
+                ground_station_id: "equator_prime",
+                planned_ground_station_id: "polar_prime",
+                realized_ground_station_id: "equator_prime",
+                ground_station_match_status: "mismatch",
+                direction: "downlink",
+                planned_direction: "uplink",
+                realized_direction: "downlink",
+                direction_match_status: "mismatch",
+                source_window_id: "window_equator_contact",
+                planned_source_window_id: "window_polar_contact",
+                realized_source_window_id: "window_equator_contact",
+                source_window_match_status: "mismatch",
+                contact_identity_mismatch_fields: [
+                  "direction",
+                  "ground_station",
+                  "source_window"
+                ],
+                source_activity_id: "contact_feedback_source",
+                replacement_activity_id: "contact_feedback_review",
+                source_activity_ids: ["contact_feedback_review", "contact_feedback_source"],
+                changed_fields: ["contact_result", "contact_success_factor"],
+                required_operator_action: "review_contact_execution_feedback",
+                feedback_source: "mission_state.source_contact_review.rows",
+                feedback_scope: "contact_execution_feedback",
+                feedback_key: "contact_feedback_review",
+                trust_boundary: "mission_state_contact_review",
+                status_transition: %{
+                  "field" => "status",
+                  "from" => "planned",
+                  "to" => "missed",
+                  "transition_type" => "status_changed",
+                  "transition_category" => "terminal_exception",
+                  "transition_reason" => "contact was missed by provider report",
+                  "requires_operator_review" => true
+                },
+                transition_type: "status_changed",
+                transition_category: "terminal_exception",
+                transition_reason: "contact was missed by provider report",
+                requires_operator_review: true,
+                derivation_reasons: ["contact_execution_feedback_pressure"]
+              },
+              %{
+                type: "observation_success_feedback",
+                activity_id: "obs_feedback_review",
+                scenario_id: "leo_1",
+                timeline_id: "timeline:obs_feedback_review",
+                starts_at_s: 870.0,
+                ends_at_s: 930.0,
+                observation_success_factor: 0.45,
+                observation_result: "accepted, degraded",
+                realized_status: "degraded",
+                target_id: "target_hot",
+                planned_target_id: "target_hot",
+                realized_target_id: "target_shadow",
+                target_match_status: "mismatch",
+                collection_id: "collection_hot",
+                planned_collection_id: "collection_hot",
+                realized_collection_id: "collection_shadow",
+                collection_match_status: "mismatch",
+                product_id: "product_hot",
+                product_ids: ["product_hot"],
+                planned_product_id: "product_hot",
+                realized_product_id: "product_shadow",
+                product_match_status: "mismatch",
+                payload_id: "payload_nadir",
+                planned_payload_id: "payload_nadir",
+                realized_payload_id: "payload_wide",
+                payload_match_status: "mismatch",
+                instrument_id: "camera_nadir",
+                planned_instrument_id: "camera_nadir",
+                realized_instrument_id: "camera_wide",
+                instrument_match_status: "mismatch",
+                observation_identity_mismatch_fields: [
+                  "collection",
+                  "instrument",
+                  "target"
+                ],
+                pointing_status: "degraded",
+                pointing_error_deg: 1.2,
+                attitude_status: "degraded",
+                attitude_error_deg: 0.8,
+                lighting_condition_match_status: "mismatch",
+                planned_lighting_condition: "sunlit",
+                realized_lighting_condition: "penumbra",
+                lighting_condition_detail: "low sun angle",
+                lighting_confidence: 0.7,
+                eclipse_overlap_fraction: 0.2,
+                image_quality_score: 0.45,
+                image_quality_status: "marginal",
+                image_quality_source: "provider_imagery_quality",
+                cloud_cover_fraction: 0.55,
+                blur_score: 0.25,
+                source_activity_id: "obs_feedback_source",
+                replacement_activity_id: "obs_feedback_review",
+                source_activity_ids: ["obs_feedback_review", "obs_feedback_source"],
+                changed_fields: ["observation_result", "observation_success_factor"],
+                required_operator_action: "review_observation_execution_feedback",
+                feedback_source: "mission_state.source_observation_review.rows",
+                feedback_scope: "observation_execution_feedback",
+                feedback_key: "obs_feedback_review",
+                trust_boundary: "mission_state_observation_review",
+                status_transition: %{
+                  "field" => "status",
+                  "from" => "planned",
+                  "to" => "degraded",
+                  "transition_type" => "status_changed",
+                  "transition_category" => "quality_exception",
+                  "transition_reason" => "observation quality degraded",
+                  "requires_operator_review" => true
+                },
+                transition_type: "status_changed",
+                transition_category: "quality_exception",
+                transition_reason: "observation quality degraded",
+                requires_operator_review: true,
+                derivation_reasons: ["observation_execution_feedback_pressure"]
+              },
+              %{
+                type: "station_throughput_feedback",
+                activity_id: "station_feedback_review",
+                scenario_id: "leo_1",
+                timeline_id: "timeline:station_feedback_review",
+                starts_at_s: 950.0,
+                ends_at_s: 1_010.0,
+                ground_station_id: "equator_prime",
+                station_throughput_factor: 0.5,
+                actual_throughput_mb: 50.0,
+                estimated_throughput_mb: 100.0,
+                source_activity_id: "station_feedback_source",
+                replacement_activity_id: "station_feedback_review",
+                source_activity_ids: ["station_feedback_review", "station_feedback_source"],
+                changed_fields: ["actual_throughput_mb", "station_throughput_factor"],
+                required_operator_action: "review_station_throughput_feedback",
+                feedback_source: "mission_state.source_station_throughput_review.rows",
+                feedback_scope: "station_throughput_feedback",
+                feedback_key: "station_feedback_review",
+                trust_boundary: "mission_state_station_throughput_review",
+                status_transition: %{
+                  "field" => "throughput_status",
+                  "from" => "planned",
+                  "to" => "degraded",
+                  "transition_type" => "throughput_changed",
+                  "transition_category" => "capacity_exception",
+                  "transition_reason" => "station throughput below plan",
+                  "requires_operator_review" => true
+                },
+                transition_type: "throughput_changed",
+                transition_category: "capacity_exception",
+                transition_reason: "station throughput below plan",
+                requires_operator_review: true,
+                derivation_reasons: ["station_throughput_feedback_pressure"]
               },
               %{
                 type: "resource_margin_pressure",
@@ -20648,6 +20810,184 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "execution_success_feedback_derivation_reasons" => [
         "command_window_execution_feedback_pressure",
         "maneuver_review_success_feedback_pressure"
+      ],
+      "strategy_operational_feedback_risk_types" => [
+        "contact_success_rate_low",
+        "observation_success_rate_low",
+        "station_throughput_factor_low"
+      ],
+      "strategy_operational_feedback_activity_ids" => [
+        "contact_feedback_review",
+        "obs_feedback_review",
+        "station_feedback_review"
+      ],
+      "strategy_operational_feedback_scenario_ids" => ["leo_1"],
+      "strategy_operational_feedback_timeline_ids" => [
+        "timeline:contact_feedback_review",
+        "timeline:obs_feedback_review",
+        "timeline:station_feedback_review"
+      ],
+      "strategy_operational_feedback_source_activity_ids" => [
+        "contact_feedback_source",
+        "contact_feedback_review",
+        "obs_feedback_source",
+        "obs_feedback_review",
+        "station_feedback_source",
+        "station_feedback_review"
+      ],
+      "strategy_operational_feedback_replacement_activity_ids" => [
+        "contact_feedback_review",
+        "obs_feedback_review",
+        "station_feedback_review"
+      ],
+      "strategy_operational_feedback_contact_success_factor_values" => [0.35],
+      "strategy_operational_feedback_observation_success_factor_values" => [0.45],
+      "strategy_operational_feedback_station_throughput_factor_values" => [0.5],
+      "strategy_operational_feedback_contact_results" => ["no-contact"],
+      "strategy_operational_feedback_observation_results" => ["accepted, degraded"],
+      "strategy_operational_feedback_realized_statuses" => ["missed", "degraded"],
+      "strategy_operational_feedback_ground_station_ids" => ["equator_prime"],
+      "strategy_operational_feedback_planned_ground_station_ids" => ["polar_prime"],
+      "strategy_operational_feedback_realized_ground_station_ids" => ["equator_prime"],
+      "strategy_operational_feedback_ground_station_match_statuses" => ["mismatch"],
+      "strategy_operational_feedback_directions" => ["downlink"],
+      "strategy_operational_feedback_planned_directions" => ["uplink"],
+      "strategy_operational_feedback_realized_directions" => ["downlink"],
+      "strategy_operational_feedback_direction_match_statuses" => ["mismatch"],
+      "strategy_operational_feedback_source_window_ids" => ["window_equator_contact"],
+      "strategy_operational_feedback_planned_source_window_ids" => ["window_polar_contact"],
+      "strategy_operational_feedback_realized_source_window_ids" => ["window_equator_contact"],
+      "strategy_operational_feedback_source_window_match_statuses" => ["mismatch"],
+      "strategy_operational_feedback_contact_identity_mismatch_fields" => [
+        "direction",
+        "ground_station",
+        "source_window"
+      ],
+      "strategy_operational_feedback_target_ids" => ["target_hot"],
+      "strategy_operational_feedback_planned_target_ids" => ["target_hot"],
+      "strategy_operational_feedback_realized_target_ids" => ["target_shadow"],
+      "strategy_operational_feedback_target_match_statuses" => ["mismatch"],
+      "strategy_operational_feedback_collection_ids" => ["collection_hot"],
+      "strategy_operational_feedback_planned_collection_ids" => ["collection_hot"],
+      "strategy_operational_feedback_realized_collection_ids" => ["collection_shadow"],
+      "strategy_operational_feedback_collection_match_statuses" => ["mismatch"],
+      "strategy_operational_feedback_product_ids" => ["product_hot"],
+      "strategy_operational_feedback_planned_product_ids" => ["product_hot"],
+      "strategy_operational_feedback_realized_product_ids" => ["product_shadow"],
+      "strategy_operational_feedback_product_match_statuses" => ["mismatch"],
+      "strategy_operational_feedback_payload_ids" => ["payload_nadir"],
+      "strategy_operational_feedback_planned_payload_ids" => ["payload_nadir"],
+      "strategy_operational_feedback_realized_payload_ids" => ["payload_wide"],
+      "strategy_operational_feedback_payload_match_statuses" => ["mismatch"],
+      "strategy_operational_feedback_instrument_ids" => ["camera_nadir"],
+      "strategy_operational_feedback_planned_instrument_ids" => ["camera_nadir"],
+      "strategy_operational_feedback_realized_instrument_ids" => ["camera_wide"],
+      "strategy_operational_feedback_instrument_match_statuses" => ["mismatch"],
+      "strategy_operational_feedback_observation_identity_mismatch_fields" => [
+        "collection",
+        "instrument",
+        "target"
+      ],
+      "strategy_operational_feedback_pointing_statuses" => ["degraded"],
+      "strategy_operational_feedback_pointing_error_values_deg" => [1.2],
+      "strategy_operational_feedback_attitude_statuses" => ["degraded"],
+      "strategy_operational_feedback_attitude_error_values_deg" => [0.8],
+      "strategy_operational_feedback_lighting_condition_match_statuses" => ["mismatch"],
+      "strategy_operational_feedback_planned_lighting_conditions" => ["sunlit"],
+      "strategy_operational_feedback_realized_lighting_conditions" => ["penumbra"],
+      "strategy_operational_feedback_lighting_condition_details" => ["low sun angle"],
+      "strategy_operational_feedback_lighting_confidence_values" => [0.7],
+      "strategy_operational_feedback_eclipse_overlap_fraction_values" => [0.2],
+      "strategy_operational_feedback_image_quality_score_values" => [0.45],
+      "strategy_operational_feedback_image_quality_statuses" => ["marginal"],
+      "strategy_operational_feedback_image_quality_sources" => ["provider_imagery_quality"],
+      "strategy_operational_feedback_cloud_cover_fraction_values" => [0.55],
+      "strategy_operational_feedback_blur_score_values" => [0.25],
+      "strategy_operational_feedback_actual_throughput_values_mb" => [50.0],
+      "strategy_operational_feedback_estimated_throughput_values_mb" => [100.0],
+      "strategy_operational_feedback_start_values_s" => [790.0, 870.0, 950.0],
+      "strategy_operational_feedback_end_values_s" => [850.0, 930.0, 1_010.0],
+      "strategy_operational_feedback_changed_fields" => [
+        "contact_result",
+        "contact_success_factor",
+        "observation_result",
+        "observation_success_factor",
+        "actual_throughput_mb",
+        "station_throughput_factor"
+      ],
+      "strategy_operational_feedback_status_transition_maps" => [
+        %{
+          "field" => "status",
+          "from" => "planned",
+          "to" => "missed",
+          "transition_type" => "status_changed",
+          "transition_category" => "terminal_exception",
+          "transition_reason" => "contact was missed by provider report",
+          "requires_operator_review" => true
+        },
+        %{
+          "field" => "status",
+          "from" => "planned",
+          "to" => "degraded",
+          "transition_type" => "status_changed",
+          "transition_category" => "quality_exception",
+          "transition_reason" => "observation quality degraded",
+          "requires_operator_review" => true
+        },
+        %{
+          "field" => "throughput_status",
+          "from" => "planned",
+          "to" => "degraded",
+          "transition_type" => "throughput_changed",
+          "transition_category" => "capacity_exception",
+          "transition_reason" => "station throughput below plan",
+          "requires_operator_review" => true
+        }
+      ],
+      "strategy_operational_feedback_transition_types" => [
+        "status_changed",
+        "throughput_changed"
+      ],
+      "strategy_operational_feedback_transition_categories" => [
+        "terminal_exception",
+        "quality_exception",
+        "capacity_exception"
+      ],
+      "strategy_operational_feedback_transition_reasons" => [
+        "contact was missed by provider report",
+        "observation quality degraded",
+        "station throughput below plan"
+      ],
+      "strategy_operational_feedback_required_operator_actions" => [
+        "review_contact_execution_feedback",
+        "review_observation_execution_feedback",
+        "review_station_throughput_feedback"
+      ],
+      "strategy_operational_feedback_requires_operator_review_values" => [true],
+      "strategy_operational_feedback_feedback_sources" => [
+        "mission_state.source_contact_review.rows",
+        "mission_state.source_observation_review.rows",
+        "mission_state.source_station_throughput_review.rows"
+      ],
+      "strategy_operational_feedback_feedback_scopes" => [
+        "contact_execution_feedback",
+        "observation_execution_feedback",
+        "station_throughput_feedback"
+      ],
+      "strategy_operational_feedback_feedback_keys" => [
+        "contact_feedback_review",
+        "obs_feedback_review",
+        "station_feedback_review"
+      ],
+      "strategy_operational_feedback_trust_boundaries" => [
+        "mission_state_contact_review",
+        "mission_state_observation_review",
+        "mission_state_station_throughput_review"
+      ],
+      "strategy_operational_feedback_derivation_reasons" => [
+        "contact_execution_feedback_pressure",
+        "observation_execution_feedback_pressure",
+        "station_throughput_feedback_pressure"
       ],
       "resource_margin_risk_types" => ["power_margin_low"],
       "resource_margin_spacecraft_ids" => ["leo_1"],
@@ -36981,7 +37321,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "branch_local_import_review_pressure" => true,
              "assumptions" => %{
                "replay_scope" => "timeline_feedback_candidate_source_report_summary_only",
-               "operational_feedback_application" => "not_performed_by_summary",
+               "strategy_operational_feedback_application" => "not_performed_by_summary",
                "timeline_mutation" => "not_performed_by_summary",
                "candidate_generation" => "not_performed_by_summary"
              }
@@ -37024,7 +37364,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "branch_local_activity_routing_pressure" => true,
              "assumptions" => %{
                "replay_scope" => "operational_timeline_candidate_source_report_summary_only",
-               "operational_feedback_application" => "not_performed_by_summary",
+               "strategy_operational_feedback_application" => "not_performed_by_summary",
                "timeline_mutation" => "not_performed_by_summary",
                "candidate_generation" => "not_performed_by_summary"
              }
@@ -40575,8 +40915,13 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "mission_state.realized_activities.contact.required_downlink_mb:planned_dl_1"
            ]
 
-    assert "downlink_demand_mb" in artifact["operational_feedback_provenance"]["input_keys"]
-    assert "downlink_demand_sources" in artifact["operational_feedback_provenance"]["input_keys"]
+    assert "downlink_demand_mb" in artifact["operational_feedback_provenance"][
+             "input_keys"
+           ]
+
+    assert "downlink_demand_sources" in artifact["operational_feedback_provenance"][
+             "input_keys"
+           ]
 
     assert %{
              "source" => "mission_state.realized_activities",
@@ -41096,8 +41441,13 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert downlink["downlink_completion_source"] ==
              "operational_feedback.downlink_demand_mb.default"
 
-    assert "downlink_demand_mb" in artifact["operational_feedback_provenance"]["input_keys"]
-    assert "downlink_demand_sources" in artifact["operational_feedback_provenance"]["input_keys"]
+    assert "downlink_demand_mb" in artifact["operational_feedback_provenance"][
+             "input_keys"
+           ]
+
+    assert "downlink_demand_sources" in artifact["operational_feedback_provenance"][
+             "input_keys"
+           ]
 
     assert %{
              "source" => "mission_state.realized_activities",
@@ -63342,7 +63692,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            } = List.first(quality_branch["events"])
 
     assert Enum.sort(
-             quality_branch["assumptions"]["candidate_source"]["operational_feedback_input_keys"]
+             quality_branch["assumptions"]["candidate_source"][
+               "operational_feedback_input_keys"
+             ]
            ) == [
              "blur_score",
              "cloud_cover_fraction",
@@ -70468,7 +70820,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              quality_branch["assumptions"]["candidate_source"]
 
     assert Enum.sort(
-             quality_branch["assumptions"]["candidate_source"]["operational_feedback_input_keys"]
+             quality_branch["assumptions"]["candidate_source"][
+               "operational_feedback_input_keys"
+             ]
            ) == [
              "blur_score",
              "cloud_cover_fraction",
@@ -70641,7 +70995,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              quality_branch["assumptions"]["candidate_source"]
 
     assert Enum.sort(
-             quality_branch["assumptions"]["candidate_source"]["operational_feedback_input_keys"]
+             quality_branch["assumptions"]["candidate_source"][
+               "operational_feedback_input_keys"
+             ]
            ) == [
              "blur_score",
              "cloud_cover_fraction",
@@ -70713,7 +71069,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            }
 
     assert Enum.sort(
-             quality_branch["assumptions"]["candidate_source"]["operational_feedback_input_keys"]
+             quality_branch["assumptions"]["candidate_source"][
+               "operational_feedback_input_keys"
+             ]
            ) == [
              "blur_score",
              "cloud_cover_fraction",
@@ -70752,7 +71110,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            } = List.first(quality_branch["events"])
 
     assert Enum.sort(
-             quality_branch["assumptions"]["candidate_source"]["operational_feedback_input_keys"]
+             quality_branch["assumptions"]["candidate_source"][
+               "operational_feedback_input_keys"
+             ]
            ) == [
              "blur_score",
              "cloud_cover_fraction",
@@ -70807,7 +71167,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert event["observation_success_factor"] == 0.0
 
     assert Enum.sort(
-             quality_branch["assumptions"]["candidate_source"]["operational_feedback_input_keys"]
+             quality_branch["assumptions"]["candidate_source"][
+               "operational_feedback_input_keys"
+             ]
            ) == [
              "image_quality_status",
              "observation_success_rate"
@@ -71121,7 +71483,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "target_a" => 0.5
            }
 
-    assert artifact["operational_feedback_provenance"]["explicit_request_override"] == true
+    assert artifact["operational_feedback_provenance"]["explicit_request_override"] ==
+             true
 
     assert Enum.any?(
              artifact["operational_feedback_provenance"]["sources"],
