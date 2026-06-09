@@ -11991,6 +11991,152 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              replay_summary
   end
 
+  test "link capacity source summaries derive stale aggregate pressure from rows" do
+    rows = [
+      %{
+        "ground_station_id" => "equator_prime",
+        "spacecraft_id" => "leo_1",
+        "direction" => "Down Link",
+        "contact_count" => 1,
+        "effective_contact_count" => 1,
+        "selected_contact_count" => 1,
+        "selected_downlink_shortfall_mb" => 12.0,
+        "actual_downlink_shortfall_mb" => 3.0,
+        "capacity_adjusted_throughput_mb" => 70.0,
+        "selected_capacity_adjusted_throughput_mb" => 45.0,
+        "unused_capacity_adjusted_throughput_mb" => 25.0,
+        "downlink_requirement_status" => "shortfall",
+        "actual_downlink_requirement_status" => "shortfall",
+        "contact_ids" => ["row_capacity_contact"],
+        "selected_contact_ids" => ["row_capacity_contact"],
+        "actual_throughput_contact_ids" => ["row_capacity_contact"],
+        "source_window_ids" => ["row_window"],
+        "station_calendar_entry_ids" => ["row_station_entry"],
+        "station_calendar_provider_entry_ids" => ["row_provider_entry"]
+      }
+    ]
+
+    stale_summary =
+      %{"schema_contract" => "link_capacity_report.v1", "rows" => rows}
+      |> LinkCapacity.summary()
+      |> Map.put("rows", rows)
+      |> Map.put("provenance", %{"trust_boundary" => "row_derived_link_capacity_summary"})
+      |> Map.merge(%{
+        "station_count" => 99,
+        "selected_downlink_shortfall_mb" => 999.0,
+        "actual_downlink_shortfall_mb" => 999.0,
+        "capacity_adjusted_throughput_mb" => 999.0,
+        "selected_capacity_adjusted_throughput_mb" => 999.0,
+        "unused_capacity_adjusted_throughput_mb" => 999.0,
+        "ground_station_ids" => ["stale_station"],
+        "capacity_adjusted_throughput_mb_by_ground_station_id" => %{
+          "stale_station" => 999.0
+        },
+        "selected_capacity_adjusted_throughput_mb_by_ground_station_id" => %{
+          "stale_station" => 999.0
+        },
+        "unused_capacity_adjusted_throughput_mb_by_ground_station_id" => %{
+          "stale_station" => 999.0
+        },
+        "selected_contact_ids" => ["stale_selected_contact"],
+        "actual_throughput_contact_ids" => ["stale_actual_contact"],
+        "selected_contact_ids_by_ground_station_id" => %{
+          "stale_station" => ["stale_selected_contact"]
+        },
+        "actual_throughput_contact_ids_by_ground_station_id" => %{
+          "stale_station" => ["stale_actual_contact"]
+        },
+        "contact_ids_by_direction" => %{"uplink" => ["stale_contact"]},
+        "source_window_ids_by_direction" => %{"uplink" => ["stale_window"]},
+        "direction_routing" => %{
+          "uplink" => %{
+            "contact_count" => 99,
+            "contact_ids" => ["stale_contact"]
+          }
+        }
+      })
+
+    refresh = %{"source_link_capacity_summary" => stale_summary}
+
+    expected_direction_routing = %{
+      "downlink" => %{
+        "contact_count" => 1,
+        "contact_ids" => ["row_capacity_contact"],
+        "source_window_ids" => ["row_window"],
+        "station_calendar_entry_ids" => ["row_station_entry"],
+        "station_calendar_provider_entry_ids" => ["row_provider_entry"],
+        "capacity_adjusted_throughput_mb" => 70.0,
+        "selected_capacity_adjusted_throughput_mb" => 45.0,
+        "unused_capacity_adjusted_throughput_mb" => 25.0
+      }
+    }
+
+    assert %{
+             "source_report_link_capacity_contract" => "link_capacity_summary.v1",
+             "source_report_link_capacity_count" => 1,
+             "source_report_link_capacity_row_count" => 1,
+             "source_report_link_capacity_selected_shortfall_row_count" => 1,
+             "source_report_link_capacity_actual_shortfall_row_count" => 1,
+             "source_report_link_capacity_actual_throughput_row_count" => 1,
+             "source_report_link_capacity_capacity_adjusted_throughput_row_count" => 1,
+             "source_report_link_capacity_capacity_adjusted_throughput_mb_total" => 70.0,
+             "source_report_link_capacity_selected_capacity_adjusted_throughput_mb_total" => 45.0,
+             "source_report_link_capacity_unused_capacity_adjusted_throughput_mb_total" => 25.0,
+             "source_report_link_capacity_ground_station_counts" => %{"equator_prime" => 1},
+             "source_report_link_capacity_capacity_adjusted_throughput_mb_by_ground_station" => %{
+               "equator_prime" => 70.0
+             },
+             "source_report_link_capacity_selected_capacity_adjusted_throughput_mb_by_ground_station" =>
+               %{"equator_prime" => 45.0},
+             "source_report_link_capacity_unused_capacity_adjusted_throughput_mb_by_ground_station" =>
+               %{"equator_prime" => 25.0},
+             "source_report_link_capacity_capacity_adjusted_throughput_mb_by_direction" => %{
+               "downlink" => 70.0
+             },
+             "source_report_link_capacity_contact_ids_by_direction" => %{
+               "downlink" => ["row_capacity_contact"]
+             },
+             "source_report_link_capacity_source_window_ids_by_direction" => %{
+               "downlink" => ["row_window"]
+             },
+             "source_report_link_capacity_direction_routing" => ^expected_direction_routing,
+             "source_report_link_capacity_selected_contact_ids" => ["row_capacity_contact"],
+             "source_report_link_capacity_actual_throughput_contact_ids" => [
+               "row_capacity_contact"
+             ],
+             "source_report_link_capacity_branch_local_link_capacity_pressure" => true,
+             "source_report_link_capacity_branch_local_capacity_adjusted_throughput_pressure" =>
+               true,
+             "source_report_link_capacity_branch_local_downlink_shortfall_pressure" => true,
+             "source_report_link_capacity_branch_local_actual_throughput_pressure" => true
+           } = source_summary = CandidateRefresh.source_report_summary(refresh)
+
+    refute Map.has_key?(
+             source_summary["source_report_link_capacity_contact_ids_by_direction"],
+             "uplink"
+           )
+
+    assert %{
+             "source_report_row_count" => 1,
+             "capacity_adjusted_throughput_mb_total" => 70.0,
+             "selected_capacity_adjusted_throughput_mb_total" => 45.0,
+             "unused_capacity_adjusted_throughput_mb_total" => 25.0,
+             "ground_station_counts" => %{"equator_prime" => 1},
+             "capacity_adjusted_throughput_mb_by_ground_station" => %{
+               "equator_prime" => 70.0
+             },
+             "contact_ids_by_direction" => %{"downlink" => ["row_capacity_contact"]},
+             "source_window_ids_by_direction" => %{"downlink" => ["row_window"]},
+             "direction_routing" => ^expected_direction_routing,
+             "selected_contact_ids" => ["row_capacity_contact"],
+             "actual_throughput_contact_ids" => ["row_capacity_contact"],
+             "branch_local_link_capacity_pressure" => true,
+             "branch_local_capacity_adjusted_throughput_pressure" => true,
+             "branch_local_downlink_shortfall_pressure" => true,
+             "branch_local_actual_throughput_pressure" => true
+           } = CandidateRefresh.link_capacity_replay_summary(refresh)
+  end
+
   test "source report summary replays relay data path summaries" do
     summary = relay_data_path_summary_fixture()
 

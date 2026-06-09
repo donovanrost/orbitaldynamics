@@ -948,7 +948,9 @@ Branch-generated candidate-refresh requests now also carry direct and wrapped
 capacity-adjusted throughput totals, selected/actual shortfall evidence,
 selected/actual contact routing, trust-boundary evidence, and artifact-only
 no-allocation/no-selection assumptions in generated candidate-source
-provenance.
+provenance. Compact summaries with embedded rows derive those throughput,
+contact, source-window, station-calendar, and direction-routing maps from rows
+before stale top-level aggregates are replayed into branch-local provenance.
 They also carry direct, accepted-state, mission-state, and wrapped
 `source_relay_data_path_summary` / `relay_data_path_summary` inputs as
 link-capacity-family provenance, preserving relay/direct route counts, route

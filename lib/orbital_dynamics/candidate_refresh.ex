@@ -12,6 +12,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     ContactAllocation,
     ContactFilter,
     ContactIntent,
+    LinkCapacity,
     StationCalendar
   }
 
@@ -27028,7 +27029,11 @@ defmodule OrbitalDynamics.CandidateRefresh do
 
   defp source_link_capacity_report_input_summary(sources) do
     sources = deduplicate_shadowed_mission_state_result_artifact_sources(sources)
-    reports = Enum.map(sources, fn {_path, report} -> report end)
+
+    reports =
+      Enum.map(sources, fn {_path, report} ->
+        link_capacity_compact_summary_for_provenance(report)
+      end)
 
     directions = link_capacity_report_directions(reports)
 
@@ -27310,6 +27315,32 @@ defmodule OrbitalDynamics.CandidateRefresh do
     }
     |> compact_map()
   end
+
+  defp link_capacity_compact_summary_for_provenance(%{} = summary) do
+    summary = stringify_keys(summary)
+
+    rows =
+      summary
+      |> Map.get("rows", [])
+      |> List.wrap()
+      |> Enum.filter(&is_map/1)
+      |> Enum.map(&stringify_keys/1)
+
+    if link_capacity_summary_source?(summary) and rows != [] do
+      %{
+        "schema_contract" => "link_capacity_report.v1",
+        "rows" => rows,
+        "source" => summary["source"]
+      }
+      |> LinkCapacity.summary()
+      |> Map.put("rows", rows)
+      |> Map.merge(Map.take(summary, ["provenance", "source"]))
+    else
+      summary
+    end
+  end
+
+  defp link_capacity_compact_summary_for_provenance(report), do: report
 
   defp link_capacity_input_summary_contract(reports) do
     reports
