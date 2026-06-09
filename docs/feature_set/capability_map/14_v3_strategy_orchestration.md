@@ -741,6 +741,9 @@ Candidate-rejection pressure risks similarly contribute to
 `candidate_rejection_pressure_penalty`, so rejected-candidate review evidence
 from typed activity reports remains visible in score terms instead of blending
 into generic risk.
+Provider-counteroffer review risks contribute to
+`provider_counteroffer_pressure_penalty`, keeping provider negotiation pressure
+visible as its own score dimension without granting provider-write authority.
 
 ### Constraint, objective, tradeoff, and score-term replay
 
@@ -1573,6 +1576,10 @@ Selected recommendations also include:
 - **Candidate-rejection pressure score terms** — split review-required
   candidate-rejection risks into `candidate_rejection_pressure_penalty`, leaving
   `risk_penalty` for unrelated risks while preserving total branch score
+  compatibility.
+- **Provider-counteroffer pressure score terms** — split review-required
+  provider-counteroffer risks into `provider_counteroffer_pressure_penalty`,
+  leaving `risk_penalty` for unrelated risks while preserving total branch score
   compatibility.
 - **`operational_readiness_pressure` explanation rows** — preserve the selected
   branch's readiness report, source artifact, readiness/import/status counts,
