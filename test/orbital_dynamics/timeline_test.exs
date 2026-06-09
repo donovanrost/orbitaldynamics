@@ -9905,6 +9905,8 @@ defmodule OrbitalDynamics.TimelineTest do
 
     assert OrbitalDynamics.timeline_diff_summary(source, replacement, source: "repair.activities") ==
              summary
+
+    assert read_json!("study_results/timeline_diff_summary_v1.json") == summary
   end
 
   test "preserves duplicate timeline identity collisions in diff review rows" do
@@ -12758,6 +12760,12 @@ defmodule OrbitalDynamics.TimelineTest do
              &(&1["path"] == "$.rows[#{row_index}].#{field}" and
                  &1["message"] == "must match timeline_integrity_issues #{issue_field} values")
            )
+  end
+
+  defp read_json!(path) do
+    path
+    |> File.read!()
+    |> :json.decode()
   end
 
   defp assert_rejects_stale_transition_selected_activity_evidence(
