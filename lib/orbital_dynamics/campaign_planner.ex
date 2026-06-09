@@ -2854,6 +2854,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     timeline_publication_pressure_count =
       timeline_publication_pressure_risk_count(risk_indicators)
 
+    timeline_lifecycle_pressure_count =
+      timeline_lifecycle_pressure_risk_count(risk_indicators)
+
     timeline_pressure_count = timeline_pressure_risk_count(risk_indicators)
     storage_downlink_pressure_count = storage_downlink_pressure_risk_count(risk_indicators)
     station_calendar_pressure_count = station_calendar_pressure_risk_count(risk_indicators)
@@ -2876,11 +2879,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
         risk_count - contact_allocation_pressure_count - approval_boundary_pressure_count -
           operational_readiness_pressure_count - quality_gate_pressure_count -
           timeline_integrity_pressure_count - timeline_dependency_impact_pressure_count -
-          timeline_publication_pressure_count - timeline_pressure_count -
-          storage_downlink_pressure_count - station_calendar_pressure_count -
-          candidate_rejection_pressure_count - provider_counteroffer_pressure_count -
-          validation_refresh_pressure_count - relay_data_path_pressure_count -
-          execution_feedback_pressure_count,
+          timeline_publication_pressure_count - timeline_lifecycle_pressure_count -
+          timeline_pressure_count - storage_downlink_pressure_count -
+          station_calendar_pressure_count - candidate_rejection_pressure_count -
+          provider_counteroffer_pressure_count - validation_refresh_pressure_count -
+          relay_data_path_pressure_count - execution_feedback_pressure_count,
         0
       )
 
@@ -2935,6 +2938,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     timeline_publication_pressure_penalty =
       -timeline_publication_pressure_count * policy.risk_weight
 
+    timeline_lifecycle_pressure_penalty =
+      -timeline_lifecycle_pressure_count * policy.risk_weight
+
     timeline_pressure_penalty =
       -timeline_pressure_count * policy.risk_weight
 
@@ -2970,11 +2976,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
         operational_readiness_pressure_penalty + quality_gate_pressure_penalty +
         approval_boundary_pressure_penalty + timeline_integrity_pressure_penalty +
         timeline_dependency_impact_pressure_penalty + timeline_publication_pressure_penalty +
-        timeline_pressure_penalty + storage_downlink_pressure_penalty +
-        station_calendar_pressure_penalty + candidate_rejection_pressure_penalty +
-        provider_counteroffer_pressure_penalty + validation_refresh_pressure_penalty +
-        relay_data_path_pressure_penalty + execution_feedback_pressure_penalty + risk_penalty +
-        approval_load_penalty
+        timeline_lifecycle_pressure_penalty + timeline_pressure_penalty +
+        storage_downlink_pressure_penalty + station_calendar_pressure_penalty +
+        candidate_rejection_pressure_penalty + provider_counteroffer_pressure_penalty +
+        validation_refresh_pressure_penalty + relay_data_path_pressure_penalty +
+        execution_feedback_pressure_penalty + risk_penalty + approval_load_penalty
 
     probability = Map.get(branch, "probability", 1.0)
     expected_score = raw_score * probability * policy.probability_weight
@@ -2999,6 +3005,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "timeline_dependency_impact_pressure_penalty" =>
         timeline_dependency_impact_pressure_penalty,
       "timeline_publication_pressure_penalty" => timeline_publication_pressure_penalty,
+      "timeline_lifecycle_pressure_penalty" => timeline_lifecycle_pressure_penalty,
       "timeline_pressure_penalty" => timeline_pressure_penalty,
       "storage_downlink_pressure_penalty" => storage_downlink_pressure_penalty,
       "station_calendar_pressure_penalty" => station_calendar_pressure_penalty,
@@ -3081,14 +3088,25 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp timeline_publication_pressure_risk?(_risk), do: false
 
+  defp timeline_lifecycle_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &timeline_lifecycle_pressure_risk?/1)
+  end
+
+  defp timeline_lifecycle_pressure_risk?(%{"type" => type})
+       when type in [
+              "timeline_lifecycle_state_review",
+              "timeline_activity_lifecycle_state_review"
+            ],
+       do: true
+
+  defp timeline_lifecycle_pressure_risk?(_risk), do: false
+
   defp timeline_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &timeline_pressure_risk?/1)
   end
 
   defp timeline_pressure_risk?(%{"type" => type})
        when type in [
-              "timeline_lifecycle_state_review",
-              "timeline_activity_lifecycle_state_review",
               "timeline_activity_precondition_review",
               "timeline_preservation_review"
             ],
@@ -4864,6 +4882,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"timeline_integrity_pressure", "timeline_integrity_pressure_penalty"},
         {"timeline_dependency_impact_pressure", "timeline_dependency_impact_pressure_penalty"},
         {"timeline_publication_pressure", "timeline_publication_pressure_penalty"},
+        {"timeline_lifecycle_pressure", "timeline_lifecycle_pressure_penalty"},
         {"timeline_pressure", "timeline_pressure_penalty"},
         {"storage_downlink_pressure", "storage_downlink_pressure_penalty"},
         {"station_calendar_pressure", "station_calendar_pressure_penalty"},
