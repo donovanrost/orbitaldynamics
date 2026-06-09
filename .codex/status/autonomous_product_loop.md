@@ -8,7 +8,7 @@ Current slice:
 Split timeline dependency-impact pressure into an explicit V3 score term.
 
 Status:
-Completed locally; ready to commit and push.
+Completed and pushed in product commit `23c9ddf`.
 
 Slice-selection note:
 - Selected slice: split V3 timeline dependency-impact risk indicators into
@@ -77,7 +77,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`1117a44` Split timeline integrity pressure score term.
+`23c9ddf` Split timeline dependency impact score term.
 
 Next candidate:
 After this score-term split, continue with the next planner-visible
@@ -89,6 +89,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `23c9ddf` split timeline dependency-impact pressure into an explicit V3 score
+  term and recommendation tradeoff dimension.
 - `1117a44` split timeline-integrity pressure into an explicit V3 score term
   and recommendation tradeoff dimension.
 - `5771a9b` split operational-readiness and quality-gate pressure into explicit
