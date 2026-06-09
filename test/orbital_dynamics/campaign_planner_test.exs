@@ -18534,6 +18534,44 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 trust_boundary: "mission_state_approval_boundary_policy"
               },
               %{
+                type: "timeline_activity_precondition_pressure",
+                activity_id: "cmd_precondition_review",
+                timeline_id: "timeline:cmd_precondition_review",
+                activity_type: "command",
+                precondition_status: "blocked",
+                blocked_precondition_count: 2,
+                review_precondition_count: 1,
+                blocked_precondition_types: [
+                  "command_safety_failed",
+                  "payload_unavailable"
+                ],
+                review_precondition_types: ["command_authority_missing"],
+                dependency_activity_ids: ["health_check"],
+                dependency_timeline_ids: ["timeline:health_check"],
+                exclusive_with_activity_ids: ["downlink_conflict"],
+                exclusive_with_timeline_ids: ["timeline:downlink_conflict"],
+                duplicate_dependency_activity_ids: ["health_check"],
+                duplicate_dependency_timeline_ids: ["timeline:health_check"],
+                duplicate_exclusivity_activity_ids: ["downlink_conflict"],
+                duplicate_exclusivity_timeline_ids: ["timeline:downlink_conflict"],
+                allow_overlap: true,
+                invalid_activity_input: false,
+                invalid_activity_input_reason: nil,
+                requires_operator_review: true,
+                required_operator_action: "review_blocked_activity_precondition",
+                feedback_source: "mission_state.source_timeline_activity_precondition_summary",
+                feedback_scope: "timeline_activity_precondition",
+                feedback_key: "cmd_precondition_review",
+                trust_boundary: "mission_state_timeline_activity_precondition_summary",
+                derivation_reasons: ["timeline_activity_precondition_summary_pressure"],
+                assumptions: %{
+                  "activity_precondition_evaluation" => "not_performed_by_strategy_branch",
+                  "timeline_mutation" => "not_performed_by_strategy_branch",
+                  "operator_authority" => "not_granted_by_strategy_branch",
+                  "cadence_import" => "not_performed_by_strategy_branch"
+                }
+              },
+              %{
                 type: "provider_reservation_request_pressure",
                 contact_id: "dl_provider_review",
                 source_activity_id: "dl_provider_review",
@@ -18952,6 +18990,51 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                explanation,
                &(&1["type"] == "risk_driver" and
                    &1["risk_type"] == "approval_boundary_pressure")
+             )
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "timeline_activity_precondition_review",
+             "severity" => "high",
+             "activity_id" => "cmd_precondition_review",
+             "timeline_id" => "timeline:cmd_precondition_review",
+             "activity_type" => "command",
+             "precondition_status" => "blocked",
+             "blocked_precondition_count" => 2,
+             "review_precondition_count" => 1,
+             "blocked_precondition_types" => [
+               "command_safety_failed",
+               "payload_unavailable"
+             ],
+             "review_precondition_types" => ["command_authority_missing"],
+             "dependency_activity_ids" => ["health_check"],
+             "dependency_timeline_ids" => ["timeline:health_check"],
+             "exclusive_with_activity_ids" => ["downlink_conflict"],
+             "exclusive_with_timeline_ids" => ["timeline:downlink_conflict"],
+             "duplicate_dependency_activity_ids" => ["health_check"],
+             "duplicate_dependency_timeline_ids" => ["timeline:health_check"],
+             "duplicate_exclusivity_activity_ids" => ["downlink_conflict"],
+             "duplicate_exclusivity_timeline_ids" => ["timeline:downlink_conflict"],
+             "allow_overlap" => true,
+             "invalid_activity_input" => false,
+             "requires_operator_review" => true,
+             "required_operator_action" => "review_blocked_activity_precondition",
+             "feedback_source" => "mission_state.source_timeline_activity_precondition_summary",
+             "feedback_scope" => "timeline_activity_precondition",
+             "feedback_key" => "cmd_precondition_review",
+             "trust_boundary" => "mission_state_timeline_activity_precondition_summary",
+             "derivation_reasons" => ["timeline_activity_precondition_summary_pressure"],
+             "assumptions" => %{
+               "activity_precondition_evaluation" => "not_performed_by_strategy_branch",
+               "timeline_mutation" => "not_performed_by_strategy_branch",
+               "operator_authority" => "not_granted_by_strategy_branch",
+               "cadence_import" => "not_performed_by_strategy_branch"
+             }
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "timeline_activity_precondition_review")
              )
 
     assert %{
@@ -19441,6 +19524,60 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "approval_boundary_feedback_scopes" => ["approval_boundary"],
       "approval_boundary_feedback_keys" => ["no_unapproved_command_execution"],
       "approval_boundary_trust_boundaries" => ["mission_state_approval_boundary_policy"],
+      "timeline_activity_precondition_activity_ids" => ["cmd_precondition_review"],
+      "timeline_activity_precondition_timeline_ids" => ["timeline:cmd_precondition_review"],
+      "timeline_activity_precondition_activity_types" => ["command"],
+      "timeline_activity_precondition_statuses" => ["blocked"],
+      "timeline_activity_precondition_blocked_count_values" => [2],
+      "timeline_activity_precondition_review_count_values" => [1],
+      "timeline_activity_precondition_blocked_types" => [
+        "command_safety_failed",
+        "payload_unavailable"
+      ],
+      "timeline_activity_precondition_review_types" => ["command_authority_missing"],
+      "timeline_activity_precondition_dependency_activity_ids" => ["health_check"],
+      "timeline_activity_precondition_dependency_timeline_ids" => ["timeline:health_check"],
+      "timeline_activity_precondition_exclusive_with_activity_ids" => ["downlink_conflict"],
+      "timeline_activity_precondition_exclusive_with_timeline_ids" => [
+        "timeline:downlink_conflict"
+      ],
+      "timeline_activity_precondition_duplicate_dependency_activity_ids" => ["health_check"],
+      "timeline_activity_precondition_duplicate_dependency_timeline_ids" => [
+        "timeline:health_check"
+      ],
+      "timeline_activity_precondition_duplicate_exclusivity_activity_ids" => [
+        "downlink_conflict"
+      ],
+      "timeline_activity_precondition_duplicate_exclusivity_timeline_ids" => [
+        "timeline:downlink_conflict"
+      ],
+      "timeline_activity_precondition_allow_overlap_values" => [true],
+      "timeline_activity_precondition_invalid_activity_input_values" => [false],
+      "timeline_activity_precondition_required_operator_actions" => [
+        "review_blocked_activity_precondition"
+      ],
+      "timeline_activity_precondition_requires_operator_review_values" => [true],
+      "timeline_activity_precondition_feedback_sources" => [
+        "mission_state.source_timeline_activity_precondition_summary"
+      ],
+      "timeline_activity_precondition_feedback_scopes" => [
+        "timeline_activity_precondition"
+      ],
+      "timeline_activity_precondition_feedback_keys" => ["cmd_precondition_review"],
+      "timeline_activity_precondition_trust_boundaries" => [
+        "mission_state_timeline_activity_precondition_summary"
+      ],
+      "timeline_activity_precondition_derivation_reasons" => [
+        "timeline_activity_precondition_summary_pressure"
+      ],
+      "timeline_activity_precondition_assumption_maps" => [
+        %{
+          "activity_precondition_evaluation" => "not_performed_by_strategy_branch",
+          "timeline_mutation" => "not_performed_by_strategy_branch",
+          "operator_authority" => "not_granted_by_strategy_branch",
+          "cadence_import" => "not_performed_by_strategy_branch"
+        }
+      ],
       "provider_reservation_request_contact_ids" => ["dl_provider_review"],
       "provider_reservation_request_source_activity_ids" => ["dl_provider_review"],
       "provider_reservation_request_ground_station_ids" => ["equator_prime"],

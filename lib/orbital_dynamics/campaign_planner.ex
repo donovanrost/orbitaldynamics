@@ -4887,11 +4887,17 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "duplicate_dependency_timeline_ids" => event["duplicate_dependency_timeline_ids"],
         "duplicate_exclusivity_activity_ids" => event["duplicate_exclusivity_activity_ids"],
         "duplicate_exclusivity_timeline_ids" => event["duplicate_exclusivity_timeline_ids"],
+        "allow_overlap" => event["allow_overlap"],
         "invalid_activity_input" => event["invalid_activity_input"],
         "invalid_activity_input_reason" => event["invalid_activity_input_reason"],
+        "requires_operator_review" => event["requires_operator_review"],
+        "required_operator_action" => event["required_operator_action"],
         "feedback_source" => event["feedback_source"],
         "feedback_scope" => event["feedback_scope"],
-        "trust_boundary" => event["trust_boundary"]
+        "feedback_key" => event["feedback_key"],
+        "trust_boundary" => event["trust_boundary"],
+        "derivation_reasons" => event["derivation_reasons"],
+        "assumptions" => event["assumptions"]
       }
       |> compact_map()
     ]
@@ -5332,6 +5338,38 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "route_ids_by_latency_status",
       "route_ids_by_risk_status",
       "route_ids_by_ground_station_id",
+      "feedback_source",
+      "feedback_scope",
+      "feedback_key",
+      "trust_boundary",
+      "derivation_reasons",
+      "assumptions"
+    ]
+  end
+
+  defp timeline_activity_precondition_pressure_risk_fields do
+    [
+      "activity_id",
+      "timeline_id",
+      "activity_type",
+      "precondition_status",
+      "blocked_precondition_count",
+      "review_precondition_count",
+      "blocked_precondition_types",
+      "review_precondition_types",
+      "dependency_activity_ids",
+      "dependency_timeline_ids",
+      "exclusive_with_activity_ids",
+      "exclusive_with_timeline_ids",
+      "duplicate_dependency_activity_ids",
+      "duplicate_dependency_timeline_ids",
+      "duplicate_exclusivity_activity_ids",
+      "duplicate_exclusivity_timeline_ids",
+      "allow_overlap",
+      "invalid_activity_input",
+      "invalid_activity_input_reason",
+      "requires_operator_review",
+      "required_operator_action",
       "feedback_source",
       "feedback_scope",
       "feedback_key",
@@ -6927,6 +6965,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp recommendation_pressure_risk_context(%{"type" => "provider_counteroffer_review"} = risk) do
     Map.take(risk, provider_counteroffer_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(
+         %{"type" => "timeline_activity_precondition_review"} = risk
+       ) do
+    Map.take(risk, timeline_activity_precondition_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(
+         %{"feedback_scope" => "timeline_activity_precondition"} = risk
+       ) do
+    Map.take(risk, timeline_activity_precondition_pressure_risk_fields())
   end
 
   defp recommendation_pressure_risk_context(_risk), do: %{}
