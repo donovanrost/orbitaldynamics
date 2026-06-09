@@ -19124,6 +19124,64 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 trust_boundary: "mission_state_objective_satisfaction_report"
               },
               %{
+                type: "downlink_completion_gap",
+                objective_id: "objective_tradeoff:latency_gap",
+                objective_type: "collection_latency",
+                latency_objective: true,
+                target_id: "target_tradeoff",
+                scenario_id: "leo_1",
+                branch_id: "urgent",
+                ground_station_id: "madrid",
+                collection_id: "collection_tradeoff_alpha",
+                collection_ids: [
+                  "collection_tradeoff_alpha",
+                  "collection_tradeoff_beta"
+                ],
+                product_id: "product_tradeoff_alpha",
+                product_ids: [
+                  "product_tradeoff_alpha",
+                  "product_tradeoff_beta"
+                ],
+                payload_id: "payload_tradeoff_alpha",
+                payload_ids: [
+                  "payload_tradeoff_alpha",
+                  "payload_tradeoff_beta"
+                ],
+                instrument_id: "instrument_tradeoff_alpha",
+                instrument_ids: [
+                  "instrument_tradeoff_alpha",
+                  "instrument_tradeoff_beta"
+                ],
+                starts_at_s: 1_460.0,
+                ends_at_s: 1_580.0,
+                required_contacts: 2,
+                planned_contacts: 1,
+                required_downlink_mb: 90.0,
+                planned_downlink_mb: 45.0,
+                max_latency_s: 240.0,
+                planned_latency_s: 390.0,
+                source_activity_id: "obs_tradeoff_source",
+                source_activity_ids: [
+                  "dl_tradeoff_selected",
+                  "obs_tradeoff_source"
+                ],
+                score: 7.25,
+                score_delta_from_selected: -2.75,
+                score_terms: %{
+                  "collection_latency_gap_s" => 150.0,
+                  "downlink_shortfall_mb" => 45.0
+                },
+                derivation_reasons: [
+                  "objective_tradeoff_downlink_gap",
+                  "collection_latency_gap",
+                  "objective_tradeoff_latency_gap",
+                  "objective_tradeoff_unselected"
+                ],
+                feedback_source: "mission_state.source_objective_tradeoff_report.tradeoffs",
+                feedback_scope: "objective_tradeoff",
+                trust_boundary: "mission_state_objective_tradeoff_report"
+              },
+              %{
                 type: "relay_data_path_pressure",
                 ground_station_id: "dss_14",
                 route_id: "relay_route_review",
@@ -21613,6 +21671,63 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "objective_satisfaction_pressure_derivation_reasons" => [
         "objective_satisfaction_observation_quality_gap",
         "objective_satisfaction_image_quality_marginal"
+      ],
+      "objective_tradeoff_pressure_risk_types" => ["downlink_completion_gap"],
+      "objective_tradeoff_pressure_objective_ids" => ["objective_tradeoff:latency_gap"],
+      "objective_tradeoff_pressure_objective_types" => ["collection_latency"],
+      "objective_tradeoff_pressure_latency_objective_values" => [true],
+      "objective_tradeoff_pressure_target_ids" => ["target_tradeoff"],
+      "objective_tradeoff_pressure_scenario_ids" => ["leo_1"],
+      "objective_tradeoff_pressure_branch_ids" => ["urgent"],
+      "objective_tradeoff_pressure_ground_station_ids" => ["madrid"],
+      "objective_tradeoff_pressure_collection_ids" => [
+        "collection_tradeoff_alpha",
+        "collection_tradeoff_beta"
+      ],
+      "objective_tradeoff_pressure_product_ids" => [
+        "product_tradeoff_alpha",
+        "product_tradeoff_beta"
+      ],
+      "objective_tradeoff_pressure_payload_ids" => [
+        "payload_tradeoff_alpha",
+        "payload_tradeoff_beta"
+      ],
+      "objective_tradeoff_pressure_instrument_ids" => [
+        "instrument_tradeoff_alpha",
+        "instrument_tradeoff_beta"
+      ],
+      "objective_tradeoff_pressure_start_values_s" => [1_460.0],
+      "objective_tradeoff_pressure_end_values_s" => [1_580.0],
+      "objective_tradeoff_pressure_required_contact_values" => [2],
+      "objective_tradeoff_pressure_planned_contact_values" => [1],
+      "objective_tradeoff_pressure_required_downlink_values_mb" => [90.0],
+      "objective_tradeoff_pressure_planned_downlink_values_mb" => [45.0],
+      "objective_tradeoff_pressure_max_latency_values_s" => [240.0],
+      "objective_tradeoff_pressure_planned_latency_values_s" => [390.0],
+      "objective_tradeoff_pressure_source_activity_ids" => [
+        "obs_tradeoff_source",
+        "dl_tradeoff_selected"
+      ],
+      "objective_tradeoff_pressure_score_values" => [7.25],
+      "objective_tradeoff_pressure_score_delta_from_selected_values" => [-2.75],
+      "objective_tradeoff_pressure_score_term_maps" => [
+        %{
+          "collection_latency_gap_s" => 150.0,
+          "downlink_shortfall_mb" => 45.0
+        }
+      ],
+      "objective_tradeoff_pressure_feedback_sources" => [
+        "mission_state.source_objective_tradeoff_report.tradeoffs"
+      ],
+      "objective_tradeoff_pressure_feedback_scopes" => ["objective_tradeoff"],
+      "objective_tradeoff_pressure_trust_boundaries" => [
+        "mission_state_objective_tradeoff_report"
+      ],
+      "objective_tradeoff_pressure_derivation_reasons" => [
+        "objective_tradeoff_downlink_gap",
+        "collection_latency_gap",
+        "objective_tradeoff_latency_gap",
+        "objective_tradeoff_unselected"
       ],
       "relay_data_path_risk_types" => ["relay_data_path_pressure"],
       "relay_data_path_ground_station_ids" => ["dss_14"],
