@@ -5171,31 +5171,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp event_risk_indicators(%{"type" => "candidate_rejection_pressure"} = event) do
     [
-      %{
+      event
+      |> Map.take(candidate_rejection_pressure_risk_fields())
+      |> Map.merge(%{
         "type" => "candidate_rejection_pressure",
         "severity" => "high",
         "reason" =>
-          "candidate #{event["candidate_id"]} has rejection evidence requiring operator review",
-        "candidate_id" => event["candidate_id"],
-        "activity_id" => event["activity_id"],
-        "activity_type" => event["activity_type"],
-        "scenario_id" => event["scenario_id"],
-        "target_id" => event["target_id"],
-        "ground_station_id" => event["ground_station_id"],
-        "source_window_id" => event["source_window_id"],
-        "source_window_type" => event["source_window_type"],
-        "rejection_status" => event["rejection_status"],
-        "primary_rejection_reason" => event["primary_rejection_reason"],
-        "rejection_reasons" => event["rejection_reasons"],
-        "violated_constraint" => event["violated_constraint"],
-        "required_margin" => event["required_margin"],
-        "actual_margin" => event["actual_margin"],
-        "required_operator_action" => event["required_operator_action"],
-        "feedback_source" => event["feedback_source"],
-        "feedback_scope" => event["feedback_scope"],
-        "feedback_key" => event["feedback_key"],
-        "trust_boundary" => event["trust_boundary"]
-      }
+          "candidate #{event["candidate_id"]} has rejection evidence requiring operator review"
+      })
       |> compact_map()
     ]
   end
@@ -5458,6 +5441,31 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "feedback_scope",
       "feedback_key",
       "trust_boundary"
+    ]
+  end
+
+  defp candidate_rejection_pressure_risk_fields do
+    [
+      "candidate_id",
+      "activity_id",
+      "activity_type",
+      "scenario_id",
+      "target_id",
+      "ground_station_id",
+      "source_window_id",
+      "source_window_type",
+      "rejection_status",
+      "primary_rejection_reason",
+      "rejection_reasons",
+      "violated_constraint",
+      "required_margin",
+      "actual_margin",
+      "required_operator_action",
+      "feedback_source",
+      "feedback_scope",
+      "feedback_key",
+      "trust_boundary",
+      "source_candidate_rejection"
     ]
   end
 
@@ -6636,6 +6644,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp recommendation_pressure_risk_context(%{"type" => "quality_gate_pressure"} = risk) do
     Map.take(risk, quality_gate_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"feedback_scope" => "candidate_rejection"} = risk) do
+    Map.take(risk, candidate_rejection_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"type" => "candidate_rejection_pressure"} = risk) do
+    Map.take(risk, candidate_rejection_pressure_risk_fields())
   end
 
   defp recommendation_pressure_risk_context(%{"feedback_scope" => "provider_counteroffer"} = risk) do

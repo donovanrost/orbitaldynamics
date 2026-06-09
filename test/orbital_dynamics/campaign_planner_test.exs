@@ -18549,6 +18549,35 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                   "provider_counteroffer_id" => "provider_offer_urgent",
                   "required_operator_action" => "review_provider_counteroffer"
                 }
+              },
+              %{
+                type: "candidate_rejection_pressure",
+                candidate_id: "dl_rejected_hot",
+                activity_id: "dl_rejected_hot",
+                activity_type: "downlink",
+                scenario_id: "leo_1",
+                ground_station_id: "equator_prime",
+                source_window_id: "equator_prime_rejected_window",
+                source_window_type: "ground_station_contact",
+                rejection_status: "rejected",
+                primary_rejection_reason: "contact_too_short",
+                rejection_reasons: [
+                  "contact_too_short",
+                  "station_capacity_reduced",
+                  "station_reserved"
+                ],
+                violated_constraint: "min_duration_s",
+                required_margin: 10.0,
+                actual_margin: 5.0,
+                required_operator_action: "review_candidate_rejection",
+                feedback_source: "mission_state.source_candidate_rejection_report.rows",
+                feedback_scope: "candidate_rejection",
+                feedback_key: "dl_rejected_hot",
+                trust_boundary: "mission_state_candidate_rejection_report",
+                source_candidate_rejection: %{
+                  "candidate_id" => "dl_rejected_hot",
+                  "required_operator_action" => "review_candidate_rejection"
+                }
               }
             ]
           }
@@ -18656,6 +18685,43 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              )
 
     assert duration_delta_s == 0.0
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "candidate_rejection_pressure",
+             "severity" => "high",
+             "candidate_id" => "dl_rejected_hot",
+             "activity_id" => "dl_rejected_hot",
+             "activity_type" => "downlink",
+             "scenario_id" => "leo_1",
+             "ground_station_id" => "equator_prime",
+             "source_window_id" => "equator_prime_rejected_window",
+             "source_window_type" => "ground_station_contact",
+             "rejection_status" => "rejected",
+             "primary_rejection_reason" => "contact_too_short",
+             "rejection_reasons" => [
+               "contact_too_short",
+               "station_capacity_reduced",
+               "station_reserved"
+             ],
+             "violated_constraint" => "min_duration_s",
+             "required_margin" => 10.0,
+             "actual_margin" => 5.0,
+             "required_operator_action" => "review_candidate_rejection",
+             "feedback_source" => "mission_state.source_candidate_rejection_report.rows",
+             "feedback_scope" => "candidate_rejection",
+             "feedback_key" => "dl_rejected_hot",
+             "trust_boundary" => "mission_state_candidate_rejection_report",
+             "source_candidate_rejection" => %{
+               "candidate_id" => "dl_rejected_hot",
+               "required_operator_action" => "review_candidate_rejection"
+             }
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "candidate_rejection_pressure")
+             )
 
     assert %{
              "type" => "operational_readiness_pressure",
@@ -18776,6 +18842,32 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "provider_counteroffer_feedback_keys" => ["provider_offer_urgent"],
       "provider_counteroffer_trust_boundaries" => [
         "mission_state_provider_counteroffer_report"
+      ],
+      "candidate_rejection_candidate_ids" => ["dl_rejected_hot"],
+      "candidate_rejection_activity_ids" => ["dl_rejected_hot"],
+      "candidate_rejection_activity_types" => ["downlink"],
+      "candidate_rejection_scenario_ids" => ["leo_1"],
+      "candidate_rejection_ground_station_ids" => ["equator_prime"],
+      "candidate_rejection_source_window_ids" => ["equator_prime_rejected_window"],
+      "candidate_rejection_source_window_types" => ["ground_station_contact"],
+      "candidate_rejection_statuses" => ["rejected"],
+      "candidate_rejection_primary_reasons" => ["contact_too_short"],
+      "candidate_rejection_reason_ids" => [
+        "contact_too_short",
+        "station_capacity_reduced",
+        "station_reserved"
+      ],
+      "candidate_rejection_violated_constraints" => ["min_duration_s"],
+      "candidate_rejection_required_margin_values" => [10.0],
+      "candidate_rejection_actual_margin_values" => [5.0],
+      "candidate_rejection_required_operator_actions" => ["review_candidate_rejection"],
+      "candidate_rejection_feedback_sources" => [
+        "mission_state.source_candidate_rejection_report.rows"
+      ],
+      "candidate_rejection_feedback_scopes" => ["candidate_rejection"],
+      "candidate_rejection_feedback_keys" => ["dl_rejected_hot"],
+      "candidate_rejection_trust_boundaries" => [
+        "mission_state_candidate_rejection_report"
       ]
     }
 

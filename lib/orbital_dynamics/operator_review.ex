@@ -16033,6 +16033,13 @@ defmodule OrbitalDynamics.OperatorReview do
   defp strategy_recommendation_risk_context(%{"risks_remaining" => risks}) when is_list(risks) do
     risks = Enum.map(risks, &stringify_keys/1)
 
+    candidate_rejection_risks =
+      Enum.filter(
+        risks,
+        &(Map.get(&1, "feedback_scope") == "candidate_rejection" or
+            Map.get(&1, "type") == "candidate_rejection_pressure")
+      )
+
     provider_counteroffer_risks =
       Enum.filter(
         risks,
@@ -16131,6 +16138,42 @@ defmodule OrbitalDynamics.OperatorReview do
       "resource_pressure_types" => risk_context_values(risks, ["resource_pressure_types"]),
       "first_resource_pressure_kinds" =>
         risk_context_values(risks, "first_resource_pressure_kind"),
+      "candidate_rejection_candidate_ids" =>
+        risk_context_values(candidate_rejection_risks, "candidate_id"),
+      "candidate_rejection_activity_ids" =>
+        risk_context_values(candidate_rejection_risks, "activity_id"),
+      "candidate_rejection_activity_types" =>
+        risk_context_values(candidate_rejection_risks, "activity_type"),
+      "candidate_rejection_scenario_ids" =>
+        risk_context_values(candidate_rejection_risks, "scenario_id"),
+      "candidate_rejection_ground_station_ids" =>
+        risk_context_values(candidate_rejection_risks, "ground_station_id"),
+      "candidate_rejection_source_window_ids" =>
+        risk_context_values(candidate_rejection_risks, "source_window_id"),
+      "candidate_rejection_source_window_types" =>
+        risk_context_values(candidate_rejection_risks, "source_window_type"),
+      "candidate_rejection_statuses" =>
+        risk_context_values(candidate_rejection_risks, "rejection_status"),
+      "candidate_rejection_primary_reasons" =>
+        risk_context_values(candidate_rejection_risks, "primary_rejection_reason"),
+      "candidate_rejection_reason_ids" =>
+        risk_context_values(candidate_rejection_risks, ["rejection_reasons"]),
+      "candidate_rejection_violated_constraints" =>
+        risk_context_values(candidate_rejection_risks, "violated_constraint"),
+      "candidate_rejection_required_margin_values" =>
+        risk_context_values(candidate_rejection_risks, "required_margin"),
+      "candidate_rejection_actual_margin_values" =>
+        risk_context_values(candidate_rejection_risks, "actual_margin"),
+      "candidate_rejection_required_operator_actions" =>
+        risk_context_values(candidate_rejection_risks, "required_operator_action"),
+      "candidate_rejection_feedback_sources" =>
+        risk_context_values(candidate_rejection_risks, "feedback_source"),
+      "candidate_rejection_feedback_scopes" =>
+        risk_context_values(candidate_rejection_risks, "feedback_scope"),
+      "candidate_rejection_feedback_keys" =>
+        risk_context_values(candidate_rejection_risks, "feedback_key"),
+      "candidate_rejection_trust_boundaries" =>
+        risk_context_values(candidate_rejection_risks, "trust_boundary"),
       "provider_counteroffer_ids" =>
         risk_context_values(provider_counteroffer_risks, "provider_counteroffer_id"),
       "provider_counteroffer_statuses" =>
