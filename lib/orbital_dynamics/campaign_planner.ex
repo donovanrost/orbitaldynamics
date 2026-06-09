@@ -2874,6 +2874,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     timeline_publication_pressure_count =
       timeline_publication_pressure_risk_count(risk_indicators)
 
+    timeline_transition_application_pressure_count =
+      timeline_transition_application_pressure_risk_count(risk_indicators)
+
     timeline_lifecycle_pressure_count =
       timeline_lifecycle_pressure_risk_count(risk_indicators)
 
@@ -2919,7 +2922,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
           operational_readiness_pressure_count - operator_training_pressure_count -
           import_readiness_pressure_count - quality_gate_pressure_count -
           timeline_integrity_pressure_count - timeline_dependency_impact_pressure_count -
-          timeline_publication_pressure_count - timeline_lifecycle_pressure_count -
+          timeline_publication_pressure_count -
+          timeline_transition_application_pressure_count - timeline_lifecycle_pressure_count -
           timeline_precondition_pressure_count - timeline_preservation_pressure_count -
           timeline_pressure_count - storage_downlink_pressure_count -
           resource_projection_pressure_count -
@@ -3000,6 +3004,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     timeline_publication_pressure_penalty =
       -timeline_publication_pressure_count * policy.risk_weight
 
+    timeline_transition_application_pressure_penalty =
+      -timeline_transition_application_pressure_count * policy.risk_weight
+
     timeline_lifecycle_pressure_penalty =
       -timeline_lifecycle_pressure_count * policy.risk_weight
 
@@ -3059,7 +3066,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
         import_readiness_pressure_penalty + quality_gate_pressure_penalty +
         approval_boundary_pressure_penalty +
         timeline_integrity_pressure_penalty + timeline_dependency_impact_pressure_penalty +
-        timeline_publication_pressure_penalty + timeline_lifecycle_pressure_penalty +
+        timeline_publication_pressure_penalty +
+        timeline_transition_application_pressure_penalty + timeline_lifecycle_pressure_penalty +
         timeline_precondition_pressure_penalty + timeline_preservation_pressure_penalty +
         timeline_pressure_penalty + storage_downlink_pressure_penalty +
         resource_projection_pressure_penalty +
@@ -3099,6 +3107,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "timeline_dependency_impact_pressure_penalty" =>
         timeline_dependency_impact_pressure_penalty,
       "timeline_publication_pressure_penalty" => timeline_publication_pressure_penalty,
+      "timeline_transition_application_pressure_penalty" =>
+        timeline_transition_application_pressure_penalty,
       "timeline_lifecycle_pressure_penalty" => timeline_lifecycle_pressure_penalty,
       "timeline_precondition_pressure_penalty" => timeline_precondition_pressure_penalty,
       "timeline_preservation_pressure_penalty" => timeline_preservation_pressure_penalty,
@@ -3328,6 +3338,17 @@ defmodule OrbitalDynamics.CampaignPlanner do
     do: true
 
   defp timeline_publication_pressure_risk?(_risk), do: false
+
+  defp timeline_transition_application_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &timeline_transition_application_pressure_risk?/1)
+  end
+
+  defp timeline_transition_application_pressure_risk?(%{
+         "type" => "timeline_transition_application_pressure"
+       }),
+       do: true
+
+  defp timeline_transition_application_pressure_risk?(_risk), do: false
 
   defp timeline_lifecycle_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &timeline_lifecycle_pressure_risk?/1)
@@ -4924,6 +4945,42 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "trust_boundary" => event["trust_boundary"],
         "derivation_reasons" => event["derivation_reasons"],
         "assumptions" => event["assumptions"]
+      }
+      |> compact_map()
+    ]
+  end
+
+  defp event_risk_indicators(%{"type" => "timeline_transition_application_pressure"} = event) do
+    [
+      %{
+        "type" => "timeline_transition_application_pressure",
+        "severity" => "high",
+        "reason" =>
+          "timeline transition application #{event["timeline_id"] || event["activity_id"]} carries review, withhold, or duplicate-identity pressure",
+        "activity_id" => event["activity_id"],
+        "timeline_id" => event["timeline_id"],
+        "application_status" => event["application_status"],
+        "transition_decision" => event["transition_decision"],
+        "required_operator_action" => event["required_operator_action"],
+        "operator_action_reason" => event["operator_action_reason"],
+        "selected_activity_source" => event["selected_activity_source"],
+        "selected_activity" => event["selected_activity"],
+        "timeline_identity_collision" => event["timeline_identity_collision"],
+        "duplicate_timeline_identity_scope" => event["duplicate_timeline_identity_scope"],
+        "source_duplicate_activity_count" => event["source_duplicate_activity_count"],
+        "replacement_duplicate_activity_count" => event["replacement_duplicate_activity_count"],
+        "source_duplicate_activity_ids" => event["source_duplicate_activity_ids"],
+        "replacement_duplicate_activity_ids" => event["replacement_duplicate_activity_ids"],
+        "policy_classification" => event["policy_classification"],
+        "policy_bundle_id" => event["policy_bundle_id"],
+        "approval_status" => event["approval_status"],
+        "approval_requirements" => event["approval_requirements"],
+        "approval_rule_matches" => event["approval_rule_matches"],
+        "feedback_source" => event["feedback_source"],
+        "feedback_scope" => event["feedback_scope"],
+        "feedback_key" => event["feedback_key"],
+        "trust_boundary" => event["trust_boundary"],
+        "derivation_reasons" => event["derivation_reasons"]
       }
       |> compact_map()
     ]
@@ -6691,6 +6748,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"timeline_integrity_pressure", "timeline_integrity_pressure_penalty"},
         {"timeline_dependency_impact_pressure", "timeline_dependency_impact_pressure_penalty"},
         {"timeline_publication_pressure", "timeline_publication_pressure_penalty"},
+        {"timeline_transition_application_pressure",
+         "timeline_transition_application_pressure_penalty"},
         {"timeline_lifecycle_pressure", "timeline_lifecycle_pressure_penalty"},
         {"timeline_precondition_pressure", "timeline_precondition_pressure_penalty"},
         {"timeline_preservation_pressure", "timeline_preservation_pressure_penalty"},
@@ -24678,116 +24737,162 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp timeline_diff_pressure_events(row, source_path, policy) do
-    cond do
-      timeline_diff_removed_pressure_row?(row) ->
-        row
-        |> timeline_diff_removed_activity_type()
-        |> case do
-          "observe" ->
-            [timeline_diff_removed_observation_event(row, source_path)]
+    events =
+      cond do
+        timeline_diff_removed_pressure_row?(row) ->
+          row
+          |> timeline_diff_removed_activity_type()
+          |> case do
+            "observe" ->
+              [timeline_diff_removed_observation_event(row, source_path)]
 
-          type
-          when type in [
-                 "downlink",
-                 "tracking",
-                 "command",
-                 "health_check",
-                 "maneuver",
-                 "impulsive_burn",
-                 "planned_contact",
-                 "contact"
-               ] ->
-            cond do
-              timeline_diff_removed_downlink?(row) ->
-                [timeline_diff_removed_downlink_event(row, source_path)]
+            type
+            when type in [
+                   "downlink",
+                   "tracking",
+                   "command",
+                   "health_check",
+                   "maneuver",
+                   "impulsive_burn",
+                   "planned_contact",
+                   "contact"
+                 ] ->
+              cond do
+                timeline_diff_removed_downlink?(row) ->
+                  [timeline_diff_removed_downlink_event(row, source_path)]
 
-              timeline_diff_removed_command?(row) ->
-                [timeline_diff_removed_command_event(row, source_path)]
+                timeline_diff_removed_command?(row) ->
+                  [timeline_diff_removed_command_event(row, source_path)]
 
-              timeline_diff_removed_contact?(row) ->
-                [timeline_diff_removed_contact_event(row, source_path)]
+                timeline_diff_removed_contact?(row) ->
+                  [timeline_diff_removed_contact_event(row, source_path)]
 
-              timeline_diff_removed_maneuver?(row) ->
-                [timeline_diff_removed_maneuver_event(row, source_path)]
+                timeline_diff_removed_maneuver?(row) ->
+                  [timeline_diff_removed_maneuver_event(row, source_path)]
 
-              true ->
-                []
-            end
+                true ->
+                  []
+              end
 
-          _type ->
-            []
-        end
+            _type ->
+              []
+          end
 
-      timeline_diff_changed_downlink_pressure_row?(row) ->
-        [timeline_diff_changed_downlink_event(row, source_path)] ++
-          timeline_diff_changed_contact_identity_events(row, source_path) ++
-          timeline_diff_changed_resource_identity_events(row, source_path) ++
-          timeline_diff_changed_station_throughput_events(row, source_path, policy) ++
-          timeline_diff_changed_link_quality_events(row, source_path) ++
-          timeline_diff_changed_collection_latency_events(row, source_path) ++
-          timeline_diff_changed_resource_margin_events(row, source_path, policy) ++
+        timeline_diff_changed_downlink_pressure_row?(row) ->
+          [timeline_diff_changed_downlink_event(row, source_path)] ++
+            timeline_diff_changed_contact_identity_events(row, source_path) ++
+            timeline_diff_changed_resource_identity_events(row, source_path) ++
+            timeline_diff_changed_station_throughput_events(row, source_path, policy) ++
+            timeline_diff_changed_link_quality_events(row, source_path) ++
+            timeline_diff_changed_collection_latency_events(row, source_path) ++
+            timeline_diff_changed_resource_margin_events(row, source_path, policy) ++
+            timeline_diff_changed_resource_availability_events(row, source_path)
+
+        timeline_diff_changed_contact_pressure_row?(row) ->
+          [timeline_diff_changed_contact_event(row, source_path)] ++
+            timeline_diff_changed_contact_identity_events(row, source_path) ++
+            timeline_diff_changed_resource_identity_events(row, source_path) ++
+            timeline_diff_changed_station_throughput_events(row, source_path, policy) ++
+            timeline_diff_changed_link_quality_events(row, source_path) ++
+            timeline_diff_changed_collection_latency_events(row, source_path) ++
+            timeline_diff_changed_resource_margin_events(row, source_path, policy) ++
+            timeline_diff_changed_resource_availability_events(row, source_path)
+
+        timeline_diff_changed_observation_pressure_row?(row, policy) ->
+          timeline_diff_changed_observation_events(row, source_path, policy) ++
+            timeline_diff_changed_resource_identity_events(row, source_path) ++
+            timeline_diff_changed_collection_latency_events(row, source_path) ++
+            timeline_diff_changed_resource_margin_events(row, source_path, policy) ++
+            timeline_diff_changed_resource_availability_events(row, source_path)
+
+        timeline_diff_changed_command_pressure_row?(row) ->
+          [timeline_diff_changed_command_event(row, source_path)] ++
+            timeline_diff_changed_command_identity_events(row, source_path) ++
+            timeline_diff_changed_resource_identity_events(row, source_path) ++
+            timeline_diff_changed_resource_margin_events(row, source_path, policy) ++
+            timeline_diff_changed_resource_availability_events(row, source_path)
+
+        timeline_diff_changed_maneuver_pressure_row?(row) ->
+          timeline_diff_changed_maneuver_events(row, source_path) ++
+            timeline_diff_changed_resource_identity_events(row, source_path) ++
+            timeline_diff_changed_resource_margin_events(row, source_path, policy) ++
+            timeline_diff_changed_resource_availability_events(row, source_path)
+
+        timeline_diff_changed_resource_margin_pressure_row?(row, policy) ->
+          timeline_diff_changed_resource_margin_events(row, source_path, policy)
+
+        timeline_diff_changed_resource_availability_pressure_row?(row) ->
           timeline_diff_changed_resource_availability_events(row, source_path)
 
-      timeline_diff_changed_contact_pressure_row?(row) ->
-        [timeline_diff_changed_contact_event(row, source_path)] ++
-          timeline_diff_changed_contact_identity_events(row, source_path) ++
-          timeline_diff_changed_resource_identity_events(row, source_path) ++
-          timeline_diff_changed_station_throughput_events(row, source_path, policy) ++
-          timeline_diff_changed_link_quality_events(row, source_path) ++
-          timeline_diff_changed_collection_latency_events(row, source_path) ++
-          timeline_diff_changed_resource_margin_events(row, source_path, policy) ++
-          timeline_diff_changed_resource_availability_events(row, source_path)
-
-      timeline_diff_changed_observation_pressure_row?(row, policy) ->
-        timeline_diff_changed_observation_events(row, source_path, policy) ++
-          timeline_diff_changed_resource_identity_events(row, source_path) ++
-          timeline_diff_changed_collection_latency_events(row, source_path) ++
-          timeline_diff_changed_resource_margin_events(row, source_path, policy) ++
-          timeline_diff_changed_resource_availability_events(row, source_path)
-
-      timeline_diff_changed_command_pressure_row?(row) ->
-        [timeline_diff_changed_command_event(row, source_path)] ++
+        timeline_diff_changed_command_identity_pressure_row?(row) ->
           timeline_diff_changed_command_identity_events(row, source_path) ++
-          timeline_diff_changed_resource_identity_events(row, source_path) ++
-          timeline_diff_changed_resource_margin_events(row, source_path, policy) ++
-          timeline_diff_changed_resource_availability_events(row, source_path)
+            timeline_diff_changed_resource_identity_events(row, source_path)
 
-      timeline_diff_changed_maneuver_pressure_row?(row) ->
-        timeline_diff_changed_maneuver_events(row, source_path) ++
-          timeline_diff_changed_resource_identity_events(row, source_path) ++
-          timeline_diff_changed_resource_margin_events(row, source_path, policy) ++
-          timeline_diff_changed_resource_availability_events(row, source_path)
-
-      timeline_diff_changed_resource_margin_pressure_row?(row, policy) ->
-        timeline_diff_changed_resource_margin_events(row, source_path, policy)
-
-      timeline_diff_changed_resource_availability_pressure_row?(row) ->
-        timeline_diff_changed_resource_availability_events(row, source_path)
-
-      timeline_diff_changed_command_identity_pressure_row?(row) ->
-        timeline_diff_changed_command_identity_events(row, source_path) ++
+        timeline_diff_changed_resource_identity_pressure_row?(row) ->
           timeline_diff_changed_resource_identity_events(row, source_path)
 
-      timeline_diff_changed_resource_identity_pressure_row?(row) ->
-        timeline_diff_changed_resource_identity_events(row, source_path)
+        timeline_diff_changed_station_throughput_pressure_row?(row, policy) ->
+          timeline_diff_changed_station_throughput_events(row, source_path, policy)
 
-      timeline_diff_changed_station_throughput_pressure_row?(row, policy) ->
-        timeline_diff_changed_station_throughput_events(row, source_path, policy)
+        timeline_diff_changed_link_quality_pressure_row?(row) ->
+          timeline_diff_changed_link_quality_events(row, source_path)
 
-      timeline_diff_changed_link_quality_pressure_row?(row) ->
-        timeline_diff_changed_link_quality_events(row, source_path)
+        timeline_diff_changed_contact_identity_pressure_row?(row) ->
+          timeline_diff_changed_contact_identity_events(row, source_path)
 
-      timeline_diff_changed_contact_identity_pressure_row?(row) ->
-        timeline_diff_changed_contact_identity_events(row, source_path)
+        timeline_diff_changed_collection_latency_pressure_row?(row) ->
+          timeline_diff_changed_collection_latency_events(row, source_path)
 
-      timeline_diff_changed_collection_latency_pressure_row?(row) ->
-        timeline_diff_changed_collection_latency_events(row, source_path)
+        true ->
+          []
+      end
 
-      true ->
-        []
-    end
+    (events ++ timeline_transition_application_pressure_events(row, source_path))
     |> Enum.map(&Map.merge(&1, timeline_diff_application_context(row)))
     |> Enum.map(&compact_map/1)
+  end
+
+  defp timeline_transition_application_pressure_events(row, source_path) do
+    if timeline_transition_application_pressure_row?(row) do
+      activity_id =
+        row["activity_id"] || row["source_activity_id"] || row["replacement_activity_id"] ||
+          get_in(row, ["selected_activity", "activity_id"])
+
+      [
+        %{
+          "type" => "timeline_transition_application_pressure",
+          "activity_id" => activity_id,
+          "timeline_id" => row["timeline_id"],
+          "application_status" => row["application_status"],
+          "transition_decision" => row["transition_decision"],
+          "required_operator_action" => row["required_operator_action"],
+          "operator_action_reason" => row["operator_action_reason"],
+          "feedback_source" => source_path,
+          "feedback_scope" => "timeline_transition_application",
+          "feedback_key" => activity_id || row["timeline_id"],
+          "trust_boundary" => operator_review_trust_boundary(row),
+          "derivation_reasons" => ["timeline_transition_application_pressure"]
+        }
+      ]
+    else
+      []
+    end
+  end
+
+  defp timeline_transition_application_pressure_row?(row) do
+    is_map(row["source_timeline_application"]) and
+      (row["application_status"] in [
+         "operator_review_required",
+         "source_preserved_pending_review",
+         "withheld_review"
+       ] or
+         row["transition_decision"] in ["review", "preserve_source", "withhold"] or
+         row["required_operator_action"] not in [nil, "", "none"] or
+         row["timeline_identity_collision"] == true or
+         positive_count?(row["source_duplicate_activity_count"]) or
+         positive_count?(row["replacement_duplicate_activity_count"]) or
+         nonempty_pressure_value?(row["source_duplicate_activity_ids"]) or
+         nonempty_pressure_value?(row["replacement_duplicate_activity_ids"]))
   end
 
   defp timeline_diff_application_context(row) do

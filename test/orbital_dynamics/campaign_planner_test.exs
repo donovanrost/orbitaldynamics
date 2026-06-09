@@ -34036,6 +34036,95 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy scores derived timeline transition-application pressure separately" do
+    transition_application_report = %{
+      "schema_contract" => "timeline_transition_application_report.v1",
+      "model" => "artifact_only_timeline_transition_application",
+      "source" => "campaign_planner_test.transition_application_pressure",
+      "applications" => [
+        %{
+          "id" => "timeline_application:cmd_review",
+          "rank" => 1,
+          "timeline_id" => "timeline:cmd_review",
+          "source_activity_id" => "cmd_review",
+          "application_status" => "withheld_review",
+          "transition_decision" => "withhold",
+          "required_operator_action" => "review_timeline_change",
+          "operator_action_reason" => "activity_locked_or_approved",
+          "trust_boundary" => "transition_application_row_boundary"
+        }
+      ],
+      "provenance" => %{"trust_boundary" => "transition_application_report_boundary"}
+    }
+
+    artifact =
+      strategy(
+        base_plan(%{
+          "source_timeline_transition_application_report" => transition_application_report
+        }),
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    pressure_branch =
+      Enum.find(artifact["branches"], fn branch ->
+        Enum.any?(
+          branch["risk_indicators"],
+          &(&1["type"] == "timeline_transition_application_pressure")
+        )
+      end)
+
+    assert %{"branch_id" => branch_id} = pressure_branch
+
+    assert %{
+             "type" => "timeline_transition_application_pressure",
+             "activity_id" => "cmd_review",
+             "timeline_id" => "timeline:cmd_review",
+             "application_status" => "withheld_review",
+             "transition_decision" => "withhold",
+             "required_operator_action" => "review_timeline_change",
+             "feedback_source" =>
+               "prior_plan.source_timeline_transition_application_report.applications",
+             "feedback_scope" => "timeline_transition_application",
+             "trust_boundary" => "transition_application_row_boundary",
+             "derivation_reasons" => ["timeline_transition_application_pressure"]
+           } = List.first(pressure_branch["events"])
+
+    transition_application_pressure_count =
+      Enum.count(
+        pressure_branch["risk_indicators"],
+        &(&1["type"] == "timeline_transition_application_pressure")
+      )
+
+    assert transition_application_pressure_count == 1
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    assert pressure_branch["score_terms"]["timeline_transition_application_pressure_penalty"] ==
+             -transition_application_pressure_count * risk_weight
+
+    assert pressure_branch["score_terms"]["timeline_pressure_penalty"] == 0.0
+
+    assert pressure_branch["score_terms"]["risk_penalty"] ==
+             -(length(pressure_branch["risk_indicators"]) - transition_application_pressure_count) *
+               risk_weight
+
+    assert "timeline_transition_application_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == branch_id and
+                 &1["term_key"] == "timeline_transition_application_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy carries mission-state timeline integrity reports into branch refresh requests" do
     integrity_report =
       Timeline.integrity_report(
