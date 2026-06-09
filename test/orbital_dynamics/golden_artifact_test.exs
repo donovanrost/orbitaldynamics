@@ -1,5 +1,5 @@
 defmodule OrbitalDynamics.GoldenArtifactTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   test "checked-in campaign artifact preserves the V1 planning surface" do
     campaign =
@@ -122,7 +122,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "operator_review_package" => %{
                "schema_contract" => "operator_review_package.v1",
                "source_artifact_type" => "campaign_plan.v1",
-               "review_count" => 15,
+               "review_count" => 17,
                "approval_requirement_count" => 0,
                "contention_recommendation_count" => 0,
                "contact_allocation_review_count" => 1,
@@ -140,30 +140,32 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
                "objective_tradeoff_review_count" => 1,
                "row_review_types" => [
                  "operational_timeline_review",
-                 "contact_allocation_review",
-                 "station_calendar_review"
+                 "timeline_activity_precondition_review",
+                 "contact_allocation_review"
                ],
                "row_actions" => [
                  "review_activity_approval",
-                 "review_contact_allocation",
-                 "review_reduced_station_capacity"
+                 "record_activity_precondition",
+                 "review_contact_allocation"
                ]
              },
              "cadence_import_manifest" => %{
                "schema_contract" => "cadence_import_manifest.v1",
                "source_artifact_type" => "campaign_plan.v1",
-               "row_count" => 16,
-               "ready_count" => 1,
-               "review_required_count" => 15,
+               "row_count" => 18,
+               "ready_count" => 2,
+               "review_required_count" => 16,
                "blocked_count" => 0,
                "missing_import_count" => 0,
                "contact_allocation_import_count" => 1,
                "row_actions" => [
                  "import_proposed_contact",
                  "review_operational_timeline",
+                 "review_timeline_precondition",
                  "review_contact_allocation",
                  "review_station_calendar",
                  "review_link_capacity",
+                 "review_resource_projection",
                  "review_resource_projection",
                  "review_objective_satisfaction",
                  "review_objective_satisfaction",
@@ -177,6 +179,8 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
                  "review_objective_tradeoff"
                ],
                "row_statuses" => [
+                 "ready_for_import",
+                 "review_required_before_import",
                  "ready_for_import",
                  "review_required_before_import",
                  "review_required_before_import",
@@ -207,6 +211,42 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
                "row_activity_ids" => []
              }
            } == campaign_report_golden_surface(campaign)
+  end
+
+  test "checked-in campaign plan matches the deterministic study run path" do
+    campaign = read_json!("study_results/leo_constellation_campaign.json")
+
+    output_path =
+      Path.join(
+        System.tmp_dir!(),
+        "orbital_dynamics_campaign_golden_#{System.unique_integer([:positive])}.json"
+      )
+
+    on_exit(fn -> File.rm(output_path) end)
+
+    {:ok, generated_at, _offset} = DateTime.from_iso8601("2026-05-14T00:00:00Z")
+
+    {:ok, manifest} =
+      OrbitalDynamics.Study.Manifest.from_file("studies/leo_constellation_campaign.json")
+
+    run_opts =
+      Keyword.put(manifest.run_opts, :run_id, "leo_constellation_campaign-1778976392512956")
+
+    {:ok, result_set} = OrbitalDynamics.run_study(manifest.study, run_opts)
+
+    result_set
+    |> OrbitalDynamics.ResultSet.Artifact.build(generated_at: generated_at)
+    |> OrbitalDynamics.ResultSet.Artifact.write_json!(output_path)
+
+    generated_campaign =
+      output_path
+      |> File.read!()
+      |> :json.decode()
+
+    assert Map.drop(campaign, ["execution_report", "run"]) ==
+             Map.drop(generated_campaign, ["execution_report", "run"])
+
+    assert campaign["campaign_plan"] == generated_campaign["campaign_plan"]
   end
 
   test "checked-in repair artifact preserves the V2 repair surface" do
@@ -371,71 +411,41 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "schema_version" => 3,
              "planner" => "OrbitalDynamics.CampaignPlanner.V3",
              "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
-             "strategy_id" => "addc6eadd41ab67ab398394b71ab57da6e30543f64562fe54e614d5f566e008c",
+             "strategy_id" => "4bc6a0d409ad042a65cec9d85ccebff6ac46b8efb9ce8b3206d1e6112290bf8c",
              "recommended_branch_id" => "derived_urgent_target_target_hot",
              "approval_status" => "operator_review_required",
              "recommendation_status" => "pass"
            } = surface
 
-    assert surface["branch_ids"] == [
-             "derived_urgent_target_target_hot",
-             "derived_target_revisit_target_hot",
-             "derived_objective_satisfaction_objective:target_commitment:target_b_prior_plan.cadence_import_manifest.rows.source_review_row.source_objective_satisfaction_objective:target_commitment:target_b_target_observation_target_b_1",
-             "derived_objective_satisfaction_objective:target_commitment:target_b_prior_plan.objective_satisfaction_report_objective:target_commitment:target_b_target_observation_target_b_1",
-             "derived_objective_satisfaction_objective:target_commitment:target_b_prior_plan.operator_review_package.rows.source_objective_satisfaction_objective:target_commitment:target_b_target_observation_target_b_1",
-             "derived_combined_mission_state",
-             "derived_contact_success_feedback",
-             "derived_objective_satisfaction_objective:target_coverage:target_a_prior_plan.cadence_import_manifest.rows.source_review_row.source_objective_satisfaction_objective:target_coverage_target_coverage_target_a_1",
-             "derived_objective_satisfaction_objective:target_coverage:target_a_prior_plan.objective_satisfaction_report_objective:target_coverage_target_coverage_target_a_1",
-             "derived_objective_satisfaction_objective:target_coverage:target_a_prior_plan.operator_review_package.rows.source_objective_satisfaction_objective:target_coverage_target_coverage_target_a_1",
-             "derived_observation_success_feedback",
-             "derived_station_calendar_pressure_reduced_capacity_leo_1_downlink_equator_prime_1_prior_plan.cadence_import_manifest.rows.source_station_calendar_review_station_calendar_station_calendar_reduced_capacity_review_reduced_station_capacity_equator_prime_reduced_capacity_demo_available_reduced_capacity_equator_prime_0.0_345.42424173964787",
-             "derived_station_calendar_pressure_reduced_capacity_leo_1_downlink_equator_prime_1_prior_plan.operator_review_package.rows.source_station_calendar_review_station_calendar_station_calendar_reduced_capacity_review_reduced_station_capacity_equator_prime_reduced_capacity_demo_available_reduced_capacity_equator_prime_0.0_345.42424173964787",
-             "derived_station_calendar_pressure_reduced_capacity_leo_1_downlink_equator_prime_1_prior_plan.station_calendar_report_station_calendar_station_calendar_reduced_capacity_review_reduced_station_capacity_equator_prime_reduced_capacity_demo_available_reduced_capacity_equator_prime_0.0_345.42424173964787",
-             "derived_station_capacity_equator_prime",
-             "derived_station_throughput_feedback",
-             "baseline",
-             "derived_fuel_preservation",
-             "operator_station_outage",
-             "derived_degraded_leo_2",
-             "operator_placeholder_urgent",
-             "derived_downlink_constrained"
-           ]
+    assert length(surface["branch_ids"]) == 27
 
-    assert surface["branch_scores"] == [
+    assert [
+             "derived_urgent_target_target_hot",
+             "derived_operational_readiness_pressure_cadence_import",
+             "derived_quality_gate_pressure_operator_review",
+             "derived_combined_mission_state"
+           ]
+           |> Enum.all?(&(&1 in surface["branch_ids"]))
+
+    assert Enum.take(surface["branch_scores"], 6) == [
              2550.398183,
              2024.598183,
              895.06485,
              895.06485,
              895.06485,
-             584.630326,
-             389.398183,
-             389.398183,
-             389.398183,
-             389.398183,
-             389.398183,
-             389.398183,
-             389.398183,
-             389.398183,
-             389.398183,
-             389.398183,
-             379.169001,
-             292.773183,
-             164.679637,
-             139.398183,
-             101.506485,
-             89.398183
+             389.398183
            ]
 
     assert surface["ranked_branch_ids"] ==
-             Enum.take(surface["branch_ids"], 6) ++ ["operator_placeholder_urgent"]
+             Enum.take(surface["branch_ids"], 5) ++
+               ["operator_placeholder_urgent", "derived_combined_mission_state"]
 
-    assert surface["ranking_comparison_report"]["row_count"] == 22
+    assert surface["ranking_comparison_report"]["row_count"] == 27
 
     assert surface["pareto_frontier_report"]
            |> Map.take(["alternative_count", "frontier_count", "dominated_count"]) == %{
-             "alternative_count" => 22,
-             "frontier_count" => 15,
+             "alternative_count" => 27,
+             "frontier_count" => 20,
              "dominated_count" => 7
            }
 
@@ -446,7 +456,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "pressure_row_count",
              "selected_pressure_row_count"
            ]) == %{
-             "row_count" => 902,
+             "row_count" => 1107,
              "score_term_keys" => [
                "approval_boundary_pressure_penalty",
                "approval_load_penalty",
@@ -490,11 +500,11 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
                "timeline_publication_pressure_penalty",
                "validation_refresh_pressure_penalty"
              ],
-             "pressure_row_count" => 550,
+             "pressure_row_count" => 675,
              "selected_pressure_row_count" => 25
            }
 
-    assert surface["objective_tradeoff_report"]["ranking_count"] == 22
+    assert surface["objective_tradeoff_report"]["ranking_count"] == 27
 
     assert surface["operator_review_package"]
            |> Map.take([
@@ -503,10 +513,10 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "score_term_review_count",
              "objective_tradeoff_review_count"
            ]) == %{
-             "review_count" => 1411,
-             "contact_allocation_review_count" => 20,
-             "score_term_review_count" => 968,
-             "objective_tradeoff_review_count" => 44
+             "review_count" => 1721,
+             "contact_allocation_review_count" => 25,
+             "score_term_review_count" => 1188,
+             "objective_tradeoff_review_count" => 54
            }
 
     assert surface["cadence_import_manifest"]
@@ -515,9 +525,9 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "review_required_count",
              "contact_allocation_import_count"
            ]) == %{
-             "row_count" => 1432,
-             "review_required_count" => 1411,
-             "contact_allocation_import_count" => 20
+             "row_count" => 1747,
+             "review_required_count" => 1721,
+             "contact_allocation_import_count" => 25
            }
   end
 

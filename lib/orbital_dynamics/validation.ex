@@ -782,7 +782,7 @@ defmodule OrbitalDynamics.Validation do
         "payload_metrics_contract" => "result_payload_metrics.v1",
         "payload_metrics_top_level_key_count" => 15,
         "payload_metrics_section_count" => 15,
-        "payload_metrics_artifact_body_bytes" => 196_747,
+        "payload_metrics_artifact_body_bytes" => 322_891,
         "run_status" => "completed",
         "run_study_id" => "leo_constellation_campaign"
       },
@@ -1402,7 +1402,7 @@ defmodule OrbitalDynamics.Validation do
       "expected" => %{
         "schema_version" => 3,
         "planner" => "OrbitalDynamics.CampaignPlanner.V3",
-        "branch_count" => 22,
+        "branch_count" => 27,
         "recommended_branch_id" => "derived_urgent_target_target_hot",
         "ranked_branch_count" => 7,
         "approval_status" => "operator_review_required",

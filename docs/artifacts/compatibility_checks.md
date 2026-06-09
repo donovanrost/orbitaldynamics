@@ -1443,14 +1443,17 @@ steer branch-local import-review pressure.
 current validation-reference registry, so its fixture IDs and `fixture_count`
 track `OrbitalDynamics.Validation.reference_fixtures/0`.
 
-V2 repair and V3 strategy request JSON files are executable request surfaces,
-not only documentation examples. Use
+V1 campaign manifests plus V2 repair and V3 strategy request JSON files are
+executable request surfaces, not only documentation examples. Use the
+deterministic `mix orbital_dynamics.study.run` path for V1 result artifacts and
 `OrbitalDynamics.campaign_repair_from_file!/2` and
 `OrbitalDynamics.campaign_strategy_from_file!/2` to resolve `source_plan_ref`
 and build artifacts from the checked-in request files.
-The checked-in V2 repair and V3 strategy artifacts are pinned in golden tests
-against those public facades using the same JSON writer as the campaign run
-task, so schema-valid drift in compact examples is caught as fixture drift.
+The checked-in V1 result's deterministic planning surface, plus the V2 repair
+and V3 strategy artifacts, are pinned in golden tests against those public paths
+using the same JSON writer as the generation tasks. Runtime timing fields are
+excluded from the V1 equality check, but schema-valid drift in compact planning
+examples is caught as fixture drift.
 
 For repeatable file-to-file generation, use the campaign run task:
 
