@@ -25057,6 +25057,36 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert "mission_state.source_station_reservation_hold_import_readiness_summary" in station_reservation_source_paths
 
+    assert challenge_branch["score_terms"]["contact_allocation_pressure_penalty"] < 0.0
+
+    assert "contact_allocation_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == "challenge" and
+                 &1["term_key"] == "contact_allocation_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+
+    challenge_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "challenge"))
+
+    assert "downlink_completion_gap" in challenge_row["risk_types"]
+    assert "provider_reservation_request_review" in challenge_row["risk_types"]
+
+    assert challenge_row["branch_station_reservation_conflict_contact_ids"] == [
+             challenge_contact,
+             "challenge_dl_review_overlap"
+           ]
+
+    assert challenge_row["branch_station_reservation_conflict_reservation_ids"] == [
+             "challenge_reservation_1",
+             "challenge_reservation_review"
+           ]
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end

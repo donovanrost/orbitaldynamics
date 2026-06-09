@@ -1535,6 +1535,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     objective_satisfaction = branch_objective_satisfaction(candidate_plan, request)
     feasibility_summary = branch_feasibility_summary(candidate_plan)
+    candidate_source = branch_candidate_source(branch, request, repair_result)
 
     risk_indicators =
       branch_risk_indicators(
@@ -1544,7 +1545,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
         request,
         resource_impacts,
         resource_projection_report,
-        feedback_adjustments
+        feedback_adjustments,
+        candidate_source
       )
 
     approval_requirements = branch_approval_requirements(repair_result, candidate_plan)
@@ -1606,13 +1608,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
           request,
           repair_policy,
           scoring_policy,
-          branch_candidate_source(branch, request, repair_result)
+          candidate_source
         ),
       provenance:
         branch_provenance(
           request.prior_plan,
           branch,
-          branch_candidate_source(branch, request, repair_result)
+          candidate_source
         ),
       tradeoffs: []
     }
@@ -3549,7 +3551,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
          request,
          resource_impacts,
          resource_projection_report,
-         feedback_adjustments
+         feedback_adjustments,
+         candidate_source
        ) do
     event_risks =
       branch["events"]
@@ -3571,6 +3574,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     resource_projection_risks = resource_projection_risk_indicators(resource_projection_report)
     feedback_risks = Map.get(feedback_adjustments, "risk_indicators", [])
 
+    candidate_source_risks =
+      candidate_source_risk_indicators(candidate_source, branch, event_risks)
+
     feasibility_risks =
       candidate_plan
       |> Map.get("strategic_additions", [])
@@ -3591,9 +3597,94 @@ defmodule OrbitalDynamics.CampaignPlanner do
        resource_risks ++
        resource_projection_risks ++
        feedback_risks ++
+       candidate_source_risks ++
        feasibility_risks)
     |> Enum.uniq()
     |> Enum.sort_by(&{&1["severity"], &1["type"], &1["reason"]})
+  end
+
+  defp candidate_source_risk_indicators(candidate_source, branch, event_risks) do
+    cond do
+      branch["events"] in [nil, []] ->
+        []
+
+      Enum.any?(event_risks, &contact_allocation_pressure_risk?/1) ->
+        []
+
+      true ->
+        candidate_source_risk_indicators(candidate_source)
+    end
+  end
+
+  defp candidate_source_risk_indicators(%{"scope" => scope} = candidate_source)
+       when scope in ["branch", "branch_generated"] do
+    contact_allocation_replay =
+      CandidateRefresh.contact_allocation_replay_summary(candidate_source)
+
+    contact_allocation_replay_reservation_conflict_risks(contact_allocation_replay) ++
+      contact_allocation_replay_provider_reservation_risks(contact_allocation_replay)
+  end
+
+  defp candidate_source_risk_indicators(_candidate_source), do: []
+
+  defp contact_allocation_replay_reservation_conflict_risks(replay_summary) do
+    reservation_ids_by_match_status =
+      Map.get(replay_summary, "reservation_conflict_reservation_ids_by_match_status", %{})
+
+    replay_summary
+    |> Map.get("reservation_conflict_contact_ids_by_match_status", %{})
+    |> Enum.flat_map(fn {match_status, contact_ids} ->
+      reservation_ids = Map.get(reservation_ids_by_match_status, match_status, [])
+
+      contact_ids
+      |> List.wrap()
+      |> Enum.with_index()
+      |> Enum.map(fn {contact_id, index} ->
+        reservation_id = Enum.at(reservation_ids, index) || List.first(reservation_ids)
+
+        %{
+          "type" => "downlink_completion_gap",
+          "severity" => "medium",
+          "reason" =>
+            "candidate source contact allocation replay reports station reservation conflict for contact #{contact_id}",
+          "contact_id" => contact_id,
+          "source_activity_id" => contact_id,
+          "source_activity_ids" => List.wrap(contact_id),
+          "station_reservation_id" => reservation_id,
+          "station_reservation_match_status" => match_status,
+          "feedback_source" => "candidate_source.contact_allocation_replay_summary",
+          "feedback_scope" => "contact_allocation",
+          "derivation_reasons" => ["contact_allocation_reservation_conflict"]
+        }
+        |> compact_map()
+      end)
+    end)
+  end
+
+  defp contact_allocation_replay_provider_reservation_risks(replay_summary) do
+    replay_summary
+    |> Map.get("provider_reservation_review_contact_ids_by_match_status", %{})
+    |> Enum.flat_map(fn {match_status, contact_ids} ->
+      contact_ids
+      |> List.wrap()
+      |> Enum.map(fn contact_id ->
+        %{
+          "type" => "provider_reservation_request_review",
+          "severity" => "high",
+          "reason" =>
+            "candidate source contact allocation replay reports provider reservation review for contact #{contact_id}",
+          "contact_id" => contact_id,
+          "source_activity_id" => contact_id,
+          "source_activity_ids" => List.wrap(contact_id),
+          "station_reservation_match_status" => match_status,
+          "provider_reservation_request_status" => "review_required",
+          "provider_reservation_row_scope" => "review",
+          "feedback_source" => "candidate_source.contact_allocation_replay_summary",
+          "feedback_scope" => "contact_allocation_provider_reservation_request"
+        }
+        |> compact_map()
+      end)
+    end)
   end
 
   defp resource_projection_risk_indicators(%{"projected_resources" => rows}) when is_list(rows) do
@@ -44040,6 +44131,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         |> Map.merge(branch_comparison_resource_fields(branch.resource_impacts))
         |> Map.merge(branch_comparison_repair_fields(branch.repair_result))
         |> Map.merge(branch_comparison_event_fields(branch))
+        |> Map.merge(branch_comparison_risk_fields(branch.risk_indicators))
         |> Map.merge(branch_comparison_target_branch_fields(branch))
         |> Map.merge(
           branch_comparison_resource_projection_fields(branch.resource_projection_report)
@@ -44721,6 +44813,36 @@ defmodule OrbitalDynamics.CampaignPlanner do
     events
     |> Enum.filter(&(&1["type"] == "operational_readiness_pressure"))
     |> branch_event_unique_values(fields)
+  end
+
+  defp branch_comparison_risk_fields(risk_indicators) do
+    station_reservation_conflict_risks =
+      Enum.filter(risk_indicators, fn risk ->
+        risk["type"] in ["downlink_completion_gap", "provider_reservation_request_review"] and
+          not is_nil(risk["station_reservation_match_status"])
+      end)
+
+    %{
+      "branch_station_reservation_conflict_contact_ids" =>
+        branch_event_unique_values(station_reservation_conflict_risks, [
+          "contact_id",
+          "source_activity_id",
+          "source_activity_ids"
+        ]),
+      "branch_station_reservation_conflict_reservation_ids" =>
+        branch_event_unique_values(station_reservation_conflict_risks, [
+          "station_reservation_id",
+          "reservation_id"
+        ]),
+      "branch_station_reservation_conflict_match_statuses" =>
+        branch_event_unique_values(station_reservation_conflict_risks, [
+          "station_reservation_match_status",
+          "reservation_match_status"
+        ])
+    }
+    |> maybe_put_nonempty("branch_station_reservation_conflict_contact_ids")
+    |> maybe_put_nonempty("branch_station_reservation_conflict_reservation_ids")
+    |> maybe_put_nonempty("branch_station_reservation_conflict_match_statuses")
   end
 
   defp branch_comparison_target_branch_fields(%PlanBranch{provenance: provenance}) do
