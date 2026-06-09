@@ -5,26 +5,25 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve selected validation-safety-case pressure context on V3 recommendation
-review/import rows.
+Consolidate selected validation-refresh recommendation handoff aggregation.
 
 Status:
 Completed and ready to publish.
 
 What changed:
-- `CampaignPlanner` now carries selected validation-safety-case pressure context
-  into recommendation explanation rows, including compact evidence status maps.
-- `OperatorReview` and `CadenceImport` now aggregate selected
-  validation-safety-case statuses, evidence refs, counts, evidence maps,
-  actions, and provenance into strategy recommendation handoff rows.
-- Focused tests assert validation-safety-case selected-risk explanation and
-  handoff fields while preserving existing derived safety-case branch behavior.
+- Added `OrbitalDynamics.RecommendationRiskContext` to own selected
+  validation-refresh recommendation handoff aggregation and its pass-through key
+  set.
+- `OperatorReview` and `CadenceImport` now call the shared helper for
+  model-acceptance, schema-validation, validation-safety-case, refresh-budget,
+  and refresh-freshness selected-risk context.
+- The Cadence review-package adapter now passes validation-refresh handoff fields
+  through via the shared key set instead of a repeated manifest-row list.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:46668 test/orbital_dynamics/campaign_planner_test.exs:46808`
 - `mix compile --warnings-as-errors`
-- `mix format lib/orbital_dynamics/campaign_planner.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
+- `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex --check-formatted`
 - `git diff --check`
 
 Published commits:
@@ -43,11 +42,12 @@ Published commits:
 - `181bff6` Preserve refresh freshness recommendation context
 - `2922d32` Update autonomous loop handoff
 - `f06caa5` Preserve validation safety case recommendation context
+- `3052235` Update autonomous loop handoff
+- `ce6fa7e` Consolidate validation refresh recommendation context
 
 Next suggested slice:
-Consolidate repeated source-pressure aggregation helpers for selected
-validation-refresh handoff fields, or audit for any remaining selected-risk
-handoff gaps before consolidating.
+Audit broader selected-risk handoff gaps outside validation-refresh, or choose a
+small branch-refresh contract cleanup from the active test surfaces.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
