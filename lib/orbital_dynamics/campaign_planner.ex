@@ -5431,6 +5431,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "quality_gate_blocked_count",
       "schema_error_count",
       "schema_warning_count",
+      "evidence_status_counts",
+      "evidence_refs_by_status",
+      "evidence_refs_by_contract",
       "freshness_status",
       "state_quality_status",
       "accepted_snapshot_age_s",
@@ -6678,6 +6681,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp recommendation_pressure_risk_context(%{"type" => "schema_validation_pressure"} = risk) do
+    Map.take(risk, validation_refresh_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(
+         %{"feedback_scope" => "validation_safety_case"} = risk
+       ) do
+    Map.take(risk, validation_refresh_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"type" => "validation_safety_case_pressure"} = risk) do
     Map.take(risk, validation_refresh_pressure_risk_fields())
   end
 

@@ -18625,6 +18625,38 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 trust_boundary: "mission_state_schema_validation_report"
               },
               %{
+                type: "validation_safety_case_pressure",
+                report_id: "validation_safety_case:live_ops",
+                validation_safety_case_status: "blocked",
+                evidence_status: "blocked",
+                input_contract: "model_acceptance_report.v1",
+                input_contracts: ["model_acceptance_report.v1", "quality_gate_report.v1"],
+                evidence_ref: "model_acceptance_report.v1:model.blocked",
+                evidence_count: 2,
+                accepted_evidence_count: 0,
+                review_required_evidence_count: 1,
+                blocked_evidence_count: 1,
+                model_blocked_count: 1,
+                quality_gate_review_count: 1,
+                quality_gate_blocked_count: 1,
+                schema_error_count: 1,
+                schema_warning_count: 2,
+                evidence_status_counts: %{"blocked" => 1, "review_required" => 1},
+                evidence_refs_by_status: %{
+                  "blocked" => ["model_acceptance_report.v1:model.blocked"],
+                  "review_required" => ["quality_gate_report.v1:gate.review"]
+                },
+                evidence_refs_by_contract: %{
+                  "model_acceptance_report.v1" => ["model_acceptance_report.v1:model.blocked"],
+                  "quality_gate_report.v1" => ["quality_gate_report.v1:gate.review"]
+                },
+                required_operator_action: "review_blocked_validation_safety_case",
+                feedback_source: "mission_state.source_validation_safety_case_summary.evidence",
+                feedback_scope: "validation_safety_case",
+                feedback_key: "model_acceptance_report.v1:model.blocked",
+                trust_boundary: "mission_state_validation_safety_case_summary"
+              },
+              %{
                 type: "refresh_budget_pressure",
                 input_candidate_count: 8,
                 kept_candidate_count: 4,
@@ -18858,6 +18890,46 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                explanation,
                &(&1["type"] == "risk_driver" and
                    &1["risk_type"] == "schema_validation_pressure")
+             )
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "validation_safety_case_pressure",
+             "severity" => "high",
+             "report_id" => "validation_safety_case:live_ops",
+             "validation_safety_case_status" => "blocked",
+             "evidence_status" => "blocked",
+             "input_contract" => "model_acceptance_report.v1",
+             "input_contracts" => ["model_acceptance_report.v1", "quality_gate_report.v1"],
+             "evidence_ref" => "model_acceptance_report.v1:model.blocked",
+             "evidence_count" => 2,
+             "accepted_evidence_count" => 0,
+             "review_required_evidence_count" => 1,
+             "blocked_evidence_count" => 1,
+             "model_blocked_count" => 1,
+             "quality_gate_review_count" => 1,
+             "quality_gate_blocked_count" => 1,
+             "schema_error_count" => 1,
+             "schema_warning_count" => 2,
+             "evidence_status_counts" => %{"blocked" => 1, "review_required" => 1},
+             "evidence_refs_by_status" => %{
+               "blocked" => ["model_acceptance_report.v1:model.blocked"],
+               "review_required" => ["quality_gate_report.v1:gate.review"]
+             },
+             "evidence_refs_by_contract" => %{
+               "model_acceptance_report.v1" => ["model_acceptance_report.v1:model.blocked"],
+               "quality_gate_report.v1" => ["quality_gate_report.v1:gate.review"]
+             },
+             "required_operator_action" => "review_blocked_validation_safety_case",
+             "feedback_source" => "mission_state.source_validation_safety_case_summary.evidence",
+             "feedback_scope" => "validation_safety_case",
+             "feedback_key" => "model_acceptance_report.v1:model.blocked",
+             "trust_boundary" => "mission_state_validation_safety_case_summary"
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "validation_safety_case_pressure")
              )
 
     assert %{
@@ -19106,6 +19178,53 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "schema_validation_feedback_keys" => ["$.candidate_plan.activities[0].id"],
       "schema_validation_trust_boundaries" => [
         "mission_state_schema_validation_report"
+      ],
+      "validation_safety_case_report_ids" => ["validation_safety_case:live_ops"],
+      "validation_safety_case_statuses" => ["blocked"],
+      "validation_safety_case_evidence_statuses" => ["blocked"],
+      "validation_safety_case_input_contracts" => [
+        "model_acceptance_report.v1",
+        "quality_gate_report.v1"
+      ],
+      "validation_safety_case_evidence_refs" => [
+        "model_acceptance_report.v1:model.blocked"
+      ],
+      "validation_safety_case_evidence_count_values" => [2],
+      "validation_safety_case_accepted_evidence_count_values" => [0],
+      "validation_safety_case_review_required_evidence_count_values" => [1],
+      "validation_safety_case_blocked_evidence_count_values" => [1],
+      "validation_safety_case_model_blocked_count_values" => [1],
+      "validation_safety_case_quality_gate_review_count_values" => [1],
+      "validation_safety_case_quality_gate_blocked_count_values" => [1],
+      "validation_safety_case_schema_error_count_values" => [1],
+      "validation_safety_case_schema_warning_count_values" => [2],
+      "validation_safety_case_evidence_status_count_maps" => [
+        %{"blocked" => 1, "review_required" => 1}
+      ],
+      "validation_safety_case_evidence_refs_by_status" => [
+        %{
+          "blocked" => ["model_acceptance_report.v1:model.blocked"],
+          "review_required" => ["quality_gate_report.v1:gate.review"]
+        }
+      ],
+      "validation_safety_case_evidence_refs_by_contract" => [
+        %{
+          "model_acceptance_report.v1" => ["model_acceptance_report.v1:model.blocked"],
+          "quality_gate_report.v1" => ["quality_gate_report.v1:gate.review"]
+        }
+      ],
+      "validation_safety_case_required_operator_actions" => [
+        "review_blocked_validation_safety_case"
+      ],
+      "validation_safety_case_feedback_sources" => [
+        "mission_state.source_validation_safety_case_summary.evidence"
+      ],
+      "validation_safety_case_feedback_scopes" => ["validation_safety_case"],
+      "validation_safety_case_feedback_keys" => [
+        "model_acceptance_report.v1:model.blocked"
+      ],
+      "validation_safety_case_trust_boundaries" => [
+        "mission_state_validation_safety_case_summary"
       ],
       "refresh_budget_statuses" => ["review_required"],
       "refresh_budget_candidate_limit_statuses" => ["relaxed_required"],

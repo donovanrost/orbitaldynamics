@@ -16054,6 +16054,13 @@ defmodule OrbitalDynamics.OperatorReview do
             Map.get(&1, "type") == "schema_validation_pressure")
       )
 
+    validation_safety_case_risks =
+      Enum.filter(
+        risks,
+        &(Map.get(&1, "feedback_scope") == "validation_safety_case" or
+            Map.get(&1, "type") == "validation_safety_case_pressure")
+      )
+
     refresh_budget_risks =
       Enum.filter(
         risks,
@@ -16268,6 +16275,50 @@ defmodule OrbitalDynamics.OperatorReview do
         risk_context_values(schema_validation_risks, "feedback_key"),
       "schema_validation_trust_boundaries" =>
         risk_context_values(schema_validation_risks, "trust_boundary"),
+      "validation_safety_case_report_ids" =>
+        risk_context_values(validation_safety_case_risks, "report_id"),
+      "validation_safety_case_statuses" =>
+        risk_context_values(validation_safety_case_risks, "validation_safety_case_status"),
+      "validation_safety_case_evidence_statuses" =>
+        risk_context_values(validation_safety_case_risks, "evidence_status"),
+      "validation_safety_case_input_contracts" =>
+        risk_context_values(validation_safety_case_risks, ["input_contract", "input_contracts"]),
+      "validation_safety_case_evidence_refs" =>
+        risk_context_values(validation_safety_case_risks, "evidence_ref"),
+      "validation_safety_case_evidence_count_values" =>
+        risk_context_values(validation_safety_case_risks, "evidence_count"),
+      "validation_safety_case_accepted_evidence_count_values" =>
+        risk_context_values(validation_safety_case_risks, "accepted_evidence_count"),
+      "validation_safety_case_review_required_evidence_count_values" =>
+        risk_context_values(validation_safety_case_risks, "review_required_evidence_count"),
+      "validation_safety_case_blocked_evidence_count_values" =>
+        risk_context_values(validation_safety_case_risks, "blocked_evidence_count"),
+      "validation_safety_case_model_blocked_count_values" =>
+        risk_context_values(validation_safety_case_risks, "model_blocked_count"),
+      "validation_safety_case_quality_gate_review_count_values" =>
+        risk_context_values(validation_safety_case_risks, "quality_gate_review_count"),
+      "validation_safety_case_quality_gate_blocked_count_values" =>
+        risk_context_values(validation_safety_case_risks, "quality_gate_blocked_count"),
+      "validation_safety_case_schema_error_count_values" =>
+        risk_context_values(validation_safety_case_risks, "schema_error_count"),
+      "validation_safety_case_schema_warning_count_values" =>
+        risk_context_values(validation_safety_case_risks, "schema_warning_count"),
+      "validation_safety_case_evidence_status_count_maps" =>
+        risk_context_values(validation_safety_case_risks, "evidence_status_counts"),
+      "validation_safety_case_evidence_refs_by_status" =>
+        risk_context_values(validation_safety_case_risks, "evidence_refs_by_status"),
+      "validation_safety_case_evidence_refs_by_contract" =>
+        risk_context_values(validation_safety_case_risks, "evidence_refs_by_contract"),
+      "validation_safety_case_required_operator_actions" =>
+        risk_context_values(validation_safety_case_risks, "required_operator_action"),
+      "validation_safety_case_feedback_sources" =>
+        risk_context_values(validation_safety_case_risks, "feedback_source"),
+      "validation_safety_case_feedback_scopes" =>
+        risk_context_values(validation_safety_case_risks, "feedback_scope"),
+      "validation_safety_case_feedback_keys" =>
+        risk_context_values(validation_safety_case_risks, "feedback_key"),
+      "validation_safety_case_trust_boundaries" =>
+        risk_context_values(validation_safety_case_risks, "trust_boundary"),
       "refresh_budget_statuses" =>
         risk_context_values(refresh_budget_risks, "refresh_budget_status"),
       "refresh_budget_candidate_limit_statuses" =>
