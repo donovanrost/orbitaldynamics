@@ -5,8 +5,8 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Feed branch-local contact-filter replay pressure into V3 branch risk and score
-terms.
+Feed branch-local provider-counteroffer replay pressure into V3 branch risk and
+score terms.
 
 Status:
 Completed and pushed.
@@ -17,8 +17,8 @@ Files changed:
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:28590`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:28590 test/orbital_dynamics/campaign_planner_test.exs:28694 test/orbital_dynamics/campaign_planner_test.exs:30390 test/orbital_dynamics/campaign_planner_test.exs:36016 test/orbital_dynamics/campaign_planner_test.exs:36107`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:25930`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:25930 test/orbital_dynamics/campaign_planner_test.exs:26042 test/orbital_dynamics/campaign_planner_test.exs:26360 test/orbital_dynamics/campaign_planner_test.exs:25279 test/orbital_dynamics/campaign_planner_test.exs:26466`
 - `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
 - `mix compile --warnings-as-errors`
@@ -30,27 +30,27 @@ Level 6 pillar advanced:
 Reproducible V1/V2/V3 branch trees with explainable score terms and deltas.
 
 Last completed slice:
-Fed branch-local contact-filter replay pressure into V3 branch risk and score
-terms.
+Fed branch-local provider-counteroffer replay pressure into V3 branch risk and
+score terms.
 
 What changed:
-- Branch-generated candidate-source contact-filter replay pressure now emits a
-  contact-filter-scoped `downlink_completion_gap` risk with
-  `candidate_source.contact_filter_replay_summary` provenance.
-- The synthetic branch-local contact-filter risk is limited to candidate
-  suppression, invalid contact input, or station-suppression pressure, and
-  direct contact-filter event risks still take precedence.
-- Branches affected by replayed contact-filter pressure now expose
-  `contact_filter_pressure_penalty` in score terms and the score-term report.
-- Added focused assertions to the mission-state contact-filter replay strategy
-  test, including suppression counts, invalid-input IDs, reason counts,
-  directions, station IDs, availability values, score-term value, and
-  score-term report rows.
+- Branch-generated candidate-source provider-counteroffer replay pressure now
+  emits a `provider_counteroffer_review` risk with
+  `candidate_source.provider_counteroffer_replay_summary` provenance.
+- The synthetic branch-local provider-counteroffer risk is limited to review,
+  cost, timing, lock, import-readiness, or plan-impact pressure, and direct
+  provider-counteroffer risks still take precedence.
+- Branches affected by replayed provider-counteroffer pressure now expose
+  `provider_counteroffer_pressure_penalty` in score terms and the score-term
+  report.
+- Added focused assertions to the mission-state provider-counteroffer replay
+  strategy test, including reviewable count, cost/timing/lock counts,
+  status/action maps, score-term value, and score-term report rows.
 - Parent performed bounded local review and mechanical publish because no
   suitable subagent tool is available in this runtime.
 
 Last commit:
-- Product: `fe74352` Feed contact filter replay into branch scoring
+- Product: `c95c1ca` Feed provider counteroffer replay into branch scoring
 - Ledger: latest `Update autonomous loop handoff` commit on `main`
 
 Remaining maturity gaps:
