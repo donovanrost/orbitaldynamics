@@ -5,33 +5,33 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Harden stale activity-precondition CandidateRefresh source summaries.
+Harden stale lifecycle-state CandidateRefresh source summaries.
 
 Status:
-Completed and pushed in product commit `1af9828`.
+Completed and pushed in product commit `13d5acc`.
 
 Slice-selection note:
-- Selected slice: make CandidateRefresh activity-precondition source-report
-  summaries derive status, blocked/review counts, and type maps from row-local
-  precondition evidence when rows are present.
-- Why this slice: V3 branch pressure now resists stale top-level
-  activity-precondition aggregates, but CandidateRefresh source-report
-  summaries can still replay stale aggregate-shaped fields into branch-local
-  pressure summaries.
+- Selected slice: make CandidateRefresh lifecycle-state source-report summaries
+  derive review, duplicate-identity, invalid-input, action, and routing pressure
+  from row-local lifecycle evidence when rows are present.
+- Why this slice: V3 lifecycle branch pressure already resists stale top-level
+  lifecycle aggregates, but CandidateRefresh source-report summaries can still
+  replay stale aggregate-shaped lifecycle fields into branch-local pressure
+  summaries.
 - Level 6 pillar: durable timeline semantics; validation and challenge fixtures
   for stale-but-plausible inputs; reproducible V3 branch trees with explainable
   score terms and deltas.
-- Current evidence gap: stale top-level precondition summary status/count/type
-  fields can hide row-local blocked or review-required preconditions in
+- Current evidence gap: stale top-level lifecycle summary counts/maps can hide
+  row-local review, duplicate-identity, and invalid-input pressure in
   CandidateRefresh source-report provenance and replay summaries.
 - Docs read:
   `docs/feature_set/capability_map/11_planning_state_refresh/refresh_pipeline_and_provenance.md`,
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`.
-- Definition of done: stale top-level activity-precondition aggregates no longer
-  mask row-local blocked/review pressure in CandidateRefresh source-report
-  summaries or replay flags; docs record the row-derived source-summary
-  behavior; locally reviewed, committed, and pushed without touching unrelated
-  `.gitignore`.
+- Definition of done: stale top-level lifecycle aggregates no longer mask
+  row-local lifecycle review/invalid/duplicate pressure in CandidateRefresh
+  source-report summaries or replay flags; docs record the row-derived
+  source-summary behavior; locally reviewed, committed, and pushed without
+  touching unrelated `.gitignore`.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -41,32 +41,28 @@ Files changed:
 - `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:25209 test/orbital_dynamics/candidate_refresh_test.exs:25548`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:20538 test/orbital_dynamics/candidate_refresh_test.exs:20916`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
-- `rg -n "timeline_activity_precondition_summary_precondition_count|timeline_activity_precondition_precondition_rows_status|timeline_activity_precondition_precondition_row_status|timeline activity precondition source summaries derive stale aggregate pressure|Timeline activity-precondition source summaries derive|branch-local replay pressure|CandidateRefresh replay pressure|bogus_blocked_row_type|precondition_status" lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs docs/feature_set/capability_map/11_planning_state_refresh/refresh_pipeline_and_provenance.md docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
+- `rg -n "put_row_derived_timeline_lifecycle_state_summary_pressure|timeline_lifecycle_state_review_timeline_ids_by|timeline lifecycle state source summaries derive stale aggregate pressure|Timeline lifecycle-state source summaries|row-local lifecycle|review_required_count" lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/candidate_refresh_test.exs docs/feature_set/capability_map/11_planning_state_refresh/refresh_pipeline_and_provenance.md docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Docs/artifacts changed:
-Refresh provenance and V3 orchestration docs now state that activity-precondition
-source summaries derive status, blocked/review counts, and type maps from
-precondition rows when row evidence is present, preventing stale aggregate
-fields from hiding branch-local replay pressure.
+Refresh provenance and V3 orchestration docs now state that lifecycle-state
+source summaries derive review, duplicate-identity, invalid-input, action,
+transition-category, and routing pressure from lifecycle rows when row evidence
+is present.
 
 Local review:
-Read-only review found two must-fix issues: the first helper version treated
-row-local `precondition_status` as a precondition-row status alias, and the
-ledger named the umbrella planning-state doc instead of the nested provenance
-doc. Fixed the helper to read only precondition-row `status`, poisoned
-row-local `precondition_status` in the stale fixture, and corrected the ledger
-path. Parent review confirmed the final staged product diff was limited to
-CandidateRefresh, the focused test, and the two doc notes. `.gitignore` remains
-unrelated and unstaged.
+Sidecar review could not start because the agent thread limit was reached.
+Parent fallback review checked the staged product diff for row-derived
+semantics, stale aggregate coverage, docs, and scope; no must-fix issues
+remained. `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Stale-but-plausible activity-precondition inputs now preserve row-local
-blocked/review pressure through CandidateRefresh source-report summaries,
-replay summaries, branch-local pressure flags, and row-only review/import
-handoffs.
+Stale-but-plausible lifecycle-state inputs now preserve row-local review,
+duplicate-identity, and invalid-input pressure through CandidateRefresh
+source-report summaries, replay summaries, branch-local pressure flags, and
+review routing.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -76,10 +72,10 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`1af9828` Harden precondition source-report summaries.
+`13d5acc` Harden lifecycle source-report summaries.
 
 Next candidate:
-After this CandidateRefresh source-summary hardening, reassess the next
+After this lifecycle source-summary hardening, reassess the next
 planner-visible candidate-refresh or timeline-semantics gap.
 
 Unrelated local changes:
@@ -87,6 +83,10 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `13d5acc` hardened stale lifecycle-state CandidateRefresh source-report
+  summaries against stale top-level aggregates.
+- `1af9828` hardened stale activity-precondition CandidateRefresh
+  source-report summaries against stale top-level aggregates.
 - `afbcf90` hardened stale activity-precondition V3 branch pressure against
   stale top-level aggregates by deriving pressure from row-local preconditions.
 - `792e502` hardened stale lifecycle-state pressure against stale top-level
