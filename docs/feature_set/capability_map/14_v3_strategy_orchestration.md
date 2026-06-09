@@ -1612,7 +1612,8 @@ Selected recommendations also include:
   schema-validation, model-acceptance, validation-safety-case, freshness, and
   refresh-budget risks into `validation_refresh_pressure_penalty`, leaving
   `risk_penalty` for unrelated risks while preserving total branch score
-  compatibility.
+  compatibility. Focused validation/refresh governance pressure fixtures now
+  assert split branch math and score-term report rows through a shared helper.
 - **Relay data-path pressure score terms** — split relay data-path custody,
   latency, and route-risk indicators into `relay_data_path_pressure_penalty`,
   leaving `risk_penalty` for unrelated risks while preserving total branch score
