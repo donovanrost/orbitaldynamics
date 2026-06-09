@@ -16240,6 +16240,7 @@ defmodule OrbitalDynamics.OperatorReview do
     |> Map.merge(OrbitalDynamics.RecommendationRiskContext.contact_intent_context(risks))
     |> Map.merge(OrbitalDynamics.RecommendationRiskContext.station_calendar_context(risks))
     |> Map.merge(OrbitalDynamics.RecommendationRiskContext.score_term_context(risks))
+    |> Map.merge(OrbitalDynamics.RecommendationRiskContext.objective_satisfaction_context(risks))
     |> Map.merge(
       OrbitalDynamics.RecommendationRiskContext.resource_margin_context(
         resource_margin_context_rows

@@ -19066,6 +19066,64 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 trust_boundary: "mission_state_score_term_report"
               },
               %{
+                type: "observation_success_feedback",
+                objective_id: "objective:target_quality",
+                objective_type: "observation_quality",
+                objective_status: "at_risk",
+                source_objective_status: "missed_quality_threshold",
+                target_id: "target_objective_quality",
+                scenario_id: "leo_1",
+                spacecraft_id: "leo_1",
+                branch_id: "urgent",
+                collection_id: "collection_objective_quality",
+                collection_ids: [
+                  "collection_objective_quality",
+                  "collection_objective_quality_backup"
+                ],
+                product_id: "product_objective_quality",
+                product_ids: [
+                  "product_objective_quality",
+                  "product_objective_quality_backup"
+                ],
+                payload_id: "payload_objective_quality",
+                payload_ids: [
+                  "payload_objective_quality",
+                  "payload_objective_quality_backup"
+                ],
+                instrument_id: "instrument_objective_quality",
+                instrument_ids: [
+                  "instrument_objective_quality",
+                  "instrument_objective_quality_backup"
+                ],
+                starts_at_s: 1_380.0,
+                ends_at_s: 1_440.0,
+                required_observations: 2,
+                planned_observations: 1,
+                priority: 32.0,
+                latitude_deg: 34.1,
+                longitude_deg: -118.2,
+                minimum_elevation_deg: 15.0,
+                observation_success_factor: 0.35,
+                image_quality_score: 0.42,
+                image_quality_status: "marginal",
+                image_quality_source: "provider_imagery_quality",
+                cloud_cover_fraction: 0.62,
+                blur_score: 0.31,
+                source_activity_id: "obs_objective_quality_source",
+                source_activity_ids: [
+                  "obs_objective_quality_selected",
+                  "obs_objective_quality_source"
+                ],
+                quality_feedback_source: "mission_state.source_imagery_quality.rows",
+                derivation_reasons: [
+                  "objective_satisfaction_observation_quality_gap",
+                  "objective_satisfaction_image_quality_marginal"
+                ],
+                feedback_source: "mission_state.source_objective_satisfaction_report.rows",
+                feedback_scope: "objective_satisfaction",
+                trust_boundary: "mission_state_objective_satisfaction_report"
+              },
+              %{
                 type: "relay_data_path_pressure",
                 ground_station_id: "dss_14",
                 route_id: "relay_route_review",
@@ -21494,6 +21552,67 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         "collection_latency_gap",
         "score_term_collection_latency_gap",
         "score_term_collection_latency_gap_s"
+      ],
+      "objective_satisfaction_pressure_risk_types" => ["observation_success_feedback"],
+      "objective_satisfaction_pressure_objective_ids" => ["objective:target_quality"],
+      "objective_satisfaction_pressure_objective_types" => ["observation_quality"],
+      "objective_satisfaction_pressure_objective_statuses" => ["at_risk"],
+      "objective_satisfaction_pressure_source_objective_statuses" => [
+        "missed_quality_threshold"
+      ],
+      "objective_satisfaction_pressure_target_ids" => ["target_objective_quality"],
+      "objective_satisfaction_pressure_scenario_ids" => ["leo_1"],
+      "objective_satisfaction_pressure_spacecraft_ids" => ["leo_1"],
+      "objective_satisfaction_pressure_branch_ids" => ["urgent"],
+      "objective_satisfaction_pressure_collection_ids" => [
+        "collection_objective_quality",
+        "collection_objective_quality_backup"
+      ],
+      "objective_satisfaction_pressure_product_ids" => [
+        "product_objective_quality",
+        "product_objective_quality_backup"
+      ],
+      "objective_satisfaction_pressure_payload_ids" => [
+        "payload_objective_quality",
+        "payload_objective_quality_backup"
+      ],
+      "objective_satisfaction_pressure_instrument_ids" => [
+        "instrument_objective_quality",
+        "instrument_objective_quality_backup"
+      ],
+      "objective_satisfaction_pressure_start_values_s" => [1_380.0],
+      "objective_satisfaction_pressure_end_values_s" => [1_440.0],
+      "objective_satisfaction_pressure_required_observation_values" => [2],
+      "objective_satisfaction_pressure_planned_observation_values" => [1],
+      "objective_satisfaction_pressure_priorities" => [32.0],
+      "objective_satisfaction_pressure_latitude_values_deg" => [34.1],
+      "objective_satisfaction_pressure_longitude_values_deg" => [-118.2],
+      "objective_satisfaction_pressure_minimum_elevation_values_deg" => [15.0],
+      "objective_satisfaction_pressure_source_activity_ids" => [
+        "obs_objective_quality_source",
+        "obs_objective_quality_selected"
+      ],
+      "objective_satisfaction_pressure_observation_success_factor_values" => [0.35],
+      "objective_satisfaction_pressure_image_quality_score_values" => [0.42],
+      "objective_satisfaction_pressure_image_quality_statuses" => ["marginal"],
+      "objective_satisfaction_pressure_image_quality_sources" => [
+        "provider_imagery_quality"
+      ],
+      "objective_satisfaction_pressure_cloud_cover_fraction_values" => [0.62],
+      "objective_satisfaction_pressure_blur_score_values" => [0.31],
+      "objective_satisfaction_pressure_quality_feedback_sources" => [
+        "mission_state.source_imagery_quality.rows"
+      ],
+      "objective_satisfaction_pressure_feedback_sources" => [
+        "mission_state.source_objective_satisfaction_report.rows"
+      ],
+      "objective_satisfaction_pressure_feedback_scopes" => ["objective_satisfaction"],
+      "objective_satisfaction_pressure_trust_boundaries" => [
+        "mission_state_objective_satisfaction_report"
+      ],
+      "objective_satisfaction_pressure_derivation_reasons" => [
+        "objective_satisfaction_observation_quality_gap",
+        "objective_satisfaction_image_quality_marginal"
       ],
       "relay_data_path_risk_types" => ["relay_data_path_pressure"],
       "relay_data_path_ground_station_ids" => ["dss_14"],
