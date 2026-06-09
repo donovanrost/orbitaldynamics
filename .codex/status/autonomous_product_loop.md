@@ -5,30 +5,31 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve selected timeline activity-lifecycle-state context on V3
-recommendation review/import rows.
+Reassess the next small selected-risk contract cleanup from the active strategy
+surfaces.
 
 Status:
 Recommended next; not yet selected.
 
 Last completed slice:
-Preserved selected timeline lifecycle-state summary context on V3
+Preserved selected timeline activity-lifecycle-state context on V3
 recommendation review/import rows.
 
 What changed:
-- `timeline_lifecycle_state_review` selected risks now retain lifecycle
-  status, activity/row/count summaries, required action, operator-review,
-  transition/import/category count maps, review IDs, feedback key, derivation,
-  and assumption context.
+- `timeline_activity_lifecycle_state_review` selected risks now retain
+  planned/realized IDs, status/category/approval, protection, review flag,
+  feedback-key, derivation, and assumption context.
 - `OrbitalDynamics.RecommendationRiskContext` owns selected timeline
-  lifecycle-state aggregation and Cadence import pass-through keys.
+  activity-lifecycle-state aggregation and Cadence import pass-through keys.
 - Strategy recommendation review rows and Cadence import rows expose selected
-  lifecycle-state context, including review-package conversion.
-- Existing timeline lifecycle-state import action names remain unchanged.
+  activity lifecycle-state context, including review-package conversion.
+- Existing timeline activity lifecycle-state import action names remain
+  unchanged.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:31553`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:30302`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:32327`
 - `mix compile --warnings-as-errors`
 - `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/campaign_planner.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
@@ -69,13 +70,13 @@ Published commits:
 - `36b53a1` Preserve publication recommendation context
 - `981924a` Update autonomous loop handoff
 - `d5e57c6` Preserve lifecycle recommendation context
+- `9096f35` Update autonomous loop handoff
+- `96e21e8` Preserve activity lifecycle recommendation context
 
 Next suggested slice:
-Preserve selected timeline activity-lifecycle-state context on V3
-recommendation review/import rows. Activity-level lifecycle pressure emits
-planned/realized IDs and statuses, transition/import/operator-review fields,
-invalid input context, feedback key, derivation, and assumptions, but selected
-strategy recommendation handoffs do not yet preserve that typed context.
+Re-audit the selected-risk projection table for the next nearby strategy
+pressure family whose event context is richer than its recommendation
+review/import handoff.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
