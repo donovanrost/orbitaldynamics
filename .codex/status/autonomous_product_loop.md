@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Pin lifecycle-summary operator-action aggregate challenge guards.
+Pin score-term row-derived validation-reference guards.
 
 Status:
 Completed and pushed.
@@ -14,32 +14,30 @@ Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `docs/artifacts/compatibility_checks.md`
 - `lib/orbital_dynamics/validation.ex`
-- `test/orbital_dynamics/schema_test.exs`
 - `test/orbital_dynamics/validation_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/schema_test.exs:11190 test/orbital_dynamics/validation_test.exs:9311`
+- `mix test test/orbital_dynamics/validation_test.exs:13584`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-Validation-reference observations for `timeline_lifecycle_state_summary.v1` now
-include operator-action reason count/routing aggregates and row-derived
-counterparts. Schema tests reject stale operator-action reason count and
-review-routing aggregates, validation-reference tests reject stale row-derived
-observations for the same fields, and compatibility docs record the challenge
-coverage.
+Score-term validation-reference observations now include row-derived
+score-term key counts alongside declared key-list counts. The curated
+`score_term_report.v1` fixture rejects stale row-derived score-term key counts,
+and compatibility docs record the declared/row-derived score-term key-count
+guard.
 
 Local review:
-Parent review confirmed staged scope, observation expansion, schema challenge
-assertions, validation-reference stale-observation checks, docs, and focused
-verification. `.gitignore` remains unrelated and unstaged.
+Parent review confirmed staged scope, observation expansion, stale
+row-derived-count fixture check, docs, and focused verification. `.gitignore`
+remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Lifecycle-state summary review/import evidence now has explicit challenge
-guards for operator-action reason aggregates, reducing stale-but-plausible
-aggregate drift risk for compact lifecycle handoffs.
+Score-term compatibility evidence now cross-checks declared score-term keys
+against row-derived term keys in validation-reference coverage, reducing
+stale-but-plausible score explanation drift.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -49,7 +47,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`ddac705` Pin lifecycle summary aggregate guards.
+`833630c` Pin score term row-derived guards.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -62,6 +60,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `833630c` pinned row-derived score-term key counts in validation-reference
+  coverage for checked-in score-term reports.
 - `ddac705` pinned lifecycle-summary operator-action reason aggregate challenge
   guards in schema and validation-reference coverage.
 - `fa7e5e1` pinned checked-in timeline activity-state fixtures to public facade
