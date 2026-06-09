@@ -18982,6 +18982,28 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 trust_boundary: "mission_state_contact_filter_report"
               },
               %{
+                type: "resource_availability_constraint",
+                scenario_id: "leo_1",
+                spacecraft_id: "leo_1",
+                resource_field: "payload_available",
+                available: false,
+                starts_at_s: 1_230.0,
+                ends_at_s: 1_290.0,
+                source_activity_id: "obs_resource_filter_suppressed",
+                source_activity_ids: ["obs_resource_filter_suppressed"],
+                suppressed_reason: "payload_unavailable",
+                source_quality: "operator_supplied",
+                resource_trust_boundary_status: "declared",
+                derivation_reasons: [
+                  "resource_filter_suppressed",
+                  "payload_unavailable"
+                ],
+                feedback_source:
+                  "mission_state.source_resource_filter_report.suppressed_candidates",
+                feedback_scope: "resource_filter",
+                trust_boundary: "mission_state_resource_filter_report"
+              },
+              %{
                 type: "ground_station_reserved",
                 ground_station_id: "canberra",
                 starts_at_s: 1_170.0,
@@ -22391,6 +22413,30 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "contact_filter_pressure_derivation_reasons" => [
         "contact_filter_suppressed",
         "station_reserved"
+      ],
+      "resource_filter_pressure_risk_types" => ["resource_availability_constraint"],
+      "resource_filter_pressure_scenario_ids" => ["leo_1"],
+      "resource_filter_pressure_spacecraft_ids" => ["leo_1"],
+      "resource_filter_pressure_resource_fields" => ["payload_available"],
+      "resource_filter_pressure_available_values" => [false],
+      "resource_filter_pressure_source_activity_ids" => [
+        "obs_resource_filter_suppressed"
+      ],
+      "resource_filter_pressure_start_values_s" => [1_230.0],
+      "resource_filter_pressure_end_values_s" => [1_290.0],
+      "resource_filter_pressure_suppressed_reasons" => ["payload_unavailable"],
+      "resource_filter_pressure_source_quality_values" => ["operator_supplied"],
+      "resource_filter_pressure_resource_trust_boundary_statuses" => ["declared"],
+      "resource_filter_pressure_feedback_sources" => [
+        "mission_state.source_resource_filter_report.suppressed_candidates"
+      ],
+      "resource_filter_pressure_feedback_scopes" => ["resource_filter"],
+      "resource_filter_pressure_trust_boundaries" => [
+        "mission_state_resource_filter_report"
+      ],
+      "resource_filter_pressure_derivation_reasons" => [
+        "resource_filter_suppressed",
+        "payload_unavailable"
       ],
       "station_reservation_conflict_contact_ids" => ["dl_reservation_conflict"],
       "station_reservation_conflict_source_activity_ids" => ["dl_reservation_conflict"],
