@@ -8,7 +8,7 @@ Current slice:
 Add checked-in strategy branch-comparison handoff drift coverage.
 
 Status:
-Completed and ready to publish ledger.
+Completed and pushed.
 
 Files changed:
 - Tests: `test/orbital_dynamics/golden_artifact_test.exs`
@@ -22,6 +22,7 @@ Tests run:
 - `mix test test/orbital_dynamics/golden_artifact_test.exs`
 - `mix test test/orbital_dynamics/schema_test.exs:31489`
 - `mix compile --warnings-as-errors`
+- `git diff --check`
 
 Docs/artifacts changed:
 Refreshed checked-in V3 strategy fixture:
@@ -82,7 +83,7 @@ Added checked-in strategy branch-comparison handoff drift coverage.
 
 Last commit:
 - Product: `3f9d897` Refresh strategy branch handoff fixture
-- Ledger: pending
+- Ledger: this handoff commit on `main`
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
