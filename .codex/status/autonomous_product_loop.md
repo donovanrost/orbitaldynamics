@@ -8,7 +8,7 @@ Current slice:
 Split timeline precondition pressure into an explicit V3 score term.
 
 Status:
-Completed locally; ready to commit and push.
+Completed and pushed in product commit `8704579`.
 
 Slice-selection note:
 - Selected slice: split V3 timeline activity-precondition risk indicators into
@@ -76,7 +76,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`7e34eac` Split timeline lifecycle pressure score term.
+`8704579` Split timeline precondition pressure score term.
 
 Next candidate:
 After this score-term split, continue with the next planner-visible
@@ -88,6 +88,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `8704579` split timeline activity-precondition pressure into an explicit V3
+  score term and recommendation tradeoff dimension.
 - `7e34eac` split timeline lifecycle-state pressure into an explicit V3 score
   term and recommendation tradeoff dimension.
 - `a88acc9` split timeline-publication pressure into an explicit V3 score term
