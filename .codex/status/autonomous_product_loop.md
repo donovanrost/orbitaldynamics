@@ -11,26 +11,27 @@ Status:
 Recommended next; not yet selected.
 
 Last completed slice:
-Preserved selected timeline-integrity context on V3 recommendation review/import
-rows.
+Preserved selected command/maneuver success context on V3 recommendation
+review/import rows.
 
 What changed:
-- Timeline-integrity risk indicators now retain status, issue counts/types,
-  issue evidence, required operator action, feedback key, trust boundary, and
-  derivation reasons needed for selected recommendation review.
+- Command and maneuver success risk indicators now retain selected-review
+  context, including success factor, result/status, timing, source/replacement
+  activity identity, transition details, feedback key, trust boundary, and
+  required operator action.
 - Recommendation explanation risk-driver rows now carry the same
-  timeline-integrity status/evidence context.
-- `OrbitalDynamics.RecommendationRiskContext` owns scoped timeline-integrity
-  aggregation and Cadence import pass-through keys.
+  command/maneuver success result and routing identity context.
+- `OrbitalDynamics.RecommendationRiskContext` owns scoped execution-success
+  feedback aggregation and Cadence import pass-through keys.
 - Strategy recommendation review rows, selected Cadence import rows, and
-  review-package Cadence import conversion retain timeline-integrity issue
-  context, including dependency and exclusivity issue IDs.
-- Existing timeline-integrity scoring and branch derivation behavior remain
+  review-package Cadence import conversion retain command/maneuver success
+  context, including command routing mismatch and status-transition evidence.
+- Existing execution-feedback scoring and branch derivation behavior remain
   unchanged.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:32303`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:57686 test/orbital_dynamics/campaign_planner_test.exs:58339 test/orbital_dynamics/campaign_planner_test.exs:66688`
 - `mix compile --warnings-as-errors`
 - `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/campaign_planner.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
@@ -81,6 +82,8 @@ Published commits:
 - `c7f6671` Preserve maneuver uncertainty recommendation context
 - `e0d7e23` Update autonomous loop handoff
 - `49211bf` Preserve timeline integrity recommendation context
+- `cb8051a` Update autonomous loop handoff
+- `3d6e253` Preserve execution success recommendation context
 
 Next suggested slice:
 Re-audit active strategy surfaces for the next pressure family whose selected
