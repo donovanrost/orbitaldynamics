@@ -2855,6 +2855,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     contact_contention_pressure_count = contact_contention_pressure_risk_count(risk_indicators)
     contact_filter_pressure_count = contact_filter_pressure_risk_count(risk_indicators)
     command_window_pressure_count = command_window_pressure_risk_count(risk_indicators)
+    objective_gap_pressure_count = objective_gap_pressure_risk_count(risk_indicators)
     maneuver_review_pressure_count = maneuver_review_pressure_risk_count(risk_indicators)
 
     operational_readiness_pressure_count =
@@ -2921,6 +2922,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
           link_capacity_pressure_count - contact_intent_pressure_count -
           contact_contention_pressure_count -
           contact_filter_pressure_count - command_window_pressure_count -
+          objective_gap_pressure_count - maneuver_review_pressure_count -
           operational_readiness_pressure_count - operator_training_pressure_count -
           import_readiness_pressure_count - quality_gate_pressure_count -
           timeline_integrity_pressure_count - timeline_dependency_impact_pressure_count -
@@ -2984,6 +2986,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     command_window_pressure_penalty =
       -command_window_pressure_count * policy.risk_weight
+
+    objective_gap_pressure_penalty =
+      -objective_gap_pressure_count * policy.risk_weight
 
     maneuver_review_pressure_penalty =
       -maneuver_review_pressure_count * policy.risk_weight
@@ -3071,6 +3076,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         link_capacity_pressure_penalty + contact_intent_pressure_penalty +
         contact_contention_pressure_penalty + operational_readiness_pressure_penalty +
         contact_filter_pressure_penalty + command_window_pressure_penalty +
+        objective_gap_pressure_penalty +
         maneuver_review_pressure_penalty +
         operator_training_pressure_penalty + import_readiness_pressure_penalty +
         quality_gate_pressure_penalty +
@@ -3109,6 +3115,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "contact_contention_pressure_penalty" => contact_contention_pressure_penalty,
       "contact_filter_pressure_penalty" => contact_filter_pressure_penalty,
       "command_window_pressure_penalty" => command_window_pressure_penalty,
+      "objective_gap_pressure_penalty" => objective_gap_pressure_penalty,
       "maneuver_review_pressure_penalty" => maneuver_review_pressure_penalty,
       "operational_readiness_pressure_penalty" => operational_readiness_pressure_penalty,
       "operator_training_pressure_penalty" => operator_training_pressure_penalty,
@@ -3218,6 +3225,19 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp command_window_pressure_risk?(%{"type" => "command_window_pressure"}), do: true
   defp command_window_pressure_risk?(_risk), do: false
+
+  defp objective_gap_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &objective_gap_pressure_risk?/1)
+  end
+
+  defp objective_gap_pressure_risk?(%{"type" => "objective_gap_pressure"}), do: true
+  defp objective_gap_pressure_risk?(_risk), do: false
+
+  defp objective_gap_event_pressure_risk?(%{"feedback_scope" => scope})
+       when scope in ["objective_satisfaction", "objective_tradeoff", "score_term"],
+       do: true
+
+  defp objective_gap_event_pressure_risk?(_risk), do: false
 
   defp maneuver_review_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &maneuver_review_pressure_risk?/1)
@@ -3763,6 +3783,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     command_window_replay =
       CandidateRefresh.command_window_replay_summary(candidate_source)
 
+    objective_gap_replay =
+      CandidateRefresh.objective_gap_replay_summary(candidate_source)
+
     maneuver_review_replay =
       CandidateRefresh.maneuver_review_replay_summary(candidate_source)
 
@@ -3825,6 +3848,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     )
     |> maybe_add_candidate_source_contact_filter_risks(contact_filter_replay, event_risks)
     |> maybe_add_candidate_source_command_window_risks(command_window_replay, event_risks)
+    |> maybe_add_candidate_source_objective_gap_risks(objective_gap_replay, event_risks)
     |> maybe_add_candidate_source_maneuver_review_risks(maneuver_review_replay, event_risks)
     |> maybe_add_candidate_source_link_capacity_risks(link_capacity_replay, event_risks)
     |> maybe_add_candidate_source_station_calendar_risks(station_calendar_replay, event_risks)
@@ -3899,6 +3923,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
       risks
     else
       risks ++ command_window_replay_pressure_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_objective_gap_risks(risks, replay_summary, event_risks) do
+    if Enum.any?(event_risks, &objective_gap_event_pressure_risk?/1) do
+      risks
+    else
+      risks ++ objective_gap_replay_pressure_risks(replay_summary)
     end
   end
 
@@ -4933,6 +4965,71 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp command_window_replay_pressure_risks(_replay_summary), do: []
+
+  defp objective_gap_replay_pressure_risks(
+         %{"branch_local_objective_gap_pressure" => true} = replay_summary
+       ) do
+    [
+      %{
+        "type" => "objective_gap_pressure",
+        "severity" => "medium",
+        "reason" =>
+          "candidate source objective-gap replay reports downlink, target, collection-latency, status, score-term, or routing pressure",
+        "contracts" => Map.get(replay_summary, "contracts"),
+        "source_report_count" => Map.get(replay_summary, "source_report_count"),
+        "source_report_row_count" => Map.get(replay_summary, "source_report_row_count"),
+        "source_report_paths" => Map.get(replay_summary, "source_report_paths"),
+        "routed_gap_signal_count" => Map.get(replay_summary, "routed_gap_signal_count"),
+        "downlink_gap_row_count" => Map.get(replay_summary, "downlink_gap_row_count"),
+        "target_gap_row_count" => Map.get(replay_summary, "target_gap_row_count"),
+        "collection_latency_gap_row_count" =>
+          Map.get(replay_summary, "collection_latency_gap_row_count"),
+        "objective_satisfaction_gap_row_count" =>
+          Map.get(replay_summary, "objective_satisfaction_gap_row_count"),
+        "objective_satisfaction_status_counts" =>
+          Map.get(replay_summary, "objective_satisfaction_status_counts"),
+        "objective_satisfaction_objective_type_counts" =>
+          Map.get(replay_summary, "objective_satisfaction_objective_type_counts"),
+        "objective_tradeoff_downlink_gap_row_count" =>
+          Map.get(replay_summary, "objective_tradeoff_downlink_gap_row_count"),
+        "objective_tradeoff_target_gap_row_count" =>
+          Map.get(replay_summary, "objective_tradeoff_target_gap_row_count"),
+        "objective_tradeoff_collection_latency_gap_row_count" =>
+          Map.get(replay_summary, "objective_tradeoff_collection_latency_gap_row_count"),
+        "score_term_downlink_gap_row_count" =>
+          Map.get(replay_summary, "score_term_downlink_gap_row_count"),
+        "score_term_target_gap_row_count" =>
+          Map.get(replay_summary, "score_term_target_gap_row_count"),
+        "score_term_collection_latency_gap_row_count" =>
+          Map.get(replay_summary, "score_term_collection_latency_gap_row_count"),
+        "score_term_key_counts" => Map.get(replay_summary, "score_term_key_counts"),
+        "ground_station_counts" => Map.get(replay_summary, "ground_station_counts"),
+        "target_counts" => Map.get(replay_summary, "target_counts"),
+        "collection_counts" => Map.get(replay_summary, "collection_counts"),
+        "source_activity_id_counts" => Map.get(replay_summary, "source_activity_id_counts"),
+        "trust_boundary_status_counts" => Map.get(replay_summary, "trust_boundary_status_counts"),
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries"),
+        "branch_local_downlink_gap_pressure" =>
+          Map.get(replay_summary, "branch_local_downlink_gap_pressure"),
+        "branch_local_target_gap_pressure" =>
+          Map.get(replay_summary, "branch_local_target_gap_pressure"),
+        "branch_local_collection_latency_gap_pressure" =>
+          Map.get(replay_summary, "branch_local_collection_latency_gap_pressure"),
+        "branch_local_objective_status_pressure" =>
+          Map.get(replay_summary, "branch_local_objective_status_pressure"),
+        "branch_local_score_term_pressure" =>
+          Map.get(replay_summary, "branch_local_score_term_pressure"),
+        "branch_local_routing_pressure" =>
+          Map.get(replay_summary, "branch_local_routing_pressure"),
+        "feedback_source" => "candidate_source.objective_gap_replay_summary",
+        "feedback_scope" => "objective_gap",
+        "assumptions" => Map.get(replay_summary, "assumptions")
+      }
+      |> compact_map()
+    ]
+  end
+
+  defp objective_gap_replay_pressure_risks(_replay_summary), do: []
 
   defp maneuver_review_replay_pressure_risks(
          %{"branch_local_maneuver_review_pressure" => true} = replay_summary
@@ -7608,6 +7705,44 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ]
   end
 
+  defp objective_gap_pressure_risk_fields do
+    [
+      "contracts",
+      "source_report_count",
+      "source_report_row_count",
+      "source_report_paths",
+      "routed_gap_signal_count",
+      "downlink_gap_row_count",
+      "target_gap_row_count",
+      "collection_latency_gap_row_count",
+      "objective_satisfaction_gap_row_count",
+      "objective_satisfaction_status_counts",
+      "objective_satisfaction_objective_type_counts",
+      "objective_tradeoff_downlink_gap_row_count",
+      "objective_tradeoff_target_gap_row_count",
+      "objective_tradeoff_collection_latency_gap_row_count",
+      "score_term_downlink_gap_row_count",
+      "score_term_target_gap_row_count",
+      "score_term_collection_latency_gap_row_count",
+      "score_term_key_counts",
+      "ground_station_counts",
+      "target_counts",
+      "collection_counts",
+      "source_activity_id_counts",
+      "trust_boundary_status_counts",
+      "trust_boundaries",
+      "branch_local_downlink_gap_pressure",
+      "branch_local_target_gap_pressure",
+      "branch_local_collection_latency_gap_pressure",
+      "branch_local_objective_status_pressure",
+      "branch_local_score_term_pressure",
+      "branch_local_routing_pressure",
+      "feedback_source",
+      "feedback_scope",
+      "assumptions"
+    ]
+  end
+
   defp maneuver_review_pressure_risk_fields do
     [
       "source_report_count",
@@ -8687,6 +8822,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"contact_contention_pressure", "contact_contention_pressure_penalty"},
         {"contact_filter_pressure", "contact_filter_pressure_penalty"},
         {"command_window_pressure", "command_window_pressure_penalty"},
+        {"objective_gap_pressure", "objective_gap_pressure_penalty"},
         {"maneuver_review_pressure", "maneuver_review_pressure_penalty"},
         {"operational_readiness_pressure", "operational_readiness_pressure_penalty"},
         {"operator_training_pressure", "operator_training_pressure_penalty"},
@@ -9666,6 +9802,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp recommendation_pressure_risk_context(%{"feedback_scope" => "command_window"} = risk) do
     Map.take(risk, command_window_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"type" => "objective_gap_pressure"} = risk) do
+    Map.take(risk, objective_gap_pressure_risk_fields())
   end
 
   defp recommendation_pressure_risk_context(%{"type" => "maneuver_review_pressure"} = risk) do
@@ -48965,6 +49105,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
         risk["type"] == "command_window_pressure"
       end)
 
+    objective_gap_risks =
+      Enum.filter(risk_indicators, fn risk ->
+        risk["type"] == "objective_gap_pressure"
+      end)
+
     maneuver_review_risks =
       Enum.filter(risk_indicators, fn risk ->
         risk["type"] == "maneuver_review_pressure"
@@ -49089,6 +49234,29 @@ defmodule OrbitalDynamics.CampaignPlanner do
         branch_event_map_keys(command_window_risks, "required_operator_action_counts"),
       "branch_command_window_trust_boundaries" =>
         branch_event_unique_values(command_window_risks, "trust_boundaries"),
+      "branch_objective_gap_contracts" =>
+        branch_event_unique_values(objective_gap_risks, "contracts"),
+      "branch_objective_gap_source_report_paths" =>
+        branch_event_unique_values(objective_gap_risks, "source_report_paths"),
+      "branch_objective_gap_score_term_keys" =>
+        branch_event_map_keys(objective_gap_risks, "score_term_key_counts"),
+      "branch_objective_gap_statuses" =>
+        branch_event_map_keys(objective_gap_risks, "objective_satisfaction_status_counts"),
+      "branch_objective_gap_objective_types" =>
+        branch_event_map_keys(
+          objective_gap_risks,
+          "objective_satisfaction_objective_type_counts"
+        ),
+      "branch_objective_gap_ground_station_ids" =>
+        branch_event_map_keys(objective_gap_risks, "ground_station_counts"),
+      "branch_objective_gap_target_ids" =>
+        branch_event_map_keys(objective_gap_risks, "target_counts"),
+      "branch_objective_gap_collection_ids" =>
+        branch_event_map_keys(objective_gap_risks, "collection_counts"),
+      "branch_objective_gap_source_activity_ids" =>
+        branch_event_map_keys(objective_gap_risks, "source_activity_id_counts"),
+      "branch_objective_gap_trust_boundaries" =>
+        branch_event_unique_values(objective_gap_risks, "trust_boundaries"),
       "branch_maneuver_review_source_report_paths" =>
         branch_event_unique_values(maneuver_review_risks, "source_report_paths"),
       "branch_maneuver_review_input_keys" =>
@@ -49204,6 +49372,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> maybe_put_nonempty("branch_command_window_window_ids")
     |> maybe_put_nonempty("branch_command_window_required_operator_actions")
     |> maybe_put_nonempty("branch_command_window_trust_boundaries")
+    |> maybe_put_nonempty("branch_objective_gap_contracts")
+    |> maybe_put_nonempty("branch_objective_gap_source_report_paths")
+    |> maybe_put_nonempty("branch_objective_gap_score_term_keys")
+    |> maybe_put_nonempty("branch_objective_gap_statuses")
+    |> maybe_put_nonempty("branch_objective_gap_objective_types")
+    |> maybe_put_nonempty("branch_objective_gap_ground_station_ids")
+    |> maybe_put_nonempty("branch_objective_gap_target_ids")
+    |> maybe_put_nonempty("branch_objective_gap_collection_ids")
+    |> maybe_put_nonempty("branch_objective_gap_source_activity_ids")
+    |> maybe_put_nonempty("branch_objective_gap_trust_boundaries")
     |> maybe_put_nonempty("branch_maneuver_review_source_report_paths")
     |> maybe_put_nonempty("branch_maneuver_review_input_keys")
     |> maybe_put_nonempty("branch_maneuver_review_maneuver_ids")

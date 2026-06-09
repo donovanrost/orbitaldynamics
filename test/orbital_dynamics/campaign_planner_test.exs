@@ -32123,6 +32123,82 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "mission_state.source_score_term_report"
            ]
 
+    objective_gap_pressure_count =
+      Enum.count(
+        urgent["risk_indicators"],
+        &(&1["type"] == "objective_gap_pressure" and
+            &1["feedback_source"] == "candidate_source.objective_gap_replay_summary")
+      )
+
+    assert objective_gap_pressure_count == 1
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "objective_gap_pressure" and
+                 &1["contracts"] == [
+                   "objective_satisfaction_report.v1",
+                   "objective_tradeoff_report.v1",
+                   "score_term_report.v1"
+                 ] and
+                 &1["source_report_count"] == 3 and
+                 &1["source_report_row_count"] == 9 and
+                 &1["routed_gap_signal_count"] == 10 and
+                 &1["downlink_gap_row_count"] == 3 and
+                 &1["target_gap_row_count"] == 3 and
+                 &1["collection_latency_gap_row_count"] == 4 and
+                 &1["objective_satisfaction_status_counts"] == %{
+                   "partial" => 2,
+                   "unmet" => 1
+                 } and
+                 &1["score_term_key_counts"] == %{
+                   "collection_latency_gap_s" => 1,
+                   "downlink_shortfall_mb" => 1,
+                   "target_gap_count" => 1
+                 } and
+                 &1["ground_station_counts"] == %{"equator_prime" => 3} and
+                 &1["target_counts"] == %{"target_a" => 3} and
+                 &1["collection_counts"] == %{"collection_alpha" => 3} and
+                 &1["trust_boundary_status_counts"] == %{"declared" => 3} and
+                 &1["assumptions"]["score_recalculation"] == "not_performed_by_summary")
+           )
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    assert urgent["score_terms"]["objective_gap_pressure_penalty"] ==
+             -objective_gap_pressure_count * risk_weight
+
+    assert "objective_gap_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == "urgent" and
+                 &1["term_key"] == "objective_gap_pressure_penalty" and &1["value"] < 0.0)
+           )
+
+    urgent_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+
+    assert "objective_gap_pressure" in urgent_row["risk_types"]
+
+    assert urgent_row["branch_objective_gap_source_report_paths"] == [
+             "mission_state.source_objective_satisfaction_report",
+             "mission_state.source_objective_tradeoff_report",
+             "mission_state.source_score_term_report"
+           ]
+
+    assert urgent_row["branch_objective_gap_score_term_keys"] == [
+             "collection_latency_gap_s",
+             "downlink_shortfall_mb",
+             "target_gap_count"
+           ]
+
+    assert urgent_row["branch_objective_gap_statuses"] == ["partial", "unmet"]
+    assert urgent_row["branch_objective_gap_target_ids"] == ["target_a"]
+    assert urgent_row["branch_objective_gap_collection_ids"] == ["collection_alpha"]
+
     command_window_replay_summary =
       CandidateRefresh.command_window_replay_summary(candidate_source)
 
