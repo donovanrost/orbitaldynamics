@@ -622,6 +622,9 @@ branch-comparison reports. Candidate-diff validation rejects stale collection
 counts, changed-field aliases, and semantic-change reason lists that drift from
 emitted diff rows, rejects stale candidate-diff model strings, and exports the
 same model constant used by generated candidate-diff reports.
+The checked-in V3 strategy artifact is regenerated through the public campaign
+strategy facade, so its embedded branch-comparison rows now pin the current
+dedicated pressure score-term keys instead of a schema-valid older subset.
 `study_results/candidate_diff_row_v1.json` now feeds a curated
 `candidate_diff_row.v1` validation-reference fixture. The observations check
 row identity, diff reason, changed-field order/counts, semantic-change
@@ -1199,6 +1202,12 @@ score-term model strings, and exports the allowed model set with the string
 source boundary emitted by generated score-term reports. It also
 rejects stale ranking-comparison row/status counts and per-row rank/value deltas
 that no longer match the compared ranks and values.
+The V3 strategy golden fixture also pins the embedded strategy score-term report
+from the public strategy facade. That nested report now covers 902 score-term
+rows, 550 pressure rows, and dedicated pressure keys for resource availability,
+execution feedback, approval boundaries, timeline lifecycle/preconditions, link
+capacity, station calendars, quality gates, provider counteroffers, and related
+planning evidence families.
 Ranking-comparison validation also rejects stale model strings, and schema
 export pins the scenario-ranking pairwise-delta model used by generated reports.
 `study_results/maneuver_review_report_v1.json` and

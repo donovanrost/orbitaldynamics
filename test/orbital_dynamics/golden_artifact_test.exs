@@ -348,7 +348,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "schema_version" => 3,
              "planner" => "OrbitalDynamics.CampaignPlanner.V3",
              "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
-             "strategy_id" => "92b719deac9f9a1b82b42ba441022584be9fdccd12a8592dfd52f366dee07192",
+             "strategy_id" => "addc6eadd41ab67ab398394b71ab57da6e30543f64562fe54e614d5f566e008c",
              "recommended_branch_id" => "derived_urgent_target_target_hot",
              "approval_status" => "operator_review_required",
              "recommendation_status" => "pass"
@@ -423,31 +423,52 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "pressure_row_count",
              "selected_pressure_row_count"
            ]) == %{
-             "row_count" => 440,
+             "row_count" => 902,
              "score_term_keys" => [
                "approval_boundary_pressure_penalty",
                "approval_load_penalty",
                "asset_balance_score",
+               "battery_depletion_pressure_penalty",
                "branch_probability",
+               "candidate_rejection_pressure_penalty",
                "contact_allocation_pressure_penalty",
+               "contact_contention_pressure_penalty",
+               "contact_filter_pressure_penalty",
+               "contact_intent_pressure_penalty",
                "coverage_score",
                "downlink_completion_score",
+               "execution_feedback_pressure_penalty",
                "expected_score",
                "feedback_adjustment_score",
                "fuel_preservation_score",
                "latency_penalty",
+               "link_capacity_pressure_penalty",
                "mission_value_score",
+               "operational_readiness_pressure_penalty",
                "priority_commitment_score",
+               "provider_counteroffer_pressure_penalty",
+               "quality_gate_pressure_penalty",
                "raw_score",
+               "relay_data_path_pressure_penalty",
+               "resource_availability_pressure_penalty",
+               "resource_margin_pressure_penalty",
                "resource_score",
                "revisit_score",
                "risk_penalty",
                "schedule_stability_penalty",
+               "station_calendar_pressure_penalty",
                "storage_downlink_pressure_penalty",
-               "timeline_pressure_penalty"
+               "timeline_dependency_impact_pressure_penalty",
+               "timeline_integrity_pressure_penalty",
+               "timeline_lifecycle_pressure_penalty",
+               "timeline_precondition_pressure_penalty",
+               "timeline_preservation_pressure_penalty",
+               "timeline_pressure_penalty",
+               "timeline_publication_pressure_penalty",
+               "validation_refresh_pressure_penalty"
              ],
-             "pressure_row_count" => 88,
-             "selected_pressure_row_count" => 4
+             "pressure_row_count" => 550,
+             "selected_pressure_row_count" => 25
            }
 
     assert surface["objective_tradeoff_report"]["ranking_count"] == 22
@@ -459,9 +480,9 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "score_term_review_count",
              "objective_tradeoff_review_count"
            ]) == %{
-             "review_count" => 928,
+             "review_count" => 1411,
              "contact_allocation_review_count" => 20,
-             "score_term_review_count" => 506,
+             "score_term_review_count" => 968,
              "objective_tradeoff_review_count" => 44
            }
 
@@ -471,10 +492,51 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "review_required_count",
              "contact_allocation_import_count"
            ]) == %{
-             "row_count" => 949,
-             "review_required_count" => 928,
+             "row_count" => 1432,
+             "review_required_count" => 1411,
              "contact_allocation_import_count" => 20
            }
+  end
+
+  test "checked-in strategy artifact matches the public V3 strategy facade" do
+    strategy = read_json!("study_results/leo_constellation_campaign_strategy_v3.json")
+
+    output_path =
+      Path.join(
+        System.tmp_dir!(),
+        "orbital_dynamics_strategy_golden_#{System.unique_integer([:positive])}.json"
+      )
+
+    on_exit(fn -> File.rm(output_path) end)
+
+    "studies/leo_constellation_campaign_strategy_v3.json"
+    |> OrbitalDynamics.campaign_strategy_from_file!()
+    |> OrbitalDynamics.ResultSet.Artifact.write_json!(output_path)
+
+    generated_strategy =
+      output_path
+      |> File.read!()
+      |> :json.decode()
+
+    assert strategy == generated_strategy
+  end
+
+  test "checked-in strategy artifact exposes current dedicated pressure score terms" do
+    score_term_keys =
+      "study_results/leo_constellation_campaign_strategy_v3.json"
+      |> read_json!()
+      |> get_in(["score_term_report", "score_term_keys"])
+
+    assert [
+             "approval_boundary_pressure_penalty",
+             "execution_feedback_pressure_penalty",
+             "resource_availability_pressure_penalty",
+             "resource_margin_pressure_penalty",
+             "station_calendar_pressure_penalty",
+             "timeline_lifecycle_pressure_penalty",
+             "timeline_precondition_pressure_penalty"
+           ]
+           |> Enum.all?(&(&1 in score_term_keys))
   end
 
   test "checked-in Monte Carlo artifact preserves the reproducibility report surface" do
