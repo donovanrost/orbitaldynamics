@@ -8,7 +8,7 @@ Current slice:
 Preserve capacity-pack direction pressure through review/import handoffs.
 
 Status:
-Completed; product commit created and ledger publish in progress.
+Completed and pushed.
 
 Files changed:
 - Runtime: `lib/orbital_dynamics/operator_review.ex`
@@ -67,7 +67,7 @@ Preserved capacity-pack direction pressure through review/import handoffs.
 
 Last commit:
 - Product: `513fb36` Preserve capacity pack handoff fields
-- Ledger: pending
+- Ledger: this handoff commit on `main`
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
