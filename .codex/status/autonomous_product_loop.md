@@ -5,24 +5,25 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve selected model-acceptance pressure context on V3 recommendation
+Preserve selected schema-validation pressure context on V3 recommendation
 review/import rows.
 
 Status:
 Completed and ready to publish.
 
 What changed:
-- `CampaignPlanner` now includes model-acceptance status maps, model routing
-  maps, counts, and model reason in selected validation-refresh risk context.
+- `CampaignPlanner` now carries schema-validation selected-risk context into
+  recommendation explanation rows via the validation-refresh field set.
 - `OperatorReview` and `CadenceImport` now aggregate selected
-  model-acceptance risks into strategy recommendation handoff fields.
-- The selected pressure recommendation test now asserts model-acceptance
-  explanation, operator-review row, embedded Cadence import row, regenerated
-  Cadence import row, source review row, and schema validation.
+  schema-validation risks into strategy recommendation handoff fields.
+- Focused tests assert schema-validation explanation and review/import handoff
+  rows; stale provider-counteroffer assertions were updated to the current
+  pressure risk type exposed by selected provider-counteroffer risks.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:46203`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:43670 test/orbital_dynamics/campaign_planner_test.exs:43782`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:18418 test/orbital_dynamics/campaign_planner_test.exs:22000`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
@@ -34,11 +35,13 @@ Published commits:
 - `5fd942e` Preserve candidate rejection recommendation context
 - `26efb85` Update autonomous loop handoff
 - `d8c94af` Preserve model acceptance recommendation context
+- `9a83a63` Update autonomous loop handoff
+- `c42aa31` Preserve schema validation recommendation context
 
 Next suggested slice:
-Continue the same narrow validation-refresh pattern for selected
-schema-validation pressure recommendation handoff context, reusing the existing
-validation-refresh risk field set and focused branch-refresh test.
+Continue validation-refresh selected handoff coverage for refresh-budget or
+refresh-freshness pressure, or consolidate repeated source-pressure aggregation
+helpers if the duplication starts obscuring behavior.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
