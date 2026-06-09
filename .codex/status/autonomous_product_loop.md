@@ -8,7 +8,7 @@ Current slice:
 Harden quality-gate pressure score helper evidence.
 
 Status:
-Completed locally; ready to commit and push.
+Completed and pushed in product commit `e4e303f`.
 
 Slice-selection note:
 - Selected slice: strengthen the shared quality-gate pressure score helper so
@@ -74,7 +74,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`d279ba8` Harden stale readiness pressure challenge.
+`e4e303f` Harden quality gate pressure score helper.
 
 Next candidate:
 After this score-term split, continue with the next planner-visible
@@ -86,6 +86,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `e4e303f` hardened shared quality-gate pressure helper coverage for split
+  branch math and score-term report rows.
 - `d279ba8` hardened stale readiness gate challenge coverage for row-status
   operational-readiness score terms despite missing/stale classifications.
 - `00c6646` hardened stale preservation challenge coverage for row-local
