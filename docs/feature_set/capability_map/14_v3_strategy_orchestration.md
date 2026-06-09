@@ -1594,7 +1594,9 @@ Selected recommendations also include:
 - **Station-calendar pressure score terms** — split station-calendar reserved,
   unavailable, reduced-capacity, and provider-contention risks into
   `station_calendar_pressure_penalty`, leaving `risk_penalty` for unrelated
-  risks while preserving total branch score compatibility.
+  risks while preserving total branch score compatibility. Focused
+  station-calendar pressure fixtures now assert split branch math and
+  score-term report rows through a shared helper.
 - **Candidate-rejection pressure score terms** — split review-required
   candidate-rejection risks into `candidate_rejection_pressure_penalty`, leaving
   `risk_penalty` for unrelated risks while preserving total branch score
