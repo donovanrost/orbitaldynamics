@@ -23397,8 +23397,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
       summaries
       |> Enum.map(&Map.get(&1, "required_operator_action_counts", %{}))
       |> merge_count_maps()
-      |> Map.delete("none")
       |> empty_map_if_nil()
+      |> Map.delete("none")
 
     timeline_ids_by_action =
       summaries
@@ -23410,9 +23410,9 @@ defmodule OrbitalDynamics.CandidateRefresh do
       summaries
       |> Enum.flat_map(fn summary ->
         summary
-        |> Map.get("review_rows", [])
-        |> List.wrap()
+        |> timeline_lifecycle_state_summary_rows_for_provenance()
         |> Enum.filter(&is_map/1)
+        |> Enum.filter(&(&1["review_required"] == true))
       end)
       |> Enum.group_by(&Map.get(&1, "required_operator_action"))
       |> Map.delete(nil)

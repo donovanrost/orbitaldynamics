@@ -694,7 +694,10 @@ candidate-refresh requests. Direct and `source_result_artifact` /
 review/recordable/preserved counts, transition action/status/approval maps,
 review activity/timeline routing, and trust-boundary evidence on generated
 candidate-source provenance so branch-local consumers can replay lifecycle-state
-pressure without applying lifecycle transitions or mutating timelines.
+pressure without applying lifecycle transitions or mutating timelines. V3
+branch pressure derives review, duplicate-identity, and invalid-input pressure
+from row-local lifecycle evidence when rows are present, so stale top-level
+summary aggregates cannot hide row-local lifecycle review pressure.
 The same branch-refresh request source map carries direct and wrapped
 `source_timeline_activity_state` / `timeline_activity_state` artifacts,
 preserving single-activity state rows, activity/timeline identity, routing

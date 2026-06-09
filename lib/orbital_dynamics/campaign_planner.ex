@@ -20763,6 +20763,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp timeline_lifecycle_state_pressure_event(summary, source_path) do
     summary = stringify_keys(summary)
+    summary = put_row_derived_timeline_lifecycle_state_pressure(summary)
     context = timeline_lifecycle_state_pressure_context(summary)
 
     if context == %{} or not timeline_lifecycle_state_pressure?(summary) do
@@ -20818,6 +20819,127 @@ defmodule OrbitalDynamics.CampaignPlanner do
       positive_count?(summary["preserved_count"]) -> "preserved"
       true -> "nominal"
     end
+  end
+
+  defp put_row_derived_timeline_lifecycle_state_pressure(summary) do
+    rows = timeline_lifecycle_state_summary_rows(summary)
+
+    if rows == [] do
+      summary
+    else
+      review_rows = Enum.filter(rows, &(&1["review_required"] == true))
+
+      summary
+      |> Map.put("row_count", length(rows))
+      |> Map.put("recordable_count", Enum.count(rows, &(&1["transition_decision"] == "record")))
+      |> Map.put("preserved_count", Enum.count(rows, &(&1["transition_decision"] == "none")))
+      |> Map.put("review_required_count", length(review_rows))
+      |> Map.put(
+        "duplicate_timeline_identity_count",
+        Enum.count(rows, &(&1["timeline_identity_collision"] == true))
+      )
+      |> Map.put(
+        "invalid_activity_input_count",
+        Enum.count(rows, &(&1["invalid_activity_input"] == true))
+      )
+      |> Map.put(
+        "transition_decision_counts",
+        timeline_lifecycle_count_by(rows, "transition_decision")
+      )
+      |> Map.put(
+        "required_operator_action_counts",
+        timeline_lifecycle_count_by(rows, "required_operator_action")
+      )
+      |> Map.put(
+        "operator_action_reason_counts",
+        timeline_lifecycle_count_each(rows, "operator_action_reasons")
+      )
+      |> Map.put("import_action_counts", timeline_lifecycle_count_by(rows, "import_action"))
+      |> Map.put(
+        "planned_status_category_counts",
+        timeline_lifecycle_count_by(rows, "planned_status_category")
+      )
+      |> Map.put(
+        "realized_status_category_counts",
+        timeline_lifecycle_count_by(rows, "realized_status_category")
+      )
+      |> Map.put(
+        "planned_approval_category_counts",
+        timeline_lifecycle_count_by(rows, "planned_approval_category")
+      )
+      |> Map.put(
+        "realized_approval_category_counts",
+        timeline_lifecycle_count_by(rows, "realized_approval_category")
+      )
+      |> Map.put(
+        "recordable_timeline_ids",
+        timeline_lifecycle_timeline_ids(rows, &(&1["transition_decision"] == "record"))
+      )
+      |> Map.put(
+        "preserved_timeline_ids",
+        timeline_lifecycle_timeline_ids(rows, &(&1["transition_decision"] == "none"))
+      )
+      |> Map.put(
+        "review_timeline_ids",
+        timeline_lifecycle_timeline_ids(review_rows, fn _row -> true end)
+      )
+      |> Map.put("review_activity_ids", timeline_lifecycle_activity_ids(review_rows))
+      |> Map.put(
+        "invalid_activity_input_ids",
+        rows
+        |> Enum.filter(&(&1["invalid_activity_input"] == true))
+        |> timeline_lifecycle_activity_ids()
+      )
+    end
+  end
+
+  defp timeline_lifecycle_state_summary_rows(%{"rows" => rows}) when is_list(rows) do
+    rows
+    |> Enum.filter(&is_map/1)
+    |> Enum.map(&stringify_keys/1)
+  end
+
+  defp timeline_lifecycle_state_summary_rows(_summary), do: []
+
+  defp timeline_lifecycle_count_by(rows, field) do
+    rows
+    |> Enum.map(& &1[field])
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.frequencies()
+  end
+
+  defp timeline_lifecycle_count_each(rows, field) do
+    rows
+    |> Enum.flat_map(&List.wrap(&1[field]))
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.frequencies()
+  end
+
+  defp timeline_lifecycle_timeline_ids(rows, predicate) do
+    rows
+    |> Enum.filter(predicate)
+    |> Enum.map(& &1["timeline_id"])
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp timeline_lifecycle_activity_ids(rows) do
+    rows
+    |> Enum.flat_map(fn row ->
+      [
+        row["activity_ids"],
+        row["planned_activity_ids"],
+        row["realized_activity_ids"],
+        row["activity_id"],
+        row["planned_activity_id"],
+        row["realized_activity_id"]
+      ]
+      |> List.flatten()
+    end)
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.uniq()
+    |> Enum.sort()
   end
 
   defp timeline_lifecycle_state_pressure_context(summary) do

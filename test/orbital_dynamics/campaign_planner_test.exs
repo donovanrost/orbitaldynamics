@@ -29856,6 +29856,140 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives lifecycle pressure from row-local stale aggregate evidence" do
+    planned = [
+      %{
+        id: :stale_lifecycle_cmd_pending,
+        type: :command,
+        status: :planned,
+        approval_status: :pending,
+        starts_at_s: 10.0,
+        ends_at_s: 20.0,
+        metadata: %{timeline_id: "timeline:stale_lifecycle:cmd_pending"}
+      },
+      %{
+        id: :stale_lifecycle_dup_a,
+        type: :observe,
+        status: :planned,
+        metadata: %{timeline_id: "timeline:stale_lifecycle:dup"}
+      },
+      %{
+        id: :stale_lifecycle_dup_b,
+        type: :observe,
+        status: :planned,
+        metadata: %{timeline_id: "timeline:stale_lifecycle:dup"}
+      },
+      %{id: :stale_lifecycle_bad_missing_type, status: :planned}
+    ]
+
+    realized = [
+      %{
+        id: :stale_lifecycle_cmd_pending,
+        type: :command,
+        status: :executed,
+        approval_status: :approved,
+        starts_at_s: 10.0,
+        ends_at_s: 20.0,
+        metadata: %{timeline_id: "timeline:stale_lifecycle:cmd_pending"}
+      }
+    ]
+
+    stale_summary =
+      planned
+      |> Timeline.lifecycle_state_summary(realized, source: "mission.stale_lifecycle.lifecycle")
+      |> Map.put("provenance", %{"trust_boundary" => "stale_lifecycle_boundary"})
+      |> Map.merge(%{
+        "recordable_count" => 0,
+        "preserved_count" => 0,
+        "review_required_count" => 0,
+        "duplicate_timeline_identity_count" => 0,
+        "invalid_activity_input_count" => 0,
+        "transition_decision_counts" => %{},
+        "required_operator_action_counts" => %{},
+        "operator_action_reason_counts" => %{},
+        "import_action_counts" => %{},
+        "planned_status_category_counts" => %{},
+        "realized_status_category_counts" => %{},
+        "planned_approval_category_counts" => %{},
+        "realized_approval_category_counts" => %{},
+        "status_transition_category_counts" => %{},
+        "approval_transition_category_counts" => %{},
+        "review_timeline_ids" => [],
+        "review_activity_ids" => [],
+        "invalid_activity_input_ids" => [],
+        "review_timeline_ids_by_required_operator_action" => %{},
+        "review_timeline_ids_by_operator_action_reason" => %{},
+        "review_timeline_ids_by_status_transition_category" => %{},
+        "review_timeline_ids_by_approval_transition_category" => %{},
+        "review_rows" => []
+      })
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put("source_timeline_lifecycle_state_summary", stale_summary)
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    branch =
+      branch(
+        artifact,
+        "derived_timeline_lifecycle_state_pressure_mission.stale_lifecycle.lifecycle"
+      )
+
+    assert %{
+             "timeline_lifecycle_state_status" => "review_required",
+             "review_required_count" => 3,
+             "duplicate_timeline_identity_count" => 1,
+             "invalid_activity_input_count" => 1,
+             "review_timeline_ids" => [
+               "timeline:invalid_activity_input:stale_lifecycle_bad_missing_type",
+               "timeline:stale_lifecycle:cmd_pending",
+               "timeline:stale_lifecycle:dup"
+             ],
+             "invalid_activity_input_ids" => [
+               "timeline_row:4:stale_lifecycle_bad_missing_type"
+             ],
+             "feedback_source" => "mission_state.source_timeline_lifecycle_state_summary",
+             "trust_boundary" => "stale_lifecycle_boundary"
+           } = List.first(branch["events"])
+
+    assert Enum.any?(
+             branch["risk_indicators"],
+             &(&1["type"] == "timeline_lifecycle_state_review" and
+                 &1["invalid_activity_input_ids"] == [
+                   "timeline_row:4:stale_lifecycle_bad_missing_type"
+                 ])
+           )
+
+    assert_timeline_lifecycle_pressure_score_terms(
+      branch,
+      artifact,
+      "timeline_lifecycle_state_review"
+    )
+
+    row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] ==
+            "derived_timeline_lifecycle_state_pressure_mission.stale_lifecycle.lifecycle")
+      )
+
+    assert row["branch_timeline_lifecycle_state_statuses"] == ["review_required"]
+
+    assert row["branch_timeline_lifecycle_state_invalid_activity_input_ids"] == [
+             "timeline_row:4:stale_lifecycle_bad_missing_type"
+           ]
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy derives branch pressure from timeline activity lifecycle states" do
     lifecycle_state = fn prefix, trust_boundary ->
       Timeline.activity_lifecycle_state(
