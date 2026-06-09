@@ -1635,6 +1635,9 @@ Selected recommendations also include:
   `timeline_dependency_impact_pressure_penalty`, leaving publication,
   lifecycle, precondition, and preservation pressure for their dedicated or
   broader timeline terms while preserving total branch score compatibility.
+  Focused dependency-impact pressure fixtures now assert split branch math,
+  legacy compatibility term behavior, and score-term report rows through a
+  shared helper.
 - **Timeline-publication pressure score terms** — split publication and
   downstream-invalidation risks into `timeline_publication_pressure_penalty`,
   leaving lifecycle, precondition, and preservation pressure for their dedicated

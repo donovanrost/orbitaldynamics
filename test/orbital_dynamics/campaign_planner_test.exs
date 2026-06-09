@@ -28573,35 +28573,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["impacted_dependency_timeline_ids"] == ["timeline:health_check:0.0"])
            )
 
-    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
-
-    timeline_dependency_impact_pressure_count =
-      Enum.count(
-        prior_source_branch["risk_indicators"],
-        &(&1["type"] == "timeline_dependency_impact")
-      )
-
-    assert timeline_dependency_impact_pressure_count == 1
-
-    assert prior_source_branch["score_terms"]["timeline_dependency_impact_pressure_penalty"] ==
-             -timeline_dependency_impact_pressure_count * risk_weight
-
-    assert prior_source_branch["score_terms"]["timeline_pressure_penalty"] == 0.0
-
-    assert prior_source_branch["score_terms"]["risk_penalty"] ==
-             -(length(prior_source_branch["risk_indicators"]) -
-                 timeline_dependency_impact_pressure_count) * risk_weight
-
-    assert "timeline_dependency_impact_pressure_penalty" in artifact["score_term_report"][
-             "score_term_keys"
-           ]
-
-    assert Enum.any?(
-             artifact["score_term_report"]["rows"],
-             &(&1["branch_id"] == prior_source_branch_id and
-                 &1["term_key"] == "timeline_dependency_impact_pressure_penalty" and
-                 &1["value"] < 0.0)
-           )
+    assert_timeline_dependency_impact_pressure_score_terms(prior_source_branch, artifact)
 
     prior_source_row =
       artifact["branch_comparison_report"]["rows"]
@@ -72597,6 +72569,38 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              artifact["score_term_report"]["rows"],
              &(&1["branch_id"] == branch["branch_id"] and
                  &1["term_key"] == "execution_feedback_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+  end
+
+  defp assert_timeline_dependency_impact_pressure_score_terms(branch, artifact) do
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    timeline_dependency_impact_pressure_count =
+      Enum.count(
+        branch["risk_indicators"],
+        &(&1["type"] == "timeline_dependency_impact")
+      )
+
+    assert timeline_dependency_impact_pressure_count == 1
+
+    assert branch["score_terms"]["timeline_dependency_impact_pressure_penalty"] ==
+             -timeline_dependency_impact_pressure_count * risk_weight
+
+    assert branch["score_terms"]["timeline_pressure_penalty"] == 0.0
+
+    assert branch["score_terms"]["risk_penalty"] ==
+             -(length(branch["risk_indicators"]) - timeline_dependency_impact_pressure_count) *
+               risk_weight
+
+    assert "timeline_dependency_impact_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == branch["branch_id"] and
+                 &1["term_key"] == "timeline_dependency_impact_pressure_penalty" and
                  &1["value"] < 0.0)
            )
   end
