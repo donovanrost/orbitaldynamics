@@ -11032,6 +11032,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
     actual_throughput_contact_id_counts =
       Map.get(link_summary, "actual_throughput_contact_id_counts", %{})
 
+    actual_throughput_contact_ids =
+      Map.get(link_summary, "actual_throughput_contact_ids", [])
+
+    actual_throughput_source_window_ids =
+      Map.get(link_summary, "actual_throughput_source_window_ids", [])
+
+    actual_throughput_station_calendar_entry_ids =
+      Map.get(link_summary, "actual_throughput_station_calendar_entry_ids", [])
+
+    actual_throughput_station_calendar_provider_entry_ids =
+      Map.get(link_summary, "actual_throughput_station_calendar_provider_entry_ids", [])
+
     link_direction_counts = Map.get(link_summary, "direction_counts", %{})
     link_contact_ids_by_direction = Map.get(link_summary, "contact_ids_by_direction", %{})
 
@@ -11162,7 +11174,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
         map_size(unused_capacity_adjusted_by_direction) > 0
 
     branch_local_actual_throughput_pressure =
-      actual_throughput_row_count > 0 or map_size(actual_throughput_contact_id_counts) > 0
+      actual_throughput_row_count > 0 or map_size(actual_throughput_contact_id_counts) > 0 or
+        actual_throughput_contact_ids != [] or actual_throughput_source_window_ids != [] or
+        actual_throughput_station_calendar_entry_ids != [] or
+        actual_throughput_station_calendar_provider_entry_ids != []
 
     branch_local_resource_activity_pressure =
       map_size(resource_pressure_activity_id_counts) > 0 or
@@ -11290,6 +11305,12 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "contact_ids_by_direction" => link_contact_ids_by_direction,
       "selected_contact_id_counts" => selected_contact_id_counts,
       "actual_throughput_contact_id_counts" => actual_throughput_contact_id_counts,
+      "actual_throughput_contact_ids" => actual_throughput_contact_ids,
+      "actual_throughput_source_window_ids" => actual_throughput_source_window_ids,
+      "actual_throughput_station_calendar_entry_ids" =>
+        actual_throughput_station_calendar_entry_ids,
+      "actual_throughput_station_calendar_provider_entry_ids" =>
+        actual_throughput_station_calendar_provider_entry_ids,
       "resource_projection_spacecraft_counts" => spacecraft_counts,
       "ground_station_counts" => ground_station_counts,
       "resource_pressure_activity_id_counts" => resource_pressure_activity_id_counts,

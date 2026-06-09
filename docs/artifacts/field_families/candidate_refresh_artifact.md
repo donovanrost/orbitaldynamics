@@ -1392,7 +1392,8 @@ required-capacity source counts/contact IDs,
 selected/actual downlink shortfall, all/selected/unused capacity-adjusted
 throughput row counts plus station and direction maps, link-capacity direction
 routing maps,
-selected contact count maps, actual-throughput row counts/pressure,
+selected contact count maps, actual-throughput row counts, contact count maps,
+contact/source-window/station-calendar entry/provider-entry ID lists and pressure,
 station, spacecraft, contact, activity, source-window, station-calendar entry,
 provider ID, and provider-entry routing, resource-pressure direction counts and activity-ID maps
 by direction, plus storage/downlink
@@ -1402,10 +1403,10 @@ The replay helper can inspect V3 branch `candidate_source` metadata that carries
 `candidate_refresh_request_source_report_summary`, so strategy-derived branch
 refreshes preserve composed storage/downlink/capacity pressure through the
 branch provenance boundary. Capacity-adjusted throughput row-count, station,
-or direction evidence contributes to the composed downlink and storage/downlink pressure
-flags even when no shortfall row is present. Selected contact count maps and
-actual-throughput row or contact evidence contribute to the same composed
-pressure flags without implying a shortfall. Resource-activity routing evidence
+or direction evidence contributes to the composed downlink and storage/downlink
+pressure flags even when no shortfall row is present. Selected contact count maps
+and actual-throughput row, contact count, or ID-list evidence contribute to the
+same composed pressure flags without implying a shortfall. Resource-activity routing evidence
 contributes to the composed storage/downlink pressure flag even when
 storage/downlink status, type, and direction maps are absent.
 Aggregate pressure-family count and row-count maps preserve explicit zero

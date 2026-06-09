@@ -14269,6 +14269,97 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     refute summary["branch_local_downlink_shortfall_pressure"]
   end
 
+  test "storage downlink pressure replay summary treats actual throughput ID lists as pressure" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "link_capacity_report" => %{
+            "contract" => "link_capacity_report.v1",
+            "count" => 1,
+            "row_count" => 0,
+            "paths" => ["source_link_capacity_report"],
+            "actual_throughput_row_count" => 0,
+            "actual_throughput_contact_id_counts" => %{},
+            "actual_throughput_contact_ids" => ["actual_contact_only"],
+            "actual_throughput_source_window_ids" => ["window_actual_only"],
+            "actual_throughput_station_calendar_entry_ids" => ["station_entry_actual_only"],
+            "actual_throughput_station_calendar_provider_entry_ids" => [
+              "provider_entry_actual_only"
+            ],
+            "trust_boundary_status" => "declared",
+            "trust_boundaries" => ["ops_link_capacity"]
+          }
+        }
+      }
+    }
+
+    summary = CandidateRefresh.storage_downlink_pressure_replay_summary(artifact)
+
+    assert summary["actual_throughput_row_count"] == 0
+    assert summary["actual_throughput_contact_id_counts"] == %{}
+    assert summary["actual_throughput_contact_ids"] == ["actual_contact_only"]
+    assert summary["actual_throughput_source_window_ids"] == ["window_actual_only"]
+
+    assert summary["actual_throughput_station_calendar_entry_ids"] == [
+             "station_entry_actual_only"
+           ]
+
+    assert summary["actual_throughput_station_calendar_provider_entry_ids"] == [
+             "provider_entry_actual_only"
+           ]
+
+    assert summary["branch_local_actual_throughput_pressure"]
+    assert summary["branch_local_downlink_pressure"]
+    assert summary["branch_local_storage_downlink_pressure"]
+    refute summary["branch_local_storage_pressure"]
+    refute summary["branch_local_capacity_adjusted_throughput_pressure"]
+    refute summary["branch_local_downlink_shortfall_pressure"]
+  end
+
+  test "storage downlink pressure replay summary treats each actual throughput ID list as pressure" do
+    Enum.each(
+      [
+        {"actual_throughput_contact_ids", ["actual_contact_only"]},
+        {"actual_throughput_source_window_ids", ["window_actual_only"]},
+        {"actual_throughput_station_calendar_entry_ids", ["station_entry_actual_only"]},
+        {"actual_throughput_station_calendar_provider_entry_ids", ["provider_entry_actual_only"]}
+      ],
+      fn {field, ids} ->
+        artifact = %{
+          "schema_contract" => "candidate_refresh.v1",
+          "provenance" => %{
+            "source_reports" => %{
+              "link_capacity_report" => %{
+                "contract" => "link_capacity_report.v1",
+                "count" => 1,
+                "row_count" => 0,
+                "paths" => ["source_link_capacity_report"],
+                "actual_throughput_row_count" => 0,
+                "actual_throughput_contact_id_counts" => %{},
+                field => ids,
+                "trust_boundary_status" => "declared",
+                "trust_boundaries" => ["ops_link_capacity"]
+              }
+            }
+          }
+        }
+
+        summary = CandidateRefresh.storage_downlink_pressure_replay_summary(artifact)
+
+        assert summary["actual_throughput_row_count"] == 0
+        assert summary["actual_throughput_contact_id_counts"] == %{}
+        assert summary[field] == ids
+        assert summary["branch_local_actual_throughput_pressure"]
+        assert summary["branch_local_downlink_pressure"]
+        assert summary["branch_local_storage_downlink_pressure"]
+        refute summary["branch_local_storage_pressure"]
+        refute summary["branch_local_capacity_adjusted_throughput_pressure"]
+        refute summary["branch_local_downlink_shortfall_pressure"]
+      end
+    )
+  end
+
   test "storage downlink pressure replay summary treats selected contact counts as downlink pressure" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
