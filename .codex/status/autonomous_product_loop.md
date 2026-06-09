@@ -5,72 +5,76 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Pin validation-refresh pressure score-term coverage in the checked-in strategy
-fixture.
+Preserve selected exclusivity-group overlap evidence through timeline
+transition-application review/import handoffs.
 
 Status:
 Completed and pushed.
 
 Files changed:
-- Product: `lib/orbital_dynamics/validation.ex`
-- Product test: `test/orbital_dynamics/validation_test.exs`
-- Checked-in artifact: `study_results/validation_reference_fixtures.json`
+- Product: `lib/orbital_dynamics/timeline.ex`
+- Product: `lib/orbital_dynamics/operator_review.ex`
+- Product: `lib/orbital_dynamics/cadence_import.ex`
+- Product schema: `lib/orbital_dynamics/schema.ex`
+- Product test: `test/orbital_dynamics/timeline_test.exs`
+- Docs: `docs/artifacts/field_families/mission_activities.md`
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix run -e 'alias OrbitalDynamics.Validation; observations = Validation.reference_fixtures() |> Map.new(fn {id, fixture} -> {id, fixture["expected"]} end); report = OrbitalDynamics.validation_reference_fixture_report(observations); OrbitalDynamics.ResultSet.Artifact.write_json!(report, "study_results/validation_reference_fixtures.json")'`
-- `mix test test/orbital_dynamics/validation_test.exs:1722`
-- `mix test test/orbital_dynamics/validation_test.exs:15042`
-- `mix orbital_dynamics.schema.lint --input study_results/validation_reference_fixtures.json --contract validation_reference_fixture_report.v1`
-- `mix test test/orbital_dynamics/validation_test.exs:1722 test/orbital_dynamics/validation_test.exs:15042`
-- `mix format lib/orbital_dynamics/validation.ex test/orbital_dynamics/validation_test.exs --check-formatted`
+- `mix test test/orbital_dynamics/timeline_test.exs:9069`
+- `mix test test/orbital_dynamics/timeline_test.exs`
+- `mix test test/orbital_dynamics/schema_test.exs:13848 test/orbital_dynamics/schema_test.exs:14759`
+- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs:3088`
+- `mix format lib/orbital_dynamics/timeline.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex lib/orbital_dynamics/schema.ex test/orbital_dynamics/timeline_test.exs --check-formatted`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
-- `mix test test/orbital_dynamics/validation_test.exs`
 
 Docs/artifacts changed:
-No public docs changed. `study_results/validation_reference_fixtures.json` was
-regenerated from the public validation-reference fixture report after adding
-the new campaign-strategy check.
+Updated `docs/artifacts/field_families/mission_activities.md` to document
+selected exclusivity-group handoff preservation. No checked-in JSON artifacts
+changed.
 
 Level 6 pillar advanced:
-Durable schema-versioned artifacts and compatibility checks; reproducible
-V1/V2/V3 branch trees with explainable score terms and deltas.
+Approval-aware automation boundaries and Cadence-facing integration artifacts;
+durable schema-versioned timeline integrity handoffs.
 
 Last completed slice:
-Pinned validation-refresh pressure score-term coverage in the checked-in
-strategy fixture.
+Preserved selected exclusivity-group overlap evidence through timeline
+transition-application review/import handoffs.
 
 What changed:
-- `Validation.artifact_observations("campaign_strategy.v3", ...)` now exposes
-  `score_term_report_validation_refresh_pressure_row_count`, derived from the
-  embedded score-term report's row-derived
-  `validation_refresh_pressure_penalty` count.
-- The curated LEO constellation campaign-strategy reference fixture now expects
-  that dedicated row-count observation with zero tolerance.
-- The validation test asserts the observation is 27 and proves the fixture fails
-  when that dedicated observation is stale.
-- `study_results/validation_reference_fixtures.json` was regenerated and now
-  includes the new passing check in the campaign-strategy fixture report.
+- Selected transition-application rows now include
+  `selected_exclusivity_violation_group` alongside selected violation activity
+  and timeline IDs.
+- Operator review and Cadence import transition-application rows preserve the
+  selected group field at top level and in nested source handoff rows.
+- Schema validation and exported schema properties cover the new optional field
+  and reject stale selected group values that diverge from
+  `selected_activity.exclusivity_violation_group`.
+- The timeline regression now exercises group-level overlap without explicit
+  `exclusive_with` IDs, validates review/import artifacts, and mutates the
+  selected group field to prove the stale-evidence guard.
 - Parent performed bounded local review and mechanical publish because no
   suitable subagent tool is available in this runtime.
 
 Last commit:
-- Product: `ebab180` Pin validation refresh fixture coverage
+- Product: `32bdb57` Preserve selected exclusivity group handoffs
 - Ledger: this handoff commit on `main`
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
   selection, branch scoring, compatibility checks, and challenge fixtures.
-- Prefer checked-in compatibility or challenge fixtures where live coverage is
-  weaker than the Level 6 maturity map.
-- Reassess whether another checked-in compatibility fixture, replay fixture, or
-  the next guide queue item is the highest-value Level 6 slice.
+- Continue closing queue-1 activity/timeline semantics where selected handoffs,
+  operator review, import manifests, and schema exports do not preserve the same
+  conflict evidence emitted by operational timeline integrity rows.
+- Reassess whether the next highest-value gap is another activity/timeline
+  handoff, resource/contact allocation semantics, or checked-in compatibility
+  fixture coverage.
 
 Next candidate:
-Reassess checked-in compatibility/challenge fixture coverage now that replay
-family live challenges and the validation-refresh score-term fixture pin are in
-place, then choose the next highest-value Level 6 slice.
+Reassess the guide queue from current checkout and choose the next narrow Level
+6 slice, likely in queue-1 activity/timeline handoff completeness or queue-2
+resource/contact allocation semantics.
 
 Blocked:
 Not blocked.
