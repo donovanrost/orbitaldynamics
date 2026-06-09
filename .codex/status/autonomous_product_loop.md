@@ -5,25 +5,23 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Split timeline lifecycle-state pressure into an explicit V3 score term.
+Split timeline precondition pressure into an explicit V3 score term.
 
 Status:
-Completed and pushed in product commit `7e34eac`.
+Completed locally; ready to commit and push.
 
 Slice-selection note:
-- Selected slice: split V3 timeline lifecycle-state risk indicators into
-  `timeline_lifecycle_pressure_penalty`, leaving activity-precondition and
-  preservation review pressure under
-  `timeline_pressure_penalty`.
-- Why this slice: lifecycle-state branches already carry timeline and activity
-  state transition evidence through strategy and CandidateRefresh replay, but
-  score attribution still bundles them with activity-precondition and
-  preservation review pressure.
+- Selected slice: split V3 timeline activity-precondition risk indicators into
+  `timeline_precondition_pressure_penalty`, leaving preservation review
+  pressure under `timeline_pressure_penalty`.
+- Why this slice: activity-precondition branches already carry blocked/review
+  precondition types, dependency/exclusivity evidence, and invalid activity
+  input reasons through strategy and CandidateRefresh replay, but score
+  attribution still bundles them with preservation review pressure.
 - Level 6 pillar: reproducible V1/V2/V3 branch trees with explainable score
   terms and deltas; typed activity/timeline semantics made planner-visible.
 - Current evidence gap: strategy score-term reports cannot distinguish
-  lifecycle-state transition pressure from activity-precondition or preservation
-  review pressure.
+  activity-precondition pressure from preservation review pressure.
 - Docs to read:
   `docs/feature_set/capability_map/08_mission_activities_and_timelines.md`,
   `docs/feature_set/capability_map/08_mission_activities/partial-and-future.md`,
@@ -34,14 +32,13 @@ Slice-selection note:
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
   `.codex/status/autonomous_product_loop.md`.
 - Likely tests:
-  focused V3 campaign-planner timeline lifecycle/precondition/preservation
-  tests;
+  focused V3 campaign-planner timeline precondition/preservation tests;
   `mix compile --warnings-as-errors`; `git diff --check`.
-- Definition of done: timeline lifecycle-state risk indicators score through a
-  separate term and recommendation tradeoff dimension, broader timeline pressure
-  still covers activity-precondition and preservation risks, focused tests prove
-  both paths, V3 docs are updated, locally reviewed, committed, and pushed
-  without touching unrelated `.gitignore`.
+- Definition of done: timeline activity-precondition risk indicators score
+  through a separate term and recommendation tradeoff dimension, broader
+  timeline pressure still covers preservation risks, focused tests prove both
+  paths, V3 docs are updated, locally reviewed, committed, and pushed without
+  touching unrelated `.gitignore`.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -50,25 +47,26 @@ Files changed:
 - `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:29847 test/orbital_dynamics/campaign_planner_test.exs:30055 test/orbital_dynamics/campaign_planner_test.exs:30232 test/orbital_dynamics/campaign_planner_test.exs:30446`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:30232 test/orbital_dynamics/campaign_planner_test.exs:30461`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
-- `rg -n "timeline_lifecycle_pressure_(penalty|risk)|Timeline lifecycle-state pressure score terms|timeline_lifecycle_pressure" lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
+- `rg -n "timeline_precondition_pressure_(penalty|risk)|Timeline-precondition pressure score terms|timeline_precondition_pressure" lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Docs/artifacts changed:
 The V3 strategy-orchestration score-term sections now document
-`timeline_lifecycle_pressure_penalty` as separate from broader
+`timeline_precondition_pressure_penalty` as separate from broader
 `timeline_pressure_penalty`.
 
 Local review:
 Parent local review confirmed the diff is limited to planner score accounting,
-focused lifecycle score assertions, the V3 score-term doc, and this ledger.
+focused precondition score assertions, the V3 score-term doc, and this ledger.
 `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-V3 branch scoring now exposes timeline lifecycle-state pressure as a separate
-score term and recommendation tradeoff dimension while preserving total score
-compatibility by removing those risks from the broader timeline-pressure term.
+V3 branch scoring now exposes timeline activity-precondition pressure as a
+separate score term and recommendation tradeoff dimension while preserving total
+score compatibility by removing those risks from the broader timeline-pressure
+term.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation

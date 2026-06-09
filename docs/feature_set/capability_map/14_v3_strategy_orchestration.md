@@ -728,13 +728,14 @@ Timeline-integrity risk rows contribute to
 to `timeline_dependency_impact_pressure_penalty`, publication risk rows
 contribute to `timeline_publication_pressure_penalty`, lifecycle-state risk
 rows contribute to `timeline_lifecycle_pressure_penalty`, and
-activity-precondition and preservation risk rows contribute to
-`timeline_pressure_penalty`, leaving the standard strategy `risk_penalty` for
+activity-precondition risk rows contribute to
+`timeline_precondition_pressure_penalty`, leaving preservation risk rows in
+`timeline_pressure_penalty` and the standard strategy `risk_penalty` for
 unrelated risks while preserving the same one-`risk_weight` total penalty per
 risk indicator. Score-term reports and tradeoffs therefore expose
-dependency/exclusivity integrity, dependency-impact, publication, and lifecycle
-pressure separately from broader timeline pressure without changing branch
-ranking for fixed inputs.
+dependency/exclusivity integrity, dependency-impact, publication, lifecycle, and
+precondition pressure separately from broader timeline pressure without changing
+branch ranking for fixed inputs.
 Storage/downlink resource-pressure risks, including storage/downlink margin
 pressure and projected storage overflow/downlink shortfall, similarly contribute
 to `storage_downlink_pressure_penalty` so score-term reports can distinguish
@@ -1625,9 +1626,13 @@ Selected recommendations also include:
   compatibility.
 - **Timeline lifecycle-state pressure score terms** — split timeline and
   activity lifecycle-state review risks into
-  `timeline_lifecycle_pressure_penalty`, leaving broader timeline precondition
-  and preservation risks in `timeline_pressure_penalty` while preserving total
+  `timeline_lifecycle_pressure_penalty`, leaving precondition and preservation
+  pressure for their dedicated or broader timeline terms while preserving total
   branch score compatibility.
+- **Timeline-precondition pressure score terms** — split activity-precondition
+  review risks into `timeline_precondition_pressure_penalty`, leaving broader
+  timeline preservation risks in `timeline_pressure_penalty` while preserving
+  total branch score compatibility.
 - **Operational-readiness pressure score terms** — split readiness review,
   blocked, and analysis-only risks into
   `operational_readiness_pressure_penalty`, leaving broader approval-boundary
