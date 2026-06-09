@@ -2920,6 +2920,7 @@ defmodule OrbitalDynamics.CadenceImport do
       )
     )
     |> Map.merge(Map.take(row, branch_timeline_evidence_fields()))
+    |> Map.merge(Map.take(row, branch_readiness_quality_gate_fields()))
     |> Map.merge(operational_feedback_context)
     |> compact_map()
   end
@@ -6712,7 +6713,37 @@ defmodule OrbitalDynamics.CadenceImport do
       )
     )
     |> Map.merge(Map.take(row, branch_timeline_evidence_fields()))
+    |> Map.merge(Map.take(row, branch_readiness_quality_gate_fields()))
     |> compact_map()
+  end
+
+  defp branch_readiness_quality_gate_fields do
+    [
+      "branch_operational_readiness_levels",
+      "branch_operational_readiness_import_classifications",
+      "branch_operational_readiness_statuses",
+      "branch_operational_readiness_source_report_paths",
+      "branch_operational_readiness_gate_ids",
+      "branch_operational_readiness_gate_statuses",
+      "branch_operational_readiness_gate_classifications",
+      "branch_operational_readiness_review_required_gate_ids",
+      "branch_operational_readiness_analysis_only_gate_ids",
+      "branch_operational_readiness_blocked_gate_ids",
+      "branch_operational_readiness_non_passed_gate_ids",
+      "branch_quality_gate_readiness_levels",
+      "branch_quality_gate_import_classifications",
+      "branch_quality_gate_statuses",
+      "branch_quality_gate_source_report_paths",
+      "branch_quality_gate_gate_classifications",
+      "branch_quality_gate_review_required_gate_ids",
+      "branch_quality_gate_analysis_only_gate_ids",
+      "branch_quality_gate_blocked_gate_ids",
+      "branch_quality_gate_non_passed_gate_ids",
+      "branch_quality_gate_review_required_row_ids",
+      "branch_quality_gate_analysis_only_row_ids",
+      "branch_quality_gate_blocked_row_ids",
+      "branch_quality_gate_non_passed_row_ids"
+    ]
   end
 
   defp branch_timeline_evidence_fields do
@@ -7019,6 +7050,7 @@ defmodule OrbitalDynamics.CadenceImport do
       "source_review_row" => row
     }
     |> Map.merge(Map.take(row, branch_timeline_evidence_fields()))
+    |> Map.merge(Map.take(row, branch_readiness_quality_gate_fields()))
     |> compact_map()
   end
 

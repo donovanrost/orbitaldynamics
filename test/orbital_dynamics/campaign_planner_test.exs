@@ -27567,6 +27567,56 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "mission_state.source_result_artifact.operational_readiness_report"
            ]
 
+    readiness_review_row =
+      artifact["operator_review_package"]["rows"]
+      |> Enum.find(
+        &(&1["review_type"] == "strategy_tradeoff" and &1["branch_id"] == "urgent" and
+            &1["source"] == "campaign_strategy.branch_comparison_report.rows")
+      )
+
+    assert readiness_review_row["branch_operational_readiness_levels"] == [
+             "analysis_only",
+             "blocked",
+             "operator_review"
+           ]
+
+    assert readiness_review_row["branch_operational_readiness_source_report_paths"] == [
+             "mission_state.operational_readiness_report",
+             "mission_state.result_artifact.source_operational_readiness_report",
+             "mission_state.source_operational_readiness_report",
+             "mission_state.source_result_artifact.operational_readiness_report"
+           ]
+
+    assert get_in(readiness_review_row, [
+             "source_branch_comparison",
+             "branch_operational_readiness_source_report_paths"
+           ]) == [
+             "mission_state.operational_readiness_report",
+             "mission_state.result_artifact.source_operational_readiness_report",
+             "mission_state.source_operational_readiness_report",
+             "mission_state.source_result_artifact.operational_readiness_report"
+           ]
+
+    readiness_import_row =
+      artifact["cadence_import_manifest"]["rows"]
+      |> Enum.find(
+        &(&1["source_review_type"] == "strategy_branch_comparison" and
+            &1["branch_id"] == "urgent")
+      )
+
+    assert readiness_import_row["branch_operational_readiness_import_classifications"] == [
+             "analysis_only",
+             "blocked",
+             "review_only"
+           ]
+
+    assert readiness_import_row["branch_operational_readiness_source_report_paths"] == [
+             "mission_state.operational_readiness_report",
+             "mission_state.result_artifact.source_operational_readiness_report",
+             "mission_state.source_operational_readiness_report",
+             "mission_state.source_result_artifact.operational_readiness_report"
+           ]
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
@@ -27817,6 +27867,62 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            ]
 
     assert urgent_row["branch_quality_gate_source_report_paths"] == [
+             "mission_state.quality_gate_report",
+             "mission_state.result_artifact.source_quality_gate_report",
+             "mission_state.source_quality_gate_report",
+             "mission_state.source_result_artifact.quality_gate_report"
+           ]
+
+    quality_gate_review_row =
+      artifact["operator_review_package"]["rows"]
+      |> Enum.find(
+        &(&1["review_type"] == "strategy_tradeoff" and &1["branch_id"] == "urgent" and
+            &1["source"] == "campaign_strategy.branch_comparison_report.rows")
+      )
+
+    assert quality_gate_review_row["branch_quality_gate_readiness_levels"] == [
+             "analysis_only",
+             "blocked",
+             "operator_review"
+           ]
+
+    assert quality_gate_review_row["branch_quality_gate_gate_classifications"] == [
+             "analysis_only",
+             "blocked",
+             "review_only"
+           ]
+
+    assert quality_gate_review_row["branch_quality_gate_source_report_paths"] == [
+             "mission_state.quality_gate_report",
+             "mission_state.result_artifact.source_quality_gate_report",
+             "mission_state.source_quality_gate_report",
+             "mission_state.source_result_artifact.quality_gate_report"
+           ]
+
+    assert get_in(quality_gate_review_row, [
+             "source_branch_comparison",
+             "branch_quality_gate_source_report_paths"
+           ]) == [
+             "mission_state.quality_gate_report",
+             "mission_state.result_artifact.source_quality_gate_report",
+             "mission_state.source_quality_gate_report",
+             "mission_state.source_result_artifact.quality_gate_report"
+           ]
+
+    quality_gate_import_row =
+      artifact["cadence_import_manifest"]["rows"]
+      |> Enum.find(
+        &(&1["source_review_type"] == "strategy_branch_comparison" and
+            &1["branch_id"] == "urgent")
+      )
+
+    assert quality_gate_import_row["branch_quality_gate_import_classifications"] == [
+             "analysis_only",
+             "blocked",
+             "review_only"
+           ]
+
+    assert quality_gate_import_row["branch_quality_gate_source_report_paths"] == [
              "mission_state.quality_gate_report",
              "mission_state.result_artifact.source_quality_gate_report",
              "mission_state.source_quality_gate_report",

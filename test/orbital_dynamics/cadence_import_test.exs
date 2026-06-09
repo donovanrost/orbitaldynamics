@@ -6236,6 +6236,27 @@ defmodule OrbitalDynamics.CadenceImportTest do
             "branch_timeline_preservation_review_change_activity_ids" => [
               "cmd_combo"
             ],
+            "branch_operational_readiness_levels" => ["operator_review"],
+            "branch_operational_readiness_import_classifications" => ["review_only"],
+            "branch_operational_readiness_statuses" => ["review_required"],
+            "branch_operational_readiness_source_report_paths" => [
+              "mission_state.operational_readiness_report"
+            ],
+            "branch_operational_readiness_gate_ids" => ["readiness:cadence_import"],
+            "branch_operational_readiness_gate_statuses" => ["review_required"],
+            "branch_operational_readiness_gate_classifications" => ["review_only"],
+            "branch_operational_readiness_review_required_gate_ids" => [
+              "readiness:cadence_import"
+            ],
+            "branch_quality_gate_readiness_levels" => ["blocked"],
+            "branch_quality_gate_import_classifications" => ["blocked"],
+            "branch_quality_gate_statuses" => ["blocked"],
+            "branch_quality_gate_source_report_paths" => [
+              "mission_state.quality_gate_report"
+            ],
+            "branch_quality_gate_gate_classifications" => ["blocked"],
+            "branch_quality_gate_blocked_gate_ids" => ["schema_validation"],
+            "branch_quality_gate_blocked_row_ids" => ["quality_gate:schema_validation:1"],
             "capacity_pack_group_ids" => ["station:equator_prime:pack:review"],
             "capacity_pack_statuses" => ["deferred_by_reduced_station_capacity_pack"],
             "capacity_pack_min_capacity_fraction" => 0.5,
@@ -6423,6 +6444,18 @@ defmodule OrbitalDynamics.CadenceImportTest do
                  ],
                  "branch_timeline_preservation_statuses" => ["preservation_required"],
                  "branch_timeline_preservation_protection_decisions" => ["preserve"],
+                 "branch_operational_readiness_levels" => ["operator_review"],
+                 "branch_operational_readiness_source_report_paths" => [
+                   "mission_state.operational_readiness_report"
+                 ],
+                 "branch_operational_readiness_review_required_gate_ids" => [
+                   "readiness:cadence_import"
+                 ],
+                 "branch_quality_gate_readiness_levels" => ["blocked"],
+                 "branch_quality_gate_blocked_gate_ids" => ["schema_validation"],
+                 "branch_quality_gate_blocked_row_ids" => [
+                   "quality_gate:schema_validation:1"
+                 ],
                  "capacity_pack_group_ids" => ["station:equator_prime:pack:review"],
                  "capacity_pack_statuses" => ["deferred_by_reduced_station_capacity_pack"],
                  "capacity_pack_min_capacity_fraction" => 0.5,
@@ -6550,6 +6583,12 @@ defmodule OrbitalDynamics.CadenceImportTest do
                    "branch_timeline_dependency_impact_scopes" => ["source"],
                    "branch_timeline_activity_precondition_statuses" => ["blocked"],
                    "branch_timeline_preservation_statuses" => ["preservation_required"],
+                   "branch_operational_readiness_source_report_paths" => [
+                     "mission_state.operational_readiness_report"
+                   ],
+                   "branch_quality_gate_blocked_row_ids" => [
+                     "quality_gate:schema_validation:1"
+                   ],
                    "repair_link_actual_downlink_completion_ratio" => 0.5,
                    "first_resource_pressure_activity_id" => "dl_pressure",
                    "first_resource_pressure_ground_station_id" => "equator_prime",
