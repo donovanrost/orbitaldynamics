@@ -1617,7 +1617,8 @@ Selected recommendations also include:
 - **Relay data-path pressure score terms** — split relay data-path custody,
   latency, and route-risk indicators into `relay_data_path_pressure_penalty`,
   leaving `risk_penalty` for unrelated risks while preserving total branch score
-  compatibility.
+  compatibility. Focused relay data-path pressure fixtures now assert split
+  branch math and score-term report rows through a shared helper.
 - **Execution-feedback pressure score terms** — split command-success,
   maneuver-success, and maneuver execution-uncertainty risks into
   `execution_feedback_pressure_penalty`, leaving `risk_penalty` for unrelated

@@ -27304,31 +27304,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                &(&1["type"] == "relay_data_path_pressure")
              )
 
-    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
-
-    relay_data_path_pressure_count =
-      Enum.count(
-        direct_branch["risk_indicators"],
-        &(&1["type"] == "relay_data_path_pressure")
-      )
-
-    assert relay_data_path_pressure_count > 0
-
-    assert direct_branch["score_terms"]["relay_data_path_pressure_penalty"] ==
-             -relay_data_path_pressure_count * risk_weight
-
-    assert direct_branch["score_terms"]["risk_penalty"] ==
-             -(length(direct_branch["risk_indicators"]) - relay_data_path_pressure_count) *
-               risk_weight
-
-    assert "relay_data_path_pressure_penalty" in artifact["score_term_report"][
-             "score_term_keys"
-           ]
-
-    assert Enum.any?(
-             artifact["score_term_report"]["rows"],
-             &(&1["term_key"] == "relay_data_path_pressure_penalty" and &1["value"] < 0.0)
-           )
+    assert_relay_data_path_pressure_score_terms(direct_branch, artifact)
 
     assert List.first(canonical_branch["events"])["feedback_source"] ==
              "mission_state.relay_data_path_summary"
@@ -72634,6 +72610,36 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              artifact["score_term_report"]["rows"],
              &(&1["branch_id"] == branch["branch_id"] and
                  &1["term_key"] == "validation_refresh_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+  end
+
+  defp assert_relay_data_path_pressure_score_terms(branch, artifact) do
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    relay_data_path_pressure_count =
+      Enum.count(
+        branch["risk_indicators"],
+        &(&1["type"] == "relay_data_path_pressure")
+      )
+
+    assert relay_data_path_pressure_count > 0
+
+    assert branch["score_terms"]["relay_data_path_pressure_penalty"] ==
+             -relay_data_path_pressure_count * risk_weight
+
+    assert branch["score_terms"]["risk_penalty"] ==
+             -(length(branch["risk_indicators"]) - relay_data_path_pressure_count) *
+               risk_weight
+
+    assert "relay_data_path_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == branch["branch_id"] and
+                 &1["term_key"] == "relay_data_path_pressure_penalty" and
                  &1["value"] < 0.0)
            )
   end
