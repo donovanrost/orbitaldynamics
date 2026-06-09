@@ -5,23 +5,23 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Split timeline precondition pressure into an explicit V3 score term.
+Split timeline preservation pressure into an explicit V3 score term.
 
 Status:
-Completed and pushed in product commit `8704579`.
+Completed locally; ready to commit and push.
 
 Slice-selection note:
-- Selected slice: split V3 timeline activity-precondition risk indicators into
-  `timeline_precondition_pressure_penalty`, leaving preservation review
-  pressure under `timeline_pressure_penalty`.
-- Why this slice: activity-precondition branches already carry blocked/review
-  precondition types, dependency/exclusivity evidence, and invalid activity
-  input reasons through strategy and CandidateRefresh replay, but score
-  attribution still bundles them with preservation review pressure.
+- Selected slice: split V3 timeline preservation risk indicators into
+  `timeline_preservation_pressure_penalty`, leaving the legacy broader
+  `timeline_pressure_penalty` as an empty compatibility term.
+- Why this slice: preservation branches already carry locked/approved/executed
+  protection decisions and review-change evidence through strategy and
+  CandidateRefresh replay, but score attribution still uses the broader
+  timeline pressure term after all other timeline review families were split.
 - Level 6 pillar: reproducible V1/V2/V3 branch trees with explainable score
   terms and deltas; typed activity/timeline semantics made planner-visible.
 - Current evidence gap: strategy score-term reports cannot distinguish
-  activity-precondition pressure from preservation review pressure.
+  preservation pressure as its own timeline-review score family.
 - Docs to read:
   `docs/feature_set/capability_map/08_mission_activities_and_timelines.md`,
   `docs/feature_set/capability_map/08_mission_activities/partial-and-future.md`,
@@ -32,13 +32,13 @@ Slice-selection note:
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
   `.codex/status/autonomous_product_loop.md`.
 - Likely tests:
-  focused V3 campaign-planner timeline precondition/preservation tests;
+  focused V3 campaign-planner timeline preservation/precondition tests;
   `mix compile --warnings-as-errors`; `git diff --check`.
-- Definition of done: timeline activity-precondition risk indicators score
-  through a separate term and recommendation tradeoff dimension, broader
-  timeline pressure still covers preservation risks, focused tests prove both
-  paths, V3 docs are updated, locally reviewed, committed, and pushed without
-  touching unrelated `.gitignore`.
+- Definition of done: timeline preservation risk indicators score through a
+  separate term and recommendation tradeoff dimension, the broad timeline
+  pressure term remains present but no longer owns current typed timeline-review
+  risks, focused tests prove both paths, V3 docs are updated, locally reviewed,
+  committed, and pushed without touching unrelated `.gitignore`.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -50,23 +50,22 @@ Tests run:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:30232 test/orbital_dynamics/campaign_planner_test.exs:30461`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
-- `rg -n "timeline_precondition_pressure_(penalty|risk)|Timeline-precondition pressure score terms|timeline_precondition_pressure" lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
+- `rg -n "timeline_preservation_pressure_(penalty|risk)|Timeline-preservation pressure score terms|timeline_preservation_pressure" lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Docs/artifacts changed:
 The V3 strategy-orchestration score-term sections now document
-`timeline_precondition_pressure_penalty` as separate from broader
-`timeline_pressure_penalty`.
+`timeline_preservation_pressure_penalty` as separate from the legacy
+`timeline_pressure_penalty` compatibility term.
 
 Local review:
 Parent local review confirmed the diff is limited to planner score accounting,
-focused precondition score assertions, the V3 score-term doc, and this ledger.
+focused preservation score assertions, the V3 score-term doc, and this ledger.
 `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-V3 branch scoring now exposes timeline activity-precondition pressure as a
-separate score term and recommendation tradeoff dimension while preserving total
-score compatibility by removing those risks from the broader timeline-pressure
-term.
+V3 branch scoring now exposes timeline preservation pressure as a separate
+score term and recommendation tradeoff dimension while preserving total score
+compatibility by removing those risks from the broader timeline-pressure term.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
