@@ -8,7 +8,7 @@ Current slice:
 Apply quality-gate pressure helper to prior-plan branch evidence.
 
 Status:
-Implemented and verified locally; ready for mechanical commit/push handoff.
+Completed and pushed in product commit `32bb1cf`.
 
 Slice-selection note:
 - Selected slice: route the prior-plan direct and wrapped quality-gate pressure
@@ -67,8 +67,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-Pending mechanical publish for this slice; previous product commit was
-`b27e50b` Harden readiness pressure score helper.
+`32bb1cf` Apply quality gate helper to prior plan pressure.
 
 Next candidate:
 After this helper-application slice, continue with the next planner-visible
@@ -79,6 +78,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `32bb1cf` applied shared quality-gate pressure helper coverage to direct and
+  wrapped prior-plan quality-gate branches.
 - `b27e50b` hardened shared operational-readiness pressure helper coverage for
   split branch math and score-term report rows.
 - `e4e303f` hardened shared quality-gate pressure helper coverage for split
