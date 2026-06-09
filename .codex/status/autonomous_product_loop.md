@@ -8,7 +8,7 @@ Current slice:
 Split timeline-publication pressure into an explicit V3 score term.
 
 Status:
-Completed locally; ready to commit and push.
+Completed and pushed in product commit `a88acc9`.
 
 Slice-selection note:
 - Selected slice: split V3 timeline-publication risk indicators into
@@ -78,7 +78,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`23c9ddf` Split timeline dependency impact score term.
+`a88acc9` Split timeline publication pressure score term.
 
 Next candidate:
 After this score-term split, continue with the next planner-visible
@@ -90,6 +90,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `a88acc9` split timeline-publication pressure into an explicit V3 score term
+  and recommendation tradeoff dimension.
 - `23c9ddf` split timeline dependency-impact pressure into an explicit V3 score
   term and recommendation tradeoff dimension.
 - `1117a44` split timeline-integrity pressure into an explicit V3 score term
