@@ -6267,6 +6267,60 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "station_reservation_expires_at_s" => event["station_reservation_expires_at_s"],
         "station_reservation_expiration_status" => event["station_reservation_expiration_status"],
         "required_operator_action" => event["required_operator_action"],
+        "station_reservation_hold_summary_model" =>
+          event["station_reservation_hold_summary_model"],
+        "station_reservation_hold_summary_source" =>
+          event["station_reservation_hold_summary_source"],
+        "station_reservation_hold_summary_source_artifact_type" =>
+          event["station_reservation_hold_summary_source_artifact_type"],
+        "station_reservation_hold_review_status" =>
+          event["station_reservation_hold_review_status"],
+        "station_reservation_hold_import_status" =>
+          event["station_reservation_hold_import_status"],
+        "station_reservation_hold_import_readiness_summary_model" =>
+          event["station_reservation_hold_import_readiness_summary_model"],
+        "station_reservation_hold_import_readiness_source" =>
+          event["station_reservation_hold_import_readiness_source"],
+        "station_reservation_hold_import_readiness_source_artifact_type" =>
+          event["station_reservation_hold_import_readiness_source_artifact_type"],
+        "station_reservation_hold_import_readiness_status" =>
+          event["station_reservation_hold_import_readiness_status"],
+        "station_reservation_hold_import_classification" =>
+          event["station_reservation_hold_import_classification"],
+        "station_reservation_hold_count" => event["station_reservation_hold_count"],
+        "station_reservation_hold_ids" => event["station_reservation_hold_ids"],
+        "station_reservation_hold_ids_by_import_status" =>
+          event["station_reservation_hold_ids_by_import_status"],
+        "station_reservation_hold_ids_by_required_import_action" =>
+          event["station_reservation_hold_ids_by_required_import_action"],
+        "station_reservation_hold_ids_by_direction" =>
+          event["station_reservation_hold_ids_by_direction"],
+        "station_reservation_hold_ids_by_direction_and_ground_station_id" =>
+          event["station_reservation_hold_ids_by_direction_and_ground_station_id"],
+        "station_reservation_hold_contact_ids_by_import_status" =>
+          event["station_reservation_hold_contact_ids_by_import_status"],
+        "station_reservation_hold_contact_ids_by_expiration_status" =>
+          event["station_reservation_hold_contact_ids_by_expiration_status"],
+        "station_reservation_hold_contact_ids_by_direction" =>
+          event["station_reservation_hold_contact_ids_by_direction"],
+        "station_reservation_hold_contact_ids_by_direction_and_ground_station_id" =>
+          event["station_reservation_hold_contact_ids_by_direction_and_ground_station_id"],
+        "station_reservation_hold_import_status_counts" =>
+          event["station_reservation_hold_import_status_counts"],
+        "station_reservation_hold_required_import_action_counts" =>
+          event["station_reservation_hold_required_import_action_counts"],
+        "station_reservation_hold_import_execution_boundary" =>
+          event["station_reservation_hold_import_execution_boundary"],
+        "station_reservation_hold_provider_write" =>
+          event["station_reservation_hold_provider_write"],
+        "station_reservation_hold_cadence_write" =>
+          event["station_reservation_hold_cadence_write"],
+        "station_reservation_hold_reservation_acceptance" =>
+          event["station_reservation_hold_reservation_acceptance"],
+        "source_station_reservation_hold_summary" =>
+          event["source_station_reservation_hold_summary"],
+        "source_station_reservation_hold_import_readiness_summary" =>
+          event["source_station_reservation_hold_import_readiness_summary"],
         "feedback_source" => event["feedback_source"],
         "feedback_scope" => event["feedback_scope"],
         "trust_boundary" => event["trust_boundary"]
@@ -10006,6 +10060,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
         derived_mission_state_station_reservation_review_summary_pressure_branches(mission_state)
       )
       |> Kernel.++(
+        derived_mission_state_station_reservation_hold_pressure_branches(mission_state)
+      )
+      |> Kernel.++(
         derived_operational_feedback_branches(
           mission_state,
           prior_plan,
@@ -10752,6 +10809,115 @@ defmodule OrbitalDynamics.CampaignPlanner do
     end)
   end
 
+  defp derived_mission_state_station_reservation_hold_pressure_branches(mission_state) do
+    mission_state
+    |> mission_state_station_reservation_hold_pressure_reports()
+    |> Enum.flat_map(fn {report, source_path} ->
+      trust_boundary =
+        Map.get(report, "trust_boundary") || get_in(report, ["provenance", "trust_boundary"])
+
+      report
+      |> Map.get("affected_contacts", [])
+      |> Enum.map(&stringify_keys/1)
+      |> Enum.map(&Map.put_new(&1, "_source_report_trust_boundary", trust_boundary))
+      |> Enum.flat_map(&station_calendar_pressure_branch(&1, source_path))
+      |> Kernel.++(
+        report
+        |> Map.get("provider_calendar_contention_groups", [])
+        |> Enum.map(&stringify_keys/1)
+        |> Enum.map(&Map.put_new(&1, "_source_report_trust_boundary", trust_boundary))
+        |> Enum.flat_map(
+          &station_calendar_provider_contention_pressure_branch(
+            &1,
+            "#{source_path}.#{report["source_row_collection"] || "review_rows"}"
+          )
+        )
+      )
+    end)
+  end
+
+  defp mission_state_station_reservation_hold_pressure_reports(mission_state) do
+    mission_state_source_station_reservation_hold_summaries(mission_state)
+    |> Kernel.++(mission_state_canonical_station_reservation_hold_summaries(mission_state))
+    |> Enum.map(fn {summary, source_path} ->
+      {station_reservation_hold_summary_pressure_report(summary), source_path}
+    end)
+    |> Kernel.++(
+      mission_state_source_station_reservation_hold_import_readiness_summaries(mission_state)
+      |> Kernel.++(
+        mission_state_canonical_station_reservation_hold_import_readiness_summaries(mission_state)
+      )
+      |> Enum.map(fn {summary, source_path} ->
+        {station_reservation_hold_import_readiness_summary_pressure_report(summary), source_path}
+      end)
+    )
+  end
+
+  defp station_reservation_hold_summary_pressure_report(%{} = summary) do
+    summary = stringify_keys(summary)
+    {affected_rows, provider_rows} = station_reservation_summary_pressure_rows(summary)
+
+    %{
+      "schema_contract" => "station_reservation_report.v1",
+      "model" => "preserved_station_reservation_hold_summary",
+      "source_row_collection" => "review_rows",
+      "source_summary_model" => summary["model"],
+      "source_summary_schema_contract" => summary["schema_contract"],
+      "source_artifact_type" => summary["source_artifact_type"],
+      "trust_boundary" =>
+        Map.get(summary, "trust_boundary") || get_in(summary, ["provenance", "trust_boundary"]),
+      "affected_contacts" =>
+        Enum.map(
+          affected_rows,
+          &station_reservation_hold_summary_affected_pressure_row(&1, summary)
+        ),
+      "provider_calendar_contention_groups" =>
+        Enum.map(
+          provider_rows,
+          &station_reservation_hold_summary_provider_pressure_group(&1, summary)
+        )
+    }
+    |> compact_map()
+  end
+
+  defp station_reservation_hold_import_readiness_summary_pressure_report(%{} = summary) do
+    summary = stringify_keys(summary)
+    {affected_rows, provider_rows} = station_reservation_summary_pressure_rows(summary)
+
+    %{
+      "schema_contract" => "station_reservation_report.v1",
+      "model" => "preserved_station_reservation_hold_import_readiness_summary",
+      "source_row_collection" => "import_readiness_rows",
+      "source_summary_model" => summary["model"],
+      "source_summary_schema_contract" => summary["schema_contract"],
+      "source_artifact_type" => summary["source_artifact_type"],
+      "trust_boundary" =>
+        Map.get(summary, "trust_boundary") || get_in(summary, ["provenance", "trust_boundary"]),
+      "affected_contacts" =>
+        Enum.map(
+          affected_rows,
+          &station_reservation_hold_import_readiness_affected_pressure_row(&1, summary)
+        ),
+      "provider_calendar_contention_groups" =>
+        Enum.map(
+          provider_rows,
+          &station_reservation_hold_import_readiness_provider_pressure_group(&1, summary)
+        )
+    }
+    |> compact_map()
+  end
+
+  defp station_reservation_summary_pressure_rows(summary) do
+    summary
+    |> Map.get("review_rows", Map.get(summary, "import_readiness_rows", []))
+    |> List.wrap()
+    |> Enum.filter(&is_map/1)
+    |> Enum.map(&stringify_keys/1)
+    |> Enum.split_with(fn row ->
+      row["reservation_review_row_type"] != "provider_calendar_contention_group"
+    end)
+  end
+
   defp station_reservation_review_summary_pressure_report(%{} = summary) do
     summary = stringify_keys(summary)
 
@@ -10857,6 +11023,204 @@ defmodule OrbitalDynamics.CampaignPlanner do
         Map.get(row, "trust_boundary") || get_in(summary, ["provenance", "trust_boundary"]),
       "source_station_calendar_entries" => [source_entry],
       "source_station_reservation_review" => row
+    }
+    |> compact_map()
+  end
+
+  defp station_reservation_hold_summary_affected_pressure_row(row, summary) do
+    row
+    |> station_reservation_hold_common_pressure_row(summary)
+    |> put_if_absent(
+      "required_operator_action",
+      station_reservation_hold_required_operator_action(row, summary)
+    )
+    |> put_if_absent("station_reservation_hold_summary_model", summary["model"])
+    |> put_if_absent("station_reservation_hold_summary_source", summary["source"])
+    |> put_if_absent(
+      "station_reservation_hold_summary_source_artifact_type",
+      summary["source_artifact_type"]
+    )
+    |> put_if_absent(
+      "station_reservation_hold_review_status",
+      summary["reservation_hold_review_status"]
+    )
+    |> put_if_absent("source_station_reservation_hold_summary", row)
+    |> Map.merge(station_reservation_hold_summary_context(summary))
+  end
+
+  defp station_reservation_hold_summary_provider_pressure_group(row, summary) do
+    row
+    |> station_reservation_hold_summary_affected_pressure_row(summary)
+    |> station_reservation_hold_provider_pressure_group(row, summary)
+  end
+
+  defp station_reservation_hold_import_readiness_affected_pressure_row(row, summary) do
+    row
+    |> station_reservation_hold_common_pressure_row(summary)
+    |> put_if_absent("required_operator_action", row["required_operator_action"])
+    |> put_if_absent(
+      "station_reservation_hold_import_status",
+      row["station_reservation_hold_import_status"]
+    )
+    |> put_if_absent("station_reservation_hold_import_readiness_summary_model", summary["model"])
+    |> put_if_absent(
+      "station_reservation_hold_import_readiness_source",
+      summary["source"]
+    )
+    |> put_if_absent(
+      "station_reservation_hold_import_readiness_source_artifact_type",
+      summary["source_artifact_type"]
+    )
+    |> put_if_absent(
+      "station_reservation_hold_import_readiness_status",
+      summary["import_readiness_status"]
+    )
+    |> put_if_absent(
+      "station_reservation_hold_import_classification",
+      summary["import_classification"]
+    )
+    |> put_if_absent("source_station_reservation_hold_import_readiness_summary", row)
+    |> Map.merge(station_reservation_hold_import_readiness_context(summary))
+  end
+
+  defp station_reservation_hold_import_readiness_provider_pressure_group(row, summary) do
+    row
+    |> station_reservation_hold_import_readiness_affected_pressure_row(summary)
+    |> station_reservation_hold_provider_pressure_group(row, summary)
+  end
+
+  defp station_reservation_hold_common_pressure_row(row, summary) do
+    reservation_id = first_string([row["station_reservation_id"], row["reservation_ids"]])
+    reserved_by = first_string([row["station_reserved_by"], row["reserved_by"]])
+
+    reservation_status =
+      first_string([row["station_reservation_status"], row["reservation_statuses"]])
+
+    row
+    |> Map.put_new("station_contention_status", "reserved_overlap")
+    |> Map.put_new("station_availability", "reserved")
+    |> Map.put_new("station_calendar_status", "reserved")
+    |> put_if_absent("station_calendar_directions", row["direction"] || row["directions"])
+    |> put_if_absent("station_reservation_id", reservation_id)
+    |> put_if_absent("station_reserved_by", reserved_by)
+    |> put_if_absent("station_reservation_status", reservation_status)
+    |> put_if_absent(
+      "station_reservation_match_status",
+      row["station_reservation_match_status"] || row["station_reservation_expiration_status"]
+    )
+    |> put_if_absent(
+      "station_reservation_expires_at_s",
+      first_numeric([row["station_reservation_expires_at_s"], row["reservation_expires_at_s"]])
+    )
+    |> put_if_absent(
+      "station_reservation_expiration_status",
+      row["station_reservation_expiration_status"]
+    )
+    |> put_if_absent(
+      "trust_boundary",
+      Map.get(row, "trust_boundary") || get_in(summary, ["provenance", "trust_boundary"])
+    )
+  end
+
+  defp station_reservation_hold_provider_pressure_group(row, source_row, summary) do
+    reservation_id = first_string([row["station_reservation_id"], row["reservation_ids"]])
+    reserved_by = first_string([row["station_reserved_by"], row["reserved_by"]])
+
+    reservation_status =
+      first_string([row["station_reservation_status"], row["reservation_statuses"]])
+
+    group_id = row["provider_calendar_contention_group_id"] || row["id"] || reservation_id
+
+    source_entry =
+      %{
+        "id" => reservation_id || group_id,
+        "ground_station_id" => row["ground_station_id"] || row["station_id"],
+        "starts_at_s" => row["starts_at_s"],
+        "ends_at_s" => row["ends_at_s"],
+        "availability" => "reserved",
+        "status" => "reserved",
+        "directions" => row["directions"] || row["direction"],
+        "reservation_id" => reservation_id,
+        "reserved_by" => reserved_by,
+        "reservation_status" => reservation_status,
+        "trust_boundary" =>
+          Map.get(row, "trust_boundary") || get_in(summary, ["provenance", "trust_boundary"])
+      }
+      |> compact_map()
+
+    row
+    |> Map.merge(%{
+      "id" => group_id,
+      "ground_station_id" => row["ground_station_id"] || row["station_id"],
+      "provider_calendar_contention_status" =>
+        row["provider_calendar_contention_status"] || "contention",
+      "directions" => row["directions"] || row["direction"],
+      "reservation_ids" => List.wrap(row["reservation_ids"] || reservation_id),
+      "reserved_by" => List.wrap(row["reserved_by"] || reserved_by),
+      "reservation_statuses" => List.wrap(row["reservation_statuses"] || reservation_status),
+      "trust_boundary" =>
+        Map.get(row, "trust_boundary") || get_in(summary, ["provenance", "trust_boundary"]),
+      "source_station_calendar_entries" => [source_entry],
+      "source_station_reservation_hold" => source_row
+    })
+    |> compact_map()
+  end
+
+  defp station_reservation_hold_required_operator_action(row, summary) do
+    row["required_operator_action"] ||
+      if(summary["reservation_hold_review_status"] == "review_required",
+        do: "review_station_reservation_hold"
+      )
+  end
+
+  defp station_reservation_hold_summary_context(summary) do
+    %{
+      "station_reservation_hold_count" => summary["reservation_hold_count"],
+      "station_reservation_hold_ids" => summary["reservation_hold_ids"],
+      "station_reservation_hold_ids_by_direction" => summary["reservation_hold_ids_by_direction"],
+      "station_reservation_hold_contact_ids_by_expiration_status" =>
+        summary["reservation_hold_contact_ids_by_expiration_status"],
+      "station_reservation_hold_contact_ids_by_direction" =>
+        summary["reservation_hold_contact_ids_by_direction"],
+      "station_reservation_hold_provider_write" =>
+        get_in(summary, ["assumptions", "provider_write"]),
+      "station_reservation_hold_reservation_acceptance" =>
+        get_in(summary, ["assumptions", "reservation_acceptance"])
+    }
+    |> compact_map()
+  end
+
+  defp station_reservation_hold_import_readiness_context(summary) do
+    %{
+      "station_reservation_hold_count" => summary["reservation_hold_count"],
+      "station_reservation_hold_ids" => summary["reservation_hold_ids"],
+      "station_reservation_hold_ids_by_import_status" =>
+        summary["reservation_hold_ids_by_import_status"],
+      "station_reservation_hold_ids_by_required_import_action" =>
+        summary["reservation_hold_ids_by_required_import_action"],
+      "station_reservation_hold_ids_by_direction" => summary["reservation_hold_ids_by_direction"],
+      "station_reservation_hold_ids_by_direction_and_ground_station_id" =>
+        summary["reservation_hold_ids_by_direction_and_ground_station_id"],
+      "station_reservation_hold_contact_ids_by_import_status" =>
+        summary["reservation_hold_contact_ids_by_import_status"],
+      "station_reservation_hold_contact_ids_by_expiration_status" =>
+        summary["reservation_hold_contact_ids_by_expiration_status"],
+      "station_reservation_hold_contact_ids_by_direction" =>
+        summary["reservation_hold_contact_ids_by_direction"],
+      "station_reservation_hold_contact_ids_by_direction_and_ground_station_id" =>
+        summary["reservation_hold_contact_ids_by_direction_and_ground_station_id"],
+      "station_reservation_hold_import_status_counts" =>
+        summary["reservation_hold_import_status_counts"],
+      "station_reservation_hold_required_import_action_counts" =>
+        summary["required_import_action_counts"],
+      "station_reservation_hold_import_execution_boundary" =>
+        get_in(summary, ["assumptions", "execution_boundary"]),
+      "station_reservation_hold_provider_write" =>
+        get_in(summary, ["assumptions", "provider_write"]),
+      "station_reservation_hold_cadence_write" =>
+        get_in(summary, ["assumptions", "cadence_write"]),
+      "station_reservation_hold_reservation_acceptance" =>
+        get_in(summary, ["assumptions", "reservation_acceptance"])
     }
     |> compact_map()
   end
@@ -11053,6 +11417,57 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "station_reservation_id" => entry["reservation_id"],
       "station_reserved_by" => entry["reserved_by"],
       "station_reservation_status" => entry["reservation_status"],
+      "required_operator_action" => group["required_operator_action"],
+      "station_reservation_hold_summary_model" => group["station_reservation_hold_summary_model"],
+      "station_reservation_hold_summary_source" =>
+        group["station_reservation_hold_summary_source"],
+      "station_reservation_hold_summary_source_artifact_type" =>
+        group["station_reservation_hold_summary_source_artifact_type"],
+      "station_reservation_hold_review_status" => group["station_reservation_hold_review_status"],
+      "station_reservation_hold_import_status" => group["station_reservation_hold_import_status"],
+      "station_reservation_hold_import_readiness_summary_model" =>
+        group["station_reservation_hold_import_readiness_summary_model"],
+      "station_reservation_hold_import_readiness_source" =>
+        group["station_reservation_hold_import_readiness_source"],
+      "station_reservation_hold_import_readiness_source_artifact_type" =>
+        group["station_reservation_hold_import_readiness_source_artifact_type"],
+      "station_reservation_hold_import_readiness_status" =>
+        group["station_reservation_hold_import_readiness_status"],
+      "station_reservation_hold_import_classification" =>
+        group["station_reservation_hold_import_classification"],
+      "station_reservation_hold_count" => group["station_reservation_hold_count"],
+      "station_reservation_hold_ids" => group["station_reservation_hold_ids"],
+      "station_reservation_hold_ids_by_import_status" =>
+        group["station_reservation_hold_ids_by_import_status"],
+      "station_reservation_hold_ids_by_required_import_action" =>
+        group["station_reservation_hold_ids_by_required_import_action"],
+      "station_reservation_hold_ids_by_direction" =>
+        group["station_reservation_hold_ids_by_direction"],
+      "station_reservation_hold_ids_by_direction_and_ground_station_id" =>
+        group["station_reservation_hold_ids_by_direction_and_ground_station_id"],
+      "station_reservation_hold_contact_ids_by_import_status" =>
+        group["station_reservation_hold_contact_ids_by_import_status"],
+      "station_reservation_hold_contact_ids_by_expiration_status" =>
+        group["station_reservation_hold_contact_ids_by_expiration_status"],
+      "station_reservation_hold_contact_ids_by_direction" =>
+        group["station_reservation_hold_contact_ids_by_direction"],
+      "station_reservation_hold_contact_ids_by_direction_and_ground_station_id" =>
+        group["station_reservation_hold_contact_ids_by_direction_and_ground_station_id"],
+      "station_reservation_hold_import_status_counts" =>
+        group["station_reservation_hold_import_status_counts"],
+      "station_reservation_hold_required_import_action_counts" =>
+        group["station_reservation_hold_required_import_action_counts"],
+      "station_reservation_hold_import_execution_boundary" =>
+        group["station_reservation_hold_import_execution_boundary"],
+      "station_reservation_hold_provider_write" =>
+        group["station_reservation_hold_provider_write"],
+      "station_reservation_hold_cadence_write" => group["station_reservation_hold_cadence_write"],
+      "station_reservation_hold_reservation_acceptance" =>
+        group["station_reservation_hold_reservation_acceptance"],
+      "source_station_reservation_hold_summary" =>
+        group["source_station_reservation_hold_summary"],
+      "source_station_reservation_hold_import_readiness_summary" =>
+        group["source_station_reservation_hold_import_readiness_summary"],
       "station_calendar_trust_boundary_status" =>
         station_calendar_provider_contention_trust_boundary_status(group, entry),
       "trust_boundary" =>
@@ -11141,6 +11556,34 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "station_reservation_expires_at_s",
           "station_reservation_expiration_status",
           "required_operator_action",
+          "station_reservation_hold_summary_model",
+          "station_reservation_hold_summary_source",
+          "station_reservation_hold_summary_source_artifact_type",
+          "station_reservation_hold_review_status",
+          "station_reservation_hold_import_status",
+          "station_reservation_hold_import_readiness_summary_model",
+          "station_reservation_hold_import_readiness_source",
+          "station_reservation_hold_import_readiness_source_artifact_type",
+          "station_reservation_hold_import_readiness_status",
+          "station_reservation_hold_import_classification",
+          "station_reservation_hold_count",
+          "station_reservation_hold_ids",
+          "station_reservation_hold_ids_by_import_status",
+          "station_reservation_hold_ids_by_required_import_action",
+          "station_reservation_hold_ids_by_direction",
+          "station_reservation_hold_ids_by_direction_and_ground_station_id",
+          "station_reservation_hold_contact_ids_by_import_status",
+          "station_reservation_hold_contact_ids_by_expiration_status",
+          "station_reservation_hold_contact_ids_by_direction",
+          "station_reservation_hold_contact_ids_by_direction_and_ground_station_id",
+          "station_reservation_hold_import_status_counts",
+          "station_reservation_hold_required_import_action_counts",
+          "station_reservation_hold_import_execution_boundary",
+          "station_reservation_hold_provider_write",
+          "station_reservation_hold_cadence_write",
+          "station_reservation_hold_reservation_acceptance",
+          "source_station_reservation_hold_summary",
+          "source_station_reservation_hold_import_readiness_summary",
           "trust_boundary",
           "source_station_reservation_review",
           "source_station_calendar_entry",

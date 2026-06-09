@@ -26920,6 +26920,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
           %{
             "reservation_review_row_type" => "affected_contact",
             "contact_id" => contact_id,
+            "ground_station_id" => "#{prefix}_station",
             "direction" => direction,
             "reservation_ids" => [hold_id],
             "reservation_statuses" => ["held"],
@@ -26958,6 +26959,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     artifact =
       strategy(base_plan(%{}),
         mission_state: mission_state,
+        derive_branches?: true,
         branches: [
           %{id: "baseline"},
           %{
@@ -27130,6 +27132,56 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "wrapped_station_reservation_hold_row_boundary"
            ]
 
+    direct_hold_branch =
+      branch(artifact, "derived_station_calendar_pressure_reserved_direct_contact")
+
+    assert %{
+             "type" => "ground_station_reserved",
+             "ground_station_id" => "direct_station",
+             "station_reservation_id" => "direct_reservation_hold",
+             "station_reserved_by" => "direct_calendar",
+             "station_reservation_status" => "held",
+             "station_reservation_expiration_status" => "expired",
+             "required_operator_action" => "review_station_reservation_hold",
+             "station_reservation_hold_summary_model" =>
+               "artifact_only_station_reservation_hold_summary",
+             "station_reservation_hold_review_status" => "review_required",
+             "station_reservation_hold_count" => 1,
+             "station_reservation_hold_ids" => ["direct_reservation_hold"],
+             "station_reservation_hold_summary_source_artifact_type" =>
+               "station_reservation_report.v1",
+             "feedback_source" => "mission_state.source_station_reservation_hold_summary",
+             "feedback_scope" => "station_calendar",
+             "trust_boundary" => "direct_station_reservation_hold_row_boundary"
+           } = List.first(direct_hold_branch["events"])
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    station_calendar_pressure_count =
+      Enum.count(
+        direct_hold_branch["risk_indicators"],
+        &(&1["type"] == "ground_station_reserved" and
+            &1["feedback_source"] == "mission_state.source_station_reservation_hold_summary")
+      )
+
+    assert station_calendar_pressure_count == 1
+
+    assert direct_hold_branch["score_terms"]["station_calendar_pressure_penalty"] ==
+             -station_calendar_pressure_count * risk_weight
+
+    comparison_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] == "derived_station_calendar_pressure_reserved_direct_contact")
+      )
+
+    assert "ground_station_reserved" in comparison_row["risk_types"]
+    assert comparison_row["branch_station_reservation_ids"] == ["direct_reservation_hold"]
+
+    assert comparison_row["branch_station_reservation_conflict_reservation_ids"] == [
+             "direct_reservation_hold"
+           ]
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
@@ -27175,6 +27227,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
           %{
             "reservation_review_row_type" => "affected_contact",
             "contact_id" => contact_id,
+            "ground_station_id" => "#{prefix}_contact_station",
             "direction" => affected_direction,
             "reservation_ids" => [expired_hold_id],
             "reservation_statuses" => ["held"],
@@ -27186,6 +27239,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
           },
           %{
             "reservation_review_row_type" => "provider_calendar_contention_group",
+            "ground_station_id" => "#{prefix}_provider_station",
             "directions" => [provider_direction],
             "reservation_ids" => [missing_hold_id],
             "reservation_statuses" => ["held"],
@@ -27227,6 +27281,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     artifact =
       strategy(base_plan(%{}),
         mission_state: mission_state,
+        derive_branches?: true,
         branches: [
           %{id: "baseline"},
           %{
@@ -27341,6 +27396,70 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "wrapped_hold_import_readiness_contact_row",
              "wrapped_hold_import_readiness_provider_row"
            ]
+
+    direct_hold_import_branch =
+      branch(artifact, "derived_station_calendar_pressure_reserved_direct_contact")
+
+    assert %{
+             "type" => "ground_station_reserved",
+             "ground_station_id" => "direct_contact_station",
+             "station_reservation_id" => "direct_reservation_expired",
+             "station_reservation_hold_import_status" => "review_required_before_import",
+             "station_reservation_hold_import_readiness_summary_model" =>
+               "artifact_only_station_reservation_hold_import_readiness_summary",
+             "station_reservation_hold_import_readiness_status" => "review_required",
+             "station_reservation_hold_import_classification" => "review_only",
+             "station_reservation_hold_import_execution_boundary" =>
+               "artifact_only_no_provider_or_cadence_writes",
+             "station_reservation_hold_provider_write" => "not_performed_by_summary",
+             "station_reservation_hold_cadence_write" => "not_performed_by_summary",
+             "station_reservation_hold_reservation_acceptance" => "not_performed_by_summary",
+             "required_operator_action" => "review_station_reservation_overlap",
+             "feedback_source" =>
+               "mission_state.source_station_reservation_hold_import_readiness_summary",
+             "feedback_scope" => "station_calendar",
+             "trust_boundary" => "direct_hold_import_readiness_contact_row"
+           } = List.first(direct_hold_import_branch["events"])
+
+    direct_provider_branch =
+      branch(
+        artifact,
+        "derived_station_calendar_provider_contention_direct_reservation_missing"
+      )
+
+    assert Enum.any?(
+             direct_provider_branch["events"],
+             &(&1["station_reservation_id"] == "direct_reservation_missing" and
+                 &1["required_operator_action"] == "review_station_provider_contention" and
+                 &1["feedback_source"] ==
+                   "mission_state.source_station_reservation_hold_import_readiness_summary.import_readiness_rows" and
+                 &1["station_reservation_hold_import_status"] ==
+                   "review_required_before_import")
+           )
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    station_calendar_pressure_count =
+      Enum.count(
+        direct_hold_import_branch["risk_indicators"],
+        &(&1["type"] == "ground_station_reserved" and
+            &1["station_reservation_hold_import_status"] ==
+              "review_required_before_import")
+      )
+
+    assert station_calendar_pressure_count == 1
+
+    assert direct_hold_import_branch["score_terms"]["station_calendar_pressure_penalty"] ==
+             -station_calendar_pressure_count * risk_weight
+
+    comparison_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] == "derived_station_calendar_pressure_reserved_direct_contact")
+      )
+
+    assert "ground_station_reserved" in comparison_row["risk_types"]
+    assert comparison_row["branch_station_reservation_ids"] == ["direct_reservation_expired"]
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
