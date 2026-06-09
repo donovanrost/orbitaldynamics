@@ -8,7 +8,7 @@ Current slice:
 Harden stale preservation challenge score evidence.
 
 Status:
-Completed locally; ready to commit and push.
+Completed and pushed in product commit `00c6646`.
 
 Slice-selection note:
 - Selected slice: harden the stale timeline-preservation challenge fixture so
@@ -73,7 +73,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`ab41543` Split timeline preservation pressure score term.
+`00c6646` Harden stale preservation pressure challenge.
 
 Next candidate:
 After this score-term split, continue with the next planner-visible
@@ -85,6 +85,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `00c6646` hardened stale preservation challenge coverage for row-local
+  preservation score terms despite stale clear aggregate fields.
 - `ab41543` split timeline preservation pressure into an explicit V3 score term
   and recommendation tradeoff dimension.
 - `8704579` split timeline activity-precondition pressure into an explicit V3
