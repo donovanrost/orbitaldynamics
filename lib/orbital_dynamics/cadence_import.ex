@@ -3068,6 +3068,13 @@ defmodule OrbitalDynamics.CadenceImport do
             Map.get(&1, "type") == "schema_validation_pressure")
       )
 
+    refresh_budget_risks =
+      Enum.filter(
+        risks,
+        &(Map.get(&1, "feedback_scope") == "refresh_budget" or
+            Map.get(&1, "type") == "refresh_budget_pressure")
+      )
+
     provider_counteroffer_risks =
       Enum.filter(
         risks,
@@ -3268,6 +3275,31 @@ defmodule OrbitalDynamics.CadenceImport do
         risk_context_values(schema_validation_risks, "feedback_key"),
       "schema_validation_trust_boundaries" =>
         risk_context_values(schema_validation_risks, "trust_boundary"),
+      "refresh_budget_statuses" =>
+        risk_context_values(refresh_budget_risks, "refresh_budget_status"),
+      "refresh_budget_candidate_limit_statuses" =>
+        risk_context_values(refresh_budget_risks, "candidate_limit_status"),
+      "refresh_budget_input_candidate_count_values" =>
+        risk_context_values(refresh_budget_risks, "input_candidate_count"),
+      "refresh_budget_kept_candidate_count_values" =>
+        risk_context_values(refresh_budget_risks, "kept_candidate_count"),
+      "refresh_budget_dropped_candidate_count_values" =>
+        risk_context_values(refresh_budget_risks, "dropped_candidate_count"),
+      "refresh_budget_invalid_limit_count_values" =>
+        risk_context_values(refresh_budget_risks, "invalid_limit_count"),
+      "refresh_budget_current_max_candidate_activity_values" =>
+        risk_context_values(refresh_budget_risks, "current_max_candidate_activities"),
+      "refresh_budget_relaxed_max_candidate_activity_values" =>
+        risk_context_values(refresh_budget_risks, "relaxed_max_candidate_activities"),
+      "refresh_budget_required_operator_actions" =>
+        risk_context_values(refresh_budget_risks, "required_operator_action"),
+      "refresh_budget_feedback_sources" =>
+        risk_context_values(refresh_budget_risks, "feedback_source"),
+      "refresh_budget_feedback_scopes" =>
+        risk_context_values(refresh_budget_risks, "feedback_scope"),
+      "refresh_budget_feedback_keys" => risk_context_values(refresh_budget_risks, "feedback_key"),
+      "refresh_budget_trust_boundaries" =>
+        risk_context_values(refresh_budget_risks, "trust_boundary"),
       "provider_counteroffer_ids" =>
         risk_context_values(provider_counteroffer_risks, "provider_counteroffer_id"),
       "provider_counteroffer_statuses" =>
@@ -6484,6 +6516,26 @@ defmodule OrbitalDynamics.CadenceImport do
       "schema_validation_feedback_scopes" => row["schema_validation_feedback_scopes"],
       "schema_validation_feedback_keys" => row["schema_validation_feedback_keys"],
       "schema_validation_trust_boundaries" => row["schema_validation_trust_boundaries"],
+      "refresh_budget_statuses" => row["refresh_budget_statuses"],
+      "refresh_budget_candidate_limit_statuses" => row["refresh_budget_candidate_limit_statuses"],
+      "refresh_budget_input_candidate_count_values" =>
+        row["refresh_budget_input_candidate_count_values"],
+      "refresh_budget_kept_candidate_count_values" =>
+        row["refresh_budget_kept_candidate_count_values"],
+      "refresh_budget_dropped_candidate_count_values" =>
+        row["refresh_budget_dropped_candidate_count_values"],
+      "refresh_budget_invalid_limit_count_values" =>
+        row["refresh_budget_invalid_limit_count_values"],
+      "refresh_budget_current_max_candidate_activity_values" =>
+        row["refresh_budget_current_max_candidate_activity_values"],
+      "refresh_budget_relaxed_max_candidate_activity_values" =>
+        row["refresh_budget_relaxed_max_candidate_activity_values"],
+      "refresh_budget_required_operator_actions" =>
+        row["refresh_budget_required_operator_actions"],
+      "refresh_budget_feedback_sources" => row["refresh_budget_feedback_sources"],
+      "refresh_budget_feedback_scopes" => row["refresh_budget_feedback_scopes"],
+      "refresh_budget_feedback_keys" => row["refresh_budget_feedback_keys"],
+      "refresh_budget_trust_boundaries" => row["refresh_budget_trust_boundaries"],
       "provider_counteroffer_ids" => row["provider_counteroffer_ids"],
       "provider_counteroffer_statuses" => row["provider_counteroffer_statuses"],
       "provider_counteroffer_negotiation_states" =>

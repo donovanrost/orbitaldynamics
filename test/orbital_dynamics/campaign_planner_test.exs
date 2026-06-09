@@ -18623,6 +18623,22 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 feedback_scope: "schema_validation",
                 feedback_key: "$.candidate_plan.activities[0].id",
                 trust_boundary: "mission_state_schema_validation_report"
+              },
+              %{
+                type: "refresh_budget_pressure",
+                input_candidate_count: 8,
+                kept_candidate_count: 4,
+                dropped_candidate_count: 4,
+                invalid_limit_count: 0,
+                current_max_candidate_activities: 4,
+                relaxed_max_candidate_activities: 8,
+                candidate_limit_status: "relaxed_required",
+                refresh_budget_status: "review_required",
+                required_operator_action: "review_refresh_budget",
+                feedback_source: "mission_state.source_refresh_budget_report",
+                feedback_scope: "refresh_budget",
+                feedback_key: "refresh_budget:limit",
+                trust_boundary: "mission_state_refresh_budget_report"
               }
             ]
           }
@@ -18826,6 +18842,30 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              )
 
     assert %{
+             "type" => "risk_driver",
+             "risk_type" => "refresh_budget_pressure",
+             "severity" => "medium",
+             "input_candidate_count" => 8,
+             "kept_candidate_count" => 4,
+             "dropped_candidate_count" => 4,
+             "invalid_limit_count" => 0,
+             "current_max_candidate_activities" => 4,
+             "relaxed_max_candidate_activities" => 8,
+             "candidate_limit_status" => "relaxed_required",
+             "refresh_budget_status" => "review_required",
+             "required_operator_action" => "review_refresh_budget",
+             "feedback_source" => "mission_state.source_refresh_budget_report",
+             "feedback_scope" => "refresh_budget",
+             "feedback_key" => "refresh_budget:limit",
+             "trust_boundary" => "mission_state_refresh_budget_report"
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "refresh_budget_pressure")
+             )
+
+    assert %{
              "type" => "operational_readiness_pressure",
              "recommended_branch_id" => "urgent",
              "report_id" => "operational_readiness:resource_projection_report.v1:live_ops",
@@ -19020,6 +19060,21 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "schema_validation_feedback_keys" => ["$.candidate_plan.activities[0].id"],
       "schema_validation_trust_boundaries" => [
         "mission_state_schema_validation_report"
+      ],
+      "refresh_budget_statuses" => ["review_required"],
+      "refresh_budget_candidate_limit_statuses" => ["relaxed_required"],
+      "refresh_budget_input_candidate_count_values" => [8],
+      "refresh_budget_kept_candidate_count_values" => [4],
+      "refresh_budget_dropped_candidate_count_values" => [4],
+      "refresh_budget_invalid_limit_count_values" => [0],
+      "refresh_budget_current_max_candidate_activity_values" => [4],
+      "refresh_budget_relaxed_max_candidate_activity_values" => [8],
+      "refresh_budget_required_operator_actions" => ["review_refresh_budget"],
+      "refresh_budget_feedback_sources" => ["mission_state.source_refresh_budget_report"],
+      "refresh_budget_feedback_scopes" => ["refresh_budget"],
+      "refresh_budget_feedback_keys" => ["refresh_budget:limit"],
+      "refresh_budget_trust_boundaries" => [
+        "mission_state_refresh_budget_report"
       ]
     }
 
