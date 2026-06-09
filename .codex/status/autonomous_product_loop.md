@@ -8,7 +8,7 @@ Current slice:
 Score objective-gap replay pressure from candidate-source reports.
 
 Status:
-Completed and product commit created; ledger publish pending.
+Completed and pushed.
 
 Files changed:
 - Product: `lib/orbital_dynamics/campaign_planner.ex`
@@ -82,7 +82,7 @@ Scored objective-gap replay pressure from candidate-source reports.
 
 Last commit:
 - Product: `2852c87` Score objective-gap replay pressure
-- Ledger: pending
+- Ledger: this pushed-status commit on `main`
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
