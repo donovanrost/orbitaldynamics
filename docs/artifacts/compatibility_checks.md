@@ -621,6 +621,12 @@ input/kept/dropped candidate counts, kept/dropped candidate ID keys,
 invalid-limit reason maps, branch-local budget pressure booleans, and
 trust-boundary status without refresh mutation, import approval, or Cadence
 writes.
+The registry also includes a generated CandidateRefresh station-calendar replay
+fixture. It checks station-calendar source-report provenance counts,
+affected-contact status, direction, and ground-station maps, provider-contention
+group/source/provider-entry routing, trust-boundary status, and branch-local
+station/provider pressure booleans without schedule mutation, candidate
+selection, import approval, or Cadence writes.
 The registry also includes a generated CandidateRefresh objective-gap replay
 fixture. It checks objective-satisfaction, objective-tradeoff, and score-term
 source-report provenance counts, row-derived gap/status/term maps, source

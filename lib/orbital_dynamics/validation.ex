@@ -1828,6 +1828,100 @@ defmodule OrbitalDynamics.Validation do
         "checks candidate-refresh replay of refresh-budget provenance without refresh mutation, import approval, or Cadence writes"
       ]
     },
+    "fixture.artifact.candidate_refresh.station_calendar_replay" => %{
+      "id" => "fixture.artifact.candidate_refresh.station_calendar_replay",
+      "model_id" => "artifact.candidate_refresh.v1",
+      "reference_case" =>
+        "generated candidate refresh replay of station-calendar provider-contention provenance",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "source" => "generated_candidate_refresh_station_calendar_fixture",
+        "contract" => "candidate_refresh.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "candidate_refresh.v1",
+        "schema_version" => 1,
+        "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 1,
+        "source_report_row_count" => 4,
+        "source_station_calendar_report_count" => 1,
+        "source_station_calendar_row_count" => 4,
+        "source_station_calendar_path_keys" => "source_station_calendar_report",
+        "source_station_calendar_affected_contact_count" => 3,
+        "source_station_calendar_provider_calendar_contention_group_count" => 1,
+        "source_station_calendar_provider_calendar_contention_group_id_keys" =>
+          "station_calendar_provider_contention:equator_prime:1",
+        "source_station_calendar_provider_calendar_contention_source_entry_id_keys" =>
+          "provider_a|provider_b",
+        "source_station_calendar_provider_calendar_contention_provider_entry_id_keys" =>
+          "provider_entry_ops|provider_entry_partner",
+        "source_station_calendar_provider_calendar_contention_provider_counts" => %{
+          "ops_calendar" => 1,
+          "partner_calendar" => 1
+        },
+        "source_station_calendar_provider_calendar_contention_ground_station_counts" => %{
+          "dss_43" => 1,
+          "equator_prime" => 1
+        },
+        "source_station_calendar_provider_calendar_contention_direction_counts" => %{
+          "downlink" => 1,
+          "tracking" => 1
+        },
+        "source_station_calendar_provider_calendar_contention_minimum_capacity_fraction" => 0.25,
+        "source_station_calendar_affected_contact_ground_station_counts" => %{
+          "dss_43" => 1,
+          "equator_prime" => 2
+        },
+        "source_station_calendar_affected_contact_availability_counts" => %{
+          "reduced_capacity" => 1,
+          "reserved" => 1,
+          "unavailable" => 1
+        },
+        "source_station_calendar_direction_counts" => %{
+          "downlink" => 2,
+          "uplink" => 1
+        },
+        "source_station_calendar_status_counts" => %{
+          "reduced_capacity" => 1,
+          "reserved" => 1,
+          "unavailable" => 1
+        },
+        "source_station_calendar_trust_boundary_status" => "declared",
+        "source_station_calendar_branch_local_station_calendar_pressure" => true,
+        "source_station_calendar_branch_local_affected_contact_pressure" => true,
+        "source_station_calendar_branch_local_provider_contention_pressure" => true,
+        "source_station_calendar_branch_local_station_availability_pressure" => true
+      },
+      "tolerances" => %{
+        "schema_version" => 0,
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 0,
+        "source_report_row_count" => 0,
+        "source_station_calendar_report_count" => 0,
+        "source_station_calendar_row_count" => 0,
+        "source_station_calendar_affected_contact_count" => 0,
+        "source_station_calendar_provider_calendar_contention_group_count" => 0,
+        "source_station_calendar_provider_calendar_contention_minimum_capacity_fraction" => 0.0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal generated artifact regression, not station-calendar policy validation",
+        "checks candidate-refresh replay of station-calendar provenance without schedule mutation, candidate selection, import approval, or Cadence writes"
+      ]
+    },
     "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay" => %{
       "id" => "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay",
       "model_id" => "artifact.candidate_refresh.v1",
@@ -14941,6 +15035,7 @@ defmodule OrbitalDynamics.Validation do
 
     objective_tradeoff_summary = Map.get(source_reports, "objective_tradeoff_report") || %{}
     score_term_summary = Map.get(source_reports, "score_term_report") || %{}
+    station_calendar_summary = Map.get(source_reports, "station_calendar_report") || %{}
     resource_projection_summary = Map.get(source_reports, "resource_projection_report") || %{}
     quality_gate_summary = Map.get(source_reports, "quality_gate_report") || %{}
 
@@ -15174,6 +15269,62 @@ defmodule OrbitalDynamics.Validation do
         refresh_budget_branch_local_invalid_limit_pressure?(refresh_budget_summary),
       "source_refresh_budget_branch_local_candidate_limit_applied" =>
         refresh_budget_branch_local_candidate_limit_applied?(refresh_budget_summary),
+      "source_station_calendar_report_count" => Map.get(station_calendar_summary, "count"),
+      "source_station_calendar_row_count" => Map.get(station_calendar_summary, "row_count"),
+      "source_station_calendar_path_keys" =>
+        station_calendar_summary
+        |> list_values("paths")
+        |> Enum.join("|")
+        |> normalize_optional_string(),
+      "source_station_calendar_affected_contact_count" =>
+        Map.get(station_calendar_summary, "affected_contact_count"),
+      "source_station_calendar_provider_calendar_contention_group_count" =>
+        Map.get(station_calendar_summary, "provider_calendar_contention_group_count"),
+      "source_station_calendar_provider_calendar_contention_group_id_keys" =>
+        station_calendar_summary
+        |> list_values("provider_calendar_contention_group_ids")
+        |> Enum.join("|")
+        |> normalize_optional_string(),
+      "source_station_calendar_provider_calendar_contention_source_entry_id_keys" =>
+        station_calendar_summary
+        |> list_values("provider_calendar_contention_source_entry_ids")
+        |> Enum.join("|")
+        |> normalize_optional_string(),
+      "source_station_calendar_provider_calendar_contention_provider_entry_id_keys" =>
+        station_calendar_summary
+        |> list_values("provider_calendar_contention_provider_entry_ids")
+        |> Enum.join("|")
+        |> normalize_optional_string(),
+      "source_station_calendar_provider_calendar_contention_provider_counts" =>
+        Map.get(station_calendar_summary, "provider_calendar_contention_provider_counts") || %{},
+      "source_station_calendar_provider_calendar_contention_ground_station_counts" =>
+        Map.get(station_calendar_summary, "provider_calendar_contention_ground_station_counts") ||
+          %{},
+      "source_station_calendar_provider_calendar_contention_direction_counts" =>
+        Map.get(station_calendar_summary, "provider_calendar_contention_direction_counts") || %{},
+      "source_station_calendar_provider_calendar_contention_minimum_capacity_fraction" =>
+        Map.get(
+          station_calendar_summary,
+          "provider_calendar_contention_minimum_capacity_fraction"
+        ),
+      "source_station_calendar_affected_contact_ground_station_counts" =>
+        Map.get(station_calendar_summary, "affected_contact_ground_station_counts") || %{},
+      "source_station_calendar_affected_contact_availability_counts" =>
+        Map.get(station_calendar_summary, "affected_contact_availability_counts") || %{},
+      "source_station_calendar_direction_counts" =>
+        Map.get(station_calendar_summary, "direction_counts") || %{},
+      "source_station_calendar_status_counts" =>
+        Map.get(station_calendar_summary, "station_calendar_status_counts") || %{},
+      "source_station_calendar_trust_boundary_status" =>
+        Map.get(station_calendar_summary, "trust_boundary_status"),
+      "source_station_calendar_branch_local_station_calendar_pressure" =>
+        station_calendar_branch_local_station_calendar_pressure?(station_calendar_summary),
+      "source_station_calendar_branch_local_affected_contact_pressure" =>
+        station_calendar_branch_local_affected_contact_pressure?(station_calendar_summary),
+      "source_station_calendar_branch_local_provider_contention_pressure" =>
+        station_calendar_branch_local_provider_contention_pressure?(station_calendar_summary),
+      "source_station_calendar_branch_local_station_availability_pressure" =>
+        station_calendar_branch_local_station_availability_pressure?(station_calendar_summary),
       "source_contact_intent_report_count" => Map.get(contact_intent_summary, "count"),
       "source_contact_intent_row_count" => Map.get(contact_intent_summary, "row_count"),
       "source_contact_intent_station_feedback_count" =>
@@ -22240,6 +22391,42 @@ defmodule OrbitalDynamics.Validation do
       (input_candidate_count > 0 and kept_candidate_count < input_candidate_count)
   end
 
+  defp station_calendar_branch_local_station_calendar_pressure?(%{} = summary) do
+    station_calendar_branch_local_affected_contact_pressure?(summary) or
+      station_calendar_branch_local_provider_contention_pressure?(summary) or
+      station_calendar_branch_local_station_availability_pressure?(summary)
+  end
+
+  defp station_calendar_branch_local_affected_contact_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "affected_contact_count") or
+      list_values(summary, "affected_contact_ids") != [] or
+      map_size(Map.get(summary, "affected_contact_ground_station_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "direction_counts") || %{}) > 0
+  end
+
+  defp station_calendar_branch_local_provider_contention_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "provider_calendar_contention_group_count") or
+      list_values(summary, "provider_calendar_contention_group_ids") != [] or
+      list_values(summary, "provider_calendar_contention_source_entry_ids") != [] or
+      list_values(summary, "provider_calendar_contention_provider_entry_ids") != [] or
+      map_size(Map.get(summary, "provider_calendar_contention_provider_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "provider_calendar_contention_ground_station_counts") || %{}) >
+        0 or
+      map_size(Map.get(summary, "provider_calendar_contention_direction_counts") || %{}) > 0
+  end
+
+  defp station_calendar_branch_local_station_availability_pressure?(%{} = summary) do
+    minimum_provider_contention_capacity_fraction =
+      numeric_observation_value(
+        Map.get(summary, "provider_calendar_contention_minimum_capacity_fraction")
+      ) || 0.0
+
+    map_size(Map.get(summary, "station_calendar_status_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "affected_contact_availability_counts") || %{}) > 0 or
+      list_values(summary, "station_capacity_fractions") != [] or
+      minimum_provider_contention_capacity_fraction > 0.0
+  end
+
   defp contact_filter_branch_local_contact_filter_pressure?(%{} = summary) do
     contact_filter_branch_local_candidate_suppression_pressure?(summary) or
       contact_filter_branch_local_invalid_contact_input_pressure?(summary) or
@@ -22495,6 +22682,18 @@ defmodule OrbitalDynamics.Validation do
   end
 
   defp integer_observation_value(_value), do: nil
+
+  defp numeric_observation_value(value) when is_integer(value), do: value * 1.0
+  defp numeric_observation_value(value) when is_float(value), do: value
+
+  defp numeric_observation_value(value) when is_binary(value) do
+    case Float.parse(String.trim(value)) do
+      {number, ""} -> number
+      _parse_error -> nil
+    end
+  end
+
+  defp numeric_observation_value(_value), do: nil
 
   defp stale_reservation_hold_count(affected_contacts) when is_list(affected_contacts) do
     Enum.count(affected_contacts, fn contact ->
