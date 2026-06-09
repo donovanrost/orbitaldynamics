@@ -18192,17 +18192,28 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "resource_score",
              "feedback_adjustment",
              "contact_allocation_pressure",
+             "link_capacity_pressure",
+             "contact_intent_pressure",
+             "contact_contention_pressure",
+             "contact_filter_pressure",
              "operational_readiness_pressure",
+             "operator_training_pressure",
+             "import_readiness_pressure",
              "quality_gate_pressure",
              "approval_boundary_pressure",
              "timeline_integrity_pressure",
              "timeline_dependency_impact_pressure",
              "timeline_publication_pressure",
+             "timeline_transition_application_pressure",
              "timeline_lifecycle_pressure",
              "timeline_precondition_pressure",
              "timeline_preservation_pressure",
              "timeline_pressure",
              "storage_downlink_pressure",
+             "resource_projection_pressure",
+             "resource_availability_pressure",
+             "resource_margin_pressure",
+             "battery_depletion_pressure",
              "station_calendar_pressure",
              "candidate_rejection_pressure",
              "provider_counteroffer_pressure",
@@ -19685,6 +19696,24 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 capacity_pack_unused_fraction: 0.0,
                 required_capacity_fraction: 0.25,
                 required_capacity_fraction_source: "contact_required_capacity_fraction",
+                capacity_pack_contact_ids_by_direction: %{
+                  "downlink" => ["dl_capacity_selected", "dl_capacity_overflow"]
+                },
+                capacity_pack_selected_contact_ids_by_direction: %{
+                  "downlink" => ["dl_capacity_selected"]
+                },
+                capacity_pack_deferred_contact_ids_by_direction: %{
+                  "downlink" => ["dl_capacity_overflow"]
+                },
+                capacity_pack_required_capacity_fraction_by_direction: %{
+                  "downlink" => 0.75
+                },
+                capacity_pack_selected_required_capacity_fraction_by_direction: %{
+                  "downlink" => 0.5
+                },
+                capacity_pack_deferred_required_capacity_fraction_by_direction: %{
+                  "downlink" => 0.25
+                },
                 derivation_reasons: [
                   "contact_contention_deferred",
                   "deferred_by_reduced_station_capacity_pack"
@@ -20669,6 +20698,24 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "capacity_pack_unused_fraction" => capacity_pack_unused_fraction,
              "required_capacity_fraction" => 0.25,
              "required_capacity_fraction_source" => "contact_required_capacity_fraction",
+             "capacity_pack_contact_ids_by_direction" => %{
+               "downlink" => ["dl_capacity_selected", "dl_capacity_overflow"]
+             },
+             "capacity_pack_selected_contact_ids_by_direction" => %{
+               "downlink" => ["dl_capacity_selected"]
+             },
+             "capacity_pack_deferred_contact_ids_by_direction" => %{
+               "downlink" => ["dl_capacity_overflow"]
+             },
+             "capacity_pack_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.75
+             },
+             "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.5
+             },
+             "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.25
+             },
              "derivation_reasons" => [
                "contact_contention_deferred",
                "deferred_by_reduced_station_capacity_pack"
@@ -22436,6 +22483,22 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "capacity_pack_risk_required_capacity_fraction_sources" => [
         "contact_required_capacity_fraction"
       ],
+      "capacity_pack_contact_ids_by_direction" => %{
+        "downlink" => ["dl_capacity_overflow", "dl_capacity_selected"]
+      },
+      "capacity_pack_selected_contact_ids_by_direction" => %{
+        "downlink" => ["dl_capacity_selected"]
+      },
+      "capacity_pack_deferred_contact_ids_by_direction" => %{
+        "downlink" => ["dl_capacity_overflow"]
+      },
+      "capacity_pack_required_capacity_fraction_by_direction" => %{"downlink" => 0.75},
+      "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+        "downlink" => 0.5
+      },
+      "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+        "downlink" => 0.25
+      },
       "capacity_pack_risk_derivation_reasons" => [
         "contact_contention_deferred",
         "deferred_by_reduced_station_capacity_pack"
@@ -47410,6 +47473,29 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "required_downlink_mb" => 47.0,
              "capacity_pack_group_id" => "summary_capacity_pack_equator_prime",
              "capacity_pack_status" => "deferred_by_reduced_station_capacity_pack",
+             "capacity_pack_contact_ids_by_direction" => %{
+               "downlink" => [
+                 "summary_capacity_dl_capacity_overflow",
+                 "summary_capacity_dl_capacity_primary",
+                 "summary_capacity_dl_capacity_secondary"
+               ]
+             },
+             "capacity_pack_selected_contact_ids_by_direction" => %{
+               "downlink" => [
+                 "summary_capacity_dl_capacity_primary",
+                 "summary_capacity_dl_capacity_secondary"
+               ]
+             },
+             "capacity_pack_deferred_contact_ids_by_direction" => %{
+               "downlink" => ["summary_capacity_dl_capacity_overflow"]
+             },
+             "capacity_pack_required_capacity_fraction_by_direction" => %{"downlink" => 0.75},
+             "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.5
+             },
+             "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.25
+             },
              "feedback_source" => "mission_state.source_contact_allocation_capacity_pack_summary",
              "trust_boundary" => "summary_capacity_capacity_pack_fixture"
            } = List.first(capacity_branch["events"])
@@ -47435,6 +47521,37 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert "downlink_completion_gap" in capacity_row["risk_types"]
     assert capacity_row["capacity_pack_group_ids"] == ["summary_capacity_pack_equator_prime"]
+
+    assert capacity_row["capacity_pack_contact_ids_by_direction"] == %{
+             "downlink" => [
+               "summary_capacity_dl_capacity_overflow",
+               "summary_capacity_dl_capacity_primary",
+               "summary_capacity_dl_capacity_secondary"
+             ]
+           }
+
+    assert capacity_row["capacity_pack_selected_contact_ids_by_direction"] == %{
+             "downlink" => [
+               "summary_capacity_dl_capacity_primary",
+               "summary_capacity_dl_capacity_secondary"
+             ]
+           }
+
+    assert capacity_row["capacity_pack_deferred_contact_ids_by_direction"] == %{
+             "downlink" => ["summary_capacity_dl_capacity_overflow"]
+           }
+
+    assert capacity_row["capacity_pack_required_capacity_fraction_by_direction"] == %{
+             "downlink" => 0.75
+           }
+
+    assert capacity_row["capacity_pack_selected_required_capacity_fraction_by_direction"] == %{
+             "downlink" => 0.5
+           }
+
+    assert capacity_row["capacity_pack_deferred_required_capacity_fraction_by_direction"] == %{
+             "downlink" => 0.25
+           }
 
     assert capacity_row["capacity_pack_statuses"] == [
              "deferred_by_reduced_station_capacity_pack"
@@ -47606,6 +47723,12 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "required_downlink_mb" => 47.0,
              "capacity_pack_group_id" => "prior_capacity_pack_equator_prime",
              "capacity_pack_status" => "deferred_by_reduced_station_capacity_pack",
+             "capacity_pack_deferred_contact_ids_by_direction" => %{
+               "downlink" => ["prior_capacity_dl_capacity_overflow"]
+             },
+             "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+               "downlink" => 0.25
+             },
              "feedback_source" =>
                "prior_plan.source_result_artifact.source_contact_allocation_capacity_pack_summary",
              "trust_boundary" => "prior_result_artifact_boundary"
@@ -47632,6 +47755,10 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert "downlink_completion_gap" in capacity_row["risk_types"]
     assert capacity_row["capacity_pack_group_ids"] == ["prior_capacity_pack_equator_prime"]
+
+    assert capacity_row["capacity_pack_deferred_contact_ids_by_direction"] == %{
+             "downlink" => ["prior_capacity_dl_capacity_overflow"]
+           }
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
@@ -78757,6 +78884,22 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "capacity_pack_deferred_contact_ids_by_ground_station_id" => %{
         "equator_prime" => ["#{prefix}_dl_capacity_overflow"]
       },
+      "capacity_pack_contact_ids_by_direction" => %{
+        "downlink" => [
+          "#{prefix}_dl_capacity_overflow",
+          "#{prefix}_dl_capacity_primary",
+          "#{prefix}_dl_capacity_secondary"
+        ]
+      },
+      "capacity_pack_selected_contact_ids_by_direction" => %{
+        "downlink" => [
+          "#{prefix}_dl_capacity_primary",
+          "#{prefix}_dl_capacity_secondary"
+        ]
+      },
+      "capacity_pack_deferred_contact_ids_by_direction" => %{
+        "downlink" => ["#{prefix}_dl_capacity_overflow"]
+      },
       "capacity_pack_required_capacity_fraction" => 0.75,
       "capacity_pack_selected_required_capacity_fraction" => 0.5,
       "capacity_pack_deferred_required_capacity_fraction" => 0.25,
@@ -78773,6 +78916,13 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       },
       "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id" => %{
         "equator_prime" => 0.25
+      },
+      "capacity_pack_required_capacity_fraction_by_direction" => %{"downlink" => 0.75},
+      "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+        "downlink" => 0.5
+      },
+      "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+        "downlink" => 0.25
       },
       "required_capacity_fraction_source_counts" => %{
         "contact_required_capacity_fraction" => 3

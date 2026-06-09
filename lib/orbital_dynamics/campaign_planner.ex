@@ -7210,7 +7210,19 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "capacity_pack_used_fraction" => event["capacity_pack_used_fraction"],
         "capacity_pack_unused_fraction" => event["capacity_pack_unused_fraction"],
         "required_capacity_fraction" => event["required_capacity_fraction"],
-        "required_capacity_fraction_source" => event["required_capacity_fraction_source"]
+        "required_capacity_fraction_source" => event["required_capacity_fraction_source"],
+        "capacity_pack_contact_ids_by_direction" =>
+          event["capacity_pack_contact_ids_by_direction"],
+        "capacity_pack_selected_contact_ids_by_direction" =>
+          event["capacity_pack_selected_contact_ids_by_direction"],
+        "capacity_pack_deferred_contact_ids_by_direction" =>
+          event["capacity_pack_deferred_contact_ids_by_direction"],
+        "capacity_pack_required_capacity_fraction_by_direction" =>
+          event["capacity_pack_required_capacity_fraction_by_direction"],
+        "capacity_pack_selected_required_capacity_fraction_by_direction" =>
+          event["capacity_pack_selected_required_capacity_fraction_by_direction"],
+        "capacity_pack_deferred_required_capacity_fraction_by_direction" =>
+          event["capacity_pack_deferred_required_capacity_fraction_by_direction"]
       }
       |> compact_map()
     ]
@@ -8018,6 +8030,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "capacity_pack_unused_fraction",
       "required_capacity_fraction",
       "required_capacity_fraction_source",
+      "capacity_pack_contact_ids_by_direction",
+      "capacity_pack_selected_contact_ids_by_direction",
+      "capacity_pack_deferred_contact_ids_by_direction",
+      "capacity_pack_required_capacity_fraction_by_direction",
+      "capacity_pack_selected_required_capacity_fraction_by_direction",
+      "capacity_pack_deferred_required_capacity_fraction_by_direction",
       "derivation_reasons",
       "feedback_source",
       "feedback_scope",
@@ -14742,6 +14760,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
         row
         |> Map.put_new("_source_report_trust_boundary", summary_trust_boundary)
+        |> inherit_contact_allocation_capacity_pack_summary_fields(summary)
         |> maybe_put_provider_reservation_request_status(
           provider_scope,
           summary["provider_reservation_request_status"]
@@ -14766,6 +14785,23 @@ defmodule OrbitalDynamics.CampaignPlanner do
     do: "review"
 
   defp contact_allocation_provider_reservation_row_scope(_field), do: nil
+
+  defp inherit_contact_allocation_capacity_pack_summary_fields(row, summary) do
+    [
+      {"contact_ids_by_direction", "capacity_pack_contact_ids_by_direction"},
+      {"selected_contact_ids_by_direction", "capacity_pack_selected_contact_ids_by_direction"},
+      {"deferred_contact_ids_by_direction", "capacity_pack_deferred_contact_ids_by_direction"},
+      {"required_capacity_fraction_by_direction",
+       "capacity_pack_required_capacity_fraction_by_direction"},
+      {"selected_required_capacity_fraction_by_direction",
+       "capacity_pack_selected_required_capacity_fraction_by_direction"},
+      {"deferred_required_capacity_fraction_by_direction",
+       "capacity_pack_deferred_required_capacity_fraction_by_direction"}
+    ]
+    |> Enum.reduce(row, fn {row_field, summary_field}, acc ->
+      put_default_if_present(acc, row_field, summary[summary_field])
+    end)
+  end
 
   defp mission_state_contact_allocation_reports(mission_state) do
     mission_state = stringify_keys(mission_state || %{})
@@ -15868,6 +15904,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "required_capacity_fraction" => capacity_requirement["required_capacity_fraction"],
         "required_capacity_fraction_source" =>
           capacity_requirement["required_capacity_fraction_source"],
+        "capacity_pack_contact_ids_by_direction" =>
+          recommendation["capacity_pack_contact_ids_by_direction"],
+        "capacity_pack_selected_contact_ids_by_direction" =>
+          recommendation["capacity_pack_selected_contact_ids_by_direction"],
+        "capacity_pack_deferred_contact_ids_by_direction" =>
+          recommendation["capacity_pack_deferred_contact_ids_by_direction"],
+        "capacity_pack_required_capacity_fraction_by_direction" =>
+          recommendation["capacity_pack_required_capacity_fraction_by_direction"],
+        "capacity_pack_selected_required_capacity_fraction_by_direction" =>
+          recommendation["capacity_pack_selected_required_capacity_fraction_by_direction"],
+        "capacity_pack_deferred_required_capacity_fraction_by_direction" =>
+          recommendation["capacity_pack_deferred_required_capacity_fraction_by_direction"],
         "review_status" => recommendation["review_status"],
         "approval_status" => recommendation["approval_status"],
         "downlink_completion_sources" =>
@@ -16020,6 +16068,35 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> put_default_if_present("capacity_pack_capacity_fraction", row["capacity_fraction"])
     |> put_default_if_present("capacity_pack_used_fraction", row["used_capacity_fraction"])
     |> put_default_if_present("capacity_pack_unused_fraction", row["unused_capacity_fraction"])
+    |> put_default_if_present(
+      "capacity_pack_contact_ids_by_direction",
+      row["capacity_pack_contact_ids_by_direction"] || row["contact_ids_by_direction"]
+    )
+    |> put_default_if_present(
+      "capacity_pack_selected_contact_ids_by_direction",
+      row["capacity_pack_selected_contact_ids_by_direction"] ||
+        row["selected_contact_ids_by_direction"]
+    )
+    |> put_default_if_present(
+      "capacity_pack_deferred_contact_ids_by_direction",
+      row["capacity_pack_deferred_contact_ids_by_direction"] ||
+        row["deferred_contact_ids_by_direction"]
+    )
+    |> put_default_if_present(
+      "capacity_pack_required_capacity_fraction_by_direction",
+      row["capacity_pack_required_capacity_fraction_by_direction"] ||
+        row["required_capacity_fraction_by_direction"]
+    )
+    |> put_default_if_present(
+      "capacity_pack_selected_required_capacity_fraction_by_direction",
+      row["capacity_pack_selected_required_capacity_fraction_by_direction"] ||
+        row["selected_required_capacity_fraction_by_direction"]
+    )
+    |> put_default_if_present(
+      "capacity_pack_deferred_required_capacity_fraction_by_direction",
+      row["capacity_pack_deferred_required_capacity_fraction_by_direction"] ||
+        row["deferred_required_capacity_fraction_by_direction"]
+    )
     |> put_default_if_present("capacity_requirement_rows", row["capacity_requirement_rows"])
     |> put_default_if_present("trust_boundary", row["trust_boundary"])
     |> put_default_if_present("provenance", row["provenance"])
@@ -16658,6 +16735,20 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "capacity_pack_status" => row["capacity_pack_status"],
           "capacity_pack_capacity_fraction" => row["capacity_pack_capacity_fraction"],
           "capacity_pack_used_fraction" => row["capacity_pack_used_fraction"],
+          "capacity_pack_unused_fraction" => row["capacity_pack_unused_fraction"],
+          "required_capacity_fraction" => row["required_capacity_fraction"],
+          "required_capacity_fraction_source" => row["required_capacity_fraction_source"],
+          "capacity_pack_contact_ids_by_direction" => row["contact_ids_by_direction"],
+          "capacity_pack_selected_contact_ids_by_direction" =>
+            row["selected_contact_ids_by_direction"],
+          "capacity_pack_deferred_contact_ids_by_direction" =>
+            row["deferred_contact_ids_by_direction"],
+          "capacity_pack_required_capacity_fraction_by_direction" =>
+            row["required_capacity_fraction_by_direction"],
+          "capacity_pack_selected_required_capacity_fraction_by_direction" =>
+            row["selected_required_capacity_fraction_by_direction"],
+          "capacity_pack_deferred_required_capacity_fraction_by_direction" =>
+            row["deferred_required_capacity_fraction_by_direction"],
           "station_reservation_id" =>
             row["station_reservation_id"] || source_contact["station_reservation_id"],
           "station_reserved_by" =>
@@ -47927,7 +48018,28 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "capacity_pack_total_required_capacity_fraction" =>
         sum_present(events, "required_capacity_fraction"),
       "capacity_pack_required_capacity_sources" =>
-        branch_event_unique_values(events, "required_capacity_fraction_source")
+        branch_event_unique_values(events, "required_capacity_fraction_source"),
+      "capacity_pack_contact_ids_by_direction" =>
+        branch_event_merged_maps(events, "capacity_pack_contact_ids_by_direction"),
+      "capacity_pack_selected_contact_ids_by_direction" =>
+        branch_event_merged_maps(events, "capacity_pack_selected_contact_ids_by_direction"),
+      "capacity_pack_deferred_contact_ids_by_direction" =>
+        branch_event_merged_maps(events, "capacity_pack_deferred_contact_ids_by_direction"),
+      "capacity_pack_required_capacity_fraction_by_direction" =>
+        branch_event_merged_numeric_maps(
+          events,
+          "capacity_pack_required_capacity_fraction_by_direction"
+        ),
+      "capacity_pack_selected_required_capacity_fraction_by_direction" =>
+        branch_event_merged_numeric_maps(
+          events,
+          "capacity_pack_selected_required_capacity_fraction_by_direction"
+        ),
+      "capacity_pack_deferred_required_capacity_fraction_by_direction" =>
+        branch_event_merged_numeric_maps(
+          events,
+          "capacity_pack_deferred_required_capacity_fraction_by_direction"
+        )
     }
 
     fields
@@ -47948,6 +48060,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> maybe_put_nonempty("branch_feedback_sources")
     |> maybe_put_nonempty("branch_feedback_scopes")
     |> maybe_put_nonempty("branch_contact_results")
+    |> maybe_put_nonempty("capacity_pack_contact_ids_by_direction")
+    |> maybe_put_nonempty("capacity_pack_selected_contact_ids_by_direction")
+    |> maybe_put_nonempty("capacity_pack_deferred_contact_ids_by_direction")
+    |> maybe_put_nonempty("capacity_pack_required_capacity_fraction_by_direction")
+    |> maybe_put_nonempty("capacity_pack_selected_required_capacity_fraction_by_direction")
+    |> maybe_put_nonempty("capacity_pack_deferred_required_capacity_fraction_by_direction")
     |> maybe_put_nonempty("branch_contact_allocation_statuses")
     |> maybe_put_nonempty("branch_contact_allocation_effective_statuses")
     |> maybe_put_nonempty("branch_contact_allocation_reasons")
@@ -48489,6 +48607,46 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> Enum.filter(&(is_binary(&1) and &1 != ""))
     |> Enum.uniq()
     |> Enum.sort()
+  end
+
+  defp branch_event_merged_maps(events, field) do
+    events
+    |> Enum.map(&Map.get(&1, field))
+    |> Enum.filter(&is_map/1)
+    |> Enum.reduce(%{}, fn map, acc ->
+      map
+      |> stringify_keys()
+      |> Enum.reduce(acc, fn {key, value}, inner ->
+        values =
+          value
+          |> List.wrap()
+          |> Enum.map(&encode_value/1)
+          |> Enum.filter(&(is_binary(&1) and &1 != ""))
+
+        Map.update(inner, key, values, fn existing ->
+          (List.wrap(existing) ++ values)
+          |> Enum.uniq()
+          |> Enum.sort()
+        end)
+      end)
+    end)
+    |> Map.new(fn {key, values} -> {key, Enum.sort(Enum.uniq(values))} end)
+  end
+
+  defp branch_event_merged_numeric_maps(events, field) do
+    events
+    |> Enum.map(&Map.get(&1, field))
+    |> Enum.filter(&is_map/1)
+    |> Enum.reduce(%{}, fn map, acc ->
+      map
+      |> stringify_keys()
+      |> Enum.reduce(acc, fn {key, value}, inner ->
+        case numeric_or_nil(value) do
+          nil -> inner
+          number -> Map.update(inner, key, number, &(&1 + number))
+        end
+      end)
+    end)
   end
 
   defp branch_station_reservation_conflict_unique_values(events, fields) do
