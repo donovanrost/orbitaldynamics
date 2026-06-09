@@ -1590,7 +1590,8 @@ Selected recommendations also include:
 - **Storage/downlink pressure score terms** — split storage/downlink
   resource-margin and projection risks into `storage_downlink_pressure_penalty`,
   leaving `risk_penalty` for unrelated risks while preserving total branch score
-  compatibility.
+  compatibility. Focused storage/downlink pressure fixtures now assert split
+  branch math and score-term report rows through a shared helper.
 - **Station-calendar pressure score terms** — split station-calendar reserved,
   unavailable, reduced-capacity, and provider-contention risks into
   `station_calendar_pressure_penalty`, leaving `risk_penalty` for unrelated

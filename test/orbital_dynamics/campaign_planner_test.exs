@@ -18053,22 +18053,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["peak_storage_overflow_mb"] == 100.0)
            )
 
-    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
-
-    storage_downlink_pressure_count =
-      Enum.count(
-        branch(artifact, "urgent")["risk_indicators"],
-        &(&1["type"] in ["storage_overflow", "downlink_shortfall"])
-      )
-
-    assert storage_downlink_pressure_count == 1
-
-    assert branch(artifact, "urgent")["score_terms"]["storage_downlink_pressure_penalty"] ==
-             -storage_downlink_pressure_count * risk_weight
-
-    assert branch(artifact, "urgent")["score_terms"]["risk_penalty"] ==
-             -(length(branch(artifact, "urgent")["risk_indicators"]) -
-                 storage_downlink_pressure_count) * risk_weight
+    assert_storage_downlink_pressure_score_terms(branch(artifact, "urgent"), artifact, 1)
 
     assert Enum.any?(
              explanation,
@@ -18147,9 +18132,23 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "resource_score",
              "feedback_adjustment",
              "contact_allocation_pressure",
+             "operational_readiness_pressure",
+             "quality_gate_pressure",
              "approval_boundary_pressure",
+             "timeline_integrity_pressure",
+             "timeline_dependency_impact_pressure",
+             "timeline_publication_pressure",
+             "timeline_lifecycle_pressure",
+             "timeline_precondition_pressure",
+             "timeline_preservation_pressure",
              "timeline_pressure",
              "storage_downlink_pressure",
+             "station_calendar_pressure",
+             "candidate_rejection_pressure",
+             "provider_counteroffer_pressure",
+             "validation_refresh_pressure",
+             "relay_data_path_pressure",
+             "execution_feedback_pressure",
              "risk_count",
              "approval_count",
              "schedule_stability"
@@ -19356,22 +19355,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              branch(artifact, "outage")["risk_indicators"]
              |> Enum.find(&(&1["type"] == "downlink_shortfall"))
 
-    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
-
-    storage_downlink_pressure_count =
-      Enum.count(
-        branch(artifact, "outage")["risk_indicators"],
-        &(&1["type"] in ["storage_overflow", "downlink_shortfall"])
-      )
-
-    assert storage_downlink_pressure_count == 1
-
-    assert branch(artifact, "outage")["score_terms"]["storage_downlink_pressure_penalty"] ==
-             -storage_downlink_pressure_count * risk_weight
-
-    assert branch(artifact, "outage")["score_terms"]["risk_penalty"] ==
-             -(length(branch(artifact, "outage")["risk_indicators"]) -
-                 storage_downlink_pressure_count) * risk_weight
+    assert_storage_downlink_pressure_score_terms(branch(artifact, "outage"), artifact, 1, 1)
 
     assert %{
              "review_type" => "strategy_tradeoff",
@@ -34639,32 +34623,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  String.contains?(&1["reason"], "storage margin 0.1 below threshold 0.2"))
            )
 
-    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
-
-    storage_downlink_pressure_count =
-      Enum.count(
-        downlink_branch["risk_indicators"],
-        &(&1["type"] in ["storage_margin_low", "downlink_margin_low"])
-      )
-
-    assert storage_downlink_pressure_count == 2
-
-    assert downlink_branch["score_terms"]["storage_downlink_pressure_penalty"] ==
-             -storage_downlink_pressure_count * risk_weight
-
-    assert downlink_branch["score_terms"]["risk_penalty"] ==
-             -(length(downlink_branch["risk_indicators"]) - storage_downlink_pressure_count) *
-               risk_weight
-
-    assert "storage_downlink_pressure_penalty" in artifact["score_term_report"][
-             "score_term_keys"
-           ]
-
-    assert Enum.any?(
-             artifact["score_term_report"]["rows"],
-             &(&1["branch_id"] == "derived_downlink_constrained" and
-                 &1["term_key"] == "storage_downlink_pressure_penalty" and &1["value"] < 0.0)
-           )
+    assert_storage_downlink_pressure_score_terms(downlink_branch, artifact, 2)
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
@@ -34746,22 +34705,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert downlink_row["downlink_capacity_margin"] == 0.4
     assert "downlink_capacity_low" in downlink_row["resource_risk_types"]
 
-    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
-
-    storage_downlink_pressure_count =
-      Enum.count(
-        downlink_branch["risk_indicators"],
-        &(&1["type"] in ["storage_margin_low", "downlink_margin_low"])
-      )
-
-    assert storage_downlink_pressure_count == 1
-
-    assert downlink_branch["score_terms"]["storage_downlink_pressure_penalty"] ==
-             -storage_downlink_pressure_count * risk_weight
-
-    assert downlink_branch["score_terms"]["risk_penalty"] ==
-             -(length(downlink_branch["risk_indicators"]) - storage_downlink_pressure_count) *
-               risk_weight
+    assert_storage_downlink_pressure_score_terms(downlink_branch, artifact, 1, 1)
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
@@ -72684,6 +72628,46 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              artifact["score_term_report"]["rows"],
              &(&1["branch_id"] == branch["branch_id"] and
                  &1["term_key"] == "station_calendar_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+  end
+
+  defp assert_storage_downlink_pressure_score_terms(
+         branch,
+         artifact,
+         expected_pressure_count,
+         extra_split_pressure_count \\ 0
+       ) do
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    storage_downlink_pressure_count =
+      Enum.count(
+        branch["risk_indicators"],
+        &(&1["type"] in [
+            "storage_overflow",
+            "downlink_shortfall",
+            "storage_margin_low",
+            "downlink_margin_low"
+          ])
+      )
+
+    assert storage_downlink_pressure_count == expected_pressure_count
+
+    assert branch["score_terms"]["storage_downlink_pressure_penalty"] ==
+             -storage_downlink_pressure_count * risk_weight
+
+    assert branch["score_terms"]["risk_penalty"] ==
+             -(length(branch["risk_indicators"]) -
+                 storage_downlink_pressure_count - extra_split_pressure_count) * risk_weight
+
+    assert "storage_downlink_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == branch["branch_id"] and
+                 &1["term_key"] == "storage_downlink_pressure_penalty" and
                  &1["value"] < 0.0)
            )
   end
