@@ -19679,6 +19679,50 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 type: "downlink_completion_gap",
                 scenario_id: "leo_1",
                 spacecraft_id: "leo_1",
+                contact_id: "dl_contention_conflict",
+                source_activity_id: "dl_contention_conflict",
+                source_activity_ids: ["dl_contention_conflict"],
+                ground_station_id: "equator_prime",
+                starts_at_s: 1_580.0,
+                ends_at_s: 1_640.0,
+                source_window_id: "window_contention_conflict",
+                source_window_ids: [
+                  "window_contention_primary",
+                  "window_contention_conflict"
+                ],
+                required_contacts: 1,
+                planned_contacts: 0,
+                required_downlink_mb: 39.0,
+                planned_downlink_mb: 0.0,
+                contention_group_id: "station:equator_prime:contention:selected",
+                contention_resource_scope: "ground_station",
+                contention_contact_ids: [
+                  "dl_contention_primary",
+                  "dl_contention_conflict"
+                ],
+                required_operator_action: "review_contact_contention",
+                approval_status: "operator_review_required",
+                operator_action_reason: "same_station_overlapping_contact_windows",
+                derivation_reasons: [
+                  "contact_contention_conflict",
+                  "same_station_overlapping_contact_windows",
+                  "ground_station",
+                  "operator_review_required"
+                ],
+                downlink_demand_sources: [
+                  "contact_contention.required_downlink:dl_contention_conflict"
+                ],
+                downlink_completion_sources: [
+                  "contact_contention_report:conflict_groups"
+                ],
+                feedback_source: "mission_state.source_contact_contention_report.conflict_groups",
+                feedback_scope: "contact_contention",
+                trust_boundary: "mission_state_contact_contention_report"
+              },
+              %{
+                type: "downlink_completion_gap",
+                scenario_id: "leo_1",
+                spacecraft_id: "leo_1",
                 contact_id: "dl_reservation_conflict",
                 source_activity_id: "dl_reservation_conflict",
                 source_activity_ids: ["dl_reservation_conflict"],
@@ -22403,6 +22447,56 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "contact_contention_resolution_pressure_derivation_reasons" => [
         "contact_contention_deferred",
         "deferred_by_reduced_station_capacity_pack"
+      ],
+      "contact_contention_pressure_risk_types" => ["downlink_completion_gap"],
+      "contact_contention_pressure_contact_ids" => ["dl_contention_conflict"],
+      "contact_contention_pressure_scenario_ids" => ["leo_1"],
+      "contact_contention_pressure_spacecraft_ids" => ["leo_1"],
+      "contact_contention_pressure_ground_station_ids" => ["equator_prime"],
+      "contact_contention_pressure_source_activity_ids" => ["dl_contention_conflict"],
+      "contact_contention_pressure_source_window_ids" => [
+        "window_contention_conflict",
+        "window_contention_primary"
+      ],
+      "contact_contention_pressure_required_contact_values" => [1],
+      "contact_contention_pressure_planned_contact_values" => [0],
+      "contact_contention_pressure_required_downlink_values_mb" => [39.0],
+      "contact_contention_pressure_planned_downlink_values_mb" => [0.0],
+      "contact_contention_pressure_start_values_s" => [1_580.0],
+      "contact_contention_pressure_end_values_s" => [1_640.0],
+      "contact_contention_pressure_group_ids" => [
+        "station:equator_prime:contention:selected"
+      ],
+      "contact_contention_pressure_resource_scopes" => ["ground_station"],
+      "contact_contention_pressure_contention_contact_ids" => [
+        "dl_contention_primary",
+        "dl_contention_conflict"
+      ],
+      "contact_contention_pressure_required_operator_actions" => [
+        "review_contact_contention"
+      ],
+      "contact_contention_pressure_approval_statuses" => ["operator_review_required"],
+      "contact_contention_pressure_operator_action_reasons" => [
+        "same_station_overlapping_contact_windows"
+      ],
+      "contact_contention_pressure_downlink_demand_sources" => [
+        "contact_contention.required_downlink:dl_contention_conflict"
+      ],
+      "contact_contention_pressure_downlink_completion_sources" => [
+        "contact_contention_report:conflict_groups"
+      ],
+      "contact_contention_pressure_feedback_sources" => [
+        "mission_state.source_contact_contention_report.conflict_groups"
+      ],
+      "contact_contention_pressure_feedback_scopes" => ["contact_contention"],
+      "contact_contention_pressure_trust_boundaries" => [
+        "mission_state_contact_contention_report"
+      ],
+      "contact_contention_pressure_derivation_reasons" => [
+        "contact_contention_conflict",
+        "same_station_overlapping_contact_windows",
+        "ground_station",
+        "operator_review_required"
       ],
       "contact_allocation_pressure_risk_types" => ["downlink_completion_gap"],
       "contact_allocation_pressure_contact_ids" => ["dl_reservation_conflict"],

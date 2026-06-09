@@ -16230,6 +16230,7 @@ defmodule OrbitalDynamics.OperatorReview do
     |> Map.merge(
       OrbitalDynamics.RecommendationRiskContext.contact_contention_resolution_context(risks)
     )
+    |> Map.merge(OrbitalDynamics.RecommendationRiskContext.contact_contention_context(risks))
     |> Map.merge(
       OrbitalDynamics.RecommendationRiskContext.station_reservation_conflict_context(risks)
     )

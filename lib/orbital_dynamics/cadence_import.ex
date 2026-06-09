@@ -3244,6 +3244,7 @@ defmodule OrbitalDynamics.CadenceImport do
     |> Map.merge(
       OrbitalDynamics.RecommendationRiskContext.contact_contention_resolution_context(risks)
     )
+    |> Map.merge(OrbitalDynamics.RecommendationRiskContext.contact_contention_context(risks))
     |> Map.merge(
       OrbitalDynamics.RecommendationRiskContext.station_reservation_conflict_context(risks)
     )
@@ -6590,6 +6591,9 @@ defmodule OrbitalDynamics.CadenceImport do
         row,
         OrbitalDynamics.RecommendationRiskContext.contact_contention_resolution_context_keys()
       )
+    )
+    |> Map.merge(
+      Map.take(row, OrbitalDynamics.RecommendationRiskContext.contact_contention_context_keys())
     )
     |> Map.merge(
       Map.take(
