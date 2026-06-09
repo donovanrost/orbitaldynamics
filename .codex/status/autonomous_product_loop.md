@@ -11,35 +11,30 @@ Status:
 Recommended next; not yet selected.
 
 Last completed slice:
-Preserved selected contact, observation, and station-throughput operational
-feedback context on V3 recommendation review/import rows.
+Preserved selected relay data-path pressure context on V3 recommendation
+review/import rows.
 
 What changed:
-- Contact success, observation success, and station-throughput risk indicators
-  now retain named factors, result/status, activity/timeline identity,
-  source/replacement activity identity, feedback provenance, transition
-  details, required operator action, and derivation reasons.
-- Observation feedback risk context now preserves planned/realized target,
-  collection, product, payload, instrument, pointing, attitude, lighting, image
-  quality, cloud-cover, and blur evidence.
-- Station-throughput feedback risks now retain actual/estimated throughput and
-  scoped provenance instead of reducing to only a factor and station.
-- `OrbitalDynamics.RecommendationRiskContext` owns a distinct
-  `strategy_operational_feedback_*` selected-context contract to avoid
-  colliding with existing operational feedback provenance fields.
+- `OrbitalDynamics.RecommendationRiskContext` now owns a scoped
+  `relay_data_path_*` selected-context contract for relay pressure risks.
 - Strategy recommendation review rows, selected Cadence import rows, and
-  review-package Cadence import conversion retain the same
-  contact/observation/station-throughput context without changing branch
-  scoring behavior.
+  review-package Cadence import conversion retain relay route IDs,
+  source/relay-chain spacecraft identity, ground downlink contact IDs,
+  custody/latency/risk status, route/count maps, feedback provenance,
+  derivation reasons, and summary assumptions.
+- The selected-pressure strategy recommendation fixture now includes a relay
+  data-path pressure event and asserts identical handoff context across all
+  selected review/import surfaces.
+- Existing relay branch-local pressure derivation and scoring behavior remain
+  unchanged.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:18418 test/orbital_dynamics/campaign_planner_test.exs:55813 test/orbital_dynamics/campaign_planner_test.exs:56458 test/orbital_dynamics/campaign_planner_test.exs:57020`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:18418 test/orbital_dynamics/campaign_planner_test.exs:30513`
 - `mix compile --warnings-as-errors`
-- `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/campaign_planner.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
+- `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
 - `rg -n "IO\.inspect|handoff mismatch" lib/orbital_dynamics test/orbital_dynamics/campaign_planner_test.exs`
-- `rg -n "strategy_operational_feedback_(provenance|driver|sections_invalid|input_keys|trust_boundary_status|trust_boundary\b|field_trust_boundaries)" test/orbital_dynamics/campaign_planner_test.exs`
 
 Published commits:
 - `28598a5` Refresh V1 campaign fixture drift
@@ -91,6 +86,8 @@ Published commits:
 - `3d6e253` Preserve execution success recommendation context
 - `ae6904d` Update autonomous loop handoff
 - `772f40d` Preserve operational feedback recommendation context
+- `42b29a2` Update autonomous loop handoff
+- `1a7c485` Preserve relay data path recommendation context
 
 Next suggested slice:
 Re-audit active strategy surfaces for the next pressure family whose selected
