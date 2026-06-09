@@ -11,30 +11,35 @@ Status:
 Recommended next; not yet selected.
 
 Last completed slice:
-Preserved selected command/maneuver success context on V3 recommendation
-review/import rows.
+Preserved selected contact, observation, and station-throughput operational
+feedback context on V3 recommendation review/import rows.
 
 What changed:
-- Command and maneuver success risk indicators now retain selected-review
-  context, including success factor, result/status, timing, source/replacement
-  activity identity, transition details, feedback key, trust boundary, and
-  required operator action.
-- Recommendation explanation risk-driver rows now carry the same
-  command/maneuver success result and routing identity context.
-- `OrbitalDynamics.RecommendationRiskContext` owns scoped execution-success
-  feedback aggregation and Cadence import pass-through keys.
+- Contact success, observation success, and station-throughput risk indicators
+  now retain named factors, result/status, activity/timeline identity,
+  source/replacement activity identity, feedback provenance, transition
+  details, required operator action, and derivation reasons.
+- Observation feedback risk context now preserves planned/realized target,
+  collection, product, payload, instrument, pointing, attitude, lighting, image
+  quality, cloud-cover, and blur evidence.
+- Station-throughput feedback risks now retain actual/estimated throughput and
+  scoped provenance instead of reducing to only a factor and station.
+- `OrbitalDynamics.RecommendationRiskContext` owns a distinct
+  `strategy_operational_feedback_*` selected-context contract to avoid
+  colliding with existing operational feedback provenance fields.
 - Strategy recommendation review rows, selected Cadence import rows, and
-  review-package Cadence import conversion retain command/maneuver success
-  context, including command routing mismatch and status-transition evidence.
-- Existing execution-feedback scoring and branch derivation behavior remain
-  unchanged.
+  review-package Cadence import conversion retain the same
+  contact/observation/station-throughput context without changing branch
+  scoring behavior.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:57686 test/orbital_dynamics/campaign_planner_test.exs:58339 test/orbital_dynamics/campaign_planner_test.exs:66688`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:18418 test/orbital_dynamics/campaign_planner_test.exs:55813 test/orbital_dynamics/campaign_planner_test.exs:56458 test/orbital_dynamics/campaign_planner_test.exs:57020`
 - `mix compile --warnings-as-errors`
 - `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/campaign_planner.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
+- `rg -n "IO\.inspect|handoff mismatch" lib/orbital_dynamics test/orbital_dynamics/campaign_planner_test.exs`
+- `rg -n "strategy_operational_feedback_(provenance|driver|sections_invalid|input_keys|trust_boundary_status|trust_boundary\b|field_trust_boundaries)" test/orbital_dynamics/campaign_planner_test.exs`
 
 Published commits:
 - `28598a5` Refresh V1 campaign fixture drift
@@ -84,6 +89,8 @@ Published commits:
 - `49211bf` Preserve timeline integrity recommendation context
 - `cb8051a` Update autonomous loop handoff
 - `3d6e253` Preserve execution success recommendation context
+- `ae6904d` Update autonomous loop handoff
+- `772f40d` Preserve operational feedback recommendation context
 
 Next suggested slice:
 Re-audit active strategy surfaces for the next pressure family whose selected
