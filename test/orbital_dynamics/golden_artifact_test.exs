@@ -256,7 +256,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "schema_version" => 2,
              "planner" => "OrbitalDynamics.CampaignPlanner.V2",
              "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
-             "repair_id" => "5eaf3398d1a35c6d390fa5f12059ec6783583716a85f8a792ecf3c48f419043f",
+             "repair_id" => "2861de04a1feea9da43cee52e2ad6cdc7e6fcedf91dad323b67517b8cac87a0a",
              "transition_selected_activity_count" => 0,
              "transition_application_review_required_count" => 1,
              "approval_status" => "operator_review_required",
@@ -266,6 +266,17 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "delta_has_source_context" => [true],
              "delta_has_replacement_context" => [false],
              "review_delta_has_source_identity" => [true],
+             "source_candidate_rejection_report" => %{
+               "schema_contract" => "candidate_rejection_report.v1",
+               "source" => "mission_state_candidate_rejections",
+               "candidate_count" => 1,
+               "row_count" => 1,
+               "rejected_count" => 1,
+               "reviewable_count" => 1,
+               "row_candidate_ids" => ["leo_1_observe_target_a_1"],
+               "row_primary_rejection_reasons" => ["payload_unavailable"],
+               "row_required_operator_actions" => ["review_candidate_rejection"]
+             },
              "approval_actions" => ["cancel"],
              "approval_classifications" => ["operator_review_required"],
              "operational_timeline_report" => %{
@@ -350,9 +361,10 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "operator_review_package" => %{
                "schema_contract" => "operator_review_package.v1",
                "source_artifact_type" => "campaign_repair.v2",
-               "review_count" => 13,
+               "review_count" => 14,
                "approval_requirement_count" => 1,
                "contention_recommendation_count" => 0,
+               "candidate_rejection_review_count" => 1,
                "contact_allocation_review_count" => 0,
                "operational_timeline_count" => 0,
                "plan_delta_count" => 1,
@@ -376,6 +388,15 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
                  "review_unplanned_realization",
                  "review_realized_exception"
                ]
+             },
+             "cadence_import_manifest" => %{
+               "schema_contract" => "cadence_import_manifest.v1",
+               "source_artifact_type" => "campaign_repair.v2",
+               "row_count" => 14,
+               "review_required_count" => 14,
+               "candidate_rejection_import_count" => 1,
+               "candidate_rejection_row_actions" => ["review_candidate_rejection"],
+               "candidate_rejection_row_activity_ids" => ["leo_1_observe_target_a_1"]
              }
            } == repair_golden_surface(repair)
   end
@@ -408,13 +429,13 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
     surface = strategy_golden_surface(strategy)
 
     assert %{
-             "schema_version" => 3,
-             "planner" => "OrbitalDynamics.CampaignPlanner.V3",
-             "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
-             "strategy_id" => "4bc6a0d409ad042a65cec9d85ccebff6ac46b8efb9ce8b3206d1e6112290bf8c",
-             "recommended_branch_id" => "derived_urgent_target_target_hot",
-             "approval_status" => "operator_review_required",
-             "recommendation_status" => "pass"
+           "schema_version" => 3,
+           "planner" => "OrbitalDynamics.CampaignPlanner.V3",
+           "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
+           "strategy_id" => "477ab67c4235dcb97718ac9e1fde15458e08c7f7cf0d22e4aa6fcbb94455f3be",
+           "recommended_branch_id" => "derived_urgent_target_target_hot",
+           "approval_status" => "operator_review_required",
+           "recommendation_status" => "pass"
            } = surface
 
     assert length(surface["branch_ids"]) == 27
@@ -456,7 +477,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "pressure_row_count",
              "selected_pressure_row_count"
            ]) == %{
-             "row_count" => 1107,
+             "row_count" => 1161,
              "score_term_keys" => [
                "approval_boundary_pressure_penalty",
                "approval_load_penalty",
@@ -474,10 +495,12 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
                "expected_score",
                "feedback_adjustment_score",
                "fuel_preservation_score",
+               "import_readiness_pressure_penalty",
                "latency_penalty",
                "link_capacity_pressure_penalty",
                "mission_value_score",
                "operational_readiness_pressure_penalty",
+               "operator_training_pressure_penalty",
                "priority_commitment_score",
                "provider_counteroffer_pressure_penalty",
                "quality_gate_pressure_penalty",
@@ -500,8 +523,8 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
                "timeline_publication_pressure_penalty",
                "validation_refresh_pressure_penalty"
              ],
-             "pressure_row_count" => 675,
-             "selected_pressure_row_count" => 25
+             "pressure_row_count" => 729,
+             "selected_pressure_row_count" => 27
            }
 
     assert surface["objective_tradeoff_report"]["ranking_count"] == 27
@@ -513,9 +536,9 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "score_term_review_count",
              "objective_tradeoff_review_count"
            ]) == %{
-             "review_count" => 1721,
+             "review_count" => 1777,
              "contact_allocation_review_count" => 25,
-             "score_term_review_count" => 1188,
+             "score_term_review_count" => 1242,
              "objective_tradeoff_review_count" => 54
            }
 
@@ -525,8 +548,8 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "review_required_count",
              "contact_allocation_import_count"
            ]) == %{
-             "row_count" => 1747,
-             "review_required_count" => 1721,
+             "row_count" => 1803,
+             "review_required_count" => 1777,
              "contact_allocation_import_count" => 25
            }
   end
@@ -790,6 +813,14 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
   end
 
   defp repair_golden_surface(repair) do
+    candidate_rejection_report = repair["source_candidate_rejection_report"] || %{}
+    candidate_rejection_rows = candidate_rejection_report["rows"] || []
+    review_package = Map.fetch!(repair, "operator_review_package")
+    cadence_import_manifest = Map.fetch!(repair, "cadence_import_manifest")
+    manifest_rows = cadence_import_manifest["rows"] || []
+    candidate_rejection_import_rows =
+      Enum.filter(manifest_rows, &(&1["source_review_type"] == "candidate_rejection_review"))
+
     %{
       "schema_version" => repair["schema_version"],
       "planner" => repair["planner"],
@@ -813,6 +844,19 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
         |> Map.fetch!("rows")
         |> Enum.filter(&(&1["review_type"] == "plan_delta_review"))
         |> Enum.map(&is_map(&1["source_timeline_identity"])),
+      "source_candidate_rejection_report" => %{
+        "schema_contract" => candidate_rejection_report["schema_contract"],
+        "source" => candidate_rejection_report["source"],
+        "candidate_count" => candidate_rejection_report["candidate_count"],
+        "row_count" => candidate_rejection_report["row_count"],
+        "rejected_count" => candidate_rejection_report["rejected_count"],
+        "reviewable_count" => candidate_rejection_report["reviewable_count"],
+        "row_candidate_ids" => values(candidate_rejection_rows, "candidate_id"),
+        "row_primary_rejection_reasons" =>
+          values(candidate_rejection_rows, "primary_rejection_reason"),
+        "row_required_operator_actions" =>
+          values(candidate_rejection_rows, "required_operator_action")
+      },
       "approval_actions" => Enum.map(repair["approval_requirements"], & &1["action"]),
       "approval_classifications" =>
         Enum.map(repair["approval_requirements"], & &1["policy_classification"]),
@@ -841,9 +885,23 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
         |> Map.fetch!("timeline_transition_application_report")
         |> timeline_transition_application_report_surface(),
       "operator_review_package" =>
-        repair
-        |> Map.fetch!("operator_review_package")
+        review_package
         |> review_package_surface()
+        |> Map.put(
+          "candidate_rejection_review_count",
+          review_package["candidate_rejection_review_count"]
+        ),
+      "cadence_import_manifest" => %{
+        "schema_contract" => cadence_import_manifest["schema_contract"],
+        "source_artifact_type" => cadence_import_manifest["source_artifact_type"],
+        "row_count" => cadence_import_manifest["row_count"],
+        "review_required_count" => cadence_import_manifest["review_required_count"],
+        "candidate_rejection_import_count" => length(candidate_rejection_import_rows),
+        "candidate_rejection_row_actions" =>
+          values(candidate_rejection_import_rows, "import_action"),
+        "candidate_rejection_row_activity_ids" =>
+          values(candidate_rejection_import_rows, "activity_id")
+      }
     }
   end
 

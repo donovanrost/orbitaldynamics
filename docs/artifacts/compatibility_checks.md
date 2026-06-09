@@ -1564,6 +1564,11 @@ and V3 strategy artifacts, are pinned in golden tests against those public paths
 using the same JSON writer as the generation tasks. Runtime timing fields are
 excluded from the V1 equality check, but schema-valid drift in compact planning
 examples is caught as fixture drift.
+The V2 repair fixture also carries a preserved
+`source_candidate_rejection_report` from mission-state evidence. Its golden and
+validation-reference checks pin the source report counts plus the derived
+operator-review and Cadence-import candidate-rejection rows, so source-report
+handoff drift is visible in the public fixture surface.
 
 For repeatable file-to-file generation, use the campaign run task:
 

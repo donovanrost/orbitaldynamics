@@ -1330,8 +1330,14 @@ defmodule OrbitalDynamics.Validation do
         "delta_count" => 1,
         "approval_requirement_count" => 1,
         "source_candidate_count" => 0,
+        "source_candidate_rejection_report_count" => 1,
+        "source_candidate_rejection_row_count" => 1,
+        "source_candidate_rejection_rejected_count" => 1,
+        "source_candidate_rejection_reviewable_count" => 1,
         "source_contact_intent_count" => 0,
         "source_resource_summary_count" => 1,
+        "operator_review_candidate_rejection_review_count" => 1,
+        "cadence_import_candidate_rejection_row_count" => 1,
         "warning_count" => 3,
         "policy_decision_contract" => "policy_decision.v1"
       },
@@ -1341,8 +1347,14 @@ defmodule OrbitalDynamics.Validation do
         "delta_count" => 0,
         "approval_requirement_count" => 0,
         "source_candidate_count" => 0,
+        "source_candidate_rejection_report_count" => 0,
+        "source_candidate_rejection_row_count" => 0,
+        "source_candidate_rejection_rejected_count" => 0,
+        "source_candidate_rejection_reviewable_count" => 0,
         "source_contact_intent_count" => 0,
         "source_resource_summary_count" => 0,
+        "operator_review_candidate_rejection_review_count" => 0,
+        "cadence_import_candidate_rejection_row_count" => 0,
         "warning_count" => 0
       },
       "evidence" => [
@@ -1409,10 +1421,10 @@ defmodule OrbitalDynamics.Validation do
         "warning_count" => 0,
         "score_term_report_model" => "strategy_branch_score_terms",
         "score_term_report_source" => "campaign_strategy.branches.score_terms",
-        "score_term_report_row_count" => 1107,
-        "score_term_report_derived_row_count" => 1107,
-        "score_term_report_selected_row_count" => 41,
-        "score_term_report_key_count" => 41,
+        "score_term_report_row_count" => 1161,
+        "score_term_report_derived_row_count" => 1161,
+        "score_term_report_selected_row_count" => 43,
+        "score_term_report_key_count" => 43,
         "score_term_report_key_counts" => %{
           "approval_boundary_pressure_penalty" => 1,
           "approval_load_penalty" => 1,
@@ -1430,10 +1442,12 @@ defmodule OrbitalDynamics.Validation do
           "expected_score" => 1,
           "feedback_adjustment_score" => 1,
           "fuel_preservation_score" => 1,
+          "import_readiness_pressure_penalty" => 1,
           "latency_penalty" => 1,
           "link_capacity_pressure_penalty" => 1,
           "mission_value_score" => 1,
           "operational_readiness_pressure_penalty" => 1,
+          "operator_training_pressure_penalty" => 1,
           "priority_commitment_score" => 1,
           "provider_counteroffer_pressure_penalty" => 1,
           "quality_gate_pressure_penalty" => 1,
@@ -1473,10 +1487,12 @@ defmodule OrbitalDynamics.Validation do
           "expected_score" => 27,
           "feedback_adjustment_score" => 27,
           "fuel_preservation_score" => 27,
+          "import_readiness_pressure_penalty" => 27,
           "latency_penalty" => 27,
           "link_capacity_pressure_penalty" => 27,
           "mission_value_score" => 27,
           "operational_readiness_pressure_penalty" => 27,
+          "operator_training_pressure_penalty" => 27,
           "priority_commitment_score" => 27,
           "provider_counteroffer_pressure_penalty" => 27,
           "quality_gate_pressure_penalty" => 27,
@@ -14928,6 +14944,10 @@ defmodule OrbitalDynamics.Validation do
 
   def artifact_observations("campaign_repair.v2", artifact) when is_map(artifact) do
     artifact = stringify_keys(artifact)
+    candidate_rejection_report = map_field(artifact, "source_candidate_rejection_report")
+    operator_review_package = map_field(artifact, "operator_review_package")
+    cadence_import_manifest = map_field(artifact, "cadence_import_manifest")
+    cadence_import_rows = list_values(cadence_import_manifest, "rows")
 
     %{
       "schema_version" => Map.get(artifact, "schema_version"),
@@ -14936,8 +14956,22 @@ defmodule OrbitalDynamics.Validation do
       "delta_count" => count(artifact, "deltas"),
       "approval_requirement_count" => count(artifact, "approval_requirements"),
       "source_candidate_count" => count(artifact, "source_candidate_activities"),
+      "source_candidate_rejection_report_count" =>
+        if(map_size(candidate_rejection_report) > 0, do: 1, else: 0),
+      "source_candidate_rejection_row_count" => count(candidate_rejection_report, "rows"),
+      "source_candidate_rejection_rejected_count" =>
+        Map.get(candidate_rejection_report, "rejected_count"),
+      "source_candidate_rejection_reviewable_count" =>
+        Map.get(candidate_rejection_report, "reviewable_count"),
       "source_contact_intent_count" => count(artifact, "source_contact_intents"),
       "source_resource_summary_count" => count(artifact, "source_resource_summaries"),
+      "operator_review_candidate_rejection_review_count" =>
+        Map.get(operator_review_package, "candidate_rejection_review_count"),
+      "cadence_import_candidate_rejection_row_count" =>
+        Enum.count(
+          cadence_import_rows,
+          &(&1["source_review_type"] == "candidate_rejection_review")
+        ),
       "warning_count" => count(artifact, "warnings"),
       "policy_decision_contract" => get_in(artifact, ["policy_decision", "schema_contract"])
     }
