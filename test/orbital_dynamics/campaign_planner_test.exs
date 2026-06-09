@@ -44100,7 +44100,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["required_qualification_ids"] == ["sat_ops_current"])
            )
 
-    assert_quality_gate_pressure_score_terms(direct_branch, artifact)
+    assert_operator_training_pressure_score_terms(direct_branch, artifact)
 
     comparison_row =
       artifact["branch_comparison_report"]["rows"]
@@ -72579,6 +72579,37 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              artifact["score_term_report"]["rows"],
              &(&1["branch_id"] == branch["branch_id"] and
                  &1["term_key"] == "quality_gate_pressure_penalty" and &1["value"] < 0.0)
+           )
+  end
+
+  defp assert_operator_training_pressure_score_terms(branch, artifact) do
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    operator_training_pressure_count =
+      Enum.count(
+        branch["risk_indicators"],
+        &(&1["type"] == "quality_gate_pressure" and &1["gate_id"] == "operator_training")
+      )
+
+    assert operator_training_pressure_count > 0
+
+    assert branch["score_terms"]["operator_training_pressure_penalty"] ==
+             -operator_training_pressure_count * risk_weight
+
+    assert branch["score_terms"]["quality_gate_pressure_penalty"] == 0.0
+
+    assert branch["score_terms"]["risk_penalty"] ==
+             -(length(branch["risk_indicators"]) - operator_training_pressure_count) *
+               risk_weight
+
+    assert "operator_training_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == branch["branch_id"] and
+                 &1["term_key"] == "operator_training_pressure_penalty" and &1["value"] < 0.0)
            )
   end
 

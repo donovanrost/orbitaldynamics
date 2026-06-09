@@ -2848,6 +2848,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     operational_readiness_pressure_count =
       operational_readiness_pressure_risk_count(risk_indicators)
 
+    operator_training_pressure_count =
+      operator_training_pressure_risk_count(risk_indicators)
+
     quality_gate_pressure_count = quality_gate_pressure_risk_count(risk_indicators)
     approval_boundary_pressure_count = approval_boundary_pressure_risk_count(risk_indicators)
     timeline_integrity_pressure_count = timeline_integrity_pressure_risk_count(risk_indicators)
@@ -2897,7 +2900,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
           link_capacity_pressure_count - contact_intent_pressure_count -
           contact_contention_pressure_count -
           contact_filter_pressure_count -
-          operational_readiness_pressure_count - quality_gate_pressure_count -
+          operational_readiness_pressure_count - operator_training_pressure_count -
+          quality_gate_pressure_count -
           timeline_integrity_pressure_count - timeline_dependency_impact_pressure_count -
           timeline_publication_pressure_count - timeline_lifecycle_pressure_count -
           timeline_precondition_pressure_count - timeline_preservation_pressure_count -
@@ -2957,6 +2961,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     operational_readiness_pressure_penalty =
       -operational_readiness_pressure_count * policy.risk_weight
+
+    operator_training_pressure_penalty =
+      -operator_training_pressure_count * policy.risk_weight
 
     quality_gate_pressure_penalty =
       -quality_gate_pressure_count * policy.risk_weight
@@ -3025,7 +3032,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
         feedback_adjustment_score + contact_allocation_pressure_penalty +
         link_capacity_pressure_penalty + contact_intent_pressure_penalty +
         contact_contention_pressure_penalty + operational_readiness_pressure_penalty +
-        contact_filter_pressure_penalty + quality_gate_pressure_penalty +
+        contact_filter_pressure_penalty + operator_training_pressure_penalty +
+        quality_gate_pressure_penalty +
         approval_boundary_pressure_penalty +
         timeline_integrity_pressure_penalty + timeline_dependency_impact_pressure_penalty +
         timeline_publication_pressure_penalty + timeline_lifecycle_pressure_penalty +
@@ -3059,6 +3067,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "contact_contention_pressure_penalty" => contact_contention_pressure_penalty,
       "contact_filter_pressure_penalty" => contact_filter_pressure_penalty,
       "operational_readiness_pressure_penalty" => operational_readiness_pressure_penalty,
+      "operator_training_pressure_penalty" => operator_training_pressure_penalty,
       "quality_gate_pressure_penalty" => quality_gate_pressure_penalty,
       "approval_boundary_pressure_penalty" => approval_boundary_pressure_penalty,
       "timeline_integrity_pressure_penalty" => timeline_integrity_pressure_penalty,
@@ -3168,8 +3177,24 @@ defmodule OrbitalDynamics.CampaignPlanner do
     Enum.count(risk_indicators, &quality_gate_pressure_risk?/1)
   end
 
-  defp quality_gate_pressure_risk?(%{"type" => "quality_gate_pressure"}), do: true
+  defp quality_gate_pressure_risk?(%{"type" => "quality_gate_pressure"} = risk) do
+    not operator_training_pressure_risk?(risk)
+  end
+
   defp quality_gate_pressure_risk?(_risk), do: false
+
+  defp operator_training_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &operator_training_pressure_risk?/1)
+  end
+
+  defp operator_training_pressure_risk?(%{"type" => "quality_gate_pressure"} = risk) do
+    risk["gate_id"] == "operator_training" or
+      risk["operator_training_requirement_count"] not in [nil, 0] or
+      get_in(risk, ["source_quality_gate_report", "schema_contract"]) ==
+        "operational_quality_gate_operator_training_summary.v1"
+  end
+
+  defp operator_training_pressure_risk?(_risk), do: false
 
   defp approval_boundary_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &approval_boundary_pressure_risk?/1)
@@ -5092,6 +5117,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"contact_contention_pressure", "contact_contention_pressure_penalty"},
         {"contact_filter_pressure", "contact_filter_pressure_penalty"},
         {"operational_readiness_pressure", "operational_readiness_pressure_penalty"},
+        {"operator_training_pressure", "operator_training_pressure_penalty"},
         {"quality_gate_pressure", "quality_gate_pressure_penalty"},
         {"approval_boundary_pressure", "approval_boundary_pressure_penalty"},
         {"timeline_integrity_pressure", "timeline_integrity_pressure_penalty"},

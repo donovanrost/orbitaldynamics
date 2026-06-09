@@ -484,7 +484,10 @@ operator-training requirements before schema validation.
 CandidateRefresh replay also derives reconstructed generic quality-gate row
 counts from `quality_gate_row_ids_by_status` when present, while preserving
 operator-training requirement counts and role/training/certification/
-qualification routing from the compact summary.
+qualification routing from the compact summary. V3 strategy scoring now emits a
+dedicated `operator_training_pressure_penalty` for those branch-local
+operator-training quality-gate risks instead of folding them into the broader
+`quality_gate_pressure_penalty`.
 The public quality-gate import-readiness summary publishes
 `operational_quality_gate_import_readiness_summary.v1`, preserving freshness,
 import-status, and Cadence-import status routing from those same rows, including
