@@ -8,7 +8,7 @@ Current slice:
 Split provider-counteroffer pressure into an explicit V3 score term.
 
 Status:
-Completed locally; pending commit/push.
+Completed and pushed in product commit `c564585`.
 
 Slice-selection note:
 - Selected slice: V3 strategy scoring should classify provider-counteroffer
@@ -77,7 +77,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`e679918` Score candidate rejection pressure explicitly.
+`c564585` Split provider counteroffer pressure score term.
 
 Next candidate:
 Continue with planner-visible resource/contact/readiness evidence that affects
@@ -89,6 +89,7 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `c564585` split provider-counteroffer pressure into an explicit V3 score term.
 - `e679918` made candidate-rejection pressure score-visible and split it into
   an explicit V3 score term.
 - `25da839` split station-calendar pressure into an explicit V3 score term.
