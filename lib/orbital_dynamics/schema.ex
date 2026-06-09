@@ -4972,10 +4972,14 @@ defmodule OrbitalDynamics.Schema do
         "calendar_entry_trust_boundary_status_counts",
         "duplicate_affected_contact_id_count",
         "duplicate_affected_contact_row_count",
+        "affected_contact_availability_counts",
+        "affected_contact_ground_station_counts",
+        "direction_counts",
         "model_limits",
         "provider_calendar_contention_group_count",
         "provider_calendar_contention_groups",
         "provider_counteroffer_count",
+        "station_calendar_status_counts",
         "station_reservation_match_status_counts",
         "affected_contact_ids_by_reservation_match_status",
         "affected_contact_ids_by_station_calendar_trust_boundary_status",
@@ -13698,6 +13702,16 @@ defmodule OrbitalDynamics.Schema do
               "station_calendar_trust_boundary_status_counts"
             ] do
     branch_event_trust_boundary_status_counts_json_schema()
+  end
+
+  defp json_schema_property(field, @station_calendar_report, _contract)
+       when field in [
+              "affected_contact_availability_counts",
+              "affected_contact_ground_station_counts",
+              "direction_counts",
+              "station_calendar_status_counts"
+            ] do
+    non_negative_integer_count_map_json_schema()
   end
 
   defp json_schema_property(field, @station_calendar_report, _contract)
@@ -37592,6 +37606,10 @@ defmodule OrbitalDynamics.Schema do
     |> expect_non_negative_integer(path, report, "affected_contact_count")
     |> expect_optional_number(path, report, "affected_duration_s")
     |> expect_optional_type(path, report, "calendar_entry_trust_boundary_status_counts", :map)
+    |> expect_optional_type(path, report, "affected_contact_ground_station_counts", :map)
+    |> expect_optional_type(path, report, "affected_contact_availability_counts", :map)
+    |> expect_optional_type(path, report, "direction_counts", :map)
+    |> expect_optional_type(path, report, "station_calendar_status_counts", :map)
     |> expect_optional_non_negative_integer(path, report, "provider_counteroffer_count")
     |> expect_optional_non_negative_integer(path, report, "duplicate_affected_contact_id_count")
     |> expect_optional_non_negative_integer(path, report, "duplicate_affected_contact_row_count")
@@ -49857,8 +49875,52 @@ defmodule OrbitalDynamics.Schema do
       "#{path}.station_calendar_trust_boundary_status_counts",
       Map.get(report, "station_calendar_trust_boundary_status_counts")
     )
+    |> validate_non_negative_integer_count_map(
+      "#{path}.affected_contact_ground_station_counts",
+      Map.get(report, "affected_contact_ground_station_counts")
+    )
+    |> validate_non_negative_integer_count_map(
+      "#{path}.affected_contact_availability_counts",
+      Map.get(report, "affected_contact_availability_counts")
+    )
+    |> validate_non_negative_integer_count_map(
+      "#{path}.direction_counts",
+      Map.get(report, "direction_counts")
+    )
+    |> validate_non_negative_integer_count_map(
+      "#{path}.station_calendar_status_counts",
+      Map.get(report, "station_calendar_status_counts")
+    )
     |> validate_station_calendar_entry_count_total(path, report)
     |> expect_field_equals(path, report, "affected_contact_count", length(rows))
+    |> expect_field_equals(
+      path,
+      report,
+      "affected_contact_ground_station_counts",
+      frequency_map(rows, "ground_station_id"),
+      "must equal row-derived affected_contact_ground_station_counts"
+    )
+    |> expect_field_equals(
+      path,
+      report,
+      "affected_contact_availability_counts",
+      frequency_map(rows, "station_availability"),
+      "must equal row-derived affected_contact_availability_counts"
+    )
+    |> expect_field_equals(
+      path,
+      report,
+      "direction_counts",
+      frequency_map(rows, "direction"),
+      "must equal row-derived direction_counts"
+    )
+    |> expect_field_equals(
+      path,
+      report,
+      "station_calendar_status_counts",
+      frequency_map(rows, "station_calendar_status"),
+      "must equal row-derived station_calendar_status_counts"
+    )
     |> expect_field_equals(
       path,
       report,

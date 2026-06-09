@@ -4149,6 +4149,13 @@ defmodule OrbitalDynamics.SchemaTest do
              "duplicate_affected_contact_row_count" => 0,
              "provider_calendar_contention_group_count" => 1,
              "provider_counteroffer_count" => 0,
+             "affected_contact_ground_station_counts" => %{"equator_prime" => 2},
+             "affected_contact_availability_counts" => %{
+               "reduced_capacity" => 1,
+               "reserved" => 1
+             },
+             "direction_counts" => %{"command" => 1, "downlink" => 1},
+             "station_calendar_status_counts" => %{"available" => 1, "reserved" => 1},
              "calendar_entry_trust_boundary_status_counts" => %{"declared" => 2},
              "station_calendar_trust_boundary_status_counts" => %{"declared" => 2},
              "station_reservation_match_status_counts" => %{"overlap" => 1}

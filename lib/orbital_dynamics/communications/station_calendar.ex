@@ -340,6 +340,10 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
        "provider_calendar_contention_group_count" => length(provider_contention_groups),
        "provider_calendar_contention_groups" => provider_contention_groups,
        "affected_contact_count" => length(affected),
+       "affected_contact_ground_station_counts" => count_by(affected, "ground_station_id"),
+       "affected_contact_availability_counts" => count_by(affected, "station_availability"),
+       "direction_counts" => count_by(affected, "direction"),
+       "station_calendar_status_counts" => count_by(affected, "station_calendar_status"),
        "station_calendar_trust_boundary_status_counts" =>
          station_calendar_trust_boundary_status_counts(affected),
        "affected_contact_ids_by_station_calendar_trust_boundary_status" =>
@@ -2641,7 +2645,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
       "station_calendar_provider_entry_id" => station_calendar_provider_entry_id(entry),
       "station_calendar_directions" => entry["directions"],
       "contact_type" => contact["type"] || contact["activity_type"] || "planned_contact",
-      "direction" => contact["direction"],
+      "direction" => contact_direction(contact),
       "contact_success" => contact["contact_success"],
       "contact_result" => provider_result_artifact_value(contact["contact_result"]),
       "contact_success_factor" => unit_interval_factor(contact, "contact_success_factor"),
@@ -2664,6 +2668,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
       "invalid_feedback_confidence_reason" => feedback_factor_issue,
       "source_contact_candidate" => if(feedback_factor_issue, do: contact),
       "status" => entry["status"],
+      "station_calendar_status" => entry["status"],
       "station_availability" => entry["availability"],
       "station_calendar_precedence_rank" => station_calendar_priority(entry),
       "station_calendar_precedence_availability" => entry["availability"],

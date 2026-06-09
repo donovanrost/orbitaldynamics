@@ -12589,6 +12589,14 @@ defmodule OrbitalDynamics.Validation do
         "provider_calendar_contention_group_count" => 0,
         "duplicate_affected_contact_id_count" => 0,
         "duplicate_affected_contact_row_count" => 0,
+        "affected_contact_ground_station_counts" => %{"equator_prime" => 1},
+        "row_derived_affected_contact_ground_station_counts" => %{"equator_prime" => 1},
+        "affected_contact_availability_counts" => %{"reserved" => 1},
+        "row_derived_affected_contact_availability_counts" => %{"reserved" => 1},
+        "direction_counts" => %{"downlink" => 1},
+        "row_derived_direction_counts" => %{"downlink" => 1},
+        "station_calendar_status_counts" => %{"reserved" => 1},
+        "row_derived_station_calendar_status_counts" => %{"reserved" => 1},
         "station_reservation_match_status_counts" => %{"overlap" => 1},
         "row_derived_station_reservation_match_status_counts" => %{"overlap" => 1},
         "stale_reservation_hold_count" => 1,
@@ -12919,6 +12927,23 @@ defmodule OrbitalDynamics.Validation do
         "provider_calendar_contention_group_count" => 1,
         "duplicate_affected_contact_id_count" => 0,
         "duplicate_affected_contact_row_count" => 0,
+        "affected_contact_ground_station_counts" => %{"equator_prime" => 2},
+        "row_derived_affected_contact_ground_station_counts" => %{"equator_prime" => 2},
+        "affected_contact_availability_counts" => %{
+          "reduced_capacity" => 1,
+          "reserved" => 1
+        },
+        "row_derived_affected_contact_availability_counts" => %{
+          "reduced_capacity" => 1,
+          "reserved" => 1
+        },
+        "direction_counts" => %{"command" => 1, "downlink" => 1},
+        "row_derived_direction_counts" => %{"command" => 1, "downlink" => 1},
+        "station_calendar_status_counts" => %{"available" => 1, "reserved" => 1},
+        "row_derived_station_calendar_status_counts" => %{
+          "available" => 1,
+          "reserved" => 1
+        },
         "station_reservation_match_status_counts" => %{"overlap" => 1},
         "row_derived_station_reservation_match_status_counts" => %{"overlap" => 1},
         "stale_reservation_hold_count" => 0,
@@ -21334,6 +21359,20 @@ defmodule OrbitalDynamics.Validation do
         Map.get(artifact, "duplicate_affected_contact_id_count"),
       "duplicate_affected_contact_row_count" =>
         Map.get(artifact, "duplicate_affected_contact_row_count"),
+      "affected_contact_ground_station_counts" =>
+        Map.get(artifact, "affected_contact_ground_station_counts") || %{},
+      "row_derived_affected_contact_ground_station_counts" =>
+        row_value_counts(affected_contacts, "ground_station_id"),
+      "affected_contact_availability_counts" =>
+        Map.get(artifact, "affected_contact_availability_counts") || %{},
+      "row_derived_affected_contact_availability_counts" =>
+        row_value_counts(affected_contacts, "station_availability"),
+      "direction_counts" => Map.get(artifact, "direction_counts") || %{},
+      "row_derived_direction_counts" => row_value_counts(affected_contacts, "direction"),
+      "station_calendar_status_counts" =>
+        Map.get(artifact, "station_calendar_status_counts") || %{},
+      "row_derived_station_calendar_status_counts" =>
+        row_value_counts(affected_contacts, "station_calendar_status"),
       "station_reservation_match_status_counts" =>
         Map.get(artifact, "station_reservation_match_status_counts") || %{},
       "row_derived_station_reservation_match_status_counts" =>

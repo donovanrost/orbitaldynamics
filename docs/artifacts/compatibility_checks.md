@@ -295,13 +295,15 @@ is also observed as a curated fixture, covering the two-contact/two-entry
 station-calendar handoff shape and its row-derived reservation overlap evidence
 without provider reservation side effects. Executable validation rejects stale
 affected durations, station-calendar trust maps, and station-calendar
-model identifiers and model-limit drift in that checked-in overlay report.
+availability, status, direction, and ground-station maps, plus model
+identifiers and model-limit drift in that checked-in overlay report.
 Focused schema-reference coverage also exact-regenerates the checked-in full
 report through `OrbitalDynamics.station_calendar_report/3` from deterministic
 contact candidates and declared provider entries before schema validation,
 pinning affected-contact routing, reservation-match routing, trust-boundary
-routing, provider-contention evidence, and exact `model_limits`. Schema export
-pins the same station-calendar overlay model for schema-only handoff checks.
+routing, station availability/status/direction maps, provider-contention
+evidence, and exact `model_limits`. Schema export pins the same
+station-calendar overlay model for schema-only handoff checks.
 The full report fixture remains an artifact-only no-provider-reservation/no-
 schedule-mutation/no-Cadence-write handoff.
 

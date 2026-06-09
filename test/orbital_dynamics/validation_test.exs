@@ -3323,6 +3323,20 @@ defmodule OrbitalDynamics.ValidationTest do
                    &1["status"] == "fail")
              )
 
+      stale_status_observations =
+        observations
+        |> Map.put("station_calendar_status_counts", %{"stale_status" => 1})
+
+      assert {:ok, stale_status_verification} =
+               Validation.verify_reference_fixture(fixture_id, stale_status_observations)
+
+      assert stale_status_verification["status"] == "fail"
+
+      assert Enum.any?(
+               stale_status_verification["checks"],
+               &(&1["field"] == "station_calendar_status_counts" and &1["status"] == "fail")
+             )
+
       assert OrbitalDynamics.validation_artifact_observations(
                "station_calendar_report.v1",
                report

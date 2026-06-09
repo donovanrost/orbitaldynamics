@@ -331,6 +331,10 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
              "calendar_entry_trust_boundary_status_counts" => %{"declared" => 1},
              "affected_contact_count" => 1,
              "affected_duration_s" => 60.0,
+             "affected_contact_ground_station_counts" => %{"equator_prime" => 1},
+             "affected_contact_availability_counts" => %{"reduced_capacity" => 1},
+             "direction_counts" => %{"downlink" => 1},
+             "station_calendar_status_counts" => %{"available" => 1},
              "station_calendar_trust_boundary_status_counts" => %{"declared" => 1},
              "affected_contact_ids_by_station_calendar_trust_boundary_status" => %{
                "declared" => ["dl_1"]
@@ -349,6 +353,8 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
                  "station_calendar_provider_id" => "ops_calendar",
                  "station_calendar_provider_entry_id" => "equator_capacity",
                  "status" => "available",
+                 "station_calendar_status" => "available",
+                 "direction" => "downlink",
                  "station_availability" => "reduced_capacity",
                  "station_calendar_overlap_count" => 1,
                  "station_calendar_overlap_entry_ids" => ["equator_capacity"],
@@ -397,6 +403,18 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
                  "$.affected_contact_ids_by_station_calendar_trust_boundary_status" and
                  &1["message"] ==
                    "must equal row-derived affected_contact_ids_by_station_calendar_trust_boundary_status")
+           )
+
+    invalid_status_counts =
+      Map.put(report, "station_calendar_status_counts", %{"reserved" => 1})
+
+    assert {:error, invalid_status_counts_report} =
+             Schema.validate_artifact(invalid_status_counts)
+
+    assert Enum.any?(
+             invalid_status_counts_report["errors"],
+             &(&1["path"] == "$.station_calendar_status_counts" and
+                 &1["message"] == "must equal row-derived station_calendar_status_counts")
            )
   end
 
