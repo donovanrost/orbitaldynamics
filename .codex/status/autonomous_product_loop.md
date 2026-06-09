@@ -5,34 +5,38 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Split explicit approval-boundary pressure into planner-visible V3 score terms.
+Route resource projection activity-availability pressure into V3 resource
+availability score terms.
 
 Status:
-Completed and pushed in product commit `a188da9`.
+Completed and committed in product commit `4127152`.
 
 Slice-selection note:
-- Selected slice: make explicit branch-local `approval_boundary_pressure`
-  events contribute to the existing `approval_boundary_pressure_penalty` score
-  term instead of remaining generic risk pressure.
-- Why this slice: V3 already exposes `approval_boundary_pressure_penalty` in
-  score terms and tradeoffs, but the live classifier never counts any risk as
-  approval-boundary pressure. Approval-aware automation boundaries are a Level 6
-  pillar, so explicit no-execution/no-import pressure should be planner-visible.
-- Level 6 pillar: approval-aware automation boundaries and reproducible V3
-  branch trees with explainable score terms and deltas.
-- Current evidence gap: an explicit approval-boundary pressure event should
-  produce a risk indicator, reduce generic `risk_penalty`, and populate
-  `approval_boundary_pressure_penalty` plus score-term report rows.
+- Selected slice: make resource projection activity-availability pressure types
+  contribute to `resource_availability_pressure_penalty` instead of falling
+  through to generic `risk_penalty`.
+- Why this slice: the projection replay path already emits
+  `spacecraft_degraded_payload_unavailable`,
+  `activity_type_suppressed_by_resource_summary`, and
+  `activity_type_incompatible_with_resource_summary` risk indicators and
+  branch-comparison rows, but the score-term classifier only counts spacecraft,
+  payload, antenna, and generic resource-unavailable types.
+- Level 6 pillar: reproducible V3 branch scoring with planner-visible resource
+  constraints and explainable score-term deltas.
+- Current evidence gap: otherwise-equal resource-projection availability
+  branches should isolate activity-type and degraded-payload availability
+  pressure in `resource_availability_pressure_penalty`, leaving `risk_penalty`
+  for unrelated risks.
 - Docs read:
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
   `docs/feature_set/recommended_roadmap.md`.
 - Likely files/tests: `lib/orbital_dynamics/campaign_planner.ex`,
   `test/orbital_dynamics/campaign_planner_test.exs`, and the V3 orchestration
   doc.
-- Definition of done: explicit approval-boundary events emit risk indicators;
-  score math moves those risks into `approval_boundary_pressure_penalty`;
-  focused strategy tests and docs cover the split; product and handoff are
-  committed and pushed without touching unrelated `.gitignore`.
+- Definition of done: all resource projection availability pressure types count
+  in the dedicated availability score term; focused projection replay tests
+  assert the split and score-term report rows; docs record the scope; product
+  and handoff are committed and pushed without touching unrelated `.gitignore`.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -41,28 +45,30 @@ Files changed:
 - `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:18789`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:18667 test/orbital_dynamics/campaign_planner_test.exs:18789`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:6989 test/orbital_dynamics/campaign_planner_test.exs:18617 test/orbital_dynamics/campaign_planner_test.exs:18789`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:38940`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:61910`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:38940 test/orbital_dynamics/campaign_planner_test.exs:61910`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-V3 orchestration docs now state that explicit approval-boundary pressure
-contributes to `approval_boundary_pressure_penalty`, leaving `risk_penalty` for
-unrelated risks.
+V3 orchestration docs now state that resource-projection payload/antenna,
+degraded-payload, and activity-type availability pressure contributes to
+`resource_availability_pressure_penalty`, leaving `risk_penalty` for unrelated
+risks.
 
 Local review:
-Sidecar review could not start because the agent thread limit was reached.
-Parent fallback review checked event-to-risk mapping, score-term classification,
-generic-risk subtraction, approval-load separation, focused tests, docs, and
-staged scope; no must-fix issues remained. `.gitignore` remains unrelated and
-unstaged.
+Sidecar review was not started because the available multi-agent tool requires
+explicit user-requested delegation. Parent review checked projection-specific
+risk preservation, score-term classification, generic-risk subtraction, focused
+tests, docs, and staged scope; no must-fix issues remained. `.gitignore`
+remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Approval-boundary automation constraints are now score-visible in V3 branch
-trees through a dedicated score term and report rows.
+Resource projection availability constraints are now score-visible in V3 branch
+trees through the dedicated resource-availability score term and report rows,
+including degraded-payload and activity-type availability pressure.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -72,10 +78,10 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`a188da9` Split approval boundary pressure score term.
+`4127152` Route projection availability score terms.
 
 Next candidate:
-Reassess the next planner-visible communications/resource or readiness scoring
+Reassess the next planner-visible communications or timeline/readiness scoring
 gap from current Level 6 evidence.
 
 Unrelated local changes:
@@ -83,6 +89,9 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `4127152` routed resource-projection degraded-payload and activity-type
+  availability pressure into the dedicated V3 resource-availability score term
+  while preserving generic risk scoring for unrelated risks.
 - `a188da9` split explicit approval-boundary pressure into a dedicated V3 score
   term while preserving generic risk scoring for unrelated risks.
 - `777a1dc` rejected stale publication source-review evidence in Cadence import
