@@ -3259,14 +3259,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
     Enum.count(risk_indicators, &resource_availability_pressure_risk?/1)
   end
 
-  defp resource_availability_pressure_risk?(%{"type" => type})
-       when type in [
-              "resource_unavailable",
-              "spacecraft_unavailable",
-              "payload_unavailable",
-              "antenna_unavailable"
-            ],
-       do: true
+  defp resource_availability_pressure_risk?(%{"type" => "resource_unavailable"}), do: true
+
+  defp resource_availability_pressure_risk?(%{"type" => type}) do
+    type in resource_projection_availability_pressure_types()
+  end
 
   defp resource_availability_pressure_risk?(_risk), do: false
 
@@ -4337,7 +4334,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp event_risk_indicators(%{"type" => "resource_availability_constraint"} = event) do
     field = event["resource_field"] || "resource_available"
-    risk_type = String.replace(field, "_available", "_unavailable")
+    risk_type = resource_availability_constraint_risk_type(event, field)
     spacecraft_id = branch_event_spacecraft_id(event)
 
     [
@@ -4481,6 +4478,20 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp event_risk_indicators(_event), do: []
+
+  defp resource_availability_constraint_risk_type(event, "payload_available") do
+    if "projected_spacecraft_degraded_payload_unavailable" in List.wrap(
+         event["derivation_reasons"]
+       ) do
+      "spacecraft_degraded_payload_unavailable"
+    else
+      "payload_unavailable"
+    end
+  end
+
+  defp resource_availability_constraint_risk_type(_event, field) do
+    String.replace(field, "_available", "_unavailable")
+  end
 
   defp relay_data_path_pressure_risk_fields do
     [

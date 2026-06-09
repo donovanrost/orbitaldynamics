@@ -39010,7 +39010,11 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
               "payload_available" => false,
               "antenna_available" => false,
               "resource_pressure_status" => "resource_availability_pressure",
-              "resource_pressure_types" => ["antenna_unavailable", "payload_unavailable"],
+              "resource_pressure_types" => [
+                "antenna_unavailable",
+                "payload_unavailable",
+                "spacecraft_degraded_payload_unavailable"
+              ],
               "activity_resource_flow" => [
                 %{
                   "activity_id" => "obs_payload_pressure",
@@ -39018,6 +39022,13 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                   "starts_at_s" => 210.0,
                   "resource_effect_status" => "ignored",
                   "resource_effect_reason" => "payload_unavailable"
+                },
+                %{
+                  "activity_id" => "obs_degraded_payload_pressure",
+                  "activity_type" => "observe",
+                  "starts_at_s" => 225.0,
+                  "resource_effect_status" => "ignored",
+                  "resource_effect_reason" => "spacecraft_degraded_payload_unavailable"
                 },
                 %{
                   "activity_id" => "dl_antenna_pressure",
@@ -39289,6 +39300,12 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            )
 
     assert Enum.any?(
+             availability_pressure_branch["risk_indicators"],
+             &(&1["type"] == "spacecraft_degraded_payload_unavailable" and
+                 &1["spacecraft_id"] == "leo_payload_pressure")
+           )
+
+    assert Enum.any?(
              thermal_pressure_branch["risk_indicators"],
              &(&1["type"] == "thermal_margin_c_low" and &1["value"] == -1.5)
            )
@@ -39358,6 +39375,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert "activity_type_incompatible_with_resource_summary" in activity_type_pressure_row[
              "high_risk_types"
            ]
+
+    assert_resource_availability_pressure_score_terms(availability_pressure_branch, artifact)
+    assert_resource_availability_pressure_score_terms(activity_type_pressure_branch, artifact)
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
@@ -72781,6 +72801,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
             "resource_unavailable",
             "spacecraft_unavailable",
             "payload_unavailable",
+            "spacecraft_degraded_payload_unavailable",
+            "activity_type_suppressed_by_resource_summary",
+            "activity_type_incompatible_with_resource_summary",
             "antenna_unavailable"
           ])
       )

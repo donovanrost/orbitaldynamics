@@ -764,10 +764,11 @@ unrelated risks while preserving total branch score compatibility.
 Contact-filter downlink suppression risks contribute to
 `contact_filter_pressure_penalty`, leaving generic `risk_penalty` for unrelated
 risks while preserving total branch score compatibility.
-Resource-availability risks contribute to
-`resource_availability_pressure_penalty`, leaving generic `risk_penalty` for
-unrelated risks while resource-margin storage/downlink pressure remains in
-`storage_downlink_pressure_penalty`.
+Resource-availability risks, including resource-projection payload/antenna
+unavailability, degraded-payload, and activity-type suppression/incompatibility
+pressure, contribute to `resource_availability_pressure_penalty`, leaving
+generic `risk_penalty` for unrelated risks while resource-margin storage/downlink
+pressure remains in `storage_downlink_pressure_penalty`.
 Fuel, power, and thermal margin risks contribute to
 `resource_margin_pressure_penalty`, leaving generic `risk_penalty` for
 unrelated risks while storage/downlink margin pressure remains in
@@ -1653,11 +1654,12 @@ Selected recommendations also include:
   compatibility. Focused contact-filter pressure fixtures now assert split
   branch math and score-term report rows.
 - **Resource-availability pressure score terms** — split payload, antenna,
-  spacecraft, and generic resource unavailability risks into
+  spacecraft, degraded-payload, activity-type suppression/incompatibility, and
+  generic resource unavailability risks into
   `resource_availability_pressure_penalty`, leaving `risk_penalty` for
   unrelated risks while preserving total branch score compatibility. Focused
-  resource-filter and operational-feedback fixtures now assert split branch
-  math and score-term report rows.
+  resource-filter, operational-feedback, and resource-projection fixtures now
+  assert split branch math and score-term report rows.
 - **Resource-margin pressure score terms** — split fuel, power, and thermal
   margin risks into `resource_margin_pressure_penalty`, leaving `risk_penalty`
   for unrelated risks while preserving total branch score compatibility. Focused
