@@ -5,58 +5,55 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Route operational-readiness schema-validation pressure into validation score terms.
+Pin CandidateRefresh operational-readiness replay pressure fixture observations.
 
 Status:
 Completed and pushed.
 
 Slice selection note:
-Operational-readiness pressure events can carry schema-validation fail/error/
-warning/remediation context, but those fields are not preserved in the readiness
-risk context and the score remains under broad readiness. Quality-gate
-schema-validation pressure already uses `validation_refresh_pressure_penalty`.
-This slice preserves schema-validation context for operational-readiness gates
-and routes those indicators into the dedicated validation-refresh score family
-while leaving ordinary readiness gates on `operational_readiness_pressure_penalty`.
-Likely files are
-`lib/orbital_dynamics/campaign_planner.ex`, `test/orbital_dynamics/campaign_planner_test.exs`,
+CandidateRefresh already emits branch-local operational-readiness replay
+pressure booleans, but the curated operational-readiness replay fixture only
+asserts broad readiness/import/status counts. This slice pins those pressure
+fields in the validation-reference expected fixture so stale replay pressure
+routing fails fixture verification. Likely files are
+`lib/orbital_dynamics/validation.ex`, `test/orbital_dynamics/validation_test.exs`,
 `docs/artifacts/compatibility_checks.md`, and this ledger. Definition of done:
-focused operational-readiness schema-validation tests prove the split, adjacent
-quality-gate schema-validation and ordinary readiness regressions still pass,
-compile/diff checks pass,
-and product plus handoff commits are pushed while leaving unrelated `.gitignore`
-unstaged.
+the fixture expected map includes branch-local operational-readiness replay
+pressure fields, a stale pressure observation fails fixture verification, docs
+describe the guard, checks pass, and product plus handoff commits are pushed
+while leaving unrelated `.gitignore` unstaged.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `docs/artifacts/compatibility_checks.md`
-- `lib/orbital_dynamics/campaign_planner.ex`
-- `test/orbital_dynamics/campaign_planner_test.exs`
+- `lib/orbital_dynamics/validation.ex`
+- `study_results/validation_reference_fixtures.json`
+- `test/orbital_dynamics/schema_test.exs`
+- `test/orbital_dynamics/validation_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:45268`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:43061 test/orbital_dynamics/campaign_planner_test.exs:44177 test/orbital_dynamics/campaign_planner_test.exs:45092 test/orbital_dynamics/campaign_planner_test.exs:45177 test/orbital_dynamics/campaign_planner_test.exs:45362 test/orbital_dynamics/campaign_planner_test.exs:43141`
+- `mix test test/orbital_dynamics/validation_test.exs:4960 test/orbital_dynamics/validation_test.exs:4555 test/orbital_dynamics/validation_test.exs:14265 test/orbital_dynamics/schema_test.exs:15632`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-Compatibility docs now record that operational-readiness schema-validation gates
-preserve fail/error/warning/remediation evidence and route score pressure into
-`validation_refresh_pressure_penalty`.
+Compatibility docs and the checked-in validation-reference rollup now record
+that CandidateRefresh operational-readiness replay fixtures pin branch-local
+review/import/resource pressure plus resource-availability evidence.
 
 Local review:
-Parent review confirmed operational-readiness schema-validation fields are
-preserved into branch events/risk indicators, the dedicated validation-refresh
-score term carries the penalty, broad operational-readiness scoring stays zero
-for that case, and adjacent schema-validation, operator-training,
-import-readiness, resource-availability, and ordinary readiness regressions
-pass. `.gitignore` remains unrelated and unstaged.
+Parent review confirmed the generated operational-readiness replay fixture now
+uses the resource-pressure readiness source, the expected map pins true
+branch-local pressure booleans and resource reason evidence, stale pressure
+observations fail verification, and SchemaTest reconstructs the checked-in
+reference rollup with live score-term and timeline-lifecycle observations where
+needed. `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Validation evidence from operational-readiness gates is now planner-visible in
-the same dedicated V3 score-term family as quality-gate schema-validation
-pressure, improving reproducible Cadence-facing import-block explanations.
+CandidateRefresh operational-readiness replay pressure is now protected by
+validation-reference fixture evidence, strengthening durable compatibility
+checks for branch-local readiness provenance.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -66,7 +63,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`bc99918` Route readiness validation score pressure.
+`dd6c7d3` Pin readiness replay pressure fixtures.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -79,6 +76,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `dd6c7d3` pinned CandidateRefresh operational-readiness replay pressure
+  fixture observations and stale-pressure verification.
 - `bc99918` routed operational-readiness schema-validation pressure into the
   dedicated V3 validation-refresh score term.
 - `754dfc3` routed operational-readiness import-readiness pressure into the
