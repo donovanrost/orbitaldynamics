@@ -5,58 +5,61 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Harden timeline preservation pressure score helper evidence.
+Harden stale lifecycle-state pressure row evidence.
 
 Status:
-Completed and pushed in product commit `120e936`.
+Completed and pushed in product commit `792e502`.
 
 Slice-selection note:
-- Selected slice: add a shared timeline preservation pressure score helper and
-  use it in focused preservation report and stale-aggregate fixtures so
-  `timeline_preservation_pressure_penalty` is proven in branch math and
-  branch-specific score-term report rows.
-- Why this slice: preservation pressure already has its own V3 score term, but
-  score assertions were duplicated across the preservation fixtures.
+- Selected slice: add a stale aggregate challenge for timeline lifecycle-state
+  summaries and make V3 branch pressure derive review/invalid/duplicate counts
+  from row-local evidence when rows are present.
+- Why this slice: the roadmap calls for stale-but-plausible lifecycle challenge
+  fixtures. Preservation already resists stale top-level aggregates, but
+  lifecycle-state pressure keyed off summary aggregate fields.
 - Level 6 pillar: durable timeline semantics; validation and challenge fixtures
   for stale-but-plausible inputs; reproducible V3 branch trees with explainable
   score terms and deltas.
-- Current evidence gap closed: preservation score-term fixtures now share one
-  helper for branch score math, split risk penalty, compatibility timeline term,
-  score-term key, and branch-specific score-term report-row checks.
+- Current evidence gap closed: stale lifecycle summary aggregate counts no
+  longer mask row-local review or invalid-input pressure before the planner
+  derives branch pressure.
 - Docs read:
   `docs/feature_set/capability_map/08_mission_activities_and_timelines.md`,
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`.
-- Definition of done: shared preservation pressure assertions prove branch score
-  math, split risk penalty, compatibility timeline term, score-term key, and
-  branch-specific score-term report row evidence; docs note the shared helper
-  evidence; product commit pushed without touching unrelated `.gitignore`.
+- Definition of done: stale top-level lifecycle aggregate counts no longer mask
+  row-local review/invalid-input pressure in V3 branches; score terms and
+  branch comparison rows still expose the pressure; docs record the challenge
+  behavior; product commit pushed without touching unrelated `.gitignore`.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
+- `lib/orbital_dynamics/campaign_planner.ex`
+- `lib/orbital_dynamics/candidate_refresh.ex`
 - `test/orbital_dynamics/campaign_planner_test.exs`
 - `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:30211 test/orbital_dynamics/campaign_planner_test.exs:30393`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:29676 test/orbital_dynamics/campaign_planner_test.exs:29859 test/orbital_dynamics/campaign_planner_test.exs:29983`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:29993`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
-- `rg -n "assert_timeline_preservation_pressure_score_terms|preservation pressure fixtures now assert|timeline_preservation_pressure_penalty|timeline_pressure_penalty|risk_penalty" test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
+- `rg -n "put_row_derived_timeline_lifecycle_state_pressure|timeline_lifecycle_state_summary_rows_for_provenance|row-local stale aggregate|stale top-level summary aggregates|source_timeline_lifecycle_state_review_routing|assert_timeline_lifecycle_pressure_score_terms" lib/orbital_dynamics/campaign_planner.ex lib/orbital_dynamics/candidate_refresh.ex test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Docs/artifacts changed:
-The V3 strategy-orchestration docs now note that focused preservation pressure
-fixtures assert split branch math, legacy compatibility term behavior, and
-score-term report rows through a shared helper.
+The V3 strategy-orchestration docs now state that lifecycle-state branch
+pressure derives from row-local lifecycle evidence when rows are present, so
+stale top-level aggregates cannot hide review pressure.
 
 Local review:
-Parent local review confirmed the diff is limited to the shared timeline
-preservation pressure score helper, the three focused preservation helper call
-sites, the V3 score-term doc note, and this ledger. `.gitignore` remains
-unrelated and unstaged.
+Parent local review confirmed the diff is limited to row-derived lifecycle
+pressure normalization, CandidateRefresh lifecycle review-routing fallback to
+row evidence, a stale aggregate challenge fixture, the V3 doc note, and this
+ledger. `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Timeline preservation challenge fixtures now prove branch score math, split risk
-penalty, compatibility timeline term behavior, score-term key, and
-branch-specific score-term report rows through a shared helper.
+Stale-but-plausible lifecycle-state inputs now preserve row-local review,
+duplicate-identity, and invalid-input pressure through V3 branch derivation,
+score terms, branch comparison rows, and CandidateRefresh provenance routing.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -66,17 +69,18 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`120e936` Harden timeline preservation pressure helper.
+`792e502` Harden stale lifecycle pressure evidence.
 
 Next candidate:
-Reassess the next highest-value planner-visible candidate-refresh or
-timeline-semantics gap.
+Reassess the next planner-visible candidate-refresh or timeline-semantics gap.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 
 Previous published slices:
+- `792e502` hardened stale lifecycle-state pressure against stale top-level
+  aggregates by deriving branch pressure from row-local evidence.
 - `120e936` hardened shared timeline preservation pressure helper coverage for
   split branch math and score-term report rows.
 - `f7b4985` hardened shared timeline precondition pressure helper coverage for
@@ -91,5 +95,3 @@ Previous published slices:
   split branch math and score-term report rows.
 - `0c59255` hardened shared relay data-path pressure helper coverage for split
   branch math and score-term report rows.
-- `61c9484` hardened shared validation/refresh governance pressure helper
-  coverage for split branch math and score-term report rows.
