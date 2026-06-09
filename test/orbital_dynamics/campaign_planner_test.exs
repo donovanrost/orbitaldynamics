@@ -80788,7 +80788,10 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert branch["score_terms"][pressure_term] ==
              -validation_refresh_pressure_count * risk_weight
 
-    if pressure_term == "model_acceptance_pressure_penalty" do
+    if pressure_term in [
+         "model_acceptance_pressure_penalty",
+         "validation_safety_case_pressure_penalty"
+       ] do
       assert branch["score_terms"]["validation_refresh_pressure_penalty"] == 0.0
     end
 
@@ -80809,12 +80812,20 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
   defp validation_refresh_pressure_term("model_acceptance"),
     do: "model_acceptance_pressure_penalty"
 
+  defp validation_refresh_pressure_term("validation_safety_case"),
+    do: "validation_safety_case_pressure_penalty"
+
   defp validation_refresh_pressure_term(_feedback_scope),
     do: "validation_refresh_pressure_penalty"
 
   defp validation_refresh_scored_pressure?(risk, "model_acceptance"),
     do:
       risk["feedback_scope"] == "model_acceptance" or risk["type"] == "model_acceptance_pressure"
+
+  defp validation_refresh_scored_pressure?(risk, "validation_safety_case"),
+    do:
+      risk["feedback_scope"] == "validation_safety_case" or
+        risk["type"] == "validation_safety_case_pressure"
 
   defp validation_refresh_scored_pressure?(risk, _feedback_scope),
     do: validation_refresh_pressure?(risk)
@@ -80823,13 +80834,11 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     validation_refresh_source_report_pressure?(risk, "schema_validation") or
       risk["feedback_scope"] in [
         "schema_validation",
-        "validation_safety_case",
         "refresh_budget",
         "refresh_freshness"
       ] or
       risk["type"] in [
         "schema_validation_pressure",
-        "validation_safety_case_pressure",
         "refresh_budget_pressure",
         "refresh_freshness_pressure"
       ]

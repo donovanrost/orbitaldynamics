@@ -2920,6 +2920,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     model_acceptance_pressure_count =
       model_acceptance_pressure_risk_count(risk_indicators)
 
+    validation_safety_case_pressure_count =
+      validation_safety_case_pressure_risk_count(risk_indicators)
+
     validation_refresh_pressure_count =
       validation_refresh_pressure_risk_count(risk_indicators)
 
@@ -2953,6 +2956,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
           battery_depletion_pressure_count - station_calendar_pressure_count -
           candidate_rejection_pressure_count - provider_counteroffer_pressure_count -
           model_acceptance_pressure_count -
+          validation_safety_case_pressure_count -
           validation_refresh_pressure_count -
           relay_data_path_pressure_count - execution_feedback_pressure_count,
         0
@@ -3093,6 +3097,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     model_acceptance_pressure_penalty =
       -model_acceptance_pressure_count * policy.risk_weight
 
+    validation_safety_case_pressure_penalty =
+      -validation_safety_case_pressure_count * policy.risk_weight
+
     validation_refresh_pressure_penalty =
       -validation_refresh_pressure_count * policy.risk_weight
 
@@ -3132,7 +3139,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
         resource_availability_pressure_penalty + resource_margin_pressure_penalty +
         battery_depletion_pressure_penalty + station_calendar_pressure_penalty +
         candidate_rejection_pressure_penalty + provider_counteroffer_pressure_penalty +
-        model_acceptance_pressure_penalty + validation_refresh_pressure_penalty +
+        model_acceptance_pressure_penalty + validation_safety_case_pressure_penalty +
+        validation_refresh_pressure_penalty +
         relay_data_path_pressure_penalty + execution_feedback_pressure_penalty +
         risk_penalty + approval_load_penalty
 
@@ -3188,6 +3196,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "candidate_rejection_pressure_penalty" => candidate_rejection_pressure_penalty,
       "provider_counteroffer_pressure_penalty" => provider_counteroffer_pressure_penalty,
       "model_acceptance_pressure_penalty" => model_acceptance_pressure_penalty,
+      "validation_safety_case_pressure_penalty" => validation_safety_case_pressure_penalty,
       "validation_refresh_pressure_penalty" => validation_refresh_pressure_penalty,
       "relay_data_path_pressure_penalty" => relay_data_path_pressure_penalty,
       "execution_feedback_pressure_penalty" => execution_feedback_pressure_penalty,
@@ -3748,6 +3757,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp validation_safety_case_pressure_risk?(_risk), do: false
 
+  defp validation_safety_case_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &validation_safety_case_pressure_risk?/1)
+  end
+
   defp validation_refresh_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &validation_refresh_pressure_risk?/1)
   end
@@ -3755,7 +3768,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp validation_refresh_pressure_risk?(%{"feedback_scope" => scope})
        when scope in [
               "schema_validation",
-              "validation_safety_case",
               "refresh_budget",
               "refresh_freshness"
             ],
@@ -3764,7 +3776,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp validation_refresh_pressure_risk?(%{"type" => type})
        when type in [
               "schema_validation_pressure",
-              "validation_safety_case_pressure",
               "refresh_budget_pressure",
               "refresh_freshness_pressure"
             ],
@@ -9373,6 +9384,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"candidate_rejection_pressure", "candidate_rejection_pressure_penalty"},
         {"provider_counteroffer_pressure", "provider_counteroffer_pressure_penalty"},
         {"model_acceptance_pressure", "model_acceptance_pressure_penalty"},
+        {"validation_safety_case_pressure", "validation_safety_case_pressure_penalty"},
         {"validation_refresh_pressure", "validation_refresh_pressure_penalty"},
         {"relay_data_path_pressure", "relay_data_path_pressure_penalty"},
         {"execution_feedback_pressure", "execution_feedback_pressure_penalty"}
