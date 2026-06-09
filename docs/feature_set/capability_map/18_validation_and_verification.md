@@ -141,6 +141,32 @@ from deterministic mission-plan activities, pinning current precondition,
 invalid-activity, command-window, integrity, import/action, and no-execution
 boundary fields before schema validation.
 
+## Contact-intent fixtures
+
+Status: **implemented**.
+
+The validation-reference fixture set includes checked-in `contact_intent.v1`
+and `contact_intent_summary.v1` artifact-contract cases. The contact-intent
+fixture observes:
+
+- Contact identity, timing, direction, and station routing.
+- Cadence import identity fields.
+- Approval status and policy-decision classification.
+- Artifact-only model limits for no provider reservation, no schedule mutation,
+  and no command execution.
+
+The contact-intent summary fixture observes:
+
+- Row-derived contact counts.
+- Direction and ground-station routing.
+- Capacity-pack required contact and capacity-fraction totals.
+- Required-capacity source routing.
+- The artifact-only no-provider-reservation/no-schedule-mutation boundary.
+
+Fixture verification rejects stale approval status, summary routing, count, and
+execution-boundary observations before contact-intent handoffs can be treated as
+import-ready provider or schedule authority.
+
 ## Station-calendar and reservation fixture integrity
 
 Station-calendar and station-reservation fixtures now observe:
@@ -868,6 +894,21 @@ The validation-reference fixture set now includes a checked-in `link_capacity_re
 - Throughput totals.
 - Station-selection routing maps.
 - Model-limit boundaries.
+
+It also includes checked-in `link_capacity_summary.v1` and
+`relay_data_path_summary.v1` cases. These summary fixtures verify:
+
+- Effective, selected, and actual-throughput contact counts.
+- Downlink requirement and actual shortfall status.
+- Capacity-adjusted throughput totals.
+- Ground-station routing maps.
+- Relay data-path feasibility and relay-window routing.
+- Artifact-only no-provider-reservation/no-schedule-mutation/no-link-budget
+  assumptions.
+
+Fixture verification rejects stale summary counts, stale station routing, stale
+relay-path routing, and stale execution-boundary observations before compact
+link-capacity handoffs can steer candidate refresh or Cadence import review.
 
 ## Partial
 
