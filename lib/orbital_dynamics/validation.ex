@@ -1515,6 +1515,7 @@ defmodule OrbitalDynamics.Validation do
           "timeline_publication_pressure_penalty" => 27,
           "validation_refresh_pressure_penalty" => 27
         },
+        "score_term_report_validation_refresh_pressure_row_count" => 27,
         "score_term_report_score_term_source" => "campaign_strategy.branches.score_terms",
         "score_term_report_model_limit_count" => 4
       },
@@ -1527,6 +1528,7 @@ defmodule OrbitalDynamics.Validation do
         "score_term_report_derived_row_count" => 0,
         "score_term_report_selected_row_count" => 0,
         "score_term_report_key_count" => 0,
+        "score_term_report_validation_refresh_pressure_row_count" => 0,
         "score_term_report_model_limit_count" => 0
       },
       "evidence" => [
@@ -15022,6 +15024,11 @@ defmodule OrbitalDynamics.Validation do
         Map.get(score_term_observations, "score_term_key_counts") || %{},
       "score_term_report_row_derived_key_counts" =>
         Map.get(score_term_observations, "row_derived_score_term_key_counts") || %{},
+      "score_term_report_validation_refresh_pressure_row_count" =>
+        get_in(score_term_observations, [
+          "row_derived_score_term_key_counts",
+          "validation_refresh_pressure_penalty"
+        ]),
       "score_term_report_score_term_source" =>
         Map.get(score_term_observations, "score_term_source"),
       "score_term_report_model_limit_count" =>

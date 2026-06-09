@@ -1748,6 +1748,8 @@ defmodule OrbitalDynamics.ValidationTest do
              "resource_availability_pressure_penalty"
            ] == 27
 
+    assert observations["score_term_report_validation_refresh_pressure_row_count"] == 27
+
     stale_score_term_key_observations =
       observations
       |> put_in(
@@ -1766,6 +1768,23 @@ defmodule OrbitalDynamics.ValidationTest do
     assert Enum.any?(
              stale_score_term_key_report["checks"],
              &(&1["field"] == "score_term_report_row_derived_key_counts" and
+                 &1["status"] == "fail")
+           )
+
+    stale_validation_refresh_pressure_observations =
+      Map.put(observations, "score_term_report_validation_refresh_pressure_row_count", 0)
+
+    assert {:ok, stale_validation_refresh_pressure_report} =
+             Validation.verify_reference_fixture(
+               "fixture.artifact.campaign_strategy.leo_constellation_v3",
+               stale_validation_refresh_pressure_observations
+             )
+
+    assert stale_validation_refresh_pressure_report["status"] == "fail"
+
+    assert Enum.any?(
+             stale_validation_refresh_pressure_report["checks"],
+             &(&1["field"] == "score_term_report_validation_refresh_pressure_row_count" and
                  &1["status"] == "fail")
            )
 
