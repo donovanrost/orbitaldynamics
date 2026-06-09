@@ -28885,20 +28885,32 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
 
-    timeline_pressure_count =
+    timeline_publication_pressure_count =
       Enum.count(
         prior_source_branch["risk_indicators"],
         &(&1["type"] == "timeline_publication_pressure")
       )
 
-    assert timeline_pressure_count == 1
+    assert timeline_publication_pressure_count == 1
 
-    assert prior_source_branch["score_terms"]["timeline_pressure_penalty"] ==
-             -timeline_pressure_count * risk_weight
+    assert prior_source_branch["score_terms"]["timeline_publication_pressure_penalty"] ==
+             -timeline_publication_pressure_count * risk_weight
+
+    assert prior_source_branch["score_terms"]["timeline_pressure_penalty"] == 0.0
 
     assert prior_source_branch["score_terms"]["risk_penalty"] ==
-             -(length(prior_source_branch["risk_indicators"]) - timeline_pressure_count) *
-               risk_weight
+             -(length(prior_source_branch["risk_indicators"]) -
+                 timeline_publication_pressure_count) * risk_weight
+
+    assert "timeline_publication_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == prior_source_branch_id and
+                 &1["term_key"] == "timeline_publication_pressure_penalty" and &1["value"] < 0.0)
+           )
 
     prior_source_row =
       artifact["branch_comparison_report"]["rows"]
