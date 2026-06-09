@@ -45094,28 +45094,25 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "trust_boundary" => "prior_plan_result_artifact_boundary"
            } = List.first(wrapped_quality_branch["events"])
 
-    quality_pressure_count =
+    direct_quality_pressure_count =
       Enum.count(
         direct_quality_branch["risk_indicators"],
         &(&1["type"] == "quality_gate_pressure")
       )
 
-    readiness_risk_weight =
-      get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+    wrapped_quality_pressure_count =
+      Enum.count(
+        wrapped_quality_branch["risk_indicators"],
+        &(&1["type"] == "quality_gate_pressure")
+      )
 
-    assert quality_pressure_count == 1
+    assert direct_quality_pressure_count == 1
+    assert wrapped_quality_pressure_count == 1
 
     assert_operational_readiness_pressure_score_terms(direct_readiness_branch, artifact)
     assert_operational_readiness_pressure_score_terms(wrapped_readiness_branch, artifact)
-
-    assert direct_quality_branch["score_terms"]["approval_boundary_pressure_penalty"] == 0.0
-
-    assert direct_quality_branch["score_terms"]["quality_gate_pressure_penalty"] ==
-             -quality_pressure_count * readiness_risk_weight
-
-    assert direct_quality_branch["score_terms"]["risk_penalty"] ==
-             -(length(direct_quality_branch["risk_indicators"]) - quality_pressure_count) *
-               readiness_risk_weight
+    assert_quality_gate_pressure_score_terms(direct_quality_branch, artifact)
+    assert_quality_gate_pressure_score_terms(wrapped_quality_branch, artifact)
 
     comparison_rows =
       artifact["branch_comparison_report"]["rows"]

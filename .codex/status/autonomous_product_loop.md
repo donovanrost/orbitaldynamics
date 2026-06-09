@@ -5,68 +5,59 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Harden operational-readiness pressure score helper evidence.
+Apply quality-gate pressure helper to prior-plan branch evidence.
 
 Status:
-Completed and pushed in product commit `b27e50b`.
+Implemented and verified locally; ready for mechanical commit/push handoff.
 
 Slice-selection note:
-- Selected slice: add a shared operational-readiness pressure score helper and
-  route focused readiness-pressure fixtures through it so
-  `operational_readiness_pressure_penalty` is proven in branch math and
-  score-term report rows.
-- Why this slice: readiness-pressure tests have the right score evidence, but
-  it is duplicated in individual tests rather than guarded by the same reusable
-  helper pattern as quality-gate pressure.
+- Selected slice: route the prior-plan direct and wrapped quality-gate pressure
+  branches through the existing shared quality-gate pressure score helper so
+  `quality_gate_pressure_penalty` is proven in branch math and score-term
+  report rows for both source paths.
+- Why this slice: after the readiness helper pass, the same prior-plan fixture
+  still leaves quality-gate pressure score checks partly ad hoc and does not
+  helper-check the wrapped quality-gate branch.
 - Level 6 pillar: validation, compatibility, and challenge fixtures for unsafe
   but plausible inputs; reproducible V3 branch score explanations.
-- Current evidence gap: operational-readiness pressure fixtures can drift apart
-  because branch score math, approval-boundary split, and score-term report row
-  checks are not centralized.
+- Current evidence gap: prior-plan quality-gate branches can drift away from
+  the shared helper evidence expected by downstream V3 review/import score
+  explanations.
 - Docs to read:
-  `docs/feature_set/capability_map/17_reproducibility_artifacts_and_audit.md`,
-  `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`,
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`.
 - Likely files:
   `test/orbital_dynamics/campaign_planner_test.exs`,
-  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
   `.codex/status/autonomous_product_loop.md`.
 - Likely tests:
-  focused campaign-planner operational-readiness pressure tests using the
-  helper;
+  `mix test test/orbital_dynamics/campaign_planner_test.exs:44884`;
   `mix compile --warnings-as-errors`; `git diff --check`.
-- Definition of done: shared operational-readiness pressure assertions prove
-  branch score math, approval-boundary split, score-term key, and score-term
-  report row for readiness-pressure fixtures, docs note the shared helper
-  evidence, locally reviewed, committed, and pushed without touching unrelated
-  `.gitignore`.
+- Definition of done: the prior-plan direct and wrapped quality-gate branches
+  use the shared helper for branch score math, approval-boundary split,
+  score-term key, and score-term report row evidence, locally reviewed,
+  committed, and pushed without touching unrelated `.gitignore`.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `test/orbital_dynamics/campaign_planner_test.exs`
-- `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:18657 test/orbital_dynamics/campaign_planner_test.exs:44884 test/orbital_dynamics/campaign_planner_test.exs:45265`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:44884`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
-- `rg -n "assert_operational_readiness_pressure_score_terms|operational-readiness pressure fixtures now assert|operational_readiness_pressure_penalty|approval_boundary_pressure_penalty" test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
+- `rg -n "assert_quality_gate_pressure_score_terms|derived_quality_gate_pressure|quality_gate_pressure_penalty|approval_boundary_pressure_penalty" test/orbital_dynamics/campaign_planner_test.exs .codex/status/autonomous_product_loop.md`
 
 Docs/artifacts changed:
-The V3 strategy-orchestration docs now note that focused
-operational-readiness pressure fixtures assert split branch math and score-term
-report rows through the shared helper.
+None; this slice only strengthens focused test evidence.
 
 Local review:
-Parent local review confirmed the diff is limited to the shared
-operational-readiness pressure score helper, focused readiness-pressure helper
-call sites, the V3 score-term doc note, and this ledger. `.gitignore` remains
-unrelated and unstaged.
+Parent local review confirmed the diff is limited to prior-plan direct and
+wrapped quality-gate pressure helper call sites plus this ledger. `.gitignore`
+remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Operational-readiness pressure challenge fixtures now prove branch score math,
-approval-boundary split, score-term key, and score-term report rows through a
-shared helper for direct, wrapped, mixed, and stale readiness-pressure branches.
+Prior-plan quality-gate pressure challenge fixtures now prove branch score
+math, approval-boundary split, score-term key, and score-term report rows
+through the shared helper for direct and wrapped source paths.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -76,10 +67,11 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
+Pending mechanical publish for this slice; previous product commit was
 `b27e50b` Harden readiness pressure score helper.
 
 Next candidate:
-After this helper hardening, continue with the next planner-visible
+After this helper-application slice, continue with the next planner-visible
 resource/contact/readiness or candidate-refresh provenance gap from the guide.
 
 Unrelated local changes:
