@@ -140,7 +140,16 @@ Each summary carries paths plus its relevant counts/summaries:
 
 ### Inspection helpers
 
-Callers can also use `CandidateRefresh.source_report_summary/1` or `OrbitalDynamics.candidate_refresh_source_report_summary/1` to inspect the same normalized source-report provenance from a refresh request or built `candidate_refresh.v1` artifact **without replaying or mutating refresh state** — including top-level source-report path maps by family, contract, and trust-boundary status for branch-local adapter routing, with those summary routing semantics advertised through the public capability catalog.
+Callers can also use `CandidateRefresh.source_report_summary/1` or
+`OrbitalDynamics.candidate_refresh_source_report_summary/1` to inspect the same
+normalized source-report provenance from a refresh request or built
+`candidate_refresh.v1` artifact **without replaying or mutating refresh
+state** — including top-level source-report path maps by family, contract, and
+trust-boundary status for branch-local adapter routing, with those summary
+routing semantics advertised through the public capability catalog. Timeline
+activity-precondition source summaries derive status, blocked/review counts,
+and type maps from precondition rows when row evidence is present, so stale
+top-level aggregate fields cannot hide branch-local replay pressure.
 
 ## Repair- and strategy-generated candidate-source metadata
 

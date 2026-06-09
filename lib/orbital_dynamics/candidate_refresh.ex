@@ -22996,10 +22996,13 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "blocked_precondition_count" =>
         sum_report_count(
           summaries,
-          &numeric_report_count(&1, "blocked_precondition_count")
+          &timeline_activity_precondition_summary_precondition_count(&1, "blocked")
         ),
       "review_precondition_count" =>
-        sum_report_count(summaries, &numeric_report_count(&1, "review_precondition_count")),
+        sum_report_count(
+          summaries,
+          &timeline_activity_precondition_summary_precondition_count(&1, "review_required")
+        ),
       "invalid_activity_input_count" =>
         sum_report_count(
           summaries,
@@ -23139,15 +23142,46 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp timeline_activity_precondition_summary_invalid_activity_input_count(_summary), do: 0
 
   defp timeline_activity_precondition_summary_field_counts(%{} = summary, field) do
-    summary
-    |> Map.get(field)
-    |> List.wrap()
-    |> count_source_report_values()
+    precondition_rows = timeline_activity_precondition_summary_precondition_rows(summary)
+
+    if field == "precondition_status" and precondition_rows != [] do
+      precondition_rows
+      |> timeline_activity_precondition_precondition_rows_status()
+      |> List.wrap()
+      |> count_source_report_values()
+    else
+      summary
+      |> Map.get(field)
+      |> List.wrap()
+      |> count_source_report_values()
+    end
+  end
+
+  defp timeline_activity_precondition_summary_list_counts(%{} = summary, field)
+       when field in ["blocked_precondition_types", "review_precondition_types"] do
+    precondition_rows = timeline_activity_precondition_summary_precondition_rows(summary)
+
+    if precondition_rows == [] do
+      summary
+      |> Map.get(field, [])
+      |> List.wrap()
+      |> count_source_report_values()
+    else
+      status =
+        case field do
+          "blocked_precondition_types" -> "blocked"
+          "review_precondition_types" -> "review_required"
+        end
+
+      precondition_rows
+      |> timeline_activity_precondition_precondition_rows_types(status)
+      |> count_source_report_values()
+    end
   end
 
   defp timeline_activity_precondition_summary_list_counts(%{} = summary, field) do
     summary
-    |> Map.get(field, [])
+    |> Map.get(field)
     |> List.wrap()
     |> count_source_report_values()
   end
@@ -23197,6 +23231,74 @@ defmodule OrbitalDynamics.CandidateRefresh do
   end
 
   defp timeline_activity_precondition_summary_allow_overlap_counts(_summary), do: %{}
+
+  defp timeline_activity_precondition_summary_precondition_count(%{} = summary, status) do
+    case timeline_activity_precondition_summary_precondition_rows(summary) do
+      [] ->
+        fallback_field =
+          case status do
+            "blocked" -> "blocked_precondition_count"
+            "review_required" -> "review_precondition_count"
+          end
+
+        numeric_report_count(summary, fallback_field)
+
+      rows ->
+        Enum.count(rows, &(timeline_activity_precondition_precondition_row_status(&1) == status))
+    end
+  end
+
+  defp timeline_activity_precondition_summary_precondition_count(_summary, _status), do: 0
+
+  defp timeline_activity_precondition_summary_precondition_rows(%{"preconditions" => rows})
+       when is_list(rows) do
+    timeline_activity_precondition_precondition_rows(rows)
+  end
+
+  defp timeline_activity_precondition_summary_precondition_rows(%{"rows" => rows})
+       when is_list(rows) do
+    rows
+    |> Enum.flat_map(fn
+      %{} = row -> List.wrap(Map.get(row, "preconditions"))
+      _row -> []
+    end)
+    |> timeline_activity_precondition_precondition_rows()
+  end
+
+  defp timeline_activity_precondition_summary_precondition_rows(_summary), do: []
+
+  defp timeline_activity_precondition_precondition_rows(rows) do
+    rows
+    |> Enum.filter(&is_map/1)
+    |> Enum.map(&stringify_keys/1)
+  end
+
+  defp timeline_activity_precondition_precondition_rows_status(rows) do
+    cond do
+      Enum.any?(rows, &(timeline_activity_precondition_precondition_row_status(&1) == "blocked")) ->
+        "blocked"
+
+      Enum.any?(
+        rows,
+        &(timeline_activity_precondition_precondition_row_status(&1) == "review_required")
+      ) ->
+        "review_required"
+
+      true ->
+        "clear"
+    end
+  end
+
+  defp timeline_activity_precondition_precondition_rows_types(rows, status) do
+    rows
+    |> Enum.filter(&(timeline_activity_precondition_precondition_row_status(&1) == status))
+    |> Enum.map(&Map.get(&1, "type"))
+    |> sorted_string_values()
+  end
+
+  defp timeline_activity_precondition_precondition_row_status(row) do
+    row["status"]
+  end
 
   defp source_timeline_lifecycle_state_summary_input_summary([]), do: nil
 
@@ -49624,6 +49726,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
       |> Enum.flat_map(&(Map.get(&1, "preconditions") || []))
       |> Enum.filter(&is_map/1)
 
+    precondition_rows = timeline_activity_precondition_precondition_rows(preconditions)
+
     summary =
       %{
         "schema_contract" => "timeline_activity_precondition_summary.v1",
@@ -49631,19 +49735,32 @@ defmodule OrbitalDynamics.CandidateRefresh do
         "source" => source,
         "source_artifact_type" => Map.get(artifact, "source_artifact_type"),
         "source_artifact_id" => Map.get(artifact, "source_artifact_id"),
-        "precondition_status" => timeline_activity_precondition_rows_status(rows),
+        "precondition_status" =>
+          timeline_activity_precondition_embedded_rows_status(rows, precondition_rows),
         "blocked_precondition_count" =>
-          sum_report_count(rows, &numeric_report_count(&1, "blocked_precondition_count")),
+          timeline_activity_precondition_embedded_rows_count(
+            rows,
+            precondition_rows,
+            "blocked"
+          ),
         "review_precondition_count" =>
-          sum_report_count(rows, &numeric_report_count(&1, "review_precondition_count")),
+          timeline_activity_precondition_embedded_rows_count(
+            rows,
+            precondition_rows,
+            "review_required"
+          ),
         "blocked_precondition_types" =>
-          rows
-          |> Enum.flat_map(&Map.get(&1, "blocked_precondition_types", []))
-          |> sorted_string_values(),
+          timeline_activity_precondition_embedded_rows_types(
+            rows,
+            precondition_rows,
+            "blocked"
+          ),
         "review_precondition_types" =>
-          rows
-          |> Enum.flat_map(&Map.get(&1, "review_precondition_types", []))
-          |> sorted_string_values(),
+          timeline_activity_precondition_embedded_rows_types(
+            rows,
+            precondition_rows,
+            "review_required"
+          ),
         "preconditions" => preconditions,
         "activity_id" =>
           rows
@@ -49718,6 +49835,56 @@ defmodule OrbitalDynamics.CandidateRefresh do
       Enum.any?(rows, &(&1["invalid_activity_input"] == true)) -> "review_required"
       true -> "clear"
     end
+  end
+
+  defp timeline_activity_precondition_embedded_rows_status(_rows, precondition_rows)
+       when precondition_rows != [] do
+    timeline_activity_precondition_precondition_rows_status(precondition_rows)
+  end
+
+  defp timeline_activity_precondition_embedded_rows_status(rows, _precondition_rows) do
+    timeline_activity_precondition_rows_status(rows)
+  end
+
+  defp timeline_activity_precondition_embedded_rows_count(_rows, precondition_rows, status)
+       when precondition_rows != [] do
+    Enum.count(
+      precondition_rows,
+      &(timeline_activity_precondition_precondition_row_status(&1) == status)
+    )
+  end
+
+  defp timeline_activity_precondition_embedded_rows_count(rows, _precondition_rows, "blocked") do
+    sum_report_count(rows, &numeric_report_count(&1, "blocked_precondition_count"))
+  end
+
+  defp timeline_activity_precondition_embedded_rows_count(
+         rows,
+         _precondition_rows,
+         "review_required"
+       ) do
+    sum_report_count(rows, &numeric_report_count(&1, "review_precondition_count"))
+  end
+
+  defp timeline_activity_precondition_embedded_rows_types(_rows, precondition_rows, status)
+       when precondition_rows != [] do
+    timeline_activity_precondition_precondition_rows_types(precondition_rows, status)
+  end
+
+  defp timeline_activity_precondition_embedded_rows_types(rows, _precondition_rows, "blocked") do
+    rows
+    |> Enum.flat_map(&Map.get(&1, "blocked_precondition_types", []))
+    |> sorted_string_values()
+  end
+
+  defp timeline_activity_precondition_embedded_rows_types(
+         rows,
+         _precondition_rows,
+         "review_required"
+       ) do
+    rows
+    |> Enum.flat_map(&Map.get(&1, "review_precondition_types", []))
+    |> sorted_string_values()
   end
 
   defp operational_timeline_row_from_review_or_import_row(%{} = row) do

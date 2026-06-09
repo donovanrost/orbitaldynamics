@@ -902,6 +902,10 @@ Source-report summaries include source-report paths grouped by family,
 contract, and trust-boundary status plus request-derived candidate-source path
 metadata without reintroducing objective and constraint reports as duplicate
 raw refresh objectives.
+Timeline activity-precondition source summaries derive status, blocked/review
+counts, and blocked/review type maps from precondition rows when row evidence
+is present, so stale top-level aggregate fields cannot suppress branch-local
+CandidateRefresh replay pressure.
 
 CandidateRefresh now also preserves operational-timeline
 dependency/exclusivity integrity issue counts in source-report and

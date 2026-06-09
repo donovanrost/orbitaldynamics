@@ -25545,6 +25545,119 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     refute Map.has_key?(source_summary, "source_report_timeline_activity_precondition_paths")
   end
 
+  test "timeline activity precondition source summaries derive stale aggregate pressure from rows" do
+    stale_summary =
+      Timeline.activity_precondition_summary(%{
+        id: :stale_precondition_refresh,
+        type: :command,
+        payload_available: false,
+        degraded: true,
+        resource_blocking_dimension: :power,
+        metadata: %{timeline_id: :"timeline:stale_precondition_refresh"}
+      })
+      |> Map.put("provenance", %{"trust_boundary" => "stale_precondition_refresh_boundary"})
+      |> Map.update!("preconditions", fn preconditions ->
+        Enum.map(preconditions, fn precondition ->
+          precondition
+          |> Map.put("blocked_precondition_count", 99)
+          |> Map.put("review_precondition_count", 99)
+          |> Map.put("blocked_precondition_types", ["bogus_blocked_row_type"])
+          |> Map.put("review_precondition_types", ["bogus_review_row_type"])
+          |> Map.put("precondition_status", "clear")
+        end)
+      end)
+      |> Map.merge(%{
+        "precondition_status" => "clear",
+        "blocked_precondition_count" => 0,
+        "review_precondition_count" => 0,
+        "blocked_precondition_types" => [],
+        "review_precondition_types" => []
+      })
+
+    refresh = %{
+      "source_timeline_activity_precondition_summary" => stale_summary,
+      "source_operator_review_package" =>
+        OperatorReview.from_timeline_activity_precondition_summary(stale_summary),
+      "source_cadence_import_manifest" =>
+        CadenceImport.from_timeline_activity_precondition_summary(stale_summary)
+    }
+
+    assert %{
+             "source_report_timeline_activity_precondition_status_counts" => %{
+               "blocked" => 3
+             },
+             "source_report_timeline_activity_precondition_blocked_precondition_count" => 6,
+             "source_report_timeline_activity_precondition_review_precondition_count" => 3,
+             "source_report_timeline_activity_precondition_blocked_precondition_type_counts" => %{
+               "payload_unavailable" => 3,
+               "resource_block_declared" => 3
+             },
+             "source_report_timeline_activity_precondition_review_precondition_type_counts" => %{
+               "degraded_mode" => 3
+             },
+             "source_report_timeline_activity_precondition_branch_local_timeline_activity_precondition_pressure" =>
+               true,
+             "source_report_timeline_activity_precondition_branch_local_review_pressure" => true,
+             "source_reports" => %{
+               "timeline_activity_precondition_summary" => %{
+                 "precondition_status_counts" => %{"blocked" => 3},
+                 "blocked_precondition_count" => 6,
+                 "review_precondition_count" => 3,
+                 "blocked_precondition_type_counts" => %{
+                   "payload_unavailable" => 3,
+                   "resource_block_declared" => 3
+                 },
+                 "review_precondition_type_counts" => %{"degraded_mode" => 3}
+               }
+             }
+           } = CandidateRefresh.source_report_summary(refresh)
+
+    assert %{
+             "precondition_status_counts" => %{"blocked" => 3},
+             "blocked_precondition_count" => 6,
+             "review_precondition_count" => 3,
+             "blocked_precondition_type_counts" => %{
+               "payload_unavailable" => 3,
+               "resource_block_declared" => 3
+             },
+             "review_precondition_type_counts" => %{"degraded_mode" => 3},
+             "branch_local_timeline_activity_precondition_pressure" => true,
+             "branch_local_activity_precondition_review_pressure" => true
+           } = CandidateRefresh.timeline_activity_precondition_replay_summary(refresh)
+
+    row_only_refresh = %{
+      "source_operator_review_package" =>
+        Map.update!(refresh["source_operator_review_package"], "rows", fn rows ->
+          Enum.map(rows, &Map.delete(&1, "source_timeline_activity_precondition_summary"))
+        end),
+      "source_cadence_import_manifest" =>
+        Map.update!(refresh["source_cadence_import_manifest"], "rows", fn rows ->
+          Enum.map(rows, fn row ->
+            row
+            |> Map.delete("source_timeline_activity_precondition_summary")
+            |> Map.update("source_review_row", %{}, fn source_review_row ->
+              Map.delete(source_review_row, "source_timeline_activity_precondition_summary")
+            end)
+          end)
+        end)
+    }
+
+    assert %{
+             "source_report_timeline_activity_precondition_status_counts" => %{
+               "blocked" => 2
+             },
+             "source_report_timeline_activity_precondition_blocked_precondition_count" => 4,
+             "source_report_timeline_activity_precondition_review_precondition_count" => 2,
+             "source_report_timeline_activity_precondition_blocked_precondition_type_counts" => %{
+               "payload_unavailable" => 2,
+               "resource_block_declared" => 2
+             },
+             "source_report_timeline_activity_precondition_review_precondition_type_counts" => %{
+               "degraded_mode" => 2
+             }
+           } = CandidateRefresh.source_report_summary(row_only_refresh)
+  end
+
   test "timeline activity precondition source summary keeps declared contract without partial identity placeholders" do
     placeholder_fields = [
       %{"count" => 1},
