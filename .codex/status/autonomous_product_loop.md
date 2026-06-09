@@ -8,7 +8,7 @@ Current slice:
 Score command-window replay pressure from candidate-source reports.
 
 Status:
-Completed locally; product commit created and ledger commit pending.
+Completed and pushed.
 
 Files changed:
 - Product: `lib/orbital_dynamics/campaign_planner.ex`
@@ -89,7 +89,7 @@ Scored command-window replay pressure from candidate-source reports.
 
 Last commit:
 - Product: `78c3002` Score command-window replay pressure
-- Ledger: this handoff commit on `main`
+- Ledger: this pushed-status commit on `main`
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
