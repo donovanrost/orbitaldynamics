@@ -8,7 +8,7 @@ Current slice:
 Split candidate-rejection pressure into an explicit V3 score term.
 
 Status:
-Completed locally; pending commit/push.
+Completed and pushed in product commit `e679918`.
 
 Slice-selection note:
 - Selected slice: V3 strategy scoring should classify candidate-rejection
@@ -111,7 +111,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`25da839` Split station calendar pressure score term.
+`e679918` Score candidate rejection pressure explicitly.
 
 Next candidate:
 Continue with planner-visible resource/contact/readiness evidence that affects
@@ -123,6 +123,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `e679918` made candidate-rejection pressure score-visible and split it into
+  an explicit V3 score term.
 - `25da839` split station-calendar pressure into an explicit V3 score term.
 - `91b7f03` preserved compact station-calendar precedence reservation routing
   through CandidateRefresh source-report and replay summaries.
