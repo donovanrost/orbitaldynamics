@@ -5,8 +5,8 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Feed branch-local station-calendar replay pressure into V3 branch risk and
-score terms.
+Feed branch-local contact-filter replay pressure into V3 branch risk and score
+terms.
 
 Status:
 Completed and pushed.
@@ -17,8 +17,8 @@ Files changed:
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:24403`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:24403 test/orbital_dynamics/campaign_planner_test.exs:25279 test/orbital_dynamics/campaign_planner_test.exs:45250 test/orbital_dynamics/campaign_planner_test.exs:45683 test/orbital_dynamics/campaign_planner_test.exs:45832`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:28590`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:28590 test/orbital_dynamics/campaign_planner_test.exs:28694 test/orbital_dynamics/campaign_planner_test.exs:30390 test/orbital_dynamics/campaign_planner_test.exs:36016 test/orbital_dynamics/campaign_planner_test.exs:36107`
 - `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
 - `mix compile --warnings-as-errors`
@@ -30,27 +30,27 @@ Level 6 pillar advanced:
 Reproducible V1/V2/V3 branch trees with explainable score terms and deltas.
 
 Last completed slice:
-Fed branch-local station-calendar replay pressure into V3 branch risk and
-score terms.
+Fed branch-local contact-filter replay pressure into V3 branch risk and score
+terms.
 
 What changed:
-- Branch-generated candidate-source station-calendar replay pressure now emits
-  a `station_calendar_pressure` risk with
-  `candidate_source.station_calendar_replay_summary` provenance.
-- The synthetic branch-local station-calendar risk is limited to affected
-  contact, provider-contention, or station-availability pressure, and direct
-  event-derived station-calendar risks still take precedence.
-- Branches affected by replayed station-calendar pressure now expose
-  `station_calendar_pressure_penalty` in score terms and the score-term report.
-- Added focused assertions to the mission-state station-calendar replay
-  strategy test, including affected contact counts, calendar statuses,
-  station IDs, contact IDs, provider-contention group IDs, score-term value,
-  and score-term report rows.
+- Branch-generated candidate-source contact-filter replay pressure now emits a
+  contact-filter-scoped `downlink_completion_gap` risk with
+  `candidate_source.contact_filter_replay_summary` provenance.
+- The synthetic branch-local contact-filter risk is limited to candidate
+  suppression, invalid contact input, or station-suppression pressure, and
+  direct contact-filter event risks still take precedence.
+- Branches affected by replayed contact-filter pressure now expose
+  `contact_filter_pressure_penalty` in score terms and the score-term report.
+- Added focused assertions to the mission-state contact-filter replay strategy
+  test, including suppression counts, invalid-input IDs, reason counts,
+  directions, station IDs, availability values, score-term value, and
+  score-term report rows.
 - Parent performed bounded local review and mechanical publish because no
   suitable subagent tool is available in this runtime.
 
 Last commit:
-- Product: `4b412ea` Feed station calendar replay into branch scoring
+- Product: `fe74352` Feed contact filter replay into branch scoring
 - Ledger: latest `Update autonomous loop handoff` commit on `main`
 
 Remaining maturity gaps:
