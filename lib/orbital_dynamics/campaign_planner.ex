@@ -3178,7 +3178,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp quality_gate_pressure_risk?(%{"type" => "quality_gate_pressure"} = risk) do
-    not operator_training_pressure_risk?(risk)
+    not operator_training_pressure_risk?(risk) and
+      not schema_validation_quality_gate_pressure_risk?(risk)
   end
 
   defp quality_gate_pressure_risk?(_risk), do: false
@@ -3377,7 +3378,20 @@ defmodule OrbitalDynamics.CampaignPlanner do
             ],
        do: true
 
+  defp validation_refresh_pressure_risk?(%{"type" => "quality_gate_pressure"} = risk) do
+    schema_validation_quality_gate_pressure_risk?(risk)
+  end
+
   defp validation_refresh_pressure_risk?(_risk), do: false
+
+  defp schema_validation_quality_gate_pressure_risk?(%{"type" => "quality_gate_pressure"} = risk) do
+    risk["schema_validation_import_blocked"] == true or
+      is_map(risk["schema_validation_status_counts"]) or
+      get_in(risk, ["source_quality_gate_report", "schema_contract"]) ==
+        "operational_quality_gate_schema_validation_summary.v1"
+  end
+
+  defp schema_validation_quality_gate_pressure_risk?(_risk), do: false
 
   defp relay_data_path_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &relay_data_path_pressure_risk?/1)

@@ -463,6 +463,10 @@ schema-validation evidence before schema validation.
 CandidateRefresh replay also derives reconstructed quality-gate row counts from
 `quality_gate_row_ids_by_status` when present, preventing stale compact
 schema-validation row counts from inflating branch-local quality-gate pressure.
+V3 strategy scoring routes schema-validation summary risks into the existing
+`validation_refresh_pressure_penalty` rather than the broader
+`quality_gate_pressure_penalty`, so failed schema evidence stays visible in the
+validation score-term family.
 The public quality-gate operator-training summary publishes
 `operational_quality_gate_operator_training_summary.v1`, preserving role,
 training, certification, and qualification routing from operator-training
