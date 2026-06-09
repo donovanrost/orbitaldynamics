@@ -8,7 +8,7 @@ Current slice:
 Score candidate-diff replay pressure from candidate-source reports.
 
 Status:
-Completed; product commit created.
+Completed and pushed.
 
 Files changed:
 - Planner: `lib/orbital_dynamics/campaign_planner.ex`
@@ -85,7 +85,7 @@ Scored candidate-diff replay pressure from candidate-source reports.
 
 Last commit:
 - Product: `1e6021a` Score candidate-diff replay pressure
-- Ledger: pending
+- Ledger: `a8282e6` Update autonomous loop status
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
